@@ -173,7 +173,7 @@ class AboutYouInput {
     required this.locale,
     this.companyId,
     this.companyNameText,
-    this.recoveryEmail,
+    this.mobileE164,
   });
 
   final String firstName;
@@ -183,7 +183,9 @@ class AboutYouInput {
   final String locale;
   final String? companyId;
   final String? companyNameText;
-  final String? recoveryEmail;
+
+  /// Optional and private (decision 04): never shown on the profile.
+  final String? mobileE164;
 
   Map<String, dynamic> toProfileUpdate() => {
     'first_name': firstName.trim(),

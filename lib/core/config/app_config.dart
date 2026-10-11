@@ -9,6 +9,10 @@ abstract final class AppConfig {
   /// keys; switch on with "SOCIAL_SIGN_IN": "true" in env/dev.json.
   static const socialSignIn = bool.fromEnvironment('SOCIAL_SIGN_IN');
 
+  /// Phone sign-in (WhatsApp or SMS code). Off in the MVP: sign-in is by
+  /// email code only (decision 04). The phone screens stay in the app.
+  static const phoneSignIn = bool.fromEnvironment('PHONE_SIGN_IN');
+
   /// LinkedIn is not in the MVP; the E2 layout keeps room for it.
   static const linkedInSignIn = false;
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/app_config.dart';
 import '../../data/models/market.dart';
 import '../../data/models/people.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -51,6 +52,10 @@ class InviteCode extends Notifier<String?> {
 
   void set(String? code) => state = code;
 }
+
+/// Phone sign-in on or off (decision 04: off in the MVP). A provider so
+/// tests can switch it on.
+final phoneSignInProvider = Provider<bool>((ref) => AppConfig.phoneSignIn);
 
 /// The phone's region ("KW", "EG", …), used for the welcome pill and the
 /// default country code. Overridden in tests.

@@ -1,8 +1,11 @@
+import 'package:buildvibes/core/routing/app_routes.dart';
 import 'package:buildvibes/data/models/market.dart';
+import 'package:buildvibes/features/entry/phone_screen.dart';
 import 'package:buildvibes/features/onboarding/about_you_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../helpers/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -37,10 +40,38 @@ void main() {
       expect(find.text(l10n.entrySkipToHome), findsOneWidget);
     });
 
-    testWidgets('join: phone first; Google and Apple hidden for now [$lang]', (
+    testWidgets('join: email first; no phone, Google or Apple [$lang]', (
       tester,
     ) async {
       await pumpApp(tester, language: lang, signedIn: false);
+      await _tap(tester, 'welcome-create');
+      expect(find.text(l10n.entryContinueEmail), findsOneWidget);
+      expect(find.text(l10n.entryJoinBodyEmail), findsOneWidget);
+      expect(find.byKey(const Key('join-phone')), findsNothing);
+      expect(find.text(l10n.entryUseEmail), findsNothing);
+      expect(find.byKey(const Key('join-social')), findsNothing);
+      expect(find.text(l10n.entryNoPassword), findsOneWidget);
+
+      await _tap(tester, 'join-email');
+      expect(find.text(l10n.emailTitle), findsOneWidget);
+      expect(find.byKey(const Key('email-phone')), findsNothing);
+    });
+
+    testWidgets('the phone screen sends to email while phone is off [$lang]', (
+      tester,
+    ) async {
+      await pumpApp(tester, language: lang, signedIn: false);
+      final context = tester.element(find.byKey(const Key('welcome-create')));
+      GoRouter.of(context).go(AppRoutes.joinPhone);
+      await tester.pumpAndSettle();
+      expect(find.byType(PhoneScreen), findsNothing);
+      expect(find.text(l10n.emailTitle), findsOneWidget);
+    });
+
+    testWidgets('join with phone sign-in on: phone first [$lang]', (
+      tester,
+    ) async {
+      await pumpApp(tester, language: lang, signedIn: false, phoneSignIn: true);
       await _tap(tester, 'welcome-create');
       expect(find.text(l10n.entryContinuePhone), findsOneWidget);
       expect(find.byKey(const Key('join-social')), findsNothing);
@@ -51,7 +82,12 @@ void main() {
     testWidgets('phone sign-up: Kuwait number, code, then About you [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang, signedIn: false);
+      final app = await pumpApp(
+        tester,
+        language: lang,
+        signedIn: false,
+        phoneSignIn: true,
+      );
       await _toPhone(tester);
       expect(find.text('+965'), findsOneWidget);
       expect(find.text(l10n.phoneHelpWhatsapp), findsOneWidget);
@@ -95,6 +131,7 @@ void main() {
           signedIn: false,
           auth: auth,
           profiles: profiles,
+          phoneSignIn: true,
         );
         await _tap(tester, 'welcome-sign-in');
         await _tap(tester, 'join-phone');
@@ -110,7 +147,7 @@ void main() {
     testWidgets('a wrong code shows an error and stays [$lang]', (
       tester,
     ) async {
-      await pumpApp(tester, language: lang, signedIn: false);
+      await pumpApp(tester, language: lang, signedIn: false, phoneSignIn: true);
       await _toPhone(tester);
       await tester.enterText(find.byType(TextField), '50000002');
       await _tap(tester, 'phone-send');
@@ -121,7 +158,12 @@ void main() {
     });
 
     testWidgets('SMS instead of WhatsApp [$lang]', (tester) async {
-      final app = await pumpApp(tester, language: lang, signedIn: false);
+      final app = await pumpApp(
+        tester,
+        language: lang,
+        signedIn: false,
+        phoneSignIn: true,
+      );
       await _toPhone(tester);
       await tester.enterText(find.byType(TextField), '50000002');
       await _tap(tester, 'phone-sms');
@@ -132,7 +174,12 @@ void main() {
     testWidgets('Egypt is coming soon: new numbers see why [$lang]', (
       tester,
     ) async {
-      final app = await pumpApp(tester, language: lang, signedIn: false);
+      final app = await pumpApp(
+        tester,
+        language: lang,
+        signedIn: false,
+        phoneSignIn: true,
+      );
       await _toPhone(tester);
       await _tap(tester, 'dial-code-box');
       await _tap(tester, 'dial-eg');
@@ -151,7 +198,13 @@ void main() {
       tester,
     ) async {
       final auth = FakeAuthRepository()..existing.add('+201000000001');
-      await pumpApp(tester, language: lang, signedIn: false, auth: auth);
+      await pumpApp(
+        tester,
+        language: lang,
+        signedIn: false,
+        auth: auth,
+        phoneSignIn: true,
+      );
       await _toPhone(tester);
       await _tap(tester, 'dial-code-box');
       await _tap(tester, 'dial-eg');
@@ -165,7 +218,13 @@ void main() {
 
     testWidgets('another country code can be typed [$lang]', (tester) async {
       final auth = FakeAuthRepository()..existing.add('+919800000001');
-      await pumpApp(tester, language: lang, signedIn: false, auth: auth);
+      await pumpApp(
+        tester,
+        language: lang,
+        signedIn: false,
+        auth: auth,
+        phoneSignIn: true,
+      );
       await _toPhone(tester);
       await _tap(tester, 'dial-code-box');
       await _tap(tester, 'dial-other');
@@ -206,7 +265,7 @@ void main() {
       await _tap(tester, 'nav-create');
       expect(find.text(l10n.joinWallTitle), findsOneWidget);
       await _tap(tester, 'join-create');
-      expect(find.text(l10n.entryContinuePhone), findsOneWidget);
+      expect(find.text(l10n.entryContinueEmail), findsOneWidget);
     });
 
     testWidgets('guest Profile tab asks to join [$lang]', (tester) async {

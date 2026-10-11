@@ -98,6 +98,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: 'phone',
+            redirect: (context, state) =>
+                ref.read(phoneSignInProvider) ? null : AppRoutes.joinEmail,
             builder: (context, state) => const PhoneScreen(),
           ),
           GoRoute(

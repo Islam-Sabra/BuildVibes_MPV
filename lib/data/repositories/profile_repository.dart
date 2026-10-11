@@ -61,11 +61,11 @@ class SupabaseProfileRepository implements ProfileRepository {
         .from('profiles')
         .update(input.toProfileUpdate())
         .eq('id', userId);
-    final email = input.recoveryEmail?.trim();
-    if (email != null && email.isNotEmpty) {
+    final mobile = input.mobileE164;
+    if (mobile != null && mobile.isNotEmpty) {
       await _client
           .from('profile_private')
-          .update({'recovery_email': email})
+          .update({'mobile_e164': mobile})
           .eq('id', userId);
     }
   }

@@ -352,9 +352,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get country => 'الدولة';
 
   @override
-  String get countryFromPhone => 'من رقم هاتفك. يمكنك تغييرها من الإعدادات.';
-
-  @override
   String get role => 'الدور';
 
   @override
@@ -365,12 +362,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get companyPlaceholder => 'ابحث عن شركتك أو اكتب اسمها';
-
-  @override
-  String get recoveryEmail => 'بريد لاستعادة الدخول (اختياري)';
-
-  @override
-  String get recoveryEmailHelp => 'يساعدك على الدخول إذا تغيّر رقمك.';
 
   @override
   String get continueLabel => 'متابعة';
@@ -891,4 +882,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get monthPickerPresent => 'مستمر حتى الآن';
+
+  @override
+  String get entryContinueEmail => 'المتابعة بالبريد الإلكتروني';
+
+  @override
+  String get entryJoinBodyEmail =>
+      'انضم ببريدك الإلكتروني. يستغرق الأمر دقيقة تقريباً.';
+
+  @override
+  String get countryChangeLater => 'يمكنك تغييرها من الإعدادات.';
+
+  @override
+  String get mobileOptional => 'رقم الجوال (اختياري)';
+
+  @override
+  String get mobileHelp => 'خاص: أنت فقط تراه، ولا يظهر في ملفك أبداً.';
 }

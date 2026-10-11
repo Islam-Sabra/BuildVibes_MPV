@@ -97,14 +97,15 @@ class _EmailScreenState extends ConsumerState<EmailScreen> {
               if (_error != null) setState(() => _error = null);
             },
           ),
-          Center(
-            child: BvButton(
-              key: const Key('email-phone'),
-              label: l10n.emailUsePhone,
-              style: BvButtonStyle.tertiary,
-              onPressed: () => context.pushReplacement(AppRoutes.joinPhone),
+          if (ref.watch(phoneSignInProvider))
+            Center(
+              child: BvButton(
+                key: const Key('email-phone'),
+                label: l10n.emailUsePhone,
+                style: BvButtonStyle.tertiary,
+                onPressed: () => context.pushReplacement(AppRoutes.joinPhone),
+              ),
             ),
-          ),
         ],
       ),
     );

@@ -16,7 +16,7 @@ One real site team runs its daily work in a BuildVibes Space for four weeks, and
 ## 2. In the MVP
 | Area | In V1 |
 |---|---|
-| **Sign-up and sign-in** | Phone code, Google, Apple and email code. No passwords. Short onboarding: name, role or trade, company. |
+| **Sign-up and sign-in** | 6-digit email code only (decision 04). No passwords. Google and Apple are built but hidden until their keys exist. Phone code comes after the pilot. Short onboarding: name, country, role or trade, company, optional private mobile number. |
 | **Language** | Arabic and English, right to left. Western digits. |
 | **Profile** | Photo, headline, experience, projects on the CV, Work you delivered (hidden until the person chooses), share link, follower counts. |
 | **Projects** | Shared record with no owner. "Is it already here?" and Add to my CV. Suggest an edit goes to a simple review queue. |
@@ -57,7 +57,7 @@ Weeks start on Sunday. The live status is in `docs/progress.md`.
 
 ## 5. Technical decisions
 - **A clean Flutter app** in this folder, porting the proven parts of the old app (see `codebase-audit.md`).
-- **A new Supabase project**, "BuildVibes MVP": Postgres, auth with phone codes and Google, Apple or email codes, storage, realtime.
+- **A new Supabase project**, "BuildVibes MVP": Postgres, auth with email codes (sent through Resend from mail.aecox.com; Google and Apple later, phone codes after the pilot), storage, realtime.
   - Free tier while building; a paid plan from the pilot, for daily backups.
   - Every permission is enforced on the server with row-level security.
 - **One component set.** Arabic uses Flutter's `Directionality`, so nothing is drawn twice.
@@ -68,4 +68,4 @@ Weeks start on Sunday. The live status is in `docs/progress.md`.
 ## 6. Risks
 1. **Scope pressure.** If the plan slips, Library preview and voice notes are cut first. Work items are never cut.
 2. **Store review timing in December.** That's why submission is early and the last week is buffer.
-3. **Phone code cost grows with every sign-in.** Google, Apple and email codes reduce it.
+3. **Some foremen and labour may not use email** (decision 04, risk accepted by the founder). Mitigations: most Android phones already have a Google account, so Google sign-in can be switched on; the Space admin can help people join on site; phone sign-in returns after the pilot if email proves to be a barrier.

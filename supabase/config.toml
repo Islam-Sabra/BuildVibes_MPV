@@ -197,7 +197,9 @@ password_requirements = ""
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+# Decision 04: email codes are the only sign-in, so room for a whole site
+# team joining in the same hour.
+email_sent = 60
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -235,27 +237,28 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 600
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# Email is sent through Resend from mail.aecox.com (decision 04). The
+# founder saved these values in the live project on 11 Oct; the key is a
+# Resend sending-only key and is never stored in the repo. Locally the key
+# comes from RESEND_API_KEY in the git-ignored supabase/.env.
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "no-reply@mail.aecox.com"
+sender_name = "BuildVibes"
 
-# Email codes, never links or passwords. English and Arabic in one email.
-# WAITING: Supabase's free built-in email sender doesn't allow custom
-# templates, so its emails carry a link, not the code. Switch these on (and
-# add [auth.email.smtp]) once a real email sender is set up.
-# [auth.email.template.confirmation]
-# subject = "Your BuildVibes code"
-# content_path = "./supabase/templates/email_code.html"
-#
-# [auth.email.template.magic_link]
-# subject = "Your BuildVibes code"
-# content_path = "./supabase/templates/email_code.html"
+# Email codes, never links or passwords: the 6-digit code, large, with one
+# short line in English and in Arabic.
+[auth.email.template.confirmation]
+subject = "Your BuildVibes code · رمز BuildVibes"
+content_path = "./supabase/templates/email_code.html"
+
+[auth.email.template.magic_link]
+subject = "Your BuildVibes code · رمز BuildVibes"
+content_path = "./supabase/templates/email_code.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
@@ -270,7 +273,10 @@ otp_expiry = 600
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = true
+# Off in the MVP: sign-in is by email code only (decision 04). Existing
+# test accounts can still sign in with phone sign-in switched on in a
+# development build.
+enable_signup = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = true
 # Template for sending OTP to users
@@ -295,8 +301,9 @@ max_frequency = "1m0s"
 # inactivity_timeout = "8h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
-# New accounts: phone numbers from a live market, or anyone with a Space
-# invite (migration 3, public.hook_before_user_created).
+# New accounts: any email; phone numbers from a live market, or anyone with
+# a Space invite (migration 3, public.hook_before_user_created). The home
+# market must be live unless the person has an invite (migration 5).
 [auth.hook.before_user_created]
 enabled = true
 uri = "pg-functions://postgres/public/hook_before_user_created"

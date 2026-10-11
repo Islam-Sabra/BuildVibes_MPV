@@ -728,12 +728,6 @@ abstract class AppLocalizations {
   /// **'Country'**
   String get country;
 
-  /// E9 helper.
-  ///
-  /// In en, this message translates to:
-  /// **'From your phone number. You can change it in Settings.'**
-  String get countryFromPhone;
-
   /// Field label.
   ///
   /// In en, this message translates to:
@@ -757,18 +751,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search or type your company'**
   String get companyPlaceholder;
-
-  /// Field label.
-  ///
-  /// In en, this message translates to:
-  /// **'Email for getting back in (optional)'**
-  String get recoveryEmail;
-
-  /// Field helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Helps you get back in if your number changes.'**
-  String get recoveryEmailHelp;
 
   /// Footer button.
   ///
@@ -1699,6 +1681,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Still going'**
   String get monthPickerPresent;
+
+  /// E2 main button (decision 04: email code only).
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with email'**
+  String get entryContinueEmail;
+
+  /// E2 body when sign-in is by email.
+  ///
+  /// In en, this message translates to:
+  /// **'Join with your email. It takes about a minute.'**
+  String get entryJoinBodyEmail;
+
+  /// E9 country helper.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change it in Settings.'**
+  String get countryChangeLater;
+
+  /// E9 field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile number (optional)'**
+  String get mobileOptional;
+
+  /// E9 field helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Private: only you see it. It\'s never shown on your profile.'**
+  String get mobileHelp;
 }
 
 class _AppLocalizationsDelegate

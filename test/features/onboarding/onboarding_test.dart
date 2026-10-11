@@ -31,16 +31,83 @@ void main() {
     final l10n = _l10n(lang);
     final locale = Locale(lang);
 
-    testWidgets('new account opens About you, country from the phone [$lang]', (
+    testWidgets('new account opens About you, country from region [$lang]', (
       tester,
     ) async {
       await pumpApp(tester, language: lang, onboarded: false);
       expect(find.byType(AboutYouScreen), findsOneWidget);
       expect(find.text(l10n.aboutIntro), findsOneWidget);
       expect(find.text(kuwait.name.of(locale)), findsOneWidget);
-      expect(find.text(l10n.countryFromPhone), findsOneWidget);
-      // Signed up by phone: the recovery email is offered.
-      expect(find.byKey(const Key('about-recovery')), findsOneWidget);
+      expect(find.text(l10n.countryChangeLater), findsOneWidget);
+      // Decision 04: no recovery email; an optional private mobile instead.
+      expect(find.text(l10n.mobileOptional), findsOneWidget);
+      expect(find.text(l10n.mobileHelp), findsOneWidget);
+      expect(find.text('+965'), findsOneWidget);
+    });
+
+    testWidgets('the mobile number is optional, private and checked [$lang]', (
+      tester,
+    ) async {
+      final app = await pumpApp(tester, language: lang, onboarded: false);
+      await _type(tester, 'about-first', 'Dana');
+      await _type(tester, 'about-last', 'Ali');
+      await _tap(tester, 'about-role');
+      await _tap(tester, 'popular-electrician');
+      await _tap(tester, 'role-save');
+
+      await _type(tester, 'about-mobile', '2000');
+      await _tap(tester, 'about-continue');
+      expect(
+        find.text(l10n.phoneErrorMarket(kuwait.name.of(locale), 8)),
+        findsOneWidget,
+      );
+      expect(app.profiles.lastSaved, isNull);
+
+      await _type(tester, 'about-mobile', '5000 0009');
+      await _tap(tester, 'about-continue');
+      expect(app.profiles.lastSaved!.mobileE164, '+96550000009');
+    });
+
+    testWidgets('left empty, no mobile number is saved [$lang]', (
+      tester,
+    ) async {
+      final app = await pumpApp(tester, language: lang, onboarded: false);
+      await _type(tester, 'about-first', 'Dana');
+      await _type(tester, 'about-last', 'Ali');
+      await _tap(tester, 'about-role');
+      await _tap(tester, 'popular-electrician');
+      await _tap(tester, 'role-save');
+      await _tap(tester, 'about-continue');
+      expect(app.profiles.lastSaved!.mobileE164, isNull);
+    });
+
+    testWidgets('a phone in Egypt: Kuwait is chosen, mobile code +20 [$lang]', (
+      tester,
+    ) async {
+      await pumpApp(tester, language: lang, onboarded: false, region: 'EG');
+      expect(find.text(kuwait.name.of(locale)), findsOneWidget);
+      expect(find.text('+20'), findsOneWidget);
+    });
+
+    testWidgets('with a Space invite, Egypt can be the home country [$lang]', (
+      tester,
+    ) async {
+      final auth = FakeAuthRepository(userId: 'user-1')..inviteCode = 'SPACE-1';
+      final app = await pumpApp(
+        tester,
+        language: lang,
+        onboarded: false,
+        region: 'EG',
+        auth: auth,
+      );
+      expect(find.text(egypt.name.of(locale)), findsOneWidget);
+      await _type(tester, 'about-first', 'Mona');
+      await _type(tester, 'about-last', 'Adel');
+      await _tap(tester, 'about-role');
+      await _tap(tester, 'popular-electrician');
+      await _tap(tester, 'role-save');
+      await _tap(tester, 'about-continue');
+      expect(app.profiles.lastSaved!.homeMarketId, 'eg');
     });
 
     testWidgets('About you asks for the missing parts [$lang]', (tester) async {

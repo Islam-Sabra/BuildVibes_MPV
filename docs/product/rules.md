@@ -18,6 +18,7 @@ These rules come from the founder's decisions of 8–11 Oct 2026. They apply to 
 **Test for every screen:**
 1. Could a foreman or electrician with a phone and basic reading use it in under a minute?
 2. Does it assume a degree, a licence, a long CV, a company page, English or an email address? If so, that part is optional and never blocking.
+   - **Accepted exception for the MVP (decision 04, 11 Oct 2026):** sign-in needs an email address, because sign-in is by email code only. Phone sign-in returns after the pilot. Nothing else may need an email.
 3. Is the main action one tap, with a plain verb?
 4. Can a person with no projects and no confirmations still be found, and still look credible?
 
@@ -70,7 +71,8 @@ Ranking never uses volume alone: not follower count, project count or years.
 **Rules:**
 - No country, city, currency, phone format or week rule appears in a widget or a string. Use placeholders such as `{country}`, `{city}` and `{currency}`, filled from the pack.
 - Every user has one **home market**. It sets feed order and default filters only, never access. Search, messaging and connections work worldwide.
-- At sign-up, the Country field is pre-filled from the phone number's dial code. It can be changed later in Settings → Language and region.
+- At sign-up, the Country field is pre-filled from the device region. It can be changed later in Settings → Language and region.
+- The home market must be a live market (Kuwait). Markets that are not open yet show "coming soon". The exception: a person who arrives with a Space invite may choose any country. The server enforces the same rule.
 - Arabic names use First name (given names) and Last name (family name). There's no third field.
 
 ## 5. Interaction rules
@@ -79,7 +81,8 @@ Ranking never uses volume alone: not follower count, project count or years.
   - Language has only the app language, plus each post's own language with a Translate option.
   - Links to other sites are links only in V1.
   - Link visibility options: Everyone, Connections only, Only me.
-- Sign-in has no passwords: phone code, Google, Apple or email code.
+- Sign-in has no passwords. In the MVP it is a 6-digit email code only (decision 04); Google and Apple are built but hidden; phone code comes after the pilot.
+- A mobile number given at sign-up is optional and private: never shown on the profile.
 - Onboarding is short: name, role or trade, company. Then Home.
 - Home has two tabs: Feed (opens first, and social) and Spaces (daily Space activity with Needs you).
 - The bottom bar has 5 tabs: Home, Explore, Create, Activity, Profile.

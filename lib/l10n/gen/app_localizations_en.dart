@@ -357,10 +357,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get country => 'Country';
 
   @override
-  String get countryFromPhone =>
-      'From your phone number. You can change it in Settings.';
-
-  @override
   String get role => 'Role';
 
   @override
@@ -371,13 +367,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get companyPlaceholder => 'Search or type your company';
-
-  @override
-  String get recoveryEmail => 'Email for getting back in (optional)';
-
-  @override
-  String get recoveryEmailHelp =>
-      'Helps you get back in if your number changes.';
 
   @override
   String get continueLabel => 'Continue';
@@ -898,4 +887,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get monthPickerPresent => 'Still going';
+
+  @override
+  String get entryContinueEmail => 'Continue with email';
+
+  @override
+  String get entryJoinBodyEmail =>
+      'Join with your email. It takes about a minute.';
+
+  @override
+  String get countryChangeLater => 'You can change it in Settings.';
+
+  @override
+  String get mobileOptional => 'Mobile number (optional)';
+
+  @override
+  String get mobileHelp =>
+      'Private: only you see it. It\'s never shown on your profile.';
 }

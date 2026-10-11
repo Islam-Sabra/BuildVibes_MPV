@@ -14,14 +14,15 @@ import '../../data/repositories/reference_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_text_field.dart';
-import '../entry/email_screen.dart';
 import '../entry/entry_state.dart';
+import '../entry/phone_rules.dart';
+import '../entry/widgets/dial_code_picker.dart';
 import '../entry/widgets/entry_scaffold.dart';
 import 'company_sheet.dart';
 import 'role_picker_screen.dart';
 
-/// E9 · About you (step 1 of 2): name, country, role, company and a
-/// recovery email for people who signed up by phone.
+/// E9 · About you (step 1 of 2): name, country, role, company and an
+/// optional private mobile number (decision 04).
 class AboutYouScreen extends ConsumerStatefulWidget {
   const AboutYouScreen({super.key});
 
@@ -32,12 +33,16 @@ class AboutYouScreen extends ConsumerStatefulWidget {
 class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
   final _first = TextEditingController();
   final _last = TextEditingController();
-  final _recovery = TextEditingController();
+  final _mobile = TextEditingController();
   final _roleText = TextEditingController();
   final _companyText = TextEditingController();
 
   String? _marketId;
-  var _marketFromPhone = false;
+
+  /// The mobile number's country code; follows the country until the
+  /// person picks one.
+  String? _mobileDial;
+  String? _mobileError;
   RoleChoice? _role;
   CompanyPick _company = const CompanyPick.none();
   var _filledFromProfile = false;
@@ -47,34 +52,44 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
 
   @override
   void dispose() {
-    for (final c in [_first, _last, _recovery, _roleText, _companyText]) {
+    for (final c in [_first, _last, _mobile, _roleText, _companyText]) {
       c.dispose();
     }
     super.dispose();
   }
 
+  /// With a Space invite any country can be the home market; otherwise
+  /// only live markets (the server checks the same).
+  bool get _invited {
+    final code =
+        ref.read(inviteCodeProvider) ??
+        ref.read(authRepositoryProvider).signUpInviteCode;
+    return code != null && code.isNotEmpty;
+  }
+
+  List<Market> _choosable(List<Market> markets) =>
+      _invited ? markets : liveMarkets(markets);
+
   /// Pre-fills once: what the profile already has, then the country from
-  /// the sign-in phone, the phone's region, or the first live market.
+  /// the phone's region, or the first live market.
   void _prefill(MyProfile? me, List<Market> markets) {
     // Wait for both the markets and the profile, or the names stay blank.
     if (_filledFromProfile || markets.isEmpty || me == null) return;
     _filledFromProfile = true;
     _first.text = me.firstName;
     _last.text = me.lastName;
-    final live = liveMarkets(markets);
-    final phone = ref.read(authRepositoryProvider).currentPhone;
-    final byPhone = phone == null
-        ? null
-        : live.where((m) => phone.startsWith(m.dialCode)).firstOrNull;
+    final choosable = _choosable(markets);
     final region = ref.read(deviceRegionProvider)?.toLowerCase();
-    final saved = live.where((m) => m.id == me.homeMarketId).firstOrNull;
     final chosen =
-        saved ??
-        byPhone ??
-        live.where((m) => m.id == region).firstOrNull ??
-        live.firstOrNull;
+        choosable.where((m) => m.id == me.homeMarketId).firstOrNull ??
+        choosable.where((m) => m.id == region).firstOrNull ??
+        liveMarkets(markets).firstOrNull;
     _marketId = chosen?.id;
-    _marketFromPhone = chosen != null && chosen == byPhone;
+    // The mobile number's code follows the phone's region, even where the
+    // market is not open yet.
+    _mobileDial =
+        markets.where((m) => m.id == region).firstOrNull?.dialCode ??
+        chosen?.dialCode;
     if (me.companyLabel != null) {
       _company = me.companyId != null
           ? CompanyPick.registered(
@@ -116,15 +131,52 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
     });
   }
 
-  Future<void> _save() async {
+  Future<void> _pickMobileDial(List<Market> markets) async {
+    final picked = await pickDialCode(
+      context,
+      markets: markets,
+      current: _mobileDial,
+    );
+    if (mounted && picked != null) {
+      setState(() {
+        _mobileDial = picked;
+        _mobileError = null;
+      });
+    }
+  }
+
+  /// The mobile number in E.164, null when left empty. Sets [_mobileError]
+  /// when something was typed but it is not a valid number.
+  String? _checkMobile(List<Market> markets) {
+    final national = PhoneRules.national(_mobile.text);
+    _mobileError = null;
+    if (national.isEmpty) return null;
+    final dial = _mobileDial;
+    final market = dial == null
+        ? null
+        : PhoneRules.marketForDialCode(markets, dial);
+    if (dial == null || !PhoneRules.isValid(national, market)) {
+      final l10n = AppLocalizations.of(context);
+      _mobileError = market?.nationalLength != null
+          ? l10n.phoneErrorMarket(
+              market!.name.of(Localizations.localeOf(context)),
+              market.nationalLength!,
+            )
+          : l10n.phoneErrorOther;
+      return null;
+    }
+    return '$dial$national';
+  }
+
+  Future<void> _save(List<Market> markets) async {
     final l10n = AppLocalizations.of(context);
-    final recovery = _recovery.text.trim();
+    final mobile = _checkMobile(markets);
     final valid =
         _first.text.trim().isNotEmpty &&
         _last.text.trim().isNotEmpty &&
         _marketId != null &&
         _role != null &&
-        (recovery.isEmpty || EmailScreen.isValid(recovery));
+        _mobileError == null;
     if (!valid) {
       setState(() => _showErrors = true);
       return;
@@ -150,7 +202,7 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
               companyNameText: _company.companyId == null
                   ? _company.name
                   : null,
-              recoveryEmail: recovery.isEmpty ? null : recovery,
+              mobileE164: mobile,
             ),
           );
       ref.invalidate(myProfileProvider);
@@ -194,8 +246,10 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
         _roleText.text = _role!.label(locale.languageCode);
       }
     }
-    final signedUpByPhone =
-        ref.read(authRepositoryProvider).currentPhone != null;
+    final choosable = _choosable(markets).map((m) => m.id).toSet();
+    final mobileMarket = _mobileDial == null
+        ? null
+        : PhoneRules.marketForDialCode(markets, _mobileDial!);
     String? required(bool ok, String message) =>
         _showErrors && !ok ? message : null;
 
@@ -207,7 +261,7 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
         key: const Key('about-continue'),
         label: l10n.continueLabel,
         expand: true,
-        onPressed: _saving ? null : _save,
+        onPressed: _saving ? null : () => _save(markets),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -248,21 +302,20 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
             key: const Key('about-country'),
             label: l10n.country,
             value: _marketId,
-            helper: _marketFromPhone ? l10n.countryFromPhone : null,
+            helper: l10n.countryChangeLater,
             error: required(_marketId != null, l10n.countryRequired),
             options: [
               for (final m in markets)
                 BvSelectOption(
                   value: m.id,
                   label: m.name.of(locale),
-                  enabled: m.status == MarketStatus.live,
+                  enabled: choosable.contains(m.id),
                   badge: m.status == MarketStatus.soon ? l10n.comingSoon : null,
                 ),
             ],
             onChanged: (id) => setState(() {
               if (id != _marketId) {
                 _marketId = id;
-                _marketFromPhone = false;
                 // Roles and popular trades differ per market.
                 _role = null;
                 _roleText.clear();
@@ -290,20 +343,21 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
             suffixIcon: BvIcons.caretDown,
             onTap: _pickCompany,
           ),
-          if (signedUpByPhone)
-            BvTextField(
-              key: const Key('about-recovery'),
-              label: l10n.recoveryEmail,
-              controller: _recovery,
-              keyboardType: TextInputType.emailAddress,
-              textDirection: TextDirection.ltr,
-              helper: l10n.recoveryEmailHelp,
-              error: required(
-                _recovery.text.trim().isEmpty ||
-                    EmailScreen.isValid(_recovery.text),
-                l10n.emailError,
-              ),
-            ),
+          BvPhoneField(
+            key: const Key('about-mobile'),
+            label: l10n.mobileOptional,
+            dialCode: _mobileDial ?? '+',
+            onDialCodeTap: markets.isEmpty
+                ? null
+                : () => _pickMobileDial(markets),
+            controller: _mobile,
+            placeholder: mobileMarket?.phoneExample,
+            helper: l10n.mobileHelp,
+            error: _showErrors ? _mobileError : null,
+            onChanged: (_) {
+              if (_mobileError != null) setState(() => _mobileError = null);
+            },
+          ),
           if (_saveError != null)
             Text(
               _saveError!,

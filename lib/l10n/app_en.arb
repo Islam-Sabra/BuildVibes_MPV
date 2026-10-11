@@ -476,10 +476,6 @@
   "@country": {
     "description": "Field label."
   },
-  "countryFromPhone": "From your phone number. You can change it in Settings.",
-  "@countryFromPhone": {
-    "description": "E9 helper."
-  },
   "role": "Role",
   "@role": {
     "description": "Field label."
@@ -495,14 +491,6 @@
   "companyPlaceholder": "Search or type your company",
   "@companyPlaceholder": {
     "description": "Field placeholder."
-  },
-  "recoveryEmail": "Email for getting back in (optional)",
-  "@recoveryEmail": {
-    "description": "Field label."
-  },
-  "recoveryEmailHelp": "Helps you get back in if your number changes.",
-  "@recoveryEmailHelp": {
-    "description": "Field helper."
   },
   "continueLabel": "Continue",
   "@continueLabel": {
@@ -1220,5 +1208,25 @@
   "monthPickerPresent": "Still going",
   "@monthPickerPresent": {
     "description": "Month sheet option."
+  },
+  "entryContinueEmail": "Continue with email",
+  "@entryContinueEmail": {
+    "description": "E2 main button (decision 04: email code only)."
+  },
+  "entryJoinBodyEmail": "Join with your email. It takes about a minute.",
+  "@entryJoinBodyEmail": {
+    "description": "E2 body when sign-in is by email."
+  },
+  "countryChangeLater": "You can change it in Settings.",
+  "@countryChangeLater": {
+    "description": "E9 country helper."
+  },
+  "mobileOptional": "Mobile number (optional)",
+  "@mobileOptional": {
+    "description": "E9 field label."
+  },
+  "mobileHelp": "Private: only you see it. It's never shown on your profile.",
+  "@mobileHelp": {
+    "description": "E9 field helper."
   }
 }

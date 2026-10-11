@@ -36,6 +36,9 @@ abstract class AuthRepository {
   /// The verified sign-in phone in E.164, when the person used one.
   String? get currentPhone;
 
+  /// The Space invite code the account was created with, if any.
+  String? get signUpInviteCode;
+
   /// Emits the signed-in user id, or null after signing out.
   Stream<String?> userIdChanges();
 
@@ -83,6 +86,12 @@ class SupabaseAuthRepository implements AuthRepository {
     final phone = _auth.currentUser?.phone;
     if (phone == null || phone.isEmpty) return null;
     return phone.startsWith('+') ? phone : '+$phone';
+  }
+
+  @override
+  String? get signUpInviteCode {
+    final code = _auth.currentUser?.userMetadata?['invite_code'];
+    return code is String && code.isNotEmpty ? code : null;
   }
 
   @override

@@ -16,8 +16,9 @@ import 'entry_state.dart';
 import 'welcome_screen.dart';
 import 'widgets/entry_hero.dart';
 
-/// E2 · Join or sign in. Phone first; Google and Apple appear once their
-/// keys exist (AppConfig.socialSignIn); LinkedIn is not in the MVP.
+/// E2 · Join or sign in. Email code first in the MVP (decision 04); with
+/// phone sign-in on, phone first. Google and Apple appear once their keys
+/// exist (AppConfig.socialSignIn); LinkedIn is not in the MVP.
 class JoinScreen extends ConsumerWidget {
   const JoinScreen({super.key});
 
@@ -26,6 +27,7 @@ class JoinScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final country = entryMarket(ref)?.name.of(Localizations.localeOf(context));
+    final phone = ref.watch(phoneSignInProvider);
 
     Future<void> social(SocialProvider provider) async {
       try {
@@ -63,19 +65,27 @@ class JoinScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: BvSpace.s8),
                   Text(
-                    l10n.entryJoinBody,
+                    phone ? l10n.entryJoinBody : l10n.entryJoinBodyEmail,
                     textAlign: TextAlign.center,
                     style: type.bodyMd.copyWith(color: BvColors.textSecondary),
                   ),
                   const SizedBox(height: BvSpace.s16),
                   const _SampleProfileCard(),
                   const SizedBox(height: BvSpace.s16),
-                  BvButton(
-                    key: const Key('join-phone'),
-                    label: l10n.entryContinuePhone,
-                    expand: true,
-                    onPressed: () => context.push(AppRoutes.joinPhone),
-                  ),
+                  if (phone)
+                    BvButton(
+                      key: const Key('join-phone'),
+                      label: l10n.entryContinuePhone,
+                      expand: true,
+                      onPressed: () => context.push(AppRoutes.joinPhone),
+                    )
+                  else
+                    BvButton(
+                      key: const Key('join-email'),
+                      label: l10n.entryContinueEmail,
+                      expand: true,
+                      onPressed: () => context.push(AppRoutes.joinEmail),
+                    ),
                   if (socialButtons.isNotEmpty) ...[
                     const SizedBox(height: BvSpace.s16),
                     Text(
@@ -104,15 +114,18 @@ class JoinScreen extends ConsumerWidget {
                       ],
                     ),
                   ],
-                  const SizedBox(height: BvSpace.s8),
-                  Center(
-                    child: BvButton(
-                      key: const Key('join-email'),
-                      label: l10n.entryUseEmail,
-                      style: BvButtonStyle.tertiary,
-                      onPressed: () => context.push(AppRoutes.joinEmail),
+                  // "Use email instead" only while phone is the main path.
+                  if (phone) ...[
+                    const SizedBox(height: BvSpace.s8),
+                    Center(
+                      child: BvButton(
+                        key: const Key('join-email'),
+                        label: l10n.entryUseEmail,
+                        style: BvButtonStyle.tertiary,
+                        onPressed: () => context.push(AppRoutes.joinEmail),
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: BvSpace.s8),
                   Text(
                     l10n.entryNoPassword,

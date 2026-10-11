@@ -24,7 +24,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Setting | Value |
 |---|---|
 | Sign-ups | Allowed. New accounts by phone only for live-market numbers or a Space invite (hook `hook_before_user_created`) |
-| Email | On. 6-digit code, valid 10 minutes, 1 minute between codes, confirmation required. Custom code template not applied (free built-in sender sends links only; needs an SMTP sender) |
+| Email | On. 6-digit code, valid 10 minutes, 1 minute between codes, confirmation required. Sender: Resend SMTP, `BuildVibes <no-reply@mail.aecox.com>` (saved by the founder, 11 Oct). Code template, rate limit: waiting for the founder's yes (see Next tasks) |
 | Phone | On. Placeholder Twilio account (no real messages). 1 minute between codes |
 | Test phone numbers | +965 50000001, +965 50000002, +965 50000003, +20 1000000001, +91 9800000001 — code 123456 |
 | Google, Apple, LinkedIn | Off |
@@ -93,8 +93,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Share profile is built but hidden until a web page opens shared profiles (founder decision).
     - Fixes found on the emulator: Open to save was refused (upsert wrote a locked column); CV people query was ambiguous; places listed with each city's areas ("Salmiya · Hawalli"); a signed-in, onboarded person could land on About you after signing in; English text written by people now keeps its punctuation in the Arabic app; save errors are now shown.
     - 237 Flutter tests and 109 SQL tests pass. Screenshots in English and Arabic are in `docs/screens/` (not committed).
+  - Decision 04 applied in the app (sign-in by email code only):
+    - E2: "Continue with email" is the main button; "Use email instead" is gone. Phone screens stay in the app behind the `phoneSignIn` flag (off).
+    - E9: country from the device region ("You can change it in Settings."); no recovery email; an optional, private mobile number instead (only you can read it).
+    - Invited people may choose any home country; everyone else a live market. Migration 5 enforces it on the server (written and tested locally, not pushed yet).
+    - `supabase/config.toml` holds the intended live values: Resend SMTP, the code email in English and Arabic, 60 emails an hour, phone sign-ups off. Not pushed yet.
+    - Review 05 (profiles) passed with no changes.
+    - 249 Flutter tests and 121 SQL tests pass.
 
 ## Next tasks (in order)
-1. Decision 04: sign-in by email code only (Resend from aecox.com). Phone screens behind a flag; About you gets an optional mobile number. Live settings need the founder's yes.
+1. Decision 04, live part (each needs the founder's yes): push migration 5; apply the code email template, the email rate limit and phone sign-ups off; then send a real code to the founder's address and confirm it lands in the inbox, not spam.
 2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 3. Spaces (week 4): create, link a project, invite link and code, join requests, passes, Teams. Teammate confirmations for CV projects come with it.

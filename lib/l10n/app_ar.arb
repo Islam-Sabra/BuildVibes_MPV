@@ -105,13 +105,10 @@
   "firstName": "الاسم الأول",
   "lastName": "اسم العائلة",
   "country": "الدولة",
-  "countryFromPhone": "من رقم هاتفك. يمكنك تغييرها من الإعدادات.",
   "role": "الدور",
   "rolePlaceholder": "اختر دورك",
   "companyOptional": "الشركة (اختياري)",
   "companyPlaceholder": "ابحث عن شركتك أو اكتب اسمها",
-  "recoveryEmail": "بريد لاستعادة الدخول (اختياري)",
-  "recoveryEmailHelp": "يساعدك على الدخول إذا تغيّر رقمك.",
   "continueLabel": "متابعة",
   "firstNameRequired": "اكتب اسمك الأول.",
   "lastNameRequired": "اكتب اسم عائلتك.",
@@ -266,5 +263,10 @@
   "correctValueRequired": "اكتب القيمة الصحيحة.",
   "sendForReview": "إرسال للمراجعة",
   "suggestionSent": "شكراً، سنراجعه.",
-  "monthPickerPresent": "مستمر حتى الآن"
+  "monthPickerPresent": "مستمر حتى الآن",
+  "entryContinueEmail": "المتابعة بالبريد الإلكتروني",
+  "entryJoinBodyEmail": "انضم ببريدك الإلكتروني. يستغرق الأمر دقيقة تقريباً.",
+  "countryChangeLater": "يمكنك تغييرها من الإعدادات.",
+  "mobileOptional": "رقم الجوال (اختياري)",
+  "mobileHelp": "خاص: أنت فقط تراه، ولا يظهر في ملفك أبداً."
 }

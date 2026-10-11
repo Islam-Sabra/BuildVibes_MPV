@@ -145,6 +145,12 @@ class FakeAuthRepository implements AuthRepository {
   @override
   String? get currentPhone => phone;
 
+  /// The invite code the account was created with.
+  String? inviteCode;
+
+  @override
+  String? get signUpInviteCode => inviteCode;
+
   @override
   Stream<String?> userIdChanges() => _changes.stream;
 

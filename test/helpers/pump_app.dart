@@ -35,12 +35,14 @@ class TestApp {
 ///
 /// By default the person is signed in and onboarded, so the app opens on
 /// Home. [signedIn] false opens Welcome; [onboarded] false opens About you.
+/// [phoneSignIn] switches the phone screens on (off in the MVP).
 Future<TestApp> pumpApp(
   WidgetTester tester, {
   String? language,
   bool signedIn = true,
   bool onboarded = true,
   String region = 'KW',
+  bool phoneSignIn = false,
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
@@ -86,6 +88,7 @@ Future<TestApp> pumpApp(
         ),
         marketsProvider.overrideWith((ref) async => testMarkets),
         deviceRegionProvider.overrideWithValue(region),
+        phoneSignInProvider.overrideWithValue(phoneSignIn),
         profilePageRepositoryProvider.overrideWithValue(pages),
         projectRepositoryProvider.overrideWithValue(projects),
         clockProvider.overrideWithValue(() => testNow),
