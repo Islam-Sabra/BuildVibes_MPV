@@ -47,6 +47,11 @@ void main() {
         ),
       );
       expect((box.decoration! as BoxDecoration).color, BvColors.actionPrimary);
+      // A full pill (S1, review 07).
+      expect(
+        (box.decoration! as BoxDecoration).borderRadius,
+        BvRadius.roundAll,
+      );
     });
   });
 

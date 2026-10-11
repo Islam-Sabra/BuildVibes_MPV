@@ -172,11 +172,13 @@ class BvListRow extends StatelessWidget {
   }
 }
 
-/// The 40 tile at the start of a row: brand-soft fill with an action icon.
+/// The 40 tile at the start of a row: brand-soft fill with an action icon,
+/// or an ink icon when [ink] (S1 Space rows).
 class BvRowIcon extends StatelessWidget {
-  const BvRowIcon(this.icon, {super.key});
+  const BvRowIcon(this.icon, {super.key, this.ink = false});
 
   final IconData icon;
+  final bool ink;
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +193,7 @@ class BvRowIcon extends StatelessWidget {
       child: Icon(
         icon,
         size: BvListRowSpec.leadingIconSize,
-        color: BvColors.iconAction,
+        color: ink ? BvColors.iconPrimary : BvColors.iconAction,
       ),
     );
   }

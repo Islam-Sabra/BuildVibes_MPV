@@ -134,7 +134,7 @@ class _SpaceList extends ConsumerWidget {
               for (final s in spaces)
                 BvListRow(
                   key: Key('space-row-${s.id}'),
-                  leading: const BvRowIcon(BvIcons.crane),
+                  leading: const BvRowIcon(BvIcons.crane, ink: true),
                   title: s.name,
                   subtitle: s.projectName == null
                       ? l10n.spacesPrivateWork
@@ -147,7 +147,8 @@ class _SpaceList extends ConsumerWidget {
                             tone: BvBadgeTone.action,
                           ),
                         )
-                      : const BvRowTrailing.chevron(),
+                      // S1 rows have no chevron.
+                      : const BvRowTrailing.none(),
                   onTap: () => context.push(AppRoutes.space(s.id)),
                 ),
             ],

@@ -38,6 +38,8 @@ class BvTextField extends StatefulWidget {
     this.valueStyle,
     this.autofocus = false,
     this.invalid = false,
+    this.textCapitalization = TextCapitalization.none,
+    this.suggestions = true,
   });
 
   final String? label;
@@ -72,6 +74,12 @@ class BvTextField extends StatefulWidget {
   /// Red border without a message of its own, for a field whose message is
   /// shown by its parent (the phone row).
   final bool invalid;
+
+  /// Which keyboard case opens (codes: [TextCapitalization.characters]).
+  final TextCapitalization textCapitalization;
+
+  /// False turns off autocorrect and word suggestions (codes, numbers).
+  final bool suggestions;
 
   @override
   State<BvTextField> createState() => _BvTextFieldState();
@@ -154,6 +162,9 @@ class _BvTextFieldState extends State<BvTextField> {
           (widget.maxLines > 1 ? TextInputType.multiline : null),
       textInputAction: widget.textInputAction,
       inputFormatters: widget.inputFormatters,
+      textCapitalization: widget.textCapitalization,
+      autocorrect: widget.suggestions,
+      enableSuggestions: widget.suggestions,
       maxLines: widget.maxLines,
       minLines: widget.maxLines > 1 ? 2 : null,
       maxLength: max,

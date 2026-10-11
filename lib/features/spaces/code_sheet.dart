@@ -167,6 +167,8 @@ class _CodeSheetState extends ConsumerState<_CodeSheet> {
           controller: _code,
           autofocus: true,
           keyboardType: TextInputType.visiblePassword,
+          textCapitalization: TextCapitalization.characters,
+          suggestions: false,
           textDirection: TextDirection.ltr,
           inputFormatters: const [InviteCodeFormatter()],
           valueStyle: BvType.of(context).titleLg,

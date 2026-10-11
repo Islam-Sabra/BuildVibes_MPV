@@ -39,7 +39,14 @@ class BvBadge extends StatelessWidget {
         horizontal: BvBadgeSpec.paddingHorizontal,
         vertical: BvBadgeSpec.paddingVertical,
       ),
-      decoration: BoxDecoration(color: fill, borderRadius: BvBadgeSpec.radius),
+      // The solid count badge is a full pill (S1); the others use the
+      // spec's small corners.
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: tone == BvBadgeTone.action
+            ? BvRadius.roundAll
+            : BvBadgeSpec.radius,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: BvSpace.s4,

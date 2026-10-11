@@ -1,3 +1,5 @@
+import 'package:buildvibes/core/design/bv_icons.dart';
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/l10n/months.dart';
 import 'package:buildvibes/data/models/profile.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -74,6 +76,16 @@ void main() {
       final app = await pumpApp(tester, language: lang);
       await _openSpacesTab(tester, l10n);
       await _tap(tester, 'spaces-enter-code');
+      // Review 07: capitals keyboard, no autocorrect or word suggestions.
+      final field = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('invite-code-field')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(field.textCapitalization, TextCapitalization.characters);
+      expect(field.autocorrect, isFalse);
+      expect(field.enableSuggestions, isFalse);
       await _type(tester, 'invite-code-field', 'zzzzzz');
       expect(find.text(l10n.spacesCodeNotValid), findsOneWidget);
       await _tap(tester, 'ask-to-join');
@@ -176,6 +188,23 @@ void main() {
         // No project: "Private work". No member counts anywhere (rule 3).
         expect(find.text(l10n.spacesPrivateWork), findsOneWidget);
         expect(find.byKey(const Key('space-needs-space-2')), findsNothing);
+        // Review 07: no chevrons, and the crane is ink on the peach tile.
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('my-spaces')),
+            matching: find.byIcon(BvIcons.caretForward),
+          ),
+          findsNothing,
+        );
+        final crane = tester.widget<Icon>(
+          find
+              .descendant(
+                of: find.byKey(const Key('space-row-space-1')),
+                matching: find.byIcon(BvIcons.crane),
+              )
+              .first,
+        );
+        expect(crane.color, BvColors.iconPrimary);
       },
     );
 
