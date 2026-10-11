@@ -30,7 +30,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in (both pushed with the founder's yes, 11 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct) |
 | Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
@@ -106,6 +106,6 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Branch `spaces-db`: migration 6 (Spaces, invite codes, join requests, passes, Teams, proof from linked Spaces) and `supabase/tests/06_spaces.test.sql`. All 212 SQL checks pass on Postgres 16. An independent review found 8 issues; all were fixed except "proof from a second account", which is a founder decision. Not pushed to the live project.
 
 ## Next tasks (in order)
-1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). The founder said yes to pushing migration 6 (11 Oct); the push waits for a permission on this computer. Then build the app part from review 06. Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
+1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). Next: build the app part from review 06. Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
 2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 3. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
