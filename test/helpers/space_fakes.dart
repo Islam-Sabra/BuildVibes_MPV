@@ -146,4 +146,225 @@ class FakeSpaceRepository implements SpaceRepository {
       expiresAt: now.add(const Duration(days: 7)),
     );
   }
+
+  // People (part 2) ---------------------------------------------------------
+
+  /// Members, Teams and pending requests per Space.
+  final spacePeople = <String, SpacePeople>{};
+  final declined = <String, SpaceJoinRequest>{};
+  final calls = <String>[];
+
+  /// Who is signed in, for "Confirmed by you".
+  String me = 'user-1';
+
+  SpacePeople _of(String spaceId) =>
+      spacePeople[spaceId] ?? const SpacePeople();
+
+  String? _spaceOfRequest(String requestId) => spacePeople.entries
+      .where((e) => e.value.requests.any((r) => r.id == requestId))
+      .firstOrNull
+      ?.key;
+
+  void _put(
+    String spaceId, {
+    List<SpaceJoinRequest>? requests,
+    List<SpaceMember>? members,
+    List<SpaceTeam>? teams,
+  }) {
+    final p = _of(spaceId);
+    spacePeople[spaceId] = SpacePeople(
+      requests: requests ?? p.requests,
+      members: members ?? p.members,
+      teams: teams ?? p.teams,
+    );
+  }
+
+  SpaceMember _copy(
+    SpaceMember m, {
+    SpacePass? pass,
+    bool? isAdmin,
+    Map<String, bool>? custom,
+  }) => SpaceMember(
+    person: m.person,
+    pass: pass ?? m.pass,
+    isAdmin: isAdmin ?? m.isAdmin,
+    custom: custom ?? m.custom,
+    confirmedAt: m.confirmedAt,
+    confirmedById: m.confirmedById,
+    confirmedByName: m.confirmedByName,
+  );
+
+  @override
+  Future<SpacePeople> people(String spaceId) async => _of(spaceId);
+
+  @override
+  Future<void> confirmJoin(
+    String requestId,
+    SpacePass pass, {
+    List<String> teamIds = const [],
+  }) async {
+    calls.add('confirm $requestId ${pass.name}');
+    final spaceId = _spaceOfRequest(requestId);
+    if (spaceId == null) throw const SpaceException(SpaceFailure.rule);
+    final p = _of(spaceId);
+    final request = p.requests.firstWhere((r) => r.id == requestId);
+    _put(
+      spaceId,
+      requests: [
+        for (final r in p.requests)
+          if (r.id != requestId) r,
+      ],
+      members: [
+        ...p.members,
+        SpaceMember(
+          person: request.person,
+          pass: pass,
+          isAdmin: false,
+          confirmedAt: now,
+          confirmedById: me,
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<void> declineJoin(String requestId) async {
+    calls.add('decline $requestId');
+    final spaceId = _spaceOfRequest(requestId);
+    if (spaceId == null) throw const SpaceException(SpaceFailure.rule);
+    final p = _of(spaceId);
+    declined[requestId] = p.requests.firstWhere((r) => r.id == requestId);
+    _put(
+      spaceId,
+      requests: [
+        for (final r in p.requests)
+          if (r.id != requestId) r,
+      ],
+    );
+  }
+
+  @override
+  Future<void> undoDecline(String requestId) async {
+    calls.add('undo $requestId');
+    final request = declined.remove(requestId);
+    if (request == null) throw const SpaceException(SpaceFailure.rule);
+    final spaceId = spacePeople.keys.first;
+    _put(spaceId, requests: [..._of(spaceId).requests, request]);
+  }
+
+  /// The server's presets, for the fake only (the app never has them).
+  static const _presets = {
+    SpacePass.lead: {
+      SpaceRight.createItems: true,
+      SpaceRight.checkItems: true,
+      SpaceRight.addFiles: true,
+      SpaceRight.invite: true,
+    },
+    SpacePass.crew: {
+      SpaceRight.createItems: false,
+      SpaceRight.checkItems: false,
+      SpaceRight.addFiles: true,
+      SpaceRight.invite: false,
+    },
+    SpacePass.viewer: {
+      SpaceRight.createItems: false,
+      SpaceRight.checkItems: false,
+      SpaceRight.addFiles: false,
+      SpaceRight.invite: false,
+    },
+  };
+
+  @override
+  Future<MemberRights> memberRights(String spaceId, String profileId) async {
+    final m = _of(spaceId).member(profileId);
+    if (m == null) return const MemberRights();
+    bool has(String right) =>
+        m.isAdmin || (m.custom[right] ?? _presets[m.pass]![right]!);
+    return MemberRights(
+      createItems: has(SpaceRight.createItems),
+      checkItems: has(SpaceRight.checkItems),
+      addFiles: has(SpaceRight.addFiles),
+      invite: has(SpaceRight.invite),
+      markDone: m.pass != SpacePass.viewer,
+      isCustom: m.custom.isNotEmpty,
+    );
+  }
+
+  @override
+  Future<void> setMemberPass(
+    String spaceId,
+    String profileId,
+    SpacePass pass, {
+    Map<String, bool> custom = const {},
+  }) async {
+    calls.add('pass $profileId ${pass.name} $custom');
+    // Like the server: keep only the differences from the pass.
+    final kept = {
+      for (final e in custom.entries)
+        if (_presets[pass]![e.key] != e.value) e.key: e.value,
+    };
+    _put(
+      spaceId,
+      members: [
+        for (final m in _of(spaceId).members)
+          m.person.id == profileId ? _copy(m, pass: pass, custom: kept) : m,
+      ],
+    );
+  }
+
+  @override
+  Future<void> setMemberTeams(
+    String spaceId,
+    String profileId,
+    List<String> teamIds,
+  ) async {
+    calls.add('teams $profileId $teamIds');
+    _put(
+      spaceId,
+      teams: [
+        for (final t in _of(spaceId).teams)
+          SpaceTeam(
+            id: t.id,
+            name: t.name,
+            memberIds: teamIds.contains(t.id)
+                ? {...t.memberIds, profileId}
+                : ({...t.memberIds}..remove(profileId)),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Future<void> setMemberAdmin(
+    String spaceId,
+    String profileId,
+    bool admin,
+  ) async {
+    calls.add('admin $profileId $admin');
+    final others = _of(
+      spaceId,
+    ).members.where((m) => m.isAdmin && m.person.id != profileId);
+    if (!admin && others.isEmpty) {
+      throw const SpaceException(SpaceFailure.rule);
+    }
+    _put(
+      spaceId,
+      members: [
+        for (final m in _of(spaceId).members)
+          m.person.id == profileId ? _copy(m, isAdmin: admin) : m,
+      ],
+    );
+  }
+
+  @override
+  Future<void> removeMember(String spaceId, String profileId) async {
+    calls.add('remove $profileId');
+    _put(
+      spaceId,
+      members: [
+        for (final m in _of(spaceId).members)
+          if (m.person.id != profileId) m,
+      ],
+    );
+  }
 }

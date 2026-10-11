@@ -2041,6 +2041,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'INVITE CODE'**
   String get spacesInviteCodeTag;
+
+  /// Relative time.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get timeJustNow;
+
+  /// Relative time in minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 min ago} other{{n} min ago}}'**
+  String timeMinutesAgo(int n);
+
+  /// Relative time in hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h ago'**
+  String timeHoursAgo(int n);
+
+  /// Relative time.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get timeYesterday;
+
+  /// Relative time in days.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 day ago} other{{n} days ago}}'**
+  String timeDaysAgo(int n);
+
+  /// S10k search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search members'**
+  String get spacesSearchMembers;
+
+  /// S10k overline, admins only.
+  ///
+  /// In en, this message translates to:
+  /// **'REQUESTS TO JOIN · YOU CONFIRM'**
+  String get spacesRequestsTitle;
+
+  /// Request line: when.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked {when}'**
+  String spacesAsked(String when);
+
+  /// Request line: who shared the code.
+  ///
+  /// In en, this message translates to:
+  /// **'invite code shared by {name}'**
+  String spacesViaCodeFrom(String name);
+
+  /// Request line: no name.
+  ///
+  /// In en, this message translates to:
+  /// **'invite code'**
+  String get spacesViaCode;
+
+  /// Request button.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get spacesDecline;
+
+  /// Request button.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get spacesConfirm;
+
+  /// S10k section: the Space admins.
+  ///
+  /// In en, this message translates to:
+  /// **'Owners'**
+  String get spacesOwners;
+
+  /// Tag under an admin's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get spacesOwnerTag;
+
+  /// S10k section.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get spacesMembers;
+
+  /// Tag on your own row.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get spacesYouTag;
+
+  /// S10k search with no result.
+  ///
+  /// In en, this message translates to:
+  /// **'No one matches.'**
+  String get spacesNoMatch;
+
+  /// Pass name.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead'**
+  String get spacesPassLead;
+
+  /// Pass name.
+  ///
+  /// In en, this message translates to:
+  /// **'Crew'**
+  String get spacesPassCrew;
+
+  /// Pass name.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewer'**
+  String get spacesPassViewer;
+
+  /// Member row: the pass.
+  ///
+  /// In en, this message translates to:
+  /// **'{pass} pass'**
+  String spacesPassLine(String pass);
+
+  /// Confirm sheet overline. Neutral: no him/her.
+  ///
+  /// In en, this message translates to:
+  /// **'GIVE A PASS FOR THIS SPACE'**
+  String get spacesGivePass;
+
+  /// Lead pass card.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens: create items · check and close · files · invite'**
+  String get spacesLeadOpens;
+
+  /// Lead pass card.
+  ///
+  /// In en, this message translates to:
+  /// **'Engineers, supervisors'**
+  String get spacesLeadFor;
+
+  /// Crew pass card.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens: chat · mark own items done with a photo · files'**
+  String get spacesCrewOpens;
+
+  /// Crew pass card.
+  ///
+  /// In en, this message translates to:
+  /// **'Foremen, technicians, subcontractors'**
+  String get spacesCrewFor;
+
+  /// Viewer pass card.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens: read and chat only'**
+  String get spacesViewerOpens;
+
+  /// Viewer pass card.
+  ///
+  /// In en, this message translates to:
+  /// **'Client, supplier'**
+  String get spacesViewerFor;
+
+  /// Confirm sheet main button.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm as {pass}'**
+  String spacesConfirmAs(String pass);
+
+  /// S17k banner after confirming.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} joined as {pass}. The Space is open to them now.'**
+  String spacesJoinedAs(String name, String pass);
+
+  /// S10k-D toast.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s request declined. They aren\'t told why.'**
+  String spacesDeclined(String name);
+
+  /// Toast action.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get spacesUndo;
+
+  /// confirm/decline P0001.
+  ///
+  /// In en, this message translates to:
+  /// **'This request was already answered.'**
+  String get spacesAlreadyAnswered;
+
+  /// S17k title.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get spacesMemberTitle;
+
+  /// S17k overline.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS PASS OPENS'**
+  String get spacesPassOpens;
+
+  /// S17k stamp when rights were changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{pass} · CUSTOM'**
+  String spacesPassCustom(String pass);
+
+  /// S17k line.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed by {name}'**
+  String spacesConfirmedBy(String name);
+
+  /// S17k line.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed by you'**
+  String get spacesConfirmedByYou;
+
+  /// Right, always on.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat in Everyone and their Teams'**
+  String get spacesRightChat;
+
+  /// Right, set by the pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark own items done'**
+  String get spacesRightMarkDone;
+
+  /// Right.
+  ///
+  /// In en, this message translates to:
+  /// **'Add files to the Library'**
+  String get spacesRightFiles;
+
+  /// Right.
+  ///
+  /// In en, this message translates to:
+  /// **'Create work items'**
+  String get spacesRightCreate;
+
+  /// Right.
+  ///
+  /// In en, this message translates to:
+  /// **'Check and close items'**
+  String get spacesRightCheck;
+
+  /// Right.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite people'**
+  String get spacesRightInvite;
+
+  /// Right that can't change.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get spacesAlways;
+
+  /// Action: give this right.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get spacesOpenRight;
+
+  /// Action: take this right away.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock'**
+  String get spacesLockRight;
+
+  /// S17k overline.
+  ///
+  /// In en, this message translates to:
+  /// **'CHANGE PASS'**
+  String get spacesChangePass;
+
+  /// S17k overline.
+  ///
+  /// In en, this message translates to:
+  /// **'TEAMS'**
+  String get spacesTeamsLabel;
+
+  /// S17k switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Make admin'**
+  String get spacesMakeAdmin;
+
+  /// S17k switch helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins confirm people, give passes and manage the Space.'**
+  String get spacesMakeAdminHelp;
+
+  /// S17k destructive button.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Space'**
+  String get spacesRemove;
+
+  /// Confirm sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String spacesRemoveTitle(String name);
+
+  /// Confirm sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Their closed work items stay in the record.'**
+  String get spacesRemoveBody;
+
+  /// S17k-b banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{right}: open for {name}. The pass shows as Custom.'**
+  String spacesRightOpened(String right, String name);
+
+  /// S17k banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{right}: locked for {name}.'**
+  String spacesRightLocked(String right, String name);
+
+  /// S17k banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} now has a {pass} pass.'**
+  String spacesPassChanged(String name, String pass);
+
+  /// S17k banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now a Space admin.'**
+  String spacesAdminOn(String name);
+
+  /// S17k banner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is no longer a Space admin.'**
+  String spacesAdminOff(String name);
+
+  /// S17k banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams saved.'**
+  String get spacesTeamsSaved;
+
+  /// Last admin (P0001).
+  ///
+  /// In en, this message translates to:
+  /// **'A Space needs an admin. Make someone else an admin first.'**
+  String get spacesNeedsAdmin;
+
+  /// Toast after removing.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} was removed from the Space.'**
+  String spacesRemoved(String name);
+
+  /// S17k note for an admin member.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins have every right in the Space.'**
+  String get spacesAdminRights;
 }
 
 class _AppLocalizationsDelegate

@@ -5,13 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
-import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
-import '../../shared/widgets/bv_button.dart';
 import '../profile/widgets/profile_parts.dart';
+import 'people_tab.dart';
 
 /// How a Space opens: on its People tab, and with the invite screen on top
 /// right after it was created (review 06, S5).
@@ -109,7 +108,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         ),
       ),
       body: switch (_tab) {
-        SpaceScreen.peopleTab => _PeopleTab(space: detail),
+        SpaceScreen.peopleTab => PeopleTab(space: detail),
         _ => Padding(
           padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
           child: EmptyNote(l10n.placeholderBody),
@@ -141,35 +140,6 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// People (S10k) arrives in part 2; for now, Invite people.
-class _PeopleTab extends StatelessWidget {
-  const _PeopleTab({required this.space});
-
-  final SpaceDetail space;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return ListView(
-      padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-      children: [
-        if (space.canInvite) ...[
-          BvButton(
-            key: const Key('space-invite'),
-            label: l10n.spacesInvitePeople,
-            icon: BvIcons.people,
-            style: BvButtonStyle.secondary,
-            expand: true,
-            onPressed: () => context.push(AppRoutes.spaceInvite(space.id)),
-          ),
-          const SizedBox(height: BvSpace.s16),
-        ],
-        EmptyNote(l10n.placeholderBody),
-      ],
     );
   }
 }

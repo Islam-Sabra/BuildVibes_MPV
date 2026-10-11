@@ -30,6 +30,8 @@ abstract final class AppRoutes {
   static const spacesNew = '/spaces/new';
   static String space(String id) => '/spaces/$id';
   static String spaceInvite(String id) => '/spaces/$id/invite';
+  static String spaceMember(String id, String profileId) =>
+      '/spaces/$id/members/$profileId';
 
   // Entry (signed out)
   static const loading = '/loading';

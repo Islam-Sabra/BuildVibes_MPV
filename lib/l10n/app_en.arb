@@ -1481,5 +1481,359 @@
   "spacesInviteCodeTag": "INVITE CODE",
   "@spacesInviteCodeTag": {
     "description": "S16 code card overline."
+  },
+  "timeJustNow": "just now",
+  "@timeJustNow": {
+    "description": "Relative time."
+  },
+  "timeMinutesAgo": "{n, plural, =1{1 min ago} other{{n} min ago}}",
+  "@timeMinutesAgo": {
+    "description": "Relative time in minutes.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "{n}h ago",
+  "@timeHoursAgo": {
+    "description": "Relative time in hours.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timeYesterday": "yesterday",
+  "@timeYesterday": {
+    "description": "Relative time."
+  },
+  "timeDaysAgo": "{n, plural, =1{1 day ago} other{{n} days ago}}",
+  "@timeDaysAgo": {
+    "description": "Relative time in days.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "spacesSearchMembers": "Search members",
+  "@spacesSearchMembers": {
+    "description": "S10k search."
+  },
+  "spacesRequestsTitle": "REQUESTS TO JOIN · YOU CONFIRM",
+  "@spacesRequestsTitle": {
+    "description": "S10k overline, admins only."
+  },
+  "spacesAsked": "Asked {when}",
+  "@spacesAsked": {
+    "description": "Request line: when.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesViaCodeFrom": "invite code shared by {name}",
+  "@spacesViaCodeFrom": {
+    "description": "Request line: who shared the code.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesViaCode": "invite code",
+  "@spacesViaCode": {
+    "description": "Request line: no name."
+  },
+  "spacesDecline": "Decline",
+  "@spacesDecline": {
+    "description": "Request button."
+  },
+  "spacesConfirm": "Confirm",
+  "@spacesConfirm": {
+    "description": "Request button."
+  },
+  "spacesOwners": "Owners",
+  "@spacesOwners": {
+    "description": "S10k section: the Space admins."
+  },
+  "spacesOwnerTag": "Owner",
+  "@spacesOwnerTag": {
+    "description": "Tag under an admin's name."
+  },
+  "spacesMembers": "Members",
+  "@spacesMembers": {
+    "description": "S10k section."
+  },
+  "spacesYouTag": "You",
+  "@spacesYouTag": {
+    "description": "Tag on your own row."
+  },
+  "spacesNoMatch": "No one matches.",
+  "@spacesNoMatch": {
+    "description": "S10k search with no result."
+  },
+  "spacesPassLead": "Lead",
+  "@spacesPassLead": {
+    "description": "Pass name."
+  },
+  "spacesPassCrew": "Crew",
+  "@spacesPassCrew": {
+    "description": "Pass name."
+  },
+  "spacesPassViewer": "Viewer",
+  "@spacesPassViewer": {
+    "description": "Pass name."
+  },
+  "spacesPassLine": "{pass} pass",
+  "@spacesPassLine": {
+    "description": "Member row: the pass.",
+    "placeholders": {
+      "pass": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesGivePass": "GIVE A PASS FOR THIS SPACE",
+  "@spacesGivePass": {
+    "description": "Confirm sheet overline. Neutral: no him/her."
+  },
+  "spacesLeadOpens": "Opens: create items · check and close · files · invite",
+  "@spacesLeadOpens": {
+    "description": "Lead pass card."
+  },
+  "spacesLeadFor": "Engineers, supervisors",
+  "@spacesLeadFor": {
+    "description": "Lead pass card."
+  },
+  "spacesCrewOpens": "Opens: chat · mark own items done with a photo · files",
+  "@spacesCrewOpens": {
+    "description": "Crew pass card."
+  },
+  "spacesCrewFor": "Foremen, technicians, subcontractors",
+  "@spacesCrewFor": {
+    "description": "Crew pass card."
+  },
+  "spacesViewerOpens": "Opens: read and chat only",
+  "@spacesViewerOpens": {
+    "description": "Viewer pass card."
+  },
+  "spacesViewerFor": "Client, supplier",
+  "@spacesViewerFor": {
+    "description": "Viewer pass card."
+  },
+  "spacesConfirmAs": "Confirm as {pass}",
+  "@spacesConfirmAs": {
+    "description": "Confirm sheet main button.",
+    "placeholders": {
+      "pass": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesJoinedAs": "{name} joined as {pass}. The Space is open to them now.",
+  "@spacesJoinedAs": {
+    "description": "S17k banner after confirming.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pass": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesDeclined": "{name}'s request declined. They aren't told why.",
+  "@spacesDeclined": {
+    "description": "S10k-D toast.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesUndo": "Undo",
+  "@spacesUndo": {
+    "description": "Toast action."
+  },
+  "spacesAlreadyAnswered": "This request was already answered.",
+  "@spacesAlreadyAnswered": {
+    "description": "confirm/decline P0001."
+  },
+  "spacesMemberTitle": "Member",
+  "@spacesMemberTitle": {
+    "description": "S17k title."
+  },
+  "spacesPassOpens": "THIS PASS OPENS",
+  "@spacesPassOpens": {
+    "description": "S17k overline."
+  },
+  "spacesPassCustom": "{pass} · CUSTOM",
+  "@spacesPassCustom": {
+    "description": "S17k stamp when rights were changed.",
+    "placeholders": {
+      "pass": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesConfirmedBy": "Confirmed by {name}",
+  "@spacesConfirmedBy": {
+    "description": "S17k line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesConfirmedByYou": "Confirmed by you",
+  "@spacesConfirmedByYou": {
+    "description": "S17k line."
+  },
+  "spacesRightChat": "Chat in Everyone and their Teams",
+  "@spacesRightChat": {
+    "description": "Right, always on."
+  },
+  "spacesRightMarkDone": "Mark own items done",
+  "@spacesRightMarkDone": {
+    "description": "Right, set by the pass."
+  },
+  "spacesRightFiles": "Add files to the Library",
+  "@spacesRightFiles": {
+    "description": "Right."
+  },
+  "spacesRightCreate": "Create work items",
+  "@spacesRightCreate": {
+    "description": "Right."
+  },
+  "spacesRightCheck": "Check and close items",
+  "@spacesRightCheck": {
+    "description": "Right."
+  },
+  "spacesRightInvite": "Invite people",
+  "@spacesRightInvite": {
+    "description": "Right."
+  },
+  "spacesAlways": "Always",
+  "@spacesAlways": {
+    "description": "Right that can't change."
+  },
+  "spacesOpenRight": "Open",
+  "@spacesOpenRight": {
+    "description": "Action: give this right."
+  },
+  "spacesLockRight": "Lock",
+  "@spacesLockRight": {
+    "description": "Action: take this right away."
+  },
+  "spacesChangePass": "CHANGE PASS",
+  "@spacesChangePass": {
+    "description": "S17k overline."
+  },
+  "spacesTeamsLabel": "TEAMS",
+  "@spacesTeamsLabel": {
+    "description": "S17k overline."
+  },
+  "spacesMakeAdmin": "Make admin",
+  "@spacesMakeAdmin": {
+    "description": "S17k switch."
+  },
+  "spacesMakeAdminHelp": "Admins confirm people, give passes and manage the Space.",
+  "@spacesMakeAdminHelp": {
+    "description": "S17k switch helper."
+  },
+  "spacesRemove": "Remove from Space",
+  "@spacesRemove": {
+    "description": "S17k destructive button."
+  },
+  "spacesRemoveTitle": "Remove {name}?",
+  "@spacesRemoveTitle": {
+    "description": "Confirm sheet.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesRemoveBody": "Their closed work items stay in the record.",
+  "@spacesRemoveBody": {
+    "description": "Confirm sheet."
+  },
+  "spacesRightOpened": "{right}: open for {name}. The pass shows as Custom.",
+  "@spacesRightOpened": {
+    "description": "S17k-b banner.",
+    "placeholders": {
+      "right": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesRightLocked": "{right}: locked for {name}.",
+  "@spacesRightLocked": {
+    "description": "S17k banner.",
+    "placeholders": {
+      "right": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesPassChanged": "{name} now has a {pass} pass.",
+  "@spacesPassChanged": {
+    "description": "S17k banner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pass": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesAdminOn": "{name} is now a Space admin.",
+  "@spacesAdminOn": {
+    "description": "S17k banner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesAdminOff": "{name} is no longer a Space admin.",
+  "@spacesAdminOff": {
+    "description": "S17k banner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesTeamsSaved": "Teams saved.",
+  "@spacesTeamsSaved": {
+    "description": "S17k banner."
+  },
+  "spacesNeedsAdmin": "A Space needs an admin. Make someone else an admin first.",
+  "@spacesNeedsAdmin": {
+    "description": "Last admin (P0001)."
+  },
+  "spacesRemoved": "{name} was removed from the Space.",
+  "@spacesRemoved": {
+    "description": "Toast after removing.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesAdminRights": "Admins have every right in the Space.",
+  "@spacesAdminRights": {
+    "description": "S17k note for an admin member."
   }
 }

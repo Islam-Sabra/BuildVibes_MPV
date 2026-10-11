@@ -1090,4 +1090,245 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesInviteCodeTag => 'INVITE CODE';
+
+  @override
+  String get timeJustNow => 'just now';
+
+  @override
+  String timeMinutesAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n min ago',
+      one: '1 min ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeHoursAgo(int n) {
+    return '${n}h ago';
+  }
+
+  @override
+  String get timeYesterday => 'yesterday';
+
+  @override
+  String timeDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesSearchMembers => 'Search members';
+
+  @override
+  String get spacesRequestsTitle => 'REQUESTS TO JOIN · YOU CONFIRM';
+
+  @override
+  String spacesAsked(String when) {
+    return 'Asked $when';
+  }
+
+  @override
+  String spacesViaCodeFrom(String name) {
+    return 'invite code shared by $name';
+  }
+
+  @override
+  String get spacesViaCode => 'invite code';
+
+  @override
+  String get spacesDecline => 'Decline';
+
+  @override
+  String get spacesConfirm => 'Confirm';
+
+  @override
+  String get spacesOwners => 'Owners';
+
+  @override
+  String get spacesOwnerTag => 'Owner';
+
+  @override
+  String get spacesMembers => 'Members';
+
+  @override
+  String get spacesYouTag => 'You';
+
+  @override
+  String get spacesNoMatch => 'No one matches.';
+
+  @override
+  String get spacesPassLead => 'Lead';
+
+  @override
+  String get spacesPassCrew => 'Crew';
+
+  @override
+  String get spacesPassViewer => 'Viewer';
+
+  @override
+  String spacesPassLine(String pass) {
+    return '$pass pass';
+  }
+
+  @override
+  String get spacesGivePass => 'GIVE A PASS FOR THIS SPACE';
+
+  @override
+  String get spacesLeadOpens =>
+      'Opens: create items · check and close · files · invite';
+
+  @override
+  String get spacesLeadFor => 'Engineers, supervisors';
+
+  @override
+  String get spacesCrewOpens =>
+      'Opens: chat · mark own items done with a photo · files';
+
+  @override
+  String get spacesCrewFor => 'Foremen, technicians, subcontractors';
+
+  @override
+  String get spacesViewerOpens => 'Opens: read and chat only';
+
+  @override
+  String get spacesViewerFor => 'Client, supplier';
+
+  @override
+  String spacesConfirmAs(String pass) {
+    return 'Confirm as $pass';
+  }
+
+  @override
+  String spacesJoinedAs(String name, String pass) {
+    return '$name joined as $pass. The Space is open to them now.';
+  }
+
+  @override
+  String spacesDeclined(String name) {
+    return '$name\'s request declined. They aren\'t told why.';
+  }
+
+  @override
+  String get spacesUndo => 'Undo';
+
+  @override
+  String get spacesAlreadyAnswered => 'This request was already answered.';
+
+  @override
+  String get spacesMemberTitle => 'Member';
+
+  @override
+  String get spacesPassOpens => 'THIS PASS OPENS';
+
+  @override
+  String spacesPassCustom(String pass) {
+    return '$pass · CUSTOM';
+  }
+
+  @override
+  String spacesConfirmedBy(String name) {
+    return 'Confirmed by $name';
+  }
+
+  @override
+  String get spacesConfirmedByYou => 'Confirmed by you';
+
+  @override
+  String get spacesRightChat => 'Chat in Everyone and their Teams';
+
+  @override
+  String get spacesRightMarkDone => 'Mark own items done';
+
+  @override
+  String get spacesRightFiles => 'Add files to the Library';
+
+  @override
+  String get spacesRightCreate => 'Create work items';
+
+  @override
+  String get spacesRightCheck => 'Check and close items';
+
+  @override
+  String get spacesRightInvite => 'Invite people';
+
+  @override
+  String get spacesAlways => 'Always';
+
+  @override
+  String get spacesOpenRight => 'Open';
+
+  @override
+  String get spacesLockRight => 'Lock';
+
+  @override
+  String get spacesChangePass => 'CHANGE PASS';
+
+  @override
+  String get spacesTeamsLabel => 'TEAMS';
+
+  @override
+  String get spacesMakeAdmin => 'Make admin';
+
+  @override
+  String get spacesMakeAdminHelp =>
+      'Admins confirm people, give passes and manage the Space.';
+
+  @override
+  String get spacesRemove => 'Remove from Space';
+
+  @override
+  String spacesRemoveTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get spacesRemoveBody => 'Their closed work items stay in the record.';
+
+  @override
+  String spacesRightOpened(String right, String name) {
+    return '$right: open for $name. The pass shows as Custom.';
+  }
+
+  @override
+  String spacesRightLocked(String right, String name) {
+    return '$right: locked for $name.';
+  }
+
+  @override
+  String spacesPassChanged(String name, String pass) {
+    return '$name now has a $pass pass.';
+  }
+
+  @override
+  String spacesAdminOn(String name) {
+    return '$name is now a Space admin.';
+  }
+
+  @override
+  String spacesAdminOff(String name) {
+    return '$name is no longer a Space admin.';
+  }
+
+  @override
+  String get spacesTeamsSaved => 'Teams saved.';
+
+  @override
+  String get spacesNeedsAdmin =>
+      'A Space needs an admin. Make someone else an admin first.';
+
+  @override
+  String spacesRemoved(String name) {
+    return '$name was removed from the Space.';
+  }
+
+  @override
+  String get spacesAdminRights => 'Admins have every right in the Space.';
 }

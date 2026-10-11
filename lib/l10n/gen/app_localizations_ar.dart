@@ -1082,4 +1082,257 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesInviteCodeTag => 'رمز الدعوة';
+
+  @override
+  String get timeJustNow => 'الآن';
+
+  @override
+  String timeMinutesAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n دقيقة',
+      few: 'منذ $n دقائق',
+      two: 'منذ دقيقتين',
+      one: 'منذ دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeHoursAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n ساعة',
+      few: 'منذ $n ساعات',
+      two: 'منذ ساعتين',
+      one: 'منذ ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timeYesterday => 'أمس';
+
+  @override
+  String timeDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n يوماً',
+      few: 'منذ $n أيام',
+      two: 'منذ يومين',
+      one: 'منذ يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesSearchMembers => 'ابحث في الأعضاء';
+
+  @override
+  String get spacesRequestsTitle => 'طلبات الانضمام · أنت تؤكدها';
+
+  @override
+  String spacesAsked(String when) {
+    return 'طلب الانضمام $when';
+  }
+
+  @override
+  String spacesViaCodeFrom(String name) {
+    return 'رمز دعوة من $name';
+  }
+
+  @override
+  String get spacesViaCode => 'رمز دعوة';
+
+  @override
+  String get spacesDecline => 'رفض';
+
+  @override
+  String get spacesConfirm => 'تأكيد';
+
+  @override
+  String get spacesOwners => 'مديرو المساحة';
+
+  @override
+  String get spacesOwnerTag => 'مدير المساحة';
+
+  @override
+  String get spacesMembers => 'الأعضاء';
+
+  @override
+  String get spacesYouTag => 'أنت';
+
+  @override
+  String get spacesNoMatch => 'لا يوجد من يطابق البحث.';
+
+  @override
+  String get spacesPassLead => 'مسؤول';
+
+  @override
+  String get spacesPassCrew => 'فريق تنفيذ';
+
+  @override
+  String get spacesPassViewer => 'مُطّلع';
+
+  @override
+  String spacesPassLine(String pass) {
+    return 'تصريح $pass';
+  }
+
+  @override
+  String get spacesGivePass => 'امنح تصريحاً لهذه المساحة';
+
+  @override
+  String get spacesLeadOpens =>
+      'يتيح: إنشاء البنود · الفحص والإغلاق · الملفات · الدعوة';
+
+  @override
+  String get spacesLeadFor => 'المهندسون والمشرفون';
+
+  @override
+  String get spacesCrewOpens =>
+      'يتيح: المحادثة · توقيع البنود المكلّف بها كمنجزة بصورة · الملفات';
+
+  @override
+  String get spacesCrewFor => 'رؤساء العمال والفنيون ومقاولو الباطن';
+
+  @override
+  String get spacesViewerOpens => 'يتيح: القراءة والمحادثة فقط';
+
+  @override
+  String get spacesViewerFor => 'العميل والمورّد';
+
+  @override
+  String spacesConfirmAs(String pass) {
+    return 'تأكيد: $pass';
+  }
+
+  @override
+  String spacesJoinedAs(String name, String pass) {
+    return 'تم تأكيد انضمام $name بتصريح $pass. أصبحت المساحة متاحة الآن.';
+  }
+
+  @override
+  String spacesDeclined(String name) {
+    return 'تم رفض طلب $name دون ذكر السبب.';
+  }
+
+  @override
+  String get spacesUndo => 'تراجع';
+
+  @override
+  String get spacesAlreadyAnswered => 'تمت الإجابة على هذا الطلب بالفعل.';
+
+  @override
+  String get spacesMemberTitle => 'العضو';
+
+  @override
+  String get spacesPassOpens => 'ما يتيحه هذا التصريح';
+
+  @override
+  String spacesPassCustom(String pass) {
+    return '$pass · مخصّص';
+  }
+
+  @override
+  String spacesConfirmedBy(String name) {
+    return 'تم التأكيد بواسطة $name';
+  }
+
+  @override
+  String get spacesConfirmedByYou => 'تم التأكيد بواسطتك';
+
+  @override
+  String get spacesRightChat => 'المحادثة في «الجميع» والفِرق';
+
+  @override
+  String get spacesRightMarkDone => 'توقيع البنود المكلّف بها كمنجزة';
+
+  @override
+  String get spacesRightFiles => 'إضافة ملفات إلى المكتبة';
+
+  @override
+  String get spacesRightCreate => 'إنشاء بنود عمل';
+
+  @override
+  String get spacesRightCheck => 'فحص البنود وإغلاقها';
+
+  @override
+  String get spacesRightInvite => 'دعوة أشخاص';
+
+  @override
+  String get spacesAlways => 'دائماً';
+
+  @override
+  String get spacesOpenRight => 'فتح';
+
+  @override
+  String get spacesLockRight => 'قفل';
+
+  @override
+  String get spacesChangePass => 'تغيير التصريح';
+
+  @override
+  String get spacesTeamsLabel => 'الفِرق';
+
+  @override
+  String get spacesMakeAdmin => 'تعيين كمدير';
+
+  @override
+  String get spacesMakeAdminHelp =>
+      'يؤكد المديرون الأشخاص ويمنحون التصاريح ويديرون المساحة.';
+
+  @override
+  String get spacesRemove => 'إزالة من المساحة';
+
+  @override
+  String spacesRemoveTitle(String name) {
+    return 'إزالة $name؟';
+  }
+
+  @override
+  String get spacesRemoveBody => 'تبقى بنود العمل المغلقة في السجل.';
+
+  @override
+  String spacesRightOpened(String right, String name) {
+    return '$right: مفتوح لـ$name. يظهر التصريح كمخصّص.';
+  }
+
+  @override
+  String spacesRightLocked(String right, String name) {
+    return '$right: مقفل لـ$name.';
+  }
+
+  @override
+  String spacesPassChanged(String name, String pass) {
+    return 'تصريح $name الآن: $pass.';
+  }
+
+  @override
+  String spacesAdminOn(String name) {
+    return '$name الآن من مديري المساحة.';
+  }
+
+  @override
+  String spacesAdminOff(String name) {
+    return 'تمت إزالة $name من مديري المساحة.';
+  }
+
+  @override
+  String get spacesTeamsSaved => 'تم حفظ الفِرق.';
+
+  @override
+  String get spacesNeedsAdmin =>
+      'تحتاج المساحة إلى مدير. اجعل شخصاً آخر مديراً أولاً.';
+
+  @override
+  String spacesRemoved(String name) {
+    return 'تمت إزالة $name من المساحة.';
+  }
+
+  @override
+  String get spacesAdminRights => 'لدى المديرين كل الصلاحيات في المساحة.';
 }

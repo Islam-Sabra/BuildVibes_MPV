@@ -38,7 +38,49 @@ abstract class SpaceRepository {
 
   /// A new code; the old one stops working. Admins only.
   Future<SpaceInvite> renewInvite(String spaceId);
+
+  /// Members, Teams and, for admins, the requests waiting to be confirmed.
+  Future<SpacePeople> people(String spaceId);
+
+  Future<void> confirmJoin(
+    String requestId,
+    SpacePass pass, {
+    List<String> teamIds = const [],
+  });
+
+  /// The person isn't told why.
+  Future<void> declineJoin(String requestId);
+
+  Future<void> undoDecline(String requestId);
+
+  /// What [profileId] may do, decided by the server.
+  Future<MemberRights> memberRights(String spaceId, String profileId);
+
+  /// The pass and the rights changed from it. The server keeps only the
+  /// differences from the pass.
+  Future<void> setMemberPass(
+    String spaceId,
+    String profileId,
+    SpacePass pass, {
+    Map<String, bool> custom = const {},
+  });
+
+  Future<void> setMemberTeams(
+    String spaceId,
+    String profileId,
+    List<String> teamIds,
+  );
+
+  /// Fails with [SpaceFailure.rule] when it would leave no admin.
+  Future<void> setMemberAdmin(String spaceId, String profileId, bool admin);
+
+  Future<void> removeMember(String spaceId, String profileId);
 }
+
+/// How Space lists select a person: name, and role · company.
+const _person =
+    'id, first_name, last_name, headline, trade_id, company_name_text, '
+    'trade:trades(name), company:companies!profiles_company_fk(name)';
 
 /// What people type: spaces and dashes go, letters go upper case, Arabic
 /// and Persian digits become 0-9. The server does the same.
@@ -184,6 +226,179 @@ class SupabaseSpaceRepository implements SpaceRepository {
     );
     return SpaceInvite.fromJson(rows.single);
   });
+
+  @override
+  Future<SpacePeople> people(String spaceId) => _guard(() async {
+    // Each table has several links to profiles: name the one meant.
+    final members = await _client
+        .from('space_members')
+        .select(
+          'pass, is_admin, custom, confirmed_by, confirmed_at, '
+          'person:profiles!space_members_profile_id_fkey($_person), '
+          'confirmer:profiles!space_members_confirmed_by_fkey('
+          'first_name, last_name)',
+        )
+        .eq('space_id', spaceId)
+        .isFilter('left_at', null)
+        .order('confirmed_at', ascending: true);
+    // Admins only; for everyone else row-level security returns nothing.
+    final requests = await _client
+        .from('space_join_requests')
+        .select(
+          'id, created_at, '
+          'person:profiles!space_join_requests_profile_id_fkey($_person), '
+          'inviter:profiles!space_join_requests_invited_by_fkey('
+          'first_name, last_name)',
+        )
+        .eq('space_id', spaceId)
+        .eq('status', 'pending')
+        .order('created_at', ascending: true);
+    final teams = await _client
+        .from('teams')
+        .select('id, name, members:team_members(profile_id)')
+        .eq('space_id', spaceId)
+        .order('name', ascending: true);
+
+    return SpacePeople(
+      members: [
+        for (final m in members)
+          if (m['person'] != null)
+            SpaceMember(
+              person: SpacePerson.fromJson(m['person'] as Map<String, dynamic>),
+              pass: SpacePass.fromJson(m['pass']),
+              isAdmin: m['is_admin'] as bool? ?? false,
+              custom: {
+                for (final e
+                    in (m['custom'] as Map<String, dynamic>? ?? const {})
+                        .entries)
+                  if (e.value is bool) e.key: e.value as bool,
+              },
+              confirmedById: m['confirmed_by'] as String?,
+              confirmedByName: _nameOf(m['confirmer']),
+              confirmedAt: DateTime.parse(m['confirmed_at'] as String),
+            ),
+      ],
+      requests: [
+        for (final r in requests)
+          if (r['person'] != null)
+            SpaceJoinRequest(
+              id: r['id'] as String,
+              person: SpacePerson.fromJson(r['person'] as Map<String, dynamic>),
+              createdAt: DateTime.parse(r['created_at'] as String),
+              invitedByName: _nameOf(r['inviter']),
+            ),
+      ],
+      teams: [
+        for (final t in teams)
+          SpaceTeam(
+            id: t['id'] as String,
+            name: t['name'] as String,
+            memberIds: {
+              for (final m in (t['members'] as List? ?? const []))
+                (m as Map<String, dynamic>)['profile_id'] as String,
+            },
+          ),
+      ],
+    );
+  });
+
+  /// "First Last" from an embedded profile, or null.
+  static String? _nameOf(Object? row) {
+    if (row is! Map<String, dynamic>) return null;
+    final name = '${row['first_name'] ?? ''} ${row['last_name'] ?? ''}'.trim();
+    return name.isEmpty ? null : name;
+  }
+
+  @override
+  Future<void> confirmJoin(
+    String requestId,
+    SpacePass pass, {
+    List<String> teamIds = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'confirm_join',
+      params: {
+        'p_request': requestId,
+        'p_pass': pass.toJson(),
+        'p_team_ids': teamIds,
+      },
+    ),
+  );
+
+  @override
+  Future<void> declineJoin(String requestId) => _guard(
+    () => _client.rpc<void>('decline_join', params: {'p_request': requestId}),
+  );
+
+  @override
+  Future<void> undoDecline(String requestId) => _guard(
+    () => _client.rpc<void>('undo_decline', params: {'p_request': requestId}),
+  );
+
+  @override
+  Future<MemberRights> memberRights(String spaceId, String profileId) =>
+      _guard(() async {
+        final rights = await _client.rpc<Map<String, dynamic>?>(
+          'member_rights',
+          params: {'p_space': spaceId, 'p_profile': profileId},
+        );
+        return MemberRights.fromJson(rights);
+      });
+
+  @override
+  Future<void> setMemberPass(
+    String spaceId,
+    String profileId,
+    SpacePass pass, {
+    Map<String, bool> custom = const {},
+  }) => _guard(
+    () => _client.rpc<void>(
+      'set_member_pass',
+      params: {
+        'p_space': spaceId,
+        'p_profile': profileId,
+        'p_pass': pass.toJson(),
+        'p_custom': custom,
+      },
+    ),
+  );
+
+  @override
+  Future<void> setMemberTeams(
+    String spaceId,
+    String profileId,
+    List<String> teamIds,
+  ) => _guard(
+    () => _client.rpc<void>(
+      'set_member_teams',
+      params: {
+        'p_space': spaceId,
+        'p_profile': profileId,
+        'p_team_ids': teamIds,
+      },
+    ),
+  );
+
+  @override
+  Future<void> setMemberAdmin(String spaceId, String profileId, bool admin) =>
+      _guard(
+        () => _client.rpc<void>(
+          'set_member_admin',
+          params: {
+            'p_space': spaceId,
+            'p_profile': profileId,
+            'p_admin': admin,
+          },
+        ),
+      );
+
+  @override
+  Future<void> removeMember(String spaceId, String profileId) => _guard(
+    () => _client.rpc<void>(
+      'remove_member',
+      params: {'p_space': spaceId, 'p_profile': profileId},
+    ),
+  );
 }
 
 /// Postgres error code → what the app says.
@@ -215,4 +430,16 @@ final spaceDetailProvider = FutureProvider.autoDispose
 final spaceInviteProvider = FutureProvider.autoDispose
     .family<SpaceInvite, String>(
       (ref, id) => ref.watch(spaceRepositoryProvider).currentInvite(id),
+    );
+
+final spacePeopleProvider = FutureProvider.autoDispose
+    .family<SpacePeople, String>(
+      (ref, id) => ref.watch(spaceRepositoryProvider).people(id),
+    );
+
+final memberRightsProvider = FutureProvider.autoDispose
+    .family<MemberRights, ({String spaceId, String profileId})>(
+      (ref, key) => ref
+          .watch(spaceRepositoryProvider)
+          .memberRights(key.spaceId, key.profileId),
     );

@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import 'market.dart';
+import 'people.dart';
+
 /// Lead / Crew / Viewer (مسؤول / فريق تنفيذ / مُطّلع). What each pass opens
 /// is decided on the server (pass_rights, member_rights); the app never
 /// copies the presets.
@@ -220,6 +223,148 @@ class SpaceDetail {
   final MemberRights myRights;
 
   bool get canInvite => myRights.invite;
+}
+
+/// A person as Space lists show them: name, and role · company.
+@immutable
+class SpacePerson {
+  const SpacePerson({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    this.headline,
+    this.tradeId,
+    this.tradeName,
+    this.companyLabel,
+  });
+
+  /// The embed `profiles(id, first_name, last_name, headline, trade_id,
+  /// company_name_text, trade:trades(name), company:companies(name))`.
+  factory SpacePerson.fromJson(Map<String, dynamic> json) {
+    final trade = json['trade'] as Map<String, dynamic>?;
+    final company = json['company'] as Map<String, dynamic>?;
+    return SpacePerson(
+      id: json['id'] as String,
+      firstName: json['first_name'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? '',
+      headline: json['headline'] as String?,
+      tradeId: json['trade_id'] as String?,
+      tradeName: trade == null
+          ? null
+          : LocalizedText.fromJson(trade['name'] as Map<String, dynamic>),
+      companyLabel:
+          company?['name'] as String? ?? json['company_name_text'] as String?,
+    );
+  }
+
+  final String id;
+  final String firstName;
+  final String lastName;
+  final String? headline;
+  final String? tradeId;
+  final LocalizedText? tradeName;
+  final String? companyLabel;
+
+  String get fullName => '$firstName $lastName'.trim();
+
+  String? roleLabel(String languageCode) {
+    // The headline when set ("BIM Manager"), otherwise the trade.
+    if ((headline ?? '').trim().isNotEmpty) return headline;
+    if (tradeId == Trade.otherId) return null;
+    final name = tradeName;
+    if (name == null) return headline;
+    return languageCode == 'ar' ? name.ar : name.en;
+  }
+}
+
+/// A request waiting for the Space admins (S10k "Requests to join").
+@immutable
+class SpaceJoinRequest {
+  const SpaceJoinRequest({
+    required this.id,
+    required this.person,
+    required this.createdAt,
+    this.invitedByName,
+  });
+
+  final String id;
+  final SpacePerson person;
+  final DateTime createdAt;
+
+  /// Who shared the code, when known.
+  final String? invitedByName;
+}
+
+/// A current member of a Space (S10k Owners and Members, S17k).
+@immutable
+class SpaceMember {
+  const SpaceMember({
+    required this.person,
+    required this.pass,
+    required this.isAdmin,
+    required this.confirmedAt,
+    this.custom = const {},
+    this.confirmedById,
+    this.confirmedByName,
+  });
+
+  final SpacePerson person;
+  final SpacePass pass;
+  final bool isAdmin;
+
+  /// Rights the admin changed from the pass (create_items, check_items,
+  /// add_files, invite).
+  final Map<String, bool> custom;
+  final String? confirmedById;
+  final String? confirmedByName;
+  final DateTime confirmedAt;
+
+  bool get isCustom => custom.isNotEmpty;
+}
+
+@immutable
+class SpaceTeam {
+  const SpaceTeam({
+    required this.id,
+    required this.name,
+    this.memberIds = const {},
+  });
+
+  final String id;
+  final String name;
+  final Set<String> memberIds;
+}
+
+/// Everything the People tab shows. [requests] is empty for members who
+/// are not admins (they can't read them).
+@immutable
+class SpacePeople {
+  const SpacePeople({
+    this.requests = const [],
+    this.members = const [],
+    this.teams = const [],
+  });
+
+  final List<SpaceJoinRequest> requests;
+  final List<SpaceMember> members;
+  final List<SpaceTeam> teams;
+
+  SpaceMember? member(String profileId) =>
+      members.where((m) => m.person.id == profileId).firstOrNull;
+
+  List<SpaceTeam> teamsOf(String profileId) => [
+    for (final t in teams)
+      if (t.memberIds.contains(profileId)) t,
+  ];
+}
+
+/// The custom rights keys (S17k switches). Chat is always on and
+/// mark_done is set by the pass.
+abstract final class SpaceRight {
+  static const createItems = 'create_items';
+  static const checkItems = 'check_items';
+  static const addFiles = 'add_files';
+  static const invite = 'invite';
 }
 
 /// What a Space call can fail with, from the Postgres error code.

@@ -31,6 +31,7 @@ import '../../features/projects/new_project_screen.dart';
 import '../../features/projects/project_sheet_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/spaces/invite_screen.dart';
+import '../../features/spaces/member_pass_screen.dart';
 import '../../features/spaces/new_space_screen.dart';
 import '../../features/spaces/space_screen.dart';
 import 'app_routes.dart';
@@ -165,6 +166,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'invite',
             builder: (context, state) =>
                 InviteScreen(spaceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'members/:profileId',
+            builder: (context, state) => MemberPassScreen(
+              spaceId: state.pathParameters['id']!,
+              profileId: state.pathParameters['profileId']!,
+              open: state.extra as MemberPassOpen?,
+            ),
           ),
         ],
       ),
