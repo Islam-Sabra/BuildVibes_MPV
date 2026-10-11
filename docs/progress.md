@@ -24,7 +24,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Setting | Value |
 |---|---|
 | Sign-ups | Allowed. New accounts by phone only for live-market numbers or a Space invite (hook `hook_before_user_created`) |
-| Email | On. 6-digit code, valid 10 minutes, 1 minute between codes, confirmation required. Sender: Resend SMTP, `BuildVibes <no-reply@mail.aecox.com>` (saved by the founder, 11 Oct). Code email in English and Arabic (no link) applied 11 Oct with the founder's yes. Limit 30 emails an hour (config.toml proposes 60; not applied) |
+| Email | On. 6-digit code, valid 10 minutes, 1 minute between codes, confirmation required. Sender: Resend SMTP, `BuildVibes <no-reply@mail.aecox.com>` (saved by the founder, 11 Oct). Code email in English and Arabic (no link) applied 11 Oct with the founder's yes. Limit 60 emails an hour (founder's yes, 11 Oct) |
 | Phone | New phone sign-ups off (decision 04, 11 Oct). Existing test accounts can still sign in. Placeholder Twilio account (no real messages) |
 | Test phone numbers | +965 50000001, +965 50000002, +965 50000003, +20 1000000001, +91 9800000001 — code 123456 |
 | Google, Apple, LinkedIn | Off |
@@ -100,8 +100,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - `supabase/config.toml` holds the intended live values: Resend SMTP, the code email in English and Arabic, 60 emails an hour, phone sign-ups off. Code email and phone sign-ups off applied live with the founder's yes; the founder's Resend settings were not touched.
     - Review 05 (profiles) passed with no changes.
     - 249 Flutter tests and 121 SQL tests pass.
+    - Live check: real code emails reach the founder's Gmail inbox (not spam), and the code signs in. Email limit raised to 60 an hour. New screenshots of E2, E3e and E9 in English and Arabic are in `docs/screens/` (not committed).
 
 ## Next tasks (in order)
-1. Decision 04: the founder confirms the test code email (sent 11 Oct) arrived in the inbox, not spam. Optional: raise the email limit from 30 to 60 an hour (needs the founder's yes).
-2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
-3. Spaces (week 4): create, link a project, invite link and code, join requests, passes, Teams. Teammate confirmations for CV projects come with it.
+1. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
+2. Spaces (week 4): create, link a project, invite link and code, join requests, passes, Teams. Teammate confirmations for CV projects come with it.
