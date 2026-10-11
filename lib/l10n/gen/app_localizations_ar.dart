@@ -45,7 +45,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonConfirm => 'تأكيد';
 
   @override
-  String get stampSelected => 'محدد';
+  String get stampSelected => 'مختار';
 
   @override
   String get signOffLabel => 'التوقيعات';

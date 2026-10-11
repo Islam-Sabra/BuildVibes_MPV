@@ -5,10 +5,13 @@
 // lives here instead of the ARB files. Product screens never do this.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../data/models/market.dart';
+import '../../data/repositories/market_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_badge.dart';
@@ -181,11 +184,21 @@ class _ComponentsGalleryScreenState extends State<ComponentsGalleryScreen> {
               ],
               onChanged: (v) => setState(() => _team = v),
             ),
-            BvPhoneField(
-              label: s.phoneLabel,
-              // Stand-in: the real dial code comes from the market pack.
-              dialCode: '+000',
-              placeholder: '0000 0000',
+            // The dial code and example come from the market pack in
+            // Supabase (the first live market).
+            Consumer(
+              builder: (context, ref, _) {
+                final markets = ref.watch(marketsProvider).value ?? const [];
+                final market = markets
+                    .where((m) => m.status == MarketStatus.live)
+                    .firstOrNull;
+                return BvPhoneField(
+                  key: const Key('gallery-phone'),
+                  label: s.phoneLabel,
+                  dialCode: market?.dialCode ?? '+',
+                  placeholder: market?.phoneExample,
+                );
+              },
             ),
             BvCodeField(label: s.codeLabel),
             BvTextField(
@@ -713,7 +726,7 @@ class _Samples {
     fieldError: 'اكتب عنواناً.',
     selectLabel: 'الفريق',
     teams: {
-      'structure': 'الهيكل الإنشائي',
+      'structure': 'الفريق الإنشائي',
       'mep': 'الأعمال الكهروميكانيكية',
       'finishes': 'التشطيبات',
     },
@@ -746,7 +759,7 @@ class _Samples {
     sheetBody: 'هنا محتوى النافذة.',
     stampChecked: 'تم الفحص',
     stampMuted: 'مسودة',
-    team: 'الهيكل الإنشائي',
+    team: 'إنشائي',
     itemTitle: 'تعديل تباعد حديد التسليح عند المحور C7',
     itemTitle2: 'إغلاق فتحة البلاطة عند المحور D4',
     place: 'الطابق 2 · المحور C7',
@@ -754,7 +767,7 @@ class _Samples {
     dueOverdue: 'الخميس 9 أكتوبر',
     when1: '9 أكتوبر · 08:10',
     when2: '11 أكتوبر · 14:22',
-    reference: 'KCT-021 · الهيكل الإنشائي',
+    reference: 'KCT-021 · إنشائي',
     statusLines: [
       'مفتوحة · الاستحقاق الأحد 12 أكتوبر',
       'منجز · بانتظار فحصك',

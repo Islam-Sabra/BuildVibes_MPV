@@ -1,5 +1,6 @@
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
+import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +21,11 @@ Future<SharedPreferences> pumpApp(
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        // No network in widget tests.
+        marketsProvider.overrideWith((ref) async => const []),
+      ],
       child: const BuildVibesApp(),
     ),
   );
