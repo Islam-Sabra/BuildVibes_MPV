@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+  "appTitle": "BuildVibes",
+  "@appTitle": { "description": "App name. Not translated." },
+  "navHome": "Home",
+  "@navHome": { "description": "Bottom bar tab." },
+  "navExplore": "Explore",
+  "@navExplore": { "description": "Bottom bar tab." },
+  "navCreate": "Create",
+  "@navCreate": { "description": "Bottom bar centre action." },
+  "navActivity": "Activity",
+  "@navActivity": { "description": "Bottom bar tab." },
+  "navProfile": "Profile",
+  "@navProfile": { "description": "Bottom bar tab." },
+  "placeholderBody": "This part of the app is being built.",
+  "@placeholderBody": { "description": "Temporary text on screens that are not built yet." },
+  "settingsLanguage": "App language",
+  "@settingsLanguage": { "description": "Row and sheet title for choosing the app language." },
+  "languageEnglish": "English",
+  "@languageEnglish": { "description": "Language name, always written in English." },
+  "languageArabic": "العربية",
+  "@languageArabic": { "description": "Language name, always written in Arabic." }
+}

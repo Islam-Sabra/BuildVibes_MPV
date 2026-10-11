@@ -1,0 +1,13 @@
+{
+  "@@locale": "ar",
+  "appTitle": "BuildVibes",
+  "navHome": "الرئيسية",
+  "navExplore": "استكشاف",
+  "navCreate": "إنشاء",
+  "navActivity": "النشاط",
+  "navProfile": "الملف",
+  "placeholderBody": "هذا القسم من التطبيق قيد البناء.",
+  "settingsLanguage": "لغة التطبيق",
+  "languageEnglish": "English",
+  "languageArabic": "العربية"
+}
