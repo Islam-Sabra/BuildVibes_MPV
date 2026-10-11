@@ -100,8 +100,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - `supabase/config.toml` holds the intended live values: Resend SMTP, the code email in English and Arabic, 60 emails an hour, phone sign-ups off. Code email and phone sign-ups off applied live with the founder's yes; the founder's Resend settings were not touched.
     - Review 05 (profiles) passed with no changes.
     - 249 Flutter tests and 121 SQL tests pass.
+  - The lead (working from GitHub while the founder's computer was off):
+    - Review 06 (`docs/reviews/2026-10-11-06-spaces.md`): the Spaces build brief for week 4. Figma frame list in `docs/design/spaces/README.md` (PNGs to follow).
+    - Branch `spaces-db`: migration 6 (Spaces, invite codes, join requests, passes, Teams, proof from linked Spaces) and `supabase/tests/06_spaces.test.sql`. All 212 SQL checks pass on Postgres 16. An independent review found 8 issues; all were fixed except "proof from a second account", which is a founder decision. Not pushed to the live project.
+    - The founder confirmed the test code email: it arrived in the Gmail inbox (Updates tab), not spam.
 
 ## Next tasks (in order)
-1. Decision 04: the founder confirms the test code email (sent 11 Oct) arrived in the inbox, not spam. Optional: raise the email limit from 30 to 60 an hour (needs the founder's yes).
-2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
-3. Spaces (week 4): create, link a project, invite link and code, join requests, passes, Teams. Teammate confirmations for CV projects come with it.
+1. Raise the email limit from 30 to 60 an hour (the lead recommends it; needs the founder's yes). Retake screenshots of E2, E9 and E3e after decision 04.
+2. Spaces (week 4): review and merge `spaces-db`, push migration 6 with the founder's yes, then build the app part from review 06.
+3. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
+4. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
