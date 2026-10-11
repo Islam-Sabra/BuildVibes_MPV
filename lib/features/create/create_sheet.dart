@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/routing/app_routes.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
+import '../spaces/code_sheet.dart';
 
 /// Opened by the Create action in the bottom bar. Create is an action, not a
 /// tab, so it opens over the current tab. The options come with the features
@@ -18,10 +23,36 @@ class CreateSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      AppLocalizations.of(context).placeholderBody,
+    final l10n = AppLocalizations.of(context);
+    // The sheet closes first; then the choice opens from the page below.
+    final router = GoRouter.of(context);
+    final navigator = Navigator.of(context);
+    return ClipRRect(
       key: const Key('create-sheet'),
-      style: BvType.of(context).bodyMd.copyWith(color: BvColors.textSecondary),
+      borderRadius: BvRadius.cardAll,
+      child: BvListGroup(
+        rows: [
+          BvListRow(
+            key: const Key('create-new-space'),
+            leading: const BvRowIcon(BvIcons.crane),
+            title: l10n.spacesNewTitle,
+            onTap: () {
+              navigator.pop();
+              router.push(AppRoutes.spacesNew);
+            },
+          ),
+          BvListRow(
+            key: const Key('create-enter-code'),
+            leading: const BvRowIcon(BvIcons.team),
+            title: l10n.spacesEnterCode,
+            onTap: () {
+              final page = navigator.context;
+              navigator.pop();
+              showInviteCodeSheet(page);
+            },
+          ),
+        ],
+      ),
     );
   }
 }

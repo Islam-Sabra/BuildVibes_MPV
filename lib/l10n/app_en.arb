@@ -1228,5 +1228,258 @@
   "mobileHelp": "Private: only you see it. It's never shown on your profile.",
   "@mobileHelp": {
     "description": "E9 field helper."
+  },
+  "homeFeed": "Feed",
+  "@homeFeed": {
+    "description": "Home tab: the social feed."
+  },
+  "homeSpaces": "Spaces",
+  "@homeSpaces": {
+    "description": "Home tab: your Spaces."
+  },
+  "spacesProjectSpaces": "PROJECT SPACES",
+  "@spacesProjectSpaces": {
+    "description": "S1 section overline."
+  },
+  "spacesNeedsYou": "{count} needs you",
+  "@spacesNeedsYou": {
+    "description": "S1 badge: join requests waiting for this admin.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "spacesPrivateWork": "Private work",
+  "@spacesPrivateWork": {
+    "description": "A private work Space with no project."
+  },
+  "spacesProjectSpaceLine": "Private work · project Space",
+  "@spacesProjectSpaceLine": {
+    "description": "Header line of a Space linked to a project."
+  },
+  "spacesEmptyTitle": "Join your first Space",
+  "@spacesEmptyTitle": {
+    "description": "H1e card title."
+  },
+  "spacesEmptyBody": "A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.",
+  "@spacesEmptyBody": {
+    "description": "H1e card body (work Spaces only in the MVP)."
+  },
+  "spacesEmptyFeedNote": "Your feed still shows posts, announcements and celebrations from your network.",
+  "@spacesEmptyFeedNote": {
+    "description": "H1e note under the card."
+  },
+  "spacesEnterCode": "Enter an invite code",
+  "@spacesEnterCode": {
+    "description": "Button and sheet title."
+  },
+  "spacesCodeHint": "6 letters and numbers, from the person who invited you",
+  "@spacesCodeHint": {
+    "description": "Code sheet helper."
+  },
+  "spacesInvitedBy": "Invited by {name}",
+  "@spacesInvitedBy": {
+    "description": "Code sheet: who shared the code.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesAskToJoin": "Ask to join",
+  "@spacesAskToJoin": {
+    "description": "Code sheet button."
+  },
+  "spacesCodeNotValid": "This code isn't valid. Check it with the person who sent it.",
+  "@spacesCodeNotValid": {
+    "description": "Code sheet error."
+  },
+  "spacesTooManyTries": "Too many tries. Try again in an hour.",
+  "@spacesTooManyTries": {
+    "description": "Code sheet error after 10 wrong codes."
+  },
+  "spacesAlreadyMember": "You're already in this Space.",
+  "@spacesAlreadyMember": {
+    "description": "Code sheet: already a member."
+  },
+  "spacesDeclinedWait": "You can ask again tomorrow.",
+  "@spacesDeclinedWait": {
+    "description": "Code sheet: declined in the last day."
+  },
+  "spacesRequestSent": "Request sent. The Space admin will confirm you.",
+  "@spacesRequestSent": {
+    "description": "Toast after asking to join."
+  },
+  "spacesAlreadyWaiting": "You already asked. Waiting for the Space admin.",
+  "@spacesAlreadyWaiting": {
+    "description": "Code sheet: a request is already pending."
+  },
+  "spacesWaiting": "Waiting for the Space admin to confirm you",
+  "@spacesWaiting": {
+    "description": "Waiting card line."
+  },
+  "spacesCancelRequest": "Cancel request",
+  "@spacesCancelRequest": {
+    "description": "Waiting card button."
+  },
+  "spacesNotConfirmed": "Not confirmed",
+  "@spacesNotConfirmed": {
+    "description": "Declined card line. No reason, no name."
+  },
+  "spacesDismiss": "Dismiss",
+  "@spacesDismiss": {
+    "description": "Declined card button."
+  },
+  "spacesNewTitle": "New Space",
+  "@spacesNewTitle": {
+    "description": "S5 title."
+  },
+  "spacesPreviewLabel": "HOW IT WILL APPEAR TO MEMBERS",
+  "@spacesPreviewLabel": {
+    "description": "S5 preview overline."
+  },
+  "spacesNameLabel": "Name",
+  "@spacesNameLabel": {
+    "description": "S5 field."
+  },
+  "spacesNameHint": "e.g. Tower B — Site team",
+  "@spacesNameHint": {
+    "description": "S5 placeholder. No country facts."
+  },
+  "spacesNameRequired": "Write a name with at least 2 letters.",
+  "@spacesNameRequired": {
+    "description": "S5 error."
+  },
+  "spacesAboutLabel": "About (optional)",
+  "@spacesAboutLabel": {
+    "description": "S5 field."
+  },
+  "spacesAboutHelp": "Shown to people you invite.",
+  "@spacesAboutHelp": {
+    "description": "S5 helper."
+  },
+  "spacesLinkLabel": "Link to a project (optional)",
+  "@spacesLinkLabel": {
+    "description": "S5 field."
+  },
+  "spacesLinkPlaceholder": "Choose a project",
+  "@spacesLinkPlaceholder": {
+    "description": "S5 select placeholder."
+  },
+  "spacesLinkHelp": "Linking a project makes this its project Space. Members you confirm get that project confirmed on their profile.",
+  "@spacesLinkHelp": {
+    "description": "S5 helper."
+  },
+  "spacesCreateButton": "Create Space",
+  "@spacesCreateButton": {
+    "description": "S5 main button."
+  },
+  "spacesLinkTitle": "Link a project",
+  "@spacesLinkTitle": {
+    "description": "Link a project sheet title."
+  },
+  "spacesLinkSearch": "Search your projects",
+  "@spacesLinkSearch": {
+    "description": "Link a project sheet search."
+  },
+  "spacesYourRole": "Your role: {role}",
+  "@spacesYourRole": {
+    "description": "Link a project sheet row.",
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesTabWork": "Work",
+  "@spacesTabWork": {
+    "description": "Space tab."
+  },
+  "spacesTabChat": "Chat",
+  "@spacesTabChat": {
+    "description": "Space tab."
+  },
+  "spacesTabPeople": "People",
+  "@spacesTabPeople": {
+    "description": "Space tab."
+  },
+  "spacesTabLibrary": "Library",
+  "@spacesTabLibrary": {
+    "description": "Space tab."
+  },
+  "spacesInvitePeople": "Invite people",
+  "@spacesInvitePeople": {
+    "description": "Space People tab and Space info."
+  },
+  "spacesInviteTitle": "Invite to {space}",
+  "@spacesInviteTitle": {
+    "description": "S16 title.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesInviteCode": "Invite code",
+  "@spacesInviteCode": {
+    "description": "S16 card label and code sheet field."
+  },
+  "spacesCodeWorksUntil": "Works until {date}",
+  "@spacesCodeWorksUntil": {
+    "description": "S16 code expiry.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesShareCode": "Share code",
+  "@spacesShareCode": {
+    "description": "S16 button."
+  },
+  "spacesNewCode": "New code",
+  "@spacesNewCode": {
+    "description": "S16 admin button."
+  },
+  "spacesNewCodeTitle": "Make a new code?",
+  "@spacesNewCodeTitle": {
+    "description": "S16 confirm sheet title."
+  },
+  "spacesNewCodeNote": "The old code stops working.",
+  "@spacesNewCodeNote": {
+    "description": "S16 note."
+  },
+  "spacesInviteHow": "Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.",
+  "@spacesInviteHow": {
+    "description": "S16 explanation."
+  },
+  "spacesShareText": "Join {space} on BuildVibes. Invite code: {code}",
+  "@spacesShareText": {
+    "description": "Text shared with the system share sheet.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesNotFound": "This Space isn't available.",
+  "@spacesNotFound": {
+    "description": "Space screen when it is gone or you are not a member."
+  },
+  "spacesNotAllowed": "You can't do that in this Space.",
+  "@spacesNotAllowed": {
+    "description": "Space error 42501."
+  },
+  "spacesTooManyToday": "You made many Spaces today. Try again tomorrow.",
+  "@spacesTooManyToday": {
+    "description": "create_space limit (P0001)."
+  },
+  "spacesInviteCodeTag": "INVITE CODE",
+  "@spacesInviteCodeTag": {
+    "description": "S16 code card overline."
   }
 }

@@ -166,6 +166,16 @@ abstract final class BvSiteTagSpec {
   static const headGap = BvSpace.s8;
 }
 
+/// The invite code card (S16, MVP): the site tag's shape around one large
+/// code.
+abstract final class BvCodeTagSpec {
+  static const paddingTop = 28.0; // below the punched hole
+  static const paddingSide = BvSpace.s16;
+  static const paddingBottom = BvSpace.s16;
+  static const gap = BvSpace.s8;
+  static const codeLetterSpacing = 4.0;
+}
+
 abstract final class BvSignOffSpec {
   static const labelGap = BvSpace.s8;
   static const radius = BorderRadius.all(Radius.circular(12));

@@ -44,6 +44,7 @@ dependencies:
   shared_preferences: ^2.5.6
   flutter_localizations:
     sdk: flutter
+  share_plus: ^13.3.1
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +56,14 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+# share_plus needs path_provider. Its newest Android and iOS parts are
+# built with native-asset hooks (jni, objective_c), and those hooks fail
+# when the Flutter SDK path has a space in it, as on the founder's
+# computer. The previous releases use plain platform channels.
+dependency_overrides:
+  path_provider_android: ">=2.2.0 <2.3.0"
+  path_provider_foundation: ">=2.4.0 <2.5.0"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

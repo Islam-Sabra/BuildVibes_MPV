@@ -1,11 +1,13 @@
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
+import 'package:buildvibes/core/share.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/project_repository.dart';
 import 'package:buildvibes/data/repositories/profile_repository.dart';
 import 'package:buildvibes/data/repositories/reference_repository.dart';
+import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:flutter/material.dart';
@@ -16,19 +18,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
 import 'profile_fakes.dart';
+import 'space_fakes.dart';
 
 /// The fixed "today" of widget tests.
 final testNow = DateTime(2026, 10, 11);
 
 /// The fakes behind a pumped app, for assertions.
 class TestApp {
-  TestApp(this.prefs, this.auth, this.profiles, this.pages, this.projects);
+  TestApp(
+    this.prefs,
+    this.auth,
+    this.profiles,
+    this.pages,
+    this.projects, {
+    required this.spaces,
+    required this.shared,
+  });
 
   final SharedPreferences prefs;
   final FakeAuthRepository auth;
   final FakeProfileRepository profiles;
   final FakeProfilePageRepository pages;
   final FakeProjectRepository projects;
+  final FakeSpaceRepository spaces;
+
+  /// Texts sent to the system share sheet.
+  final List<String> shared;
 }
 
 /// Pumps the whole app on a 390×844 phone, with no network.
@@ -45,6 +60,7 @@ Future<TestApp> pumpApp(
   bool phoneSignIn = false,
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
+  FakeSpaceRepository? spaces,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -76,6 +92,8 @@ Future<TestApp> pumpApp(
     me: fakeAuth.currentUserId ?? FakeAuthRepository.newUserId,
   );
   setUp?.call(pages, projects);
+  final fakeSpaces = spaces ?? FakeSpaceRepository(now: testNow);
+  final shared = <String>[];
 
   await tester.pumpWidget(
     ProviderScope(
@@ -92,13 +110,23 @@ Future<TestApp> pumpApp(
         profilePageRepositoryProvider.overrideWithValue(pages),
         projectRepositoryProvider.overrideWithValue(projects),
         clockProvider.overrideWithValue(() => testNow),
+        spaceRepositoryProvider.overrideWithValue(fakeSpaces),
+        shareTextProvider.overrideWithValue((text) async => shared.add(text)),
         ...overrides,
       ],
       child: const BuildVibesApp(),
     ),
   );
   await tester.pumpAndSettle();
-  return TestApp(prefs, fakeAuth, fakeProfiles, pages, projects);
+  return TestApp(
+    prefs,
+    fakeAuth,
+    fakeProfiles,
+    pages,
+    projects,
+    spaces: fakeSpaces,
+    shared: shared,
+  );
 }
 
 TextDirection appDirection(WidgetTester tester) =>

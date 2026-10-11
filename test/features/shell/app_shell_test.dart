@@ -1,7 +1,7 @@
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
+import 'package:buildvibes/features/home/home_screen.dart';
 import 'package:buildvibes/shared/widgets/bv_bottom_bar.dart';
-import 'package:buildvibes/shared/widgets/bv_placeholder_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,8 +29,8 @@ void main() {
     }
     final xs = [for (final k in _tabKeys) _centreX(tester, k)];
     expect(xs, orderedEquals([...xs]..sort()));
-    // Home opens first.
-    expect(find.widgetWithText(AppBar, 'Home'), findsOneWidget);
+    // Home opens first, on its Feed.
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('Arabic: labels in Arabic and the bar reads right to left', (
@@ -71,7 +71,7 @@ void main() {
     await tester.tapAt(const Offset(195, 100));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('create-sheet')), findsNothing);
-    expect(find.widgetWithText(AppBar, 'Home'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('every slot is at least the minimum touch size', (tester) async {
@@ -87,7 +87,7 @@ void main() {
     final bar = tester.getSize(find.byType(BvBottomBar));
     // 64 high, top border included (no safe area in tests).
     expect(bar.height, BvBottomBarSize.height);
-    expect(find.byType(BvPlaceholderScreen), findsOneWidget);
+    expect(find.byType(HomeScreen), findsOneWidget);
     for (final k in _tabKeys) {
       expect(
         tester.getSize(find.byKey(Key(k))),

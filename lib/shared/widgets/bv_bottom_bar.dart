@@ -23,22 +23,26 @@ class BvBottomBarItem {
 ///
 /// Create is an action (it opens a sheet), never a selected tab. The row
 /// follows the reading direction, so in Arabic Home sits on the right.
+///
+/// Without [onCreate] the four tabs share the width (the Space tabs: Work,
+/// Chat, People, Library; Figma S7k).
 class BvBottomBar extends StatelessWidget {
   const BvBottomBar({
     super.key,
     required this.items,
     required this.selectedIndex,
     required this.onSelect,
-    required this.createLabel,
-    required this.onCreate,
-  }) : assert(items.length == 4);
+    this.createLabel,
+    this.onCreate,
+  }) : assert(items.length == 4),
+       assert((createLabel == null) == (onCreate == null));
 
   /// Tabs in order: two before Create, two after.
   final List<BvBottomBarItem> items;
   final int selectedIndex;
   final ValueChanged<int> onSelect;
-  final String createLabel;
-  final VoidCallback onCreate;
+  final String? createLabel;
+  final VoidCallback? onCreate;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +78,8 @@ class BvBottomBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (var i = 0; i < half; i++) tab(i),
-                _CreateSlot(label: createLabel, onTap: onCreate),
+                if (onCreate != null)
+                  _CreateSlot(label: createLabel!, onTap: onCreate!),
                 for (var i = half; i < items.length; i++) tab(i),
               ],
             ),

@@ -1711,6 +1711,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Private: only you see it. It\'s never shown on your profile.'**
   String get mobileHelp;
+
+  /// Home tab: the social feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get homeFeed;
+
+  /// Home tab: your Spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Spaces'**
+  String get homeSpaces;
+
+  /// S1 section overline.
+  ///
+  /// In en, this message translates to:
+  /// **'PROJECT SPACES'**
+  String get spacesProjectSpaces;
+
+  /// S1 badge: join requests waiting for this admin.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} needs you'**
+  String spacesNeedsYou(int count);
+
+  /// A private work Space with no project.
+  ///
+  /// In en, this message translates to:
+  /// **'Private work'**
+  String get spacesPrivateWork;
+
+  /// Header line of a Space linked to a project.
+  ///
+  /// In en, this message translates to:
+  /// **'Private work · project Space'**
+  String get spacesProjectSpaceLine;
+
+  /// H1e card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Join your first Space'**
+  String get spacesEmptyTitle;
+
+  /// H1e card body (work Spaces only in the MVP).
+  ///
+  /// In en, this message translates to:
+  /// **'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.'**
+  String get spacesEmptyBody;
+
+  /// H1e note under the card.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feed still shows posts, announcements and celebrations from your network.'**
+  String get spacesEmptyFeedNote;
+
+  /// Button and sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an invite code'**
+  String get spacesEnterCode;
+
+  /// Code sheet helper.
+  ///
+  /// In en, this message translates to:
+  /// **'6 letters and numbers, from the person who invited you'**
+  String get spacesCodeHint;
+
+  /// Code sheet: who shared the code.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited by {name}'**
+  String spacesInvitedBy(String name);
+
+  /// Code sheet button.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask to join'**
+  String get spacesAskToJoin;
+
+  /// Code sheet error.
+  ///
+  /// In en, this message translates to:
+  /// **'This code isn\'t valid. Check it with the person who sent it.'**
+  String get spacesCodeNotValid;
+
+  /// Code sheet error after 10 wrong codes.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries. Try again in an hour.'**
+  String get spacesTooManyTries;
+
+  /// Code sheet: already a member.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re already in this Space.'**
+  String get spacesAlreadyMember;
+
+  /// Code sheet: declined in the last day.
+  ///
+  /// In en, this message translates to:
+  /// **'You can ask again tomorrow.'**
+  String get spacesDeclinedWait;
+
+  /// Toast after asking to join.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent. The Space admin will confirm you.'**
+  String get spacesRequestSent;
+
+  /// Code sheet: a request is already pending.
+  ///
+  /// In en, this message translates to:
+  /// **'You already asked. Waiting for the Space admin.'**
+  String get spacesAlreadyWaiting;
+
+  /// Waiting card line.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the Space admin to confirm you'**
+  String get spacesWaiting;
+
+  /// Waiting card button.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get spacesCancelRequest;
+
+  /// Declined card line. No reason, no name.
+  ///
+  /// In en, this message translates to:
+  /// **'Not confirmed'**
+  String get spacesNotConfirmed;
+
+  /// Declined card button.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get spacesDismiss;
+
+  /// S5 title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Space'**
+  String get spacesNewTitle;
+
+  /// S5 preview overline.
+  ///
+  /// In en, this message translates to:
+  /// **'HOW IT WILL APPEAR TO MEMBERS'**
+  String get spacesPreviewLabel;
+
+  /// S5 field.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get spacesNameLabel;
+
+  /// S5 placeholder. No country facts.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Tower B — Site team'**
+  String get spacesNameHint;
+
+  /// S5 error.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a name with at least 2 letters.'**
+  String get spacesNameRequired;
+
+  /// S5 field.
+  ///
+  /// In en, this message translates to:
+  /// **'About (optional)'**
+  String get spacesAboutLabel;
+
+  /// S5 helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown to people you invite.'**
+  String get spacesAboutHelp;
+
+  /// S5 field.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a project (optional)'**
+  String get spacesLinkLabel;
+
+  /// S5 select placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a project'**
+  String get spacesLinkPlaceholder;
+
+  /// S5 helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking a project makes this its project Space. Members you confirm get that project confirmed on their profile.'**
+  String get spacesLinkHelp;
+
+  /// S5 main button.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Space'**
+  String get spacesCreateButton;
+
+  /// Link a project sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a project'**
+  String get spacesLinkTitle;
+
+  /// Link a project sheet search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search your projects'**
+  String get spacesLinkSearch;
+
+  /// Link a project sheet row.
+  ///
+  /// In en, this message translates to:
+  /// **'Your role: {role}'**
+  String spacesYourRole(String role);
+
+  /// Space tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get spacesTabWork;
+
+  /// Space tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get spacesTabChat;
+
+  /// Space tab.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get spacesTabPeople;
+
+  /// Space tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get spacesTabLibrary;
+
+  /// Space People tab and Space info.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite people'**
+  String get spacesInvitePeople;
+
+  /// S16 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite to {space}'**
+  String spacesInviteTitle(String space);
+
+  /// S16 card label and code sheet field.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get spacesInviteCode;
+
+  /// S16 code expiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Works until {date}'**
+  String spacesCodeWorksUntil(String date);
+
+  /// S16 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Share code'**
+  String get spacesShareCode;
+
+  /// S16 admin button.
+  ///
+  /// In en, this message translates to:
+  /// **'New code'**
+  String get spacesNewCode;
+
+  /// S16 confirm sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a new code?'**
+  String get spacesNewCodeTitle;
+
+  /// S16 note.
+  ///
+  /// In en, this message translates to:
+  /// **'The old code stops working.'**
+  String get spacesNewCodeNote;
+
+  /// S16 explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.'**
+  String get spacesInviteHow;
+
+  /// Text shared with the system share sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {space} on BuildVibes. Invite code: {code}'**
+  String spacesShareText(String space, String code);
+
+  /// Space screen when it is gone or you are not a member.
+  ///
+  /// In en, this message translates to:
+  /// **'This Space isn\'t available.'**
+  String get spacesNotFound;
+
+  /// Space error 42501.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t do that in this Space.'**
+  String get spacesNotAllowed;
+
+  /// create_space limit (P0001).
+  ///
+  /// In en, this message translates to:
+  /// **'You made many Spaces today. Try again tomorrow.'**
+  String get spacesTooManyToday;
+
+  /// S16 code card overline.
+  ///
+  /// In en, this message translates to:
+  /// **'INVITE CODE'**
+  String get spacesInviteCodeTag;
 }
 
 class _AppLocalizationsDelegate

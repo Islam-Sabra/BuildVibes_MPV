@@ -898,4 +898,188 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mobileHelp => 'خاص: أنت فقط تراه، ولا يظهر في ملفك أبداً.';
+
+  @override
+  String get homeFeed => 'الخلاصة';
+
+  @override
+  String get homeSpaces => 'المساحات';
+
+  @override
+  String get spacesProjectSpaces => 'مساحات المشاريع';
+
+  @override
+  String spacesNeedsYou(int count) {
+    return '$count بانتظارك';
+  }
+
+  @override
+  String get spacesPrivateWork => 'عمل خاص';
+
+  @override
+  String get spacesProjectSpaceLine => 'عمل خاص · مساحة مشروع';
+
+  @override
+  String get spacesEmptyTitle => 'انضم إلى أول مساحة لك';
+
+  @override
+  String get spacesEmptyBody =>
+      'المساحة هي المكان الذي يدير فيه فريق المشروع عمله اليومي. عندما تنضم إلى مساحة، يظهر تقريرك اليومي هنا: الردود وتحديثات الموقع وكل ما ينتظرك.';
+
+  @override
+  String get spacesEmptyFeedNote =>
+      'تبقى الخلاصة تعرض المنشورات والإعلانات والتهاني من شبكتك.';
+
+  @override
+  String get spacesEnterCode => 'أدخل رمز الدعوة';
+
+  @override
+  String get spacesCodeHint => '6 أحرف وأرقام من الشخص الذي دعاك';
+
+  @override
+  String spacesInvitedBy(String name) {
+    return 'دعاك $name';
+  }
+
+  @override
+  String get spacesAskToJoin => 'اطلب الانضمام';
+
+  @override
+  String get spacesCodeNotValid =>
+      'هذا الرمز غير صالح. تأكد منه مع من أرسله إليك.';
+
+  @override
+  String get spacesTooManyTries => 'محاولات كثيرة. حاول مرة أخرى بعد ساعة.';
+
+  @override
+  String get spacesAlreadyMember => 'أنت عضو في هذه المساحة بالفعل.';
+
+  @override
+  String get spacesDeclinedWait => 'يمكنك الطلب مرة أخرى غداً.';
+
+  @override
+  String get spacesRequestSent => 'تم إرسال طلبك. سيؤكد مدير المساحة انضمامك.';
+
+  @override
+  String get spacesAlreadyWaiting =>
+      'طلبت الانضمام من قبل. بانتظار مدير المساحة.';
+
+  @override
+  String get spacesWaiting => 'بانتظار تأكيد مدير المساحة';
+
+  @override
+  String get spacesCancelRequest => 'إلغاء الطلب';
+
+  @override
+  String get spacesNotConfirmed => 'لم يتم التأكيد';
+
+  @override
+  String get spacesDismiss => 'إخفاء';
+
+  @override
+  String get spacesNewTitle => 'مساحة جديدة';
+
+  @override
+  String get spacesPreviewLabel => 'كيف ستظهر للأعضاء';
+
+  @override
+  String get spacesNameLabel => 'الاسم';
+
+  @override
+  String get spacesNameHint => 'مثال: البرج B — فريق الموقع';
+
+  @override
+  String get spacesNameRequired => 'اكتب اسماً من حرفين على الأقل.';
+
+  @override
+  String get spacesAboutLabel => 'نبذة (اختياري)';
+
+  @override
+  String get spacesAboutHelp => 'تظهر لمن تدعوهم.';
+
+  @override
+  String get spacesLinkLabel => 'ربط بمشروع (اختياري)';
+
+  @override
+  String get spacesLinkPlaceholder => 'اختر مشروعاً';
+
+  @override
+  String get spacesLinkHelp =>
+      'ربط مشروع يجعل هذه مساحة المشروع. الأعضاء الذين تؤكدهم يظهر المشروع في ملفاتهم مؤكَّداً.';
+
+  @override
+  String get spacesCreateButton => 'إنشاء المساحة';
+
+  @override
+  String get spacesLinkTitle => 'ربط بمشروع';
+
+  @override
+  String get spacesLinkSearch => 'ابحث في مشاريعك';
+
+  @override
+  String spacesYourRole(String role) {
+    return 'دورك: $role';
+  }
+
+  @override
+  String get spacesTabWork => 'العمل';
+
+  @override
+  String get spacesTabChat => 'المحادثة';
+
+  @override
+  String get spacesTabPeople => 'الأشخاص';
+
+  @override
+  String get spacesTabLibrary => 'المكتبة';
+
+  @override
+  String get spacesInvitePeople => 'دعوة أشخاص';
+
+  @override
+  String spacesInviteTitle(String space) {
+    return 'دعوة إلى $space';
+  }
+
+  @override
+  String get spacesInviteCode => 'رمز الدعوة';
+
+  @override
+  String spacesCodeWorksUntil(String date) {
+    return 'صالح حتى $date';
+  }
+
+  @override
+  String get spacesShareCode => 'شارك الرمز';
+
+  @override
+  String get spacesNewCode => 'رمز جديد';
+
+  @override
+  String get spacesNewCodeTitle => 'إنشاء رمز جديد؟';
+
+  @override
+  String get spacesNewCodeNote => 'يتوقف الرمز القديم عن العمل.';
+
+  @override
+  String get spacesInviteHow =>
+      'أرسل الرمز عبر واتساب أو اقرأه في الموقع. يؤكد مدير المساحة كل شخص قبل انضمامه.';
+
+  @override
+  String spacesShareText(String space, String code) {
+    return 'انضم إلى $space على BuildVibes. رمز الدعوة: $code';
+  }
+
+  @override
+  String get spacesNotFound => 'هذه المساحة غير متاحة.';
+
+  @override
+  String get spacesNotAllowed => 'لا يمكنك القيام بذلك في هذه المساحة.';
+
+  @override
+  String get spacesTooManyToday =>
+      'أنشأت مساحات كثيرة اليوم. حاول مرة أخرى غداً.';
+
+  @override
+  String get spacesInviteCodeTag => 'رمز الدعوة';
 }

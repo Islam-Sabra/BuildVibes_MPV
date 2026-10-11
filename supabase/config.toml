@@ -273,10 +273,13 @@ content_path = "./supabase/templates/email_code.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-# Off in the MVP: sign-in is by email code only (decision 04). Existing
-# test accounts can still sign in with phone sign-in switched on in a
-# development build.
-enable_signup = false
+# This switch turns the whole phone provider on or off, not only new
+# accounts. On, so the test numbers below work in development builds
+# (founder's yes, 11 Oct). The app shows email only (decision 04), the
+# sign-up hook blocks numbers outside live markets, and the placeholder
+# Twilio account sends nothing, so real numbers get no code. Turn off
+# before the pilot.
+enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = true
 # Template for sending OTP to users

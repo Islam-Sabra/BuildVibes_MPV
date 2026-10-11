@@ -25,7 +25,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 |---|---|
 | Sign-ups | Allowed. New accounts by phone only for live-market numbers or a Space invite (hook `hook_before_user_created`) |
 | Email | On. 6-digit code, valid 10 minutes, 1 minute between codes, confirmation required. Sender: Resend SMTP, `BuildVibes <no-reply@mail.aecox.com>` (saved by the founder, 11 Oct). Code email in English and Arabic (no link) applied 11 Oct with the founder's yes. Limit 60 emails an hour (founder's yes, 11 Oct) |
-| Phone | New phone sign-ups off (decision 04, 11 Oct). Existing test accounts can still sign in. Placeholder Twilio account (no real messages) |
+| Phone | On, for the test numbers only (founder's yes, 11 Oct). Supabase's "phone sign-ups" switch turns the whole phone provider off, which also locked out the test accounts. The app shows email only; the hook blocks numbers outside live markets; the placeholder Twilio account sends nothing. **Turn off before the pilot.** |
 | Test phone numbers | +965 50000001, +965 50000002, +965 50000003, +20 1000000001, +91 9800000001 — code 123456 |
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
@@ -104,8 +104,19 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The lead (working from GitHub while the founder's computer was off):
     - Review 06 (`docs/reviews/2026-10-11-06-spaces.md`): the Spaces build brief for week 4. Figma frame list in `docs/design/spaces/README.md`; the 24 PNGs are now in that folder.
     - Branch `spaces-db`: migration 6 (Spaces, invite codes, join requests, passes, Teams, proof from linked Spaces) and `supabase/tests/06_spaces.test.sql`. All 212 SQL checks pass on Postgres 16. An independent review found 8 issues; all were fixed except "proof from a second account", which is a founder decision. Not pushed to the live project.
+  - Spaces part 1 (review 06): My Spaces, the empty state, Enter an invite code, the waiting card, New Space and Invite people.
+    - Home has Feed | Spaces tabs (each half the width, as in H1e). Spaces shows My Spaces until week 7; the header has Create. The Create sheet has New Space and Enter an invite code.
+    - Code sheet: 6 characters, Latin, left to right, upper case; Arabic digits and pasted "K7Q 4MD" work. Shows the Space and "Invited by {name}" from the live server, then Ask to join. Wrong code, too many tries, already a member and declined each have a plain message.
+    - Waiting card with Cancel request; "Not confirmed" with Dismiss (kept on the phone only; no reason, no name).
+    - New Space (S5): Name, About, Link a project (your CV projects, or Add a project through P13). The preview shows "Private work", never a member count. Create opens the Space on People with Invite people on top.
+    - Space screen: header and the Work · Chat · People · Library bar (S7k). Work, Chat and Library show "being built" (weeks 5–6); People gets its content in part 2.
+    - Invite people (S16, MVP): the code on a site-tag card ("M8M FTW"), "Works until", Share code (the phone's share sheet) and, for admins, New code (asks first).
+    - New shared parts: BvCodeTag, BvBadge "action" tone, a badge at the end of a list row, filled tabs, the bottom bar without Create.
+    - share_plus added. Its file-path helper's newest Android and iOS parts need native build hooks that fail when the Flutter folder path has a space; pubspec pins the previous releases (see the note there).
+    - Checked on the emulator with the live project: Omar created two Spaces, Sami asked to join "Salmiya Clinic - MEP Team" with the code, and Omar's My Spaces shows "1 needs you". A first test Space ("Harbour Tower - Site team") was created by a mis-tap without a project; it stays as test data until Delete Space (part 3).
+    - 283 Flutter tests and 212 SQL tests pass. Screenshots (English and Arabic) in `docs/screens/`: H1e, S1, code sheet, waiting card, S5, S5 link a project, S16.
 
 ## Next tasks (in order)
-1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). Next: build the app part from review 06. Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
+1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App part 1 done; next part 2 (People: requests, Confirm with a pass, Decline with Undo, member pass), then part 3 (Teams, Space info, Leave, Transfer, Delete). Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
 2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 3. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.

@@ -109,6 +109,16 @@ abstract final class BvIcons {
 
   // Phosphor: dots-three
   static const more = IconData(0xe1fe, fontFamily: _family);
+
+  // Phosphor: share-network (share an invite code)
+  static const share = IconData(0xe408, fontFamily: _family);
+
+  // Phosphor: hourglass (a join request waiting for the Space admin)
+  static const waiting = IconData(0xe2b2, fontFamily: _family);
+
+  // Phosphor: x-circle (a join request that was not confirmed)
+  static const declined = IconData(0xe4f8, fontFamily: _family);
+
   // Phosphor: pencil-simple
   static const edit = IconData(0xe3b4, fontFamily: _family);
   // Phosphor: trash

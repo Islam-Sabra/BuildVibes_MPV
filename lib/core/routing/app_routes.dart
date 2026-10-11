@@ -25,6 +25,12 @@ abstract final class AppRoutes {
   static const projectsAdd = '/projects/add';
   static const projectsNew = '/projects/new';
 
+  // Spaces (full screens over the tabs). "new" before ":id".
+  static const spaces = '/spaces';
+  static const spacesNew = '/spaces/new';
+  static String space(String id) => '/spaces/$id';
+  static String spaceInvite(String id) => '/spaces/$id/invite';
+
   // Entry (signed out)
   static const loading = '/loading';
   static const welcome = '/welcome';

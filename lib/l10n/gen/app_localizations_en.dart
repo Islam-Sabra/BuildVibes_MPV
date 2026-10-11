@@ -904,4 +904,190 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mobileHelp =>
       'Private: only you see it. It\'s never shown on your profile.';
+
+  @override
+  String get homeFeed => 'Feed';
+
+  @override
+  String get homeSpaces => 'Spaces';
+
+  @override
+  String get spacesProjectSpaces => 'PROJECT SPACES';
+
+  @override
+  String spacesNeedsYou(int count) {
+    return '$count needs you';
+  }
+
+  @override
+  String get spacesPrivateWork => 'Private work';
+
+  @override
+  String get spacesProjectSpaceLine => 'Private work · project Space';
+
+  @override
+  String get spacesEmptyTitle => 'Join your first Space';
+
+  @override
+  String get spacesEmptyBody =>
+      'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.';
+
+  @override
+  String get spacesEmptyFeedNote =>
+      'Your feed still shows posts, announcements and celebrations from your network.';
+
+  @override
+  String get spacesEnterCode => 'Enter an invite code';
+
+  @override
+  String get spacesCodeHint =>
+      '6 letters and numbers, from the person who invited you';
+
+  @override
+  String spacesInvitedBy(String name) {
+    return 'Invited by $name';
+  }
+
+  @override
+  String get spacesAskToJoin => 'Ask to join';
+
+  @override
+  String get spacesCodeNotValid =>
+      'This code isn\'t valid. Check it with the person who sent it.';
+
+  @override
+  String get spacesTooManyTries => 'Too many tries. Try again in an hour.';
+
+  @override
+  String get spacesAlreadyMember => 'You\'re already in this Space.';
+
+  @override
+  String get spacesDeclinedWait => 'You can ask again tomorrow.';
+
+  @override
+  String get spacesRequestSent =>
+      'Request sent. The Space admin will confirm you.';
+
+  @override
+  String get spacesAlreadyWaiting =>
+      'You already asked. Waiting for the Space admin.';
+
+  @override
+  String get spacesWaiting => 'Waiting for the Space admin to confirm you';
+
+  @override
+  String get spacesCancelRequest => 'Cancel request';
+
+  @override
+  String get spacesNotConfirmed => 'Not confirmed';
+
+  @override
+  String get spacesDismiss => 'Dismiss';
+
+  @override
+  String get spacesNewTitle => 'New Space';
+
+  @override
+  String get spacesPreviewLabel => 'HOW IT WILL APPEAR TO MEMBERS';
+
+  @override
+  String get spacesNameLabel => 'Name';
+
+  @override
+  String get spacesNameHint => 'e.g. Tower B — Site team';
+
+  @override
+  String get spacesNameRequired => 'Write a name with at least 2 letters.';
+
+  @override
+  String get spacesAboutLabel => 'About (optional)';
+
+  @override
+  String get spacesAboutHelp => 'Shown to people you invite.';
+
+  @override
+  String get spacesLinkLabel => 'Link to a project (optional)';
+
+  @override
+  String get spacesLinkPlaceholder => 'Choose a project';
+
+  @override
+  String get spacesLinkHelp =>
+      'Linking a project makes this its project Space. Members you confirm get that project confirmed on their profile.';
+
+  @override
+  String get spacesCreateButton => 'Create Space';
+
+  @override
+  String get spacesLinkTitle => 'Link a project';
+
+  @override
+  String get spacesLinkSearch => 'Search your projects';
+
+  @override
+  String spacesYourRole(String role) {
+    return 'Your role: $role';
+  }
+
+  @override
+  String get spacesTabWork => 'Work';
+
+  @override
+  String get spacesTabChat => 'Chat';
+
+  @override
+  String get spacesTabPeople => 'People';
+
+  @override
+  String get spacesTabLibrary => 'Library';
+
+  @override
+  String get spacesInvitePeople => 'Invite people';
+
+  @override
+  String spacesInviteTitle(String space) {
+    return 'Invite to $space';
+  }
+
+  @override
+  String get spacesInviteCode => 'Invite code';
+
+  @override
+  String spacesCodeWorksUntil(String date) {
+    return 'Works until $date';
+  }
+
+  @override
+  String get spacesShareCode => 'Share code';
+
+  @override
+  String get spacesNewCode => 'New code';
+
+  @override
+  String get spacesNewCodeTitle => 'Make a new code?';
+
+  @override
+  String get spacesNewCodeNote => 'The old code stops working.';
+
+  @override
+  String get spacesInviteHow =>
+      'Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.';
+
+  @override
+  String spacesShareText(String space, String code) {
+    return 'Join $space on BuildVibes. Invite code: $code';
+  }
+
+  @override
+  String get spacesNotFound => 'This Space isn\'t available.';
+
+  @override
+  String get spacesNotAllowed => 'You can\'t do that in this Space.';
+
+  @override
+  String get spacesTooManyToday =>
+      'You made many Spaces today. Try again tomorrow.';
+
+  @override
+  String get spacesInviteCodeTag => 'INVITE CODE';
 }

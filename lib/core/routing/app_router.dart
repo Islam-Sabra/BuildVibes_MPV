@@ -30,6 +30,9 @@ import '../../features/projects/add_project_screen.dart';
 import '../../features/projects/new_project_screen.dart';
 import '../../features/projects/project_sheet_screen.dart';
 import '../../features/shell/app_shell.dart';
+import '../../features/spaces/invite_screen.dart';
+import '../../features/spaces/new_space_screen.dart';
+import '../../features/spaces/space_screen.dart';
 import 'app_routes.dart';
 
 export 'app_routes.dart';
@@ -47,12 +50,13 @@ String? redirectForGate(AppGate gate, String location) {
     AppGate.profileError => atLoading ? null : AppRoutes.loading,
     AppGate.signedOut => inEntry ? null : AppRoutes.welcome,
     // Guests browse the tabs and may start joining at any time; people,
-    // projects and editing need an account.
+    // projects, Spaces and editing need an account.
     AppGate.guest =>
       inOnboarding ||
               atLoading ||
               under(AppRoutes.people) ||
               under(AppRoutes.projects) ||
+              under(AppRoutes.spaces) ||
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
           : null,
@@ -144,6 +148,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.projects}/:id',
         builder: (context, state) =>
             ProjectSheetScreen(projectId: state.pathParameters['id']!),
+      ),
+      // "new" before ":id".
+      GoRoute(
+        path: AppRoutes.spacesNew,
+        builder: (context, state) => const NewSpaceScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.spaces}/:id',
+        builder: (context, state) => SpaceScreen(
+          spaceId: state.pathParameters['id']!,
+          open: state.extra as SpaceOpen?,
+        ),
+        routes: [
+          GoRoute(
+            path: 'invite',
+            builder: (context, state) =>
+                InviteScreen(spaceId: state.pathParameters['id']!),
+          ),
+        ],
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(navigationShell: shell),

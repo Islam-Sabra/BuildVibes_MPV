@@ -6,7 +6,7 @@ import '../../core/design/bv_tokens.dart';
 import 'bv_controls.dart';
 
 /// What sits at the end of a [BvListRow]: a chevron, a switch, a value
-/// followed by a chevron, or nothing.
+/// followed by a chevron, a badge, or nothing.
 sealed class BvRowTrailing {
   const BvRowTrailing();
 
@@ -17,6 +17,9 @@ sealed class BvRowTrailing {
     required ValueChanged<bool>? onChanged,
   }) = _Toggle;
   const factory BvRowTrailing.none() = _None;
+
+  /// A [BvBadge] (or another small widget) instead of the chevron.
+  const factory BvRowTrailing.badge(Widget badge) = _Badge;
 
   /// A check mark when [selected]; empty space otherwise.
   const factory BvRowTrailing.check({required bool selected}) = _Check;
@@ -39,6 +42,11 @@ class _Toggle extends BvRowTrailing {
 
 class _None extends BvRowTrailing {
   const _None();
+}
+
+class _Badge extends BvRowTrailing {
+  const _Badge(this.badge);
+  final Widget badge;
 }
 
 class _Check extends BvRowTrailing {
@@ -142,6 +150,7 @@ class BvListRow extends StatelessWidget {
                     child: BvSwitch(value: value, onChanged: onChanged),
                   ),
                   _None() => const SizedBox.shrink(),
+                  _Badge(:final badge) => badge,
                   _Check(:final selected) => SizedBox.square(
                     dimension: BvListRowSpec.chevronSize,
                     child: selected

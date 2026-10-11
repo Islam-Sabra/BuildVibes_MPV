@@ -18,6 +18,10 @@ String? monthToJson(DateTime? d) => d == null
 String formatMonth(DateTime d, String locale) =>
     BvWesternDigitsFormatter.normalise(DateFormat.yMMM(locale).format(d));
 
+/// "18 Oct" / "18 أكتوبر", always with Western digits.
+String formatDay(DateTime d, String locale) =>
+    BvWesternDigitsFormatter.normalise(DateFormat.MMMd(locale).format(d));
+
 /// "Mar 2023 – Present", or "Mar 2023 – Expected Jun 2026".
 String formatMonthRange(
   AppLocalizations l10n,
