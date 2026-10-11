@@ -68,37 +68,73 @@ Every state change that has business rules goes through a Postgres function (`se
 - **There is no update policy on projects.** Corrections go through suggestions only.
 - `cv_projects`: the owner writes. Others read only when `show_on_profile` is set.
 
-## 5. Spaces (migration 4)
+## 5. Spaces (migration 6, `20261011160000_spaces.sql`)
+**MVP:** private **work** Spaces only. Community Spaces come after the pilot. The columns `kind` and `access` are there already, but `create_space()` only makes `work` / `private`.
+
 **Tables:**
-- `spaces`: `id`, `name`, `purpose`, `kind` ('project' | 'community'), `access` ('private' | 'open'), `project_id null`, `who_can_invite` ('admins' | 'admins_leads' | 'everyone'), `auto_accept bool` (open communities only), `created_by`.
-- `space_members`: `space_id`, `profile_id`, `pass` ('lead' | 'crew' | 'viewer'), `is_admin bool`, `custom jsonb` (fine-tuned rights), `confirmed_by`, `confirmed_at`, `left_at null`.
-- `space_invites`: `id`, `space_id`, `code` (6 characters, unique), `created_by`, `expires_at`, `revoked_at`.
-- `space_join_requests`: `id`, `space_id`, `profile_id`, `via` ('link' | 'code' | 'request'), `invited_by null`, `status` ('pending' | 'confirmed' | 'declined'), `decided_by`, `decided_at`.
-- `teams`: `id`, `space_id`, `name`.
-- `team_members`: `team_id`, `profile_id`.
-- `space_notification_prefs`: `space_id`, `profile_id`, `level` ('all' | 'needs_you' | 'off').
+- `spaces`: `id`, `name`, `about`, `kind` ('work' | 'community'), `access` ('private' | 'invite_only' | 'open'), `project_id null`, `who_can_invite` ('admins' | 'admins_leads' | 'everyone'), `created_by`, `deleted_at` (a soft delete; kept for the record).
+- `space_members`: `space_id`, `profile_id`, `pass` ('lead' | 'crew' | 'viewer'), `is_admin bool`, `custom jsonb`, `notify` ('all' | 'needs_you' | 'off'), `confirmed_by`, `confirmed_at`, `left_at null`, `removed_by`.
+  - `custom` holds only the rights changed from the pass preset: `create_items`, `check_items`, `add_files`, `invite`.
+  - Notification preferences live here, not in a separate table.
+- `space_invites`: `id`, `space_id`, `code`, `created_by`, `expires_at` (7 days), `revoked_at`.
+  - The code is 6 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no look-alikes), made from strong random bytes.
+  - Only one live invite per Space; a new code revokes the old one.
+- `space_join_requests`: `id`, `space_id`, `profile_id`, `via` ('code' | 'link'), `invite_id`, `invited_by`, `status` ('pending' | 'confirmed' | 'declined' | 'cancelled'), `decided_by`, `decided_at`. At most one pending request per person and Space.
+- `space_code_attempts`: wrong codes, for the rate limit (10 an hour, shared by `request_join` and `invite_preview`).
+- `teams`: `id`, `space_id`, `name` (unique per Space, any case).
+- `team_members`: `team_id`, `profile_id`, `added_by`.
 
-**Helper functions** (`stable`, `security definer`):
-- `is_member(space)`
-- `member_pass(space)`
-- `is_space_admin(space)`
-- `can(space, right)`, where right is one of 'create_items', 'check_items', 'add_files' or 'invite'. It combines the pass presets from `space-project-model.md` with `custom`.
+**"Owners" in the design are the Space admins.** There can be several. "Transfer ownership" makes someone else an admin and steps you down.
 
-**Business functions:**
-- `request_join(code_or_space)`
-- `confirm_join(request_id, pass, team_ids[])` — admin only.
-- `decline_join(request_id)` — admin only. The person isn't told the reason.
-- `set_member_pass(space, profile, pass, custom)`
-- `make_admin(space, profile, bool)`
-- `leave_space(space)`
+**Rights** (`pass_rights` + `custom`, checked by `member_can` / `can`):
 
-**Access:**
-- A private Space is invisible to non-members. Selecting it returns nothing, not an error.
-- An open community's name and purpose are readable by anyone signed in.
-- Only admins change settings, passes and Teams.
-- The last admin can't leave or remove themselves.
+| | Lead | Crew | Viewer | Admin |
+|---|---|---|---|---|
+| chat | ✓ | ✓ | ✓ | ✓ |
+| mark own items done (fixed) | ✓ | ✓ | — | ✓ if Lead or Crew |
+| create items | ✓ | — | — | ✓ |
+| check others' items | ✓ | — | — | ✓ |
+| add files | ✓ | ✓ | — | ✓ |
+| invite | if Who can invite allows | | | ✓ |
 
-## 6. Chat (migration 5)
+Who can invite:
+- 'admins': only admins.
+- 'admins_leads': anyone whose rights include invite (Lead preset, or custom).
+- 'everyone': every member.
+
+**Helper functions** (`security definer`, `search_path = ''`):
+- `is_member(space)`, `is_space_admin(space)`, `member_pass(space)`, `can(space, right)`;
+- `member_rights(space, profile)`, for members of that Space only.
+
+**Business functions** (the only way to write):
+
+| Area | Functions |
+|---|---|
+| Space | `create_space(name, about, project)`, `update_space`, `set_space_project`, `delete_space`, `set_space_notifications` |
+| Invites | `current_invite(space)`, `renew_invite(space)` (admins), `invite_preview(code)` (signed in) |
+| Joining | `request_join(code)` (returns a status, never raises for a wrong code), `my_join_requests()`, `cancel_join_request` |
+| Admin decisions | `confirm_join(request, pass, team_ids[])`, `decline_join` (the person isn't told why), `undo_decline` |
+| Members | `set_member_pass(space, profile, pass, custom)`, `set_member_teams`, `set_member_admin`, `transfer_ownership`, `remove_member`, `leave_space` |
+| Teams | `create_team`, `rename_team`, `delete_team`, `set_team_members` |
+| Lists | `my_spaces()` |
+
+**Rules:**
+- A private Space is invisible to non-members: a select returns nothing, not an error.
+- Members see each other and all Teams.
+- Join requests are read by the Space's admins. The person who asked sees their own requests through `my_join_requests()`, which never says who decided.
+- A Space always keeps an admin:
+  - the last admin can't leave or step down;
+  - admin changes lock the Space row, so two admins can't leave at the same moment;
+  - if the last admin's account is deleted, the longest-serving Lead (or member) becomes admin;
+  - a Space left with no members is deleted.
+- After a decline, the same person can ask that Space again only after a day.
+- The request to join is sent by the app after sign-in, never at sign-up, so an unverified email never reaches an admin.
+- **Proof:** in a Space linked to a project, the admin's confirmation of a member confirms that member's CV entry for the project (`cv_project_confirmations`, source 'space_member'). This applies at once, or when they add the project later.
+  - It never counts when you confirmed yourself, or when two people confirmed each other.
+  - Unlinking removes the confirmations from that Space; other Spaces linked to the same project keep theirs.
+- **Home country:** a person who is waiting to join a Space, or whom someone else confirmed in one, may choose a home country that is "coming soon" (decision 04). Creating your own Space doesn't count.
+
+## 6. Chat (migration 7)
 **Tables:**
 - `threads`: `id`, `space_id`, `team_id null` (null means Everyone).
 - `messages`: `id`, `thread_id`, `author_id`, `body`, `kind` ('text' | 'photo' | 'file' | 'voice' | 'work_item_card' | 'system'), `work_item_id null`, `created_at`, `edited_at`, `deleted_at`.
@@ -109,7 +145,7 @@ Every state change that has business rules goes through a Postgres function (`se
 - Write: the same members, except Viewers, who can chat in Everyone (all passes can chat).
 - Live updates through Supabase Realtime on `messages`, filtered by thread.
 
-## 7. Work items: the core (migration 6)
+## 7. Work items: the core (migration 8)
 **Tables:**
 - `work_items`: `id`, `space_id`, `ref` (for example 'KCT-021', unique per Space), `title`, `owner_id`, `created_by`, `team_id null`, `place_text`, `due_date`, `status` ('open' | 'done' | 'checked'), `created_at`.
 - `work_item_events`: `id`, `work_item_id`, `actor_id`, `kind` ('raised' | 'done' | 'checked' | 'sent_back' | 'reassigned' | 'comment'), `note`, `reason` ('photo_missing' | 'not_as_drawing' | 'not_finished' | 'other' | null), `created_at`. Append-only: no update and no delete for anyone.
@@ -130,7 +166,7 @@ Every state change that has business rules goes through a Postgres function (`se
 
 **Needs you** = open items I own, plus done items I can check, plus join requests I can confirm. It's a database view per user.
 
-## 8. Library (migration 6)
+## 8. Library (migration 8)
 **Tables:**
 - `library_files`: `id`, `space_id`, `team_id null`, `name`, `storage_path`, `mime`, `bytes`, `uploaded_by`, `rev_label null`.
 
@@ -140,7 +176,7 @@ Every state change that has business rules goes through a Postgres function (`se
 
 **Storage:** the bucket `space-files` is private. Signed URLs are issued by a function that checks membership.
 
-## 9. Feed (migration 7)
+## 9. Feed (migration 9)
 **Tables:**
 - `posts`: `id`, `author_id`, `body`, `lang`, `project_id null`, `market_id`, `created_at`, `deleted_at`. Posts are public in V1 ("Your network").
 - `post_media`: `post_id`, `storage_path`, `kind`, `sort`.
@@ -151,7 +187,7 @@ Every state change that has business rules goes through a Postgres function (`se
 
 **Feed order:** home market first, then the rest. Not filtered.
 
-## 10. Activity (migration 7)
+## 10. Activity (migration 9)
 **Tables:**
 - `notifications`: `id`, `profile_id`, `kind`, `payload jsonb`, `read_at`. Written by triggers on work item events, join requests, mentions and follows.
 - `push_tokens`.
