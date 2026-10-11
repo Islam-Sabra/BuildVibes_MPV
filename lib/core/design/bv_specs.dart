@@ -49,6 +49,9 @@ abstract final class BvFieldSpec {
   static const iconSize = BvSize.iconMd; // 20
   static const helperIconSize = 14.0;
   static const codeLength = 6;
+  static const dialBoxWidth = 92.0;
+  static const codeBoxHeight = 56.0;
+  static const codeBoxGap = BvSpace.s8;
 
   /// Vertical padding that centres one line of [style] in a 48 field.
   static double paddingFor(TextStyle style) {
@@ -116,6 +119,7 @@ abstract final class BvBadgeSpec {
   static const paddingVertical = BvSpace.s2;
   static const paddingHorizontal = BvSpace.s8;
   static const radius = BvRadius.smallAll; // 6
+  static const iconSize = 12.0;
 }
 
 abstract final class BvSheetSpec {
@@ -208,4 +212,41 @@ abstract final class BvSitePhotoSpec {
 abstract final class BvGallerySpec {
   static const sectionGap = BvSpace.s32;
   static const itemGap = BvSpace.s12;
+}
+
+abstract final class BvStepProgressSpec {
+  static const height = 4.0;
+  static const gap = BvSpace.s8;
+  static const radius = BorderRadius.all(Radius.circular(2));
+}
+
+/// Entry screens (E1, E2): the hero with the wordmark and skyline.
+abstract final class BvEntrySpec {
+  static const heroHeight = 200.0;
+  static const pillPaddingVertical = BvSpace.s6;
+  static const pillPaddingHorizontal = BvSpace.s16;
+  static const audienceCardHeight = 196.0;
+  static const audienceIconTile = BvSize.avatarLg; // 56
+  static const accentBarWidth = 3.0;
+  static const accentBarHeight = BvSpace.s16;
+  static const dotSize = BvSpace.s6;
+  static const dotActiveWidth = BvSpace.s20;
+  static const rotateEvery = Duration(seconds: 4);
+  static const skylineOpacity = 0.6;
+
+  /// Skyline blocks: (start as a share of the width, width, height).
+  static const skyline = [
+    (0.0, 54.0, 40.0),
+    (0.16, 54.0, 90.0),
+    (0.66, 54.0, 98.0),
+    (0.84, 46.0, 50.0),
+    (0.96, 20.0, 82.0),
+  ];
+}
+
+/// Sign-in codes (E3).
+abstract final class BvAuthSpec {
+  /// Matches the server's minimum time between codes (config.toml).
+  static const resendAfter = Duration(seconds: 60);
+  static const searchDebounce = Duration(milliseconds: 300);
 }

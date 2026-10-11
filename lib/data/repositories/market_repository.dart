@@ -20,7 +20,8 @@ class MarketRepository {
           'code_channel, currency, currency_decimals, week_start, weekend, '
           'needs_review',
         )
-        .order('sort');
+        // Ascending: the client's default is descending.
+        .order('sort', ascending: true);
     return [for (final row in rows) Market.fromJson(row)];
   }
 }

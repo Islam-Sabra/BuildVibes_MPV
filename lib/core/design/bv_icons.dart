@@ -78,6 +78,35 @@ abstract final class BvIcons {
   // Phosphor: sign-out
   static const signOut = IconData(0xe42a, fontFamily: _family);
 
+  // Phosphor: google-logo
+  static const google = IconData(0xe292, fontFamily: _family);
+  // Phosphor: apple-logo
+  static const apple = IconData(0xe516, fontFamily: _family);
+  // Phosphor: linkedin-logo
+  static const linkedIn = IconData(0xe2ee, fontFamily: _family);
+  // Phosphor: seal-check
+  static const confirmed = IconData(0xe606, fontFamily: _family);
+  // Phosphor: check-circle
+  static const checkCircle = IconData(0xe184, fontFamily: _family);
+  // Phosphor: envelope-simple
+  static const email = IconData(0xe218, fontFamily: _family);
+  // Phosphor: device-mobile
+  static const phone = IconData(0xe1e0, fontFamily: _family);
+  // Phosphor: briefcase
+  static const briefcase = IconData(0xe0ee, fontFamily: _family);
+  // Phosphor: crane
+  static const crane = IconData(0xed48, fontFamily: _family);
+  // Phosphor: hammer
+  static const hammer = IconData(0xe80e, fontFamily: _family);
+  // Phosphor: truck
+  static const truck = IconData(0xe4b4, fontFamily: _family);
+  // Phosphor: cube
+  static const cube = IconData(0xe1da, fontFamily: _family);
+  // Phosphor: ruler
+  static const ruler = IconData(0xe6b8, fontFamily: _family);
+  // Phosphor: clipboard-text
+  static const clipboard = IconData(0xe198, fontFamily: _family);
+
   // Directional: mirrored in right-to-left.
   /// Points to the next screen: right in English, left in Arabic.
   static const caretForward = IconData(

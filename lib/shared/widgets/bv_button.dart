@@ -20,6 +20,7 @@ class BvButton extends StatelessWidget {
     this.expand = false,
     this.focusNode,
     this.autofocus = false,
+    this.padded = true,
   });
 
   final String label;
@@ -31,12 +32,17 @@ class BvButton extends StatelessWidget {
   final FocusNode? focusNode;
   final bool autofocus;
 
+  /// False for a tertiary link that must line up with the text around it.
+  final bool padded;
+
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final large = size == BvButtonSize.large;
     final height = large ? BvButtonSpec.heightLarge : BvButtonSpec.heightMedium;
-    final padding = large
+    final padding = !padded
+        ? 0.0
+        : large
         ? BvButtonSpec.paddingLarge
         : BvButtonSpec.paddingMedium;
 
@@ -45,7 +51,7 @@ class BvButton extends StatelessWidget {
       focusNode: focusNode,
       autofocus: autofocus,
       style: ButtonStyle(
-        minimumSize: WidgetStatePropertyAll(Size(height, height)),
+        minimumSize: WidgetStatePropertyAll(Size(padded ? height : 0, height)),
         maximumSize: WidgetStatePropertyAll(Size(double.infinity, height)),
         padding: WidgetStatePropertyAll(
           EdgeInsetsDirectional.symmetric(horizontal: padding),

@@ -15,6 +15,9 @@ void main() {
       expect(BvAvatar.initialsOf('Omar Haddad'), 'OH');
       expect(BvAvatar.initialsOf('sara al mutairi'), 'SM');
       expect(BvAvatar.initialsOf('Omar'), 'O');
+      expect(BvAvatar.initialsOf('Sami Al-Mansour'), 'SM');
+      expect(BvAvatar.initialsOf('Hany El-Sayed'), 'HS');
+      expect(BvAvatar.initialsOf('Jean-Paul Smith'), 'JS');
       expect(BvAvatar.initialsOf('  '), '');
       final omar = String.fromCharCode(0x0639); // ع
       final haddad = String.fromCharCode(0x062D); // ح

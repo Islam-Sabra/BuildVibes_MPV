@@ -111,5 +111,579 @@
   "componentsGallery": "Components",
   "@componentsGallery": {
     "description": "Debug-only screen that shows every BV component."
+  },
+  "entryStartingIn": "Starting in {country}",
+  "@entryStartingIn": {
+    "description": "Welcome pill. Country from the market pack.",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "entryWelcomeTitle": "The construction community around you.",
+  "@entryWelcomeTitle": {
+    "description": "E1 headline."
+  },
+  "entryWelcomeBody": "Meet engineers, foremen, trades and suppliers. Set up your presence when you're ready.",
+  "@entryWelcomeBody": {
+    "description": "E1 body."
+  },
+  "entryBuiltFor": "Built for {country} construction",
+  "@entryBuiltFor": {
+    "description": "E1 audience card header.",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "entryAudience1Title": "Engineers",
+  "@entryAudience1Title": {
+    "description": "E1 rotating audience card title."
+  },
+  "entryAudience1Body": "Share your projects. Get your work confirmed.",
+  "@entryAudience1Body": {
+    "description": "E1 rotating audience card text."
+  },
+  "entryAudience2Title": "Site crews and trades",
+  "@entryAudience2Title": {
+    "description": "E1 rotating audience card title."
+  },
+  "entryAudience2Body": "Show your work. Find the next job.",
+  "@entryAudience2Body": {
+    "description": "E1 rotating audience card text."
+  },
+  "entryAudience3Title": "Foremen and supervisors",
+  "@entryAudience3Title": {
+    "description": "E1 rotating audience card title."
+  },
+  "entryAudience3Body": "Run the day's work from your phone.",
+  "@entryAudience3Body": {
+    "description": "E1 rotating audience card text."
+  },
+  "entryAudience4Title": "Subcontractors",
+  "@entryAudience4Title": {
+    "description": "E1 rotating audience card title."
+  },
+  "entryAudience4Body": "Get work checked and signed off on time.",
+  "@entryAudience4Body": {
+    "description": "E1 rotating audience card text."
+  },
+  "entryAudience5Title": "Suppliers and traders",
+  "@entryAudience5Title": {
+    "description": "E1 rotating audience card title."
+  },
+  "entryAudience5Body": "Be found by the people who build.",
+  "@entryAudience5Body": {
+    "description": "E1 rotating audience card text."
+  },
+  "entryAudience6Title": "BIM and design",
+  "@entryAudience6Title": {
+    "description": "E1 rotating audience card title."
+  },
+  "entryAudience6Body": "Connect the model to the work on site.",
+  "@entryAudience6Body": {
+    "description": "E1 rotating audience card text."
+  },
+  "entryBrowseFirstNote": "Browse first. Set up your presence when you're ready.",
+  "@entryBrowseFirstNote": {
+    "description": "E1 card footer."
+  },
+  "entryCreateAccount": "Create account",
+  "@entryCreateAccount": {
+    "description": "E1 button."
+  },
+  "entrySignIn": "Sign in",
+  "@entrySignIn": {
+    "description": "E1 button."
+  },
+  "entrySkipToHome": "Skip to Home",
+  "@entrySkipToHome": {
+    "description": "E1 link: browse as a guest."
+  },
+  "entryJoinTitle": "Your work, confirmed by the people who built it.",
+  "@entryJoinTitle": {
+    "description": "E2 headline."
+  },
+  "entryJoinBody": "Join with the number you already use. It takes about a minute.",
+  "@entryJoinBody": {
+    "description": "E2 body."
+  },
+  "entrySampleName": "Sami Al-Mansour",
+  "@entrySampleName": {
+    "description": "E2 illustration: sample person."
+  },
+  "entrySampleRole": "BIM Manager · Harbour Tower",
+  "@entrySampleRole": {
+    "description": "E2 illustration: sample role and project."
+  },
+  "entrySampleBadge": "Confirmed by teammates",
+  "@entrySampleBadge": {
+    "description": "E2 illustration badge."
+  },
+  "entryContinuePhone": "Continue with phone number",
+  "@entryContinuePhone": {
+    "description": "E2 main button."
+  },
+  "entryOrContinueWith": "or continue with",
+  "@entryOrContinueWith": {
+    "description": "E2 divider above Google / Apple."
+  },
+  "entryGoogle": "Google",
+  "@entryGoogle": {
+    "description": "Brand name."
+  },
+  "entryApple": "Apple",
+  "@entryApple": {
+    "description": "Brand name."
+  },
+  "entryLinkedIn": "LinkedIn",
+  "@entryLinkedIn": {
+    "description": "Brand name."
+  },
+  "entryUseEmail": "Use email instead",
+  "@entryUseEmail": {
+    "description": "E2 link."
+  },
+  "entryNoPassword": "No password. We never post for you or read your contacts.",
+  "@entryNoPassword": {
+    "description": "E2 reassurance."
+  },
+  "entryTerms": "By continuing you agree to the Terms and Privacy Policy.",
+  "@entryTerms": {
+    "description": "E2 legal line."
+  },
+  "entryJustLooking": "Just looking? Browse first",
+  "@entryJustLooking": {
+    "description": "E2 guest link."
+  },
+  "phoneTitle": "Your phone number",
+  "@phoneTitle": {
+    "description": "E2p title."
+  },
+  "phoneLabel": "Mobile number",
+  "@phoneLabel": {
+    "description": "E2p field label."
+  },
+  "phoneHelpWhatsapp": "We send a 6-digit code on WhatsApp. No password needed.",
+  "@phoneHelpWhatsapp": {
+    "description": "E2p helper."
+  },
+  "phoneHelpSms": "We send a 6-digit code by SMS. No password needed.",
+  "@phoneHelpSms": {
+    "description": "E2p helper."
+  },
+  "phoneSendSms": "Send the code by SMS instead",
+  "@phoneSendSms": {
+    "description": "E2p secondary button."
+  },
+  "phoneUseEmail": "Use your email instead",
+  "@phoneUseEmail": {
+    "description": "E2p link."
+  },
+  "sendCode": "Send code",
+  "@sendCode": {
+    "description": "Footer button."
+  },
+  "phoneErrorMarket": "Enter a {country} mobile number with {digits} digits.",
+  "@phoneErrorMarket": {
+    "description": "E2p validation.",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "digits": {
+        "type": "int"
+      }
+    }
+  },
+  "phoneErrorOther": "Enter your full mobile number.",
+  "@phoneErrorOther": {
+    "description": "E2p validation."
+  },
+  "dialCodeTitle": "Country code",
+  "@dialCodeTitle": {
+    "description": "Dial code sheet title."
+  },
+  "dialCodeOther": "Other country code",
+  "@dialCodeOther": {
+    "description": "Dial code option."
+  },
+  "dialCodeOtherHelp": "Type the code, for example +91.",
+  "@dialCodeOtherHelp": {
+    "description": "Dial code field helper."
+  },
+  "comingSoon": "Coming soon",
+  "@comingSoon": {
+    "description": "A market that is not open yet."
+  },
+  "notOpenTitle": "New accounts aren't open for this number yet",
+  "@notOpenTitle": {
+    "description": "Sign-up gate sheet title."
+  },
+  "notOpenSoon": "We're coming to {country} soon. If someone invited you to a Space, open their invite link to join now.",
+  "@notOpenSoon": {
+    "description": "Sign-up gate: market coming soon.",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "notOpenOther": "New accounts are open in {countries} for now. If someone invited you to a Space, open their invite link to join now.",
+  "@notOpenOther": {
+    "description": "Sign-up gate: no market for this number.",
+    "placeholders": {
+      "countries": {
+        "type": "String"
+      }
+    }
+  },
+  "commonOk": "OK",
+  "@commonOk": {
+    "description": "Button."
+  },
+  "emailTitle": "Your email",
+  "@emailTitle": {
+    "description": "Email entry title."
+  },
+  "emailLabel": "Email",
+  "@emailLabel": {
+    "description": "Email field label."
+  },
+  "emailHelp": "We send a 6-digit code. No password needed.",
+  "@emailHelp": {
+    "description": "Email helper."
+  },
+  "emailError": "Check the email address.",
+  "@emailError": {
+    "description": "Email validation."
+  },
+  "emailUsePhone": "Use your phone number instead",
+  "@emailUsePhone": {
+    "description": "Email screen link."
+  },
+  "codeTitleWhatsapp": "Check WhatsApp",
+  "@codeTitleWhatsapp": {
+    "description": "E3 title."
+  },
+  "codeTitleSms": "Check your messages",
+  "@codeTitleSms": {
+    "description": "E3 title."
+  },
+  "codeTitleEmail": "Check your email",
+  "@codeTitleEmail": {
+    "description": "E3e title."
+  },
+  "codeSentWhatsapp": "We sent a 6-digit code to {destination} on WhatsApp. It works for 10 minutes.",
+  "@codeSentWhatsapp": {
+    "description": "E3 text.",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "codeSentSms": "We sent a 6-digit code to {destination} by SMS. It works for 10 minutes.",
+  "@codeSentSms": {
+    "description": "E3 text.",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "codeSentEmail": "We sent a 6-digit code to {destination}. It works for 10 minutes. Check spam if you don't see it.",
+  "@codeSentEmail": {
+    "description": "E3e text.",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "codeResendIn": "Resend code in {time}",
+  "@codeResendIn": {
+    "description": "E3 timer.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "codeResend": "Send a new code",
+  "@codeResend": {
+    "description": "E3 link."
+  },
+  "codeDifferentNumber": "Use a different number",
+  "@codeDifferentNumber": {
+    "description": "E3 link."
+  },
+  "codeDifferentEmail": "Use a different email",
+  "@codeDifferentEmail": {
+    "description": "E3e link."
+  },
+  "codeWrong": "That code isn't right. Check it and try again.",
+  "@codeWrong": {
+    "description": "E3 error."
+  },
+  "codeExpired": "This code has expired. Send a new one.",
+  "@codeExpired": {
+    "description": "E3 error."
+  },
+  "codeFieldLabel": "6-digit code",
+  "@codeFieldLabel": {
+    "description": "Accessibility label for the code boxes."
+  },
+  "errorNetwork": "No connection. Check your internet and try again.",
+  "@errorNetwork": {
+    "description": "Error."
+  },
+  "errorTooMany": "Too many tries. Wait a minute and try again.",
+  "@errorTooMany": {
+    "description": "Error."
+  },
+  "errorGeneric": "Something went wrong. Try again.",
+  "@errorGeneric": {
+    "description": "Error."
+  },
+  "errorSendFailed": "We couldn't send the code. Try again, or use email instead.",
+  "@errorSendFailed": {
+    "description": "Error."
+  },
+  "commonRetry": "Try again",
+  "@commonRetry": {
+    "description": "Button."
+  },
+  "aboutTitle": "About you",
+  "@aboutTitle": {
+    "description": "E9 title."
+  },
+  "aboutIntro": "Step 1 of 2. This is how people will find you. You can change it later.",
+  "@aboutIntro": {
+    "description": "E9 intro."
+  },
+  "firstName": "First name",
+  "@firstName": {
+    "description": "Field label."
+  },
+  "lastName": "Last name",
+  "@lastName": {
+    "description": "Field label."
+  },
+  "country": "Country",
+  "@country": {
+    "description": "Field label."
+  },
+  "countryFromPhone": "From your phone number. You can change it in Settings.",
+  "@countryFromPhone": {
+    "description": "E9 helper."
+  },
+  "role": "Role",
+  "@role": {
+    "description": "Field label."
+  },
+  "rolePlaceholder": "Choose your role",
+  "@rolePlaceholder": {
+    "description": "Field placeholder."
+  },
+  "companyOptional": "Company (optional)",
+  "@companyOptional": {
+    "description": "Field label."
+  },
+  "companyPlaceholder": "Search or type your company",
+  "@companyPlaceholder": {
+    "description": "Field placeholder."
+  },
+  "recoveryEmail": "Email for getting back in (optional)",
+  "@recoveryEmail": {
+    "description": "Field label."
+  },
+  "recoveryEmailHelp": "Helps you get back in if your number changes.",
+  "@recoveryEmailHelp": {
+    "description": "Field helper."
+  },
+  "continueLabel": "Continue",
+  "@continueLabel": {
+    "description": "Footer button."
+  },
+  "firstNameRequired": "Write your first name.",
+  "@firstNameRequired": {
+    "description": "Validation."
+  },
+  "lastNameRequired": "Write your last name.",
+  "@lastNameRequired": {
+    "description": "Validation."
+  },
+  "roleRequired": "Choose your role.",
+  "@roleRequired": {
+    "description": "Validation."
+  },
+  "countryRequired": "Choose your country.",
+  "@countryRequired": {
+    "description": "Validation."
+  },
+  "companySheetTitle": "Your company",
+  "@companySheetTitle": {
+    "description": "Company search sheet title."
+  },
+  "companySearch": "Search companies",
+  "@companySearch": {
+    "description": "Search placeholder."
+  },
+  "companyUseTyped": "Use “{name}”",
+  "@companyUseTyped": {
+    "description": "Save the typed company name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "companyUseTypedHelp": "Saved as you typed it. It links to a company page only if one is registered.",
+  "@companyUseTypedHelp": {
+    "description": "Company sheet helper."
+  },
+  "companyNone": "No company",
+  "@companyNone": {
+    "description": "Clear the company."
+  },
+  "roleTitle": "Your role",
+  "@roleTitle": {
+    "description": "E9b title."
+  },
+  "roleIntro": "What do you do on site or in the office? It shows under your name and decides which people and Spaces you see first.",
+  "@roleIntro": {
+    "description": "E9b intro."
+  },
+  "roleSearch": "Search trade or role",
+  "@roleSearch": {
+    "description": "E9b search."
+  },
+  "rolePopularIn": "POPULAR IN {country}",
+  "@rolePopularIn": {
+    "description": "E9b section. Capitals in English.",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "roleAddCustom": "Add “{text}” as your role",
+  "@roleAddCustom": {
+    "description": "E9b custom role row.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "roleNotInList": "Not in the list? Type it in search and add it as your role.",
+  "@roleNotInList": {
+    "description": "E9b footer note."
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Footer button."
+  },
+  "peopleTitle": "People to follow",
+  "@peopleTitle": {
+    "description": "E10 title."
+  },
+  "skip": "Skip",
+  "@skip": {
+    "description": "App bar action."
+  },
+  "stepOf": "Step {step} of {total}",
+  "@stepOf": {
+    "description": "Progress label.",
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "peopleHeadline": "Start with people you'd work with",
+  "@peopleHeadline": {
+    "description": "E10 headline."
+  },
+  "peopleBody": "Picked for a {role} in {country}. You can change this any time.",
+  "@peopleBody": {
+    "description": "E10 body.",
+    "placeholders": {
+      "role": {
+        "type": "String"
+      },
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleFromCompany": "FROM {company}",
+  "@peopleFromCompany": {
+    "description": "E10 section. Capitals in English.",
+    "placeholders": {
+      "company": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleNearYou": "WORKING NEAR YOU",
+  "@peopleNearYou": {
+    "description": "E10 section."
+  },
+  "reasonCompany": "Your company",
+  "@reasonCompany": {
+    "description": "E10 reason."
+  },
+  "reasonNear": "Near you · {place}",
+  "@reasonNear": {
+    "description": "E10 reason.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonSameCountry": "Works in {country}",
+  "@reasonSameCountry": {
+    "description": "E10 reason.",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "follow": "Follow",
+  "@follow": {
+    "description": "Button."
+  },
+  "following": "Following",
+  "@following": {
+    "description": "Button state."
+  },
+  "peopleEmpty": "No suggestions yet. As your team joins BuildVibes, you'll see them here.",
+  "@peopleEmpty": {
+    "description": "E10 empty state."
+  },
+  "joinWallTitle": "Join BuildVibes to do this",
+  "@joinWallTitle": {
+    "description": "Join wall (H7) title."
+  },
+  "joinWallBody": "It takes about a minute. No password.",
+  "@joinWallBody": {
+    "description": "Join wall body."
+  },
+  "guestProfileTitle": "You're browsing as a guest",
+  "@guestProfileTitle": {
+    "description": "Profile tab for guests."
+  },
+  "signOut": "Sign out",
+  "@signOut": {
+    "description": "Profile row."
   }
 }

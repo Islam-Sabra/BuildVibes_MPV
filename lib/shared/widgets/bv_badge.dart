@@ -5,16 +5,19 @@ import '../../core/design/bv_tokens.dart';
 
 enum BvBadgeTone { neutral, brand, positive, warning }
 
-/// Spec §10 ("DS · Avatar & Badge").
+/// Spec §10 ("DS · Avatar & Badge"). An optional [icon] sits before the
+/// label in the same colour (E2: "Confirmed by teammates").
 class BvBadge extends StatelessWidget {
   const BvBadge({
     super.key,
     required this.label,
     this.tone = BvBadgeTone.neutral,
+    this.icon,
   });
 
   final String label;
   final BvBadgeTone tone;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +34,17 @@ class BvBadge extends StatelessWidget {
         vertical: BvBadgeSpec.paddingVertical,
       ),
       decoration: BoxDecoration(color: fill, borderRadius: BvBadgeSpec.radius),
-      child: Text(
-        label,
-        maxLines: 1,
-        style: BvType.of(context).labelSm.copyWith(color: text),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s4,
+        children: [
+          if (icon != null) Icon(icon, size: BvBadgeSpec.iconSize, color: text),
+          Text(
+            label,
+            maxLines: 1,
+            style: BvType.of(context).labelSm.copyWith(color: text),
+          ),
+        ],
       ),
     );
   }

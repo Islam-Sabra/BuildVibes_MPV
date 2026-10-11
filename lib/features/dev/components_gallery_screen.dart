@@ -18,6 +18,7 @@ import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_chip.dart';
 import '../../shared/widgets/bv_choice_card.dart';
+import '../../shared/widgets/bv_code_field.dart';
 import '../../shared/widgets/bv_controls.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_pass_card.dart';

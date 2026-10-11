@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' show Bidi;
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
@@ -36,6 +37,7 @@ class BvTextField extends StatefulWidget {
     this.textAlign = TextAlign.start,
     this.valueStyle,
     this.autofocus = false,
+    this.invalid = false,
   });
 
   final String? label;
@@ -67,6 +69,10 @@ class BvTextField extends StatefulWidget {
   final TextStyle? valueStyle;
   final bool autofocus;
 
+  /// Red border without a message of its own, for a field whose message is
+  /// shown by its parent (the phone row).
+  final bool invalid;
+
   @override
   State<BvTextField> createState() => _BvTextFieldState();
 }
@@ -80,6 +86,7 @@ class _BvTextFieldState extends State<BvTextField> {
   void initState() {
     super.initState();
     _controller.addListener(_onText);
+    _contentDirection = directionOf(_controller.text);
   }
 
   @override
@@ -98,15 +105,28 @@ class _BvTextFieldState extends State<BvTextField> {
     super.dispose();
   }
 
+  TextDirection? _contentDirection;
+
+  /// The direction of what is typed: a Latin name in the Arabic app reads
+  /// left to right (so "Co." keeps its full stop at the end).
+  static TextDirection? directionOf(String text) {
+    if (Bidi.startsWithRtl(text)) return TextDirection.rtl;
+    if (Bidi.startsWithLtr(text)) return TextDirection.ltr;
+    return null;
+  }
+
   void _onText() {
-    if (widget.maxLength != null) setState(() {});
+    final direction = directionOf(_controller.text);
+    if (widget.maxLength != null || direction != _contentDirection) {
+      setState(() => _contentDirection = direction);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final l10n = AppLocalizations.of(context);
-    final hasError = widget.error != null;
+    final hasError = widget.error != null || widget.invalid;
 
     OutlineInputBorder border(Color color, double width) => OutlineInputBorder(
       borderRadius: BvRadius.controlAll,
@@ -138,8 +158,14 @@ class _BvTextFieldState extends State<BvTextField> {
       minLines: widget.maxLines > 1 ? 2 : null,
       maxLength: max,
       maxLengthEnforcement: MaxLengthEnforcement.enforced,
-      textDirection: widget.textDirection,
-      textAlign: widget.textAlign,
+      textDirection: widget.textDirection ?? _contentDirection,
+      // Text stays aligned with the form, whatever its own direction.
+      textAlign:
+          widget.textAlign == TextAlign.start && widget.textDirection == null
+          ? (Directionality.of(context) == TextDirection.rtl
+                ? TextAlign.right
+                : TextAlign.left)
+          : widget.textAlign,
       style: valueStyle.copyWith(
         color: widget.enabled
             ? BvColors.textPrimary
@@ -200,6 +226,7 @@ class _BvTextFieldState extends State<BvTextField> {
         : Directionality(textDirection: widget.textDirection!, child: field);
 
     final helperText = widget.error ?? widget.helper;
+    final showErrorIcon = widget.error != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -216,7 +243,7 @@ class _BvTextFieldState extends State<BvTextField> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: BvSpace.s4,
             children: [
-              if (hasError)
+              if (showErrorIcon)
                 const Padding(
                   padding: EdgeInsetsDirectional.only(top: BvSpace.s2),
                   child: Icon(
@@ -230,7 +257,7 @@ class _BvTextFieldState extends State<BvTextField> {
                 child: Text(
                   helperText ?? '',
                   style: type.metadata.copyWith(
-                    color: hasError
+                    color: showErrorIcon
                         ? BvColors.textDestructive
                         : BvColors.textSecondary,
                   ),
@@ -282,91 +309,192 @@ class BvWesternDigitsFormatter extends TextInputFormatter {
   }
 }
 
-/// Phone number. [dialCode] comes from the market pack (for example the
-/// person's home market); it is never typed into code.
+/// Phone number. [dialCode] comes from the market pack, never typed into
+/// code. With [onDialCodeTap] the code is a box of its own that opens a
+/// picker (E2p); without it the code is a fixed label inside the field.
+/// The row is always left to right: numbers read that way in Arabic too.
 class BvPhoneField extends StatelessWidget {
   const BvPhoneField({
     super.key,
     required this.dialCode,
+    this.onDialCodeTap,
     this.label,
     this.placeholder,
     this.helper,
     this.error,
     this.controller,
     this.onChanged,
+    this.autofocus = false,
   });
 
   final String dialCode;
+  final VoidCallback? onDialCodeTap;
   final String? label;
   final String? placeholder;
   final String? helper;
   final String? error;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+  final bool autofocus;
+
+  static const _formatters = [
+    BvWesternDigitsFormatter(),
+    _DigitsOnlyFormatter(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return BvTextField(
-      label: label,
-      placeholder: placeholder,
-      helper: helper,
-      error: error,
-      controller: controller,
-      onChanged: onChanged,
-      // Numbers read left to right in Arabic too: the field is LTR.
-      prefixText: dialCode,
-      textDirection: TextDirection.ltr,
-      keyboardType: TextInputType.phone,
-      inputFormatters: [
-        const BvWesternDigitsFormatter(),
-        FilteringTextInputFormatter.digitsOnly,
+    if (onDialCodeTap == null) {
+      return BvTextField(
+        label: label,
+        placeholder: placeholder,
+        helper: helper,
+        error: error,
+        controller: controller,
+        onChanged: onChanged,
+        autofocus: autofocus,
+        prefixText: dialCode,
+        textDirection: TextDirection.ltr,
+        keyboardType: TextInputType.phone,
+        inputFormatters: _formatters,
+      );
+    }
+
+    final type = BvType.of(context);
+    final hasError = error != null;
+    final message = error ?? helper;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      spacing: BvFieldSpec.gap,
+      children: [
+        if (label != null)
+          Text(
+            label!,
+            style: type.labelMd.copyWith(color: BvColors.textPrimary),
+          ),
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Row(
+            spacing: BvSpace.s8,
+            children: [
+              _DialCodeBox(
+                dialCode: dialCode,
+                invalid: hasError,
+                onTap: onDialCodeTap!,
+              ),
+              Expanded(
+                child: BvTextField(
+                  placeholder: placeholder,
+                  controller: controller,
+                  onChanged: onChanged,
+                  autofocus: autofocus,
+                  invalid: hasError,
+                  textDirection: TextDirection.ltr,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: _formatters,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (message != null)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: BvSpace.s4,
+            children: [
+              if (hasError)
+                const Padding(
+                  padding: EdgeInsetsDirectional.only(top: BvSpace.s2),
+                  child: Icon(
+                    BvIcons.warning,
+                    key: Key('field-error-icon'),
+                    size: BvFieldSpec.helperIconSize,
+                    color: BvColors.textDestructive,
+                  ),
+                ),
+              Expanded(
+                child: Text(
+                  message,
+                  style: type.metadata.copyWith(
+                    color: hasError
+                        ? BvColors.textDestructive
+                        : BvColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }
 }
 
-/// One-time sign-in code: 6 digits.
-class BvCodeField extends StatelessWidget {
-  const BvCodeField({
-    super.key,
-    this.label,
-    this.helper,
-    this.error,
-    this.controller,
-    this.onCompleted,
-    this.autofocus = false,
+class _DigitsOnlyFormatter extends TextInputFormatter {
+  const _DigitsOnlyFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) => FilteringTextInputFormatter.digitsOnly.formatEditUpdate(
+    oldValue,
+    newValue,
+  );
+}
+
+class _DialCodeBox extends StatelessWidget {
+  const _DialCodeBox({
+    required this.dialCode,
+    required this.invalid,
+    required this.onTap,
   });
 
-  final String? label;
-  final String? helper;
-  final String? error;
-  final TextEditingController? controller;
-  final ValueChanged<String>? onCompleted;
-  final bool autofocus;
+  final String dialCode;
+  final bool invalid;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return BvTextField(
-      label: label,
-      helper: helper,
-      error: error,
-      controller: controller,
-      autofocus: autofocus,
-      placeholder: '0' * BvFieldSpec.codeLength,
-      maxLength: BvFieldSpec.codeLength,
-      textDirection: TextDirection.ltr,
-      textAlign: TextAlign.center,
-      valueStyle: BvType.of(
-        context,
-      ).headingMd.copyWith(letterSpacing: BvSpace.s8),
-      keyboardType: TextInputType.number,
-      inputFormatters: [
-        const BvWesternDigitsFormatter(),
-        FilteringTextInputFormatter.digitsOnly,
-      ],
-      onChanged: (v) {
-        if (v.length == BvFieldSpec.codeLength) onCompleted?.call(v);
-      },
+    return Semantics(
+      button: true,
+      child: Material(
+        color: BvColors.surfaceElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BvRadius.controlAll,
+          side: BorderSide(
+            color: invalid ? BvColors.borderDestructive : BvColors.borderInput,
+            width: invalid ? BvStroke.thick : BvStroke.thin,
+          ),
+        ),
+        child: InkWell(
+          key: const Key('dial-code-box'),
+          onTap: onTap,
+          borderRadius: BvRadius.controlAll,
+          splashFactory: NoSplash.splashFactory,
+          child: SizedBox(
+            width: BvFieldSpec.dialBoxWidth,
+            height: BvFieldSpec.height,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: BvSpace.s8,
+              children: [
+                Text(
+                  dialCode,
+                  style: BvType.latin.bodyLg.copyWith(
+                    color: BvColors.textPrimary,
+                  ),
+                ),
+                const Icon(
+                  BvIcons.caretDown,
+                  size: BvFieldSpec.iconSize,
+                  color: BvColors.iconSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -377,12 +505,16 @@ class BvSelectOption<T> {
     required this.label,
     this.description,
     this.icon,
+    this.enabled = true,
+    this.badge,
   });
 
   final T value;
   final String label;
   final String? description;
   final IconData? icon;
+  final bool enabled;
+  final String? badge;
 }
 
 /// A field with a caret that opens a sheet with one single-choice list.
@@ -466,6 +598,8 @@ class _BvSelectState<T> extends State<BvSelect<T>> {
               title: o.label,
               description: o.description,
               icon: o.icon,
+              enabled: o.enabled,
+              badge: o.badge,
             ),
         ],
         value: widget.value,

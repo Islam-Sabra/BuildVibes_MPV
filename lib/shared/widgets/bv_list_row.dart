@@ -17,6 +17,9 @@ sealed class BvRowTrailing {
     required ValueChanged<bool>? onChanged,
   }) = _Toggle;
   const factory BvRowTrailing.none() = _None;
+
+  /// A check mark when [selected]; empty space otherwise.
+  const factory BvRowTrailing.check({required bool selected}) = _Check;
 }
 
 class _Chevron extends BvRowTrailing {
@@ -36,6 +39,11 @@ class _Toggle extends BvRowTrailing {
 
 class _None extends BvRowTrailing {
   const _None();
+}
+
+class _Check extends BvRowTrailing {
+  const _Check({required this.selected});
+  final bool selected;
 }
 
 /// Spec §7 ("DS · Rows").
@@ -134,6 +142,17 @@ class BvListRow extends StatelessWidget {
                     child: BvSwitch(value: value, onChanged: onChanged),
                   ),
                   _None() => const SizedBox.shrink(),
+                  _Check(:final selected) => SizedBox.square(
+                    dimension: BvListRowSpec.chevronSize,
+                    child: selected
+                        ? const Icon(
+                            BvIcons.check,
+                            key: Key('row-check'),
+                            size: BvListRowSpec.chevronSize,
+                            color: BvColors.iconAction,
+                          )
+                        : null,
+                  ),
                 },
               ],
             ),

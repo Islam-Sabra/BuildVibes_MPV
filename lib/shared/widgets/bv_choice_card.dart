@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import 'bv_badge.dart';
 import 'bv_controls.dart';
 
 /// Spec §8. Use it for every set of choices that exclude each other (rule 6),
@@ -14,13 +15,19 @@ class BvChoiceCard extends StatelessWidget {
     required this.onTap,
     this.description,
     this.icon,
+    this.badge,
   });
 
   final String title;
   final String? description;
   final IconData? icon;
   final bool selected;
+
+  /// Null shows the card as not available.
   final VoidCallback? onTap;
+
+  /// A short tag after the title, such as "Coming soon".
+  final String? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +36,13 @@ class BvChoiceCard extends StatelessWidget {
       inMutuallyExclusiveGroup: true,
       checked: selected,
       button: true,
+      enabled: onTap != null,
       child: Material(
-        color: selected ? BvColors.surfaceBrandSoft : BvColors.surfaceElevated,
+        color: onTap == null
+            ? BvColors.surfaceSubtle
+            : selected
+            ? BvColors.surfaceBrandSoft
+            : BvColors.surfaceElevated,
         shape: RoundedRectangleBorder(
           borderRadius: BvRadius.cardAll,
           side: selected
@@ -69,11 +81,21 @@ class BvChoiceCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     spacing: BvSpace.s2,
                     children: [
-                      Text(
-                        title,
-                        style: type.titleMd.copyWith(
-                          color: BvColors.textPrimary,
-                        ),
+                      Wrap(
+                        spacing: BvSpace.s8,
+                        runSpacing: BvSpace.s4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            title,
+                            style: type.titleMd.copyWith(
+                              color: onTap == null
+                                  ? BvColors.textSecondary
+                                  : BvColors.textPrimary,
+                            ),
+                          ),
+                          if (badge != null) BvBadge(label: badge!),
+                        ],
                       ),
                       if (description != null)
                         Text(
@@ -86,7 +108,8 @@ class BvChoiceCard extends StatelessWidget {
                   ),
                 ),
                 // The card handles the tap; the radio only shows the state.
-                ExcludeSemantics(child: BvRadio(selected: selected)),
+                if (onTap != null)
+                  ExcludeSemantics(child: BvRadio(selected: selected)),
               ],
             ),
           ),
@@ -103,6 +126,8 @@ class BvChoiceOption<T> {
     this.description,
     this.icon,
     this.key,
+    this.enabled = true,
+    this.badge,
   });
 
   final T value;
@@ -110,6 +135,8 @@ class BvChoiceOption<T> {
   final String? description;
   final IconData? icon;
   final Key? key;
+  final bool enabled;
+  final String? badge;
 }
 
 /// A single-choice list of [BvChoiceCard]s.
@@ -138,8 +165,9 @@ class BvChoiceList<T> extends StatelessWidget {
             title: o.title,
             description: o.description,
             icon: o.icon,
+            badge: o.badge,
             selected: o.value == value,
-            onTap: () => onChanged(o.value),
+            onTap: o.enabled ? () => onChanged(o.value) : null,
           ),
       ],
     );

@@ -5,6 +5,13 @@ abstract final class AppConfig {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
+  /// Google and Apple sign-in. Off until the founder provides the provider
+  /// keys; switch on with "SOCIAL_SIGN_IN": "true" in env/dev.json.
+  static const socialSignIn = bool.fromEnvironment('SOCIAL_SIGN_IN');
+
+  /// LinkedIn is not in the MVP; the E2 layout keeps room for it.
+  static const linkedInSignIn = false;
+
   static bool get hasSupabase =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 

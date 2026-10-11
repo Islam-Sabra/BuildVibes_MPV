@@ -45,3 +45,6 @@ ios/Runner/GeneratedPluginRegistrant.*
 
 # Emulator screenshots for review (not committed)
 docs/screens/
+
+# short-lived Figma download links
+docs/design/_fetch*

@@ -46,7 +46,10 @@ class BvAvatar extends StatelessWidget {
     final picked = words.length == 1
         ? [words.first]
         : [words.first, words.last];
-    final runes = [for (final w in picked) _initialRune(w.runes.toList())];
+    final runes = [
+      for (final w in picked)
+        _initialRune(_withoutLatinArticle(w).runes.toList()),
+    ];
     final letters = runes.map(String.fromCharCode);
     final arabic = runes.any(_isArabic);
     return arabic
@@ -60,6 +63,15 @@ class BvAvatar extends StatelessWidget {
         (word[0] == _alef || word[0] == _lam) &&
         word[1] == _lam;
     return hasPrefix ? word[_prefixLength] : word.first;
+  }
+
+  /// "Al-Mansour" and "El-Sayed" are indexed by the name after the
+  /// article.
+  static String _withoutLatinArticle(String word) {
+    final dash = word.indexOf('-');
+    if (dash <= 0 || dash == word.length - 1) return word;
+    final article = word.substring(0, dash).toLowerCase();
+    return article == 'al' || article == 'el' ? word.substring(dash + 1) : word;
   }
 
   static bool _isArabic(int rune) =>

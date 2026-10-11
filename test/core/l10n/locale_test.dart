@@ -19,7 +19,7 @@ void main() {
   testWidgets('switching to Arabic turns the app right to left and is saved', (
     tester,
   ) async {
-    final prefs = await pumpApp(tester);
+    final prefs = (await pumpApp(tester)).prefs;
     expect(appDirection(tester), TextDirection.ltr);
 
     await tester.tap(find.byKey(const Key('nav-profile')));

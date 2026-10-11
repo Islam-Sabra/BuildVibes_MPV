@@ -1,0 +1,17 @@
+<!-- BuildVibes email code. No links, no passwords: only the 6-digit code.
+     The person's app language is in .Data.locale (set at sign-up). -->
+{{ if eq .Data.locale "ar" }}
+<div dir="rtl" style="font-family: Arial, sans-serif; color: #141B33; font-size: 16px; line-height: 24px;">
+  <p>رمز الدخول إلى BuildVibes:</p>
+  <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px; direction: ltr; text-align: right;">{{ .Token }}</p>
+  <p>يعمل الرمز لمدة 10 دقائق. لا تشاركه مع أحد.</p>
+  <p style="color: #6B6578; font-size: 13px;">إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة.</p>
+</div>
+{{ else }}
+<div style="font-family: Arial, sans-serif; color: #141B33; font-size: 16px; line-height: 24px;">
+  <p>Your BuildVibes code:</p>
+  <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px;">{{ .Token }}</p>
+  <p>It works for 10 minutes. Don't share it with anyone.</p>
+  <p style="color: #6B6578; font-size: 13px;">If you didn't ask for this code, you can ignore this email.</p>
+</div>
+{{ end }}

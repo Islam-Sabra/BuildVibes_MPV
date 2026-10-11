@@ -257,6 +257,12 @@ TextStyle _t(
   double letterSpacing = 0,
 ]) => TextStyle(
   fontFamily: family,
+  // Each script falls back to the other bundled font, so Latin words in
+  // Arabic text (BIM, emails, company names) use Plus Jakarta Sans, and
+  // Arabic in Latin text uses Noto Sans Arabic.
+  fontFamilyFallback: [
+    family == BvFonts.arabic ? BvFonts.latin : BvFonts.arabic,
+  ],
   fontWeight: w,
   fontSize: size,
   height: lineHeight / size,

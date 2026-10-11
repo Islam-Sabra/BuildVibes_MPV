@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../create/create_sheet.dart';
+import '../entry/entry_state.dart';
+import '../entry/widgets/join_wall.dart';
 
 /// The frame around the four tabs: the current tab and the bottom bar.
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final guest = ref.watch(appGateProvider) == AppGate.guest;
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: BvBottomBar(
@@ -25,7 +29,9 @@ class AppShell extends StatelessWidget {
           initialLocation: i == navigationShell.currentIndex,
         ),
         createLabel: l10n.navCreate,
-        onCreate: () => showCreateSheet(context),
+        // Creating needs an account: guests see the join wall.
+        onCreate: () =>
+            guest ? showJoinWall(context) : showCreateSheet(context),
         items: [
           BvBottomBarItem(
             key: const Key('nav-home'),

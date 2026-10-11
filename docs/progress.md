@@ -6,7 +6,7 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
 | Week | Dates | Plan | Status |
 |---|---|---|---|
 | 1 | 11–17 Oct | Audit the old app. Set up the new app, backend and repo. Data model and permission rules | Audit done. Flutter project, dependencies, fonts, theme, English/Arabic and the 5-tab shell done. Review 01 applied and pushed. Components done. Supabase linked; migrations 1 and 2 live |
-| 2 | 18–24 Oct | BV components in Flutter. Sign-up and sign-in (phone, Google, Apple, email code) | — |
+| 2 | 18–24 Oct | BV components in Flutter. Sign-up and sign-in (phone, Google, Apple, email code) | Components done (week 1). Sign-up, sign-in and onboarding done; Google/Apple built but hidden until keys; email codes wait for an email sender |
 | 3 | 25–31 Oct | Profile, project records, "Is it already here?", Add to my CV | — |
 | 4 | 1–7 Nov | Spaces: create, link a project, invite link and code, join requests, passes, Teams | — |
 | 5 | 8–14 Nov | Work items: create, Needs you, sign as done with a photo, check or send back, filters | — |
@@ -53,8 +53,23 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
     - Both migrations pushed to the project and checked through the live API: markets readable signed out, profiles not.
     - App connected: `initSupabase()` in `main.dart` reads `env/dev.json`; `MarketRepository` reads the market pack. The gallery's phone field now shows the live dial code.
   - Founder to confirm: Egypt is set to "soon" (shown but not live) and Kuwait to "live".
+  - Figma entry screens E1–E10 downloaded to `docs/design/entry/` (with README).
+  - Task 9 done: sign-up, sign-in and the short onboarding.
+    - Screens: E1 Welcome, E2 Join, E2p Phone, email entry, E3/E3e Code, E9 About you, E9b Your role, E10 People to follow, plus the guest join wall (H7) and a loading/offline screen. Router gate: signed out → Welcome; new account → About you; done → Home; guests browse the tabs.
+    - Phone: any country code. New accounts open for live-market numbers (Kuwait) or anyone with a Space invite; Egypt numbers see "coming soon"; existing accounts always sign in. Enforced on the server too: migration 3 `hook_before_user_created` (Supabase Auth hook). Invite codes become valid with migration 4.
+    - Email: 6-digit code, never a password.
+    - Google and Apple: built (OAuth with the deep link `com.buildvibes.buildvibes://login-callback`), hidden until `SOCIAL_SIGN_IN` is true. LinkedIn not in the MVP.
+    - Migration 3: sign-up gate, role groups as in E9b, trade descriptions, popular trades per market, home market must be live. Pushed.
+    - Auth settings pushed from `supabase/config.toml`: phone sign-in on, test numbers (+965 50000001–3, +20 1000000001, +91 9800000001, code 123456), 6-digit email codes valid 10 minutes, a 1-minute wait between codes. Phone sending uses a placeholder Twilio account until the real provider is chosen.
+    - Incident: an early `supabase config push` I meant as a preview applied the local defaults to the project (the CLI auto-answers "yes" for agents). No users were affected; every value was then set on purpose and the CLI is now run with `--agent no` for previews.
+    - Fixes found on the emulator: lists came back in reverse order (the Supabase client sorts descending by default); the company link in profile queries was ambiguous; Arabic lines with Latin parts (numbers, emails, company names) now keep their order; Latin words in Arabic text use Plus Jakarta Sans; initials skip "Al-"/"El-".
+    - 192 Flutter tests and 77 SQL tests pass. Screenshots of every screen in English and Arabic are in `docs/screens/` (not committed).
+  - Founder to decide:
+    - An email sender (SMTP) so email codes work: Supabase's free built-in sender can't send codes, only links.
+    - The real phone code provider (WhatsApp or SMS), before the week 9 test. When it is set, make the SMS code last 10 minutes to match the screen text.
+    - Google and Apple provider keys.
 
 ## Next tasks (in order)
-1. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, sign-in code channel, places, local trade names, Egypt's week start). Legal pages are still to be written.
-2. Sign-up and sign-in (week 2): phone code, Google, Apple, email code. Onboarding: name, role or trade, company.
-3. Migration 3: projects (data-model §4).
+1. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, sign-in code channel, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
+2. Migration 3 for projects (data-model §4) becomes migration 4: projects, edit suggestions, CV projects, "Is it already here?".
+3. Profile with proof (week 3).
