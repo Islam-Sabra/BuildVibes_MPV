@@ -115,7 +115,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get entryAudience2Title => 'فرق الموقع والحِرفيون';
 
   @override
-  String get entryAudience2Body => 'اعرض عملك وابحث عن عملك القادم.';
+  String get entryAudience2Body => 'اعرض عملك، واحصل على تأكيد فريقك.';
 
   @override
   String get entryAudience3Title => 'رؤساء العمال والمشرفون';

@@ -17,7 +17,7 @@ BuildVibes is a mobile-first professional network and site-work app for the whol
 
 ## Scope
 **In the MVP:**
-- sign-up and sign-in, with no passwords;
+- sign-up and sign-in by **6-digit email code only** (no passwords; phone/WhatsApp after the pilot — decision 04);
 - Arabic and English, right to left;
 - profile with proof from closed work;
 - shared project records;

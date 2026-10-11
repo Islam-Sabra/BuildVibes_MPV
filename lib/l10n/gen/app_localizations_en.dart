@@ -116,7 +116,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryAudience2Title => 'Site crews and trades';
 
   @override
-  String get entryAudience2Body => 'Show your work. Find the next job.';
+  String get entryAudience2Body =>
+      'Show your work. Get it confirmed by your team.';
 
   @override
   String get entryAudience3Title => 'Foremen and supervisors';

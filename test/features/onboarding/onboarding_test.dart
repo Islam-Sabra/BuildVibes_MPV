@@ -182,7 +182,7 @@ void main() {
       expect(find.text(l10n.comingSoon), findsOneWidget);
     });
 
-    testWidgets('no suggestions yet: a calm empty state [$lang]', (
+    testWidgets('no suggestions: step 2 is skipped, straight to Home [$lang]', (
       tester,
     ) async {
       await pumpApp(tester, language: lang, onboarded: false);
@@ -192,8 +192,7 @@ void main() {
       await _tap(tester, 'popular-electrician');
       await _tap(tester, 'role-save');
       await _tap(tester, 'about-continue');
-      expect(find.byKey(const Key('people-empty')), findsOneWidget);
-      await _tap(tester, 'people-skip');
+      expect(find.byType(PeopleScreen), findsNothing);
       expect(find.byKey(const Key('nav-home')), findsOneWidget);
     });
 

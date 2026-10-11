@@ -153,8 +153,16 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
             ),
           );
       ref.invalidate(myProfileProvider);
-      await ref.read(myProfileProvider.future);
-      if (mounted) context.go(AppRoutes.onboardingPeople);
+      final me = await ref.read(myProfileProvider.future);
+      // Step 2 only when there is someone to suggest (review 03): an empty
+      // "step 2 of 2" feels unfinished, so go straight Home instead.
+      final people = me == null
+          ? const <PersonSuggestion>[]
+          : await ref.read(profileRepositoryProvider).suggestions(me);
+      if (!mounted) return;
+      context.go(
+        people.isEmpty ? AppRoutes.home : AppRoutes.onboardingPeople,
+      );
     } on Exception {
       if (mounted) setState(() => _saveError = l10n.errorGeneric);
     } finally {

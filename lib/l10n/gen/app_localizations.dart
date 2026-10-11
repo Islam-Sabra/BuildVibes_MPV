@@ -299,7 +299,7 @@ abstract class AppLocalizations {
   /// E1 rotating audience card text.
   ///
   /// In en, this message translates to:
-  /// **'Show your work. Find the next job.'**
+  /// **'Show your work. Get it confirmed by your team.'**
   String get entryAudience2Body;
 
   /// E1 rotating audience card title.

@@ -18,6 +18,20 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
 | 11 | 20–26 Dec | Pilot prep with the pilot Space admin | — |
 | 12 | 27–31 Dec | Buffer | — |
 
+## Live Supabase settings (project vnlkthmdoczlyhxpdkux)
+What is set on the live project today. The source of truth is `supabase/config.toml`; nothing here is changed without the founder's yes (review 03).
+
+| Setting | Value |
+|---|---|
+| Sign-ups | Allowed. New accounts by phone only for live-market numbers or a Space invite (hook `hook_before_user_created`) |
+| Email | On. 6-digit code, valid 10 minutes, 1 minute between codes, confirmation required. Custom code template not applied (free built-in sender sends links only; needs an SMTP sender) |
+| Phone | On. Placeholder Twilio account (no real messages). 1 minute between codes |
+| Test phone numbers | +965 50000001, +965 50000002, +965 50000003, +20 1000000001, +91 9800000001 — code 123456 |
+| Google, Apple, LinkedIn | Off |
+| Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
+| Authenticator app (MFA TOTP) | On (restored) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding |
+
 ## Log
 - **11 Oct:**
   - Prototype signed off by the founder.
