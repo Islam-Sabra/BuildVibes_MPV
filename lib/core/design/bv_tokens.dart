@@ -177,11 +177,7 @@ abstract final class BvMotion {
 /// Elevation ("Elevation/Sheet" effect style).
 abstract final class BvShadow {
   static const sheet = [
-    BoxShadow(
-      color: Color(0x0F141B33),
-      offset: Offset(0, 4),
-      blurRadius: 16,
-    ),
+    BoxShadow(color: Color(0x0F141B33), offset: Offset(0, 4), blurRadius: 16),
   ];
 }
 
@@ -233,17 +229,21 @@ class BvTypeSet {
   final TextStyle overline;
 }
 
-TextStyle _t(String family, FontWeight w, double size, double lineHeight,
-        [double letterSpacing = 0]) =>
-    TextStyle(
-      fontFamily: family,
-      fontWeight: w,
-      fontSize: size,
-      height: lineHeight / size,
-      letterSpacing: letterSpacing,
-      color: BvColors.textPrimary,
-      leadingDistribution: TextLeadingDistribution.even,
-    );
+TextStyle _t(
+  String family,
+  FontWeight w,
+  double size,
+  double lineHeight, [
+  double letterSpacing = 0,
+]) => TextStyle(
+  fontFamily: family,
+  fontWeight: w,
+  fontSize: size,
+  height: lineHeight / size,
+  letterSpacing: letterSpacing,
+  color: BvColors.textPrimary,
+  leadingDistribution: TextLeadingDistribution.even,
+);
 
 abstract final class BvType {
   static const _l = BvFonts.latin;

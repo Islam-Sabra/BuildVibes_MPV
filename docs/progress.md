@@ -5,7 +5,7 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
 ## Status
 | Week | Dates | Plan | Status |
 |---|---|---|---|
-| 1 | 11–17 Oct | Audit the old app. Set up the new app, backend and repo. Data model and permission rules | Audit done. Repo skeleton and tokens done. GitHub repo created. Supabase project created. Waiting for: `flutter create`, first push, `env/dev.json` with the anon key |
+| 1 | 11–17 Oct | Audit the old app. Set up the new app, backend and repo. Data model and permission rules | Audit done. Flutter project, dependencies, fonts, theme, English/Arabic and the 5-tab shell done. Waiting for: first push, `env/dev.json` with the anon key |
 | 2 | 18–24 Oct | BV components in Flutter. Sign-up and sign-in (phone, Google, Apple, email code) | — |
 | 3 | 25–31 Oct | Profile, project records, "Is it already here?", Add to my CV | — |
 | 4 | 1–7 Nov | Spaces: create, link a project, invite link and code, join requests, passes, Teams | — |
@@ -25,26 +25,18 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
   - Added `CLAUDE.md`, the product docs and `lib/core/design/bv_tokens.dart` (from the Figma variables).
   - Supabase project: `buildvibes-MVP`, ref `vnlkthmdoczlyhxpdkux`, region South Asia (Mumbai) ap-south-1, Free plan (Nano). Upgrade to a paid plan before the pilot for daily backups.
   - GitHub repo: https://github.com/Islam-Sabra/BuildVibes_MPV (private). `.gitignore` keeps `env/*.json` (Supabase keys) out of git.
+  - Tasks 2–6 done, one commit each:
+    - Dependencies added.
+    - Fonts copied from the old app and registered (`PlusJakartaSans`, `NotoSansArabic`, weights 400–700).
+    - `lib/core/theme/bv_theme.dart`: theme built only from the tokens; `BvTheme.forLocale` picks the Latin or Arabic type set.
+    - Localisation: `l10n.yaml`, `lib/l10n/app_en.arb`, `app_ar.arb` (generated code in `lib/l10n/gen/`). App language follows the phone (English fallback) until chosen in Profile → App language; the choice is saved on the phone.
+    - App shell: `go_router` with 4 tab branches (Home, Explore, Activity, Profile) and Create as a centre action that opens a sheet. Bottom bar is `lib/shared/widgets/bv_bottom_bar.dart`. Tabs are placeholders.
+    - 13 tests pass, including the bar in English (left to right) and Arabic (right to left).
+  - **To check against Figma** (no Figma access in this session): the bottom bar (icons, Create button shape, label sizes) and the Arabic tab labels, which come from the old app (الرئيسية، استكشاف، إنشاء، النشاط، الملف). The full Arabic string tables are in the hidden Figma nodes "i18n · part A/B" and still need to be copied into `app_ar.arb`.
 
 ## Next tasks (in order)
-1. **Founder, in Cursor's terminal, inside this folder:**
-   `flutter create --org com.buildvibes --project-name buildvibes --platforms android,ios .`
-   This keeps the files already here and adds the Flutter project files.
-2. Add the dependencies:
-   - `flutter_riverpod`
-   - `go_router`
-   - `supabase_flutter`
-   - `flutter_localizations`
-   - `intl`
-   - `image_picker`
-   - `file_picker`
-   - `url_launcher`
-   - `shared_preferences`
-3. Copy the fonts from the old repo's `mobile/assets/fonts/` to `assets/fonts/`, and register them in `pubspec.yaml`. The family names must match `BvFonts`.
-4. `lib/core/theme/bv_theme.dart`: a `ThemeData` built only from `bv_tokens.dart`.
-5. Localisation setup: `l10n.yaml`, `lib/l10n/app_en.arb`, `lib/l10n/app_ar.arb`, and a language switch for testing.
-6. The app shell: 5 tabs (Home, Explore, Create, Activity, Profile) with `go_router`, matching the Figma bottom bar.
-7. Shared components, each with a golden or widget test in English and Arabic:
+1. Check the bottom bar and the Arabic tab labels against Figma; copy the Figma Arabic string tables into `app_ar.arb`.
+2. Shared components, each with a golden or widget test in English and Arabic:
    - button (primary, secondary)
    - list row (chevron, switch, value, none)
    - chip
@@ -55,4 +47,4 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
    - stamp
    - sign-off strip
    - pass card
-8. Supabase: link the new project. Write the first migration: profiles, markets and reference lists, ported from the old repo.
+3. Supabase: link the new project. Write the first migration: profiles, markets and reference lists, ported from the old repo.

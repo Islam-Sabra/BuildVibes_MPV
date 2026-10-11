@@ -22,6 +22,8 @@ void main() {
     final prefs = await pumpApp(tester);
     expect(appDirection(tester), TextDirection.ltr);
 
+    await tester.tap(find.byKey(const Key('nav-profile')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('row-language')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('language-ar')));

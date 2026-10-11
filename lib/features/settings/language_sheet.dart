@@ -18,10 +18,7 @@ class LanguageSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final current = Localizations.localeOf(context).languageCode;
-    final options = {
-      'en': l10n.languageEnglish,
-      'ar': l10n.languageArabic,
-    };
+    final options = {'en': l10n.languageEnglish, 'ar': l10n.languageArabic};
 
     return SafeArea(
       child: Padding(

@@ -10,8 +10,9 @@ final sharedPreferencesProvider = Provider<SharedPreferences>(
 );
 
 /// The app language the person chose. Null means "follow the phone".
-final localeControllerProvider =
-    NotifierProvider<LocaleController, Locale?>(LocaleController.new);
+final localeControllerProvider = NotifierProvider<LocaleController, Locale?>(
+  LocaleController.new,
+);
 
 class LocaleController extends Notifier<Locale?> {
   static const _key = 'app_language';

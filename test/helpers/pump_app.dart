@@ -16,9 +16,7 @@ Future<SharedPreferences> pumpApp(
   tester.platformDispatcher.localesTestValue = const [Locale('en')];
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
-  SharedPreferences.setMockInitialValues({
-    'app_language': ?language,
-  });
+  SharedPreferences.setMockInitialValues({'app_language': ?language});
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(
     ProviderScope(

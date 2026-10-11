@@ -250,9 +250,7 @@ abstract final class BvTheme {
         iconColor: BvColors.iconSecondary,
         textColor: BvColors.textPrimary,
         titleTextStyle: type.titleMd,
-        subtitleTextStyle: type.bodySm.copyWith(
-          color: BvColors.textSecondary,
-        ),
+        subtitleTextStyle: type.bodySm.copyWith(color: BvColors.textSecondary),
         minVerticalPadding: BvSpace.s12,
         contentPadding: const EdgeInsetsDirectional.symmetric(
           horizontal: BvSpace.gutter,

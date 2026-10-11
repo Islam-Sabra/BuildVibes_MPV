@@ -5,8 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n/locale_controller.dart';
+import 'core/routing/app_router.dart';
 import 'core/theme/bv_theme.dart';
-import 'features/profile/profile_screen.dart';
 import 'l10n/gen/app_localizations.dart';
 
 class BuildVibesApp extends ConsumerWidget {
@@ -18,7 +18,8 @@ class BuildVibesApp extends ConsumerWidget {
         ref.watch(localeControllerProvider) ??
         resolveAppLocale(PlatformDispatcher.instance.locales);
 
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: ref.watch(appRouterProvider),
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       locale: locale,
@@ -30,7 +31,6 @@ class BuildVibesApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: BvTheme.forLocale(locale),
-      home: const ProfileScreen(),
     );
   }
 }
