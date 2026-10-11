@@ -37,6 +37,47 @@ abstract final class BvIcons {
   // Phosphor: translate
   static const language = IconData(0xe4a2, fontFamily: _family);
 
+  // Phosphor: warning-circle
+  static const warning = IconData(0xe4e2, fontFamily: _family);
+  // Phosphor: caret-down
+  static const caretDown = IconData(0xe136, fontFamily: _family);
+  // Phosphor: map-pin
+  static const place = IconData(0xe316, fontFamily: _family);
+  // Phosphor: camera
+  static const camera = IconData(0xe10e, fontFamily: _family);
+  // Phosphor: image
+  static const image = IconData(0xe2ca, fontFamily: _family);
+  // Phosphor: eye
+  static const visibility = IconData(0xe220, fontFamily: _family);
+  // Phosphor: lock
+  static const lock = IconData(0xe2fa, fontFamily: _family);
+  // Phosphor: globe
+  static const everyone = IconData(0xe288, fontFamily: _family);
+  // Phosphor: users
+  static const people = IconData(0xe4d6, fontFamily: _family);
+  // Phosphor: users-three
+  static const team = IconData(0xe68e, fontFamily: _family);
+  // Phosphor: buildings
+  static const company = IconData(0xe102, fontFamily: _family);
+  // Phosphor: hard-hat
+  static const trade = IconData(0xed46, fontFamily: _family);
+  // Phosphor: bell-simple
+  static const notifications = IconData(0xe0d0, fontFamily: _family);
+  // Phosphor: chat-circle
+  static const chat = IconData(0xe168, fontFamily: _family);
+  // Phosphor: list-checks
+  static const workItems = IconData(0xeadc, fontFamily: _family);
+  // Phosphor: shield-check
+  static const pass = IconData(0xe40c, fontFamily: _family);
+  // Phosphor: folder
+  static const library = IconData(0xe24a, fontFamily: _family);
+  // Phosphor: calendar
+  static const calendar = IconData(0xe108, fontFamily: _family);
+  // Phosphor: gear
+  static const settings = IconData(0xe270, fontFamily: _family);
+  // Phosphor: sign-out
+  static const signOut = IconData(0xe42a, fontFamily: _family);
+
   // Directional: mirrored in right-to-left.
   /// Points to the next screen: right in English, left in Arabic.
   static const caretForward = IconData(

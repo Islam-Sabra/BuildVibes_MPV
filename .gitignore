@@ -42,3 +42,6 @@ ios/Flutter/ephemeral/
 ios/Flutter/flutter_export_environment.sh
 ios/Runner/GeneratedPluginRegistrant.*
 **/xcuserdata/
+
+# Emulator screenshots for review (not committed)
+docs/screens/

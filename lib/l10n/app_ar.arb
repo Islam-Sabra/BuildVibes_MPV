@@ -9,5 +9,21 @@
   "placeholderBody": "هذا القسم من التطبيق قيد البناء.",
   "settingsLanguage": "لغة التطبيق",
   "languageEnglish": "English",
-  "languageArabic": "العربية"
+  "languageArabic": "العربية",
+  "commonCancel": "إلغاء",
+  "commonConfirm": "تأكيد",
+  "stampSelected": "محدد",
+  "signOffLabel": "التوقيعات",
+  "signOffRaised": "أُنشئ",
+  "signOffDone": "منجز",
+  "signOffChecked": "تم الفحص",
+  "signOffWaiting": "قيد الانتظار",
+  "siteTagFrom": "من",
+  "siteTagOwner": "المكلّف",
+  "siteTagDue": "الاستحقاق",
+  "passLead": "تصريح مسؤول",
+  "passCrew": "تصريح فريق تنفيذ",
+  "passViewer": "تصريح مُطّلع",
+  "fieldCharacterCount": "{count} / {max}",
+  "componentsGallery": "المكوّنات"
 }

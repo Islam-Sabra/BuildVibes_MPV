@@ -37,17 +37,13 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
     - Bottom bar matches the Figma component `2022:18`: 64 high, 72×56 slots, orange indicator above the active icon, ink active colour, same label weight, Create button 40×28 in `actionPrimary`. Sizes are in `BvBottomBarSize` in the tokens file.
     - Arabic tab names: استكشف and ملفي.
     - 17 tests pass.
+  - Task 7 done: the shared components from `docs/product/components.md`, in `lib/shared/widgets/`:
+    - BvButton, BvChip (+ BvChipRow), BvTabs, BvTextField (+ BvSelect, BvPhoneField, BvCodeField, multi-line counter), BvSearchField, BvSwitch / BvCheckbox / BvRadio, BvListRow (+ BvListGroup), BvChoiceCard (+ BvChoiceList), BvAvatar (+ BvProjectAvatar), BvBadge, BvBottomSheet (`showBvSheet`), BvStamp, BvSiteTag, BvSignOffStrip, BvWorkItemCard, BvPassCard, BvSitePhoto.
+    - All measurements are in `lib/core/design/bv_specs.dart`; widgets have no raw numbers.
+    - The language sheet and Create sheet now use BvBottomSheet; the language choice uses BvChoiceCard.
+    - Debug builds only: Profile → Components opens a gallery of every component in every state (`lib/features/dev/`). Sample photo in `assets/dev/`.
+    - 103 tests pass; each component is tested in English and Arabic.
+    - Choices made while building: Arabic text has taller lines, so field padding is worked out from the line height to keep fields 48 high; when a work item's reference and status don't fit on one line (long Arabic dates), the status wraps to a second line instead of being cut; phone and code fields are always left to right; Arabic and Persian digits typed into number fields become 0–9.
 
 ## Next tasks (in order)
-1. Shared components, each with a golden or widget test in English and Arabic:
-   - button (primary, secondary)
-   - list row (chevron, switch, value, none)
-   - chip
-   - text field
-   - select
-   - bottom sheet
-   - site tag (work item card)
-   - stamp
-   - sign-off strip
-   - pass card
-2. Supabase: link the new project. Write the first migration: profiles, markets and reference lists, ported from the old repo.
+1. Supabase: link the new project. Write the first migration: profiles, markets and reference lists, ported from the old repo.

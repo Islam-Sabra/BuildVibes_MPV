@@ -157,6 +157,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'العربية'**
   String get languageArabic;
+
+  /// Sheet footer button.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// Sheet footer button.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get commonConfirm;
+
+  /// Stamp on the chosen pass card. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'SELECTED'**
+  String get stampSelected;
+
+  /// Section label above the sign-off strip.
+  ///
+  /// In en, this message translates to:
+  /// **'SIGN-OFF'**
+  String get signOffLabel;
+
+  /// Sign-off step.
+  ///
+  /// In en, this message translates to:
+  /// **'RAISED'**
+  String get signOffRaised;
+
+  /// Sign-off step.
+  ///
+  /// In en, this message translates to:
+  /// **'DONE'**
+  String get signOffDone;
+
+  /// Sign-off step.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKED'**
+  String get signOffChecked;
+
+  /// Sign-off step not signed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get signOffWaiting;
+
+  /// Site tag cell: who raised the item.
+  ///
+  /// In en, this message translates to:
+  /// **'FROM'**
+  String get siteTagFrom;
+
+  /// Site tag cell: owner of the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'OWNER'**
+  String get siteTagOwner;
+
+  /// Site tag cell: due date.
+  ///
+  /// In en, this message translates to:
+  /// **'DUE'**
+  String get siteTagDue;
+
+  /// Pass card name.
+  ///
+  /// In en, this message translates to:
+  /// **'LEAD PASS'**
+  String get passLead;
+
+  /// Pass card name.
+  ///
+  /// In en, this message translates to:
+  /// **'CREW PASS'**
+  String get passCrew;
+
+  /// Pass card name.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEWER PASS'**
+  String get passViewer;
+
+  /// Counter under a multi-line field.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {max}'**
+  String fieldCharacterCount(int count, int max);
+
+  /// Debug-only screen that shows every BV component.
+  ///
+  /// In en, this message translates to:
+  /// **'Components'**
+  String get componentsGallery;
 }
 
 class _AppLocalizationsDelegate

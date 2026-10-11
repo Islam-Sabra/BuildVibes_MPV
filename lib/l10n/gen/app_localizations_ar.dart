@@ -37,4 +37,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get languageArabic => 'العربية';
+
+  @override
+  String get commonCancel => 'إلغاء';
+
+  @override
+  String get commonConfirm => 'تأكيد';
+
+  @override
+  String get stampSelected => 'محدد';
+
+  @override
+  String get signOffLabel => 'التوقيعات';
+
+  @override
+  String get signOffRaised => 'أُنشئ';
+
+  @override
+  String get signOffDone => 'منجز';
+
+  @override
+  String get signOffChecked => 'تم الفحص';
+
+  @override
+  String get signOffWaiting => 'قيد الانتظار';
+
+  @override
+  String get siteTagFrom => 'من';
+
+  @override
+  String get siteTagOwner => 'المكلّف';
+
+  @override
+  String get siteTagDue => 'الاستحقاق';
+
+  @override
+  String get passLead => 'تصريح مسؤول';
+
+  @override
+  String get passCrew => 'تصريح فريق تنفيذ';
+
+  @override
+  String get passViewer => 'تصريح مُطّلع';
+
+  @override
+  String fieldCharacterCount(int count, int max) {
+    return '$count / $max';
+  }
+
+  @override
+  String get componentsGallery => 'المكوّنات';
 }

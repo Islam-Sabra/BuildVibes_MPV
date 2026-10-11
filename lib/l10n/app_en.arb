@@ -1,23 +1,115 @@
 {
   "@@locale": "en",
   "appTitle": "BuildVibes",
-  "@appTitle": { "description": "App name. Not translated." },
+  "@appTitle": {
+    "description": "App name. Not translated."
+  },
   "navHome": "Home",
-  "@navHome": { "description": "Bottom bar tab." },
+  "@navHome": {
+    "description": "Bottom bar tab."
+  },
   "navExplore": "Explore",
-  "@navExplore": { "description": "Bottom bar tab." },
+  "@navExplore": {
+    "description": "Bottom bar tab."
+  },
   "navCreate": "Create",
-  "@navCreate": { "description": "Bottom bar centre action." },
+  "@navCreate": {
+    "description": "Bottom bar centre action."
+  },
   "navActivity": "Activity",
-  "@navActivity": { "description": "Bottom bar tab." },
+  "@navActivity": {
+    "description": "Bottom bar tab."
+  },
   "navProfile": "Profile",
-  "@navProfile": { "description": "Bottom bar tab." },
+  "@navProfile": {
+    "description": "Bottom bar tab."
+  },
   "placeholderBody": "This part of the app is being built.",
-  "@placeholderBody": { "description": "Temporary text on screens that are not built yet." },
+  "@placeholderBody": {
+    "description": "Temporary text on screens that are not built yet."
+  },
   "settingsLanguage": "App language",
-  "@settingsLanguage": { "description": "Row and sheet title for choosing the app language." },
+  "@settingsLanguage": {
+    "description": "Row and sheet title for choosing the app language."
+  },
   "languageEnglish": "English",
-  "@languageEnglish": { "description": "Language name, always written in English." },
+  "@languageEnglish": {
+    "description": "Language name, always written in English."
+  },
   "languageArabic": "العربية",
-  "@languageArabic": { "description": "Language name, always written in Arabic." }
+  "@languageArabic": {
+    "description": "Language name, always written in Arabic."
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Sheet footer button."
+  },
+  "commonConfirm": "Confirm",
+  "@commonConfirm": {
+    "description": "Sheet footer button."
+  },
+  "stampSelected": "SELECTED",
+  "@stampSelected": {
+    "description": "Stamp on the chosen pass card. Capitals in English."
+  },
+  "signOffLabel": "SIGN-OFF",
+  "@signOffLabel": {
+    "description": "Section label above the sign-off strip."
+  },
+  "signOffRaised": "RAISED",
+  "@signOffRaised": {
+    "description": "Sign-off step."
+  },
+  "signOffDone": "DONE",
+  "@signOffDone": {
+    "description": "Sign-off step."
+  },
+  "signOffChecked": "CHECKED",
+  "@signOffChecked": {
+    "description": "Sign-off step."
+  },
+  "signOffWaiting": "Waiting",
+  "@signOffWaiting": {
+    "description": "Sign-off step not signed yet."
+  },
+  "siteTagFrom": "FROM",
+  "@siteTagFrom": {
+    "description": "Site tag cell: who raised the item."
+  },
+  "siteTagOwner": "OWNER",
+  "@siteTagOwner": {
+    "description": "Site tag cell: owner of the work item."
+  },
+  "siteTagDue": "DUE",
+  "@siteTagDue": {
+    "description": "Site tag cell: due date."
+  },
+  "passLead": "LEAD PASS",
+  "@passLead": {
+    "description": "Pass card name."
+  },
+  "passCrew": "CREW PASS",
+  "@passCrew": {
+    "description": "Pass card name."
+  },
+  "passViewer": "VIEWER PASS",
+  "@passViewer": {
+    "description": "Pass card name."
+  },
+  "fieldCharacterCount": "{count} / {max}",
+  "@fieldCharacterCount": {
+    "description": "Counter under a multi-line field.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "componentsGallery": "Components",
+  "@componentsGallery": {
+    "description": "Debug-only screen that shows every BV component."
+  }
 }

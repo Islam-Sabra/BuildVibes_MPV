@@ -37,4 +37,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageArabic => 'العربية';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonConfirm => 'Confirm';
+
+  @override
+  String get stampSelected => 'SELECTED';
+
+  @override
+  String get signOffLabel => 'SIGN-OFF';
+
+  @override
+  String get signOffRaised => 'RAISED';
+
+  @override
+  String get signOffDone => 'DONE';
+
+  @override
+  String get signOffChecked => 'CHECKED';
+
+  @override
+  String get signOffWaiting => 'Waiting';
+
+  @override
+  String get siteTagFrom => 'FROM';
+
+  @override
+  String get siteTagOwner => 'OWNER';
+
+  @override
+  String get siteTagDue => 'DUE';
+
+  @override
+  String get passLead => 'LEAD PASS';
+
+  @override
+  String get passCrew => 'CREW PASS';
+
+  @override
+  String get passViewer => 'VIEWER PASS';
+
+  @override
+  String fieldCharacterCount(int count, int max) {
+    return '$count / $max';
+  }
+
+  @override
+  String get componentsGallery => 'Components';
 }

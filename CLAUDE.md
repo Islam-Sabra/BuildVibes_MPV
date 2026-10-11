@@ -12,7 +12,7 @@ BuildVibes is a mobile-first professional network and site-work app for the whol
   - English: page "PROTOTYPE · Full app v1 · EN".
   - Arabic: page "PROTOTYPE · Core journeys · AR".
   - The prototype is frozen. If the code and the prototype disagree, the prototype wins, unless the founder says otherwise.
-- **Product docs:** `docs/product/`. Start with `mvp-plan.md`, `space-project-model.md`, `rules.md` and `arabic-glossary.md`.
+- **Product docs:** `docs/product/`. Start with `mvp-plan.md`, `space-project-model.md`, `rules.md` and `arabic-glossary.md`. Component specs (sizes, colours, states) are in `components.md`.
 - **Old app, for reference only:** `D:\Projects\00 AECOX Technology\Build-Vibes` (GitHub `Islam-Sabra/Build-Vibes`). Port proven parts from it; never edit it. See `docs/product/codebase-audit.md`.
 
 ## Scope
