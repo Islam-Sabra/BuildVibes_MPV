@@ -5,7 +5,7 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
 ## Status
 | Week | Dates | Plan | Status |
 |---|---|---|---|
-| 1 | 11–17 Oct | Audit the old app. Set up the new app, backend and repo. Data model and permission rules | Audit done. Flutter project, dependencies, fonts, theme, English/Arabic and the 5-tab shell done. Waiting for: first push, `env/dev.json` with the anon key |
+| 1 | 11–17 Oct | Audit the old app. Set up the new app, backend and repo. Data model and permission rules | Audit done. Flutter project, dependencies, fonts, theme, English/Arabic and the 5-tab shell done. Review 01 applied and pushed. Waiting for: `env/dev.json` with the anon key |
 | 2 | 18–24 Oct | BV components in Flutter. Sign-up and sign-in (phone, Google, Apple, email code) | — |
 | 3 | 25–31 Oct | Profile, project records, "Is it already here?", Add to my CV | — |
 | 4 | 1–7 Nov | Spaces: create, link a project, invite link and code, join requests, passes, Teams | — |
@@ -32,11 +32,14 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
     - Localisation: `l10n.yaml`, `lib/l10n/app_en.arb`, `app_ar.arb` (generated code in `lib/l10n/gen/`). App language follows the phone (English fallback) until chosen in Profile → App language; the choice is saved on the phone.
     - App shell: `go_router` with 4 tab branches (Home, Explore, Activity, Profile) and Create as a centre action that opens a sheet. Bottom bar is `lib/shared/widgets/bv_bottom_bar.dart`. Tabs are placeholders.
     - 13 tests pass, including the bar in English (left to right) and Arabic (right to left).
-  - **To check against Figma** (no Figma access in this session): the bottom bar (icons, Create button shape, label sizes) and the Arabic tab labels, which come from the old app (الرئيسية، استكشاف، إنشاء، النشاط، الملف). The full Arabic string tables are in the hidden Figma nodes "i18n · part A/B" and still need to be copied into `app_ar.arb`.
+  - Review 01 (`docs/reviews/2026-10-11-01-app-shell.md`) applied:
+    - Icons are Phosphor regular through `lib/core/design/bv_icons.dart`; no Material icons left. Only arrows and carets mirror in Arabic. The Phosphor font is bundled in `assets/fonts/` because `phosphor_flutter` 2.1.0 (the latest) doesn't compile on Flutter 3.44.
+    - Bottom bar matches the Figma component `2022:18`: 64 high, 72×56 slots, orange indicator above the active icon, ink active colour, same label weight, Create button 40×28 in `actionPrimary`. Sizes are in `BvBottomBarSize` in the tokens file.
+    - Arabic tab names: استكشف and ملفي.
+    - 17 tests pass.
 
 ## Next tasks (in order)
-1. Check the bottom bar and the Arabic tab labels against Figma; copy the Figma Arabic string tables into `app_ar.arb`.
-2. Shared components, each with a golden or widget test in English and Arabic:
+1. Shared components, each with a golden or widget test in English and Arabic:
    - button (primary, secondary)
    - list row (chevron, switch, value, none)
    - chip
@@ -47,4 +50,4 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
    - stamp
    - sign-off strip
    - pass card
-3. Supabase: link the new project. Write the first migration: profiles, markets and reference lists, ported from the old repo.
+2. Supabase: link the new project. Write the first migration: profiles, markets and reference lists, ported from the old repo.

@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/shared/widgets/bv_bottom_bar.dart';
 import 'package:buildvibes/shared/widgets/bv_placeholder_screen.dart';
@@ -37,7 +38,7 @@ void main() {
   ) async {
     await pumpApp(tester, language: 'ar');
 
-    for (final label in ['الرئيسية', 'استكشاف', 'إنشاء', 'النشاط', 'الملف']) {
+    for (final label in ['الرئيسية', 'استكشف', 'إنشاء', 'النشاط', 'ملفي']) {
       expect(find.text(label), findsWidgets);
     }
     final xs = [for (final k in _tabKeys) _centreX(tester, k)];
@@ -81,10 +82,65 @@ void main() {
     }
   });
 
-  testWidgets('the bar stays short and the tab fills the rest', (tester) async {
+  testWidgets('the bar matches the Figma sizes', (tester) async {
     await pumpApp(tester);
     final bar = tester.getSize(find.byType(BvBottomBar));
-    expect(bar.height, lessThan(BvSize.touchMin * 2));
+    // 64 high, top border included (no safe area in tests).
+    expect(bar.height, BvBottomBarSize.height);
     expect(find.byType(BvPlaceholderScreen), findsOneWidget);
+    for (final k in _tabKeys) {
+      expect(
+        tester.getSize(find.byKey(Key(k))),
+        const Size(BvBottomBarSize.slotWidth, BvBottomBarSize.slotHeight),
+      );
+    }
+    expect(
+      tester.getSize(find.byKey(const Key('nav-create-button'))),
+      const Size(BvBottomBarSize.createWidth, BvBottomBarSize.createHeight),
+    );
+    final create = tester.widget<Container>(
+      find.byKey(const Key('nav-create-button')),
+    );
+    expect((create.decoration! as BoxDecoration).color, BvColors.actionPrimary);
+  });
+
+  testWidgets('active tab: indicator above an ink icon, same label weight', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    // Only one indicator, and it sits in the Home slot above the icon.
+    final indicator = find.byKey(const Key('nav-indicator'));
+    expect(indicator, findsOneWidget);
+    final home = find.byKey(const Key('nav-home'));
+    expect(find.descendant(of: home, matching: indicator), findsOneWidget);
+    final homeIcon = find.descendant(of: home, matching: find.byType(Icon));
+    expect(
+      tester.getBottomLeft(indicator).dy,
+      lessThan(tester.getTopLeft(homeIcon).dy),
+    );
+    expect(tester.widget<Icon>(homeIcon).color, BvColors.iconPrimary);
+
+    final explore = find.byKey(const Key('nav-explore'));
+    final exploreIcon = find.descendant(
+      of: explore,
+      matching: find.byType(Icon),
+    );
+    expect(tester.widget<Icon>(exploreIcon).color, BvColors.iconSecondary);
+
+    TextStyle label(Finder slot) => tester
+        .widget<Text>(find.descendant(of: slot, matching: find.byType(Text)))
+        .style!;
+    final homeLabel = label(home);
+    final exploreLabel = label(explore);
+    expect(homeLabel.color, BvColors.textPrimary);
+    expect(exploreLabel.color, BvColors.textSecondary);
+    expect(homeLabel.fontWeight, exploreLabel.fontWeight);
+
+    // Same glyph when active.
+    await tester.tap(explore);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Icon>(exploreIcon).icon, BvIcons.explore);
+    expect(find.descendant(of: explore, matching: indicator), findsOneWidget);
   });
 }

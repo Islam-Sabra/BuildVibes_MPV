@@ -87,6 +87,12 @@ Don't build out-of-scope features, even partly, without the founder's yes.
 | Needs you | بانتظارك |
 | Project record | سجل المشروع |
 
+## Reviews from the lead
+- Claude (lead, in the founder's main chat) reviews each step against Figma and writes the findings to `docs/reviews/NN-*.md`.
+- When the founder says "apply review NN", do every fix in that file, then continue the plan.
+- Icons: Phosphor (regular weight), through `lib/core/design/bv_icons.dart`. Never use Material `Icons.*`. The Phosphor font is bundled in `assets/fonts/` because the `phosphor_flutter` package (2.1.0, the latest) does not compile on Flutter 3.44; see `assets/fonts/SOURCE.md`.
+- After every finished task: `flutter analyze`, `flutter test`, commit, then **`git push`**.
+
 ## Definition of done for every task
 1. `flutter analyze` shows no issues, and `flutter test` passes.
 2. New logic has tests. Every new table has row-level security, and a test proves a non-member can't read or write it.

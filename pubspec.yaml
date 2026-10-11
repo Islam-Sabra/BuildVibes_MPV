@@ -84,3 +84,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansArabic-Bold.ttf
           weight: 700
+    - family: PhosphorRegular
+      fonts:
+        - asset: assets/fonts/Phosphor-Regular.ttf

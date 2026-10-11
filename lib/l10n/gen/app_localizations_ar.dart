@@ -15,7 +15,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navHome => 'الرئيسية';
 
   @override
-  String get navExplore => 'استكشاف';
+  String get navExplore => 'استكشف';
 
   @override
   String get navCreate => 'إنشاء';
@@ -24,7 +24,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navActivity => 'النشاط';
 
   @override
-  String get navProfile => 'الملف';
+  String get navProfile => 'ملفي';
 
   @override
   String get placeholderBody => 'هذا القسم من التطبيق قيد البناء.';

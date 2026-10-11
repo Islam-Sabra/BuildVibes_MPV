@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/bv_icons.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../create/create_sheet.dart';
@@ -28,26 +29,22 @@ class AppShell extends StatelessWidget {
         items: [
           BvBottomBarItem(
             key: const Key('nav-home'),
-            icon: Icons.home_outlined,
-            selectedIcon: Icons.home,
+            icon: BvIcons.home,
             label: l10n.navHome,
           ),
           BvBottomBarItem(
             key: const Key('nav-explore'),
-            icon: Icons.explore_outlined,
-            selectedIcon: Icons.explore,
+            icon: BvIcons.explore,
             label: l10n.navExplore,
           ),
           BvBottomBarItem(
             key: const Key('nav-activity'),
-            icon: Icons.notifications_outlined,
-            selectedIcon: Icons.notifications,
+            icon: BvIcons.activity,
             label: l10n.navActivity,
           ),
           BvBottomBarItem(
             key: const Key('nav-profile'),
-            icon: Icons.person_outline,
-            selectedIcon: Icons.person,
+            icon: BvIcons.profile,
             label: l10n.navProfile,
           ),
         ],

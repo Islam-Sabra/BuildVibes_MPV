@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 
 /// One tab in [BvBottomBar].
@@ -7,17 +8,18 @@ class BvBottomBarItem {
   const BvBottomBarItem({
     required this.key,
     required this.icon,
-    required this.selectedIcon,
     required this.label,
   });
 
   final Key key;
+
+  /// The same glyph is used when the tab is active; only the colour changes.
   final IconData icon;
-  final IconData selectedIcon;
   final String label;
 }
 
 /// The app's bottom bar: four tabs with the Create action in the middle.
+/// Matches the Figma component "DS · Navigation / Bottom nav" (2022:18).
 ///
 /// Create is an action (it opens a sheet), never a selected tab. The row
 /// follows the reading direction, so in Arabic Home sits on the right.
@@ -41,12 +43,10 @@ class BvBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final half = items.length ~/ 2;
-    Widget tab(int i) => Expanded(
-      child: _TabSlot(
-        item: items[i],
-        selected: i == selectedIndex,
-        onTap: () => onSelect(i),
-      ),
+    Widget tab(int i) => _TabSlot(
+      item: items[i],
+      selected: i == selectedIndex,
+      onTap: () => onSelect(i),
     );
 
     return DecoratedBox(
@@ -54,26 +54,30 @@ class BvBottomBar extends StatelessWidget {
         color: BvColors.surfaceElevated,
         border: Border(
           top: BorderSide(
-            color: BvColors.borderSubtle,
+            color: BvColors.borderDefault,
             width: BvSpace.borderWidth,
           ),
         ),
       ),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: BvSpace.s4,
-            vertical: BvSpace.s6,
-          ),
-          child: Row(
-            children: [
-              for (var i = 0; i < half; i++) tab(i),
-              Expanded(
-                child: _CreateSlot(label: createLabel, onTap: onCreate),
-              ),
-              for (var i = half; i < items.length; i++) tab(i),
-            ],
+        child: SizedBox(
+          height: BvBottomBarSize.height,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(
+              top: BvBottomBarSize.paddingTop,
+              start: BvBottomBarSize.paddingSide,
+              end: BvBottomBarSize.paddingSide,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < half; i++) tab(i),
+                _CreateSlot(label: createLabel, onTap: onCreate),
+                for (var i = half; i < items.length; i++) tab(i),
+              ],
+            ),
           ),
         ),
       ),
@@ -94,8 +98,6 @@ class _TabSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? BvColors.brandEnergy : BvColors.iconSecondary;
-    final type = BvType.of(context);
     return Semantics(
       button: true,
       selected: selected,
@@ -105,18 +107,28 @@ class _TabSlot extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Kept in the layout when inactive, so icons never jump.
+            DecoratedBox(
+              key: selected ? const Key('nav-indicator') : null,
+              decoration: BoxDecoration(
+                color: selected ? BvColors.surfaceSelected : Colors.transparent,
+                borderRadius: BvBottomBarSize.indicatorRadius,
+              ),
+              child: const SizedBox(
+                width: BvBottomBarSize.indicatorWidth,
+                height: BvBottomBarSize.indicatorHeight,
+              ),
+            ),
+            const SizedBox(height: BvBottomBarSize.gap),
             Icon(
-              selected ? item.selectedIcon : item.icon,
-              color: color,
+              item.icon,
+              color: selected ? BvColors.iconPrimary : BvColors.iconSecondary,
               size: BvSize.iconLg,
             ),
-            const SizedBox(height: BvSpace.s2),
+            const SizedBox(height: BvBottomBarSize.gap),
             _Label(
               item.label,
-              style: type.labelSm.copyWith(
-                color: color,
-                fontWeight: selected ? type.labelLg.fontWeight : null,
-              ),
+              color: selected ? BvColors.textPrimary : BvColors.textSecondary,
             ),
           ],
         ),
@@ -141,30 +153,23 @@ class _CreateSlot extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            DecoratedBox(
+            Container(
+              key: const Key('nav-create-button'),
+              width: BvBottomBarSize.createWidth,
+              height: BvBottomBarSize.createHeight,
+              alignment: Alignment.center,
               decoration: const BoxDecoration(
-                color: BvColors.surfaceSelected,
+                color: BvColors.actionPrimary,
                 borderRadius: BvRadius.controlAll,
               ),
-              child: const Padding(
-                padding: EdgeInsetsDirectional.symmetric(
-                  horizontal: BvSpace.s8,
-                  vertical: BvSpace.s2,
-                ),
-                child: Icon(
-                  Icons.add,
-                  color: BvColors.iconInverse,
-                  size: BvSize.iconMd,
-                ),
+              child: const Icon(
+                BvIcons.create,
+                color: BvColors.iconInverse,
+                size: BvSize.iconMd,
               ),
             ),
-            const SizedBox(height: BvSpace.s2),
-            _Label(
-              label,
-              style: BvType.of(
-                context,
-              ).labelSm.copyWith(color: BvColors.textSecondary),
-            ),
+            const SizedBox(height: BvBottomBarSize.gap),
+            _Label(label, color: BvColors.textSecondary),
           ],
         ),
       ),
@@ -184,26 +189,34 @@ class _SlotTap extends StatelessWidget {
       onTap: onTap,
       borderRadius: BvRadius.controlAll,
       splashFactory: NoSplash.splashFactory,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: BvSize.touchMin),
-        child: Center(heightFactor: 1, child: child),
+      child: SizedBox(
+        width: BvBottomBarSize.slotWidth,
+        height: BvBottomBarSize.slotHeight,
+        child: Center(child: child),
       ),
     );
   }
 }
 
 class _Label extends StatelessWidget {
-  const _Label(this.text, {required this.style});
+  const _Label(this.text, {required this.color});
 
   final String text;
-  final TextStyle style;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    // Shrinks only when a very large text size would not fit the slot.
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Text(text, maxLines: 1, style: style),
+    // Same weight active and inactive; only the colour changes. Shrinks only
+    // when a very large text size would not fit the slot.
+    return Flexible(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          text,
+          maxLines: 1,
+          style: BvType.of(context).labelSm.copyWith(color: color),
+        ),
+      ),
     );
   }
 }

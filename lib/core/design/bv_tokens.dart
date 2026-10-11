@@ -160,6 +160,26 @@ abstract final class BvSize {
   static const avatarXl = 88.0;
 }
 
+/// Bottom bar sizes, from the Figma component "DS · Navigation / Bottom nav"
+/// (2022:18). Review 01, 11 Oct 2026.
+abstract final class BvBottomBarSize {
+  /// Bar height, not counting the phone's safe area.
+  static const height = 64.0;
+  static const paddingTop = BvSpace.s4;
+  static const paddingSide = BvSpace.s8;
+  static const slotWidth = 72.0;
+  static const slotHeight = 56.0;
+  static const gap = BvSpace.s2;
+
+  /// Orange line above the active tab's icon.
+  static const indicatorWidth = 20.0;
+  static const indicatorHeight = 2.0;
+  static const indicatorRadius = BorderRadius.all(Radius.circular(1));
+
+  static const createWidth = 40.0;
+  static const createHeight = 28.0;
+}
+
 /// Motion ("Motion").
 abstract final class BvMotion {
   static const instant = Duration(milliseconds: 100);

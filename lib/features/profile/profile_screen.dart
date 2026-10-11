@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design/bv_icons.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../settings/language_sheet.dart';
 
@@ -21,10 +22,10 @@ class ProfileScreen extends StatelessWidget {
         children: [
           ListTile(
             key: const Key('row-language'),
-            leading: const Icon(Icons.translate),
+            leading: const Icon(BvIcons.language),
             title: Text(l10n.settingsLanguage),
             subtitle: Text(languageName),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(BvIcons.caretForward),
             onTap: () => showLanguageSheet(context),
           ),
         ],
