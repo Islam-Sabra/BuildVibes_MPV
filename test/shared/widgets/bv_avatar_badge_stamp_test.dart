@@ -25,6 +25,21 @@ void main() {
       );
     });
 
+    test('Arabic initials skip the prefixes "ال" and "لل"', () {
+      String word(List<int> codes) => String.fromCharCodes(codes);
+      const alef = 0x0627, lam = 0x0644, noon = 0x0646, waw = 0x0648;
+      const reh = 0x0631, meem = 0x0645, qaf = 0x0642;
+      final alNoor = word([alef, lam, noon, waw, reh]); // النور
+      final lilMuqawalat = word([lam, lam, meem, qaf, alef]); // للمقا…
+      final nonJoiner = String.fromCharCode(0x200C);
+      expect(
+        BvAvatar.initialsOf('$alNoor $lilMuqawalat'),
+        '${word([noon])}$nonJoiner${word([meem])}',
+      );
+      // A short word that only looks like a prefix is kept as it is.
+      expect(BvAvatar.initialsOf(word([alef, lam, noon])), word([alef]));
+    });
+
     testBoth('sizes, person circle and company square', (tester, lang) async {
       await pumpComponent(
         tester,

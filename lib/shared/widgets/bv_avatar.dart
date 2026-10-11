@@ -34,7 +34,8 @@ class BvAvatar extends StatelessWidget {
   };
 
   /// Up to two initials: first and last word. Arabic letters are kept
-  /// apart (zero-width non-joiner) so they read as initials, not a word.
+  /// apart (zero-width non-joiner) so they read as initials, not a word,
+  /// and the prefixes "ال" and "لل" are skipped ("النور للمقاولات" → ن م).
   static String initialsOf(String name) {
     final words = name
         .trim()
@@ -45,17 +46,32 @@ class BvAvatar extends StatelessWidget {
     final picked = words.length == 1
         ? [words.first]
         : [words.first, words.last];
-    final runes = [for (final w in picked) w.runes.first];
+    final runes = [for (final w in picked) _initialRune(w.runes.toList())];
     final letters = runes.map(String.fromCharCode);
-    final arabic = runes.any((r) => r >= _arabicFirst && r <= _arabicLast);
+    final arabic = runes.any(_isArabic);
     return arabic
         ? letters.join(String.fromCharCode(_zeroWidthNonJoiner))
         : letters.join().toUpperCase();
   }
 
-  // Unicode Arabic block, and the mark that stops letters joining.
+  static int _initialRune(List<int> word) {
+    final hasPrefix =
+        word.length > _prefixLength + 1 &&
+        (word[0] == _alef || word[0] == _lam) &&
+        word[1] == _lam;
+    return hasPrefix ? word[_prefixLength] : word.first;
+  }
+
+  static bool _isArabic(int rune) =>
+      rune >= _arabicFirst && rune <= _arabicLast;
+
+  // Unicode Arabic block, the letters of the prefixes, and the mark that
+  // stops letters joining.
   static const _arabicFirst = 0x0600;
   static const _arabicLast = 0x06FF;
+  static const _alef = 0x0627;
+  static const _lam = 0x0644;
+  static const _prefixLength = 2;
   static const _zeroWidthNonJoiner = 0x200C;
 
   @override

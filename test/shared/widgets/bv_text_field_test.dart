@@ -91,7 +91,13 @@ void main() {
       const BvPhoneField(label: 'Phone', dialCode: '+000'),
       lang: lang,
     );
-    expect(_decoration(tester).prefixText, '+000 ');
+    // The dial code shows before the field is focused, before the number.
+    expect(find.text('+000'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '5');
+    expect(
+      tester.getCenter(find.text('+000')).dx,
+      lessThan(tester.getCenter(find.text('5')).dx),
+    );
     expect(
       Directionality.of(tester.element(find.byType(TextField))),
       TextDirection.ltr,

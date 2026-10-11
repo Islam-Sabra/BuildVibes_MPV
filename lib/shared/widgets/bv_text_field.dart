@@ -149,8 +149,22 @@ class _BvTextFieldState extends State<BvTextField> {
       decoration: InputDecoration(
         hintText: widget.placeholder,
         hintStyle: valueStyle.copyWith(color: BvColors.textSecondary),
-        prefixText: widget.prefixText,
-        prefixStyle: type.bodyLg.copyWith(color: BvColors.textSecondary),
+        // Shown as a fixed label so it is visible before the field is
+        // focused (Material's prefixText only appears once focused).
+        prefixIcon: widget.prefixText == null
+            ? null
+            : Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  start: BvFieldSpec.paddingHorizontal,
+                  end: BvSpace.s8,
+                ),
+                child: Text(
+                  widget.prefixText!,
+                  key: const Key('field-prefix'),
+                  style: valueStyle.copyWith(color: BvColors.textSecondary),
+                ),
+              ),
+        prefixIconConstraints: const BoxConstraints(),
         suffixIcon: widget.suffixIcon == null
             ? null
             : Icon(
@@ -300,7 +314,7 @@ class BvPhoneField extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       // Numbers read left to right in Arabic too: the field is LTR.
-      prefixText: '$dialCode ',
+      prefixText: dialCode,
       textDirection: TextDirection.ltr,
       keyboardType: TextInputType.phone,
       inputFormatters: [
