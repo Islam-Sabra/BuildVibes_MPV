@@ -131,6 +131,7 @@ Who can invite:
 - The request to join is sent by the app after sign-in, never at sign-up, so an unverified email never reaches an admin.
 - **Proof:** in a Space linked to a project, the admin's confirmation of a member confirms that member's CV entry for the project (`cv_project_confirmations`, source 'space_member'). This applies at once, or when they add the project later.
   - It never counts when you confirmed yourself, or when two people confirmed each other.
+  - **Founder decision (11 Oct 2026):** a second account made by the same person is accepted as a known gap for the pilot. Every Confirmed row shows who confirmed it ("Confirmed by {name}"), so readers can judge. Revisit after the pilot.
   - Unlinking removes the confirmations from that Space; other Spaces linked to the same project keep theirs.
 - **Home country:** a person who is waiting to join a Space, or whom someone else confirmed in one, may choose a home country that is "coming soon" (decision 04). Creating your own Space doesn't count.
 

@@ -106,6 +106,6 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Branch `spaces-db`: migration 6 (Spaces, invite codes, join requests, passes, Teams, proof from linked Spaces) and `supabase/tests/06_spaces.test.sql`. All 212 SQL checks pass on Postgres 16. An independent review found 8 issues; all were fixed except "proof from a second account", which is a founder decision. Not pushed to the live project.
 
 ## Next tasks (in order)
-1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Push migration 6 with the founder's yes, then build the app part from review 06.
+1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). The founder said yes to pushing migration 6 (11 Oct); the push waits for a permission on this computer. Then build the app part from review 06. Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
 2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 3. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
