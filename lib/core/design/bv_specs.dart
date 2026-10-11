@@ -250,3 +250,31 @@ abstract final class BvAuthSpec {
   static const resendAfter = Duration(seconds: 60);
   static const searchDebounce = Duration(milliseconds: 300);
 }
+
+/// Title block (PJ1, P14): a drawing title block for a project record.
+abstract final class BvTitleBlockSpec {
+  static const border = BvStroke.medium;
+  static const radius = BvRadius.smallAll; // 6
+  static const headerPaddingVertical = BvSpace.s12;
+  static const cellPaddingVertical = BvSpace.s12;
+  static const paddingHorizontal = BvSpace.s16;
+  static const cellGap = BvSpace.s4;
+  static const iconSize = BvSize.iconMd; // 20
+}
+
+/// Month picker sheet.
+abstract final class BvMonthPickerSpec {
+  static const columns = 3;
+  static const gap = BvSpace.s8;
+  static const firstYear = 1970;
+  static const yearsAhead = 10;
+  static const cellAspect = 2.4;
+}
+
+/// Profile header (R1, R5).
+abstract final class BvProfileSpec {
+  static const avatarGap = BvSpace.s16;
+  static const sectionGap = BvSpace.s24;
+  static const cardPadding = BvSpace.s16;
+  static const iconButton = BvSize.controlMd; // 44
+}

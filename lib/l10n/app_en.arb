@@ -685,5 +685,540 @@
   "signOut": "Sign out",
   "@signOut": {
     "description": "Profile row."
+  },
+  "profileFollowers": "{count, plural, =1{1 follower} other{{count} followers}}",
+  "@profileFollowers": {
+    "description": "Follower count on a profile (allowed by the founder).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileFollowing": "{count} following",
+  "@profileFollowing": {
+    "description": "Following count on your own profile.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileEdit": "Edit profile",
+  "@profileEdit": {
+    "description": "Button and screen title."
+  },
+  "profileTabOverview": "Overview",
+  "@profileTabOverview": {
+    "description": "Profile tab."
+  },
+  "profileTabPosts": "Posts",
+  "@profileTabPosts": {
+    "description": "Profile tab."
+  },
+  "profileTabProjects": "Projects",
+  "@profileTabProjects": {
+    "description": "Profile tab."
+  },
+  "profileTabExperience": "Experience",
+  "@profileTabExperience": {
+    "description": "Profile tab."
+  },
+  "proofLabel": "PROOF · WHERE IT'S CONFIRMED",
+  "@proofLabel": {
+    "description": "Proof card label. Capitals in English."
+  },
+  "proofConfirmed": "Confirmed",
+  "@proofConfirmed": {
+    "description": "A CV project confirmed by a teammate."
+  },
+  "proofWaiting": "Waiting",
+  "@proofWaiting": {
+    "description": "A CV project not confirmed yet."
+  },
+  "proofEmptyTitle": "Add a project to start your proof",
+  "@proofEmptyTitle": {
+    "description": "Proof card with no projects."
+  },
+  "proofEmptyBody": "Projects on your CV show here. Teammates in your Spaces confirm them.",
+  "@proofEmptyBody": {
+    "description": "Proof card with no projects."
+  },
+  "finishProfileTitle": "Finish your profile",
+  "@finishProfileTitle": {
+    "description": "Own profile row."
+  },
+  "finishProfileProgress": "{done} of {total} done",
+  "@finishProfileProgress": {
+    "description": "Own profile row.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "openToTitle": "Open to",
+  "@openToTitle": {
+    "description": "Profile section."
+  },
+  "openToContract": "Contract",
+  "@openToContract": {
+    "description": "Open to option."
+  },
+  "openToConsulting": "Consulting",
+  "@openToConsulting": {
+    "description": "Open to option."
+  },
+  "openToFullTime": "Full-time role",
+  "@openToFullTime": {
+    "description": "Open to option."
+  },
+  "openToPartTime": "Part-time",
+  "@openToPartTime": {
+    "description": "Open to option."
+  },
+  "openToMentoring": "Mentoring",
+  "@openToMentoring": {
+    "description": "Open to option."
+  },
+  "openToOnlyYou": "Only you see this.",
+  "@openToOnlyYou": {
+    "description": "Open to visibility note."
+  },
+  "openToConnectionsOnly": "Only your connections see this.",
+  "@openToConnectionsOnly": {
+    "description": "Open to visibility note."
+  },
+  "profileAbout": "About",
+  "@profileAbout": {
+    "description": "Profile section."
+  },
+  "profileSeeAllProjects": "See all projects",
+  "@profileSeeAllProjects": {
+    "description": "Link to the Projects tab."
+  },
+  "workDeliveredTitle": "Work you delivered",
+  "@workDeliveredTitle": {
+    "description": "Own profile section."
+  },
+  "workDeliveredVisitorTitle": "Work delivered",
+  "@workDeliveredVisitorTitle": {
+    "description": "Visitor profile section."
+  },
+  "workDeliveredBody": "You choose what shows. Only items checked and closed in a Space.",
+  "@workDeliveredBody": {
+    "description": "Own profile section."
+  },
+  "workDeliveredEmpty": "Nothing checked yet.",
+  "@workDeliveredEmpty": {
+    "description": "Work delivered empty state."
+  },
+  "experienceEmpty": "No experience added yet.",
+  "@experienceEmpty": {
+    "description": "Empty state."
+  },
+  "projectsEmpty": "No projects on the CV yet.",
+  "@projectsEmpty": {
+    "description": "Empty state."
+  },
+  "postsEmpty": "No posts yet.",
+  "@postsEmpty": {
+    "description": "Empty state."
+  },
+  "present": "Present",
+  "@present": {
+    "description": "Open end of a date range."
+  },
+  "expectedMonth": "Expected {month}",
+  "@expectedMonth": {
+    "description": "Forecast end date.",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "dateRange": "{start} – {end}",
+  "@dateRange": {
+    "description": "A date range.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "profileMore": "More",
+  "@profileMore": {
+    "description": "Overflow menu."
+  },
+  "blockPerson": "Block {name}",
+  "@blockPerson": {
+    "description": "Overflow action.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockConfirmTitle": "Block {name}?",
+  "@blockConfirmTitle": {
+    "description": "Confirm sheet title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockConfirmBody": "You won't see each other's profiles, and follows between you are removed. They aren't told.",
+  "@blockConfirmBody": {
+    "description": "Confirm sheet body."
+  },
+  "block": "Block",
+  "@block": {
+    "description": "Button."
+  },
+  "profileNotFound": "This profile isn't available.",
+  "@profileNotFound": {
+    "description": "Missing or blocked profile."
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Screen title."
+  },
+  "saved": "Saved",
+  "@saved": {
+    "description": "Confirmation."
+  },
+  "editBasics": "Name, photo and headline",
+  "@editBasics": {
+    "description": "Edit profile row."
+  },
+  "editAboutEmpty": "Add a few lines about your work",
+  "@editAboutEmpty": {
+    "description": "Edit profile row subtitle."
+  },
+  "editProjectsSub": "Visibility per project",
+  "@editProjectsSub": {
+    "description": "Edit profile row subtitle."
+  },
+  "editOpenToEmpty": "Say what you're open to",
+  "@editOpenToEmpty": {
+    "description": "Edit profile row subtitle."
+  },
+  "headline": "Headline",
+  "@headline": {
+    "description": "Field label."
+  },
+  "headlineHint": "e.g. BIM Manager",
+  "@headlineHint": {
+    "description": "Field placeholder."
+  },
+  "addPhoto": "Add a photo",
+  "@addPhoto": {
+    "description": "Button."
+  },
+  "changePhoto": "Change photo",
+  "@changePhoto": {
+    "description": "Button."
+  },
+  "removePhoto": "Remove photo",
+  "@removePhoto": {
+    "description": "Button."
+  },
+  "placeLabel": "City or area",
+  "@placeLabel": {
+    "description": "Field label."
+  },
+  "placeOptional": "City or area (optional)",
+  "@placeOptional": {
+    "description": "Field label."
+  },
+  "aboutHint": "What do you do, and on which kind of projects?",
+  "@aboutHint": {
+    "description": "About field placeholder."
+  },
+  "experienceAdd": "Add experience",
+  "@experienceAdd": {
+    "description": "Button."
+  },
+  "experienceEdit": "Edit experience",
+  "@experienceEdit": {
+    "description": "Screen title."
+  },
+  "titleLabel": "Title",
+  "@titleLabel": {
+    "description": "Field label."
+  },
+  "titleRequired": "Write the title.",
+  "@titleRequired": {
+    "description": "Validation."
+  },
+  "startedLabel": "Started",
+  "@startedLabel": {
+    "description": "Field label."
+  },
+  "endedLabel": "Ended",
+  "@endedLabel": {
+    "description": "Field label."
+  },
+  "startRequired": "Choose when it started.",
+  "@startRequired": {
+    "description": "Validation."
+  },
+  "whoCanSee": "Who can see this",
+  "@whoCanSee": {
+    "description": "Visibility section label."
+  },
+  "visibilityEveryone": "Everyone",
+  "@visibilityEveryone": {
+    "description": "Visibility option."
+  },
+  "visibilityEveryoneSub": "Anyone signed in to BuildVibes.",
+  "@visibilityEveryoneSub": {
+    "description": "Visibility option."
+  },
+  "visibilityConnections": "Connections only",
+  "@visibilityConnections": {
+    "description": "Visibility option."
+  },
+  "visibilityConnectionsSub": "People you follow who follow you back.",
+  "@visibilityConnectionsSub": {
+    "description": "Visibility option."
+  },
+  "visibilityOnlyMe": "Only me",
+  "@visibilityOnlyMe": {
+    "description": "Visibility option."
+  },
+  "visibilityOnlyMeSub": "Nobody else can see it.",
+  "@visibilityOnlyMeSub": {
+    "description": "Visibility option."
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Button."
+  },
+  "openToNote": "A short note (optional)",
+  "@openToNote": {
+    "description": "Field label."
+  },
+  "openToNoteHint": "e.g. Available from next month",
+  "@openToNoteHint": {
+    "description": "Field placeholder."
+  },
+  "cvShowOnProfile": "Show on my profile",
+  "@cvShowOnProfile": {
+    "description": "Switch."
+  },
+  "addProject": "Add a project",
+  "@addProject": {
+    "description": "Button and screen title."
+  },
+  "projectSearchHint": "Project name",
+  "@projectSearchHint": {
+    "description": "Search placeholder."
+  },
+  "addProjectIntro": "One record per project, so everyone who worked on it shows up in one place.",
+  "@addProjectIntro": {
+    "description": "P13 intro."
+  },
+  "matchSameName": "SAME NAME",
+  "@matchSameName": {
+    "description": "Match reason. Capitals in English."
+  },
+  "matchSameSite": "SAME SITE",
+  "@matchSameSite": {
+    "description": "Match reason. Capitals in English."
+  },
+  "thisIsIt": "This is it · add to my CV",
+  "@thisIsIt": {
+    "description": "P13 button."
+  },
+  "startNewRecord": "None of these? Start a new record",
+  "@startNewRecord": {
+    "description": "P13 card."
+  },
+  "startNewRecordSub": "Name, type, dates and your role. About a minute.",
+  "@startNewRecordSub": {
+    "description": "P13 card."
+  },
+  "onYourCvBadge": "On your CV",
+  "@onYourCvBadge": {
+    "description": "Badge on a match already on your CV."
+  },
+  "cvEntryTitle": "Your role on {project}",
+  "@cvEntryTitle": {
+    "description": "CV entry sheet title.",
+    "placeholders": {
+      "project": {
+        "type": "String"
+      }
+    }
+  },
+  "yourRole": "Your role",
+  "@yourRole": {
+    "description": "Field label."
+  },
+  "roleTitleRequired": "Write your role.",
+  "@roleTitleRequired": {
+    "description": "Validation."
+  },
+  "addToCv": "Add to my CV",
+  "@addToCv": {
+    "description": "Button."
+  },
+  "newProjectTitle": "New project",
+  "@newProjectTitle": {
+    "description": "P14 title."
+  },
+  "projectRecordLabel": "PROJECT RECORD",
+  "@projectRecordLabel": {
+    "description": "Title block header. Capitals in English."
+  },
+  "draftStamp": "REV A · DRAFT",
+  "@draftStamp": {
+    "description": "Title block stamp. Capitals in English."
+  },
+  "sharedRecordStamp": "SHARED RECORD · NO OWNER",
+  "@sharedRecordStamp": {
+    "description": "Title block stamp. Capitals in English."
+  },
+  "cellProjectName": "PROJECT NAME",
+  "@cellProjectName": {
+    "description": "Title block cell. Capitals in English."
+  },
+  "cellType": "TYPE",
+  "@cellType": {
+    "description": "Title block cell."
+  },
+  "cellLocation": "LOCATION",
+  "@cellLocation": {
+    "description": "Title block cell."
+  },
+  "cellStarted": "STARTED",
+  "@cellStarted": {
+    "description": "Title block cell."
+  },
+  "cellEnded": "ENDED",
+  "@cellEnded": {
+    "description": "Title block cell."
+  },
+  "cellYourRole": "YOUR ROLE",
+  "@cellYourRole": {
+    "description": "Title block cell."
+  },
+  "choose": "Choose",
+  "@choose": {
+    "description": "Empty title block cell."
+  },
+  "newProjectNote": "This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.",
+  "@newProjectNote": {
+    "description": "P14 note."
+  },
+  "projectNameRequired": "Write the project name.",
+  "@projectNameRequired": {
+    "description": "Validation."
+  },
+  "projectTypeRequired": "Choose the type.",
+  "@projectTypeRequired": {
+    "description": "Validation."
+  },
+  "projectNameHint": "e.g. Al Kout Mall Phase 2",
+  "@projectNameHint": {
+    "description": "Field placeholder."
+  },
+  "projectTitle": "Project",
+  "@projectTitle": {
+    "description": "PJ1 title."
+  },
+  "projectNoOwnerNote": "Anyone can put this project on their CV. Nobody owns it; corrections are checked by BuildVibes.",
+  "@projectNoOwnerNote": {
+    "description": "PJ1 note."
+  },
+  "suggestEdit": "Suggest an edit",
+  "@suggestEdit": {
+    "description": "Link."
+  },
+  "onYourCv": "ON YOUR CV",
+  "@onYourCv": {
+    "description": "PJ1 section. Capitals in English."
+  },
+  "peopleOnProject": "PEOPLE WHO PUT IT ON THEIR CV",
+  "@peopleOnProject": {
+    "description": "PJ1 section. Capitals in English."
+  },
+  "peopleOnProjectNote": "Only people who chose to show it on their profile.",
+  "@peopleOnProjectNote": {
+    "description": "PJ1 note."
+  },
+  "peopleOnProjectEmpty": "Nobody else has shown it yet.",
+  "@peopleOnProjectEmpty": {
+    "description": "PJ1 empty state."
+  },
+  "suggestTitle": "Suggest an edit to {project}",
+  "@suggestTitle": {
+    "description": "Sheet title.",
+    "placeholders": {
+      "project": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestBody": "Nobody owns this record, so BuildVibes checks every change. People who listed it are told when it changes.",
+  "@suggestBody": {
+    "description": "Sheet body."
+  },
+  "whatsWrong": "WHAT'S WRONG",
+  "@whatsWrong": {
+    "description": "Sheet section. Capitals in English."
+  },
+  "wrongName": "Name",
+  "@wrongName": {
+    "description": "Chip."
+  },
+  "wrongType": "Type",
+  "@wrongType": {
+    "description": "Chip."
+  },
+  "wrongLocation": "Location",
+  "@wrongLocation": {
+    "description": "Chip."
+  },
+  "wrongDates": "Dates",
+  "@wrongDates": {
+    "description": "Chip."
+  },
+  "wrongDuplicate": "It's a duplicate",
+  "@wrongDuplicate": {
+    "description": "Chip."
+  },
+  "correctValue": "Correct value",
+  "@correctValue": {
+    "description": "Field label."
+  },
+  "correctValueHelp": "Add a source if you have one, such as a site board photo.",
+  "@correctValueHelp": {
+    "description": "Field helper."
+  },
+  "correctValueRequired": "Write the correct value.",
+  "@correctValueRequired": {
+    "description": "Validation."
+  },
+  "sendForReview": "Send for review",
+  "@sendForReview": {
+    "description": "Button."
+  },
+  "suggestionSent": "Thanks. We'll check it.",
+  "@suggestionSent": {
+    "description": "Confirmation."
+  },
+  "monthPickerPresent": "Still going",
+  "@monthPickerPresent": {
+    "description": "Month sheet option."
   }
 }

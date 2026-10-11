@@ -56,17 +56,18 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
   /// Pre-fills once: what the profile already has, then the country from
   /// the sign-in phone, the phone's region, or the first live market.
   void _prefill(MyProfile? me, List<Market> markets) {
-    if (_filledFromProfile || markets.isEmpty) return;
+    // Wait for both the markets and the profile, or the names stay blank.
+    if (_filledFromProfile || markets.isEmpty || me == null) return;
     _filledFromProfile = true;
-    _first.text = me?.firstName ?? '';
-    _last.text = me?.lastName ?? '';
+    _first.text = me.firstName;
+    _last.text = me.lastName;
     final live = liveMarkets(markets);
     final phone = ref.read(authRepositoryProvider).currentPhone;
     final byPhone = phone == null
         ? null
         : live.where((m) => phone.startsWith(m.dialCode)).firstOrNull;
     final region = ref.read(deviceRegionProvider)?.toLowerCase();
-    final saved = live.where((m) => m.id == me?.homeMarketId).firstOrNull;
+    final saved = live.where((m) => m.id == me.homeMarketId).firstOrNull;
     final chosen =
         saved ??
         byPhone ??
@@ -74,8 +75,8 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
         live.firstOrNull;
     _marketId = chosen?.id;
     _marketFromPhone = chosen != null && chosen == byPhone;
-    if (me?.companyLabel != null) {
-      _company = me!.companyId != null
+    if (me.companyLabel != null) {
+      _company = me.companyId != null
           ? CompanyPick.registered(
               CompanySummary(id: me.companyId!, name: me.companyLabel!),
             )
@@ -160,9 +161,7 @@ class _AboutYouScreenState extends ConsumerState<AboutYouScreen> {
           ? const <PersonSuggestion>[]
           : await ref.read(profileRepositoryProvider).suggestions(me);
       if (!mounted) return;
-      context.go(
-        people.isEmpty ? AppRoutes.home : AppRoutes.onboardingPeople,
-      );
+      context.go(people.isEmpty ? AppRoutes.home : AppRoutes.onboardingPeople);
     } on Exception {
       if (mounted) setState(() => _saveError = l10n.errorGeneric);
     } finally {

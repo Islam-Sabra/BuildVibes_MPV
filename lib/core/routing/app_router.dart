@@ -16,7 +16,19 @@ import '../../features/home/home_screen.dart';
 import '../../features/onboarding/about_you_screen.dart';
 import '../../features/onboarding/people_screen.dart';
 import '../../features/onboarding/role_picker_screen.dart';
+import '../../data/models/profile.dart';
+import '../../features/profile/edit/about_screen.dart';
+import '../../features/profile/edit/basics_screen.dart';
+import '../../features/profile/edit/cv_projects_screen.dart';
+import '../../features/profile/edit/edit_profile_screen.dart';
+import '../../features/profile/edit/experience_screens.dart';
+import '../../features/profile/edit/open_to_screen.dart';
+import '../../features/profile/person_profile_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/profile/settings_screen.dart';
+import '../../features/projects/add_project_screen.dart';
+import '../../features/projects/new_project_screen.dart';
+import '../../features/projects/project_sheet_screen.dart';
 import '../../features/shell/app_shell.dart';
 import 'app_routes.dart';
 
@@ -34,14 +46,27 @@ String? redirectForGate(AppGate gate, String location) {
     AppGate.loading ||
     AppGate.profileError => atLoading ? null : AppRoutes.loading,
     AppGate.signedOut => inEntry ? null : AppRoutes.welcome,
-    // Guests browse the tabs and may start joining at any time.
-    AppGate.guest => inOnboarding || atLoading ? AppRoutes.home : null,
+    // Guests browse the tabs and may start joining at any time; people,
+    // projects and editing need an account.
+    AppGate.guest =>
+      inOnboarding ||
+              atLoading ||
+              under(AppRoutes.people) ||
+              under(AppRoutes.projects) ||
+              under(AppRoutes.profileEdit)
+          ? AppRoutes.home
+          : null,
     // Step 1 must be done before anything else; step 2 needs step 1.
     AppGate.onboarding =>
       under(AppRoutes.onboardingAbout) || under(AppRoutes.onboardingRole)
           ? null
           : AppRoutes.onboardingAbout,
-    AppGate.ready => inEntry || atLoading ? AppRoutes.home : null,
+    // Done with onboarding: step 2 and the role picker (used by Edit
+    // profile) stay open; step 1 sends Home.
+    AppGate.ready =>
+      inEntry || atLoading || under(AppRoutes.onboardingAbout)
+          ? AppRoutes.home
+          : null,
   };
 }
 
@@ -98,6 +123,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.onboardingPeople,
         builder: (context, state) => const PeopleScreen(),
       ),
+      GoRoute(
+        path: '${AppRoutes.people}/:id',
+        builder: (context, state) =>
+            PersonProfileScreen(profileId: state.pathParameters['id']!),
+      ),
+      // "add" and "new" before ":id".
+      GoRoute(
+        path: AppRoutes.projectsAdd,
+        builder: (context, state) => const AddProjectScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.projectsNew,
+        builder: (context, state) =>
+            NewProjectScreen(initialName: state.extra as String?),
+      ),
+      GoRoute(
+        path: '${AppRoutes.projects}/:id',
+        builder: (context, state) =>
+            ProjectSheetScreen(projectId: state.pathParameters['id']!),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(navigationShell: shell),
         branches: [
@@ -131,12 +176,53 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.profile,
                 builder: (context, state) => const ProfileScreen(),
                 routes: [
-                  if (kDebugMode)
-                    GoRoute(
-                      path: 'components',
-                      builder: (context, state) =>
-                          const ComponentsGalleryScreen(),
-                    ),
+                  GoRoute(
+                    path: 'settings',
+                    builder: (context, state) => const SettingsScreen(),
+                    routes: [
+                      if (kDebugMode)
+                        GoRoute(
+                          path: 'components',
+                          builder: (context, state) =>
+                              const ComponentsGalleryScreen(),
+                        ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) => const EditProfileScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'basics',
+                        builder: (context, state) => const BasicsScreen(),
+                      ),
+                      GoRoute(
+                        path: 'about',
+                        builder: (context, state) => const AboutScreen(),
+                      ),
+                      GoRoute(
+                        path: 'experience',
+                        builder: (context, state) =>
+                            const ExperienceListScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'form',
+                            builder: (context, state) => ExperienceFormScreen(
+                              entry: state.extra as ExperienceEntry?,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'open-to',
+                        builder: (context, state) => const OpenToScreen(),
+                      ),
+                      GoRoute(
+                        path: 'projects',
+                        builder: (context, state) => const CvProjectsScreen(),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ],

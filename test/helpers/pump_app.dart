@@ -2,23 +2,33 @@ import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
+import 'package:buildvibes/data/repositories/profile_page_repository.dart';
+import 'package:buildvibes/data/repositories/project_repository.dart';
 import 'package:buildvibes/data/repositories/profile_repository.dart';
 import 'package:buildvibes/data/repositories/reference_repository.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
+import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
+import 'profile_fakes.dart';
+
+/// The fixed "today" of widget tests.
+final testNow = DateTime(2026, 10, 11);
 
 /// The fakes behind a pumped app, for assertions.
 class TestApp {
-  TestApp(this.prefs, this.auth, this.profiles);
+  TestApp(this.prefs, this.auth, this.profiles, this.pages, this.projects);
 
   final SharedPreferences prefs;
   final FakeAuthRepository auth;
   final FakeProfileRepository profiles;
+  final FakeProfilePageRepository pages;
+  final FakeProjectRepository projects;
 }
 
 /// Pumps the whole app on a 390×844 phone, with no network.
@@ -33,6 +43,8 @@ Future<TestApp> pumpApp(
   String region = 'KW',
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
+  void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
+  List<Override> overrides = const [],
 }) async {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
@@ -56,6 +68,13 @@ Future<TestApp> pumpApp(
     );
   }
 
+  final pages = FakeProfilePageRepository(fakeProfiles);
+  final projects = FakeProjectRepository(
+    pages,
+    me: fakeAuth.currentUserId ?? FakeAuthRepository.newUserId,
+  );
+  setUp?.call(pages, projects);
+
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -67,12 +86,16 @@ Future<TestApp> pumpApp(
         ),
         marketsProvider.overrideWith((ref) async => testMarkets),
         deviceRegionProvider.overrideWithValue(region),
+        profilePageRepositoryProvider.overrideWithValue(pages),
+        projectRepositoryProvider.overrideWithValue(projects),
+        clockProvider.overrideWithValue(() => testNow),
+        ...overrides,
       ],
       child: const BuildVibesApp(),
     ),
   );
   await tester.pumpAndSettle();
-  return TestApp(prefs, fakeAuth, fakeProfiles);
+  return TestApp(prefs, fakeAuth, fakeProfiles, pages, projects);
 }
 
 TextDirection appDirection(WidgetTester tester) =>

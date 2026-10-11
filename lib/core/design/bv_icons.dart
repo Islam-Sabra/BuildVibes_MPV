@@ -107,6 +107,15 @@ abstract final class BvIcons {
   // Phosphor: clipboard-text
   static const clipboard = IconData(0xe198, fontFamily: _family);
 
+  // Phosphor: dots-three
+  static const more = IconData(0xe1fe, fontFamily: _family);
+  // Phosphor: pencil-simple
+  static const edit = IconData(0xe3b4, fontFamily: _family);
+  // Phosphor: trash
+  static const delete = IconData(0xe4a6, fontFamily: _family);
+  // Phosphor: calendar-blank
+  static const month = IconData(0xe10a, fontFamily: _family);
+
   // Directional: mirrored in right-to-left.
   /// Points to the next screen: right in English, left in Arabic.
   static const caretForward = IconData(

@@ -19,59 +19,64 @@ class BvTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
-    return Row(
-      children: [
-        for (var i = 0; i < labels.length; i++)
-          Semantics(
-            button: true,
-            selected: i == selectedIndex,
-            child: InkWell(
-              key: Key('tab-$i'),
-              onTap: () => onSelect(i),
-              splashFactory: NoSplash.splashFactory,
-              child: SizedBox(
-                height: BvTabsSpec.height,
-                child: Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: BvTabsSpec.paddingHorizontal,
-                      ),
-                      child: Center(
-                        widthFactor: 1,
-                        child: Text(
-                          labels[i],
-                          maxLines: 1,
-                          style: i == selectedIndex
-                              ? type.labelLg.copyWith(
-                                  color: BvColors.textPrimary,
-                                )
-                              : type.labelMd.copyWith(
-                                  color: BvColors.textSecondary,
-                                ),
+    // Scrolls sideways when the tabs don't fit (long Arabic labels, large
+    // text sizes).
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (var i = 0; i < labels.length; i++)
+            Semantics(
+              button: true,
+              selected: i == selectedIndex,
+              child: InkWell(
+                key: Key('tab-$i'),
+                onTap: () => onSelect(i),
+                splashFactory: NoSplash.splashFactory,
+                child: SizedBox(
+                  height: BvTabsSpec.height,
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsetsDirectional.symmetric(
+                          horizontal: BvTabsSpec.paddingHorizontal,
                         ),
-                      ),
-                    ),
-                    if (i == selectedIndex)
-                      const PositionedDirectional(
-                        start: 0,
-                        end: 0,
-                        bottom: 0,
-                        child: DecoratedBox(
-                          key: Key('tab-indicator'),
-                          decoration: BoxDecoration(
-                            color: BvColors.surfaceSelected,
-                            borderRadius: BvTabsSpec.indicatorRadius,
+                        child: Center(
+                          widthFactor: 1,
+                          child: Text(
+                            labels[i],
+                            maxLines: 1,
+                            style: i == selectedIndex
+                                ? type.labelLg.copyWith(
+                                    color: BvColors.textPrimary,
+                                  )
+                                : type.labelMd.copyWith(
+                                    color: BvColors.textSecondary,
+                                  ),
                           ),
-                          child: SizedBox(height: BvTabsSpec.indicatorHeight),
                         ),
                       ),
-                  ],
+                      if (i == selectedIndex)
+                        const PositionedDirectional(
+                          start: 0,
+                          end: 0,
+                          bottom: 0,
+                          child: DecoratedBox(
+                            key: Key('tab-indicator'),
+                            decoration: BoxDecoration(
+                              color: BvColors.surfaceSelected,
+                              borderRadius: BvTabsSpec.indicatorRadius,
+                            ),
+                            child: SizedBox(height: BvTabsSpec.indicatorHeight),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

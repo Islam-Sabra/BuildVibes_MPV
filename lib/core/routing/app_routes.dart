@@ -6,8 +6,24 @@ abstract final class AppRoutes {
   static const activity = '/activity';
   static const profile = '/profile';
 
+  // Profile (inside the Profile tab)
+  static const profileSettings = '/profile/settings';
+  static const profileEdit = '/profile/edit';
+  static const profileEditBasics = '/profile/edit/basics';
+  static const profileEditAbout = '/profile/edit/about';
+  static const profileEditExperience = '/profile/edit/experience';
+  static const profileEditExperienceForm = '/profile/edit/experience/form';
+  static const profileEditOpenTo = '/profile/edit/open-to';
+  static const profileEditProjects = '/profile/edit/projects';
+
   /// Debug builds only.
-  static const components = '/profile/components';
+  static const components = '/profile/settings/components';
+
+  // Full screens over the tabs
+  static const people = '/people';
+  static const projects = '/projects';
+  static const projectsAdd = '/projects/add';
+  static const projectsNew = '/projects/new';
 
   // Entry (signed out)
   static const loading = '/loading';

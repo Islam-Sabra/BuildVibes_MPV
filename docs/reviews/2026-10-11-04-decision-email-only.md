@@ -30,3 +30,13 @@ Some foremen and labour may not use email. Mitigations:
 - most Android phones already have a Gmail account, so Google sign-in can be switched on later;
 - the Space admin can help people join on site;
 - phone sign-in returns after the pilot if this proves to be a barrier.
+
+## Status update (11 Oct, 17:00)
+- Resend domain **mail.aecox.com is verified**: DKIM, SPF and return-path records were added in Cloudflare. DMARC was deliberately not added, because the root domain also carries the founder's Zoho mail.
+- The founder has **saved Custom SMTP in Supabase**: host `smtp.resend.com`, port 465, user `resend`, sender `BuildVibes <no-reply@mail.aecox.com>`, password = a Resend sending-only key.
+  - **Don't change these.** The key is never stored in the repo.
+- **Still to do when you apply this decision** (ask the founder before each live change):
+  - the OTP email template;
+  - OTP length (6) and expiry (10 minutes);
+  - the email rate limit;
+  - then a real test: send a code to the founder's own address and confirm with him that it arrived (inbox, not spam).

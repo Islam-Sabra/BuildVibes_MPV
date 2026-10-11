@@ -70,9 +70,14 @@ final appGateProvider = Provider<AppGate>((ref) {
     return ref.watch(guestModeProvider) ? AppGate.guest : AppGate.signedOut;
   }
   final profile = ref.watch(myProfileProvider);
-  // Keep the last known answer while the profile reloads.
-  if (profile.hasValue) {
-    final p = profile.value;
+  final userId = user.value!;
+  final p = profile.value;
+  // While the profile reloads, keep the last answer only if it belongs to
+  // the same person: right after signing in, the previous value is the
+  // signed-out "no profile" and must not send a finished user to
+  // onboarding.
+  final stale = profile.isLoading && (p == null || p.id != userId);
+  if (profile.hasValue && !stale) {
     return p != null && p.isComplete ? AppGate.ready : AppGate.onboarding;
   }
   return profile.hasError ? AppGate.profileError : AppGate.loading;

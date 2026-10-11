@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
-enum BvStampTone { action, positive, muted }
+/// [ink] is for record stamps such as "SHARED RECORD · NO OWNER" (PJ1).
+enum BvStampTone { action, positive, muted, ink }
 
 /// Spec §12: the site-paperwork stamp. An outlined label whose text and
 /// border share one colour.
@@ -28,6 +29,7 @@ class BvStamp extends StatelessWidget {
     BvStampTone.action => BvColors.textAction,
     BvStampTone.positive => BvColors.textPositive,
     BvStampTone.muted => BvColors.textSecondary,
+    BvStampTone.ink => BvColors.brandInk,
   };
 
   /// The tilt in radians for [direction].

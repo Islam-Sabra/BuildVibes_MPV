@@ -12,6 +12,8 @@ void main() {
         await pumpApp(tester, language: lang);
         await tester.tap(find.byKey(const Key('nav-profile')));
         await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('profile-settings')));
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('row-components')));
         await tester.pumpAndSettle();
         expect(find.byType(ComponentsGalleryScreen), findsOneWidget);

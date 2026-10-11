@@ -500,4 +500,402 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signOut => 'Sign out';
+
+  @override
+  String profileFollowers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count followers',
+      one: '1 follower',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileFollowing(int count) {
+    return '$count following';
+  }
+
+  @override
+  String get profileEdit => 'Edit profile';
+
+  @override
+  String get profileTabOverview => 'Overview';
+
+  @override
+  String get profileTabPosts => 'Posts';
+
+  @override
+  String get profileTabProjects => 'Projects';
+
+  @override
+  String get profileTabExperience => 'Experience';
+
+  @override
+  String get proofLabel => 'PROOF · WHERE IT\'S CONFIRMED';
+
+  @override
+  String get proofConfirmed => 'Confirmed';
+
+  @override
+  String get proofWaiting => 'Waiting';
+
+  @override
+  String get proofEmptyTitle => 'Add a project to start your proof';
+
+  @override
+  String get proofEmptyBody =>
+      'Projects on your CV show here. Teammates in your Spaces confirm them.';
+
+  @override
+  String get finishProfileTitle => 'Finish your profile';
+
+  @override
+  String finishProfileProgress(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get openToTitle => 'Open to';
+
+  @override
+  String get openToContract => 'Contract';
+
+  @override
+  String get openToConsulting => 'Consulting';
+
+  @override
+  String get openToFullTime => 'Full-time role';
+
+  @override
+  String get openToPartTime => 'Part-time';
+
+  @override
+  String get openToMentoring => 'Mentoring';
+
+  @override
+  String get openToOnlyYou => 'Only you see this.';
+
+  @override
+  String get openToConnectionsOnly => 'Only your connections see this.';
+
+  @override
+  String get profileAbout => 'About';
+
+  @override
+  String get profileSeeAllProjects => 'See all projects';
+
+  @override
+  String get workDeliveredTitle => 'Work you delivered';
+
+  @override
+  String get workDeliveredVisitorTitle => 'Work delivered';
+
+  @override
+  String get workDeliveredBody =>
+      'You choose what shows. Only items checked and closed in a Space.';
+
+  @override
+  String get workDeliveredEmpty => 'Nothing checked yet.';
+
+  @override
+  String get experienceEmpty => 'No experience added yet.';
+
+  @override
+  String get projectsEmpty => 'No projects on the CV yet.';
+
+  @override
+  String get postsEmpty => 'No posts yet.';
+
+  @override
+  String get present => 'Present';
+
+  @override
+  String expectedMonth(String month) {
+    return 'Expected $month';
+  }
+
+  @override
+  String dateRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get profileMore => 'More';
+
+  @override
+  String blockPerson(String name) {
+    return 'Block $name';
+  }
+
+  @override
+  String blockConfirmTitle(String name) {
+    return 'Block $name?';
+  }
+
+  @override
+  String get blockConfirmBody =>
+      'You won\'t see each other\'s profiles, and follows between you are removed. They aren\'t told.';
+
+  @override
+  String get block => 'Block';
+
+  @override
+  String get profileNotFound => 'This profile isn\'t available.';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get saved => 'Saved';
+
+  @override
+  String get editBasics => 'Name, photo and headline';
+
+  @override
+  String get editAboutEmpty => 'Add a few lines about your work';
+
+  @override
+  String get editProjectsSub => 'Visibility per project';
+
+  @override
+  String get editOpenToEmpty => 'Say what you\'re open to';
+
+  @override
+  String get headline => 'Headline';
+
+  @override
+  String get headlineHint => 'e.g. BIM Manager';
+
+  @override
+  String get addPhoto => 'Add a photo';
+
+  @override
+  String get changePhoto => 'Change photo';
+
+  @override
+  String get removePhoto => 'Remove photo';
+
+  @override
+  String get placeLabel => 'City or area';
+
+  @override
+  String get placeOptional => 'City or area (optional)';
+
+  @override
+  String get aboutHint => 'What do you do, and on which kind of projects?';
+
+  @override
+  String get experienceAdd => 'Add experience';
+
+  @override
+  String get experienceEdit => 'Edit experience';
+
+  @override
+  String get titleLabel => 'Title';
+
+  @override
+  String get titleRequired => 'Write the title.';
+
+  @override
+  String get startedLabel => 'Started';
+
+  @override
+  String get endedLabel => 'Ended';
+
+  @override
+  String get startRequired => 'Choose when it started.';
+
+  @override
+  String get whoCanSee => 'Who can see this';
+
+  @override
+  String get visibilityEveryone => 'Everyone';
+
+  @override
+  String get visibilityEveryoneSub => 'Anyone signed in to BuildVibes.';
+
+  @override
+  String get visibilityConnections => 'Connections only';
+
+  @override
+  String get visibilityConnectionsSub =>
+      'People you follow who follow you back.';
+
+  @override
+  String get visibilityOnlyMe => 'Only me';
+
+  @override
+  String get visibilityOnlyMeSub => 'Nobody else can see it.';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get openToNote => 'A short note (optional)';
+
+  @override
+  String get openToNoteHint => 'e.g. Available from next month';
+
+  @override
+  String get cvShowOnProfile => 'Show on my profile';
+
+  @override
+  String get addProject => 'Add a project';
+
+  @override
+  String get projectSearchHint => 'Project name';
+
+  @override
+  String get addProjectIntro =>
+      'One record per project, so everyone who worked on it shows up in one place.';
+
+  @override
+  String get matchSameName => 'SAME NAME';
+
+  @override
+  String get matchSameSite => 'SAME SITE';
+
+  @override
+  String get thisIsIt => 'This is it · add to my CV';
+
+  @override
+  String get startNewRecord => 'None of these? Start a new record';
+
+  @override
+  String get startNewRecordSub =>
+      'Name, type, dates and your role. About a minute.';
+
+  @override
+  String get onYourCvBadge => 'On your CV';
+
+  @override
+  String cvEntryTitle(String project) {
+    return 'Your role on $project';
+  }
+
+  @override
+  String get yourRole => 'Your role';
+
+  @override
+  String get roleTitleRequired => 'Write your role.';
+
+  @override
+  String get addToCv => 'Add to my CV';
+
+  @override
+  String get newProjectTitle => 'New project';
+
+  @override
+  String get projectRecordLabel => 'PROJECT RECORD';
+
+  @override
+  String get draftStamp => 'REV A · DRAFT';
+
+  @override
+  String get sharedRecordStamp => 'SHARED RECORD · NO OWNER';
+
+  @override
+  String get cellProjectName => 'PROJECT NAME';
+
+  @override
+  String get cellType => 'TYPE';
+
+  @override
+  String get cellLocation => 'LOCATION';
+
+  @override
+  String get cellStarted => 'STARTED';
+
+  @override
+  String get cellEnded => 'ENDED';
+
+  @override
+  String get cellYourRole => 'YOUR ROLE';
+
+  @override
+  String get choose => 'Choose';
+
+  @override
+  String get newProjectNote =>
+      'This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.';
+
+  @override
+  String get projectNameRequired => 'Write the project name.';
+
+  @override
+  String get projectTypeRequired => 'Choose the type.';
+
+  @override
+  String get projectNameHint => 'e.g. Al Kout Mall Phase 2';
+
+  @override
+  String get projectTitle => 'Project';
+
+  @override
+  String get projectNoOwnerNote =>
+      'Anyone can put this project on their CV. Nobody owns it; corrections are checked by BuildVibes.';
+
+  @override
+  String get suggestEdit => 'Suggest an edit';
+
+  @override
+  String get onYourCv => 'ON YOUR CV';
+
+  @override
+  String get peopleOnProject => 'PEOPLE WHO PUT IT ON THEIR CV';
+
+  @override
+  String get peopleOnProjectNote =>
+      'Only people who chose to show it on their profile.';
+
+  @override
+  String get peopleOnProjectEmpty => 'Nobody else has shown it yet.';
+
+  @override
+  String suggestTitle(String project) {
+    return 'Suggest an edit to $project';
+  }
+
+  @override
+  String get suggestBody =>
+      'Nobody owns this record, so BuildVibes checks every change. People who listed it are told when it changes.';
+
+  @override
+  String get whatsWrong => 'WHAT\'S WRONG';
+
+  @override
+  String get wrongName => 'Name';
+
+  @override
+  String get wrongType => 'Type';
+
+  @override
+  String get wrongLocation => 'Location';
+
+  @override
+  String get wrongDates => 'Dates';
+
+  @override
+  String get wrongDuplicate => 'It\'s a duplicate';
+
+  @override
+  String get correctValue => 'Correct value';
+
+  @override
+  String get correctValueHelp =>
+      'Add a source if you have one, such as a site board photo.';
+
+  @override
+  String get correctValueRequired => 'Write the correct value.';
+
+  @override
+  String get sendForReview => 'Send for review';
+
+  @override
+  String get suggestionSent => 'Thanks. We\'ll check it.';
+
+  @override
+  String get monthPickerPresent => 'Still going';
 }

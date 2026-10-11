@@ -492,4 +492,403 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signOut => 'تسجيل الخروج';
+
+  @override
+  String profileFollowers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count متابع',
+      many: '$count متابعًا',
+      few: '$count متابعين',
+      two: 'متابعان',
+      one: 'متابع واحد',
+      zero: 'لا متابعين',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileFollowing(int count) {
+    return 'يتابع $count';
+  }
+
+  @override
+  String get profileEdit => 'تعديل الملف';
+
+  @override
+  String get profileTabOverview => 'نظرة عامة';
+
+  @override
+  String get profileTabPosts => 'المنشورات';
+
+  @override
+  String get profileTabProjects => 'المشاريع';
+
+  @override
+  String get profileTabExperience => 'الخبرات';
+
+  @override
+  String get proofLabel => 'الإثبات · أين تم التأكيد';
+
+  @override
+  String get proofConfirmed => 'مؤكَّد';
+
+  @override
+  String get proofWaiting => 'بانتظار التأكيد';
+
+  @override
+  String get proofEmptyTitle => 'أضف مشروعاً لتبدأ إثباتك';
+
+  @override
+  String get proofEmptyBody =>
+      'تظهر هنا المشاريع في سيرتك، ويؤكدها زملاؤك في مساحاتك.';
+
+  @override
+  String get finishProfileTitle => 'أكمل ملفك';
+
+  @override
+  String finishProfileProgress(int done, int total) {
+    return '$done من $total مكتملة';
+  }
+
+  @override
+  String get openToTitle => 'منفتح على';
+
+  @override
+  String get openToContract => 'عقد';
+
+  @override
+  String get openToConsulting => 'استشارات';
+
+  @override
+  String get openToFullTime => 'دوام كامل';
+
+  @override
+  String get openToPartTime => 'دوام جزئي';
+
+  @override
+  String get openToMentoring => 'إرشاد';
+
+  @override
+  String get openToOnlyYou => 'أنت فقط ترى هذا.';
+
+  @override
+  String get openToConnectionsOnly => 'جهات اتصالك فقط ترى هذا.';
+
+  @override
+  String get profileAbout => 'نبذة';
+
+  @override
+  String get profileSeeAllProjects => 'كل المشاريع';
+
+  @override
+  String get workDeliveredTitle => 'العمل الذي سلّمته';
+
+  @override
+  String get workDeliveredVisitorTitle => 'العمل المُسلَّم';
+
+  @override
+  String get workDeliveredBody =>
+      'أنت تختار ما يظهر. فقط البنود التي تم فحصها وإغلاقها في مساحة.';
+
+  @override
+  String get workDeliveredEmpty => 'لا شيء تم فحصه بعد.';
+
+  @override
+  String get experienceEmpty => 'لم تُضف خبرة بعد.';
+
+  @override
+  String get projectsEmpty => 'لا مشاريع في السيرة بعد.';
+
+  @override
+  String get postsEmpty => 'لا منشورات بعد.';
+
+  @override
+  String get present => 'حتى الآن';
+
+  @override
+  String expectedMonth(String month) {
+    return 'متوقع $month';
+  }
+
+  @override
+  String dateRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get profileMore => 'المزيد';
+
+  @override
+  String blockPerson(String name) {
+    return 'حظر $name';
+  }
+
+  @override
+  String blockConfirmTitle(String name) {
+    return 'حظر $name؟';
+  }
+
+  @override
+  String get blockConfirmBody =>
+      'لن يرى أحدكما ملف الآخر، وتُزال المتابعات بينكما. ولن يتم إبلاغه.';
+
+  @override
+  String get block => 'حظر';
+
+  @override
+  String get profileNotFound => 'هذا الملف غير متاح.';
+
+  @override
+  String get settingsTitle => 'الإعدادات';
+
+  @override
+  String get saved => 'تم الحفظ';
+
+  @override
+  String get editBasics => 'الاسم والصورة والمسمى';
+
+  @override
+  String get editAboutEmpty => 'أضف بضعة أسطر عن عملك';
+
+  @override
+  String get editProjectsSub => 'الظهور لكل مشروع';
+
+  @override
+  String get editOpenToEmpty => 'اذكر ما أنت منفتح عليه';
+
+  @override
+  String get headline => 'المسمى';
+
+  @override
+  String get headlineHint => 'مثال: مدير BIM';
+
+  @override
+  String get addPhoto => 'أضف صورة';
+
+  @override
+  String get changePhoto => 'تغيير الصورة';
+
+  @override
+  String get removePhoto => 'إزالة الصورة';
+
+  @override
+  String get placeLabel => 'المدينة أو المنطقة';
+
+  @override
+  String get placeOptional => 'المدينة أو المنطقة (اختياري)';
+
+  @override
+  String get aboutHint => 'ماذا تعمل، وفي أي نوع من المشاريع؟';
+
+  @override
+  String get experienceAdd => 'إضافة خبرة';
+
+  @override
+  String get experienceEdit => 'تعديل الخبرة';
+
+  @override
+  String get titleLabel => 'المسمى';
+
+  @override
+  String get titleRequired => 'اكتب المسمى.';
+
+  @override
+  String get startedLabel => 'البداية';
+
+  @override
+  String get endedLabel => 'النهاية';
+
+  @override
+  String get startRequired => 'اختر تاريخ البداية.';
+
+  @override
+  String get whoCanSee => 'من يمكنه رؤية هذا';
+
+  @override
+  String get visibilityEveryone => 'الجميع';
+
+  @override
+  String get visibilityEveryoneSub => 'أي شخص مسجّل في BuildVibes.';
+
+  @override
+  String get visibilityConnections => 'جهات الاتصال فقط';
+
+  @override
+  String get visibilityConnectionsSub => 'من تتابعهم ويتابعونك.';
+
+  @override
+  String get visibilityOnlyMe => 'أنا فقط';
+
+  @override
+  String get visibilityOnlyMeSub => 'لا يراه أحد غيرك.';
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String get openToNote => 'ملاحظة قصيرة (اختياري)';
+
+  @override
+  String get openToNoteHint => 'مثال: متاح من الشهر القادم';
+
+  @override
+  String get cvShowOnProfile => 'إظهار في ملفي';
+
+  @override
+  String get addProject => 'إضافة مشروع';
+
+  @override
+  String get projectSearchHint => 'اسم المشروع';
+
+  @override
+  String get addProjectIntro =>
+      'سجل واحد لكل مشروع، ليظهر كل من عمل فيه في مكان واحد.';
+
+  @override
+  String get matchSameName => 'الاسم نفسه';
+
+  @override
+  String get matchSameSite => 'الموقع نفسه';
+
+  @override
+  String get thisIsIt => 'هذا هو · أضفه إلى سيرتي';
+
+  @override
+  String get startNewRecord => 'ليس أيّاً منها؟ ابدأ سجلاً جديداً';
+
+  @override
+  String get startNewRecordSub =>
+      'الاسم والنوع والتواريخ ودورك. دقيقة تقريباً.';
+
+  @override
+  String get onYourCvBadge => 'في سيرتك';
+
+  @override
+  String cvEntryTitle(String project) {
+    return 'دورك في $project';
+  }
+
+  @override
+  String get yourRole => 'دورك';
+
+  @override
+  String get roleTitleRequired => 'اكتب دورك.';
+
+  @override
+  String get addToCv => 'أضف إلى سيرتي';
+
+  @override
+  String get newProjectTitle => 'مشروع جديد';
+
+  @override
+  String get projectRecordLabel => 'سجل المشروع';
+
+  @override
+  String get draftStamp => 'إصدار أ · مسودة';
+
+  @override
+  String get sharedRecordStamp => 'سجل مشترك · بلا مالك';
+
+  @override
+  String get cellProjectName => 'اسم المشروع';
+
+  @override
+  String get cellType => 'النوع';
+
+  @override
+  String get cellLocation => 'الموقع';
+
+  @override
+  String get cellStarted => 'البداية';
+
+  @override
+  String get cellEnded => 'النهاية';
+
+  @override
+  String get cellYourRole => 'دورك';
+
+  @override
+  String get choose => 'اختر';
+
+  @override
+  String get newProjectNote =>
+      'هذا يعرّف المشروع ويضعه في سيرتك بدورك. لا أحد يملك المشروع، ويمكن لكل من عمل فيه إضافته إلى سيرته.';
+
+  @override
+  String get projectNameRequired => 'اكتب اسم المشروع.';
+
+  @override
+  String get projectTypeRequired => 'اختر النوع.';
+
+  @override
+  String get projectNameHint => 'مثال: مجمع الكوت المرحلة 2';
+
+  @override
+  String get projectTitle => 'المشروع';
+
+  @override
+  String get projectNoOwnerNote =>
+      'يمكن لأي شخص وضع هذا المشروع في سيرته. لا أحد يملكه، وتراجع BuildVibes التصحيحات.';
+
+  @override
+  String get suggestEdit => 'اقترح تعديلاً';
+
+  @override
+  String get onYourCv => 'في سيرتك';
+
+  @override
+  String get peopleOnProject => 'أشخاص وضعوه في سيرتهم';
+
+  @override
+  String get peopleOnProjectNote => 'فقط من اختاروا إظهاره في ملفهم.';
+
+  @override
+  String get peopleOnProjectEmpty => 'لم يُظهره أحد غيرك بعد.';
+
+  @override
+  String suggestTitle(String project) {
+    return 'اقترح تعديلاً على $project';
+  }
+
+  @override
+  String get suggestBody =>
+      'لا أحد يملك هذا السجل، لذا تراجع BuildVibes كل تغيير، ويُبلَّغ من أدرجوه عند تغييره.';
+
+  @override
+  String get whatsWrong => 'ما الخطأ';
+
+  @override
+  String get wrongName => 'الاسم';
+
+  @override
+  String get wrongType => 'النوع';
+
+  @override
+  String get wrongLocation => 'الموقع';
+
+  @override
+  String get wrongDates => 'التواريخ';
+
+  @override
+  String get wrongDuplicate => 'إنه مكرر';
+
+  @override
+  String get correctValue => 'القيمة الصحيحة';
+
+  @override
+  String get correctValueHelp => 'أضف مصدراً إن وُجد، مثل صورة لوحة الموقع.';
+
+  @override
+  String get correctValueRequired => 'اكتب القيمة الصحيحة.';
+
+  @override
+  String get sendForReview => 'إرسال للمراجعة';
+
+  @override
+  String get suggestionSent => 'شكراً، سنراجعه.';
+
+  @override
+  String get monthPickerPresent => 'مستمر حتى الآن';
 }

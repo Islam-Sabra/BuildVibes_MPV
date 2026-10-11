@@ -150,9 +150,9 @@ class MyProfile {
 
   /// What shows under the name: the person's own words, or the trade.
   String? roleLabel(String languageCode) {
-    if (tradeId == Trade.otherId && (headline ?? '').isNotEmpty) {
-      return headline;
-    }
+    // The headline when set ("BIM Manager"), otherwise the trade.
+    if ((headline ?? '').trim().isNotEmpty) return headline;
+    if (tradeId == Trade.otherId) return null;
     final name = tradeName;
     if (name == null) return headline;
     return languageCode == 'ar' ? name.ar : name.en;
@@ -225,9 +225,9 @@ class PersonSuggestion {
   String get fullName => '$firstName $lastName'.trim();
 
   String? roleLabel(String languageCode) {
-    if (tradeId == Trade.otherId && (headline ?? '').isNotEmpty) {
-      return headline;
-    }
+    // The headline when set ("BIM Manager"), otherwise the trade.
+    if ((headline ?? '').trim().isNotEmpty) return headline;
+    if (tradeId == Trade.otherId) return null;
     final name = tradeName;
     if (name == null) return headline;
     return languageCode == 'ar' ? name.ar : name.en;

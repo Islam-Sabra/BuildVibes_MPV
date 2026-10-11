@@ -66,6 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Profile photo (Edit profile). -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose a photo for your BuildVibes profile.</string>
 	<!-- Google and Apple sign-in return here (Supabase redirect). -->
 	<key>CFBundleURLTypes</key>
 	<array>

@@ -7,7 +7,7 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
 |---|---|---|---|
 | 1 | 11–17 Oct | Audit the old app. Set up the new app, backend and repo. Data model and permission rules | Audit done. Flutter project, dependencies, fonts, theme, English/Arabic and the 5-tab shell done. Review 01 applied and pushed. Components done. Supabase linked; migrations 1 and 2 live |
 | 2 | 18–24 Oct | BV components in Flutter. Sign-up and sign-in (phone, Google, Apple, email code) | Components done (week 1). Sign-up, sign-in and onboarding done; Google/Apple built but hidden until keys; email codes wait for an email sender |
-| 3 | 25–31 Oct | Profile, project records, "Is it already here?", Add to my CV | — |
+| 3 | 25–31 Oct | Profile, project records, "Is it already here?", Add to my CV | Done early (11 Oct) |
 | 4 | 1–7 Nov | Spaces: create, link a project, invite link and code, join requests, passes, Teams | — |
 | 5 | 8–14 Nov | Work items: create, Needs you, sign as done with a photo, check or send back, filters | — |
 | 6 | 15–21 Nov | Space chat (live), item cards in chat, Library and file preview | — |
@@ -30,7 +30,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects (pushed with the founder's yes, 11 Oct) |
+| Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
 - **11 Oct:**
@@ -82,8 +83,18 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - An email sender (SMTP) so email codes work: Supabase's free built-in sender can't send codes, only links.
     - The real phone code provider (WhatsApp or SMS), before the week 9 test. When it is set, make the SMS code last 10 minutes to match the screen text.
     - Google and Apple provider keys.
+  - Review 03 applied: audience card wording, onboarding skips an empty step 2, live settings listed above; changing live settings now always waits for the founder's yes.
+  - Task 10 done: profiles and project records (design: `docs/design/profile/`).
+    - Own profile (R1): header with follower counts, proof card (each CV project Confirmed or Waiting, no totals), Finish your profile, Open to, About, Projects, Experience, Work you delivered (empty until week 5), tabs. Settings moved behind the gear (language, sign out, Components in debug).
+    - Visitor profile (R5): Follow / Following, "…" with Block (asks first). Only what the person chose to show. Message, recommendations, credentials and the CV PDF are not in the MVP and are left out.
+    - Edit profile (R8): name, photo and headline (photo upload, role, company, city or area); About; Experience (months, Everyone / Connections only / Only me); Projects (show or hide each); Open to.
+    - Projects: "Is it already here?" (P13) → "This is it · add to my CV", or a new record (P14, title block) → Add to my CV. Project sheet (PJ1): title block, your CV entry, people who show it, Suggest an edit (PJ1-E, stored for back-office review).
+    - Migration 4: profile_open_to, projects (created only by `create_project`, no edits from the app), project_edit_suggestions, cv_projects, cv_project_confirmations, `find_similar_projects`, avatars bucket. Projects keep months (the design shows "Mar 2023"), not only years.
+    - Share profile is built but hidden until a web page opens shared profiles (founder decision).
+    - Fixes found on the emulator: Open to save was refused (upsert wrote a locked column); CV people query was ambiguous; places listed with each city's areas ("Salmiya · Hawalli"); a signed-in, onboarded person could land on About you after signing in; English text written by people now keeps its punctuation in the Arabic app; save errors are now shown.
+    - 237 Flutter tests and 109 SQL tests pass. Screenshots in English and Arabic are in `docs/screens/` (not committed).
 
 ## Next tasks (in order)
-1. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, sign-in code channel, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
-2. Migration 3 for projects (data-model §4) becomes migration 4: projects, edit suggestions, CV projects, "Is it already here?".
-3. Profile with proof (week 3).
+1. Decision 04: sign-in by email code only (Resend from aecox.com). Phone screens behind a flag; About you gets an optional mobile number. Live settings need the founder's yes.
+2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
+3. Spaces (week 4): create, link a project, invite link and code, join requests, passes, Teams. Teammate confirmations for CV projects come with it.

@@ -973,6 +973,732 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get signOut;
+
+  /// Follower count on a profile (allowed by the founder).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 follower} other{{count} followers}}'**
+  String profileFollowers(int count);
+
+  /// Following count on your own profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} following'**
+  String profileFollowing(int count);
+
+  /// Button and screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get profileEdit;
+
+  /// Profile tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get profileTabOverview;
+
+  /// Profile tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get profileTabPosts;
+
+  /// Profile tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get profileTabProjects;
+
+  /// Profile tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience'**
+  String get profileTabExperience;
+
+  /// Proof card label. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'PROOF · WHERE IT\'S CONFIRMED'**
+  String get proofLabel;
+
+  /// A CV project confirmed by a teammate.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get proofConfirmed;
+
+  /// A CV project not confirmed yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get proofWaiting;
+
+  /// Proof card with no projects.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a project to start your proof'**
+  String get proofEmptyTitle;
+
+  /// Proof card with no projects.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects on your CV show here. Teammates in your Spaces confirm them.'**
+  String get proofEmptyBody;
+
+  /// Own profile row.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish your profile'**
+  String get finishProfileTitle;
+
+  /// Own profile row.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String finishProfileProgress(int done, int total);
+
+  /// Profile section.
+  ///
+  /// In en, this message translates to:
+  /// **'Open to'**
+  String get openToTitle;
+
+  /// Open to option.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get openToContract;
+
+  /// Open to option.
+  ///
+  /// In en, this message translates to:
+  /// **'Consulting'**
+  String get openToConsulting;
+
+  /// Open to option.
+  ///
+  /// In en, this message translates to:
+  /// **'Full-time role'**
+  String get openToFullTime;
+
+  /// Open to option.
+  ///
+  /// In en, this message translates to:
+  /// **'Part-time'**
+  String get openToPartTime;
+
+  /// Open to option.
+  ///
+  /// In en, this message translates to:
+  /// **'Mentoring'**
+  String get openToMentoring;
+
+  /// Open to visibility note.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you see this.'**
+  String get openToOnlyYou;
+
+  /// Open to visibility note.
+  ///
+  /// In en, this message translates to:
+  /// **'Only your connections see this.'**
+  String get openToConnectionsOnly;
+
+  /// Profile section.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get profileAbout;
+
+  /// Link to the Projects tab.
+  ///
+  /// In en, this message translates to:
+  /// **'See all projects'**
+  String get profileSeeAllProjects;
+
+  /// Own profile section.
+  ///
+  /// In en, this message translates to:
+  /// **'Work you delivered'**
+  String get workDeliveredTitle;
+
+  /// Visitor profile section.
+  ///
+  /// In en, this message translates to:
+  /// **'Work delivered'**
+  String get workDeliveredVisitorTitle;
+
+  /// Own profile section.
+  ///
+  /// In en, this message translates to:
+  /// **'You choose what shows. Only items checked and closed in a Space.'**
+  String get workDeliveredBody;
+
+  /// Work delivered empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing checked yet.'**
+  String get workDeliveredEmpty;
+
+  /// Empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'No experience added yet.'**
+  String get experienceEmpty;
+
+  /// Empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'No projects on the CV yet.'**
+  String get projectsEmpty;
+
+  /// Empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts yet.'**
+  String get postsEmpty;
+
+  /// Open end of a date range.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get present;
+
+  /// Forecast end date.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected {month}'**
+  String expectedMonth(String month);
+
+  /// A date range.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end}'**
+  String dateRange(String start, String end);
+
+  /// Overflow menu.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get profileMore;
+
+  /// Overflow action.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}'**
+  String blockPerson(String name);
+
+  /// Confirm sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String blockConfirmTitle(String name);
+
+  /// Confirm sheet body.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t see each other\'s profiles, and follows between you are removed. They aren\'t told.'**
+  String get blockConfirmBody;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get block;
+
+  /// Missing or blocked profile.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile isn\'t available.'**
+  String get profileNotFound;
+
+  /// Screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// Confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get saved;
+
+  /// Edit profile row.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, photo and headline'**
+  String get editBasics;
+
+  /// Edit profile row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a few lines about your work'**
+  String get editAboutEmpty;
+
+  /// Edit profile row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility per project'**
+  String get editProjectsSub;
+
+  /// Edit profile row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what you\'re open to'**
+  String get editOpenToEmpty;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Headline'**
+  String get headline;
+
+  /// Field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. BIM Manager'**
+  String get headlineHint;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get addPhoto;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get changePhoto;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhoto;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'City or area'**
+  String get placeLabel;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'City or area (optional)'**
+  String get placeOptional;
+
+  /// About field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you do, and on which kind of projects?'**
+  String get aboutHint;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add experience'**
+  String get experienceAdd;
+
+  /// Screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit experience'**
+  String get experienceEdit;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get titleLabel;
+
+  /// Validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the title.'**
+  String get titleRequired;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get startedLabel;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get endedLabel;
+
+  /// Validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose when it started.'**
+  String get startRequired;
+
+  /// Visibility section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can see this'**
+  String get whoCanSee;
+
+  /// Visibility option.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get visibilityEveryone;
+
+  /// Visibility option.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone signed in to BuildVibes.'**
+  String get visibilityEveryoneSub;
+
+  /// Visibility option.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections only'**
+  String get visibilityConnections;
+
+  /// Visibility option.
+  ///
+  /// In en, this message translates to:
+  /// **'People you follow who follow you back.'**
+  String get visibilityConnectionsSub;
+
+  /// Visibility option.
+  ///
+  /// In en, this message translates to:
+  /// **'Only me'**
+  String get visibilityOnlyMe;
+
+  /// Visibility option.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody else can see it.'**
+  String get visibilityOnlyMeSub;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'A short note (optional)'**
+  String get openToNote;
+
+  /// Field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Available from next month'**
+  String get openToNoteHint;
+
+  /// Switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on my profile'**
+  String get cvShowOnProfile;
+
+  /// Button and screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a project'**
+  String get addProject;
+
+  /// Search placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name'**
+  String get projectSearchHint;
+
+  /// P13 intro.
+  ///
+  /// In en, this message translates to:
+  /// **'One record per project, so everyone who worked on it shows up in one place.'**
+  String get addProjectIntro;
+
+  /// Match reason. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'SAME NAME'**
+  String get matchSameName;
+
+  /// Match reason. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'SAME SITE'**
+  String get matchSameSite;
+
+  /// P13 button.
+  ///
+  /// In en, this message translates to:
+  /// **'This is it · add to my CV'**
+  String get thisIsIt;
+
+  /// P13 card.
+  ///
+  /// In en, this message translates to:
+  /// **'None of these? Start a new record'**
+  String get startNewRecord;
+
+  /// P13 card.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, type, dates and your role. About a minute.'**
+  String get startNewRecordSub;
+
+  /// Badge on a match already on your CV.
+  ///
+  /// In en, this message translates to:
+  /// **'On your CV'**
+  String get onYourCvBadge;
+
+  /// CV entry sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your role on {project}'**
+  String cvEntryTitle(String project);
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Your role'**
+  String get yourRole;
+
+  /// Validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your role.'**
+  String get roleTitleRequired;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my CV'**
+  String get addToCv;
+
+  /// P14 title.
+  ///
+  /// In en, this message translates to:
+  /// **'New project'**
+  String get newProjectTitle;
+
+  /// Title block header. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'PROJECT RECORD'**
+  String get projectRecordLabel;
+
+  /// Title block stamp. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'REV A · DRAFT'**
+  String get draftStamp;
+
+  /// Title block stamp. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'SHARED RECORD · NO OWNER'**
+  String get sharedRecordStamp;
+
+  /// Title block cell. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'PROJECT NAME'**
+  String get cellProjectName;
+
+  /// Title block cell.
+  ///
+  /// In en, this message translates to:
+  /// **'TYPE'**
+  String get cellType;
+
+  /// Title block cell.
+  ///
+  /// In en, this message translates to:
+  /// **'LOCATION'**
+  String get cellLocation;
+
+  /// Title block cell.
+  ///
+  /// In en, this message translates to:
+  /// **'STARTED'**
+  String get cellStarted;
+
+  /// Title block cell.
+  ///
+  /// In en, this message translates to:
+  /// **'ENDED'**
+  String get cellEnded;
+
+  /// Title block cell.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR ROLE'**
+  String get cellYourRole;
+
+  /// Empty title block cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get choose;
+
+  /// P14 note.
+  ///
+  /// In en, this message translates to:
+  /// **'This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.'**
+  String get newProjectNote;
+
+  /// Validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the project name.'**
+  String get projectNameRequired;
+
+  /// Validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the type.'**
+  String get projectTypeRequired;
+
+  /// Field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Al Kout Mall Phase 2'**
+  String get projectNameHint;
+
+  /// PJ1 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get projectTitle;
+
+  /// PJ1 note.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone can put this project on their CV. Nobody owns it; corrections are checked by BuildVibes.'**
+  String get projectNoOwnerNote;
+
+  /// Link.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest an edit'**
+  String get suggestEdit;
+
+  /// PJ1 section. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'ON YOUR CV'**
+  String get onYourCv;
+
+  /// PJ1 section. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'PEOPLE WHO PUT IT ON THEIR CV'**
+  String get peopleOnProject;
+
+  /// PJ1 note.
+  ///
+  /// In en, this message translates to:
+  /// **'Only people who chose to show it on their profile.'**
+  String get peopleOnProjectNote;
+
+  /// PJ1 empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody else has shown it yet.'**
+  String get peopleOnProjectEmpty;
+
+  /// Sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest an edit to {project}'**
+  String suggestTitle(String project);
+
+  /// Sheet body.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody owns this record, so BuildVibes checks every change. People who listed it are told when it changes.'**
+  String get suggestBody;
+
+  /// Sheet section. Capitals in English.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT\'S WRONG'**
+  String get whatsWrong;
+
+  /// Chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get wrongName;
+
+  /// Chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get wrongType;
+
+  /// Chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get wrongLocation;
+
+  /// Chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get wrongDates;
+
+  /// Chip.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a duplicate'**
+  String get wrongDuplicate;
+
+  /// Field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct value'**
+  String get correctValue;
+
+  /// Field helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a source if you have one, such as a site board photo.'**
+  String get correctValueHelp;
+
+  /// Validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the correct value.'**
+  String get correctValueRequired;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send for review'**
+  String get sendForReview;
+
+  /// Confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks. We\'ll check it.'**
+  String get suggestionSent;
+
+  /// Month sheet option.
+  ///
+  /// In en, this message translates to:
+  /// **'Still going'**
+  String get monthPickerPresent;
 }
 
 class _AppLocalizationsDelegate

@@ -227,8 +227,16 @@ class FakeProfileRepository implements ProfileRepository {
   final follows = <String>{};
   AboutYouInput? lastSaved;
 
+  /// How long fetchMine takes, like a real network call.
+  Duration fetchDelay = Duration.zero;
+
   @override
-  Future<MyProfile?> fetchMine(String userId) async => profiles.putIfAbsent(
+  Future<MyProfile?> fetchMine(String userId) async {
+    if (fetchDelay > Duration.zero) await Future<void>.delayed(fetchDelay);
+    return _fetchMine(userId);
+  }
+
+  MyProfile? _fetchMine(String userId) => profiles.putIfAbsent(
     userId,
     () => MyProfile(id: userId, firstName: '', lastName: '', locale: 'en'),
   );
@@ -289,6 +297,24 @@ MyProfile completeProfile(String id) => const MyProfile(
   tradeId: 'site_engineer',
   homeMarketId: 'kw',
 ).copyWithId(id);
+
+extension MyProfileCopy on MyProfile {
+  MyProfile copyWithNames(String first, String last, {String? tradeId}) =>
+      MyProfile(
+        id: id,
+        firstName: first,
+        lastName: last,
+        locale: locale,
+        tradeId: tradeId ?? this.tradeId,
+        tradeName: tradeName,
+        headline: headline,
+        homeMarketId: homeMarketId,
+        placeId: placeId,
+        companyId: companyId,
+        companyName: companyName,
+        companyNameText: companyNameText,
+      );
+}
 
 extension on MyProfile {
   MyProfile copyWithId(String id) => MyProfile(

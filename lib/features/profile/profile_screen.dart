@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,16 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
-import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/profile_page_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_button.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
-import '../settings/language_sheet.dart';
+import 'widgets/profile_body.dart';
+import 'widgets/profile_parts.dart';
 
-/// Placeholder until the profile is built (week 3). Holds the language
-/// switch, sign out and, in debug builds only, the Components gallery.
-/// Guests see a prompt to join.
+/// R1 · Your own profile. Guests see a prompt to join instead.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -23,59 +21,80 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
+    final me = ref.watch(authUserIdProvider).value;
     final guest = ref.watch(appGateProvider) == AppGate.guest;
-    final languageName = Localizations.localeOf(context).languageCode == 'ar'
-        ? l10n.languageArabic
-        : l10n.languageEnglish;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.navProfile)),
-      body: ListView(
-        children: [
-          if (guest)
-            Padding(
+    final settings = IconButton(
+      key: const Key('profile-settings'),
+      tooltip: l10n.settingsTitle,
+      icon: const Icon(BvIcons.settings),
+      onPressed: () => context.push(AppRoutes.profileSettings),
+    );
+
+    if (guest || me == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.navProfile), actions: [settings]),
+        body: ListView(
+          padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+          children: [
+            Column(
               key: const Key('guest-card'),
-              padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: BvSpace.s12,
-                children: [
-                  Text(l10n.guestProfileTitle, style: type.titleLg),
-                  Text(
-                    l10n.joinWallBody,
-                    style: type.bodyMd.copyWith(color: BvColors.textSecondary),
-                  ),
-                  const JoinButtons(),
-                ],
-              ),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: BvSpace.s12,
+              children: [
+                Text(l10n.guestProfileTitle, style: type.titleLg),
+                Text(
+                  l10n.joinWallBody,
+                  style: type.bodyMd.copyWith(color: BvColors.textSecondary),
+                ),
+                const JoinButtons(),
+              ],
             ),
-          BvListGroup(
-            rows: [
-              BvListRow(
-                key: const Key('row-language'),
-                leading: const BvRowIcon(BvIcons.language),
-                title: l10n.settingsLanguage,
-                trailing: BvRowTrailing.value(languageName),
-                onTap: () => showLanguageSheet(context),
-              ),
-              if (kDebugMode)
-                BvListRow(
-                  key: const Key('row-components'),
-                  leading: const BvRowIcon(BvIcons.settings),
-                  title: l10n.componentsGallery,
-                  onTap: () => context.push(AppRoutes.components),
-                ),
-              if (!guest)
-                BvListRow(
-                  key: const Key('row-sign-out'),
-                  leading: const BvRowIcon(BvIcons.signOut),
-                  title: l10n.signOut,
-                  trailing: const BvRowTrailing.none(),
-                  onTap: () => ref.read(authRepositoryProvider).signOut(),
-                ),
-            ],
+          ],
+        ),
+      );
+    }
+
+    final profile = ref.watch(profileViewProvider(me));
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.navProfile),
+        backgroundColor: BvColors.surfaceSubtle,
+        actions: [settings],
+      ),
+      body: profile.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => Center(
+          child: BvButton(
+            label: l10n.commonRetry,
+            style: BvButtonStyle.secondary,
+            onPressed: () => ref.invalidate(profileViewProvider(me)),
           ),
-        ],
+        ),
+        data: (p) => p == null
+            ? Center(child: EmptyNote(l10n.profileNotFound))
+            : RefreshIndicator(
+                onRefresh: () async => ref.invalidate(profileViewProvider(me)),
+                child: ListView(
+                  key: const Key('my-profile'),
+                  children: [
+                    ProfileHeader(
+                      profile: p,
+                      showFollowing: true,
+                      // Sharing waits for a web page that opens profiles.
+                      actions: BvButton(
+                        key: const Key('profile-edit'),
+                        label: l10n.profileEdit,
+                        style: BvButtonStyle.secondary,
+                        size: BvButtonSize.medium,
+                        expand: true,
+                        onPressed: () => context.push(AppRoutes.profileEdit),
+                      ),
+                    ),
+                    ProfileBody(profile: p, own: true),
+                  ],
+                ),
+              ),
       ),
     );
   }

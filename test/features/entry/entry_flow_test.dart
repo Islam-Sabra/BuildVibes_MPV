@@ -79,6 +79,34 @@ void main() {
       expect(find.byType(AboutYouScreen), findsOneWidget);
     });
 
+    testWidgets(
+      'an onboarded account signing in goes Home, not About you [$lang]',
+      (tester) async {
+        final auth = FakeAuthRepository()..existing.add('+96550000002');
+        // A real profile takes a moment to load; that gap caused the bug.
+        final profiles = FakeProfileRepository()
+          ..fetchDelay = const Duration(milliseconds: 300);
+        profiles.profiles[FakeAuthRepository.newUserId] = completeProfile(
+          FakeAuthRepository.newUserId,
+        );
+        await pumpApp(
+          tester,
+          language: lang,
+          signedIn: false,
+          auth: auth,
+          profiles: profiles,
+        );
+        await _tap(tester, 'welcome-sign-in');
+        await _tap(tester, 'join-phone');
+        await tester.enterText(find.byType(TextField), '50000002');
+        await _tap(tester, 'phone-send');
+        await tester.enterText(find.byKey(const Key('code-input')), '123456');
+        await tester.pumpAndSettle();
+        expect(find.byType(AboutYouScreen), findsNothing);
+        expect(find.byKey(const Key('nav-home')), findsOneWidget);
+      },
+    );
+
     testWidgets('a wrong code shows an error and stays [$lang]', (
       tester,
     ) async {
@@ -192,6 +220,7 @@ void main() {
     testWidgets('signing out returns to Welcome [$lang]', (tester) async {
       await pumpApp(tester, language: lang);
       await _tap(tester, 'nav-profile');
+      await _tap(tester, 'profile-settings');
       await _tap(tester, 'row-sign-out');
       expect(find.text(l10n.entryCreateAccount), findsOneWidget);
     });

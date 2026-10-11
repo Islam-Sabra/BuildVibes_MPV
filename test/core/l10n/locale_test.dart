@@ -24,6 +24,8 @@ void main() {
 
     await tester.tap(find.byKey(const Key('nav-profile')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('profile-settings')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('row-language')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('language-ar')));
