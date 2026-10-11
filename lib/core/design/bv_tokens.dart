@@ -11,8 +11,6 @@
 // - Light mode only for V1 (dark mode is deferred by the founder).
 // - The "Legacy / BV *" Figma collections are not used.
 
-import 'package:flutter/animation.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter/widgets.dart';
 
 /// Raw palette. Do not use in widgets; use [BvColors].
