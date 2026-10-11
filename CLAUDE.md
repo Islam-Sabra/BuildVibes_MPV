@@ -1,0 +1,95 @@
+# BuildVibes MVP — instructions for Claude
+
+Read this file first in every session. Then read `docs/progress.md` to see where the build stands.
+
+## What this is
+BuildVibes is a mobile-first professional network and site-work app for the whole AECO industry: engineers, BIM staff, site supervisors, foremen, trades, subcontractors, suppliers and labour.
+
+**MVP goal:** one real site team runs its daily work in a BuildVibes Space for four weeks from **1 January 2027**. Members get proof on their profile from work that was checked and closed.
+
+- **Founder:** Islam (BIM Manager, Kuwait). He decides business questions. Technical and product-design calls are Claude's, explained in plain words.
+- **Design source of truth:** Figma file `IcoK4u8JFO6K8l4YYiHNkm`, signed off on 11 Oct 2026.
+  - English: page "PROTOTYPE · Full app v1 · EN".
+  - Arabic: page "PROTOTYPE · Core journeys · AR".
+  - The prototype is frozen. If the code and the prototype disagree, the prototype wins, unless the founder says otherwise.
+- **Product docs:** `docs/product/`. Start with `mvp-plan.md`, `space-project-model.md`, `rules.md` and `arabic-glossary.md`.
+- **Old app, for reference only:** `D:\Projects\00 AECOX Technology\Build-Vibes` (GitHub `Islam-Sabra/Build-Vibes`). Port proven parts from it; never edit it. See `docs/product/codebase-audit.md`.
+
+## Scope
+**In the MVP:**
+- sign-up and sign-in, with no passwords;
+- Arabic and English, right to left;
+- profile with proof from closed work;
+- shared project records;
+- Spaces: join requests confirmed by the admin, Lead / Crew / Viewer passes, Teams, Chat, work items (Open → Done → Checked), Library;
+- Home feed and the Spaces tab;
+- Activity and push notifications;
+- report and block;
+- delete account.
+
+**Not in the MVP:** Jobs and hiring, company job management, Explore beyond people search, Notebook and Planner, community question Spaces, direct messages, CV import, connected accounts, paid plan, sponsored posts.
+
+Don't build out-of-scope features, even partly, without the founder's yes.
+
+## Product rules (from the founder; never break them)
+1. **No generic screens.** Every screen must feel premium (not luxury) and easy, and use the site-paperwork language from the prototype: site tags, stamps, sign-off strip, passes.
+2. **Whole-industry audience.** A foreman or electrician with a phone and basic reading must manage every main action in under a minute. Nothing may require a degree, an email, a long CV or English.
+3. **No misleading numbers.** No aggregate counts as quality signals: total results, projects built, member counts, years as a rank. Follower counts on profiles are allowed (founder decision, 11 Oct).
+4. **Disclosure by choice.**
+   - Business facts about companies are hidden unless the company admin publishes them.
+   - A company name typed by a person stays plain text unless it matches a registered company. Never create a company from typed text.
+5. **Market pack.** Nothing country-specific is typed into code or copy: country, city, currency, phone format, weekend, credential names, legal text. It all comes from market-pack data. Kuwait and Egypt are the first packs.
+6. **Choices that exclude each other** are one single-choice control, never separate switches.
+7. **No unnecessary settings.** Language has only two things: the app language, and the language each post is written in (with Translate).
+8. **Work stays in Spaces.** Work items never leave the Space. Public posts live in the Home feed and can be tagged to a project. A project has no owner and no admin.
+
+## How Claude works with the founder
+- When he asks a question, answer it. Don't change code in the same turn.
+- A bare "ok" means go with Claude's recommendation.
+- Bring him business decisions only, each with a recommendation. Decide technical matters yourself.
+- Be direct and structured, with no flattery. He writes in English or Egyptian/Gulf Arabic.
+- "Handoff" or "frozen" means don't change it until he says it's done.
+
+## Technical decisions (made; don't reopen without a reason)
+- **App:** Flutter (stable), Dart 3. State with `flutter_riverpod`, navigation with `go_router`, backend with `supabase_flutter`.
+- **Backend:** a new Supabase project, "BuildVibes MVP". Schema lives in `supabase/migrations/`.
+  - Every permission is enforced on the server with row-level security and Postgres functions, never only in the app.
+  - Space passes (Lead / Crew / Viewer) and admin rights are checked in SQL.
+- **Secrets:** never committed. Use `--dart-define-from-file=env/dev.json`; `env/*.json` is git-ignored and `env/example.json` documents the keys.
+- **Design tokens:** `lib/core/design/bv_tokens.dart`, generated from the Figma variables. Widgets never contain raw colours, font sizes or magic spacing numbers.
+- **Localisation:**
+  - `flutter gen-l10n` with ARB files in `lib/l10n/` (`app_en.arb`, `app_ar.arb`).
+  - No string is typed in a widget.
+  - Western digits in Arabic.
+  - Use `Directionality`-aware widgets (`EdgeInsetsDirectional`, `AlignmentDirectional`, `start`/`end`), never `left`/`right`.
+  - Arrow and chevron icons flip in right-to-left.
+- **Fonts:** Plus Jakarta Sans (Latin) and Noto Sans Arabic, in `assets/fonts/` (copy them from the old repo's `mobile/assets/fonts/`).
+- **Folders:**
+  - `lib/core/` (design, theme, routing, l10n, config, market pack)
+  - `lib/data/` (models, repositories, Supabase)
+  - `lib/features/<feature>/` (screens and widgets)
+  - `lib/shared/widgets/` (BV components: buttons, list rows, chips, site tag, stamp, sign-off strip, pass card, sheets)
+- **Components first:** build each Figma component once in `lib/shared/widgets/`, then compose screens from them.
+
+## Glossary (use these exact words)
+| English | Arabic |
+|---|---|
+| Space | مساحة |
+| Space admin | مدير المساحة |
+| Work item | بند عمل |
+| Owner of a work item | المكلّف |
+| Sign as done | وقّع كمنجز |
+| Done | منجز |
+| Checked | تم الفحص |
+| Send back | إرجاع |
+| Lead / Crew / Viewer | مسؤول / فريق تنفيذ / مُطّلع |
+| Pass | تصريح |
+| Needs you | بانتظارك |
+| Project record | سجل المشروع |
+
+## Definition of done for every task
+1. `flutter analyze` shows no issues, and `flutter test` passes.
+2. New logic has tests. Every new table has row-level security, and a test proves a non-member can't read or write it.
+3. The screen matches its Figma frame, in English and in Arabic, at 390×844.
+4. There are no hard-coded strings, colours, sizes or country facts.
+5. Commit in small steps with clear messages, then update `docs/progress.md`.
