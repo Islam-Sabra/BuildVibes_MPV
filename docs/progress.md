@@ -134,8 +134,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Profile proof rows now say who confirmed them: "Confirmed by Omar Haddad", or two names "and others" (never a count).
     - Checked live on the emulator: Omar added an About, created the MEP Team with Sami, deleted the test Space "Harbour Tower - Site team", transferred Salmiya Clinic to Sami and left it. Sami's profile shows "Confirmed by Omar Haddad". Review 06's emulator flow is complete.
     - 331 Flutter tests and 212 SQL tests pass. Screenshots (English and Arabic) in `docs/screens/`: S11k, S12, S15, S15b, S15c, S15k-I, S15k-N, S15d, S15e, the proof row, and the delete dialog (Arabic).
+- **12 Oct:**
+  - Review 08 part A applied: Arabic transfer title "نقل الإدارة إلى {name}؟"; the TEAMS chips on the member pass were checked live (they show once a Space has Teams).
+  - Week 5 (work items), database: migration 7 on branch `work-items-db` (pushed to GitHub, **not live**, waiting for the lead's review). Review 08 rules 1–12: Open → Done → Checked or sent back with a reason, functions only, append-only events, no self-check, KCT-001 references, needs_you(), public_shown_work, private bucket `space-files`. `supabase/tests/07_work_items.test.sql`: 65 checks; 277 in all.
+  - Week 5 part 1, app, on branch `work-items` (built on `work-items-db`, so main keeps matching the live project): the Work tab (S20). Project title block and privacy line, filters All · Mine · Open · To check · Checked, sections Needs you / Open / Checked this week, work item cards with the action the server says is yours (needs_you), New item for people who can raise items, empty states. My Spaces' "N needs you" now counts work items too. W2 and W3 are placeholders until part 2.
+  - Screenshots use the local Supabase on this computer (migration 7 isn't live): `env/local.json` (git-ignored), a debug-only Android setting for plain http to 10.0.2.2, and `supabase/dev/seed_work_items.sql` for test data.
+  - 346 Flutter tests and 277 SQL tests pass.
 
 ## Next tasks (in order)
-1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4). Next: week 5, work items in the Work tab (S20). Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
-2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
-3. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
+1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
+2. Week 5, work items: the lead reviews migration 7 (`work-items-db`); then the founder's yes to push it live and merge `work-items` into main. App part 2 next: New work item (W2) and the item page (W3a–g), then part 3: Sign as done (W4), Send back (W5), Check and close, shown work on the profile (RE1/RE2).
+3. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
+4. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.

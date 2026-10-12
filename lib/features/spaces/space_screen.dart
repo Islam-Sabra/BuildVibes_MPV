@@ -10,6 +10,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../profile/widgets/profile_parts.dart';
+import '../work/work_tab.dart';
 import 'people_tab.dart';
 import 'space_info_screen.dart';
 
@@ -133,6 +134,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         ),
       ),
       body: switch (_tab) {
+        SpaceScreen.workTab => WorkTab(space: detail),
         SpaceScreen.peopleTab => PeopleTab(space: detail),
         _ => Padding(
           padding: const EdgeInsetsDirectional.all(BvSpace.gutter),

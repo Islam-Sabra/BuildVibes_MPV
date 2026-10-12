@@ -38,6 +38,7 @@ import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
+import '../../features/work/work_item_screen.dart';
 import 'app_routes.dart';
 
 export 'app_routes.dart';
@@ -180,6 +181,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'transfer',
             builder: (context, state) =>
                 TransferScreen(spaceId: state.pathParameters['id']!),
+          ),
+          // "new" before ":itemId".
+          GoRoute(
+            path: 'items/new',
+            builder: (context, state) =>
+                NewWorkItemScreen(spaceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'items/:itemId',
+            builder: (context, state) => WorkItemScreen(
+              spaceId: state.pathParameters['id']!,
+              itemId: state.pathParameters['itemId']!,
+            ),
           ),
           // "new" before ":teamId".
           GoRoute(

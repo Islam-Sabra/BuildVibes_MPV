@@ -139,11 +139,11 @@ class _SpaceList extends ConsumerWidget {
                   subtitle: s.projectName == null
                       ? l10n.spacesPrivateWork
                       : joinMeta([s.projectName!, ?typeName(s.projectTypeId)]),
-                  trailing: s.pendingRequests > 0
+                  trailing: s.needsYou > 0
                       ? BvRowTrailing.badge(
                           BvBadge(
                             key: Key('space-needs-${s.id}'),
-                            label: l10n.spacesNeedsYou(s.pendingRequests),
+                            label: l10n.spacesNeedsYou(s.needsYou),
                             tone: BvBadgeTone.action,
                           ),
                         )

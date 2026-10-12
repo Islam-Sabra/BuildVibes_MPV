@@ -2815,6 +2815,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Make someone else an admin first, or delete the Space.'**
   String get spacesLastAdmin;
+
+  /// S20 privacy line.
+  ///
+  /// In en, this message translates to:
+  /// **'Members are people the Space admin confirmed. Nothing here is visible outside the Space.'**
+  String get workPrivacyLine;
+
+  /// S20 filter.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get workFilterAll;
+
+  /// S20 filter: items I own or raised.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get workFilterMine;
+
+  /// S20 filter (glossary: chips مفتوحة).
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get workFilterOpen;
+
+  /// S20 filter.
+  ///
+  /// In en, this message translates to:
+  /// **'To check'**
+  String get workFilterToCheck;
+
+  /// S20 filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get workFilterChecked;
+
+  /// S20 section.
+  ///
+  /// In en, this message translates to:
+  /// **'NEEDS YOU'**
+  String get workSectionNeedsYou;
+
+  /// S20 section: open, and done items waiting for someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN'**
+  String get workSectionOpen;
+
+  /// To check filter: done items others check.
+  ///
+  /// In en, this message translates to:
+  /// **'WAITING FOR A CHECK'**
+  String get workSectionWaitingCheck;
+
+  /// S20 section.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKED THIS WEEK'**
+  String get workSectionCheckedWeek;
+
+  /// Checked filter.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKED EARLIER'**
+  String get workSectionCheckedEarlier;
+
+  /// Card status.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN'**
+  String get workStatusOpen;
+
+  /// Card status.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN · DUE {date}'**
+  String workStatusOpenDue(String date);
+
+  /// Card status, past the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN · WAS DUE {date}'**
+  String workStatusOverdue(String date);
+
+  /// Card status.
+  ///
+  /// In en, this message translates to:
+  /// **'DONE · YOU CHECK IT'**
+  String get workStatusDoneYouCheck;
+
+  /// Card status.
+  ///
+  /// In en, this message translates to:
+  /// **'DONE · WAITING FOR A CHECK'**
+  String get workStatusDoneWaiting;
+
+  /// Card status.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKED · {date}'**
+  String workStatusChecked(String date);
+
+  /// Card people line.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner: you'**
+  String get workOwnerYou;
+
+  /// Card people line.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner: {name}'**
+  String workOwner(String name);
+
+  /// Card people line.
+  ///
+  /// In en, this message translates to:
+  /// **'from you'**
+  String get workFromYou;
+
+  /// Card people line.
+  ///
+  /// In en, this message translates to:
+  /// **'from {name}'**
+  String workFrom(String name);
+
+  /// Card people line, Checked.
+  ///
+  /// In en, this message translates to:
+  /// **'checked by {name}'**
+  String workCheckedByLine(String name);
+
+  /// Card evidence, Checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked by {name}'**
+  String workCheckedBy(String name);
+
+  /// Card evidence.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{No photo} =1{1 photo} other{{n} photos}}'**
+  String workPhotos(int n);
+
+  /// Card action (glossary).
+  ///
+  /// In en, this message translates to:
+  /// **'Sign as done'**
+  String get workSignAsDone;
+
+  /// Card action.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it'**
+  String get workCheckIt;
+
+  /// S20 button.
+  ///
+  /// In en, this message translates to:
+  /// **'New item'**
+  String get workNewItem;
+
+  /// S20 empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No work items yet'**
+  String get workEmptyTitle;
+
+  /// S20 empty, can create.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise the first one with New item. The owner signs it as done, then it\'s checked.'**
+  String get workEmptyCanCreate;
+
+  /// S20 empty, can't create.
+  ///
+  /// In en, this message translates to:
+  /// **'Items appear here when someone raises one for the team.'**
+  String get workEmptyCannot;
+
+  /// S20 empty Needs you.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs you right now.'**
+  String get workNothingNeedsYou;
+
+  /// S20 empty filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here.'**
+  String get workFilterEmpty;
 }
 
 class _AppLocalizationsDelegate

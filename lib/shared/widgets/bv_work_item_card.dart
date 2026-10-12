@@ -8,11 +8,15 @@ enum BvWorkStatus { open, done, checked, overdue }
 
 /// Evidence shown on Done and Checked items.
 class BvWorkEvidence {
-  const BvWorkEvidence({required this.text, this.photo});
+  const BvWorkEvidence({required this.text, this.photo, this.hasPhoto = true});
 
   /// Done: the quoted note. Checked: for example "Checked by Sara · 1 photo".
   final String text;
   final ImageProvider? photo;
+
+  /// False when the sign-off has no photo: no thumbnail is shown. While
+  /// [photo] loads, the thumbnail shows a placeholder.
+  final bool hasPhoto;
 }
 
 /// Spec §15: a work item in a list (Work tab, Needs you). The whole card is
@@ -24,7 +28,7 @@ class BvWorkItemCard extends StatelessWidget {
     required this.status,
     required this.statusLine,
     required this.title,
-    required this.place,
+    this.place,
     required this.people,
     this.evidence,
     this.actionLabel,
@@ -39,7 +43,9 @@ class BvWorkItemCard extends StatelessWidget {
   /// For example "OPEN · DUE SUN 12 OCT".
   final String statusLine;
   final String title;
-  final String place;
+
+  /// Where on site; the line is left out when empty.
+  final String? place;
 
   /// For example "Owner: you · from Sara Al-Mutairi".
   final String people;
@@ -116,12 +122,13 @@ class BvWorkItemCard extends StatelessWidget {
                 spacing: BvWorkItemCardSpec.bodyGap,
                 children: [
                   Text(title, style: type.titleMd),
-                  Text(
-                    place,
-                    style: type.metadata.copyWith(
-                      color: BvColors.textSecondary,
+                  if ((place ?? '').isNotEmpty)
+                    Text(
+                      place!,
+                      style: type.metadata.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
                     ),
-                  ),
                   Text(
                     people,
                     style: type.bodySm.copyWith(color: BvColors.textSecondary),
@@ -172,25 +179,26 @@ class _EvidenceRow extends StatelessWidget {
       key: const Key('work-evidence'),
       spacing: BvWorkItemCardSpec.evidenceGap,
       children: [
-        Container(
-          width: BvWorkItemCardSpec.thumbSize,
-          height: BvWorkItemCardSpec.thumbSize,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: BvColors.surfaceSubtle,
-            borderRadius: BvWorkItemCardSpec.thumbRadius,
-            image: evidence.photo == null
-                ? null
-                : DecorationImage(image: evidence.photo!, fit: BoxFit.cover),
+        if (evidence.hasPhoto)
+          Container(
+            width: BvWorkItemCardSpec.thumbSize,
+            height: BvWorkItemCardSpec.thumbSize,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: BvColors.surfaceSubtle,
+              borderRadius: BvWorkItemCardSpec.thumbRadius,
+              image: evidence.photo == null
+                  ? null
+                  : DecorationImage(image: evidence.photo!, fit: BoxFit.cover),
+            ),
+            child: evidence.photo == null
+                ? const Icon(
+                    BvIcons.image,
+                    size: BvSize.iconMd,
+                    color: BvColors.iconSecondary,
+                  )
+                : null,
           ),
-          child: evidence.photo == null
-              ? const Icon(
-                  BvIcons.image,
-                  size: BvSize.iconMd,
-                  color: BvColors.iconSecondary,
-                )
-              : null,
-        ),
         Expanded(
           child: Text(
             evidence.text,

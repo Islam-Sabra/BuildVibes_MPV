@@ -1587,4 +1587,126 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get spacesLastAdmin =>
       'Make someone else an admin first, or delete the Space.';
+
+  @override
+  String get workPrivacyLine =>
+      'Members are people the Space admin confirmed. Nothing here is visible outside the Space.';
+
+  @override
+  String get workFilterAll => 'All';
+
+  @override
+  String get workFilterMine => 'Mine';
+
+  @override
+  String get workFilterOpen => 'Open';
+
+  @override
+  String get workFilterToCheck => 'To check';
+
+  @override
+  String get workFilterChecked => 'Checked';
+
+  @override
+  String get workSectionNeedsYou => 'NEEDS YOU';
+
+  @override
+  String get workSectionOpen => 'OPEN';
+
+  @override
+  String get workSectionWaitingCheck => 'WAITING FOR A CHECK';
+
+  @override
+  String get workSectionCheckedWeek => 'CHECKED THIS WEEK';
+
+  @override
+  String get workSectionCheckedEarlier => 'CHECKED EARLIER';
+
+  @override
+  String get workStatusOpen => 'OPEN';
+
+  @override
+  String workStatusOpenDue(String date) {
+    return 'OPEN · DUE $date';
+  }
+
+  @override
+  String workStatusOverdue(String date) {
+    return 'OPEN · WAS DUE $date';
+  }
+
+  @override
+  String get workStatusDoneYouCheck => 'DONE · YOU CHECK IT';
+
+  @override
+  String get workStatusDoneWaiting => 'DONE · WAITING FOR A CHECK';
+
+  @override
+  String workStatusChecked(String date) {
+    return 'CHECKED · $date';
+  }
+
+  @override
+  String get workOwnerYou => 'Owner: you';
+
+  @override
+  String workOwner(String name) {
+    return 'Owner: $name';
+  }
+
+  @override
+  String get workFromYou => 'from you';
+
+  @override
+  String workFrom(String name) {
+    return 'from $name';
+  }
+
+  @override
+  String workCheckedByLine(String name) {
+    return 'checked by $name';
+  }
+
+  @override
+  String workCheckedBy(String name) {
+    return 'Checked by $name';
+  }
+
+  @override
+  String workPhotos(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n photos',
+      one: '1 photo',
+      zero: 'No photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workSignAsDone => 'Sign as done';
+
+  @override
+  String get workCheckIt => 'Check it';
+
+  @override
+  String get workNewItem => 'New item';
+
+  @override
+  String get workEmptyTitle => 'No work items yet';
+
+  @override
+  String get workEmptyCanCreate =>
+      'Raise the first one with New item. The owner signs it as done, then it\'s checked.';
+
+  @override
+  String get workEmptyCannot =>
+      'Items appear here when someone raises one for the team.';
+
+  @override
+  String get workNothingNeedsYou => 'Nothing needs you right now.';
+
+  @override
+  String get workFilterEmpty => 'Nothing here.';
 }

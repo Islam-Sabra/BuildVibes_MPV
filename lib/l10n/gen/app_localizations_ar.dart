@@ -1592,4 +1592,128 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesLastAdmin => 'اجعل شخصاً آخر مديراً أولاً، أو احذف المساحة.';
+
+  @override
+  String get workPrivacyLine =>
+      'الأعضاء أشخاص أكّدهم مدير المساحة. لا يظهر شيء هنا خارج المساحة.';
+
+  @override
+  String get workFilterAll => 'الكل';
+
+  @override
+  String get workFilterMine => 'الخاصة بي';
+
+  @override
+  String get workFilterOpen => 'مفتوحة';
+
+  @override
+  String get workFilterToCheck => 'للفحص';
+
+  @override
+  String get workFilterChecked => 'تم الفحص';
+
+  @override
+  String get workSectionNeedsYou => 'بانتظارك';
+
+  @override
+  String get workSectionOpen => 'مفتوحة';
+
+  @override
+  String get workSectionWaitingCheck => 'بانتظار الفحص';
+
+  @override
+  String get workSectionCheckedWeek => 'تم فحصها هذا الأسبوع';
+
+  @override
+  String get workSectionCheckedEarlier => 'تم فحصها سابقاً';
+
+  @override
+  String get workStatusOpen => 'مفتوح';
+
+  @override
+  String workStatusOpenDue(String date) {
+    return 'مفتوح · الاستحقاق $date';
+  }
+
+  @override
+  String workStatusOverdue(String date) {
+    return 'مفتوح · كان مستحقاً $date';
+  }
+
+  @override
+  String get workStatusDoneYouCheck => 'منجز · تفحصه أنت';
+
+  @override
+  String get workStatusDoneWaiting => 'منجز · بانتظار الفحص';
+
+  @override
+  String workStatusChecked(String date) {
+    return 'تم الفحص · $date';
+  }
+
+  @override
+  String get workOwnerYou => 'المكلّف: أنت';
+
+  @override
+  String workOwner(String name) {
+    return 'المكلّف: $name';
+  }
+
+  @override
+  String get workFromYou => 'منك';
+
+  @override
+  String workFrom(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String workCheckedByLine(String name) {
+    return 'الفحص: $name';
+  }
+
+  @override
+  String workCheckedBy(String name) {
+    return 'الفحص: $name';
+  }
+
+  @override
+  String workPhotos(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n صورة',
+      few: '$n صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+      zero: 'بلا صورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workSignAsDone => 'وقّع كمنجز';
+
+  @override
+  String get workCheckIt => 'افحصه';
+
+  @override
+  String get workNewItem => 'بند جديد';
+
+  @override
+  String get workEmptyTitle => 'لا بنود عمل بعد';
+
+  @override
+  String get workEmptyCanCreate =>
+      'أنشئ أول بند من «بند جديد». يوقّعه المكلّف كمنجز، ثم يُفحص.';
+
+  @override
+  String get workEmptyCannot =>
+      'تظهر البنود هنا عندما يُنشئ أحدهم بنداً للفريق.';
+
+  @override
+  String get workNothingNeedsYou => 'لا شيء بانتظارك الآن.';
+
+  @override
+  String get workFilterEmpty => 'لا شيء هنا.';
 }

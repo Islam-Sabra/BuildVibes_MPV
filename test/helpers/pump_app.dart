@@ -8,6 +8,7 @@ import 'package:buildvibes/data/repositories/project_repository.dart';
 import 'package:buildvibes/data/repositories/profile_repository.dart';
 import 'package:buildvibes/data/repositories/reference_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
+import 'package:buildvibes/data/repositories/work_repository.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
+import 'work_fakes.dart';
 
 /// The fixed "today" of widget tests.
 final testNow = DateTime(2026, 10, 11);
@@ -33,6 +35,7 @@ class TestApp {
     this.projects, {
     required this.spaces,
     required this.shared,
+    required this.work,
   });
 
   final SharedPreferences prefs;
@@ -41,6 +44,7 @@ class TestApp {
   final FakeProfilePageRepository pages;
   final FakeProjectRepository projects;
   final FakeSpaceRepository spaces;
+  final FakeWorkRepository work;
 
   /// Texts sent to the system share sheet.
   final List<String> shared;
@@ -61,6 +65,7 @@ Future<TestApp> pumpApp(
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
   FakeSpaceRepository? spaces,
+  FakeWorkRepository? work,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -94,6 +99,7 @@ Future<TestApp> pumpApp(
   setUp?.call(pages, projects);
   final fakeSpaces = spaces ?? FakeSpaceRepository(now: testNow);
   final shared = <String>[];
+  final fakeWork = work ?? FakeWorkRepository();
 
   await tester.pumpWidget(
     ProviderScope(
@@ -111,6 +117,7 @@ Future<TestApp> pumpApp(
         projectRepositoryProvider.overrideWithValue(projects),
         clockProvider.overrideWithValue(() => testNow),
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
+        workRepositoryProvider.overrideWithValue(fakeWork),
         shareTextProvider.overrideWithValue((text) async => shared.add(text)),
         ...overrides,
       ],
@@ -126,6 +133,7 @@ Future<TestApp> pumpApp(
     projects,
     spaces: fakeSpaces,
     shared: shared,
+    work: fakeWork,
   );
 }
 

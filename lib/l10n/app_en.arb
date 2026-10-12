@@ -2190,5 +2190,173 @@
   "spacesLastAdmin": "Make someone else an admin first, or delete the Space.",
   "@spacesLastAdmin": {
     "description": "Last admin tries to leave (P0001)."
+  },
+  "workPrivacyLine": "Members are people the Space admin confirmed. Nothing here is visible outside the Space.",
+  "@workPrivacyLine": {
+    "description": "S20 privacy line."
+  },
+  "workFilterAll": "All",
+  "@workFilterAll": {
+    "description": "S20 filter."
+  },
+  "workFilterMine": "Mine",
+  "@workFilterMine": {
+    "description": "S20 filter: items I own or raised."
+  },
+  "workFilterOpen": "Open",
+  "@workFilterOpen": {
+    "description": "S20 filter (glossary: chips مفتوحة)."
+  },
+  "workFilterToCheck": "To check",
+  "@workFilterToCheck": {
+    "description": "S20 filter."
+  },
+  "workFilterChecked": "Checked",
+  "@workFilterChecked": {
+    "description": "S20 filter."
+  },
+  "workSectionNeedsYou": "NEEDS YOU",
+  "@workSectionNeedsYou": {
+    "description": "S20 section."
+  },
+  "workSectionOpen": "OPEN",
+  "@workSectionOpen": {
+    "description": "S20 section: open, and done items waiting for someone else."
+  },
+  "workSectionWaitingCheck": "WAITING FOR A CHECK",
+  "@workSectionWaitingCheck": {
+    "description": "To check filter: done items others check."
+  },
+  "workSectionCheckedWeek": "CHECKED THIS WEEK",
+  "@workSectionCheckedWeek": {
+    "description": "S20 section."
+  },
+  "workSectionCheckedEarlier": "CHECKED EARLIER",
+  "@workSectionCheckedEarlier": {
+    "description": "Checked filter."
+  },
+  "workStatusOpen": "OPEN",
+  "@workStatusOpen": {
+    "description": "Card status."
+  },
+  "workStatusOpenDue": "OPEN · DUE {date}",
+  "@workStatusOpenDue": {
+    "description": "Card status.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "workStatusOverdue": "OPEN · WAS DUE {date}",
+  "@workStatusOverdue": {
+    "description": "Card status, past the due date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "workStatusDoneYouCheck": "DONE · YOU CHECK IT",
+  "@workStatusDoneYouCheck": {
+    "description": "Card status."
+  },
+  "workStatusDoneWaiting": "DONE · WAITING FOR A CHECK",
+  "@workStatusDoneWaiting": {
+    "description": "Card status."
+  },
+  "workStatusChecked": "CHECKED · {date}",
+  "@workStatusChecked": {
+    "description": "Card status.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "workOwnerYou": "Owner: you",
+  "@workOwnerYou": {
+    "description": "Card people line."
+  },
+  "workOwner": "Owner: {name}",
+  "@workOwner": {
+    "description": "Card people line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workFromYou": "from you",
+  "@workFromYou": {
+    "description": "Card people line."
+  },
+  "workFrom": "from {name}",
+  "@workFrom": {
+    "description": "Card people line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckedByLine": "checked by {name}",
+  "@workCheckedByLine": {
+    "description": "Card people line, Checked.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckedBy": "Checked by {name}",
+  "@workCheckedBy": {
+    "description": "Card evidence, Checked.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workPhotos": "{n, plural, =0{No photo} =1{1 photo} other{{n} photos}}",
+  "@workPhotos": {
+    "description": "Card evidence.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "workSignAsDone": "Sign as done",
+  "@workSignAsDone": {
+    "description": "Card action (glossary)."
+  },
+  "workCheckIt": "Check it",
+  "@workCheckIt": {
+    "description": "Card action."
+  },
+  "workNewItem": "New item",
+  "@workNewItem": {
+    "description": "S20 button."
+  },
+  "workEmptyTitle": "No work items yet",
+  "@workEmptyTitle": {
+    "description": "S20 empty."
+  },
+  "workEmptyCanCreate": "Raise the first one with New item. The owner signs it as done, then it's checked.",
+  "@workEmptyCanCreate": {
+    "description": "S20 empty, can create."
+  },
+  "workEmptyCannot": "Items appear here when someone raises one for the team.",
+  "@workEmptyCannot": {
+    "description": "S20 empty, can't create."
+  },
+  "workNothingNeedsYou": "Nothing needs you right now.",
+  "@workNothingNeedsYou": {
+    "description": "S20 empty Needs you."
+  },
+  "workFilterEmpty": "Nothing here.",
+  "@workFilterEmpty": {
+    "description": "S20 empty filter."
   }
 }

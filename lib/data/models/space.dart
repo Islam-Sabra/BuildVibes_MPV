@@ -32,7 +32,8 @@ class SpaceSummary {
     this.projectName,
     this.projectTypeId,
     this.pendingRequests = 0,
-  });
+    int? needsYou,
+  }) : needsYou = needsYou ?? pendingRequests;
 
   factory SpaceSummary.fromJson(Map<String, dynamic> json) => SpaceSummary(
     id: json['space_id'] as String,
@@ -43,6 +44,7 @@ class SpaceSummary {
     projectName: json['project_name'] as String?,
     projectTypeId: json['project_type_id'] as String?,
     pendingRequests: (json['pending_requests'] as num?)?.toInt() ?? 0,
+    needsYou: (json['needs_you'] as num?)?.toInt(),
   );
 
   final String id;
@@ -55,6 +57,10 @@ class SpaceSummary {
 
   /// Join requests waiting for this admin. Always 0 for members.
   final int pendingRequests;
+
+  /// Everything that needs you here (S1 badge): join requests, Open items
+  /// you own and Done items you may check. Decided by the server.
+  final int needsYou;
 }
 
 enum JoinRequestStatus { pending, declined }
