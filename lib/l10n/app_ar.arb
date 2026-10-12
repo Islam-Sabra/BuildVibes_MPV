@@ -425,7 +425,7 @@
   "spacesEditTitle": "تعديل المساحة",
   "spacesTransferIntro": "اختر عضواً لتنتقل إليه إدارة المساحة. ستبقى في المساحة كعضو.",
   "spacesTransferTo": "نقل إلى {name}",
-  "spacesTransferTitle": "النقل إلى {name}؟",
+  "spacesTransferTitle": "نقل الإدارة إلى {name}؟",
   "spacesTransferBody": "تنتقل إدارة {space} إلى {name} وتصبح أنت عضواً.",
   "spacesTransferButton": "نقل",
   "spacesTransferred": "{name} الآن من مديري المساحة، وأنت عضو.",

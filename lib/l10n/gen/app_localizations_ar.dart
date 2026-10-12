@@ -1475,7 +1475,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesTransferTitle(String name) {
-    return 'النقل إلى $name؟';
+    return 'نقل الإدارة إلى $name؟';
   }
 
   @override
