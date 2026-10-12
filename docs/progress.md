@@ -246,6 +246,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Sami as a Viewer has no paperclip.
 - 447 Flutter tests and 444 SQL tests pass. Screenshots in `docs/screens/` (`s13k_*`, `f1_*`, `addfile_*`, `w2a_*`, `w2_*`, `w3_*_attached`, `chat_*`, `s8d_en_actions_copy`, `chat_ar_not_sent`).
 
+- Review 14 applied on `chat-part2`:
+  - migration 11, fixed in place:
+    - sharing a Library file needs the "add files" right;
+    - deleting a message clears its file link;
+    - 4 more checks, 448 in all;
+  - "File removed" in a bubble whose shared file is gone;
+  - toasts float above bottom actions (`BvToastSpec.lift`), never over "Add file" or the footer buttons;
+  - Add file's title comes from the file name without the extension, with `_` and `-` as spaces.
+
+  452 Flutter tests pass.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
 2. The lead reviews migration 11 and chat part 2 (`chat-part2`). Then, with the founder's yes, put migration 11 live and merge.

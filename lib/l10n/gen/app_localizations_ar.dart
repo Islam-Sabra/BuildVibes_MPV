@@ -2446,4 +2446,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String libraryPickTeamNote(String team) {
     return 'يمكن إرفاق ملفات «الجميع» وملفات $team فقط بهذا البند.';
   }
+
+  @override
+  String get chatFileRemoved => 'تمت إزالة الملف';
 }

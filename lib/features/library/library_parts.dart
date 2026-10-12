@@ -51,6 +51,17 @@ final pickDocumentProvider = Provider<PickDocument>(
   },
 );
 
+/// A title from a file's name: no extension, `_` and `-` as spaces
+/// ("C15B33V_site_report.pdf" → "C15B33V site report").
+String titleFromFileName(String name) {
+  final dot = name.lastIndexOf('.');
+  final base = dot > 0 ? name.substring(0, dot) : name;
+  return base
+      .replaceAll(RegExp(r'[_-]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+}
+
 /// A picked photo from the camera or gallery as a file to upload.
 PhoneFile pickedPhoto(String path) => PhoneFile(
   local: path,

@@ -78,8 +78,7 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
       _file = picked;
       _error = null;
       if (_name.text.trim().isEmpty) {
-        final dot = picked.name.lastIndexOf('.');
-        _name.text = dot > 0 ? picked.name.substring(0, dot) : picked.name;
+        _name.text = titleFromFileName(picked.name);
       }
     });
   }

@@ -3455,5 +3455,9 @@
         "type": "String"
       }
     }
+  },
+  "chatFileRemoved": "File removed",
+  "@chatFileRemoved": {
+    "description": "A shared Library file that was removed since (review 14)."
   }
 }

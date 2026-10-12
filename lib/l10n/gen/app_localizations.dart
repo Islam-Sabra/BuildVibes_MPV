@@ -4255,6 +4255,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only files for Everyone and for {team} can go on this item.'**
   String libraryPickTeamNote(String team);
+
+  /// A shared Library file that was removed since (review 14).
+  ///
+  /// In en, this message translates to:
+  /// **'File removed'**
+  String get chatFileRemoved;
 }
 
 class _AppLocalizationsDelegate

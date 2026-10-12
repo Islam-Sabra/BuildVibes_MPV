@@ -692,5 +692,6 @@
   "workAttachedToast": "تم الإرفاق.",
   "workAlsoInTeamChat": "أيضاً في محادثة الفريق",
   "libraryPickTitle": "اختر من المكتبة",
-  "libraryPickTeamNote": "يمكن إرفاق ملفات «الجميع» وملفات {team} فقط بهذا البند."
+  "libraryPickTeamNote": "يمكن إرفاق ملفات «الجميع» وملفات {team} فقط بهذا البند.",
+  "chatFileRemoved": "تمت إزالة الملف"
 }

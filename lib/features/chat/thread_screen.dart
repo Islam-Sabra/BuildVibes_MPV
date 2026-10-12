@@ -495,7 +495,13 @@ class _EntryView extends ConsumerWidget {
       final mine = author != null && author == me;
       final pending = entry.pending;
       final Widget? media;
-      if (m != null && !m.deleted) {
+      if (m != null &&
+          !m.deleted &&
+          m.kind == ChatKind.file &&
+          m.file == null) {
+        // The Library file it showed was removed since (review 14).
+        media = const _RemovedFile();
+      } else if (m != null && !m.deleted) {
         media = m.photos.isEmpty && m.file == null
             ? null
             : Column(
@@ -1328,6 +1334,45 @@ class _PickedChip extends StatelessWidget {
               color: BvColors.iconSecondary,
             ),
             onPressed: onRemove,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A file message whose Library file was removed.
+class _RemovedFile extends StatelessWidget {
+  const _RemovedFile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Container(
+      key: const Key('chat-file-removed'),
+      padding: const EdgeInsetsDirectional.all(BvSpace.s8),
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceSubtle,
+        borderRadius: BvRadius.controlAll,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvSpace.s8,
+        children: [
+          const Icon(
+            BvIcons.document,
+            size: BvSize.iconLg,
+            color: BvColors.iconSecondary,
+          ),
+          Flexible(
+            child: Text(
+              l10n.chatFileRemoved,
+              style: type.bodySm.copyWith(
+                color: BvColors.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ),
         ],
       ),

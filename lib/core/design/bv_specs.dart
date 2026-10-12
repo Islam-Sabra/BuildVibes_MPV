@@ -347,3 +347,10 @@ abstract final class BvPreviewSpec {
   static const sheetAspect = 1.4;
   static const maxZoom = 5.0;
 }
+
+/// Toasts (snack bars).
+abstract final class BvToastSpec {
+  /// Lifted clear of a floating action such as "Add file" or "New item":
+  /// its height, and the 16 it sits off the edge, plus 16 between.
+  static const lift = BvButtonSpec.heightLarge + BvSpace.s16 * 2;
+}

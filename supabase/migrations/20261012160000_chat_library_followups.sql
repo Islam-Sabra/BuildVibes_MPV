@@ -7,6 +7,9 @@
 --    already there, instead of uploading it again (which would also make a
 --    second "From chat" copy in the Library). A Team's file is shared only
 --    in that Team's thread, so it never reaches people outside the Team.
+--    Sharing a file needs the "add files" right, like posting one: a Viewer
+--    chats in text only (review 14).
+-- 3. A deleted message keeps no link to a Library file (review 14).
 
 create or replace function public.claim_orphan_files(
   p_age interval default interval '7 days',
@@ -79,6 +82,10 @@ begin
   if v_thread.id is null or not public.can_use_thread(p_thread) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
+  -- A Viewer chats in text only: sharing a file is posting one.
+  if not public.can(v_thread.space_id, 'add_files') then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
   select * into v_file from public.library_files where id = p_file;
   if v_file.id is null or v_file.deleted_at is not null
      or v_file.space_id <> v_thread.space_id
@@ -100,6 +107,39 @@ begin
   insert into public.messages (id, thread_id, space_id, author_id, kind, body, library_file_id)
   values (p_id, p_thread, v_thread.space_id, v_me, 'file', v_body, p_file);
   return p_id;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 3. Deleting a message also drops its link to a Library file
+-- ---------------------------------------------------------------------------
+
+create or replace function public.delete_message(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_msg public.messages;
+begin
+  select * into v_msg from public.messages where id = p_id for update;
+  if v_msg.id is null or not public.can_use_thread(v_msg.thread_id)
+     or v_msg.kind = 'work_item'
+     or not (v_msg.author_id = auth.uid() or public.is_space_admin(v_msg.space_id)) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if v_msg.deleted_at is not null then
+    return;
+  end if;
+  update public.messages
+  set deleted_at = now(), deleted_by = auth.uid(), body = null,
+      library_file_id = null
+  where id = p_id;
+  update public.library_files f
+  set deleted_at = now(), deleted_by = auth.uid()
+  where f.source_message_id = p_id and f.deleted_at is null
+    and not exists (select 1 from public.work_item_attachments a where a.library_file_id = f.id);
 end;
 $$;
 

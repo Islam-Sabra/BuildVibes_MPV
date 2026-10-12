@@ -1,9 +1,11 @@
+import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/library/add_file_screen.dart';
 import 'package:buildvibes/features/library/file_preview_screen.dart';
+import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -243,6 +245,46 @@ void main() {
       expect(find.byType(FilePreviewScreen), findsOneWidget);
     });
 
+    testWidgets('chat: a shared file removed since says so [$lang]', (
+      tester,
+    ) async {
+      // The Library file is gone: the link came back empty (review 14).
+      final chat = _chat()
+        ..messagesByThread[_everyone] = [
+          ChatMessage(
+            id: 'm1',
+            threadId: _everyone,
+            kind: ChatKind.file,
+            createdAt: testNow,
+            authorId: 'p-sami',
+            authorName: 'Sami Al-Mansour',
+          ),
+        ];
+      await _open(tester, lang, '/spaces/$_space/chat/$_everyone', chat: chat);
+      expect(find.byKey(const Key('chat-file-removed')), findsOneWidget);
+      expect(find.text(l10n.chatFileRemoved), findsOneWidget);
+    });
+
+    testWidgets('toasts sit above the bottom actions [$lang]', (tester) async {
+      await _open(tester, lang, '/spaces/$_space');
+      await _tap(tester, 'space-tab-library');
+      await _tap(tester, 'library-add');
+      await _tap(tester, 'add-file-pick');
+      await _tap(tester, 'add-file-upload');
+      // Review 14: "Added to the Library." doesn't cover Add file.
+      final toast = tester.getRect(
+        find
+            .descendant(
+              of: find.byType(SnackBar),
+              matching: find.byType(Material),
+            )
+            .first,
+      );
+      final add = tester.getRect(find.byKey(const Key('library-add')));
+      expect(toast.bottom, lessThanOrEqualTo(add.top));
+      expect(BvToastSpec.lift, greaterThan(0));
+    });
+
     testWidgets('S13k: current files only, search and Files [$lang]', (
       tester,
     ) async {
@@ -396,6 +438,10 @@ void main() {
       await _tap(tester, 'file-f-mep2');
       expect(library.calls.single, 'attach item-17 f-mep2');
       expect(find.text(l10n.workAttachedToast), findsOneWidget);
+      ScaffoldMessenger.of(
+        tester.element(find.byKey(const Key('work-attached'))),
+      ).hideCurrentSnackBar();
+      await tester.pumpAndSettle();
 
       await _tap(tester, 'work-team-chat');
       expect(find.text(l10n.chatTeamPrivacy('MEP Team')), findsOneWidget);
@@ -446,4 +492,13 @@ void main() {
       expect(library.calls.single, 'attach item-new f-all');
     });
   }
+
+  test('a title from a file name (review 14)', () {
+    expect(titleFromFileName('C15B33V_site_report.pdf'), 'C15B33V site report');
+    expect(
+      titleFromFileName('Level-3 beam  schedule.pdf'),
+      'Level 3 beam schedule',
+    );
+    expect(titleFromFileName('plan'), 'plan');
+  });
 }

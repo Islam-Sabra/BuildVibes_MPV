@@ -156,8 +156,9 @@ Who can invite:
 - `share_library_file(id, thread, file, body)` (migration 11, F1 "Share in chat"):
   - posts a message of kind 'file' that points at a Library file (`messages.library_file_id`), so the file isn't uploaded again and no second "From chat" copy is made;
   - a Team's file is shared only in that Team's thread;
-  - the caller must be able to read the file;
+  - the caller must be able to read the file, and needs the "add files" right (a Viewer chats in text only, review 14);
   - a retry with the same id returns the same message.
+  - `delete_message` (migration 11) also clears `library_file_id`, so a deleted message keeps no link to a file. When a shared file is removed later, the app shows "File removed".
 - `space_threads(space)` (S7k): threads with the last message and unread count.
 
 ## 7. Work items: the core (migration 7, `20261012120000_work_items.sql`, branch `work-items-db`)

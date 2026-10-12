@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../design/bv_specs.dart';
 import '../design/bv_tokens.dart';
 
 abstract final class BvTheme {
@@ -244,6 +245,14 @@ abstract final class BvTheme {
         contentTextStyle: type.bodyMd.copyWith(color: BvColors.textInverse),
         actionTextColor: BvColors.brandEnergySoft,
         behavior: SnackBarBehavior.floating,
+        // Above bottom actions, never on top of them (review 14).
+        // Equal sides, so no start or end.
+        insetPadding: const EdgeInsets.fromLTRB(
+          BvSpace.gutter,
+          0,
+          BvSpace.gutter,
+          BvToastSpec.lift,
+        ),
         shape: const RoundedRectangleBorder(borderRadius: BvRadius.controlAll),
       ),
       listTileTheme: ListTileThemeData(

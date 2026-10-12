@@ -3,7 +3,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(13);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000011c1', 'authenticated', 'authenticated', 'omar11@example.com', '{"home_market_id": "kw"}');
@@ -33,9 +33,12 @@ reset role;
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000011c2', 'authenticated', 'authenticated', 'rakesh11@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000011c3', 'authenticated', 'authenticated', 'eve11@example.com', '{"home_market_id": "kw"}');
+insert into auth.users (id, aud, role, email, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000011c4', 'authenticated', 'authenticated', 'nadia11@example.com', '{"home_market_id": "kw"}');
 insert into public.space_members (space_id, profile_id, pass, confirmed_by) values
   (current_setting('test.space')::uuid, '00000000-0000-0000-0000-0000000011c2', 'crew', '00000000-0000-0000-0000-0000000011c1'),
-  (current_setting('test.space')::uuid, '00000000-0000-0000-0000-0000000011c3', 'crew', '00000000-0000-0000-0000-0000000011c1');
+  (current_setting('test.space')::uuid, '00000000-0000-0000-0000-0000000011c3', 'crew', '00000000-0000-0000-0000-0000000011c1'),
+  (current_setting('test.space')::uuid, '00000000-0000-0000-0000-0000000011c4', 'viewer', '00000000-0000-0000-0000-0000000011c1');
 select set_config('request.jwt.claims',
   '{"sub": "00000000-0000-0000-0000-0000000011c1", "role": "authenticated"}', true);
 set local role authenticated;
@@ -76,6 +79,26 @@ select is((select count(*) from public.library_files where name = 'Level 3 plan.
 select throws_ok(format($q$select public.share_library_file(gen_random_uuid(), %L, '00000000-0000-0000-0000-00000011f002')$q$,
   current_setting('test.everyone')), '42501', null,
   'Eve can''t see the MEP Team file, so she can''t share it');
+
+-- Nadia (Viewer) chats in text only: no sharing files either.
+select set_config('request.jwt.claims',
+  '{"sub": "00000000-0000-0000-0000-0000000011c4", "role": "authenticated"}', true);
+select throws_ok(format($q$select public.share_library_file(gen_random_uuid(), %L, '00000000-0000-0000-0000-00000011f001')$q$,
+  current_setting('test.everyone')), '42501', null,
+  'a Viewer can''t share a Library file');
+select lives_ok(format($q$select public.post_message(gen_random_uuid(), %L, 'Text is fine')$q$,
+  current_setting('test.everyone')),
+  'a Viewer still writes text');
+
+-- Eve deletes her share: the message keeps no link to the file.
+select set_config('request.jwt.claims',
+  '{"sub": "00000000-0000-0000-0000-0000000011c3", "role": "authenticated"}', true);
+select public.delete_message('00000000-0000-0000-0000-00000011a001');
+select is((select row(deleted_at is not null, body is null, library_file_id is null)::text
+           from public.messages where id = '00000000-0000-0000-0000-00000011a001'),
+  '(t,t,t)', 'a deleted share keeps no text and no link to the file');
+select is((select count(*) from public.library_files where name = 'Level 3 plan.pdf'), 1::bigint,
+  'the Library file itself stays');
 
 -- Omar (admin) may see it, but a Team file stays in its Team's thread.
 select set_config('request.jwt.claims',

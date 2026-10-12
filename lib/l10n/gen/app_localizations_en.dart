@@ -2444,4 +2444,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String libraryPickTeamNote(String team) {
     return 'Only files for Everyone and for $team can go on this item.';
   }
+
+  @override
+  String get chatFileRemoved => 'File removed';
 }
