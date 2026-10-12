@@ -67,6 +67,10 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<!-- Profile photo (Edit profile). -->
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos of the work on site for your Space.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Record voice notes for your Space chat.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose a photo for your BuildVibes profile.</string>
 	<!-- Google and Apple sign-in return here (Supabase redirect). -->

@@ -118,10 +118,14 @@ class FakeLibraryRepository implements LibraryRepository {
     for (final id in attachedTo[itemId] ?? const <String>[]) ?_find(id),
   ];
 
-  /// No network in tests: previews show "can't show".
+  /// False gives links (to play a voice note); true, the default, is no
+  /// network: previews show "can't show".
+  bool offline = true;
+
   @override
-  Future<String> fileUrl(String path) async =>
-      throw const SpaceException(SpaceFailure.network);
+  Future<String> fileUrl(String path) async => offline
+      ? throw const SpaceException(SpaceFailure.network)
+      : 'https://files.test/$path';
 
   @override
   Future<Uint8List> download(String path) async {

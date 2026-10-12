@@ -693,5 +693,12 @@
   "workAlsoInTeamChat": "أيضاً في محادثة الفريق",
   "libraryPickTitle": "اختر من المكتبة",
   "libraryPickTeamNote": "يمكن إرفاق ملفات «الجميع» وملفات {team} فقط بهذا البند.",
-  "chatFileRemoved": "تمت إزالة الملف"
+  "chatFileRemoved": "تمت إزالة الملف",
+  "chatRecord": "اضغط مطولاً لتسجيل رسالة صوتية",
+  "chatSlideToCancel": "اسحب بعيداً للإلغاء",
+  "chatReleaseToCancel": "ارفع إصبعك للإلغاء",
+  "chatMicDenied": "اسمح باستخدام الميكروفون من إعدادات هاتفك للتسجيل.",
+  "chatVoiceTooShort": "اضغط مدة أطول قليلاً للتسجيل.",
+  "chatPlay": "تشغيل",
+  "chatPause": "إيقاف مؤقت"
 }

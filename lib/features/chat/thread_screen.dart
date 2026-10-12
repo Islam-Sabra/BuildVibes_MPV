@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,7 @@ import '../work/work_item_card.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
 import 'chat_state.dart';
 import 'chat_tab.dart';
+import 'voice.dart';
 
 /// S8k · the Everyone thread, S9k · a Team thread: messages live, replies,
 /// work item cards, and messages kept on the phone after a weak signal.
@@ -51,7 +53,8 @@ class ThreadScreen extends ConsumerStatefulWidget {
   ConsumerState<ThreadScreen> createState() => _ThreadScreenState();
 }
 
-class _ThreadScreenState extends ConsumerState<ThreadScreen> {
+class _ThreadScreenState extends ConsumerState<ThreadScreen>
+    with WidgetsBindingObserver {
   final _text = TextEditingController();
   final _scroll = ScrollController();
   late final ChatRepository _repo = ref.read(chatRepositoryProvider);
@@ -62,20 +65,50 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
   final _files = <PhoneFile>[];
   static const _maxFiles = 10;
 
+  // Recording a voice note. The length comes from a clock ([_watch]); the
+  // timer only redraws the time shown (review 15).
+  static const _tick = Duration(milliseconds: 250);
+  Stopwatch? _watch;
+  var _recording = false;
+
+  /// The thumb is on the mic. Asking for the microphone or starting the
+  /// recorder takes a moment; if the thumb is gone by then, nothing
+  /// records (the first hold only grants the microphone).
+  var _holding = false;
+  var _cancelling = false;
+  var _elapsed = Duration.zero;
+  Timer? _recordTimer;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scroll.addListener(_maybeLoadOlder);
     unawaited(_markRead());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _recordTimer?.cancel();
+    if (_recording) unawaited(ref.read(voiceRecorderProvider).cancel());
     // Leaving counts as read too.
     unawaited(_markRead());
     _text.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// A call, the home button or a locked screen: a recording is thrown
+  /// away (the thumb-up may never come), and playback pauses.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) return;
+    unawaited(ref.read(voicePlayerProvider.notifier).pause());
+    if (_recording || _holding) {
+      _cancelling = true;
+      unawaited(_endRecording());
+    }
   }
 
   Future<void> _markRead() async {
@@ -167,6 +200,101 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _startRecording() async {
+    final l10n = AppLocalizations.of(context);
+    FocusManager.instance.primaryFocus?.unfocus();
+    final recorder = ref.read(voiceRecorderProvider);
+    _holding = true;
+    // One sound at a time: a playing note pauses.
+    await ref.read(voicePlayerProvider.notifier).pause();
+    if (!await recorder.allowed()) {
+      if (mounted) _toast(l10n.chatMicDenied);
+      return;
+    }
+    if (!_holding || !mounted) return;
+    await recorder.start();
+    if (!_holding || !mounted) {
+      await recorder.cancel();
+      return;
+    }
+    _watch = clock.stopwatch()..start();
+    setState(() {
+      _recording = true;
+      _cancelling = false;
+      _elapsed = Duration.zero;
+    });
+    _recordTimer = Timer.periodic(_tick, (_) {
+      if (!mounted) return;
+      setState(() => _elapsed = _watch!.elapsed);
+      // Two minutes at most: it sends itself.
+      if (_elapsed >= maxVoice) unawaited(_endRecording());
+    });
+  }
+
+  void _slide(Offset offset) {
+    final cancelling = offset.distance > BvChatSpec.slideToCancel;
+    if (cancelling != _cancelling) setState(() => _cancelling = cancelling);
+  }
+
+  /// Release: send it; slid away: throw it away; too short: say so.
+  Future<void> _endRecording() async {
+    _holding = false;
+    _recordTimer?.cancel();
+    if (!_recording) return;
+    final l10n = AppLocalizations.of(context);
+    final recorder = ref.read(voiceRecorderProvider);
+    final measured = _watch?.elapsed ?? _elapsed;
+    final length = measured > maxVoice ? maxVoice : measured;
+    final cancel = _cancelling;
+    setState(() {
+      _recording = false;
+      _cancelling = false;
+    });
+    if (cancel) {
+      await recorder.cancel();
+      return;
+    }
+    final path = await recorder.stop();
+    if (!mounted || path == null) return;
+    if (length < minVoice) {
+      unawaited(_deleteQuietly(path));
+      _toast(l10n.chatVoiceTooShort);
+      return;
+    }
+    final file = File(path);
+    final space = ref.read(spaceDetailProvider(widget.spaceId)).value;
+    final m = PendingMessage(
+      id: newUuid(),
+      threadId: widget.threadId,
+      spaceId: space?.id ?? widget.spaceId,
+      body: '',
+      createdAt: ref.read(clockProvider)(),
+      reply: _replyTo,
+      // A voice note goes on its own.
+      files: [
+        PendingFile(
+          file: PhoneFile(
+            local: path,
+            name: path.split(Platform.pathSeparator).last,
+            mime: 'audio/mp4',
+            bytes: file.existsSync() ? file.lengthSync() : null,
+            durationMs: length.inMilliseconds,
+          ),
+        ),
+      ],
+    );
+    setState(() => _replyTo = null);
+    await _deliver(() => ref.read(chatOutboxProvider.notifier).send(m));
+  }
+
+  static Future<void> _deleteQuietly(String path) async {
+    try {
+      await File(path).delete();
+    } on FileSystemException {
+      // Already gone.
+    }
   }
 
   Future<void> _send() async {
@@ -402,6 +530,15 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
                 ? _attach
                 : null,
             onRemove: (f) => setState(() => _files.remove(f)),
+            recording: _recording,
+            cancelling: _cancelling,
+            elapsed: _elapsed,
+            // Voice notes need the "add files" right too.
+            canRecord: space?.myRights.addFiles ?? false,
+            onRecordStart: _startRecording,
+            onRecordSlide: _slide,
+            onRecordEnd: _endRecording,
+            onRecordTap: () => _toast(AppLocalizations.of(context).chatRecord),
           ),
         ],
       ),
@@ -496,6 +633,25 @@ class _EntryView extends ConsumerWidget {
       final pending = entry.pending;
       final Widget? media;
       if (m != null &&
+          !m.deleted &&
+          m.kind == ChatKind.voice &&
+          m.attachments.isNotEmpty) {
+        final a = m.attachments.first;
+        media = VoiceNote(
+          id: m.id,
+          path: a.path,
+          duration: Duration(milliseconds: a.durationMs ?? 0),
+        );
+      } else if (pending != null &&
+          pending.files.length == 1 &&
+          pending.files.single.file.isVoice) {
+        final f = pending.files.single.file;
+        media = VoiceNote(
+          id: pending.id,
+          local: f.local,
+          duration: Duration(milliseconds: f.durationMs ?? 0),
+        );
+      } else if (m != null &&
           !m.deleted &&
           m.kind == ChatKind.file &&
           m.file == null) {
@@ -922,12 +1078,28 @@ class _Composer extends StatelessWidget {
     required this.onSend,
     required this.onAttach,
     required this.onRemove,
+    required this.recording,
+    required this.cancelling,
+    required this.elapsed,
+    required this.canRecord,
+    required this.onRecordStart,
+    required this.onRecordSlide,
+    required this.onRecordEnd,
+    required this.onRecordTap,
   });
 
   final TextEditingController controller;
   final List<PhoneFile> files;
   final VoidCallback onChanged;
   final VoidCallback onSend;
+  final bool recording;
+  final bool cancelling;
+  final Duration elapsed;
+  final bool canRecord;
+  final VoidCallback onRecordStart;
+  final ValueChanged<Offset> onRecordSlide;
+  final VoidCallback onRecordEnd;
+  final VoidCallback onRecordTap;
 
   /// Null hides the paperclip (no "add files" right).
   final VoidCallback? onAttach;
@@ -971,7 +1143,7 @@ class _Composer extends StatelessWidget {
             Row(
               spacing: BvSpace.s4,
               children: [
-                if (onAttach != null)
+                if (onAttach != null && !recording)
                   IconButton(
                     key: const Key('chat-attach'),
                     tooltip: l10n.chatAttach,
@@ -982,69 +1154,81 @@ class _Composer extends StatelessWidget {
                     onPressed: onAttach,
                   ),
                 Expanded(
-                  child: Container(
-                    key: const Key('chat-composer'),
-                    constraints: const BoxConstraints(
-                      minHeight: BvSize.controlMd,
-                    ),
-                    padding: const EdgeInsetsDirectional.only(
-                      start: BvSpace.s16,
-                      end: BvSpace.s4,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: BvColors.surfaceSubtle,
-                      borderRadius: BvRadius.roundAll,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            key: const Key('chat-input'),
-                            controller: controller,
-                            minLines: 1,
-                            maxLines: 5,
-                            maxLength: 4000,
-                            textCapitalization: TextCapitalization.sentences,
-                            style: type.bodyMd,
-                            // The pill is the field: no theme border or padding.
-                            decoration: InputDecoration(
-                              isCollapsed: true,
-                              counterText: '',
-                              contentPadding:
-                                  const EdgeInsetsDirectional.symmetric(
-                                    vertical: BvSpace.s8,
+                  child: recording
+                      ? RecordingBar(elapsed: elapsed, cancelling: cancelling)
+                      : Container(
+                          key: const Key('chat-composer'),
+                          constraints: const BoxConstraints(
+                            minHeight: BvSize.controlMd,
+                          ),
+                          padding: const EdgeInsetsDirectional.only(
+                            start: BvSpace.s16,
+                            end: BvSpace.s4,
+                          ),
+                          decoration: const BoxDecoration(
+                            color: BvColors.surfaceSubtle,
+                            borderRadius: BvRadius.roundAll,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  key: const Key('chat-input'),
+                                  controller: controller,
+                                  minLines: 1,
+                                  maxLines: 5,
+                                  maxLength: 4000,
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
+                                  style: type.bodyMd,
+                                  // The pill is the field: no theme border or padding.
+                                  decoration: InputDecoration(
+                                    isCollapsed: true,
+                                    counterText: '',
+                                    contentPadding:
+                                        const EdgeInsetsDirectional.symmetric(
+                                          vertical: BvSpace.s8,
+                                        ),
+                                    filled: false,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    focusedErrorBorder: InputBorder.none,
+                                    hintText: l10n.chatMessageHint,
+                                    hintStyle: type.bodyMd.copyWith(
+                                      color: BvColors.textSecondary,
+                                    ),
                                   ),
-                              filled: false,
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              focusedErrorBorder: InputBorder.none,
-                              hintText: l10n.chatMessageHint,
-                              hintStyle: type.bodyMd.copyWith(
-                                color: BvColors.textSecondary,
+                                  onChanged: (_) => onChanged(),
+                                ),
                               ),
-                            ),
-                            onChanged: (_) => onChanged(),
+                              if (hasText)
+                                IconButton(
+                                  key: const Key('chat-send'),
+                                  tooltip: l10n.chatSend,
+                                  icon: const Icon(
+                                    BvIcons.send,
+                                    color: BvColors.iconAction,
+                                  ),
+                                  onPressed: onSend,
+                                )
+                              else
+                                const SizedBox(height: BvSize.controlMd),
+                            ],
                           ),
                         ),
-                        if (hasText)
-                          IconButton(
-                            key: const Key('chat-send'),
-                            tooltip: l10n.chatSend,
-                            icon: const Icon(
-                              BvIcons.send,
-                              color: BvColors.iconAction,
-                            ),
-                            onPressed: onSend,
-                          )
-                        else
-                          const SizedBox(height: BvSize.controlMd),
-                      ],
-                    ),
-                  ),
                 ),
+                // The mic when there's nothing to send (S8k); it stays put
+                // while the thumb holds it.
+                if (canRecord && (recording || !hasText))
+                  RecordButton(
+                    onStart: onRecordStart,
+                    onSlide: onRecordSlide,
+                    onEnd: onRecordEnd,
+                    onTap: onRecordTap,
+                  ),
               ],
             ),
           ],

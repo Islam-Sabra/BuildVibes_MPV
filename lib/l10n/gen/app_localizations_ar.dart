@@ -2449,4 +2449,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatFileRemoved => 'تمت إزالة الملف';
+
+  @override
+  String get chatRecord => 'اضغط مطولاً لتسجيل رسالة صوتية';
+
+  @override
+  String get chatSlideToCancel => 'اسحب بعيداً للإلغاء';
+
+  @override
+  String get chatReleaseToCancel => 'ارفع إصبعك للإلغاء';
+
+  @override
+  String get chatMicDenied =>
+      'اسمح باستخدام الميكروفون من إعدادات هاتفك للتسجيل.';
+
+  @override
+  String get chatVoiceTooShort => 'اضغط مدة أطول قليلاً للتسجيل.';
+
+  @override
+  String get chatPlay => 'تشغيل';
+
+  @override
+  String get chatPause => 'إيقاف مؤقت';
 }

@@ -124,6 +124,7 @@ class PhoneFile {
     required this.name,
     required this.mime,
     this.bytes,
+    this.durationMs,
   });
 
   final String local;
@@ -131,7 +132,11 @@ class PhoneFile {
   final String mime;
   final int? bytes;
 
+  /// A voice note's length.
+  final int? durationMs;
+
   bool get isPdf => mime == 'application/pdf';
+  bool get isVoice => mime.startsWith('audio/');
 
   /// The extension the upload gets, from the type.
   String get extension => switch (mime) {
@@ -139,6 +144,7 @@ class PhoneFile {
     'image/png' => 'png',
     'image/webp' => 'webp',
     'image/heic' => 'heic',
+    'audio/mp4' || 'audio/x-m4a' || 'audio/aac' => 'm4a',
     _ => 'jpg',
   };
 }
@@ -154,6 +160,7 @@ String? mimeOfName(String name) {
     'png' => 'image/png',
     'webp' => 'image/webp',
     'heic' => 'image/heic',
+    'm4a' => 'audio/mp4',
     _ => null,
   };
 }

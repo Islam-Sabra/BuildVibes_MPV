@@ -143,6 +143,14 @@ abstract final class BvIcons {
     matchTextDirection: true,
   );
 
+  // Phosphor: microphone (hold to record a voice note, S8k)
+  static const microphone = IconData(0xe326, fontFamily: _family);
+
+  // Phosphor: play and pause (voice notes). Media controls keep their
+  // shape in right to left.
+  static const play = IconData(0xe3d0, fontFamily: _family);
+  static const pause = IconData(0xe39e, fontFamily: _family);
+
   // Phosphor: copy (copy a message, S8b)
   static const copy = IconData(0xe1ca, fontFamily: _family);
 

@@ -3459,5 +3459,33 @@
   "chatFileRemoved": "File removed",
   "@chatFileRemoved": {
     "description": "A shared Library file that was removed since (review 14)."
+  },
+  "chatRecord": "Hold to record a voice note",
+  "@chatRecord": {
+    "description": "Mic button label, and the hint after a tap."
+  },
+  "chatSlideToCancel": "Slide away to cancel",
+  "@chatSlideToCancel": {
+    "description": "While recording."
+  },
+  "chatReleaseToCancel": "Release to cancel",
+  "@chatReleaseToCancel": {
+    "description": "While recording, slid away."
+  },
+  "chatMicDenied": "Allow the microphone in your phone's settings to record.",
+  "@chatMicDenied": {
+    "description": "Microphone refused."
+  },
+  "chatVoiceTooShort": "Hold a little longer to record.",
+  "@chatVoiceTooShort": {
+    "description": "Recording under a second."
+  },
+  "chatPlay": "Play",
+  "@chatPlay": {
+    "description": "Voice note button."
+  },
+  "chatPause": "Pause",
+  "@chatPause": {
+    "description": "Voice note button."
   }
 }

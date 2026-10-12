@@ -16,6 +16,7 @@ import 'package:buildvibes/data/repositories/reference_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
 import 'package:buildvibes/features/chat/chat_state.dart';
+import 'package:buildvibes/features/chat/voice.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
@@ -30,6 +31,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'chat_fakes.dart';
 import 'fakes.dart';
 import 'library_fakes.dart';
+import 'voice_fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
 import 'work_fakes.dart';
@@ -70,6 +72,8 @@ class TestApp {
     required this.work,
     required this.chat,
     required this.library,
+    required this.recorder,
+    required this.playback,
     required this.saved,
     required this.sharedFiles,
   });
@@ -83,6 +87,8 @@ class TestApp {
   final FakeWorkRepository work;
   final FakeChatRepository chat;
   final FakeLibraryRepository library;
+  final FakeVoiceRecorder recorder;
+  final FakeVoicePlayback playback;
 
   /// Files saved with Download, and shared through the phone (F1).
   final List<String> saved;
@@ -110,6 +116,7 @@ Future<TestApp> pumpApp(
   FakeWorkRepository? work,
   FakeChatRepository? chat,
   FakeLibraryRepository? library,
+  FakeVoiceRecorder? recorder,
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
@@ -149,6 +156,8 @@ Future<TestApp> pumpApp(
   final fakeWork = work ?? FakeWorkRepository();
   final fakeChat = chat ?? FakeChatRepository(now: testNow);
   final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
+  final fakeRecorder = recorder ?? FakeVoiceRecorder();
+  final fakePlayback = FakeVoicePlayback();
   final saved = <String>[];
   final sharedFiles = <String>[];
 
@@ -171,6 +180,8 @@ Future<TestApp> pumpApp(
         workRepositoryProvider.overrideWithValue(fakeWork),
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
+        voiceRecorderProvider.overrideWithValue(fakeRecorder),
+        voicePlaybackProvider.overrideWithValue(fakePlayback),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async =>
               pickDocument?.call() ??
@@ -229,6 +240,8 @@ Future<TestApp> pumpApp(
     work: fakeWork,
     chat: fakeChat,
     library: fakeLibrary,
+    recorder: fakeRecorder,
+    playback: fakePlayback,
     saved: saved,
     sharedFiles: sharedFiles,
   );
