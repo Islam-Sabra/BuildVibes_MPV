@@ -5,7 +5,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(69);
+select plan(72);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000012f1', 'authenticated', 'authenticated', 'omar12@example.com', '{"home_market_id": "kw"}'),
@@ -389,6 +389,34 @@ select is((select count(*) from public.posts_tagged(current_setting('test.c')::u
   'and the post shows on the last project''s sheet');
 select is((select count(*) from public.posts_tagged(current_setting('test.project')::uuid)), 0::bigint,
   'not on a merged project''s');
+reset role;
+
+-- Review 18: a claimed post photo keeps its claim while it exists.
+select pg_temp.upload('f2', 'a0f5', 'claimed.jpg');
+update storage.objects set created_at = now() - interval '3 days'
+where name = pg_temp.photo('f2', 'a0f5', 'claimed.jpg');
+set local role service_role;
+select public.orphan_post_media(interval '0 seconds');
+select public.forget_cleanup_claims();
+select is((select count(*) from public.file_cleanup_claims
+           where storage_path = pg_temp.photo('f2', 'a0f5', 'claimed.jpg')), 1::bigint,
+  'the claim of a post photo that still exists stays');
+reset role;
+select pg_temp.as_user('f2');
+set local role authenticated;
+select throws_ok(format($q$select public.create_post(%L, null, 'en', null, %L)$q$,
+  pg_temp.post('a0f5'), jsonb_build_array(jsonb_build_object('path', pg_temp.photo('f2', 'a0f5', 'claimed.jpg')))),
+  '22023', 'this file was cleaned up; upload it again',
+  'and the claimed photo can''t go on a post');
+reset role;
+set local storage.allow_delete_query = 'true';
+delete from storage.objects where bucket_id = 'post-media'
+  and name = pg_temp.photo('f2', 'a0f5', 'claimed.jpg');
+set local role service_role;
+select public.forget_cleanup_claims();
+select is((select count(*) from public.file_cleanup_claims
+           where storage_path = pg_temp.photo('f2', 'a0f5', 'claimed.jpg')), 0::bigint,
+  'once the photo is deleted, its claim goes');
 reset role;
 
 select * from finish();

@@ -710,6 +710,26 @@ as $$
   limit 2;
 $$;
 
+-- After the cleanup's deletes: drop claims whose file is gone, in either
+-- bucket (review 18). Migration 10 looked in space-files only, so it
+-- dropped the claim of a post photo that still existed.
+create or replace function public.forget_cleanup_claims()
+returns integer
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  with gone as (
+    delete from public.file_cleanup_claims c
+    where not exists (select 1 from storage.objects o
+                      where o.bucket_id in ('space-files', 'post-media')
+                        and o.name = c.storage_path)
+    returning 1
+  )
+  select count(*)::int from gone;
+$$;
+
 -- A photo the cleanup claimed can't go on a post (migration 10's rule).
 create trigger post_media_not_claimed
   before insert or update of storage_path on public.post_media
