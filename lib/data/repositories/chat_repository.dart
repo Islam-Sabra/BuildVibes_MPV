@@ -169,6 +169,12 @@ final chatRepositoryProvider = Provider<ChatRepository>(
   (ref) => SupabaseChatRepository(ref.watch(supabaseClientProvider)),
 );
 
+/// One message, for example a thread's last one when it is a card.
+final chatMessageProvider = FutureProvider.autoDispose
+    .family<ChatMessage?, String>(
+      (ref, id) => ref.watch(chatRepositoryProvider).message(id),
+    );
+
 final spaceThreadsProvider = FutureProvider.autoDispose
     .family<List<ChatThread>, String>(
       (ref, spaceId) => ref.watch(chatRepositoryProvider).threads(spaceId),

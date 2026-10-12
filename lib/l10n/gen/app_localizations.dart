@@ -3829,6 +3829,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This work item is no longer in the Space.'**
   String get chatItemGone;
+
+  /// S7k last line: a card. Arabic noun form, gender-neutral.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} raised {ref}'**
+  String chatLastRaised(String name, String ref);
+
+  /// S7k last line: a card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} marked {ref} done'**
+  String chatLastDone(String name, String ref);
+
+  /// S7k last line: a card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} checked and closed {ref}'**
+  String chatLastChecked(String name, String ref);
+
+  /// S7k last line: a card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent {ref} back'**
+  String chatLastSentBack(String name, String ref);
+
+  /// S7k last line: a card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reassigned {ref}'**
+  String chatLastReassigned(String name, String ref);
 }
 
 class _AppLocalizationsDelegate

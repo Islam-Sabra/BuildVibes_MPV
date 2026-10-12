@@ -36,6 +36,7 @@ class ChatThread {
     required this.id,
     this.teamId,
     this.teamName,
+    this.lastMessageId,
     this.lastKind,
     this.lastBody,
     this.lastAuthorId,
@@ -48,6 +49,7 @@ class ChatThread {
     id: json['thread_id'] as String,
     teamId: json['team_id'] as String?,
     teamName: json['team_name'] as String?,
+    lastMessageId: json['last_message_id'] as String?,
     lastKind: json['last_message_id'] == null
         ? null
         : ChatKind.fromJson(json['last_kind']),
@@ -61,6 +63,8 @@ class ChatThread {
   final String id;
   final String? teamId;
   final String? teamName;
+
+  final String? lastMessageId;
 
   /// Null when the thread has no messages yet.
   final ChatKind? lastKind;

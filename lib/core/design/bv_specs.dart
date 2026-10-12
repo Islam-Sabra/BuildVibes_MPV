@@ -318,7 +318,7 @@ abstract final class BvProfileSpec {
 /// Space chat threads (S8k, S9k).
 abstract final class BvChatSpec {
   /// A bubble is at most this share of the screen width.
-  static const bubbleMaxWidth = 0.78;
+  static const bubbleMaxWidth = 0.75;
   static const bubbleRadius = BvRadius.cardAll; // 14
   static const bubblePaddingHorizontal = BvSpace.s12;
   static const bubblePaddingVertical = BvSpace.s8;

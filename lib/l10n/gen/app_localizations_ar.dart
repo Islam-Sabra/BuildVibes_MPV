@@ -2201,4 +2201,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatItemGone => 'لم يعد بند العمل هذا في المساحة.';
+
+  @override
+  String chatLastRaised(String name, String ref) {
+    return 'بند عمل جديد $ref من $name';
+  }
+
+  @override
+  String chatLastDone(String name, String ref) {
+    return 'توقيع $ref كمنجز من $name';
+  }
+
+  @override
+  String chatLastChecked(String name, String ref) {
+    return 'فحص وإغلاق $ref من $name';
+  }
+
+  @override
+  String chatLastSentBack(String name, String ref) {
+    return 'إرجاع $ref من $name';
+  }
+
+  @override
+  String chatLastReassigned(String name, String ref) {
+    return 'إعادة تكليف $ref من $name';
+  }
 }

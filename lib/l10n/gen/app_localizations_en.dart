@@ -2196,4 +2196,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatItemGone => 'This work item is no longer in the Space.';
+
+  @override
+  String chatLastRaised(String name, String ref) {
+    return '$name raised $ref';
+  }
+
+  @override
+  String chatLastDone(String name, String ref) {
+    return '$name marked $ref done';
+  }
+
+  @override
+  String chatLastChecked(String name, String ref) {
+    return '$name checked and closed $ref';
+  }
+
+  @override
+  String chatLastSentBack(String name, String ref) {
+    return '$name sent $ref back';
+  }
+
+  @override
+  String chatLastReassigned(String name, String ref) {
+    return '$name reassigned $ref';
+  }
 }

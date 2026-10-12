@@ -3081,5 +3081,65 @@
   "chatItemGone": "This work item is no longer in the Space.",
   "@chatItemGone": {
     "description": "Card for a removed item."
+  },
+  "chatLastRaised": "{name} raised {ref}",
+  "@chatLastRaised": {
+    "description": "S7k last line: a card. Arabic noun form, gender-neutral.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "chatLastDone": "{name} marked {ref} done",
+  "@chatLastDone": {
+    "description": "S7k last line: a card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "chatLastChecked": "{name} checked and closed {ref}",
+  "@chatLastChecked": {
+    "description": "S7k last line: a card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "chatLastSentBack": "{name} sent {ref} back",
+  "@chatLastSentBack": {
+    "description": "S7k last line: a card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "chatLastReassigned": "{name} reassigned {ref}",
+  "@chatLastReassigned": {
+    "description": "S7k last line: a card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
   }
 }

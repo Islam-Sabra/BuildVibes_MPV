@@ -506,25 +506,29 @@ class _Bubble extends StatelessWidget {
               ? null
               : Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          spacing: BvSpace.s4,
-          children: [
-            if (reply != null) _Quote(reply: reply!),
-            Text(
-              text,
-              // In the language it was written in, not the app's.
-              textDirection: deleted ? null : directionOf(text),
-              style: deleted
-                  ? type.bodyMd.copyWith(
-                      color: BvColors.textSecondary,
-                      fontStyle: FontStyle.italic,
-                    )
-                  : type.bodyMd,
-            ),
-            Align(alignment: AlignmentDirectional.centerEnd, child: footer),
-          ],
+        // As wide as its longest line, so short messages stay small; the
+        // time then sits at the end of that width.
+        child: IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            spacing: BvSpace.s4,
+            children: [
+              if (reply != null) _Quote(reply: reply!),
+              Text(
+                text,
+                // In the language it was written in, not the app's.
+                textDirection: deleted ? null : directionOf(text),
+                style: deleted
+                    ? type.bodyMd.copyWith(
+                        color: BvColors.textSecondary,
+                        fontStyle: FontStyle.italic,
+                      )
+                    : type.bodyMd,
+              ),
+              Align(alignment: AlignmentDirectional.centerEnd, child: footer),
+            ],
+          ),
         ),
       ),
     );
@@ -622,8 +626,10 @@ class _PendingFooter extends StatelessWidget {
         style: type.metadata.copyWith(color: BvColors.textSecondary),
       );
     }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    // Wraps rather than overflows in a narrow bubble.
+    return Wrap(
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
           '${l10n.chatNotSent} · ',
