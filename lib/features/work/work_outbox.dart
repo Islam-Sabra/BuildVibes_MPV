@@ -39,6 +39,10 @@ class PendingPhoto {
   PendingPhoto uploaded(String path) =>
       PendingPhoto(local: local, takenAt: takenAt, remote: path, place: place);
 
+  /// Back to the phone copy only, to upload again.
+  PendingPhoto get notUploaded =>
+      PendingPhoto(local: local, takenAt: takenAt, place: place);
+
   Map<String, dynamic> toJson() => {
     'local': local,
     'taken_at': takenAt.toIso8601String(),
@@ -245,46 +249,61 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       }
     }
 
-    try {
-      final photos = <PendingPhoto>[];
-      for (final p in current.photos) {
-        if (p.remote != null) {
-          photos.add(p);
+    // Photos uploaded by an earlier try. After a long wait the server may
+    // have cleaned them up; the phone copies are still here.
+    var reused = current.photos.any((p) => p.remote != null);
+    for (;;) {
+      try {
+        final photos = <PendingPhoto>[];
+        for (final p in current.photos) {
+          if (p.remote != null) {
+            photos.add(p);
+            continue;
+          }
+          // A new name on every try: nothing is ever overwritten.
+          final path = await withRetries(
+            () => repo.uploadPhoto(item.spaceId, item.id, File(p.local)),
+          );
+          photos.add(p.uploaded(path));
+          current = current.copyWith(
+            photos: [...photos, ...current.photos.skip(photos.length)],
+          );
+          await _put(current);
+        }
+        final sent = [
+          for (final p in photos)
+            WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
+        ];
+        await withRetries(
+          () => item.kind == PendingKind.signDone
+              ? repo.signDone(item.id, note: item.note, photos: sent)
+              : repo.createItem(
+                  NewWorkItem(
+                    id: item.id,
+                    spaceId: item.spaceId,
+                    title: item.title,
+                    ownerId: item.ownerId,
+                    due: item.due,
+                    teamId: item.teamId,
+                    place: item.place,
+                    photos: sent,
+                  ),
+                ),
+        );
+        break;
+      } on SpaceException catch (e) {
+        // Refused photos from an earlier try: upload them again, once.
+        if (reused && e.failure == SpaceFailure.badInput) {
+          reused = false;
+          current = current.copyWith(
+            photos: [for (final p in current.photos) p.notUploaded],
+          );
+          await _put(current);
           continue;
         }
-        // A new name on every try: nothing is ever overwritten.
-        final path = await withRetries(
-          () => repo.uploadPhoto(item.spaceId, item.id, File(p.local)),
-        );
-        photos.add(p.uploaded(path));
-        current = current.copyWith(
-          photos: [...photos, ...current.photos.skip(photos.length)],
-        );
-        await _put(current);
+        await _put(current.copyWith(failed: true));
+        return false;
       }
-      final sent = [
-        for (final p in photos)
-          WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
-      ];
-      await withRetries(
-        () => item.kind == PendingKind.signDone
-            ? repo.signDone(item.id, note: item.note, photos: sent)
-            : repo.createItem(
-                NewWorkItem(
-                  id: item.id,
-                  spaceId: item.spaceId,
-                  title: item.title,
-                  ownerId: item.ownerId,
-                  due: item.due,
-                  teamId: item.teamId,
-                  place: item.place,
-                  photos: sent,
-                ),
-              ),
-      );
-    } on SpaceException {
-      await _put(current.copyWith(failed: true));
-      return false;
     }
 
     // Sent: drop the kept copies.

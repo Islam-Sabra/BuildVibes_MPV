@@ -3607,6 +3607,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing shown yet. Tap See all to choose what shows.'**
   String get deliveredNoneShown;
+
+  /// Delivered card when the checker's name is hidden (a block).
+  ///
+  /// In en, this message translates to:
+  /// **'Checked · {date}'**
+  String deliveredCheckedOn(String date);
+
+  /// RE1 row label when the checker's name is hidden (a block).
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get deliveredCheckedRowNoName;
 }
 
 class _AppLocalizationsDelegate

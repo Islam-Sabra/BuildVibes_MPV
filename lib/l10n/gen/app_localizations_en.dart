@@ -2065,4 +2065,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deliveredNoneShown =>
       'Nothing shown yet. Tap See all to choose what shows.';
+
+  @override
+  String deliveredCheckedOn(String date) {
+    return 'Checked · $date';
+  }
+
+  @override
+  String get deliveredCheckedRowNoName => 'Checked';
 }

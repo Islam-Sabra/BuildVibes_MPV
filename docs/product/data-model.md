@@ -170,7 +170,7 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - `check_item(item)` and `send_back(item, reason, note)`: while Done, by the creator or a member with `check_items` (admins have it), **never by the item's owner**. "Other" needs a note.
 - `add_comment(item, note)`: any active member.
 - `set_shown_work(item, bool)`: the owner of a Checked item.
-- `needs_you()`: open items I own, Done items I may check, join requests I can confirm (kind, Space id, item or request id). `my_spaces()` gains `needs_you` per Space.
+- `needs_you()`: open items I own, Done items I may check, join requests I can confirm (kind, Space id, item or request id). `my_spaces()` gains `needs_you` per Space. Since migration 10, `needs_you()` starts from the caller's active memberships, and `my_spaces()` runs it once for all Spaces.
 
 - `reassign_work_item(item, owner)`: while Open, by the creator or a member with `check_items`; the new owner must be able to mark items done; writes a 'reassigned' event. `needs_you()` gives the creator an 'owner_left' row when an Open item's owner is no longer an active member ("Owner left · reassign").
 
@@ -184,11 +184,19 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - Before an item exists, only the uploader reads its folder; `create_work_item` refuses an id whose folder holds someone else's files.
 - 'reassigned' events keep `from_owner_id` and `to_owner_id`.
 - At most about 200 MB or 400 loose files (not evidence) per person. `orphan_space_files()` lists loose files older than 7 days for a cleanup job (service role, Storage API).
+- Migration 10: the totals (`loose_uploads`, `uploads_today`) look only in the folders of the Spaces the caller has been in, through Storage's name index. An index on `owner_id` isn't possible: `storage.objects` belongs to Storage's own role.
+- Cleanup (migration 10). SQL can't delete Storage files, so the job:
+  1. calls `claim_orphan_files(age, limit)`, which re-checks each file under a per-file lock and writes a claim (`file_cleanup_claims`);
+  2. deletes the returned files with the Storage API;
+  3. calls `forget_cleanup_claims()`.
+
+  Evidence, chat attachments and Library files can't reference a claimed file (a trigger, under the same lock). A claim whose delete failed stays until the next run. Not scheduled yet (founder).
+- The app keeps an unsent item's photos on the phone until it's sent. When the server refuses an earlier upload (cleaned up after a long wait), it uploads the phone copy again, once.
 - The append-only rule allows only the service role, cascades from deleting a work item or Space, and clearing a deleted account.
 - `my_delivered_work()` (RE2): your Checked items, shown or hidden, even after leaving the Space; your own uploads stay readable to you.
 - Your own uploads stay readable to you after you leave the Space. They're your own photos (accepted, review 11).
 
-**Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. The photo is only the owner's Done photo (never the one from when the item was raised). Hidden when either side blocked the other, for deleted accounts, and for deleted Spaces. Storage lets a non-member read exactly that photo, only while it is shown.
+**Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. The photo is only the owner's Done photo (never the one from when the item was raised). Hidden when the owner and the viewer have blocked each other (either side), for deleted accounts, and for deleted Spaces. When the viewer and the **checker** have blocked each other, the item still shows as Checked, without the checker's name (migration 10; the same in `my_delivered_work()`). Storage lets a non-member read exactly that photo, only while it is shown.
 
 ## 8. Library (migration 9)
 **Tables:**

@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/profile/delivered_work.dart';
+import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -132,6 +136,40 @@ void main() {
       expect(find.byKey(const Key('work-sign-done')), findsNothing);
 
       await _tap(tester, 'work-retry-sign-off');
+      expect(work.calls.single, 'done item-1  1');
+      expect(find.text(l10n.workPendingSignOff), findsNothing);
+    });
+
+    testWidgets('an unsent sign-off keeps its photo; a cleaned-up upload is '
+        'sent again from the phone [$lang]', (tester) async {
+      // Review 11 A4: the photo uploads, then the signal drops.
+      final work = FakeWorkRepository()..failSendNext = 3;
+      await _open(
+        tester,
+        lang,
+        _item(WorkStatus.open, owner: _me),
+        needs: const WorkNeeds(toSign: {'item-1'}),
+        work: work,
+      );
+      await _tap(tester, 'work-sign-done');
+      await _tap(tester, 'sign-done-add-photo');
+      await _tap(tester, 'sign-done-confirm');
+      expect(find.text(l10n.workPendingSignOff), findsOneWidget);
+      final first = work.uploads.single;
+
+      // While it waits, the phone copy stays.
+      final outbox = ProviderScope.containerOf(
+        tester.element(find.byType(Navigator).first),
+      ).read(workOutboxProvider);
+      final kept = outbox.single.photos.single;
+      expect(kept.remote, first);
+      expect(File(kept.local).existsSync(), isTrue);
+
+      // A week later the server cleaned up that upload.
+      work.cleanedUp.add(first);
+      await _tap(tester, 'work-retry-sign-off');
+      expect(work.uploads, hasLength(2));
+      expect(work.uploads.last, isNot(first));
       expect(work.calls.single, 'done item-1  1');
       expect(find.text(l10n.workPendingSignOff), findsNothing);
     });
@@ -282,6 +320,30 @@ void main() {
       await _tap(tester, 'delivered-w1');
       expect(work.calls.single, 'shown w1 true');
       expect(find.byKey(const Key('delivered-shown-w1')), findsOneWidget);
+    });
+
+    testWidgets('across a block: Checked, without the name [$lang]', (
+      tester,
+    ) async {
+      // The server leaves the name out (review 11 A5).
+      final hidden = DeliveredWork(
+        id: 'w1',
+        title: 'Sleeves at grid C7',
+        projectName: 'Kuwait City Tower',
+        checkedAt: testNow,
+      );
+      final work = FakeWorkRepository()
+        ..delivered.add(hidden)
+        ..shownBy['p-omar'] = [hidden];
+      await pumpApp(tester, language: lang, work: work);
+      _router(tester).push('/profile/delivered');
+      await tester.pumpAndSettle();
+      expect(find.textContaining(l10n.deliveredCheckedOn('')), findsOneWidget);
+
+      _router(tester).push('/people/p-omar/work/w1');
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.deliveredCheckedRowNoName), findsOneWidget);
+      expect(find.text(l10n.deliveredCheckedRow), findsNothing);
     });
 
     testWidgets('RE1: only the allowed facts, and why [$lang]', (tester) async {

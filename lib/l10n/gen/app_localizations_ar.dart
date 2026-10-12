@@ -2070,4 +2070,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get deliveredNoneShown =>
       'لا شيء معروض بعد. اضغط «عرض الكل» لتختار ما يظهر.';
+
+  @override
+  String deliveredCheckedOn(String date) {
+    return 'تم الفحص · $date';
+  }
+
+  @override
+  String get deliveredCheckedRowNoName => 'تم الفحص';
 }

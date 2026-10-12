@@ -2885,5 +2885,18 @@
   "deliveredNoneShown": "Nothing shown yet. Tap See all to choose what shows.",
   "@deliveredNoneShown": {
     "description": "Own profile: checked items exist but all are hidden."
+  },
+  "deliveredCheckedOn": "Checked · {date}",
+  "@deliveredCheckedOn": {
+    "description": "Delivered card when the checker's name is hidden (a block).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "deliveredCheckedRowNoName": "Checked",
+  "@deliveredCheckedRowNoName": {
+    "description": "RE1 row label when the checker's name is hidden (a block)."
   }
 }
