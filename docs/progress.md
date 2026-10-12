@@ -328,19 +328,19 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Screenshots (EN and AR) in `docs/screens/`: `h4_*_skeleton`, `h5_*_couldnt_load`, `h6_*_offline`, `h8_*_menu`, `toast_*_muted`, `h8b_*_own_menu`, `h11_*_delete`, `p2_*_edited`, `p6_*_unavailable`, `h17_*_replying`, `h10_*_own_reply`, `h13_*_reply_menu`, `h14_*_reply_delete`, `l6_*_language`, `r12_*_profile_posts`, `r16_*_their_posts`, `project_*_posts`, `c2_en_ready`, `c_ar_edit`.
 
 - **12 Oct, week 7 part 2, database** (review 16 §3).
-  - Migration 13 (`20261012180000_activity.sql`) is on `activity-db`, **not live**, for the lead's review:
+  - Migration 13 (`20261012180000_activity.sql`) is **live** (pushed 12 Oct with the founder's yes; the dry run listed only that file). Reviews 19 B and 20 A are in place:
     - `notifications`, written only by triggers (work item events, join requests, confirmed roles, follows, post replies, Useful), never to the actor, never across a block, Space news only to members; a declined request makes none;
     - `space_visits` and `mark_space_seen`;
     - `my_activity`, `mark_activity_read`, `unread_activity` (yes or no);
     - `home_day` and `today_in_spaces` for the H1b header and rows, with "today" from the phone's midnight.
-  - `13_activity.test.sql`: 57 checks, 577 in all.
+  - `13_activity.test.sql`: 59 checks, 579 in all. Review 20 A: a repeat request merges only after a cancel, and comes back unread.
   - Review 19 B, fixed in place (still not live):
     - Useful rows keep no marker; their line names at most two people you follow;
     - asking to join again within a day, or following again within a week, adds no row;
     - post rows hide when you may no longer see the post; requests to join hide once you're no longer an admin;
     - speed on a Space with 20,000 messages: `today_in_spaces` 2 ms and `home_day` 4 ms (were 1.0 s and 2.0 s).
 
-- **12 Oct, week 7 part 2, screens** (review 16 §3, on `activity`, waiting for migration 13 to go live):
+- **12 Oct, week 7 part 2, screens** (review 16 §3; `activity-db` and `activity` merged into main):
   - Home → Spaces (H1b): the date, "Your day on site", the summary line (each part hidden at 0), at most 3 Needs-you cards with Open and "See all", Today in your Spaces (5 rows, opens the tab where the change is), "That's your day". No Space: H1e as before.
   - The Spaces label and the Activity tab get an orange dot, never a number.
   - Activity (A1 v2): Needs you with overlines and Open / Check / Review request; Changes to your record for 7 days, grouped by Space, Your record, Your network, Your posts, with REV stamps and letters (filled while unread). Opening it marks it read. A2: the ledger and "Add a project you worked on".
