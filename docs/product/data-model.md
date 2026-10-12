@@ -163,7 +163,14 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - `set_shown_work(item, bool)`: the owner of a Checked item.
 - `needs_you()`: open items I own, Done items I may check, join requests I can confirm (kind, Space id, item or request id). `my_spaces()` gains `needs_you` per Space.
 
-**Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. Storage lets a non-member read exactly that photo, only while it is shown.
+- `reassign_work_item(item, owner)`: while Open, by the creator or a member with `check_items`; the new owner must be able to mark items done; writes a 'reassigned' event. `needs_you()` gives the creator an 'owner_left' row when an Open item's owner is no longer an active member ("Owner left · reassign").
+
+**Photos (review 09):**
+- A photo counts only if the file exists in `space-files`, under the item's folder, uploaded by the caller.
+- Uploads: the path must be `<space_id>/<item_id>/<file>`; allowed for the item's creator or owner, or, for an item not made yet, someone who can raise items. Never a Viewer. 10 MB; JPEG, PNG, WebP, HEIC.
+- No updates: a photo is never replaced or renamed. Each upload has a new name (`<uuid>.jpg`). Delete (Storage API) only your own upload that isn't evidence.
+
+**Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. The photo is only the owner's Done photo (never the one from when the item was raised). Hidden when either side blocked the other, for deleted accounts, and for deleted Spaces. Storage lets a non-member read exactly that photo, only while it is shown.
 
 ## 8. Library (migration 8)
 **Tables:**

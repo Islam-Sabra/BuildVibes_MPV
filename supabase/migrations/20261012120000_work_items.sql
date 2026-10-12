@@ -8,6 +8,11 @@
 -- to Open with a reason. Status changes only through the functions below;
 -- the app can read the tables (members only) but never writes to them.
 -- work_item_events is append-only.
+--
+-- Review 09 (12 Oct): photos must exist, be the caller's own and never be
+-- replaced; uploads only by an item's creator or owner; reassigning;
+-- the public photo is the owner's Done photo; blocks and deleted Spaces
+-- hide shown work.
 
 -- ---------------------------------------------------------------------------
 -- References: KCT-001 (rule 7)
@@ -121,7 +126,7 @@ create table public.work_item_events (
   work_item_id uuid not null references public.work_items (id) on delete cascade,
   actor_id uuid references public.profiles (id) on delete set null,
   kind text not null
-    check (kind in ('raised', 'done', 'checked', 'sent_back', 'comment')),
+    check (kind in ('raised', 'done', 'checked', 'sent_back', 'comment', 'reassigned')),
   note text check (length(note) <= 1000),
   reason text
     check (reason is null or reason in ('photo_missing', 'not_as_drawing', 'not_finished', 'other')),
@@ -144,18 +149,18 @@ create table public.work_item_evidence (
 );
 create index work_item_evidence_item_idx on public.work_item_evidence (work_item_id);
 
--- Events are the record: nobody updates or deletes them (rule 1). When an
--- account goes, its name is cleared from the record and nothing else.
+-- Events are the record: nobody updates or deletes them (rule 1). Two
+-- exceptions: changes made by a foreign key (an account or a Space is
+-- hard-deleted, so the actor is cleared or the rows go with it), and the
+-- service role for support work. The app never gets either.
 create or replace function public.keep_work_item_events()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
-  if tg_op = 'UPDATE'
-     and old.actor_id is not null and new.actor_id is null
-     and (to_jsonb(new) - 'actor_id') = (to_jsonb(old) - 'actor_id') then
-    return new;
+  if pg_trigger_depth() > 1 or current_user = 'service_role' then
+    return case when tg_op = 'DELETE' then old else new end;
   end if;
   raise exception 'work item events are kept for the record' using errcode = '42501';
 end;
@@ -216,6 +221,12 @@ begin
        or v_path not like p_item.space_id::text || '/' || p_item.id::text || '/%'
        or v_path like '%..%' then
       raise exception 'photo not in this item''s folder' using errcode = '22023';
+    end if;
+    -- The file must exist and be the caller's own upload (review 09).
+    if not exists (select 1 from storage.objects o
+                   where o.bucket_id = 'space-files' and o.name = v_path
+                     and o.owner_id = auth.uid()::text) then
+      raise exception 'photo not uploaded' using errcode = '22023';
     end if;
     insert into public.work_item_evidence (event_id, work_item_id, storage_path, taken_at, place_text)
     values (p_event, p_item.id, v_path,
@@ -316,7 +327,7 @@ declare
 begin
   select * into v_item from public.work_items where id = p_item for update;
   if v_item.id is null or v_item.owner_id is distinct from v_me
-     or not public.is_member(v_item.space_id) then
+     or not public.member_can(v_item.space_id, v_me, 'mark_done') then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if v_item.status <> 'open' then
@@ -394,6 +405,38 @@ begin
 end;
 $$;
 
+-- Give an Open item to another owner, for example when the owner left
+-- (review 09). The creator or a member with the check right; the new
+-- owner must be able to mark items done.
+create or replace function public.reassign_work_item(p_item uuid, p_owner uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_item public.work_items;
+begin
+  select * into v_item from public.work_items where id = p_item for update;
+  if v_item.id is null
+     or not (
+       (v_item.created_by = v_me and public.is_member(v_item.space_id))
+       or public.member_can(v_item.space_id, v_me, 'check_items')) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if v_item.status <> 'open' then
+    raise exception 'only an open item can be reassigned' using errcode = 'P0001';
+  end if;
+  if p_owner is null or not public.member_can(v_item.space_id, p_owner, 'mark_done') then
+    raise exception 'choose an owner who can sign it as done' using errcode = '22023';
+  end if;
+  insert into public.work_item_events (work_item_id, actor_id, kind)
+  values (p_item, v_me, 'reassigned');
+  update public.work_items set owner_id = p_owner where id = p_item;
+end;
+$$;
+
 -- Discussion: any active member of the Space.
 create or replace function public.add_comment(p_item uuid, p_note text)
 returns uuid
@@ -444,8 +487,8 @@ $$;
 -- Needs you (rule 9)
 -- ---------------------------------------------------------------------------
 
--- Open items I own, Done items I may check, and join requests I can
--- confirm. Home (week 7) reuses it.
+-- Open items I own, Done items I may check, join requests I can confirm,
+-- and Open items I raised whose owner left. Home (week 7) reuses it.
 create or replace function public.needs_you()
 returns table (
   kind text,
@@ -473,7 +516,17 @@ as $$
   select 'join_request', r.space_id, null::uuid, r.id, r.created_at
   from public.space_join_requests r
   join public.spaces s on s.id = r.space_id and s.deleted_at is null
-  where r.status = 'pending' and public.is_space_admin(r.space_id);
+  where r.status = 'pending' and public.is_space_admin(r.space_id)
+  union all
+  -- "Owner left · reassign": the owner is no longer an active member.
+  select 'owner_left', w.space_id, w.id, null::uuid, w.created_at
+  from public.work_items w
+  join public.spaces s on s.id = w.space_id and s.deleted_at is null
+  where w.status = 'open' and w.created_by = auth.uid()
+    and public.is_member(w.space_id)
+    and not exists (select 1 from public.space_members m
+                    where m.space_id = w.space_id and m.profile_id = w.owner_id
+                      and m.left_at is null);
 $$;
 
 -- My Spaces (S1) now counts everything that needs you in each Space.
@@ -516,7 +569,8 @@ $$;
 -- Shown work on profiles (rule 10)
 -- ---------------------------------------------------------------------------
 
--- The first photo of the latest Done sign-off.
+-- The first photo of the owner's latest Done sign-off, or none. Never a
+-- photo from when the item was raised (review 09).
 create or replace function public.shown_work_photo(p_item uuid)
 returns text
 language sql
@@ -526,15 +580,17 @@ set search_path = ''
 as $$
   select e.storage_path
   from public.work_item_evidence e
-  join public.work_item_events ev on ev.id = e.event_id
+  join public.work_item_events ev on ev.id = e.event_id and ev.kind = 'done'
   join public.work_items w on w.id = e.work_item_id
   where e.work_item_id = p_item and w.shown and w.status = 'checked'
-  order by (ev.kind = 'done') desc, ev.created_at desc, e.created_at
+    and ev.actor_id = w.owner_id
+  order by ev.created_at desc, e.created_at
   limit 1;
 $$;
 
 -- RE1: what anyone signed in sees. Only these fields: never the Space
--- name, the discussion or the files.
+-- name, the discussion or the files. Hidden when either side blocked the
+-- other, as profiles are.
 create view public.public_shown_work as
   select w.id as work_item_id,
          w.owner_id as profile_id,
@@ -549,7 +605,9 @@ create view public.public_shown_work as
   join public.spaces s on s.id = w.space_id and s.deleted_at is null
   left join public.projects p on p.id = s.project_id
   left join public.profiles c on c.id = w.checked_by
-  where w.shown and w.status = 'checked';
+  where w.shown and w.status = 'checked'
+    and w.owner_id is not null
+    and not public.is_blocked_with(w.owner_id);
 
 -- ---------------------------------------------------------------------------
 -- Evidence photos: private bucket "space-files" (rule 11)
@@ -557,7 +615,7 @@ create view public.public_shown_work as
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('space-files', 'space-files', false, 10485760,
-        array['image/jpeg', 'image/png', 'image/webp'])
+        array['image/jpeg', 'image/png', 'image/webp', 'image/heic'])
 on conflict (id) do nothing;
 
 -- The Space a path belongs to: <space_id>/<item_id>/<file>. Null when the
@@ -575,7 +633,9 @@ exception when invalid_text_representation then
 end;
 $$;
 
--- True when [p_name] is the shown photo of a Checked item.
+-- True when [p_name] is the shown photo of a Checked item in a Space
+-- that still exists. Starts from the evidence row (unique index on the
+-- path), so it never scans every shown item.
 create or replace function public.is_shown_photo(p_name text)
 returns boolean
 language sql
@@ -584,9 +644,64 @@ security definer
 set search_path = ''
 as $$
   select exists (
-    select 1 from public.work_items w
-    where w.shown and w.status = 'checked'
+    select 1
+    from public.work_item_evidence e
+    join public.work_items w on w.id = e.work_item_id
+    join public.spaces s on s.id = w.space_id and s.deleted_at is null
+    where e.storage_path = p_name
+      and w.shown and w.status = 'checked'
+      and w.owner_id is not null
+      and not public.is_blocked_with(w.owner_id)
       and public.shown_work_photo(w.id) = p_name);
+$$;
+
+-- Delete (through the Storage API): your own upload, and never a file
+-- that is evidence on a work item (review 09).
+create or replace function public.may_delete_file(p_name text, p_owner text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_owner = auth.uid()::text
+    and not exists (select 1 from public.work_item_evidence e where e.storage_path = p_name);
+$$;
+
+-- Who may upload to [p_name] = <space_id>/<item_id>/<file> (review 09):
+-- the item's creator or owner, or, for an item not made yet, a member
+-- who can raise items. Never a Viewer, never outside an item folder.
+create or replace function public.may_upload(p_name text)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_parts text[] := string_to_array(p_name, '/');
+  v_space uuid;
+  v_item_id uuid;
+  v_item public.work_items;
+begin
+  if array_length(v_parts, 1) <> 3 or v_parts[3] = '' or p_name like '%..%' then
+    return false;
+  end if;
+  begin
+    v_space := v_parts[1]::uuid;
+    v_item_id := v_parts[2]::uuid;
+  exception when invalid_text_representation then
+    return false;
+  end;
+  select * into v_item from public.work_items where id = v_item_id;
+  if v_item.id is null then
+    return public.can(v_space, 'create_items');
+  end if;
+  return v_item.space_id = v_space
+    and public.is_member(v_space)
+    and auth.uid() in (v_item.created_by, v_item.owner_id)
+    and public.member_pass(v_space) <> 'viewer';
+end;
 $$;
 
 create policy space_files_read on storage.objects
@@ -595,14 +710,13 @@ create policy space_files_read on storage.objects
          and (public.is_member(public.space_of_path(name)) or public.is_shown_photo(name)));
 create policy space_files_insert on storage.objects
   for insert to authenticated
-  with check (bucket_id = 'space-files'
-              and public.is_member(public.space_of_path(name)));
--- Re-uploading after a failed try replaces your own file only.
-create policy space_files_update_own on storage.objects
-  for update to authenticated
-  using (bucket_id = 'space-files' and owner_id = auth.uid()::text)
-  with check (bucket_id = 'space-files'
-              and public.is_member(public.space_of_path(name)));
+  with check (bucket_id = 'space-files' and public.may_upload(name));
+-- No update policy: a photo is never replaced or renamed. Every upload
+-- has a new name (<uuid>.jpg), so a retry is a new file.
+-- Delete: your own leftovers only, never a file that is evidence.
+create policy space_files_delete_own on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'space-files' and public.may_delete_file(name, owner_id));
 
 -- ---------------------------------------------------------------------------
 -- Row-level security and grants
@@ -628,6 +742,10 @@ revoke all on public.work_items, public.work_item_events, public.work_item_evide
   from anon, authenticated;
 grant select on public.work_items, public.work_item_events, public.work_item_evidence
   to authenticated;
+-- Support work only (the service role never reaches the app). Events stay
+-- append-only for everyone else; see keep_work_item_events().
+grant all on public.work_items, public.work_item_events, public.work_item_evidence
+  to service_role;
 
 revoke all on public.public_shown_work from anon, authenticated;
 grant select on public.public_shown_work to authenticated;
@@ -644,12 +762,15 @@ revoke execute on function
   public.check_item(uuid),
   public.send_back(uuid, text, text),
   public.add_comment(uuid, text),
+  public.reassign_work_item(uuid, uuid),
   public.set_shown_work(uuid, boolean),
   public.needs_you(),
   public.my_spaces(),
   public.shown_work_photo(uuid),
   public.space_of_path(text),
-  public.is_shown_photo(text)
+  public.is_shown_photo(text),
+  public.may_upload(text),
+  public.may_delete_file(text, text)
   from public, anon, authenticated;
 
 grant execute on function
@@ -658,6 +779,7 @@ grant execute on function
   public.check_item(uuid),
   public.send_back(uuid, text, text),
   public.add_comment(uuid, text),
+  public.reassign_work_item(uuid, uuid),
   public.set_shown_work(uuid, boolean),
   public.needs_you(),
   public.my_spaces(),
@@ -665,5 +787,7 @@ grant execute on function
   -- shown_work_photo returns a path only for shown, Checked work.
   public.space_of_path(text),
   public.is_shown_photo(text),
+  public.may_upload(text),
+  public.may_delete_file(text, text),
   public.shown_work_photo(uuid)
   to authenticated;
