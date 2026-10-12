@@ -3,11 +3,11 @@
 -- Omar (a1) runs the Space (admin, Lead) and raises items. Rakesh (a2) is
 -- Crew and owns them. Sara (a3) is Lead and checks. Eve (a4) asks to join
 -- and is confirmed. Bob (a5) asks and is declined; Omar blocks him.
--- Nina (a6) asks and cancels, again and again. Review 19's checks are marked (r19).
+-- Nina (a6) asks and cancels, again and again. Review 19's checks are marked (r19), review 20's (r20).
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(57);
+select plan(59);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000013a1', 'authenticated', 'authenticated', 'omar13@example.com', '{"home_market_id": "kw"}'),
@@ -358,7 +358,14 @@ set local role authenticated;
 select public.leave_space(current_setting('test.space')::uuid);
 select is((select count(*) from public.my_activity() where kind = 'join_confirmed'), 0::bigint,
   'a Space you left leaves your Activity');
+select public.request_join(current_setting('test.code'));
 reset role;
+select is((select count(*) from public.notifications
+           where profile_id = pg_temp.uid('a1') and kind = 'join_request' and actor_id = pg_temp.uid('a4')),
+  2::bigint, '(r20) confirmed, left, asked again: the admin gets a new row');
+select is((select count(*) from public.notifications
+           where profile_id = pg_temp.uid('a1') and kind = 'join_request' and actor_id = pg_temp.uid('a4')
+             and read_at is null), 1::bigint, '(r20) and it is unread');
 
 select * from finish();
 rollback;

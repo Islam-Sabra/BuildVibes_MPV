@@ -8,8 +8,9 @@
 --   new mark, never one per mark and never a count. It keeps no actor:
 --   the row's line names at most two people you follow (useful_names),
 --   so nobody can list who marked their post.
--- - Repeats merge: asking to join the same Space again within a day
---   updates the admins' row; following again within 7 days adds none.
+-- - Repeats merge: asking to join the same Space again within a day,
+--   after cancelling, updates the admins' row and marks it unread again;
+--   following again within 7 days adds none.
 -- - space_visits: when you last opened each Space (mark_space_seen), so
 --   Home can show what is new since.
 -- - my_activity(): the last 7 days, with each row's group (a Space, Your
@@ -112,13 +113,16 @@ begin
     return;
   end if;
 
-  -- Asking again (after cancelling) within a day: the same row, now
-  -- pointing at the new request. No new row, so no new push.
+  -- Asking again within a day after cancelling: the same row, now
+  -- pointing at the new request and unread again. No new row, so no new
+  -- push. A request after one that was answered is a new row (review 20).
   if p_kind = 'join_request' then
-    update public.notifications
-    set request_id = p_request
-    where profile_id = p_to and kind = 'join_request' and actor_id = p_actor
-      and space_id = p_space and created_at > now() - interval '1 day';
+    update public.notifications n
+    set request_id = p_request, read_at = null
+    where n.profile_id = p_to and n.kind = 'join_request' and n.actor_id = p_actor
+      and n.space_id = p_space and n.created_at > now() - interval '1 day'
+      and exists (select 1 from public.space_join_requests r
+                  where r.id = n.request_id and r.status = 'cancelled');
     if found then
       return;
     end if;
