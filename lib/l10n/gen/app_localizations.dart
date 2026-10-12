@@ -5353,6 +5353,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n, plural, =1{1 day ago} other{{n} days ago}}'**
   String rowDaysAgo(int n);
+
+  /// Settings row and S3 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsNotifications;
+
+  /// S3 section.
+  ///
+  /// In en, this message translates to:
+  /// **'PEOPLE'**
+  String get notifPeople;
+
+  /// S3 switch.
+  ///
+  /// In en, this message translates to:
+  /// **'New followers'**
+  String get notifFollowers;
+
+  /// S3 section.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR POSTS'**
+  String get notifPosts;
+
+  /// S3 switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get notifReplies;
+
+  /// S3 section.
+  ///
+  /// In en, this message translates to:
+  /// **'MESSAGES'**
+  String get notifMessages;
+
+  /// S3 switch, off by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Show message text on lock screen'**
+  String get notifLockText;
+
+  /// S3 section.
+  ///
+  /// In en, this message translates to:
+  /// **'SPACES'**
+  String get notifSpaces;
+
+  /// S3 row; opens My Spaces. The arrow points forward in each direction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set for each Space in Space info → Notifications'**
+  String get notifSpacesLine;
+
+  /// S3 footer (founder decision).
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications never name a project, a Space or a work item.'**
+  String get notifFooter;
+
+  /// S4 banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications are off'**
+  String get pushOffTitle;
+
+  /// S4 banner, without "Email alerts still work" (no email alerts in the MVP).
+  ///
+  /// In en, this message translates to:
+  /// **'You will miss work items and messages. Turn them on in your phone settings.'**
+  String get pushOffBody;
+
+  /// S4 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Open phone settings'**
+  String get pushOpenSettings;
 }
 
 class _AppLocalizationsDelegate

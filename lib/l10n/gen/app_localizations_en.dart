@@ -3152,4 +3152,46 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get notifPeople => 'PEOPLE';
+
+  @override
+  String get notifFollowers => 'New followers';
+
+  @override
+  String get notifPosts => 'YOUR POSTS';
+
+  @override
+  String get notifReplies => 'Replies';
+
+  @override
+  String get notifMessages => 'MESSAGES';
+
+  @override
+  String get notifLockText => 'Show message text on lock screen';
+
+  @override
+  String get notifSpaces => 'SPACES';
+
+  @override
+  String get notifSpacesLine =>
+      'Set for each Space in Space info → Notifications';
+
+  @override
+  String get notifFooter =>
+      'Notifications never name a project, a Space or a work item.';
+
+  @override
+  String get pushOffTitle => 'Push notifications are off';
+
+  @override
+  String get pushOffBody =>
+      'You will miss work items and messages. Turn them on in your phone settings.';
+
+  @override
+  String get pushOpenSettings => 'Open phone settings';
 }

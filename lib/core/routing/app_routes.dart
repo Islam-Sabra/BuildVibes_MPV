@@ -8,6 +8,7 @@ abstract final class AppRoutes {
 
   // Profile (inside the Profile tab)
   static const profileSettings = '/profile/settings';
+  static const profileNotifications = '/profile/settings/notifications';
   static const profileEdit = '/profile/edit';
   static const profileEditBasics = '/profile/edit/basics';
   static const profileEditAbout = '/profile/edit/about';

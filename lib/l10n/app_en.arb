@@ -4478,5 +4478,57 @@
         "type": "int"
       }
     }
+  },
+  "settingsNotifications": "Notifications",
+  "@settingsNotifications": {
+    "description": "Settings row and S3 title."
+  },
+  "notifPeople": "PEOPLE",
+  "@notifPeople": {
+    "description": "S3 section."
+  },
+  "notifFollowers": "New followers",
+  "@notifFollowers": {
+    "description": "S3 switch."
+  },
+  "notifPosts": "YOUR POSTS",
+  "@notifPosts": {
+    "description": "S3 section."
+  },
+  "notifReplies": "Replies",
+  "@notifReplies": {
+    "description": "S3 switch."
+  },
+  "notifMessages": "MESSAGES",
+  "@notifMessages": {
+    "description": "S3 section."
+  },
+  "notifLockText": "Show message text on lock screen",
+  "@notifLockText": {
+    "description": "S3 switch, off by default."
+  },
+  "notifSpaces": "SPACES",
+  "@notifSpaces": {
+    "description": "S3 section."
+  },
+  "notifSpacesLine": "Set for each Space in Space info → Notifications",
+  "@notifSpacesLine": {
+    "description": "S3 row; opens My Spaces. The arrow points forward in each direction."
+  },
+  "notifFooter": "Notifications never name a project, a Space or a work item.",
+  "@notifFooter": {
+    "description": "S3 footer (founder decision)."
+  },
+  "pushOffTitle": "Push notifications are off",
+  "@pushOffTitle": {
+    "description": "S4 banner."
+  },
+  "pushOffBody": "You will miss work items and messages. Turn them on in your phone settings.",
+  "@pushOffBody": {
+    "description": "S4 banner, without \"Email alerts still work\" (no email alerts in the MVP)."
+  },
+  "pushOpenSettings": "Open phone settings",
+  "@pushOpenSettings": {
+    "description": "S4 button."
   }
 }

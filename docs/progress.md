@@ -352,7 +352,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **12 Oct, week 7 part 3, push** (review 16 §4).
   - The founder created the Firebase project "BuildVibes MVP" with the Android app; `android/app/google-services.json` is git-ignored.
   - Migration 14 (`20261012190000_push.sql`) is on `push-db`, **not live**, for the lead's review: phones, S3 switches, the queue filled by triggers (Space levels, switches, chat readers, block, 5-minute chat throttle). `14_push.test.sql`: 38 checks, 617 in all.
-  - The Edge Function `push` is written (`supabase/functions/push/`), **not deployed**; no webhook yet. Its text and links are tested with Node (`node --experimental-strip-types --test supabase/functions/push/message.test.ts`, 5 tests).
+  - The Edge Function `push` is written (`supabase/functions/push/`), **not deployed**; no webhook yet.
+  - The app, on `push` (from `push-db`):
+    - Firebase Messaging (`firebase_core`, `firebase_messaging`), the Google services Gradle plugin, and a notification channel named in English and Arabic.
+    - The first time the tabs open after onboarding, the system prompt (Android 13+), once. Then this phone's token is registered in the app language, again when the token or the language changes, and removed on sign-out. Guests are never asked.
+    - A tapped push opens its page (the item, the thread, People, the post, the person, your profile); links outside the app's pages are ignored. A push with the app open refreshes Home and Activity.
+    - Settings → Notifications (S3): New followers, Replies, Show message text on lock screen (off), the Spaces line to My Spaces, and the footer. S4: "Push notifications are off" with Open phone settings, and the switches faded.
+    - The Android app name is now "BuildVibes" (it was "buildvibes" in the system prompt).
+    - Checked on the emulator: the prompt, a real FCM token registered on the local server, a follow queued a push (not sent: no function or webhook), S3, S4 and Open phone settings, in English and Arabic.
+    - 547 Flutter tests pass. Screenshots: `push_en_permission`, `s3_*_notifications`, `s4_*_push_off`. Its text and links are tested with Node (`node --experimental-strip-types --test supabase/functions/push/message.test.ts`, 5 tests).
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
