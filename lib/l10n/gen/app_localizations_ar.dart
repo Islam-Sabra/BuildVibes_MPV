@@ -1716,4 +1716,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get workFilterEmpty => 'لا شيء هنا.';
+
+  @override
+  String get workStatusOwnerLeft => 'غادر المكلّف · أعد التكليف';
+
+  @override
+  String get workReassign => 'أعد التكليف';
 }

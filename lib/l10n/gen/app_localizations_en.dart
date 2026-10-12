@@ -1709,4 +1709,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workFilterEmpty => 'Nothing here.';
+
+  @override
+  String get workStatusOwnerLeft => 'OWNER LEFT · REASSIGN';
+
+  @override
+  String get workReassign => 'Reassign';
 }

@@ -484,5 +484,7 @@
   "workEmptyCanCreate": "أنشئ أول بند من «بند جديد». يوقّعه المكلّف كمنجز، ثم يُفحص.",
   "workEmptyCannot": "تظهر البنود هنا عندما يُنشئ أحدهم بنداً للفريق.",
   "workNothingNeedsYou": "لا شيء بانتظارك الآن.",
-  "workFilterEmpty": "لا شيء هنا."
+  "workFilterEmpty": "لا شيء هنا.",
+  "workStatusOwnerLeft": "غادر المكلّف · أعد التكليف",
+  "workReassign": "أعد التكليف"
 }

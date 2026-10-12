@@ -131,14 +131,25 @@ class WorkItem {
 }
 
 /// What needs the signed-in person in a Space, from needs_you(): Open items
-/// they own and Done items they may check. The server decides both.
+/// they own, Done items they may check, and items whose owner left. The
+/// server decides all three.
 @immutable
 class WorkNeeds {
-  const WorkNeeds({this.toSign = const {}, this.toCheck = const {}});
+  const WorkNeeds({
+    this.toSign = const {},
+    this.toCheck = const {},
+    this.toReassign = const {},
+  });
 
   final Set<String> toSign;
   final Set<String> toCheck;
 
+  /// Open items you raised whose owner left the Space ("Owner left ·
+  /// reassign").
+  final Set<String> toReassign;
+
   bool needs(String itemId) =>
-      toSign.contains(itemId) || toCheck.contains(itemId);
+      toSign.contains(itemId) ||
+      toCheck.contains(itemId) ||
+      toReassign.contains(itemId);
 }

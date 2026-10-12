@@ -3007,6 +3007,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing here.'**
   String get workFilterEmpty;
+
+  /// Card status: the owner left the Space (review 09).
+  ///
+  /// In en, this message translates to:
+  /// **'OWNER LEFT · REASSIGN'**
+  String get workStatusOwnerLeft;
+
+  /// Card action.
+  ///
+  /// In en, this message translates to:
+  /// **'Reassign'**
+  String get workReassign;
 }
 
 class _AppLocalizationsDelegate

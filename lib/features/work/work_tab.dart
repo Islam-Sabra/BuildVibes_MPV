@@ -78,8 +78,9 @@ class _WorkTabState extends ConsumerState<WorkTab> {
             BvSpace.gutter,
             BvSpace.s12,
             BvSpace.gutter,
-            // Room for the New item button.
-            BvSpace.s32 * 3,
+            // The last card scrolls clear of New item (review 09): the
+            // button's height, 16 above it and the 16 it sits off the edge.
+            BvButtonSpec.heightLarge + BvSpace.s16 * 2,
           ),
           children: [
             _ProjectHeader(space: widget.space),
@@ -182,7 +183,8 @@ class _WorkTabState extends ConsumerState<WorkTab> {
       WorkFilter.open => [
         _Section(l10n.workSectionNeedsYou, [
           for (final i in all)
-            if (needs.toSign.contains(i.id)) i,
+            if (needs.toSign.contains(i.id) || needs.toReassign.contains(i.id))
+              i,
         ]),
         _Section(l10n.workSectionOpen, [
           for (final i in all)
@@ -396,6 +398,8 @@ class _ItemCard extends ConsumerWidget {
       WorkStatus.checked => BvWorkStatus.checked,
     };
     final statusLine = switch (item.status) {
+      WorkStatus.open when needs.toReassign.contains(item.id) =>
+        l10n.workStatusOwnerLeft,
       WorkStatus.open when overdue => l10n.workStatusOverdue(day(item.due!)),
       WorkStatus.open when item.due != null => l10n.workStatusOpenDue(
         day(item.due!),
@@ -439,6 +443,8 @@ class _ItemCard extends ConsumerWidget {
 
     final action = needs.toSign.contains(item.id)
         ? l10n.workSignAsDone
+        : needs.toReassign.contains(item.id)
+        ? l10n.workReassign
         : needs.toCheck.contains(item.id)
         ? l10n.workCheckIt
         : null;

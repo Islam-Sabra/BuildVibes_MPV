@@ -248,6 +248,26 @@ void main() {
       expect(find.text(l10n.workSignAsDone), findsNothing);
     });
 
+    testWidgets('an item whose owner left: Owner left · reassign [$lang]', (
+      tester,
+    ) async {
+      final work = _work(needsNothing: true);
+      work.needsBySpace[_space] = const WorkNeeds(toReassign: {'item-KCT-019'});
+      await _open(tester, lang, work: work);
+      expect(find.text(l10n.workStatusOwnerLeft), findsOneWidget);
+      expect(find.text(l10n.workReassign), findsOneWidget);
+    });
+
+    testWidgets('the last card scrolls clear of New item [$lang]', (
+      tester,
+    ) async {
+      await _open(tester, lang);
+      final list = tester.widget<ListView>(find.byKey(const Key('work-tab')));
+      final bottom = (list.padding! as EdgeInsetsDirectional).bottom;
+      final button = tester.getSize(find.byKey(const Key('work-new-item')));
+      expect(bottom, greaterThanOrEqualTo(button.height + 16));
+    });
+
     testWidgets('a card opens its item [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, 'work-item-item-KCT-021');

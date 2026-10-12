@@ -79,6 +79,10 @@ class SupabaseWorkRepository implements WorkRepository {
         for (final r in rows)
           if (r['kind'] == 'to_check') r['work_item_id'] as String,
       },
+      toReassign: {
+        for (final r in rows)
+          if (r['kind'] == 'owner_left') r['work_item_id'] as String,
+      },
     );
   });
 
