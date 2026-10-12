@@ -30,7 +30,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items (founder's yes, 12 Oct). 8 is not live (waits for the lead) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered (founder's yes, 12 Oct) |
 | Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
@@ -163,8 +163,20 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Checked end to end on the emulator against the local server (migration 8): Omar raised KCT-006 with a photo for Rakesh, Rakesh signed it done with a photo, Omar sent it back (Not finished), Rakesh signed again, Omar checked and closed it, Rakesh showed it on his profile, and the public view shows only the allowed facts.
     - 392 Flutter tests pass. Screenshots (English and Arabic) in `docs/screens/`: W4, W5, the check dialog, W3d, RE2, RE1, the profile section.
 
+  - Review 11 (lead): migration 8 passed. With the founder's yes, `work-items-followups` and `work-items-part3` are merged into main and **migration 8 is live** (all 342 SQL checks pass from an empty database first). The nightly cleanup is not scheduled (founder: not yet).
+  - Review 11 part B:
+    - The comment pill: 44 high, filled, no outline (the theme's borders and padding are switched off), 16 at the sides, Send inside on the end side.
+    - The page no longer puts the cursor back in the comment box after a sheet or dialog closes.
+    - Retaken in English and Arabic: no place (no pin), the pill empty and with text, the "Close it" dialog, and the closed item. The earlier shots that showed the old pin are moved to `docs/screens/old/`.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. Week 5, work items: the lead reviews migration 8 (`work-items-followups`) and part 3 (`work-items-part3`). Then, with the founder's yes, push migration 8 live and merge both into main. Before the pilot: the nightly cleanup of loose photos (an Edge Function, a live change).
+2. Migration 9 (review 11 A, in week 6), on a new branch, for the lead's review before it goes live:
+   - Needs you starts from the caller's memberships;
+   - a faster upload cap (an index, or a running total);
+   - the cleanup re-checks "not evidence" inside the delete;
+   - checked work hides the checker's name across a block;
+   - a test that an unsent draft keeps its photo on the phone after the server copy is cleaned up.
+   After that, ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 3. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 4. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.

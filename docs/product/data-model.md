@@ -177,6 +177,7 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - At most about 200 MB or 400 loose files (not evidence) per person. `orphan_space_files()` lists loose files older than 7 days for a cleanup job (service role, Storage API).
 - The append-only rule allows only the service role, cascades from deleting a work item or Space, and clearing a deleted account.
 - `my_delivered_work()` (RE2): your Checked items, shown or hidden, even after leaving the Space; your own uploads stay readable to you.
+- Your own uploads stay readable to you after you leave the Space. They're your own photos (accepted, review 11).
 
 **Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. The photo is only the owner's Done photo (never the one from when the item was raised). Hidden when either side blocked the other, for deleted accounts, and for deleted Spaces. Storage lets a non-member read exactly that photo, only while it is shown.
 

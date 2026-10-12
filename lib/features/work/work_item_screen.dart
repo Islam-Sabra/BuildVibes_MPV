@@ -113,6 +113,9 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
     }
   }
 
+  /// So the comment field doesn't take focus back when a sheet closes.
+  void _unfocus() => FocusManager.instance.primaryFocus?.unfocus();
+
   void _toast(String text) => ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(text)));
@@ -120,6 +123,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
   /// W4: through the outbox, so a weak signal never loses the photos.
   Future<void> _signDone(WorkItem item) async {
     final l10n = AppLocalizations.of(context);
+    _unfocus();
     final sent = await showSignDoneSheet(context, item);
     if (sent == null || !mounted) return;
     _refresh();
@@ -128,6 +132,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
 
   Future<void> _sendBack(WorkItem item) async {
     final l10n = AppLocalizations.of(context);
+    _unfocus();
     final choice = await showSendBackSheet(context, item);
     if (choice == null || !mounted) return;
     try {
@@ -143,6 +148,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
 
   Future<void> _check(WorkItem item) async {
     final l10n = AppLocalizations.of(context);
+    _unfocus();
     final yes = await showBvDialog(
       context: context,
       title: l10n.workCheckTitle(item.ref),
@@ -713,8 +719,6 @@ class _CommentField extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(
         start: BvSpace.s16,
         end: BvSpace.s4,
-        top: BvSpace.s8,
-        bottom: BvSpace.s8,
       ),
       decoration: const BoxDecoration(
         color: BvColors.surfaceSubtle,
@@ -732,6 +736,10 @@ class _CommentField extends StatelessWidget {
               // The pill is the field: no theme border or fill inside it.
               decoration: InputDecoration(
                 isCollapsed: true,
+                // One line stays 44 high; more lines keep air top and bottom.
+                contentPadding: const EdgeInsetsDirectional.symmetric(
+                  vertical: BvSpace.s8,
+                ),
                 filled: false,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,

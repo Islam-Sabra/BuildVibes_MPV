@@ -176,9 +176,18 @@ void main() {
       expect(find.text(l10n.workCheckTitle('KCT-001')), findsOneWidget);
       await _tap(tester, 'bv-dialog-cancel');
       expect(work.calls, isEmpty);
+      // A comment field in focus doesn't take it back after the dialog.
+      await _tap(tester, 'work-comment');
       await _tap(tester, 'work-check');
       await _tap(tester, 'bv-dialog-confirm');
       expect(work.calls.single, 'check item-1');
+      final comment = tester.widget<EditableText>(
+        find.descendant(
+          of: find.byKey(const Key('work-comment')),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(comment.focusNode.hasFocus, isFalse);
       expect(find.text(l10n.workClosed), findsWidgets);
     });
 
@@ -232,7 +241,7 @@ void main() {
       expect(find.byKey(const Key('work-comment-send')), findsNothing);
       // Review 11 B1: 44 high or more, filled, no outline anywhere.
       final pill = find.byKey(const Key('work-comment'));
-      expect(tester.getSize(pill).height, greaterThanOrEqualTo(44));
+      expect(tester.getSize(pill).height, inInclusiveRange(44, 48));
       final box = tester.widget<Container>(pill).decoration! as BoxDecoration;
       expect(box.color, BvColors.surfaceSubtle);
       expect(box.border, isNull);
@@ -241,6 +250,11 @@ void main() {
       );
       expect(field.decoration!.enabledBorder, InputBorder.none);
       expect(field.decoration!.focusedBorder, InputBorder.none);
+      // Side padding is the pill's own 16; none from the theme.
+      expect(
+        field.decoration!.contentPadding,
+        const EdgeInsetsDirectional.symmetric(vertical: BvSpace.s8),
+      );
       await _type(tester, 'work-comment', 'On it.');
       await _tap(tester, 'work-comment-send');
       expect(work.calls.single, 'comment item-1 On it.');
