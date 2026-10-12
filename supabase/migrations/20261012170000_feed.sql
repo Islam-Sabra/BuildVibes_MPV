@@ -13,7 +13,10 @@
 --   first; then every other post, newest first. No ranking, no follow
 --   filter.
 -- - Photos: private bucket "post-media", paths <author>/<post>/<file>.
+--   Authors may remove photos no post uses; the nightly cleanup claims
+--   unused ones (after a day) and those of posts deleted over 30 days ago.
 -- Every write goes through a function; the app only reads.
+-- Review 17 fixes are in this file (it wasn't live yet).
 
 -- ---------------------------------------------------------------------------
 -- Tables
@@ -41,6 +44,10 @@ create index posts_author_idx on public.posts (author_id, created_at desc, id de
   where deleted_at is null;
 create index posts_project_idx on public.posts (project_id, created_at desc, id desc)
   where deleted_at is null;
+
+-- posts_tagged walks merges back from a project.
+create index projects_merged_into_idx on public.projects (merged_into)
+  where merged_into is not null;
 
 create table public.post_media (
   post_id uuid not null references public.posts (id) on delete cascade,
@@ -101,22 +108,33 @@ as $$
       and (p.author_id = auth.uid() or not public.is_blocked_with(p.author_id)));
 $$;
 
--- The project a tag shows: the project, or the one it was merged into;
--- null unless that one is active.
+-- The project a tag shows: the project, or the end of its merge chain
+-- (A into B into C shows C, at most 5 steps); null unless that one is
+-- active.
 create or replace function public.shown_project(p_project uuid)
 returns uuid
-language sql
+language plpgsql
 stable
 security definer
 set search_path = ''
 as $$
-  select case
-    when p.status = 'active' then p.id
-    when m.status = 'active' then m.id
-  end
-  from public.projects p
-  left join public.projects m on m.id = p.merged_into
-  where p.id = p_project;
+declare
+  v_id uuid := p_project;
+  v_status text;
+  v_next uuid;
+begin
+  for i in 1..6 loop
+    select status, merged_into into v_status, v_next
+    from public.projects where id = v_id;
+    if v_status is null then
+      return null;
+    elsif v_status = 'active' then
+      return v_id;
+    end if;
+    v_id := v_next;
+  end loop;
+  return null;
+end;
 $$;
 
 -- The project is on the caller's CV, shown, with a confirmed role (C10).
@@ -143,7 +161,9 @@ values ('post-media', 'post-media', false, 10485760,
         array['image/jpeg', 'image/png', 'image/webp', 'image/heic'])
 on conflict (id) do nothing;
 
--- Upload: your own folder only, a sane daily amount.
+-- Upload: <me>/<post uuid>/<name>.jpg|jpeg|png|webp|heic, at most 100
+-- photos and 100 MB a day. Counts look only in the caller's folder
+-- (Storage's name index), never the whole bucket.
 create or replace function public.may_upload_post_media(p_name text)
 returns boolean
 language sql
@@ -154,10 +174,17 @@ as $$
   select auth.uid() is not null
     and split_part(p_name, '/', 1) = auth.uid()::text
     and array_length(string_to_array(p_name, '/'), 1) = 3
+    and split_part(p_name, '/', 2)
+        ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    and split_part(p_name, '/', 3) ~* '^[^/]+\.(jpg|jpeg|png|webp|heic)$'
     and p_name not like '%..%'
-    and (select count(*) from storage.objects o
-         where o.bucket_id = 'post-media' and o.owner_id = auth.uid()::text
-           and o.created_at > now() - interval '1 day') < 100;
+    and (select count(*) < 100 and coalesce(sum((o.metadata ->> 'size')::bigint), 0) < 104857600
+         from storage.objects o
+         where o.bucket_id = 'post-media'
+           and o.name collate "C" >= auth.uid()::text || '/'
+           and o.name collate "C" < auth.uid()::text || '0'
+           and o.owner_id = auth.uid()::text
+           and o.created_at > now() - interval '1 day');
 $$;
 
 -- Read: your own uploads, or a photo of a post you may see.
@@ -173,14 +200,69 @@ as $$
                where m.storage_path = p_name and public.can_see_post(m.post_id));
 $$;
 
+-- Delete (Storage API): your own photo that no post uses.
+create or replace function public.may_delete_post_media(p_name text, p_owner text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_owner = auth.uid()::text
+    and not exists (select 1 from public.post_media m where m.storage_path = p_name);
+$$;
+
 create policy post_media_read on storage.objects
   for select to authenticated
   using (bucket_id = 'post-media' and public.may_read_post_media(name, owner_id));
 create policy post_media_insert on storage.objects
   for insert to authenticated
   with check (bucket_id = 'post-media' and public.may_upload_post_media(name));
--- No update policy: a photo is never replaced. No delete for now; a
--- deleted post's photos stop being readable by anyone but their author.
+create policy post_media_delete_own on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'post-media' and public.may_delete_post_media(name, owner_id));
+-- No update policy: a photo is never replaced.
+
+-- Nightly cleanup (service role; not scheduled yet). Claims, under the
+-- same per-file lock as Space files (migration 10):
+-- - photos no post uses, older than a day (an outbox may still send one);
+-- - photos of posts deleted more than 30 days ago (the appeal window).
+-- The job then deletes the claimed files with the Storage API.
+create or replace function public.orphan_post_media(p_age interval default interval '7 days')
+returns table (name text)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_name text;
+begin
+  for v_name in
+    select o.name from storage.objects o
+    where o.bucket_id = 'post-media'
+      and ((o.created_at < now() - greatest(p_age, interval '1 day')
+            and not exists (select 1 from public.post_media m where m.storage_path = o.name))
+        or exists (select 1 from public.post_media m
+                   join public.posts po on po.id = m.post_id
+                   where m.storage_path = o.name
+                     and po.deleted_at < now() - interval '30 days'))
+    order by o.created_at
+  loop
+    perform public.lock_file_path(v_name);
+    -- Checked again under the lock: a post may have just used it.
+    if not exists (select 1 from public.post_media m
+                   join public.posts po on po.id = m.post_id
+                   where m.storage_path = v_name
+                     and (po.deleted_at is null or po.deleted_at >= now() - interval '30 days')) then
+      insert into public.file_cleanup_claims (storage_path) values (v_name)
+      on conflict (storage_path) do nothing;
+      name := v_name;
+      return next;
+    end if;
+  end loop;
+end;
+$$;
 
 -- ---------------------------------------------------------------------------
 -- Writing
@@ -236,6 +318,8 @@ begin
     raise exception 'only projects where you have a confirmed role'
       using errcode = '42501';
   end if;
+  -- One at a time per person, so parallel calls can't beat the limit.
+  perform pg_advisory_xact_lock(hashtextextended('post:' || v_me::text, 0));
   if (select count(*) from public.posts p
       where p.author_id = v_me and p.created_at > now() - interval '1 day') >= 20 then
     raise exception 'too many posts today' using errcode = 'P0001';
@@ -249,7 +333,7 @@ begin
          select 1 from storage.objects o
          where o.bucket_id = 'post-media' and o.name = v_path
            and o.owner_id = v_me::text
-           and coalesce(o.metadata ->> 'mimetype', 'image/') like 'image/%') then
+           and o.metadata ->> 'mimetype' in ('image/jpeg', 'image/png', 'image/webp', 'image/heic')) then
       raise exception 'photo not uploaded' using errcode = '22023';
     end if;
   end loop;
@@ -298,8 +382,9 @@ begin
 end;
 $$;
 
--- H11: the author deletes the post. Its text goes; its photos stop
--- showing; replies go with it.
+-- H11: the author deletes the post. Its text goes; its photos and replies
+-- stop showing to anyone. The photo rows stay, so the cleanup removes the
+-- files only after the 30-day appeal window.
 create or replace function public.delete_post(p_id uuid)
 returns void
 language plpgsql
@@ -317,7 +402,6 @@ begin
     return;
   end if;
   update public.posts set deleted_at = now(), body = null where id = p_id;
-  delete from public.post_media where post_id = p_id;
 end;
 $$;
 
@@ -355,12 +439,14 @@ begin
   if v_body is null or length(v_body) > 1000 then
     raise exception 'write a reply of up to 1000 characters' using errcode = '22023';
   end if;
+  -- One level: a reply answers a top-level reply on the same post.
   if p_reply_to is not null and not exists (
        select 1 from public.post_replies r
-       where r.id = p_reply_to and r.post_id = p_post and r.deleted_at is null
-         and not public.is_blocked_with(r.author_id)) then
+       where r.id = p_reply_to and r.post_id = p_post and r.reply_to is null
+         and r.deleted_at is null and not public.is_blocked_with(r.author_id)) then
     raise exception 'reply to a reply on this post' using errcode = '22023';
   end if;
+  perform pg_advisory_xact_lock(hashtextextended('reply:' || v_me::text, 0));
   if (select count(*) from public.post_replies r
       where r.author_id = v_me and r.created_at > now() - interval '1 hour') >= 60 then
     raise exception 'too many replies, wait a moment' using errcode = 'P0001';
@@ -490,11 +576,13 @@ with (security_invoker = true) as
   left join public.companies co on co.id = a.company_id
   left join public.projects sp on sp.id = public.shown_project(p.project_id);
 
--- The page after [p_cursor] ({"section", "created_at", "id"}), 20 posts:
--- the caller's home market from the last 30 days, then the rest
--- ("Beyond {market}"). Muted people and blocks left out.
+-- The page after [p_cursor] ({"section", "created_at", "id", "since"}),
+-- 20 posts: the caller's home market from the last 30 days, then the
+-- rest ("Beyond {market}"). [since] starts the 30 days; it rides in the
+-- cursor so the window doesn't move while scrolling. No home market: all
+-- posts are the rest. Muted people and blocks left out.
 create or replace function public.feed_page(p_cursor jsonb default null)
-returns table (section text, post_id uuid, created_at timestamptz)
+returns table (section text, post_id uuid, created_at timestamptz, since timestamptz)
 language plpgsql
 stable
 security definer
@@ -503,7 +591,8 @@ as $$
 declare
   v_me uuid := auth.uid();
   v_market text := (select home_market_id from public.profiles where id = v_me);
-  v_since timestamptz := now() - interval '30 days';
+  v_since timestamptz := coalesce((p_cursor ->> 'since')::timestamptz,
+                                  now() - interval '30 days');
   v_section text := coalesce(p_cursor ->> 'section', 'home');
   v_at timestamptz := (p_cursor ->> 'created_at')::timestamptz;
   v_id uuid := (p_cursor ->> 'id')::uuid;
@@ -513,12 +602,12 @@ begin
   if v_me is null then
     return;
   end if;
-  if v_section = 'home' then
+  if v_section = 'home' and v_market is not null then
     return query
-      select 'home'::text, p.id, p.created_at
+      select 'home'::text, p.id, p.created_at, v_since
       from public.posts p
       where p.deleted_at is null
-        and p.market_id is not distinct from v_market and p.created_at > v_since
+        and p.market_id = v_market and p.created_at > v_since
         and (v_at is null or (p.created_at, p.id) < (v_at, v_id))
         and (p.author_id = v_me or not public.is_blocked_with(p.author_id))
         and not exists (select 1 from public.mutes mu
@@ -530,15 +619,17 @@ begin
     if v_left = 0 then
       return;
     end if;
-    -- The home section ended: the rest starts from the top.
+  end if;
+  if v_section = 'home' then
+    -- The home section ended (or there is none): the rest from the top.
     v_at := null;
     v_id := null;
   end if;
   return query
-    select 'beyond'::text, p.id, p.created_at
+    select 'beyond'::text, p.id, p.created_at, v_since
     from public.posts p
     where p.deleted_at is null
-      and not (p.market_id is not distinct from v_market and p.created_at > v_since)
+      and not coalesce(p.market_id = v_market and p.created_at > v_since, false)
       and (v_at is null or (p.created_at, p.id) < (v_at, v_id))
       and (p.author_id = v_me or not public.is_blocked_with(p.author_id))
       and not exists (select 1 from public.mutes mu
@@ -577,9 +668,20 @@ stable
 security definer
 set search_path = ''
 as $$
+  -- The project and every project merged into it (to 5 steps), so the
+  -- project index finds the posts.
+  with recursive merged (id, depth) as (
+    select p_project, 0
+    union
+    select pr.id, m.depth + 1 from public.projects pr
+    join merged m on pr.merged_into = m.id
+    where m.depth < 5
+  )
   select p.id, p.created_at
   from public.posts p
-  where public.shown_project(p.project_id) = p_project and p.deleted_at is null
+  where p.project_id in (select id from merged)
+    and public.shown_project(p_project) = p_project
+    and p.deleted_at is null
     and (p.author_id = auth.uid() or not public.is_blocked_with(p.author_id))
     and (p_cursor is null
          or (p.created_at, p.id) < ((p_cursor ->> 'created_at')::timestamptz,
@@ -607,6 +709,11 @@ as $$
   order by u.created_at desc
   limit 2;
 $$;
+
+-- A photo the cleanup claimed can't go on a post (migration 10's rule).
+create trigger post_media_not_claimed
+  before insert or update of storage_path on public.post_media
+  for each row execute function public.refuse_claimed_file();
 
 -- ---------------------------------------------------------------------------
 -- Row-level security and grants
@@ -648,6 +755,8 @@ revoke execute on function
   public.may_tag_project(uuid),
   public.may_upload_post_media(text),
   public.may_read_post_media(text, text),
+  public.may_delete_post_media(text, text),
+  public.orphan_post_media(interval),
   public.create_post(uuid, text, text, uuid, jsonb),
   public.edit_post(uuid, text, text),
   public.delete_post(uuid),
@@ -660,6 +769,8 @@ revoke execute on function
   public.posts_tagged(uuid, jsonb),
   public.useful_names(uuid)
   from public, anon;
+revoke execute on function public.orphan_post_media(interval) from authenticated;
+grant execute on function public.orphan_post_media(interval) to service_role;
 
 grant execute on function
   -- Policies and the post_cards view call these as the signed-in user.
@@ -668,6 +779,7 @@ grant execute on function
   public.may_tag_project(uuid),
   public.may_upload_post_media(text),
   public.may_read_post_media(text, text),
+  public.may_delete_post_media(text, text),
   public.create_post(uuid, text, text, uuid, jsonb),
   public.edit_post(uuid, text, text),
   public.delete_post(uuid),

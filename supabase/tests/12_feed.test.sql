@@ -1,11 +1,11 @@
 -- Migration 12: the feed. Run with: supabase test db
 --
 -- Omar (f1), Rakesh (f2) and Sami (f3) are in Kuwait. Eve (f4) has no
--- home market. Bob (f5) blocks Omar.
+-- home market. Bob (f5) blocks Omar. Review 17's checks are at the end.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(47);
+select plan(69);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000012f1', 'authenticated', 'authenticated', 'omar12@example.com', '{"home_market_id": "kw"}'),
@@ -253,6 +253,142 @@ select is((select count(*) from public.post_cards where id = pg_temp.post('a002'
   'a deleted post is gone for everyone');
 select ok(not public.may_read_post_media(pg_temp.photo('f1', 'a002', '1.jpg'), pg_temp.uid('f1')::text),
   'and so are its photos');
+reset role;
+
+
+-- Review 17 ---------------------------------------------------------------------------------
+
+-- A1: one level of replies. b002 answers b001, so nothing may answer b002.
+select pg_temp.as_user('f2');
+set local role authenticated;
+select throws_ok(format($q$select public.add_reply(gen_random_uuid(), %L, %L, 'x')$q$,
+  pg_temp.post('a001'), pg_temp.post('b002')),
+  '22023', null, 'a reply to a second-level reply is refused');
+reset role;
+
+-- B10: the author doesn't see a reply from someone they blocked.
+insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('f1'), pg_temp.uid('f3'));
+select pg_temp.as_user('f1');
+set local role authenticated;
+select is((select count(*) from public.post_replies where id = pg_temp.post('b002')), 0::bigint,
+  'the author doesn''t see a reply from someone they blocked');
+reset role;
+delete from public.blocks where blocker_id = pg_temp.uid('f1');
+
+-- A6: the upload path and the photo type.
+select pg_temp.as_user('f2');
+set local role authenticated;
+select ok(public.may_upload_post_media(pg_temp.photo('f2', 'a00a', 'site.jpg')),
+  'a photo in your own post folder may go up');
+select ok(not public.may_upload_post_media(pg_temp.photo('f1', 'a00a', 'site.jpg')),
+  'never in someone else''s folder');
+select ok(not public.may_upload_post_media(pg_temp.uid('f2')::text || '/notauuid/site.jpg'),
+  'the post folder must be an id');
+select ok(not public.may_upload_post_media(pg_temp.photo('f2', 'a00a', 'evil.exe')),
+  'only photo file names');
+select ok(not public.may_upload_post_media(pg_temp.photo('f2', 'a00a', '.jpg')),
+  'and not an empty name');
+reset role;
+insert into storage.objects (bucket_id, name, owner_id, metadata) values
+  ('post-media', pg_temp.photo('f2', 'a00b', 'v.jpg'), pg_temp.uid('f2')::text, '{"mimetype": "image/svg+xml", "size": 10}'),
+  ('post-media', pg_temp.photo('f2', 'a00c', 'w.jpg'), pg_temp.uid('f2')::text, '{"size": 10}');
+select pg_temp.as_user('f2');
+set local role authenticated;
+select throws_ok(format($q$select public.create_post(%L, null, 'en', null, %L)$q$,
+  pg_temp.post('a00b'), jsonb_build_array(jsonb_build_object('path', pg_temp.photo('f2', 'a00b', 'v.jpg')))),
+  '22023', 'photo not uploaded', 'an SVG is not a photo');
+select throws_ok(format($q$select public.create_post(%L, null, 'en', null, %L)$q$,
+  pg_temp.post('a00c'), jsonb_build_array(jsonb_build_object('path', pg_temp.photo('f2', 'a00c', 'w.jpg')))),
+  '22023', 'photo not uploaded', 'nor a file with no type');
+reset role;
+
+-- A2c: at most 100 MB a day.
+insert into storage.objects (bucket_id, name, owner_id, metadata)
+select 'post-media', pg_temp.uid('f4')::text || '/' || gen_random_uuid() || '/big.jpg',
+       pg_temp.uid('f4')::text, '{"mimetype": "image/jpeg", "size": 10485760}'
+from generate_series(1, 10);
+select pg_temp.as_user('f4');
+set local role authenticated;
+select ok(not public.may_upload_post_media(pg_temp.photo('f4', 'a00d', 'one-more.jpg')),
+  'after 100 MB today, no more photos');
+reset role;
+
+-- A2a: remove your own photo that no post uses.
+select pg_temp.upload('f2', 'a00e', 'spare.jpg');
+select pg_temp.as_user('f2');
+set local role authenticated;
+select ok(public.may_delete_post_media(pg_temp.photo('f2', 'a00e', 'spare.jpg'), pg_temp.uid('f2')::text),
+  'the author may remove a photo no post uses');
+select pg_temp.as_user('f3');
+select ok(not public.may_delete_post_media(pg_temp.photo('f2', 'a00e', 'spare.jpg'), pg_temp.uid('f2')::text),
+  'nobody else may');
+select pg_temp.as_user('f1');
+select ok(not public.may_delete_post_media(pg_temp.photo('f1', 'a002', '1.jpg'), pg_temp.uid('f1')::text),
+  'nor a photo a post uses, even a deleted post''s');
+reset role;
+
+-- A2b: the cleanup. An old unused photo, a fresh one, and the photos of
+-- posts deleted 31 and 5 days ago.
+insert into storage.objects (bucket_id, name, owner_id, metadata, created_at) values
+  ('post-media', pg_temp.photo('f2', 'a0f1', 'old.jpg'), pg_temp.uid('f2')::text, '{"mimetype": "image/jpeg"}', now() - interval '2 days'),
+  ('post-media', pg_temp.photo('f2', 'a0f2', 'new.jpg'), pg_temp.uid('f2')::text, '{"mimetype": "image/jpeg"}', now() - interval '2 hours'),
+  ('post-media', pg_temp.photo('f2', 'a0f3', 'gone.jpg'), pg_temp.uid('f2')::text, '{"mimetype": "image/jpeg"}', now() - interval '40 days'),
+  ('post-media', pg_temp.photo('f2', 'a0f4', 'recent.jpg'), pg_temp.uid('f2')::text, '{"mimetype": "image/jpeg"}', now() - interval '40 days');
+insert into public.posts (id, author_id, lang, created_at, deleted_at) values
+  (pg_temp.post('a0f3'), pg_temp.uid('f2'), 'en', now() - interval '40 days', now() - interval '31 days'),
+  (pg_temp.post('a0f4'), pg_temp.uid('f2'), 'en', now() - interval '40 days', now() - interval '5 days');
+insert into public.post_media (post_id, storage_path, sort) values
+  (pg_temp.post('a0f3'), pg_temp.photo('f2', 'a0f3', 'gone.jpg'), 0),
+  (pg_temp.post('a0f4'), pg_temp.photo('f2', 'a0f4', 'recent.jpg'), 0);
+select pg_temp.as_user('f2');
+set local role authenticated;
+select throws_ok($$select * from public.orphan_post_media()$$, '42501', null,
+  'members can''t run the cleanup');
+reset role;
+set local role service_role;
+select is((select array_agg(right(name, 8) order by name) from public.orphan_post_media(interval '0 seconds')
+           where name like '%' || pg_temp.uid('f2')::text || '%'),
+  array['/old.jpg', 'gone.jpg'],
+  'it claims unused photos over a day old and those of posts deleted over 30 days ago');
+select is((select count(*) from public.file_cleanup_claims where storage_path like '%new.jpg' or storage_path like '%recent.jpg'),
+  0::bigint, 'never a fresh upload, nor a photo inside the appeal window');
+reset role;
+
+-- B7: no home market, no home section.
+select pg_temp.as_user('f4');
+set local role authenticated;
+select is((select count(*) from public.feed_page() where section = 'home'), 0::bigint,
+  'someone with no home market gets no home section');
+
+-- B8: the 30-day window rides in the cursor.
+select pg_temp.as_user('f3');
+select is((select distinct since from public.feed_page(jsonb_build_object(
+             'section', 'home', 'since', '2026-09-01T00:00:00Z'))),
+  '2026-09-01T00:00:00Z'::timestamptz, 'the window comes back from the cursor unchanged');
+select ok((select bool_and(since is not null) from public.feed_page()),
+  'and the first page says where it starts');
+reset role;
+
+-- B9: a two-step merge (A into B into C) keeps the tag.
+select pg_temp.as_user('f1');
+set local role authenticated;
+select set_config('test.c', public.create_project('Tower C', 'commercial', 'kw', 'kw-capital')::text, true);
+select public.create_post(pg_temp.post('a0c1'), 'Tagged before the merges.', 'en',
+  current_setting('test.project')::uuid);
+reset role;
+update public.projects set status = 'merged', merged_into = current_setting('test.c')::uuid
+where id = current_setting('test.other')::uuid;
+update public.projects set status = 'merged', merged_into = current_setting('test.other')::uuid
+where id = current_setting('test.project')::uuid;
+select pg_temp.as_user('f3');
+set local role authenticated;
+select is((select project_id from public.post_cards where id = pg_temp.post('a0c1')),
+  current_setting('test.c')::uuid, 'the tag follows the merges to the end');
+select is((select count(*) from public.posts_tagged(current_setting('test.c')::uuid)
+           where post_id = pg_temp.post('a0c1')), 1::bigint,
+  'and the post shows on the last project''s sheet');
+select is((select count(*) from public.posts_tagged(current_setting('test.project')::uuid)), 0::bigint,
+  'not on a merged project''s');
 reset role;
 
 select * from finish();
