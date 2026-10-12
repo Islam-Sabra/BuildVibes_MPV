@@ -430,7 +430,7 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
           Text(widget.item.title, style: type.titleMd),
           Text(
             joinMeta([
-              l10n.workOwner(widget.item.ownerName),
+              l10n.workOwner(inOwnDirection(widget.item.ownerName)),
               if (widget.item.photos.isNotEmpty)
                 l10n.workPhotos(widget.item.photos.length),
             ]),

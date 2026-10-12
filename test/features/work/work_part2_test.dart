@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/work/new_work_item_screen.dart';
@@ -188,7 +189,10 @@ void main() {
       final work = await openNew(tester);
       await fillIn(tester);
       expect(find.byKey(const Key('work-new-photo')), findsOneWidget);
-      expect(find.text(l10n.workNewFooter('Rakesh')), findsOneWidget);
+      expect(
+        find.text(l10n.workNewFooter(inOwnDirection('Rakesh'))),
+        findsOneWidget,
+      );
       await _tap(tester, 'work-create');
 
       final made = work.created.single;
@@ -264,7 +268,10 @@ void main() {
         ),
         needs: const WorkNeeds(toCheck: {'item-1'}),
       );
-      expect(find.text(l10n.workCheckBannerTitle('Rakesh')), findsOneWidget);
+      expect(
+        find.text(l10n.workCheckBannerTitle(inOwnDirection('Rakesh'))),
+        findsOneWidget,
+      );
       expect(find.text(l10n.workEvidence), findsOneWidget);
       expect(find.textContaining('Sleeves fixed'), findsOneWidget);
       expect(find.text(l10n.workYouCheckIt), findsOneWidget);
@@ -300,7 +307,10 @@ void main() {
           ],
         ),
       );
-      expect(find.text(l10n.workWaitingCheckBy('Sara Ali')), findsOneWidget);
+      expect(
+        find.text(l10n.workWaitingCheckBy(inOwnDirection('Sara Ali'))),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('work-check')), findsNothing);
     });
 
@@ -324,7 +334,10 @@ void main() {
       );
       expect(find.byKey(const Key('site-tag-checked')), findsOneWidget);
       expect(find.text(l10n.workClosed), findsOneWidget);
-      expect(find.text(l10n.workClosedCanShow('Rakesh')), findsOneWidget);
+      expect(
+        find.text(l10n.workClosedCanShow(inOwnDirection('Rakesh'))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('sent back: the reason and the note [$lang]', (tester) async {

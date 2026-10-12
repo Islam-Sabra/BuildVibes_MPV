@@ -1,31 +1,33 @@
 import 'package:flutter/widgets.dart' show TextDirection;
 import 'package:intl/intl.dart' show Bidi;
 
-/// Keeps a left-to-right run (a phone number, a dial code, an email) in one
-/// piece and in order inside a right-to-left sentence: "+965 5000 0001"
-/// instead of "0001 5000 965+". Uses the Unicode left-to-right embedding
-/// marks (built from their code points); Flutter's text engine did not
-/// honour the newer isolate marks on Android.
-String ltrRun(String text) =>
-    '${String.fromCharCode(_lre)}$text${String.fromCharCode(_pdf)}';
+// Unicode isolates (review 20). Each wrapped value keeps its own direction
+// and stays one piece, and the punctuation around it ("·", ":", "،")
+// follows the sentence. The older embedding marks let a neutral between
+// two English values join them into one run, so an Arabic line read
+// "Omar Haddad: Gate 3 من KCT-005 بند جديد".
+const _lri = 0x2066;
+const _rli = 0x2067;
+const _pdi = 0x2069;
 
-const _lre = 0x202A;
-const _pdf = 0x202C;
+/// Keeps a left-to-right run (a phone number, a dial code, an email, a
+/// work item ref) in one piece and in order inside a right-to-left
+/// sentence: "+965 5000 0001" instead of "0001 5000 965+".
+String ltrRun(String text) =>
+    '${String.fromCharCode(_lri)}$text${String.fromCharCode(_pdi)}';
 
 /// Wraps [text] in its own direction (Arabic right to left, Latin left to
-/// right), so mixed lines such as "أخصائي BIM · Gulf Build Co." keep each
-/// part whole.
+/// right). The shared helper for every value put into a sentence: a name,
+/// a title, a Space, so mixed lines such as "أخصائي BIM · Gulf Build Co."
+/// or "بند جديد KCT-005 من Omar Haddad: Gate 3" keep each part whole.
 String inOwnDirection(String text) {
-  final rtl = Bidi.startsWithRtl(text);
-  final open = String.fromCharCode(rtl ? _rle : _lre);
-  return '$open$text${String.fromCharCode(_pdf)}';
+  final open = Bidi.startsWithRtl(text) ? _rli : _lri;
+  return '${String.fromCharCode(open)}$text${String.fromCharCode(_pdi)}';
 }
 
 /// Joins parts of a meta line with " · ", each part in its own direction.
 String joinMeta(Iterable<String> parts) =>
     parts.where((p) => p.isNotEmpty).map(inOwnDirection).join(' · ');
-
-const _rle = 0x202B;
 
 /// The direction of a text people wrote (a message, a note): from its first
 /// strong letter, whatever the app language. An English message stays left

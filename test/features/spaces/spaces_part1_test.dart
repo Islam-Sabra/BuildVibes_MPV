@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/l10n/months.dart';
@@ -115,7 +116,10 @@ void main() {
       // Typed the way people read it: lower case, a space, Arabic digits.
       await _type(tester, 'invite-code-field', 'k٧q 4md');
       expect(find.text(_tower), findsOneWidget);
-      expect(find.text(l10n.spacesInvitedBy('Omar Haddad')), findsOneWidget);
+      expect(
+        find.text(l10n.spacesInvitedBy(inOwnDirection('Omar Haddad'))),
+        findsOneWidget,
+      );
 
       await _tap(tester, 'ask-to-join');
       expect(find.text(l10n.spacesRequestSent), findsOneWidget);
@@ -262,7 +266,10 @@ void main() {
       expect(app.spaces.created.single.projectId, 'proj-1');
       // Opens the Space, with Invite people on top.
       expect(find.byType(InviteScreen), findsOneWidget);
-      expect(find.text(l10n.spacesInviteTitle(_tower)), findsOneWidget);
+      expect(
+        find.text(l10n.spacesInviteTitle(inOwnDirection(_tower))),
+        findsOneWidget,
+      );
       await _tap(tester, 'entry-back');
       expect(find.byType(SpaceScreen), findsOneWidget);
       expect(find.text(l10n.spacesProjectSpaceLine), findsOneWidget);

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
+import '../../core/l10n/bidi.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -183,7 +184,9 @@ class _CodeSheetState extends ConsumerState<_CodeSheet> {
               title: preview.spaceName,
               subtitle: preview.invitedByName == null
                   ? null
-                  : l10n.spacesInvitedBy(preview.invitedByName!),
+                  : l10n.spacesInvitedBy(
+                      inOwnDirection(preview.invitedByName!),
+                    ),
               trailing: const BvRowTrailing.none(),
             ),
           ),

@@ -62,12 +62,12 @@ class WorkItemCard extends ConsumerWidget {
 
     final owner = item.ownerId == me
         ? l10n.workOwnerYou
-        : l10n.workOwner(item.ownerName ?? '');
+        : l10n.workOwner(inOwnDirection(item.ownerName ?? ''));
     final second = item.status == WorkStatus.checked
-        ? l10n.workCheckedByLine(item.checkedByName ?? '')
+        ? l10n.workCheckedByLine(inOwnDirection(item.checkedByName ?? ''))
         : item.createdById == me
         ? l10n.workFromYou
-        : l10n.workFrom(item.createdByName ?? '');
+        : l10n.workFrom(inOwnDirection(item.createdByName ?? ''));
 
     final photos = item.photoPaths.length;
     final quote = item.doneNote == null
@@ -81,7 +81,7 @@ class WorkItemCard extends ConsumerWidget {
         ?quote,
       ]),
       WorkStatus.checked => joinMeta([
-        l10n.workCheckedBy(item.checkedByName ?? ''),
+        l10n.workCheckedBy(inOwnDirection(item.checkedByName ?? '')),
         if (photos > 0) l10n.workPhotos(photos),
       ]),
       WorkStatus.open => '',

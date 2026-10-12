@@ -81,7 +81,7 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
     final l10n = AppLocalizations.of(context);
     final yes = await showBvSheet<bool>(
       context: context,
-      title: l10n.spacesRemoveTitle(member.person.fullName),
+      title: l10n.spacesRemoveTitle(inOwnDirection(member.person.fullName)),
       footer: BvSheetFooter(
         cancelLabel: l10n.commonCancel,
         confirmLabel: l10n.spacesRemove,
@@ -104,7 +104,11 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
       ref.invalidate(spacePeopleProvider(widget.spaceId));
       navigator.pop();
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.spacesRemoved(member.person.fullName))),
+        SnackBar(
+          content: Text(
+            l10n.spacesRemoved(inOwnDirection(member.person.fullName)),
+          ),
+        ),
       );
     } on SpaceException catch (e) {
       if (mounted) showSpaceError(context, e);
@@ -162,8 +166,8 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
         custom: {...member.custom, right: open},
       ),
       done: open
-          ? l10n.spacesRightOpened(label, name)
-          : l10n.spacesRightLocked(label, name),
+          ? l10n.spacesRightOpened(label, inOwnDirection(name))
+          : l10n.spacesRightLocked(label, inOwnDirection(name)),
     );
 
     // Admins have every right; their pass rights can't be changed.
@@ -215,7 +219,9 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
                 if (member.confirmedById == me)
                   l10n.spacesConfirmedByYou
                 else if (member.confirmedByName != null)
-                  l10n.spacesConfirmedBy(member.confirmedByName!),
+                  l10n.spacesConfirmedBy(
+                    inOwnDirection(member.confirmedByName!),
+                  ),
                 formatDay(member.confirmedAt.toLocal(), locale),
                 for (final t in teams) t.name,
               ]),
@@ -335,8 +341,8 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
                               v,
                             ),
                             done: v
-                                ? l10n.spacesAdminOn(name)
-                                : l10n.spacesAdminOff(name),
+                                ? l10n.spacesAdminOn(inOwnDirection(name))
+                                : l10n.spacesAdminOff(inOwnDirection(name)),
                             onRule: l10n.spacesNeedsAdmin,
                           ),
                   ),

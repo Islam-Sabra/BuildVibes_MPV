@@ -104,7 +104,9 @@ Future<String?> showLibraryPicker(
   return showBvSheet<String>(
     context: context,
     title: l10n.libraryPickTitle,
-    subtitle: teamName == null ? null : l10n.libraryPickTeamNote(teamName),
+    subtitle: teamName == null
+        ? null
+        : l10n.libraryPickTeamNote(inOwnDirection(teamName)),
     builder: (sheetContext) => _LibraryPicker(
       spaceId: spaceId,
       teamId: teamId,

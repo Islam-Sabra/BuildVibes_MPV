@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart';
 import '../../data/models/work_item.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -22,8 +23,10 @@ Future<bool?> showSignDoneSheet(BuildContext context, WorkItem item) {
   final l10n = AppLocalizations.of(context);
   return showBvSheet<bool>(
     context: context,
-    title: l10n.workSignTitle(item.ref),
-    subtitle: l10n.workSignBody((item.createdByName ?? '').split(' ').first),
+    title: l10n.workSignTitle(ltrRun(item.ref)),
+    subtitle: l10n.workSignBody(
+      inOwnDirection((item.createdByName ?? '').split(' ').first),
+    ),
     builder: (_) => _SignDone(item: item),
   );
 }
@@ -226,8 +229,8 @@ Future<(SendBackReason, String?)?> showSendBackSheet(
   final owner = (item.ownerName ?? '').split(' ').first;
   return showBvSheet<(SendBackReason, String?)>(
     context: context,
-    title: l10n.workSendBackTitle(item.ref, owner),
-    subtitle: l10n.workSendBackBody(owner),
+    title: l10n.workSendBackTitle(ltrRun(item.ref), inOwnDirection(owner)),
+    subtitle: l10n.workSendBackBody(inOwnDirection(owner)),
     builder: (_) => _SendBack(owner: owner),
   );
 }
@@ -304,7 +307,7 @@ class _SendBackState extends State<_SendBack> {
         ),
         BvTextField(
           key: const Key('send-back-note'),
-          label: l10n.workNoteFor(widget.owner),
+          label: l10n.workNoteFor(inOwnDirection(widget.owner)),
           controller: _note,
           maxLines: 3,
           maxLength: 1000,
@@ -319,7 +322,7 @@ class _SendBackState extends State<_SendBack> {
           ),
         BvButton(
           key: const Key('send-back-confirm'),
-          label: l10n.workSendBackTo(widget.owner),
+          label: l10n.workSendBackTo(inOwnDirection(widget.owner)),
           expand: true,
           onPressed: _send,
         ),

@@ -52,7 +52,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
       l10n.spacesAsked(formatAgo(l10n, r.createdAt.toLocal(), now)),
       r.invitedByName == null
           ? l10n.spacesViaCode
-          : l10n.spacesViaCodeFrom(r.invitedByName!),
+          : l10n.spacesViaCodeFrom(inOwnDirection(r.invitedByName!)),
     ]);
   }
 
@@ -96,7 +96,9 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
       _refresh();
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.spacesDeclined(r.person.firstName)),
+          content: Text(
+            l10n.spacesDeclined(inOwnDirection(r.person.firstName)),
+          ),
           action: SnackBarAction(
             key: const Key('decline-undo'),
             label: l10n.spacesUndo,

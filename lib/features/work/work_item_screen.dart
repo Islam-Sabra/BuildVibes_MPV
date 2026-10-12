@@ -111,7 +111,10 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
           .reassign(item.id, picked.person.id);
       _refresh();
       if (mounted) {
-        showSpaceMessage(context, l10n.workReassigned(picked.person.fullName));
+        showSpaceMessage(
+          context,
+          l10n.workReassigned(inOwnDirection(picked.person.fullName)),
+        );
       }
     } on SpaceException catch (e) {
       if (mounted) showSpaceError(context, e);
@@ -145,7 +148,11 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
           .read(workRepositoryProvider)
           .sendBack(item.id, choice.$1, note: choice.$2);
       _refresh();
-      _toast(l10n.workSentBack((item.ownerName ?? '').split(' ').first));
+      _toast(
+        l10n.workSentBack(
+          inOwnDirection((item.ownerName ?? '').split(' ').first),
+        ),
+      );
     } on SpaceException catch (e) {
       if (mounted) showSpaceError(context, e);
     }
@@ -156,7 +163,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
     _unfocus();
     final yes = await showBvDialog(
       context: context,
-      title: l10n.workCheckTitle(item.ref),
+      title: l10n.workCheckTitle(ltrRun(item.ref)),
       body: l10n.workCheckBody,
       cancelLabel: l10n.commonCancel,
       confirmLabel: l10n.workCheckConfirm,
@@ -307,12 +314,16 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
       banner = toCheck
           ? _Banner(
               tone: _BannerTone.action,
-              title: l10n.workCheckBannerTitle(first(item.ownerName)),
+              title: l10n.workCheckBannerTitle(
+                inOwnDirection(first(item.ownerName)),
+              ),
               body: l10n.workCheckBannerBody,
             )
           : item.ownerId == me
           ? _Banner(
-              title: l10n.workWaitingCheckBy(item.createdByName ?? ''),
+              title: l10n.workWaitingCheckBy(
+                inOwnDirection(item.createdByName ?? ''),
+              ),
               body: l10n.workWaitingCheckBody,
             )
           : _Banner(title: l10n.workDoneWaiting);
@@ -322,9 +333,9 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
         tone: _BannerTone.positive,
         title: closedByYou
             ? l10n.workClosed
-            : l10n.workClosedBy(item.checkedByName ?? ''),
+            : l10n.workClosedBy(inOwnDirection(item.checkedByName ?? '')),
         body: closedByYou && item.ownerId != me
-            ? l10n.workClosedCanShow(first(item.ownerName))
+            ? l10n.workClosedCanShow(inOwnDirection(first(item.ownerName)))
             : l10n.workClosedStays,
       );
     }

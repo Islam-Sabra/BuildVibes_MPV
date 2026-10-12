@@ -100,7 +100,7 @@ class FilePreviewScreen extends ConsumerWidget {
                   if (f.isPdf) 'PDF',
                   fileSize(l10n, f.bytes),
                   if (f.uploadedByName != null)
-                    l10n.previewFrom(f.uploadedByName!),
+                    l10n.previewFrom(inOwnDirection(f.uploadedByName!)),
                 ]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -230,7 +230,10 @@ class FilePreviewScreen extends ConsumerWidget {
       ref.invalidate(spaceThreadsProvider(spaceId));
       if (context.mounted) {
         final t = threads.firstWhere((t) => t.id == picked);
-        _toast(context, l10n.previewShared(threadName(l10n, t)));
+        _toast(
+          context,
+          l10n.previewShared(inOwnDirection(threadName(l10n, t))),
+        );
       }
     } on SpaceException catch (e) {
       if (context.mounted) showSpaceError(context, e);

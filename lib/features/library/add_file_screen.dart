@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
+import '../../core/l10n/bidi.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
@@ -164,7 +165,7 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
         children: [
           if (older != null)
             Text(
-              l10n.libraryRevisionOf(older.name),
+              l10n.libraryRevisionOf(inOwnDirection(older.name)),
               style: type.bodySm.copyWith(color: BvColors.textSecondary),
             ),
           if (file == null)
@@ -236,7 +237,7 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
           ],
           if (teamName != null)
             Text(
-              l10n.libraryTeamOnly(teamName),
+              l10n.libraryTeamOnly(inOwnDirection(teamName)),
               style: type.bodySm.copyWith(color: BvColors.textSecondary),
             ),
           BvTextField(

@@ -322,7 +322,10 @@ void main() {
           _msg('s0', _me, 'Omar Haddad', 'Go', _at(10, 17), thread: _mep),
         ];
       await _openThread(tester, lang, thread: _mep, chat: chat);
-      expect(find.text(l10n.chatTeamPrivacy('MEP Team')), findsOneWidget);
+      expect(
+        find.text(l10n.chatTeamPrivacy(inOwnDirection('MEP Team'))),
+        findsOneWidget,
+      );
       // Review 13: short messages make small bubbles, yours and theirs.
       for (final id in ['s1', 's0']) {
         final bubble = tester.getSize(find.byKey(Key('chat-message-$id')));
@@ -373,7 +376,10 @@ void main() {
       await tester.longPress(find.byKey(const Key('chat-message-m2')));
       await tester.pumpAndSettle();
       await _tap(tester, 'chat-action-reply');
-      expect(find.text(l10n.chatReplyingTo('Rakesh Nair')), findsOneWidget);
+      expect(
+        find.text(l10n.chatReplyingTo(inOwnDirection('Rakesh Nair'))),
+        findsOneWidget,
+      );
       await tester.enterText(
         find.byKey(const Key('chat-input')),
         'Use gate 3 then.',

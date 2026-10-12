@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/spaces/member_pass_screen.dart';
@@ -114,7 +115,9 @@ void main() {
       expect(find.text(l10n.spacesRequestsTitle), findsOneWidget);
       expect(find.text('Ahmed Saeed'), findsOneWidget);
       expect(
-        find.textContaining(l10n.spacesViaCodeFrom('Omar Haddad')),
+        find.textContaining(
+          l10n.spacesViaCodeFrom(inOwnDirection('Omar Haddad')),
+        ),
         findsOneWidget,
       );
       expect(
@@ -210,7 +213,10 @@ void main() {
       await _openPeople(tester);
       await _tap(tester, 'request-decline-req-1');
       expect(spaces.calls, ['decline req-1']);
-      expect(find.text(l10n.spacesDeclined('Ahmed')), findsOneWidget);
+      expect(
+        find.text(l10n.spacesDeclined(inOwnDirection('Ahmed'))),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('request-req-1')), findsNothing);
 
       await tester.tap(find.byKey(const Key('decline-undo')));
@@ -236,7 +242,12 @@ void main() {
       expect(find.byKey(const Key('right-create_items-on')), findsOneWidget);
       expect(find.text(l10n.spacesPassCustom(l10n.passCrew)), findsOneWidget);
       expect(
-        find.text(l10n.spacesRightOpened(l10n.spacesRightCreate, 'Rakesh')),
+        find.text(
+          l10n.spacesRightOpened(
+            l10n.spacesRightCreate,
+            inOwnDirection('Rakesh'),
+          ),
+        ),
         findsOneWidget,
       );
     });
@@ -280,7 +291,10 @@ void main() {
 
       await _tap(tester, 'member-make-admin');
       expect(spaces.calls.last, 'admin p-rakesh true');
-      expect(find.text(l10n.spacesAdminOn('Rakesh')), findsOneWidget);
+      expect(
+        find.text(l10n.spacesAdminOn(inOwnDirection('Rakesh'))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('the last admin stays an admin [$lang]', (tester) async {
@@ -298,11 +312,17 @@ void main() {
       await pumpApp(tester, language: lang, spaces: spaces);
       await _openMember(tester, 'p-rakesh');
       await _tap(tester, 'member-remove');
-      expect(find.text(l10n.spacesRemoveTitle('Rakesh Nair')), findsOneWidget);
+      expect(
+        find.text(l10n.spacesRemoveTitle(inOwnDirection('Rakesh Nair'))),
+        findsOneWidget,
+      );
       await _tap(tester, 'bv-sheet-confirm');
       expect(spaces.calls.last, 'remove p-rakesh');
       expect(find.byType(MemberPassScreen), findsNothing);
-      expect(find.text(l10n.spacesRemoved('Rakesh Nair')), findsOneWidget);
+      expect(
+        find.text(l10n.spacesRemoved(inOwnDirection('Rakesh Nair'))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('members see a pass read-only [$lang]', (tester) async {

@@ -346,6 +346,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Activity (A1 v2): Needs you with overlines and Open / Check / Review request; Changes to your record for 7 days, grouped by Space, Your record, Your network, Your posts, with REV stamps and letters (filled while unread). Opening it marks it read. A2: the ledger and "Add a project you worked on".
   - My Spaces (S1) is its own page from the new Profile Spaces icon, with Create (New Space, Enter an invite code). The Create tab opens the composer.
   - Opening a Space marks it seen.
+  - Review 20 C: every value put into a sentence (names, titles, refs, Spaces) is wrapped in Unicode isolates by the shared helpers in `core/l10n/bidi.dart`, so Arabic lines with English names read in order (Needs you, Today, Activity, chat cards, work item, Library and Space lines). H1b Today times read "3h ago" / "قبل 3 ساعات", "Yesterday" / "أمس". Screenshots retaken: `h1b_*_spaces`, `a1_*_activity`, `w_ar_item_lines`, `chat_ar_item_card`. 535 Flutter tests pass.
   - 532 Flutter tests pass. Screenshots (EN and AR): `h1b_*_spaces`, `h1b_*_thats_your_day`, `a1_*_activity`, `a1_*_activity_more`, `a2_*_activity_empty`, `s1_*_my_spaces`, `s1_en_create_sheet`, `r1_*_profile_spaces_icon`.
 
 ## Next tasks (in order)

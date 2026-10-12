@@ -870,5 +870,10 @@
   "ledgerNetwork": "شبكتك",
   "ledgerNetworkLine": "يتابعك أحدهم.",
   "ledgerWait": "في الأثناء",
-  "ledgerAddProject": "أضف مشروعاً عملت فيه"
+  "ledgerAddProject": "أضف مشروعاً عملت فيه",
+  "rowJustNow": "الآن",
+  "rowMinutesAgo": "{n, plural, =1{قبل دقيقة} =2{قبل دقيقتين} few{قبل {n} دقائق} other{قبل {n} دقيقة}}",
+  "rowHoursAgo": "{n, plural, =1{قبل ساعة} =2{قبل ساعتين} few{قبل {n} ساعات} other{قبل {n} ساعة}}",
+  "rowYesterday": "أمس",
+  "rowDaysAgo": "{n, plural, =1{قبل يوم} =2{قبل يومين} few{قبل {n} أيام} other{قبل {n} يوماً}}"
 }
