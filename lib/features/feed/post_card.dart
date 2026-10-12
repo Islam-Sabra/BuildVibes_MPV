@@ -63,7 +63,12 @@ class PostCard extends ConsumerWidget {
 
     final byline = joinMeta([
       [?post.authorHeadline, ?post.authorCompany].join(', '),
-      formatAgo(l10n, post.createdAt.toLocal(), now),
+      formatShortAgo(
+        l10n,
+        post.createdAt.toLocal(),
+        now,
+        Localizations.localeOf(context).toLanguageTag(),
+      ),
       if (post.editedAt != null) l10n.postEdited,
     ]);
 
@@ -109,11 +114,6 @@ class PostCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvSpace.s12,
                     children: [
-                      if (tag != PostTag.strip)
-                        GestureDetector(
-                          onTap: () => _openAuthor(context, me),
-                          child: BvAvatar(name: post.authorName),
-                        ),
                       Expanded(
                         child: GestureDetector(
                           key: Key('post-author-${post.id}'),
@@ -270,6 +270,9 @@ class PostCard extends ConsumerWidget {
     if (choice == null || !context.mounted) return;
     final repo = ref.read(postRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
+    // The card leaves the list when muted: Undo reloads through the app's
+    // state, which outlives it.
+    final container = ProviderScope.containerOf(context);
     switch (choice) {
       case _Menu.edit:
         await context.push(AppRoutes.postEdit(post.id));
@@ -310,7 +313,7 @@ class PostCard extends ConsumerWidget {
                   label: l10n.postUndo,
                   onPressed: () async {
                     await repo.mute(post.authorId, false);
-                    ref.invalidate(feedProvider);
+                    container.invalidate(feedProvider);
                   },
                 ),
               ),

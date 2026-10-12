@@ -2482,6 +2482,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedCouldntLoad => 'Couldn\'t load your Feed';
 
   @override
+  String get feedCouldntLoadBody =>
+      'Check your connection and try again. Nothing was lost.';
+
+  @override
   String get feedOffline => 'You\'re offline. Showing what you already loaded.';
 
   @override
@@ -2574,10 +2578,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDeleteReply => 'Delete comment';
 
   @override
-  String get postDeleteReplyTitle => 'Delete this comment?';
+  String get postDeleteReplyTitle => 'Delete comment?';
 
   @override
-  String get postDeleteReplyBody => 'It\'s removed for everyone.';
+  String get postDeleteReplyBody =>
+      'It will be removed from this post for everyone.';
 
   @override
   String get postUnavailable => 'This post isn\'t available';
@@ -2686,7 +2691,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String composerWrittenIn(String lang) {
-    return 'Written in $lang';
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return 'Written in $_temp0';
   }
 
   @override
@@ -2702,7 +2711,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get langAuto => 'Detected automatically';
 
   @override
-  String get composerLangTitle => 'Post language';
+  String get composerLangTitle => 'Language of this post';
+
+  @override
+  String get composerLangWhy =>
+      'We use this to offer Translate to readers who don\'t read it.';
+
+  @override
+  String langName(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get composerPhotosMax => 'Up to 4 photos.';
@@ -2743,14 +2765,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discardTitle => 'Discard this post?';
 
   @override
-  String get discardBody => 'What you wrote isn\'t saved.';
+  String get discardBody => 'Your text, photo and project link will be lost.';
 
   @override
   String get discardConfirm => 'Discard';
 
   @override
-  String get projectPosts => 'Posts';
+  String get projectPosts => 'POSTS';
 
   @override
   String get projectPostsEmpty => 'No posts tagged with this project yet.';
+
+  @override
+  String get timeNowShort => 'now';
+
+  @override
+  String timeMinutesShort(int n) {
+    return '${n}m';
+  }
+
+  @override
+  String timeHoursShort(int n) {
+    return '${n}h';
+  }
+
+  @override
+  String get discardKeep => 'Keep editing';
 }
