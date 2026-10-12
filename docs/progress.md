@@ -312,6 +312,14 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - the Arabic feed, composer, discard and post page.
   - 514 Flutter tests pass. Screenshots in `docs/screens/`: `h1_*_feed`, `c1_en_composer`, `c2_*`, `c10_en_tag`, `c13_ar_discard`, `p3b_en_failed`, `h1_en_posted`, `h10_*_post`.
 
+- **12 Oct, week 7 part 2, database** (review 16 §3).
+  - Migration 13 (`20261012180000_activity.sql`) is on `activity-db`, **not live**, for the lead's review:
+    - `notifications`, written only by triggers (work item events, join requests, confirmed roles, follows, post replies, Useful), never to the actor, never across a block, Space news only to members; a declined request makes none;
+    - `space_visits` and `mark_space_seen`;
+    - `my_activity`, `mark_activity_read`, `unread_activity` (yes or no);
+    - `home_day` and `today_in_spaces` for the H1b header and rows, with "today" from the phone's midnight.
+  - `13_activity.test.sql`: 51 checks, 571 in all.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
 2. The lead rechecks migration 12 (`feed-db`) and reviews part 1 (`feed`). Then, with the founder's yes, put migration 12 live and merge.
