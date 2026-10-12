@@ -270,6 +270,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l10n.composerWrittenIn('ar')), findsOneWidget);
       await _tap(tester, 'composer-lang-change');
+      // L6: why it's asked, and what was detected, in the app's language.
+      expect(find.text(l10n.composerLangWhy), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('composer-lang-auto')),
+          matching: find.text(l10n.langName('ar')),
+        ),
+        findsOneWidget,
+      );
       await _tap(tester, 'composer-lang-en');
       expect(find.text(l10n.composerWrittenIn('en')), findsOneWidget);
 

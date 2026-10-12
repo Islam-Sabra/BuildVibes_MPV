@@ -2711,7 +2711,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get langAuto => 'يُحدَّد تلقائياً';
 
   @override
-  String get composerLangTitle => 'لغة المنشور';
+  String get composerLangTitle => 'لغة هذا المنشور';
+
+  @override
+  String get composerLangWhy =>
+      'نستخدمها لنعرض الترجمة على القرّاء الذين لا يقرؤون هذه اللغة.';
+
+  @override
+  String langName(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'العربية',
+      'other': 'الإنجليزية',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get composerPhotosMax => 'حتى 4 صور.';

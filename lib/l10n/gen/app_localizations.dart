@@ -4733,8 +4733,20 @@ abstract class AppLocalizations {
   /// L6 title.
   ///
   /// In en, this message translates to:
-  /// **'Post language'**
+  /// **'Language of this post'**
   String get composerLangTitle;
+
+  /// L6 line under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'We use this to offer Translate to readers who don\'t read it.'**
+  String get composerLangWhy;
+
+  /// A language's name in the app's language (L6).
+  ///
+  /// In en, this message translates to:
+  /// **'{lang, select, ar{Arabic} other{English}}'**
+  String langName(String lang);
 
   /// Too many photos.
   ///

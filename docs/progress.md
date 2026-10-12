@@ -324,6 +324,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
       - "Written in English" names the language in the app's language (مكتوب بالإنجليزية);
       - the project page's "POSTS" heading matches the other headings.
     - 518 Flutter tests and 520 SQL checks pass.
+    - Review 19 A: the composer's language sheet (L6) has "Detected automatically" with the language it found, and the line "We use this to offer Translate to readers who don't read it."; the title is "Language of this post". Retaken: `c13_*_discard` (Keep editing), `p3b_*_failed` (Retry), `l6_*_composer_language`.
     - Screenshots (EN and AR) in `docs/screens/`: `h4_*_skeleton`, `h5_*_couldnt_load`, `h6_*_offline`, `h8_*_menu`, `toast_*_muted`, `h8b_*_own_menu`, `h11_*_delete`, `p2_*_edited`, `p6_*_unavailable`, `h17_*_replying`, `h10_*_own_reply`, `h13_*_reply_menu`, `h14_*_reply_delete`, `l6_*_language`, `r12_*_profile_posts`, `r16_*_their_posts`, `project_*_posts`, `c2_en_ready`, `c_ar_edit`.
 
 ## Next tasks (in order)

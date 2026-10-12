@@ -3820,9 +3820,22 @@
   "@langAuto": {
     "description": "L6 option."
   },
-  "composerLangTitle": "Post language",
+  "composerLangTitle": "Language of this post",
   "@composerLangTitle": {
     "description": "L6 title."
+  },
+  "composerLangWhy": "We use this to offer Translate to readers who don't read it.",
+  "@composerLangWhy": {
+    "description": "L6 line under the title."
+  },
+  "langName": "{lang, select, ar{Arabic} other{English}}",
+  "@langName": {
+    "description": "A language's name in the app's language (L6).",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
   },
   "composerPhotosMax": "Up to 4 photos.",
   "@composerPhotosMax": {

@@ -2711,7 +2711,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get langAuto => 'Detected automatically';
 
   @override
-  String get composerLangTitle => 'Post language';
+  String get composerLangTitle => 'Language of this post';
+
+  @override
+  String get composerLangWhy =>
+      'We use this to offer Translate to readers who don\'t read it.';
+
+  @override
+  String langName(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get composerPhotosMax => 'Up to 4 photos.';
