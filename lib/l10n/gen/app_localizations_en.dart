@@ -2743,7 +2743,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discardTitle => 'Discard this post?';
 
   @override
-  String get discardBody => 'What you wrote isn\'t saved.';
+  String get discardBody => 'Your text, photo and project link will be lost.';
 
   @override
   String get discardConfirm => 'Discard';
@@ -2753,4 +2753,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectPostsEmpty => 'No posts tagged with this project yet.';
+
+  @override
+  String get timeNowShort => 'now';
+
+  @override
+  String timeMinutesShort(int n) {
+    return '${n}m';
+  }
+
+  @override
+  String timeHoursShort(int n) {
+    return '${n}h';
+  }
+
+  @override
+  String get discardKeep => 'Keep editing';
 }

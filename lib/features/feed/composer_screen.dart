@@ -282,7 +282,7 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
         context: context,
         title: l10n.discardTitle,
         body: l10n.discardBody,
-        cancelLabel: l10n.commonCancel,
+        cancelLabel: l10n.discardKeep,
         confirmLabel: l10n.discardConfirm,
         destructive: true,
       );
@@ -350,7 +350,10 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
             onPressed: _close,
           ),
           centerTitle: true,
-          title: Text(_editing ? l10n.postEdit : l10n.feedNewPost),
+          title: Text(
+            _editing ? l10n.postEdit : l10n.feedNewPost,
+            style: type.titleLg,
+          ),
         ),
         // The footer in the body, so it rises with the keyboard.
         body: Column(
@@ -364,6 +367,7 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
                         if (!_editing) ...[
                           _PostingTo(
                             projectName: project?.name,
+                            projectId: project?.id,
                             onTap: _postTo,
                           ),
                           const SizedBox(height: BvSpace.s16),
@@ -556,9 +560,14 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
 
 /// C1: "POSTING TO · Your network · Everyone · tagged {project}".
 class _PostingTo extends StatelessWidget {
-  const _PostingTo({required this.projectName, required this.onTap});
+  const _PostingTo({
+    required this.projectName,
+    required this.projectId,
+    required this.onTap,
+  });
 
   final String? projectName;
+  final String? projectId;
   final VoidCallback onTap;
 
   @override
@@ -580,19 +589,23 @@ class _PostingTo extends StatelessWidget {
           child: Row(
             spacing: BvSpace.s12,
             children: [
-              Container(
-                width: BvSize.avatarMd,
-                height: BvSize.avatarMd,
-                decoration: BoxDecoration(
-                  color: BvColors.surfaceSubtle,
-                  borderRadius: BvAvatar.companyRadius(BvAvatarSize.md),
+              if (projectId != null)
+                BvProjectAvatar(id: projectId!, icon: BvIcons.crane)
+              else
+                Container(
+                  key: const Key('composer-network-tile'),
+                  width: BvSize.avatarMd,
+                  height: BvSize.avatarMd,
+                  decoration: BoxDecoration(
+                    color: BvColors.surfaceSubtle,
+                    borderRadius: BvAvatar.companyRadius(BvAvatarSize.md),
+                  ),
+                  child: const Icon(
+                    BvIcons.everyone,
+                    size: BvSize.iconMd,
+                    color: BvColors.iconPrimary,
+                  ),
                 ),
-                child: const Icon(
-                  BvIcons.everyone,
-                  size: BvSize.iconMd,
-                  color: BvColors.iconPrimary,
-                ),
-              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -705,7 +718,7 @@ class _StartFrom extends StatelessWidget {
                       children: [
                         Text(
                           '0${i + 1}',
-                          style: type.titleMd.copyWith(
+                          style: type.headingMd.copyWith(
                             color: BvColors.textSecondary,
                           ),
                         ),

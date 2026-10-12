@@ -3868,7 +3868,7 @@
   "@discardTitle": {
     "description": "C13."
   },
-  "discardBody": "What you wrote isn't saved.",
+  "discardBody": "Your text, photo and project link will be lost.",
   "@discardBody": {
     "description": "C13."
   },
@@ -3883,5 +3883,31 @@
   },
   "@projectPostsEmpty": {
     "description": "Project sheet, no posts."
+  },
+  "timeNowShort": "now",
+  "@timeNowShort": {
+    "description": "Short time on cards."
+  },
+  "timeMinutesShort": "{n}m",
+  "@timeMinutesShort": {
+    "description": "Short minutes on cards.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursShort": "{n}h",
+  "@timeHoursShort": {
+    "description": "Short hours on cards.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discardKeep": "Keep editing",
+  "@discardKeep": {
+    "description": "C13 cancel."
   }
 }

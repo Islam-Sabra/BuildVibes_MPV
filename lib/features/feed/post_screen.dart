@@ -119,7 +119,6 @@ class _PostScreenState extends ConsumerState<PostScreen> {
               children: [
                 PostCard(
                   post: p,
-                  tag: PostTag.chip,
                   onChanged: (changed) {
                     ref.read(feedProvider.notifier).replace(changed);
                     ref.invalidate(postProvider(widget.postId));
@@ -314,22 +313,26 @@ class _ReplyView extends ConsumerWidget {
             children: [
               const SizedBox(width: BvSpace.s4),
               Text(
-                formatAgo(l10n, reply.createdAt.toLocal(), now),
+                formatShortAgo(
+                  l10n,
+                  reply.createdAt.toLocal(),
+                  now,
+                  Localizations.localeOf(context).toLanguageTag(),
+                ),
                 style: type.metadata.copyWith(color: BvColors.textSecondary),
               ),
-              if (!mine)
-                GestureDetector(
-                  key: Key('reply-useful-${reply.id}'),
-                  onTap: useful,
-                  child: Text(
-                    l10n.postUseful,
-                    style: type.labelSm.copyWith(
-                      color: reply.myUseful
-                          ? BvColors.textAction
-                          : BvColors.textSecondary,
-                    ),
+              GestureDetector(
+                key: Key('reply-useful-${reply.id}'),
+                onTap: mine ? null : useful,
+                child: Text(
+                  l10n.postUseful,
+                  style: type.labelSm.copyWith(
+                    color: reply.myUseful
+                        ? BvColors.textAction
+                        : BvColors.textSecondary,
                   ),
                 ),
+              ),
               GestureDetector(
                 key: Key('reply-reply-${reply.id}'),
                 onTap: onReply,

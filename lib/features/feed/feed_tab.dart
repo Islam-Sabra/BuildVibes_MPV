@@ -225,7 +225,7 @@ class _PendingBanner extends ConsumerWidget {
           if (post.failed)
             BvButton(
               key: Key('feed-retry-${post.id}'),
-              label: l10n.commonRetry,
+              label: l10n.chatRetry,
               style: BvButtonStyle.tertiary,
               size: BvButtonSize.medium,
               padded: false,

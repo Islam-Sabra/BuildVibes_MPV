@@ -63,7 +63,12 @@ class PostCard extends ConsumerWidget {
 
     final byline = joinMeta([
       [?post.authorHeadline, ?post.authorCompany].join(', '),
-      formatAgo(l10n, post.createdAt.toLocal(), now),
+      formatShortAgo(
+        l10n,
+        post.createdAt.toLocal(),
+        now,
+        Localizations.localeOf(context).toLanguageTag(),
+      ),
       if (post.editedAt != null) l10n.postEdited,
     ]);
 
@@ -109,11 +114,6 @@ class PostCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvSpace.s12,
                     children: [
-                      if (tag != PostTag.strip)
-                        GestureDetector(
-                          onTap: () => _openAuthor(context, me),
-                          child: BvAvatar(name: post.authorName),
-                        ),
                       Expanded(
                         child: GestureDetector(
                           key: Key('post-author-${post.id}'),

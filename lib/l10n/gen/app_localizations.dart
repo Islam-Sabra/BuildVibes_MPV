@@ -4805,7 +4805,7 @@ abstract class AppLocalizations {
   /// C13.
   ///
   /// In en, this message translates to:
-  /// **'What you wrote isn\'t saved.'**
+  /// **'Your text, photo and project link will be lost.'**
   String get discardBody;
 
   /// C13.
@@ -4825,6 +4825,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No posts tagged with this project yet.'**
   String get projectPostsEmpty;
+
+  /// Short time on cards.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get timeNowShort;
+
+  /// Short minutes on cards.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}m'**
+  String timeMinutesShort(int n);
+
+  /// Short hours on cards.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h'**
+  String timeHoursShort(int n);
+
+  /// C13 cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get discardKeep;
 }
 
 class _AppLocalizationsDelegate

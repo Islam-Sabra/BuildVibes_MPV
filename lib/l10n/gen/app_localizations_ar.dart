@@ -2743,7 +2743,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discardTitle => 'تجاهل هذا المنشور؟';
 
   @override
-  String get discardBody => 'لن يُحفظ ما كتبته.';
+  String get discardBody => 'سيُحذف النص والصور ورابط المشروع.';
 
   @override
   String get discardConfirm => 'تجاهل';
@@ -2753,4 +2753,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get projectPostsEmpty => 'لا منشورات مرتبطة بهذا المشروع بعد.';
+
+  @override
+  String get timeNowShort => 'الآن';
+
+  @override
+  String timeMinutesShort(int n) {
+    return '$n د';
+  }
+
+  @override
+  String timeHoursShort(int n) {
+    return '$n س';
+  }
+
+  @override
+  String get discardKeep => 'متابعة التعديل';
 }

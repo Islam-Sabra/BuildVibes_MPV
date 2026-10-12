@@ -3,6 +3,7 @@ import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/data/models/profile.dart';
 import 'package:buildvibes/features/feed/feed_state.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_avatar.dart';
 import 'package:buildvibes/shared/widgets/bv_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -225,12 +226,15 @@ void main() {
       tester,
     ) async {
       final posts = _posts();
-      await _feed(tester, lang, posts: posts);
+      final app = await _feed(tester, lang, posts: posts);
       posts.feedOffline = true;
       _container(tester).invalidate(feedProvider);
       await tester.pumpAndSettle();
       expect(find.text(l10n.feedOffline), findsOneWidget);
       expect(find.byKey(const Key('post-p1')), findsOneWidget);
+      // Kept for this person only.
+      expect(app.prefs.getString('feed_cache_user-1'), isNotNull);
+      expect(app.prefs.getString('feed_cache'), isNull);
     });
 
     testWidgets('C1/C2: a template, the audience, the language, Post '
@@ -438,6 +442,64 @@ void main() {
         tester.getRect(find.byKey(const Key('post-reply-input'))).bottom,
         lessThanOrEqualTo(844 - 300),
       );
+    });
+
+    testWidgets('review 18: short times, the feed card on the post page, '
+        'Useful on replies [$lang]', (tester) async {
+      final posts = _posts()
+        ..repliesByPost['p1'] = [
+          PostReply(
+            id: 'r1',
+            postId: 'p1',
+            authorId: 'p-faisal',
+            authorName: 'Faisal Al-Rashidi',
+            authorHeadline: 'Site Engineer',
+            body: 'Good catch.',
+            createdAt: testNow.subtract(const Duration(minutes: 4)),
+          ),
+        ];
+      final app = await _feed(tester, lang, posts: posts);
+      // "3h", not "3h ago".
+      expect(find.textContaining(l10n.timeHoursShort(3)), findsWidgets);
+      expect(find.textContaining(l10n.timeHoursAgo(3)), findsNothing);
+      _router(tester).push('/posts/p1');
+      await tester.pumpAndSettle();
+      // The project strip, as in the Feed; no avatar on the card.
+      expect(find.byKey(const Key('post-project-pr-1')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('post-p1')),
+          matching: find.byType(BvAvatar),
+        ),
+        findsNothing,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('reply-r1')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Site Engineer'), findsOneWidget);
+      expect(find.text(l10n.timeMinutesShort(4)), findsOneWidget);
+      await _tap(tester, 'reply-useful-r1');
+      expect(app.posts.calls.single, 'useful reply r1 true');
+    });
+
+    testWidgets('review 18: the network tile, Discard words, Retry [$lang]', (
+      tester,
+    ) async {
+      final posts = _posts()..failNext = 9;
+      await _feed(tester, lang, posts: posts);
+      _router(tester).push('/posts/new');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('composer-network-tile')), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('composer-text')), 'Draft');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'composer-close');
+      expect(find.text(l10n.discardBody), findsOneWidget);
+      expect(find.text(l10n.discardKeep), findsOneWidget);
+      await _tap(tester, 'bv-dialog-cancel');
+      await _tap(tester, 'composer-post');
+      expect(find.text(l10n.chatRetry), findsOneWidget);
     });
 
     testWidgets('P6: a post that is gone [$lang]', (tester) async {

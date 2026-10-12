@@ -784,8 +784,12 @@
   "tagSpaceNote": "عمل فريقك يذهب إلى مساحة المشروع كبند عمل",
   "tagNone": "بدون مشروع",
   "discardTitle": "تجاهل هذا المنشور؟",
-  "discardBody": "لن يُحفظ ما كتبته.",
+  "discardBody": "سيُحذف النص والصور ورابط المشروع.",
   "discardConfirm": "تجاهل",
   "projectPosts": "المنشورات",
-  "projectPostsEmpty": "لا منشورات مرتبطة بهذا المشروع بعد."
+  "projectPostsEmpty": "لا منشورات مرتبطة بهذا المشروع بعد.",
+  "timeNowShort": "الآن",
+  "timeMinutesShort": "{n} د",
+  "timeHoursShort": "{n} س",
+  "discardKeep": "متابعة التعديل"
 }
