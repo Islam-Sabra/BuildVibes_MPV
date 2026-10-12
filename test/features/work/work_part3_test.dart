@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/profile/delivered_work.dart';
@@ -229,6 +230,17 @@ void main() {
     ) async {
       final work = await _open(tester, lang, _item(WorkStatus.open));
       expect(find.byKey(const Key('work-comment-send')), findsNothing);
+      // Review 11 B1: 44 high or more, filled, no outline anywhere.
+      final pill = find.byKey(const Key('work-comment'));
+      expect(tester.getSize(pill).height, greaterThanOrEqualTo(44));
+      final box = tester.widget<Container>(pill).decoration! as BoxDecoration;
+      expect(box.color, BvColors.surfaceSubtle);
+      expect(box.border, isNull);
+      final field = tester.widget<TextField>(
+        find.descendant(of: pill, matching: find.byType(TextField)),
+      );
+      expect(field.decoration!.enabledBorder, InputBorder.none);
+      expect(field.decoration!.focusedBorder, InputBorder.none);
       await _type(tester, 'work-comment', 'On it.');
       await _tap(tester, 'work-comment-send');
       expect(work.calls.single, 'comment item-1 On it.');

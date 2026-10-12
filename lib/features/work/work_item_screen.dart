@@ -713,6 +713,8 @@ class _CommentField extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(
         start: BvSpace.s16,
         end: BvSpace.s4,
+        top: BvSpace.s8,
+        bottom: BvSpace.s8,
       ),
       decoration: const BoxDecoration(
         color: BvColors.surfaceSubtle,
@@ -734,6 +736,9 @@ class _CommentField extends StatelessWidget {
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
                 hintText: l10n.workAddComment,
                 hintStyle: type.bodyMd.copyWith(color: BvColors.textSecondary),
               ),
