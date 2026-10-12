@@ -153,6 +153,11 @@ Who can invite:
 **Functions:**
 - `post_message(id, thread, body, reply_to, attachments)`: a retry with the same id returns the same message.
 - `delete_message`, `mark_thread_read`.
+- `share_library_file(id, thread, file, body)` (migration 11, F1 "Share in chat"):
+  - posts a message of kind 'file' that points at a Library file (`messages.library_file_id`), so the file isn't uploaded again and no second "From chat" copy is made;
+  - a Team's file is shared only in that Team's thread;
+  - the caller must be able to read the file;
+  - a retry with the same id returns the same message.
 - `space_threads(space)` (S7k): threads with the last message and unread count.
 
 ## 7. Work items: the core (migration 7, `20261012120000_work_items.sql`, branch `work-items-db`)

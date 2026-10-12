@@ -4217,7 +4217,7 @@ abstract class AppLocalizations {
   /// W3 section label.
   ///
   /// In en, this message translates to:
-  /// **'Attached'**
+  /// **'ATTACHED'**
   String get workAttached;
 
   /// W3 attached file line.

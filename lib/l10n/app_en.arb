@@ -3423,7 +3423,7 @@
   "@workAttachPhotoHelp": {
     "description": "W2-A option helper."
   },
-  "workAttached": "Attached",
+  "workAttached": "ATTACHED",
   "@workAttached": {
     "description": "W3 section label."
   },

@@ -2423,7 +2423,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workAttachPhotoHelp => 'Adds to the photos on the tag';
 
   @override
-  String get workAttached => 'Attached';
+  String get workAttached => 'ATTACHED';
 
   @override
   String get workAttachedFromLibrary => 'From the Space Library';

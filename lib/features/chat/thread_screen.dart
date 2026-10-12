@@ -1311,8 +1311,9 @@ class _PickedChip extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: BvChatSpec.pickedName),
             child: Padding(
               padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
+              // A camera photo's file name means nothing to people.
               child: Text(
-                inOwnDirection(file.name),
+                file.isPdf ? inOwnDirection(file.name) : l10n.chatPhoto,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: type.bodySm,
