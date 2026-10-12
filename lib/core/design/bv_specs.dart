@@ -339,6 +339,14 @@ abstract final class BvChatSpec {
 
   /// A picked file's name above the message box.
   static const pickedName = 140.0;
+
+  /// A voice note in a bubble, and its progress bar.
+  static const voiceWidth = 200.0;
+  static const voiceBar = 4.0;
+
+  /// The red dot while recording, and how far to slide to cancel.
+  static const recordDot = 10.0;
+  static const slideToCancel = 80.0;
 }
 
 /// F1 · Drawing preview.

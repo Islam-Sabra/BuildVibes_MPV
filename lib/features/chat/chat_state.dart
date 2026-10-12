@@ -26,6 +26,7 @@ class PendingFile {
       name: json['name'] as String,
       mime: json['mime'] as String,
       bytes: (json['bytes'] as num?)?.toInt(),
+      durationMs: (json['duration_ms'] as num?)?.toInt(),
     ),
     remote: json['remote'] as String?,
   );
@@ -40,6 +41,7 @@ class PendingFile {
     'name': file.name,
     'mime': file.mime,
     'bytes': file.bytes,
+    'duration_ms': file.durationMs,
     'remote': remote,
   };
 }
@@ -240,6 +242,7 @@ class ChatOutbox extends Notifier<List<PendingMessage>> {
                 mime: f.file.mime,
                 bytes: f.file.bytes,
                 name: f.file.name,
+                durationMs: f.file.durationMs,
               ),
           ],
         ),

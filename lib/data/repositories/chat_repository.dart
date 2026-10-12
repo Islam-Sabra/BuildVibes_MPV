@@ -232,6 +232,7 @@ class ChatUpload {
     required this.mime,
     this.bytes,
     this.name,
+    this.durationMs,
   });
 
   final String path;
@@ -239,11 +240,15 @@ class ChatUpload {
   final int? bytes;
   final String? name;
 
+  /// A voice note's length.
+  final int? durationMs;
+
   Map<String, dynamic> toJson() => {
     'path': path,
     'mime': mime,
     'bytes': ?bytes,
     'name': ?name,
+    'duration_ms': ?durationMs,
   };
 }
 

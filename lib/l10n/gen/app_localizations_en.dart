@@ -2447,4 +2447,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatFileRemoved => 'File removed';
+
+  @override
+  String get chatRecord => 'Hold to record a voice note';
+
+  @override
+  String get chatSlideToCancel => 'Slide away to cancel';
+
+  @override
+  String get chatReleaseToCancel => 'Release to cancel';
+
+  @override
+  String get chatMicDenied =>
+      'Allow the microphone in your phone\'s settings to record.';
+
+  @override
+  String get chatVoiceTooShort => 'Hold a little longer to record.';
+
+  @override
+  String get chatPlay => 'Play';
+
+  @override
+  String get chatPause => 'Pause';
 }

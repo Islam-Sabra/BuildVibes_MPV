@@ -4261,6 +4261,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'File removed'**
   String get chatFileRemoved;
+
+  /// Mic button label, and the hint after a tap.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to record a voice note'**
+  String get chatRecord;
+
+  /// While recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide away to cancel'**
+  String get chatSlideToCancel;
+
+  /// While recording, slid away.
+  ///
+  /// In en, this message translates to:
+  /// **'Release to cancel'**
+  String get chatReleaseToCancel;
+
+  /// Microphone refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the microphone in your phone\'s settings to record.'**
+  String get chatMicDenied;
+
+  /// Recording under a second.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold a little longer to record.'**
+  String get chatVoiceTooShort;
+
+  /// Voice note button.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get chatPlay;
+
+  /// Voice note button.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get chatPause;
 }
 
 class _AppLocalizationsDelegate
