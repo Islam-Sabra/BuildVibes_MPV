@@ -176,7 +176,7 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
               expand: true,
               onPressed: _pick,
             )
-          else
+          else ...[
             DecoratedBox(
               decoration: const BoxDecoration(
                 color: BvColors.surfaceElevated,
@@ -186,11 +186,25 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
                 key: const Key('add-file-picked'),
                 title: file.name,
                 subtitle: fileSize(l10n, file.bytes),
-                leading: const BvRowIcon(BvIcons.document, ink: true),
-                trailing: BvRowTrailing.value(l10n.libraryChangeFile),
-                onTap: _pick,
+                leading: BvRowIcon(
+                  file.isPdf ? BvIcons.document : BvIcons.image,
+                  ink: true,
+                ),
+                trailing: const BvRowTrailing.none(),
               ),
             ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: BvButton(
+                key: const Key('add-file-change'),
+                label: l10n.libraryChangeFile,
+                style: BvButtonStyle.tertiary,
+                size: BvButtonSize.medium,
+                padded: false,
+                onPressed: _pick,
+              ),
+            ),
+          ],
           BvTextField(
             key: const Key('add-file-name'),
             label: l10n.libraryName,

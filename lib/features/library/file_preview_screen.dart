@@ -365,7 +365,13 @@ class _InfoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: BvSpace.s8,
         children: [
-          Row(
+          // Stamp at the start, upload date at the end; on a narrow phone
+          // the date goes under the stamp.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: BvSpace.s8,
+            runSpacing: BvSpace.s4,
             children: [
               if (detail.isCurrent)
                 BvStamp(key: const Key('preview-current'), label: stamp)
@@ -374,7 +380,6 @@ class _InfoCard extends StatelessWidget {
                   label: f.revLabel ?? l10n.libraryFiles,
                   tone: BvStampTone.muted,
                 ),
-              const Spacer(),
               Text(
                 l10n.previewUploaded(day(f.createdAt)),
                 style: type.metadata.copyWith(color: BvColors.textSecondary),

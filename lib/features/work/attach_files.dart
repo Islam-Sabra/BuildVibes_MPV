@@ -145,6 +145,7 @@ class _LibraryPicker extends ConsumerWidget {
     ];
     if (fits.isEmpty) return EmptyNote(l10n.libraryEmpty);
     return ProfileCard(
+      key: const Key('library-picker'),
       padding: false,
       child: DividedColumn(
         children: [
