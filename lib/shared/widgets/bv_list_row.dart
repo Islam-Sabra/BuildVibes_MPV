@@ -63,6 +63,7 @@ class BvListRow extends StatelessWidget {
     this.leading,
     this.trailing = const BvRowTrailing.chevron(),
     this.onTap,
+    this.destructive = false,
   });
 
   final String title;
@@ -72,6 +73,9 @@ class BvListRow extends StatelessWidget {
   final Widget? leading;
   final BvRowTrailing trailing;
   final VoidCallback? onTap;
+
+  /// The title in red, for actions such as Delete or Leave (S15).
+  final bool destructive;
 
   bool get hasLeading => leading != null;
 
@@ -117,7 +121,9 @@ class BvListRow extends StatelessWidget {
                       Text(
                         title,
                         style: type.titleMd.copyWith(
-                          color: BvColors.textPrimary,
+                          color: destructive
+                              ? BvColors.textDestructive
+                              : BvColors.textPrimary,
                         ),
                       ),
                       if (subtitle != null)
@@ -175,10 +181,18 @@ class BvListRow extends StatelessWidget {
 /// The 40 tile at the start of a row: brand-soft fill with an action icon,
 /// or an ink icon when [ink] (S1 Space rows).
 class BvRowIcon extends StatelessWidget {
-  const BvRowIcon(this.icon, {super.key, this.ink = false});
+  const BvRowIcon(
+    this.icon, {
+    super.key,
+    this.ink = false,
+    this.destructive = false,
+  });
 
   final IconData icon;
   final bool ink;
+
+  /// A red icon, beside a destructive row.
+  final bool destructive;
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +207,11 @@ class BvRowIcon extends StatelessWidget {
       child: Icon(
         icon,
         size: BvListRowSpec.leadingIconSize,
-        color: ink ? BvColors.iconPrimary : BvColors.iconAction,
+        color: destructive
+            ? BvColors.textDestructive
+            : ink
+            ? BvColors.iconPrimary
+            : BvColors.iconAction,
       ),
     );
   }

@@ -110,6 +110,12 @@ abstract final class BvIcons {
   // Phosphor: dots-three
   static const more = IconData(0xe1fe, fontFamily: _family);
 
+  // Phosphor: user-plus (Invite people)
+  static const invite = IconData(0xe4d0, fontFamily: _family);
+
+  // Phosphor: user-switch (Transfer ownership)
+  static const transfer = IconData(0xe756, fontFamily: _family);
+
   // Phosphor: share-network (share an invite code)
   static const share = IconData(0xe408, fontFamily: _family);
 

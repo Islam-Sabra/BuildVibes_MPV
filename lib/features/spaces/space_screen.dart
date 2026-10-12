@@ -11,6 +11,7 @@ import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'people_tab.dart';
+import 'space_info_screen.dart';
 
 /// How a Space opens: on its People tab, and with the invite screen on top
 /// right after it was created (review 06, S5).
@@ -48,6 +49,16 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     }
   }
 
+  /// Space info (S15). "Members" there comes back to the People tab.
+  Future<void> _openInfo() async {
+    final result = await context.push<SpaceInfoResult>(
+      AppRoutes.spaceInfo(widget.spaceId),
+    );
+    if (mounted && result == SpaceInfoResult.showPeople) {
+      setState(() => _tab = SpaceScreen.peopleTab);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -73,38 +84,52 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: Row(
-          key: const Key('space-header'),
-          spacing: BvSpace.s12,
-          children: [
-            BvProjectAvatar(
-              id: detail.id,
-              icon: BvIcons.crane,
-              size: BvAvatarSize.sm,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    detail.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.titleMd,
-                  ),
-                  Text(
-                    detail.projectId == null
-                        ? l10n.spacesPrivateWork
-                        : l10n.spacesProjectSpaceLine,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.bodySm.copyWith(color: BvColors.textSecondary),
-                  ),
-                ],
+        actions: [
+          IconButton(
+            key: const Key('space-more'),
+            tooltip: l10n.spacesInfoTitle,
+            icon: const Icon(BvIcons.more),
+            onPressed: _openInfo,
+          ),
+        ],
+        title: GestureDetector(
+          onTap: _openInfo,
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            key: const Key('space-header'),
+            spacing: BvSpace.s12,
+            children: [
+              BvProjectAvatar(
+                id: detail.id,
+                icon: BvIcons.crane,
+                size: BvAvatarSize.sm,
               ),
-            ),
-          ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      detail.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.titleMd,
+                    ),
+                    Text(
+                      detail.projectId == null
+                          ? l10n.spacesPrivateWork
+                          : l10n.spacesProjectSpaceLine,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.bodySm.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       body: switch (_tab) {

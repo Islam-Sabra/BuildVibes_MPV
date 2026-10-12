@@ -1331,4 +1331,260 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesAdminRights => 'Admins have every right in the Space.';
+
+  @override
+  String listAnd(String a, String b) {
+    return '$a and $b';
+  }
+
+  @override
+  String listAndOthers(String names) {
+    return '$names and others';
+  }
+
+  @override
+  String get youLower => 'you';
+
+  @override
+  String proofConfirmedBy(String names) {
+    return 'Confirmed by $names';
+  }
+
+  @override
+  String get spacesInfoTitle => 'Space info';
+
+  @override
+  String get spacesAccess => 'Access';
+
+  @override
+  String spacesAccessLinked(String project) {
+    return 'Private work · linked to $project';
+  }
+
+  @override
+  String get spacesInviteRowSub => 'Share the invite code';
+
+  @override
+  String spacesOwnersLine(String names) {
+    return 'Owners: $names';
+  }
+
+  @override
+  String get spacesWhoCanInvite => 'Who can invite';
+
+  @override
+  String get spacesWhoCanInviteNote =>
+      'Every invite still needs a Space admin to confirm the join.';
+
+  @override
+  String get spacesInviteAdmins => 'Space admins';
+
+  @override
+  String get spacesInviteAdminsHelp => 'Only admins share the invite code.';
+
+  @override
+  String get spacesInviteLeads => 'Admins and Leads';
+
+  @override
+  String get spacesInviteLeadsHelp =>
+      'People with a Lead pass can invite their own crews.';
+
+  @override
+  String get spacesInviteEveryone => 'Everyone in the Space';
+
+  @override
+  String get spacesInviteEveryoneHelp =>
+      'Anyone can share the code. Admins still confirm each join.';
+
+  @override
+  String get spacesNotifications => 'Notifications';
+
+  @override
+  String get spacesNotificationsNote => 'For this Space only.';
+
+  @override
+  String get spacesNotifyAll => 'Everyone posts and my Teams';
+
+  @override
+  String get spacesNotifyAllHelp =>
+      'Messages in Everyone and in your Teams, plus anything that needs you.';
+
+  @override
+  String get spacesNotifyNeedsYou => 'Needs you only';
+
+  @override
+  String get spacesNotifyNeedsYouHelp =>
+      'Items you own, items to check and people asking to join.';
+
+  @override
+  String get spacesNotifyOff => 'Off';
+
+  @override
+  String get spacesNotifyOffHelp =>
+      'No alerts. Needs you still shows on your Home.';
+
+  @override
+  String get spacesTransfer => 'Transfer ownership';
+
+  @override
+  String get spacesDeleteSpace => 'Delete Space';
+
+  @override
+  String get spacesDeleteSpaceHelp => 'Owners only. Removes it for everyone.';
+
+  @override
+  String get spacesDeleteButton => 'Delete';
+
+  @override
+  String spacesDeleted(String space) {
+    return '$space was deleted.';
+  }
+
+  @override
+  String get spacesLeave => 'Leave Space';
+
+  @override
+  String spacesLeaveTitle(String space) {
+    return 'Leave $space?';
+  }
+
+  @override
+  String get spacesLeaveButton => 'Leave';
+
+  @override
+  String spacesLeft(String space) {
+    return 'You left $space.';
+  }
+
+  @override
+  String get spacesEdit => 'Edit';
+
+  @override
+  String get spacesEditTitle => 'Edit Space';
+
+  @override
+  String get spacesTransferIntro =>
+      'Choose a member to become a Space admin. You will stay in the Space as a member.';
+
+  @override
+  String spacesTransferTo(String name) {
+    return 'Transfer to $name';
+  }
+
+  @override
+  String spacesTransferTitle(String name) {
+    return 'Transfer to $name?';
+  }
+
+  @override
+  String spacesTransferBody(String name, String space) {
+    return '$name becomes an admin of $space and you become a member.';
+  }
+
+  @override
+  String get spacesTransferButton => 'Transfer';
+
+  @override
+  String spacesTransferred(String name) {
+    return '$name is now a Space admin. You\'re a member.';
+  }
+
+  @override
+  String get spacesNoOneToTransfer => 'Confirm someone into the Space first.';
+
+  @override
+  String get spacesTeams => 'Teams';
+
+  @override
+  String spacesTeamMembers(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n members',
+      one: '1 member',
+      zero: 'No members yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesInTeam => 'you\'re in it';
+
+  @override
+  String get spacesNewTeam => 'New Team';
+
+  @override
+  String get spacesTeamName => 'Team name';
+
+  @override
+  String get spacesTeamNameHint => 'e.g. MEP Team';
+
+  @override
+  String get spacesTeamHelp =>
+      'Everyone in the Space can see Team names and members. Only members see its chat.';
+
+  @override
+  String get spacesAddMembers => 'Add members';
+
+  @override
+  String spacesCreateTeam(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Create Team · $n people',
+      one: 'Create Team · 1 person',
+      zero: 'Create Team',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesTeamNameRequired => 'Write a Team name.';
+
+  @override
+  String get spacesTeamDuplicate => 'There\'s already a Team with this name.';
+
+  @override
+  String spacesTeamIntro(String space) {
+    return 'A Team in $space. Posts and threads for this Team are seen only by its members.';
+  }
+
+  @override
+  String get spacesAddPeople => 'Add people';
+
+  @override
+  String get spacesTeamPeopleTitle => 'People in this Team';
+
+  @override
+  String get spacesRenameTeam => 'Rename Team';
+
+  @override
+  String get spacesDeleteTeam => 'Delete Team';
+
+  @override
+  String spacesDeleteTeamTitle(String team) {
+    return 'Delete $team?';
+  }
+
+  @override
+  String get spacesDeleteTeamBody => 'Its members stay in the Space.';
+
+  @override
+  String get spacesNoTeamMembers => 'No one in this Team yet.';
+
+  @override
+  String spacesDeleteTitle(String space) {
+    return 'Delete $space?';
+  }
+
+  @override
+  String get spacesDeleteBody => 'It\'s removed for everyone.';
+
+  @override
+  String get spacesLeaveBodyPrivate =>
+      'You will stop seeing its chats and work. To come back, you need a new invite.';
+
+  @override
+  String get spacesLastAdmin =>
+      'Make someone else an admin first, or delete the Space.';
 }

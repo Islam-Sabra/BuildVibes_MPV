@@ -129,7 +129,14 @@ void main() {
         find.textContaining(l10n.spacesPassLine(l10n.spacesPassCrew)),
         findsOneWidget,
       );
-      expect(find.textContaining('MEP Team'), findsOneWidget);
+      // Rakesh's row names the Team (the Teams section lists it too).
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('member-p-rakesh')),
+          matching: find.textContaining('MEP Team'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('members see no requests [$lang]', (tester) async {

@@ -75,6 +75,40 @@ abstract class SpaceRepository {
   Future<void> setMemberAdmin(String spaceId, String profileId, bool admin);
 
   Future<void> removeMember(String spaceId, String profileId);
+
+  /// Name, About and who can invite. Admins only.
+  Future<void> updateSpace(
+    String spaceId, {
+    required String name,
+    String? about,
+    required SpaceInviters whoCanInvite,
+  });
+
+  Future<void> setNotifications(String spaceId, SpaceNotify level);
+
+  /// [profileId] becomes an admin; you stay as a member.
+  Future<void> transferOwnership(String spaceId, String profileId);
+
+  /// Gone for everyone (kept on the server for the record).
+  Future<void> deleteSpace(String spaceId);
+
+  /// Fails with [SpaceFailure.rule] for the last admin.
+  Future<void> leaveSpace(String spaceId);
+
+  /// Returns the new Team's id. A taken name fails with
+  /// [SpaceFailure.duplicate].
+  Future<String> createTeam(
+    String spaceId, {
+    required String name,
+    List<String> memberIds = const [],
+  });
+
+  Future<void> renameTeam(String teamId, String name);
+
+  Future<void> deleteTeam(String teamId);
+
+  /// The Team's members become exactly [memberIds].
+  Future<void> setTeamMembers(String teamId, List<String> memberIds);
 }
 
 /// How Space lists select a person: name, and role · company.
@@ -176,13 +210,15 @@ class SupabaseSpaceRepository implements SpaceRepository {
     if (me == null) return null;
     final space = await _client
         .from('spaces')
-        .select('id, name, about, project_id, project:projects(name)')
+        .select(
+          'id, name, about, project_id, who_can_invite, project:projects(name)',
+        )
         .eq('id', spaceId)
         .maybeSingle();
     if (space == null) return null;
     final member = await _client
         .from('space_members')
-        .select('pass, is_admin')
+        .select('pass, is_admin, notify')
         .eq('space_id', spaceId)
         .eq('profile_id', me)
         .isFilter('left_at', null)
@@ -202,6 +238,8 @@ class SupabaseSpaceRepository implements SpaceRepository {
       myPass: SpacePass.fromJson(member['pass']),
       iAmAdmin: member['is_admin'] as bool? ?? false,
       myRights: MemberRights.fromJson(rights),
+      whoCanInvite: SpaceInviters.fromJson(space['who_can_invite']),
+      myNotify: SpaceNotify.fromJson(member['notify']),
     );
   });
 
@@ -397,6 +435,87 @@ class SupabaseSpaceRepository implements SpaceRepository {
     () => _client.rpc<void>(
       'remove_member',
       params: {'p_space': spaceId, 'p_profile': profileId},
+    ),
+  );
+
+  @override
+  Future<void> updateSpace(
+    String spaceId, {
+    required String name,
+    String? about,
+    required SpaceInviters whoCanInvite,
+  }) => _guard(
+    () => _client.rpc<void>(
+      'update_space',
+      params: {
+        'p_space': spaceId,
+        'p_name': name.trim(),
+        'p_about': about?.trim(),
+        'p_who_can_invite': whoCanInvite.json,
+      },
+    ),
+  );
+
+  @override
+  Future<void> setNotifications(String spaceId, SpaceNotify level) => _guard(
+    () => _client.rpc<void>(
+      'set_space_notifications',
+      params: {'p_space': spaceId, 'p_level': level.json},
+    ),
+  );
+
+  @override
+  Future<void> transferOwnership(String spaceId, String profileId) => _guard(
+    () => _client.rpc<void>(
+      'transfer_ownership',
+      params: {'p_space': spaceId, 'p_profile': profileId},
+    ),
+  );
+
+  @override
+  Future<void> deleteSpace(String spaceId) => _guard(
+    () => _client.rpc<void>('delete_space', params: {'p_space': spaceId}),
+  );
+
+  @override
+  Future<void> leaveSpace(String spaceId) => _guard(
+    () => _client.rpc<void>('leave_space', params: {'p_space': spaceId}),
+  );
+
+  @override
+  Future<String> createTeam(
+    String spaceId, {
+    required String name,
+    List<String> memberIds = const [],
+  }) => _guard(
+    () => _client.rpc<String>(
+      'create_team',
+      params: {
+        'p_space': spaceId,
+        'p_name': name.trim(),
+        'p_members': memberIds,
+      },
+    ),
+  );
+
+  @override
+  Future<void> renameTeam(String teamId, String name) => _guard(
+    () => _client.rpc<void>(
+      'rename_team',
+      params: {'p_team': teamId, 'p_name': name.trim()},
+    ),
+  );
+
+  @override
+  Future<void> deleteTeam(String teamId) => _guard(
+    () => _client.rpc<void>('delete_team', params: {'p_team': teamId}),
+  );
+
+  @override
+  Future<void> setTeamMembers(String teamId, List<String> memberIds) => _guard(
+    () => _client.rpc<void>(
+      'set_team_members',
+      params: {'p_team': teamId, 'p_members': memberIds},
     ),
   );
 }

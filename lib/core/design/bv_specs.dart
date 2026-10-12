@@ -166,6 +166,16 @@ abstract final class BvSiteTagSpec {
   static const headGap = BvSpace.s8;
 }
 
+/// A centred dialog for a choice that can't be undone (S15c Leave, S15e
+/// Transfer).
+abstract final class BvDialogSpec {
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.sheet));
+  static const inset = 36.0; // from the screen edges
+  static const padding = BvSpace.s24;
+  static const gap = BvSpace.s12;
+  static const buttonsTop = BvSpace.s24;
+}
+
 /// The invite code card (S16, MVP): the site tag's shape around one large
 /// code.
 abstract final class BvCodeTagSpec {

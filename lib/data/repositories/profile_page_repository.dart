@@ -60,7 +60,9 @@ class SupabaseProfilePageRepository implements ProfilePageRepository {
   static const _cv =
       'id, role_title, start_month, end_month, show_on_profile, '
       'project:projects(id, name, type:project_types(name), place:places(name)), '
-      'confirmations:cv_project_confirmations(confirmed_by)';
+      'confirmations:cv_project_confirmations(confirmed_by, '
+      'confirmer:profiles!cv_project_confirmations_confirmed_by_fkey('
+      'first_name, last_name))';
 
   @override
   Future<ProfileView?> fetch(String profileId) async {

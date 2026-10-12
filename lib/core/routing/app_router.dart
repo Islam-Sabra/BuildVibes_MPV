@@ -33,7 +33,11 @@ import '../../features/shell/app_shell.dart';
 import '../../features/spaces/invite_screen.dart';
 import '../../features/spaces/member_pass_screen.dart';
 import '../../features/spaces/new_space_screen.dart';
+import '../../features/spaces/new_team_screen.dart';
+import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
+import '../../features/spaces/team_screen.dart';
+import '../../features/spaces/transfer_screen.dart';
 import 'app_routes.dart';
 
 export 'app_routes.dart';
@@ -166,6 +170,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'invite',
             builder: (context, state) =>
                 InviteScreen(spaceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'info',
+            builder: (context, state) =>
+                SpaceInfoScreen(spaceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'transfer',
+            builder: (context, state) =>
+                TransferScreen(spaceId: state.pathParameters['id']!),
+          ),
+          // "new" before ":teamId".
+          GoRoute(
+            path: 'teams/new',
+            builder: (context, state) =>
+                NewTeamScreen(spaceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'teams/:teamId',
+            builder: (context, state) => TeamScreen(
+              spaceId: state.pathParameters['id']!,
+              teamId: state.pathParameters['teamId']!,
+            ),
           ),
           GoRoute(
             path: 'members/:profileId',

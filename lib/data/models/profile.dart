@@ -135,6 +135,7 @@ class CvProjectEntry {
     required this.role,
     required this.showOnProfile,
     required this.confirmed,
+    this.confirmedBy = const [],
     this.projectType,
     this.placeName,
     this.start,
@@ -153,6 +154,12 @@ class CvProjectEntry {
       role: json['role_title'] as String,
       showOnProfile: json['show_on_profile'] as bool? ?? true,
       confirmed: confirmations.isNotEmpty,
+      confirmedBy: [
+        for (final c in confirmations)
+          if ((c as Map<String, dynamic>)['confirmer']
+              case final Map<String, dynamic> who)
+            '${who['first_name'] ?? ''} ${who['last_name'] ?? ''}'.trim(),
+      ].where((name) => name.isNotEmpty).toSet().toList(),
       projectType: type == null
           ? null
           : LocalizedText.fromJson(type['name'] as Map<String, dynamic>),
@@ -172,6 +179,9 @@ class CvProjectEntry {
 
   /// A teammate confirmed it ("Confirmed"), or not yet ("Waiting").
   final bool confirmed;
+
+  /// Who confirmed it, so readers can judge (founder decision, 11 Oct).
+  final List<String> confirmedBy;
   final LocalizedText? projectType;
   final LocalizedText? placeName;
   final DateTime? start;

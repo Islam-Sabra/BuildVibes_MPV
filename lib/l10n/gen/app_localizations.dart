@@ -2419,6 +2419,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Admins have every right in the Space.'**
   String get spacesAdminRights;
+
+  /// Joins the last two names.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b}'**
+  String listAnd(String a, String b);
+
+  /// More names than shown. No count (rule 3).
+  ///
+  /// In en, this message translates to:
+  /// **'{names} and others'**
+  String listAndOthers(String names);
+
+  /// "Owners: Omar Haddad and you".
+  ///
+  /// In en, this message translates to:
+  /// **'you'**
+  String get youLower;
+
+  /// Profile project row: who confirmed (founder decision, 11 Oct).
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed by {names}'**
+  String proofConfirmedBy(String names);
+
+  /// S15 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Space info'**
+  String get spacesInfoTitle;
+
+  /// S15 row, read-only.
+  ///
+  /// In en, this message translates to:
+  /// **'Access'**
+  String get spacesAccess;
+
+  /// S15 Access row.
+  ///
+  /// In en, this message translates to:
+  /// **'Private work · linked to {project}'**
+  String spacesAccessLinked(String project);
+
+  /// S15 Invite people row.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the invite code'**
+  String get spacesInviteRowSub;
+
+  /// S15 Members row.
+  ///
+  /// In en, this message translates to:
+  /// **'Owners: {names}'**
+  String spacesOwnersLine(String names);
+
+  /// S15 row and S15k-I title.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can invite'**
+  String get spacesWhoCanInvite;
+
+  /// S15k-I subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every invite still needs a Space admin to confirm the join.'**
+  String get spacesWhoCanInviteNote;
+
+  /// Who can invite option.
+  ///
+  /// In en, this message translates to:
+  /// **'Space admins'**
+  String get spacesInviteAdmins;
+
+  /// Option help.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins share the invite code.'**
+  String get spacesInviteAdminsHelp;
+
+  /// Option.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins and Leads'**
+  String get spacesInviteLeads;
+
+  /// Option help.
+  ///
+  /// In en, this message translates to:
+  /// **'People with a Lead pass can invite their own crews.'**
+  String get spacesInviteLeadsHelp;
+
+  /// Option.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone in the Space'**
+  String get spacesInviteEveryone;
+
+  /// Option help.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone can share the code. Admins still confirm each join.'**
+  String get spacesInviteEveryoneHelp;
+
+  /// S15 row and S15k-N title.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get spacesNotifications;
+
+  /// S15k-N subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'For this Space only.'**
+  String get spacesNotificationsNote;
+
+  /// Option.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone posts and my Teams'**
+  String get spacesNotifyAll;
+
+  /// Option help.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages in Everyone and in your Teams, plus anything that needs you.'**
+  String get spacesNotifyAllHelp;
+
+  /// Option.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs you only'**
+  String get spacesNotifyNeedsYou;
+
+  /// Option help.
+  ///
+  /// In en, this message translates to:
+  /// **'Items you own, items to check and people asking to join.'**
+  String get spacesNotifyNeedsYouHelp;
+
+  /// Option.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get spacesNotifyOff;
+
+  /// Option help.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts. Needs you still shows on your Home.'**
+  String get spacesNotifyOffHelp;
+
+  /// S15 row and S15d title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer ownership'**
+  String get spacesTransfer;
+
+  /// S15 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Space'**
+  String get spacesDeleteSpace;
+
+  /// S15 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Owners only. Removes it for everyone.'**
+  String get spacesDeleteSpaceHelp;
+
+  /// Confirm button.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get spacesDeleteButton;
+
+  /// Toast.
+  ///
+  /// In en, this message translates to:
+  /// **'{space} was deleted.'**
+  String spacesDeleted(String space);
+
+  /// S15 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Space'**
+  String get spacesLeave;
+
+  /// S15c title.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave {space}?'**
+  String spacesLeaveTitle(String space);
+
+  /// S15c button.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get spacesLeaveButton;
+
+  /// Toast.
+  ///
+  /// In en, this message translates to:
+  /// **'You left {space}.'**
+  String spacesLeft(String space);
+
+  /// S15 header action, admins.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get spacesEdit;
+
+  /// Edit sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Space'**
+  String get spacesEditTitle;
+
+  /// S15d intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a member to become a Space admin. You will stay in the Space as a member.'**
+  String get spacesTransferIntro;
+
+  /// S15d button.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to {name}'**
+  String spacesTransferTo(String name);
+
+  /// S15e title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to {name}?'**
+  String spacesTransferTitle(String name);
+
+  /// S15e body. Neutral.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} becomes an admin of {space} and you become a member.'**
+  String spacesTransferBody(String name, String space);
+
+  /// S15e button.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get spacesTransferButton;
+
+  /// Toast.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now a Space admin. You\'re a member.'**
+  String spacesTransferred(String name);
+
+  /// S15d empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm someone into the Space first.'**
+  String get spacesNoOneToTransfer;
+
+  /// S10k section.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get spacesTeams;
+
+  /// Team size inside a Space (founder ok, 12 Oct).
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{No members yet} =1{1 member} other{{n} members}}'**
+  String spacesTeamMembers(int n);
+
+  /// Team row.
+  ///
+  /// In en, this message translates to:
+  /// **'you\'re in it'**
+  String get spacesInTeam;
+
+  /// S10k link and S12 title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Team'**
+  String get spacesNewTeam;
+
+  /// S12 field.
+  ///
+  /// In en, this message translates to:
+  /// **'Team name'**
+  String get spacesTeamName;
+
+  /// S12 placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. MEP Team'**
+  String get spacesTeamNameHint;
+
+  /// S12 helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone in the Space can see Team names and members. Only members see its chat.'**
+  String get spacesTeamHelp;
+
+  /// S12 section.
+  ///
+  /// In en, this message translates to:
+  /// **'Add members'**
+  String get spacesAddMembers;
+
+  /// S12 button.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{Create Team} =1{Create Team · 1 person} other{Create Team · {n} people}}'**
+  String spacesCreateTeam(int n);
+
+  /// S12 error.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a Team name.'**
+  String get spacesTeamNameRequired;
+
+  /// 23505.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s already a Team with this name.'**
+  String get spacesTeamDuplicate;
+
+  /// S11k line (Figma copy fixed to this Space's name).
+  ///
+  /// In en, this message translates to:
+  /// **'A Team in {space}. Posts and threads for this Team are seen only by its members.'**
+  String spacesTeamIntro(String space);
+
+  /// S11k button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add people'**
+  String get spacesAddPeople;
+
+  /// Add people sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'People in this Team'**
+  String get spacesTeamPeopleTitle;
+
+  /// S11k menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Team'**
+  String get spacesRenameTeam;
+
+  /// S11k menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Team'**
+  String get spacesDeleteTeam;
+
+  /// Confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {team}?'**
+  String spacesDeleteTeamTitle(String team);
+
+  /// Confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Its members stay in the Space.'**
+  String get spacesDeleteTeamBody;
+
+  /// S11k empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No one in this Team yet.'**
+  String get spacesNoTeamMembers;
+
+  /// Delete Space dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {space}?'**
+  String spacesDeleteTitle(String space);
+
+  /// Delete Space dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s removed for everyone.'**
+  String get spacesDeleteBody;
+
+  /// S15c, private Space.
+  ///
+  /// In en, this message translates to:
+  /// **'You will stop seeing its chats and work. To come back, you need a new invite.'**
+  String get spacesLeaveBodyPrivate;
+
+  /// Last admin tries to leave (P0001).
+  ///
+  /// In en, this message translates to:
+  /// **'Make someone else an admin first, or delete the Space.'**
+  String get spacesLastAdmin;
 }
 
 class _AppLocalizationsDelegate

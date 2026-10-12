@@ -367,4 +367,156 @@ class FakeSpaceRepository implements SpaceRepository {
       ],
     );
   }
+
+  // Space info and Teams (part 3) --------------------------------------------
+
+  SpaceDetail _detail(
+    SpaceDetail d, {
+    String? name,
+    String? about,
+    bool? iAmAdmin,
+    SpaceInviters? whoCanInvite,
+    SpaceNotify? myNotify,
+  }) => SpaceDetail(
+    id: d.id,
+    name: name ?? d.name,
+    about: about ?? d.about,
+    projectId: d.projectId,
+    projectName: d.projectName,
+    myPass: d.myPass,
+    iAmAdmin: iAmAdmin ?? d.iAmAdmin,
+    myRights: d.myRights,
+    whoCanInvite: whoCanInvite ?? d.whoCanInvite,
+    myNotify: myNotify ?? d.myNotify,
+  );
+
+  @override
+  Future<void> updateSpace(
+    String spaceId, {
+    required String name,
+    String? about,
+    required SpaceInviters whoCanInvite,
+  }) async {
+    calls.add('update $name ${whoCanInvite.json}');
+    details[spaceId] = _detail(
+      details[spaceId]!,
+      name: name,
+      about: about,
+      whoCanInvite: whoCanInvite,
+    );
+  }
+
+  @override
+  Future<void> setNotifications(String spaceId, SpaceNotify level) async {
+    calls.add('notify ${level.json}');
+    details[spaceId] = _detail(details[spaceId]!, myNotify: level);
+  }
+
+  @override
+  Future<void> transferOwnership(String spaceId, String profileId) async {
+    calls.add('transfer $profileId');
+    _put(
+      spaceId,
+      members: [
+        for (final m in _of(spaceId).members)
+          if (m.person.id == profileId)
+            _copy(m, isAdmin: true)
+          else if (m.person.id == me)
+            _copy(m, isAdmin: false)
+          else
+            m,
+      ],
+    );
+    details[spaceId] = _detail(details[spaceId]!, iAmAdmin: false);
+  }
+
+  @override
+  Future<void> deleteSpace(String spaceId) async {
+    calls.add('delete $spaceId');
+    details.remove(spaceId);
+    spaces.removeWhere((s) => s.id == spaceId);
+  }
+
+  @override
+  Future<void> leaveSpace(String spaceId) async {
+    final mine = _of(spaceId).member(me);
+    final otherAdmin = _of(
+      spaceId,
+    ).members.any((m) => m.isAdmin && m.person.id != me);
+    if ((mine?.isAdmin ?? false) && !otherAdmin) {
+      throw const SpaceException(SpaceFailure.rule);
+    }
+    calls.add('leave $spaceId');
+    details.remove(spaceId);
+    spaces.removeWhere((s) => s.id == spaceId);
+  }
+
+  @override
+  Future<String> createTeam(
+    String spaceId, {
+    required String name,
+    List<String> memberIds = const [],
+  }) async {
+    final taken = _of(
+      spaceId,
+    ).teams.any((t) => t.name.toLowerCase() == name.trim().toLowerCase());
+    if (taken) throw const SpaceException(SpaceFailure.duplicate);
+    calls.add('team ${name.trim()} $memberIds');
+    final id = 'team-${_of(spaceId).teams.length + 1}';
+    _put(
+      spaceId,
+      teams: [
+        ..._of(spaceId).teams,
+        SpaceTeam(id: id, name: name.trim(), memberIds: {...memberIds}),
+      ],
+    );
+    return id;
+  }
+
+  String _spaceOfTeam(String teamId) => spacePeople.entries
+      .firstWhere((e) => e.value.teams.any((t) => t.id == teamId))
+      .key;
+
+  @override
+  Future<void> renameTeam(String teamId, String name) async {
+    calls.add('rename $teamId $name');
+    final spaceId = _spaceOfTeam(teamId);
+    _put(
+      spaceId,
+      teams: [
+        for (final t in _of(spaceId).teams)
+          t.id == teamId
+              ? SpaceTeam(id: t.id, name: name, memberIds: t.memberIds)
+              : t,
+      ],
+    );
+  }
+
+  @override
+  Future<void> deleteTeam(String teamId) async {
+    calls.add('delete team $teamId');
+    final spaceId = _spaceOfTeam(teamId);
+    _put(
+      spaceId,
+      teams: [
+        for (final t in _of(spaceId).teams)
+          if (t.id != teamId) t,
+      ],
+    );
+  }
+
+  @override
+  Future<void> setTeamMembers(String teamId, List<String> memberIds) async {
+    calls.add('team members $teamId $memberIds');
+    final spaceId = _spaceOfTeam(teamId);
+    _put(
+      spaceId,
+      teams: [
+        for (final t in _of(spaceId).teams)
+          t.id == teamId
+              ? SpaceTeam(id: t.id, name: t.name, memberIds: {...memberIds})
+              : t,
+      ],
+    );
+  }
 }

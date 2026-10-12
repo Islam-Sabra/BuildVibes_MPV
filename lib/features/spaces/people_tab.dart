@@ -11,8 +11,8 @@ import '../../core/routing/app_routes.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_search_field.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -21,6 +21,7 @@ import 'confirm_sheet.dart';
 import 'member_pass_screen.dart';
 import 'pass_words.dart';
 import 'space_errors.dart';
+import 'widgets/space_person_row.dart';
 
 /// S10k · Space People: search, the requests to join (admins only), then
 /// Owners (the Space admins) and Members. Teams come with part 3.
@@ -163,6 +164,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
       for (final m in data.members)
         if (!m.isAdmin && matches(m.person)) m,
     ];
+    final teams = data.teams;
 
     Widget section(String label) => Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
@@ -246,12 +248,48 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
               ),
             ],
           ],
+          if (q.isEmpty && (teams.isNotEmpty || widget.space.iAmAdmin)) ...[
+            section(l10n.spacesTeams),
+            for (var i = 0; i < teams.length; i++) ...[
+              if (i > 0) const SpaceRowDivider(),
+              BvListRow(
+                key: Key('team-row-${teams[i].id}'),
+                leading: const BvRowIcon(BvIcons.team, ink: true),
+                title: teams[i].name,
+                // Team sizes inside a Space are fine (founder, 12 Oct).
+                subtitle: joinMeta([
+                  l10n.spacesTeamMembers(teams[i].memberIds.length),
+                  if (teams[i].memberIds.contains(me)) l10n.spacesInTeam,
+                ]),
+                onTap: () =>
+                    context.push(AppRoutes.spaceTeam(_spaceId, teams[i].id)),
+              ),
+            ],
+            if (widget.space.iAmAdmin)
+              Padding(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: BvSpace.s8,
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: BvButton(
+                    key: const Key('people-new-team'),
+                    label: l10n.spacesNewTeam,
+                    style: BvButtonStyle.tertiary,
+                    size: BvButtonSize.medium,
+                    onPressed: () =>
+                        context.push(AppRoutes.spaceTeamNew(_spaceId)),
+                  ),
+                ),
+              ),
+          ],
           if (owners.isNotEmpty) ...[
             section(l10n.spacesOwners),
             for (var i = 0; i < owners.length; i++) ...[
-              if (i > 0) const _Divider(inset: true),
-              _PersonRow(
-                member: owners[i],
+              if (i > 0) const SpaceRowDivider(),
+              SpacePersonRow(
+                key: Key('member-${owners[i].person.id}'),
+                person: owners[i].person,
                 line: memberLine(owners[i]),
                 isMe: owners[i].person.id == me,
                 onTap: () => context.push(
@@ -263,9 +301,10 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
           if (members.isNotEmpty) ...[
             section(l10n.spacesMembers),
             for (var i = 0; i < members.length; i++) ...[
-              if (i > 0) const _Divider(inset: true),
-              _PersonRow(
-                member: members[i],
+              if (i > 0) const SpaceRowDivider(),
+              SpacePersonRow(
+                key: Key('member-${members[i].person.id}'),
+                person: members[i].person,
                 line: memberLine(members[i]),
                 isMe: members[i].person.id == me,
                 onTap: () => context.push(
@@ -288,23 +327,17 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
   }
 }
 
+/// Between requests on the peach band.
 class _Divider extends StatelessWidget {
-  const _Divider({this.inset = false});
-
-  final bool inset;
+  const _Divider();
 
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: inset ? BvColors.surfaceElevated : BvColors.surfaceBrandSoft,
-    child: Padding(
-      padding: EdgeInsetsDirectional.only(
-        start: inset ? BvListRowSpec.dividerInset : 0,
-      ),
-      child: const Divider(
-        height: BvStroke.thin,
-        thickness: BvStroke.thin,
-        color: BvColors.borderDefault,
-      ),
+  Widget build(BuildContext context) => const ColoredBox(
+    color: BvColors.surfaceBrandSoft,
+    child: Divider(
+      height: BvStroke.thin,
+      thickness: BvStroke.thin,
+      color: BvColors.borderDefault,
     ),
   );
 }
@@ -379,78 +412,6 @@ class _RequestCard extends StatelessWidget {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A member: avatar, name, role · company, and the pass or Owner tag.
-class _PersonRow extends StatelessWidget {
-  const _PersonRow({
-    required this.member,
-    required this.line,
-    required this.isMe,
-    required this.onTap,
-  });
-
-  final SpaceMember member;
-  final String? line;
-  final bool isMe;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    final lang = Localizations.localeOf(context).languageCode;
-    final p = member.person;
-    final role = joinMeta([?p.roleLabel(lang), ?p.companyLabel]);
-    return Material(
-      color: BvColors.surfaceElevated,
-      child: InkWell(
-        key: Key('member-${p.id}'),
-        onTap: onTap,
-        splashFactory: NoSplash.splashFactory,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: BvListRowSpec.paddingHorizontal,
-            vertical: BvListRowSpec.paddingVertical,
-          ),
-          child: Row(
-            spacing: BvListRowSpec.gap,
-            children: [
-              BvAvatar(name: p.fullName),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: BvListRowSpec.textGap,
-                  children: [
-                    Text(
-                      isMe
-                          ? joinMeta([p.fullName, l10n.spacesYouTag])
-                          : p.fullName,
-                      style: type.titleMd,
-                    ),
-                    if (role.isNotEmpty)
-                      Text(
-                        role,
-                        style: type.bodySm.copyWith(
-                          color: BvColors.textSecondary,
-                        ),
-                      ),
-                    if ((line ?? '').isNotEmpty)
-                      Text(
-                        line!,
-                        style: type.metadata.copyWith(
-                          color: BvColors.textSecondary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

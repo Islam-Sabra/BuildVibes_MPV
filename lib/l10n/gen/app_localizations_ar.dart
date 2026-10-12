@@ -1335,4 +1335,261 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesAdminRights => 'لدى المديرين كل الصلاحيات في المساحة.';
+
+  @override
+  String listAnd(String a, String b) {
+    return '$a و$b';
+  }
+
+  @override
+  String listAndOthers(String names) {
+    return '$names وآخرون';
+  }
+
+  @override
+  String get youLower => 'أنت';
+
+  @override
+  String proofConfirmedBy(String names) {
+    return 'تم التأكيد بواسطة $names';
+  }
+
+  @override
+  String get spacesInfoTitle => 'معلومات المساحة';
+
+  @override
+  String get spacesAccess => 'الوصول';
+
+  @override
+  String spacesAccessLinked(String project) {
+    return 'عمل خاص · مرتبطة بـ$project';
+  }
+
+  @override
+  String get spacesInviteRowSub => 'شارك رمز الدعوة';
+
+  @override
+  String spacesOwnersLine(String names) {
+    return 'مديرو المساحة: $names';
+  }
+
+  @override
+  String get spacesWhoCanInvite => 'من يمكنه الدعوة';
+
+  @override
+  String get spacesWhoCanInviteNote =>
+      'كل انضمام يحتاج إلى تأكيد مدير المساحة.';
+
+  @override
+  String get spacesInviteAdmins => 'مديرو المساحة';
+
+  @override
+  String get spacesInviteAdminsHelp => 'المديرون فقط يشاركون رمز الدعوة.';
+
+  @override
+  String get spacesInviteLeads => 'المديرون وأصحاب تصريح مسؤول';
+
+  @override
+  String get spacesInviteLeadsHelp => 'يمكن لأصحاب تصريح مسؤول دعوة فِرقهم.';
+
+  @override
+  String get spacesInviteEveryone => 'كل من في المساحة';
+
+  @override
+  String get spacesInviteEveryoneHelp =>
+      'يمكن لأي عضو مشاركة الرمز، ويؤكد المديرون كل انضمام.';
+
+  @override
+  String get spacesNotifications => 'الإشعارات';
+
+  @override
+  String get spacesNotificationsNote => 'لهذه المساحة فقط.';
+
+  @override
+  String get spacesNotifyAll => '«الجميع» وفِرقي';
+
+  @override
+  String get spacesNotifyAllHelp => 'رسائل «الجميع» وفِرقك، وكل ما ينتظرك.';
+
+  @override
+  String get spacesNotifyNeedsYou => 'بانتظارك فقط';
+
+  @override
+  String get spacesNotifyNeedsYouHelp =>
+      'البنود المكلّف بها، والبنود التي تحتاج فحصاً، وطلبات الانضمام.';
+
+  @override
+  String get spacesNotifyOff => 'إيقاف';
+
+  @override
+  String get spacesNotifyOffHelp =>
+      'لا تنبيهات. يبقى «بانتظارك» ظاهراً في الرئيسية.';
+
+  @override
+  String get spacesTransfer => 'نقل إدارة المساحة';
+
+  @override
+  String get spacesDeleteSpace => 'حذف المساحة';
+
+  @override
+  String get spacesDeleteSpaceHelp => 'للمديرين فقط. تُحذف لدى الجميع.';
+
+  @override
+  String get spacesDeleteButton => 'حذف';
+
+  @override
+  String spacesDeleted(String space) {
+    return 'تم حذف $space.';
+  }
+
+  @override
+  String get spacesLeave => 'مغادرة المساحة';
+
+  @override
+  String spacesLeaveTitle(String space) {
+    return 'مغادرة $space؟';
+  }
+
+  @override
+  String get spacesLeaveButton => 'مغادرة';
+
+  @override
+  String spacesLeft(String space) {
+    return 'غادرت $space.';
+  }
+
+  @override
+  String get spacesEdit => 'تعديل';
+
+  @override
+  String get spacesEditTitle => 'تعديل المساحة';
+
+  @override
+  String get spacesTransferIntro =>
+      'اختر عضواً لتنتقل إليه إدارة المساحة. ستبقى في المساحة كعضو.';
+
+  @override
+  String spacesTransferTo(String name) {
+    return 'نقل إلى $name';
+  }
+
+  @override
+  String spacesTransferTitle(String name) {
+    return 'النقل إلى $name؟';
+  }
+
+  @override
+  String spacesTransferBody(String name, String space) {
+    return 'تنتقل إدارة $space إلى $name وتصبح أنت عضواً.';
+  }
+
+  @override
+  String get spacesTransferButton => 'نقل';
+
+  @override
+  String spacesTransferred(String name) {
+    return '$name الآن من مديري المساحة، وأنت عضو.';
+  }
+
+  @override
+  String get spacesNoOneToTransfer => 'أكّد انضمام شخص إلى المساحة أولاً.';
+
+  @override
+  String get spacesTeams => 'الفِرق';
+
+  @override
+  String spacesTeamMembers(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n عضواً',
+      few: '$n أعضاء',
+      two: 'عضوان',
+      one: 'عضو واحد',
+      zero: 'لا أعضاء بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesInTeam => 'أنت فيه';
+
+  @override
+  String get spacesNewTeam => 'فريق جديد';
+
+  @override
+  String get spacesTeamName => 'اسم الفريق';
+
+  @override
+  String get spacesTeamNameHint => 'مثال: فريق MEP';
+
+  @override
+  String get spacesTeamHelp =>
+      'يرى كل من في المساحة أسماء الفِرق وأعضاءها. المحادثة لأعضاء الفريق فقط.';
+
+  @override
+  String get spacesAddMembers => 'إضافة أعضاء';
+
+  @override
+  String spacesCreateTeam(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'إنشاء الفريق · $n شخصاً',
+      few: 'إنشاء الفريق · $n أشخاص',
+      two: 'إنشاء الفريق · شخصان',
+      one: 'إنشاء الفريق · شخص واحد',
+      zero: 'إنشاء الفريق',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get spacesTeamNameRequired => 'اكتب اسم الفريق.';
+
+  @override
+  String get spacesTeamDuplicate => 'يوجد فريق بهذا الاسم بالفعل.';
+
+  @override
+  String spacesTeamIntro(String space) {
+    return 'فريق في $space. منشورات الفريق ومحادثاته لأعضائه فقط.';
+  }
+
+  @override
+  String get spacesAddPeople => 'إضافة أشخاص';
+
+  @override
+  String get spacesTeamPeopleTitle => 'أعضاء الفريق';
+
+  @override
+  String get spacesRenameTeam => 'إعادة تسمية الفريق';
+
+  @override
+  String get spacesDeleteTeam => 'حذف الفريق';
+
+  @override
+  String spacesDeleteTeamTitle(String team) {
+    return 'حذف $team؟';
+  }
+
+  @override
+  String get spacesDeleteTeamBody => 'يبقى أعضاؤه في المساحة.';
+
+  @override
+  String get spacesNoTeamMembers => 'لا أحد في هذا الفريق بعد.';
+
+  @override
+  String spacesDeleteTitle(String space) {
+    return 'حذف $space؟';
+  }
+
+  @override
+  String get spacesDeleteBody => 'ستُحذف لدى الجميع.';
+
+  @override
+  String get spacesLeaveBodyPrivate =>
+      'لن ترى محادثاتها وأعمالها بعد الآن. للعودة تحتاج إلى دعوة جديدة.';
+
+  @override
+  String get spacesLastAdmin => 'اجعل شخصاً آخر مديراً أولاً، أو احذف المساحة.';
 }

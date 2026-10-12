@@ -211,6 +211,8 @@ class SpaceDetail {
     this.about,
     this.projectId,
     this.projectName,
+    this.whoCanInvite = SpaceInviters.admins,
+    this.myNotify = SpaceNotify.all,
   });
 
   final String id;
@@ -221,8 +223,38 @@ class SpaceDetail {
   final SpacePass myPass;
   final bool iAmAdmin;
   final MemberRights myRights;
+  final SpaceInviters whoCanInvite;
+
+  /// The signed-in person's notifications for this Space (S15k-N).
+  final SpaceNotify myNotify;
 
   bool get canInvite => myRights.invite;
+}
+
+/// Who may share the invite code (S15k-I). One single choice.
+enum SpaceInviters {
+  admins('admins'),
+  adminsAndLeads('admins_leads'),
+  everyone('everyone');
+
+  const SpaceInviters(this.json);
+  final String json;
+
+  static SpaceInviters fromJson(Object? value) =>
+      values.where((v) => v.json == value).firstOrNull ?? admins;
+}
+
+/// Notifications for one Space (S15k-N). One single choice.
+enum SpaceNotify {
+  all('all'),
+  needsYou('needs_you'),
+  off('off');
+
+  const SpaceNotify(this.json);
+  final String json;
+
+  static SpaceNotify fromJson(Object? value) =>
+      values.where((v) => v.json == value).firstOrNull ?? all;
 }
 
 /// A person as Space lists show them: name, and role · company.

@@ -32,6 +32,11 @@ abstract final class AppRoutes {
   static String spaceInvite(String id) => '/spaces/$id/invite';
   static String spaceMember(String id, String profileId) =>
       '/spaces/$id/members/$profileId';
+  static String spaceInfo(String id) => '/spaces/$id/info';
+  static String spaceTransfer(String id) => '/spaces/$id/transfer';
+  static String spaceTeamNew(String id) => '/spaces/$id/teams/new';
+  static String spaceTeam(String id, String teamId) =>
+      '/spaces/$id/teams/$teamId';
 
   // Entry (signed out)
   static const loading = '/loading';

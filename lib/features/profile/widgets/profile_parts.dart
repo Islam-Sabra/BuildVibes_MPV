@@ -155,6 +155,18 @@ class ProfileCard extends StatelessWidget {
 
 /// One project on a CV: icon tile, name, role and dates, and the proof
 /// badge (Confirmed / Waiting) when [showProof]. Opens the project sheet.
+/// "Omar Haddad", "Omar Haddad and Sara Ali", or the first two "and
+/// others": names, never a count (rule 3).
+String confirmerNames(AppLocalizations l10n, List<String> names) {
+  if (names.length == 1) return names.first;
+  final two = l10n.listAnd(names[0], names[1]);
+  return names.length == 2
+      ? two
+      : l10n.listAndOthers(
+          '${names[0]}${l10n.localeName == 'ar' ? '، ' : ', '}${names[1]}',
+        );
+}
+
 class CvProjectRow extends StatelessWidget {
   const CvProjectRow({super.key, required this.entry, this.showProof = false});
 
@@ -205,6 +217,16 @@ class CvProjectRow extends StatelessWidget {
                     joinMeta([entry.role, dates]),
                     style: type.bodySm.copyWith(color: BvColors.textSecondary),
                   ),
+                  if (showProof && entry.confirmedBy.isNotEmpty)
+                    Text(
+                      l10n.proofConfirmedBy(
+                        confirmerNames(l10n, entry.confirmedBy),
+                      ),
+                      key: Key('proof-by-${entry.projectId}'),
+                      style: type.metadata.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
                 ],
               ),
             ),

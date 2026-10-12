@@ -1835,5 +1835,360 @@
   "spacesAdminRights": "Admins have every right in the Space.",
   "@spacesAdminRights": {
     "description": "S17k note for an admin member."
+  },
+  "listAnd": "{a} and {b}",
+  "@listAnd": {
+    "description": "Joins the last two names.",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "listAndOthers": "{names} and others",
+  "@listAndOthers": {
+    "description": "More names than shown. No count (rule 3).",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "youLower": "you",
+  "@youLower": {
+    "description": "\"Owners: Omar Haddad and you\"."
+  },
+  "proofConfirmedBy": "Confirmed by {names}",
+  "@proofConfirmedBy": {
+    "description": "Profile project row: who confirmed (founder decision, 11 Oct).",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesInfoTitle": "Space info",
+  "@spacesInfoTitle": {
+    "description": "S15 title."
+  },
+  "spacesAccess": "Access",
+  "@spacesAccess": {
+    "description": "S15 row, read-only."
+  },
+  "spacesAccessLinked": "Private work · linked to {project}",
+  "@spacesAccessLinked": {
+    "description": "S15 Access row.",
+    "placeholders": {
+      "project": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesInviteRowSub": "Share the invite code",
+  "@spacesInviteRowSub": {
+    "description": "S15 Invite people row."
+  },
+  "spacesOwnersLine": "Owners: {names}",
+  "@spacesOwnersLine": {
+    "description": "S15 Members row.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesWhoCanInvite": "Who can invite",
+  "@spacesWhoCanInvite": {
+    "description": "S15 row and S15k-I title."
+  },
+  "spacesWhoCanInviteNote": "Every invite still needs a Space admin to confirm the join.",
+  "@spacesWhoCanInviteNote": {
+    "description": "S15k-I subtitle."
+  },
+  "spacesInviteAdmins": "Space admins",
+  "@spacesInviteAdmins": {
+    "description": "Who can invite option."
+  },
+  "spacesInviteAdminsHelp": "Only admins share the invite code.",
+  "@spacesInviteAdminsHelp": {
+    "description": "Option help."
+  },
+  "spacesInviteLeads": "Admins and Leads",
+  "@spacesInviteLeads": {
+    "description": "Option."
+  },
+  "spacesInviteLeadsHelp": "People with a Lead pass can invite their own crews.",
+  "@spacesInviteLeadsHelp": {
+    "description": "Option help."
+  },
+  "spacesInviteEveryone": "Everyone in the Space",
+  "@spacesInviteEveryone": {
+    "description": "Option."
+  },
+  "spacesInviteEveryoneHelp": "Anyone can share the code. Admins still confirm each join.",
+  "@spacesInviteEveryoneHelp": {
+    "description": "Option help."
+  },
+  "spacesNotifications": "Notifications",
+  "@spacesNotifications": {
+    "description": "S15 row and S15k-N title."
+  },
+  "spacesNotificationsNote": "For this Space only.",
+  "@spacesNotificationsNote": {
+    "description": "S15k-N subtitle."
+  },
+  "spacesNotifyAll": "Everyone posts and my Teams",
+  "@spacesNotifyAll": {
+    "description": "Option."
+  },
+  "spacesNotifyAllHelp": "Messages in Everyone and in your Teams, plus anything that needs you.",
+  "@spacesNotifyAllHelp": {
+    "description": "Option help."
+  },
+  "spacesNotifyNeedsYou": "Needs you only",
+  "@spacesNotifyNeedsYou": {
+    "description": "Option."
+  },
+  "spacesNotifyNeedsYouHelp": "Items you own, items to check and people asking to join.",
+  "@spacesNotifyNeedsYouHelp": {
+    "description": "Option help."
+  },
+  "spacesNotifyOff": "Off",
+  "@spacesNotifyOff": {
+    "description": "Option."
+  },
+  "spacesNotifyOffHelp": "No alerts. Needs you still shows on your Home.",
+  "@spacesNotifyOffHelp": {
+    "description": "Option help."
+  },
+  "spacesTransfer": "Transfer ownership",
+  "@spacesTransfer": {
+    "description": "S15 row and S15d title."
+  },
+  "spacesDeleteSpace": "Delete Space",
+  "@spacesDeleteSpace": {
+    "description": "S15 row."
+  },
+  "spacesDeleteSpaceHelp": "Owners only. Removes it for everyone.",
+  "@spacesDeleteSpaceHelp": {
+    "description": "S15 row."
+  },
+  "spacesDeleteButton": "Delete",
+  "@spacesDeleteButton": {
+    "description": "Confirm button."
+  },
+  "spacesDeleted": "{space} was deleted.",
+  "@spacesDeleted": {
+    "description": "Toast.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesLeave": "Leave Space",
+  "@spacesLeave": {
+    "description": "S15 row."
+  },
+  "spacesLeaveTitle": "Leave {space}?",
+  "@spacesLeaveTitle": {
+    "description": "S15c title.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesLeaveButton": "Leave",
+  "@spacesLeaveButton": {
+    "description": "S15c button."
+  },
+  "spacesLeft": "You left {space}.",
+  "@spacesLeft": {
+    "description": "Toast.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesEdit": "Edit",
+  "@spacesEdit": {
+    "description": "S15 header action, admins."
+  },
+  "spacesEditTitle": "Edit Space",
+  "@spacesEditTitle": {
+    "description": "Edit sheet title."
+  },
+  "spacesTransferIntro": "Choose a member to become a Space admin. You will stay in the Space as a member.",
+  "@spacesTransferIntro": {
+    "description": "S15d intro."
+  },
+  "spacesTransferTo": "Transfer to {name}",
+  "@spacesTransferTo": {
+    "description": "S15d button.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesTransferTitle": "Transfer to {name}?",
+  "@spacesTransferTitle": {
+    "description": "S15e title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesTransferBody": "{name} becomes an admin of {space} and you become a member.",
+  "@spacesTransferBody": {
+    "description": "S15e body. Neutral.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesTransferButton": "Transfer",
+  "@spacesTransferButton": {
+    "description": "S15e button."
+  },
+  "spacesTransferred": "{name} is now a Space admin. You're a member.",
+  "@spacesTransferred": {
+    "description": "Toast.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesNoOneToTransfer": "Confirm someone into the Space first.",
+  "@spacesNoOneToTransfer": {
+    "description": "S15d empty."
+  },
+  "spacesTeams": "Teams",
+  "@spacesTeams": {
+    "description": "S10k section."
+  },
+  "spacesTeamMembers": "{n, plural, =0{No members yet} =1{1 member} other{{n} members}}",
+  "@spacesTeamMembers": {
+    "description": "Team size inside a Space (founder ok, 12 Oct).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "spacesInTeam": "you're in it",
+  "@spacesInTeam": {
+    "description": "Team row."
+  },
+  "spacesNewTeam": "New Team",
+  "@spacesNewTeam": {
+    "description": "S10k link and S12 title."
+  },
+  "spacesTeamName": "Team name",
+  "@spacesTeamName": {
+    "description": "S12 field."
+  },
+  "spacesTeamNameHint": "e.g. MEP Team",
+  "@spacesTeamNameHint": {
+    "description": "S12 placeholder."
+  },
+  "spacesTeamHelp": "Everyone in the Space can see Team names and members. Only members see its chat.",
+  "@spacesTeamHelp": {
+    "description": "S12 helper."
+  },
+  "spacesAddMembers": "Add members",
+  "@spacesAddMembers": {
+    "description": "S12 section."
+  },
+  "spacesCreateTeam": "{n, plural, =0{Create Team} =1{Create Team · 1 person} other{Create Team · {n} people}}",
+  "@spacesCreateTeam": {
+    "description": "S12 button.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "spacesTeamNameRequired": "Write a Team name.",
+  "@spacesTeamNameRequired": {
+    "description": "S12 error."
+  },
+  "spacesTeamDuplicate": "There's already a Team with this name.",
+  "@spacesTeamDuplicate": {
+    "description": "23505."
+  },
+  "spacesTeamIntro": "A Team in {space}. Posts and threads for this Team are seen only by its members.",
+  "@spacesTeamIntro": {
+    "description": "S11k line (Figma copy fixed to this Space's name).",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesAddPeople": "Add people",
+  "@spacesAddPeople": {
+    "description": "S11k button."
+  },
+  "spacesTeamPeopleTitle": "People in this Team",
+  "@spacesTeamPeopleTitle": {
+    "description": "Add people sheet title."
+  },
+  "spacesRenameTeam": "Rename Team",
+  "@spacesRenameTeam": {
+    "description": "S11k menu."
+  },
+  "spacesDeleteTeam": "Delete Team",
+  "@spacesDeleteTeam": {
+    "description": "S11k menu."
+  },
+  "spacesDeleteTeamTitle": "Delete {team}?",
+  "@spacesDeleteTeamTitle": {
+    "description": "Confirm.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesDeleteTeamBody": "Its members stay in the Space.",
+  "@spacesDeleteTeamBody": {
+    "description": "Confirm."
+  },
+  "spacesNoTeamMembers": "No one in this Team yet.",
+  "@spacesNoTeamMembers": {
+    "description": "S11k empty."
+  },
+  "spacesDeleteTitle": "Delete {space}?",
+  "@spacesDeleteTitle": {
+    "description": "Delete Space dialog.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "spacesDeleteBody": "It's removed for everyone.",
+  "@spacesDeleteBody": {
+    "description": "Delete Space dialog."
+  },
+  "spacesLeaveBodyPrivate": "You will stop seeing its chats and work. To come back, you need a new invite.",
+  "@spacesLeaveBodyPrivate": {
+    "description": "S15c, private Space."
+  },
+  "spacesLastAdmin": "Make someone else an admin first, or delete the Space.",
+  "@spacesLastAdmin": {
+    "description": "Last admin tries to leave (P0001)."
   }
 }

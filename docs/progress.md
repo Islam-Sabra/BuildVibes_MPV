@@ -124,8 +124,18 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Copy is gender-neutral in both languages (Figma says "him", "his", "He isn't told why").
     - Checked live on the emulator: Omar declined Sami and undid it, confirmed Sami as Crew, opened and locked rights, and Sami's Kuwait City Tower project on the profile changed from Waiting to Confirmed.
     - 305 Flutter tests and 212 SQL tests pass. Screenshots (English and Arabic) in `docs/screens/`: S10k, S10k-C, S10k-D, S17k, S17k-b, S10k-E (Arabic), and the confirmed proof.
+  - Spaces part 3 (review 06): Teams, New Team, Space info with its sheets, Leave, Transfer ownership and Delete.
+    - People: a Teams section ("2 members · you're in it"; Team sizes inside a Space are fine, founder 12 Oct) and New Team for admins.
+    - Team (S11k): "A Team in {Space}…" (Figma copy fixed), Add people, Rename and Delete for admins. Team chat waits for week 6.
+    - New Team (S12): name (a taken name is refused), members picked from the Space, "Create Team · 2 people".
+    - Space info (S15 v2k / S15b, private-Space wording): Access read-only, Invite people, Members ("Owners: … and you", opens People), Who can invite (S15k-I), Notifications (S15k-N), Transfer ownership, Delete Space, Leave Space. Admins edit the name and About. The Space header and "…" open it.
+    - Transfer (S15d, S15e): pick a member, confirm in a dialog; you stay as a member. Leave (S15c) and Delete ask first in a dialog; the last admin can't leave.
+    - New shared parts: BvDialog, red (destructive) list rows, user-plus and user-switch icons.
+    - Profile proof rows now say who confirmed them: "Confirmed by Omar Haddad", or two names "and others" (never a count).
+    - Checked live on the emulator: Omar added an About, created the MEP Team with Sami, deleted the test Space "Harbour Tower - Site team", transferred Salmiya Clinic to Sami and left it. Sami's profile shows "Confirmed by Omar Haddad". Review 06's emulator flow is complete.
+    - 331 Flutter tests and 212 SQL tests pass. Screenshots (English and Arabic) in `docs/screens/`: S11k, S12, S15, S15b, S15c, S15k-I, S15k-N, S15d, S15e, the proof row, and the delete dialog (Arabic).
 
 ## Next tasks (in order)
-1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1 and 2 done; next part 3 (Teams, New Team, Space info and its sheets, Leave, Transfer ownership, Delete; then delete the test Space "Harbour Tower - Site team"). Still to do from the proof decision: show "Confirmed by {name}" on each Confirmed row of the profile proof card. Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
+1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4). Next: week 5, work items in the Work tab (S20). Proof from a second account: accepted for the pilot (founder decision, see data-model §5); the proof rows must show "Confirmed by {name}".
 2. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 3. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
