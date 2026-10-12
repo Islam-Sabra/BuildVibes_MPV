@@ -10,6 +10,7 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../../shared/widgets/bv_button.dart';
 import '../../../shared/widgets/bv_list_row.dart';
 import '../../../shared/widgets/bv_tabs.dart';
+import '../../feed/post_list.dart';
 import '../delivered_work.dart';
 import 'profile_parts.dart';
 
@@ -63,7 +64,7 @@ class _ProfileBodyState extends State<ProfileBody> {
               own: widget.own,
               onSeeAllProjects: () => setState(() => _tab = 2),
             ),
-            1 => EmptyNote(l10n.postsEmpty),
+            1 => PostList(source: PostSource.person(widget.profile.id)),
             2 => _Projects(profile: widget.profile, own: widget.own),
             _ => _Experience(profile: widget.profile, own: widget.own),
           },

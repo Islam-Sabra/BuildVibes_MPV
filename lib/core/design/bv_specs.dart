@@ -362,3 +362,21 @@ abstract final class BvToastSpec {
   /// its height, and the 16 it sits off the edge, plus 16 between.
   static const lift = BvButtonSpec.heightLarge + BvSpace.s16 * 2;
 }
+
+/// Post cards (H1 v2) and the composer (C1, C2).
+abstract final class BvPostSpec {
+  /// One photo: its own shape, kept between these.
+  static const photoAspect = 4 / 3;
+  static const photoMinAspect = 0.8;
+  static const photoMaxAspect = 1.8;
+  static const photoGap = BvSpace.s2;
+
+  /// The composer's photo tiles and "Start from" tiles.
+  static const composerPhoto = 80.0;
+  static const templateHeight = 132.0;
+  static const maxPhotos = 4;
+
+  /// Shown at most while the first page loads (H4), then the copy kept on
+  /// the phone, if any.
+  static const skeletonFor = Duration(seconds: 3);
+}

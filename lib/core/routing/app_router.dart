@@ -38,6 +38,8 @@ import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
 import '../../features/chat/thread_screen.dart';
+import '../../features/feed/composer_screen.dart';
+import '../../features/feed/post_screen.dart';
 import '../../features/library/add_file_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
@@ -67,6 +69,7 @@ String? redirectForGate(AppGate gate, String location) {
               atLoading ||
               under(AppRoutes.people) ||
               under(AppRoutes.projects) ||
+              under(AppRoutes.posts) ||
               under(AppRoutes.spaces) ||
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
@@ -163,6 +166,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.projectsNew,
         builder: (context, state) =>
             NewProjectScreen(initialName: state.extra as String?),
+      ),
+      GoRoute(
+        path: AppRoutes.postNew,
+        builder: (context, state) => const ComposerScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.posts}/:id',
+        builder: (context, state) =>
+            PostScreen(postId: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'edit',
+            builder: (context, state) =>
+                ComposerScreen(editId: state.pathParameters['id']),
+          ),
+        ],
       ),
       GoRoute(
         path: '${AppRoutes.projects}/:id',

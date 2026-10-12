@@ -1,3 +1,4 @@
+import '../feed/post_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -289,6 +290,12 @@ class ProjectSheetScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+              // Site updates tagged with this project (review 16).
+              sectionLabel(l10n.projectPosts),
+              PostList(
+                source: PostSource.project(p.id),
+                empty: l10n.projectPostsEmpty,
+              ),
             ],
           );
         },

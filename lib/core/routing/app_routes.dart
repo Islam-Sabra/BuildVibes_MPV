@@ -25,6 +25,12 @@ abstract final class AppRoutes {
   static String personWork(String profileId, String itemId) =>
       '/people/$profileId/work/$itemId';
   static const projects = '/projects';
+
+  // Posts. "new" before ":id".
+  static const posts = '/posts';
+  static const postNew = '/posts/new';
+  static String post(String id) => '/posts/$id';
+  static String postEdit(String id) => '/posts/$id/edit';
   static const projectsAdd = '/projects/add';
   static const projectsNew = '/projects/new';
 

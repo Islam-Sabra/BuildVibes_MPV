@@ -4303,6 +4303,528 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pause'**
   String get chatPause;
+
+  /// Feed divider before posts from outside the home market.
+  ///
+  /// In en, this message translates to:
+  /// **'Beyond {market}'**
+  String feedBeyond(String market);
+
+  /// Empty feed.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts yet. Share what happened on site today.'**
+  String get feedEmpty;
+
+  /// H5.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your Feed'**
+  String get feedCouldntLoad;
+
+  /// H6 banner.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. Showing what you already loaded.'**
+  String get feedOffline;
+
+  /// Create sheet and composer title.
+  ///
+  /// In en, this message translates to:
+  /// **'New post'**
+  String get feedNewPost;
+
+  /// Card action.
+  ///
+  /// In en, this message translates to:
+  /// **'Useful'**
+  String get postUseful;
+
+  /// Card action.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get postReply;
+
+  /// Proof line, one name. Arabic: one neutral form (review 16).
+  ///
+  /// In en, this message translates to:
+  /// **'{a} found this useful'**
+  String postUsefulOne(String a);
+
+  /// Proof line, two names.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b} found this useful'**
+  String postUsefulTwo(String a, String b);
+
+  /// P2 label.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get postEdited;
+
+  /// Tooltip for the card's ••• menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Post options'**
+  String get postMenu;
+
+  /// H8.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute {name}'**
+  String postMute(String name);
+
+  /// Toast after Mute.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted {name}'**
+  String postMuted(String name);
+
+  /// Toast action.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get postUndo;
+
+  /// H8b.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit post'**
+  String get postEdit;
+
+  /// H8b.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete post'**
+  String get postDelete;
+
+  /// H11.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this post?'**
+  String get postDeleteTitle;
+
+  /// H11.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s removed from the Feed, your profile and the project\'s page.'**
+  String get postDeleteBody;
+
+  /// Toast.
+  ///
+  /// In en, this message translates to:
+  /// **'Post deleted.'**
+  String get postDeleted;
+
+  /// Photo tap tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open photo'**
+  String get postOpenPhoto;
+
+  /// H10 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get postTitle;
+
+  /// H10 section.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get postReplies;
+
+  /// H10 empty replies.
+  ///
+  /// In en, this message translates to:
+  /// **'No replies yet.'**
+  String get postNoReplies;
+
+  /// Composer hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment'**
+  String get postAddComment;
+
+  /// Composer hint when replying.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a reply'**
+  String get postWriteReply;
+
+  /// H17.
+  ///
+  /// In en, this message translates to:
+  /// **'Replying to {name}'**
+  String postReplyingTo(String name);
+
+  /// Tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel reply'**
+  String get postCancelReply;
+
+  /// Tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get postSendReply;
+
+  /// Tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment options'**
+  String get postReplyMenu;
+
+  /// H13.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete comment'**
+  String get postDeleteReply;
+
+  /// H14.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this comment?'**
+  String get postDeleteReplyTitle;
+
+  /// H14.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s removed for everyone.'**
+  String get postDeleteReplyBody;
+
+  /// P6 title.
+  ///
+  /// In en, this message translates to:
+  /// **'This post isn\'t available'**
+  String get postUnavailable;
+
+  /// P6 body.
+  ///
+  /// In en, this message translates to:
+  /// **'It may have been deleted, or you may not have access to it.'**
+  String get postUnavailableBody;
+
+  /// P6 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get postBackHome;
+
+  /// P3.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting to your network…'**
+  String get postPosting;
+
+  /// P3b / C14.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t post. Saved as a draft.'**
+  String get postFailed;
+
+  /// P3b.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get postFailedHint;
+
+  /// P3b secondary action.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard draft'**
+  String get postDiscardDraft;
+
+  /// C1 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'POSTING TO'**
+  String get composerPostingTo;
+
+  /// C1 audience.
+  ///
+  /// In en, this message translates to:
+  /// **'Your network'**
+  String get composerYourNetwork;
+
+  /// C1 audience line.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get composerEveryone;
+
+  /// C1 audience line.
+  ///
+  /// In en, this message translates to:
+  /// **'tagged {project}'**
+  String composerTagged(String project);
+
+  /// C1 placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened on site today?'**
+  String get composerHint;
+
+  /// C1 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'START FROM'**
+  String get composerStartFrom;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress update'**
+  String get tplProgress;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'Done today · Next · Holding us up'**
+  String get tplProgressHelp;
+
+  /// Template lines put in the post.
+  ///
+  /// In en, this message translates to:
+  /// **'Done today:\nNext:\nHolding us up:'**
+  String get tplProgressLines;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone'**
+  String get tplMilestone;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'What · When · Who did it'**
+  String get tplMilestoneHelp;
+
+  /// Template lines.
+  ///
+  /// In en, this message translates to:
+  /// **'What:\nWhen:\nWho did it:'**
+  String get tplMilestoneLines;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'Site visit'**
+  String get tplVisit;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'Where · What we found · Actions'**
+  String get tplVisitHelp;
+
+  /// Template lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Where:\nWhat we found:\nActions:'**
+  String get tplVisitLines;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the community'**
+  String get tplAsk;
+
+  /// Template.
+  ///
+  /// In en, this message translates to:
+  /// **'Question · Who knows'**
+  String get tplAskHelp;
+
+  /// Template lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Question:\nWho knows:'**
+  String get tplAskLines;
+
+  /// Footer tool.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get composerMedia;
+
+  /// Footer tool.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get composerProject;
+
+  /// Post button.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get composerPost;
+
+  /// Edit post button.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get composerSave;
+
+  /// Footer hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how to start, or just write'**
+  String get composerChooseHint;
+
+  /// Footer hint when tagged.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting to {project}'**
+  String composerPostingToProject(String project);
+
+  /// Audience line (review 16: replaces the member count).
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone on BuildVibes can see this.'**
+  String get composerAudience;
+
+  /// Audience line with a project.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone on BuildVibes can see this. It also shows on the project\'s page.'**
+  String get composerAudienceProject;
+
+  /// L5.
+  ///
+  /// In en, this message translates to:
+  /// **'Written in {lang}'**
+  String composerWrittenIn(String lang);
+
+  /// L5 link.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get composerChange;
+
+  /// Language name (each in its own script).
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get langEnglish;
+
+  /// Language name.
+  ///
+  /// In en, this message translates to:
+  /// **'العربية'**
+  String get langArabic;
+
+  /// L6 option.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected automatically'**
+  String get langAuto;
+
+  /// L6 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Post language'**
+  String get composerLangTitle;
+
+  /// Too many photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 4 photos.'**
+  String get composerPhotosMax;
+
+  /// Tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get composerRemovePhoto;
+
+  /// C3 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Post to'**
+  String get postToTitle;
+
+  /// C3 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'WHO SEES IT'**
+  String get postToWho;
+
+  /// C3 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Followers and Explore · anyone can see'**
+  String get postToNetworkHelp;
+
+  /// C3 note.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts are public and can be tagged to a project. Work for your team goes in the project\'s Space as a work item.'**
+  String get postToNote;
+
+  /// C10 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a project'**
+  String get tagTitle;
+
+  /// C10.
+  ///
+  /// In en, this message translates to:
+  /// **'Only projects where you have a confirmed role.'**
+  String get tagHelp;
+
+  /// C10 empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a project on your profile first'**
+  String get tagEmpty;
+
+  /// C10 line.
+  ///
+  /// In en, this message translates to:
+  /// **'Work for your team goes in the project\'s Space as a work item'**
+  String get tagSpaceNote;
+
+  /// C10: remove the tag.
+  ///
+  /// In en, this message translates to:
+  /// **'No project'**
+  String get tagNone;
+
+  /// C13.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this post?'**
+  String get discardTitle;
+
+  /// C13.
+  ///
+  /// In en, this message translates to:
+  /// **'What you wrote isn\'t saved.'**
+  String get discardBody;
+
+  /// C13.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discardConfirm;
+
+  /// Project sheet section.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get projectPosts;
+
+  /// Project sheet, no posts.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts tagged with this project yet.'**
+  String get projectPostsEmpty;
 }
 
 class _AppLocalizationsDelegate

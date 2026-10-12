@@ -3487,5 +3487,401 @@
   "chatPause": "Pause",
   "@chatPause": {
     "description": "Voice note button."
+  },
+  "feedBeyond": "Beyond {market}",
+  "@feedBeyond": {
+    "description": "Feed divider before posts from outside the home market.",
+    "placeholders": {
+      "market": {
+        "type": "String"
+      }
+    }
+  },
+  "feedEmpty": "No posts yet. Share what happened on site today.",
+  "@feedEmpty": {
+    "description": "Empty feed."
+  },
+  "feedCouldntLoad": "Couldn't load your Feed",
+  "@feedCouldntLoad": {
+    "description": "H5."
+  },
+  "feedOffline": "You're offline. Showing what you already loaded.",
+  "@feedOffline": {
+    "description": "H6 banner."
+  },
+  "feedNewPost": "New post",
+  "@feedNewPost": {
+    "description": "Create sheet and composer title."
+  },
+  "postUseful": "Useful",
+  "@postUseful": {
+    "description": "Card action."
+  },
+  "postReply": "Reply",
+  "@postReply": {
+    "description": "Card action."
+  },
+  "postUsefulOne": "{a} found this useful",
+  "@postUsefulOne": {
+    "description": "Proof line, one name. Arabic: one neutral form (review 16).",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      }
+    }
+  },
+  "postUsefulTwo": "{a} and {b} found this useful",
+  "@postUsefulTwo": {
+    "description": "Proof line, two names.",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "postEdited": "Edited",
+  "@postEdited": {
+    "description": "P2 label."
+  },
+  "postMenu": "Post options",
+  "@postMenu": {
+    "description": "Tooltip for the card's ••• menu."
+  },
+  "postMute": "Mute {name}",
+  "@postMute": {
+    "description": "H8.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postMuted": "Muted {name}",
+  "@postMuted": {
+    "description": "Toast after Mute.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postUndo": "Undo",
+  "@postUndo": {
+    "description": "Toast action."
+  },
+  "postEdit": "Edit post",
+  "@postEdit": {
+    "description": "H8b."
+  },
+  "postDelete": "Delete post",
+  "@postDelete": {
+    "description": "H8b."
+  },
+  "postDeleteTitle": "Delete this post?",
+  "@postDeleteTitle": {
+    "description": "H11."
+  },
+  "postDeleteBody": "It's removed from the Feed, your profile and the project's page.",
+  "@postDeleteBody": {
+    "description": "H11."
+  },
+  "postDeleted": "Post deleted.",
+  "@postDeleted": {
+    "description": "Toast."
+  },
+  "postOpenPhoto": "Open photo",
+  "@postOpenPhoto": {
+    "description": "Photo tap tooltip."
+  },
+  "postTitle": "Post",
+  "@postTitle": {
+    "description": "H10 title."
+  },
+  "postReplies": "Replies",
+  "@postReplies": {
+    "description": "H10 section."
+  },
+  "postNoReplies": "No replies yet.",
+  "@postNoReplies": {
+    "description": "H10 empty replies."
+  },
+  "postAddComment": "Add a comment",
+  "@postAddComment": {
+    "description": "Composer hint."
+  },
+  "postWriteReply": "Write a reply",
+  "@postWriteReply": {
+    "description": "Composer hint when replying."
+  },
+  "postReplyingTo": "Replying to {name}",
+  "@postReplyingTo": {
+    "description": "H17.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postCancelReply": "Cancel reply",
+  "@postCancelReply": {
+    "description": "Tooltip."
+  },
+  "postSendReply": "Send",
+  "@postSendReply": {
+    "description": "Tooltip."
+  },
+  "postReplyMenu": "Comment options",
+  "@postReplyMenu": {
+    "description": "Tooltip."
+  },
+  "postDeleteReply": "Delete comment",
+  "@postDeleteReply": {
+    "description": "H13."
+  },
+  "postDeleteReplyTitle": "Delete this comment?",
+  "@postDeleteReplyTitle": {
+    "description": "H14."
+  },
+  "postDeleteReplyBody": "It's removed for everyone.",
+  "@postDeleteReplyBody": {
+    "description": "H14."
+  },
+  "postUnavailable": "This post isn't available",
+  "@postUnavailable": {
+    "description": "P6 title."
+  },
+  "postUnavailableBody": "It may have been deleted, or you may not have access to it.",
+  "@postUnavailableBody": {
+    "description": "P6 body."
+  },
+  "postBackHome": "Back to Home",
+  "@postBackHome": {
+    "description": "P6 button."
+  },
+  "postPosting": "Posting to your network…",
+  "@postPosting": {
+    "description": "P3."
+  },
+  "postFailed": "Couldn't post. Saved as a draft.",
+  "@postFailed": {
+    "description": "P3b / C14."
+  },
+  "postFailedHint": "Check your connection and try again.",
+  "@postFailedHint": {
+    "description": "P3b."
+  },
+  "postDiscardDraft": "Discard draft",
+  "@postDiscardDraft": {
+    "description": "P3b secondary action."
+  },
+  "composerPostingTo": "POSTING TO",
+  "@composerPostingTo": {
+    "description": "C1 overline."
+  },
+  "composerYourNetwork": "Your network",
+  "@composerYourNetwork": {
+    "description": "C1 audience."
+  },
+  "composerEveryone": "Everyone",
+  "@composerEveryone": {
+    "description": "C1 audience line."
+  },
+  "composerTagged": "tagged {project}",
+  "@composerTagged": {
+    "description": "C1 audience line.",
+    "placeholders": {
+      "project": {
+        "type": "String"
+      }
+    }
+  },
+  "composerHint": "What happened on site today?",
+  "@composerHint": {
+    "description": "C1 placeholder."
+  },
+  "composerStartFrom": "START FROM",
+  "@composerStartFrom": {
+    "description": "C1 overline."
+  },
+  "tplProgress": "Progress update",
+  "@tplProgress": {
+    "description": "Template."
+  },
+  "tplProgressHelp": "Done today · Next · Holding us up",
+  "@tplProgressHelp": {
+    "description": "Template."
+  },
+  "tplProgressLines": "Done today:\nNext:\nHolding us up:",
+  "@tplProgressLines": {
+    "description": "Template lines put in the post."
+  },
+  "tplMilestone": "Milestone",
+  "@tplMilestone": {
+    "description": "Template."
+  },
+  "tplMilestoneHelp": "What · When · Who did it",
+  "@tplMilestoneHelp": {
+    "description": "Template."
+  },
+  "tplMilestoneLines": "What:\nWhen:\nWho did it:",
+  "@tplMilestoneLines": {
+    "description": "Template lines."
+  },
+  "tplVisit": "Site visit",
+  "@tplVisit": {
+    "description": "Template."
+  },
+  "tplVisitHelp": "Where · What we found · Actions",
+  "@tplVisitHelp": {
+    "description": "Template."
+  },
+  "tplVisitLines": "Where:\nWhat we found:\nActions:",
+  "@tplVisitLines": {
+    "description": "Template lines."
+  },
+  "tplAsk": "Ask the community",
+  "@tplAsk": {
+    "description": "Template."
+  },
+  "tplAskHelp": "Question · Who knows",
+  "@tplAskHelp": {
+    "description": "Template."
+  },
+  "tplAskLines": "Question:\nWho knows:",
+  "@tplAskLines": {
+    "description": "Template lines."
+  },
+  "composerMedia": "Media",
+  "@composerMedia": {
+    "description": "Footer tool."
+  },
+  "composerProject": "Project",
+  "@composerProject": {
+    "description": "Footer tool."
+  },
+  "composerPost": "Post",
+  "@composerPost": {
+    "description": "Post button."
+  },
+  "composerSave": "Save",
+  "@composerSave": {
+    "description": "Edit post button."
+  },
+  "composerChooseHint": "Choose how to start, or just write",
+  "@composerChooseHint": {
+    "description": "Footer hint."
+  },
+  "composerPostingToProject": "Posting to {project}",
+  "@composerPostingToProject": {
+    "description": "Footer hint when tagged.",
+    "placeholders": {
+      "project": {
+        "type": "String"
+      }
+    }
+  },
+  "composerAudience": "Everyone on BuildVibes can see this.",
+  "@composerAudience": {
+    "description": "Audience line (review 16: replaces the member count)."
+  },
+  "composerAudienceProject": "Everyone on BuildVibes can see this. It also shows on the project's page.",
+  "@composerAudienceProject": {
+    "description": "Audience line with a project."
+  },
+  "composerWrittenIn": "Written in {lang}",
+  "@composerWrittenIn": {
+    "description": "L5.",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
+  },
+  "composerChange": "Change",
+  "@composerChange": {
+    "description": "L5 link."
+  },
+  "langEnglish": "English",
+  "@langEnglish": {
+    "description": "Language name (each in its own script)."
+  },
+  "langArabic": "العربية",
+  "@langArabic": {
+    "description": "Language name."
+  },
+  "langAuto": "Detected automatically",
+  "@langAuto": {
+    "description": "L6 option."
+  },
+  "composerLangTitle": "Post language",
+  "@composerLangTitle": {
+    "description": "L6 title."
+  },
+  "composerPhotosMax": "Up to 4 photos.",
+  "@composerPhotosMax": {
+    "description": "Too many photos."
+  },
+  "composerRemovePhoto": "Remove photo",
+  "@composerRemovePhoto": {
+    "description": "Tooltip."
+  },
+  "postToTitle": "Post to",
+  "@postToTitle": {
+    "description": "C3 title."
+  },
+  "postToWho": "WHO SEES IT",
+  "@postToWho": {
+    "description": "C3 overline."
+  },
+  "postToNetworkHelp": "Followers and Explore · anyone can see",
+  "@postToNetworkHelp": {
+    "description": "C3 row."
+  },
+  "postToNote": "Posts are public and can be tagged to a project. Work for your team goes in the project's Space as a work item.",
+  "@postToNote": {
+    "description": "C3 note."
+  },
+  "tagTitle": "Link a project",
+  "@tagTitle": {
+    "description": "C10 title."
+  },
+  "tagHelp": "Only projects where you have a confirmed role.",
+  "@tagHelp": {
+    "description": "C10."
+  },
+  "tagEmpty": "Add a project on your profile first",
+  "@tagEmpty": {
+    "description": "C10 empty."
+  },
+  "tagSpaceNote": "Work for your team goes in the project's Space as a work item",
+  "@tagSpaceNote": {
+    "description": "C10 line."
+  },
+  "tagNone": "No project",
+  "@tagNone": {
+    "description": "C10: remove the tag."
+  },
+  "discardTitle": "Discard this post?",
+  "@discardTitle": {
+    "description": "C13."
+  },
+  "discardBody": "What you wrote isn't saved.",
+  "@discardBody": {
+    "description": "C13."
+  },
+  "discardConfirm": "Discard",
+  "@discardConfirm": {
+    "description": "C13."
+  },
+  "projectPosts": "Posts",
+  "projectPostsEmpty": "No posts tagged with this project yet.",
+  "@projectPosts": {
+    "description": "Project sheet section."
+  },
+  "@projectPostsEmpty": {
+    "description": "Project sheet, no posts."
   }
 }
