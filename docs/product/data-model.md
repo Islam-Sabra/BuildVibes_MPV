@@ -211,6 +211,8 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - **Attaching to an item:** the item's creator, owner or a member who may check. A Team file only on that Team's items.
 - **Teams:** a Team with chat messages or files can't be deleted; rename it instead.
 - **Storage:** private bucket `space-files` (25 MB; images, PDF, audio). Work item folders take photos only. Files are opened through signed URLs, which the read policy checks.
+- **File type (accepted for the pilot, review 13):** Storage records the type the app sends with the upload (`metadata.mimetype`), limited to the bucket's list. It doesn't look inside the file. The type checks (`upload_mime`, "evidence must be a photo") rest on that declared type.
+- **Cleanup age (migration 11):** `claim_orphan_files` never claims a file younger than one day, whatever age the job asks for, so an upload still going on a weak signal is left alone.
 
 **Functions:**
 - `add_library_file`, `delete_library_file`, `attach_library_file`.
