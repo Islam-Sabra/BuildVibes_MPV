@@ -4867,6 +4867,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep editing'**
   String get discardKeep;
+
+  /// H1b title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your day on site'**
+  String get homeDayTitle;
+
+  /// H1b summary, first part (orange).
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 thing needs you} other{{n} things need you}}'**
+  String homeDayNeedsYou(int n);
+
+  /// H1b summary: Spaces with something new today.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 Space active} other{{n} Spaces active}}'**
+  String homeDaySpacesActive(int n);
+
+  /// H1b summary: replies today to your chat messages.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 reply} other{{n} replies}}'**
+  String homeDayReplies(int n);
+
+  /// H1b section.
+  ///
+  /// In en, this message translates to:
+  /// **'NEEDS YOU'**
+  String get homeNeedsYou;
+
+  /// H1b: more than 3 needs; opens Activity.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get homeSeeAll;
+
+  /// H1b section.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY IN YOUR SPACES'**
+  String get homeTodayInSpaces;
+
+  /// H1b end, when nothing needs you.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s your day'**
+  String get homeThatsYourDay;
+
+  /// H1b end line.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing else needs you right now'**
+  String get homeNothingElse;
+
+  /// H1b row: the Space is linked to a project.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get homeProject;
+
+  /// Home top bar search tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get homeSearch;
+
+  /// Profile top bar Spaces icon tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'My Spaces'**
+  String get homeMySpaces;
+
+  /// Needs-you card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gave you a work item: {title}'**
+  String needsForYou(String name, String title);
+
+  /// Needs-you card, raised by you.
+  ///
+  /// In en, this message translates to:
+  /// **'A work item for you: {title}'**
+  String needsForYouSelf(String title);
+
+  /// Needs-you card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} signed a work item as done: {title}'**
+  String needsYouCheck(String name, String title);
+
+  /// Needs-you card, no name.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed as done. You check it: {title}'**
+  String needsYouCheckSelf(String title);
+
+  /// Needs-you card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent a work item back: {title}'**
+  String needsSentBack(String name, String title);
+
+  /// Needs-you card, no name.
+  ///
+  /// In en, this message translates to:
+  /// **'A work item came back to you: {title}'**
+  String needsSentBackSelf(String title);
+
+  /// Needs-you card.
+  ///
+  /// In en, this message translates to:
+  /// **'The owner left. Reassign it: {title}'**
+  String needsOwnerLeft(String title);
+
+  /// Needs-you card.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} asked to join {space}'**
+  String needsJoin(String name, String space);
+
+  /// Needs-you card line.
+  ///
+  /// In en, this message translates to:
+  /// **'due {date}'**
+  String needsDue(String date);
+
+  /// A1 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'WORK ITEM · FOR YOU'**
+  String get needsOverForYou;
+
+  /// A1 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'WORK ITEM · YOU CHECK IT'**
+  String get needsOverCheck;
+
+  /// A1 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'WORK ITEM · SENT BACK'**
+  String get needsOverSentBack;
+
+  /// A1 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'WORK ITEM · OWNER LEFT'**
+  String get needsOverOwnerLeft;
+
+  /// A1 overline.
+  ///
+  /// In en, this message translates to:
+  /// **'SPACE · REQUEST TO JOIN'**
+  String get needsOverJoin;
+
+  /// Needs-you button.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get needsOpen;
+
+  /// A1 button for an item to check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get needsCheck;
+
+  /// A1 button for a join request.
+  ///
+  /// In en, this message translates to:
+  /// **'Review request'**
+  String get needsReview;
+
+  /// H1b row: a work item event.
+  ///
+  /// In en, this message translates to:
+  /// **'{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} commented on {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}'**
+  String todayItem(String event, String name, String ref, String title);
+
+  /// H1b row: a Library file.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added {file}'**
+  String todayFile(String name, String file);
+
+  /// H1b row: a chat message.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {text}'**
+  String todayChat(String name, String text);
+
+  /// H1b row: a chat message without text.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, photo{{name} sent a photo} voice{{name} sent a voice note} file{{name} sent a file} other{{name} posted in chat}}'**
+  String todayChatKind(String kind, String name);
+
+  /// When the name is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get activitySomeone;
+
+  /// A1 section: your own count.
+  ///
+  /// In en, this message translates to:
+  /// **'NEEDS YOU · {n}'**
+  String activityNeedsHeader(int n);
+
+  /// A1 section.
+  ///
+  /// In en, this message translates to:
+  /// **'CHANGES TO YOUR RECORD'**
+  String get activityChanges;
+
+  /// A1 section line.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get activityLast7;
+
+  /// A1 group line.
+  ///
+  /// In en, this message translates to:
+  /// **'Space · your pass: {pass}'**
+  String activitySpaceLine(String pass);
+
+  /// A1 group.
+  ///
+  /// In en, this message translates to:
+  /// **'Your record'**
+  String get activityGroupRecord;
+
+  /// A1 group.
+  ///
+  /// In en, this message translates to:
+  /// **'Your network'**
+  String get activityGroupNetwork;
+
+  /// A1 group.
+  ///
+  /// In en, this message translates to:
+  /// **'Your posts'**
+  String get activityGroupPosts;
+
+  /// A1 group stamp; letters stay Latin.
+  ///
+  /// In en, this message translates to:
+  /// **'REV {letter}'**
+  String activityRev(String letter);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gave you {ref}'**
+  String activityAssigned(String name, String ref);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} signed {ref} as done'**
+  String activityDone(String name, String ref);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} checked {ref}'**
+  String activityChecked(String name, String ref);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent {ref} back'**
+  String activitySentBack(String name, String ref);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} commented on {ref}'**
+  String activityComment(String name, String ref);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} asked to join'**
+  String activityJoinRequest(String name);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in {space}'**
+  String activityJoinConfirmed(String space);
+
+  /// A1 row line.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed by {name}'**
+  String activityConfirmedBy(String name);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} confirmed your role'**
+  String activityRoleConfirmed(String name);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'New follower: {name}'**
+  String activityFollow(String name);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} replied to your post'**
+  String activityReplyPost(String name);
+
+  /// A1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} replied to you'**
+  String activityReplyReply(String name);
+
+  /// A1 row: one name you follow. Arabic: one neutral form (review 16 §5).
+  ///
+  /// In en, this message translates to:
+  /// **'{a} found your post useful'**
+  String activityUseful1(String a);
+
+  /// A1 row: two names you follow.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b} found your post useful'**
+  String activityUseful2(String a, String b);
+
+  /// A1 row: no names you follow. No count.
+  ///
+  /// In en, this message translates to:
+  /// **'Your post was found useful'**
+  String get activityUseful0;
+
+  /// A1 status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned'**
+  String get chipAssigned;
+
+  /// A1 status chip (glossary).
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get chipDone;
+
+  /// A1 status chip (glossary).
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get chipChecked;
+
+  /// A1 status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back'**
+  String get chipSentBack;
+
+  /// A1 status chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment'**
+  String get chipComment;
+
+  /// A1 status chip: a request to join confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get chipApproved;
+
+  /// A1 status chip: a role confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get chipConfirmed;
+
+  /// A2 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs you right now.'**
+  String get activityEmptyTitle;
+
+  /// A2 line.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone needs an answer from you, it waits here. This is what will show up.'**
+  String get activityEmptyBody;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'WORK ITEMS'**
+  String get ledgerWork;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone gives you a work item, or one you raised is done.'**
+  String get ledgerWorkLine;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'SPACE REQUESTS'**
+  String get ledgerRequests;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone asks to join a Space you run.'**
+  String get ledgerRequestsLine;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR POSTS'**
+  String get ledgerPosts;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone replies to your post.'**
+  String get ledgerPostsLine;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR NETWORK'**
+  String get ledgerNetwork;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone follows you.'**
+  String get ledgerNetworkLine;
+
+  /// A2 ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'WHILE YOU WAIT'**
+  String get ledgerWait;
+
+  /// A2 link.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a project you worked on'**
+  String get ledgerAddProject;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
+import 'bv_tabs.dart' show BvNewDot;
 
 /// One tab in [BvBottomBar].
 class BvBottomBarItem {
@@ -9,9 +10,13 @@ class BvBottomBarItem {
     required this.key,
     required this.icon,
     required this.label,
+    this.dot = false,
   });
 
   final Key key;
+
+  /// Something new (Activity): an orange dot on the icon. Never a number.
+  final bool dot;
 
   /// The same glyph is used when the tab is active; only the colour changes.
   final IconData icon;
@@ -125,10 +130,23 @@ class _TabSlot extends StatelessWidget {
               ),
             ),
             const SizedBox(height: BvBottomBarSize.gap),
-            Icon(
-              item.icon,
-              color: selected ? BvColors.iconPrimary : BvColors.iconSecondary,
-              size: BvSize.iconLg,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  item.icon,
+                  color: selected
+                      ? BvColors.iconPrimary
+                      : BvColors.iconSecondary,
+                  size: BvSize.iconLg,
+                ),
+                if (item.dot)
+                  PositionedDirectional(
+                    top: 0,
+                    end: 0,
+                    child: BvNewDot(key: Key('${_keyName(item.key)}-dot')),
+                  ),
+              ],
             ),
             const SizedBox(height: BvBottomBarSize.gap),
             _Label(
@@ -225,3 +243,7 @@ class _Label extends StatelessWidget {
     );
   }
 }
+
+/// "nav-activity" from `Key('nav-activity')`, for the dot's key.
+String _keyName(Key key) =>
+    key is ValueKey<String> ? key.value : key.toString();

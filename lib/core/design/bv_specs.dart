@@ -380,3 +380,15 @@ abstract final class BvPostSpec {
   /// the phone, if any.
   static const skeletonFor = Duration(seconds: 3);
 }
+
+/// Week 7 part 2: the "something new" dot, Home H1b and Activity A1.
+abstract final class BvActivitySpec {
+  /// On the Spaces tab label and the Activity tab icon. Never a number.
+  static const newDot = BvSpace.s6;
+
+  /// The REV letter marker on each Activity row.
+  static const letterMarker = BvSize.iconLg; // 24
+
+  static const needsOnHome = 3;
+  static const todayRows = 5;
+}

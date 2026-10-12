@@ -44,6 +44,12 @@ Future<void> _openSpacesTab(WidgetTester tester, AppLocalizations l10n) async {
   await tester.pumpAndSettle();
 }
 
+/// S1, from the Profile top bar (R1 v3).
+Future<void> _openMySpaces(WidgetTester tester) async {
+  await _tap(tester, 'nav-profile');
+  await _tap(tester, 'profile-spaces');
+}
+
 const _tower = 'Tower B — Site team';
 
 SpaceDetail _detail({bool admin = true, bool invite = true}) => SpaceDetail(
@@ -66,7 +72,9 @@ void main() {
       expect(find.text(l10n.spacesEmptyTitle), findsOneWidget);
       expect(find.text(l10n.spacesEnterCode), findsOneWidget);
       expect(find.text(l10n.spacesEmptyFeedNote), findsOneWidget);
-      // Create stays on the header (S1); Discover is not in the MVP.
+      // Create sits on the S1 header; Discover is not in the MVP.
+      await _openMySpaces(tester);
+      expect(find.text(l10n.spacesEmptyTitle), findsOneWidget);
       expect(find.byKey(const Key('spaces-create')), findsOneWidget);
     });
 
@@ -181,7 +189,7 @@ void main() {
             ),
           ]);
         await pumpApp(tester, language: lang, spaces: spaces);
-        await _openSpacesTab(tester, l10n);
+        await _openMySpaces(tester);
         expect(find.text(l10n.spacesProjectSpaces), findsOneWidget);
         expect(find.text(l10n.spacesNeedsYou(2)), findsOneWidget);
         expect(find.textContaining('Harbour Tower'), findsOneWidget);
@@ -225,8 +233,9 @@ void main() {
           ),
         ],
       );
-      await _openSpacesTab(tester, l10n);
+      await _openMySpaces(tester);
       await _tap(tester, 'spaces-create');
+      await _tap(tester, 'create-new-space');
       expect(find.byType(NewSpaceScreen), findsOneWidget);
       // The preview says "Private work", never "Open · 1 member".
       expect(find.text(l10n.spacesPrivateWork), findsOneWidget);
@@ -314,7 +323,8 @@ void main() {
       tester,
     ) async {
       await pumpApp(tester, language: lang);
-      await _tap(tester, 'nav-create');
+      await _openMySpaces(tester);
+      await _tap(tester, 'spaces-create');
       expect(find.text(l10n.spacesNewTitle), findsOneWidget);
       await _tap(tester, 'create-enter-code');
       expect(find.byKey(const Key('code-sheet')), findsOneWidget);

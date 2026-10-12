@@ -2790,4 +2790,337 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get discardKeep => 'متابعة التعديل';
+
+  @override
+  String get homeDayTitle => 'يومك في الموقع';
+
+  @override
+  String homeDayNeedsYou(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n شيئاً بانتظارك',
+      few: '$n أشياء بانتظارك',
+      two: 'شيئان بانتظارك',
+      one: 'شيء واحد بانتظارك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeDaySpacesActive(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n مساحة نشطة',
+      few: '$n مساحات نشطة',
+      two: 'مساحتان نشطتان',
+      one: 'مساحة واحدة نشطة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeDayReplies(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n ردّاً',
+      few: '$n ردود',
+      two: 'ردّان',
+      one: 'ردّ واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeNeedsYou => 'بانتظارك';
+
+  @override
+  String get homeSeeAll => 'عرض الكل';
+
+  @override
+  String get homeTodayInSpaces => 'اليوم في مساحاتك';
+
+  @override
+  String get homeThatsYourDay => 'هذا يومك';
+
+  @override
+  String get homeNothingElse => 'لا شيء آخر بانتظارك الآن';
+
+  @override
+  String get homeProject => 'مشروع';
+
+  @override
+  String get homeSearch => 'ابحث عن أشخاص';
+
+  @override
+  String get homeMySpaces => 'مساحاتي';
+
+  @override
+  String needsForYou(String name, String title) {
+    return 'بند عمل لك من $name: $title';
+  }
+
+  @override
+  String needsForYouSelf(String title) {
+    return 'بند عمل لك: $title';
+  }
+
+  @override
+  String needsYouCheck(String name, String title) {
+    return 'منجز بتوقيع $name، بانتظار فحصك: $title';
+  }
+
+  @override
+  String needsYouCheckSelf(String title) {
+    return 'منجز، بانتظار فحصك: $title';
+  }
+
+  @override
+  String needsSentBack(String name, String title) {
+    return 'أُرجع إليك بند عمل من $name: $title';
+  }
+
+  @override
+  String needsSentBackSelf(String title) {
+    return 'أُرجع إليك بند عمل: $title';
+  }
+
+  @override
+  String needsOwnerLeft(String title) {
+    return 'لم يعد المكلّف في المساحة. أعد الإسناد: $title';
+  }
+
+  @override
+  String needsJoin(String name, String space) {
+    return 'طلب انضمام من $name إلى $space';
+  }
+
+  @override
+  String needsDue(String date) {
+    return 'الاستحقاق $date';
+  }
+
+  @override
+  String get needsOverForYou => 'بند عمل · لك';
+
+  @override
+  String get needsOverCheck => 'بند عمل · بانتظار فحصك';
+
+  @override
+  String get needsOverSentBack => 'بند عمل · مُرجَع';
+
+  @override
+  String get needsOverOwnerLeft => 'بند عمل · المكلّف غادر';
+
+  @override
+  String get needsOverJoin => 'مساحة · طلب انضمام';
+
+  @override
+  String get needsOpen => 'فتح';
+
+  @override
+  String get needsCheck => 'افحص';
+
+  @override
+  String get needsReview => 'راجع الطلب';
+
+  @override
+  String todayItem(String event, String name, String ref, String title) {
+    String _temp0 = intl.Intl.selectLogic(event, {
+      'done': '$ref منجز بتوقيع $name',
+      'checked': 'تم فحص $ref بواسطة $name',
+      'sent_back': 'أُرجع $ref بواسطة $name',
+      'comment': 'تعليق من $name على $ref',
+      'reassigned': 'أُعيد إسناد $ref بواسطة $name',
+      'other': 'بند جديد $ref من $name',
+    });
+    return '$_temp0: $title';
+  }
+
+  @override
+  String todayFile(String name, String file) {
+    return 'ملف جديد من $name: $file';
+  }
+
+  @override
+  String todayChat(String name, String text) {
+    return '$name: $text';
+  }
+
+  @override
+  String todayChatKind(String kind, String name) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'photo': 'صورة من $name',
+      'voice': 'رسالة صوتية من $name',
+      'file': 'ملف من $name',
+      'other': 'رسالة من $name',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get activitySomeone => 'أحدهم';
+
+  @override
+  String activityNeedsHeader(int n) {
+    return 'بانتظارك · $n';
+  }
+
+  @override
+  String get activityChanges => 'تغييرات في سجلك';
+
+  @override
+  String get activityLast7 => 'آخر 7 أيام';
+
+  @override
+  String activitySpaceLine(String pass) {
+    return 'مساحة · تصريحك: $pass';
+  }
+
+  @override
+  String get activityGroupRecord => 'سجلك';
+
+  @override
+  String get activityGroupNetwork => 'شبكتك';
+
+  @override
+  String get activityGroupPosts => 'منشوراتك';
+
+  @override
+  String activityRev(String letter) {
+    return 'REV $letter';
+  }
+
+  @override
+  String activityAssigned(String name, String ref) {
+    return 'أُسند إليك $ref من $name';
+  }
+
+  @override
+  String activityDone(String name, String ref) {
+    return '$ref منجز بتوقيع $name';
+  }
+
+  @override
+  String activityChecked(String name, String ref) {
+    return 'تم فحص $ref بواسطة $name';
+  }
+
+  @override
+  String activitySentBack(String name, String ref) {
+    return 'أُرجع $ref بواسطة $name';
+  }
+
+  @override
+  String activityComment(String name, String ref) {
+    return 'تعليق من $name على $ref';
+  }
+
+  @override
+  String activityJoinRequest(String name) {
+    return 'طلب انضمام من $name';
+  }
+
+  @override
+  String activityJoinConfirmed(String space) {
+    return 'تم تأكيد انضمامك إلى $space';
+  }
+
+  @override
+  String activityConfirmedBy(String name) {
+    return 'التأكيد من $name';
+  }
+
+  @override
+  String activityRoleConfirmed(String name) {
+    return 'تأكيد لدورك من $name';
+  }
+
+  @override
+  String activityFollow(String name) {
+    return 'متابِع جديد: $name';
+  }
+
+  @override
+  String activityReplyPost(String name) {
+    return 'ردّ من $name على منشورك';
+  }
+
+  @override
+  String activityReplyReply(String name) {
+    return 'ردّ من $name عليك';
+  }
+
+  @override
+  String activityUseful1(String a) {
+    return 'وجده مفيداً: $a';
+  }
+
+  @override
+  String activityUseful2(String a, String b) {
+    return 'وجده مفيداً: $a و$b';
+  }
+
+  @override
+  String get activityUseful0 => 'وُجد منشورك مفيداً';
+
+  @override
+  String get chipAssigned => 'مُسنَد';
+
+  @override
+  String get chipDone => 'منجز';
+
+  @override
+  String get chipChecked => 'تم الفحص';
+
+  @override
+  String get chipSentBack => 'مُرجَع';
+
+  @override
+  String get chipComment => 'تعليق';
+
+  @override
+  String get chipApproved => 'مقبول';
+
+  @override
+  String get chipConfirmed => 'مؤكَّد';
+
+  @override
+  String get activityEmptyTitle => 'لا شيء بانتظارك الآن.';
+
+  @override
+  String get activityEmptyBody =>
+      'عندما يحتاج أحد إلى ردّك، ينتظرك هنا. هذا ما سيظهر:';
+
+  @override
+  String get ledgerWork => 'بنود العمل';
+
+  @override
+  String get ledgerWorkLine => 'يُسنَد إليك بند عمل، أو يُنجَز بند أنشأته.';
+
+  @override
+  String get ledgerRequests => 'طلبات المساحات';
+
+  @override
+  String get ledgerRequestsLine => 'يطلب أحدهم الانضمام إلى مساحة تديرها.';
+
+  @override
+  String get ledgerPosts => 'منشوراتك';
+
+  @override
+  String get ledgerPostsLine => 'يردّ أحدهم على منشورك.';
+
+  @override
+  String get ledgerNetwork => 'شبكتك';
+
+  @override
+  String get ledgerNetworkLine => 'يتابعك أحدهم.';
+
+  @override
+  String get ledgerWait => 'في الأثناء';
+
+  @override
+  String get ledgerAddProject => 'أضف مشروعاً عملت فيه';
 }

@@ -9,10 +9,9 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../spaces/code_sheet.dart';
 
-/// Opened by the Create action in the bottom bar. Create is an action, not a
-/// tab, so it opens over the current tab. The options come with the features
-/// that own them (posts, Spaces, work items).
-Future<void> showCreateSheet(BuildContext context) => showBvSheet(
+/// Opened by Create in the My Spaces header (S1). The Create tab itself
+/// opens the composer (C1 v2).
+Future<void> showSpacesCreateSheet(BuildContext context) => showBvSheet(
   context: context,
   title: AppLocalizations.of(context).navCreate,
   builder: (_) => const CreateSheet(),
@@ -32,15 +31,6 @@ class CreateSheet extends StatelessWidget {
       borderRadius: BvRadius.cardAll,
       child: BvListGroup(
         rows: [
-          BvListRow(
-            key: const Key('create-new-post'),
-            leading: const BvRowIcon(BvIcons.edit),
-            title: l10n.feedNewPost,
-            onTap: () {
-              navigator.pop();
-              router.push(AppRoutes.postNew);
-            },
-          ),
           BvListRow(
             key: const Key('create-new-space'),
             leading: const BvRowIcon(BvIcons.crane),

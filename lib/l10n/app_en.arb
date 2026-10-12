@@ -3926,5 +3926,522 @@
   "discardKeep": "Keep editing",
   "@discardKeep": {
     "description": "C13 cancel."
+  },
+  "homeDayTitle": "Your day on site",
+  "@homeDayTitle": {
+    "description": "H1b title."
+  },
+  "homeDayNeedsYou": "{n, plural, =1{1 thing needs you} other{{n} things need you}}",
+  "@homeDayNeedsYou": {
+    "description": "H1b summary, first part (orange).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDaySpacesActive": "{n, plural, =1{1 Space active} other{{n} Spaces active}}",
+  "@homeDaySpacesActive": {
+    "description": "H1b summary: Spaces with something new today.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDayReplies": "{n, plural, =1{1 reply} other{{n} replies}}",
+  "@homeDayReplies": {
+    "description": "H1b summary: replies today to your chat messages.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "homeNeedsYou": "NEEDS YOU",
+  "@homeNeedsYou": {
+    "description": "H1b section."
+  },
+  "homeSeeAll": "See all",
+  "@homeSeeAll": {
+    "description": "H1b: more than 3 needs; opens Activity."
+  },
+  "homeTodayInSpaces": "TODAY IN YOUR SPACES",
+  "@homeTodayInSpaces": {
+    "description": "H1b section."
+  },
+  "homeThatsYourDay": "That's your day",
+  "@homeThatsYourDay": {
+    "description": "H1b end, when nothing needs you."
+  },
+  "homeNothingElse": "Nothing else needs you right now",
+  "@homeNothingElse": {
+    "description": "H1b end line."
+  },
+  "homeProject": "Project",
+  "@homeProject": {
+    "description": "H1b row: the Space is linked to a project."
+  },
+  "homeSearch": "Search people",
+  "@homeSearch": {
+    "description": "Home top bar search tooltip."
+  },
+  "homeMySpaces": "My Spaces",
+  "@homeMySpaces": {
+    "description": "Profile top bar Spaces icon tooltip."
+  },
+  "needsForYou": "{name} gave you a work item: {title}",
+  "@needsForYou": {
+    "description": "Needs-you card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsForYouSelf": "A work item for you: {title}",
+  "@needsForYouSelf": {
+    "description": "Needs-you card, raised by you.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsYouCheck": "{name} signed a work item as done: {title}",
+  "@needsYouCheck": {
+    "description": "Needs-you card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsYouCheckSelf": "Signed as done. You check it: {title}",
+  "@needsYouCheckSelf": {
+    "description": "Needs-you card, no name.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsSentBack": "{name} sent a work item back: {title}",
+  "@needsSentBack": {
+    "description": "Needs-you card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsSentBackSelf": "A work item came back to you: {title}",
+  "@needsSentBackSelf": {
+    "description": "Needs-you card, no name.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsOwnerLeft": "The owner left. Reassign it: {title}",
+  "@needsOwnerLeft": {
+    "description": "Needs-you card.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsJoin": "{name} asked to join {space}",
+  "@needsJoin": {
+    "description": "Needs-you card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "needsDue": "due {date}",
+  "@needsDue": {
+    "description": "Needs-you card line.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "needsOverForYou": "WORK ITEM · FOR YOU",
+  "@needsOverForYou": {
+    "description": "A1 overline."
+  },
+  "needsOverCheck": "WORK ITEM · YOU CHECK IT",
+  "@needsOverCheck": {
+    "description": "A1 overline."
+  },
+  "needsOverSentBack": "WORK ITEM · SENT BACK",
+  "@needsOverSentBack": {
+    "description": "A1 overline."
+  },
+  "needsOverOwnerLeft": "WORK ITEM · OWNER LEFT",
+  "@needsOverOwnerLeft": {
+    "description": "A1 overline."
+  },
+  "needsOverJoin": "SPACE · REQUEST TO JOIN",
+  "@needsOverJoin": {
+    "description": "A1 overline."
+  },
+  "needsOpen": "Open",
+  "@needsOpen": {
+    "description": "Needs-you button."
+  },
+  "needsCheck": "Check",
+  "@needsCheck": {
+    "description": "A1 button for an item to check."
+  },
+  "needsReview": "Review request",
+  "@needsReview": {
+    "description": "A1 button for a join request."
+  },
+  "todayItem": "{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} commented on {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}",
+  "@todayItem": {
+    "description": "H1b row: a work item event.",
+    "placeholders": {
+      "event": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "todayFile": "{name} added {file}",
+  "@todayFile": {
+    "description": "H1b row: a Library file.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "todayChat": "{name}: {text}",
+  "@todayChat": {
+    "description": "H1b row: a chat message.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "todayChatKind": "{kind, select, photo{{name} sent a photo} voice{{name} sent a voice note} file{{name} sent a file} other{{name} posted in chat}}",
+  "@todayChatKind": {
+    "description": "H1b row: a chat message without text.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activitySomeone": "Someone",
+  "@activitySomeone": {
+    "description": "When the name is unknown."
+  },
+  "activityNeedsHeader": "NEEDS YOU · {n}",
+  "@activityNeedsHeader": {
+    "description": "A1 section: your own count.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "activityChanges": "CHANGES TO YOUR RECORD",
+  "@activityChanges": {
+    "description": "A1 section."
+  },
+  "activityLast7": "Last 7 days",
+  "@activityLast7": {
+    "description": "A1 section line."
+  },
+  "activitySpaceLine": "Space · your pass: {pass}",
+  "@activitySpaceLine": {
+    "description": "A1 group line.",
+    "placeholders": {
+      "pass": {
+        "type": "String"
+      }
+    }
+  },
+  "activityGroupRecord": "Your record",
+  "@activityGroupRecord": {
+    "description": "A1 group."
+  },
+  "activityGroupNetwork": "Your network",
+  "@activityGroupNetwork": {
+    "description": "A1 group."
+  },
+  "activityGroupPosts": "Your posts",
+  "@activityGroupPosts": {
+    "description": "A1 group."
+  },
+  "activityRev": "REV {letter}",
+  "@activityRev": {
+    "description": "A1 group stamp; letters stay Latin.",
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "activityAssigned": "{name} gave you {ref}",
+  "@activityAssigned": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "activityDone": "{name} signed {ref} as done",
+  "@activityDone": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "activityChecked": "{name} checked {ref}",
+  "@activityChecked": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "activitySentBack": "{name} sent {ref} back",
+  "@activitySentBack": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "activityComment": "{name} commented on {ref}",
+  "@activityComment": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "activityJoinRequest": "{name} asked to join",
+  "@activityJoinRequest": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityJoinConfirmed": "You're in {space}",
+  "@activityJoinConfirmed": {
+    "description": "A1 row.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "activityConfirmedBy": "Confirmed by {name}",
+  "@activityConfirmedBy": {
+    "description": "A1 row line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityRoleConfirmed": "{name} confirmed your role",
+  "@activityRoleConfirmed": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityFollow": "New follower: {name}",
+  "@activityFollow": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityReplyPost": "{name} replied to your post",
+  "@activityReplyPost": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityReplyReply": "{name} replied to you",
+  "@activityReplyReply": {
+    "description": "A1 row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "activityUseful1": "{a} found your post useful",
+  "@activityUseful1": {
+    "description": "A1 row: one name you follow. Arabic: one neutral form (review 16 §5).",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      }
+    }
+  },
+  "activityUseful2": "{a} and {b} found your post useful",
+  "@activityUseful2": {
+    "description": "A1 row: two names you follow.",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "activityUseful0": "Your post was found useful",
+  "@activityUseful0": {
+    "description": "A1 row: no names you follow. No count."
+  },
+  "chipAssigned": "Assigned",
+  "@chipAssigned": {
+    "description": "A1 status chip."
+  },
+  "chipDone": "Done",
+  "@chipDone": {
+    "description": "A1 status chip (glossary)."
+  },
+  "chipChecked": "Checked",
+  "@chipChecked": {
+    "description": "A1 status chip (glossary)."
+  },
+  "chipSentBack": "Sent back",
+  "@chipSentBack": {
+    "description": "A1 status chip."
+  },
+  "chipComment": "Comment",
+  "@chipComment": {
+    "description": "A1 status chip."
+  },
+  "chipApproved": "Approved",
+  "@chipApproved": {
+    "description": "A1 status chip: a request to join confirmed."
+  },
+  "chipConfirmed": "Confirmed",
+  "@chipConfirmed": {
+    "description": "A1 status chip: a role confirmed."
+  },
+  "activityEmptyTitle": "Nothing needs you right now.",
+  "@activityEmptyTitle": {
+    "description": "A2 title."
+  },
+  "activityEmptyBody": "When someone needs an answer from you, it waits here. This is what will show up.",
+  "@activityEmptyBody": {
+    "description": "A2 line."
+  },
+  "ledgerWork": "WORK ITEMS",
+  "@ledgerWork": {
+    "description": "A2 ledger."
+  },
+  "ledgerWorkLine": "Someone gives you a work item, or one you raised is done.",
+  "@ledgerWorkLine": {
+    "description": "A2 ledger."
+  },
+  "ledgerRequests": "SPACE REQUESTS",
+  "@ledgerRequests": {
+    "description": "A2 ledger."
+  },
+  "ledgerRequestsLine": "Someone asks to join a Space you run.",
+  "@ledgerRequestsLine": {
+    "description": "A2 ledger."
+  },
+  "ledgerPosts": "YOUR POSTS",
+  "@ledgerPosts": {
+    "description": "A2 ledger."
+  },
+  "ledgerPostsLine": "Someone replies to your post.",
+  "@ledgerPostsLine": {
+    "description": "A2 ledger."
+  },
+  "ledgerNetwork": "YOUR NETWORK",
+  "@ledgerNetwork": {
+    "description": "A2 ledger."
+  },
+  "ledgerNetworkLine": "Someone follows you.",
+  "@ledgerNetworkLine": {
+    "description": "A2 ledger."
+  },
+  "ledgerWait": "WHILE YOU WAIT",
+  "@ledgerWait": {
+    "description": "A2 ledger."
+  },
+  "ledgerAddProject": "Add a project you worked on",
+  "@ledgerAddProject": {
+    "description": "A2 link."
   }
 }

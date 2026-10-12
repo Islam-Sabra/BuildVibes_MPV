@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/repositories/activity_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
+import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
 import '../library/library_tab.dart';
@@ -45,11 +47,24 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
   @override
   void initState() {
     super.initState();
+    _markSeen();
     if (widget.open == SpaceOpen.invite) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.push(AppRoutes.spaceInvite(widget.spaceId));
       });
     }
+  }
+
+  /// Opening a Space marks it seen: Home's "Today in your Spaces" counts
+  /// from here. A failure only leaves it marked as new.
+  Future<void> _markSeen() async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    try {
+      await ref.read(activityRepositoryProvider).markSpaceSeen(widget.spaceId);
+    } on Exception {
+      return;
+    }
+    refreshDay(container.invalidate);
   }
 
   /// Space info (S15). "Members" there comes back to the People tab.

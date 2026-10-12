@@ -61,16 +61,19 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
   });
 
-  testWidgets('Create opens a sheet and keeps the current tab', (tester) async {
+  testWidgets('Create opens the composer and keeps the current tab', (
+    tester,
+  ) async {
     await pumpApp(tester);
 
     await tester.tap(find.byKey(const Key('nav-create')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('create-sheet')), findsOneWidget);
+    expect(find.byKey(const Key('composer-text')), findsOneWidget);
 
-    await tester.tapAt(const Offset(195, 100));
+    // Nothing written: closing asks nothing and comes back to Home.
+    await tester.tap(find.byKey(const Key('composer-close')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('create-sheet')), findsNothing);
+    expect(find.byKey(const Key('composer-text')), findsNothing);
     expect(find.byType(HomeScreen), findsOneWidget);
   });
 

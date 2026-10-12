@@ -2791,4 +2791,332 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discardKeep => 'Keep editing';
+
+  @override
+  String get homeDayTitle => 'Your day on site';
+
+  @override
+  String homeDayNeedsYou(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n things need you',
+      one: '1 thing needs you',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeDaySpacesActive(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n Spaces active',
+      one: '1 Space active',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeDayReplies(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n replies',
+      one: '1 reply',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeNeedsYou => 'NEEDS YOU';
+
+  @override
+  String get homeSeeAll => 'See all';
+
+  @override
+  String get homeTodayInSpaces => 'TODAY IN YOUR SPACES';
+
+  @override
+  String get homeThatsYourDay => 'That\'s your day';
+
+  @override
+  String get homeNothingElse => 'Nothing else needs you right now';
+
+  @override
+  String get homeProject => 'Project';
+
+  @override
+  String get homeSearch => 'Search people';
+
+  @override
+  String get homeMySpaces => 'My Spaces';
+
+  @override
+  String needsForYou(String name, String title) {
+    return '$name gave you a work item: $title';
+  }
+
+  @override
+  String needsForYouSelf(String title) {
+    return 'A work item for you: $title';
+  }
+
+  @override
+  String needsYouCheck(String name, String title) {
+    return '$name signed a work item as done: $title';
+  }
+
+  @override
+  String needsYouCheckSelf(String title) {
+    return 'Signed as done. You check it: $title';
+  }
+
+  @override
+  String needsSentBack(String name, String title) {
+    return '$name sent a work item back: $title';
+  }
+
+  @override
+  String needsSentBackSelf(String title) {
+    return 'A work item came back to you: $title';
+  }
+
+  @override
+  String needsOwnerLeft(String title) {
+    return 'The owner left. Reassign it: $title';
+  }
+
+  @override
+  String needsJoin(String name, String space) {
+    return '$name asked to join $space';
+  }
+
+  @override
+  String needsDue(String date) {
+    return 'due $date';
+  }
+
+  @override
+  String get needsOverForYou => 'WORK ITEM · FOR YOU';
+
+  @override
+  String get needsOverCheck => 'WORK ITEM · YOU CHECK IT';
+
+  @override
+  String get needsOverSentBack => 'WORK ITEM · SENT BACK';
+
+  @override
+  String get needsOverOwnerLeft => 'WORK ITEM · OWNER LEFT';
+
+  @override
+  String get needsOverJoin => 'SPACE · REQUEST TO JOIN';
+
+  @override
+  String get needsOpen => 'Open';
+
+  @override
+  String get needsCheck => 'Check';
+
+  @override
+  String get needsReview => 'Review request';
+
+  @override
+  String todayItem(String event, String name, String ref, String title) {
+    String _temp0 = intl.Intl.selectLogic(event, {
+      'done': '$name signed $ref as done',
+      'checked': '$name checked $ref',
+      'sent_back': '$name sent $ref back',
+      'comment': '$name commented on $ref',
+      'reassigned': '$name reassigned $ref',
+      'other': '$name raised $ref',
+    });
+    return '$_temp0: $title';
+  }
+
+  @override
+  String todayFile(String name, String file) {
+    return '$name added $file';
+  }
+
+  @override
+  String todayChat(String name, String text) {
+    return '$name: $text';
+  }
+
+  @override
+  String todayChatKind(String kind, String name) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'photo': '$name sent a photo',
+      'voice': '$name sent a voice note',
+      'file': '$name sent a file',
+      'other': '$name posted in chat',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get activitySomeone => 'Someone';
+
+  @override
+  String activityNeedsHeader(int n) {
+    return 'NEEDS YOU · $n';
+  }
+
+  @override
+  String get activityChanges => 'CHANGES TO YOUR RECORD';
+
+  @override
+  String get activityLast7 => 'Last 7 days';
+
+  @override
+  String activitySpaceLine(String pass) {
+    return 'Space · your pass: $pass';
+  }
+
+  @override
+  String get activityGroupRecord => 'Your record';
+
+  @override
+  String get activityGroupNetwork => 'Your network';
+
+  @override
+  String get activityGroupPosts => 'Your posts';
+
+  @override
+  String activityRev(String letter) {
+    return 'REV $letter';
+  }
+
+  @override
+  String activityAssigned(String name, String ref) {
+    return '$name gave you $ref';
+  }
+
+  @override
+  String activityDone(String name, String ref) {
+    return '$name signed $ref as done';
+  }
+
+  @override
+  String activityChecked(String name, String ref) {
+    return '$name checked $ref';
+  }
+
+  @override
+  String activitySentBack(String name, String ref) {
+    return '$name sent $ref back';
+  }
+
+  @override
+  String activityComment(String name, String ref) {
+    return '$name commented on $ref';
+  }
+
+  @override
+  String activityJoinRequest(String name) {
+    return '$name asked to join';
+  }
+
+  @override
+  String activityJoinConfirmed(String space) {
+    return 'You\'re in $space';
+  }
+
+  @override
+  String activityConfirmedBy(String name) {
+    return 'Confirmed by $name';
+  }
+
+  @override
+  String activityRoleConfirmed(String name) {
+    return '$name confirmed your role';
+  }
+
+  @override
+  String activityFollow(String name) {
+    return 'New follower: $name';
+  }
+
+  @override
+  String activityReplyPost(String name) {
+    return '$name replied to your post';
+  }
+
+  @override
+  String activityReplyReply(String name) {
+    return '$name replied to you';
+  }
+
+  @override
+  String activityUseful1(String a) {
+    return '$a found your post useful';
+  }
+
+  @override
+  String activityUseful2(String a, String b) {
+    return '$a and $b found your post useful';
+  }
+
+  @override
+  String get activityUseful0 => 'Your post was found useful';
+
+  @override
+  String get chipAssigned => 'Assigned';
+
+  @override
+  String get chipDone => 'Done';
+
+  @override
+  String get chipChecked => 'Checked';
+
+  @override
+  String get chipSentBack => 'Sent back';
+
+  @override
+  String get chipComment => 'Comment';
+
+  @override
+  String get chipApproved => 'Approved';
+
+  @override
+  String get chipConfirmed => 'Confirmed';
+
+  @override
+  String get activityEmptyTitle => 'Nothing needs you right now.';
+
+  @override
+  String get activityEmptyBody =>
+      'When someone needs an answer from you, it waits here. This is what will show up.';
+
+  @override
+  String get ledgerWork => 'WORK ITEMS';
+
+  @override
+  String get ledgerWorkLine =>
+      'Someone gives you a work item, or one you raised is done.';
+
+  @override
+  String get ledgerRequests => 'SPACE REQUESTS';
+
+  @override
+  String get ledgerRequestsLine => 'Someone asks to join a Space you run.';
+
+  @override
+  String get ledgerPosts => 'YOUR POSTS';
+
+  @override
+  String get ledgerPostsLine => 'Someone replies to your post.';
+
+  @override
+  String get ledgerNetwork => 'YOUR NETWORK';
+
+  @override
+  String get ledgerNetworkLine => 'Someone follows you.';
+
+  @override
+  String get ledgerWait => 'WHILE YOU WAIT';
+
+  @override
+  String get ledgerAddProject => 'Add a project you worked on';
 }
