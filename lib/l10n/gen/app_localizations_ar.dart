@@ -2201,4 +2201,252 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatItemGone => 'لم يعد بند العمل هذا في المساحة.';
+
+  @override
+  String chatLastRaised(String name, String ref) {
+    return 'بند عمل جديد $ref من $name';
+  }
+
+  @override
+  String chatLastDone(String name, String ref) {
+    return 'توقيع $ref كمنجز من $name';
+  }
+
+  @override
+  String chatLastChecked(String name, String ref) {
+    return 'فحص وإغلاق $ref من $name';
+  }
+
+  @override
+  String chatLastSentBack(String name, String ref) {
+    return 'إرجاع $ref من $name';
+  }
+
+  @override
+  String chatLastReassigned(String name, String ref) {
+    return 'إعادة تكليف $ref من $name';
+  }
+
+  @override
+  String get chatAttach => 'إضافة صورة أو ملف';
+
+  @override
+  String get chatAttachCamera => 'التقط صورة';
+
+  @override
+  String get chatAttachGallery => 'صورة من هاتفك';
+
+  @override
+  String get chatAttachPdf => 'ملف PDF من هاتفك';
+
+  @override
+  String get chatAttachPdfHelp => 'يُضاف إلى مكتبة المساحة أيضاً.';
+
+  @override
+  String get chatRemoveFile => 'إزالة';
+
+  @override
+  String get chatFileNotAllowed => 'ملفات PDF والصور فقط.';
+
+  @override
+  String get chatFileTooBig => 'حتى 25 ميغابايت للملف.';
+
+  @override
+  String get chatOneDocument => 'ملف PDF واحد في كل رسالة.';
+
+  @override
+  String fileSizeMb(String size) {
+    return '$size ميغابايت';
+  }
+
+  @override
+  String fileSizeKb(String size) {
+    return '$size كيلوبايت';
+  }
+
+  @override
+  String get librarySearch => 'ابحث في العناوين وأسماء الملفات';
+
+  @override
+  String get libraryAll => 'الكل';
+
+  @override
+  String get libraryFiles => 'الملفات';
+
+  @override
+  String get libraryRecent => 'الأحدث في هذه المساحة';
+
+  @override
+  String get libraryFromChat => 'من المحادثة';
+
+  @override
+  String get libraryEmpty =>
+      'لا ملفات بعد. تظهر هنا الرسومات والصور المشتركة في هذه المساحة.';
+
+  @override
+  String get libraryNoMatch => 'لا نتائج.';
+
+  @override
+  String get libraryAdd => 'إضافة ملف';
+
+  @override
+  String get libraryAddTitle => 'إضافة إلى المكتبة';
+
+  @override
+  String get libraryRevisionTitle => 'مراجعة جديدة';
+
+  @override
+  String libraryRevisionOf(String name) {
+    return 'يحل محل $name. تبقى النسخة القديمة في السجل.';
+  }
+
+  @override
+  String get libraryPickFile => 'اختر ملف PDF أو صورة';
+
+  @override
+  String get libraryChangeFile => 'اختر ملفاً آخر';
+
+  @override
+  String get libraryName => 'العنوان';
+
+  @override
+  String get libraryFor => 'من يراه';
+
+  @override
+  String libraryTeamOnly(String team) {
+    return 'لا يراه إلا $team ومديرو المساحة.';
+  }
+
+  @override
+  String get libraryRev => 'المراجعة';
+
+  @override
+  String get libraryRevHint => 'مثلاً Rev C';
+
+  @override
+  String get libraryNoteHint => 'ما الذي تغيّر';
+
+  @override
+  String get libraryUpload => 'رفع';
+
+  @override
+  String get libraryAdded => 'أُضيف إلى المكتبة.';
+
+  @override
+  String get libraryPickFirst => 'اختر ملفاً أولاً.';
+
+  @override
+  String get libraryNameRequired => 'أضف عنواناً.';
+
+  @override
+  String previewFrom(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String previewCurrent(String rev) {
+    return '$rev · الحالية';
+  }
+
+  @override
+  String get previewCurrentNoRev => 'الحالية';
+
+  @override
+  String previewUploaded(String date) {
+    return 'رُفع في $date';
+  }
+
+  @override
+  String get previewUsedIn => 'مستخدم في';
+
+  @override
+  String get previewSuperseded => 'استُبدل، ويبقى في السجل';
+
+  @override
+  String get previewReplaced => 'حلّت مراجعة أحدث محل هذه.';
+
+  @override
+  String get previewOpenCurrent => 'افتح الحالية';
+
+  @override
+  String get previewShare => 'شارك في المحادثة';
+
+  @override
+  String get previewDownload => 'تنزيل';
+
+  @override
+  String get previewNewRevision => 'رفع مراجعة جديدة';
+
+  @override
+  String get previewShareTo => 'المشاركة في أي محادثة؟';
+
+  @override
+  String get previewShareTeamOnly => 'يُشارك ملف الفريق في محادثة فريقه فقط.';
+
+  @override
+  String previewShared(String thread) {
+    return 'تمت المشاركة في $thread.';
+  }
+
+  @override
+  String get previewSaved => 'تم الحفظ.';
+
+  @override
+  String get previewCantShow => 'لا يمكن عرض هذا الملف هنا. نزّله لفتحه.';
+
+  @override
+  String get previewClose => 'إغلاق';
+
+  @override
+  String get previewSendFile => 'مشاركة الملف';
+
+  @override
+  String workAttachTitle(String ref) {
+    return 'إرفاق بـ $ref';
+  }
+
+  @override
+  String get workAttachLibrary => 'من مكتبة المساحة';
+
+  @override
+  String get workAttachLibraryHelp => 'رسومات وملفات مشتركة في هذه المساحة';
+
+  @override
+  String get workAttachPhone => 'من هاتفك';
+
+  @override
+  String get workAttachPhoneHelp =>
+      'PDF أو صورة · تُحفظ في مكتبة المساحة أيضاً';
+
+  @override
+  String get workAttachPhoto => 'التقط صورة أخرى';
+
+  @override
+  String get workAttachPhotoHelp => 'تُضاف إلى صور البند';
+
+  @override
+  String get workAttached => 'مرفقات';
+
+  @override
+  String get workAttachedFromLibrary => 'من مكتبة المساحة';
+
+  @override
+  String get workAttach => 'إرفاق رسم أو ملف';
+
+  @override
+  String get workAttachedToast => 'تم الإرفاق.';
+
+  @override
+  String get workAlsoInTeamChat => 'أيضاً في محادثة الفريق';
+
+  @override
+  String get libraryPickTitle => 'اختر من المكتبة';
+
+  @override
+  String libraryPickTeamNote(String team) {
+    return 'يمكن إرفاق ملفات «الجميع» وملفات $team فقط بهذا البند.';
+  }
+
+  @override
+  String get chatFileRemoved => 'تمت إزالة الملف';
 }

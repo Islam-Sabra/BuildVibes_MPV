@@ -196,10 +196,71 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checked on the emulator against the local server, with migrations 9 and 10 and `supabase/dev/seed_chat.sql`: thread list, threads, a live message from another account, reply, the actions sheet, Not sent with the network off, then Retry. The emulator stays on the local server, because chat isn't live.
   - 419 Flutter tests and 435 SQL tests pass. Screenshots in `docs/screens/`: `s7k_*`, `s8k_*`, `s9k_*`, `s8b_en_actions_own`, `s8d_ar_actions_admin`, `s8k_en_not_sent`.
 
+- **12 Oct, migrations 9 and 10 live (founder's yes, review 13 A).**
+  - Migration 9 was pushed and checked on live:
+    - the bucket allows 25 MB, PDF and audio;
+    - each existing Space has its Everyone thread and each Team its own thread;
+    - `messages` is in the Realtime publication;
+    - row-level security is on for all six new tables.
+  - Then `chat-part1` (with `review11-followups`) was merged into main and migration 10 pushed.
+  - EXPLAIN on live: the bucket has no files yet, so the planner reads the empty table once. Live has the same Storage name index and Postgres 17.11 as the local copy, where the folder search used the index with 20,000 files.
+  - The nightly cleanup is not scheduled (founder).
+- Review 13 B on `chat-part2`:
+  - bubbles hug their text, up to 75%;
+  - Everyone has the group icon;
+  - a card as a thread's last message says what happened ("Rakesh marked KCT-004 done"; Arabic in noun form, gender-neutral);
+  - the "Not sent" line wraps.
+- Migration 11 draft (`20261012160000_chat_library_followups.sql`), **not live**, for the lead's review:
+  - the cleanup never claims files younger than a day (review 13 A);
+  - `share_library_file` for F1 "Share in chat".
+
+  `11_chat_library_followups.test.sql`: 9 checks, 444 in all.
+- Week 6 part 2 on `chat-part2`:
+  - Chat:
+    - the paperclip (only with the "add files" right) offers Take a photo, Photo from your phone, or a PDF from your phone (it goes to the Library too);
+    - picked files show above the message box;
+    - photos show in the bubble (one large, or a grid);
+    - a PDF shows as a file card that opens F1;
+    - files stay on the phone until sent, with "Not sent · Retry".
+  - Library (S13k):
+    - search, All · Files (PDFs); only the newest revision of each file;
+    - each row shows "From chat" or Everyone / the Team, who added it, and the size;
+    - Add file: a PDF or photo, its title (from the file name), who sees it (Everyone or one Team, one single choice), revision and note. Up to 25 MB.
+  - Preview (F1), dark like the drawing table:
+    - the PDF with pinch-zoom (`pdfx`, the phone's own renderer);
+    - the CURRENT stamp, upload date, note, "Used in KCT-002 · …", and older revisions ("superseded, kept in the record");
+    - Upload a new revision (keeps the Team);
+    - Share in chat (a Team file only in its Team's thread);
+    - Download (the phone asks where to save), and share through the phone.
+  - W2-A: "Attach a drawing or file":
+    - from the Library (only Everyone files and the item's Team's), from the phone, or a photo for the tag;
+    - files are attached once the item exists, through the outbox.
+  - W3: "ATTACHED", "Attach a drawing or file", and "DISCUSSION · ALSO IN THE TEAM CHAT", which opens the Team thread.
+  - `pdfrx` was tried first, but its native build step fails with spaces in the Flutter SDK path, which broke `flutter test`. Replaced by `pdfx`.
+- Checked on the emulator against the local server, in English and Arabic:
+  - Rakesh (Crew) posted a photo and a PDF in the MEP thread; the PDF went to the Library as "From chat" (MEP Team);
+  - the F1 preview shows the real PDF;
+  - Omar (admin) added an Everyone file (a 26 MB file was refused);
+  - Omar attached the chat PDF to KCT-002 (the picker offered only files that fit), then deleted the chat message: the PDF stays in the Library and still opens from KCT-002;
+  - "Not sent · Retry" with the network off, then sent once;
+  - Sami as a Viewer has no paperclip.
+- 447 Flutter tests and 444 SQL tests pass. Screenshots in `docs/screens/` (`s13k_*`, `f1_*`, `addfile_*`, `w2a_*`, `w2_*`, `w3_*_attached`, `chat_*`, `s8d_en_actions_copy`, `chat_ar_not_sent`).
+
+- Review 14 applied on `chat-part2`:
+  - migration 11, fixed in place:
+    - sharing a Library file needs the "add files" right;
+    - deleting a message clears its file link;
+    - 4 more checks, 448 in all;
+  - "File removed" in a bubble whose shared file is gone;
+  - toasts float above bottom actions (`BvToastSpec.lift`), never over "Add file" or the footer buttons;
+  - Add file's title comes from the file name without the extension, with `_` and `-` as spaces.
+
+  452 Flutter tests pass.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. The lead reviews migration 10 (`review11-followups`) and chat part 1 (`chat-part1`). Then, with the founder's yes, put migrations 9 and 10 live.
-3. Week 6 part 2: photos and PDFs in chat, the Library (S13k), preview (F1), Add, new revision, attaching files to items. Then part 3: voice notes.
+2. The lead reviews migration 11 and chat part 2 (`chat-part2`). Then, with the founder's yes, put migration 11 live and merge.
+3. Week 6 part 3: voice notes.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 5. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 6. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.

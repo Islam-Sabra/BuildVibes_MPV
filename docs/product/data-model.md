@@ -153,6 +153,12 @@ Who can invite:
 **Functions:**
 - `post_message(id, thread, body, reply_to, attachments)`: a retry with the same id returns the same message.
 - `delete_message`, `mark_thread_read`.
+- `share_library_file(id, thread, file, body)` (migration 11, F1 "Share in chat"):
+  - posts a message of kind 'file' that points at a Library file (`messages.library_file_id`), so the file isn't uploaded again and no second "From chat" copy is made;
+  - a Team's file is shared only in that Team's thread;
+  - the caller must be able to read the file, and needs the "add files" right (a Viewer chats in text only, review 14);
+  - a retry with the same id returns the same message.
+  - `delete_message` (migration 11) also clears `library_file_id`, so a deleted message keeps no link to a file. When a shared file is removed later, the app shows "File removed".
 - `space_threads(space)` (S7k): threads with the last message and unread count.
 
 ## 7. Work items: the core (migration 7, `20261012120000_work_items.sql`, branch `work-items-db`)
@@ -211,6 +217,8 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - **Attaching to an item:** the item's creator, owner or a member who may check. A Team file only on that Team's items.
 - **Teams:** a Team with chat messages or files can't be deleted; rename it instead.
 - **Storage:** private bucket `space-files` (25 MB; images, PDF, audio). Work item folders take photos only. Files are opened through signed URLs, which the read policy checks.
+- **File type (accepted for the pilot, review 13):** Storage records the type the app sends with the upload (`metadata.mimetype`), limited to the bucket's list. It doesn't look inside the file. The type checks (`upload_mime`, "evidence must be a photo") rest on that declared type.
+- **Cleanup age (migration 11):** `claim_orphan_files` never claims a file younger than one day, whatever age the job asks for, so an upload still going on a weak signal is left alone.
 
 **Functions:**
 - `add_library_file`, `delete_library_file`, `attach_library_file`.

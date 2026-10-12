@@ -10,6 +10,8 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
+import '../../data/models/library.dart';
+import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -22,11 +24,12 @@ import '../entry/entry_state.dart';
 import '../entry/widgets/entry_scaffold.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
+import 'attach_files.dart';
 import 'work_outbox.dart';
 
 /// W2 · New work item: the photo first (camera, gallery as a fallback),
-/// then the title, Owner, Due, Place on site and Team. Voice notes and
-/// attachments come with Chat and Library in week 6.
+/// then the title, Owner, Due, Place on site and Team, and drawings or files
+/// from the Library (W2-A). Voice notes come in week 6 part 3.
 class NewWorkItemScreen extends ConsumerStatefulWidget {
   const NewWorkItemScreen({super.key, required this.spaceId});
 
@@ -54,6 +57,9 @@ class _NewWorkItemScreenState extends ConsumerState<NewWorkItemScreen> {
   DateTime? _due;
   String? _place;
   SpaceTeam? _team;
+
+  /// W2-A: Library files to attach once the item is made.
+  final _attached = <LibraryFile>[];
   var _showErrors = false;
   var _sending = false;
 
@@ -208,7 +214,33 @@ class _NewWorkItemScreenState extends ConsumerState<NewWorkItemScreen> {
       ),
     );
     if (picked == null || !mounted) return;
-    setState(() => _team = teams.where((t) => t.id == picked).firstOrNull);
+    setState(() {
+      _team = teams.where((t) => t.id == picked).firstOrNull;
+      // A Team file only fits that Team's items.
+      _attached.removeWhere((f) => f.teamId != null && f.teamId != _team?.id);
+    });
+  }
+
+  /// W2-A: from the Library, from the phone, or the tag's photo.
+  Future<void> _attach() async {
+    _unfocus();
+    final fileId = await chooseFileToAttach(
+      context,
+      spaceId: widget.spaceId,
+      itemRef: ref.read(_nextRefProvider(widget.spaceId)).value ?? '',
+      teamId: _team?.id,
+      teamName: _team?.name,
+      exclude: {for (final f in _attached) f.id},
+      // One photo on the tag: offered while there is none yet.
+      onTakePhoto: _photo == null ? () => _takePhoto(camera: true) : null,
+    );
+    if (fileId == null || !mounted) return;
+    // A file just added from the phone is new to the list.
+    ref.invalidate(libraryFilesProvider(widget.spaceId));
+    final files = await ref.read(libraryFilesProvider(widget.spaceId).future);
+    final file = files.where((f) => f.id == fileId).firstOrNull;
+    if (file == null || !mounted) return;
+    setState(() => _attached.add(file));
   }
 
   Future<void> _create() async {
@@ -237,6 +269,7 @@ class _NewWorkItemScreenState extends ConsumerState<NewWorkItemScreen> {
             place: _place,
           ),
       ],
+      attachFileIds: [for (final f in _attached) f.id],
     );
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -415,6 +448,34 @@ class _NewWorkItemScreenState extends ConsumerState<NewWorkItemScreen> {
                   ],
                 ),
               ],
+            ),
+          ),
+          if (_attached.isNotEmpty)
+            ProfileCard(
+              key: const Key('work-new-attached'),
+              padding: false,
+              child: DividedColumn(
+                children: [
+                  for (final f in _attached)
+                    AttachedFileRow(
+                      spaceId: widget.spaceId,
+                      file: f,
+                      onRemove: () => setState(() => _attached.remove(f)),
+                    ),
+                ],
+              ),
+            ),
+          // Voice notes come in week 6 part 3.
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: BvButton(
+              key: const Key('work-new-attach'),
+              label: l10n.workAttach,
+              icon: BvIcons.create,
+              style: BvButtonStyle.tertiary,
+              size: BvButtonSize.medium,
+              padded: false,
+              onPressed: _sending ? null : _attach,
             ),
           ),
         ],

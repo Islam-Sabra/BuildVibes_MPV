@@ -5,7 +5,9 @@ import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
+import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
+import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/project_repository.dart';
@@ -13,7 +15,9 @@ import 'package:buildvibes/data/repositories/profile_repository.dart';
 import 'package:buildvibes/data/repositories/reference_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
+import 'package:buildvibes/features/chat/chat_state.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
+import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +29,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'chat_fakes.dart';
 import 'fakes.dart';
+import 'library_fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
 import 'work_fakes.dart';
@@ -39,6 +44,14 @@ final String testPhotoPath = () {
       ),
     );
   return file.path;
+}();
+
+/// A tiny PDF on disk, the stand-in for a drawing picked on the phone.
+final String testPdfPath = () {
+  final dir = Directory.systemTemp.createTempSync('bv_test_pdf');
+  return (File(
+    '${dir.path}/plan.pdf',
+  )..writeAsStringSync('%PDF-1.4\n%test\n')).path;
 }();
 
 /// The fixed "today" of widget tests.
@@ -56,6 +69,9 @@ class TestApp {
     required this.shared,
     required this.work,
     required this.chat,
+    required this.library,
+    required this.saved,
+    required this.sharedFiles,
   });
 
   final SharedPreferences prefs;
@@ -66,6 +82,11 @@ class TestApp {
   final FakeSpaceRepository spaces;
   final FakeWorkRepository work;
   final FakeChatRepository chat;
+  final FakeLibraryRepository library;
+
+  /// Files saved with Download, and shared through the phone (F1).
+  final List<String> saved;
+  final List<String> sharedFiles;
 
   /// Texts sent to the system share sheet.
   final List<String> shared;
@@ -88,6 +109,10 @@ Future<TestApp> pumpApp(
   FakeSpaceRepository? spaces,
   FakeWorkRepository? work,
   FakeChatRepository? chat,
+  FakeLibraryRepository? library,
+
+  /// What the phone's file picker returns (default: a PDF drawing).
+  PhoneFile? Function()? pickDocument,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -123,6 +148,9 @@ Future<TestApp> pumpApp(
   final shared = <String>[];
   final fakeWork = work ?? FakeWorkRepository();
   final fakeChat = chat ?? FakeChatRepository(now: testNow);
+  final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
+  final saved = <String>[];
+  final sharedFiles = <String>[];
 
   await tester.pumpWidget(
     ProviderScope(
@@ -142,6 +170,31 @@ Future<TestApp> pumpApp(
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
         workRepositoryProvider.overrideWithValue(fakeWork),
         chatRepositoryProvider.overrideWithValue(fakeChat),
+        libraryRepositoryProvider.overrideWithValue(fakeLibrary),
+        pickDocumentProvider.overrideWithValue(
+          ({bool pdfOnly = false}) async =>
+              pickDocument?.call() ??
+              PhoneFile(
+                local: testPdfPath,
+                name: 'Level 3 plan.pdf',
+                mime: 'application/pdf',
+                bytes: 4800000,
+              ),
+        ),
+        keepFileProvider.overrideWithValue(
+          (path, ext) async => File(path)
+              .copySync(
+                '${Directory.systemTemp.createTempSync('bv_kept').path}/kept.$ext',
+              )
+              .path,
+        ),
+        saveFileProvider.overrideWithValue((name, bytes) async {
+          saved.add(name);
+          return true;
+        }),
+        shareFileProvider.overrideWithValue(
+          (name, mime, bytes) async => sharedFiles.add(name),
+        ),
         // No camera and no waiting between tries in tests.
         pickPhotoProvider.overrideWithValue(
           ({required camera}) async => XFile(testPhotoPath),
@@ -175,6 +228,9 @@ Future<TestApp> pumpApp(
     shared: shared,
     work: fakeWork,
     chat: fakeChat,
+    library: fakeLibrary,
+    saved: saved,
+    sharedFiles: sharedFiles,
   );
 }
 

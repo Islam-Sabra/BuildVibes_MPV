@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'library.dart';
 import 'work_item.dart';
 
 /// What a message carries. Work item cards are posted by the server.
@@ -36,6 +37,7 @@ class ChatThread {
     required this.id,
     this.teamId,
     this.teamName,
+    this.lastMessageId,
     this.lastKind,
     this.lastBody,
     this.lastAuthorId,
@@ -48,6 +50,7 @@ class ChatThread {
     id: json['thread_id'] as String,
     teamId: json['team_id'] as String?,
     teamName: json['team_name'] as String?,
+    lastMessageId: json['last_message_id'] as String?,
     lastKind: json['last_message_id'] == null
         ? null
         : ChatKind.fromJson(json['last_kind']),
@@ -62,6 +65,8 @@ class ChatThread {
   final String? teamId;
   final String? teamName;
 
+  final String? lastMessageId;
+
   /// Null when the thread has no messages yet.
   final ChatKind? lastKind;
   final String? lastBody;
@@ -71,6 +76,31 @@ class ChatThread {
   final int unread;
 
   bool get isEveryone => teamId == null;
+}
+
+/// A photo, PDF or voice note uploaded with a message.
+@immutable
+class ChatAttachment {
+  const ChatAttachment({
+    required this.path,
+    required this.mime,
+    this.bytes,
+    this.durationMs,
+  });
+
+  factory ChatAttachment.fromJson(Map<String, dynamic> json) => ChatAttachment(
+    path: json['storage_path'] as String,
+    mime: json['mime'] as String,
+    bytes: (json['bytes'] as num?)?.toInt(),
+    durationMs: (json['duration_ms'] as num?)?.toInt(),
+  );
+
+  final String path;
+  final String mime;
+  final int? bytes;
+  final int? durationMs;
+
+  bool get isImage => mime.startsWith('image/');
 }
 
 /// The message a reply quotes.
@@ -115,11 +145,22 @@ class ChatMessage {
     this.workItemId,
     this.eventKind,
     this.deletedAt,
+    this.attachments = const [],
+    this.file,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     final parent = json['parent'];
     final event = json['event'];
+    // A PDF posted here went to the Library too ("docs"); a shared Library
+    // file is linked ("shared").
+    final docs = json['docs'];
+    final shared = json['shared'];
+    final file = shared is Map<String, dynamic>
+        ? LibraryFile.fromJson(shared)
+        : docs is List && docs.isNotEmpty
+        ? LibraryFile.fromJson(docs.first as Map<String, dynamic>)
+        : null;
     return ChatMessage(
       id: json['id'] as String,
       threadId: json['thread_id'] as String,
@@ -132,6 +173,11 @@ class ChatMessage {
       workItemId: json['work_item_id'] as String?,
       eventKind: event is Map ? WorkEventKind.fromJson(event['kind']) : null,
       deletedAt: _time(json['deleted_at']),
+      attachments: [
+        for (final a in (json['attachments'] as List?) ?? const [])
+          ChatAttachment.fromJson(a as Map<String, dynamic>),
+      ],
+      file: file,
     );
   }
 
@@ -151,5 +197,17 @@ class ChatMessage {
   final WorkEventKind? eventKind;
   final DateTime? deletedAt;
 
+  /// Photos (and the PDF) uploaded with it, in order.
+  final List<ChatAttachment> attachments;
+
+  /// The Library file it shows: a PDF posted here, or a file shared from
+  /// the Library. Opens in F1.
+  final LibraryFile? file;
+
   bool get deleted => deletedAt != null;
+
+  List<ChatAttachment> get photos => [
+    for (final a in attachments)
+      if (a.isImage) a,
+  ];
 }

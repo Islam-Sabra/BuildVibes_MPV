@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:buildvibes/data/models/chat.dart';
+import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 
@@ -17,6 +18,11 @@ class FakeChatRepository implements ChatRepository {
 
   /// The next posts fail as if the signal dropped.
   int failNext = 0;
+
+  /// The next uploads fail as if the signal dropped.
+  int failUploadNext = 0;
+  final uploads = <String>[];
+  final posted = <List<ChatUpload>>[];
 
   /// The next post is refused with this failure.
   SpaceFailure? refuseNext;
@@ -68,6 +74,7 @@ class FakeChatRepository implements ChatRepository {
     required String threadId,
     required String body,
     String? replyTo,
+    List<ChatUpload> attachments = const [],
   }) async {
     if (failNext > 0) {
       failNext--;
@@ -78,7 +85,11 @@ class FakeChatRepository implements ChatRepository {
       refuseNext = null;
       throw SpaceException(refuse);
     }
-    calls.add('post $threadId $body${replyTo == null ? '' : ' re $replyTo'}');
+    calls.add(
+      'post $threadId $body${replyTo == null ? '' : ' re $replyTo'}'
+      '${attachments.isEmpty ? '' : ' files ${attachments.map((a) => a.mime).join(',')}'}',
+    );
+    posted.add(attachments);
     final parent = replyTo == null ? null : _find(replyTo);
     messagesByThread
         .putIfAbsent(threadId, () => [])
@@ -92,6 +103,10 @@ class FakeChatRepository implements ChatRepository {
             authorId: 'user-1',
             authorName: 'Omar Haddad',
             body: body,
+            attachments: [
+              for (final a in attachments)
+                ChatAttachment(path: a.path, mime: a.mime, bytes: a.bytes),
+            ],
             reply: parent == null
                 ? null
                 : ChatReply(
@@ -102,6 +117,32 @@ class FakeChatRepository implements ChatRepository {
                   ),
           ),
         );
+  }
+
+  @override
+  Future<String> upload(
+    String spaceId,
+    String messageId,
+    PhoneFile file,
+  ) async {
+    if (failUploadNext > 0) {
+      failUploadNext--;
+      throw const SpaceException(SpaceFailure.network);
+    }
+    final path =
+        '$spaceId/chat/$messageId/file-${uploads.length + 1}.${file.extension}';
+    uploads.add(path);
+    return path;
+  }
+
+  @override
+  Future<void> shareFile({
+    required String id,
+    required String threadId,
+    required String fileId,
+    String? body,
+  }) async {
+    calls.add('share $threadId $fileId');
   }
 
   @override

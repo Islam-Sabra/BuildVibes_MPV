@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 
@@ -73,6 +74,7 @@ class PendingItem {
     this.kind = PendingKind.create,
     this.note,
     this.ref,
+    this.attachFileIds = const [],
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -94,6 +96,9 @@ class PendingItem {
         : PendingKind.create,
     note: json['note'] as String?,
     ref: json['ref'] as String?,
+    attachFileIds: [
+      for (final id in json['attach'] as List? ?? const []) id as String,
+    ],
   );
 
   final String id;
@@ -116,6 +121,9 @@ class PendingItem {
   /// The item's reference, for a sign-off ("KCT-021").
   final String? ref;
 
+  /// Library files to attach once the new item exists (W2-A).
+  final List<String> attachFileIds;
+
   PendingItem copyWith({List<PendingPhoto>? photos, bool? failed}) =>
       PendingItem(
         id: id,
@@ -131,6 +139,7 @@ class PendingItem {
         kind: kind,
         note: note,
         ref: ref,
+        attachFileIds: attachFileIds,
       );
 
   Map<String, dynamic> toJson() => {
@@ -147,6 +156,7 @@ class PendingItem {
     'kind': kind == PendingKind.signDone ? 'sign_done' : 'create',
     'note': note,
     'ref': ref,
+    'attach': attachFileIds,
   };
 }
 
@@ -231,6 +241,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// as "Not sent yet".
   Future<bool> send(PendingItem item) async {
     final repo = ref.read(workRepositoryProvider);
+    final library = ref.read(libraryRepositoryProvider);
     final delays = ref.read(outboxRetryDelaysProvider);
     var current = item.copyWith(failed: false);
     await _put(current);
@@ -290,6 +301,15 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                   ),
                 ),
         );
+        // W2-A: files picked before the item existed. A refusal (a Team
+        // file on another Team's item) leaves the item made; attach on W3.
+        for (final fileId in item.attachFileIds) {
+          try {
+            await withRetries(() => library.attach(item.id, fileId));
+          } on SpaceException catch (e) {
+            if (e.failure == SpaceFailure.network) rethrow;
+          }
+        }
         break;
       } on SpaceException catch (e) {
         // Refused photos from an earlier try: upload them again, once.
@@ -315,6 +335,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       unawaited(_deleteKept(p.local));
     }
     ref
+      ..invalidate(itemFilesProvider(item.id))
       ..invalidate(workItemDetailProvider(item.id))
       ..invalidate(workItemsProvider(item.spaceId))
       ..invalidate(workNeedsProvider(item.spaceId))

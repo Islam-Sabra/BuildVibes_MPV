@@ -318,7 +318,7 @@ abstract final class BvProfileSpec {
 /// Space chat threads (S8k, S9k).
 abstract final class BvChatSpec {
   /// A bubble is at most this share of the screen width.
-  static const bubbleMaxWidth = 0.78;
+  static const bubbleMaxWidth = 0.75;
   static const bubbleRadius = BvRadius.cardAll; // 14
   static const bubblePaddingHorizontal = BvSpace.s12;
   static const bubblePaddingVertical = BvSpace.s8;
@@ -331,4 +331,26 @@ abstract final class BvChatSpec {
 
   /// The quoted message in a reply: a bar on the start side.
   static const replyBar = 3.0;
+
+  /// One photo shows large; several make a grid of squares.
+  static const photoLarge = 220.0;
+  static const photoLargeAspect = 0.75;
+  static const photoSmall = 108.0;
+
+  /// A picked file's name above the message box.
+  static const pickedName = 140.0;
+}
+
+/// F1 · Drawing preview.
+abstract final class BvPreviewSpec {
+  /// The drawing sheet: wider than tall, like an A-size sheet.
+  static const sheetAspect = 1.4;
+  static const maxZoom = 5.0;
+}
+
+/// Toasts (snack bars).
+abstract final class BvToastSpec {
+  /// Lifted clear of a floating action such as "Add file" or "New item":
+  /// its height, and the 16 it sits off the edge, plus 16 between.
+  static const lift = BvButtonSpec.heightLarge + BvSpace.s16 * 2;
 }

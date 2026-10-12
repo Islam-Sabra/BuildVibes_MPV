@@ -103,6 +103,16 @@ FakeChatRepository _chat() => FakeChatRepository(now: _at(10, 30))
       lastAuthorId: _me,
       lastAt: _at(10, 21),
     ),
+    // A Team whose last message is a work item card.
+    ChatThread(
+      id: 'thread-st',
+      teamId: 'team-st',
+      teamName: 'Structure',
+      lastMessageId: 'card-1',
+      lastKind: ChatKind.workItem,
+      lastAuthorId: 'p-rakesh',
+      lastAt: _at(10, 25),
+    ),
   ]
   ..messagesByThread[_everyone] = [
     ChatMessage(
@@ -221,6 +231,9 @@ void main() {
       );
       expect(find.byKey(const Key('chat-unread-$_everyone')), findsOneWidget);
       expect(find.byKey(const Key('chat-unread-$_mep')), findsNothing);
+      // Review 13: a card says what happened; Everyone has the group icon.
+      expect(find.text(l10n.chatLastDone('Rakesh', 'KCT-017')), findsOneWidget);
+      expect(find.byKey(const Key('chat-everyone-tile')), findsOneWidget);
       // Admins see every Team.
       expect(find.text(l10n.chatThreadsNoteAdmin), findsOneWidget);
 
@@ -235,6 +248,11 @@ void main() {
       expect(find.text('Gate 2 is blocked by the crane.'), findsOneWidget);
       expect(find.text(l10n.chatDeleted), findsOneWidget);
       expect(find.text('Old news'), findsNothing);
+      // Review 13: a bubble hugs its text, never wider than 75%.
+      final short = tester.getSize(find.byKey(const Key('chat-message-m3')));
+      final long = tester.getSize(find.byKey(const Key('chat-message-m2')));
+      expect(short.width, lessThanOrEqualTo(390 * 0.75));
+      expect(long.width, lessThanOrEqualTo(390 * 0.75));
       // Each message in the language it was written in.
       expect(
         tester
@@ -291,8 +309,25 @@ void main() {
     testWidgets('S9k: a Team thread says who can see it [$lang]', (
       tester,
     ) async {
-      await _openThread(tester, lang, thread: _mep);
+      final chat = _chat()
+        ..messagesByThread[_mep] = [
+          _msg(
+            's1',
+            'p-rakesh',
+            'Rakesh Nair',
+            'OK',
+            _at(10, 18),
+            thread: _mep,
+          ),
+          _msg('s0', _me, 'Omar Haddad', 'Go', _at(10, 17), thread: _mep),
+        ];
+      await _openThread(tester, lang, thread: _mep, chat: chat);
       expect(find.text(l10n.chatTeamPrivacy('MEP Team')), findsOneWidget);
+      // Review 13: short messages make small bubbles, yours and theirs.
+      for (final id in ['s1', 's0']) {
+        final bubble = tester.getSize(find.byKey(Key('chat-message-$id')));
+        expect(bubble.width, lessThan(390 * 0.4));
+      }
     });
 
     testWidgets('send: Send appears with text; the message shows [$lang]', (

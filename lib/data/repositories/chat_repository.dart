@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/chat.dart';
+import '../models/library.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
+import 'work_repository.dart' show newUuid;
 
 /// Space chat (migration 9). Every write is a function call; the server
 /// decides who may read each thread.
@@ -25,12 +27,26 @@ abstract class ChatRepository {
   /// One message, after a live change. Null when you can't see it.
   Future<ChatMessage?> message(String id);
 
-  /// [id] is chosen by the app: a retry never posts twice.
+  /// [id] is chosen by the app: a retry never posts twice. [attachments]
+  /// are already uploaded to `<space>/chat/<id>/`.
   Future<void> post({
     required String id,
     required String threadId,
     required String body,
     String? replyTo,
+    List<ChatUpload> attachments = const [],
+  });
+
+  /// Uploads a file for message [messageId]; returns its path. A new name
+  /// on every call, so a retry never replaces a file.
+  Future<String> upload(String spaceId, String messageId, PhoneFile file);
+
+  /// F1 "Share in chat": a message that shows a Library file.
+  Future<void> shareFile({
+    required String id,
+    required String threadId,
+    required String fileId,
+    String? body,
   });
 
   /// Its author or a Space admin. It stays as "Message deleted".
@@ -50,9 +66,16 @@ class SupabaseChatRepository implements ChatRepository {
   // messages links to profiles twice (author, deleted_by): name the one.
   // The quoted message is a link to messages itself: PostgREST finds it by
   // the column (reply_to), not by the constraint's name.
+  static const _file =
+      'id, space_id, team_id, name, storage_path, mime, bytes, rev_label, '
+      'note, supersedes_id, source, uploaded_by, created_at';
+
   static const _message =
       'id, thread_id, kind, body, author_id, work_item_id, created_at, '
       'deleted_at, '
+      'attachments:message_attachments(storage_path, mime, bytes, duration_ms, sort), '
+      'docs:library_files!library_files_source_message_id_fkey($_file), '
+      'shared:library_files!messages_library_file_id_fkey($_file), '
       'author:profiles!messages_author_id_fkey(first_name, last_name), '
       'event:work_item_events(kind), '
       'parent:reply_to(id, kind, body, deleted_at, '
@@ -63,6 +86,8 @@ class SupabaseChatRepository implements ChatRepository {
       return await run();
     } on PostgrestException catch (e) {
       throw SpaceException(spaceFailureFor(e.code), e.message);
+    } on StorageException catch (e) {
+      throw SpaceException(SpaceFailure.unknown, e.message);
     } on Exception catch (e) {
       final network = e is SocketException || '$e'.contains('SocketException');
       throw SpaceException(
@@ -117,6 +142,7 @@ class SupabaseChatRepository implements ChatRepository {
     required String threadId,
     required String body,
     String? replyTo,
+    List<ChatUpload> attachments = const [],
   }) => _guard(
     () => _client.rpc(
       'post_message',
@@ -125,6 +151,39 @@ class SupabaseChatRepository implements ChatRepository {
         'p_thread': threadId,
         'p_body': body,
         'p_reply_to': replyTo,
+        'p_attachments': [for (final a in attachments) a.toJson()],
+      },
+    ),
+  );
+
+  @override
+  Future<String> upload(String spaceId, String messageId, PhoneFile file) =>
+      _guard(() async {
+        final path = '$spaceId/chat/$messageId/${newUuid()}.${file.extension}';
+        await _client.storage
+            .from('space-files')
+            .upload(
+              path,
+              File(file.local),
+              fileOptions: FileOptions(contentType: file.mime),
+            );
+        return path;
+      });
+
+  @override
+  Future<void> shareFile({
+    required String id,
+    required String threadId,
+    required String fileId,
+    String? body,
+  }) => _guard(
+    () => _client.rpc(
+      'share_library_file',
+      params: {
+        'p_id': id,
+        'p_thread': threadId,
+        'p_file': fileId,
+        'p_body': body,
       },
     ),
   );
@@ -165,9 +224,38 @@ class SupabaseChatRepository implements ChatRepository {
   }
 }
 
+/// An uploaded attachment for post_message. [name] is the file's own name,
+/// so a PDF reaches the Library with a proper title.
+class ChatUpload {
+  const ChatUpload({
+    required this.path,
+    required this.mime,
+    this.bytes,
+    this.name,
+  });
+
+  final String path;
+  final String mime;
+  final int? bytes;
+  final String? name;
+
+  Map<String, dynamic> toJson() => {
+    'path': path,
+    'mime': mime,
+    'bytes': ?bytes,
+    'name': ?name,
+  };
+}
+
 final chatRepositoryProvider = Provider<ChatRepository>(
   (ref) => SupabaseChatRepository(ref.watch(supabaseClientProvider)),
 );
+
+/// One message, for example a thread's last one when it is a card.
+final chatMessageProvider = FutureProvider.autoDispose
+    .family<ChatMessage?, String>(
+      (ref, id) => ref.watch(chatRepositoryProvider).message(id),
+    );
 
 final spaceThreadsProvider = FutureProvider.autoDispose
     .family<List<ChatThread>, String>(

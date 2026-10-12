@@ -3,13 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/space.dart';
+import '../../data/models/work_item.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/space_repository.dart';
+import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_badge.dart';
@@ -96,13 +100,39 @@ class _ThreadRow extends ConsumerWidget {
     final name = threadName(l10n, thread);
     final unread = thread.unread > 0;
 
+    // A card as the last message: what happened, to which item.
+    final card =
+        thread.lastKind == ChatKind.workItem && thread.lastMessageId != null
+        ? ref.watch(chatMessageProvider(thread.lastMessageId!)).value
+        : null;
+    final cardRef = card == null
+        ? null
+        : ref
+              .watch(workItemsProvider(space.id))
+              .value
+              ?.where((i) => i.id == card.workItemId)
+              .firstOrNull
+              ?.ref;
+
+    String? cardLine() {
+      if (card == null || cardRef == null) return null;
+      final who = card.authorName?.split(' ').first ?? l10n.workSomeone;
+      return switch (card.eventKind) {
+        WorkEventKind.done => l10n.chatLastDone(who, cardRef),
+        WorkEventKind.checked => l10n.chatLastChecked(who, cardRef),
+        WorkEventKind.sentBack => l10n.chatLastSentBack(who, cardRef),
+        WorkEventKind.reassigned => l10n.chatLastReassigned(who, cardRef),
+        _ => l10n.chatLastRaised(who, cardRef),
+      };
+    }
+
     String last() {
       if (thread.lastKind == null) return l10n.chatNoMessages;
       final text = thread.lastDeleted
           ? l10n.chatDeleted
           : chatSnippet(l10n, thread.lastKind, thread.lastBody);
-      // Cards speak for themselves; messages say who wrote them.
-      if (thread.lastKind == ChatKind.workItem) return text;
+      // Cards say what happened; messages say who wrote them.
+      if (thread.lastKind == ChatKind.workItem) return cardLine() ?? text;
       final author = thread.lastAuthorId == null
           ? null
           : thread.lastAuthorId == me
@@ -129,12 +159,16 @@ class _ThreadRow extends ConsumerWidget {
         child: Row(
           spacing: BvSpace.s12,
           children: [
-            BvAvatar(
-              name: name,
-              company: true,
-              twoLetters: true,
-              size: BvAvatarSize.lg,
-            ),
+            // Everyone is a group, not initials ("الجميع" reads oddly).
+            if (thread.isEveryone)
+              const _GroupTile()
+            else
+              BvAvatar(
+                name: name,
+                company: true,
+                twoLetters: true,
+                size: BvAvatarSize.lg,
+              ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -190,6 +224,30 @@ class _ThreadRow extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The Everyone thread's tile: the group icon on the avatar tile.
+class _GroupTile extends StatelessWidget {
+  const _GroupTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('chat-everyone-tile'),
+      width: BvAvatarSpec.lg,
+      height: BvAvatarSpec.lg,
+      decoration: BoxDecoration(
+        color: BvColors.surfaceSubtle,
+        borderRadius: BvAvatar.companyRadius(BvAvatarSize.lg),
+        border: Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
+      ),
+      child: const Icon(
+        BvIcons.team,
+        size: BvSize.iconLg,
+        color: BvColors.iconPrimary,
       ),
     );
   }
