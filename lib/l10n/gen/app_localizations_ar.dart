@@ -2078,4 +2078,127 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deliveredCheckedRowNoName => 'تم الفحص';
+
+  @override
+  String get chatEveryone => 'الجميع';
+
+  @override
+  String get chatTeam => 'الفريق';
+
+  @override
+  String get chatThreadsNote => 'ترى محادثة «الجميع» ومحادثات فرقك.';
+
+  @override
+  String get chatThreadsNoteAdmin =>
+      'بصفتك مدير المساحة، ترى «الجميع» وكل الفرق.';
+
+  @override
+  String get chatNoMessages => 'لا رسائل بعد.';
+
+  @override
+  String get chatYou => 'أنت';
+
+  @override
+  String chatLastLine(String name, String text) {
+    return '$name: $text';
+  }
+
+  @override
+  String get chatPhoto => 'صورة';
+
+  @override
+  String get chatFile => 'ملف';
+
+  @override
+  String get chatVoice => 'رسالة صوتية';
+
+  @override
+  String get chatWorkItemUpdate => 'تحديث بند عمل';
+
+  @override
+  String get chatToday => 'اليوم';
+
+  @override
+  String get chatYesterday => 'أمس';
+
+  @override
+  String chatTeamPrivacy(String team) {
+    return 'لا يرى هذه المحادثة إلا $team ومديرو المساحة.';
+  }
+
+  @override
+  String get chatMessageHint => 'رسالة';
+
+  @override
+  String get chatSend => 'إرسال';
+
+  @override
+  String get chatDeleted => 'حُذفت الرسالة';
+
+  @override
+  String get chatSending => 'جارٍ الإرسال…';
+
+  @override
+  String get chatNotSent => 'لم تُرسل';
+
+  @override
+  String get chatRetry => 'إعادة المحاولة';
+
+  @override
+  String get chatReply => 'رد';
+
+  @override
+  String get chatCopy => 'نسخ';
+
+  @override
+  String get chatCopied => 'تم النسخ.';
+
+  @override
+  String get chatDelete => 'حذف الرسالة';
+
+  @override
+  String get chatDeleteTitle => 'حذف هذه الرسالة؟';
+
+  @override
+  String get chatDeleteBody =>
+      'سيرى الجميع في هذه المحادثة «حُذفت الرسالة» بدلاً منها.';
+
+  @override
+  String get chatDeleteConfirm => 'حذف';
+
+  @override
+  String chatReplyingTo(String name) {
+    return 'رد على $name';
+  }
+
+  @override
+  String get chatCancelReply => 'إلغاء الرد';
+
+  @override
+  String chatCardRaised(String name) {
+    return 'بند عمل جديد من $name';
+  }
+
+  @override
+  String chatCardDone(String name) {
+    return 'توقيع كمنجز من $name';
+  }
+
+  @override
+  String chatCardChecked(String name) {
+    return 'فحص وإغلاق من $name';
+  }
+
+  @override
+  String chatCardSentBack(String name) {
+    return 'إرجاع بند عمل من $name';
+  }
+
+  @override
+  String chatCardReassigned(String name) {
+    return 'إعادة تكليف بند عمل من $name';
+  }
+
+  @override
+  String get chatItemGone => 'لم يعد بند العمل هذا في المساحة.';
 }

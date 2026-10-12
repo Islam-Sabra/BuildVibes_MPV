@@ -2073,4 +2073,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deliveredCheckedRowNoName => 'Checked';
+
+  @override
+  String get chatEveryone => 'Everyone';
+
+  @override
+  String get chatTeam => 'Team';
+
+  @override
+  String get chatThreadsNote => 'You see threads for Everyone and your Teams.';
+
+  @override
+  String get chatThreadsNoteAdmin =>
+      'As a Space admin, you see Everyone and every Team.';
+
+  @override
+  String get chatNoMessages => 'No messages yet.';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String chatLastLine(String name, String text) {
+    return '$name: $text';
+  }
+
+  @override
+  String get chatPhoto => 'Photo';
+
+  @override
+  String get chatFile => 'File';
+
+  @override
+  String get chatVoice => 'Voice note';
+
+  @override
+  String get chatWorkItemUpdate => 'Work item update';
+
+  @override
+  String get chatToday => 'Today';
+
+  @override
+  String get chatYesterday => 'Yesterday';
+
+  @override
+  String chatTeamPrivacy(String team) {
+    return 'Only $team and the Space admins see this thread.';
+  }
+
+  @override
+  String get chatMessageHint => 'Message';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatDeleted => 'Message deleted';
+
+  @override
+  String get chatSending => 'Sending…';
+
+  @override
+  String get chatNotSent => 'Not sent';
+
+  @override
+  String get chatRetry => 'Retry';
+
+  @override
+  String get chatReply => 'Reply';
+
+  @override
+  String get chatCopy => 'Copy';
+
+  @override
+  String get chatCopied => 'Copied.';
+
+  @override
+  String get chatDelete => 'Delete message';
+
+  @override
+  String get chatDeleteTitle => 'Delete this message?';
+
+  @override
+  String get chatDeleteBody =>
+      'Everyone in this thread sees “Message deleted” instead.';
+
+  @override
+  String get chatDeleteConfirm => 'Delete';
+
+  @override
+  String chatReplyingTo(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get chatCancelReply => 'Cancel reply';
+
+  @override
+  String chatCardRaised(String name) {
+    return '$name raised a work item';
+  }
+
+  @override
+  String chatCardDone(String name) {
+    return '$name marked a work item done';
+  }
+
+  @override
+  String chatCardChecked(String name) {
+    return '$name checked and closed a work item';
+  }
+
+  @override
+  String chatCardSentBack(String name) {
+    return '$name sent a work item back';
+  }
+
+  @override
+  String chatCardReassigned(String name) {
+    return '$name reassigned a work item';
+  }
+
+  @override
+  String get chatItemGone => 'This work item is no longer in the Space.';
 }

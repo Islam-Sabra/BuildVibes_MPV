@@ -123,6 +123,17 @@ abstract final class BvIcons {
     matchTextDirection: true,
   );
 
+  // Phosphor: copy (copy a message, S8b)
+  static const copy = IconData(0xe1ca, fontFamily: _family);
+
+  // Phosphor: arrow-bend-up-left (replying to a message). An arrow, so it
+  // mirrors in right to left.
+  static const reply = IconData(
+    0xe024,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+
   // Phosphor: share-network (share an invite code)
   static const share = IconData(0xe408, fontFamily: _family);
 
