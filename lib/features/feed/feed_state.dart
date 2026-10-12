@@ -9,6 +9,7 @@ import '../../core/l10n/locale_controller.dart';
 import '../../data/models/post.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/post_repository.dart';
+import '../entry/entry_state.dart';
 import '../work/work_outbox.dart' show outboxRetryDelaysProvider;
 
 /// A photo kept on the phone until its post is sent; [remote] once
@@ -250,7 +251,10 @@ final feedProvider = AsyncNotifierProvider<FeedNotifier, FeedState>(
 );
 
 class FeedNotifier extends AsyncNotifier<FeedState> {
-  static const _cacheKey = 'feed_cache';
+  /// One copy per person: after a sign-out, the next person on this phone
+  /// never sees it.
+  String get _cacheKey =>
+      'feed_cache_${ref.read(authUserIdProvider).value ?? 'none'}';
 
   @override
   Future<FeedState> build() async {

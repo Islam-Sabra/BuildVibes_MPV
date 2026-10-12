@@ -2484,6 +2484,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feedCouldntLoad => 'تعذّر تحميل الأخبار';
 
   @override
+  String get feedCouldntLoadBody =>
+      'تحقّق من الاتصال وحاول مرة أخرى. لم يُفقد شيء.';
+
+  @override
   String get feedOffline => 'أنت غير متصل. نعرض ما حمّلته من قبل.';
 
   @override
@@ -2575,10 +2579,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postDeleteReply => 'حذف التعليق';
 
   @override
-  String get postDeleteReplyTitle => 'حذف هذا التعليق؟';
+  String get postDeleteReplyTitle => 'حذف التعليق؟';
 
   @override
-  String get postDeleteReplyBody => 'سيُحذف لدى الجميع.';
+  String get postDeleteReplyBody => 'سيُحذف من هذا المنشور لدى الجميع.';
 
   @override
   String get postUnavailable => 'هذا المنشور غير متاح';
@@ -2687,7 +2691,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String composerWrittenIn(String lang) {
-    return 'مكتوب بـ$lang';
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'بالعربية',
+      'other': 'بالإنجليزية',
+    });
+    return 'مكتوب $_temp0';
   }
 
   @override
@@ -2703,7 +2711,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get langAuto => 'يُحدَّد تلقائياً';
 
   @override
-  String get composerLangTitle => 'لغة المنشور';
+  String get composerLangTitle => 'لغة هذا المنشور';
+
+  @override
+  String get composerLangWhy =>
+      'نستخدمها لنعرض الترجمة على القرّاء الذين لا يقرؤون هذه اللغة.';
+
+  @override
+  String langName(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'العربية',
+      'other': 'الإنجليزية',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get composerPhotosMax => 'حتى 4 صور.';
@@ -2743,7 +2764,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discardTitle => 'تجاهل هذا المنشور؟';
 
   @override
-  String get discardBody => 'لن يُحفظ ما كتبته.';
+  String get discardBody => 'سيُحذف النص والصور ورابط المشروع.';
 
   @override
   String get discardConfirm => 'تجاهل';
@@ -2753,4 +2774,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get projectPostsEmpty => 'لا منشورات مرتبطة بهذا المشروع بعد.';
+
+  @override
+  String get timeNowShort => 'الآن';
+
+  @override
+  String timeMinutesShort(int n) {
+    return '$n د';
+  }
+
+  @override
+  String timeHoursShort(int n) {
+    return '$n س';
+  }
+
+  @override
+  String get discardKeep => 'متابعة التعديل';
 }

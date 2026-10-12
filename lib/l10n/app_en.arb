@@ -3505,6 +3505,10 @@
   "@feedCouldntLoad": {
     "description": "H5."
   },
+  "feedCouldntLoadBody": "Check your connection and try again. Nothing was lost.",
+  "@feedCouldntLoadBody": {
+    "description": "H5 body."
+  },
   "feedOffline": "You're offline. Showing what you already loaded.",
   "@feedOffline": {
     "description": "H6 banner."
@@ -3641,11 +3645,11 @@
   "@postDeleteReply": {
     "description": "H13."
   },
-  "postDeleteReplyTitle": "Delete this comment?",
+  "postDeleteReplyTitle": "Delete comment?",
   "@postDeleteReplyTitle": {
     "description": "H14."
   },
-  "postDeleteReplyBody": "It's removed for everyone.",
+  "postDeleteReplyBody": "It will be removed from this post for everyone.",
   "@postDeleteReplyBody": {
     "description": "H14."
   },
@@ -3791,9 +3795,9 @@
   "@composerAudienceProject": {
     "description": "Audience line with a project."
   },
-  "composerWrittenIn": "Written in {lang}",
+  "composerWrittenIn": "Written in {lang, select, ar{Arabic} other{English}}",
   "@composerWrittenIn": {
-    "description": "L5.",
+    "description": "L5. The language code of the post.",
     "placeholders": {
       "lang": {
         "type": "String"
@@ -3816,9 +3820,22 @@
   "@langAuto": {
     "description": "L6 option."
   },
-  "composerLangTitle": "Post language",
+  "composerLangTitle": "Language of this post",
   "@composerLangTitle": {
     "description": "L6 title."
+  },
+  "composerLangWhy": "We use this to offer Translate to readers who don't read it.",
+  "@composerLangWhy": {
+    "description": "L6 line under the title."
+  },
+  "langName": "{lang, select, ar{Arabic} other{English}}",
+  "@langName": {
+    "description": "A language's name in the app's language (L6).",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
   },
   "composerPhotosMax": "Up to 4 photos.",
   "@composerPhotosMax": {
@@ -3868,7 +3885,7 @@
   "@discardTitle": {
     "description": "C13."
   },
-  "discardBody": "What you wrote isn't saved.",
+  "discardBody": "Your text, photo and project link will be lost.",
   "@discardBody": {
     "description": "C13."
   },
@@ -3876,12 +3893,38 @@
   "@discardConfirm": {
     "description": "C13."
   },
-  "projectPosts": "Posts",
+  "projectPosts": "POSTS",
   "projectPostsEmpty": "No posts tagged with this project yet.",
   "@projectPosts": {
     "description": "Project sheet section."
   },
   "@projectPostsEmpty": {
     "description": "Project sheet, no posts."
+  },
+  "timeNowShort": "now",
+  "@timeNowShort": {
+    "description": "Short time on cards."
+  },
+  "timeMinutesShort": "{n}m",
+  "@timeMinutesShort": {
+    "description": "Short minutes on cards.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursShort": "{n}h",
+  "@timeHoursShort": {
+    "description": "Short hours on cards.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discardKeep": "Keep editing",
+  "@discardKeep": {
+    "description": "C13 cancel."
   }
 }

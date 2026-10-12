@@ -5,6 +5,12 @@
 
 begin;
 
+-- Roles and companies on the author line ("{role}, {company} · 3h").
+update public.profiles set headline = 'Site Engineer', company_name_text = 'Al Hamra Contracting'
+where id = '11111111-0000-0000-0000-000000000001';
+update public.profiles set company_name_text = 'Gulf Build Co.'
+where id = '11111111-0000-0000-0000-000000000002';
+
 select set_config('seed.project', (select id from public.projects where name = 'Kuwait City Tower')::text, true);
 
 insert into public.cv_projects (id, profile_id, project_id, role_title, start_month)

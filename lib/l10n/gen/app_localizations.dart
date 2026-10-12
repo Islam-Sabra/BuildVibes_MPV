@@ -4322,6 +4322,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load your Feed'**
   String get feedCouldntLoad;
 
+  /// H5 body.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again. Nothing was lost.'**
+  String get feedCouldntLoadBody;
+
   /// H6 banner.
   ///
   /// In en, this message translates to:
@@ -4487,13 +4493,13 @@ abstract class AppLocalizations {
   /// H14.
   ///
   /// In en, this message translates to:
-  /// **'Delete this comment?'**
+  /// **'Delete comment?'**
   String get postDeleteReplyTitle;
 
   /// H14.
   ///
   /// In en, this message translates to:
-  /// **'It\'s removed for everyone.'**
+  /// **'It will be removed from this post for everyone.'**
   String get postDeleteReplyBody;
 
   /// P6 title.
@@ -4694,10 +4700,10 @@ abstract class AppLocalizations {
   /// **'Everyone on BuildVibes can see this. It also shows on the project\'s page.'**
   String get composerAudienceProject;
 
-  /// L5.
+  /// L5. The language code of the post.
   ///
   /// In en, this message translates to:
-  /// **'Written in {lang}'**
+  /// **'Written in {lang, select, ar{Arabic} other{English}}'**
   String composerWrittenIn(String lang);
 
   /// L5 link.
@@ -4727,8 +4733,20 @@ abstract class AppLocalizations {
   /// L6 title.
   ///
   /// In en, this message translates to:
-  /// **'Post language'**
+  /// **'Language of this post'**
   String get composerLangTitle;
+
+  /// L6 line under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'We use this to offer Translate to readers who don\'t read it.'**
+  String get composerLangWhy;
+
+  /// A language's name in the app's language (L6).
+  ///
+  /// In en, this message translates to:
+  /// **'{lang, select, ar{Arabic} other{English}}'**
+  String langName(String lang);
 
   /// Too many photos.
   ///
@@ -4805,7 +4823,7 @@ abstract class AppLocalizations {
   /// C13.
   ///
   /// In en, this message translates to:
-  /// **'What you wrote isn\'t saved.'**
+  /// **'Your text, photo and project link will be lost.'**
   String get discardBody;
 
   /// C13.
@@ -4817,7 +4835,7 @@ abstract class AppLocalizations {
   /// Project sheet section.
   ///
   /// In en, this message translates to:
-  /// **'Posts'**
+  /// **'POSTS'**
   String get projectPosts;
 
   /// Project sheet, no posts.
@@ -4825,6 +4843,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No posts tagged with this project yet.'**
   String get projectPostsEmpty;
+
+  /// Short time on cards.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get timeNowShort;
+
+  /// Short minutes on cards.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}m'**
+  String timeMinutesShort(int n);
+
+  /// Short hours on cards.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h'**
+  String timeHoursShort(int n);
+
+  /// C13 cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get discardKeep;
 }
 
 class _AppLocalizationsDelegate
