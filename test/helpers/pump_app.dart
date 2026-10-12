@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
@@ -8,17 +11,33 @@ import 'package:buildvibes/data/repositories/project_repository.dart';
 import 'package:buildvibes/data/repositories/profile_repository.dart';
 import 'package:buildvibes/data/repositories/reference_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
+import 'package:buildvibes/data/repositories/work_repository.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
+import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
+import 'work_fakes.dart';
+
+/// A real 1 × 1 PNG on disk, the stand-in for a camera photo.
+final String testPhotoPath = () {
+  final dir = Directory.systemTemp.createTempSync('bv_test_photo');
+  final file = File('${dir.path}/photo.png')
+    ..writeAsBytesSync(
+      base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      ),
+    );
+  return file.path;
+}();
 
 /// The fixed "today" of widget tests.
 final testNow = DateTime(2026, 10, 11);
@@ -33,6 +52,7 @@ class TestApp {
     this.projects, {
     required this.spaces,
     required this.shared,
+    required this.work,
   });
 
   final SharedPreferences prefs;
@@ -41,6 +61,7 @@ class TestApp {
   final FakeProfilePageRepository pages;
   final FakeProjectRepository projects;
   final FakeSpaceRepository spaces;
+  final FakeWorkRepository work;
 
   /// Texts sent to the system share sheet.
   final List<String> shared;
@@ -61,6 +82,7 @@ Future<TestApp> pumpApp(
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
   FakeSpaceRepository? spaces,
+  FakeWorkRepository? work,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -94,6 +116,7 @@ Future<TestApp> pumpApp(
   setUp?.call(pages, projects);
   final fakeSpaces = spaces ?? FakeSpaceRepository(now: testNow);
   final shared = <String>[];
+  final fakeWork = work ?? FakeWorkRepository();
 
   await tester.pumpWidget(
     ProviderScope(
@@ -111,6 +134,23 @@ Future<TestApp> pumpApp(
         projectRepositoryProvider.overrideWithValue(projects),
         clockProvider.overrideWithValue(() => testNow),
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
+        workRepositoryProvider.overrideWithValue(fakeWork),
+        // No camera and no waiting between tries in tests.
+        pickPhotoProvider.overrideWithValue(
+          ({required camera}) async => XFile(testPhotoPath),
+        ),
+        // A fresh copy each time: a sent item deletes its kept copy.
+        keepPhotoProvider.overrideWithValue(
+          (photo) async => File(photo.path)
+              .copySync(
+                '${Directory.systemTemp.createTempSync('bv_kept').path}/kept.png',
+              )
+              .path,
+        ),
+        outboxRetryDelaysProvider.overrideWithValue(const [
+          Duration.zero,
+          Duration.zero,
+        ]),
         shareTextProvider.overrideWithValue((text) async => shared.add(text)),
         ...overrides,
       ],
@@ -126,6 +166,7 @@ Future<TestApp> pumpApp(
     projects,
     spaces: fakeSpaces,
     shared: shared,
+    work: fakeWork,
   );
 }
 

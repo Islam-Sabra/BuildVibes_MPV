@@ -1592,4 +1592,334 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesLastAdmin => 'اجعل شخصاً آخر مديراً أولاً، أو احذف المساحة.';
+
+  @override
+  String get workPrivacyLine =>
+      'الأعضاء أشخاص أكّدهم مدير المساحة. لا يظهر شيء هنا خارج المساحة.';
+
+  @override
+  String get workFilterAll => 'الكل';
+
+  @override
+  String get workFilterMine => 'الخاصة بي';
+
+  @override
+  String get workFilterOpen => 'مفتوحة';
+
+  @override
+  String get workFilterToCheck => 'للفحص';
+
+  @override
+  String get workFilterChecked => 'تم الفحص';
+
+  @override
+  String get workSectionNeedsYou => 'بانتظارك';
+
+  @override
+  String get workSectionOpen => 'مفتوحة';
+
+  @override
+  String get workSectionWaitingCheck => 'بانتظار الفحص';
+
+  @override
+  String get workSectionCheckedWeek => 'تم فحصها هذا الأسبوع';
+
+  @override
+  String get workSectionCheckedEarlier => 'تم فحصها سابقاً';
+
+  @override
+  String get workStatusOpen => 'مفتوح';
+
+  @override
+  String workStatusOpenDue(String date) {
+    return 'مفتوح · الاستحقاق $date';
+  }
+
+  @override
+  String workStatusOverdue(String date) {
+    return 'مفتوح · كان مستحقاً $date';
+  }
+
+  @override
+  String get workStatusDoneYouCheck => 'منجز · تفحصه أنت';
+
+  @override
+  String get workStatusDoneWaiting => 'منجز · بانتظار الفحص';
+
+  @override
+  String workStatusChecked(String date) {
+    return 'تم الفحص · $date';
+  }
+
+  @override
+  String get workOwnerYou => 'المكلّف: أنت';
+
+  @override
+  String workOwner(String name) {
+    return 'المكلّف: $name';
+  }
+
+  @override
+  String get workFromYou => 'منك';
+
+  @override
+  String workFrom(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String workCheckedByLine(String name) {
+    return 'الفحص: $name';
+  }
+
+  @override
+  String workCheckedBy(String name) {
+    return 'الفحص: $name';
+  }
+
+  @override
+  String workPhotos(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n صورة',
+      few: '$n صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+      zero: 'بلا صورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workSignAsDone => 'وقّع كمنجز';
+
+  @override
+  String get workCheckIt => 'افحصه';
+
+  @override
+  String get workNewItem => 'بند جديد';
+
+  @override
+  String get workEmptyTitle => 'لا بنود عمل بعد';
+
+  @override
+  String get workEmptyCanCreate =>
+      'أنشئ أول بند من «بند جديد». يوقّعه المكلّف كمنجز، ثم يُفحص.';
+
+  @override
+  String get workEmptyCannot =>
+      'تظهر البنود هنا عندما يُنشئ أحدهم بنداً للفريق.';
+
+  @override
+  String get workNothingNeedsYou => 'لا شيء بانتظارك الآن.';
+
+  @override
+  String get workFilterEmpty => 'لا شيء هنا.';
+
+  @override
+  String get workStatusOwnerLeft => 'غادر المكلّف · أعد التكليف';
+
+  @override
+  String get workReassign => 'أعد التكليف';
+
+  @override
+  String get workNewTitle => 'بند عمل جديد';
+
+  @override
+  String get workTakePhoto => 'التقط صورة';
+
+  @override
+  String get workFromGallery => 'اختر من المعرض';
+
+  @override
+  String get workRetake => 'إعادة';
+
+  @override
+  String get workPhotoFirst => 'ابدأ بصورة للمكان.';
+
+  @override
+  String workNewStamp(String ref) {
+    return 'جديد · $ref';
+  }
+
+  @override
+  String get workNewStampPlain => 'جديد';
+
+  @override
+  String get workTitleHint => 'ما المطلوب · سطر واحد يكفي';
+
+  @override
+  String get workTitleRequired => 'اكتب ما المطلوب.';
+
+  @override
+  String get workCellOwner => 'المكلّف · شخص واحد';
+
+  @override
+  String get workCellDue => 'الاستحقاق';
+
+  @override
+  String get workCellPlace => 'المكان في الموقع';
+
+  @override
+  String get workCellTeam => 'الفريق';
+
+  @override
+  String get workChoose => 'اختر';
+
+  @override
+  String get workOwnerRequired => 'اختر من سينفّذه.';
+
+  @override
+  String get workNoDue => 'بلا موعد';
+
+  @override
+  String get workToday => 'اليوم';
+
+  @override
+  String get workTomorrow => 'غداً';
+
+  @override
+  String get workPickDate => 'اختر تاريخاً';
+
+  @override
+  String get workNoTeam => 'بلا فريق';
+
+  @override
+  String get workPlaceHint => 'مثال: Level 2 · Grid C7';
+
+  @override
+  String workNewFooter(String owner) {
+    return 'يصل إلى $owner في «بانتظارك». وعند توقيعه كمنجز تفحصه أنت.';
+  }
+
+  @override
+  String get workNewFooterNoOwner =>
+      'يصل إلى المكلّف في «بانتظارك». وعند توقيعه كمنجز تفحصه أنت.';
+
+  @override
+  String get workCreate => 'إنشاء البند';
+
+  @override
+  String get workNotSent => 'لم يُرسل بعد';
+
+  @override
+  String get workRetry => 'إعادة المحاولة';
+
+  @override
+  String get workNotSentNote =>
+      'محفوظ على هذا الهاتف. أعد المحاولة عند عودة الإشارة.';
+
+  @override
+  String get workSent => 'تم الإرسال.';
+
+  @override
+  String get workSignOff => 'التوقيعات';
+
+  @override
+  String get workEvidence => 'الإثبات';
+
+  @override
+  String get workPhotosLabel => 'الصور';
+
+  @override
+  String get workDiscussion => 'النقاش';
+
+  @override
+  String get workAddComment => 'أضف تعليقاً';
+
+  @override
+  String get workSendComment => 'إرسال';
+
+  @override
+  String get workNoComments => 'لا تعليقات بعد.';
+
+  @override
+  String workWaitingCheckBy(String name) {
+    return 'بانتظار فحص $name';
+  }
+
+  @override
+  String get workWaitingCheckBody => 'يمكن قبوله أو إرجاعه مع ذكر السبب.';
+
+  @override
+  String workCheckBannerTitle(String name) {
+    return 'تم توقيعه كمنجز بواسطة $name. افحصه.';
+  }
+
+  @override
+  String get workCheckBannerBody =>
+      'انظر إلى الصورة، ثم اقبله أو أرجعه مع ذكر السبب.';
+
+  @override
+  String get workDoneWaiting => 'منجز. بانتظار الفحص.';
+
+  @override
+  String get workClosed => 'أُغلق. يبقى في سجل المساحة.';
+
+  @override
+  String workClosedCanShow(String name) {
+    return 'يمكن عرضه في ملف $name كعمل منجز.';
+  }
+
+  @override
+  String workClosedBy(String name) {
+    return 'الإغلاق: $name';
+  }
+
+  @override
+  String get workClosedStays => 'يبقى في سجل المساحة.';
+
+  @override
+  String workSentBackTitle(String reason) {
+    return 'أُرجع: $reason';
+  }
+
+  @override
+  String get workReasonPhotoMissing => 'الصورة غير موجودة';
+
+  @override
+  String get workReasonNotAsDrawing => 'غير مطابق للمخطط';
+
+  @override
+  String get workReasonNotFinished => 'غير مكتمل';
+
+  @override
+  String get workReasonOther => 'سبب آخر';
+
+  @override
+  String get workOwnerLeftTitle => 'غادر المكلّف المساحة';
+
+  @override
+  String get workOwnerLeftBody => 'كلّف شخصاً آخر بإكماله.';
+
+  @override
+  String workCheckedStamp(String date, String name) {
+    return 'تم الفحص · $date · $name';
+  }
+
+  @override
+  String get workYouCheckIt => 'تفحصه أنت';
+
+  @override
+  String get workCheckAndClose => 'افحص وأغلق';
+
+  @override
+  String get workSendBack => 'إرجاع';
+
+  @override
+  String get workReassignTitle => 'إعادة التكليف إلى';
+
+  @override
+  String workReassigned(String name) {
+    return 'المكلّف الآن: $name.';
+  }
+
+  @override
+  String get workItemGone => 'هذا البند غير متاح.';
+
+  @override
+  String workTodayAt(String time) {
+    return 'اليوم $time';
+  }
 }

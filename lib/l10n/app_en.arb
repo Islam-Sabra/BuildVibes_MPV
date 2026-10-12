@@ -2190,5 +2190,470 @@
   "spacesLastAdmin": "Make someone else an admin first, or delete the Space.",
   "@spacesLastAdmin": {
     "description": "Last admin tries to leave (P0001)."
+  },
+  "workPrivacyLine": "Members are people the Space admin confirmed. Nothing here is visible outside the Space.",
+  "@workPrivacyLine": {
+    "description": "S20 privacy line."
+  },
+  "workFilterAll": "All",
+  "@workFilterAll": {
+    "description": "S20 filter."
+  },
+  "workFilterMine": "Mine",
+  "@workFilterMine": {
+    "description": "S20 filter: items I own or raised."
+  },
+  "workFilterOpen": "Open",
+  "@workFilterOpen": {
+    "description": "S20 filter (glossary: chips مفتوحة)."
+  },
+  "workFilterToCheck": "To check",
+  "@workFilterToCheck": {
+    "description": "S20 filter."
+  },
+  "workFilterChecked": "Checked",
+  "@workFilterChecked": {
+    "description": "S20 filter."
+  },
+  "workSectionNeedsYou": "NEEDS YOU",
+  "@workSectionNeedsYou": {
+    "description": "S20 section."
+  },
+  "workSectionOpen": "OPEN",
+  "@workSectionOpen": {
+    "description": "S20 section: open, and done items waiting for someone else."
+  },
+  "workSectionWaitingCheck": "WAITING FOR A CHECK",
+  "@workSectionWaitingCheck": {
+    "description": "To check filter: done items others check."
+  },
+  "workSectionCheckedWeek": "CHECKED THIS WEEK",
+  "@workSectionCheckedWeek": {
+    "description": "S20 section."
+  },
+  "workSectionCheckedEarlier": "CHECKED EARLIER",
+  "@workSectionCheckedEarlier": {
+    "description": "Checked filter."
+  },
+  "workStatusOpen": "OPEN",
+  "@workStatusOpen": {
+    "description": "Card status."
+  },
+  "workStatusOpenDue": "OPEN · DUE {date}",
+  "@workStatusOpenDue": {
+    "description": "Card status.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "workStatusOverdue": "OPEN · WAS DUE {date}",
+  "@workStatusOverdue": {
+    "description": "Card status, past the due date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "workStatusDoneYouCheck": "DONE · YOU CHECK IT",
+  "@workStatusDoneYouCheck": {
+    "description": "Card status."
+  },
+  "workStatusDoneWaiting": "DONE · WAITING FOR A CHECK",
+  "@workStatusDoneWaiting": {
+    "description": "Card status."
+  },
+  "workStatusChecked": "CHECKED · {date}",
+  "@workStatusChecked": {
+    "description": "Card status.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "workOwnerYou": "Owner: you",
+  "@workOwnerYou": {
+    "description": "Card people line."
+  },
+  "workOwner": "Owner: {name}",
+  "@workOwner": {
+    "description": "Card people line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workFromYou": "from you",
+  "@workFromYou": {
+    "description": "Card people line."
+  },
+  "workFrom": "from {name}",
+  "@workFrom": {
+    "description": "Card people line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckedByLine": "checked by {name}",
+  "@workCheckedByLine": {
+    "description": "Card people line, Checked.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckedBy": "Checked by {name}",
+  "@workCheckedBy": {
+    "description": "Card evidence, Checked.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workPhotos": "{n, plural, =0{No photo} =1{1 photo} other{{n} photos}}",
+  "@workPhotos": {
+    "description": "Card evidence.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "workSignAsDone": "Sign as done",
+  "@workSignAsDone": {
+    "description": "Card action (glossary)."
+  },
+  "workCheckIt": "Check it",
+  "@workCheckIt": {
+    "description": "Card action."
+  },
+  "workNewItem": "New item",
+  "@workNewItem": {
+    "description": "S20 button."
+  },
+  "workEmptyTitle": "No work items yet",
+  "@workEmptyTitle": {
+    "description": "S20 empty."
+  },
+  "workEmptyCanCreate": "Raise the first one with New item. The owner signs it as done, then it's checked.",
+  "@workEmptyCanCreate": {
+    "description": "S20 empty, can create."
+  },
+  "workEmptyCannot": "Items appear here when someone raises one for the team.",
+  "@workEmptyCannot": {
+    "description": "S20 empty, can't create."
+  },
+  "workNothingNeedsYou": "Nothing needs you right now.",
+  "@workNothingNeedsYou": {
+    "description": "S20 empty Needs you."
+  },
+  "workFilterEmpty": "Nothing here.",
+  "@workFilterEmpty": {
+    "description": "S20 empty filter."
+  },
+  "workStatusOwnerLeft": "OWNER LEFT · REASSIGN",
+  "@workStatusOwnerLeft": {
+    "description": "Card status: the owner left the Space (review 09)."
+  },
+  "workReassign": "Reassign",
+  "@workReassign": {
+    "description": "Card action."
+  },
+  "workNewTitle": "New work item",
+  "@workNewTitle": {
+    "description": "W2 title."
+  },
+  "workTakePhoto": "Take a photo",
+  "@workTakePhoto": {
+    "description": "W2 photo tile."
+  },
+  "workFromGallery": "Choose from gallery",
+  "@workFromGallery": {
+    "description": "W2 fallback."
+  },
+  "workRetake": "Retake",
+  "@workRetake": {
+    "description": "W2 photo button."
+  },
+  "workPhotoFirst": "Start with a photo of the spot.",
+  "@workPhotoFirst": {
+    "description": "W2 photo tile hint."
+  },
+  "workNewStamp": "NEW · {ref}",
+  "@workNewStamp": {
+    "description": "W2 stamp with the next reference.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "workNewStampPlain": "NEW",
+  "@workNewStampPlain": {
+    "description": "W2 stamp when the reference isn't known."
+  },
+  "workTitleHint": "What needs doing · one line is enough",
+  "@workTitleHint": {
+    "description": "W2 title placeholder."
+  },
+  "workTitleRequired": "Write what needs doing.",
+  "@workTitleRequired": {
+    "description": "W2 error."
+  },
+  "workCellOwner": "OWNER · ONE PERSON",
+  "@workCellOwner": {
+    "description": "W2 cell."
+  },
+  "workCellDue": "DUE",
+  "@workCellDue": {
+    "description": "W2 cell."
+  },
+  "workCellPlace": "PLACE ON SITE",
+  "@workCellPlace": {
+    "description": "W2 cell."
+  },
+  "workCellTeam": "TEAM",
+  "@workCellTeam": {
+    "description": "W2 cell."
+  },
+  "workChoose": "Choose",
+  "@workChoose": {
+    "description": "W2 empty cell."
+  },
+  "workOwnerRequired": "Choose who does it.",
+  "@workOwnerRequired": {
+    "description": "W2 error."
+  },
+  "workNoDue": "No due date",
+  "@workNoDue": {
+    "description": "W2 due option."
+  },
+  "workToday": "Today",
+  "@workToday": {
+    "description": "W2 due option."
+  },
+  "workTomorrow": "Tomorrow",
+  "@workTomorrow": {
+    "description": "W2 due option."
+  },
+  "workPickDate": "Pick a date",
+  "@workPickDate": {
+    "description": "W2 due option."
+  },
+  "workNoTeam": "No Team",
+  "@workNoTeam": {
+    "description": "W2 team option."
+  },
+  "workPlaceHint": "e.g. Level 2 · Grid C7",
+  "@workPlaceHint": {
+    "description": "W2 place placeholder."
+  },
+  "workNewFooter": "{owner} gets it in Needs you. When it's marked done, you check it.",
+  "@workNewFooter": {
+    "description": "W2 footer.",
+    "placeholders": {
+      "owner": {
+        "type": "String"
+      }
+    }
+  },
+  "workNewFooterNoOwner": "The owner gets it in Needs you. When it's marked done, you check it.",
+  "@workNewFooterNoOwner": {
+    "description": "W2 footer before an owner is chosen."
+  },
+  "workCreate": "Create item",
+  "@workCreate": {
+    "description": "W2 button."
+  },
+  "workNotSent": "Not sent yet",
+  "@workNotSent": {
+    "description": "Outbox card."
+  },
+  "workRetry": "Retry",
+  "@workRetry": {
+    "description": "Outbox card."
+  },
+  "workNotSentNote": "Saved on this phone. Retry when the signal is back.",
+  "@workNotSentNote": {
+    "description": "Outbox card."
+  },
+  "workSent": "Sent.",
+  "@workSent": {
+    "description": "Toast after a retry."
+  },
+  "workSignOff": "SIGN-OFF",
+  "@workSignOff": {
+    "description": "W3 section (glossary)."
+  },
+  "workEvidence": "EVIDENCE",
+  "@workEvidence": {
+    "description": "W3 section (glossary)."
+  },
+  "workPhotosLabel": "PHOTOS",
+  "@workPhotosLabel": {
+    "description": "W3 section: photos from when it was raised."
+  },
+  "workDiscussion": "DISCUSSION",
+  "@workDiscussion": {
+    "description": "W3 section."
+  },
+  "workAddComment": "Add a comment",
+  "@workAddComment": {
+    "description": "W3 field."
+  },
+  "workSendComment": "Send",
+  "@workSendComment": {
+    "description": "W3 comment button."
+  },
+  "workNoComments": "No comments yet.",
+  "@workNoComments": {
+    "description": "W3 empty discussion."
+  },
+  "workWaitingCheckBy": "Waiting for {name} to check",
+  "@workWaitingCheckBy": {
+    "description": "W3b banner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workWaitingCheckBody": "It can be accepted or sent back with a reason.",
+  "@workWaitingCheckBody": {
+    "description": "W3b banner."
+  },
+  "workCheckBannerTitle": "{name} marked this done. Check it.",
+  "@workCheckBannerTitle": {
+    "description": "W3c banner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckBannerBody": "Look at the photo, then accept it or send it back with a reason.",
+  "@workCheckBannerBody": {
+    "description": "W3c banner."
+  },
+  "workDoneWaiting": "Done. Waiting for a check.",
+  "@workDoneWaiting": {
+    "description": "W3 banner for others."
+  },
+  "workClosed": "Closed. It stays in the Space record.",
+  "@workClosed": {
+    "description": "W3d banner (review 08 wording)."
+  },
+  "workClosedCanShow": "{name} can show it on their profile as work they delivered.",
+  "@workClosedCanShow": {
+    "description": "W3d banner line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workClosedBy": "Closed by {name}",
+  "@workClosedBy": {
+    "description": "W3g banner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workClosedStays": "It stays in the Space record.",
+  "@workClosedStays": {
+    "description": "W3g banner line."
+  },
+  "workSentBackTitle": "Sent back: {reason}",
+  "@workSentBackTitle": {
+    "description": "W3 banner after a send-back.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "workReasonPhotoMissing": "Photo missing",
+  "@workReasonPhotoMissing": {
+    "description": "Send back reason."
+  },
+  "workReasonNotAsDrawing": "Not as per drawing",
+  "@workReasonNotAsDrawing": {
+    "description": "Send back reason."
+  },
+  "workReasonNotFinished": "Not finished",
+  "@workReasonNotFinished": {
+    "description": "Send back reason."
+  },
+  "workReasonOther": "Other",
+  "@workReasonOther": {
+    "description": "Send back reason."
+  },
+  "workOwnerLeftTitle": "The owner left the Space",
+  "@workOwnerLeftTitle": {
+    "description": "W3 banner."
+  },
+  "workOwnerLeftBody": "Give it to someone else to finish.",
+  "@workOwnerLeftBody": {
+    "description": "W3 banner."
+  },
+  "workCheckedStamp": "CHECKED · {date} · {name}",
+  "@workCheckedStamp": {
+    "description": "W3d tilted stamp.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workYouCheckIt": "You check it",
+  "@workYouCheckIt": {
+    "description": "Sign-off strip."
+  },
+  "workCheckAndClose": "Check and close",
+  "@workCheckAndClose": {
+    "description": "W3c button."
+  },
+  "workSendBack": "Send back",
+  "@workSendBack": {
+    "description": "W3c button (glossary)."
+  },
+  "workReassignTitle": "Reassign to",
+  "@workReassignTitle": {
+    "description": "Reassign sheet title."
+  },
+  "workReassigned": "{name} owns it now.",
+  "@workReassigned": {
+    "description": "Toast.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workItemGone": "This item isn't available.",
+  "@workItemGone": {
+    "description": "W3 when gone or not a member."
+  },
+  "workTodayAt": "Today {time}",
+  "@workTodayAt": {
+    "description": "Sign-off time today.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

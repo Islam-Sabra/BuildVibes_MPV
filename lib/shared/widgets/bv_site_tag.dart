@@ -19,6 +19,7 @@ class BvSiteTag extends StatelessWidget {
     required this.owner,
     required this.due,
     this.overdue = false,
+    this.checkedStamp,
   });
 
   final String itemId;
@@ -29,6 +30,10 @@ class BvSiteTag extends StatelessWidget {
   final String owner;
   final String due;
   final bool overdue;
+
+  /// "CHECKED · 10 OCT · S. AL-MANSOUR": a tilted green stamp beside the
+  /// reference once the item is closed (W3d, W3g).
+  final String? checkedStamp;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +98,20 @@ class BvSiteTag extends StatelessWidget {
                   spacing: BvSiteTagSpec.headGap,
                   children: [
                     BvStamp(label: itemId),
-                    const Spacer(),
+                    if (checkedStamp != null)
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: BvStamp(
+                            key: const Key('site-tag-checked'),
+                            label: checkedStamp!,
+                            tone: BvStampTone.positive,
+                            tilted: true,
+                          ),
+                        ),
+                      ),
+                    if (checkedStamp == null) const Spacer(),
                     Flexible(
                       child: Text(
                         team,

@@ -8,13 +8,22 @@ enum BvSignOffStepKind { raised, done, checked }
 
 /// One step of the sign-off. It is signed when [person] is set.
 class BvSignOffStep {
-  const BvSignOffStep({required this.kind, this.person, this.when});
+  const BvSignOffStep({
+    required this.kind,
+    this.person,
+    this.when,
+    this.waitingFor,
+  });
 
   final BvSignOffStepKind kind;
   final String? person;
 
   /// Date and time, already formatted for the app language and market.
   final String? when;
+
+  /// Shown in place of the dash while unsigned, for example "You check
+  /// it" (W3c).
+  final String? waitingFor;
 
   bool get signed => person != null;
 }
@@ -107,7 +116,7 @@ class _Cell extends StatelessWidget {
             ),
           ),
           Text(
-            step.person ?? '—',
+            step.person ?? step.waitingFor ?? '—',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: type.labelMd.copyWith(

@@ -1587,4 +1587,333 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get spacesLastAdmin =>
       'Make someone else an admin first, or delete the Space.';
+
+  @override
+  String get workPrivacyLine =>
+      'Members are people the Space admin confirmed. Nothing here is visible outside the Space.';
+
+  @override
+  String get workFilterAll => 'All';
+
+  @override
+  String get workFilterMine => 'Mine';
+
+  @override
+  String get workFilterOpen => 'Open';
+
+  @override
+  String get workFilterToCheck => 'To check';
+
+  @override
+  String get workFilterChecked => 'Checked';
+
+  @override
+  String get workSectionNeedsYou => 'NEEDS YOU';
+
+  @override
+  String get workSectionOpen => 'OPEN';
+
+  @override
+  String get workSectionWaitingCheck => 'WAITING FOR A CHECK';
+
+  @override
+  String get workSectionCheckedWeek => 'CHECKED THIS WEEK';
+
+  @override
+  String get workSectionCheckedEarlier => 'CHECKED EARLIER';
+
+  @override
+  String get workStatusOpen => 'OPEN';
+
+  @override
+  String workStatusOpenDue(String date) {
+    return 'OPEN · DUE $date';
+  }
+
+  @override
+  String workStatusOverdue(String date) {
+    return 'OPEN · WAS DUE $date';
+  }
+
+  @override
+  String get workStatusDoneYouCheck => 'DONE · YOU CHECK IT';
+
+  @override
+  String get workStatusDoneWaiting => 'DONE · WAITING FOR A CHECK';
+
+  @override
+  String workStatusChecked(String date) {
+    return 'CHECKED · $date';
+  }
+
+  @override
+  String get workOwnerYou => 'Owner: you';
+
+  @override
+  String workOwner(String name) {
+    return 'Owner: $name';
+  }
+
+  @override
+  String get workFromYou => 'from you';
+
+  @override
+  String workFrom(String name) {
+    return 'from $name';
+  }
+
+  @override
+  String workCheckedByLine(String name) {
+    return 'checked by $name';
+  }
+
+  @override
+  String workCheckedBy(String name) {
+    return 'Checked by $name';
+  }
+
+  @override
+  String workPhotos(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n photos',
+      one: '1 photo',
+      zero: 'No photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workSignAsDone => 'Sign as done';
+
+  @override
+  String get workCheckIt => 'Check it';
+
+  @override
+  String get workNewItem => 'New item';
+
+  @override
+  String get workEmptyTitle => 'No work items yet';
+
+  @override
+  String get workEmptyCanCreate =>
+      'Raise the first one with New item. The owner signs it as done, then it\'s checked.';
+
+  @override
+  String get workEmptyCannot =>
+      'Items appear here when someone raises one for the team.';
+
+  @override
+  String get workNothingNeedsYou => 'Nothing needs you right now.';
+
+  @override
+  String get workFilterEmpty => 'Nothing here.';
+
+  @override
+  String get workStatusOwnerLeft => 'OWNER LEFT · REASSIGN';
+
+  @override
+  String get workReassign => 'Reassign';
+
+  @override
+  String get workNewTitle => 'New work item';
+
+  @override
+  String get workTakePhoto => 'Take a photo';
+
+  @override
+  String get workFromGallery => 'Choose from gallery';
+
+  @override
+  String get workRetake => 'Retake';
+
+  @override
+  String get workPhotoFirst => 'Start with a photo of the spot.';
+
+  @override
+  String workNewStamp(String ref) {
+    return 'NEW · $ref';
+  }
+
+  @override
+  String get workNewStampPlain => 'NEW';
+
+  @override
+  String get workTitleHint => 'What needs doing · one line is enough';
+
+  @override
+  String get workTitleRequired => 'Write what needs doing.';
+
+  @override
+  String get workCellOwner => 'OWNER · ONE PERSON';
+
+  @override
+  String get workCellDue => 'DUE';
+
+  @override
+  String get workCellPlace => 'PLACE ON SITE';
+
+  @override
+  String get workCellTeam => 'TEAM';
+
+  @override
+  String get workChoose => 'Choose';
+
+  @override
+  String get workOwnerRequired => 'Choose who does it.';
+
+  @override
+  String get workNoDue => 'No due date';
+
+  @override
+  String get workToday => 'Today';
+
+  @override
+  String get workTomorrow => 'Tomorrow';
+
+  @override
+  String get workPickDate => 'Pick a date';
+
+  @override
+  String get workNoTeam => 'No Team';
+
+  @override
+  String get workPlaceHint => 'e.g. Level 2 · Grid C7';
+
+  @override
+  String workNewFooter(String owner) {
+    return '$owner gets it in Needs you. When it\'s marked done, you check it.';
+  }
+
+  @override
+  String get workNewFooterNoOwner =>
+      'The owner gets it in Needs you. When it\'s marked done, you check it.';
+
+  @override
+  String get workCreate => 'Create item';
+
+  @override
+  String get workNotSent => 'Not sent yet';
+
+  @override
+  String get workRetry => 'Retry';
+
+  @override
+  String get workNotSentNote =>
+      'Saved on this phone. Retry when the signal is back.';
+
+  @override
+  String get workSent => 'Sent.';
+
+  @override
+  String get workSignOff => 'SIGN-OFF';
+
+  @override
+  String get workEvidence => 'EVIDENCE';
+
+  @override
+  String get workPhotosLabel => 'PHOTOS';
+
+  @override
+  String get workDiscussion => 'DISCUSSION';
+
+  @override
+  String get workAddComment => 'Add a comment';
+
+  @override
+  String get workSendComment => 'Send';
+
+  @override
+  String get workNoComments => 'No comments yet.';
+
+  @override
+  String workWaitingCheckBy(String name) {
+    return 'Waiting for $name to check';
+  }
+
+  @override
+  String get workWaitingCheckBody =>
+      'It can be accepted or sent back with a reason.';
+
+  @override
+  String workCheckBannerTitle(String name) {
+    return '$name marked this done. Check it.';
+  }
+
+  @override
+  String get workCheckBannerBody =>
+      'Look at the photo, then accept it or send it back with a reason.';
+
+  @override
+  String get workDoneWaiting => 'Done. Waiting for a check.';
+
+  @override
+  String get workClosed => 'Closed. It stays in the Space record.';
+
+  @override
+  String workClosedCanShow(String name) {
+    return '$name can show it on their profile as work they delivered.';
+  }
+
+  @override
+  String workClosedBy(String name) {
+    return 'Closed by $name';
+  }
+
+  @override
+  String get workClosedStays => 'It stays in the Space record.';
+
+  @override
+  String workSentBackTitle(String reason) {
+    return 'Sent back: $reason';
+  }
+
+  @override
+  String get workReasonPhotoMissing => 'Photo missing';
+
+  @override
+  String get workReasonNotAsDrawing => 'Not as per drawing';
+
+  @override
+  String get workReasonNotFinished => 'Not finished';
+
+  @override
+  String get workReasonOther => 'Other';
+
+  @override
+  String get workOwnerLeftTitle => 'The owner left the Space';
+
+  @override
+  String get workOwnerLeftBody => 'Give it to someone else to finish.';
+
+  @override
+  String workCheckedStamp(String date, String name) {
+    return 'CHECKED · $date · $name';
+  }
+
+  @override
+  String get workYouCheckIt => 'You check it';
+
+  @override
+  String get workCheckAndClose => 'Check and close';
+
+  @override
+  String get workSendBack => 'Send back';
+
+  @override
+  String get workReassignTitle => 'Reassign to';
+
+  @override
+  String workReassigned(String name) {
+    return '$name owns it now.';
+  }
+
+  @override
+  String get workItemGone => 'This item isn\'t available.';
+
+  @override
+  String workTodayAt(String time) {
+    return 'Today $time';
+  }
 }
