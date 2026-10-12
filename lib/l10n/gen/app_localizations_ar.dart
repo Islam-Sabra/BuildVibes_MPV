@@ -2484,6 +2484,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get feedCouldntLoad => 'تعذّر تحميل الأخبار';
 
   @override
+  String get feedCouldntLoadBody =>
+      'تحقّق من الاتصال وحاول مرة أخرى. لم يُفقد شيء.';
+
+  @override
   String get feedOffline => 'أنت غير متصل. نعرض ما حمّلته من قبل.';
 
   @override
@@ -2575,10 +2579,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postDeleteReply => 'حذف التعليق';
 
   @override
-  String get postDeleteReplyTitle => 'حذف هذا التعليق؟';
+  String get postDeleteReplyTitle => 'حذف التعليق؟';
 
   @override
-  String get postDeleteReplyBody => 'سيُحذف لدى الجميع.';
+  String get postDeleteReplyBody => 'سيُحذف من هذا المنشور لدى الجميع.';
 
   @override
   String get postUnavailable => 'هذا المنشور غير متاح';
@@ -2687,7 +2691,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String composerWrittenIn(String lang) {
-    return 'مكتوب بـ$lang';
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'بالعربية',
+      'other': 'بالإنجليزية',
+    });
+    return 'مكتوب $_temp0';
   }
 
   @override

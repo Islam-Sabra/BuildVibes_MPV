@@ -3505,6 +3505,10 @@
   "@feedCouldntLoad": {
     "description": "H5."
   },
+  "feedCouldntLoadBody": "Check your connection and try again. Nothing was lost.",
+  "@feedCouldntLoadBody": {
+    "description": "H5 body."
+  },
   "feedOffline": "You're offline. Showing what you already loaded.",
   "@feedOffline": {
     "description": "H6 banner."
@@ -3641,11 +3645,11 @@
   "@postDeleteReply": {
     "description": "H13."
   },
-  "postDeleteReplyTitle": "Delete this comment?",
+  "postDeleteReplyTitle": "Delete comment?",
   "@postDeleteReplyTitle": {
     "description": "H14."
   },
-  "postDeleteReplyBody": "It's removed for everyone.",
+  "postDeleteReplyBody": "It will be removed from this post for everyone.",
   "@postDeleteReplyBody": {
     "description": "H14."
   },
@@ -3791,9 +3795,9 @@
   "@composerAudienceProject": {
     "description": "Audience line with a project."
   },
-  "composerWrittenIn": "Written in {lang}",
+  "composerWrittenIn": "Written in {lang, select, ar{Arabic} other{English}}",
   "@composerWrittenIn": {
-    "description": "L5.",
+    "description": "L5. The language code of the post.",
     "placeholders": {
       "lang": {
         "type": "String"
@@ -3876,7 +3880,7 @@
   "@discardConfirm": {
     "description": "C13."
   },
-  "projectPosts": "Posts",
+  "projectPosts": "POSTS",
   "projectPostsEmpty": "No posts tagged with this project yet.",
   "@projectPosts": {
     "description": "Project sheet section."

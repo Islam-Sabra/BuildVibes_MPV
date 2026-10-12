@@ -15,6 +15,7 @@ class FakePostRepository implements PostRepository {
   final repliesByPost = <String, List<PostReply>>{};
   final useful = <String, List<String>>{};
   final calls = <String>[];
+  final muted = <String>{};
   final uploads = <String>[];
 
   /// The next calls fail as if the signal dropped.
@@ -35,9 +36,13 @@ class FakePostRepository implements PostRepository {
     if (feedOffline) throw const SpaceException(SpaceFailure.network);
     return PostPage(
       items: [
-        for (final p in posts.where((p) => home.contains(p.id)))
+        for (final p in posts.where(
+          (p) => home.contains(p.id) && !muted.contains(p.authorId),
+        ))
           FeedEntry(section: FeedSection.home, post: p),
-        for (final p in posts.where((p) => !home.contains(p.id)))
+        for (final p in posts.where(
+          (p) => !home.contains(p.id) && !muted.contains(p.authorId),
+        ))
           FeedEntry(section: FeedSection.beyond, post: p),
       ],
     );
@@ -175,7 +180,9 @@ class FakePostRepository implements PostRepository {
   Future<void> mute(String profileId, bool on) async {
     calls.add('mute $profileId $on');
     if (on) {
-      posts.removeWhere((p) => p.authorId == profileId);
+      muted.add(profileId);
+    } else {
+      muted.remove(profileId);
     }
   }
 

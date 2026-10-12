@@ -281,16 +281,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **12 Oct, week 7 part 1** (review 16).
   - The week 7 Figma images are in `docs/design/home/`.
-  - Migration 12 (`20261012170000_feed.sql`) is on `feed-db`, **not live**. Review 17 is applied in place:
+  - Migration 12 (`20261012170000_feed.sql`) is **live** (pushed 12 Oct with the founder's yes; the dry run listed only that file). Reviews 17 and 18 A are applied in place:
     - one reply level;
     - photo delete, the cleanup function and a 100 MB daily cap;
     - faster tagged-post and upload queries;
     - per-person locks on the rate limits;
     - strict photo types and paths;
     - no home section without a market, and the 30-day window kept in the cursor;
-    - tags follow merge chains.
+    - tags follow merge chains;
+    - the cleanup keeps the claim of a post photo that still exists (review 18 A: `forget_cleanup_claims` looks in both buckets).
 
-    `12_feed.test.sql`: 69 checks, 517 in all.
+    `12_feed.test.sql`: 72 checks, 520 in all. EXPLAIN on live: the post upload check uses the Storage name index.
   - The app, on `feed`:
     - Feed (H1 v2): home market, "Beyond {market}", the rest; skeleton (H4), couldn't load (H5), offline with the page kept on the phone (H6), empty with Create.
     - Post card: project strip with its type (no invented phase), author, text in its own direction, 1–4 photos with a viewer, proof line (two names at most, no counts), Useful · Reply. Save and Share are hidden (decision 2).
@@ -311,11 +312,24 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Omar marked it Useful and replied;
     - the Arabic feed, composer, discard and post page.
   - 514 Flutter tests pass. Screenshots in `docs/screens/`: `h1_*_feed`, `c1_en_composer`, `c2_*`, `c10_en_tag`, `c13_ar_discard`, `p3b_en_failed`, `h1_en_posted`, `h10_*_post`.
+  - Review 18 B, on `feed` (`feed-db` and `feed` merged into main first):
+    - the 8 screen fixes: the feed card on the post page, no avatar circles, role and Useful on replies, short times, the network or project tile, the C13 words, Retry, composer sizes; the offline copy is kept per person;
+    - Mute's Undo now brings the posts back (it used a closed screen's link before; checked on the emulator, since the test passes either way);
+    - found while taking the screenshots, and fixed:
+      - H5 now matches its frame (icon, heading, a line of help, an orange Try again);
+      - P6 uses the crossed-out eye and the larger title, and is centred in Arabic too;
+      - H14 says "Delete comment?" with a short "Delete" button (the long label was cut off);
+      - English quotes and English typed in the reply box keep their own direction in Arabic;
+      - your own reply's text no longer gets pushed in by its "…" button;
+      - "Written in English" names the language in the app's language (مكتوب بالإنجليزية);
+      - the project page's "POSTS" heading matches the other headings.
+    - 518 Flutter tests and 520 SQL checks pass.
+    - Screenshots (EN and AR) in `docs/screens/`: `h4_*_skeleton`, `h5_*_couldnt_load`, `h6_*_offline`, `h8_*_menu`, `toast_*_muted`, `h8b_*_own_menu`, `h11_*_delete`, `p2_*_edited`, `p6_*_unavailable`, `h17_*_replying`, `h10_*_own_reply`, `h13_*_reply_menu`, `h14_*_reply_delete`, `l6_*_language`, `r12_*_profile_posts`, `r16_*_their_posts`, `project_*_posts`, `c2_en_ready`, `c_ar_edit`.
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. The lead rechecks migration 12 (`feed-db`) and reviews part 1 (`feed`). Then, with the founder's yes, put migration 12 live and merge.
-3. Week 7 part 2: migration 13 (activity), Home Spaces tab (H1b), Activity, the Profile Spaces icon, Create opening the composer. Part 3: push.
+2. The lead checks the review 18 B fixes and screenshots.
+3. Week 7 part 2: migration 13 (activity, on `activity-db` for the lead's review first), Home Spaces tab (H1b), Activity, the Profile Spaces icon, Create opening the composer. Part 3: push.
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 5. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.

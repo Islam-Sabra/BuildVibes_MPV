@@ -334,7 +334,6 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
     final type = BvType.of(context);
     final text = _text.text.trim();
     final project = _project;
-    final langName = _postLang == 'ar' ? l10n.langArabic : l10n.langEnglish;
 
     return PopScope(
       canPop: !_hasContent || _editing,
@@ -452,7 +451,7 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
                               ),
                               Flexible(
                                 child: Text(
-                                  l10n.composerWrittenIn(langName),
+                                  l10n.composerWrittenIn(_postLang),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: type.bodySm.copyWith(

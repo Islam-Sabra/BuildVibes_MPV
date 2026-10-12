@@ -4322,6 +4322,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load your Feed'**
   String get feedCouldntLoad;
 
+  /// H5 body.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again. Nothing was lost.'**
+  String get feedCouldntLoadBody;
+
   /// H6 banner.
   ///
   /// In en, this message translates to:
@@ -4487,13 +4493,13 @@ abstract class AppLocalizations {
   /// H14.
   ///
   /// In en, this message translates to:
-  /// **'Delete this comment?'**
+  /// **'Delete comment?'**
   String get postDeleteReplyTitle;
 
   /// H14.
   ///
   /// In en, this message translates to:
-  /// **'It\'s removed for everyone.'**
+  /// **'It will be removed from this post for everyone.'**
   String get postDeleteReplyBody;
 
   /// P6 title.
@@ -4694,10 +4700,10 @@ abstract class AppLocalizations {
   /// **'Everyone on BuildVibes can see this. It also shows on the project\'s page.'**
   String get composerAudienceProject;
 
-  /// L5.
+  /// L5. The language code of the post.
   ///
   /// In en, this message translates to:
-  /// **'Written in {lang}'**
+  /// **'Written in {lang, select, ar{Arabic} other{English}}'**
   String composerWrittenIn(String lang);
 
   /// L5 link.
@@ -4817,7 +4823,7 @@ abstract class AppLocalizations {
   /// Project sheet section.
   ///
   /// In en, this message translates to:
-  /// **'Posts'**
+  /// **'POSTS'**
   String get projectPosts;
 
   /// Project sheet, no posts.

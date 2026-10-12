@@ -2482,6 +2482,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedCouldntLoad => 'Couldn\'t load your Feed';
 
   @override
+  String get feedCouldntLoadBody =>
+      'Check your connection and try again. Nothing was lost.';
+
+  @override
   String get feedOffline => 'You\'re offline. Showing what you already loaded.';
 
   @override
@@ -2574,10 +2578,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDeleteReply => 'Delete comment';
 
   @override
-  String get postDeleteReplyTitle => 'Delete this comment?';
+  String get postDeleteReplyTitle => 'Delete comment?';
 
   @override
-  String get postDeleteReplyBody => 'It\'s removed for everyone.';
+  String get postDeleteReplyBody =>
+      'It will be removed from this post for everyone.';
 
   @override
   String get postUnavailable => 'This post isn\'t available';
@@ -2686,7 +2691,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String composerWrittenIn(String lang) {
-    return 'Written in $lang';
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return 'Written in $_temp0';
   }
 
   @override
@@ -2749,7 +2758,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discardConfirm => 'Discard';
 
   @override
-  String get projectPosts => 'Posts';
+  String get projectPosts => 'POSTS';
 
   @override
   String get projectPostsEmpty => 'No posts tagged with this project yet.';

@@ -233,7 +233,7 @@ class _ReplyView extends ConsumerWidget {
         title: l10n.postDeleteReplyTitle,
         body: l10n.postDeleteReplyBody,
         cancelLabel: l10n.commonCancel,
-        confirmLabel: l10n.postDeleteReply,
+        confirmLabel: l10n.delete,
         destructive: true,
       );
       if (!yes || !context.mounted) return;
@@ -263,48 +263,55 @@ class _ReplyView extends ConsumerWidget {
               color: BvColors.surfaceSubtle,
               borderRadius: BvRadius.cardAll,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: BvSpace.s4,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        inOwnDirection(reply.authorName),
-                        style: type.labelMd,
-                      ),
-                      if (reply.authorHeadline != null)
-                        Text(
-                          reply.authorHeadline!,
-                          style: type.bodySm.copyWith(
-                            color: BvColors.textSecondary,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            inOwnDirection(reply.authorName),
+                            style: type.labelMd,
                           ),
-                        ),
-                      const SizedBox(height: BvSpace.s4),
-                      // Full width, so it sits on its own language's side.
-                      SizedBox(
-                        width: double.infinity,
-                        child: Text(
-                          reply.body,
-                          textDirection: directionOf(reply.body),
-                          style: type.bodyMd,
-                        ),
+                          if (reply.authorHeadline != null)
+                            Text(
+                              reply.authorHeadline!,
+                              style: type.bodySm.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
+                    ),
+                    // Your own reply: Delete. Others get Report in week 8.
+                    if (mine)
+                      IconButton(
+                        key: Key('reply-menu-${reply.id}'),
+                        tooltip: l10n.postReplyMenu,
+                        icon: const Icon(
+                          BvIcons.more,
+                          color: BvColors.iconSecondary,
+                        ),
+                        onPressed: menu,
+                      ),
+                  ],
+                ),
+                // The bubble's full width, under the menu too, so the text
+                // sits on its own language's side.
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: BvSpace.s8),
+                  child: Text(
+                    reply.body,
+                    key: Key('reply-body-${reply.id}'),
+                    textDirection: directionOf(reply.body),
+                    style: type.bodyMd,
                   ),
                 ),
-                // Your own reply: Delete. Others get Report in week 8.
-                if (mine)
-                  IconButton(
-                    key: Key('reply-menu-${reply.id}'),
-                    tooltip: l10n.postReplyMenu,
-                    icon: const Icon(
-                      BvIcons.more,
-                      color: BvColors.iconSecondary,
-                    ),
-                    onPressed: menu,
-                  ),
               ],
             ),
           ),
@@ -421,6 +428,8 @@ class _ReplyBox extends ConsumerWidget {
                             ),
                             Text(
                               r.body,
+                              key: const Key('post-replying-body'),
+                              textDirection: directionOf(r.body),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: type.bodySm.copyWith(
@@ -469,6 +478,9 @@ class _ReplyBox extends ConsumerWidget {
                         maxLines: 5,
                         maxLength: 1000,
                         textCapitalization: TextCapitalization.sentences,
+                        textDirection: controller.text.trim().isEmpty
+                            ? null
+                            : directionOf(controller.text),
                         style: type.bodyMd,
                         decoration: InputDecoration(
                           isCollapsed: true,
@@ -524,29 +536,33 @@ class _Unavailable extends StatelessWidget {
       key: const Key('post-unavailable'),
       padding: const EdgeInsetsDirectional.all(BvSpace.s24),
       child: Column(
+        // Full width, so it is centred in both directions.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: BvSpace.s12,
         children: [
           const Icon(
-            BvIcons.visibility,
+            BvIcons.unavailable,
             size: BvSize.iconLg,
             color: BvColors.iconSecondary,
           ),
           Text(
             l10n.postUnavailable,
             textAlign: TextAlign.center,
-            style: type.titleMd,
+            style: type.headingMd,
           ),
           Text(
             l10n.postUnavailableBody,
             textAlign: TextAlign.center,
             style: type.bodySm.copyWith(color: BvColors.textSecondary),
           ),
-          BvButton(
-            key: const Key('post-back-home'),
-            label: l10n.postBackHome,
-            style: BvButtonStyle.secondary,
-            size: BvButtonSize.medium,
-            onPressed: () => context.go(AppRoutes.home),
+          Center(
+            child: BvButton(
+              key: const Key('post-back-home'),
+              label: l10n.postBackHome,
+              style: BvButtonStyle.secondary,
+              size: BvButtonSize.medium,
+              onPressed: () => context.go(AppRoutes.home),
+            ),
           ),
         ],
       ),

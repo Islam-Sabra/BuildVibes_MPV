@@ -47,8 +47,8 @@ abstract final class BvIcons {
   static const camera = IconData(0xe10e, fontFamily: _family);
   // Phosphor: image
   static const image = IconData(0xe2ca, fontFamily: _family);
-  // Phosphor: eye
-  static const visibility = IconData(0xe220, fontFamily: _family);
+  // Phosphor: eye-slash
+  static const unavailable = IconData(0xe224, fontFamily: _family);
   // Phosphor: lock
   static const lock = IconData(0xe2fa, fontFamily: _family);
   // Phosphor: globe

@@ -191,6 +191,8 @@ void main() {
       await tester.tap(find.text(l10n.postUndo));
       await tester.pumpAndSettle();
       expect(app.posts.calls.last, 'mute p-omar2 false');
+      // And their posts are back.
+      expect(find.byKey(const Key('post-p1')), findsOneWidget);
     });
 
     testWidgets('H8b/H11: your post: Edit and Delete, after asking [$lang]', (
@@ -217,6 +219,7 @@ void main() {
       final posts = _posts()..feedOffline = true;
       await _feed(tester, lang, posts: posts);
       expect(find.text(l10n.feedCouldntLoad), findsOneWidget);
+      expect(find.text(l10n.feedCouldntLoadBody), findsOneWidget);
       posts.feedOffline = false;
       await _tap(tester, 'feed-try-again');
       expect(find.byKey(const Key('post-p1')), findsOneWidget);
@@ -265,16 +268,10 @@ void main() {
         'تم صب السقف',
       );
       await tester.pumpAndSettle();
-      expect(
-        find.text(l10n.composerWrittenIn(l10n.langArabic)),
-        findsOneWidget,
-      );
+      expect(find.text(l10n.composerWrittenIn('ar')), findsOneWidget);
       await _tap(tester, 'composer-lang-change');
       await _tap(tester, 'composer-lang-en');
-      expect(
-        find.text(l10n.composerWrittenIn(l10n.langEnglish)),
-        findsOneWidget,
-      );
+      expect(find.text(l10n.composerWrittenIn('en')), findsOneWidget);
 
       // C10: only the confirmed project.
       await _tap(tester, 'composer-project');
@@ -387,11 +384,24 @@ void main() {
       // Replying to Mariam answers the top-level reply, named for her.
       await _tap(tester, 'reply-reply-r2');
       expect(find.text(l10n.postReplyingTo('Mariam Al-Sabah')), findsOneWidget);
+      // English text stays left to right in Arabic: the quote and the box.
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('post-replying-body')))
+            .textDirection,
+        TextDirection.ltr,
+      );
       await tester.enterText(
         find.byKey(const Key('post-reply-input')),
         'Thanks.',
       );
       await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('post-reply-input')))
+            .textDirection,
+        TextDirection.ltr,
+      );
       await _tap(tester, 'post-reply-send');
       expect(app.posts.calls.single, 'reply p1 r1 Thanks.');
       expect(find.byKey(const Key('post-replying')), findsNothing);
@@ -421,9 +431,26 @@ void main() {
       _router(tester).push('/posts/p1');
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('reply-menu-r1')), findsNothing);
+      // Your reply's text is as wide as anyone's: the menu doesn't push it in.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('reply-r3')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        tester.getSize(find.byKey(const Key('reply-body-r3'))).width,
+        tester.getSize(find.byKey(const Key('reply-body-r1'))).width,
+      );
       await _tap(tester, 'reply-menu-r3');
       await _tap(tester, 'reply-delete');
       expect(find.text(l10n.postDeleteReplyTitle), findsOneWidget);
+      // H14: a short "Delete", so the button never cuts off.
+      expect(
+        tester
+            .widget<BvButton>(find.byKey(const Key('bv-dialog-confirm')))
+            .label,
+        l10n.delete,
+      );
       await _tap(tester, 'bv-dialog-confirm');
       expect(app.posts.calls.single, 'delete-reply r3');
       expect(find.byKey(const Key('reply-r3')), findsNothing);
@@ -507,6 +534,11 @@ void main() {
       _router(tester).push('/posts/nope');
       await tester.pumpAndSettle();
       expect(find.text(l10n.postUnavailable), findsOneWidget);
+      // Centred in both directions.
+      expect(
+        tester.getCenter(find.text(l10n.postUnavailable)).dx,
+        closeTo(tester.getSize(find.byType(Scaffold).last).width / 2, 1),
+      );
     });
 
     testWidgets('R12: your posts on your profile [$lang]', (tester) async {

@@ -270,6 +270,9 @@ class PostCard extends ConsumerWidget {
     if (choice == null || !context.mounted) return;
     final repo = ref.read(postRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
+    // The card leaves the list when muted: Undo reloads through the app's
+    // state, which outlives it.
+    final container = ProviderScope.containerOf(context);
     switch (choice) {
       case _Menu.edit:
         await context.push(AppRoutes.postEdit(post.id));
@@ -310,7 +313,7 @@ class PostCard extends ConsumerWidget {
                   label: l10n.postUndo,
                   onPressed: () async {
                     await repo.mute(post.authorId, false);
-                    ref.invalidate(feedProvider);
+                    container.invalidate(feedProvider);
                   },
                 ),
               ),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
@@ -251,17 +252,43 @@ class _CouldntLoad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
     return Padding(
       key: const Key('feed-error'),
-      padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: BvSpace.gutter,
+        vertical: BvSpace.s64,
+      ),
       child: Column(
-        spacing: BvSpace.s16,
+        spacing: BvSpace.s12,
         children: [
-          EmptyNote(l10n.feedCouldntLoad),
+          Container(
+            width: BvSize.avatarLg,
+            height: BvSize.avatarLg,
+            decoration: const BoxDecoration(
+              color: BvColors.surfaceBrandSoft,
+              borderRadius: BvRadius.cardAll,
+            ),
+            child: const Icon(
+              BvIcons.explore,
+              size: BvSize.iconMd,
+              color: BvColors.iconPrimary,
+            ),
+          ),
+          Text(
+            l10n.feedCouldntLoad,
+            textAlign: TextAlign.center,
+            style: type.headingMd,
+          ),
+          Text(
+            l10n.feedCouldntLoadBody,
+            textAlign: TextAlign.center,
+            style: type.bodySm.copyWith(color: BvColors.textSecondary),
+          ),
           BvButton(
             key: const Key('feed-try-again'),
             label: l10n.commonRetry,
-            style: BvButtonStyle.secondary,
+            size: BvButtonSize.medium,
             onPressed: onRetry,
           ),
         ],
