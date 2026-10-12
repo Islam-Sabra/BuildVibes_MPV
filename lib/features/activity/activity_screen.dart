@@ -377,12 +377,17 @@ class _Row extends ConsumerWidget {
                 children: [
                   Text(text, style: type.bodyMd),
                   if (context0 != null)
-                    Text(
-                      context0,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: type.bodySm.copyWith(
-                        color: BvColors.textSecondary,
+                    // Its own direction, so "…" ends it on the right side.
+                    SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        context0,
+                        textDirection: directionOf(context0),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.bodySm.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
                       ),
                     ),
                   if (chip != null) ...[

@@ -111,7 +111,6 @@ class NeedsYouCard extends StatelessWidget {
               line,
               style: type.bodySm.copyWith(color: BvColors.textSecondary),
             ),
-          const SizedBox(height: BvSpace.s4),
           BvButton(
             key: Key('needs-open-$id'),
             label: label,

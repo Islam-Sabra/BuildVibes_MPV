@@ -340,6 +340,14 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - post rows hide when you may no longer see the post; requests to join hide once you're no longer an admin;
     - speed on a Space with 20,000 messages: `today_in_spaces` 2 ms and `home_day` 4 ms (were 1.0 s and 2.0 s).
 
+- **12 Oct, week 7 part 2, screens** (review 16 §3, on `activity`, waiting for migration 13 to go live):
+  - Home → Spaces (H1b): the date, "Your day on site", the summary line (each part hidden at 0), at most 3 Needs-you cards with Open and "See all", Today in your Spaces (5 rows, opens the tab where the change is), "That's your day". No Space: H1e as before.
+  - The Spaces label and the Activity tab get an orange dot, never a number.
+  - Activity (A1 v2): Needs you with overlines and Open / Check / Review request; Changes to your record for 7 days, grouped by Space, Your record, Your network, Your posts, with REV stamps and letters (filled while unread). Opening it marks it read. A2: the ledger and "Add a project you worked on".
+  - My Spaces (S1) is its own page from the new Profile Spaces icon, with Create (New Space, Enter an invite code). The Create tab opens the composer.
+  - Opening a Space marks it seen.
+  - 532 Flutter tests pass. Screenshots (EN and AR): `h1b_*_spaces`, `h1b_*_thats_your_day`, `a1_*_activity`, `a1_*_activity_more`, `a2_*_activity_empty`, `s1_*_my_spaces`, `s1_en_create_sheet`, `r1_*_profile_spaces_icon`.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
 2. The lead checks the review 18 B fixes and screenshots.
