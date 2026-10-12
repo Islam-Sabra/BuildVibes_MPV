@@ -87,12 +87,15 @@ class DeliveredCard extends ConsumerWidget {
                   work.projectName!,
                   style: type.bodySm.copyWith(color: BvColors.textSecondary),
                 ),
-              if (work.checkedByName != null && work.checkedAt != null)
+              // No name across a block: still Checked (review 11).
+              if (work.checkedAt != null)
                 Text(
-                  l10n.deliveredCheckedBy(
-                    work.checkedByName!,
-                    _day(context, work.checkedAt!),
-                  ),
+                  work.checkedByName == null
+                      ? l10n.deliveredCheckedOn(_day(context, work.checkedAt!))
+                      : l10n.deliveredCheckedBy(
+                          work.checkedByName!,
+                          _day(context, work.checkedAt!),
+                        ),
                   style: type.bodySm.copyWith(color: BvColors.textPositive),
                 ),
               ?footer,
@@ -367,11 +370,13 @@ class DeliveredPublicScreen extends ConsumerWidget {
                         ),
                       if (work.place != null)
                         row(l10n.deliveredPlace, work.place!),
-                      if (work.checkedByName != null)
+                      if (work.checkedByName != null || work.checkedAt != null)
                         row(
-                          l10n.deliveredCheckedRow,
+                          work.checkedByName == null
+                              ? l10n.deliveredCheckedRowNoName
+                              : l10n.deliveredCheckedRow,
                           joinMeta([
-                            work.checkedByName!,
+                            ?work.checkedByName,
                             if (work.checkedAt != null)
                               _day(context, work.checkedAt!),
                           ]),

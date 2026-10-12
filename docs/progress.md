@@ -169,17 +169,40 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - The page no longer puts the cursor back in the comment box after a sheet or dialog closes.
     - Retaken in English and Arabic: no place (no pin), the pill empty and with text, the "Close it" dialog, and the closed item. The earlier shots that showed the old pin are moved to `docs/screens/old/`.
 
+- **12 Oct, week 6 (review 12).**
+  - The chat design images were downloaded to `docs/design/chat/`.
+  - The lead's `chat-library-db` (migration 9, chat and Library) passes all 408 SQL checks on the Supabase tools. Checked on this computer:
+    - the bucket now allows 25 MB, PDF and audio;
+    - `messages` is in the Realtime publication;
+    - Storage records the type and size at upload. The type is the one the app declares, limited to the bucket's list.
+  - Merged into main. **Not live** (waits for the founder's yes).
+  - Migration 10 (`20261012150000_review11_followups.sql`, review 11 A) on branch `review11-followups`, **not live**, for the lead's review. `10_review11_followups.test.sql`: 27 checks, 435 in all.
+    - Needs you starts from the caller's memberships, and My Spaces runs it once.
+    - The upload totals look only in the caller's Space folders, using Storage's name index; checked with 20,000 files. An index on `owner_id` isn't possible: Storage owns the table.
+    - Cleanup claims: each file is re-checked under a lock and claimed. Nothing can then reference it. The job deletes through the Storage API.
+    - Checked work drops the checker's name across a block.
+    - App: an unsent item that waits longer than the cleanup uploads its phone copy again.
+  - Week 6 part 1 on branch `chat-part1`, built on `review11-followups`:
+    - the thread list (S7k): Everyone first, then Teams, with the last line, time and unread count;
+    - threads (S8k, S9k): names and avatars, your messages on the end side, day dividers, replies with a quote, "Message deleted", live updates (Realtime), read marks;
+    - work item cards: one full card per item (its newest step); older steps are one line with the reference;
+    - the actions sheet (S8b/S8d): Reply, Copy, and Delete for the author or an admin;
+    - "Not sent · Retry", kept on the phone.
+  - Each message keeps its own direction, so an English message reads correctly in Arabic and the other way round.
+  - Not in part 1: attachments (part 2), voice notes (part 3).
+  - Copy changes:
+    - S9k says "Only MEP Team and the Space admins see this thread" instead of "Only the 6 people…", because admins see Team threads too.
+    - The S7k footer drops the direct-messages line (not in the MVP).
+  - Checked on the emulator against the local server, with migrations 9 and 10 and `supabase/dev/seed_chat.sql`: thread list, threads, a live message from another account, reply, the actions sheet, Not sent with the network off, then Retry. The emulator stays on the local server, because chat isn't live.
+  - 419 Flutter tests and 435 SQL tests pass. Screenshots in `docs/screens/`: `s7k_*`, `s8k_*`, `s9k_*`, `s8b_en_actions_own`, `s8d_ar_actions_admin`, `s8k_en_not_sent`.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. Migration 9 (review 11 A, in week 6), on a new branch, for the lead's review before it goes live:
-   - Needs you starts from the caller's memberships;
-   - a faster upload cap (an index, or a running total);
-   - the cleanup re-checks "not evidence" inside the delete;
-   - checked work hides the checker's name across a block;
-   - a test that an unsent draft keeps its photo on the phone after the server copy is cleaned up.
-   After that, ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
-3. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
-4. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
+2. The lead reviews migration 10 (`review11-followups`) and chat part 1 (`chat-part1`). Then, with the founder's yes, put migrations 9 and 10 live.
+3. Week 6 part 2: photos and PDFs in chat, the Library (S13k), preview (F1), Add, new revision, attaching files to items. Then part 3: voice notes.
+4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
+5. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
+6. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
 
 - **12 Oct, lead (while the founder was out):**
   - Review 12, the week 6 brief, is in `docs/reviews/2026-10-12-12-chat-library.md`, with the Figma frame list in `docs/design/chat/README.md`.

@@ -43,6 +43,8 @@ abstract final class AppRoutes {
       '/spaces/$id/items/$itemId';
   static String spaceTeam(String id, String teamId) =>
       '/spaces/$id/teams/$teamId';
+  static String spaceThread(String id, String threadId) =>
+      '/spaces/$id/chat/$threadId';
 
   // Entry (signed out)
   static const loading = '/loading';

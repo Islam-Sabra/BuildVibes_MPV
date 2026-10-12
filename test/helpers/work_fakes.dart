@@ -18,10 +18,28 @@ class FakeWorkRepository implements WorkRepository {
   int failNext = 0;
   String? nextRefValue = 'KCT-006';
 
+  /// The next creates or sign-offs fail as if the signal dropped (uploads
+  /// still work).
+  int failSendNext = 0;
+
+  /// Uploads the server cleaned up: sending them is refused as bad input.
+  final cleanedUp = <String>{};
+
   void _maybeFail() {
     if (failNext > 0) {
       failNext--;
       throw const SpaceException(SpaceFailure.network);
+    }
+  }
+
+  void _maybeFailSend(Iterable<String> paths) {
+    _maybeFail();
+    if (failSendNext > 0) {
+      failSendNext--;
+      throw const SpaceException(SpaceFailure.network);
+    }
+    if (paths.any(cleanedUp.contains)) {
+      throw const SpaceException(SpaceFailure.badInput);
     }
   }
 
@@ -54,7 +72,7 @@ class FakeWorkRepository implements WorkRepository {
 
   @override
   Future<void> createItem(NewWorkItem item) async {
-    _maybeFail();
+    _maybeFailSend(item.photos.map((p) => p.path));
     created.add(item);
   }
 
@@ -77,7 +95,7 @@ class FakeWorkRepository implements WorkRepository {
     String? note,
     List<WorkPhoto> photos = const [],
   }) async {
-    _maybeFail();
+    _maybeFailSend(photos.map((p) => p.path));
     calls.add('done $itemId ${note ?? ''} ${photos.length}');
   }
 

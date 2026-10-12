@@ -3607,6 +3607,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing shown yet. Tap See all to choose what shows.'**
   String get deliveredNoneShown;
+
+  /// Delivered card when the checker's name is hidden (a block).
+  ///
+  /// In en, this message translates to:
+  /// **'Checked · {date}'**
+  String deliveredCheckedOn(String date);
+
+  /// RE1 row label when the checker's name is hidden (a block).
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get deliveredCheckedRowNoName;
+
+  /// The Space-wide thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get chatEveryone;
+
+  /// Thread subtitle for a Team thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get chatTeam;
+
+  /// S7k footer for members.
+  ///
+  /// In en, this message translates to:
+  /// **'You see threads for Everyone and your Teams.'**
+  String get chatThreadsNote;
+
+  /// S7k footer for admins.
+  ///
+  /// In en, this message translates to:
+  /// **'As a Space admin, you see Everyone and every Team.'**
+  String get chatThreadsNoteAdmin;
+
+  /// Thread with no messages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet.'**
+  String get chatNoMessages;
+
+  /// Last line: your own message.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get chatYou;
+
+  /// S7k last message line.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {text}'**
+  String chatLastLine(String name, String text);
+
+  /// A photo message, in a list.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get chatPhoto;
+
+  /// A file message, in a list.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get chatFile;
+
+  /// A voice message, in a list.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get chatVoice;
+
+  /// A card, in the thread list.
+  ///
+  /// In en, this message translates to:
+  /// **'Work item update'**
+  String get chatWorkItemUpdate;
+
+  /// Day divider.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get chatToday;
+
+  /// Day divider and list time.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get chatYesterday;
+
+  /// S9k banner. No member count: admins see it too.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {team} and the Space admins see this thread.'**
+  String chatTeamPrivacy(String team);
+
+  /// Composer placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get chatMessageHint;
+
+  /// Send button tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatSend;
+
+  /// A deleted message.
+  ///
+  /// In en, this message translates to:
+  /// **'Message deleted'**
+  String get chatDeleted;
+
+  /// Pending message.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get chatSending;
+
+  /// Failed message.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent'**
+  String get chatNotSent;
+
+  /// Failed message action.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get chatRetry;
+
+  /// Message action.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get chatReply;
+
+  /// Message action.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get chatCopy;
+
+  /// Toast after Copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied.'**
+  String get chatCopied;
+
+  /// Message action.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get chatDelete;
+
+  /// Delete dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this message?'**
+  String get chatDeleteTitle;
+
+  /// Delete dialog body.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone in this thread sees “Message deleted” instead.'**
+  String get chatDeleteBody;
+
+  /// Delete dialog button.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get chatDeleteConfirm;
+
+  /// Above the composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Replying to {name}'**
+  String chatReplyingTo(String name);
+
+  /// Tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel reply'**
+  String get chatCancelReply;
+
+  /// Card line. Arabic is a noun form, gender-neutral.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} raised a work item'**
+  String chatCardRaised(String name);
+
+  /// Card line (S8k).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} marked a work item done'**
+  String chatCardDone(String name);
+
+  /// Card line.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} checked and closed a work item'**
+  String chatCardChecked(String name);
+
+  /// Card line.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent a work item back'**
+  String chatCardSentBack(String name);
+
+  /// Card line.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reassigned a work item'**
+  String chatCardReassigned(String name);
+
+  /// Card for a removed item.
+  ///
+  /// In en, this message translates to:
+  /// **'This work item is no longer in the Space.'**
+  String get chatItemGone;
 }
 
 class _AppLocalizationsDelegate

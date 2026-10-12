@@ -38,6 +38,7 @@ void main() {
       BvIcons.caretBack,
       BvIcons.arrowForward,
       BvIcons.arrowBack,
+      BvIcons.reply,
     ]) {
       expect(icon.matchTextDirection, isTrue);
     }
@@ -51,6 +52,7 @@ void main() {
       BvIcons.close,
       BvIcons.check,
       BvIcons.language,
+      BvIcons.copy,
     ]) {
       expect(icon.matchTextDirection, isFalse);
     }

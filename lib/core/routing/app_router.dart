@@ -37,6 +37,7 @@ import '../../features/spaces/new_space_screen.dart';
 import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
+import '../../features/chat/thread_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
 import '../../features/work/new_work_item_screen.dart';
@@ -198,6 +199,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'items/new',
             builder: (context, state) =>
                 NewWorkItemScreen(spaceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'chat/:threadId',
+            builder: (context, state) => ThreadScreen(
+              spaceId: state.pathParameters['id']!,
+              threadId: state.pathParameters['threadId']!,
+            ),
           ),
           GoRoute(
             path: 'items/:itemId',

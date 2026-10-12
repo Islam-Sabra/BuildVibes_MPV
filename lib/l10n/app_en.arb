@@ -2885,5 +2885,201 @@
   "deliveredNoneShown": "Nothing shown yet. Tap See all to choose what shows.",
   "@deliveredNoneShown": {
     "description": "Own profile: checked items exist but all are hidden."
+  },
+  "deliveredCheckedOn": "Checked · {date}",
+  "@deliveredCheckedOn": {
+    "description": "Delivered card when the checker's name is hidden (a block).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "deliveredCheckedRowNoName": "Checked",
+  "@deliveredCheckedRowNoName": {
+    "description": "RE1 row label when the checker's name is hidden (a block)."
+  },
+  "chatEveryone": "Everyone",
+  "@chatEveryone": {
+    "description": "The Space-wide thread."
+  },
+  "chatTeam": "Team",
+  "@chatTeam": {
+    "description": "Thread subtitle for a Team thread."
+  },
+  "chatThreadsNote": "You see threads for Everyone and your Teams.",
+  "@chatThreadsNote": {
+    "description": "S7k footer for members."
+  },
+  "chatThreadsNoteAdmin": "As a Space admin, you see Everyone and every Team.",
+  "@chatThreadsNoteAdmin": {
+    "description": "S7k footer for admins."
+  },
+  "chatNoMessages": "No messages yet.",
+  "@chatNoMessages": {
+    "description": "Thread with no messages."
+  },
+  "chatYou": "You",
+  "@chatYou": {
+    "description": "Last line: your own message."
+  },
+  "chatLastLine": "{name}: {text}",
+  "@chatLastLine": {
+    "description": "S7k last message line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatPhoto": "Photo",
+  "@chatPhoto": {
+    "description": "A photo message, in a list."
+  },
+  "chatFile": "File",
+  "@chatFile": {
+    "description": "A file message, in a list."
+  },
+  "chatVoice": "Voice note",
+  "@chatVoice": {
+    "description": "A voice message, in a list."
+  },
+  "chatWorkItemUpdate": "Work item update",
+  "@chatWorkItemUpdate": {
+    "description": "A card, in the thread list."
+  },
+  "chatToday": "Today",
+  "@chatToday": {
+    "description": "Day divider."
+  },
+  "chatYesterday": "Yesterday",
+  "@chatYesterday": {
+    "description": "Day divider and list time."
+  },
+  "chatTeamPrivacy": "Only {team} and the Space admins see this thread.",
+  "@chatTeamPrivacy": {
+    "description": "S9k banner. No member count: admins see it too.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMessageHint": "Message",
+  "@chatMessageHint": {
+    "description": "Composer placeholder."
+  },
+  "chatSend": "Send",
+  "@chatSend": {
+    "description": "Send button tooltip."
+  },
+  "chatDeleted": "Message deleted",
+  "@chatDeleted": {
+    "description": "A deleted message."
+  },
+  "chatSending": "Sending…",
+  "@chatSending": {
+    "description": "Pending message."
+  },
+  "chatNotSent": "Not sent",
+  "@chatNotSent": {
+    "description": "Failed message."
+  },
+  "chatRetry": "Retry",
+  "@chatRetry": {
+    "description": "Failed message action."
+  },
+  "chatReply": "Reply",
+  "@chatReply": {
+    "description": "Message action."
+  },
+  "chatCopy": "Copy",
+  "@chatCopy": {
+    "description": "Message action."
+  },
+  "chatCopied": "Copied.",
+  "@chatCopied": {
+    "description": "Toast after Copy."
+  },
+  "chatDelete": "Delete message",
+  "@chatDelete": {
+    "description": "Message action."
+  },
+  "chatDeleteTitle": "Delete this message?",
+  "@chatDeleteTitle": {
+    "description": "Delete dialog title."
+  },
+  "chatDeleteBody": "Everyone in this thread sees “Message deleted” instead.",
+  "@chatDeleteBody": {
+    "description": "Delete dialog body."
+  },
+  "chatDeleteConfirm": "Delete",
+  "@chatDeleteConfirm": {
+    "description": "Delete dialog button."
+  },
+  "chatReplyingTo": "Replying to {name}",
+  "@chatReplyingTo": {
+    "description": "Above the composer.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCancelReply": "Cancel reply",
+  "@chatCancelReply": {
+    "description": "Tooltip."
+  },
+  "chatCardRaised": "{name} raised a work item",
+  "@chatCardRaised": {
+    "description": "Card line. Arabic is a noun form, gender-neutral.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCardDone": "{name} marked a work item done",
+  "@chatCardDone": {
+    "description": "Card line (S8k).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCardChecked": "{name} checked and closed a work item",
+  "@chatCardChecked": {
+    "description": "Card line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCardSentBack": "{name} sent a work item back",
+  "@chatCardSentBack": {
+    "description": "Card line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCardReassigned": "{name} reassigned a work item",
+  "@chatCardReassigned": {
+    "description": "Card line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatItemGone": "This work item is no longer in the Space.",
+  "@chatItemGone": {
+    "description": "Card for a removed item."
   }
 }

@@ -5,6 +5,7 @@ import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
+import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/project_repository.dart';
@@ -22,6 +23,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'chat_fakes.dart';
 import 'fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
@@ -53,6 +55,7 @@ class TestApp {
     required this.spaces,
     required this.shared,
     required this.work,
+    required this.chat,
   });
 
   final SharedPreferences prefs;
@@ -62,6 +65,7 @@ class TestApp {
   final FakeProjectRepository projects;
   final FakeSpaceRepository spaces;
   final FakeWorkRepository work;
+  final FakeChatRepository chat;
 
   /// Texts sent to the system share sheet.
   final List<String> shared;
@@ -83,6 +87,7 @@ Future<TestApp> pumpApp(
   FakeProfileRepository? profiles,
   FakeSpaceRepository? spaces,
   FakeWorkRepository? work,
+  FakeChatRepository? chat,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -117,6 +122,7 @@ Future<TestApp> pumpApp(
   final fakeSpaces = spaces ?? FakeSpaceRepository(now: testNow);
   final shared = <String>[];
   final fakeWork = work ?? FakeWorkRepository();
+  final fakeChat = chat ?? FakeChatRepository(now: testNow);
 
   await tester.pumpWidget(
     ProviderScope(
@@ -135,6 +141,7 @@ Future<TestApp> pumpApp(
         clockProvider.overrideWithValue(() => testNow),
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
         workRepositoryProvider.overrideWithValue(fakeWork),
+        chatRepositoryProvider.overrideWithValue(fakeChat),
         // No camera and no waiting between tries in tests.
         pickPhotoProvider.overrideWithValue(
           ({required camera}) async => XFile(testPhotoPath),
@@ -167,6 +174,7 @@ Future<TestApp> pumpApp(
     spaces: fakeSpaces,
     shared: shared,
     work: fakeWork,
+    chat: fakeChat,
   );
 }
 

@@ -314,3 +314,21 @@ abstract final class BvProfileSpec {
   static const cardPadding = BvSpace.s16;
   static const iconButton = BvSize.controlMd; // 44
 }
+
+/// Space chat threads (S8k, S9k).
+abstract final class BvChatSpec {
+  /// A bubble is at most this share of the screen width.
+  static const bubbleMaxWidth = 0.78;
+  static const bubbleRadius = BvRadius.cardAll; // 14
+  static const bubblePaddingHorizontal = BvSpace.s12;
+  static const bubblePaddingVertical = BvSpace.s8;
+  static const avatar = BvSize.avatarSm; // 32
+  static const avatarGap = BvSpace.s8;
+
+  /// Between messages of one person, and between people.
+  static const runGap = BvSpace.s4;
+  static const groupGap = BvSpace.s12;
+
+  /// The quoted message in a reply: a bar on the start side.
+  static const replyBar = 3.0;
+}

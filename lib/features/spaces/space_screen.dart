@@ -10,6 +10,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../profile/widgets/profile_parts.dart';
+import '../chat/chat_tab.dart';
 import '../work/work_tab.dart';
 import 'people_tab.dart';
 import 'space_info_screen.dart';
@@ -19,7 +20,7 @@ import 'space_info_screen.dart';
 enum SpaceOpen { people, invite }
 
 /// A Space: header (S10k top) and the tabs Work · Chat · People · Library
-/// at the bottom (S7k). Work, Chat and Library come in weeks 5–6.
+/// at the bottom (S7k). The Library comes in week 6 part 2.
 class SpaceScreen extends ConsumerStatefulWidget {
   const SpaceScreen({super.key, required this.spaceId, this.open});
 
@@ -135,6 +136,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       ),
       body: switch (_tab) {
         SpaceScreen.workTab => WorkTab(space: detail),
+        SpaceScreen.chatTab => ChatTab(space: detail),
         SpaceScreen.peopleTab => PeopleTab(space: detail),
         _ => Padding(
           padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
