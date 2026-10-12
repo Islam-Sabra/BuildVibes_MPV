@@ -211,8 +211,49 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining(l10n.homeProject), findsOneWidget);
+      // The row's time in the frame's form: "3h ago" / "قبل 3 ساعات".
+      expect(find.text(l10n.rowHoursAgo(3)), findsOneWidget);
       await _tap(tester, 'today-space-1');
       expect(find.byType(ThreadScreen), findsOneWidget);
+    });
+
+    testWidgets('H1b: a line mixing English values reads in order [$lang]', (
+      tester,
+    ) async {
+      final activity = FakeActivityRepository(
+        today: [
+          SpaceToday(
+            spaceId: 'space-1',
+            spaceName: 'Tower B — Site team',
+            change: SpaceChange.workItem,
+            at: testNow.subtract(const Duration(days: 1)),
+            workItemId: 'item-5',
+            workItemRef: 'KCT-005',
+            workItemTitle: 'Gate 3',
+            eventKind: 'raised',
+            actorName: 'Omar Haddad',
+          ),
+        ],
+      );
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _oneSpace(),
+        activity: activity,
+      );
+      await tester.tap(find.text(l10n.homeSpaces));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.rowYesterday), findsOneWidget);
+      final line = find.descendant(
+        of: find.byKey(const Key('today-space-1')),
+        matching: find.textContaining('Gate 3'),
+      );
+      final text = tester.widget<Text>(line).data!;
+      // Each value sits in its own isolate, so it keeps its place in the
+      // sentence (the layout itself: test/core/l10n/bidi_test.dart).
+      for (final value in ['Omar Haddad', 'KCT-005', 'Gate 3']) {
+        expect(text, contains('\u2066$value\u2069'));
+      }
     });
 
     testWidgets('A1: groups with REV letters, unread markers, then read; '

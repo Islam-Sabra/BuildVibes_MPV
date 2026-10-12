@@ -5323,6 +5323,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a project you worked on'**
   String get ledgerAddProject;
+
+  /// H1b row time, on its own.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get rowJustNow;
+
+  /// H1b row time.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 min ago} other{{n} min ago}}'**
+  String rowMinutesAgo(int n);
+
+  /// H1b row time, as drawn ("3h ago" / "قبل 3 ساعات").
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h ago'**
+  String rowHoursAgo(int n);
+
+  /// H1b row time.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get rowYesterday;
+
+  /// H1b row time.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 day ago} other{{n} days ago}}'**
+  String rowDaysAgo(int n);
 }
 
 class _AppLocalizationsDelegate

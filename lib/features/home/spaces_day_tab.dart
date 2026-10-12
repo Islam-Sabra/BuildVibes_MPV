@@ -204,7 +204,6 @@ class _TodayCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final locale = Localizations.localeOf(context).languageCode;
     final now = ref.watch(clockProvider)();
 
     String line(SpaceToday r) {
@@ -302,7 +301,7 @@ class _TodayCard extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      formatShortAgo(l10n, rows[i].at.toLocal(), now, locale),
+                      formatRowAgo(l10n, rows[i].at.toLocal(), now),
                       style: type.metadata.copyWith(
                         color: BvColors.textSecondary,
                       ),

@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/library.dart';
@@ -334,7 +335,10 @@ void main() {
       await _tap(tester, 'add-file-pick');
       expect(find.text('Level 3 plan'), findsOneWidget);
       await _tap(tester, 'add-file-team-team-mep');
-      expect(find.text(l10n.libraryTeamOnly('MEP Team')), findsOneWidget);
+      expect(
+        find.text(l10n.libraryTeamOnly(inOwnDirection('MEP Team'))),
+        findsOneWidget,
+      );
       await _tap(tester, 'add-file-upload');
       expect(library.uploads.single, startsWith('$_space/library/'));
       expect(
@@ -367,7 +371,10 @@ void main() {
       expect(find.byKey(const Key('share-to-$_everyone')), findsNothing);
       await _tap(tester, 'share-to-$_mep');
       expect(chat.calls.single, 'share $_mep f-mep2');
-      expect(find.text(l10n.previewShared('MEP Team')), findsOneWidget);
+      expect(
+        find.text(l10n.previewShared(inOwnDirection('MEP Team'))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('F1: Download saves the file; share through the phone '
@@ -392,7 +399,7 @@ void main() {
       );
       await _tap(tester, 'preview-new-revision');
       expect(
-        find.text(l10n.libraryRevisionOf('MEP risers.pdf')),
+        find.text(l10n.libraryRevisionOf(inOwnDirection('MEP risers.pdf'))),
         findsOneWidget,
       );
       // Who sees it comes from the older file.
@@ -426,7 +433,10 @@ void main() {
       expect(find.byKey(const Key('attached-f-all')), findsOneWidget);
       await _tap(tester, 'work-attach');
       await _tap(tester, 'attach-from-library');
-      expect(find.text(l10n.libraryPickTeamNote('MEP Team')), findsOneWidget);
+      expect(
+        find.text(l10n.libraryPickTeamNote(inOwnDirection('MEP Team'))),
+        findsOneWidget,
+      );
       // Structure's file doesn't fit a MEP item; f-all is attached already.
       Finder inPicker(String key) => find.descendant(
         of: find.byKey(const Key('library-picker')),
@@ -444,7 +454,10 @@ void main() {
       await tester.pumpAndSettle();
 
       await _tap(tester, 'work-team-chat');
-      expect(find.text(l10n.chatTeamPrivacy('MEP Team')), findsOneWidget);
+      expect(
+        find.text(l10n.chatTeamPrivacy(inOwnDirection('MEP Team'))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('W2-A: files picked before the item exists [$lang]', (

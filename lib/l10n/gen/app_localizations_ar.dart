@@ -3123,4 +3123,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ledgerAddProject => 'أضف مشروعاً عملت فيه';
+
+  @override
+  String get rowJustNow => 'الآن';
+
+  @override
+  String rowMinutesAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'قبل $n دقيقة',
+      few: 'قبل $n دقائق',
+      two: 'قبل دقيقتين',
+      one: 'قبل دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rowHoursAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'قبل $n ساعة',
+      few: 'قبل $n ساعات',
+      two: 'قبل ساعتين',
+      one: 'قبل ساعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get rowYesterday => 'أمس';
+
+  @override
+  String rowDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'قبل $n يوماً',
+      few: 'قبل $n أيام',
+      two: 'قبل يومين',
+      one: 'قبل يوم',
+    );
+    return '$_temp0';
+  }
 }

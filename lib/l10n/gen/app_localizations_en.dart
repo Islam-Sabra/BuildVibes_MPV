@@ -3119,4 +3119,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ledgerAddProject => 'Add a project you worked on';
+
+  @override
+  String get rowJustNow => 'Just now';
+
+  @override
+  String rowMinutesAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n min ago',
+      one: '1 min ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String rowHoursAgo(int n) {
+    return '${n}h ago';
+  }
+
+  @override
+  String get rowYesterday => 'Yesterday';
+
+  @override
+  String rowDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
 }

@@ -4443,5 +4443,40 @@
   "ledgerAddProject": "Add a project you worked on",
   "@ledgerAddProject": {
     "description": "A2 link."
+  },
+  "rowJustNow": "Just now",
+  "@rowJustNow": {
+    "description": "H1b row time, on its own."
+  },
+  "rowMinutesAgo": "{n, plural, =1{1 min ago} other{{n} min ago}}",
+  "@rowMinutesAgo": {
+    "description": "H1b row time.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "rowHoursAgo": "{n}h ago",
+  "@rowHoursAgo": {
+    "description": "H1b row time, as drawn (\"3h ago\" / \"قبل 3 ساعات\").",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "rowYesterday": "Yesterday",
+  "@rowYesterday": {
+    "description": "H1b row time."
+  },
+  "rowDaysAgo": "{n, plural, =1{1 day ago} other{{n} days ago}}",
+  "@rowDaysAgo": {
+    "description": "H1b row time.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

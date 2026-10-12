@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'dart:io';
 
 import 'package:buildvibes/core/design/bv_tokens.dart';
@@ -103,7 +104,7 @@ void main() {
         needs: const WorkNeeds(toSign: {'item-1'}),
       );
       await _tap(tester, 'work-sign-done');
-      expect(find.text(l10n.workSignTitle('KCT-001')), findsOneWidget);
+      expect(find.text(l10n.workSignTitle(ltrRun('KCT-001'))), findsOneWidget);
       await _tap(tester, 'sign-done-confirm');
       expect(find.text(l10n.workSignNeedsSomething), findsOneWidget);
       expect(work.calls, isEmpty);
@@ -185,7 +186,9 @@ void main() {
       );
       await _tap(tester, 'work-send-back');
       expect(
-        find.text(l10n.workSendBackTitle('KCT-001', 'Rakesh')),
+        find.text(
+          l10n.workSendBackTitle(ltrRun('KCT-001'), inOwnDirection('Rakesh')),
+        ),
         findsOneWidget,
       );
       await _tap(tester, 'send-back-confirm');
@@ -200,7 +203,10 @@ void main() {
         work.calls.single,
         'back item-1 not_as_drawing Sleeve should be 150.',
       );
-      expect(find.text(l10n.workSentBack('Rakesh')), findsOneWidget);
+      expect(
+        find.text(l10n.workSentBack(inOwnDirection('Rakesh'))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Check and close asks first [$lang]', (tester) async {
@@ -211,7 +217,7 @@ void main() {
         needs: const WorkNeeds(toCheck: {'item-1'}),
       );
       await _tap(tester, 'work-check');
-      expect(find.text(l10n.workCheckTitle('KCT-001')), findsOneWidget);
+      expect(find.text(l10n.workCheckTitle(ltrRun('KCT-001'))), findsOneWidget);
       await _tap(tester, 'bv-dialog-cancel');
       expect(work.calls, isEmpty);
       // A comment field in focus doesn't take it back after the dialog.

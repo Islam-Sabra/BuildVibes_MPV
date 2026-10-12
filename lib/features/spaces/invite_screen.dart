@@ -5,6 +5,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/months.dart';
 import '../../core/share.dart';
+import '../../core/l10n/bidi.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -61,7 +62,7 @@ class InviteScreen extends ConsumerWidget {
     }
 
     return EntryScaffold(
-      title: l10n.spacesInviteTitle(space?.name ?? ''),
+      title: l10n.spacesInviteTitle(inOwnDirection(space?.name ?? '')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: BvSpace.s16,

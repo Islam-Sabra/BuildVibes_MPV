@@ -478,7 +478,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
                 vertical: BvSpace.s8,
               ),
               child: Text(
-                l10n.chatTeamPrivacy(name),
+                l10n.chatTeamPrivacy(inOwnDirection(name)),
                 style: type.bodySm.copyWith(color: BvColors.textSecondary),
               ),
             ),
@@ -1044,7 +1044,9 @@ class _ReplyBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.chatReplyingTo(reply.authorName ?? l10n.workSomeone),
+                  l10n.chatReplyingTo(
+                    inOwnDirection(reply.authorName ?? l10n.workSomeone),
+                  ),
                   style: type.labelSm.copyWith(color: BvColors.textAction),
                 ),
                 Text(

@@ -1,4 +1,5 @@
 import 'package:buildvibes/core/l10n/bidi.dart';
+import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,30 @@ void main() {
     final line = joinMeta(['أخصائي BIM', 'Gulf Build Co.', '']);
     expect(line.contains('Gulf Build Co.'), isTrue);
     expect(' · '.allMatches(line).length, 1, reason: 'empty parts dropped');
-    expect(line.codeUnitAt(0), 0x202B, reason: 'Arabic part opens RTL');
+    expect(line.codeUnitAt(0), 0x2067, reason: 'Arabic part: an RTL isolate');
+  });
+
+  test('review 20: English values in an Arabic sentence keep their places', () {
+    final ar = lookupAppLocalizations(const Locale('ar'));
+    // "بند جديد KCT-005 من Omar Haddad: Gate 3", read from the right.
+    final line = ar.todayItem(
+      'raised',
+      inOwnDirection('Omar Haddad'),
+      ltrRun('KCT-005'),
+      inOwnDirection('Gate 3'),
+    );
+    expect(_xOf(line, 'KCT'), greaterThan(_xOf(line, 'Omar')));
+    expect(_xOf(line, 'Omar'), greaterThan(_xOf(line, 'Gate')));
+    // With the old embedding marks the name and the title ran together
+    // as one English run: the title came first, at the right.
+    String embed(String t) => '\u202A$t\u202C';
+    final old = ar.todayItem(
+      'raised',
+      embed('Omar Haddad'),
+      embed('KCT-005'),
+      embed('Gate 3'),
+    );
+    expect(_xOf(old, 'Omar'), lessThan(_xOf(old, 'Gate')));
   });
 
   testBoth(

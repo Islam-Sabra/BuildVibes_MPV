@@ -312,7 +312,7 @@ class _NewWorkItemScreenState extends ConsumerState<NewWorkItemScreen> {
           Text(
             _owner == null
                 ? l10n.workNewFooterNoOwner
-                : l10n.workNewFooter(_owner!.person.firstName),
+                : l10n.workNewFooter(inOwnDirection(_owner!.person.firstName)),
             textAlign: TextAlign.center,
             style: type.bodySm.copyWith(color: BvColors.textSecondary),
           ),
