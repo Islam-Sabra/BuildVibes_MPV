@@ -5,7 +5,11 @@
 --   Never to the actor, never across a block, and Space news only to
 --   people still in the Space. A declined join request makes none.
 -- - Useful on a post: one row per post per day (UTC), moved up by each
---   new mark, never one per mark and never a count.
+--   new mark, never one per mark and never a count. It keeps no actor:
+--   the row's line names at most two people you follow (useful_names),
+--   so nobody can list who marked their post.
+-- - Repeats merge: asking to join the same Space again within a day
+--   updates the admins' row; following again within 7 days adds none.
 -- - space_visits: when you last opened each Space (mark_space_seen), so
 --   Home can show what is new since.
 -- - my_activity(): the last 7 days, with each row's group (a Space, Your
@@ -16,6 +20,7 @@
 --   starts at the phone's midnight, which the app passes, so no country's
 --   time zone is typed here.
 -- Push (push_tokens, push_queue) comes in part 3.
+-- Review 19 fixes are in this file (it wasn't live yet).
 
 -- ---------------------------------------------------------------------------
 -- Tables
@@ -56,6 +61,8 @@ create table public.space_visits (
 -- Home: replies to your chat messages, and each Space's chat since a time.
 create index messages_reply_to_idx on public.messages (reply_to) where reply_to is not null;
 create index messages_space_idx on public.messages (space_id, created_at desc);
+-- Home: today's work item events, without walking every item.
+create index work_item_events_created_idx on public.work_item_events (created_at);
 
 -- ---------------------------------------------------------------------------
 -- Writing notifications (triggers only)
@@ -105,12 +112,31 @@ begin
     return;
   end if;
 
+  -- Asking again (after cancelling) within a day: the same row, now
+  -- pointing at the new request. No new row, so no new push.
+  if p_kind = 'join_request' then
+    update public.notifications
+    set request_id = p_request
+    where profile_id = p_to and kind = 'join_request' and actor_id = p_actor
+      and space_id = p_space and created_at > now() - interval '1 day';
+    if found then
+      return;
+    end if;
+  end if;
+  -- Follow, unfollow, follow: one row a week.
+  if p_kind = 'follow' and exists (
+    select 1 from public.notifications
+    where profile_id = p_to and kind = 'follow' and actor_id = p_actor
+      and created_at > now() - interval '7 days') then
+    return;
+  end if;
+
   if p_kind = 'post_useful' then
-    insert into public.notifications (profile_id, kind, actor_id, post_id, payload, day)
-    values (p_to, p_kind, p_actor, p_post, p_payload, (now() at time zone 'utc')::date)
+    -- No actor kept: who marked it is never stored on the author's row.
+    insert into public.notifications (profile_id, kind, post_id, payload, day)
+    values (p_to, p_kind, p_post, p_payload, (now() at time zone 'utc')::date)
     on conflict (profile_id, post_id, day) where kind = 'post_useful'
-    do update set actor_id = excluded.actor_id, created_at = excluded.created_at,
-                  read_at = null;
+    do update set created_at = excluded.created_at, read_at = null;
   else
     insert into public.notifications (profile_id, kind, actor_id, space_id, work_item_id,
                                       post_id, reply_id, request_id, payload)
@@ -305,7 +331,9 @@ create type public.activity_row as (
   created_at timestamptz,
   read_at timestamptz,
   -- The row's place in its group, 1 = the oldest in the window (letter A).
-  seq integer
+  seq integer,
+  -- post_useful: at most two people you follow who marked it. Never a count.
+  useful_names text[]
 );
 
 -- The caller's last 7 days. Rows whose target is gone, or whose Space the
@@ -347,7 +375,10 @@ as $$
     left join public.projects prj on prj.id = cp.project_id
     left join public.profiles a on a.id = r.actor_id
     where (r.space_id is null or (s.deleted_at is null and m.profile_id is not null))
-      and (r.post_id is null or p.deleted_at is null)
+      -- Requests to join only while you are still an admin.
+      and (r.kind <> 'join_request' or m.is_admin)
+      -- Post rows only while you may see the post (not across a block).
+      and (r.post_id is null or public.can_see_post(r.post_id))
       and (r.reply_id is null or pr.deleted_at is null)
       and (r.kind <> 'role_confirmed' or cp.id is not null)
   )
@@ -356,7 +387,9 @@ as $$
          x.request_id, x.request_status, x.project_id, x.project_name,
          x.actor_id, x.actor_name, x.payload, x.created_at, x.read_at,
          (row_number() over (partition by x.group_kind, x.space_id
-                             order by x.created_at, x.id))::int
+                             order by x.created_at, x.id))::int,
+         case when x.kind = 'post_useful' then
+           array(select u.name from public.useful_names(x.post_id) u) end
   from shown x;
 $$;
 
@@ -479,11 +512,12 @@ as $$
            null::uuid as file, null::text as file_name,
            null::uuid as thread, null::uuid as team,
            null::text as msg_kind, null::text as msg_body, ev.actor_id
-    from mine
-    join public.work_items w on w.space_id = mine.space_id
-    join public.work_item_events ev
-      on ev.work_item_id = w.id and ev.created_at > mine.since
-    where ev.actor_id is distinct from auth.uid()
+    from public.work_item_events ev
+    join public.work_items w on w.id = ev.work_item_id
+    join mine on mine.space_id = w.space_id
+    where ev.created_at > public.day_start(p_day_start)
+      and ev.created_at > mine.since
+      and ev.actor_id is distinct from auth.uid()
     union all
     select mine.space_id, 2, f.created_at, 'library', null, null, null, null,
            f.id, f.name, null, f.team_id, null, null, f.uploaded_by
@@ -493,15 +527,23 @@ as $$
     where f.deleted_at is null and f.uploaded_by is distinct from auth.uid()
       and public.can_read_library_file(f.id)
     union all
+    -- Each thread you may read once, then its newest message by someone
+    -- else since your visit (messages_thread_idx).
     select mine.space_id, 3, msg.created_at, 'chat', null, null, null, null,
-           null, null, msg.thread_id, t.team_id, msg.kind, left(msg.body, 120),
+           null, null, t.id, t.team_id, msg.kind, left(msg.body, 120),
            msg.author_id
     from mine
-    join public.messages msg
-      on msg.space_id = mine.space_id and msg.created_at > mine.since
-    join public.threads t on t.id = msg.thread_id
-    where msg.deleted_at is null and msg.author_id is distinct from auth.uid()
-      and public.can_use_thread(msg.thread_id)
+    join public.threads t on t.space_id = mine.space_id
+    cross join lateral (
+      select x.created_at, x.kind, x.body, x.author_id
+      from public.messages x
+      where x.thread_id = t.id and x.created_at > mine.since
+        and x.deleted_at is null and x.author_id is distinct from auth.uid()
+        and not public.blocked_between(auth.uid(), x.author_id)
+      order by x.created_at desc
+      limit 1
+    ) msg
+    where public.can_use_thread(t.id)
   ),
   best as (
     select distinct on (c.space_id) c.*
@@ -533,13 +575,17 @@ as $$
   select
     (select count(*)::int from public.needs_you()),
     (select count(*)::int from public.today_in_spaces(p_day_start)),
+    -- Today's messages in your Spaces first (messages_space_idx), then
+    -- those answering one of yours.
     (select count(*)::int
-     from public.messages mine
-     join public.messages r on r.reply_to = mine.id
-     where mine.author_id = auth.uid()
+     from public.space_members sm
+     join public.messages r
+       on r.space_id = sm.space_id and r.created_at >= public.day_start(p_day_start)
+     join public.messages mine on mine.id = r.reply_to and mine.author_id = auth.uid()
+     where sm.profile_id = auth.uid() and sm.left_at is null
+       and r.reply_to is not null
        and r.author_id is distinct from auth.uid()
        and r.deleted_at is null
-       and r.created_at >= public.day_start(p_day_start)
        and public.can_use_thread(r.thread_id)
        and not public.blocked_between(auth.uid(), r.author_id));
 $$;

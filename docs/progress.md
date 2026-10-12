@@ -333,7 +333,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - `space_visits` and `mark_space_seen`;
     - `my_activity`, `mark_activity_read`, `unread_activity` (yes or no);
     - `home_day` and `today_in_spaces` for the H1b header and rows, with "today" from the phone's midnight.
-  - `13_activity.test.sql`: 51 checks, 571 in all.
+  - `13_activity.test.sql`: 57 checks, 577 in all.
+  - Review 19 B, fixed in place (still not live):
+    - Useful rows keep no marker; their line names at most two people you follow;
+    - asking to join again within a day, or following again within a week, adds no row;
+    - post rows hide when you may no longer see the post; requests to join hide once you're no longer an admin;
+    - speed on a Space with 20,000 messages: `today_in_spaces` 2 ms and `home_day` 4 ms (were 1.0 s and 2.0 s).
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).

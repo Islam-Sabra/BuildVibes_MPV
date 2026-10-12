@@ -285,14 +285,16 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 | `role_confirmed` | proof from a Space or a teammate (the Space is in `payload`) | the person | Your record |
 | `follow` | a new follower | the person followed | Your network |
 | `post_reply` | a reply to your post, or to your reply | the author(s) | Your posts |
-| `post_useful` | Useful on your post: one row per post per day (UTC), moved up by each mark | the author | Your posts |
+| `post_useful` | Useful on your post: one row per post per day (UTC), moved up by each mark, with no actor kept | the author | Your posts |
 
 A declined request makes no notification. Useful on a reply makes none.
+- Repeats merge: asking to join the same Space again within a day updates the admins' row; following again within 7 days adds no row.
+- A Useful row names at most two people you follow (`useful_names`): "{a} found your post useful", or "Your post was found useful". Nobody can list who marked a post.
 
 **Access:** each person reads only their own rows and visits.
 
 **Functions:**
-- `my_activity(cursor)`: the last 7 days, newest first, 100 at a time (cursor `{at, id}`). Each row has its group, the Space name and your pass, the item's ref and title, the post or reply text (one line), the request's status, the project of a confirmed role, the actor's name, and `seq`, its place in its group (1 = the oldest, letter A). Rows drop out when the post or reply is deleted, you left the Space, or you blocked the actor.
+- `my_activity(cursor)`: the last 7 days, newest first, 100 at a time (cursor `{at, id}`). Each row has its group, the Space name and your pass, the item's ref and title, the post or reply text (one line), the request's status, the project of a confirmed role, the actor's name, and `seq`, its place in its group (1 = the oldest, letter A). Rows drop out when the post or reply is deleted or you may no longer see the post (a block), you left the Space, you are no longer an admin (requests to join), or you blocked the actor. Useful rows carry `useful_names`.
 - `mark_activity_read()`: when Activity opens. `unread_activity()`: yes or no, never a number.
 - `home_day(day_start)`: the H1b header: the needs-you count, Spaces with something new today, and replies today to your chat messages. Each is your own count.
 - `today_in_spaces(day_start)`: one row per Space with something new since your last visit and today, by someone else: a work item event first, then a Library file, then the last chat message (only threads and files you may read). Newest first; the app shows 5.

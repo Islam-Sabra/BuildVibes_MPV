@@ -3,17 +3,19 @@
 -- Omar (a1) runs the Space (admin, Lead) and raises items. Rakesh (a2) is
 -- Crew and owns them. Sara (a3) is Lead and checks. Eve (a4) asks to join
 -- and is confirmed. Bob (a5) asks and is declined; Omar blocks him.
+-- Nina (a6) asks and cancels, again and again. Review 19's checks are marked (r19).
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(51);
+select plan(57);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000013a1', 'authenticated', 'authenticated', 'omar13@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000013a2', 'authenticated', 'authenticated', 'rakesh13@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000013a3', 'authenticated', 'authenticated', 'sara13@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000013a4', 'authenticated', 'authenticated', 'eve13@example.com', '{"home_market_id": "kw"}'),
-  ('00000000-0000-0000-0000-0000000013a5', 'authenticated', 'authenticated', 'bob13@example.com', '{"home_market_id": "kw"}');
+  ('00000000-0000-0000-0000-0000000013a5', 'authenticated', 'authenticated', 'bob13@example.com', '{"home_market_id": "kw"}'),
+  ('00000000-0000-0000-0000-0000000013a6', 'authenticated', 'authenticated', 'nina13@example.com', '{"home_market_id": "kw"}');
 update public.profiles set first_name = 'Omar', last_name = 'Haddad' where id = '00000000-0000-0000-0000-0000000013a1';
 update public.profiles set first_name = 'Rakesh', last_name = 'Nair' where id = '00000000-0000-0000-0000-0000000013a2';
 update public.profiles set first_name = 'Sara', last_name = 'Ali' where id = '00000000-0000-0000-0000-0000000013a3';
@@ -112,6 +114,10 @@ select is(pg_temp.n('a3', 'item_assigned'), 1::bigint, 'reassigned: the new owne
 
 -- Join requests --------------------------------------------------------------------------
 
+-- Sara is an admin for now (r19).
+update public.space_members set is_admin = true
+where space_id = current_setting('test.space')::uuid and profile_id = pg_temp.uid('a3');
+
 select pg_temp.as_user('a4');
 set local role authenticated;
 select public.request_join(current_setting('test.code'));
@@ -142,6 +148,36 @@ reset role;
 select is((select count(*) from public.notifications where profile_id = pg_temp.uid('a5')), 0::bigint,
   'declined: no notification');
 
+select pg_temp.as_user('a6');
+set local role authenticated;
+do $$
+declare
+  v_request uuid;
+begin
+  for i in 1..5 loop
+    v_request := (public.request_join(current_setting('test.code')) ->> 'request_id')::uuid;
+    perform public.cancel_join_request(v_request);
+  end loop;
+end
+$$;
+reset role;
+select is((select count(*) from public.notifications
+           where profile_id = pg_temp.uid('a1') and kind = 'join_request' and actor_id = pg_temp.uid('a6')),
+  1::bigint, '(r19) asking and cancelling 5 times gives each admin one row');
+
+select pg_temp.as_user('a3');
+set local role authenticated;
+select ok((select count(*) from public.my_activity() where kind = 'join_request') > 0,
+  '(r19) an admin sees requests to join');
+reset role;
+update public.space_members set is_admin = false
+where space_id = current_setting('test.space')::uuid and profile_id = pg_temp.uid('a3');
+select pg_temp.as_user('a3');
+set local role authenticated;
+select is((select count(*) from public.my_activity() where kind = 'join_request'), 0::bigint,
+  '(r19) no longer an admin: no longer sees them');
+reset role;
+
 -- Network --------------------------------------------------------------------------------
 
 insert into public.follows (follower_id, followee_id) values (pg_temp.uid('a2'), pg_temp.uid('a1'));
@@ -149,6 +185,9 @@ select is(pg_temp.n('a1', 'follow'), 1::bigint, 'a new follower is told');
 insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('a1'), pg_temp.uid('a5'));
 insert into public.follows (follower_id, followee_id) values (pg_temp.uid('a5'), pg_temp.uid('a1'));
 select is(pg_temp.n('a1', 'follow'), 1::bigint, 'never across a block');
+delete from public.follows where follower_id = pg_temp.uid('a2') and followee_id = pg_temp.uid('a1');
+insert into public.follows (follower_id, followee_id) values (pg_temp.uid('a2'), pg_temp.uid('a1'));
+select is(pg_temp.n('a1', 'follow'), 1::bigint, '(r19) follow, unfollow, follow: one row a week');
 
 -- Posts ----------------------------------------------------------------------------------
 
@@ -187,12 +226,25 @@ reset role;
 select is(pg_temp.n('a1', 'post_useful'), 1::bigint, 'Useful: one row per post per day, not one per mark');
 select is((select actor_id from public.notifications
            where profile_id = pg_temp.uid('a1') and kind = 'post_useful'),
-  pg_temp.uid('a3'), 'showing the latest person');
+  null, '(r19) the row keeps no marker, so nobody lists who marked');
+insert into public.follows (follower_id, followee_id) values (pg_temp.uid('a1'), pg_temp.uid('a3'));
+select pg_temp.as_user('a1');
+set local role authenticated;
+select is((select useful_names from public.my_activity() where kind = 'post_useful'),
+  array['Sara Ali'], '(r19) its line names only people you follow');
+reset role;
 select pg_temp.as_user('a1');
 set local role authenticated;
 select public.mark_useful('reply', pg_temp.item('d001'), true);
 reset role;
 select is(pg_temp.n('a2', 'post_useful'), 0::bigint, 'Useful on a reply makes no row');
+insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('a2'), pg_temp.uid('a1'));
+select pg_temp.as_user('a2');
+set local role authenticated;
+select is((select count(*) from public.my_activity() where post_id = pg_temp.item('b001')), 0::bigint,
+  '(r19) blocking the post''s author hides the replies to your reply');
+reset role;
+delete from public.blocks where blocker_id = pg_temp.uid('a2') and blocked_id = pg_temp.uid('a1');
 
 -- Your record ----------------------------------------------------------------------------
 
