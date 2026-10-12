@@ -135,16 +135,25 @@ Who can invite:
   - Unlinking removes the confirmations from that Space; other Spaces linked to the same project keep theirs.
 - **Home country:** a person who is waiting to join a Space, or whom someone else confirmed in one, may choose a home country that is "coming soon" (decision 04). Creating your own Space doesn't count.
 
-## 6. Chat (week 6, after work items)
+## 6. Chat (migration 9, `20261012140000_chat_library.sql`, branch `chat-library-db`)
 **Tables:**
-- `threads`: `id`, `space_id`, `team_id null` (null means Everyone).
-- `messages`: `id`, `thread_id`, `author_id`, `body`, `kind` ('text' | 'photo' | 'file' | 'voice' | 'work_item_card' | 'system'), `work_item_id null`, `created_at`, `edited_at`, `deleted_at`.
-- `message_attachments`: `message_id`, `storage_path`, `mime`, `bytes`.
+- `threads`: one Everyone thread per Space (`team_id` null) and one per Team, made automatically.
+- `messages`: `id` (chosen by the app), `thread_id`, `space_id`, `author_id`, `kind` ('text' | 'photo' | 'file' | 'voice' | 'work_item'), `body`, `reply_to` (same thread), `work_item_id`, `work_item_event_id`, `deleted_at`, `deleted_by`. Never edited.
+- `message_attachments`: `storage_path` (`<space>/chat/<message_id>/<file>`), `mime`, `bytes`, `width`, `height`, `duration_ms`.
+- `thread_reads`: last read time per person and thread.
 
-**Access:**
-- Read: members of the Space. For a Team thread, only that Team's members and the Space admins.
-- Write: the same members, except Viewers, who can chat in Everyone (all passes can chat).
-- Live updates through Supabase Realtime on `messages`, filtered by thread.
+**Rules:**
+- **Reading and writing:** active members; a Team thread only for that Team's members and the Space admins. Every pass can chat.
+- **Attachments:** photos, PDFs and voice notes need the "add files" right (Viewers chat in text only). They must be your own uploads under the message's folder, and their type must match the upload. A voice note is sent on its own.
+- **Deleting:** the author or a Space admin; it stays as "Message deleted" (no text, files hidden). Work item cards can't be deleted.
+- **Work item cards:** raised, done, checked, sent back and reassigned post a card into the item's Team thread when its owner is in that Team, otherwise into Everyone.
+- **Limits:** 30 messages a minute (cards don't count). Uploads: 300 files or 500 MB a day per person, plus the migration 8 cap on loose files.
+- **Live updates:** Supabase Realtime on `messages`, through the same policy.
+
+**Functions:**
+- `post_message(id, thread, body, reply_to, attachments)`: a retry with the same id returns the same message.
+- `delete_message`, `mark_thread_read`.
+- `space_threads(space)` (S7k): threads with the last message and unread count.
 
 ## 7. Work items: the core (migration 7, `20261012120000_work_items.sql`, branch `work-items-db`)
 Rules from review 08. The app reads the tables (active Space members only); every change is a function.
@@ -181,15 +190,22 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 
 **Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. The photo is only the owner's Done photo (never the one from when the item was raised). Hidden when either side blocked the other, for deleted accounts, and for deleted Spaces. Storage lets a non-member read exactly that photo, only while it is shown.
 
-## 8. Library (migration 8)
+## 8. Library (migration 9)
 **Tables:**
-- `library_files`: `id`, `space_id`, `team_id null`, `name`, `storage_path`, `mime`, `bytes`, `uploaded_by`, `rev_label null`.
+- `library_files`: `id` (chosen by the app), `space_id`, `team_id` (optional), `name`, `storage_path` (`<space>/library/<id>/<file>`, or the chat path for documents shared in chat), `mime` (images or PDF), `bytes`, `rev_label`, `note`, `supersedes_id` (an older revision of the same Space and Team, kept), `source` ('upload' | 'chat'), `source_message_id`, `uploaded_by`, `deleted_at`.
+- `work_item_attachments`: a Library file on a work item ("Used in KCT-021").
 
-**Access:**
-- Read: members.
-- Write: `can(space, 'add_files')`.
+**Rules:**
+- **Reading:** members; Team files only for that Team and the admins.
+- **Adding:** the "add files" right, with your own upload. A Team file needs you in that Team, or an admin.
+- **PDFs posted in chat** are added automatically ("From chat").
+- **Removing:** the uploader or an admin, never a file a work item uses.
+- **Attaching to an item:** the item's creator, owner or a member who may check. A Team file only on that Team's items.
+- **Teams:** a Team with chat messages or files can't be deleted; rename it instead.
+- **Storage:** private bucket `space-files` (25 MB; images, PDF, audio). Work item folders take photos only. Files are opened through signed URLs, which the read policy checks.
 
-**Storage:** the bucket `space-files` is private. Signed URLs are issued by a function that checks membership.
+**Functions:**
+- `add_library_file`, `delete_library_file`, `attach_library_file`.
 
 ## 9. Feed (migration 9)
 **Tables:**
