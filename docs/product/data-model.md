@@ -264,12 +264,41 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - `useful_names(post)`: at most two names of people you follow who marked it. Never a count.
 - The view `post_cards` (the caller's rights apply) gives a card: author name, headline and company, text, language, photos, the shown project (or the one it was merged into, only if active), and whether you marked it.
 
-## 10. Activity (migration 9)
+## 10. Activity (migration 13, `20261012180000_activity.sql`, branch `activity-db`)
 **Tables:**
-- `notifications`: `id`, `profile_id`, `kind`, `payload jsonb`, `read_at`. Written by triggers on work item events, join requests, mentions and follows.
-- `push_tokens`.
+- `notifications`: `id`, `profile_id` (who it's for), `kind`, `actor_id`, `space_id`, `work_item_id`, `post_id`, `reply_id`, `request_id`, `payload`, `day` (Useful only), `created_at`, `read_at`.
+  - Written only by triggers; the app can't insert, change or delete one.
+  - Never to the actor, never across a block (either way), and Space news only to people still in the Space.
+- `space_visits`: `profile_id`, `space_id`, `seen_at`. Set by `mark_space_seen(space)` when you open a Space.
+- `push_tokens` and `push_queue` come in part 3.
 
-**Access:** owner only.
+**Kinds and who gets them:**
+
+| Kind | From | To | Activity group |
+|---|---|---|---|
+| `item_assigned` | an item raised for you, or reassigned to you | the owner | the Space |
+| `item_done` | signed as done | the creator | the Space |
+| `item_checked`, `item_sent_back` | checked, or sent back (with the reason) | the owner | the Space |
+| `item_comment` | a comment | the owner and the creator | the Space |
+| `join_request` | a request to join | every admin | the Space |
+| `join_confirmed` | the request confirmed | the new member | the Space |
+| `role_confirmed` | proof from a Space or a teammate (the Space is in `payload`) | the person | Your record |
+| `follow` | a new follower | the person followed | Your network |
+| `post_reply` | a reply to your post, or to your reply | the author(s) | Your posts |
+| `post_useful` | Useful on your post: one row per post per day (UTC), moved up by each mark, with no actor kept | the author | Your posts |
+
+A declined request makes no notification. Useful on a reply makes none.
+- Repeats merge: asking to join the same Space again within a day updates the admins' row; following again within 7 days adds no row.
+- A Useful row names at most two people you follow (`useful_names`): "{a} found your post useful", or "Your post was found useful". Nobody can list who marked a post.
+
+**Access:** each person reads only their own rows and visits.
+
+**Functions:**
+- `my_activity(cursor)`: the last 7 days, newest first, 100 at a time (cursor `{at, id}`). Each row has its group, the Space name and your pass, the item's ref and title, the post or reply text (one line), the request's status, the project of a confirmed role, the actor's name, and `seq`, its place in its group (1 = the oldest, letter A). Rows drop out when the post or reply is deleted or you may no longer see the post (a block), you left the Space, you are no longer an admin (requests to join), or you blocked the actor. Useful rows carry `useful_names`.
+- `mark_activity_read()`: when Activity opens. `unread_activity()`: yes or no, never a number.
+- `home_day(day_start)`: the H1b header: the needs-you count, Spaces with something new today, and replies today to your chat messages. Each is your own count.
+- `today_in_spaces(day_start)`: one row per Space with something new since your last visit and today, by someone else: a work item event first, then a Library file, then the last chat message (only threads and files you may read). Newest first; the app shows 5.
+- `day_start` is the phone's midnight, so no time zone is typed in SQL; the server keeps it within the last two days.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.

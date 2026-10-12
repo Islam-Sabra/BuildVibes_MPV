@@ -327,6 +327,19 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Review 19 A: the composer's language sheet (L6) has "Detected automatically" with the language it found, and the line "We use this to offer Translate to readers who don't read it."; the title is "Language of this post". Retaken: `c13_*_discard` (Keep editing), `p3b_*_failed` (Retry), `l6_*_composer_language`.
     - Screenshots (EN and AR) in `docs/screens/`: `h4_*_skeleton`, `h5_*_couldnt_load`, `h6_*_offline`, `h8_*_menu`, `toast_*_muted`, `h8b_*_own_menu`, `h11_*_delete`, `p2_*_edited`, `p6_*_unavailable`, `h17_*_replying`, `h10_*_own_reply`, `h13_*_reply_menu`, `h14_*_reply_delete`, `l6_*_language`, `r12_*_profile_posts`, `r16_*_their_posts`, `project_*_posts`, `c2_en_ready`, `c_ar_edit`.
 
+- **12 Oct, week 7 part 2, database** (review 16 §3).
+  - Migration 13 (`20261012180000_activity.sql`) is on `activity-db`, **not live**, for the lead's review:
+    - `notifications`, written only by triggers (work item events, join requests, confirmed roles, follows, post replies, Useful), never to the actor, never across a block, Space news only to members; a declined request makes none;
+    - `space_visits` and `mark_space_seen`;
+    - `my_activity`, `mark_activity_read`, `unread_activity` (yes or no);
+    - `home_day` and `today_in_spaces` for the H1b header and rows, with "today" from the phone's midnight.
+  - `13_activity.test.sql`: 57 checks, 577 in all.
+  - Review 19 B, fixed in place (still not live):
+    - Useful rows keep no marker; their line names at most two people you follow;
+    - asking to join again within a day, or following again within a week, adds no row;
+    - post rows hide when you may no longer see the post; requests to join hide once you're no longer an admin;
+    - speed on a Space with 20,000 messages: `today_in_spaces` 2 ms and `home_day` 4 ms (were 1.0 s and 2.0 s).
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
 2. The lead checks the review 18 B fixes and screenshots.
