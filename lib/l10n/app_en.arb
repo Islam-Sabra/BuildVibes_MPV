@@ -2655,5 +2655,235 @@
         "type": "String"
       }
     }
+  },
+  "workSignTitle": "Sign DONE on {ref}",
+  "@workSignTitle": {
+    "description": "W4 sheet title.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "workSignBody": "Your name and the time go on the sign-off. Add a photo or a note so {name} can check it.",
+  "@workSignBody": {
+    "description": "W4 sheet body.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workAddPhoto": "Add photo",
+  "@workAddPhoto": {
+    "description": "W4 photo tile."
+  },
+  "workNote": "Note",
+  "@workNote": {
+    "description": "W4 field."
+  },
+  "workNoteHint": "What was done",
+  "@workNoteHint": {
+    "description": "W4 note placeholder."
+  },
+  "workSignNeedsSomething": "Add a photo or a note.",
+  "@workSignNeedsSomething": {
+    "description": "W4 error."
+  },
+  "workSigned": "Signed as done. It's waiting for a check.",
+  "@workSigned": {
+    "description": "Toast after W4."
+  },
+  "workPendingSignOff": "Sign-off not sent yet",
+  "@workPendingSignOff": {
+    "description": "Outbox: a sign-off waiting."
+  },
+  "workSendBackTitle": "Send {ref} back to {name}",
+  "@workSendBackTitle": {
+    "description": "W5 sheet title.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workSendBackBody": "The tag goes back to Open with your reason written on it, and into {name}'s Needs you.",
+  "@workSendBackBody": {
+    "description": "W5 sheet body.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workReason": "Reason",
+  "@workReason": {
+    "description": "W5 label."
+  },
+  "workNoteFor": "Note for {name}",
+  "@workNoteFor": {
+    "description": "W5 field.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workSendBackTo": "Send back to {name}",
+  "@workSendBackTo": {
+    "description": "W5 button.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workReasonRequired": "Choose a reason.",
+  "@workReasonRequired": {
+    "description": "W5 error."
+  },
+  "workOtherNeedsNote": "Say what is wrong.",
+  "@workOtherNeedsNote": {
+    "description": "W5 error for Other."
+  },
+  "workSentBack": "Sent back to {name}.",
+  "@workSentBack": {
+    "description": "Toast after W5.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckTitle": "Check and close {ref}?",
+  "@workCheckTitle": {
+    "description": "Check dialog title.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckBody": "Your name and the time go on the sign-off. It closes and stays in the Space record.",
+  "@workCheckBody": {
+    "description": "Check dialog body."
+  },
+  "workShowOnProfile": "Show on my profile",
+  "@workShowOnProfile": {
+    "description": "Owner switch on a Checked item (review 08 wording)."
+  },
+  "workShowOnProfileHelp": "Only the title, one photo, the place and who checked it. Never the Space or the discussion.",
+  "@workShowOnProfileHelp": {
+    "description": "Switch helper."
+  },
+  "workReassignedLine": "Reassigned from {from} to {to}",
+  "@workReassignedLine": {
+    "description": "Discussion line for a reassigned event.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "workSomeone": "someone",
+  "@workSomeone": {
+    "description": "A person whose account was deleted."
+  },
+  "deliveredTitle": "Work you delivered",
+  "@deliveredTitle": {
+    "description": "RE2 title."
+  },
+  "deliveredIntro": "Only work items that were checked and closed in a Space. Everything is hidden until you switch it on. Shown items appear on your profile.",
+  "@deliveredIntro": {
+    "description": "RE2 intro."
+  },
+  "deliveredShown": "SHOWN ON PROFILE",
+  "@deliveredShown": {
+    "description": "RE2 stamp."
+  },
+  "deliveredHidden": "Hidden · tap to show",
+  "@deliveredHidden": {
+    "description": "RE2 card state."
+  },
+  "deliveredCheckedBy": "Checked by {name} · {date}",
+  "@deliveredCheckedBy": {
+    "description": "RE2 / RE1 line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "deliveredFooter": "People see who checked each item. Items from a Space you left stay yours to show or hide.",
+  "@deliveredFooter": {
+    "description": "RE2 footer."
+  },
+  "deliveredEmpty": "Nothing yet. Work items you own appear here once they're checked.",
+  "@deliveredEmpty": {
+    "description": "RE2 empty."
+  },
+  "deliveredSeeAll": "See all",
+  "@deliveredSeeAll": {
+    "description": "Profile section link."
+  },
+  "deliveredPublicTitle": "Delivered work",
+  "@deliveredPublicTitle": {
+    "description": "RE1 title."
+  },
+  "deliveredShownBy": "Shown by {name}",
+  "@deliveredShownBy": {
+    "description": "RE1 subtitle.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deliveredProject": "Project",
+  "@deliveredProject": {
+    "description": "RE1 row."
+  },
+  "deliveredPlace": "Place",
+  "@deliveredPlace": {
+    "description": "RE1 row."
+  },
+  "deliveredCheckedRow": "Checked by",
+  "@deliveredCheckedRow": {
+    "description": "RE1 row."
+  },
+  "deliveredPrivacy": "{name} chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown.",
+  "@deliveredPrivacy": {
+    "description": "RE1 note. Neutral.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deliveredStamp": "CHECKED · {date}",
+  "@deliveredStamp": {
+    "description": "RE1 stamp.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "workCheckConfirm": "Close it",
+  "@workCheckConfirm": {
+    "description": "Check dialog confirm button; short so it fits."
+  },
+  "deliveredNoneShown": "Nothing shown yet. Tap See all to choose what shows.",
+  "@deliveredNoneShown": {
+    "description": "Own profile: checked items exist but all are hidden."
   }
 }

@@ -3373,6 +3373,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today {time}'**
   String workTodayAt(String time);
+
+  /// W4 sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign DONE on {ref}'**
+  String workSignTitle(String ref);
+
+  /// W4 sheet body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name and the time go on the sign-off. Add a photo or a note so {name} can check it.'**
+  String workSignBody(String name);
+
+  /// W4 photo tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get workAddPhoto;
+
+  /// W4 field.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get workNote;
+
+  /// W4 note placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'What was done'**
+  String get workNoteHint;
+
+  /// W4 error.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo or a note.'**
+  String get workSignNeedsSomething;
+
+  /// Toast after W4.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed as done. It\'s waiting for a check.'**
+  String get workSigned;
+
+  /// Outbox: a sign-off waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-off not sent yet'**
+  String get workPendingSignOff;
+
+  /// W5 sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Send {ref} back to {name}'**
+  String workSendBackTitle(String ref, String name);
+
+  /// W5 sheet body.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag goes back to Open with your reason written on it, and into {name}\'s Needs you.'**
+  String workSendBackBody(String name);
+
+  /// W5 label.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get workReason;
+
+  /// W5 field.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for {name}'**
+  String workNoteFor(String name);
+
+  /// W5 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send back to {name}'**
+  String workSendBackTo(String name);
+
+  /// W5 error.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a reason.'**
+  String get workReasonRequired;
+
+  /// W5 error for Other.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what is wrong.'**
+  String get workOtherNeedsNote;
+
+  /// Toast after W5.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back to {name}.'**
+  String workSentBack(String name);
+
+  /// Check dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Check and close {ref}?'**
+  String workCheckTitle(String ref);
+
+  /// Check dialog body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name and the time go on the sign-off. It closes and stays in the Space record.'**
+  String get workCheckBody;
+
+  /// Owner switch on a Checked item (review 08 wording).
+  ///
+  /// In en, this message translates to:
+  /// **'Show on my profile'**
+  String get workShowOnProfile;
+
+  /// Switch helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the title, one photo, the place and who checked it. Never the Space or the discussion.'**
+  String get workShowOnProfileHelp;
+
+  /// Discussion line for a reassigned event.
+  ///
+  /// In en, this message translates to:
+  /// **'Reassigned from {from} to {to}'**
+  String workReassignedLine(String from, String to);
+
+  /// A person whose account was deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'someone'**
+  String get workSomeone;
+
+  /// RE2 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Work you delivered'**
+  String get deliveredTitle;
+
+  /// RE2 intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Only work items that were checked and closed in a Space. Everything is hidden until you switch it on. Shown items appear on your profile.'**
+  String get deliveredIntro;
+
+  /// RE2 stamp.
+  ///
+  /// In en, this message translates to:
+  /// **'SHOWN ON PROFILE'**
+  String get deliveredShown;
+
+  /// RE2 card state.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden · tap to show'**
+  String get deliveredHidden;
+
+  /// RE2 / RE1 line.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked by {name} · {date}'**
+  String deliveredCheckedBy(String name, String date);
+
+  /// RE2 footer.
+  ///
+  /// In en, this message translates to:
+  /// **'People see who checked each item. Items from a Space you left stay yours to show or hide.'**
+  String get deliveredFooter;
+
+  /// RE2 empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet. Work items you own appear here once they\'re checked.'**
+  String get deliveredEmpty;
+
+  /// Profile section link.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get deliveredSeeAll;
+
+  /// RE1 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered work'**
+  String get deliveredPublicTitle;
+
+  /// RE1 subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown by {name}'**
+  String deliveredShownBy(String name);
+
+  /// RE1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get deliveredProject;
+
+  /// RE1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get deliveredPlace;
+
+  /// RE1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked by'**
+  String get deliveredCheckedRow;
+
+  /// RE1 note. Neutral.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown.'**
+  String deliveredPrivacy(String name);
+
+  /// RE1 stamp.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKED · {date}'**
+  String deliveredStamp(String date);
+
+  /// Check dialog confirm button; short so it fits.
+  ///
+  /// In en, this message translates to:
+  /// **'Close it'**
+  String get workCheckConfirm;
+
+  /// Own profile: checked items exist but all are hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing shown yet. Tap See all to choose what shows.'**
+  String get deliveredNoneShown;
 }
 
 class _AppLocalizationsDelegate

@@ -15,12 +15,15 @@ abstract final class AppRoutes {
   static const profileEditExperienceForm = '/profile/edit/experience/form';
   static const profileEditOpenTo = '/profile/edit/open-to';
   static const profileEditProjects = '/profile/edit/projects';
+  static const profileDelivered = '/profile/delivered';
 
   /// Debug builds only.
   static const components = '/profile/settings/components';
 
   // Full screens over the tabs
   static const people = '/people';
+  static String personWork(String profileId, String itemId) =>
+      '/people/$profileId/work/$itemId';
   static const projects = '/projects';
   static const projectsAdd = '/projects/add';
   static const projectsNew = '/projects/new';

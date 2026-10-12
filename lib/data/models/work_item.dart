@@ -208,6 +208,8 @@ class WorkEvent {
     this.note,
     this.reason,
     this.photos = const [],
+    this.fromName,
+    this.toName,
   });
 
   final String id;
@@ -218,6 +220,10 @@ class WorkEvent {
   final String? note;
   final SendBackReason? reason;
   final List<WorkPhoto> photos;
+
+  /// Reassigned: the previous and the new owner.
+  final String? fromName;
+  final String? toName;
 }
 
 /// The item page (W3): the item and its whole record, oldest first.
@@ -253,4 +259,42 @@ class WorkItemDetail {
     for (final e in events)
       if (e.kind == WorkEventKind.comment) e,
   ];
+}
+
+/// A Checked item the owner may show on their profile (RE2), or one shown
+/// to everyone (RE1). Only these fields ever leave the Space.
+@immutable
+class DeliveredWork {
+  const DeliveredWork({
+    required this.id,
+    required this.title,
+    this.place,
+    this.projectName,
+    this.checkedByName,
+    this.checkedAt,
+    this.shown = false,
+    this.photoPath,
+  });
+
+  factory DeliveredWork.fromJson(Map<String, dynamic> json) => DeliveredWork(
+    id: json['work_item_id'] as String,
+    title: json['title'] as String,
+    place: json['place_text'] as String?,
+    projectName: json['project_name'] as String?,
+    checkedByName: json['checked_by_name'] as String?,
+    checkedAt: json['checked_at'] == null
+        ? null
+        : DateTime.parse(json['checked_at'] as String),
+    shown: json['shown'] as bool? ?? true,
+    photoPath: json['photo_path'] as String?,
+  );
+
+  final String id;
+  final String title;
+  final String? place;
+  final String? projectName;
+  final String? checkedByName;
+  final DateTime? checkedAt;
+  final bool shown;
+  final String? photoPath;
 }

@@ -145,6 +145,12 @@ abstract final class BvStampSpec {
 
   /// −3° in left-to-right, +3° in right-to-left.
   static const tiltDegrees = 3.0;
+
+  // Large: the proof stamp across a site tag ("CHECKED · 10 OCT · …",
+  // review 10): about 30 high, a 2 px border, bold, −4°.
+  static const largeHeight = 30.0;
+  static const largePaddingHorizontal = BvSpace.s12;
+  static const largeTiltDegrees = 4.0;
 }
 
 abstract final class BvSiteTagSpec {
@@ -164,6 +170,16 @@ abstract final class BvSiteTagSpec {
   static const cellPaddingHorizontal = BvSpace.s12;
   static const cellGap = BvSpace.s4;
   static const headGap = BvSpace.s8;
+}
+
+/// RE1 · the label column of the facts table.
+abstract final class BvDeliveredSpec {
+  static const labelWidth = 96.0;
+}
+
+/// W4 · Sign DONE sheet.
+abstract final class BvSignDoneSpec {
+  static const thumb = 96.0;
 }
 
 /// A centred dialog for a choice that can't be undone (S15c Leave, S15e

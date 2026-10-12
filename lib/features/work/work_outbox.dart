@@ -47,8 +47,12 @@ class PendingPhoto {
   };
 }
 
-/// A new work item that isn't on the server yet (W2). Kept on the phone
-/// until it is, so a weak site signal never loses it or its photos.
+/// What a pending entry sends: a new item (W2) or a sign-off (W4).
+enum PendingKind { create, signDone }
+
+/// A new work item (W2) or a sign-off (W4) that isn't on the server yet.
+/// Kept on the phone until it is, so a weak site signal never loses it or
+/// its photos.
 @immutable
 class PendingItem {
   const PendingItem({
@@ -62,6 +66,9 @@ class PendingItem {
     this.place,
     this.photos = const [],
     this.failed = false,
+    this.kind = PendingKind.create,
+    this.note,
+    this.ref,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -78,6 +85,11 @@ class PendingItem {
         PendingPhoto.fromJson(p as Map<String, dynamic>),
     ],
     failed: json['failed'] as bool? ?? false,
+    kind: json['kind'] == 'sign_done'
+        ? PendingKind.signDone
+        : PendingKind.create,
+    note: json['note'] as String?,
+    ref: json['ref'] as String?,
   );
 
   final String id;
@@ -92,6 +104,13 @@ class PendingItem {
 
   /// The last try didn't get through: "Not sent yet · Retry".
   final bool failed;
+  final PendingKind kind;
+
+  /// The sign-off note (W4).
+  final String? note;
+
+  /// The item's reference, for a sign-off ("KCT-021").
+  final String? ref;
 
   PendingItem copyWith({List<PendingPhoto>? photos, bool? failed}) =>
       PendingItem(
@@ -105,6 +124,9 @@ class PendingItem {
         place: place,
         photos: photos ?? this.photos,
         failed: failed ?? this.failed,
+        kind: kind,
+        note: note,
+        ref: ref,
       );
 
   Map<String, dynamic> toJson() => {
@@ -118,6 +140,9 @@ class PendingItem {
     'place': place,
     'photos': [for (final p in photos) p.toJson()],
     'failed': failed,
+    'kind': kind == PendingKind.signDone ? 'sign_done' : 'create',
+    'note': note,
+    'ref': ref,
   };
 }
 
@@ -237,22 +262,25 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         );
         await _put(current);
       }
+      final sent = [
+        for (final p in photos)
+          WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
+      ];
       await withRetries(
-        () => repo.createItem(
-          NewWorkItem(
-            id: item.id,
-            spaceId: item.spaceId,
-            title: item.title,
-            ownerId: item.ownerId,
-            due: item.due,
-            teamId: item.teamId,
-            place: item.place,
-            photos: [
-              for (final p in photos)
-                WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
-            ],
-          ),
-        ),
+        () => item.kind == PendingKind.signDone
+            ? repo.signDone(item.id, note: item.note, photos: sent)
+            : repo.createItem(
+                NewWorkItem(
+                  id: item.id,
+                  spaceId: item.spaceId,
+                  title: item.title,
+                  ownerId: item.ownerId,
+                  due: item.due,
+                  teamId: item.teamId,
+                  place: item.place,
+                  photos: sent,
+                ),
+              ),
       );
     } on SpaceException {
       await _put(current.copyWith(failed: true));
@@ -268,6 +296,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       unawaited(_deleteKept(p.local));
     }
     ref
+      ..invalidate(workItemDetailProvider(item.id))
       ..invalidate(workItemsProvider(item.spaceId))
       ..invalidate(workNeedsProvider(item.spaceId))
       ..invalidate(mySpacesProvider);

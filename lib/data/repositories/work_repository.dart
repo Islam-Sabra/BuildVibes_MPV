@@ -37,6 +37,23 @@ abstract class WorkRepository {
   Future<void> addComment(String itemId, String text);
 
   Future<void> reassign(String itemId, String ownerId);
+
+  /// W4: the owner signs. Photos are already uploaded.
+  Future<void> signDone(String itemId, {String? note, List<WorkPhoto> photos});
+
+  Future<void> checkItem(String itemId);
+
+  /// W5. [note] is required for [SendBackReason.other].
+  Future<void> sendBack(String itemId, SendBackReason reason, {String? note});
+
+  /// Show a Checked item on your profile, or hide it.
+  Future<void> setShown(String itemId, bool shown);
+
+  /// RE2: your Checked items, shown or hidden.
+  Future<List<DeliveredWork>> myDeliveredWork();
+
+  /// RE1: what [profileId] chose to show.
+  Future<List<DeliveredWork>> shownWorkOf(String profileId);
 }
 
 /// What W2 sends to create_work_item. Photos are already uploaded.
@@ -142,7 +159,9 @@ class SupabaseWorkRepository implements WorkRepository {
   static const _event =
       'id, kind, note, reason, created_at, actor_id, '
       'actor:profiles!work_item_events_actor_id_fkey(first_name, last_name), '
-      'evidence:work_item_evidence(storage_path, taken_at, place_text)';
+      'evidence:work_item_evidence(storage_path, taken_at, place_text), '
+      'from_owner:profiles!work_item_events_from_owner_id_fkey(first_name, last_name), '
+      'to_owner:profiles!work_item_events_to_owner_id_fkey(first_name, last_name)';
 
   @override
   Future<WorkItemDetail?> detail(String itemId) => _guard(() async {
@@ -160,16 +179,21 @@ class SupabaseWorkRepository implements WorkRepository {
   });
 
   static WorkEvent _eventFrom(Map<String, dynamic> e) {
-    final actor = e['actor'] as Map<String, dynamic>?;
-    final name = actor == null
-        ? null
-        : '${actor['first_name'] ?? ''} ${actor['last_name'] ?? ''}'.trim();
+    String? nameOf(Object? row) {
+      if (row is! Map<String, dynamic>) return null;
+      final n = '${row['first_name'] ?? ''} ${row['last_name'] ?? ''}'.trim();
+      return n.isEmpty ? null : n;
+    }
+
+    final name = nameOf(e['actor']);
     return WorkEvent(
       id: e['id'] as String,
       kind: WorkEventKind.fromJson(e['kind']),
       at: DateTime.parse(e['created_at'] as String),
       actorId: e['actor_id'] as String?,
-      actorName: (name ?? '').isEmpty ? null : name,
+      actorName: name,
+      fromName: nameOf(e['from_owner']),
+      toName: nameOf(e['to_owner']),
       note: e['note'] as String?,
       reason: SendBackReason.fromJson(e['reason']),
       photos: [
@@ -255,6 +279,74 @@ class SupabaseWorkRepository implements WorkRepository {
     ),
   );
 
+  static List<Map<String, dynamic>> _photosJson(List<WorkPhoto> photos) => [
+    for (final p in photos)
+      {
+        'path': p.path,
+        'taken_at': p.takenAt?.toUtc().toIso8601String(),
+        'place': p.place,
+      },
+  ];
+
+  @override
+  Future<void> signDone(
+    String itemId, {
+    String? note,
+    List<WorkPhoto> photos = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'sign_done',
+      params: {
+        'p_item': itemId,
+        'p_note': note?.trim(),
+        'p_evidence': _photosJson(photos),
+      },
+    ),
+  );
+
+  @override
+  Future<void> checkItem(String itemId) =>
+      _guard(() => _client.rpc<void>('check_item', params: {'p_item': itemId}));
+
+  @override
+  Future<void> sendBack(String itemId, SendBackReason reason, {String? note}) =>
+      _guard(
+        () => _client.rpc<void>(
+          'send_back',
+          params: {
+            'p_item': itemId,
+            'p_reason': reason.json,
+            'p_note': note?.trim(),
+          },
+        ),
+      );
+
+  @override
+  Future<void> setShown(String itemId, bool shown) => _guard(
+    () => _client.rpc<void>(
+      'set_shown_work',
+      params: {'p_item': itemId, 'p_shown': shown},
+    ),
+  );
+
+  @override
+  Future<List<DeliveredWork>> myDeliveredWork() => _guard(() async {
+    final rows = (await _client.rpc<List<dynamic>>(
+      'my_delivered_work',
+    )).cast<Map<String, dynamic>>();
+    return [for (final r in rows) DeliveredWork.fromJson(r)];
+  });
+
+  @override
+  Future<List<DeliveredWork>> shownWorkOf(String profileId) => _guard(() async {
+    final rows = await _client
+        .from('public_shown_work')
+        .select()
+        .eq('profile_id', profileId)
+        .order('checked_at', ascending: false);
+    return [for (final r in rows) DeliveredWork.fromJson(r)];
+  });
+
   @override
   Future<String> photoUrl(String path) => _guard(
     () => _client.storage
@@ -284,4 +376,14 @@ final workPhotoUrlProvider = FutureProvider.autoDispose.family<String, String>(
 final workItemDetailProvider = FutureProvider.autoDispose
     .family<WorkItemDetail?, String>(
       (ref, itemId) => ref.watch(workRepositoryProvider).detail(itemId),
+    );
+
+final myDeliveredWorkProvider = FutureProvider.autoDispose<List<DeliveredWork>>(
+  (ref) => ref.watch(workRepositoryProvider).myDeliveredWork(),
+);
+
+final shownWorkProvider = FutureProvider.autoDispose
+    .family<List<DeliveredWork>, String>(
+      (ref, profileId) =>
+          ref.watch(workRepositoryProvider).shownWorkOf(profileId),
     );

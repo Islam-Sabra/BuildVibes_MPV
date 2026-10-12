@@ -28,11 +28,13 @@ class BvSiteTag extends StatelessWidget {
   final String place;
   final String from;
   final String owner;
-  final String due;
+
+  /// Null when there is no due date: a quiet dash.
+  final String? due;
   final bool overdue;
 
-  /// "CHECKED · 10 OCT · S. AL-MANSOUR": a tilted green stamp beside the
-  /// reference once the item is closed (W3d, W3g).
+  /// "CHECKED · 10 OCT · S. AL-MANSOUR": a large tilted green stamp
+  /// across the tag once the item is closed (W3d, W3g).
   final String? checkedStamp;
 
   @override
@@ -98,20 +100,7 @@ class BvSiteTag extends StatelessWidget {
                   spacing: BvSiteTagSpec.headGap,
                   children: [
                     BvStamp(label: itemId),
-                    if (checkedStamp != null)
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: AlignmentDirectional.centerStart,
-                          child: BvStamp(
-                            key: const Key('site-tag-checked'),
-                            label: checkedStamp!,
-                            tone: BvStampTone.positive,
-                            tilted: true,
-                          ),
-                        ),
-                      ),
-                    if (checkedStamp == null) const Spacer(),
+                    const Spacer(),
                     Flexible(
                       child: Text(
                         team,
@@ -135,25 +124,44 @@ class BvSiteTag extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: BvSiteTagSpec.bodyGap,
                   children: [
-                    Text(title, style: type.titleLg),
-                    Row(
-                      spacing: BvSiteTagSpec.placeGap,
-                      children: [
-                        const Icon(
-                          BvIcons.place,
-                          size: BvSiteTagSpec.placeIconSize,
-                          color: BvColors.iconSecondary,
+                    // The proof stamp, large and readable (review 10).
+                    if (checkedStamp != null)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          bottom: BvSpace.s4,
                         ),
-                        Expanded(
-                          child: Text(
-                            place,
-                            style: type.bodyMd.copyWith(
-                              color: BvColors.textSecondary,
-                            ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: BvStamp(
+                            key: const Key('site-tag-checked'),
+                            label: checkedStamp!,
+                            tone: BvStampTone.positive,
+                            tilted: true,
+                            large: true,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    Text(title, style: type.titleLg),
+                    if (place.isNotEmpty)
+                      Row(
+                        spacing: BvSiteTagSpec.placeGap,
+                        children: [
+                          const Icon(
+                            BvIcons.place,
+                            size: BvSiteTagSpec.placeIconSize,
+                            color: BvColors.iconSecondary,
+                          ),
+                          Expanded(
+                            child: Text(
+                              place,
+                              style: type.bodyMd.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -179,8 +187,10 @@ class BvSiteTag extends StatelessWidget {
                       ),
                       cell(
                         l10n.siteTagDue,
-                        due,
-                        valueColor: overdue
+                        due ?? '—',
+                        valueColor: due == null
+                            ? BvColors.textSecondary
+                            : overdue
                             ? BvColors.textDestructive
                             : BvColors.textAction,
                       ),

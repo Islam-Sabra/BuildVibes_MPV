@@ -531,7 +531,9 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
         spacing: BvSpace.s4,
         children: [
           Text(
-            l10n.workNotSent,
+            widget.item.kind == PendingKind.signDone
+                ? l10n.workPendingSignOff
+                : l10n.workNotSent,
             style: type.overline.copyWith(color: BvColors.textWarning),
           ),
           Text(widget.item.title, style: type.titleMd),

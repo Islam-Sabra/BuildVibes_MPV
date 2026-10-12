@@ -1922,4 +1922,152 @@ class AppLocalizationsAr extends AppLocalizations {
   String workTodayAt(String time) {
     return 'اليوم $time';
   }
+
+  @override
+  String workSignTitle(String ref) {
+    return 'وقّع كمنجز على $ref';
+  }
+
+  @override
+  String workSignBody(String name) {
+    return 'يُكتب اسمك والوقت في التوقيع. أضف صورة أو ملاحظة حتى يمكن فحصه من قِبل $name.';
+  }
+
+  @override
+  String get workAddPhoto => 'أضف صورة';
+
+  @override
+  String get workNote => 'ملاحظة';
+
+  @override
+  String get workNoteHint => 'ما الذي تم';
+
+  @override
+  String get workSignNeedsSomething => 'أضف صورة أو ملاحظة.';
+
+  @override
+  String get workSigned => 'تم التوقيع كمنجز. بانتظار الفحص.';
+
+  @override
+  String get workPendingSignOff => 'التوقيع لم يُرسل بعد';
+
+  @override
+  String workSendBackTitle(String ref, String name) {
+    return 'إرجاع $ref إلى $name';
+  }
+
+  @override
+  String workSendBackBody(String name) {
+    return 'يعود البند مفتوحاً مع سببك مكتوباً عليه، ويصل إلى «بانتظارك» لدى $name.';
+  }
+
+  @override
+  String get workReason => 'السبب';
+
+  @override
+  String workNoteFor(String name) {
+    return 'ملاحظة إلى $name';
+  }
+
+  @override
+  String workSendBackTo(String name) {
+    return 'إرجاع إلى $name';
+  }
+
+  @override
+  String get workReasonRequired => 'اختر سبباً.';
+
+  @override
+  String get workOtherNeedsNote => 'اذكر ما الخطأ.';
+
+  @override
+  String workSentBack(String name) {
+    return 'تم الإرجاع إلى $name.';
+  }
+
+  @override
+  String workCheckTitle(String ref) {
+    return 'فحص $ref وإغلاقه؟';
+  }
+
+  @override
+  String get workCheckBody =>
+      'يُكتب اسمك والوقت في التوقيع. يُغلق ويبقى في سجل المساحة.';
+
+  @override
+  String get workShowOnProfile => 'اعرضه في ملفي';
+
+  @override
+  String get workShowOnProfileHelp =>
+      'العنوان وصورة واحدة والمكان ومن فحصه فقط. لا تظهر المساحة ولا النقاش.';
+
+  @override
+  String workReassignedLine(String from, String to) {
+    return 'أُعيد التكليف من $from إلى $to';
+  }
+
+  @override
+  String get workSomeone => 'شخص ما';
+
+  @override
+  String get deliveredTitle => 'عمل أنجزته';
+
+  @override
+  String get deliveredIntro =>
+      'بنود العمل التي فُحصت وأُغلقت في مساحة فقط. كل شيء مخفي حتى تُظهره. تظهر البنود المعروضة في ملفك.';
+
+  @override
+  String get deliveredShown => 'معروض في الملف';
+
+  @override
+  String get deliveredHidden => 'مخفي · اضغط للعرض';
+
+  @override
+  String deliveredCheckedBy(String name, String date) {
+    return 'الفحص: $name · $date';
+  }
+
+  @override
+  String get deliveredFooter =>
+      'يرى الناس من فحص كل بند. تبقى بنود المساحة التي غادرتها لك لتعرضها أو تخفيها.';
+
+  @override
+  String get deliveredEmpty => 'لا شيء بعد. تظهر هنا بنودك بعد فحصها.';
+
+  @override
+  String get deliveredSeeAll => 'عرض الكل';
+
+  @override
+  String get deliveredPublicTitle => 'عمل منجز';
+
+  @override
+  String deliveredShownBy(String name) {
+    return 'من ملف $name';
+  }
+
+  @override
+  String get deliveredProject => 'المشروع';
+
+  @override
+  String get deliveredPlace => 'المكان';
+
+  @override
+  String get deliveredCheckedRow => 'الفحص';
+
+  @override
+  String deliveredPrivacy(String name) {
+    return 'عُرض هذا باختيار $name. يبقى النقاش والملفات والمساحة خاصة. يظهر العنوان والصورة والمكان ومن فحصه فقط.';
+  }
+
+  @override
+  String deliveredStamp(String date) {
+    return 'تم الفحص · $date';
+  }
+
+  @override
+  String get workCheckConfirm => 'أغلقه';
+
+  @override
+  String get deliveredNoneShown =>
+      'لا شيء معروض بعد. اضغط «عرض الكل» لتختار ما يظهر.';
 }

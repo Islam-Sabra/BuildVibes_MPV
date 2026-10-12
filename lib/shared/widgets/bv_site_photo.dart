@@ -45,46 +45,47 @@ class BvSitePhoto extends StatelessWidget {
                     frame == null && !sync ? placeholder : child,
                 errorBuilder: (context, error, stack) => placeholder,
               ),
-            PositionedDirectional(
-              start: BvSitePhotoSpec.stampInset,
-              bottom: BvSitePhotoSpec.stampInset,
-              end: BvSitePhotoSpec.stampInset,
-              child: Align(
-                alignment: AlignmentDirectional.bottomStart,
-                child: Container(
-                  key: const Key('site-photo-stamp'),
-                  padding: const EdgeInsetsDirectional.symmetric(
-                    horizontal: BvSitePhotoSpec.stampPaddingHorizontal,
-                    vertical: BvSitePhotoSpec.stampPaddingVertical,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: BvColors.brandInk,
-                    borderRadius: BvSitePhotoSpec.stampRadius,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: BvSitePhotoSpec.stampGap,
-                    children: [
-                      const Icon(
-                        BvIcons.place,
-                        size: BvSitePhotoSpec.stampIconSize,
-                        color: BvColors.iconInverse,
-                      ),
-                      Flexible(
-                        child: Text(
-                          stamp,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: BvType.of(
-                            context,
-                          ).labelSm.copyWith(color: BvColors.textInverse),
+            if (stamp.isNotEmpty)
+              PositionedDirectional(
+                start: BvSitePhotoSpec.stampInset,
+                bottom: BvSitePhotoSpec.stampInset,
+                end: BvSitePhotoSpec.stampInset,
+                child: Align(
+                  alignment: AlignmentDirectional.bottomStart,
+                  child: Container(
+                    key: const Key('site-photo-stamp'),
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: BvSitePhotoSpec.stampPaddingHorizontal,
+                      vertical: BvSitePhotoSpec.stampPaddingVertical,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: BvColors.brandInk,
+                      borderRadius: BvSitePhotoSpec.stampRadius,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: BvSitePhotoSpec.stampGap,
+                      children: [
+                        const Icon(
+                          BvIcons.place,
+                          size: BvSitePhotoSpec.stampIconSize,
+                          color: BvColors.iconInverse,
                         ),
-                      ),
-                    ],
+                        Flexible(
+                          child: Text(
+                            stamp,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: BvType.of(
+                              context,
+                            ).labelSm.copyWith(color: BvColors.textInverse),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
