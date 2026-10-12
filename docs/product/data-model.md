@@ -270,7 +270,7 @@ Rules from review 08. The app reads the tables (active Space members only); ever
   - Written only by triggers; the app can't insert, change or delete one.
   - Never to the actor, never across a block (either way), and Space news only to people still in the Space.
 - `space_visits`: `profile_id`, `space_id`, `seen_at`. Set by `mark_space_seen(space)` when you open a Space.
-- `push_tokens` and `push_queue` come in part 3.
+- `push_tokens` and `push_queue`: section 11.
 
 **Kinds and who gets them:**
 
@@ -299,6 +299,22 @@ A declined request makes no notification. Useful on a reply makes none.
 - `home_day(day_start)`: the H1b header: the needs-you count, Spaces with something new today, and replies today to your chat messages. Each is your own count.
 - `today_in_spaces(day_start)`: one row per Space with something new since your last visit and today, by someone else: a work item event first, then a Library file, then the last chat message (only threads and files you may read). Newest first; the app shows 5.
 - `day_start` is the phone's midnight, so no time zone is typed in SQL; the server keeps it within the last two days.
+
+## 11. Push notifications (migration 14, `20261012190000_push.sql`, branch `push-db`)
+**Tables:**
+- `push_tokens`: `token` (FCM), `profile_id`, `platform` ('android' | 'ios'), `locale` ('en' | 'ar', the language of its pushes), `updated_at`. You read only your own phones.
+- `push_settings`: the S3 switches: `followers` (on), `replies` (on), `message_text` ("Show message text on lock screen", off). A missing row means the defaults.
+- `push_queue`: `profile_id`, `kind`, `actor_id`, `notification_id`, `thread_id`, `data` (ids for the link only), `message_text` (only when the person turned it on), `created_at`, `sent_at`, `error`. Service role only.
+
+**Who gets a push** (rows come only from triggers, and only for people with a phone registered):
+- Work item kinds and a request to join: by the Space's level (`space_members.notify`): `off` none, `needs_you` and `all` yes.
+- A confirmed request and a confirmed role: always. A new follower and a reply: by the S3 switch. Useful: never.
+- A chat message: everyone who may read the thread and set the Space to `all`; never the author, never across a block; at most one per thread per person every 5 minutes. Chat makes no Activity row. Work item cards in chat send nothing (their event already did).
+- A repeat request to join (after cancelling, within a day) merges into the admins' notification, so it sends no new push.
+
+**Functions:** `register_push_token(token, platform, locale)` (a token from another account moves), `unregister_push_token(token)` (sign-out), `my_push_settings()`, `set_push_settings(followers, replies, message_text)`, `prune_push_queue()` (service role; for the nightly cleanup, not scheduled).
+
+**Sending:** the Edge Function `push` (`supabase/functions/push/`), called by a database webhook on `push_queue` inserts, sends through FCM HTTP v1 and deletes tokens FCM reports as dead. The text comes from `strings.json` in the phone's language, and never names a project, a Space or a work item. Deploying it, its secrets (`FCM_SERVICE_ACCOUNT`, `PUSH_WEBHOOK_SECRET`) and the webhook are live changes that wait for the founder's yes.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
