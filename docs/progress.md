@@ -275,6 +275,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - the length comes from a clock (`clock.stopwatch()`), not counted timer ticks; the 2-minute cap uses the same clock.
 
   Tests for each.
+- Review 15 C screenshots (English and Arabic) in `docs/screens/`: `c1_*_recording`, `c2_*_release_to_cancel`, `c3_*_viewer` (no mic, no paperclip), `c4_*_hold_hint`, `c4_*_mic_refused`. 479 Flutter tests pass.
   - Checked on the emulator against the local server, in English and Arabic: recorded, sent (`audio/mp4`, 3.5 s, 18.5 KB on the server), played to the end.
   - 473 Flutter tests and 448 SQL tests pass. Screenshots: `chat_*_recording`, `chat_*_voice_sent`, `chat_ar_voice_playing`.
 
