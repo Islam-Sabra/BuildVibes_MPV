@@ -302,23 +302,29 @@ class RecordButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: l10n.chatRecord,
-      child: GestureDetector(
-        key: const Key('chat-record'),
-        onTap: onTap,
-        onLongPressStart: (_) => onStart(),
-        onLongPressMoveUpdate: (d) => onSlide(d.offsetFromOrigin),
-        onLongPressEnd: (_) => onEnd(),
-        child: Container(
-          width: BvSize.controlMd,
-          height: BvSize.controlMd,
-          decoration: const BoxDecoration(
-            color: BvColors.actionPrimary,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            BvIcons.microphone,
-            size: BvSize.iconMd,
-            color: BvColors.actionPrimaryForeground,
+      // The raw pointer too: a lifted or cancelled thumb (a permission
+      // dialog takes the pointer) always ends the hold.
+      child: Listener(
+        onPointerUp: (_) => onEnd(),
+        onPointerCancel: (_) => onEnd(),
+        child: GestureDetector(
+          key: const Key('chat-record'),
+          onTap: onTap,
+          onLongPressStart: (_) => onStart(),
+          onLongPressMoveUpdate: (d) => onSlide(d.offsetFromOrigin),
+          onLongPressEnd: (_) => onEnd(),
+          child: Container(
+            width: BvSize.controlMd,
+            height: BvSize.controlMd,
+            decoration: const BoxDecoration(
+              color: BvColors.actionPrimary,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              BvIcons.microphone,
+              size: BvSize.iconMd,
+              color: BvColors.actionPrimaryForeground,
+            ),
           ),
         ),
       ),

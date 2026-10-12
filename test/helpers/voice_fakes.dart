@@ -15,11 +15,14 @@ final String testVoicePath = () {
 /// permission.
 class FakeVoiceRecorder implements VoiceRecorder {
   bool allowedValue = true;
+
+  /// Set to make the permission answer wait (the phone's dialog).
+  Completer<bool>? askFirst;
   final calls = <String>[];
   String? _recording;
 
   @override
-  Future<bool> allowed() async => allowedValue;
+  Future<bool> allowed() async => askFirst?.future ?? allowedValue;
 
   @override
   Future<String> start() async {

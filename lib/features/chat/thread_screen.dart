@@ -66,6 +66,11 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
   // Recording a voice note: the time counts in steps of [_tick].
   static const _tick = Duration(milliseconds: 250);
   var _recording = false;
+
+  /// The thumb is on the mic. Asking for the microphone or starting the
+  /// recorder takes a moment; if the thumb is gone by then, nothing
+  /// records (the first hold only grants the microphone).
+  var _holding = false;
   var _cancelling = false;
   var _elapsed = Duration.zero;
   Timer? _recordTimer;
@@ -183,12 +188,17 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
     final l10n = AppLocalizations.of(context);
     FocusManager.instance.primaryFocus?.unfocus();
     final recorder = ref.read(voiceRecorderProvider);
+    _holding = true;
     if (!await recorder.allowed()) {
       if (mounted) _toast(l10n.chatMicDenied);
       return;
     }
+    if (!_holding || !mounted) return;
     await recorder.start();
-    if (!mounted) return;
+    if (!_holding || !mounted) {
+      await recorder.cancel();
+      return;
+    }
     setState(() {
       _recording = true;
       _cancelling = false;
@@ -209,6 +219,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
 
   /// Release: send it; slid away: throw it away; too short: say so.
   Future<void> _endRecording() async {
+    _holding = false;
     _recordTimer?.cancel();
     if (!_recording) return;
     final l10n = AppLocalizations.of(context);

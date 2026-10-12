@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/chat/voice.dart';
@@ -164,6 +166,26 @@ void main() {
       await tester.pumpAndSettle();
       // Letting go after that sends nothing more.
       expect(chat.posted, hasLength(1));
+    });
+
+    testWidgets('the first hold only asks for the microphone [$lang]', (
+      tester,
+    ) async {
+      // The phone's dialog takes a moment; the thumb is gone before the
+      // answer. Nothing may record then.
+      final recorder = FakeVoiceRecorder()..askFirst = Completer<bool>();
+      final chat = _chat();
+      await _open(tester, lang, chat: chat, recorder: recorder);
+      final mic = tester.getCenter(find.byKey(const Key('chat-record')));
+      final gesture = await tester.startGesture(mic);
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await gesture.up();
+      await tester.pump();
+      recorder.askFirst!.complete(true);
+      await tester.pumpAndSettle();
+      expect(recorder.calls, isEmpty);
+      expect(find.byKey(const Key('chat-recording')), findsNothing);
+      expect(chat.posted, isEmpty);
     });
 
     testWidgets('a tap says how [$lang]', (tester) async {
