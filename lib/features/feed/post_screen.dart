@@ -110,62 +110,75 @@ class _PostScreenState extends ConsumerState<PostScreen> {
 
     return Scaffold(
       appBar: AppBar(titleSpacing: 0, title: Text(l10n.postTitle)),
-      body: ListView(
-        padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+      // The reply box in the body, so it rises with the keyboard.
+      body: Column(
         children: [
-          PostCard(
-            post: p,
-            tag: PostTag.chip,
-            onChanged: (changed) {
-              ref.read(feedProvider.notifier).replace(changed);
-              ref.invalidate(postProvider(widget.postId));
-            },
-            onGone: () => Navigator.of(context).maybePop(),
-          ),
-          const SizedBox(height: BvSpace.s16),
-          Text(l10n.postReplies, style: type.titleMd),
-          const SizedBox(height: BvSpace.s12),
-          if (replies == null)
-            const Center(child: CircularProgressIndicator())
-          else if (replies.isEmpty)
-            Text(
-              l10n.postNoReplies,
-              style: type.bodySm.copyWith(color: BvColors.textSecondary),
-            )
-          else
-            for (final r in [...top, ...orphans]) ...[
-              _ReplyView(
-                reply: r,
-                onReply: () => setState(
-                  () => _replyTo = (id: r.id, name: r.authorName, body: r.body),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+              children: [
+                PostCard(
+                  post: p,
+                  tag: PostTag.chip,
+                  onChanged: (changed) {
+                    ref.read(feedProvider.notifier).replace(changed);
+                    ref.invalidate(postProvider(widget.postId));
+                  },
+                  onGone: () => Navigator.of(context).maybePop(),
                 ),
-              ),
-              for (final child in under(r.id))
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: BvSpace.s40),
-                  child: _ReplyView(
-                    reply: child,
-                    // One level: the answer goes under the top-level reply,
-                    // named for the person tapped.
-                    onReply: () => setState(
-                      () => _replyTo = (
-                        id: r.id,
-                        name: child.authorName,
-                        body: child.body,
+                const SizedBox(height: BvSpace.s16),
+                Text(l10n.postReplies, style: type.titleMd),
+                const SizedBox(height: BvSpace.s12),
+                if (replies == null)
+                  const Center(child: CircularProgressIndicator())
+                else if (replies.isEmpty)
+                  Text(
+                    l10n.postNoReplies,
+                    style: type.bodySm.copyWith(color: BvColors.textSecondary),
+                  )
+                else
+                  for (final r in [...top, ...orphans]) ...[
+                    _ReplyView(
+                      reply: r,
+                      onReply: () => setState(
+                        () => _replyTo = (
+                          id: r.id,
+                          name: r.authorName,
+                          body: r.body,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-            ],
+                    for (final child in under(r.id))
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          start: BvSpace.s40,
+                        ),
+                        child: _ReplyView(
+                          reply: child,
+                          // One level: the answer goes under the top-level reply,
+                          // named for the person tapped.
+                          onReply: () => setState(
+                            () => _replyTo = (
+                              id: r.id,
+                              name: child.authorName,
+                              body: child.body,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+              ],
+            ),
+          ),
+          _ReplyBox(
+            controller: _text,
+            replyTo: _replyTo,
+            sending: _sending,
+            onChanged: () => setState(() {}),
+            onCancel: () => setState(() => _replyTo = null),
+            onSend: _send,
+          ),
         ],
-      ),
-      bottomNavigationBar: _ReplyBox(
-        controller: _text,
-        replyTo: _replyTo,
-        sending: _sending,
-        onChanged: () => setState(() {}),
-        onCancel: () => setState(() => _replyTo = null),
-        onSend: _send,
       ),
     );
   }
@@ -270,10 +283,14 @@ class _ReplyView extends ConsumerWidget {
                           ),
                         ),
                       const SizedBox(height: BvSpace.s4),
-                      Text(
-                        reply.body,
-                        textDirection: directionOf(reply.body),
-                        style: type.bodyMd,
+                      // Full width, so it sits on its own language's side.
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          reply.body,
+                          textDirection: directionOf(reply.body),
+                          style: type.bodyMd,
+                        ),
                       ),
                     ],
                   ),

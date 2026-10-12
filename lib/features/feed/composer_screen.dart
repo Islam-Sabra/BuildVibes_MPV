@@ -43,6 +43,7 @@ enum _Lang { auto, en, ar }
 
 class _ComposerScreenState extends ConsumerState<ComposerScreen> {
   final _text = TextEditingController();
+  final _focus = FocusNode();
   final _photos = <String>[];
   ({String id, String name})? _project;
   var _lang = _Lang.auto;
@@ -70,6 +71,7 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
   @override
   void dispose() {
     _text.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
@@ -350,180 +352,202 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
           centerTitle: true,
           title: Text(_editing ? l10n.postEdit : l10n.feedNewPost),
         ),
-        body: _editing && !_loaded
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-                children: [
-                  if (!_editing) ...[
-                    _PostingTo(projectName: project?.name, onTap: _postTo),
-                    const SizedBox(height: BvSpace.s16),
-                  ],
-                  TextField(
-                    key: const Key('composer-text'),
-                    controller: _text,
-                    autofocus: !_editing,
-                    minLines: 3,
-                    maxLines: null,
-                    maxLength: 3000,
-                    textCapitalization: TextCapitalization.sentences,
-                    textDirection: text.isEmpty ? null : directionOf(text),
-                    style: type.bodyLg,
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      counterText: '',
-                      filled: false,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      hintText: l10n.composerHint,
-                      hintStyle: type.bodyLg.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: BvSpace.s16),
-                  // The "Start from" tiles hide once there is text.
-                  if (text.isEmpty && !_editing)
-                    _StartFrom(
-                      onPick: (lines) => setState(() {
-                        _text.text = '$lines ';
-                        _text.selection = TextSelection.collapsed(
-                          offset: lines.indexOf(':') + 1,
-                        );
-                      }),
-                    ),
-                  if (_photos.isNotEmpty) ...[
-                    Wrap(
-                      spacing: BvSpace.s8,
-                      runSpacing: BvSpace.s8,
+        // The footer in the body, so it rises with the keyboard.
+        body: Column(
+          children: [
+            Expanded(
+              child: _editing && !_loaded
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                      padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
                       children: [
-                        for (final p in _photos)
-                          _PhotoTile(
-                            path: p,
-                            onRemove: () => setState(() => _photos.remove(p)),
+                        if (!_editing) ...[
+                          _PostingTo(
+                            projectName: project?.name,
+                            onTap: _postTo,
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: BvSpace.s12),
-                  ],
-                  if (_hasContent && !_editing)
-                    _Line(
-                      key: const Key('composer-audience'),
-                      icon: BvIcons.lock,
-                      text: project == null
-                          ? l10n.composerAudience
-                          : l10n.composerAudienceProject,
-                    ),
-                  if (text.isNotEmpty) ...[
-                    const SizedBox(height: BvSpace.s8),
-                    Row(
-                      key: const Key('composer-lang'),
-                      spacing: BvSpace.s8,
-                      children: [
-                        const Icon(
-                          BvIcons.postLanguage,
-                          size: BvSize.iconSm,
-                          color: BvColors.iconSecondary,
-                        ),
-                        Flexible(
-                          child: Text(
-                            l10n.composerWrittenIn(langName),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: type.bodySm.copyWith(
+                          const SizedBox(height: BvSpace.s16),
+                        ],
+                        TextField(
+                          key: const Key('composer-text'),
+                          controller: _text,
+                          focusNode: _focus,
+                          autofocus: !_editing,
+                          minLines: 3,
+                          maxLines: null,
+                          maxLength: 3000,
+                          textCapitalization: TextCapitalization.sentences,
+                          textDirection: text.isEmpty
+                              ? null
+                              : directionOf(text),
+                          style: type.bodyLg,
+                          decoration: InputDecoration(
+                            isCollapsed: true,
+                            counterText: '',
+                            // In line with the cards: no theme padding.
+                            contentPadding: EdgeInsetsDirectional.zero,
+                            filled: false,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            hintText: l10n.composerHint,
+                            hintStyle: type.bodyLg.copyWith(
                               color: BvColors.textSecondary,
                             ),
                           ),
+                          onChanged: (_) => setState(() {}),
                         ),
-                        Text(
-                          '·',
-                          style: type.bodySm.copyWith(
-                            color: BvColors.textSecondary,
+                        const SizedBox(height: BvSpace.s16),
+                        // The "Start from" tiles hide once there is text.
+                        if (text.isEmpty && !_editing)
+                          _StartFrom(
+                            // The first line is ready to type into.
+                            onPick: (lines) {
+                              setState(() {
+                                _text.text = lines;
+                                _text.selection = TextSelection.collapsed(
+                                  offset: lines.indexOf(':') + 1,
+                                );
+                              });
+                              _focus.requestFocus();
+                            },
                           ),
-                        ),
-                        GestureDetector(
-                          key: const Key('composer-lang-change'),
-                          onTap: _chooseLang,
-                          child: Text(
-                            l10n.composerChange,
-                            style: type.labelSm.copyWith(
-                              color: BvColors.textAction,
-                            ),
+                        if (_photos.isNotEmpty) ...[
+                          Wrap(
+                            spacing: BvSpace.s8,
+                            runSpacing: BvSpace.s8,
+                            children: [
+                              for (final p in _photos)
+                                _PhotoTile(
+                                  path: p,
+                                  onRemove: () =>
+                                      setState(() => _photos.remove(p)),
+                                ),
+                            ],
                           ),
-                        ),
+                          const SizedBox(height: BvSpace.s12),
+                        ],
+                        if (_hasContent && !_editing)
+                          _Line(
+                            key: const Key('composer-audience'),
+                            icon: BvIcons.lock,
+                            text: project == null
+                                ? l10n.composerAudience
+                                : l10n.composerAudienceProject,
+                          ),
+                        if (text.isNotEmpty) ...[
+                          const SizedBox(height: BvSpace.s8),
+                          Row(
+                            key: const Key('composer-lang'),
+                            spacing: BvSpace.s8,
+                            children: [
+                              const Icon(
+                                BvIcons.postLanguage,
+                                size: BvSize.iconSm,
+                                color: BvColors.iconSecondary,
+                              ),
+                              Flexible(
+                                child: Text(
+                                  l10n.composerWrittenIn(langName),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: type.bodySm.copyWith(
+                                    color: BvColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '·',
+                                style: type.bodySm.copyWith(
+                                  color: BvColors.textSecondary,
+                                ),
+                              ),
+                              GestureDetector(
+                                key: const Key('composer-lang-change'),
+                                onTap: _chooseLang,
+                                child: Text(
+                                  l10n.composerChange,
+                                  style: type.labelSm.copyWith(
+                                    color: BvColors.textAction,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
-                  ],
-                ],
-              ),
-        bottomNavigationBar: DecoratedBox(
-          decoration: const BoxDecoration(
-            color: BvColors.surfaceApp,
-            border: Border(
-              top: BorderSide(
-                color: BvColors.borderDefault,
-                width: BvStroke.thin,
-              ),
             ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: BvSpace.s12,
-                children: [
-                  // Media and Project only (review 16).
-                  if (!_editing)
-                    Row(
-                      spacing: BvSpace.s16,
-                      children: [
-                        _Tool(
-                          key: const Key('composer-media'),
-                          icon: BvIcons.image,
-                          label: l10n.composerMedia,
-                          onTap: _addPhoto,
-                        ),
-                        _Tool(
-                          key: const Key('composer-project'),
-                          icon: BvIcons.crane,
-                          label: l10n.composerProject,
-                          onTap: _tagProject,
-                        ),
-                      ],
-                    ),
-                  Row(
+            DecoratedBox(
+              decoration: const BoxDecoration(
+                color: BvColors.surfaceApp,
+                border: Border(
+                  top: BorderSide(
+                    color: BvColors.borderDefault,
+                    width: BvStroke.thin,
+                  ),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     spacing: BvSpace.s12,
                     children: [
-                      Expanded(
-                        child: Text(
-                          project != null
-                              ? l10n.composerPostingToProject(project.name)
-                              : _editing
-                              ? ''
-                              : l10n.composerChooseHint,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: type.bodySm.copyWith(
-                            color: BvColors.textSecondary,
-                          ),
+                      // Media and Project only (review 16).
+                      if (!_editing)
+                        Row(
+                          spacing: BvSpace.s16,
+                          children: [
+                            _Tool(
+                              key: const Key('composer-media'),
+                              icon: BvIcons.image,
+                              label: l10n.composerMedia,
+                              onTap: _addPhoto,
+                            ),
+                            _Tool(
+                              key: const Key('composer-project'),
+                              icon: BvIcons.crane,
+                              label: l10n.composerProject,
+                              onTap: _tagProject,
+                            ),
+                          ],
                         ),
-                      ),
-                      BvButton(
-                        key: const Key('composer-post'),
-                        label: _editing ? l10n.composerSave : l10n.composerPost,
-                        onPressed: _hasContent && !_saving ? _post : null,
+                      Row(
+                        spacing: BvSpace.s12,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              project != null
+                                  ? l10n.composerPostingToProject(project.name)
+                                  : _editing
+                                  ? ''
+                                  : l10n.composerChooseHint,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: type.bodySm.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          BvButton(
+                            key: const Key('composer-post'),
+                            label: _editing
+                                ? l10n.composerSave
+                                : l10n.composerPost,
+                            onPressed: _hasContent && !_saving ? _post : null,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -556,10 +580,18 @@ class _PostingTo extends StatelessWidget {
           child: Row(
             spacing: BvSpace.s12,
             children: [
-              BvAvatar(
-                name: l10n.composerYourNetwork,
-                company: true,
-                twoLetters: true,
+              Container(
+                width: BvSize.avatarMd,
+                height: BvSize.avatarMd,
+                decoration: BoxDecoration(
+                  color: BvColors.surfaceSubtle,
+                  borderRadius: BvAvatar.companyRadius(BvAvatarSize.md),
+                ),
+                child: const Icon(
+                  BvIcons.everyone,
+                  size: BvSize.iconMd,
+                  color: BvColors.iconPrimary,
+                ),
               ),
               Expanded(
                 child: Column(
@@ -728,19 +760,34 @@ class _PhotoTile extends StatelessWidget {
             ),
           ),
         ),
+        // A small round x in the corner, with a full-size touch area.
         PositionedDirectional(
           top: 0,
           end: 0,
-          child: IconButton(
-            key: Key('composer-remove-$path'),
-            tooltip: l10n.composerRemovePhoto,
-            style: IconButton.styleFrom(
-              backgroundColor: BvColors.brandInk,
-              foregroundColor: BvColors.textInverse,
+          child: Semantics(
+            button: true,
+            label: l10n.composerRemovePhoto,
+            child: GestureDetector(
+              key: Key('composer-remove-$path'),
+              behavior: HitTestBehavior.opaque,
+              onTap: onRemove,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.all(BvSpace.s4),
+                child: Container(
+                  width: BvSize.iconMd,
+                  height: BvSize.iconMd,
+                  decoration: const BoxDecoration(
+                    color: BvColors.brandInk,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    BvIcons.close,
+                    size: BvSize.iconSm,
+                    color: BvColors.iconInverse,
+                  ),
+                ),
+              ),
             ),
-            iconSize: BvSize.iconSm,
-            icon: const Icon(BvIcons.close),
-            onPressed: onRemove,
           ),
         ),
       ],

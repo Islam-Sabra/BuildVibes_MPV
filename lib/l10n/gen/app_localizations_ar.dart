@@ -900,7 +900,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mobileHelp => 'خاص: أنت فقط تراه، ولا يظهر في ملفك أبداً.';
 
   @override
-  String get homeFeed => 'الخلاصة';
+  String get homeFeed => 'الأخبار';
 
   @override
   String get homeSpaces => 'المساحات';

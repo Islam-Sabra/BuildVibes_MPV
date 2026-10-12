@@ -425,6 +425,21 @@ void main() {
       expect(find.byKey(const Key('reply-r3')), findsNothing);
     });
 
+    testWidgets('the reply box rises with the keyboard [$lang]', (
+      tester,
+    ) async {
+      await _feed(tester, lang);
+      _router(tester).push('/posts/p1');
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getRect(find.byKey(const Key('post-reply-input'))).bottom,
+        lessThanOrEqualTo(844 - 300),
+      );
+    });
+
     testWidgets('P6: a post that is gone [$lang]', (tester) async {
       await _feed(tester, lang);
       _router(tester).push('/posts/nope');
