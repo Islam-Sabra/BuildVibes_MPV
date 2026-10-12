@@ -135,7 +135,7 @@ Who can invite:
   - Unlinking removes the confirmations from that Space; other Spaces linked to the same project keep theirs.
 - **Home country:** a person who is waiting to join a Space, or whom someone else confirmed in one, may choose a home country that is "coming soon" (decision 04). Creating your own Space doesn't count.
 
-## 6. Chat (migration 7)
+## 6. Chat (week 6, after work items)
 **Tables:**
 - `threads`: `id`, `space_id`, `team_id null` (null means Everyone).
 - `messages`: `id`, `thread_id`, `author_id`, `body`, `kind` ('text' | 'photo' | 'file' | 'voice' | 'work_item_card' | 'system'), `work_item_id null`, `created_at`, `edited_at`, `deleted_at`.
@@ -146,26 +146,24 @@ Who can invite:
 - Write: the same members, except Viewers, who can chat in Everyone (all passes can chat).
 - Live updates through Supabase Realtime on `messages`, filtered by thread.
 
-## 7. Work items: the core (migration 8)
+## 7. Work items: the core (migration 7, `20261012120000_work_items.sql`, branch `work-items-db`)
+Rules from review 08. The app reads the tables (active Space members only); every change is a function.
+
 **Tables:**
-- `work_items`: `id`, `space_id`, `ref` (for example 'KCT-021', unique per Space), `title`, `owner_id`, `created_by`, `team_id null`, `place_text`, `due_date`, `status` ('open' | 'done' | 'checked'), `created_at`.
-- `work_item_events`: `id`, `work_item_id`, `actor_id`, `kind` ('raised' | 'done' | 'checked' | 'sent_back' | 'reassigned' | 'comment'), `note`, `reason` ('photo_missing' | 'not_as_drawing' | 'not_finished' | 'other' | null), `created_at`. Append-only: no update and no delete for anyone.
-- `work_item_evidence`: `id`, `event_id`, `storage_path`, `kind` ('photo' | 'file' | 'voice'), `taken_at`, `place_text`.
-- `work_item_attachments`: links to Library files.
-- `shown_work`: `profile_id`, `work_item_id`, `shown bool`. Only for items with status `checked` where the profile was the owner.
+- `spaces` gains `ref_prefix` (2–4 Latin capitals, set when the Space is made: the project's initials, else the Space's, else BV; existing Spaces backfilled) and `next_item_number`.
+- `work_items`: `id` (chosen by the app, so photos upload first and retries don't duplicate), `space_id`, `number`, `ref` ('KCT-001'), `title`, `owner_id`, `created_by`, `team_id null`, `place_text`, `due_date`, `status` ('open' | 'done' | 'checked'), `done_at`, `checked_by`, `checked_at`, `shown` (off by default; only when checked).
+- `work_item_events`: `kind` ('raised' | 'done' | 'checked' | 'sent_back' | 'comment'), `note`, `reason` ('photo_missing' | 'not_as_drawing' | 'not_finished' | 'other', only on sent_back). Append-only: a trigger refuses every update and delete, except clearing the actor when an account is deleted.
+- `work_item_evidence`: photos on the raised and done events, `storage_path` in the private bucket `space-files` at `<space_id>/<item_id>/<file>`.
 
-**Functions** (the only way to change status):
-- `create_work_item(space, title, owner, due, team, place, attachments[])`. Requires `can(space, 'create_items')`. Writes a 'raised' event, and the `ref` is generated.
-- `sign_done(item, note, evidence[])`. Only the owner, and only while the item is `open`. Needs a photo or a note. Writes a 'done' event.
-- `check_item(item)`. Only the creator, or a Lead with 'check_items' if the admin allowed it, and only while the item is `done`. Writes a 'checked' event.
-- `send_back(item, reason, note)`. Same people as `check_item`. Sets status back to `open` and writes a 'sent_back' event with the reason.
-- `set_shown_work(item, bool)`. Only the owner of a checked item.
+**Functions:**
+- `create_work_item(space, title, owner, due, team, place, evidence, id)`: needs `can(space, 'create_items')`. The owner is one active member whose pass allows "mark own items done" (never a Viewer).
+- `sign_done(item, note, evidence)`: the owner, while Open, with a photo or a note.
+- `check_item(item)` and `send_back(item, reason, note)`: while Done, by the creator or a member with `check_items` (admins have it), **never by the item's owner**. "Other" needs a note.
+- `add_comment(item, note)`: any active member.
+- `set_shown_work(item, bool)`: the owner of a Checked item.
+- `needs_you()`: open items I own, Done items I may check, join requests I can confirm (kind, Space id, item or request id). `my_spaces()` gains `needs_you` per Space.
 
-**Access:**
-- Read: Space members only.
-- `public_shown_work` view: for profiles, it exposes only the title, one photo, the place, who checked it, the date and the project name. It never exposes the discussion, files or Space name for a private Space.
-
-**Needs you** = open items I own, plus done items I can check, plus join requests I can confirm. It's a database view per user.
+**Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. Storage lets a non-member read exactly that photo, only while it is shown.
 
 ## 8. Library (migration 8)
 **Tables:**
