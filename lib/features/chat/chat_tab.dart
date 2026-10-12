@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/space.dart';
@@ -107,7 +108,11 @@ class _ThreadRow extends ConsumerWidget {
           : thread.lastAuthorId == me
           ? l10n.chatYou
           : people?.member(thread.lastAuthorId!)?.person.firstName;
-      return author == null ? text : l10n.chatLastLine(author, text);
+      // The text keeps its own direction (its full stop stays at its end);
+      // the name follows the app's, so it comes first in both languages.
+      return author == null
+          ? inOwnDirection(text)
+          : l10n.chatLastLine(author, inOwnDirection(text));
     }
 
     return InkWell(
@@ -124,7 +129,12 @@ class _ThreadRow extends ConsumerWidget {
         child: Row(
           spacing: BvSpace.s12,
           children: [
-            BvAvatar(name: name, company: true, size: BvAvatarSize.lg),
+            BvAvatar(
+              name: name,
+              company: true,
+              twoLetters: true,
+              size: BvAvatarSize.lg,
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

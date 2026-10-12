@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
@@ -215,6 +217,16 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
       for (final m in shown) _Entry.message(m),
     ];
 
+    // One full card per item: its newest step. Older steps are a line.
+    final latestCards = <String>{};
+    final seenItems = <String>{};
+    for (final e in entries) {
+      final item = e.message?.workItemId;
+      if (e.isCard && item != null && seenItems.add(item)) {
+        latestCards.add(e.message!.id);
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
@@ -276,6 +288,8 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
                             older: i + 1 < entries.length
                                 ? entries[i + 1]
                                 : null,
+                            newer: i > 0 ? entries[i - 1] : null,
+                            latestCards: latestCards,
                             me: me,
                             iAmAdmin: space?.iAmAdmin ?? false,
                             onActions: _actions,
@@ -322,6 +336,8 @@ class _EntryView extends ConsumerWidget {
     required this.spaceId,
     required this.entry,
     required this.older,
+    required this.newer,
+    required this.latestCards,
     required this.me,
     required this.iAmAdmin,
     required this.onActions,
@@ -331,8 +347,12 @@ class _EntryView extends ConsumerWidget {
   final String spaceId;
   final _Entry entry;
 
-  /// The message above this one, if any.
+  /// The messages above and below this one, if any.
   final _Entry? older;
+  final _Entry? newer;
+
+  /// Cards that show the whole item (its newest step in the thread).
+  final Set<String> latestCards;
   final String? me;
   final bool iAmAdmin;
   final Future<void> Function(ChatMessage m, {required bool canDelete})
@@ -359,17 +379,31 @@ class _EntryView extends ConsumerWidget {
         older!.isCard ||
         entry.isCard ||
         older!.authorId(me) != author;
+    // The run ends here when the next message is someone else's, a card,
+    // or on another day: the avatar goes beside its last bubble.
+    final endsRun =
+        newer == null ||
+        newer!.isCard ||
+        newer!.authorId(me) != author ||
+        DateUtils.dateOnly(newer!.at.toLocal()) != day;
 
     final Widget body;
     final m = entry.message;
     if (m != null && m.kind == ChatKind.workItem) {
-      body = _CardEntry(spaceId: spaceId, message: m, time: time(m.createdAt));
+      body = _CardEntry(
+        spaceId: spaceId,
+        message: m,
+        time: time(m.createdAt),
+        full: latestCards.contains(m.id),
+      );
     } else {
       final mine = author != null && author == me;
       body = _Bubble(
         mine: mine,
         name: startsRun && !mine ? (m?.authorName ?? l10n.workSomeone) : null,
-        showAvatar: startsRun && !mine,
+        avatarName: endsRun && !mine
+            ? (m?.authorName ?? l10n.workSomeone)
+            : null,
         text: m == null
             ? entry.pending!.body
             : m.deleted
@@ -430,7 +464,7 @@ class _Bubble extends StatelessWidget {
     required this.id,
     required this.mine,
     required this.name,
-    required this.showAvatar,
+    required this.avatarName,
     required this.text,
     required this.deleted,
     required this.reply,
@@ -443,7 +477,9 @@ class _Bubble extends StatelessWidget {
 
   /// Above the first message of a run from someone else.
   final String? name;
-  final bool showAvatar;
+
+  /// Beside the last message of that run.
+  final String? avatarName;
   final String text;
   final bool deleted;
   final ChatReply? reply;
@@ -478,6 +514,8 @@ class _Bubble extends StatelessWidget {
             if (reply != null) _Quote(reply: reply!),
             Text(
               text,
+              // In the language it was written in, not the app's.
+              textDirection: deleted ? null : directionOf(text),
               style: deleted
                   ? type.bodyMd.copyWith(
                       color: BvColors.textSecondary,
@@ -512,8 +550,8 @@ class _Bubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           spacing: BvChatSpec.avatarGap,
           children: [
-            if (showAvatar && name != null)
-              BvAvatar(name: name!, size: BvAvatarSize.sm)
+            if (avatarName != null)
+              BvAvatar(name: avatarName!, size: BvAvatarSize.sm)
             else
               const SizedBox(width: BvChatSpec.avatar),
             Flexible(child: bubble),
@@ -556,7 +594,7 @@ class _Quote extends StatelessWidget {
           Text(
             reply.deleted
                 ? l10n.chatDeleted
-                : chatSnippet(l10n, reply.kind, reply.body),
+                : inOwnDirection(chatSnippet(l10n, reply.kind, reply.body)),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: type.bodySm.copyWith(color: BvColors.textSecondary),
@@ -611,11 +649,15 @@ class _CardEntry extends ConsumerWidget {
     required this.spaceId,
     required this.message,
     required this.time,
+    required this.full,
   });
 
   final String spaceId;
   final ChatMessage message;
   final String time;
+
+  /// False for an older step of an item shown further down: one line.
+  final bool full;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -626,9 +668,8 @@ class _CardEntry extends ConsumerWidget {
         ref.watch(workNeedsProvider(spaceId)).value ?? const WorkNeeds();
     final me = ref.watch(authUserIdProvider).value;
     final item = items?.where((i) => i.id == message.workItemId).firstOrNull;
-    final who = message.authorId == me
-        ? l10n.chatYou
-        : message.authorName ?? l10n.workSomeone;
+    // Always the name: "You" doesn't fit the Arabic noun forms.
+    final who = message.authorName ?? l10n.workSomeone;
     final line = switch (message.eventKind) {
       WorkEventKind.done => l10n.chatCardDone(who),
       WorkEventKind.checked => l10n.chatCardChecked(who),
@@ -637,6 +678,20 @@ class _CardEntry extends ConsumerWidget {
       _ => l10n.chatCardRaised(who),
     };
 
+    if (!full) {
+      return InkWell(
+        key: Key('chat-card-${message.id}'),
+        onTap: item == null
+            ? null
+            : () => context.push(AppRoutes.workItem(spaceId, item.id)),
+        child: Text(
+          // The reference first: two Latin parts side by side would merge
+          // and swap places in a right-to-left line.
+          joinMeta([?item?.ref, line, time]),
+          style: type.bodySm.copyWith(color: BvColors.textSecondary),
+        ),
+      );
+    }
     return Column(
       key: Key('chat-card-${message.id}'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -689,7 +744,7 @@ class _ReplyBanner extends StatelessWidget {
                   style: type.labelSm.copyWith(color: BvColors.textAction),
                 ),
                 Text(
-                  chatSnippet(l10n, reply.kind, reply.body),
+                  inOwnDirection(chatSnippet(l10n, reply.kind, reply.body)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: type.bodySm.copyWith(color: BvColors.textSecondary),

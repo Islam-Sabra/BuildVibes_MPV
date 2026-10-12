@@ -11,6 +11,15 @@ import '../../helpers/pump_component.dart';
 
 void main() {
   group('BvAvatar', () {
+    test('tile initials: one word still gives two letters', () {
+      expect(BvAvatar.tileInitialsOf('Everyone'), 'EV');
+      expect(BvAvatar.tileInitialsOf('Structure'), 'ST');
+      expect(BvAvatar.tileInitialsOf('MEP Team'), 'MT');
+      final nonJoiner = String.fromCharCode(0x200C);
+      // "الجميع": the article is skipped, then two letters.
+      expect(BvAvatar.tileInitialsOf('الجميع'), 'ج$nonJoinerم');
+    });
+
     test('initials: first and last word; Arabic letters kept apart', () {
       expect(BvAvatar.initialsOf('Omar Haddad'), 'OH');
       expect(BvAvatar.initialsOf('sara al mutairi'), 'SM');

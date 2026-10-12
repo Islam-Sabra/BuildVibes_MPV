@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
@@ -202,12 +203,20 @@ void main() {
       expect(find.text(l10n.chatEveryone), findsOneWidget);
       expect(
         find.text(
-          l10n.chatLastLine('Rakesh', 'Gate 2 is blocked by the crane.'),
+          l10n.chatLastLine(
+            'Rakesh',
+            inOwnDirection('Gate 2 is blocked by the crane.'),
+          ),
         ),
         findsOneWidget,
       );
       expect(
-        find.text(l10n.chatLastLine(l10n.chatYou, 'Sending after the walk.')),
+        find.text(
+          l10n.chatLastLine(
+            l10n.chatYou,
+            inOwnDirection('Sending after the walk.'),
+          ),
+        ),
         findsOneWidget,
       );
       expect(find.byKey(const Key('chat-unread-$_everyone')), findsOneWidget);
@@ -226,6 +235,13 @@ void main() {
       expect(find.text('Gate 2 is blocked by the crane.'), findsOneWidget);
       expect(find.text(l10n.chatDeleted), findsOneWidget);
       expect(find.text('Old news'), findsNothing);
+      // Each message in the language it was written in.
+      expect(
+        tester
+            .widget<Text>(find.text('Gate 2 is blocked by the crane.'))
+            .textDirection,
+        TextDirection.ltr,
+      );
       // Mine at the end side, theirs at the start side.
       final mine = tester.getCenter(find.byKey(const Key('chat-message-m3')));
       final theirs = tester.getCenter(find.byKey(const Key('chat-message-m2')));
@@ -237,6 +253,39 @@ void main() {
       );
       expect(find.byKey(const Key('work-item-item-17')), findsOneWidget);
       expect(find.text(l10n.workCheckIt), findsOneWidget);
+    });
+
+    testWidgets('one full card per item; its older steps are a line [$lang]', (
+      tester,
+    ) async {
+      final chat = _chat();
+      chat.messagesByThread[_everyone]!.add(
+        ChatMessage(
+          id: 'card-0',
+          threadId: _everyone,
+          kind: ChatKind.workItem,
+          createdAt: _at(9, 0),
+          authorId: _me,
+          authorName: 'Omar Haddad',
+          workItemId: 'item-17',
+          eventKind: WorkEventKind.raised,
+        ),
+      );
+      await _openThread(tester, lang, chat: chat);
+      expect(find.byKey(const Key('work-item-item-17')), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('chat-card-card-0')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      final line = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(const Key('chat-card-card-0')),
+          matching: find.byType(Text),
+        ),
+      );
+      expect(line.data, contains(l10n.chatCardRaised('Omar Haddad')));
+      expect(line.data, contains('KCT-017'));
     });
 
     testWidgets('S9k: a Team thread says who can see it [$lang]', (

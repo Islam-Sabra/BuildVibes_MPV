@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart' show TextDirection;
 import 'package:intl/intl.dart' show Bidi;
 
 /// Keeps a left-to-right run (a phone number, a dial code, an email) in one
@@ -25,3 +26,9 @@ String joinMeta(Iterable<String> parts) =>
     parts.where((p) => p.isNotEmpty).map(inOwnDirection).join(' · ');
 
 const _rle = 0x202B;
+
+/// The direction of a text people wrote (a message, a note): from its first
+/// strong letter, whatever the app language. An English message stays left
+/// to right in the Arabic app, and the other way round.
+TextDirection directionOf(String text) =>
+    Bidi.startsWithRtl(text) ? TextDirection.rtl : TextDirection.ltr;

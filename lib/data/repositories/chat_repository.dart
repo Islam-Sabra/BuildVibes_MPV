@@ -48,12 +48,14 @@ class SupabaseChatRepository implements ChatRepository {
   final SupabaseClient _client;
 
   // messages links to profiles twice (author, deleted_by): name the one.
+  // The quoted message is a link to messages itself: PostgREST finds it by
+  // the column (reply_to), not by the constraint's name.
   static const _message =
       'id, thread_id, kind, body, author_id, work_item_id, created_at, '
       'deleted_at, '
       'author:profiles!messages_author_id_fkey(first_name, last_name), '
       'event:work_item_events(kind), '
-      'parent:messages!messages_reply_to_fkey(id, kind, body, deleted_at, '
+      'parent:reply_to(id, kind, body, deleted_at, '
       'author:profiles!messages_author_id_fkey(first_name, last_name))';
 
   Future<T> _guard<T>(Future<T> Function() run) async {

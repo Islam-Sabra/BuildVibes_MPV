@@ -14,12 +14,17 @@ class BvAvatar extends StatelessWidget {
     this.size = BvAvatarSize.md,
     this.company = false,
     this.image,
+    this.twoLetters = false,
   });
 
   final String name;
   final BvAvatarSize size;
   final bool company;
   final ImageProvider? image;
+
+  /// Tiles such as chat threads (S7k): a one-word name still shows two
+  /// letters ("Everyone" → EV).
+  final bool twoLetters;
 
   static double dimension(BvAvatarSize size) => switch (size) {
     BvAvatarSize.sm => BvAvatarSpec.sm,
@@ -53,6 +58,19 @@ class BvAvatar extends StatelessWidget {
     final letters = runes.map(String.fromCharCode);
     final arabic = runes.any(_isArabic);
     return arabic
+        ? letters.join(String.fromCharCode(_zeroWidthNonJoiner))
+        : letters.join().toUpperCase();
+  }
+
+  /// [initialsOf], but a single word gives its first two letters.
+  static String tileInitialsOf(String name) {
+    final words = name.trim().split(RegExp(r'\s+'));
+    if (words.length != 1 || words.first.isEmpty) return initialsOf(name);
+    var runes = _withoutLatinArticle(words.first).runes.toList();
+    final first = _initialRune(runes);
+    runes = runes.sublist(runes.indexOf(first));
+    final letters = runes.take(2).map(String.fromCharCode);
+    return runes.any(_isArabic)
         ? letters.join(String.fromCharCode(_zeroWidthNonJoiner))
         : letters.join().toUpperCase();
   }
@@ -125,7 +143,7 @@ class BvAvatar extends StatelessWidget {
         child: image == null
             ? ExcludeSemantics(
                 child: Text(
-                  initialsOf(name),
+                  twoLetters ? tileInitialsOf(name) : initialsOf(name),
                   maxLines: 1,
                   style: style.copyWith(color: BvColors.textPrimary),
                 ),
