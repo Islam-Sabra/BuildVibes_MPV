@@ -2221,4 +2221,227 @@ class AppLocalizationsEn extends AppLocalizations {
   String chatLastReassigned(String name, String ref) {
     return '$name reassigned $ref';
   }
+
+  @override
+  String get chatAttach => 'Add a photo or file';
+
+  @override
+  String get chatAttachCamera => 'Take a photo';
+
+  @override
+  String get chatAttachGallery => 'Photo from your phone';
+
+  @override
+  String get chatAttachPdf => 'PDF from your phone';
+
+  @override
+  String get chatAttachPdfHelp => 'It goes to the Space Library too.';
+
+  @override
+  String get chatRemoveFile => 'Remove';
+
+  @override
+  String get chatFileNotAllowed => 'Only PDF files and photos.';
+
+  @override
+  String get chatFileTooBig => 'Files up to 25 MB.';
+
+  @override
+  String get chatOneDocument => 'One PDF per message.';
+
+  @override
+  String fileSizeMb(String size) {
+    return '$size MB';
+  }
+
+  @override
+  String fileSizeKb(String size) {
+    return '$size KB';
+  }
+
+  @override
+  String get librarySearch => 'Search titles and file names';
+
+  @override
+  String get libraryAll => 'All';
+
+  @override
+  String get libraryFiles => 'Files';
+
+  @override
+  String get libraryRecent => 'Recent in this Space';
+
+  @override
+  String get libraryFromChat => 'From chat';
+
+  @override
+  String get libraryEmpty =>
+      'No files yet. Drawings and photos shared in this Space appear here.';
+
+  @override
+  String get libraryNoMatch => 'Nothing matches.';
+
+  @override
+  String get libraryAdd => 'Add file';
+
+  @override
+  String get libraryAddTitle => 'Add to the Library';
+
+  @override
+  String get libraryRevisionTitle => 'New revision';
+
+  @override
+  String libraryRevisionOf(String name) {
+    return 'Replaces $name. The old one is kept in the record.';
+  }
+
+  @override
+  String get libraryPickFile => 'Choose a PDF or photo';
+
+  @override
+  String get libraryChangeFile => 'Choose another file';
+
+  @override
+  String get libraryName => 'Title';
+
+  @override
+  String get libraryFor => 'Who sees it';
+
+  @override
+  String libraryTeamOnly(String team) {
+    return 'Only $team and the Space admins see it.';
+  }
+
+  @override
+  String get libraryRev => 'Revision';
+
+  @override
+  String get libraryRevHint => 'For example Rev C';
+
+  @override
+  String get libraryNoteHint => 'What changed';
+
+  @override
+  String get libraryUpload => 'Upload';
+
+  @override
+  String get libraryAdded => 'Added to the Library.';
+
+  @override
+  String get libraryPickFirst => 'Choose a file first.';
+
+  @override
+  String get libraryNameRequired => 'Give it a title.';
+
+  @override
+  String previewFrom(String name) {
+    return 'from $name';
+  }
+
+  @override
+  String previewCurrent(String rev) {
+    return '$rev · CURRENT';
+  }
+
+  @override
+  String get previewCurrentNoRev => 'CURRENT';
+
+  @override
+  String previewUploaded(String date) {
+    return 'Uploaded $date';
+  }
+
+  @override
+  String get previewUsedIn => 'Used in';
+
+  @override
+  String get previewSuperseded => 'superseded, kept in the record';
+
+  @override
+  String get previewReplaced => 'A newer revision replaced this one.';
+
+  @override
+  String get previewOpenCurrent => 'Open the current one';
+
+  @override
+  String get previewShare => 'Share in chat';
+
+  @override
+  String get previewDownload => 'Download';
+
+  @override
+  String get previewNewRevision => 'Upload a new revision';
+
+  @override
+  String get previewShareTo => 'Share in which thread?';
+
+  @override
+  String get previewShareTeamOnly =>
+      'A Team file is shared in its Team\'s thread only.';
+
+  @override
+  String previewShared(String thread) {
+    return 'Shared in $thread.';
+  }
+
+  @override
+  String get previewSaved => 'Saved.';
+
+  @override
+  String get previewCantShow =>
+      'This file can\'t be shown here. Download it to open it.';
+
+  @override
+  String get previewClose => 'Close';
+
+  @override
+  String get previewSendFile => 'Share the file';
+
+  @override
+  String workAttachTitle(String ref) {
+    return 'Attach to $ref';
+  }
+
+  @override
+  String get workAttachLibrary => 'From the Space Library';
+
+  @override
+  String get workAttachLibraryHelp =>
+      'Drawings and files already shared in this Space';
+
+  @override
+  String get workAttachPhone => 'From your phone';
+
+  @override
+  String get workAttachPhoneHelp =>
+      'PDF or image · saved to the Space Library too';
+
+  @override
+  String get workAttachPhoto => 'Take another photo';
+
+  @override
+  String get workAttachPhotoHelp => 'Adds to the photos on the tag';
+
+  @override
+  String get workAttached => 'Attached';
+
+  @override
+  String get workAttachedFromLibrary => 'From the Space Library';
+
+  @override
+  String get workAttach => 'Attach a drawing or file';
+
+  @override
+  String get workAttachedToast => 'Attached.';
+
+  @override
+  String get workAlsoInTeamChat => 'ALSO IN THE TEAM CHAT';
+
+  @override
+  String get libraryPickTitle => 'Choose from the Library';
+
+  @override
+  String libraryPickTeamNote(String team) {
+    return 'Only files for Everyone and for $team can go on this item.';
+  }
 }

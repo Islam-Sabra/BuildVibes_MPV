@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,9 +13,11 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
+import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/chat_repository.dart';
+import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -24,9 +27,11 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../library/library_parts.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
 import '../work/work_item_card.dart';
+import '../work/work_outbox.dart' show pickPhotoProvider;
 import 'chat_state.dart';
 import 'chat_tab.dart';
 
@@ -52,6 +57,10 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
   late final ChatRepository _repo = ref.read(chatRepositoryProvider);
   ChatReply? _replyTo;
   String? _newest;
+
+  /// Photos and a PDF picked for the next message, kept on the phone.
+  final _files = <PhoneFile>[];
+  static const _maxFiles = 10;
 
   @override
   void initState() {
@@ -90,18 +99,94 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(text)));
 
+  /// Camera, a photo from the phone, or a PDF (which also goes to the
+  /// Library). Only for passes that may add files.
+  Future<void> _attach() async {
+    final l10n = AppLocalizations.of(context);
+    FocusManager.instance.primaryFocus?.unfocus();
+    final choice = await showBvSheet<_Attach>(
+      context: context,
+      builder: (context) => Column(
+        key: const Key('chat-attach-sheet'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ActionRow(
+            key: const Key('chat-attach-camera'),
+            icon: BvIcons.camera,
+            label: l10n.chatAttachCamera,
+            onTap: () => Navigator.of(context).pop(_Attach.camera),
+          ),
+          _ActionRow(
+            key: const Key('chat-attach-gallery'),
+            icon: BvIcons.image,
+            label: l10n.chatAttachGallery,
+            onTap: () => Navigator.of(context).pop(_Attach.gallery),
+          ),
+          _ActionRow(
+            key: const Key('chat-attach-pdf'),
+            icon: BvIcons.document,
+            label: l10n.chatAttachPdf,
+            help: l10n.chatAttachPdfHelp,
+            onTap: () => Navigator.of(context).pop(_Attach.pdf),
+          ),
+        ],
+      ),
+    );
+    if (choice == null || !mounted) return;
+    PhoneFile? picked;
+    if (choice == _Attach.pdf) {
+      if (_files.any((f) => f.isPdf)) {
+        _toast(l10n.chatOneDocument);
+        return;
+      }
+      picked = await ref.read(pickDocumentProvider)(pdfOnly: true);
+    } else {
+      final photo = await ref.read(pickPhotoProvider)(
+        camera: choice == _Attach.camera,
+      );
+      if (photo != null) picked = pickedPhoto(photo.path);
+    }
+    if (picked == null || !mounted) return;
+    if ((picked.bytes ?? 0) > maxFileBytes) {
+      _toast(l10n.chatFileTooBig);
+      return;
+    }
+    // A copy of our own, so it survives until the message is sent.
+    final kept = await ref.read(keepFileProvider)(
+      picked.local,
+      picked.extension,
+    );
+    if (!mounted) return;
+    setState(
+      () => _files.add(
+        PhoneFile(
+          local: kept,
+          name: picked!.name,
+          mime: picked.mime,
+          bytes: picked.bytes,
+        ),
+      ),
+    );
+  }
+
   Future<void> _send() async {
     final body = _text.text.trim();
-    if (body.isEmpty) return;
+    if (body.isEmpty && _files.isEmpty) return;
+    final space = ref.read(spaceDetailProvider(widget.spaceId)).value;
     final m = PendingMessage(
       id: newUuid(),
       threadId: widget.threadId,
+      spaceId: space?.id ?? widget.spaceId,
       body: body,
       createdAt: ref.read(clockProvider)(),
       reply: _replyTo,
+      files: [for (final f in _files) PendingFile(file: f)],
     );
     _text.clear();
-    setState(() => _replyTo = null);
+    setState(() {
+      _replyTo = null;
+      _files.clear();
+    });
     await _deliver(() => ref.read(chatOutboxProvider.notifier).send(m));
   }
 
@@ -307,8 +392,16 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
             ),
           _Composer(
             controller: _text,
+            files: _files,
             onChanged: () => setState(() {}),
             onSend: _send,
+            // Photos and files need the "add files" right; a Viewer
+            // chats in text only.
+            onAttach:
+                (space?.myRights.addFiles ?? false) && _files.length < _maxFiles
+                ? _attach
+                : null,
+            onRemove: (f) => setState(() => _files.remove(f)),
           ),
         ],
       ),
@@ -317,6 +410,8 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
 }
 
 enum _Action { reply, copy, delete }
+
+enum _Attach { camera, gallery, pdf }
 
 /// A message from the server, or one still on this phone.
 class _Entry {
@@ -398,7 +493,42 @@ class _EntryView extends ConsumerWidget {
       );
     } else {
       final mine = author != null && author == me;
+      final pending = entry.pending;
+      final Widget? media;
+      if (m != null && !m.deleted) {
+        media = m.photos.isEmpty && m.file == null
+            ? null
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: BvSpace.s4,
+                children: [
+                  if (m.photos.isNotEmpty)
+                    _Photos(paths: [for (final a in m.photos) a.path]),
+                  if (m.file != null)
+                    _FileChip(
+                      file: m.file!,
+                      onTap: () => context.push(
+                        AppRoutes.libraryFile(spaceId, m.file!.id),
+                      ),
+                    ),
+                ],
+              );
+      } else if (pending != null && pending.files.isNotEmpty) {
+        media = _Photos(
+          local: [
+            for (final f in pending.files)
+              if (!f.file.isPdf) f.file.local,
+          ],
+          names: [
+            for (final f in pending.files)
+              if (f.file.isPdf) f.file.name,
+          ],
+        );
+      } else {
+        media = null;
+      }
       body = _Bubble(
+        media: media,
         mine: mine,
         name: startsRun && !mine ? (m?.authorName ?? l10n.workSomeone) : null,
         avatarName: endsRun && !mine
@@ -470,10 +600,14 @@ class _Bubble extends StatelessWidget {
     required this.reply,
     required this.footer,
     required this.onLongPress,
+    this.media,
   });
 
   final String id;
   final bool mine;
+
+  /// Photos or a file, above the text.
+  final Widget? media;
 
   /// Above the first message of a run from someone else.
   final String? name;
@@ -515,17 +649,19 @@ class _Bubble extends StatelessWidget {
             spacing: BvSpace.s4,
             children: [
               if (reply != null) _Quote(reply: reply!),
-              Text(
-                text,
-                // In the language it was written in, not the app's.
-                textDirection: deleted ? null : directionOf(text),
-                style: deleted
-                    ? type.bodyMd.copyWith(
-                        color: BvColors.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      )
-                    : type.bodyMd,
-              ),
+              ?media,
+              if (text.isNotEmpty || media == null)
+                Text(
+                  text,
+                  // In the language it was written in, not the app's.
+                  textDirection: deleted ? null : directionOf(text),
+                  style: deleted
+                      ? type.bodyMd.copyWith(
+                          color: BvColors.textSecondary,
+                          fontStyle: FontStyle.italic,
+                        )
+                      : type.bodyMd,
+                ),
               Align(alignment: AlignmentDirectional.centerEnd, child: footer),
             ],
           ),
@@ -775,19 +911,27 @@ class _ReplyBanner extends StatelessWidget {
 class _Composer extends StatelessWidget {
   const _Composer({
     required this.controller,
+    required this.files,
     required this.onChanged,
     required this.onSend,
+    required this.onAttach,
+    required this.onRemove,
   });
 
   final TextEditingController controller;
+  final List<PhoneFile> files;
   final VoidCallback onChanged;
   final VoidCallback onSend;
+
+  /// Null hides the paperclip (no "add files" right).
+  final VoidCallback? onAttach;
+  final ValueChanged<PhoneFile> onRemove;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final hasText = controller.text.trim().isNotEmpty;
+    final hasText = controller.text.trim().isNotEmpty || files.isNotEmpty;
     return Container(
       decoration: const BoxDecoration(
         color: BvColors.surfaceElevated,
@@ -801,61 +945,103 @@ class _Composer extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Container(
-          key: const Key('chat-composer'),
-          constraints: const BoxConstraints(minHeight: BvSize.controlMd),
-          padding: const EdgeInsetsDirectional.only(
-            start: BvSpace.s16,
-            end: BvSpace.s4,
-          ),
-          decoration: const BoxDecoration(
-            color: BvColors.surfaceSubtle,
-            borderRadius: BvRadius.roundAll,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  key: const Key('chat-input'),
-                  controller: controller,
-                  minLines: 1,
-                  maxLines: 5,
-                  maxLength: 4000,
-                  textCapitalization: TextCapitalization.sentences,
-                  style: type.bodyMd,
-                  // The pill is the field: no theme border or padding.
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    counterText: '',
-                    contentPadding: const EdgeInsetsDirectional.symmetric(
-                      vertical: BvSpace.s8,
-                    ),
-                    filled: false,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    hintText: l10n.chatMessageHint,
-                    hintStyle: type.bodyMd.copyWith(
-                      color: BvColors.textSecondary,
-                    ),
-                  ),
-                  onChanged: (_) => onChanged(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: BvSpace.s8,
+          children: [
+            if (files.isNotEmpty)
+              SingleChildScrollView(
+                key: const Key('chat-picked'),
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: BvSpace.s8,
+                  children: [
+                    for (final f in files)
+                      _PickedChip(file: f, onRemove: () => onRemove(f)),
+                  ],
                 ),
               ),
-              if (hasText)
-                IconButton(
-                  key: const Key('chat-send'),
-                  tooltip: l10n.chatSend,
-                  icon: const Icon(BvIcons.send, color: BvColors.iconAction),
-                  onPressed: onSend,
-                )
-              else
-                const SizedBox(height: BvSize.controlMd),
-            ],
-          ),
+            Row(
+              spacing: BvSpace.s4,
+              children: [
+                if (onAttach != null)
+                  IconButton(
+                    key: const Key('chat-attach'),
+                    tooltip: l10n.chatAttach,
+                    icon: const Icon(
+                      BvIcons.attach,
+                      color: BvColors.iconSecondary,
+                    ),
+                    onPressed: onAttach,
+                  ),
+                Expanded(
+                  child: Container(
+                    key: const Key('chat-composer'),
+                    constraints: const BoxConstraints(
+                      minHeight: BvSize.controlMd,
+                    ),
+                    padding: const EdgeInsetsDirectional.only(
+                      start: BvSpace.s16,
+                      end: BvSpace.s4,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: BvColors.surfaceSubtle,
+                      borderRadius: BvRadius.roundAll,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            key: const Key('chat-input'),
+                            controller: controller,
+                            minLines: 1,
+                            maxLines: 5,
+                            maxLength: 4000,
+                            textCapitalization: TextCapitalization.sentences,
+                            style: type.bodyMd,
+                            // The pill is the field: no theme border or padding.
+                            decoration: InputDecoration(
+                              isCollapsed: true,
+                              counterText: '',
+                              contentPadding:
+                                  const EdgeInsetsDirectional.symmetric(
+                                    vertical: BvSpace.s8,
+                                  ),
+                              filled: false,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              hintText: l10n.chatMessageHint,
+                              hintStyle: type.bodyMd.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                            ),
+                            onChanged: (_) => onChanged(),
+                          ),
+                        ),
+                        if (hasText)
+                          IconButton(
+                            key: const Key('chat-send'),
+                            tooltip: l10n.chatSend,
+                            icon: const Icon(
+                              BvIcons.send,
+                              color: BvColors.iconAction,
+                            ),
+                            onPressed: onSend,
+                          )
+                        else
+                          const SizedBox(height: BvSize.controlMd),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -869,12 +1055,14 @@ class _ActionRow extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.destructive = false,
+    this.help,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final bool destructive;
+  final String? help;
 
   @override
   Widget build(BuildContext context) {
@@ -902,9 +1090,245 @@ class _ActionRow extends StatelessWidget {
                     : BvColors.iconPrimary,
               ),
             ),
-            Text(label, style: type.bodyLg.copyWith(color: color)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: type.bodyLg.copyWith(color: color)),
+                  if (help != null)
+                    Text(
+                      help!,
+                      style: type.bodySm.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Photos in a bubble: one large, or a grid of up to four with "+N".
+/// [paths] are in the Space (signed links); [local] are still on the phone,
+/// with [names] for PDFs waiting to be sent.
+class _Photos extends ConsumerWidget {
+  const _Photos({
+    this.paths = const [],
+    this.local = const [],
+    this.names = const [],
+  });
+
+  final List<String> paths;
+  final List<String> local;
+  final List<String> names;
+
+  static const _shown = 4;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final type = BvType.of(context);
+    final count = paths.length + local.length;
+    final single = count == 1;
+    final size = single ? BvChatSpec.photoLarge : BvChatSpec.photoSmall;
+
+    Widget tile(int i) {
+      final ImageProvider? image;
+      if (i < paths.length) {
+        final url = ref.watch(fileUrlProvider(paths[i])).value;
+        image = url == null ? null : NetworkImage(url);
+      } else {
+        image = FileImage(File(local[i - paths.length]));
+      }
+      final extra = count - _shown;
+      return ClipRRect(
+        key: Key('chat-photo-$i'),
+        borderRadius: BvRadius.controlAll,
+        child: SizedBox(
+          width: size,
+          height: single ? size * BvChatSpec.photoLargeAspect : size,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const ColoredBox(color: BvColors.surfaceSubtle),
+              if (image != null)
+                Image(
+                  image: image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stack) =>
+                      const SizedBox.shrink(),
+                ),
+              if (i == _shown - 1 && extra > 0)
+                ColoredBox(
+                  color: BvColors.overlayScrim,
+                  child: Center(
+                    child: Text(
+                      '+$extra',
+                      style: type.titleMd.copyWith(color: BvColors.textInverse),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: BvSpace.s4,
+      children: [
+        if (count > 0)
+          Wrap(
+            spacing: BvSpace.s4,
+            runSpacing: BvSpace.s4,
+            children: [for (var i = 0; i < count && i < _shown; i++) tile(i)],
+          ),
+        for (final n in names)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: BvSpace.s8,
+            children: [
+              const Icon(
+                BvIcons.document,
+                size: BvSize.iconMd,
+                color: BvColors.iconSecondary,
+              ),
+              Flexible(
+                child: Text(
+                  inOwnDirection(n),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.bodySm,
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+/// A PDF in a bubble: its name, revision and size. Opens F1.
+class _FileChip extends StatelessWidget {
+  const _FileChip({required this.file, required this.onTap});
+
+  final LibraryFile file;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return InkWell(
+      key: Key('chat-file-${file.id}'),
+      onTap: onTap,
+      borderRadius: BvRadius.controlAll,
+      child: Container(
+        padding: const EdgeInsetsDirectional.all(BvSpace.s8),
+        decoration: const BoxDecoration(
+          color: BvColors.surfaceSubtle,
+          borderRadius: BvRadius.controlAll,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: BvSpace.s8,
+          children: [
+            const Icon(
+              BvIcons.document,
+              size: BvSize.iconLg,
+              color: BvColors.iconPrimary,
+            ),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    inOwnDirection(file.name),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: type.labelMd,
+                  ),
+                  Text(
+                    joinMeta([?file.revLabel, fileSize(l10n, file.bytes)]),
+                    style: type.metadata.copyWith(
+                      color: BvColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A file picked for the next message, with Remove.
+class _PickedChip extends StatelessWidget {
+  const _PickedChip({required this.file, required this.onRemove});
+
+  final PhoneFile file;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Container(
+      key: Key('chat-picked-${file.name}'),
+      padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceSubtle,
+        borderRadius: BvRadius.controlAll,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (file.isPdf)
+            const Icon(
+              BvIcons.document,
+              size: BvSize.iconMd,
+              color: BvColors.iconPrimary,
+            )
+          else
+            ClipRRect(
+              borderRadius: BvRadius.smallAll,
+              child: Image.file(
+                File(file.local),
+                width: BvSize.iconLg,
+                height: BvSize.iconLg,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) =>
+                    const SizedBox(width: BvSize.iconLg),
+              ),
+            ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: BvChatSpec.pickedName),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
+              child: Text(
+                inOwnDirection(file.name),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: type.bodySm,
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.chatRemoveFile,
+            icon: const Icon(
+              BvIcons.close,
+              size: BvSize.iconSm,
+              color: BvColors.iconSecondary,
+            ),
+            onPressed: onRemove,
+          ),
+        ],
       ),
     );
   }

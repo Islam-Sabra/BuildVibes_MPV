@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/ago.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/routing/app_routes.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/space_repository.dart';
+import '../../data/repositories/chat_repository.dart';
+import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -24,6 +28,7 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
+import 'attach_files.dart';
 import 'work_actions.dart';
 import 'work_outbox.dart';
 
@@ -506,8 +511,9 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
                 ),
               ],
             ),
+            _Attached(item: item, me: me),
             const SizedBox(height: BvSpace.s16),
-            _Label(l10n.workDiscussion),
+            _DiscussionLabel(item: item),
             if (talk.isEmpty)
               EmptyNote(l10n.workNoComments)
             else
@@ -571,6 +577,129 @@ String _short(String? name) {
   final parts = (name ?? '').trim().split(RegExp(r'\s+'));
   if (parts.length < 2) return parts.join();
   return '${parts.first.characters.first}. ${parts.sublist(1).join(' ')}';
+}
+
+/// W3 "Attached": Library files on this item, and "Attach a file" for its
+/// creator, its owner and people who may check items.
+class _Attached extends ConsumerWidget {
+  const _Attached({required this.item, required this.me});
+
+  final WorkItem item;
+  final String? me;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final files = ref.watch(itemFilesProvider(item.id)).value ?? const [];
+    final space = ref.watch(spaceDetailProvider(item.spaceId)).value;
+    final canAttach =
+        me != null &&
+        (me == item.createdById ||
+            me == item.ownerId ||
+            (space?.myRights.checkItems ?? false));
+    if (files.isEmpty && !canAttach) return const SizedBox.shrink();
+
+    Future<void> attach() async {
+      final fileId = await chooseFileToAttach(
+        context,
+        spaceId: item.spaceId,
+        itemRef: item.ref,
+        teamId: item.teamId,
+        teamName: item.teamName,
+        exclude: {for (final f in files) f.id},
+      );
+      if (fileId == null || !context.mounted) return;
+      try {
+        await ref.read(libraryRepositoryProvider).attach(item.id, fileId);
+        ref.invalidate(itemFilesProvider(item.id));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(l10n.workAttachedToast)));
+        }
+      } on SpaceException catch (e) {
+        if (context.mounted) showSpaceError(context, e);
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(top: BvSpace.s16),
+      child: Column(
+        key: const Key('work-attached'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (files.isNotEmpty) ...[
+            _Label(l10n.workAttached),
+            ProfileCard(
+              padding: false,
+              child: DividedColumn(
+                children: [
+                  for (final f in files)
+                    AttachedFileRow(spaceId: item.spaceId, file: f),
+                ],
+              ),
+            ),
+          ],
+          if (canAttach)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: BvButton(
+                key: const Key('work-attach'),
+                label: l10n.workAttach,
+                icon: BvIcons.create,
+                style: BvButtonStyle.tertiary,
+                size: BvButtonSize.medium,
+                padded: false,
+                onPressed: attach,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "DISCUSSION · ALSO IN THE TEAM CHAT": an item with a Team has a thread
+/// for that Team. Comments stay on the item; the link opens the thread.
+class _DiscussionLabel extends ConsumerWidget {
+  const _DiscussionLabel({required this.item});
+
+  final WorkItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final style = BvType.of(
+      context,
+    ).overline.copyWith(color: BvColors.textSecondary);
+    final thread = item.teamId == null
+        ? null
+        : ref
+              .watch(spaceThreadsProvider(item.spaceId))
+              .value
+              ?.where((t) => t.teamId == item.teamId)
+              .firstOrNull;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s8),
+      child: Wrap(
+        children: [
+          Text(l10n.workDiscussion, style: style),
+          if (thread != null) ...[
+            Text(' · ', style: style),
+            GestureDetector(
+              key: const Key('work-team-chat'),
+              onTap: () =>
+                  context.push(AppRoutes.spaceThread(item.spaceId, thread.id)),
+              child: Text(
+                l10n.workAlsoInTeamChat,
+                style: style.copyWith(color: BvColors.textAction),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _Label extends StatelessWidget {

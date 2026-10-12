@@ -3141,5 +3141,319 @@
         "type": "String"
       }
     }
+  },
+  "chatAttach": "Add a photo or file",
+  "@chatAttach": {
+    "description": "Composer attach button tooltip."
+  },
+  "chatAttachCamera": "Take a photo",
+  "@chatAttachCamera": {
+    "description": "Attach sheet."
+  },
+  "chatAttachGallery": "Photo from your phone",
+  "@chatAttachGallery": {
+    "description": "Attach sheet."
+  },
+  "chatAttachPdf": "PDF from your phone",
+  "@chatAttachPdf": {
+    "description": "Attach sheet."
+  },
+  "chatAttachPdfHelp": "It goes to the Space Library too.",
+  "@chatAttachPdfHelp": {
+    "description": "Attach sheet helper."
+  },
+  "chatRemoveFile": "Remove",
+  "@chatRemoveFile": {
+    "description": "Remove a picked file (tooltip)."
+  },
+  "chatFileNotAllowed": "Only PDF files and photos.",
+  "@chatFileNotAllowed": {
+    "description": "Wrong file type."
+  },
+  "chatFileTooBig": "Files up to 25 MB.",
+  "@chatFileTooBig": {
+    "description": "File too large."
+  },
+  "chatOneDocument": "One PDF per message.",
+  "@chatOneDocument": {
+    "description": "Second PDF picked."
+  },
+  "fileSizeMb": "{size} MB",
+  "@fileSizeMb": {
+    "description": "File size.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSizeKb": "{size} KB",
+  "@fileSizeKb": {
+    "description": "File size.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "librarySearch": "Search titles and file names",
+  "@librarySearch": {
+    "description": "S13k search."
+  },
+  "libraryAll": "All",
+  "@libraryAll": {
+    "description": "S13k filter."
+  },
+  "libraryFiles": "Files",
+  "@libraryFiles": {
+    "description": "S13k filter."
+  },
+  "libraryRecent": "Recent in this Space",
+  "@libraryRecent": {
+    "description": "S13k section."
+  },
+  "libraryFromChat": "From chat",
+  "@libraryFromChat": {
+    "description": "A file that came from chat."
+  },
+  "libraryEmpty": "No files yet. Drawings and photos shared in this Space appear here.",
+  "@libraryEmpty": {
+    "description": "S13k empty."
+  },
+  "libraryNoMatch": "Nothing matches.",
+  "@libraryNoMatch": {
+    "description": "S13k search empty."
+  },
+  "libraryAdd": "Add file",
+  "@libraryAdd": {
+    "description": "S13k button."
+  },
+  "libraryAddTitle": "Add to the Library",
+  "@libraryAddTitle": {
+    "description": "Add file title."
+  },
+  "libraryRevisionTitle": "New revision",
+  "@libraryRevisionTitle": {
+    "description": "New revision title."
+  },
+  "libraryRevisionOf": "Replaces {name}. The old one is kept in the record.",
+  "@libraryRevisionOf": {
+    "description": "New revision helper.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryPickFile": "Choose a PDF or photo",
+  "@libraryPickFile": {
+    "description": "Add file picker."
+  },
+  "libraryChangeFile": "Choose another file",
+  "@libraryChangeFile": {
+    "description": "Add file picker, after a pick."
+  },
+  "libraryName": "Title",
+  "@libraryName": {
+    "description": "Add file field."
+  },
+  "libraryFor": "Who sees it",
+  "@libraryFor": {
+    "description": "Add file: Everyone or one Team (single choice)."
+  },
+  "libraryTeamOnly": "Only {team} and the Space admins see it.",
+  "@libraryTeamOnly": {
+    "description": "Add file helper for a Team file.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryRev": "Revision",
+  "@libraryRev": {
+    "description": "Add file field."
+  },
+  "libraryRevHint": "For example Rev C",
+  "@libraryRevHint": {
+    "description": "Add file placeholder."
+  },
+  "libraryNoteHint": "What changed",
+  "@libraryNoteHint": {
+    "description": "Add file note placeholder."
+  },
+  "libraryUpload": "Upload",
+  "@libraryUpload": {
+    "description": "Add file button."
+  },
+  "libraryAdded": "Added to the Library.",
+  "@libraryAdded": {
+    "description": "Toast."
+  },
+  "libraryPickFirst": "Choose a file first.",
+  "@libraryPickFirst": {
+    "description": "Add file error."
+  },
+  "libraryNameRequired": "Give it a title.",
+  "@libraryNameRequired": {
+    "description": "Add file error."
+  },
+  "previewFrom": "from {name}",
+  "@previewFrom": {
+    "description": "F1 subtitle part.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "previewCurrent": "{rev} · CURRENT",
+  "@previewCurrent": {
+    "description": "F1 stamp.",
+    "placeholders": {
+      "rev": {
+        "type": "String"
+      }
+    }
+  },
+  "previewCurrentNoRev": "CURRENT",
+  "@previewCurrentNoRev": {
+    "description": "F1 stamp without a revision label."
+  },
+  "previewUploaded": "Uploaded {date}",
+  "@previewUploaded": {
+    "description": "F1.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "previewUsedIn": "Used in",
+  "@previewUsedIn": {
+    "description": "F1."
+  },
+  "previewSuperseded": "superseded, kept in the record",
+  "@previewSuperseded": {
+    "description": "F1 older revision line."
+  },
+  "previewReplaced": "A newer revision replaced this one.",
+  "@previewReplaced": {
+    "description": "F1 on an old revision."
+  },
+  "previewOpenCurrent": "Open the current one",
+  "@previewOpenCurrent": {
+    "description": "F1 link."
+  },
+  "previewShare": "Share in chat",
+  "@previewShare": {
+    "description": "F1 button."
+  },
+  "previewDownload": "Download",
+  "@previewDownload": {
+    "description": "F1 button."
+  },
+  "previewNewRevision": "Upload a new revision",
+  "@previewNewRevision": {
+    "description": "F1 link."
+  },
+  "previewShareTo": "Share in which thread?",
+  "@previewShareTo": {
+    "description": "Share sheet title."
+  },
+  "previewShareTeamOnly": "A Team file is shared in its Team's thread only.",
+  "@previewShareTeamOnly": {
+    "description": "Share sheet helper."
+  },
+  "previewShared": "Shared in {thread}.",
+  "@previewShared": {
+    "description": "Toast.",
+    "placeholders": {
+      "thread": {
+        "type": "String"
+      }
+    }
+  },
+  "previewSaved": "Saved.",
+  "@previewSaved": {
+    "description": "Toast after Download."
+  },
+  "previewCantShow": "This file can't be shown here. Download it to open it.",
+  "@previewCantShow": {
+    "description": "F1 when the preview fails."
+  },
+  "previewClose": "Close",
+  "@previewClose": {
+    "description": "F1 close tooltip."
+  },
+  "previewSendFile": "Share the file",
+  "@previewSendFile": {
+    "description": "F1 top share icon (system share)."
+  },
+  "workAttachTitle": "Attach to {ref}",
+  "@workAttachTitle": {
+    "description": "W2-A title.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "workAttachLibrary": "From the Space Library",
+  "@workAttachLibrary": {
+    "description": "W2-A option."
+  },
+  "workAttachLibraryHelp": "Drawings and files already shared in this Space",
+  "@workAttachLibraryHelp": {
+    "description": "W2-A option helper."
+  },
+  "workAttachPhone": "From your phone",
+  "@workAttachPhone": {
+    "description": "W2-A option."
+  },
+  "workAttachPhoneHelp": "PDF or image · saved to the Space Library too",
+  "@workAttachPhoneHelp": {
+    "description": "W2-A option helper."
+  },
+  "workAttachPhoto": "Take another photo",
+  "@workAttachPhoto": {
+    "description": "W2-A option."
+  },
+  "workAttachPhotoHelp": "Adds to the photos on the tag",
+  "@workAttachPhotoHelp": {
+    "description": "W2-A option helper."
+  },
+  "workAttached": "Attached",
+  "@workAttached": {
+    "description": "W3 section label."
+  },
+  "workAttachedFromLibrary": "From the Space Library",
+  "@workAttachedFromLibrary": {
+    "description": "W3 attached file line."
+  },
+  "workAttach": "Attach a drawing or file",
+  "@workAttach": {
+    "description": "W2 / W3 button."
+  },
+  "workAttachedToast": "Attached.",
+  "@workAttachedToast": {
+    "description": "Toast."
+  },
+  "workAlsoInTeamChat": "ALSO IN THE TEAM CHAT",
+  "@workAlsoInTeamChat": {
+    "description": "W3 Discussion label suffix (opens the Team thread)."
+  },
+  "libraryPickTitle": "Choose from the Library",
+  "@libraryPickTitle": {
+    "description": "Library picker title."
+  },
+  "libraryPickTeamNote": "Only files for Everyone and for {team} can go on this item.",
+  "@libraryPickTeamNote": {
+    "description": "Library picker helper on a Team item.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
   }
 }

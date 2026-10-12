@@ -3859,6 +3859,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} reassigned {ref}'**
   String chatLastReassigned(String name, String ref);
+
+  /// Composer attach button tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo or file'**
+  String get chatAttach;
+
+  /// Attach sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get chatAttachCamera;
+
+  /// Attach sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo from your phone'**
+  String get chatAttachGallery;
+
+  /// Attach sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF from your phone'**
+  String get chatAttachPdf;
+
+  /// Attach sheet helper.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes to the Space Library too.'**
+  String get chatAttachPdfHelp;
+
+  /// Remove a picked file (tooltip).
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get chatRemoveFile;
+
+  /// Wrong file type.
+  ///
+  /// In en, this message translates to:
+  /// **'Only PDF files and photos.'**
+  String get chatFileNotAllowed;
+
+  /// File too large.
+  ///
+  /// In en, this message translates to:
+  /// **'Files up to 25 MB.'**
+  String get chatFileTooBig;
+
+  /// Second PDF picked.
+  ///
+  /// In en, this message translates to:
+  /// **'One PDF per message.'**
+  String get chatOneDocument;
+
+  /// File size.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} MB'**
+  String fileSizeMb(String size);
+
+  /// File size.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} KB'**
+  String fileSizeKb(String size);
+
+  /// S13k search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search titles and file names'**
+  String get librarySearch;
+
+  /// S13k filter.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get libraryAll;
+
+  /// S13k filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get libraryFiles;
+
+  /// S13k section.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent in this Space'**
+  String get libraryRecent;
+
+  /// A file that came from chat.
+  ///
+  /// In en, this message translates to:
+  /// **'From chat'**
+  String get libraryFromChat;
+
+  /// S13k empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No files yet. Drawings and photos shared in this Space appear here.'**
+  String get libraryEmpty;
+
+  /// S13k search empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches.'**
+  String get libraryNoMatch;
+
+  /// S13k button.
+  ///
+  /// In en, this message translates to:
+  /// **'Add file'**
+  String get libraryAdd;
+
+  /// Add file title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to the Library'**
+  String get libraryAddTitle;
+
+  /// New revision title.
+  ///
+  /// In en, this message translates to:
+  /// **'New revision'**
+  String get libraryRevisionTitle;
+
+  /// New revision helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces {name}. The old one is kept in the record.'**
+  String libraryRevisionOf(String name);
+
+  /// Add file picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a PDF or photo'**
+  String get libraryPickFile;
+
+  /// Add file picker, after a pick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another file'**
+  String get libraryChangeFile;
+
+  /// Add file field.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get libraryName;
+
+  /// Add file: Everyone or one Team (single choice).
+  ///
+  /// In en, this message translates to:
+  /// **'Who sees it'**
+  String get libraryFor;
+
+  /// Add file helper for a Team file.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {team} and the Space admins see it.'**
+  String libraryTeamOnly(String team);
+
+  /// Add file field.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get libraryRev;
+
+  /// Add file placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'For example Rev C'**
+  String get libraryRevHint;
+
+  /// Add file note placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'What changed'**
+  String get libraryNoteHint;
+
+  /// Add file button.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get libraryUpload;
+
+  /// Toast.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to the Library.'**
+  String get libraryAdded;
+
+  /// Add file error.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file first.'**
+  String get libraryPickFirst;
+
+  /// Add file error.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it a title.'**
+  String get libraryNameRequired;
+
+  /// F1 subtitle part.
+  ///
+  /// In en, this message translates to:
+  /// **'from {name}'**
+  String previewFrom(String name);
+
+  /// F1 stamp.
+  ///
+  /// In en, this message translates to:
+  /// **'{rev} · CURRENT'**
+  String previewCurrent(String rev);
+
+  /// F1 stamp without a revision label.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT'**
+  String get previewCurrentNoRev;
+
+  /// F1.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded {date}'**
+  String previewUploaded(String date);
+
+  /// F1.
+  ///
+  /// In en, this message translates to:
+  /// **'Used in'**
+  String get previewUsedIn;
+
+  /// F1 older revision line.
+  ///
+  /// In en, this message translates to:
+  /// **'superseded, kept in the record'**
+  String get previewSuperseded;
+
+  /// F1 on an old revision.
+  ///
+  /// In en, this message translates to:
+  /// **'A newer revision replaced this one.'**
+  String get previewReplaced;
+
+  /// F1 link.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the current one'**
+  String get previewOpenCurrent;
+
+  /// F1 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in chat'**
+  String get previewShare;
+
+  /// F1 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get previewDownload;
+
+  /// F1 link.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a new revision'**
+  String get previewNewRevision;
+
+  /// Share sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in which thread?'**
+  String get previewShareTo;
+
+  /// Share sheet helper.
+  ///
+  /// In en, this message translates to:
+  /// **'A Team file is shared in its Team\'s thread only.'**
+  String get previewShareTeamOnly;
+
+  /// Toast.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared in {thread}.'**
+  String previewShared(String thread);
+
+  /// Toast after Download.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved.'**
+  String get previewSaved;
+
+  /// F1 when the preview fails.
+  ///
+  /// In en, this message translates to:
+  /// **'This file can\'t be shown here. Download it to open it.'**
+  String get previewCantShow;
+
+  /// F1 close tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get previewClose;
+
+  /// F1 top share icon (system share).
+  ///
+  /// In en, this message translates to:
+  /// **'Share the file'**
+  String get previewSendFile;
+
+  /// W2-A title.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach to {ref}'**
+  String workAttachTitle(String ref);
+
+  /// W2-A option.
+  ///
+  /// In en, this message translates to:
+  /// **'From the Space Library'**
+  String get workAttachLibrary;
+
+  /// W2-A option helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Drawings and files already shared in this Space'**
+  String get workAttachLibraryHelp;
+
+  /// W2-A option.
+  ///
+  /// In en, this message translates to:
+  /// **'From your phone'**
+  String get workAttachPhone;
+
+  /// W2-A option helper.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF or image · saved to the Space Library too'**
+  String get workAttachPhoneHelp;
+
+  /// W2-A option.
+  ///
+  /// In en, this message translates to:
+  /// **'Take another photo'**
+  String get workAttachPhoto;
+
+  /// W2-A option helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds to the photos on the tag'**
+  String get workAttachPhotoHelp;
+
+  /// W3 section label.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached'**
+  String get workAttached;
+
+  /// W3 attached file line.
+  ///
+  /// In en, this message translates to:
+  /// **'From the Space Library'**
+  String get workAttachedFromLibrary;
+
+  /// W2 / W3 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a drawing or file'**
+  String get workAttach;
+
+  /// Toast.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached.'**
+  String get workAttachedToast;
+
+  /// W3 Discussion label suffix (opens the Team thread).
+  ///
+  /// In en, this message translates to:
+  /// **'ALSO IN THE TEAM CHAT'**
+  String get workAlsoInTeamChat;
+
+  /// Library picker title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from the Library'**
+  String get libraryPickTitle;
+
+  /// Library picker helper on a Team item.
+  ///
+  /// In en, this message translates to:
+  /// **'Only files for Everyone and for {team} can go on this item.'**
+  String libraryPickTeamNote(String team);
 }
 
 class _AppLocalizationsDelegate

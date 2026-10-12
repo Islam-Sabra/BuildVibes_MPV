@@ -123,6 +123,26 @@ abstract final class BvIcons {
     matchTextDirection: true,
   );
 
+  // Phosphor: paperclip (attach in chat, S8k)
+  static const attach = IconData(0xe39a, fontFamily: _family);
+
+  // Phosphor: file-text (a PDF drawing in the Library and chat)
+  static const document = IconData(0xe23a, fontFamily: _family);
+
+  // Phosphor: download-simple (F1 Download)
+  static const download = IconData(0xe20c, fontFamily: _family);
+
+  // Phosphor: upload-simple (upload a new revision)
+  static const upload = IconData(0xe4c0, fontFamily: _family);
+
+  // Phosphor: share-fat (F1: share the file through the phone). An arrow
+  // shape, so it mirrors in right to left.
+  static const shareFile = IconData(
+    0xed52,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+
   // Phosphor: copy (copy a message, S8b)
   static const copy = IconData(0xe1ca, fontFamily: _family);
 

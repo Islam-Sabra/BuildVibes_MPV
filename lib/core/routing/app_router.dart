@@ -38,6 +38,8 @@ import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
 import '../../features/chat/thread_screen.dart';
+import '../../features/library/add_file_screen.dart';
+import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
 import '../../features/work/new_work_item_screen.dart';
@@ -199,6 +201,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'items/new',
             builder: (context, state) =>
                 NewWorkItemScreen(spaceId: state.pathParameters['id']!),
+          ),
+          // "new" before ":fileId".
+          GoRoute(
+            path: 'library/new',
+            builder: (context, state) => AddFileScreen(
+              spaceId: state.pathParameters['id']!,
+              supersedesId: state.uri.queryParameters['supersedes'],
+              forTeam: state.uri.queryParameters['for'],
+            ),
+          ),
+          GoRoute(
+            path: 'library/:fileId',
+            builder: (context, state) => FilePreviewScreen(
+              spaceId: state.pathParameters['id']!,
+              fileId: state.pathParameters['fileId']!,
+            ),
           ),
           GoRoute(
             path: 'chat/:threadId',
