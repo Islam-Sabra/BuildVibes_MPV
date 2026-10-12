@@ -168,6 +168,14 @@ class VoicePlayer extends Notifier<VoiceState> {
     return const VoiceState();
   }
 
+  /// Pauses whatever plays: before recording, or when the app goes to
+  /// the background (review 15).
+  Future<void> pause() async {
+    if (!state.playing) return;
+    await ref.read(voicePlaybackProvider).pause();
+    state = VoiceState(id: state.id, position: state.position);
+  }
+
   /// Plays [id] from [source]; pauses it when it is playing; another note
   /// stops the one before.
   Future<void> toggle(String id, String source, {required bool isFile}) async {

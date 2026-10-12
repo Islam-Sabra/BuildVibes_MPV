@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,7 +53,8 @@ class ThreadScreen extends ConsumerStatefulWidget {
   ConsumerState<ThreadScreen> createState() => _ThreadScreenState();
 }
 
-class _ThreadScreenState extends ConsumerState<ThreadScreen> {
+class _ThreadScreenState extends ConsumerState<ThreadScreen>
+    with WidgetsBindingObserver {
   final _text = TextEditingController();
   final _scroll = ScrollController();
   late final ChatRepository _repo = ref.read(chatRepositoryProvider);
@@ -63,8 +65,10 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
   final _files = <PhoneFile>[];
   static const _maxFiles = 10;
 
-  // Recording a voice note: the time counts in steps of [_tick].
+  // Recording a voice note. The length comes from a clock ([_watch]); the
+  // timer only redraws the time shown (review 15).
   static const _tick = Duration(milliseconds: 250);
+  Stopwatch? _watch;
   var _recording = false;
 
   /// The thumb is on the mic. Asking for the microphone or starting the
@@ -78,12 +82,14 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scroll.addListener(_maybeLoadOlder);
     unawaited(_markRead());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _recordTimer?.cancel();
     if (_recording) unawaited(ref.read(voiceRecorderProvider).cancel());
     // Leaving counts as read too.
@@ -91,6 +97,18 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
     _text.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// A call, the home button or a locked screen: a recording is thrown
+  /// away (the thumb-up may never come), and playback pauses.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) return;
+    unawaited(ref.read(voicePlayerProvider.notifier).pause());
+    if (_recording || _holding) {
+      _cancelling = true;
+      unawaited(_endRecording());
+    }
   }
 
   Future<void> _markRead() async {
@@ -189,6 +207,8 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
     FocusManager.instance.primaryFocus?.unfocus();
     final recorder = ref.read(voiceRecorderProvider);
     _holding = true;
+    // One sound at a time: a playing note pauses.
+    await ref.read(voicePlayerProvider.notifier).pause();
     if (!await recorder.allowed()) {
       if (mounted) _toast(l10n.chatMicDenied);
       return;
@@ -199,6 +219,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
       await recorder.cancel();
       return;
     }
+    _watch = clock.stopwatch()..start();
     setState(() {
       _recording = true;
       _cancelling = false;
@@ -206,7 +227,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
     });
     _recordTimer = Timer.periodic(_tick, (_) {
       if (!mounted) return;
-      setState(() => _elapsed += _tick);
+      setState(() => _elapsed = _watch!.elapsed);
       // Two minutes at most: it sends itself.
       if (_elapsed >= maxVoice) unawaited(_endRecording());
     });
@@ -224,7 +245,8 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen> {
     if (!_recording) return;
     final l10n = AppLocalizations.of(context);
     final recorder = ref.read(voiceRecorderProvider);
-    final length = _elapsed;
+    final measured = _watch?.elapsed ?? _elapsed;
+    final length = measured > maxVoice ? maxVoice : measured;
     final cancel = _cancelling;
     setState(() {
       _recording = false;

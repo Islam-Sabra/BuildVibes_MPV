@@ -269,13 +269,20 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Notes go through the outbox like photos ("Not sent · Retry").
   - **Bug found on the emulator and fixed:** the first hold asks for the microphone, and the thumb was already up when recording started, so it kept recording. Now nothing records unless the thumb is still down; the first hold only grants the microphone. A test covers it.
   - Android asks for the microphone (`RECORD_AUDIO`). iOS now has camera and microphone texts in `Info.plist` (the camera text was missing). Arabic texts for the iOS prompts need an `ar.lproj` in the Xcode project: to do with the App Store work (week 10).
+- Review 15 on `chat-part3`:
+  - a hold pauses a note that plays;
+  - the app going to the background (a call, the home button, a locked screen) cancels a recording and pauses playback;
+  - the length comes from a clock (`clock.stopwatch()`), not counted timer ticks; the 2-minute cap uses the same clock.
+
+  Tests for each.
   - Checked on the emulator against the local server, in English and Arabic: recorded, sent (`audio/mp4`, 3.5 s, 18.5 KB on the server), played to the end.
   - 473 Flutter tests and 448 SQL tests pass. Screenshots: `chat_*_recording`, `chat_*_voice_sent`, `chat_ar_voice_playing`.
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
 2. The lead reviews week 6 part 3 (`chat-part3`, voice notes). No database change.
-3. Week 7 (MVP plan): Home feed and posts, the Spaces tab, Activity, push notifications.
+3. Week 7 (MVP plan): Home feed and posts, the Spaces tab, Activity, push notifications. The lead writes the brief as review 16 first; wait for it.
+4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 5. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 6. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.

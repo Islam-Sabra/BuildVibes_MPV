@@ -115,8 +115,67 @@ void main() {
       expect(app.recorder.calls, ['start', 'stop']);
       expect(chat.uploads.single, endsWith('.m4a'));
       expect(chat.calls, contains('post $_everyone  files audio/mp4'));
-      expect(chat.posted.single.single.durationMs, 3000);
+      // It records from the moment the hold is recognised: the 50 ms after
+      // the long-press timeout count too.
+      expect(chat.posted.single.single.durationMs, 3050);
       expect(find.byKey(const Key('chat-recording')), findsNothing);
+    });
+
+    testWidgets('the length is the real time held, not counted ticks '
+        '[$lang]', (tester) async {
+      final chat = _chat();
+      await _open(tester, lang, chat: chat);
+      // 3.15 s held after the hold is recognised: ticks of 250 ms would say 3.0.
+      await _record(tester, const Duration(milliseconds: 3100));
+      expect(chat.posted.single.single.durationMs, 3150);
+    });
+
+    testWidgets('recording pauses a note that plays [$lang]', (tester) async {
+      final chat = _chat()
+        ..messagesByThread[_everyone] = [
+          ChatMessage(
+            id: 'v1',
+            threadId: _everyone,
+            kind: ChatKind.voice,
+            createdAt: testNow,
+            authorId: 'p-rakesh',
+            authorName: 'Rakesh Nair',
+            attachments: const [
+              ChatAttachment(
+                path: '$_space/chat/v1/a.m4a',
+                mime: 'audio/mp4',
+                durationMs: 42000,
+              ),
+            ],
+          ),
+        ];
+      final library = FakeLibraryRepository(now: testNow)..offline = false;
+      final app = await _open(tester, lang, chat: chat, library: library);
+      await tester.tap(find.byKey(const Key('chat-voice-play-v1')));
+      await tester.pumpAndSettle();
+      await _record(tester, const Duration(seconds: 2));
+      expect(app.playback.calls, contains('pause'));
+      expect(chat.posted, hasLength(1));
+    });
+
+    testWidgets('the app goes away while recording: nothing is sent '
+        '[$lang]', (tester) async {
+      final chat = _chat();
+      final app = await _open(tester, lang, chat: chat);
+      final mic = tester.getCenter(find.byKey(const Key('chat-record')));
+      final gesture = await tester.startGesture(mic);
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await tester.pump(const Duration(seconds: 5));
+      // A phone call: the app goes to the background mid-hold.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.byKey(const Key('chat-recording')), findsNothing);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump(maxVoice);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(app.recorder.calls, ['start', 'cancel']);
+      expect(chat.posted, isEmpty);
     });
 
     testWidgets('a slip of the thumb is not sent [$lang]', (tester) async {
