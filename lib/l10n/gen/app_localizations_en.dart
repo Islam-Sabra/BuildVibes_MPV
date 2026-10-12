@@ -1916,4 +1916,146 @@ class AppLocalizationsEn extends AppLocalizations {
   String workTodayAt(String time) {
     return 'Today $time';
   }
+
+  @override
+  String workSignTitle(String ref) {
+    return 'Sign DONE on $ref';
+  }
+
+  @override
+  String workSignBody(String name) {
+    return 'Your name and the time go on the sign-off. Add a photo or a note so $name can check it.';
+  }
+
+  @override
+  String get workAddPhoto => 'Add photo';
+
+  @override
+  String get workNote => 'Note';
+
+  @override
+  String get workNoteHint => 'What was done';
+
+  @override
+  String get workSignNeedsSomething => 'Add a photo or a note.';
+
+  @override
+  String get workSigned => 'Signed as done. It\'s waiting for a check.';
+
+  @override
+  String get workPendingSignOff => 'Sign-off not sent yet';
+
+  @override
+  String workSendBackTitle(String ref, String name) {
+    return 'Send $ref back to $name';
+  }
+
+  @override
+  String workSendBackBody(String name) {
+    return 'The tag goes back to Open with your reason written on it, and into $name\'s Needs you.';
+  }
+
+  @override
+  String get workReason => 'Reason';
+
+  @override
+  String workNoteFor(String name) {
+    return 'Note for $name';
+  }
+
+  @override
+  String workSendBackTo(String name) {
+    return 'Send back to $name';
+  }
+
+  @override
+  String get workReasonRequired => 'Choose a reason.';
+
+  @override
+  String get workOtherNeedsNote => 'Say what is wrong.';
+
+  @override
+  String workSentBack(String name) {
+    return 'Sent back to $name.';
+  }
+
+  @override
+  String workCheckTitle(String ref) {
+    return 'Check and close $ref?';
+  }
+
+  @override
+  String get workCheckBody =>
+      'Your name and the time go on the sign-off. It closes and stays in the Space record.';
+
+  @override
+  String get workShowOnProfile => 'Show on my profile';
+
+  @override
+  String get workShowOnProfileHelp =>
+      'Only the title, one photo, the place and who checked it. Never the Space or the discussion.';
+
+  @override
+  String workReassignedLine(String from, String to) {
+    return 'Reassigned from $from to $to';
+  }
+
+  @override
+  String get workSomeone => 'someone';
+
+  @override
+  String get deliveredTitle => 'Work you delivered';
+
+  @override
+  String get deliveredIntro =>
+      'Only work items that were checked and closed in a Space. Everything is hidden until you switch it on. Shown items appear on your profile.';
+
+  @override
+  String get deliveredShown => 'SHOWN ON PROFILE';
+
+  @override
+  String get deliveredHidden => 'Hidden · tap to show';
+
+  @override
+  String deliveredCheckedBy(String name, String date) {
+    return 'Checked by $name · $date';
+  }
+
+  @override
+  String get deliveredFooter =>
+      'People see who checked each item. Items from a Space you left stay yours to show or hide.';
+
+  @override
+  String get deliveredEmpty =>
+      'Nothing yet. Work items you own appear here once they\'re checked.';
+
+  @override
+  String get deliveredSeeAll => 'See all';
+
+  @override
+  String get deliveredPublicTitle => 'Delivered work';
+
+  @override
+  String deliveredShownBy(String name) {
+    return 'Shown by $name';
+  }
+
+  @override
+  String get deliveredProject => 'Project';
+
+  @override
+  String get deliveredPlace => 'Place';
+
+  @override
+  String get deliveredCheckedRow => 'Checked by';
+
+  @override
+  String deliveredPrivacy(String name) {
+    return '$name chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown.';
+  }
+
+  @override
+  String deliveredStamp(String date) {
+    return 'CHECKED · $date';
+  }
 }

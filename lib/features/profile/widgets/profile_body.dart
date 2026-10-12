@@ -10,6 +10,7 @@ import '../../../l10n/gen/app_localizations.dart';
 import '../../../shared/widgets/bv_button.dart';
 import '../../../shared/widgets/bv_list_row.dart';
 import '../../../shared/widgets/bv_tabs.dart';
+import '../delivered_work.dart';
 import 'profile_parts.dart';
 
 /// Tabs and their content under a profile header: Overview, Posts,
@@ -188,7 +189,7 @@ class _Overview extends StatelessWidget {
                 l10n.workDeliveredBody,
                 style: type.bodySm.copyWith(color: BvColors.textSecondary),
               ),
-            ProfileCard(child: EmptyNote(l10n.workDeliveredEmpty)),
+            DeliveredPreview(profileId: profile.id, own: own),
           ],
         ),
       ],

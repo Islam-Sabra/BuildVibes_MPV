@@ -13,6 +13,8 @@ import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_choice_card.dart';
+import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_sign_off_strip.dart';
 import '../../shared/widgets/bv_site_photo.dart';
@@ -22,6 +24,8 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
+import 'work_actions.dart';
+import 'work_outbox.dart';
 
 /// W3a–g · the item page: the site tag, the banner for this state and
 /// your role, evidence, the sign-off strip, Discussion, and your action.
@@ -109,12 +113,68 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
     }
   }
 
-  /// Sign as done (W4), Check and close, and Send back (W5) are built in
-  /// week 5 part 3.
-  Future<void> _comingNext() => showBvSheet<void>(
-    context: context,
-    builder: (_) => EmptyNote(AppLocalizations.of(context).placeholderBody),
-  );
+  void _toast(String text) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
+
+  /// W4: through the outbox, so a weak signal never loses the photos.
+  Future<void> _signDone(WorkItem item) async {
+    final l10n = AppLocalizations.of(context);
+    final sent = await showSignDoneSheet(context, item);
+    if (sent == null || !mounted) return;
+    _refresh();
+    _toast(sent ? l10n.workSigned : l10n.workNotSentNote);
+  }
+
+  Future<void> _sendBack(WorkItem item) async {
+    final l10n = AppLocalizations.of(context);
+    final choice = await showSendBackSheet(context, item);
+    if (choice == null || !mounted) return;
+    try {
+      await ref
+          .read(workRepositoryProvider)
+          .sendBack(item.id, choice.$1, note: choice.$2);
+      _refresh();
+      _toast(l10n.workSentBack((item.ownerName ?? '').split(' ').first));
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+    }
+  }
+
+  Future<void> _check(WorkItem item) async {
+    final l10n = AppLocalizations.of(context);
+    final yes = await showBvDialog(
+      context: context,
+      title: l10n.workCheckTitle(item.ref),
+      body: l10n.workCheckBody,
+      cancelLabel: l10n.commonCancel,
+      confirmLabel: l10n.workCheckAndClose,
+    );
+    if (!yes || !mounted) return;
+    try {
+      await ref.read(workRepositoryProvider).checkItem(item.id);
+      _refresh();
+      _toast(l10n.workClosed);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+    }
+  }
+
+  Future<void> _setShown(WorkItem item, bool shown) async {
+    try {
+      await ref.read(workRepositoryProvider).setShown(item.id, shown);
+      _refresh();
+      ref.invalidate(myDeliveredWorkProvider);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+    }
+  }
+
+  Future<void> _retry(String id) async {
+    final l10n = AppLocalizations.of(context);
+    final sent = await ref.read(workOutboxProvider.notifier).retry(id);
+    if (mounted) _toast(sent ? l10n.workSigned : l10n.workNotSentNote);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -268,14 +328,25 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
 
     final raised = d.last(WorkEventKind.raised);
     final checked = d.last(WorkEventKind.checked);
+    // Discussion: comments, and who it was reassigned to.
+    final talk = [
+      for (final e in d.events)
+        if (e.kind == WorkEventKind.comment ||
+            e.kind == WorkEventKind.reassigned)
+          e,
+    ];
+    final pending = ref
+        .watch(workOutboxProvider)
+        .where((p) => p.id == item.id && p.kind == PendingKind.signDone)
+        .firstOrNull;
 
     Widget? footer;
-    if (toSign) {
+    if (toSign && pending == null) {
       footer = BvButton(
         key: const Key('work-sign-done'),
         label: l10n.workSignAsDone,
         expand: true,
-        onPressed: _comingNext,
+        onPressed: () => _signDone(item),
       );
     } else if (toCheck) {
       footer = Row(
@@ -287,7 +358,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
               label: l10n.workSendBack,
               style: BvButtonStyle.secondary,
               expand: true,
-              onPressed: _comingNext,
+              onPressed: () => _sendBack(item),
             ),
           ),
           Expanded(
@@ -295,7 +366,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
               key: const Key('work-check'),
               label: l10n.workCheckAndClose,
               expand: true,
-              onPressed: _comingNext,
+              onPressed: () => _check(item),
             ),
           ),
         ],
@@ -343,9 +414,41 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
                     )
                   : null,
             ),
+            // A sign-off kept on this phone after a weak signal.
+            if (pending != null) ...[
+              const SizedBox(height: BvSpace.s16),
+              _Banner(
+                tone: _BannerTone.warning,
+                title: l10n.workPendingSignOff,
+                body: l10n.workNotSentNote,
+                action: BvButton(
+                  key: const Key('work-retry-sign-off'),
+                  label: l10n.workRetry,
+                  style: BvButtonStyle.secondary,
+                  size: BvButtonSize.medium,
+                  onPressed: () => _retry(pending.id),
+                ),
+              ),
+            ],
             if (banner != null) ...[
               const SizedBox(height: BvSpace.s16),
               banner,
+            ],
+            // The owner chooses to show checked work on the profile (RE2).
+            if (item.status == WorkStatus.checked && item.ownerId == me) ...[
+              const SizedBox(height: BvSpace.s12),
+              ProfileCard(
+                padding: false,
+                child: BvListRow(
+                  key: const Key('work-show-on-profile'),
+                  title: l10n.workShowOnProfile,
+                  subtitle: l10n.workShowOnProfileHelp,
+                  trailing: BvRowTrailing.toggle(
+                    value: item.shown,
+                    onChanged: (v) => _setShown(item, v),
+                  ),
+                ),
+              ),
             ],
             if (photos.isNotEmpty || (done?.note ?? '').isNotEmpty) ...[
               const SizedBox(height: BvSpace.s16),
@@ -399,40 +502,33 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
             ),
             const SizedBox(height: BvSpace.s16),
             _Label(l10n.workDiscussion),
-            if (d.comments.isEmpty)
+            if (talk.isEmpty)
               EmptyNote(l10n.workNoComments)
             else
-              for (final c in d.comments) ...[
-                _Comment(
-                  name: who(c.actorId, c.actorName),
-                  ago: formatAgo(l10n, c.at.toLocal(), now),
-                  text: c.note ?? '',
-                ),
+              for (final c in talk) ...[
+                if (c.kind == WorkEventKind.reassigned)
+                  Text(
+                    l10n.workReassignedLine(
+                      c.fromName ?? l10n.workSomeone,
+                      c.toName ?? l10n.workSomeone,
+                    ),
+                    key: Key('work-reassigned-${c.id}'),
+                    style: type.bodySm.copyWith(color: BvColors.textSecondary),
+                  )
+                else
+                  _Comment(
+                    name: who(c.actorId, c.actorName),
+                    ago: formatAgo(l10n, c.at.toLocal(), now),
+                    text: c.note ?? '',
+                  ),
                 const SizedBox(height: BvSpace.s12),
               ],
             const SizedBox(height: BvSpace.s8),
-            Row(
-              spacing: BvSpace.s8,
-              children: [
-                Expanded(
-                  child: BvTextField(
-                    key: const Key('work-comment'),
-                    placeholder: l10n.workAddComment,
-                    controller: _comment,
-                    maxLines: 3,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                ),
-                BvButton(
-                  key: const Key('work-comment-send'),
-                  label: l10n.workSendComment,
-                  style: BvButtonStyle.tertiary,
-                  size: BvButtonSize.medium,
-                  onPressed: _sending || _comment.text.trim().isEmpty
-                      ? null
-                      : _sendComment,
-                ),
-              ],
+            _CommentField(
+              controller: _comment,
+              sending: _sending,
+              onChanged: () => setState(() {}),
+              onSend: _sendComment,
             ),
           ],
         ),
@@ -587,6 +683,68 @@ class _Comment extends StatelessWidget {
         ),
         UserText(text, style: type.bodyMd),
       ],
+    );
+  }
+}
+
+/// "Add a comment": a one-line pill that grows while typing, with the send
+/// icon inside once there is text (review 10).
+class _CommentField extends StatelessWidget {
+  const _CommentField({
+    required this.controller,
+    required this.sending,
+    required this.onChanged,
+    required this.onSend,
+  });
+
+  final TextEditingController controller;
+  final bool sending;
+  final VoidCallback onChanged;
+  final VoidCallback onSend;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final hasText = controller.text.trim().isNotEmpty;
+    return Container(
+      key: const Key('work-comment'),
+      constraints: const BoxConstraints(minHeight: BvSize.controlMd),
+      padding: const EdgeInsetsDirectional.only(
+        start: BvSpace.s16,
+        end: BvSpace.s4,
+      ),
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceSubtle,
+        borderRadius: BvRadius.roundAll,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              minLines: 1,
+              maxLines: 5,
+              textCapitalization: TextCapitalization.sentences,
+              style: type.bodyMd,
+              decoration: InputDecoration.collapsed(
+                hintText: l10n.workAddComment,
+                hintStyle: type.bodyMd.copyWith(color: BvColors.textSecondary),
+              ),
+              onChanged: (_) => onChanged(),
+            ),
+          ),
+          if (hasText)
+            IconButton(
+              key: const Key('work-comment-send'),
+              tooltip: l10n.workSendComment,
+              icon: const Icon(BvIcons.send, color: BvColors.iconAction),
+              onPressed: sending ? null : onSend,
+            )
+          else
+            const SizedBox(height: BvSize.controlMd),
+        ],
+      ),
     );
   }
 }

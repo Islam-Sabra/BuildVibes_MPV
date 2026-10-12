@@ -116,6 +116,13 @@ abstract final class BvIcons {
   // Phosphor: user-switch (Transfer ownership)
   static const transfer = IconData(0xe756, fontFamily: _family);
 
+  // Phosphor: paper-plane-right (send a comment)
+  static const send = IconData(
+    0xe396,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+
   // Phosphor: share-network (share an invite code)
   static const share = IconData(0xe408, fontFamily: _family);
 

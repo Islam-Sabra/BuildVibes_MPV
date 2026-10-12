@@ -17,6 +17,7 @@ import '../../features/onboarding/about_you_screen.dart';
 import '../../features/onboarding/people_screen.dart';
 import '../../features/onboarding/role_picker_screen.dart';
 import '../../data/models/profile.dart';
+import '../../features/profile/delivered_work.dart';
 import '../../features/profile/edit/about_screen.dart';
 import '../../features/profile/edit/basics_screen.dart';
 import '../../features/profile/edit/cv_projects_screen.dart';
@@ -140,6 +141,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.people}/:id',
         builder: (context, state) =>
             PersonProfileScreen(profileId: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'work/:itemId',
+            builder: (context, state) => DeliveredPublicScreen(
+              profileId: state.pathParameters['id']!,
+              itemId: state.pathParameters['itemId']!,
+            ),
+          ),
+        ],
       ),
       // "add" and "new" before ":id".
       GoRoute(
@@ -252,6 +262,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.profile,
                 builder: (context, state) => const ProfileScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'delivered',
+                    builder: (context, state) => const DeliveredScreen(),
+                  ),
                   GoRoute(
                     path: 'settings',
                     builder: (context, state) => const SettingsScreen(),
