@@ -141,6 +141,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Screenshots use the local Supabase on this computer (migration 7 isn't live): `env/local.json` (git-ignored), a debug-only Android setting for plain http to 10.0.2.2, and `supabase/dev/seed_work_items.sql` for test data.
   - 346 Flutter tests and 277 SQL tests pass.
   - Review 09 applied (migration 7 is still not live; ready for the lead's re-check on `work-items-db`): photos must be real uploads of the caller's, in the item's folder, and can never be replaced; only an item's creator or owner uploads (never a Viewer); reassign and "Owner left · reassign"; the public photo is the owner's Done photo; blocks, deleted accounts and deleted Spaces hide shown work; a pass changed to Viewer can't sign; cascades and the service role pass the append-only rule. 97 checks in `07_work_items.test.sql`, 309 in all. Work tab: the list's bottom padding clears New item; the "Owner left · reassign" row. 350 Flutter tests pass.
+  - Week 5 part 2 (branch `work-items`): New work item (W2) and the item page (W3a–g).
+    - W2: the photo first (camera, gallery as a fallback; about 1600 px, JPEG 80), stamped "{place} · {time} · You"; "NEW · KCT-006" from the Space's next number; title, Owner (never a Viewer), Due (No due date, Today, Tomorrow, a date), Place on site, Team; "{Owner} gets it in Needs you…". Voice note and attachments are hidden until week 6.
+    - Weak signal: the photo is copied into the app's folder at once; the item waits in an outbox on the phone; uploads use a new name every try (3 tries); if it still fails, the Work tab shows "Not sent yet" with Retry. Nothing is lost.
+    - W3: the site tag (with the tilted CHECKED stamp once closed), the banner for each state and role (to check, waiting, done, closed, sent back with its reason, owner left with Reassign), evidence photos on signed links, the sign-off strip ("You check it" while waiting), Discussion with comments, Reassign in "…", and the action buttons. Sign as done, Check and close and Send back open in part 3.
+    - Shared: the site tag's checked stamp; the sign-off step's "waiting for" text.
+    - Checked live against the local server: Omar raised KCT-006 with a camera photo (uploaded under the review 09 rules), commented on KCT-002, and the pages show correctly for Omar and Rakesh.
+    - 374 Flutter tests pass. Screenshots (English and Arabic) in `docs/screens/`: W2, W3a, W3b, W3c, W3d, W3e.
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).

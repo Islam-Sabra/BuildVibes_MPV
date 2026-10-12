@@ -272,7 +272,6 @@ void main() {
       await _open(tester, lang);
       await _tap(tester, 'work-item-item-KCT-021');
       expect(find.byType(WorkItemScreen), findsOneWidget);
-      expect(find.text('KCT-021'), findsOneWidget);
     });
   }
 

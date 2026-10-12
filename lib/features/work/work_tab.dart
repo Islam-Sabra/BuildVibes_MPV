@@ -22,6 +22,7 @@ import '../../shared/widgets/bv_work_item_card.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
+import 'work_outbox.dart';
 
 enum WorkFilter { all, mine, open, toCheck, checked }
 
@@ -90,9 +91,22 @@ class _WorkTabState extends ConsumerState<WorkTab> {
               onChanged: (f) => setState(() => _filter = f),
             ),
             const SizedBox(height: BvSpace.s16),
-            if (all.isEmpty)
+            // Items made on this phone that didn't reach the server yet.
+            for (final p in ref.watch(workOutboxProvider))
+              if (p.spaceId == _spaceId)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    bottom: BvSpace.s12,
+                  ),
+                  child: _PendingCard(item: p),
+                ),
+            if (all.isEmpty &&
+                !ref
+                    .watch(workOutboxProvider)
+                    .any((p) => p.spaceId == _spaceId))
               _EmptyWork(canCreate: canCreate)
-            else if (sections.every((s) => s.items.isEmpty && !s.keepEmpty))
+            else if (all.isNotEmpty &&
+                sections.every((s) => s.items.isEmpty && !s.keepEmpty))
               EmptyNote(l10n.workFilterEmpty)
             else
               for (final s in sections)
@@ -472,6 +486,73 @@ class _ItemCard extends ConsumerWidget {
       actionLabel: action,
       onAction: action == null ? null : open,
       onTap: open,
+    );
+  }
+}
+
+/// "Not sent yet · Retry": a new item kept on this phone after a weak
+/// signal, with its photo. Nothing is lost.
+class _PendingCard extends ConsumerStatefulWidget {
+  const _PendingCard({required this.item});
+
+  final PendingItem item;
+
+  @override
+  ConsumerState<_PendingCard> createState() => _PendingCardState();
+}
+
+class _PendingCardState extends ConsumerState<_PendingCard> {
+  var _busy = false;
+
+  Future<void> _retry() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    final sent = await ref
+        .read(workOutboxProvider.notifier)
+        .retry(widget.item.id);
+    // Once sent, this card is gone; the message still shows.
+    if (mounted) setState(() => _busy = false);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(sent ? l10n.workSent : l10n.workNotSentNote)),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return ProfileCard(
+      child: Column(
+        key: Key('work-pending-${widget.item.id}'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: BvSpace.s4,
+        children: [
+          Text(
+            l10n.workNotSent,
+            style: type.overline.copyWith(color: BvColors.textWarning),
+          ),
+          Text(widget.item.title, style: type.titleMd),
+          Text(
+            joinMeta([
+              l10n.workOwner(widget.item.ownerName),
+              if (widget.item.photos.isNotEmpty)
+                l10n.workPhotos(widget.item.photos.length),
+            ]),
+            style: type.bodySm.copyWith(color: BvColors.textSecondary),
+          ),
+          EmptyNote(l10n.workNotSentNote),
+          BvButton(
+            key: Key('work-retry-${widget.item.id}'),
+            label: l10n.workRetry,
+            style: BvButtonStyle.secondary,
+            size: BvButtonSize.medium,
+            onPressed: _busy ? null : _retry,
+          ),
+        ],
+      ),
     );
   }
 }

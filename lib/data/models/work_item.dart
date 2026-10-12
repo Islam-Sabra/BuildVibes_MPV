@@ -153,3 +153,104 @@ class WorkNeeds {
       toCheck.contains(itemId) ||
       toReassign.contains(itemId);
 }
+
+enum WorkEventKind {
+  raised,
+  done,
+  checked,
+  sentBack,
+  comment,
+  reassigned;
+
+  static WorkEventKind fromJson(Object? value) => switch (value) {
+    'done' => WorkEventKind.done,
+    'checked' => WorkEventKind.checked,
+    'sent_back' => WorkEventKind.sentBack,
+    'comment' => WorkEventKind.comment,
+    'reassigned' => WorkEventKind.reassigned,
+    _ => WorkEventKind.raised,
+  };
+}
+
+/// Why an item was sent back (W5). One single choice.
+enum SendBackReason {
+  photoMissing('photo_missing'),
+  notAsDrawing('not_as_drawing'),
+  notFinished('not_finished'),
+  other('other');
+
+  const SendBackReason(this.json);
+  final String json;
+
+  static SendBackReason? fromJson(Object? value) =>
+      values.where((r) => r.json == value).firstOrNull;
+}
+
+/// A photo on a sign-off, in the private bucket.
+@immutable
+class WorkPhoto {
+  const WorkPhoto({required this.path, this.takenAt, this.place});
+
+  final String path;
+  final DateTime? takenAt;
+  final String? place;
+}
+
+/// One line of the record (append-only on the server).
+@immutable
+class WorkEvent {
+  const WorkEvent({
+    required this.id,
+    required this.kind,
+    required this.at,
+    this.actorId,
+    this.actorName,
+    this.note,
+    this.reason,
+    this.photos = const [],
+  });
+
+  final String id;
+  final WorkEventKind kind;
+  final DateTime at;
+  final String? actorId;
+  final String? actorName;
+  final String? note;
+  final SendBackReason? reason;
+  final List<WorkPhoto> photos;
+}
+
+/// The item page (W3): the item and its whole record, oldest first.
+@immutable
+class WorkItemDetail {
+  const WorkItemDetail({required this.item, required this.events});
+
+  final WorkItem item;
+  final List<WorkEvent> events;
+
+  WorkEvent? last(WorkEventKind kind) =>
+      events.where((e) => e.kind == kind).lastOrNull;
+
+  /// Photos taken when the item was raised.
+  List<WorkPhoto> get raisedPhotos => last(WorkEventKind.raised)?.photos ?? [];
+
+  /// The latest Done sign-off (its note and photos are the evidence).
+  WorkEvent? get lastDone => last(WorkEventKind.done);
+
+  /// The latest event that changed the status, when it was a send-back.
+  WorkEvent? get sentBack {
+    final steps = [
+      for (final e in events)
+        if (e.kind != WorkEventKind.comment &&
+            e.kind != WorkEventKind.reassigned)
+          e,
+    ];
+    final last = steps.lastOrNull;
+    return last?.kind == WorkEventKind.sentBack ? last : null;
+  }
+
+  List<WorkEvent> get comments => [
+    for (final e in events)
+      if (e.kind == WorkEventKind.comment) e,
+  ];
+}
