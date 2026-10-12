@@ -151,6 +151,12 @@ abstract final class BvIcons {
   static const play = IconData(0xe3d0, fontFamily: _family);
   static const pause = IconData(0xe39e, fontFamily: _family);
 
+  // Phosphor: thumbs-up (Useful on posts and replies, H1)
+  static const useful = IconData(0xe48e, fontFamily: _family);
+
+  // Phosphor: translate (the post language line, L5)
+  static const postLanguage = IconData(0xe4a2, fontFamily: _family);
+
   // Phosphor: copy (copy a message, S8b)
   static const copy = IconData(0xe1ca, fontFamily: _family);
 

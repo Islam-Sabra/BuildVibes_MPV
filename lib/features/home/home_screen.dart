@@ -10,11 +10,13 @@ import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_tabs.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
+import '../feed/feed_tab.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/my_spaces_view.dart';
 
-/// Home: Feed (opens first) and Spaces. Until week 7 builds the daily
-/// Spaces tab (H1b, Needs you), Spaces shows My Spaces (review 06).
+/// Home: Feed (opens first; H1 v2) and Spaces. Until week 7 part 2
+/// builds the daily Spaces tab (H1b), Spaces shows My Spaces. Guests get
+/// no feed (the guest feed isn't in the MVP).
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -70,10 +72,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Expanded(
             child: _tab == HomeScreen.spacesTab
                 ? const MySpacesView()
-                : Padding(
+                : guest
+                ? Padding(
                     padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
                     child: EmptyNote(l10n.placeholderBody),
-                  ),
+                  )
+                : const FeedTab(),
           ),
         ],
       ),

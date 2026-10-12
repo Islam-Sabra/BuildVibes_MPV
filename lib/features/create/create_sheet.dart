@@ -33,6 +33,15 @@ class CreateSheet extends StatelessWidget {
       child: BvListGroup(
         rows: [
           BvListRow(
+            key: const Key('create-new-post'),
+            leading: const BvRowIcon(BvIcons.edit),
+            title: l10n.feedNewPost,
+            onTap: () {
+              navigator.pop();
+              router.push(AppRoutes.postNew);
+            },
+          ),
+          BvListRow(
             key: const Key('create-new-space'),
             leading: const BvRowIcon(BvIcons.crane),
             title: l10n.spacesNewTitle,

@@ -900,7 +900,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mobileHelp => 'خاص: أنت فقط تراه، ولا يظهر في ملفك أبداً.';
 
   @override
-  String get homeFeed => 'الخلاصة';
+  String get homeFeed => 'الأخبار';
 
   @override
   String get homeSpaces => 'المساحات';
@@ -2471,4 +2471,286 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatPause => 'إيقاف مؤقت';
+
+  @override
+  String feedBeyond(String market) {
+    return 'خارج $market';
+  }
+
+  @override
+  String get feedEmpty => 'لا منشورات بعد. شارك ما حدث في الموقع اليوم.';
+
+  @override
+  String get feedCouldntLoad => 'تعذّر تحميل الأخبار';
+
+  @override
+  String get feedOffline => 'أنت غير متصل. نعرض ما حمّلته من قبل.';
+
+  @override
+  String get feedNewPost => 'منشور جديد';
+
+  @override
+  String get postUseful => 'مفيد';
+
+  @override
+  String get postReply => 'رد';
+
+  @override
+  String postUsefulOne(String a) {
+    return 'وجده مفيداً: $a';
+  }
+
+  @override
+  String postUsefulTwo(String a, String b) {
+    return 'وجده مفيداً: $a و$b';
+  }
+
+  @override
+  String get postEdited => 'معدّل';
+
+  @override
+  String get postMenu => 'خيارات المنشور';
+
+  @override
+  String postMute(String name) {
+    return 'كتم $name';
+  }
+
+  @override
+  String postMuted(String name) {
+    return 'تم كتم $name';
+  }
+
+  @override
+  String get postUndo => 'تراجع';
+
+  @override
+  String get postEdit => 'تعديل المنشور';
+
+  @override
+  String get postDelete => 'حذف المنشور';
+
+  @override
+  String get postDeleteTitle => 'حذف هذا المنشور؟';
+
+  @override
+  String get postDeleteBody => 'سيُحذف من الأخبار وملفك وصفحة المشروع.';
+
+  @override
+  String get postDeleted => 'حُذف المنشور.';
+
+  @override
+  String get postOpenPhoto => 'فتح الصورة';
+
+  @override
+  String get postTitle => 'منشور';
+
+  @override
+  String get postReplies => 'الردود';
+
+  @override
+  String get postNoReplies => 'لا ردود بعد.';
+
+  @override
+  String get postAddComment => 'أضف تعليقاً';
+
+  @override
+  String get postWriteReply => 'اكتب رداً';
+
+  @override
+  String postReplyingTo(String name) {
+    return 'ردّاً على $name';
+  }
+
+  @override
+  String get postCancelReply => 'إلغاء الرد';
+
+  @override
+  String get postSendReply => 'إرسال';
+
+  @override
+  String get postReplyMenu => 'خيارات التعليق';
+
+  @override
+  String get postDeleteReply => 'حذف التعليق';
+
+  @override
+  String get postDeleteReplyTitle => 'حذف هذا التعليق؟';
+
+  @override
+  String get postDeleteReplyBody => 'سيُحذف لدى الجميع.';
+
+  @override
+  String get postUnavailable => 'هذا المنشور غير متاح';
+
+  @override
+  String get postUnavailableBody =>
+      'ربما حُذف، أو ليس لديك صلاحية الوصول إليه.';
+
+  @override
+  String get postBackHome => 'العودة إلى الرئيسية';
+
+  @override
+  String get postPosting => 'جارٍ النشر لشبكتك…';
+
+  @override
+  String get postFailed => 'تعذّر النشر. حُفظ كمسودة.';
+
+  @override
+  String get postFailedHint => 'تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get postDiscardDraft => 'حذف المسودة';
+
+  @override
+  String get composerPostingTo => 'النشر إلى';
+
+  @override
+  String get composerYourNetwork => 'شبكتك';
+
+  @override
+  String get composerEveryone => 'الجميع';
+
+  @override
+  String composerTagged(String project) {
+    return 'مع وسم $project';
+  }
+
+  @override
+  String get composerHint => 'ماذا حدث في الموقع اليوم؟';
+
+  @override
+  String get composerStartFrom => 'ابدأ من';
+
+  @override
+  String get tplProgress => 'تحديث سير العمل';
+
+  @override
+  String get tplProgressHelp => 'تم اليوم · التالي · ما يعيقنا';
+
+  @override
+  String get tplProgressLines => 'تم اليوم:\nالتالي:\nما يعيقنا:';
+
+  @override
+  String get tplMilestone => 'إنجاز مرحلة';
+
+  @override
+  String get tplMilestoneHelp => 'ماذا · متى · من أنجزه';
+
+  @override
+  String get tplMilestoneLines => 'ماذا:\nمتى:\nمن أنجزه:';
+
+  @override
+  String get tplVisit => 'زيارة موقع';
+
+  @override
+  String get tplVisitHelp => 'أين · ماذا وجدنا · الإجراءات';
+
+  @override
+  String get tplVisitLines => 'أين:\nماذا وجدنا:\nالإجراءات:';
+
+  @override
+  String get tplAsk => 'اسأل المجتمع';
+
+  @override
+  String get tplAskHelp => 'السؤال · من يعرف';
+
+  @override
+  String get tplAskLines => 'السؤال:\nمن يعرف:';
+
+  @override
+  String get composerMedia => 'الوسائط';
+
+  @override
+  String get composerProject => 'المشروع';
+
+  @override
+  String get composerPost => 'نشر';
+
+  @override
+  String get composerSave => 'حفظ';
+
+  @override
+  String get composerChooseHint => 'اختر طريقة البدء، أو اكتب مباشرة';
+
+  @override
+  String composerPostingToProject(String project) {
+    return 'النشر إلى $project';
+  }
+
+  @override
+  String get composerAudience => 'يمكن لأي شخص على BuildVibes رؤية هذا.';
+
+  @override
+  String get composerAudienceProject =>
+      'يمكن لأي شخص على BuildVibes رؤية هذا. ويظهر أيضاً في صفحة المشروع.';
+
+  @override
+  String composerWrittenIn(String lang) {
+    return 'مكتوب بـ$lang';
+  }
+
+  @override
+  String get composerChange => 'تغيير';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get langArabic => 'العربية';
+
+  @override
+  String get langAuto => 'يُحدَّد تلقائياً';
+
+  @override
+  String get composerLangTitle => 'لغة المنشور';
+
+  @override
+  String get composerPhotosMax => 'حتى 4 صور.';
+
+  @override
+  String get composerRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get postToTitle => 'النشر إلى';
+
+  @override
+  String get postToWho => 'من يراه';
+
+  @override
+  String get postToNetworkHelp => 'المتابعون والاستكشاف · يمكن لأي شخص الرؤية';
+
+  @override
+  String get postToNote =>
+      'المنشورات عامة ويمكن ربطها بمشروع. عمل فريقك يذهب إلى مساحة المشروع كبند عمل.';
+
+  @override
+  String get tagTitle => 'ربط مشروع';
+
+  @override
+  String get tagHelp => 'المشاريع التي لديك فيها دور مؤكَّد فقط.';
+
+  @override
+  String get tagEmpty => 'أضف مشروعاً في ملفك أولاً';
+
+  @override
+  String get tagSpaceNote => 'عمل فريقك يذهب إلى مساحة المشروع كبند عمل';
+
+  @override
+  String get tagNone => 'بدون مشروع';
+
+  @override
+  String get discardTitle => 'تجاهل هذا المنشور؟';
+
+  @override
+  String get discardBody => 'لن يُحفظ ما كتبته.';
+
+  @override
+  String get discardConfirm => 'تجاهل';
+
+  @override
+  String get projectPosts => 'المنشورات';
+
+  @override
+  String get projectPostsEmpty => 'لا منشورات مرتبطة بهذا المشروع بعد.';
 }

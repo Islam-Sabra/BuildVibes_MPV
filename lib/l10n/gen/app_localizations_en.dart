@@ -2469,4 +2469,288 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatPause => 'Pause';
+
+  @override
+  String feedBeyond(String market) {
+    return 'Beyond $market';
+  }
+
+  @override
+  String get feedEmpty => 'No posts yet. Share what happened on site today.';
+
+  @override
+  String get feedCouldntLoad => 'Couldn\'t load your Feed';
+
+  @override
+  String get feedOffline => 'You\'re offline. Showing what you already loaded.';
+
+  @override
+  String get feedNewPost => 'New post';
+
+  @override
+  String get postUseful => 'Useful';
+
+  @override
+  String get postReply => 'Reply';
+
+  @override
+  String postUsefulOne(String a) {
+    return '$a found this useful';
+  }
+
+  @override
+  String postUsefulTwo(String a, String b) {
+    return '$a and $b found this useful';
+  }
+
+  @override
+  String get postEdited => 'Edited';
+
+  @override
+  String get postMenu => 'Post options';
+
+  @override
+  String postMute(String name) {
+    return 'Mute $name';
+  }
+
+  @override
+  String postMuted(String name) {
+    return 'Muted $name';
+  }
+
+  @override
+  String get postUndo => 'Undo';
+
+  @override
+  String get postEdit => 'Edit post';
+
+  @override
+  String get postDelete => 'Delete post';
+
+  @override
+  String get postDeleteTitle => 'Delete this post?';
+
+  @override
+  String get postDeleteBody =>
+      'It\'s removed from the Feed, your profile and the project\'s page.';
+
+  @override
+  String get postDeleted => 'Post deleted.';
+
+  @override
+  String get postOpenPhoto => 'Open photo';
+
+  @override
+  String get postTitle => 'Post';
+
+  @override
+  String get postReplies => 'Replies';
+
+  @override
+  String get postNoReplies => 'No replies yet.';
+
+  @override
+  String get postAddComment => 'Add a comment';
+
+  @override
+  String get postWriteReply => 'Write a reply';
+
+  @override
+  String postReplyingTo(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get postCancelReply => 'Cancel reply';
+
+  @override
+  String get postSendReply => 'Send';
+
+  @override
+  String get postReplyMenu => 'Comment options';
+
+  @override
+  String get postDeleteReply => 'Delete comment';
+
+  @override
+  String get postDeleteReplyTitle => 'Delete this comment?';
+
+  @override
+  String get postDeleteReplyBody => 'It\'s removed for everyone.';
+
+  @override
+  String get postUnavailable => 'This post isn\'t available';
+
+  @override
+  String get postUnavailableBody =>
+      'It may have been deleted, or you may not have access to it.';
+
+  @override
+  String get postBackHome => 'Back to Home';
+
+  @override
+  String get postPosting => 'Posting to your network…';
+
+  @override
+  String get postFailed => 'Couldn\'t post. Saved as a draft.';
+
+  @override
+  String get postFailedHint => 'Check your connection and try again.';
+
+  @override
+  String get postDiscardDraft => 'Discard draft';
+
+  @override
+  String get composerPostingTo => 'POSTING TO';
+
+  @override
+  String get composerYourNetwork => 'Your network';
+
+  @override
+  String get composerEveryone => 'Everyone';
+
+  @override
+  String composerTagged(String project) {
+    return 'tagged $project';
+  }
+
+  @override
+  String get composerHint => 'What happened on site today?';
+
+  @override
+  String get composerStartFrom => 'START FROM';
+
+  @override
+  String get tplProgress => 'Progress update';
+
+  @override
+  String get tplProgressHelp => 'Done today · Next · Holding us up';
+
+  @override
+  String get tplProgressLines => 'Done today:\nNext:\nHolding us up:';
+
+  @override
+  String get tplMilestone => 'Milestone';
+
+  @override
+  String get tplMilestoneHelp => 'What · When · Who did it';
+
+  @override
+  String get tplMilestoneLines => 'What:\nWhen:\nWho did it:';
+
+  @override
+  String get tplVisit => 'Site visit';
+
+  @override
+  String get tplVisitHelp => 'Where · What we found · Actions';
+
+  @override
+  String get tplVisitLines => 'Where:\nWhat we found:\nActions:';
+
+  @override
+  String get tplAsk => 'Ask the community';
+
+  @override
+  String get tplAskHelp => 'Question · Who knows';
+
+  @override
+  String get tplAskLines => 'Question:\nWho knows:';
+
+  @override
+  String get composerMedia => 'Media';
+
+  @override
+  String get composerProject => 'Project';
+
+  @override
+  String get composerPost => 'Post';
+
+  @override
+  String get composerSave => 'Save';
+
+  @override
+  String get composerChooseHint => 'Choose how to start, or just write';
+
+  @override
+  String composerPostingToProject(String project) {
+    return 'Posting to $project';
+  }
+
+  @override
+  String get composerAudience => 'Everyone on BuildVibes can see this.';
+
+  @override
+  String get composerAudienceProject =>
+      'Everyone on BuildVibes can see this. It also shows on the project\'s page.';
+
+  @override
+  String composerWrittenIn(String lang) {
+    return 'Written in $lang';
+  }
+
+  @override
+  String get composerChange => 'Change';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get langArabic => 'العربية';
+
+  @override
+  String get langAuto => 'Detected automatically';
+
+  @override
+  String get composerLangTitle => 'Post language';
+
+  @override
+  String get composerPhotosMax => 'Up to 4 photos.';
+
+  @override
+  String get composerRemovePhoto => 'Remove photo';
+
+  @override
+  String get postToTitle => 'Post to';
+
+  @override
+  String get postToWho => 'WHO SEES IT';
+
+  @override
+  String get postToNetworkHelp => 'Followers and Explore · anyone can see';
+
+  @override
+  String get postToNote =>
+      'Posts are public and can be tagged to a project. Work for your team goes in the project\'s Space as a work item.';
+
+  @override
+  String get tagTitle => 'Link a project';
+
+  @override
+  String get tagHelp => 'Only projects where you have a confirmed role.';
+
+  @override
+  String get tagEmpty => 'Add a project on your profile first';
+
+  @override
+  String get tagSpaceNote =>
+      'Work for your team goes in the project\'s Space as a work item';
+
+  @override
+  String get tagNone => 'No project';
+
+  @override
+  String get discardTitle => 'Discard this post?';
+
+  @override
+  String get discardBody => 'What you wrote isn\'t saved.';
+
+  @override
+  String get discardConfirm => 'Discard';
+
+  @override
+  String get projectPosts => 'Posts';
+
+  @override
+  String get projectPostsEmpty => 'No posts tagged with this project yet.';
 }

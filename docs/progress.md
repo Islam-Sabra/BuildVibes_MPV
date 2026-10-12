@@ -279,10 +279,43 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checked on the emulator against the local server, in English and Arabic: recorded, sent (`audio/mp4`, 3.5 s, 18.5 KB on the server), played to the end.
   - 473 Flutter tests and 448 SQL tests pass. Screenshots: `chat_*_recording`, `chat_*_voice_sent`, `chat_ar_voice_playing`.
 
+- **12 Oct, week 7 part 1** (review 16).
+  - The week 7 Figma images are in `docs/design/home/`.
+  - Migration 12 (`20261012170000_feed.sql`) is on `feed-db`, **not live**. Review 17 is applied in place:
+    - one reply level;
+    - photo delete, the cleanup function and a 100 MB daily cap;
+    - faster tagged-post and upload queries;
+    - per-person locks on the rate limits;
+    - strict photo types and paths;
+    - no home section without a market, and the 30-day window kept in the cursor;
+    - tags follow merge chains.
+
+    `12_feed.test.sql`: 69 checks, 517 in all.
+  - The app, on `feed`:
+    - Feed (H1 v2): home market, "Beyond {market}", the rest; skeleton (H4), couldn't load (H5), offline with the page kept on the phone (H6), empty with Create.
+    - Post card: project strip with its type (no invented phase), author, text in its own direction, 1–4 photos with a viewer, proof line (two names at most, no counts), Useful · Reply. Save and Share are hidden (decision 2).
+    - Card menu: Mute with Undo for others' posts; Edit and Delete for your own.
+    - Composer (C1–C3, C10, C13, L5–L6): Posting to, "Start from" templates, Media and Project only, the new audience line, the post language (detected, or chosen), Discard.
+    - Posting outbox (P3, P3b): kept on the phone, Retry, posts once.
+    - Post page (H10, H10c, H17, H13–H14, P6): replies one level deep, "Replying to {name}", delete your own reply, Post unavailable.
+    - Profile → Posts (R12, R16) and the project sheet's posts.
+    - The Create sheet gets "New post"; the full Create-tab change is in part 2.
+    - The Arabic Feed tab is now "الأخبار" (the Arabic frame), not "الخلاصة".
+  - Found on the emulator and fixed:
+    - the reply box and composer footer were hidden under the keyboard (a test covers it);
+    - after a template, the text box now takes focus;
+    - the text box was indented further than the cards;
+    - the photo remove buttons were oversized.
+  - Checked on the emulator against the local server (`supabase/dev/seed_feed.sql`), in English and Arabic:
+    - Rakesh posted with two photos and the project tag with the network off ("Couldn't post. Saved as a draft."), then Retry; it reached the server once (two photo rows, tagged);
+    - Omar marked it Useful and replied;
+    - the Arabic feed, composer, discard and post page.
+  - 514 Flutter tests pass. Screenshots in `docs/screens/`: `h1_*_feed`, `c1_en_composer`, `c2_*`, `c10_en_tag`, `c13_ar_discard`, `p3b_en_failed`, `h1_en_posted`, `h10_*_post`.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. The lead reviews week 6 part 3 (`chat-part3`, voice notes). No database change.
-3. Week 7 (MVP plan): Home feed and posts, the Spaces tab, Activity, push notifications. The lead writes the brief as review 16 first; wait for it.
+2. The lead rechecks migration 12 (`feed-db`) and reviews part 1 (`feed`). Then, with the founder's yes, put migration 12 live and merge.
+3. Week 7 part 2: migration 13 (activity), Home Spaces tab (H1b), Activity, the Profile Spaces icon, Create opening the composer. Part 3: push.
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 5. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
