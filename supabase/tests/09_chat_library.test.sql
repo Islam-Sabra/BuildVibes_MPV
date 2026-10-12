@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(65);
+select plan(66);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000009a1', 'authenticated', 'authenticated', 'omar9@example.com', '{"home_market_id": "kw"}'),
@@ -76,6 +76,8 @@ insert into storage.objects (bucket_id, name, owner_id, metadata) values
   ('space-files', pg_temp.lib('f0000006', 'everyone.pdf'), pg_temp.uid('a1')::text, '{"size": 9000}'),
   ('space-files', current_setting('test.space') || '/' || pg_temp.id('e0000003')::text || '/raised.jpg',
    pg_temp.uid('a1')::text, '{"size": 1000}'),
+  ('space-files', current_setting('test.space') || '/' || pg_temp.id('e0000004')::text || '/d.jpg',
+   pg_temp.uid('a1')::text, '{"size": 1000, "mimetype": "application/pdf"}'),
   ('space-files', current_setting('test.space') || '/' || pg_temp.id('e0000001')::text || '/raised.jpg',
    pg_temp.uid('a1')::text, '{"size": 1000}'),
   ('space-files', current_setting('test.space') || '/' || pg_temp.id('e0000002')::text || '/raised.jpg',
@@ -332,6 +334,13 @@ select lives_ok(
 select is((select t.team_id is null from public.messages m join public.threads t on t.id = m.thread_id
            where m.work_item_id = pg_temp.id('e0000003')), true,
   'its card goes to Everyone, so its owner sees it');
+select throws_ok(
+  format($$select public.create_work_item(%L, 'Disguised PDF', %L, null, null, null, %L::jsonb, %L)$$,
+    pg_temp.sp(), pg_temp.uid('a2'),
+    jsonb_build_array(jsonb_build_object('path',
+      current_setting('test.space') || '/' || pg_temp.id('e0000004')::text || '/d.jpg'))::text,
+    pg_temp.id('e0000004')),
+  '22023', null, 'a PDF named .jpg is not accepted as a photo');
 reset role;
 select pg_temp.as_user('a2');
 set local role authenticated;

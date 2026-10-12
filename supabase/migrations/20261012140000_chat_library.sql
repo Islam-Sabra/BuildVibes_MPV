@@ -532,14 +532,14 @@ begin
     v_prefix := v_thread.space_id::text || '/chat/' || p_id::text || '/';
     for v_att in select * from jsonb_array_elements(p_attachments) loop
       v_path := v_att ->> 'path';
-      v_mime := public.upload_mime(v_path, v_att ->> 'mime');
-      if v_mime is distinct from (v_att ->> 'mime') then
-        raise exception 'file type does not match the upload' using errcode = '22023';
-      end if;
       if v_path is null or v_path not like v_prefix || '%' or v_path like '%..%'
          or array_length(string_to_array(v_path, '/'), 1) <> 4
          or not public.is_my_upload(v_path) then
         raise exception 'file not uploaded' using errcode = '22023';
+      end if;
+      v_mime := public.upload_mime(v_path, v_att ->> 'mime');
+      if v_mime is distinct from (v_att ->> 'mime') then
+        raise exception 'file type does not match the upload' using errcode = '22023';
       end if;
       if v_mime like 'audio/%' then
         if v_count > 1 then
@@ -855,6 +855,54 @@ begin
     raise exception 'this Team has chat or files; it stays in the record' using errcode = 'P0001';
   end if;
   delete from public.teams where id = p_team;
+end;
+$$;
+
+-- Work item evidence must be a photo by its stored type too, not only
+-- by its name (as in migration 7 otherwise).
+create or replace function public.add_evidence(
+  p_item public.work_items,
+  p_event uuid,
+  p_evidence jsonb
+)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_photo jsonb;
+  v_path text;
+  v_count integer := 0;
+begin
+  if p_evidence is null or jsonb_typeof(p_evidence) <> 'array' then
+    return 0;
+  end if;
+  if jsonb_array_length(p_evidence) > 6 then
+    raise exception 'at most 6 photos' using errcode = '22023';
+  end if;
+  for v_photo in select * from jsonb_array_elements(p_evidence) loop
+    v_path := v_photo ->> 'path';
+    if v_path is null
+       or v_path not like p_item.space_id::text || '/' || p_item.id::text || '/%'
+       or v_path like '%..%' then
+      raise exception 'photo not in this item''s folder' using errcode = '22023';
+    end if;
+    if not exists (select 1 from storage.objects o
+                   where o.bucket_id = 'space-files' and o.name = v_path
+                     and o.owner_id = auth.uid()::text) then
+      raise exception 'photo not uploaded' using errcode = '22023';
+    end if;
+    if coalesce(public.upload_mime(v_path, null), 'image/') not like 'image/%' then
+      raise exception 'evidence must be a photo' using errcode = '22023';
+    end if;
+    insert into public.work_item_evidence (event_id, work_item_id, storage_path, taken_at, place_text)
+    values (p_event, p_item.id, v_path,
+            nullif(v_photo ->> 'taken_at', '')::timestamptz,
+            nullif(trim(v_photo ->> 'place'), ''));
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
 end;
 $$;
 
