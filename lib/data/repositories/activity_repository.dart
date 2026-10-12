@@ -1,0 +1,218 @@
+import 'dart:io';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../models/activity.dart';
+import '../models/space.dart';
+import '../supabase/supabase_provider.dart';
+import 'space_repository.dart';
+
+/// Activity, the Home Spaces tab and Space visits (migration 13). The
+/// server writes every notification; the app only reads and marks read.
+abstract class ActivityRepository {
+  /// The last 7 days, newest first.
+  Future<List<ActivityRow>> activity();
+  Future<void> markRead();
+
+  /// Yes or no: the dot on the Activity tab.
+  Future<bool> unread();
+
+  /// [dayStart] is the phone's midnight.
+  Future<HomeDay> homeDay(DateTime dayStart);
+  Future<List<SpaceToday>> today(DateTime dayStart);
+  Future<List<NeedsCard>> needs();
+  Future<void> markSpaceSeen(String spaceId);
+}
+
+class SupabaseActivityRepository implements ActivityRepository {
+  const SupabaseActivityRepository(this._client);
+
+  final SupabaseClient _client;
+
+  Future<T> _guard<T>(Future<T> Function() run) async {
+    try {
+      return await run();
+    } on PostgrestException catch (e) {
+      throw SpaceException(spaceFailureFor(e.code), e.message);
+    } on Exception catch (e) {
+      final network = e is SocketException || '$e'.contains('SocketException');
+      throw SpaceException(
+        network ? SpaceFailure.network : SpaceFailure.unknown,
+        '$e',
+      );
+    }
+  }
+
+  List<Map<String, dynamic>> _rows(Object? data) =>
+      (data as List? ?? const []).cast<Map<String, dynamic>>();
+
+  @override
+  Future<List<ActivityRow>> activity() => _guard(() async {
+    final rows = _rows(await _client.rpc<List<dynamic>>('my_activity'));
+    return [
+      for (final r in rows)
+        if (ActivityKind.fromJson(r['kind']) != null) ActivityRow.fromJson(r),
+    ];
+  });
+
+  @override
+  Future<void> markRead() => _guard(() => _client.rpc('mark_activity_read'));
+
+  @override
+  Future<bool> unread() =>
+      _guard(() async => await _client.rpc<bool>('unread_activity'));
+
+  @override
+  Future<HomeDay> homeDay(DateTime dayStart) => _guard(() async {
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'home_day',
+        params: {'p_day_start': dayStart.toUtc().toIso8601String()},
+      ),
+    );
+    return rows.isEmpty ? const HomeDay() : HomeDay.fromJson(rows.first);
+  });
+
+  @override
+  Future<List<SpaceToday>> today(DateTime dayStart) => _guard(() async {
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'today_in_spaces',
+        params: {'p_day_start': dayStart.toUtc().toIso8601String()},
+      ),
+    );
+    return [for (final r in rows) SpaceToday.fromJson(r)];
+  });
+
+  @override
+  Future<void> markSpaceSeen(String spaceId) => _guard(
+    () => _client.rpc('mark_space_seen', params: {'p_space': spaceId}),
+  );
+
+  /// needs_you() gives ids; the cards read the items, their latest
+  /// events, the requests and the names, all as the signed-in member.
+  @override
+  Future<List<NeedsCard>> needs() => _guard(() async {
+    final needs = _rows(await _client.rpc<List<dynamic>>('needs_you'));
+    if (needs.isEmpty) return const [];
+    final itemIds = {
+      for (final n in needs)
+        if (n['work_item_id'] != null) n['work_item_id'] as String,
+    }.toList();
+    final requestIds = {
+      for (final n in needs)
+        if (n['request_id'] != null) n['request_id'] as String,
+    }.toList();
+
+    final spaces = {
+      for (final s in _rows(await _client.rpc<List<dynamic>>('my_spaces')))
+        s['space_id'] as String: s['name'] as String,
+    };
+    final items = itemIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : _rows(
+            await _client
+                .from('work_items')
+                .select('id, ref, title, due_date')
+                .inFilter('id', itemIds),
+          );
+    final events = itemIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : _rows(
+            await _client
+                .from('work_item_events')
+                .select('work_item_id, kind, actor_id, created_at')
+                .inFilter('work_item_id', itemIds)
+                .order('created_at', ascending: false),
+          );
+    final requests = requestIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : _rows(
+            await _client
+                .from('space_join_requests')
+                .select('id, profile_id')
+                .inFilter('id', requestIds),
+          );
+
+    final peopleIds = {
+      for (final e in events)
+        if (e['actor_id'] != null) e['actor_id'] as String,
+      for (final r in requests) r['profile_id'] as String,
+    }.toList();
+    final names = peopleIds.isEmpty
+        ? const <String, String>{}
+        : {
+            for (final p in _rows(
+              await _client
+                  .from('profiles')
+                  .select('id, first_name, last_name')
+                  .inFilter('id', peopleIds),
+            ))
+              p['id'] as String:
+                  '${p['first_name'] ?? ''} ${p['last_name'] ?? ''}'.trim(),
+          };
+
+    final me = _client.auth.currentUser?.id;
+    final itemById = {for (final i in items) i['id'] as String: i};
+    // Newest event of each kind per item.
+    Map<String, dynamic>? latest(String item, Set<String> kinds) => events
+        .where((e) => e['work_item_id'] == item && kinds.contains(e['kind']))
+        .firstOrNull;
+    String? nameOf(Object? id) =>
+        id == null || id == me ? null : names[id as String];
+
+    final cards = <NeedsCard>[];
+    for (final n in needs) {
+      final spaceId = n['space_id'] as String;
+      final at = DateTime.parse(n['created_at'] as String);
+      final itemId = n['work_item_id'] as String?;
+      final item = itemId == null ? null : itemById[itemId];
+      if (itemId != null && item == null) continue;
+      final due = item?['due_date'] as String?;
+      NeedsCard card(NeedsKind kind, String? actor) => NeedsCard(
+        kind: kind,
+        spaceId: spaceId,
+        spaceName: spaces[spaceId] ?? '',
+        at: at,
+        workItemId: itemId,
+        workItemRef: item?['ref'] as String?,
+        workItemTitle: item?['title'] as String?,
+        due: due == null ? null : DateTime.parse(due),
+        requestId: n['request_id'] as String?,
+        actorName: actor,
+      );
+      switch (n['kind']) {
+        case 'open_owned':
+          final last = latest(itemId!, const {
+            'raised',
+            'reassigned',
+            'sent_back',
+          });
+          cards.add(
+            last?['kind'] == 'sent_back'
+                ? card(NeedsKind.sentBack, nameOf(last?['actor_id']))
+                : card(NeedsKind.forYou, nameOf(last?['actor_id'])),
+          );
+        case 'to_check':
+          final done = latest(itemId!, const {'done'});
+          cards.add(card(NeedsKind.youCheck, nameOf(done?['actor_id'])));
+        case 'owner_left':
+          cards.add(card(NeedsKind.ownerLeft, null));
+        case 'join_request':
+          final r = requests
+              .where((r) => r['id'] == n['request_id'])
+              .firstOrNull;
+          if (r != null) {
+            cards.add(card(NeedsKind.joinRequest, names[r['profile_id']]));
+          }
+      }
+    }
+    cards.sort((a, b) => b.at.compareTo(a.at));
+    return cards;
+  });
+}
+
+final activityRepositoryProvider = Provider<ActivityRepository>(
+  (ref) => SupabaseActivityRepository(ref.watch(supabaseClientProvider)),
+);

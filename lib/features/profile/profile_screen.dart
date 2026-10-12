@@ -60,7 +60,16 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.navProfile),
         backgroundColor: BvColors.surfaceSubtle,
-        actions: [settings],
+        actions: [
+          // R1 v3: My Spaces (S1).
+          IconButton(
+            key: const Key('profile-spaces'),
+            tooltip: l10n.homeMySpaces,
+            icon: const Icon(BvIcons.team),
+            onPressed: () => context.push(AppRoutes.spaces),
+          ),
+          settings,
+        ],
       ),
       body: profile.when(
         loading: () => const Center(child: CircularProgressIndicator()),

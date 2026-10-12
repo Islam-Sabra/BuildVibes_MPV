@@ -11,6 +11,7 @@ class BvTabs extends StatelessWidget {
     required this.selectedIndex,
     required this.onSelect,
     this.fill = false,
+    this.dots = const {},
   });
 
   final List<String> labels;
@@ -20,6 +21,10 @@ class BvTabs extends StatelessWidget {
   /// Each tab takes an equal share of the width (Home: Feed | Spaces, H1e).
   /// Otherwise tabs fit their labels and scroll sideways when needed.
   final bool fill;
+
+  /// Tabs with something new: an orange dot after the label, hidden while
+  /// that tab is open. Never a number.
+  final Set<int> dots;
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +47,23 @@ class BvTabs extends StatelessWidget {
                 child: Center(
                   // Filled tabs centre the label in their share.
                   widthFactor: fill ? null : 1,
-                  child: Text(
-                    labels[i],
-                    maxLines: 1,
-                    style: i == selectedIndex
-                        ? type.labelLg.copyWith(color: BvColors.textPrimary)
-                        : type.labelMd.copyWith(color: BvColors.textSecondary),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: BvSpace.s4,
+                    children: [
+                      Text(
+                        labels[i],
+                        maxLines: 1,
+                        style: i == selectedIndex
+                            ? type.labelLg.copyWith(color: BvColors.textPrimary)
+                            : type.labelMd.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                      ),
+                      if (dots.contains(i) && i != selectedIndex)
+                        BvNewDot(key: Key('tab-dot-$i')),
+                    ],
                   ),
                 ),
               ),
@@ -85,4 +101,18 @@ class BvTabs extends StatelessWidget {
       child: Row(children: [for (var i = 0; i < labels.length; i++) tab(i)]),
     );
   }
+}
+
+/// The orange "something new" dot. Never a number.
+class BvNewDot extends StatelessWidget {
+  const BvNewDot({super.key});
+
+  @override
+  Widget build(BuildContext context) => const DecoratedBox(
+    decoration: BoxDecoration(
+      color: BvColors.iconAction,
+      shape: BoxShape.circle,
+    ),
+    child: SizedBox.square(dimension: BvActivitySpec.newDot),
+  );
 }

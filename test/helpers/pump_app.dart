@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
+import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
@@ -29,6 +30,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'activity_fakes.dart';
 import 'chat_fakes.dart';
 import 'fakes.dart';
 import 'library_fakes.dart';
@@ -79,6 +81,7 @@ class TestApp {
     required this.playback,
     required this.saved,
     required this.sharedFiles,
+    required this.activity,
   });
 
   final SharedPreferences prefs;
@@ -93,6 +96,7 @@ class TestApp {
   final FakeVoiceRecorder recorder;
   final FakePostRepository posts;
   final FakeVoicePlayback playback;
+  final FakeActivityRepository activity;
 
   /// Files saved with Download, and shared through the phone (F1).
   final List<String> saved;
@@ -122,6 +126,7 @@ Future<TestApp> pumpApp(
   FakeLibraryRepository? library,
   FakeVoiceRecorder? recorder,
   FakePostRepository? posts,
+  FakeActivityRepository? activity,
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
@@ -164,6 +169,7 @@ Future<TestApp> pumpApp(
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
   final fakePosts = posts ?? FakePostRepository(now: testNow);
   final fakePlayback = FakeVoicePlayback();
+  final fakeActivity = activity ?? FakeActivityRepository();
   final saved = <String>[];
   final sharedFiles = <String>[];
 
@@ -188,6 +194,7 @@ Future<TestApp> pumpApp(
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
         postRepositoryProvider.overrideWithValue(fakePosts),
+        activityRepositoryProvider.overrideWithValue(fakeActivity),
         voicePlaybackProvider.overrideWithValue(fakePlayback),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async =>
@@ -252,6 +259,7 @@ Future<TestApp> pumpApp(
     playback: fakePlayback,
     saved: saved,
     sharedFiles: sharedFiles,
+    activity: fakeActivity,
   );
 }
 

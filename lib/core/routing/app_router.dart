@@ -33,6 +33,7 @@ import '../../features/projects/project_sheet_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/spaces/invite_screen.dart';
 import '../../features/spaces/member_pass_screen.dart';
+import '../../features/spaces/my_spaces_screen.dart';
 import '../../features/spaces/new_space_screen.dart';
 import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
@@ -89,8 +90,8 @@ String? redirectForGate(AppGate gate, String location) {
 }
 
 /// Entry and onboarding sit outside the tabs. Each tab keeps its own
-/// history (an indexed stack of branches). Create is not a route: it is an
-/// action that opens a sheet.
+/// history (an indexed stack of branches). Create is not a tab: it opens
+/// the composer over the current tab.
 final appRouterProvider = Provider<GoRouter>((ref) {
   // The router re-checks where it may be whenever the gate changes.
   final gate = ValueNotifier<AppGate>(ref.read(appGateProvider));
@@ -187,6 +188,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.projects}/:id',
         builder: (context, state) =>
             ProjectSheetScreen(projectId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.spaces,
+        builder: (context, state) => const MySpacesScreen(),
       ),
       // "new" before ":id".
       GoRoute(
