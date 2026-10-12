@@ -223,16 +223,46 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 **Functions:**
 - `add_library_file`, `delete_library_file`, `attach_library_file`.
 
-## 9. Feed (migration 9)
+## 9. Feed (migration 12, `20261012170000_feed.sql`, branch `feed-db`)
 **Tables:**
-- `posts`: `id`, `author_id`, `body`, `lang`, `project_id null`, `market_id`, `created_at`, `deleted_at`. Posts are public in V1 ("Your network").
-- `post_media`: `post_id`, `storage_path`, `kind`, `sort`.
-- `comments`: `id`, `post_id`, `author_id`, `body`.
-- `useful_marks`: `post_id`, `profile_id`.
-- `reports`: `id`, `reporter_id`, `target_kind`, `target_id`, `reason`, `note`, `status`.
-- `account_deletion_requests`: port these from the old repo.
+- `posts`: `id` (made in the app, so a retry posts once), `author_id`, `body` (up to 3000; null once deleted, or for a photo-only post), `lang` ('en' | 'ar'), `project_id`, `market_id` (the author's home market when posting), `created_at`, `edited_at`, `deleted_at`.
+- `post_media`: `post_id`, `storage_path`, `sort` (0–3), `width`, `height`. Photos only, at most 4.
+- `post_replies`: `id`, `post_id`, `author_id`, `reply_to` (a top-level reply on the same post: one level only, "Replying to"), `body` (up to 1000), `created_at`, `deleted_at`.
+- `useful_marks`: `target_kind` ('post' | 'reply'), `target_id`, `profile_id`. The primary key is all three: once per person.
+- `mutes`: `muter_id`, `muted_id`.
+- Reports on posts and replies come in week 8.
 
-**Feed order:** home market first, then the rest. Not filtered.
+**Who sees what:**
+- Posts are public to every signed-in person ("Your network"), except across a block (both ways) and once deleted.
+- Muting a person takes their posts out of the muter's feed only; their profile still shows them.
+- A deleted post's replies and photos stop showing to anyone. Its photo rows stay, so the cleanup removes the files after the 30-day appeal window.
+- You read only your own Useful marks and mutes. Nobody reads a count.
+
+**Photos:** private bucket `post-media`, paths `<author>/<post>/<file>`.
+- Upload: `<me>/<post uuid>/<name>.jpg|jpeg|png|webp|heic`, at most 100 photos and 100 MB a day (counted in your own folder only).
+- Read: your own uploads, or a photo of a post you may see. No update.
+- Delete (Storage API): your own photo that no post uses.
+- `orphan_post_media(age)` (service role): claims photos no post uses, older than a day, and the photos of posts deleted over 30 days ago, with the same `file_cleanup_claims` flow as Space files. It runs in the nightly cleanup, which waits for the founder's yes. A claimed photo can't go on a post.
+
+**Functions:**
+- `create_post(id, body, lang, project, media)`:
+  - needs text or a photo;
+  - the photos must be your uploads in `<me>/<id>/`;
+  - the project must be on your CV, shown, with a confirmed role (C10);
+  - photos must be JPEG, PNG, WebP or HEIC by their stored type;
+  - 20 posts a day, counted under a per-person lock so parallel calls can't beat it.
+- `edit_post(id, body, lang)`: the author only; sets `edited_at`. Photos and the tag can't change.
+- `delete_post(id)`: the author only.
+- `add_reply(id, post, reply_to, body)`: 60 an hour (under a per-person lock). `delete_reply(id)`: the author only.
+- `mark_useful(kind, id, on)`: not on your own. `mute(person, on)`.
+- `feed_page(cursor)`, 20 a page:
+  - first, your home market from the last 30 days, newest first; then every other post, newest first;
+  - no home market: every post is in the second part;
+  - the cursor is `{section, created_at, id, since}`; `since` starts the 30 days and comes back with each page, so the window doesn't move while scrolling;
+  - no ranking by counts, no follow filter.
+- `posts_by(person, cursor)` (R12/R16). `posts_tagged(project, cursor)` (the project sheet). A tag follows merges to the end of the chain (A into B into C shows C, up to 5 steps).
+- `useful_names(post)`: at most two names of people you follow who marked it. Never a count.
+- The view `post_cards` (the caller's rights apply) gives a card: author name, headline and company, text, language, photos, the shown project (or the one it was merged into, only if active), and whether you marked it.
 
 ## 10. Activity (migration 9)
 **Tables:**
