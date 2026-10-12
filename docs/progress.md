@@ -148,6 +148,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Shared: the site tag's checked stamp; the sign-off step's "waiting for" text.
     - Checked live against the local server: Omar raised KCT-006 with a camera photo (uploaded under the review 09 rules), commented on KCT-002, and the pages show correctly for Omar and Rakesh.
     - 374 Flutter tests pass. Screenshots (English and Arabic) in `docs/screens/`: W2, W3a, W3b, W3c, W3d, W3e.
+  - Lead re-check passed (review 10 part A). With the founder's yes: `work-items-db` and `work-items` merged into main, and **migration 7 is live**. The emulator points at the live project again; the debug-only http setting stays for testing unreleased migrations locally.
+  - Migration 8 (review 10 follow-ups and "Work you delivered") on branch `work-items-followups`, **not live**, waiting for the lead's review. `08_work_items_followups.test.sql`: 33 checks; 342 in all.
+  - To do before the pilot: a nightly cleanup of loose photos older than 7 days. SQL can't delete storage files, so it needs a scheduled Edge Function calling the Storage API with `orphan_space_files()`; deploying it is a live change for the founder's yes.
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).

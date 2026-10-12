@@ -62,7 +62,6 @@ insert into public.space_members (space_id, profile_id, pass, confirmed_by) valu
 -- Files already uploaded (each with its uploader).
 insert into storage.objects (bucket_id, name, owner_id) values
   ('space-files', pg_temp.path('c001', 'raised.jpg'), '00000000-0000-0000-0000-0000000007a1'),
-  ('space-files', pg_temp.path('c001', 'done.jpg'), '00000000-0000-0000-0000-0000000007a2'),
   ('space-files', pg_temp.path('c001', 'omars.jpg'), '00000000-0000-0000-0000-0000000007a1'),
   ('space-files', pg_temp.path('c004', 'raised4.jpg'), '00000000-0000-0000-0000-0000000007a1');
 
@@ -78,6 +77,12 @@ select is(
   'an admin raises an item for a Crew member, with an uploaded photo');
 select is((select ref from public.work_items where id = pg_temp.item('c001')),
   'KCT-001', 'references run per Space with three digits');
+-- Rakesh's Done photo, uploaded once the item exists.
+reset role;
+insert into storage.objects (bucket_id, name, owner_id) values
+  ('space-files', pg_temp.path('c001', 'done.jpg'), '00000000-0000-0000-0000-0000000007a2');
+select pg_temp.as_user('a1');
+set local role authenticated;
 select is(
   public.create_work_item(current_setting('test.space')::uuid, 'Fix rebar at grid C7',
     '00000000-0000-0000-0000-0000000007a2', null, null, null, '[]', pg_temp.item('c001')),
@@ -389,7 +394,8 @@ select is(
 -- Photos readable by non-members: only the shown one.
 reset role;
 select set_config('test.files', (select count(*) from storage.objects
-  where bucket_id = 'space-files' and name like current_setting('test.space') || '/%')::text, true);
+  where bucket_id = 'space-files' and name like current_setting('test.space') || '/%'
+    and split_part(name, '/', 2) in (select id::text from public.work_items))::text, true);
 select pg_temp.as_user('a5');
 set local role authenticated;
 select is((select count(*) from storage.objects where bucket_id = 'space-files'), 1::bigint,
@@ -398,7 +404,7 @@ select is((select name from storage.objects where bucket_id = 'space-files'),
   pg_temp.path('c001', 'done.jpg'), '(r09) and the raised photo of item 4 stays private');
 select pg_temp.as_user('a4');
 select is((select count(*) from storage.objects where bucket_id = 'space-files')::text,
-  current_setting('test.files'), 'members read every file in their Space');
+  current_setting('test.files'), 'members read every file of their Space''s items');
 
 -- Blocks (r09, finding 6) --------------------------------------------------------------------
 

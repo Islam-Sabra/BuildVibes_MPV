@@ -170,6 +170,14 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - Uploads: the path must be `<space_id>/<item_id>/<file>`; allowed for the item's creator or owner, or, for an item not made yet, someone who can raise items. Never a Viewer. 10 MB; JPEG, PNG, WebP, HEIC.
 - No updates: a photo is never replaced or renamed. Each upload has a new name (`<uuid>.jpg`). Delete (Storage API) only your own upload that isn't evidence.
 
+**Follow-ups (migration 8, `20261012130000_work_items_followups.sql`, branch `work-items-followups`, not live yet):**
+- "Owner left · reassign" also when the owner can no longer sign (changed to Viewer); it goes to the creator, or, when the creator left too, to every member who may check. The owner's own Needs you drops it.
+- Before an item exists, only the uploader reads its folder; `create_work_item` refuses an id whose folder holds someone else's files.
+- 'reassigned' events keep `from_owner_id` and `to_owner_id`.
+- At most about 200 MB or 400 loose files (not evidence) per person. `orphan_space_files()` lists loose files older than 7 days for a cleanup job (service role, Storage API).
+- The append-only rule allows only the service role, cascades from deleting a work item or Space, and clearing a deleted account.
+- `my_delivered_work()` (RE2): your Checked items, shown or hidden, even after leaving the Space; your own uploads stay readable to you.
+
 **Shown work:** the view `public_shown_work` gives signed-in people only the title, one photo path (the Done sign-off's), the place, who checked it, the date and the project name. Never the Space name, the discussion or the files. The photo is only the owner's Done photo (never the one from when the item was raised). Hidden when either side blocked the other, for deleted accounts, and for deleted Spaces. Storage lets a non-member read exactly that photo, only while it is shown.
 
 ## 8. Library (migration 8)
