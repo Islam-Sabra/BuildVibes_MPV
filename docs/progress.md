@@ -180,3 +180,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
    After that, ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 3. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 4. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.
+
+- **12 Oct, lead (while the founder was out):**
+  - Review 12, the week 6 brief, is in `docs/reviews/2026-10-12-12-chat-library.md`, with the Figma frame list in `docs/design/chat/README.md`.
+  - Branch `chat-library-db` holds migration 9 (Space chat and Library) and `supabase/tests/09_chat_library.test.sql`.
+    - All 408 SQL checks pass on Postgres 16 with a Supabase stand-in.
+    - Independent review: 2 medium and 7 low findings, all fixed and re-verified.
+    - Not live.
+
