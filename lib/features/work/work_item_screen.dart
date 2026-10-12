@@ -148,7 +148,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
       title: l10n.workCheckTitle(item.ref),
       body: l10n.workCheckBody,
       cancelLabel: l10n.commonCancel,
-      confirmLabel: l10n.workCheckAndClose,
+      confirmLabel: l10n.workCheckConfirm,
     );
     if (!yes || !mounted) return;
     try {
@@ -400,7 +400,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
               place: item.place ?? '',
               from: who(item.createdById, item.createdByName),
               owner: who(item.ownerId, item.ownerName),
-              due: item.due == null ? '—' : day(item.due!),
+              due: item.due == null ? null : day(item.due!),
               overdue: item.overdue(now),
               checkedStamp:
                   item.status == WorkStatus.checked && item.checkedAt != null
@@ -727,7 +727,13 @@ class _CommentField extends StatelessWidget {
               maxLines: 5,
               textCapitalization: TextCapitalization.sentences,
               style: type.bodyMd,
-              decoration: InputDecoration.collapsed(
+              // The pill is the field: no theme border or fill inside it.
+              decoration: InputDecoration(
+                isCollapsed: true,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 hintText: l10n.workAddComment,
                 hintStyle: type.bodyMd.copyWith(color: BvColors.textSecondary),
               ),

@@ -28,7 +28,9 @@ class BvSiteTag extends StatelessWidget {
   final String place;
   final String from;
   final String owner;
-  final String due;
+
+  /// Null when there is no due date: a quiet dash.
+  final String? due;
   final bool overdue;
 
   /// "CHECKED · 10 OCT · S. AL-MANSOUR": a large tilted green stamp
@@ -141,24 +143,25 @@ class BvSiteTag extends StatelessWidget {
                         ),
                       ),
                     Text(title, style: type.titleLg),
-                    Row(
-                      spacing: BvSiteTagSpec.placeGap,
-                      children: [
-                        const Icon(
-                          BvIcons.place,
-                          size: BvSiteTagSpec.placeIconSize,
-                          color: BvColors.iconSecondary,
-                        ),
-                        Expanded(
-                          child: Text(
-                            place,
-                            style: type.bodyMd.copyWith(
-                              color: BvColors.textSecondary,
+                    if (place.isNotEmpty)
+                      Row(
+                        spacing: BvSiteTagSpec.placeGap,
+                        children: [
+                          const Icon(
+                            BvIcons.place,
+                            size: BvSiteTagSpec.placeIconSize,
+                            color: BvColors.iconSecondary,
+                          ),
+                          Expanded(
+                            child: Text(
+                              place,
+                              style: type.bodyMd.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -184,8 +187,10 @@ class BvSiteTag extends StatelessWidget {
                       ),
                       cell(
                         l10n.siteTagDue,
-                        due,
-                        valueColor: overdue
+                        due ?? '—',
+                        valueColor: due == null
+                            ? BvColors.textSecondary
+                            : overdue
                             ? BvColors.textDestructive
                             : BvColors.textAction,
                       ),

@@ -30,7 +30,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items (founder's yes, 12 Oct). 8 is not live (waits for the lead) |
 | Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
@@ -152,8 +152,19 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migration 8 (review 10 follow-ups and "Work you delivered") on branch `work-items-followups`, **not live**, waiting for the lead's review. `08_work_items_followups.test.sql`: 33 checks; 342 in all.
   - To do before the pilot: a nightly cleanup of loose photos older than 7 days. SQL can't delete storage files, so it needs a scheduled Edge Function calling the Storage API with `orphan_space_files()`; deploying it is a live change for the founder's yes.
 
+  - Week 5 part 3 on branch `work-items-part3` (built on `work-items-followups`): review 10 part B and the rest of the work item flow.
+    - Review 10B: the large CHECKED stamp (30 high, bold, −4°) on its own line above the title; the comment box is one pill that grows, with Send inside only when there is text.
+    - W4 Sign as done: photos (up to 6) and/or a note; "Your name and the time go on the sign-off." Sent through the outbox, so a weak signal keeps it on the phone with "Sign-off not sent yet · Retry".
+    - W5 Send back: one reason (single choice), a note (needed for "Other").
+    - Check and close: asks first, then the Closed banner.
+    - Owner's "Show on my profile" switch on a Checked item; Discussion shows "Reassigned from A to B".
+    - Profile: "Work you delivered" shows the items the person chose (up to 4) and "See all" for the owner; RE2 (every Checked item, hidden until switched on) and RE1 (the public view: title, photo, place, project, who checked it; never the reference, the Space or the discussion).
+    - Fixes from the emulator run: no pin or place chip when there is no place; a quiet dash for no due date; the dialog's short "Close it" button; the RE1 stamp hugs its label.
+    - Checked end to end on the emulator against the local server (migration 8): Omar raised KCT-006 with a photo for Rakesh, Rakesh signed it done with a photo, Omar sent it back (Not finished), Rakesh signed again, Omar checked and closed it, Rakesh showed it on his profile, and the public view shows only the allowed facts.
+    - 392 Flutter tests pass. Screenshots (English and Arabic) in `docs/screens/`: W4, W5, the check dialog, W3d, RE2, RE1, the profile section.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. Week 5, work items: the lead reviews migration 7 (`work-items-db`); then the founder's yes to push it live and merge `work-items` into main. App part 2 next: New work item (W2) and the item page (W3a–g), then part 3: Sign as done (W4), Send back (W5), Check and close, shown work on the profile (RE1/RE2).
+2. Week 5, work items: the lead reviews migration 8 (`work-items-followups`) and part 3 (`work-items-part3`). Then, with the founder's yes, push migration 8 live and merge both into main. Before the pilot: the nightly cleanup of loose photos (an Edge Function, a live change).
 3. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
 4. Delete account (week 8) must hand Space admin rights over. The database already promotes a Lead when the last admin's account goes.

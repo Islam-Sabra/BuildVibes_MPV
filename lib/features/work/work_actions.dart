@@ -108,6 +108,7 @@ class _SignDoneState extends ConsumerState<_SignDone> {
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             spacing: BvSpace.s8,
             children: [
               for (final p in _photos)

@@ -3595,6 +3595,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CHECKED · {date}'**
   String deliveredStamp(String date);
+
+  /// Check dialog confirm button; short so it fits.
+  ///
+  /// In en, this message translates to:
+  /// **'Close it'**
+  String get workCheckConfirm;
+
+  /// Own profile: checked items exist but all are hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing shown yet. Tap See all to choose what shows.'**
+  String get deliveredNoneShown;
 }
 
 class _AppLocalizationsDelegate

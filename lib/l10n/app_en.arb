@@ -2877,5 +2877,13 @@
         "type": "String"
       }
     }
+  },
+  "workCheckConfirm": "Close it",
+  "@workCheckConfirm": {
+    "description": "Check dialog confirm button; short so it fits."
+  },
+  "deliveredNoneShown": "Nothing shown yet. Tap See all to choose what shows.",
+  "@deliveredNoneShown": {
+    "description": "Own profile: checked items exist but all are hidden."
   }
 }

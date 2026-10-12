@@ -582,5 +582,7 @@
   "deliveredPlace": "المكان",
   "deliveredCheckedRow": "الفحص",
   "deliveredPrivacy": "عُرض هذا باختيار {name}. يبقى النقاش والملفات والمساحة خاصة. يظهر العنوان والصورة والمكان ومن فحصه فقط.",
-  "deliveredStamp": "تم الفحص · {date}"
+  "deliveredStamp": "تم الفحص · {date}",
+  "workCheckConfirm": "أغلقه",
+  "deliveredNoneShown": "لا شيء معروض بعد. اضغط «عرض الكل» لتختار ما يظهر."
 }

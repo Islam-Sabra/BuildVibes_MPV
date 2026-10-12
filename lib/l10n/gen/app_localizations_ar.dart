@@ -2063,4 +2063,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String deliveredStamp(String date) {
     return 'تم الفحص · $date';
   }
+
+  @override
+  String get workCheckConfirm => 'أغلقه';
+
+  @override
+  String get deliveredNoneShown =>
+      'لا شيء معروض بعد. اضغط «عرض الكل» لتختار ما يظهر.';
 }

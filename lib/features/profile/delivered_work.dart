@@ -159,7 +159,11 @@ class DeliveredPreview extends ConsumerWidget {
       spacing: BvSpace.s8,
       children: [
         if (shown.isEmpty)
-          ProfileCard(child: EmptyNote(l10n.workDeliveredEmpty))
+          ProfileCard(
+            child: EmptyNote(
+              mine.isEmpty ? l10n.workDeliveredEmpty : l10n.deliveredNoneShown,
+            ),
+          )
         else
           _Grid(
             children: [

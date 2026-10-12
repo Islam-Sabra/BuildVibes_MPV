@@ -277,6 +277,13 @@ void main() {
       expect(find.text('Sleeves at grid C7'), findsOneWidget);
       expect(find.text('Kuwait City Tower'), findsOneWidget);
       expect(find.byKey(const Key('delivered-stamp')), findsOneWidget);
+      // The stamp hugs its label, never the full width.
+      expect(
+        tester.getSize(find.byKey(const Key('delivered-stamp'))).width,
+        lessThan(
+          tester.getSize(find.byKey(const Key('delivered-photo'))).width,
+        ),
+      );
       // No reference and no record: the Space stays private.
       expect(find.textContaining('KCT-'), findsNothing);
       expect(find.byKey(const Key('work-sign-off')), findsNothing);

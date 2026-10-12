@@ -2058,4 +2058,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String deliveredStamp(String date) {
     return 'CHECKED · $date';
   }
+
+  @override
+  String get workCheckConfirm => 'Close it';
+
+  @override
+  String get deliveredNoneShown =>
+      'Nothing shown yet. Tap See all to choose what shows.';
 }

@@ -51,7 +51,6 @@ class BvStamp extends StatelessWidget {
     final type = BvType.of(context);
     final stamp = Container(
       height: large ? BvStampSpec.largeHeight : null,
-      alignment: large ? Alignment.center : null,
       padding: EdgeInsetsDirectional.symmetric(
         horizontal: large
             ? BvStampSpec.largePaddingHorizontal
@@ -62,12 +61,23 @@ class BvStamp extends StatelessWidget {
         borderRadius: BvStampSpec.radius,
         border: Border.all(color: color, width: BvStampSpec.border),
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        style: large
-            ? type.labelLg.copyWith(color: color, fontWeight: FontWeight.w700)
-            : type.labelMd.copyWith(color: color),
+      // A row hugs the label's width and centres it in the large height.
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              style: large
+                  ? type.labelLg.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                    )
+                  : type.labelMd.copyWith(color: color),
+            ),
+          ),
+        ],
       ),
     );
     if (!tilted) return stamp;
