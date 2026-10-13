@@ -11,7 +11,7 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
 | 4 | 1–7 Nov | Spaces: create, link a project, invite link and code, join requests, passes, Teams | — |
 | 5 | 8–14 Nov | Work items: create, Needs you, sign as done with a photo, check or send back, filters | — |
 | 6 | 15–21 Nov | Space chat (live), item cards in chat, Library and file preview | — |
-| 7 | 22–28 Nov | Home feed and posts, Spaces tab, Activity, push notifications | — |
+| 7 | 22–28 Nov | Home feed and posts, Spaces tab, Activity, push notifications | Done early (13 Oct): feed and posts, Home Spaces tab, Activity, push live on Android (migrations 12–14) |
 | 8 | 29 Nov–5 Dec | Arabic pass, market pack, privacy, report and block, delete account | — |
 | 9 | 6–12 Dec | Internal test with 3–5 people. Fixes | — |
 | 10 | 13–19 Dec | App Store and Google Play submission | — |
@@ -30,7 +30,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered (founder's yes, 12 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push (founder's yes, 13 Oct) |
+| Edge Functions | `push` (FCM HTTP v1), `verify_jwt = false`, deployed 13 Oct with the founder's yes |
+| Function secrets | `FIREBASE_SERVICE_ACCOUNT` (pasted by the founder), `PUSH_WEBHOOK_SECRET` (generated, never printed). Names only here |
+| Vault | `push_webhook_secret` (the same value as `PUSH_WEBHOOK_SECRET`) |
+| Extensions | `pg_cron`, `pg_net` (13 Oct, for push) |
+| Push wiring | Trigger `push_queue_call` on `push_queue` inserts (`supabase/ops/push_webhook.sql`); cron `push-retry` every minute and `push-prune` at 02:30 UTC (`supabase/ops/push_cron.sql`); all run 13 Oct with the founder's yes |
+| Test accounts | `push-test-a@example.com` (Test Receiver), `push-test-b@example.com` (Test Follower), `push-test-c@example.com` (Test Third), made with the admin API for the push test (13 Oct). **Delete before the pilot** |
 | Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
@@ -365,10 +371,27 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Review 21: a test proves a language change registers the phone again in the new language; retaken `push_en_permission` ("Allow BuildVibes") and `s4_en_push_off` (faded switches, centred title).
     - 549 Flutter tests pass. Screenshots: `push_en_permission`, `s3_*_notifications`, `s4_*_push_off`.
 
+- **13 Oct, push live** (review 22, each step with the founder's yes):
+  - Review 22 A: the insert trigger reads the secret from Vault (no dashboard webhook); SENDER_ID_MISMATCH keeps phones; 10-second timeouts; the 5th failed attempt finishes the row. 637 SQL checks.
+  - Migration 14 pushed (the dry run listed only `20261012190000_push.sql`). The webhook secret generated and stored in Vault and as `PUSH_WEBHOOK_SECRET`, never printed. The `push` function deployed. The trigger and the two cron jobs installed; `push-retry` runs and succeeds.
+  - Tested on the Android emulator with Google Play, signed in to the live project as push-test-a:
+    - B followed A: the push arrived ("Test Follower started following you."), with no Space or project name; the tap opened B's profile;
+    - with New followers off, C followed A: an Activity row, no push queued; then New followers back on;
+    - B replied to A's post: the push arrived with the new notification icon (a white silhouette, tinted orange) and opened the post.
+  - Screenshots: `push_en_notification`, `push_en_tap_profile`, `s3_en_followers_off`, `push_en_switch_off_no_push`, `push_en_notification_icon`, `push_en_tap_post`.
+  - `push-db` and `push` merged into main.
+
+## Before the pilot (week 11)
+- Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
+- Turn the phone provider off on the live project (it is on for the test numbers only).
+- Upgrade the Supabase project to a paid plan for daily backups.
+- The nightly cleanup of loose photos (an Edge Function calling the Storage API with `orphan_space_files()` and `orphan_post_media()`): a live change for the founder's yes.
+- Replace the app icon and the notification icon (now a white silhouette of Flutter's default icon) with the BuildVibes logo.
+
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. The lead checks the review 18 B fixes and screenshots.
-3. Week 7 part 2: migration 13 (activity, on `activity-db` for the lead's review first), Home Spaces tab (H1b), Activity, the Profile Spaces icon, Create opening the composer. Part 3: push.
+2. Week 8 (review 22): Arabic pass, market pack, privacy, report and block, delete account. Before the brief, the founder decides review 16 §6: Translate on posts, Save and Share, @mentions.
+3. iPhone push needs the Apple developer account and an APNs key (week 10).
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 5. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.
