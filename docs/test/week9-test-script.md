@@ -3,14 +3,14 @@
 **For each task:** tick one box, and write one line if anything was hard. Each task should take under a minute.
 **لكل مهمة:** ضع علامة في مربع واحد، واكتب سطرًا واحدًا إن كان هناك شيء صعب. كل مهمة يُفترض ألا تتجاوز دقيقة.
 
-Name · الاسم: ______________  Phone · الهاتف: ______________  Language · اللغة: ☐ English ☐ العربية
+Name · الاسم: ______________  Phone model · نوع الهاتف: ______________  Language · اللغة: ☐ English ☐ العربية
 
 | # | Task | المهمة | Easy · سهل | Hard · صعب | Couldn't · تعذّر | One line · سطر واحد |
 |---|---|---|:-:|:-:|:-:|---|
 | 1 | Open the app, choose your language, and sign up with the code sent to your email. | افتح التطبيق، واختر لغتك، وأنشئ حسابك بالرمز المرسل إلى بريدك. | ☐ | ☐ | ☐ | |
 | 2 | Join "Test site" with the invite code you were sent. Wait until the admin confirms you. | انضم إلى «Test site» برمز الدعوة المرسل إليك، وانتظر حتى يؤكد المدير انضمامك. | ☐ | ☐ | ☐ | |
 | 3 | In "Test site" → Work, create a work item for someone else. | في «Test site» ← العمل، أنشئ بند عمل لشخص آخر. | ☐ | ☐ | ☐ | |
-| 4 | Open a work item given to you and tap "Sign as done", with a photo. | افتح بند عمل مكلّفًا به، واضغط «وقّع كمنجز» مع صورة. | ☐ | ☐ | ☐ | |
+| 4 | Open a work item given to you and tap "Sign as done", with a photo. | افتح بند عمل كُلِّفتَ به، واضغط «وقّع كمنجز» مع صورة. | ☐ | ☐ | ☐ | |
 | 5 | Open an item someone signed as done: "Check and close" it, or "Send back" with a reason. | افتح بندًا موقّعًا كمنجز: «افحص وأغلق»، أو «إرجاع» مع ذكر السبب. | ☐ | ☐ | ☐ | |
 | 6 | In Chat, send a message. In Library, share a drawing or a photo. | في المحادثة أرسل رسالة. وفي المكتبة شارك مخططًا أو صورة. | ☐ | ☐ | ☐ | |
 | 7 | Post a site update on Home. On someone else's post, tap "Useful" and reply. | انشر تحديثًا من الموقع في الرئيسية. وعلى منشور لشخص آخر اضغط «مفيد» ثم رد عليه. | ☐ | ☐ | ☐ | |
