@@ -51,6 +51,10 @@ abstract final class BvIcons {
   static const unavailable = IconData(0xe224, fontFamily: _family);
   // Phosphor: lock
   static const lock = IconData(0xe2fa, fontFamily: _family);
+  // Phosphor: flag (Report)
+  static const report = IconData(0xe244, fontFamily: _family);
+  // Phosphor: prohibit (Block)
+  static const block = IconData(0xe3de, fontFamily: _family);
   // Phosphor: globe
   static const everyone = IconData(0xe288, fontFamily: _family);
   // Phosphor: users

@@ -437,6 +437,28 @@ void main() {
       expect(find.text(l10n.chatDeleted), findsNWidgets(2));
     });
 
+    testWidgets('S8c: report someone else’s message; never your own [$lang]', (
+      tester,
+    ) async {
+      final app = await _openThread(tester, lang, admin: false);
+      await tester.longPress(find.byKey(const Key('chat-message-m3')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('chat-action-report')), findsNothing);
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.byKey(const Key('chat-message-m2')));
+      await tester.pumpAndSettle();
+      await _tap(tester, 'chat-action-report');
+      expect(find.text(l10n.reportTitle('message')), findsOneWidget);
+      await _tap(tester, 'report-reason-harassment');
+      expect(app.safety.calls, ['report message m2 harassment']);
+      // R2, without Block: Block is offered for posts and people.
+      expect(find.text(l10n.reportSentTitle), findsOneWidget);
+      expect(find.byKey(const Key('report-block')), findsNothing);
+      await _tap(tester, 'report-done');
+    });
+
     testWidgets('an admin may delete anyone’s message [$lang]', (tester) async {
       await _openThread(tester, lang);
       await tester.longPress(find.byKey(const Key('chat-message-m2')));

@@ -12,7 +12,9 @@ enum ActivityKind {
   roleConfirmed('role_confirmed'),
   follow('follow'),
   postReply('post_reply'),
-  postUseful('post_useful');
+  postUseful('post_useful'),
+  contentRemoved('content_removed'),
+  appealDecided('appeal_decided');
 
   const ActivityKind(this.json);
 
@@ -62,6 +64,9 @@ class ActivityRow {
     this.read = false,
     this.usefulNames = const [],
     this.toReply = false,
+    this.removalId,
+    this.targetKind,
+    this.result,
   });
 
   factory ActivityRow.fromJson(Map<String, dynamic> j) => ActivityRow(
@@ -87,6 +92,9 @@ class ActivityRow {
       for (final n in (j['useful_names'] as List? ?? const [])) n as String,
     ],
     toReply: (j['payload'] as Map?)?['to'] == 'reply',
+    removalId: (j['payload'] as Map?)?['removal_id'] as String?,
+    targetKind: (j['payload'] as Map?)?['target_kind'] as String?,
+    result: (j['payload'] as Map?)?['result'] as String?,
   );
 
   final String id;
@@ -117,6 +125,12 @@ class ActivityRow {
 
   /// A reply to your reply, not to your post.
   final bool toReply;
+
+  /// A removal of yours (R3) and its appeal's result: 'reversed' or
+  /// 'upheld'. targetKind: post, reply or message.
+  final String? removalId;
+  final String? targetKind;
+  final String? result;
 
   /// Groups rows: a Space's id, or the group's name.
   String get groupKey =>

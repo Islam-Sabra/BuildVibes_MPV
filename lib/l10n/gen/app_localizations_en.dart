@@ -625,7 +625,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get blockConfirmBody =>
-      'You won\'t see each other\'s profiles, and follows between you are removed. They aren\'t told.';
+      'You won\'t see each other\'s posts or profiles, and follows between you are removed. They aren\'t told.';
 
   @override
   String get block => 'Block';
@@ -3194,4 +3194,241 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pushOpenSettings => 'Open phone settings';
+
+  @override
+  String reportTitle(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'Report this post',
+      'reply': 'Report this reply',
+      'message': 'Report this message',
+      'other': 'Report this account',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get reportSubtitle =>
+      'The person won\'t be told who reported. Choose what fits best.';
+
+  @override
+  String get reasonSpam => 'Spam or scam';
+
+  @override
+  String get reasonSpamHelp => 'Fake offers, unwanted promotion';
+
+  @override
+  String get reasonHarassment => 'Harassment or abuse';
+
+  @override
+  String get reasonHarassmentHelp => 'Insults, threats, targeting someone';
+
+  @override
+  String get reasonMisleading => 'Wrong or misleading';
+
+  @override
+  String get reasonMisleadingHelp => 'Claims that are false';
+
+  @override
+  String get reasonFake => 'This isn\'t real';
+
+  @override
+  String get reasonFakeHelp => 'A fake person, company or project';
+
+  @override
+  String get reasonPrivate => 'Shares private information';
+
+  @override
+  String get reasonPrivateHelp =>
+      'Documents, plans or details not meant to be public';
+
+  @override
+  String get reasonOther => 'Something else';
+
+  @override
+  String get reasonOtherHelp => 'Tell us in a few words';
+
+  @override
+  String get reportNoteTitle => 'What\'s wrong?';
+
+  @override
+  String get reportNoteHint => 'A few words';
+
+  @override
+  String get reportSend => 'Send report';
+
+  @override
+  String get reportSentTitle => 'Report sent';
+
+  @override
+  String get reportSentBody =>
+      'We\'ll review it and may remove anything that breaks the rules. The person isn\'t told who reported.';
+
+  @override
+  String get reportDone => 'Done';
+
+  @override
+  String get reportBlock => 'Block this account';
+
+  @override
+  String get postReport => 'Report post';
+
+  @override
+  String get replyReport => 'Report reply';
+
+  @override
+  String get chatReport => 'Report message';
+
+  @override
+  String get profileReport => 'Report account';
+
+  @override
+  String blockDone(String name) {
+    return '$name blocked';
+  }
+
+  @override
+  String get blockedTitle => 'Blocked accounts';
+
+  @override
+  String blockedCount(int n) {
+    return '$n BLOCKED';
+  }
+
+  @override
+  String get blockedNone => 'Nobody blocked';
+
+  @override
+  String get unblock => 'Unblock';
+
+  @override
+  String unblocked(String name) {
+    return '$name unblocked';
+  }
+
+  @override
+  String get blockedNote =>
+      'Blocked accounts can\'t follow you or see your posts. They are not told.';
+
+  @override
+  String removedTitle(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'Removed post',
+      'reply': 'Removed reply',
+      'other': 'Removed message',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String removedHeading(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'We removed your post',
+      'reply': 'We removed your reply',
+      'other': 'We removed your message',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String removedBody(String reason) {
+    return 'It was reported for $reason, and our review agreed. Only you can see this notice.';
+  }
+
+  @override
+  String reasonPhrase(String reason) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'spam': 'spam or a scam',
+      'harassment': 'harassment or abuse',
+      'misleading': 'being wrong or misleading',
+      'fake': 'not being real',
+      'private_info': 'sharing private information',
+      'other': 'something else',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String removedYour(String kind, String date) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'Your post',
+      'reply': 'Your reply',
+      'other': 'Your message',
+    });
+    return '$_temp0 · $date';
+  }
+
+  @override
+  String get removedAppealNote =>
+      'You have 14 days to appeal. We\'ll look at it again.';
+
+  @override
+  String get removedAppeal => 'Appeal this decision';
+
+  @override
+  String removedAppealOpen(String date) {
+    return 'You appealed on $date. We\'ll tell you the result in Activity.';
+  }
+
+  @override
+  String get removedClosed => 'The 14 days to appeal have passed.';
+
+  @override
+  String get removedUpheld => 'We looked at it again: the removal stands.';
+
+  @override
+  String get removedReversed => 'We looked at it again and brought it back.';
+
+  @override
+  String get removedGone => 'This notice isn\'t available.';
+
+  @override
+  String get appealTitle => 'Appeal';
+
+  @override
+  String get appealHeading => 'Tell us why this was a mistake';
+
+  @override
+  String get appealHelp =>
+      'Add anything that helps the reviewer. Don\'t include other people\'s private details.';
+
+  @override
+  String get appealLabel => 'Your explanation';
+
+  @override
+  String get appealLimit => 'Up to 500 characters';
+
+  @override
+  String get appealSend => 'Send appeal';
+
+  @override
+  String get appealReceived => 'Appeal received';
+
+  @override
+  String get appealReceivedBody =>
+      'We\'ll look at it again. We\'ll tell you the result in Activity, usually within 3 days.';
+
+  @override
+  String activityRemoved(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'Your post was removed',
+      'reply': 'Your reply was removed',
+      'other': 'Your message was removed',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String activityAppealResult(String result) {
+    String _temp0 = intl.Intl.selectLogic(result, {
+      'reversed': 'Your appeal: it\'s back',
+      'other': 'Your appeal: the removal stands',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chipRemoved => 'Removed';
+
+  @override
+  String get chipRestored => 'Restored';
 }

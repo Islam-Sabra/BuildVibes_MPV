@@ -9,6 +9,7 @@ abstract final class AppRoutes {
   // Profile (inside the Profile tab)
   static const profileSettings = '/profile/settings';
   static const profileNotifications = '/profile/settings/notifications';
+  static const profileBlocked = '/profile/settings/blocked';
   static const profileEdit = '/profile/edit';
   static const profileEditBasics = '/profile/edit/basics';
   static const profileEditAbout = '/profile/edit/about';
@@ -26,6 +27,11 @@ abstract final class AppRoutes {
   static String personWork(String profileId, String itemId) =>
       '/people/$profileId/work/$itemId';
   static const projects = '/projects';
+
+  // R3 and R4: something of yours that was removed, and its appeal.
+  static const removals = '/removals';
+  static String removal(String id) => '/removals/$id';
+  static String removalAppeal(String id) => '/removals/$id/appeal';
 
   // Posts. "new" before ":id".
   static const posts = '/posts';

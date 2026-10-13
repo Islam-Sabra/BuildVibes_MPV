@@ -623,7 +623,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get blockConfirmBody =>
-      'لن يرى أحدكما ملف الآخر، وتُزال المتابعات بينكما. ولن يتم إبلاغه.';
+      'لن يرى أيّ منكما منشورات الآخر أو ملفه، وتُزال المتابعات بينكما. ولا يصله أي إشعار.';
 
   @override
   String get block => 'حظر';
@@ -3208,4 +3208,238 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pushOpenSettings => 'افتح إعدادات الهاتف';
+
+  @override
+  String reportTitle(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'الإبلاغ عن هذا المنشور',
+      'reply': 'الإبلاغ عن هذا الرد',
+      'message': 'الإبلاغ عن هذه الرسالة',
+      'other': 'الإبلاغ عن هذا الحساب',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get reportSubtitle => 'لن يُعرف من أبلغ. اختر الأنسب.';
+
+  @override
+  String get reasonSpam => 'رسائل مزعجة أو احتيال';
+
+  @override
+  String get reasonSpamHelp => 'عروض وهمية، ترويج غير مرغوب';
+
+  @override
+  String get reasonHarassment => 'مضايقة أو إساءة';
+
+  @override
+  String get reasonHarassmentHelp => 'إهانات أو تهديدات أو استهداف شخص';
+
+  @override
+  String get reasonMisleading => 'خاطئ أو مضلل';
+
+  @override
+  String get reasonMisleadingHelp => 'ادعاءات غير صحيحة';
+
+  @override
+  String get reasonFake => 'هذا غير حقيقي';
+
+  @override
+  String get reasonFakeHelp => 'شخص أو شركة أو مشروع وهمي';
+
+  @override
+  String get reasonPrivate => 'يكشف معلومات خاصة';
+
+  @override
+  String get reasonPrivateHelp => 'مستندات أو مخططات أو تفاصيل ليست للنشر';
+
+  @override
+  String get reasonOther => 'شيء آخر';
+
+  @override
+  String get reasonOtherHelp => 'أخبرنا بكلمات قليلة';
+
+  @override
+  String get reportNoteTitle => 'ما المشكلة؟';
+
+  @override
+  String get reportNoteHint => 'بضع كلمات';
+
+  @override
+  String get reportSend => 'إرسال البلاغ';
+
+  @override
+  String get reportSentTitle => 'تم إرسال البلاغ';
+
+  @override
+  String get reportSentBody =>
+      'سنراجعه وقد نزيل ما يخالف القواعد. لن يُعرف من أبلغ.';
+
+  @override
+  String get reportDone => 'تم';
+
+  @override
+  String get reportBlock => 'حظر هذا الحساب';
+
+  @override
+  String get postReport => 'الإبلاغ عن المنشور';
+
+  @override
+  String get replyReport => 'الإبلاغ عن الرد';
+
+  @override
+  String get chatReport => 'الإبلاغ عن الرسالة';
+
+  @override
+  String get profileReport => 'الإبلاغ عن الحساب';
+
+  @override
+  String blockDone(String name) {
+    return 'تم حظر $name';
+  }
+
+  @override
+  String get blockedTitle => 'الحسابات المحظورة';
+
+  @override
+  String blockedCount(int n) {
+    return 'المحظورون · $n';
+  }
+
+  @override
+  String get blockedNone => 'لا أحد محظور';
+
+  @override
+  String get unblock => 'إلغاء الحظر';
+
+  @override
+  String unblocked(String name) {
+    return 'تم إلغاء حظر $name';
+  }
+
+  @override
+  String get blockedNote =>
+      'لا تستطيع الحسابات المحظورة متابعتك أو رؤية منشوراتك، ولا يصلها أي إشعار.';
+
+  @override
+  String removedTitle(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'منشور محذوف',
+      'reply': 'رد محذوف',
+      'other': 'رسالة محذوفة',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String removedHeading(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'أزلنا منشورك',
+      'reply': 'أزلنا ردّك',
+      'other': 'أزلنا رسالتك',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String removedBody(String reason) {
+    return 'أُبلغ عنه بسبب $reason، ووافقت مراجعتنا على ذلك. لا يرى هذا الإشعار غيرك.';
+  }
+
+  @override
+  String reasonPhrase(String reason) {
+    String _temp0 = intl.Intl.selectLogic(reason, {
+      'spam': 'رسائل مزعجة أو احتيال',
+      'harassment': 'مضايقة أو إساءة',
+      'misleading': 'معلومات خاطئة أو مضللة',
+      'fake': 'أنه غير حقيقي',
+      'private_info': 'كشف معلومات خاصة',
+      'other': 'سبب آخر',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String removedYour(String kind, String date) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'منشورك',
+      'reply': 'ردّك',
+      'other': 'رسالتك',
+    });
+    return '$_temp0 · $date';
+  }
+
+  @override
+  String get removedAppealNote => 'أمامك 14 يوماً للاعتراض. سنراجعه مرة أخرى.';
+
+  @override
+  String get removedAppeal => 'اعترض على القرار';
+
+  @override
+  String removedAppealOpen(String date) {
+    return 'اعترضت في $date. سنخبرك بالنتيجة في النشاط.';
+  }
+
+  @override
+  String get removedClosed => 'انتهت مدة الاعتراض (14 يوماً).';
+
+  @override
+  String get removedUpheld => 'راجعناه مرة أخرى: يبقى محذوفاً.';
+
+  @override
+  String get removedReversed => 'راجعناه مرة أخرى وأعدناه.';
+
+  @override
+  String get removedGone => 'هذا الإشعار غير متاح.';
+
+  @override
+  String get appealTitle => 'اعتراض';
+
+  @override
+  String get appealHeading => 'أخبرنا لماذا كان هذا خطأ';
+
+  @override
+  String get appealHelp =>
+      'أضف ما يساعد المراجعة. لا تذكر تفاصيل خاصة بأشخاص آخرين.';
+
+  @override
+  String get appealLabel => 'توضيحك';
+
+  @override
+  String get appealLimit => 'حتى 500 حرف';
+
+  @override
+  String get appealSend => 'إرسال الاعتراض';
+
+  @override
+  String get appealReceived => 'تم استلام الاعتراض';
+
+  @override
+  String get appealReceivedBody =>
+      'سنراجعه مرة أخرى، وسنخبرك بالنتيجة في النشاط، عادةً خلال 3 أيام.';
+
+  @override
+  String activityRemoved(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'post': 'أُزيل منشورك',
+      'reply': 'أُزيل ردّك',
+      'other': 'أُزيلت رسالتك',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String activityAppealResult(String result) {
+    String _temp0 = intl.Intl.selectLogic(result, {
+      'reversed': 'اعتراضك: أُعيد المحتوى',
+      'other': 'اعتراضك: يبقى محذوفاً',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get chipRemoved => 'محذوف';
+
+  @override
+  String get chipRestored => 'مُعاد';
 }

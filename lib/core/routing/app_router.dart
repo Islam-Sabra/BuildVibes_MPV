@@ -27,6 +27,8 @@ import '../../features/profile/edit/open_to_screen.dart';
 import '../../features/profile/person_profile_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/settings_screen.dart';
+import '../../features/safety/blocked_screen.dart';
+import '../../features/safety/removed_screen.dart';
 import '../../features/settings/notifications_screen.dart';
 import '../../features/projects/add_project_screen.dart';
 import '../../features/projects/new_project_screen.dart';
@@ -73,6 +75,7 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.projects) ||
               under(AppRoutes.posts) ||
               under(AppRoutes.spaces) ||
+              under(AppRoutes.removals) ||
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
           : null,
@@ -193,6 +196,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.spaces,
         builder: (context, state) => const MySpacesScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.removals}/:id',
+        builder: (context, state) =>
+            RemovedScreen(removalId: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'appeal',
+            builder: (context, state) =>
+                AppealScreen(removalId: state.pathParameters['id']!),
+          ),
+        ],
       ),
       // "new" before ":id".
       GoRoute(
@@ -325,6 +340,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         path: 'notifications',
                         builder: (context, state) =>
                             const NotificationsScreen(),
+                      ),
+                      GoRoute(
+                        path: 'blocked',
+                        builder: (context, state) => const BlockedScreen(),
                       ),
                       if (kDebugMode)
                         GoRoute(

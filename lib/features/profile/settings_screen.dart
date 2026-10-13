@@ -45,6 +45,13 @@ class SettingsScreen extends ConsumerWidget {
                   title: l10n.settingsNotifications,
                   onTap: () => context.push(AppRoutes.profileNotifications),
                 ),
+              if (!guest)
+                BvListRow(
+                  key: const Key('row-blocked'),
+                  leading: const BvRowIcon(BvIcons.block),
+                  title: l10n.blockedTitle,
+                  onTap: () => context.push(AppRoutes.profileBlocked),
+                ),
               if (kDebugMode)
                 BvListRow(
                   key: const Key('row-components'),

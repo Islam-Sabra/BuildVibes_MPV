@@ -310,6 +310,18 @@ class _Row extends ConsumerWidget {
         (l10n.chipConfirmed, BvBadgeTone.positive),
       ),
       ActivityKind.follow => (l10n.activityFollow(name), null, null),
+      ActivityKind.contentRemoved => (
+        l10n.activityRemoved(row.targetKind ?? 'post'),
+        null,
+        (l10n.chipRemoved, BvBadgeTone.warning),
+      ),
+      ActivityKind.appealDecided => (
+        l10n.activityAppealResult(row.result ?? 'upheld'),
+        null,
+        row.result == 'reversed'
+            ? (l10n.chipRestored, BvBadgeTone.positive)
+            : (l10n.chipRemoved, BvBadgeTone.warning),
+      ),
       ActivityKind.postReply => (
         row.toReply
             ? l10n.activityReplyReply(name)
@@ -343,6 +355,9 @@ class _Row extends ConsumerWidget {
           context.push(AppRoutes.space(space));
         case ActivityKind.roleConfirmed:
           context.go(AppRoutes.profile);
+        case ActivityKind.contentRemoved || ActivityKind.appealDecided
+            when row.removalId != null:
+          context.push(AppRoutes.removal(row.removalId!));
         case ActivityKind.follow when actor != null:
           context.push('${AppRoutes.people}/$actor');
         case ActivityKind.postReply || ActivityKind.postUseful

@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'dart:typed_data';
 
 import 'package:buildvibes/data/models/market.dart';
@@ -166,9 +167,37 @@ void main() {
       await tester.pumpAndSettle();
       await _tap(tester, 'profile-more');
       await _tap(tester, 'profile-block');
-      expect(find.text(l10n.blockConfirmTitle('Layla')), findsOneWidget);
-      await _tap(tester, 'bv-sheet-confirm');
-      expect(app.pages.blocked, contains('p-layla'));
+      // The block dialog, as drawn, with the full name.
+      expect(
+        find.text(l10n.blockConfirmTitle(inOwnDirection('Layla Haddad'))),
+        findsOneWidget,
+      );
+      await _tap(tester, 'bv-dialog-confirm');
+      expect(app.safety.calls, contains('block p-layla true'));
+      expect(find.text('Layla Haddad'), findsNothing);
+      // The toast, with Undo.
+      expect(find.byKey(const Key('block-toast')), findsOneWidget);
+      await tester.tap(find.text(l10n.postUndo));
+      await tester.pumpAndSettle();
+      expect(app.safety.calls.last, 'block p-layla false');
+    });
+
+    testWidgets('visitor: report the account, then Block from R2 [$lang]', (
+      tester,
+    ) async {
+      final app = await pumpApp(tester, language: lang);
+      _addLayla(app);
+      _go(tester, '/people/p-layla');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'profile-more');
+      await _tap(tester, 'profile-report');
+      expect(find.text(l10n.reportTitle('profile')), findsOneWidget);
+      expect(find.text(l10n.reportSubtitle), findsOneWidget);
+      await _tap(tester, 'report-reason-fake');
+      expect(app.safety.calls, ['report profile p-layla fake']);
+      await _tap(tester, 'report-block');
+      await _tap(tester, 'bv-dialog-confirm');
+      expect(app.safety.calls.last, 'block p-layla true');
       expect(find.text('Layla Haddad'), findsNothing);
     });
 

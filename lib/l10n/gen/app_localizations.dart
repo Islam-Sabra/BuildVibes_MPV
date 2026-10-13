@@ -1181,7 +1181,7 @@ abstract class AppLocalizations {
   /// Confirm sheet body.
   ///
   /// In en, this message translates to:
-  /// **'You won\'t see each other\'s profiles, and follows between you are removed. They aren\'t told.'**
+  /// **'You won\'t see each other\'s posts or profiles, and follows between you are removed. They aren\'t told.'**
   String get blockConfirmBody;
 
   /// Button.
@@ -5431,6 +5431,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open phone settings'**
   String get pushOpenSettings;
+
+  /// R1 title. kind: post, reply, message, profile.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, post{Report this post} reply{Report this reply} message{Report this message} other{Report this account}}'**
+  String reportTitle(String kind);
+
+  /// R1 line.
+  ///
+  /// In en, this message translates to:
+  /// **'The person won\'t be told who reported. Choose what fits best.'**
+  String get reportSubtitle;
+
+  /// R1 reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam or scam'**
+  String get reasonSpam;
+
+  /// R1 reason line.
+  ///
+  /// In en, this message translates to:
+  /// **'Fake offers, unwanted promotion'**
+  String get reasonSpamHelp;
+
+  /// R1 reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or abuse'**
+  String get reasonHarassment;
+
+  /// R1 reason line.
+  ///
+  /// In en, this message translates to:
+  /// **'Insults, threats, targeting someone'**
+  String get reasonHarassmentHelp;
+
+  /// R1 reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong or misleading'**
+  String get reasonMisleading;
+
+  /// R1 reason line.
+  ///
+  /// In en, this message translates to:
+  /// **'Claims that are false'**
+  String get reasonMisleadingHelp;
+
+  /// R1 reason.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t real'**
+  String get reasonFake;
+
+  /// R1 reason line.
+  ///
+  /// In en, this message translates to:
+  /// **'A fake person, company or project'**
+  String get reasonFakeHelp;
+
+  /// R1 reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Shares private information'**
+  String get reasonPrivate;
+
+  /// R1 reason line.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents, plans or details not meant to be public'**
+  String get reasonPrivateHelp;
+
+  /// R1 reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get reasonOther;
+
+  /// R1 reason line.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us in a few words'**
+  String get reasonOtherHelp;
+
+  /// Something else: the note sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s wrong?'**
+  String get reportNoteTitle;
+
+  /// Something else: the field hint.
+  ///
+  /// In en, this message translates to:
+  /// **'A few words'**
+  String get reportNoteHint;
+
+  /// Something else: send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get reportSend;
+
+  /// R2 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent'**
+  String get reportSentTitle;
+
+  /// R2 line.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll review it and may remove anything that breaks the rules. The person isn\'t told who reported.'**
+  String get reportSentBody;
+
+  /// R2 and R5 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get reportDone;
+
+  /// R2 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Block this account'**
+  String get reportBlock;
+
+  /// Post menu row (someone else's post).
+  ///
+  /// In en, this message translates to:
+  /// **'Report post'**
+  String get postReport;
+
+  /// Reply menu row (someone else's reply).
+  ///
+  /// In en, this message translates to:
+  /// **'Report reply'**
+  String get replyReport;
+
+  /// S8c: the message sheet row.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get chatReport;
+
+  /// Person profile menu row.
+  ///
+  /// In en, this message translates to:
+  /// **'Report account'**
+  String get profileReport;
+
+  /// Toast after blocking, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} blocked'**
+  String blockDone(String name);
+
+  /// S7 title and the Settings row.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked accounts'**
+  String get blockedTitle;
+
+  /// S7 section: your own count.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} BLOCKED'**
+  String blockedCount(int n);
+
+  /// S7 empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody blocked'**
+  String get blockedNone;
+
+  /// S7 row action.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblock;
+
+  /// Toast after unblocking.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} unblocked'**
+  String unblocked(String name);
+
+  /// S7 footnote. Nothing about messages: the MVP has none.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked accounts can\'t follow you or see your posts. They are not told.'**
+  String get blockedNote;
+
+  /// R3 app bar.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, post{Removed post} reply{Removed reply} other{Removed message}}'**
+  String removedTitle(String kind);
+
+  /// R3 heading.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, post{We removed your post} reply{We removed your reply} other{We removed your message}}'**
+  String removedHeading(String kind);
+
+  /// R3 line.
+  ///
+  /// In en, this message translates to:
+  /// **'It was reported for {reason}, and our review agreed. Only you can see this notice.'**
+  String removedBody(String reason);
+
+  /// R3: the reason inside the sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'{reason, select, spam{spam or a scam} harassment{harassment or abuse} misleading{being wrong or misleading} fake{not being real} private_info{sharing private information} other{something else}}'**
+  String reasonPhrase(String reason);
+
+  /// R3 card label.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, post{Your post} reply{Your reply} other{Your message}} · {date}'**
+  String removedYour(String kind, String date);
+
+  /// R3 line (review 23: one reviewer in the pilot).
+  ///
+  /// In en, this message translates to:
+  /// **'You have 14 days to appeal. We\'ll look at it again.'**
+  String get removedAppealNote;
+
+  /// R3 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal this decision'**
+  String get removedAppeal;
+
+  /// R3 when the appeal is open.
+  ///
+  /// In en, this message translates to:
+  /// **'You appealed on {date}. We\'ll tell you the result in Activity.'**
+  String removedAppealOpen(String date);
+
+  /// R3 after 14 days.
+  ///
+  /// In en, this message translates to:
+  /// **'The 14 days to appeal have passed.'**
+  String get removedClosed;
+
+  /// R3 after an upheld appeal.
+  ///
+  /// In en, this message translates to:
+  /// **'We looked at it again: the removal stands.'**
+  String get removedUpheld;
+
+  /// R3 after a reversed appeal.
+  ///
+  /// In en, this message translates to:
+  /// **'We looked at it again and brought it back.'**
+  String get removedReversed;
+
+  /// R3 when the notice is not yours or is gone.
+  ///
+  /// In en, this message translates to:
+  /// **'This notice isn\'t available.'**
+  String get removedGone;
+
+  /// R4 and R5 app bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal'**
+  String get appealTitle;
+
+  /// R4 heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us why this was a mistake'**
+  String get appealHeading;
+
+  /// R4 line.
+  ///
+  /// In en, this message translates to:
+  /// **'Add anything that helps the reviewer. Don\'t include other people\'s private details.'**
+  String get appealHelp;
+
+  /// R4 field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Your explanation'**
+  String get appealLabel;
+
+  /// R4 field help.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 500 characters'**
+  String get appealLimit;
+
+  /// R4 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send appeal'**
+  String get appealSend;
+
+  /// R5 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal received'**
+  String get appealReceived;
+
+  /// R5 line (review 23 wording).
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll look at it again. We\'ll tell you the result in Activity, usually within 3 days.'**
+  String get appealReceivedBody;
+
+  /// A1 row: a removal.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind, select, post{Your post was removed} reply{Your reply was removed} other{Your message was removed}}'**
+  String activityRemoved(String kind);
+
+  /// A1 row: an appeal result.
+  ///
+  /// In en, this message translates to:
+  /// **'{result, select, reversed{Your appeal: it\'s back} other{Your appeal: the removal stands}}'**
+  String activityAppealResult(String result);
+
+  /// A1 chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get chipRemoved;
+
+  /// A1 chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored'**
+  String get chipRestored;
 }
 
 class _AppLocalizationsDelegate
