@@ -30,14 +30,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety (founder's yes, 13 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety, 16 account (founder's yes, 13 Oct) |
 | Edge Functions | `push` (FCM HTTP v1) and `report-alert` (Resend), both `verify_jwt = false`, deployed 13 Oct with the founder's yes |
 | Function secrets | `FIREBASE_SERVICE_ACCOUNT` and `RESEND_API_KEY` (pasted by the founder), `PUSH_WEBHOOK_SECRET` and `REPORT_ALERT_SECRET` (generated, never printed), `ALERT_FROM` (the sign-in code sender). Names only here |
 | Vault | `push_webhook_secret` and `report_alert_secret` (the same values as the function secrets) |
 | Extensions | `pg_cron`, `pg_net` (13 Oct, for push) |
 | Push wiring | Trigger `push_queue_call` on `push_queue` inserts (`supabase/ops/push_webhook.sql`); cron `push-retry` every minute and `push-prune` at 02:30 UTC (`supabase/ops/push_cron.sql`); all run 13 Oct with the founder's yes |
+| Account | Migration 16 live (13 Oct, founder's yes). Support email `support_email` set by SQL for both packs (Kuwait, Egypt); legal links empty until the pages are hosted. `account-purge` not deployed and `supabase/ops/account_cron.sql` not run: each waits for its own yes |
 | Report alerts | Trigger `reports_alert` on `reports` inserts (`supabase/ops/report_alert_webhook.sql`), run 13 Oct with the founder's yes. Kuwait's moderation address is set in `market_moderation` by SQL (the founder's support alias; not in git). The founder moderates with `supabase/ops/moderation.sql` |
-| Test accounts | `push-test-a@example.com` (Test Receiver), `push-test-b@example.com` (Test Follower), `push-test-c@example.com` (Test Third), made with the admin API for the push test (13 Oct); push-test-a's test post was reported and removed in the report-alert test. **Delete before the pilot** |
+| Test accounts | `push-test-a@example.com` (Test Receiver), `push-test-b@example.com` (Test Follower), `push-test-c@example.com` (Test Third), made with the admin API for the push test (13 Oct); push-test-a's test post was reported and removed in the report-alert test. "Delete Test", a sign-up on a founder's Gmail alias (address kept out of git), for the S13 live test (13 Oct). **Delete all four before the pilot** |
 | Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
@@ -408,7 +409,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Test on live: push-test-b reported push-test-a's test post; the alert function answered "sent" and the founder received the email; `moderation.sql` removed the post, and push-test-a got the removal notice.
   - `safety-db` and `safety` merged into main.
 
-- **13 Oct, week 8 part 2, migration 16** (on `account-db`, **not live**, for the lead's review):
+- **13 Oct, week 8 part 2, migration 16** (reviews 26 and 27; **live** 13 Oct, merged into main):
   - `20261013130000_account.sql`: delete account (a fresh sign-in code; refused while you are a Space's only admin; hidden at once like a block; restorable for 30 days; then removed by the `account-purge` function), Download my data (`data_requests`, the founder's export script), `markets.support_email` and the deletion page link, and the 12-month report cleanup.
   - New, not run or deployed: `supabase/functions/account-purge/`, `supabase/ops/account_cron.sql`, `supabase/ops/export_my_data.sql`.
   - 63 new SQL checks (780 in all); 3 function tests.
@@ -416,7 +417,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Review 26 applied (M1–M4, L1, L2, L4): a hidden account has no admin rights and can't write; deleting is locked per Space; proof and reports stay after a purge; the purge locks the profile and waits for the photos; the export holds all of the person's own data. 101 checks in `16_account.test.sql` (818 in all).
   - Review 27 applied (R1–R3): several purged confirmers can stay on one project, so every purge succeeds; a hidden sole admin can't leave; the deletion locks every Space the person is in. 106 checks (823 in all).
 
-- **13 Oct, week 8 part 2, screens** (on `account`, from `account-db`; waits for migration 16 to go live):
+- **13 Oct, week 8 part 2, screens** (passed review 27; merged into main 13 Oct):
   - S1 v2 Settings: who you are, "Your settings, in words" (blocked accounts, the three push switches, language with the pack's week start and country), Account and security, Notifications, Privacy and safety, Language and region, Help and feedback (the pack's support email), About and legal (the pack's links), Sign out with the S15 dialog (code wording).
   - S2, S5 (Blocked accounts only), S8 (language as one choice; country from live markets; week start read-only), S10/S11 Download my data, S12 → S12b (transfer each Space first) → S13 (an email code, not a password) → S14 (the gate shows only Restore while deletion is scheduled).
   - "Former member" / "عضو سابق" wherever a Space message, work item, event or file has no readable person.
@@ -424,8 +425,16 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Not drawn from the pack yet: S8's "Time format" row (the pack has no such field). For the lead.
   - 21 new widget tests (586 in all).
 
+- **13 Oct, account go-live** (review 27, each step with the founder's yes):
+  - Step 1: live Storage has no `objects_owner_fkey` (only `objects_bucketId_fkey`), so purging someone who uploaded Space files won't fail.
+  - Step 2: migration 16 pushed (the dry run listed only `20261013130000_account.sql`); the migration list matches, 16 on both sides.
+  - Step 3: `support_email` set for Kuwait and Egypt (2 rows).
+  - Step 4: S13 on live with a new test account (custom SMTP confirmed by the founder in the dashboard): the delete code arrived and worked, S14 showed, the account was hidden and its phones signed out; after clearing the app's storage and signing in again with an email code the app opened on S14; Restore cleared the date, another account sees the profile again, and the phone registered for pushes again.
+  - Step 5: `account-db` and `account` merged into main; 823 SQL checks, 586 Flutter tests.
+
 ## Before the pilot (week 11)
-- Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
+- Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
+- With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
 - Turn the phone provider off on the live project (it is on for the test numbers only).
 - Upgrade the Supabase project to a paid plan for daily backups.
 - The nightly cleanup of loose photos (an Edge Function calling the Storage API with `orphan_space_files()` and `orphan_post_media()`): a live change for the founder's yes.
@@ -433,7 +442,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. Week 8 part 2 (review 23 §3, §10): migration 16 (account) on `account-db` for the lead's review, then the account and Settings screens. Parts 3 (Translate) and 4 (Arabic pass, market pack) follow.
+2. Week 8 part 3 (review 23 §7): Translate on posts. The founder creates the Google Cloud Translation key first; built with mocks until it is set. Part 4 (Arabic pass, market pack) follows.
 3. iPhone push needs the Apple developer account and an APNs key (week 10).
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
