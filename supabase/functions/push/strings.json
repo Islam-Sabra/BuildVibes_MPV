@@ -1,0 +1,34 @@
+{
+  "en": {
+    "title": "BuildVibes",
+    "item_assigned": "{name} gave you a work item.",
+    "item_done": "{name} signed a work item as done. You check it.",
+    "item_checked": "{name} checked your work item.",
+    "item_sent_back": "{name} sent a work item back to you.",
+    "item_comment": "{name} commented on a work item.",
+    "join_request": "{name} asked to join a Space you run.",
+    "join_confirmed": "You're in. {name} confirmed your request to join a Space.",
+    "role_confirmed": "{name} confirmed your role on a project.",
+    "follow": "{name} started following you.",
+    "post_reply": "{name} replied to your post.",
+    "chat_title": "New message from {name}",
+    "chat_hidden": "Open BuildVibes to read it.",
+    "someone": "Someone"
+  },
+  "ar": {
+    "title": "BuildVibes",
+    "item_assigned": "بند عمل جديد لك من {name}.",
+    "item_done": "بند عمل منجز بتوقيع {name}، بانتظار فحصك.",
+    "item_checked": "تم فحص بند عملك بواسطة {name}.",
+    "item_sent_back": "أُرجع إليك بند عمل من {name}.",
+    "item_comment": "تعليق جديد من {name} على بند عمل.",
+    "join_request": "طلب انضمام من {name} إلى مساحة تديرها.",
+    "join_confirmed": "تم تأكيد انضمامك إلى مساحة. التأكيد من {name}.",
+    "role_confirmed": "تأكيد لدورك في مشروع من {name}.",
+    "follow": "متابِع جديد: {name}",
+    "post_reply": "ردّ من {name} على منشورك.",
+    "chat_title": "رسالة جديدة من {name}",
+    "chat_hidden": "افتح BuildVibes لقراءتها.",
+    "someone": "أحدهم"
+  }
+}
