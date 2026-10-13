@@ -387,6 +387,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The `report-alert` Edge Function is written (`supabase/functions/report-alert/`, 2 Node tests), **not deployed**. The alert trigger (`supabase/ops/report_alert_webhook.sql`) is not run. The founder's commands are in `supabase/ops/moderation.sql`.
   - The founder still owes the moderation address for Kuwait (review 23 §6.2); until it is set, no alert is sent.
 
+- **13 Oct, week 8 part 1, screens** (on `safety`, from `safety-db`; waits for migration 15 to go live):
+  - The week 8 Figma images are in `docs/design/account/`.
+  - The report reasons follow the R1 frame (Spam or scam, Harassment or abuse, Wrong or misleading, This isn't real, Shares private information, Something else); migration 15 uses the same ids.
+  - Report (R1, a note for "Something else", R2 with Block this account) from: someone else's post, someone else's reply (the reply menu now shows for every reply), a person's profile, and a chat message (S8c).
+  - Block: the dialog and the toast with Undo, from the profile and from R2. The copy promises only what blocking does (no messages in the MVP): "You won't see each other's posts or profiles, and follows between you are removed. They aren't told."
+  - S7 Blocked accounts with Unblock (Settings → Blocked accounts until part 2 rebuilds Settings).
+  - R3 removed notice, R4 appeal, R5 received, with "We'll look at it again"; Activity rows "Your post was removed" and the appeal's result, under Your record. "Read the community rules" waits for the legal pages.
+  - Found and fixed: Block from R2 did nothing after reporting a post, because the card left the list and took the screen with it; the card now leaves when R2 closes (as the R2 frame shows it behind the sheet).
+  - Checked on the emulator against the local server, in English and Arabic: Rakesh reported Omar's post, it left his feed, he blocked and unblocked Omar; the service role removed the post; Omar saw R3, appealed (R4, R5); the appeal was reversed and the post came back with its replies.
+  - 565 Flutter tests pass. Screenshots: `r_*_post_menu`, `r1_*_report`, `r1b_ar_note`, `r2_*_report_sent`, `block_*_dialog`, `toast_*_blocked`, `s7_*_blocked`, `r3_*_removed`, `r3_en_appeal_open`, `r3_ar_removed_message`, `r4_*_appeal`, `r5_*_appeal_received`, `a1_en_removed_row`, `a1_en_appeal_result`, `a1_ar_removed_rows`.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
 - Turn the phone provider off on the live project (it is on for the test numbers only).
