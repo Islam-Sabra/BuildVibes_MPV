@@ -451,3 +451,8 @@ enabled = true
 # signed-in user; the x-push-secret header is the guard (review 21).
 [functions.push]
 verify_jwt = false
+
+# The report alert (week 8 part 1). Called by a trigger with a shared
+# secret, not by a signed-in user.
+[functions.report-alert]
+verify_jwt = false
