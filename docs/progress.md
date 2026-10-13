@@ -30,7 +30,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety, 16 account (founder's yes, 13 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety, 16 account, 17 market pack (founder's yes, 13 Oct) |
 | Edge Functions | `push` (FCM HTTP v1) and `report-alert` (Resend), both `verify_jwt = false`, deployed 13 Oct with the founder's yes |
 | Function secrets | `FIREBASE_SERVICE_ACCOUNT` and `RESEND_API_KEY` (pasted by the founder), `PUSH_WEBHOOK_SECRET` and `REPORT_ALERT_SECRET` (generated, never printed), `ALERT_FROM` (the sign-in code sender). Names only here |
 | Vault | `push_webhook_secret` and `report_alert_secret` (the same values as the function secrets) |
@@ -436,12 +436,16 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Part 3 stopped. Branch `translate` (migration 17 `translate`, the `translate` Edge Function with a stand-in until a key exists, L1–L4 with tests) is pushed and kept, **not merged, not live, not deployed**. When Translate comes back, compare free tiers first (Microsoft Azure Translator is the first candidate).
   - The composer's language sheet (L6) no longer says it is used to offer Translate: one code setting, `AppConfig.translateEnabled = false`. Posts still record their language.
 
-- **13 Oct, week 8 part 4** (on `arabic-pass`, for the lead's review; migration 17 **not live**):
+- **13 Oct, week 8 part 4** (reviews 28 and 29; migration 17 **live** 13 Oct; merged into main):
   - Market pack audit (`docs/market-pack-review.md`, for the founder to confirm Kuwait's values): no country fact is typed in Dart or the strings. One gap fixed: the pack's new `time_zone` (Kuwait Asia/Kuwait, Egypt Africa/Cairo), and the one-Useful-notification-a-day rule now counts the author's own day, not UTC's. Migration 17 `20261013150000_market_pack.sql`, `17_market_pack.test.sql`: 10 checks, 833 in all. If Translate comes back, its migration (on `translate`, `20261013140000`) is renamed after this one.
   - Arabic pass (`docs/arabic-strings.md`, 750 strings since week 4, for the founder to read): checked by script (all present, Western digits, glossary, placeholders, no gendered verbs for third persons). Fixed: «دعوة من {name}»; تكليف for "assigned" everywhere; بانتظارك in one help line.
   - Text size 1.3: every widget test can run at 1.3 (`flutter test --dart-define=BV_TEXT_SCALE_PERCENT=130`). It found text cut off in 7 places (Welcome cards, the dial code box, composer templates, badges, chips, the member pass stamp, the W2 header), all fixed with no change at normal size. At 1.3 no text is cut off; 22 tests still fail at 1.3 only because they look for rows that the larger text pushes below the screen.
   - Emulator screenshots (Arabic, and English and Arabic at 1.3): `docs/screens/AR-*`, `AR13-*`, `EN13-*`.
   - Review 29 applied: the lead's Arabic fixes (§1: meanings, no gendered verbs about another person, «مؤكَّد من», «مخطط», «إصدار», «قبل …», plurals for 11 and up, one tanween spelling «يومًا»); in migration 17, Kuwait mobiles may start with 41, and the founder's answers (six more Kuwait areas, 25 in all; the foreman chip «رئيس عمال (فورمن)»; no review flags left for Kuwait; Egypt stays flagged). 839 SQL checks. `AR-activity_ar.png` retaken.
+
+- **13 Oct, part 4 go-live** (review 29 §3, each step with the founder's yes):
+  - Migration 17 pushed (the dry run listed only `20261013150000_market_pack.sql`). Read back on live: Kuwait Asia/Kuwait, Egypt Africa/Cairo; Kuwait mobiles 5, 6, 9, 41; Kuwait 25 places, no flags; the foreman chip «رئيس عمال (فورمن)»; Egypt still flagged; the Useful day follows the author's time zone.
+  - `arabic-pass` merged into main: 586 Flutter tests, 839 SQL checks. `translate` stays unmerged (review 28); its migration must be renamed after `20261013150000` if it comes back.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
@@ -453,7 +457,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. Week 8 part 4 (review 23 §5): the Arabic pass (`docs/arabic-strings.md`) and the market pack audit (`docs/market-pack-review.md`). Translate (part 3) waits until after the pilot (review 28).
+2. Week 8 is done except Translate, which waits until after the pilot (review 28). Still open from the market pack: the pilot site's own area, if it isn't among Kuwait's 25 places. Next: the lead's plan for weeks 9–11.
 3. iPhone push needs the Apple developer account and an APNs key (week 10).
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
