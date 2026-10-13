@@ -98,7 +98,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get entryWelcomeBody =>
-      'تعرّف على المهندسين ورؤساء العمال والحِرفيين والموردين. جهّز حضورك عندما تكون مستعداً.';
+      'تعرّف على المهندسين ورؤساء العمال والحِرفيين والموردين. جهّز حضورك عندما تكون مستعدًا.';
 
   @override
   String entryBuiltFor(String country) {
@@ -143,7 +143,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get entryBrowseFirstNote =>
-      'تصفّح أولاً، وجهّز حضورك عندما تكون مستعداً.';
+      'تصفّح أولًا، وجهّز حضورك عندما تكون مستعدًا.';
 
   @override
   String get entryCreateAccount => 'إنشاء حساب';
@@ -159,7 +159,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get entryJoinBody =>
-      'انضم برقمك الذي تستخدمه. يستغرق الأمر دقيقة تقريباً.';
+      'انضم برقمك الذي تستخدمه. يستغرق الأمر دقيقة تقريبًا.';
 
   @override
   String get entrySampleName => 'سامي المنصور';
@@ -206,17 +206,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get phoneHelpWhatsapp =>
-      'نرسل رمزاً من 6 أرقام عبر واتساب. لا حاجة لكلمة مرور.';
+      'نرسل رمزًا من 6 أرقام عبر واتساب. لا حاجة لكلمة مرور.';
 
   @override
   String get phoneHelpSms =>
-      'نرسل رمزاً من 6 أرقام برسالة نصية. لا حاجة لكلمة مرور.';
+      'نرسل رمزًا من 6 أرقام برسالة نصية. لا حاجة لكلمة مرور.';
 
   @override
-  String get phoneSendSms => 'أرسل الرمز برسالة نصية بدلاً من ذلك';
+  String get phoneSendSms => 'أرسل الرمز برسالة نصية بدلًا من ذلك';
 
   @override
-  String get phoneUseEmail => 'استخدم بريدك الإلكتروني بدلاً من ذلك';
+  String get phoneUseEmail => 'استخدم بريدك الإلكتروني بدلًا من ذلك';
 
   @override
   String get sendCode => 'إرسال الرمز';
@@ -227,7 +227,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get phoneErrorOther => 'أدخل رقم جوالك كاملاً.';
+  String get phoneErrorOther => 'أدخل رقم جوالك كاملًا.';
 
   @override
   String get dialCodeTitle => 'رمز الدولة';
@@ -236,26 +236,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dialCodeOther => 'رمز دولة آخر';
 
   @override
-  String get dialCodeOtherHelp => 'اكتب الرمز، مثلاً +91.';
+  String get dialCodeOtherHelp => 'اكتب الرمز، مثلًا +91.';
 
   @override
-  String get comingSoon => 'قريباً';
+  String get comingSoon => 'قريبًا';
 
   @override
   String get notOpenTitle => 'الحسابات الجديدة غير متاحة لهذا الرقم بعد';
 
   @override
   String notOpenSoon(String country) {
-    return 'سنصل إلى $country قريباً. إذا دعاك أحد إلى مساحة، افتح رابط الدعوة للانضمام الآن.';
+    return 'سنصل إلى $country قريبًا. إذا دعاك أحد إلى مساحة، افتح رابط الدعوة للانضمام الآن.';
   }
 
   @override
   String notOpenOther(String countries) {
-    return 'الحسابات الجديدة متاحة حالياً في $countries. إذا دعاك أحد إلى مساحة، افتح رابط الدعوة للانضمام الآن.';
+    return 'الحسابات الجديدة متاحة حاليًا في $countries. إذا دعاك أحد إلى مساحة، افتح رابط الدعوة للانضمام الآن.';
   }
 
   @override
-  String get commonOk => 'حسناً';
+  String get commonOk => 'حسنًا';
 
   @override
   String get emailTitle => 'بريدك الإلكتروني';
@@ -264,13 +264,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emailLabel => 'البريد الإلكتروني';
 
   @override
-  String get emailHelp => 'نرسل رمزاً من 6 أرقام. لا حاجة لكلمة مرور.';
+  String get emailHelp => 'نرسل رمزًا من 6 أرقام. لا حاجة لكلمة مرور.';
 
   @override
   String get emailError => 'تحقق من عنوان البريد الإلكتروني.';
 
   @override
-  String get emailUsePhone => 'استخدم رقم هاتفك بدلاً من ذلك';
+  String get emailUsePhone => 'استخدم رقم هاتفك بدلًا من ذلك';
 
   @override
   String get codeTitleWhatsapp => 'تحقق من واتساب';
@@ -283,17 +283,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String codeSentWhatsapp(String destination) {
-    return 'أرسلنا رمزاً من 6 أرقام إلى $destination عبر واتساب. يعمل لمدة 10 دقائق.';
+    return 'أرسلنا رمزًا من 6 أرقام إلى $destination عبر واتساب. يعمل لمدة 10 دقائق.';
   }
 
   @override
   String codeSentSms(String destination) {
-    return 'أرسلنا رمزاً من 6 أرقام إلى $destination برسالة نصية. يعمل لمدة 10 دقائق.';
+    return 'أرسلنا رمزًا من 6 أرقام إلى $destination برسالة نصية. يعمل لمدة 10 دقائق.';
   }
 
   @override
   String codeSentEmail(String destination) {
-    return 'أرسلنا رمزاً من 6 أرقام إلى $destination. يعمل لمدة 10 دقائق. تحقق من البريد غير المرغوب فيه إن لم تجده.';
+    return 'أرسلنا رمزًا من 6 أرقام إلى $destination. يعمل لمدة 10 دقائق. تحقق من البريد غير المرغوب فيه إن لم تجده.';
   }
 
   @override
@@ -302,19 +302,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get codeResend => 'أرسل رمزاً جديداً';
+  String get codeResend => 'أرسل رمزًا جديدًا';
 
   @override
-  String get codeDifferentNumber => 'استخدم رقماً آخر';
+  String get codeDifferentNumber => 'استخدم رقمًا آخر';
 
   @override
-  String get codeDifferentEmail => 'استخدم بريداً آخر';
+  String get codeDifferentEmail => 'استخدم بريدًا آخر';
 
   @override
   String get codeWrong => 'الرمز غير صحيح. تحقق منه وحاول مرة أخرى.';
 
   @override
-  String get codeExpired => 'انتهت صلاحية الرمز. أرسل رمزاً جديداً.';
+  String get codeExpired => 'انتهت صلاحية الرمز. أرسل رمزًا جديدًا.';
 
   @override
   String get codeFieldLabel => 'رمز من 6 أرقام';
@@ -340,7 +340,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutIntro =>
-      'الخطوة 1 من 2. هكذا سيجدك الناس. يمكنك التغيير لاحقاً.';
+      'الخطوة 1 من 2. هكذا سيجدك الناس. يمكنك التغيير لاحقًا.';
 
   @override
   String get firstName => 'الاسم الأول';
@@ -401,14 +401,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get roleIntro =>
-      'ماذا تعمل في الموقع أو المكتب؟ يظهر تحت اسمك ويحدد الأشخاص والمساحات التي تراها أولاً.';
+      'ماذا تعمل في الموقع أو المكتب؟ يظهر تحت اسمك ويحدد الأشخاص والمساحات التي تراها أولًا.';
 
   @override
   String get roleSearch => 'ابحث عن حرفة أو دور';
 
   @override
   String rolePopularIn(String country) {
-    return 'الأكثر شيوعاً في $country';
+    return 'الأكثر شيوعًا في $country';
   }
 
   @override
@@ -476,7 +476,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get joinWallTitle => 'انضم إلى BuildVibes لتقوم بهذا';
 
   @override
-  String get joinWallBody => 'يستغرق دقيقة تقريباً. بدون كلمة مرور.';
+  String get joinWallBody => 'يستغرق دقيقة تقريبًا. بدون كلمة مرور.';
 
   @override
   String get guestProfileTitle => 'أنت تتصفح كزائر';
@@ -529,7 +529,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get proofWaiting => 'بانتظار التأكيد';
 
   @override
-  String get proofEmptyTitle => 'أضف مشروعاً لتبدأ إثباتك';
+  String get proofEmptyTitle => 'أضف مشروعًا لتبدأ إثباتك';
 
   @override
   String get proofEmptyBody =>
@@ -747,11 +747,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get thisIsIt => 'هذا هو · أضفه إلى سيرتي';
 
   @override
-  String get startNewRecord => 'ليس أيّاً منها؟ ابدأ سجلاً جديداً';
+  String get startNewRecord => 'ليس أيًّا منها؟ ابدأ سجلًا جديدًا';
 
   @override
   String get startNewRecordSub =>
-      'الاسم والنوع والتواريخ ودورك. دقيقة تقريباً.';
+      'الاسم والنوع والتواريخ ودورك. دقيقة تقريبًا.';
 
   @override
   String get onYourCvBadge => 'في سيرتك';
@@ -824,7 +824,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يمكن لأي شخص وضع هذا المشروع في سيرته. لا أحد يملكه، وتراجع BuildVibes التصحيحات.';
 
   @override
-  String get suggestEdit => 'اقترح تعديلاً';
+  String get suggestEdit => 'اقترح تعديلًا';
 
   @override
   String get onYourCv => 'في سيرتك';
@@ -840,7 +840,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String suggestTitle(String project) {
-    return 'اقترح تعديلاً على $project';
+    return 'اقترح تعديلًا على $project';
   }
 
   @override
@@ -869,7 +869,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get correctValue => 'القيمة الصحيحة';
 
   @override
-  String get correctValueHelp => 'أضف مصدراً إن وُجد، مثل صورة لوحة الموقع.';
+  String get correctValueHelp => 'أضف مصدرًا إن وُجد، مثل صورة لوحة الموقع.';
 
   @override
   String get correctValueRequired => 'اكتب القيمة الصحيحة.';
@@ -878,7 +878,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sendForReview => 'إرسال للمراجعة';
 
   @override
-  String get suggestionSent => 'شكراً، سنراجعه.';
+  String get suggestionSent => 'شكرًا، سنراجعه.';
 
   @override
   String get monthPickerPresent => 'مستمر حتى الآن';
@@ -888,7 +888,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get entryJoinBodyEmail =>
-      'انضم ببريدك الإلكتروني. يستغرق الأمر دقيقة تقريباً.';
+      'انضم ببريدك الإلكتروني. يستغرق الأمر دقيقة تقريبًا.';
 
   @override
   String get countryChangeLater => 'يمكنك تغييرها من الإعدادات.';
@@ -897,7 +897,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mobileOptional => 'رقم الجوال (اختياري)';
 
   @override
-  String get mobileHelp => 'خاص: أنت فقط تراه، ولا يظهر في ملفك أبداً.';
+  String get mobileHelp => 'خاص: أنت فقط تراه، ولا يظهر في ملفك أبدًا.';
 
   @override
   String get homeFeed => 'الأخبار';
@@ -928,7 +928,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesEmptyFeedNote =>
-      'تبقى الخلاصة تعرض المنشورات والإعلانات والتهاني من شبكتك.';
+      'ستجد في الأخبار منشورات شبكتك وإعلاناتها وتهانيها.';
 
   @override
   String get spacesEnterCode => 'أدخل رمز الدعوة';
@@ -955,7 +955,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesAlreadyMember => 'أنت عضو في هذه المساحة بالفعل.';
 
   @override
-  String get spacesDeclinedWait => 'يمكنك الطلب مرة أخرى غداً.';
+  String get spacesDeclinedWait => 'يمكنك الطلب مرة أخرى غدًا.';
 
   @override
   String get spacesRequestSent => 'تم إرسال طلبك. سيؤكد مدير المساحة انضمامك.';
@@ -989,7 +989,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesNameHint => 'مثال: البرج B — فريق الموقع';
 
   @override
-  String get spacesNameRequired => 'اكتب اسماً من حرفين على الأقل.';
+  String get spacesNameRequired => 'اكتب اسمًا من حرفين على الأقل.';
 
   @override
   String get spacesAboutLabel => 'نبذة (اختياري)';
@@ -1001,11 +1001,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesLinkLabel => 'ربط بمشروع (اختياري)';
 
   @override
-  String get spacesLinkPlaceholder => 'اختر مشروعاً';
+  String get spacesLinkPlaceholder => 'اختر مشروعًا';
 
   @override
   String get spacesLinkHelp =>
-      'ربط مشروع يجعل هذه مساحة المشروع. الأعضاء الذين تؤكدهم يظهر المشروع في ملفاتهم مؤكَّداً.';
+      'ربط مشروع يجعل هذه مساحة المشروع، ويظهر المشروع مؤكَّدًا في ملف كل عضو تؤكّده.';
 
   @override
   String get spacesCreateButton => 'إنشاء المساحة';
@@ -1078,7 +1078,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesTooManyToday =>
-      'أنشأت مساحات كثيرة اليوم. حاول مرة أخرى غداً.';
+      'أنشأت مساحات كثيرة اليوم. حاول مرة أخرى غدًا.';
 
   @override
   String get spacesInviteCodeTag => 'رمز الدعوة';
@@ -1091,10 +1091,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: 'منذ $n دقيقة',
-      few: 'منذ $n دقائق',
-      two: 'منذ دقيقتين',
-      one: 'منذ دقيقة',
+      other: 'قبل $n دقيقة',
+      few: 'قبل $n دقائق',
+      two: 'قبل دقيقتين',
+      one: 'قبل دقيقة',
     );
     return '$_temp0';
   }
@@ -1104,10 +1104,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: 'منذ $n ساعة',
-      few: 'منذ $n ساعات',
-      two: 'منذ ساعتين',
-      one: 'منذ ساعة',
+      other: 'قبل $n ساعة',
+      few: 'قبل $n ساعات',
+      two: 'قبل ساعتين',
+      one: 'قبل ساعة',
     );
     return '$_temp0';
   }
@@ -1120,10 +1120,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: 'منذ $n يوماً',
-      few: 'منذ $n أيام',
-      two: 'منذ يومين',
-      one: 'منذ يوم',
+      other: 'قبل $n يومًا',
+      few: 'قبل $n أيام',
+      two: 'قبل يومين',
+      one: 'قبل يوم',
     );
     return '$_temp0';
   }
@@ -1136,7 +1136,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesAsked(String when) {
-    return 'طلب الانضمام $when';
+    return 'قُدّم الطلب $when';
   }
 
   @override
@@ -1183,7 +1183,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get spacesGivePass => 'امنح تصريحاً لهذه المساحة';
+  String get spacesGivePass => 'امنح تصريحًا لهذه المساحة';
 
   @override
   String get spacesLeadOpens =>
@@ -1207,7 +1207,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesConfirmAs(String pass) {
-    return 'تأكيد: $pass';
+    return 'تأكيد بتصريح $pass';
   }
 
   @override
@@ -1239,11 +1239,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesConfirmedBy(String name) {
-    return 'تم التأكيد بواسطة $name';
+    return 'مؤكَّد من $name';
   }
 
   @override
-  String get spacesConfirmedByYou => 'تم التأكيد بواسطتك';
+  String get spacesConfirmedByYou => 'مؤكَّد منك';
 
   @override
   String get spacesRightChat => 'المحادثة في «الجميع» والفِرق';
@@ -1264,7 +1264,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesRightInvite => 'دعوة أشخاص';
 
   @override
-  String get spacesAlways => 'دائماً';
+  String get spacesAlways => 'دائمًا';
 
   @override
   String get spacesOpenRight => 'فتح';
@@ -1298,12 +1298,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesRightOpened(String right, String name) {
-    return '$right: مفتوح لـ$name. يظهر التصريح كمخصّص.';
+    return 'فُتحت صلاحية «$right» لـ$name. يظهر التصريح كمخصّص.';
   }
 
   @override
   String spacesRightLocked(String right, String name) {
-    return '$right: مقفل لـ$name.';
+    return 'أُقفلت صلاحية «$right» لـ$name.';
   }
 
   @override
@@ -1326,7 +1326,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesNeedsAdmin =>
-      'تحتاج المساحة إلى مدير. اجعل شخصاً آخر مديراً أولاً.';
+      'تحتاج المساحة إلى مدير. اجعل شخصًا آخر مديرًا أولًا.';
 
   @override
   String spacesRemoved(String name) {
@@ -1351,7 +1351,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String proofConfirmedBy(String names) {
-    return 'تم التأكيد بواسطة $names';
+    return 'مؤكَّد من $names';
   }
 
   @override
@@ -1362,7 +1362,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesAccessLinked(String project) {
-    return 'عمل خاص · مرتبطة بـ$project';
+    return 'عمل خاص · مرتبط بـ$project';
   }
 
   @override
@@ -1390,7 +1390,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesInviteLeads => 'المديرون وأصحاب تصريح مسؤول';
 
   @override
-  String get spacesInviteLeadsHelp => 'يمكن لأصحاب تصريح مسؤول دعوة فِرقهم.';
+  String get spacesInviteLeadsHelp => 'يمكن لأصحاب تصريح مسؤول دعوة طواقمهم.';
 
   @override
   String get spacesInviteEveryone => 'كل من في المساحة';
@@ -1417,14 +1417,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesNotifyNeedsYouHelp =>
-      'البنود المكلّف بها، والبنود التي تحتاج فحصاً، وطلبات الانضمام.';
+      'البنود المكلّف بها، والبنود التي تحتاج فحصًا، وطلبات الانضمام.';
 
   @override
   String get spacesNotifyOff => 'إيقاف';
 
   @override
   String get spacesNotifyOffHelp =>
-      'لا تنبيهات. يبقى «بانتظارك» ظاهراً في الرئيسية.';
+      'لا تنبيهات. يبقى «بانتظارك» ظاهرًا في الرئيسية.';
 
   @override
   String get spacesTransfer => 'نقل إدارة المساحة';
@@ -1467,7 +1467,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesTransferIntro =>
-      'اختر عضواً لتنتقل إليه إدارة المساحة. ستبقى في المساحة كعضو.';
+      'اختر عضوًا لتنتقل إليه إدارة المساحة. ستبقى في المساحة كعضو.';
 
   @override
   String spacesTransferTo(String name) {
@@ -1481,7 +1481,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesTransferBody(String name, String space) {
-    return 'تنتقل إدارة $space إلى $name وتصبح أنت عضواً.';
+    return 'تنتقل إدارة $space إلى $name وتصبح أنت عضوًا.';
   }
 
   @override
@@ -1493,7 +1493,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get spacesNoOneToTransfer => 'أكّد انضمام شخص إلى المساحة أولاً.';
+  String get spacesNoOneToTransfer => 'أكّد انضمام شخص إلى المساحة أولًا.';
 
   @override
   String get spacesTeams => 'الفِرق';
@@ -1503,7 +1503,8 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: '$n عضواً',
+      other: '$n عضو',
+      many: '$n عضوًا',
       few: '$n أعضاء',
       two: 'عضوان',
       one: 'عضو واحد',
@@ -1536,7 +1537,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: 'إنشاء الفريق · $n شخصاً',
+      other: 'إنشاء الفريق · $n شخصًا',
       few: 'إنشاء الفريق · $n أشخاص',
       two: 'إنشاء الفريق · شخصان',
       one: 'إنشاء الفريق · شخص واحد',
@@ -1592,7 +1593,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لن ترى محادثاتها وأعمالها بعد الآن. للعودة تحتاج إلى دعوة جديدة.';
 
   @override
-  String get spacesLastAdmin => 'اجعل شخصاً آخر مديراً أولاً، أو احذف المساحة.';
+  String get spacesLastAdmin => 'اجعل شخصًا آخر مديرًا أولًا، أو احذف المساحة.';
 
   @override
   String get workPrivacyLine =>
@@ -1626,7 +1627,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workSectionCheckedWeek => 'تم فحصها هذا الأسبوع';
 
   @override
-  String get workSectionCheckedEarlier => 'تم فحصها سابقاً';
+  String get workSectionCheckedEarlier => 'تم فحصها سابقًا';
 
   @override
   String get workStatusOpen => 'مفتوح';
@@ -1638,7 +1639,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String workStatusOverdue(String date) {
-    return 'مفتوح · كان مستحقاً $date';
+    return 'مفتوح · كان مستحقًا $date';
   }
 
   @override
@@ -1684,6 +1685,7 @@ class AppLocalizationsAr extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n صورة',
+      many: '$n صورة',
       few: '$n صور',
       two: 'صورتان',
       one: 'صورة واحدة',
@@ -1709,8 +1711,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'أنشئ أول بند من «بند جديد». يوقّعه المكلّف كمنجز، ثم يُفحص.';
 
   @override
-  String get workEmptyCannot =>
-      'تظهر البنود هنا عندما يُنشئ أحدهم بنداً للفريق.';
+  String get workEmptyCannot => 'تظهر البنود هنا عند إنشاء بند للفريق.';
 
   @override
   String get workNothingNeedsYou => 'لا شيء بانتظارك الآن.';
@@ -1719,7 +1720,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workFilterEmpty => 'لا شيء هنا.';
 
   @override
-  String get workStatusOwnerLeft => 'غادر المكلّف · أعد التكليف';
+  String get workStatusOwnerLeft => 'بلا مكلّف · أعد التكليف';
 
   @override
   String get workReassign => 'أعد التكليف';
@@ -1734,7 +1735,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workFromGallery => 'اختر من المعرض';
 
   @override
-  String get workRetake => 'إعادة';
+  String get workRetake => 'إعادة التصوير';
 
   @override
   String get workPhotoFirst => 'ابدأ بصورة للمكان.';
@@ -1778,16 +1779,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workToday => 'اليوم';
 
   @override
-  String get workTomorrow => 'غداً';
+  String get workTomorrow => 'غدًا';
 
   @override
-  String get workPickDate => 'اختر تاريخاً';
+  String get workPickDate => 'اختر تاريخًا';
 
   @override
   String get workNoTeam => 'بلا فريق';
 
   @override
-  String get workPlaceHint => 'مثال: Level 2 · Grid C7';
+  String get workPlaceHint => 'مثال: الدور 2 · المحور C7';
 
   @override
   String workNewFooter(String owner) {
@@ -1827,7 +1828,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workDiscussion => 'النقاش';
 
   @override
-  String get workAddComment => 'أضف تعليقاً';
+  String get workAddComment => 'أضف تعليقًا';
 
   @override
   String get workSendComment => 'إرسال';
@@ -1889,10 +1890,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workReasonOther => 'سبب آخر';
 
   @override
-  String get workOwnerLeftTitle => 'غادر المكلّف المساحة';
+  String get workOwnerLeftTitle => 'المكلّف خارج المساحة الآن';
 
   @override
-  String get workOwnerLeftBody => 'كلّف شخصاً آخر بإكماله.';
+  String get workOwnerLeftBody => 'كلّف شخصًا آخر بإكماله.';
 
   @override
   String workCheckedStamp(String date, String name) {
@@ -1926,12 +1927,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String workSignTitle(String ref) {
-    return 'وقّع كمنجز على $ref';
+    return 'وقّع $ref كمنجز';
   }
 
   @override
   String workSignBody(String name) {
-    return 'يُكتب اسمك والوقت في التوقيع. أضف صورة أو ملاحظة حتى يمكن فحصه من قِبل $name.';
+    return 'يُكتب اسمك والوقت في التوقيع. أضف صورة أو ملاحظة تساعد $name في الفحص.';
   }
 
   @override
@@ -1941,7 +1942,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workNote => 'ملاحظة';
 
   @override
-  String get workNoteHint => 'ما الذي تم';
+  String get workNoteHint => 'ما الذي أُنجز';
 
   @override
   String get workSignNeedsSomething => 'أضف صورة أو ملاحظة.';
@@ -1959,7 +1960,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String workSendBackBody(String name) {
-    return 'يعود البند مفتوحاً مع سببك مكتوباً عليه، ويصل إلى «بانتظارك» لدى $name.';
+    return 'يعود البند مفتوحًا مع سببك مكتوبًا عليه، ويصل إلى «بانتظارك» لدى $name.';
   }
 
   @override
@@ -1976,7 +1977,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get workReasonRequired => 'اختر سبباً.';
+  String get workReasonRequired => 'اختر سببًا.';
 
   @override
   String get workOtherNeedsNote => 'اذكر ما الخطأ.';
@@ -2087,11 +2088,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatTeam => 'الفريق';
 
   @override
-  String get chatThreadsNote => 'ترى محادثة «الجميع» ومحادثات فرقك.';
+  String get chatThreadsNote => 'ترى محادثة «الجميع» ومحادثات فِرقك.';
 
   @override
   String get chatThreadsNoteAdmin =>
-      'بصفتك مدير المساحة، ترى «الجميع» وكل الفرق.';
+      'بصفتك مدير المساحة، ترى «الجميع» وكل الفِرق.';
 
   @override
   String get chatNoMessages => 'لا رسائل بعد.';
@@ -2162,14 +2163,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatDeleteBody =>
-      'سيرى الجميع في هذه المحادثة «حُذفت الرسالة» بدلاً منها.';
+      'سيرى الجميع في هذه المحادثة «حُذفت الرسالة» بدلًا منها.';
 
   @override
   String get chatDeleteConfirm => 'حذف';
 
   @override
   String chatReplyingTo(String name) {
-    return 'رد على $name';
+    return 'ردًّا على $name';
   }
 
   @override
@@ -2241,7 +2242,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatAttachPdf => 'ملف PDF من هاتفك';
 
   @override
-  String get chatAttachPdfHelp => 'يُضاف إلى مكتبة المساحة أيضاً.';
+  String get chatAttachPdfHelp => 'يُضاف إلى مكتبة المساحة أيضًا.';
 
   @override
   String get chatRemoveFile => 'إزالة';
@@ -2282,7 +2283,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get libraryEmpty =>
-      'لا ملفات بعد. تظهر هنا الرسومات والصور المشتركة في هذه المساحة.';
+      'لا ملفات بعد. تظهر هنا المخططات والصور التي تمت مشاركتها في هذه المساحة.';
 
   @override
   String get libraryNoMatch => 'لا نتائج.';
@@ -2294,7 +2295,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryAddTitle => 'إضافة إلى المكتبة';
 
   @override
-  String get libraryRevisionTitle => 'مراجعة جديدة';
+  String get libraryRevisionTitle => 'إصدار جديد';
 
   @override
   String libraryRevisionOf(String name) {
@@ -2305,7 +2306,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryPickFile => 'اختر ملف PDF أو صورة';
 
   @override
-  String get libraryChangeFile => 'اختر ملفاً آخر';
+  String get libraryChangeFile => 'اختر ملفًا آخر';
 
   @override
   String get libraryName => 'العنوان';
@@ -2319,10 +2320,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get libraryRev => 'المراجعة';
+  String get libraryRev => 'الإصدار';
 
   @override
-  String get libraryRevHint => 'مثلاً Rev C';
+  String get libraryRevHint => 'مثلًا Rev C';
 
   @override
   String get libraryNoteHint => 'ما الذي تغيّر';
@@ -2334,10 +2335,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryAdded => 'أُضيف إلى المكتبة.';
 
   @override
-  String get libraryPickFirst => 'اختر ملفاً أولاً.';
+  String get libraryPickFirst => 'اختر ملفًا أولًا.';
 
   @override
-  String get libraryNameRequired => 'أضف عنواناً.';
+  String get libraryNameRequired => 'أضف عنوانًا.';
 
   @override
   String previewFrom(String name) {
@@ -2346,11 +2347,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String previewCurrent(String rev) {
-    return '$rev · الحالية';
+    return '$rev · الحالي';
   }
 
   @override
-  String get previewCurrentNoRev => 'الحالية';
+  String get previewCurrentNoRev => 'الحالي';
 
   @override
   String previewUploaded(String date) {
@@ -2364,10 +2365,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get previewSuperseded => 'استُبدل، ويبقى في السجل';
 
   @override
-  String get previewReplaced => 'حلّت مراجعة أحدث محل هذه.';
+  String get previewReplaced => 'حلّ محله إصدار أحدث.';
 
   @override
-  String get previewOpenCurrent => 'افتح الحالية';
+  String get previewOpenCurrent => 'افتح الإصدار الحالي';
 
   @override
   String get previewShare => 'شارك في المحادثة';
@@ -2376,7 +2377,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get previewDownload => 'تنزيل';
 
   @override
-  String get previewNewRevision => 'رفع مراجعة جديدة';
+  String get previewNewRevision => 'رفع إصدار جديد';
 
   @override
   String get previewShareTo => 'المشاركة في أي محادثة؟';
@@ -2403,21 +2404,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String workAttachTitle(String ref) {
-    return 'إرفاق بـ $ref';
+    return 'إرفاق بـ$ref';
   }
 
   @override
   String get workAttachLibrary => 'من مكتبة المساحة';
 
   @override
-  String get workAttachLibraryHelp => 'رسومات وملفات مشتركة في هذه المساحة';
+  String get workAttachLibraryHelp =>
+      'مخططات وملفات تمت مشاركتها في هذه المساحة';
 
   @override
   String get workAttachPhone => 'من هاتفك';
 
   @override
   String get workAttachPhoneHelp =>
-      'PDF أو صورة · تُحفظ في مكتبة المساحة أيضاً';
+      'PDF أو صورة · تُحفظ في مكتبة المساحة أيضًا';
 
   @override
   String get workAttachPhoto => 'التقط صورة أخرى';
@@ -2432,13 +2434,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workAttachedFromLibrary => 'من مكتبة المساحة';
 
   @override
-  String get workAttach => 'إرفاق رسم أو ملف';
+  String get workAttach => 'إرفاق مخطط أو ملف';
 
   @override
   String get workAttachedToast => 'تم الإرفاق.';
 
   @override
-  String get workAlsoInTeamChat => 'أيضاً في محادثة الفريق';
+  String get workAlsoInTeamChat => 'أيضًا في محادثة الفريق';
 
   @override
   String get libraryPickTitle => 'اختر من المكتبة';
@@ -2452,10 +2454,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatFileRemoved => 'تمت إزالة الملف';
 
   @override
-  String get chatRecord => 'اضغط مطولاً لتسجيل رسالة صوتية';
+  String get chatRecord => 'اضغط مطولًا لتسجيل رسالة صوتية';
 
   @override
-  String get chatSlideToCancel => 'اسحب بعيداً للإلغاء';
+  String get chatSlideToCancel => 'اسحب بعيدًا للإلغاء';
 
   @override
   String get chatReleaseToCancel => 'ارفع إصبعك للإلغاء';
@@ -2465,7 +2467,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'اسمح باستخدام الميكروفون من إعدادات هاتفك للتسجيل.';
 
   @override
-  String get chatVoiceTooShort => 'اضغط مدة أطول قليلاً للتسجيل.';
+  String get chatVoiceTooShort => 'اضغط مدة أطول قليلًا للتسجيل.';
 
   @override
   String get chatPlay => 'تشغيل';
@@ -2502,12 +2504,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String postUsefulOne(String a) {
-    return 'وجده مفيداً: $a';
+    return 'مفيد لـ$a';
   }
 
   @override
   String postUsefulTwo(String a, String b) {
-    return 'وجده مفيداً: $a و$b';
+    return 'مفيد لـ$a و$b';
   }
 
   @override
@@ -2557,14 +2559,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postNoReplies => 'لا ردود بعد.';
 
   @override
-  String get postAddComment => 'أضف تعليقاً';
+  String get postAddComment => 'أضف تعليقًا';
 
   @override
-  String get postWriteReply => 'اكتب رداً';
+  String get postWriteReply => 'اكتب ردًا';
 
   @override
   String postReplyingTo(String name) {
-    return 'ردّاً على $name';
+    return 'ردًّا على $name';
   }
 
   @override
@@ -2618,7 +2620,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String composerTagged(String project) {
-    return 'مع وسم $project';
+    return 'مرتبط بـ$project';
   }
 
   @override
@@ -2688,7 +2690,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get composerAudienceProject =>
-      'يمكن لأي شخص على BuildVibes رؤية هذا. ويظهر أيضاً في صفحة المشروع.';
+      'يمكن لأي شخص على BuildVibes رؤية هذا. ويظهر أيضًا في صفحة المشروع.';
 
   @override
   String composerWrittenIn(String lang) {
@@ -2709,7 +2711,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get langArabic => 'العربية';
 
   @override
-  String get langAuto => 'يُحدَّد تلقائياً';
+  String get langAuto => 'يُحدَّد تلقائيًا';
 
   @override
   String get composerLangTitle => 'لغة هذا المنشور';
@@ -2747,13 +2749,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'المنشورات عامة ويمكن ربطها بمشروع. عمل فريقك يذهب إلى مساحة المشروع كبند عمل.';
 
   @override
-  String get tagTitle => 'ربط مشروع';
+  String get tagTitle => 'ربط بمشروع';
 
   @override
   String get tagHelp => 'المشاريع التي لديك فيها دور مؤكَّد فقط.';
 
   @override
-  String get tagEmpty => 'أضف مشروعاً في ملفك أولاً';
+  String get tagEmpty => 'أضف مشروعًا في ملفك أولًا';
 
   @override
   String get tagSpaceNote => 'عمل فريقك يذهب إلى مساحة المشروع كبند عمل';
@@ -2762,13 +2764,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tagNone => 'بدون مشروع';
 
   @override
-  String get discardTitle => 'تجاهل هذا المنشور؟';
+  String get discardTitle => 'حذف هذا المنشور؟';
 
   @override
   String get discardBody => 'سيُحذف النص والصور ورابط المشروع.';
 
   @override
-  String get discardConfirm => 'تجاهل';
+  String get discardConfirm => 'حذف';
 
   @override
   String get projectPosts => 'المنشورات';
@@ -2800,7 +2802,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: '$n شيئاً بانتظارك',
+      other: '$n شيئًا بانتظارك',
       few: '$n أشياء بانتظارك',
       two: 'شيئان بانتظارك',
       one: 'شيء واحد بانتظارك',
@@ -2814,6 +2816,7 @@ class AppLocalizationsAr extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n مساحة نشطة',
+      many: '$n مساحة نشطة',
       few: '$n مساحات نشطة',
       two: 'مساحتان نشطتان',
       one: 'مساحة واحدة نشطة',
@@ -2826,7 +2829,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: '$n ردّاً',
+      other: '$n ردًّا',
       few: '$n ردود',
       two: 'ردّان',
       one: 'ردّ واحد',
@@ -2913,7 +2916,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get needsOverSentBack => 'بند عمل · مُرجَع';
 
   @override
-  String get needsOverOwnerLeft => 'بند عمل · المكلّف غادر';
+  String get needsOverOwnerLeft => 'بند عمل · بلا مكلّف';
 
   @override
   String get needsOverJoin => 'مساحة · طلب انضمام';
@@ -2931,10 +2934,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String todayItem(String event, String name, String ref, String title) {
     String _temp0 = intl.Intl.selectLogic(event, {
       'done': '$ref منجز بتوقيع $name',
-      'checked': 'تم فحص $ref بواسطة $name',
-      'sent_back': 'أُرجع $ref بواسطة $name',
+      'checked': 'فحص $ref من $name',
+      'sent_back': 'إرجاع $ref من $name',
       'comment': 'تعليق من $name على $ref',
-      'reassigned': 'أُعيد تكليف $ref بواسطة $name',
+      'reassigned': 'إعادة تكليف $ref من $name',
       'other': 'بند جديد $ref من $name',
     });
     return '$_temp0: $title';
@@ -3006,12 +3009,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String activityChecked(String name, String ref) {
-    return 'تم فحص $ref بواسطة $name';
+    return 'فحص $ref من $name';
   }
 
   @override
   String activitySentBack(String name, String ref) {
-    return 'أُرجع $ref بواسطة $name';
+    return 'إرجاع $ref من $name';
   }
 
   @override
@@ -3031,12 +3034,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String activityConfirmedBy(String name) {
-    return 'التأكيد من $name';
+    return 'مؤكَّد من $name';
   }
 
   @override
   String activityRoleConfirmed(String name) {
-    return 'تأكيد لدورك من $name';
+    return 'تأكيد دورك من $name';
   }
 
   @override
@@ -3056,16 +3059,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String activityUseful1(String a) {
-    return 'وجده مفيداً: $a';
+    return 'منشورك مفيد لـ$a';
   }
 
   @override
   String activityUseful2(String a, String b) {
-    return 'وجده مفيداً: $a و$b';
+    return 'منشورك مفيد لـ$a و$b';
   }
 
   @override
-  String get activityUseful0 => 'وُجد منشورك مفيداً';
+  String get activityUseful0 => 'منشورك مفيد للآخرين';
 
   @override
   String get chipAssigned => 'تكليف';
@@ -3092,38 +3095,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activityEmptyTitle => 'لا شيء بانتظارك الآن.';
 
   @override
-  String get activityEmptyBody =>
-      'عندما يحتاج أحد إلى ردّك، ينتظرك هنا. هذا ما سيظهر:';
+  String get activityEmptyBody => 'ما يحتاج ردّك ينتظرك هنا. هذا ما سيظهر:';
 
   @override
   String get ledgerWork => 'بنود العمل';
 
   @override
-  String get ledgerWorkLine => 'يُسنَد إليك بند عمل، أو يُنجَز بند أنشأته.';
+  String get ledgerWorkLine => 'تكليف لك ببند عمل، أو توقيع بند أنشأته كمنجز.';
 
   @override
   String get ledgerRequests => 'طلبات المساحات';
 
   @override
-  String get ledgerRequestsLine => 'يطلب أحدهم الانضمام إلى مساحة تديرها.';
+  String get ledgerRequestsLine => 'طلب انضمام إلى مساحة تديرها.';
 
   @override
   String get ledgerPosts => 'منشوراتك';
 
   @override
-  String get ledgerPostsLine => 'يردّ أحدهم على منشورك.';
+  String get ledgerPostsLine => 'ردّ على منشورك.';
 
   @override
   String get ledgerNetwork => 'شبكتك';
 
   @override
-  String get ledgerNetworkLine => 'يتابعك أحدهم.';
+  String get ledgerNetworkLine => 'متابِع جديد لك.';
 
   @override
-  String get ledgerWait => 'في الأثناء';
+  String get ledgerWait => 'أثناء الانتظار';
 
   @override
-  String get ledgerAddProject => 'أضف مشروعاً عملت فيه';
+  String get ledgerAddProject => 'أضف مشروعًا عملت فيه';
 
   @override
   String get rowJustNow => 'الآن';
@@ -3162,7 +3164,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: 'قبل $n يوماً',
+      other: 'قبل $n يومًا',
       few: 'قبل $n أيام',
       two: 'قبل يومين',
       one: 'قبل يوم',
@@ -3201,7 +3203,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifFooter => 'لا تذكر الإشعارات اسم مشروع أو مساحة أو بند عمل.';
 
   @override
-  String get pushOffTitle => 'الإشعارات مغلقة';
+  String get pushOffTitle => 'الإشعارات متوقفة';
 
   @override
   String get pushOffBody =>
@@ -3249,7 +3251,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reasonFakeHelp => 'شخص أو شركة أو مشروع وهمي';
 
   @override
-  String get reasonPrivate => 'يكشف معلومات خاصة';
+  String get reasonPrivate => 'كشف معلومات خاصة';
 
   @override
   String get reasonPrivateHelp => 'مستندات أو مخططات أو تفاصيل ليست للنشر';
@@ -3344,7 +3346,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String removedBody(String reason) {
-    return 'أُبلغ عنه بسبب $reason، ووافقت مراجعتنا على ذلك. لا يرى هذا الإشعار غيرك.';
+    return 'تم الإبلاغ عن المحتوى بسبب $reason، وتأكدنا من ذلك بعد المراجعة. لا يرى هذا الإشعار غيرك.';
   }
 
   @override
@@ -3355,7 +3357,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'misleading': 'معلومات خاطئة أو مضللة',
       'fake': 'أنه غير حقيقي',
       'private_info': 'كشف معلومات خاصة',
-      'other': 'سبب آخر',
+      'other': 'أمر آخر',
     });
     return '$_temp0';
   }
@@ -3371,7 +3373,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get removedAppealNote => 'أمامك 14 يوماً للاعتراض. سنراجعه مرة أخرى.';
+  String get removedAppealNote => 'أمامك 14 يومًا للاعتراض. سنراجعه مرة أخرى.';
 
   @override
   String get removedAppeal => 'اعترض على القرار';
@@ -3382,10 +3384,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get removedClosed => 'انتهت مدة الاعتراض (14 يوماً).';
+  String get removedClosed => 'انتهت مدة الاعتراض (14 يومًا).';
 
   @override
-  String get removedUpheld => 'راجعناه مرة أخرى: يبقى محذوفاً.';
+  String get removedUpheld => 'راجعناه مرة أخرى: يبقى محذوفًا.';
 
   @override
   String get removedReversed => 'راجعناه مرة أخرى وأعدناه.';
@@ -3433,7 +3435,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String activityAppealResult(String result) {
     String _temp0 = intl.Intl.selectLogic(result, {
       'reversed': 'اعتراضك: أُعيد المحتوى',
-      'other': 'اعتراضك: يبقى محذوفاً',
+      'other': 'اعتراضك: يبقى محذوفًا',
     });
     return '$_temp0';
   }
@@ -3442,13 +3444,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chipRemoved => 'محذوف';
 
   @override
-  String get chipRestored => 'مُعاد';
+  String get chipRestored => 'مُستعاد';
 
   @override
   String get settingsViewProfile => 'عرض الملف';
 
   @override
-  String get settingsInWords => 'إعداداتك بالكلمات';
+  String get settingsInWords => 'ملخّص إعداداتك';
 
   @override
   String get settingsPrivacyLabel => 'الخصوصية';
@@ -3464,7 +3466,8 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       n,
       locale: localeName,
-      other: '$n حسابًا محظورًا',
+      other: '$n حساب محظور',
+      many: '$n حسابًا محظورًا',
       few: '$n حسابات محظورة',
       two: 'حسابان محظوران',
       one: 'حساب محظور واحد',
@@ -3479,7 +3482,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String wordsNotifications(String followers, String replies, String lockText) {
-    return 'متابعون جدد: $followers. الردود: $replies. نص الرسائل على شاشة القفل: $lockText.';
+    return 'إشعارات المتابعين الجدد: $followers. إشعارات الردود: $replies. نص الرسائل على شاشة القفل: $lockText.';
   }
 
   @override
@@ -3635,7 +3638,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleteHeading => 'قبل الحذف';
 
   @override
-  String get deleteBody => 'يُخفى الملف فورًا، وتبقى 30 يومًا لتغيير الرأي.';
+  String get deleteBody => 'يُخفى ملفك فورًا، ولديك 30 يومًا لتغيير رأيك.';
 
   @override
   String get deleteWhat => 'ما الذي يحدث';

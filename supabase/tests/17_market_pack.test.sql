@@ -4,7 +4,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(16);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000018c1', 'authenticated', 'authenticated', 'omar18@example.com', '{"home_market_id": "kw"}'),
@@ -21,6 +21,21 @@ select is((select time_zone from public.markets where id = 'kw'), 'Asia/Kuwait',
 select is((select time_zone from public.markets where id = 'eg'), 'Africa/Cairo', 'Egypt''s time zone');
 select is((select count(*) from public.markets where status = 'live' and time_zone is null), 0::bigint,
   'every live market has a time zone');
+select is((select phone_rules -> 'mobile_prefixes' from public.markets where id = 'kw'),
+  '["5", "6", "9", "41"]'::jsonb, 'Kuwait mobiles may start with 41 too');
+select is((select count(*) from public.places where market_id = 'kw'), 25::bigint,
+  'Kuwait has its 25 places');
+select is((select parent_id from public.places where id = 'kw-khairan'), 'kw-ahmadi',
+  'a new area sits in its governorate');
+select is((select local_name ->> 'ar' from public.market_trades where market_id = 'kw' and trade_id = 'foreman'),
+  'رئيس عمال (فورمن)', 'the foreman chip shows both names');
+select is((select count(*) from public.places where market_id = 'kw' and needs_review)
+          + (select count(*) from public.market_trades where market_id = 'kw' and needs_review)
+          + (select cardinality(needs_review) from public.markets where id = 'kw'),
+  0::bigint, 'nothing in Kuwait''s pack is flagged any more');
+select ok((select cardinality(needs_review) from public.markets where id = 'eg') > 0
+          and (select bool_and(needs_review) from public.places where market_id = 'eg'),
+  'Egypt stays flagged');
 select throws_ok($$update public.markets set time_zone = 'Asia/Atlantis' where id = 'eg'$$, '22023', null,
   'an unknown zone is refused');
 select throws_ok($$update public.markets set time_zone = 'kuwait time' where id = 'eg'$$, '22023', null,

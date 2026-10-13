@@ -441,6 +441,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Arabic pass (`docs/arabic-strings.md`, 750 strings since week 4, for the founder to read): checked by script (all present, Western digits, glossary, placeholders, no gendered verbs for third persons). Fixed: «دعوة من {name}»; تكليف for "assigned" everywhere; بانتظارك in one help line.
   - Text size 1.3: every widget test can run at 1.3 (`flutter test --dart-define=BV_TEXT_SCALE_PERCENT=130`). It found text cut off in 7 places (Welcome cards, the dial code box, composer templates, badges, chips, the member pass stamp, the W2 header), all fixed with no change at normal size. At 1.3 no text is cut off; 22 tests still fail at 1.3 only because they look for rows that the larger text pushes below the screen.
   - Emulator screenshots (Arabic, and English and Arabic at 1.3): `docs/screens/AR-*`, `AR13-*`, `EN13-*`.
+  - Review 29 applied: the lead's Arabic fixes (§1: meanings, no gendered verbs about another person, «مؤكَّد من», «مخطط», «إصدار», «قبل …», plurals for 11 and up, one tanween spelling «يومًا»); in migration 17, Kuwait mobiles may start with 41, and the founder's answers (six more Kuwait areas, 25 in all; the foreman chip «رئيس عمال (فورمن)»; no review flags left for Kuwait; Egypt stays flagged). 839 SQL checks. `AR-activity_ar.png` retaken.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

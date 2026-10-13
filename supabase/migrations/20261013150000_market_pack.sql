@@ -2,6 +2,9 @@
 -- docs/reviews/2026-10-13-23-week8-brief.md §5; the audit is in
 -- docs/market-pack-review.md.
 --
+-- - Kuwait's mobile numbers may also start with 41 (review 29).
+-- - The founder's answers (review 29 §4): six more Kuwait areas, the
+--   foreman chip «رئيس عمال (فورمن)», and no review flags left for Kuwait.
 -- - markets.time_zone: the pack's time zone (IANA name). Kuwait
 --   Asia/Kuwait, Egypt Africa/Cairo (summer time included).
 -- - local_day(person): "today" in the person's pack time zone, for the
@@ -20,6 +23,35 @@ alter table public.markets
 
 update public.markets set time_zone = 'Asia/Kuwait' where id = 'kw';
 update public.markets set time_zone = 'Africa/Cairo' where id = 'eg';
+
+-- Review 29 §2: Kuwait mobiles may also start with 41 (Virgin Mobile, 2022).
+update public.markets
+set phone_rules = jsonb_set(phone_rules, '{mobile_prefixes}',
+                            (phone_rules -> 'mobile_prefixes') || '["41"]'::jsonb)
+where id = 'kw' and not (phone_rules -> 'mobile_prefixes') ? '41';
+
+-- Review 29 §4, the founder's answers (13 Oct, docs/market-pack-review.md).
+-- Six more Kuwait areas, in their governorates.
+insert into public.places (id, market_id, parent_id, level, name, sort, needs_review) values
+  ('kw-mutlaa', 'kw', 'kw-jahra', 'area', '{"en": "Mutlaa City", "ar": "مدينة المطلاع"}', 2, false),
+  ('kw-south-saad-al-abdullah', 'kw', 'kw-jahra', 'area',
+   '{"en": "South Saad Al-Abdullah", "ar": "جنوب سعد العبدالله"}', 3, false),
+  ('kw-sabah-al-ahmad', 'kw', 'kw-ahmadi', 'area', '{"en": "Sabah Al-Ahmad City", "ar": "مدينة صباح الأحمد"}', 4, false),
+  ('kw-khairan', 'kw', 'kw-ahmadi', 'area', '{"en": "Khairan", "ar": "الخيران"}', 5, false),
+  ('kw-zour', 'kw', 'kw-ahmadi', 'area', '{"en": "Al-Zour", "ar": "الزور"}', 6, false),
+  ('kw-shuaiba', 'kw', 'kw-ahmadi', 'area', '{"en": "Shuaiba", "ar": "الشعيبة"}', 7, false)
+on conflict (id) do nothing;
+
+-- Foreman shows both names; search finds it by either word.
+update public.market_trades
+set local_name = '{"en": "Foreman", "ar": "رئيس عمال (فورمن)"}'
+where market_id = 'kw' and trade_id = 'foreman';
+
+-- The founder confirmed the rest of Kuwait's pack: no flags left. The legal
+-- pages stay empty until the lawyer signs them off. Egypt stays flagged.
+update public.places set needs_review = false where market_id = 'kw';
+update public.market_trades set needs_review = false where market_id = 'kw';
+update public.markets set needs_review = '{}' where id = 'kw';
 
 -- An unknown zone name is refused (the format check can't see that).
 create or replace function public.check_market_time_zone()

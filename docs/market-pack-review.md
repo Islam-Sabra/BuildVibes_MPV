@@ -2,6 +2,16 @@
 
 **For:** Islam, to confirm or correct Kuwait's pack before the pilot (1 Jan 2027).
 **How:** write "OK" or the right value in the last column. Anything you change, I'll put into the pack.
+
+**Answered by the founder on 13 Oct (review 29 §4), now in migration 17:**
+- the Kuwait pack is confirmed and nothing in it is flagged any more;
+- 41 is added as a mobile start (Virgin Mobile);
+- six areas are added: Mutlaa City and South Saad Al-Abdullah (Jahra); Sabah Al-Ahmad City, Khairan, Al-Zour and Shuaiba (Ahmadi). Kuwait now has 25 places;
+- the foreman chip reads «رئيس عمال (فورمن)», and search finds it by either word;
+- the legal pages stay empty until the lawyer signs off and they are on aecox.com;
+- still open: the pilot site's own area, if it isn't in the list.
+
+The tables below show the values as they were sent for review.
 Egypt is "coming soon" and isn't in the pilot. Its rows are listed so a local can check them later.
 
 ## 1. Kuwait: what the pack says
@@ -11,7 +21,7 @@ Egypt is "coming soon" and isn't in the pilot. Its rows are listed so a local ca
 | Status | Live | | |
 | Default language | Arabic | | |
 | Dial code | +965 | | |
-| Phone rules | 8 digits; mobiles start with 5, 6 or 9; example "5000 0000" | **Yes** | |
+| Phone rules | 8 digits; mobiles start with 5, 6, 9 or 41 (41 added in review 29); example "5000 0000" | **Yes** | |
 | Sign-in code channel (after the pilot; email codes now) | WhatsApp | **Yes** | |
 | Currency | KWD, 3 decimals (not shown anywhere in the MVP) | | |
 | Week starts on | Sunday | | |
