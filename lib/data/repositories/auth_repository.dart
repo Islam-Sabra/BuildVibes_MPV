@@ -36,6 +36,9 @@ abstract class AuthRepository {
   /// The verified sign-in phone in E.164, when the person used one.
   String? get currentPhone;
 
+  /// The signed-in account's email.
+  String? get currentEmail;
+
   /// The Space invite code the account was created with, if any.
   String? get signUpInviteCode;
 
@@ -63,6 +66,11 @@ abstract class AuthRepository {
 
   Future<void> verifyEmailCode({required String email, required String code});
 
+  /// S13: a fresh code to the signed-in account's email, never creating an
+  /// account. Entering it (verifyEmailCode) refreshes the session's sign-in
+  /// time, which the server checks before deleting (review 26).
+  Future<void> sendConfirmCode(String email);
+
   Future<void> signInWith(SocialProvider provider);
 
   Future<void> signOut();
@@ -86,6 +94,12 @@ class SupabaseAuthRepository implements AuthRepository {
     final phone = _auth.currentUser?.phone;
     if (phone == null || phone.isEmpty) return null;
     return phone.startsWith('+') ? phone : '+$phone';
+  }
+
+  @override
+  String? get currentEmail {
+    final email = _auth.currentUser?.email;
+    return email == null || email.isEmpty ? null : email;
   }
 
   @override
@@ -126,6 +140,12 @@ class SupabaseAuthRepository implements AuthRepository {
       shouldCreateUser: true,
       data: signUpData,
     ),
+    sending: true,
+  );
+
+  @override
+  Future<void> sendConfirmCode(String email) => _guard(
+    () => _auth.signInWithOtp(email: email, shouldCreateUser: false),
     sending: true,
   );
 

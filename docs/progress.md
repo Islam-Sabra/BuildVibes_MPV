@@ -415,6 +415,14 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - For the lead: while hidden, follower counts and Useful counts still include the person (accepted in review 26, L3).
   - Review 26 applied (M1–M4, L1, L2, L4): a hidden account has no admin rights and can't write; deleting is locked per Space; proof and reports stay after a purge; the purge locks the profile and waits for the photos; the export holds all of the person's own data. 101 checks in `16_account.test.sql` (818 in all).
 
+- **13 Oct, week 8 part 2, screens** (on `account`, from `account-db`; waits for migration 16 to go live):
+  - S1 v2 Settings: who you are, "Your settings, in words" (blocked accounts, the three push switches, language with the pack's week start and country), Account and security, Notifications, Privacy and safety, Language and region, Help and feedback (the pack's support email), About and legal (the pack's links), Sign out with the S15 dialog (code wording).
+  - S2, S5 (Blocked accounts only), S8 (language as one choice; country from live markets; week start read-only), S10/S11 Download my data, S12 → S12b (transfer each Space first) → S13 (an email code, not a password) → S14 (the gate shows only Restore while deletion is scheduled).
+  - "Former member" / "عضو سابق" wherever a Space message, work item, event or file has no readable person.
+  - Checked on the emulator against the local database in English and Arabic (`docs/screens/S*_en|ar.png`), including S12b with a real only-admin and Restore. The S13 email code isn't sent locally (the local SMTP login fails); the server side is covered by the SQL tests.
+  - Not drawn from the pack yet: S8's "Time format" row (the pack has no such field). For the lead.
+  - 21 new widget tests (586 in all).
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
 - Turn the phone provider off on the live project (it is on for the test numbers only).

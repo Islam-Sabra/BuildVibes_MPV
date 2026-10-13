@@ -12,6 +12,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../chat/chat_tab.dart' show threadName;
+import '../spaces/former_member.dart';
 
 /// The Space bucket's limit (migration 9).
 const maxFileBytes = 25 * 1024 * 1024;
@@ -85,7 +86,7 @@ String fileMeta(AppLocalizations l10n, LibraryFile f, String? me) => joinMeta([
   if (f.uploadedById != null && f.uploadedById == me)
     l10n.chatYou
   else
-    ?f.uploadedByName?.split(' ').first,
+    personFirstName(l10n, f.uploadedByName),
   fileSize(l10n, f.bytes),
 ]);
 

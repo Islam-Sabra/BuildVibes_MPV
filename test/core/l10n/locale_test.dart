@@ -26,13 +26,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('profile-settings')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('row-language')));
     await tester.tap(find.byKey(const Key('row-language')));
     await tester.pumpAndSettle();
+    // S8: one single choice for the app language.
     await tester.tap(find.byKey(const Key('language-ar')));
     await tester.pumpAndSettle();
 
     expect(appDirection(tester), TextDirection.rtl);
-    expect(find.text('لغة التطبيق'), findsOneWidget);
+    expect(find.text('اللغة والمنطقة'), findsOneWidget);
     expect(prefs.getString('app_language'), 'ar');
   });
 

@@ -106,6 +106,7 @@ class MyProfile {
     this.companyId,
     this.companyName,
     this.companyNameText,
+    this.deletionScheduled = false,
   });
 
   factory MyProfile.fromJson(Map<String, dynamic> json) {
@@ -126,6 +127,7 @@ class MyProfile {
       companyId: json['company_id'] as String?,
       companyName: company?['name'] as String?,
       companyNameText: json['company_name_text'] as String?,
+      deletionScheduled: json['deletion_scheduled_at'] != null,
     );
   }
 
@@ -141,6 +143,9 @@ class MyProfile {
   final String? companyId;
   final String? companyName;
   final String? companyNameText;
+
+  /// The person asked to delete the account (S14 until they restore it).
+  final bool deletionScheduled;
 
   /// Onboarding step 1 is done once there is a name and a role.
   bool get isComplete =>

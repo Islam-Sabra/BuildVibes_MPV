@@ -188,6 +188,20 @@ abstract final class BvIcons {
   // Phosphor: calendar-blank
   static const month = IconData(0xe10a, fontFamily: _family);
 
+  // Settings and account (week 8 part 2)
+  // Phosphor: shield-check (Account and security)
+  static const security = IconData(0xe40c, fontFamily: _family);
+  // Phosphor: question (Help and feedback)
+  static const help = IconData(0xe3e8, fontFamily: _family);
+  // Phosphor: info (About BuildVibes and legal)
+  static const about = IconData(0xe2ce, fontFamily: _family);
+  // Phosphor: globe-hemisphere-west (the country, S8)
+  static const country = IconData(0xe28c, fontFamily: _family);
+  // Phosphor: clock (deletion scheduled, S14)
+  static const scheduled = IconData(0xe19a, fontFamily: _family);
+  // Phosphor: seal-check (request received, S11)
+  static const received = IconData(0xe606, fontFamily: _family);
+
   // Directional: mirrored in right-to-left.
   /// Points to the next screen: right in English, left in Arabic.
   static const caretForward = IconData(

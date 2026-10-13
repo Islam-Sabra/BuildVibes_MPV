@@ -98,6 +98,7 @@ void main() {
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'profile-settings');
       await _tap(tester, 'row-sign-out');
+      await _tap(tester, 'bv-dialog-confirm');
       expect(
         app.pushes.calls,
         contains('unregister fcm-test-token-0123456789'),

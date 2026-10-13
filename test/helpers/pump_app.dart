@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
+import 'package:buildvibes/data/repositories/account_repository.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
@@ -33,6 +34,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'account_fakes.dart';
 import 'activity_fakes.dart';
 import 'chat_fakes.dart';
 import 'fakes.dart';
@@ -90,6 +92,8 @@ class TestApp {
     required this.push,
     required this.pushes,
     required this.safety,
+    required this.account,
+    required this.opened,
   });
 
   final SharedPreferences prefs;
@@ -112,6 +116,12 @@ class TestApp {
 
   /// Report, block and appeal calls.
   final FakeSafetyRepository safety;
+
+  /// Delete account, Download my data, the home market.
+  final FakeAccountRepository account;
+
+  /// Links and email addresses opened with the phone.
+  final List<Uri> opened;
 
   /// Files saved with Download, and shared through the phone (F1).
   final List<String> saved;
@@ -144,6 +154,7 @@ Future<TestApp> pumpApp(
   FakeActivityRepository? activity,
   FakePushMessaging? push,
   FakeSafetyRepository? safety,
+  FakeAccountRepository? account,
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
@@ -190,6 +201,9 @@ Future<TestApp> pumpApp(
   final fakePush = push ?? FakePushMessaging();
   final fakePushes = FakePushRepository();
   final fakeSafety = safety ?? FakeSafetyRepository();
+  final fakeAccount = (account ?? FakeAccountRepository())
+    ..profiles ??= fakeProfiles;
+  final opened = <Uri>[];
   final saved = <String>[];
   final sharedFiles = <String>[];
 
@@ -218,6 +232,11 @@ Future<TestApp> pumpApp(
         pushMessagingProvider.overrideWithValue(fakePush),
         pushRepositoryProvider.overrideWithValue(fakePushes),
         safetyRepositoryProvider.overrideWithValue(fakeSafety),
+        accountRepositoryProvider.overrideWithValue(fakeAccount),
+        openLinkProvider.overrideWithValue((uri) async {
+          opened.add(uri);
+          return true;
+        }),
         voicePlaybackProvider.overrideWithValue(fakePlayback),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async =>
@@ -286,6 +305,8 @@ Future<TestApp> pumpApp(
     push: fakePush,
     pushes: fakePushes,
     safety: fakeSafety,
+    account: fakeAccount,
+    opened: opened,
   );
 }
 

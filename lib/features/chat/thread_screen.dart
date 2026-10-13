@@ -38,6 +38,7 @@ import '../work/work_outbox.dart' show pickPhotoProvider;
 import 'chat_state.dart';
 import 'chat_tab.dart';
 import 'voice.dart';
+import '../spaces/former_member.dart';
 
 /// S8k · the Everyone thread, S9k · a Team thread: messages live, replies,
 /// work item cards, and messages kept on the phone after a weak signal.
@@ -714,10 +715,8 @@ class _EntryView extends ConsumerWidget {
       body = _Bubble(
         media: media,
         mine: mine,
-        name: startsRun && !mine ? (m?.authorName ?? l10n.workSomeone) : null,
-        avatarName: endsRun && !mine
-            ? (m?.authorName ?? l10n.workSomeone)
-            : null,
+        name: startsRun && !mine ? personName(l10n, m?.authorName) : null,
+        avatarName: endsRun && !mine ? personName(l10n, m?.authorName) : null,
         text: m == null
             ? entry.pending!.body
             : m.deleted
@@ -912,7 +911,7 @@ class _Quote extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            reply.authorName ?? l10n.workSomeone,
+            personName(l10n, reply.authorName),
             style: type.labelSm.copyWith(color: BvColors.textAction),
           ),
           Text(
@@ -995,7 +994,7 @@ class _CardEntry extends ConsumerWidget {
     final me = ref.watch(authUserIdProvider).value;
     final item = items?.where((i) => i.id == message.workItemId).firstOrNull;
     // Always the name: "You" doesn't fit the Arabic noun forms.
-    final who = message.authorName ?? l10n.workSomeone;
+    final who = personName(l10n, message.authorName);
     final line = switch (message.eventKind) {
       WorkEventKind.done => l10n.chatCardDone(who),
       WorkEventKind.checked => l10n.chatCardChecked(who),
@@ -1067,7 +1066,7 @@ class _ReplyBanner extends StatelessWidget {
               children: [
                 Text(
                   l10n.chatReplyingTo(
-                    inOwnDirection(reply.authorName ?? l10n.workSomeone),
+                    inOwnDirection(personName(l10n, reply.authorName)),
                   ),
                   style: type.labelSm.copyWith(color: BvColors.textAction),
                 ),

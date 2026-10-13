@@ -11,6 +11,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../../shared/widgets/bv_work_item_card.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../spaces/former_member.dart';
 
 /// One item on BvWorkItemCard: reference and Team, status, title, place,
 /// owner and creator, evidence, and the action the server says is yours.
@@ -62,12 +63,14 @@ class WorkItemCard extends ConsumerWidget {
 
     final owner = item.ownerId == me
         ? l10n.workOwnerYou
-        : l10n.workOwner(inOwnDirection(item.ownerName ?? ''));
+        : l10n.workOwner(inOwnDirection(personName(l10n, item.ownerName)));
     final second = item.status == WorkStatus.checked
-        ? l10n.workCheckedByLine(inOwnDirection(item.checkedByName ?? ''))
+        ? l10n.workCheckedByLine(
+            inOwnDirection(personName(l10n, item.checkedByName)),
+          )
         : item.createdById == me
         ? l10n.workFromYou
-        : l10n.workFrom(inOwnDirection(item.createdByName ?? ''));
+        : l10n.workFrom(inOwnDirection(personName(l10n, item.createdByName)));
 
     final photos = item.photoPaths.length;
     final quote = item.doneNote == null
@@ -81,7 +84,9 @@ class WorkItemCard extends ConsumerWidget {
         ?quote,
       ]),
       WorkStatus.checked => joinMeta([
-        l10n.workCheckedBy(inOwnDirection(item.checkedByName ?? '')),
+        l10n.workCheckedBy(
+          inOwnDirection(personName(l10n, item.checkedByName)),
+        ),
         if (photos > 0) l10n.workPhotos(photos),
       ]),
       WorkStatus.open => '',

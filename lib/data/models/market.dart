@@ -47,6 +47,8 @@ class Market {
     required this.weekStart,
     required this.weekend,
     required this.needsReview,
+    this.supportEmail,
+    this.legal = const {},
   });
 
   factory Market.fromJson(Map<String, dynamic> json) {
@@ -72,6 +74,13 @@ class Market {
         for (final f in (json['needs_review'] as List? ?? const []))
           f as String,
       ],
+      supportEmail: json['support_email'] as String?,
+      legal: {
+        for (final e
+            in ((json['legal'] as Map<String, dynamic>?) ?? const {}).entries)
+          if (e.value is Map<String, dynamic>)
+            e.key: LocalizedText.fromJson(e.value as Map<String, dynamic>),
+      },
     );
   }
 
@@ -93,6 +102,18 @@ class Market {
 
   /// Fields a local reviewer still has to confirm.
   final List<String> needsReview;
+
+  /// Where Help and feedback writes to; null until the founder sets it.
+  final String? supportEmail;
+
+  /// Page links per language: "terms", "privacy", "delete_account".
+  final Map<String, LocalizedText> legal;
+
+  /// The link for [kind] in [locale]'s language, if there is one.
+  Uri? legalLink(String kind, Locale locale) {
+    final url = legal[kind]?.of(locale) ?? '';
+    return url.isEmpty ? null : Uri.tryParse(url);
+  }
 
   /// True when [national] (digits only, without the dial code) looks like a
   /// mobile number for this market.

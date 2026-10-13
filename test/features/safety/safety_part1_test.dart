@@ -127,6 +127,7 @@ void main() {
       final app = await pumpApp(tester, language: lang, safety: safety);
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'profile-settings');
+      await _tap(tester, 'row-privacy');
       await _tap(tester, 'row-blocked');
       expect(find.text(l10n.blockedCount(1)), findsOneWidget);
       expect(find.text(l10n.blockedNote), findsOneWidget);

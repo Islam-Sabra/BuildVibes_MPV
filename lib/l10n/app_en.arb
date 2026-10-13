@@ -4817,5 +4817,363 @@
   "chipRestored": "Restored",
   "@chipRestored": {
     "description": "A1 chip."
+  },
+  "settingsViewProfile": "View profile",
+  "@settingsViewProfile": {
+    "description": "S1 header link."
+  },
+  "settingsInWords": "YOUR SETTINGS, IN WORDS",
+  "@settingsInWords": {
+    "description": "S1 section."
+  },
+  "settingsPrivacyLabel": "PRIVACY",
+  "@settingsPrivacyLabel": {
+    "description": "S1 words row label."
+  },
+  "settingsNotificationsLabel": "NOTIFICATIONS",
+  "@settingsNotificationsLabel": {
+    "description": "S1 words row label."
+  },
+  "settingsLanguageLabel": "LANGUAGE",
+  "@settingsLanguageLabel": {
+    "description": "S1 words row label; S8 section."
+  },
+  "wordsBlocked": "{n, plural, =1{1 blocked account} other{{n} blocked accounts}}",
+  "@wordsBlocked": {
+    "description": "S1 privacy words: your own count.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "wordsPrivacy": "{what}. Work items, chat and the Library stay inside each Space.",
+  "@wordsPrivacy": {
+    "description": "S1 privacy words; {what} is highlighted.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "wordsNotifications": "New followers: {followers}. Replies: {replies}. Message text on the lock screen: {lockText}.",
+  "@wordsNotifications": {
+    "description": "S1 notification words; the three values are highlighted.",
+    "placeholders": {
+      "followers": {
+        "type": "String"
+      },
+      "replies": {
+        "type": "String"
+      },
+      "lockText": {
+        "type": "String"
+      }
+    }
+  },
+  "wordsOn": "on",
+  "@wordsOn": {
+    "description": "S1: a switch that is on."
+  },
+  "wordsOff": "off",
+  "@wordsOff": {
+    "description": "S1: a switch that is off."
+  },
+  "wordsShown": "shown",
+  "@wordsShown": {
+    "description": "S1: message text shown on the lock screen."
+  },
+  "wordsHidden": "hidden",
+  "@wordsHidden": {
+    "description": "S1: message text hidden on the lock screen."
+  },
+  "wordsLanguage": "{language}. The week starts on {weekday}, in {country} time.",
+  "@wordsLanguage": {
+    "description": "S1 language words, all from the market pack; {language} is highlighted.",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      },
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "wordsLanguageOnly": "{language}.",
+  "@wordsLanguageOnly": {
+    "description": "S1 language words with no home market.",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAccountSection": "ACCOUNT",
+  "@settingsAccountSection": {
+    "description": "S1 section."
+  },
+  "accountSecurity": "Account and security",
+  "@accountSecurity": {
+    "description": "S1 row, S2 title."
+  },
+  "accountSecuritySub": "Download my data, delete account",
+  "@accountSecuritySub": {
+    "description": "S1 row subtitle."
+  },
+  "privacySafety": "Privacy and safety",
+  "@privacySafety": {
+    "description": "S1 row, S5 title."
+  },
+  "languageRegion": "Language and region",
+  "@languageRegion": {
+    "description": "S1 row, S8 title."
+  },
+  "supportSection": "SUPPORT",
+  "@supportSection": {
+    "description": "S1 section."
+  },
+  "helpFeedback": "Help and feedback",
+  "@helpFeedback": {
+    "description": "S1 row: writes to the pack support email."
+  },
+  "aboutLegal": "About BuildVibes and legal",
+  "@aboutLegal": {
+    "description": "S1 row."
+  },
+  "aboutLegalSub": "Terms, privacy policy",
+  "@aboutLegalSub": {
+    "description": "S1 row subtitle."
+  },
+  "legalTerms": "Terms of use",
+  "@legalTerms": {
+    "description": "About sheet row."
+  },
+  "legalPrivacy": "Privacy policy",
+  "@legalPrivacy": {
+    "description": "About sheet row."
+  },
+  "legalSoon": "These pages are on their way. Write to us with any question.",
+  "@legalSoon": {
+    "description": "About sheet when the pack has no links yet."
+  },
+  "linkFailed": "This couldn't be opened on this phone.",
+  "@linkFailed": {
+    "description": "A link or email app failed to open."
+  },
+  "signOutTitle": "Sign out of BuildVibes?",
+  "@signOutTitle": {
+    "description": "S15 dialog."
+  },
+  "signOutBody": "You'll need a code sent to your email to sign in again.",
+  "@signOutBody": {
+    "description": "S15 dialog: there are no passwords."
+  },
+  "accountYourData": "YOUR DATA",
+  "@accountYourData": {
+    "description": "S2 section."
+  },
+  "downloadData": "Download my data",
+  "@downloadData": {
+    "description": "S2 row, S10 title."
+  },
+  "downloadDataSub": "We email you a copy within 7 days",
+  "@downloadDataSub": {
+    "description": "S2 row subtitle."
+  },
+  "dangerZone": "DANGER ZONE",
+  "@dangerZone": {
+    "description": "S2 section."
+  },
+  "deleteAccount": "Delete account",
+  "@deleteAccount": {
+    "description": "S2 row, S12 title."
+  },
+  "deleteAccountSub": "Removed after 30 days. You can restore it until then.",
+  "@deleteAccountSub": {
+    "description": "S2 row subtitle."
+  },
+  "privacySafetySection": "SAFETY",
+  "@privacySafetySection": {
+    "description": "S5 section."
+  },
+  "privacyNote": "Work items, chat and the Library stay inside each Space. Only its members see them.",
+  "@privacyNote": {
+    "description": "S5 note."
+  },
+  "languageEnglishDir": "Left to right",
+  "@languageEnglishDir": {
+    "description": "S8 English card."
+  },
+  "languageArabicDir": "Right to left",
+  "@languageArabicDir": {
+    "description": "S8 Arabic card."
+  },
+  "regionSection": "REGION",
+  "@regionSection": {
+    "description": "S8 section."
+  },
+  "regionCountry": "Country",
+  "@regionCountry": {
+    "description": "S8 row and sheet title."
+  },
+  "regionWeekStart": "Week starts on",
+  "@regionWeekStart": {
+    "description": "S8 read-only row, from the pack."
+  },
+  "regionNote": "Arabic switches the whole app to right-to-left. Your posts keep the language they were written in.",
+  "@regionNote": {
+    "description": "S8 note."
+  },
+  "downloadHeading": "Get a copy of your data",
+  "@downloadHeading": {
+    "description": "S10 heading."
+  },
+  "downloadBody": "We email you a file with everything below, within 7 days.",
+  "@downloadBody": {
+    "description": "S10 body."
+  },
+  "downloadIncluded": "WHAT IS INCLUDED",
+  "@downloadIncluded": {
+    "description": "S10 section."
+  },
+  "downloadProfile": "Profile and settings",
+  "@downloadProfile": {
+    "description": "S10 row."
+  },
+  "downloadPosts": "Posts and replies",
+  "@downloadPosts": {
+    "description": "S10 row."
+  },
+  "downloadMessages": "Messages you sent",
+  "@downloadMessages": {
+    "description": "S10 row."
+  },
+  "downloadWork": "Your work items and notes",
+  "@downloadWork": {
+    "description": "S10 row."
+  },
+  "downloadRequest": "Request my data",
+  "@downloadRequest": {
+    "description": "S10 button."
+  },
+  "downloadFoot": "We send it to {email}.",
+  "@downloadFoot": {
+    "description": "S10 under the button.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "requestReceived": "Request received",
+  "@requestReceived": {
+    "description": "S11 title."
+  },
+  "requestReceivedBody": "We will email {email} within 7 days.",
+  "@requestReceivedBody": {
+    "description": "S11 body.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteHeading": "Before you delete",
+  "@deleteHeading": {
+    "description": "S12 heading."
+  },
+  "deleteBody": "Your profile is hidden right away. You have 30 days to change your mind.",
+  "@deleteBody": {
+    "description": "S12 body."
+  },
+  "deleteWhat": "WHAT HAPPENS",
+  "@deleteWhat": {
+    "description": "S12 section."
+  },
+  "deleteProfile": "Profile, posts and replies are removed",
+  "@deleteProfile": {
+    "description": "S12 row."
+  },
+  "deleteSpaceWork": "Work and files in a Space stay there",
+  "@deleteSpaceWork": {
+    "description": "S12 row."
+  },
+  "deleteSpaceWorkSub": "Shown as a former member",
+  "@deleteSpaceWorkSub": {
+    "description": "S12 row subtitle."
+  },
+  "deleteMessages": "Messages you sent stay in the Space's chat",
+  "@deleteMessages": {
+    "description": "S12 row."
+  },
+  "deleteContinue": "Continue",
+  "@deleteContinue": {
+    "description": "S12 button."
+  },
+  "deleteKeep": "Keep my account",
+  "@deleteKeep": {
+    "description": "S12 button."
+  },
+  "transferFirst": "Transfer ownership first",
+  "@transferFirst": {
+    "description": "S12b heading."
+  },
+  "transferFirstBody": "You are the only admin of a Space that has other members. Make someone else its admin before you delete your account.",
+  "@transferFirstBody": {
+    "description": "S12b body."
+  },
+  "transferOnlyAdmin": "ONLY ADMIN",
+  "@transferOnlyAdmin": {
+    "description": "S12b section."
+  },
+  "confirmHeading": "Confirm it's you",
+  "@confirmHeading": {
+    "description": "S13 heading."
+  },
+  "confirmBody": "Enter the code we sent to {email}.",
+  "@confirmBody": {
+    "description": "S13: an email code, never a password.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMyAccount": "Delete my account",
+  "@deleteMyAccount": {
+    "description": "S13 button."
+  },
+  "deleteFoot": "Your account will be removed on {date}. Sign in before then to restore it.",
+  "@deleteFoot": {
+    "description": "S13 under the button.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "scheduledTitle": "Deletion scheduled",
+  "@scheduledTitle": {
+    "description": "S14 title."
+  },
+  "scheduledBody": "Your account will be deleted on {date}. Your profile is hidden. Restore it any time before then.",
+  "@scheduledBody": {
+    "description": "S14 body.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreAccount": "Restore my account",
+  "@restoreAccount": {
+    "description": "S14 button."
+  },
+  "formerMember": "Former member",
+  "@formerMember": {
+    "description": "A Space member whose account is hidden or deleted."
   }
 }

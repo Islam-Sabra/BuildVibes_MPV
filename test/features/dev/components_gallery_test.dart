@@ -14,6 +14,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('profile-settings')));
         await tester.pumpAndSettle();
+        await tester.ensureVisible(find.byKey(const Key('row-components')));
         await tester.tap(find.byKey(const Key('row-components')));
         await tester.pumpAndSettle();
         expect(find.byType(ComponentsGalleryScreen), findsOneWidget);

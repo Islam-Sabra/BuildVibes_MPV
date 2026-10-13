@@ -64,7 +64,17 @@ final deviceRegionProvider = Provider<String?>(
 );
 
 /// Where the app should be.
-enum AppGate { loading, signedOut, guest, onboarding, ready, profileError }
+enum AppGate {
+  loading,
+  signedOut,
+  guest,
+  onboarding,
+  ready,
+  profileError,
+
+  /// The person asked to delete the account: only S14 (Restore).
+  scheduled,
+}
 
 final appGateProvider = Provider<AppGate>((ref) {
   final user = ref.watch(authUserIdProvider);
@@ -83,6 +93,7 @@ final appGateProvider = Provider<AppGate>((ref) {
   // onboarding.
   final stale = profile.isLoading && (p == null || p.id != userId);
   if (profile.hasValue && !stale) {
+    if (p != null && p.deletionScheduled) return AppGate.scheduled;
     return p != null && p.isComplete ? AppGate.ready : AppGate.onboarding;
   }
   return profile.hasError ? AppGate.profileError : AppGate.loading;
