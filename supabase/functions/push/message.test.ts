@@ -69,8 +69,8 @@ test("no name: Someone", () => {
 test("only an error that names the token deletes it", () => {
   assert.equal(classify(404, '{"error":{"status":"NOT_FOUND","details":[{"errorCode":"UNREGISTERED"}]}}'), "dead");
   assert.equal(classify(400, '{"error":{"status":"INVALID_ARGUMENT","message":"The registration token is not a valid FCM registration token"}}'), "dead");
-  assert.equal(classify(403, '{"error":{"details":[{"errorCode":"SENDER_ID_MISMATCH"}]}}'), "dead");
-  // A wrong project or URL: a plain 404 keeps every phone.
+  // Another project's key, or a wrong project or URL: every phone stays.
+  assert.equal(classify(403, '{"error":{"details":[{"errorCode":"SENDER_ID_MISMATCH"}]}}'), "failed");
   assert.equal(classify(404, "Not Found"), "failed");
   assert.equal(classify(400, '{"error":{"status":"INVALID_ARGUMENT","message":"Invalid JSON payload"}}'), "failed");
 });

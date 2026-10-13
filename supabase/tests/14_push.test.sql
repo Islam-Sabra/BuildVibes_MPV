@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(56);
+select plan(58);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000014b1', 'authenticated', 'authenticated', 'omar14@example.com', '{"home_market_id": "kw"}'),
@@ -320,6 +320,18 @@ select is((select message_text from public.push_queue where id = current_setting
   null, '(r21) once sent, its text is gone');
 select ok(current_setting('test.row')::bigint not in (select id from public.retry_push_queue()),
   '(r21) and it leaves the retry list');
+-- (r22) The 5th failed attempt: finished, and its text gone at once.
+select set_config('test.row5', (select min(id) from public.push_queue
+  where profile_id = pg_temp.uid('b3') and kind = 'chat_message' and sent_at is null)::text, true);
+update public.push_queue set message_text = 'Kept until sent.', attempts = 4
+where id = current_setting('test.row5')::bigint;
+select public.claim_push(current_setting('test.row5')::bigint);
+select public.release_push(current_setting('test.row5')::bigint, interval '30 seconds', '503');
+select ok((select sent_at is not null and message_text is null and not_before is null
+           from public.push_queue where id = current_setting('test.row5')::bigint),
+  '(r22) after the 5th attempt: finished, its text gone');
+select ok(current_setting('test.row5')::bigint not in (select id from public.retry_push_queue()),
+  '(r22) and never tried again');
 update public.push_queue set created_at = now() - interval '2 days'
 where id = current_setting('test.row')::bigint;
 update public.push_tokens set updated_at = now() - interval '61 days'

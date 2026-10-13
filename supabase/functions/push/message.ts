@@ -80,14 +80,14 @@ export function buildPush(
   return { title: t.title, body: fill(template), data };
 }
 
-// What an FCM error means (review 21). Only an error that names the token
-// deletes it: a plain 404 (a wrong project, say) must never wipe phones.
+// What an FCM error means (reviews 21 and 22). Only an error that names
+// the token deletes it. A plain 404 (a wrong project) and SENDER_ID_MISMATCH
+// (another project's key) are failures: they must never wipe phones.
 export type Outcome = "dead" | "retry" | "failed";
 
 export function classify(status: number, body: string): Outcome {
   if (
     body.includes("UNREGISTERED") ||
-    body.includes("SENDER_ID_MISMATCH") ||
     (body.includes("INVALID_ARGUMENT") && /registration token/i.test(body))
   ) {
     return "dead";
