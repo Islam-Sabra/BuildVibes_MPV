@@ -326,7 +326,7 @@ A declined request makes no notification. Useful on a reply makes none.
 
 ## 12. Safety (migration 15, `20261013120000_safety.sql`, branch `safety-db`)
 **Tables:**
-- `reports`: `reporter_id`, `target_kind` ('post' | 'reply' | 'profile' | 'message'), `target_id`, `reason` (spam, scam_or_misleading, inappropriate_content, harassment, unsafe_construction_advice, other), `note` (needed for "other", at most 500), `status` ('open' | 'removed' | 'dismissed'), `created_at`, `decided_at`. One per reporter and thing. Nobody reads reports in the app.
+- `reports`: `reporter_id`, `target_kind` ('post' | 'reply' | 'profile' | 'message'), `target_id`, `reason` (the six R1 reasons: spam, harassment, misleading, fake, private_info, other), `note` (needed for "other", at most 500), `status` ('open' | 'removed' | 'dismissed'), `created_at`, `decided_at`. One per reporter and thing. Nobody reads reports in the app.
 - `content_removals`: `target_kind`, `target_id`, `author_id`, `reason`, `report_id`, `removed_at`, `appeal_note`, `appeal_at`, `appeal_status` ('none' | 'open' | 'upheld' | 'reversed'). The author reads their own rows.
 - `removed_content`: the removed text (and, for a chat message, its Library link and the Library copies hidden with it), kept so an appeal can restore it. Service role only.
 - `market_moderation`: `market_id`, `email`: where report alerts go. Service role only; never public.

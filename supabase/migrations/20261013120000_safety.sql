@@ -36,10 +36,10 @@ create table public.reports (
   reporter_id uuid not null references public.profiles (id) on delete cascade,
   target_kind text not null check (target_kind in ('post', 'reply', 'profile', 'message')),
   target_id uuid not null,
-  -- The six R1 reasons.
+  -- The six R1 reasons, as drawn: Spam or scam, Harassment or abuse, Wrong
+  -- or misleading, This isn't real, Shares private information, Something else.
   reason text not null check (reason in (
-    'spam', 'scam_or_misleading', 'inappropriate_content', 'harassment',
-    'unsafe_construction_advice', 'other')),
+    'spam', 'harassment', 'misleading', 'fake', 'private_info', 'other')),
   -- Needed for "Something else".
   note text check (note is null or length(note) between 1 and 500),
   status text not null default 'open' check (status in ('open', 'removed', 'dismissed')),
@@ -57,8 +57,7 @@ create table public.content_removals (
   target_id uuid not null,
   author_id uuid not null references public.profiles (id) on delete cascade,
   reason text not null check (reason in (
-    'spam', 'scam_or_misleading', 'inappropriate_content', 'harassment',
-    'unsafe_construction_advice', 'other')),
+    'spam', 'harassment', 'misleading', 'fake', 'private_info', 'other')),
   report_id uuid references public.reports (id) on delete set null,
   removed_at timestamptz not null default now(),
   appeal_note text check (appeal_note is null or length(appeal_note) between 1 and 500),
@@ -605,8 +604,8 @@ begin
   if p_kind not in ('post', 'reply', 'profile', 'message') then
     raise exception 'post, reply, profile or message' using errcode = '22023';
   end if;
-  if p_reason is null or p_reason not in ('spam', 'scam_or_misleading', 'inappropriate_content',
-                                          'harassment', 'unsafe_construction_advice', 'other') then
+  if p_reason is null or p_reason not in ('spam', 'harassment', 'misleading', 'fake',
+                                          'private_info', 'other') then
     raise exception 'choose a reason' using errcode = '22023';
   end if;
   if p_reason = 'other' and v_note is null then

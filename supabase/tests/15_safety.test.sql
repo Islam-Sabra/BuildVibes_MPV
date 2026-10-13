@@ -93,14 +93,14 @@ select pg_temp.as_user('c2');
 set local role authenticated;
 select lives_ok(format($q$select public.report('reply', %L, 'harassment')$q$, pg_temp.id('d002')),
   'a reply can be reported');
-select lives_ok(format($q$select public.report('message', %L, 'inappropriate_content')$q$, pg_temp.id('e001')),
+select lives_ok(format($q$select public.report('message', %L, 'private_info')$q$, pg_temp.id('e001')),
   'a chat message can be reported');
 select is((select count(*) from public.messages where id = pg_temp.id('e001')), 0::bigint,
   'a reported message is hidden for the reporter');
 select ok((select coalesce(last_message_id <> pg_temp.id('e001'), true)
            from public.space_threads(current_setting('test.space')::uuid) where team_id is null),
   'and is not the last message in the thread list');
-select lives_ok(format($q$select public.report('profile', %L, 'scam_or_misleading', 'Asks for money.')$q$,
+select lives_ok(format($q$select public.report('profile', %L, 'fake', 'Asks for money.')$q$,
   pg_temp.uid('c1')), 'a person can be reported');
 select is((select count(*) from public.profiles where id = pg_temp.uid('c1')), 1::bigint,
   'a reported person''s profile still shows');
@@ -329,7 +329,7 @@ update public.messages set library_file_id = pg_temp.id('f004') where id = pg_te
 
 select pg_temp.as_user('c2');
 set local role authenticated;
-select set_config('test.docreport', public.report('message', pg_temp.id('e004'), 'inappropriate_content')::text, true);
+select set_config('test.docreport', public.report('message', pg_temp.id('e004'), 'private_info')::text, true);
 select is((select count(*) from public.message_attachments where message_id = pg_temp.id('e004')), 0::bigint,
   '(r24) the reporter no longer lists the message''s files');
 reset role;

@@ -19,11 +19,11 @@ const kinds: Record<string, string> = {
 };
 
 const reasons: Record<string, string> = {
-  spam: "Spam",
-  scam_or_misleading: "Scam or misleading",
-  inappropriate_content: "Inappropriate content",
-  harassment: "Harassment",
-  unsafe_construction_advice: "Unsafe construction advice",
+  spam: "Spam or scam",
+  harassment: "Harassment or abuse",
+  misleading: "Wrong or misleading",
+  fake: "This isn't real",
+  private_info: "Shares private information",
   other: "Something else (see the note in the report)",
 };
 

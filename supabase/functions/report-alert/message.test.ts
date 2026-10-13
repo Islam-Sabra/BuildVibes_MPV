@@ -7,7 +7,7 @@ test("the alert says what kind, why, and which report", () => {
   const m = buildAlert({
     id: "1b2c", target_kind: "post", reason: "harassment", created_at: "2026-10-13T08:00:00Z",
   });
-  assert.equal(m.subject, "BuildVibes report: a post (Harassment)");
+  assert.equal(m.subject, "BuildVibes report: a post (Harassment or abuse)");
   assert.ok(m.text.includes("Report id: 1b2c"));
   assert.ok(m.text.includes("supabase/ops/moderation.sql"));
 });
