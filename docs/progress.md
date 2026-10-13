@@ -408,6 +408,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Test on live: push-test-b reported push-test-a's test post; the alert function answered "sent" and the founder received the email; `moderation.sql` removed the post, and push-test-a got the removal notice.
   - `safety-db` and `safety` merged into main.
 
+- **13 Oct, week 8 part 2, migration 16** (on `account-db`, **not live**, for the lead's review):
+  - `20261013130000_account.sql`: delete account (a fresh sign-in code; refused while you are a Space's only admin; hidden at once like a block; restorable for 30 days; then removed by the `account-purge` function), Download my data (`data_requests`, the founder's export script), `markets.support_email` and the deletion page link, and the 12-month report cleanup.
+  - New, not run or deployed: `supabase/functions/account-purge/`, `supabase/ops/account_cron.sql`, `supabase/ops/export_my_data.sql`.
+  - 63 new SQL checks (780 in all); 3 function tests.
+  - For the lead: while hidden, follower counts and Useful counts still include the person; a hidden person can still act in the app until S14 signs them out (the screens will show S14 only).
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
 - Turn the phone provider off on the live project (it is on for the test numbers only).
