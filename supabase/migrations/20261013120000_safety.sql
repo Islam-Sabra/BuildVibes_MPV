@@ -563,11 +563,18 @@ begin
     order by o.created_at
   loop
     perform public.lock_file_path(v_name);
-    -- Checked again under the lock: a post may have just used it.
+    -- Checked again under the lock: a post may have just used it, or a
+    -- removed post's appeal may have just opened (review 25).
     if not exists (select 1 from public.post_media m
                    join public.posts po on po.id = m.post_id
                    where m.storage_path = v_name
-                     and (po.deleted_at is null or po.deleted_at >= now() - interval '30 days')) then
+                     and (po.deleted_at is null or po.deleted_at >= now() - interval '30 days'))
+       and not exists (select 1 from public.post_media m
+                       join public.content_removals c
+                         on c.target_kind = 'post' and c.target_id = m.post_id
+                       where m.storage_path = v_name
+                         and (c.appeal_status = 'open'
+                              or c.removed_at > now() - interval '14 days')) then
       insert into public.file_cleanup_claims (storage_path) values (v_name)
       on conflict (storage_path) do nothing;
       name := v_name;
@@ -722,6 +729,8 @@ returns table (
   target_kind text,
   reason text,
   removed_at timestamptz,
+  -- When the post, reply or message was written (R3's date, review 25).
+  posted_at timestamptz,
   excerpt text,
   appeal_status text,
   appeal_at timestamptz,
@@ -732,7 +741,13 @@ stable
 security definer
 set search_path = ''
 as $$
-  select c.id, c.target_kind, c.reason, c.removed_at, left(rc.body, 200),
+  select c.id, c.target_kind, c.reason, c.removed_at,
+         case c.target_kind
+           when 'post' then (select created_at from public.posts where id = c.target_id)
+           when 'reply' then (select created_at from public.post_replies where id = c.target_id)
+           when 'message' then (select created_at from public.messages where id = c.target_id)
+         end,
+         left(rc.body, 200),
          c.appeal_status, c.appeal_at,
          c.appeal_status = 'none' and c.removed_at > now() - interval '14 days'
   from public.content_removals c

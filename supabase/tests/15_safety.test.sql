@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(79);
+select plan(80);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000015c1', 'authenticated', 'authenticated', 'omar15@example.com', '{"home_market_id": "kw"}'),
@@ -46,6 +46,8 @@ select set_config('test.space', public.create_space('Site team', null, null)::te
 select public.create_post(pg_temp.id('a001'), 'Slab poured on level 3.', 'en');
 select public.create_post(pg_temp.id('a002'), 'Second post.', 'en');
 reset role;
+-- Posted two days ago (R3 shows this date).
+update public.posts set created_at = now() - interval '2 days' where id = pg_temp.id('a001');
 insert into public.space_members (space_id, profile_id, pass, confirmed_by) values
   (current_setting('test.space')::uuid, pg_temp.uid('c2'), 'crew', pg_temp.uid('c1')),
   (current_setting('test.space')::uuid, pg_temp.uid('c3'), 'lead', pg_temp.uid('c1'));
@@ -194,6 +196,9 @@ select pg_temp.as_user('c1');
 set local role authenticated;
 select is((select excerpt || ' / ' || reason from public.my_removal(current_setting('test.removal')::uuid)),
   'Slab poured on level 3. / spam', 'the author''s R3 notice: what and why');
+select ok((select posted_at < removed_at - interval '1 day'
+           from public.my_removal(current_setting('test.removal')::uuid)),
+  '(r25) and when it was posted, not when it was removed');
 select ok((select can_appeal from public.my_removal(current_setting('test.removal')::uuid)),
   'with an appeal still open to them');
 select is((select count(*) from public.posts where id = pg_temp.id('a001')), 0::bigint,

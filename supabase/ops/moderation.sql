@@ -20,6 +20,9 @@ order by r.created_at;
 -- 2a. Remove it (a post, reply or message). Every open report on it is
 --     decided too, and the author gets R3 in Activity. The reason is
 --     optional (default: the report's).
+--     Note: a chat PDF that a work item uses stays visible after the
+--     message is removed, as with an author's own delete. If it must go,
+--     detach it from the work item by hand first (review 25).
 -- select public.decide_report('<report_id>', 'remove', null);
 
 -- 2b. Or dismiss it: nothing is removed.
