@@ -27,6 +27,7 @@ import '../../features/profile/edit/open_to_screen.dart';
 import '../../features/profile/person_profile_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/settings_screen.dart';
+import '../../features/settings/notifications_screen.dart';
 import '../../features/projects/add_project_screen.dart';
 import '../../features/projects/new_project_screen.dart';
 import '../../features/projects/project_sheet_screen.dart';
@@ -320,6 +321,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'settings',
                     builder: (context, state) => const SettingsScreen(),
                     routes: [
+                      GoRoute(
+                        path: 'notifications',
+                        builder: (context, state) =>
+                            const NotificationsScreen(),
+                      ),
                       if (kDebugMode)
                         GoRoute(
                           path: 'components',

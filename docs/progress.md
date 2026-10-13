@@ -11,7 +11,7 @@ Target: pilot live on **Fri 1 Jan 2027**. Weeks start on Sunday.
 | 4 | 1–7 Nov | Spaces: create, link a project, invite link and code, join requests, passes, Teams | — |
 | 5 | 8–14 Nov | Work items: create, Needs you, sign as done with a photo, check or send back, filters | — |
 | 6 | 15–21 Nov | Space chat (live), item cards in chat, Library and file preview | — |
-| 7 | 22–28 Nov | Home feed and posts, Spaces tab, Activity, push notifications | — |
+| 7 | 22–28 Nov | Home feed and posts, Spaces tab, Activity, push notifications | Done early (13 Oct): feed and posts, Home Spaces tab, Activity, push live on Android (migrations 12–14) |
 | 8 | 29 Nov–5 Dec | Arabic pass, market pack, privacy, report and block, delete account | — |
 | 9 | 6–12 Dec | Internal test with 3–5 people. Fixes | — |
 | 10 | 13–19 Dec | App Store and Google Play submission | — |
@@ -30,7 +30,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered (founder's yes, 12 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push (founder's yes, 13 Oct) |
+| Edge Functions | `push` (FCM HTTP v1), `verify_jwt = false`, deployed 13 Oct with the founder's yes |
+| Function secrets | `FIREBASE_SERVICE_ACCOUNT` (pasted by the founder), `PUSH_WEBHOOK_SECRET` (generated, never printed). Names only here |
+| Vault | `push_webhook_secret` (the same value as `PUSH_WEBHOOK_SECRET`) |
+| Extensions | `pg_cron`, `pg_net` (13 Oct, for push) |
+| Push wiring | Trigger `push_queue_call` on `push_queue` inserts (`supabase/ops/push_webhook.sql`); cron `push-retry` every minute and `push-prune` at 02:30 UTC (`supabase/ops/push_cron.sql`); all run 13 Oct with the founder's yes |
+| Test accounts | `push-test-a@example.com` (Test Receiver), `push-test-b@example.com` (Test Follower), `push-test-c@example.com` (Test Third), made with the admin API for the push test (13 Oct). **Delete before the pilot** |
 | Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
@@ -355,11 +361,37 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Review 21, in place (still not live): a deleted message's text leaves the queue; claim, finish and release so a repeated call sends once and FCM 429/5xx are tried again; retry every minute and prune nightly (`supabase/ops/push_cron.sql`, not run); only an error naming the token deletes it; the webhook secret checked in constant time, `verify_jwt = false`; the newest 10 phones per person; a push problem never blocks the step. `14_push.test.sql`: 56 checks, 635 in all; 7 function tests.
   - Review 22 A, in place: the insert trigger with the secret from Vault (`supabase/ops/push_webhook.sql`) instead of a dashboard webhook; SENDER_ID_MISMATCH is a failure, not a dead phone; 10-second timeouts on both fetches; the 5th failed attempt finishes the row and drops its text. `14_push.test.sql`: 58 checks, 637 in all.
   - The Edge Function `push` is written (`supabase/functions/push/`), **not deployed**; no webhook yet. Its text and links are tested with Node (`node --experimental-strip-types --test supabase/functions/push/message.test.ts`, 5 tests).
+  - The app, on `push` (from `push-db`):
+    - Firebase Messaging (`firebase_core`, `firebase_messaging`), the Google services Gradle plugin, and a notification channel named in English and Arabic.
+    - The first time the tabs open after onboarding, the system prompt (Android 13+), once. Then this phone's token is registered in the app language, again when the token or the language changes, and removed on sign-out. Guests are never asked.
+    - A tapped push opens its page (the item, the thread, People, the post, the person, your profile); links outside the app's pages are ignored. A push with the app open refreshes Home and Activity.
+    - Settings → Notifications (S3): New followers, Replies, Show message text on lock screen (off), the Spaces line to My Spaces, and the footer. S4: "Push notifications are off" with Open phone settings, and the switches faded.
+    - The Android app name is now "BuildVibes" (it was "buildvibes" in the system prompt).
+    - Checked on the emulator: the prompt, a real FCM token registered on the local server, a follow queued a push (not sent: no function or webhook), S3, S4 and Open phone settings, in English and Arabic.
+    - Review 21: a test proves a language change registers the phone again in the new language; retaken `push_en_permission` ("Allow BuildVibes") and `s4_en_push_off` (faded switches, centred title).
+    - 549 Flutter tests pass. Screenshots: `push_en_permission`, `s3_*_notifications`, `s4_*_push_off`.
+
+- **13 Oct, push live** (review 22, each step with the founder's yes):
+  - Review 22 A: the insert trigger reads the secret from Vault (no dashboard webhook); SENDER_ID_MISMATCH keeps phones; 10-second timeouts; the 5th failed attempt finishes the row. 637 SQL checks.
+  - Migration 14 pushed (the dry run listed only `20261012190000_push.sql`). The webhook secret generated and stored in Vault and as `PUSH_WEBHOOK_SECRET`, never printed. The `push` function deployed. The trigger and the two cron jobs installed; `push-retry` runs and succeeds.
+  - Tested on the Android emulator with Google Play, signed in to the live project as push-test-a:
+    - B followed A: the push arrived ("Test Follower started following you."), with no Space or project name; the tap opened B's profile;
+    - with New followers off, C followed A: an Activity row, no push queued; then New followers back on;
+    - B replied to A's post: the push arrived with the new notification icon (a white silhouette, tinted orange) and opened the post.
+  - Screenshots: `push_en_notification`, `push_en_tap_profile`, `s3_en_followers_off`, `push_en_switch_off_no_push`, `push_en_notification_icon`, `push_en_tap_post`.
+  - `push-db` and `push` merged into main.
+
+## Before the pilot (week 11)
+- Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
+- Turn the phone provider off on the live project (it is on for the test numbers only).
+- Upgrade the Supabase project to a paid plan for daily backups.
+- The nightly cleanup of loose photos (an Edge Function calling the Storage API with `orphan_space_files()` and `orphan_post_media()`): a live change for the founder's yes.
+- Replace the app icon and the notification icon (now a white silhouette of Flutter's default icon) with the BuildVibes logo.
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. The lead checks the review 18 B fixes and screenshots.
-3. Week 7 part 2: migration 13 (activity, on `activity-db` for the lead's review first), Home Spaces tab (H1b), Activity, the Profile Spaces icon, Create opening the composer. Part 3: push.
+2. Week 8 (review 22): Arabic pass, market pack, privacy, report and block, delete account. Before the brief, the founder decides review 16 §6: Translate on posts, Save and Share, @mentions.
+3. iPhone push needs the Apple developer account and an APNs key (week 10).
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
 5. A local reviewer in Kuwait and in Egypt confirms the flagged market pack values (phone rules, places, local trade names, popular trades, Egypt's week start). Legal pages are still to be written.

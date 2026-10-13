@@ -10,8 +10,9 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../entry/entry_state.dart';
 import '../settings/language_sheet.dart';
+import '../settings/push_host.dart';
 
-/// Settings from the profile's gear: language, sign out and, in debug
+/// Settings from the profile's gear: language, notifications, sign out and, in debug
 /// builds only, the Components gallery.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -37,6 +38,13 @@ class SettingsScreen extends ConsumerWidget {
                 trailing: BvRowTrailing.value(languageName),
                 onTap: () => showLanguageSheet(context),
               ),
+              if (!guest)
+                BvListRow(
+                  key: const Key('row-notifications'),
+                  leading: const BvRowIcon(BvIcons.notifications),
+                  title: l10n.settingsNotifications,
+                  onTap: () => context.push(AppRoutes.profileNotifications),
+                ),
               if (kDebugMode)
                 BvListRow(
                   key: const Key('row-components'),
@@ -51,6 +59,8 @@ class SettingsScreen extends ConsumerWidget {
                   title: l10n.signOut,
                   trailing: const BvRowTrailing.none(),
                   onTap: () async {
+                    // This phone stops getting pushes for the account first.
+                    await unregisterPush(ref);
                     await ref.read(authRepositoryProvider).signOut();
                   },
                 ),

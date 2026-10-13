@@ -3168,4 +3168,44 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsNotifications => 'الإشعارات';
+
+  @override
+  String get notifPeople => 'الأشخاص';
+
+  @override
+  String get notifFollowers => 'متابِعون جدد';
+
+  @override
+  String get notifPosts => 'منشوراتك';
+
+  @override
+  String get notifReplies => 'الردود';
+
+  @override
+  String get notifMessages => 'الرسائل';
+
+  @override
+  String get notifLockText => 'إظهار نص الرسالة على شاشة القفل';
+
+  @override
+  String get notifSpaces => 'المساحات';
+
+  @override
+  String get notifSpacesLine => 'لكل مساحة من معلومات المساحة ← الإشعارات';
+
+  @override
+  String get notifFooter => 'لا تذكر الإشعارات اسم مشروع أو مساحة أو بند عمل.';
+
+  @override
+  String get pushOffTitle => 'الإشعارات مغلقة';
+
+  @override
+  String get pushOffBody =>
+      'ستفوتك بنود العمل والرسائل. فعّلها من إعدادات الهاتف.';
+
+  @override
+  String get pushOpenSettings => 'افتح إعدادات الهاتف';
 }

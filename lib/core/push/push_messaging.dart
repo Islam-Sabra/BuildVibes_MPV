@@ -1,0 +1,116 @@
+import 'dart:async';
+import 'dart:io' show Platform;
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Whether the phone lets BuildVibes show notifications.
+enum PushPermission { granted, denied, notAsked }
+
+/// The phone's side of push (FCM), behind an interface so tests use a fake.
+abstract class PushMessaging {
+  Future<PushPermission> permission();
+
+  /// Android 13+ shows the system prompt; no extra screen (review 16 §4).
+  Future<PushPermission> requestPermission();
+  Future<String?> token();
+  Stream<String> get tokenRefresh;
+
+  /// The data of a notification tapped while the app was closed.
+  Future<Map<String, String>?> initialTap();
+
+  /// Taps while the app runs in the background.
+  Stream<Map<String, String>> get taps;
+
+  /// Pushes that arrive while the app is open (no banner; screens refresh).
+  Stream<Map<String, String>> get foreground;
+
+  /// S4: the phone's notification settings for BuildVibes.
+  Future<void> openSettings();
+
+  String get platform;
+}
+
+/// Firebase is set up in main(); without it (a build with no Firebase
+/// file) push stays off and nothing else changes.
+class FirebasePushMessaging implements PushMessaging {
+  FirebasePushMessaging();
+
+  static const _settings = MethodChannel('buildvibes/settings');
+
+  FirebaseMessaging get _fcm => FirebaseMessaging.instance;
+  bool get _ready => Firebase.apps.isNotEmpty;
+
+  static PushPermission _of(AuthorizationStatus s) => switch (s) {
+    AuthorizationStatus.authorized ||
+    AuthorizationStatus.provisional => PushPermission.granted,
+    AuthorizationStatus.denied ||
+    AuthorizationStatus.deniedPermanently => PushPermission.denied,
+    AuthorizationStatus.notDetermined => PushPermission.notAsked,
+  };
+
+  static Map<String, String> _data(RemoteMessage m) => {
+    for (final e in m.data.entries) e.key: '${e.value}',
+  };
+
+  @override
+  Future<PushPermission> permission() async => !_ready
+      ? PushPermission.denied
+      : _of((await _fcm.getNotificationSettings()).authorizationStatus);
+
+  @override
+  Future<PushPermission> requestPermission() async => !_ready
+      ? PushPermission.denied
+      : _of((await _fcm.requestPermission()).authorizationStatus);
+
+  @override
+  Future<String?> token() async => _ready ? _fcm.getToken() : null;
+
+  @override
+  Stream<String> get tokenRefresh =>
+      _ready ? _fcm.onTokenRefresh : const Stream.empty();
+
+  @override
+  Future<Map<String, String>?> initialTap() async {
+    if (!_ready) return null;
+    final m = await _fcm.getInitialMessage();
+    return m == null ? null : _data(m);
+  }
+
+  @override
+  Stream<Map<String, String>> get taps => _ready
+      ? FirebaseMessaging.onMessageOpenedApp.map(_data)
+      : const Stream.empty();
+
+  @override
+  Stream<Map<String, String>> get foreground =>
+      _ready ? FirebaseMessaging.onMessage.map(_data) : const Stream.empty();
+
+  @override
+  Future<void> openSettings() async {
+    try {
+      await _settings.invokeMethod<void>('openNotificationSettings');
+    } on PlatformException catch (e) {
+      debugPrint('openNotificationSettings: $e');
+    }
+  }
+
+  @override
+  String get platform => Platform.isIOS ? 'ios' : 'android';
+}
+
+/// Called before runApp. Push is optional: a failure leaves it off.
+Future<void> initPush() async {
+  try {
+    await Firebase.initializeApp();
+  } on Exception catch (e) {
+    debugPrint('Firebase not set up, push off: $e');
+  }
+}
+
+final pushMessagingProvider = Provider<PushMessaging>(
+  (ref) => FirebasePushMessaging(),
+);

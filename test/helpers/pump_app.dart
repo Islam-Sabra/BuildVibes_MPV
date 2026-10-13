@@ -5,7 +5,9 @@ import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
+import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
+import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
@@ -35,6 +37,7 @@ import 'chat_fakes.dart';
 import 'fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
+import 'push_fakes.dart';
 import 'voice_fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
@@ -82,6 +85,8 @@ class TestApp {
     required this.saved,
     required this.sharedFiles,
     required this.activity,
+    required this.push,
+    required this.pushes,
   });
 
   final SharedPreferences prefs;
@@ -97,6 +102,10 @@ class TestApp {
   final FakePostRepository posts;
   final FakeVoicePlayback playback;
   final FakeActivityRepository activity;
+
+  /// The phone's push side, and the server calls (register, settings).
+  final FakePushMessaging push;
+  final FakePushRepository pushes;
 
   /// Files saved with Download, and shared through the phone (F1).
   final List<String> saved;
@@ -127,6 +136,7 @@ Future<TestApp> pumpApp(
   FakeVoiceRecorder? recorder,
   FakePostRepository? posts,
   FakeActivityRepository? activity,
+  FakePushMessaging? push,
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
@@ -170,6 +180,8 @@ Future<TestApp> pumpApp(
   final fakePosts = posts ?? FakePostRepository(now: testNow);
   final fakePlayback = FakeVoicePlayback();
   final fakeActivity = activity ?? FakeActivityRepository();
+  final fakePush = push ?? FakePushMessaging();
+  final fakePushes = FakePushRepository();
   final saved = <String>[];
   final sharedFiles = <String>[];
 
@@ -195,6 +207,8 @@ Future<TestApp> pumpApp(
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
         postRepositoryProvider.overrideWithValue(fakePosts),
         activityRepositoryProvider.overrideWithValue(fakeActivity),
+        pushMessagingProvider.overrideWithValue(fakePush),
+        pushRepositoryProvider.overrideWithValue(fakePushes),
         voicePlaybackProvider.overrideWithValue(fakePlayback),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async =>
@@ -260,6 +274,8 @@ Future<TestApp> pumpApp(
     saved: saved,
     sharedFiles: sharedFiles,
     activity: fakeActivity,
+    push: fakePush,
+    pushes: fakePushes,
   );
 }
 

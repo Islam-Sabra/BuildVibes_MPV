@@ -875,5 +875,18 @@
   "rowMinutesAgo": "{n, plural, =1{قبل دقيقة} =2{قبل دقيقتين} few{قبل {n} دقائق} other{قبل {n} دقيقة}}",
   "rowHoursAgo": "{n, plural, =1{قبل ساعة} =2{قبل ساعتين} few{قبل {n} ساعات} other{قبل {n} ساعة}}",
   "rowYesterday": "أمس",
-  "rowDaysAgo": "{n, plural, =1{قبل يوم} =2{قبل يومين} few{قبل {n} أيام} other{قبل {n} يوماً}}"
+  "rowDaysAgo": "{n, plural, =1{قبل يوم} =2{قبل يومين} few{قبل {n} أيام} other{قبل {n} يوماً}}",
+  "settingsNotifications": "الإشعارات",
+  "notifPeople": "الأشخاص",
+  "notifFollowers": "متابِعون جدد",
+  "notifPosts": "منشوراتك",
+  "notifReplies": "الردود",
+  "notifMessages": "الرسائل",
+  "notifLockText": "إظهار نص الرسالة على شاشة القفل",
+  "notifSpaces": "المساحات",
+  "notifSpacesLine": "لكل مساحة من معلومات المساحة ← الإشعارات",
+  "notifFooter": "لا تذكر الإشعارات اسم مشروع أو مساحة أو بند عمل.",
+  "pushOffTitle": "الإشعارات مغلقة",
+  "pushOffBody": "ستفوتك بنود العمل والرسائل. فعّلها من إعدادات الهاتف.",
+  "pushOpenSettings": "افتح إعدادات الهاتف"
 }

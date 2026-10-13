@@ -392,3 +392,10 @@ abstract final class BvActivitySpec {
   static const needsOnHome = 3;
   static const todayRows = 5;
 }
+
+/// Week 7 part 3: Settings → Notifications (S3, S4).
+abstract final class BvPushSpec {
+  /// S4: the switches fade while the phone blocks notifications. They still
+  /// work, so a person can set them before turning push on.
+  static const offOpacity = 0.55;
+}

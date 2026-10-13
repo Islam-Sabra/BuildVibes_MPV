@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Push: the small icon's tint (BvPrimitive.energyStrong). -->
+    <color name="push_accent">#C24417</color>
+</resources>
