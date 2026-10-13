@@ -270,8 +270,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l10n.composerWrittenIn('ar')), findsOneWidget);
       await _tap(tester, 'composer-lang-change');
-      // L6: why it's asked, and what was detected, in the app's language.
-      expect(find.text(l10n.composerLangWhy), findsOneWidget);
+      // L6: what was detected, in the app's language. The line about
+      // Translate waits for Translate (review 28).
+      expect(find.text(l10n.composerLangWhy), findsNothing);
       expect(
         find.descendant(
           of: find.byKey(const Key('composer-lang-auto')),

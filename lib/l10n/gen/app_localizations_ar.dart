@@ -938,7 +938,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesInvitedBy(String name) {
-    return 'دعاك $name';
+    return 'دعوة من $name';
   }
 
   @override
@@ -1409,7 +1409,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesNotifyAll => '«الجميع» وفِرقي';
 
   @override
-  String get spacesNotifyAllHelp => 'رسائل «الجميع» وفِرقك، وكل ما ينتظرك.';
+  String get spacesNotifyAllHelp =>
+      'رسائل «الجميع» وفِرقك، وكل ما هو بانتظارك.';
 
   @override
   String get spacesNotifyNeedsYou => 'بانتظارك فقط';
@@ -2889,7 +2890,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String needsOwnerLeft(String title) {
-    return 'لم يعد المكلّف في المساحة. أعد الإسناد: $title';
+    return 'لم يعد المكلّف في المساحة. يلزم تكليف شخص آخر: $title';
   }
 
   @override
@@ -2933,7 +2934,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'checked': 'تم فحص $ref بواسطة $name',
       'sent_back': 'أُرجع $ref بواسطة $name',
       'comment': 'تعليق من $name على $ref',
-      'reassigned': 'أُعيد إسناد $ref بواسطة $name',
+      'reassigned': 'أُعيد تكليف $ref بواسطة $name',
       'other': 'بند جديد $ref من $name',
     });
     return '$_temp0: $title';
@@ -2995,7 +2996,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String activityAssigned(String name, String ref) {
-    return 'أُسند إليك $ref من $name';
+    return 'تكليف لك بـ$ref من $name';
   }
 
   @override
@@ -3067,7 +3068,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activityUseful0 => 'وُجد منشورك مفيداً';
 
   @override
-  String get chipAssigned => 'مُسنَد';
+  String get chipAssigned => 'تكليف';
 
   @override
   String get chipDone => 'منجز';

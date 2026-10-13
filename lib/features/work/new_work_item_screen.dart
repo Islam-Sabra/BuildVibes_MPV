@@ -385,14 +385,22 @@ class _NewWorkItemScreenState extends ConsumerState<NewWorkItemScreen> {
                             ? l10n.workNewStampPlain
                             : l10n.workNewStamp(nextRef),
                       ),
-                      const Spacer(),
-                      if (_team != null)
-                        Text(
-                          _team!.name,
-                          style: type.overline.copyWith(
-                            color: BvColors.textSecondary,
-                          ),
-                        ),
+                      const SizedBox(width: BvSpace.s8),
+                      // The Team name gives way to the stamp when space is
+                      // tight (larger text sizes).
+                      Expanded(
+                        child: _team == null
+                            ? const SizedBox.shrink()
+                            : Text(
+                                _team!.name,
+                                textAlign: TextAlign.end,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: type.overline.copyWith(
+                                  color: BvColors.textSecondary,
+                                ),
+                              ),
+                      ),
                     ],
                   ),
                 ),

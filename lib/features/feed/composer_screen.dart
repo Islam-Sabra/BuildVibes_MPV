@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -246,7 +247,7 @@ class _ComposerScreenState extends ConsumerState<ComposerScreen> {
     final picked = await showBvSheet<_Lang>(
       context: context,
       title: l10n.composerLangTitle,
-      subtitle: l10n.composerLangWhy,
+      subtitle: AppConfig.translateEnabled ? l10n.composerLangWhy : null,
       builder: (sheet) => BvChoiceList<_Lang>(
         key: const Key('composer-lang-sheet'),
         value: _lang,
@@ -705,7 +706,10 @@ class _StartFrom extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: BvSpace.s8,
           crossAxisSpacing: BvSpace.s8,
-          mainAxisExtent: BvPostSpec.templateHeight,
+          // Taller when the phone's text is larger.
+          mainAxisExtent: MediaQuery.textScalerOf(
+            context,
+          ).scale(BvPostSpec.templateHeight),
           children: [
             for (var i = 0; i < tiles.length; i++)
               Material(

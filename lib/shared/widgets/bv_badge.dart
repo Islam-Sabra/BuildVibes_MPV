@@ -34,7 +34,8 @@ class BvBadge extends StatelessWidget {
       ),
     };
     return Container(
-      height: BvBadgeSpec.height,
+      // At least the spec's height; taller when the phone's text is larger.
+      constraints: const BoxConstraints(minHeight: BvBadgeSpec.height),
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: BvBadgeSpec.paddingHorizontal,
         vertical: BvBadgeSpec.paddingVertical,
@@ -52,10 +53,14 @@ class BvBadge extends StatelessWidget {
         spacing: BvSpace.s4,
         children: [
           if (icon != null) Icon(icon, size: BvBadgeSpec.iconSize, color: text),
-          Text(
-            label,
-            maxLines: 1,
-            style: BvType.of(context).labelSm.copyWith(color: text),
+          // Shortened with "…" rather than cut off where space is tight.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BvType.of(context).labelSm.copyWith(color: text),
+            ),
           ),
         ],
       ),

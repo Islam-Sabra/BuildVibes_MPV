@@ -483,10 +483,15 @@ class _DialCodeBox extends StatelessWidget {
           onTap: onTap,
           borderRadius: BvRadius.controlAll,
           splashFactory: NoSplash.splashFactory,
-          child: SizedBox(
-            width: BvFieldSpec.dialBoxWidth,
-            height: BvFieldSpec.height,
+          // Wider when the phone's text is larger.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: BvFieldSpec.dialBoxWidth,
+              minHeight: BvFieldSpec.height,
+              maxHeight: BvFieldSpec.height,
+            ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: BvSpace.s8,
               children: [

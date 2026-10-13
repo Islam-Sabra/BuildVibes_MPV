@@ -16,6 +16,11 @@ abstract final class AppConfig {
   /// LinkedIn is not in the MVP; the E2 layout keeps room for it.
   static const linkedInSignIn = false;
 
+  /// Translate on posts is out of the pilot (review 28: no spending). Off,
+  /// the composer's language sheet (L6) doesn't promise Translate. Posts
+  /// still record their language for when it comes back. Not a user setting.
+  static const translateEnabled = false;
+
   static bool get hasSupabase =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 

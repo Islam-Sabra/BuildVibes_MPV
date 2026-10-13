@@ -52,7 +52,9 @@ class BvChip extends StatelessWidget {
           borderRadius: BvRadius.controlAll,
           splashFactory: NoSplash.splashFactory,
           child: Container(
-            height: BvChipSpec.height,
+            // At least the spec's height; taller when the phone's text is
+            // larger.
+            constraints: const BoxConstraints(minHeight: BvChipSpec.height),
             padding: const EdgeInsetsDirectional.symmetric(
               horizontal: BvChipSpec.paddingHorizontal,
               vertical: BvChipSpec.paddingVertical,
@@ -63,10 +65,15 @@ class BvChip extends StatelessWidget {
               children: [
                 if (icon != null)
                   Icon(icon, size: BvChipSpec.iconSize, color: text),
-                Text(
-                  label,
-                  maxLines: 1,
-                  style: BvType.of(context).labelMd.copyWith(color: text),
+                // Shortened with "…" rather than cut off where space is
+                // tight.
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: BvType.of(context).labelMd.copyWith(color: text),
+                  ),
                 ),
               ],
             ),
