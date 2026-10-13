@@ -23,6 +23,8 @@ plugins {
     id("org.jetbrains.kotlin.android") version "2.3.20" apply false
     // Push (FCM): reads android/app/google-services.json (git-ignored).
     id("com.google.gms.google-services") version "4.4.4" apply false
+    // Crash reports (release builds only; see lib/core/crash/crash_reports.dart).
+    id("com.google.firebase.crashlytics") version "3.0.6" apply false
 }
 
 include(":app")
