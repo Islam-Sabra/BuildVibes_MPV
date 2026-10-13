@@ -344,6 +344,31 @@ A declined request makes no notification. Useful on a reply makes none.
 
 **Alert:** a trigger on new reports (`supabase/ops/report_alert_webhook.sql`, the Vault and `pg_net` pattern of push) calls the Edge Function `report-alert`, which emails the market's moderation address through Resend. Deploying it with its secrets (`REPORT_ALERT_SECRET`, `RESEND_API_KEY`, `ALERT_FROM`) and running the script are live changes for the founder's yes.
 
+## 13. Account (migration 16, `20261013130000_account.sql`, branch `account-db`)
+**Columns and tables:**
+- `profiles.deletion_scheduled_at`: set when the person asks to delete their account; null otherwise.
+- `markets.support_email` (the address S10, S11 and Help show; set by the founder), and `markets.legal` gains `delete_account` (per language) next to `terms` and `privacy`.
+- `data_requests`: `profile_id`, `status` ('open' | 'sent'), `created_at`, `sent_at`. At most one open request per person. You read your own; requests are made only through `request_my_data()`.
+
+**Deleting an account (S12b, S13, S14):**
+- `account_deletion_blockers()`: the Spaces where you are the only admin and others are still in. Transfer each (S15d) first.
+- `request_account_deletion()`: needs a sign-in code entered in the last 10 minutes (the token's `amr` "otp" entry; `signed_in_recently()`), refused while a blocker remains. Hides the account at once, deletes its push tokens, and returns when it goes for good (30 days).
+- While scheduled, `is_blocked_with` and `blocked_between` treat the account as blocked by everyone else: profile, posts, replies, follows, CV, shown work, people search, Activity and pushes all leave it out; invite previews don't name it; S7 doesn't list it. In Spaces the messages, work and membership stay, and the name can't be read ("Former member").
+- `restore_account()` within the 30 days; `my_account_deletion()` for S14's date.
+- After 30 days: the Edge Function `account-purge` (nightly, `supabase/ops/account_cron.sql`) deletes the avatar and post photos through the Storage API (`accounts_due_for_purge()`), then `purge_account(id)` deletes the user. Own rows cascade; Space records set the person to null; the last-admin handover runs if needed. Service role only. Deploying it with `ACCOUNT_PURGE_SECRET` and running the script are live changes for the founder's yes.
+
+**A hidden account can't act (review 26):**
+- It has no admin rights (`is_space_admin`), doesn't count as another admin (`has_other_admin`, `account_deletion_blockers`), can't be made admin (`set_member_admin`, `transfer_ownership`), and the last-admin handover passes it over (a hidden member is chosen only if nobody else is left).
+- `request_account_deletion()` locks every Space the person is in before the check, so two admins can't both go at once and nobody is made admin meanwhile (review 27 R3).
+- `leave_space` refuses the last admin by their own membership row, so a hidden sole admin can't leave (review 27 R2).
+- The trigger `refuse_hidden_writer()` refuses new rows from it (42501, "restore your account first") in `posts`, `post_replies`, `messages`, `follows`, `useful_marks`, `work_items`, `work_item_events`, `library_files` and `space_join_requests`.
+- `purge_account()` locks the profile (a restore can't slip in) and waits while any avatar or post photo remains.
+- Proof stays: `cv_project_confirmations` has an `id` key and `confirmed_by` set null when the confirmer is purged (one row per CV project and confirmer; several purged confirmers may remain). New proof always needs a confirmer who is still there (review 27 R1). A purged reporter's reports stay (`reporter_id` set null).
+
+**Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
+
+**Reports:** `prune_reports()` deletes reports decided over 12 months ago (nightly, in the same cron script).
+
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
 - Crew can't create items. Viewer can't sign done. Only the owner can sign done. Only the creator (or an allowed Lead) can check.

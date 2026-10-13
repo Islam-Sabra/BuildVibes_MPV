@@ -456,3 +456,8 @@ verify_jwt = false
 # secret, not by a signed-in user.
 [functions.report-alert]
 verify_jwt = false
+
+# Account removal after 30 days (week 8 part 2). Called by cron with a
+# shared secret, not by a signed-in user.
+[functions.account-purge]
+verify_jwt = false

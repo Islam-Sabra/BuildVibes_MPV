@@ -408,6 +408,14 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Test on live: push-test-b reported push-test-a's test post; the alert function answered "sent" and the founder received the email; `moderation.sql` removed the post, and push-test-a got the removal notice.
   - `safety-db` and `safety` merged into main.
 
+- **13 Oct, week 8 part 2, migration 16** (on `account-db`, **not live**, for the lead's review):
+  - `20261013130000_account.sql`: delete account (a fresh sign-in code; refused while you are a Space's only admin; hidden at once like a block; restorable for 30 days; then removed by the `account-purge` function), Download my data (`data_requests`, the founder's export script), `markets.support_email` and the deletion page link, and the 12-month report cleanup.
+  - New, not run or deployed: `supabase/functions/account-purge/`, `supabase/ops/account_cron.sql`, `supabase/ops/export_my_data.sql`.
+  - 63 new SQL checks (780 in all); 3 function tests.
+  - For the lead: while hidden, follower counts and Useful counts still include the person (accepted in review 26, L3).
+  - Review 26 applied (M1–M4, L1, L2, L4): a hidden account has no admin rights and can't write; deleting is locked per Space; proof and reports stay after a purge; the purge locks the profile and waits for the photos; the export holds all of the person's own data. 101 checks in `16_account.test.sql` (818 in all).
+  - Review 27 applied (R1–R3): several purged confirmers can stay on one project, so every purge succeeds; a hidden sole admin can't leave; the deletion locks every Space the person is in. 106 checks (823 in all).
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
 - Turn the phone provider off on the live project (it is on for the test numbers only).
