@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/months.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/data/repositories/safety_repository.dart';
@@ -49,6 +50,7 @@ Removal _removal({
   appealStatus: status,
   canAppeal: canAppeal,
   excerpt: 'Site photos from level 3, including the client’s floor plan.',
+  postedAt: DateTime(2026, 9, 10),
 );
 
 void main() {
@@ -148,6 +150,13 @@ void main() {
       // The pilot has one reviewer: "We'll look at it again".
       expect(find.text(l10n.removedAppealNote), findsOneWidget);
       expect(find.byKey(const Key('removed-excerpt')), findsOneWidget);
+      // The date it was posted (10 Sep), not removed (12 Sep).
+      expect(
+        find.text(
+          l10n.removedYour('post', formatDayMonth(DateTime(2026, 9, 10), lang)),
+        ),
+        findsOneWidget,
+      );
       await _tap(tester, 'removed-appeal');
       expect(find.text(l10n.appealHeading), findsOneWidget);
       await _tap(tester, 'appeal-send');

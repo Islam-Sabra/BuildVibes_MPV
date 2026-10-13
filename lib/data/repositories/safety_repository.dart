@@ -74,6 +74,7 @@ class Removal {
     required this.canAppeal,
     this.excerpt,
     this.appealAt,
+    this.postedAt,
   });
 
   factory Removal.fromJson(Map<String, dynamic> j) => Removal(
@@ -87,6 +88,9 @@ class Removal {
     appealAt: j['appeal_at'] == null
         ? null
         : DateTime.parse(j['appeal_at'] as String),
+    postedAt: j['posted_at'] == null
+        ? null
+        : DateTime.parse(j['posted_at'] as String),
   );
 
   final String id;
@@ -97,6 +101,9 @@ class Removal {
   final bool canAppeal;
   final String? excerpt;
   final DateTime? appealAt;
+
+  /// When it was written: R3's "Your post · 12 Sep".
+  final DateTime? postedAt;
 }
 
 /// Report, block and appeal (migration 15). Deciding is never in the app.

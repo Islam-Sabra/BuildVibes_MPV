@@ -107,9 +107,13 @@ class RemovedScreen extends ConsumerWidget {
                 spacing: BvSpace.s4,
                 children: [
                   Text(
+                    // When it was posted, not when it was removed.
                     l10n.removedYour(
                       r.kind.json,
-                      formatDay(r.removedAt.toLocal(), locale),
+                      formatDayMonth(
+                        (r.postedAt ?? r.removedAt).toLocal(),
+                        locale,
+                      ),
                     ),
                     style: type.metadata.copyWith(
                       color: BvColors.textSecondary,
