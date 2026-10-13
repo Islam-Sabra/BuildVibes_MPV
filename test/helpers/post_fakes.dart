@@ -16,6 +16,15 @@ class FakePostRepository implements PostRepository {
   final useful = <String, List<String>>{};
   final calls = <String>[];
   final muted = <String>{};
+
+  /// As the server: posts you reported, and people you blocked, are left out.
+  final reported = <String>{};
+  final blocked = <String>{};
+
+  bool _shown(Post p) =>
+      !muted.contains(p.authorId) &&
+      !blocked.contains(p.authorId) &&
+      !reported.contains(p.id);
   final uploads = <String>[];
 
   /// The next calls fail as if the signal dropped.
@@ -36,13 +45,9 @@ class FakePostRepository implements PostRepository {
     if (feedOffline) throw const SpaceException(SpaceFailure.network);
     return PostPage(
       items: [
-        for (final p in posts.where(
-          (p) => home.contains(p.id) && !muted.contains(p.authorId),
-        ))
+        for (final p in posts.where((p) => home.contains(p.id) && _shown(p)))
           FeedEntry(section: FeedSection.home, post: p),
-        for (final p in posts.where(
-          (p) => !home.contains(p.id) && !muted.contains(p.authorId),
-        ))
+        for (final p in posts.where((p) => !home.contains(p.id) && _shown(p)))
           FeedEntry(section: FeedSection.beyond, post: p),
       ],
     );

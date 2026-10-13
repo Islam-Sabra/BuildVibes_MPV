@@ -22,6 +22,8 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../../data/repositories/safety_repository.dart';
+import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
 import 'feed_state.dart';
 import 'post_card.dart';
@@ -208,6 +210,7 @@ class _ReplyView extends ConsumerWidget {
       }
     }
 
+    // Your reply: Delete. Someone else's: Report (R1).
     Future<void> menu() async {
       final delete = await showBvSheet<bool>(
         context: context,
@@ -215,19 +218,39 @@ class _ReplyView extends ConsumerWidget {
           borderRadius: BvRadius.cardAll,
           child: BvListGroup(
             rows: [
-              BvListRow(
-                key: const Key('reply-delete'),
-                leading: const BvRowIcon(BvIcons.delete, destructive: true),
-                title: l10n.postDeleteReply,
-                destructive: true,
-                trailing: const BvRowTrailing.none(),
-                onTap: () => Navigator.of(sheet).pop(true),
-              ),
+              if (mine)
+                BvListRow(
+                  key: const Key('reply-delete'),
+                  leading: const BvRowIcon(BvIcons.delete, destructive: true),
+                  title: l10n.postDeleteReply,
+                  destructive: true,
+                  trailing: const BvRowTrailing.none(),
+                  onTap: () => Navigator.of(sheet).pop(true),
+                )
+              else
+                BvListRow(
+                  key: const Key('reply-report'),
+                  leading: const BvRowIcon(BvIcons.report),
+                  title: l10n.replyReport,
+                  trailing: const BvRowTrailing.none(),
+                  onTap: () => Navigator.of(sheet).pop(false),
+                ),
             ],
           ),
         ),
       );
-      if (delete != true || !context.mounted) return;
+      if (delete == null || !context.mounted) return;
+      if (!delete) {
+        final container = ProviderScope.containerOf(context, listen: false);
+        await startReport(
+          context,
+          kind: ReportKind.reply,
+          id: reply.id,
+          onReported: () =>
+              container.invalidate(postRepliesProvider(reply.postId)),
+        );
+        return;
+      }
       final yes = await showBvDialog(
         context: context,
         title: l10n.postDeleteReplyTitle,
@@ -288,17 +311,16 @@ class _ReplyView extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    // Your own reply: Delete. Others get Report in week 8.
-                    if (mine)
-                      IconButton(
-                        key: Key('reply-menu-${reply.id}'),
-                        tooltip: l10n.postReplyMenu,
-                        icon: const Icon(
-                          BvIcons.more,
-                          color: BvColors.iconSecondary,
-                        ),
-                        onPressed: menu,
+                    // Your own reply: Delete; someone else's: Report.
+                    IconButton(
+                      key: Key('reply-menu-${reply.id}'),
+                      tooltip: l10n.postReplyMenu,
+                      icon: const Icon(
+                        BvIcons.more,
+                        color: BvColors.iconSecondary,
                       ),
+                      onPressed: menu,
+                    ),
                   ],
                 ),
                 // The bubble's full width, under the menu too, so the text

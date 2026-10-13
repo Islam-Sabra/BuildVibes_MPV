@@ -863,7 +863,7 @@
       }
     }
   },
-  "blockConfirmBody": "You won't see each other's profiles, and follows between you are removed. They aren't told.",
+  "blockConfirmBody": "You won't see each other's posts or profiles, and follows between you are removed. They aren't told.",
   "@blockConfirmBody": {
     "description": "Confirm sheet body."
   },
@@ -4530,5 +4530,292 @@
   "pushOpenSettings": "Open phone settings",
   "@pushOpenSettings": {
     "description": "S4 button."
+  },
+  "reportTitle": "{kind, select, post{Report this post} reply{Report this reply} message{Report this message} other{Report this account}}",
+  "@reportTitle": {
+    "description": "R1 title. kind: post, reply, message, profile.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "reportSubtitle": "The person won't be told who reported. Choose what fits best.",
+  "@reportSubtitle": {
+    "description": "R1 line."
+  },
+  "reasonSpam": "Spam or scam",
+  "@reasonSpam": {
+    "description": "R1 reason."
+  },
+  "reasonSpamHelp": "Fake offers, unwanted promotion",
+  "@reasonSpamHelp": {
+    "description": "R1 reason line."
+  },
+  "reasonHarassment": "Harassment or abuse",
+  "@reasonHarassment": {
+    "description": "R1 reason."
+  },
+  "reasonHarassmentHelp": "Insults, threats, targeting someone",
+  "@reasonHarassmentHelp": {
+    "description": "R1 reason line."
+  },
+  "reasonMisleading": "Wrong or misleading",
+  "@reasonMisleading": {
+    "description": "R1 reason."
+  },
+  "reasonMisleadingHelp": "Claims that are false",
+  "@reasonMisleadingHelp": {
+    "description": "R1 reason line."
+  },
+  "reasonFake": "This isn't real",
+  "@reasonFake": {
+    "description": "R1 reason."
+  },
+  "reasonFakeHelp": "A fake person, company or project",
+  "@reasonFakeHelp": {
+    "description": "R1 reason line."
+  },
+  "reasonPrivate": "Shares private information",
+  "@reasonPrivate": {
+    "description": "R1 reason."
+  },
+  "reasonPrivateHelp": "Documents, plans or details not meant to be public",
+  "@reasonPrivateHelp": {
+    "description": "R1 reason line."
+  },
+  "reasonOther": "Something else",
+  "@reasonOther": {
+    "description": "R1 reason."
+  },
+  "reasonOtherHelp": "Tell us in a few words",
+  "@reasonOtherHelp": {
+    "description": "R1 reason line."
+  },
+  "reportNoteTitle": "What's wrong?",
+  "@reportNoteTitle": {
+    "description": "Something else: the note sheet title."
+  },
+  "reportNoteHint": "A few words",
+  "@reportNoteHint": {
+    "description": "Something else: the field hint."
+  },
+  "reportSend": "Send report",
+  "@reportSend": {
+    "description": "Something else: send."
+  },
+  "reportSentTitle": "Report sent",
+  "@reportSentTitle": {
+    "description": "R2 title."
+  },
+  "reportSentBody": "We'll review it and may remove anything that breaks the rules. The person isn't told who reported.",
+  "@reportSentBody": {
+    "description": "R2 line."
+  },
+  "reportDone": "Done",
+  "@reportDone": {
+    "description": "R2 and R5 button."
+  },
+  "reportBlock": "Block this account",
+  "@reportBlock": {
+    "description": "R2 button."
+  },
+  "postReport": "Report post",
+  "@postReport": {
+    "description": "Post menu row (someone else's post)."
+  },
+  "replyReport": "Report reply",
+  "@replyReport": {
+    "description": "Reply menu row (someone else's reply)."
+  },
+  "chatReport": "Report message",
+  "@chatReport": {
+    "description": "S8c: the message sheet row."
+  },
+  "profileReport": "Report account",
+  "@profileReport": {
+    "description": "Person profile menu row."
+  },
+  "blockDone": "{name} blocked",
+  "@blockDone": {
+    "description": "Toast after blocking, with Undo.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockedTitle": "Blocked accounts",
+  "@blockedTitle": {
+    "description": "S7 title and the Settings row."
+  },
+  "blockedCount": "{n} BLOCKED",
+  "@blockedCount": {
+    "description": "S7 section: your own count.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "blockedNone": "Nobody blocked",
+  "@blockedNone": {
+    "description": "S7 empty."
+  },
+  "unblock": "Unblock",
+  "@unblock": {
+    "description": "S7 row action."
+  },
+  "unblocked": "{name} unblocked",
+  "@unblocked": {
+    "description": "Toast after unblocking.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockedNote": "Blocked accounts can't follow you or see your posts. They are not told.",
+  "@blockedNote": {
+    "description": "S7 footnote. Nothing about messages: the MVP has none."
+  },
+  "removedTitle": "{kind, select, post{Removed post} reply{Removed reply} other{Removed message}}",
+  "@removedTitle": {
+    "description": "R3 app bar.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "removedHeading": "{kind, select, post{We removed your post} reply{We removed your reply} other{We removed your message}}",
+  "@removedHeading": {
+    "description": "R3 heading.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "removedBody": "It was reported for {reason}, and our review agreed. Only you can see this notice.",
+  "@removedBody": {
+    "description": "R3 line.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonPhrase": "{reason, select, spam{spam or a scam} harassment{harassment or abuse} misleading{being wrong or misleading} fake{not being real} private_info{sharing private information} other{something else}}",
+  "@reasonPhrase": {
+    "description": "R3: the reason inside the sentence.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "removedYour": "{kind, select, post{Your post} reply{Your reply} other{Your message}} · {date}",
+  "@removedYour": {
+    "description": "R3 card label.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "removedAppealNote": "You have 14 days to appeal. We'll look at it again.",
+  "@removedAppealNote": {
+    "description": "R3 line (review 23: one reviewer in the pilot)."
+  },
+  "removedAppeal": "Appeal this decision",
+  "@removedAppeal": {
+    "description": "R3 button."
+  },
+  "removedAppealOpen": "You appealed on {date}. We'll tell you the result in Activity.",
+  "@removedAppealOpen": {
+    "description": "R3 when the appeal is open.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "removedClosed": "The 14 days to appeal have passed.",
+  "@removedClosed": {
+    "description": "R3 after 14 days."
+  },
+  "removedUpheld": "We looked at it again: the removal stands.",
+  "@removedUpheld": {
+    "description": "R3 after an upheld appeal."
+  },
+  "removedReversed": "We looked at it again and brought it back.",
+  "@removedReversed": {
+    "description": "R3 after a reversed appeal."
+  },
+  "removedGone": "This notice isn't available.",
+  "@removedGone": {
+    "description": "R3 when the notice is not yours or is gone."
+  },
+  "appealTitle": "Appeal",
+  "@appealTitle": {
+    "description": "R4 and R5 app bar."
+  },
+  "appealHeading": "Tell us why this was a mistake",
+  "@appealHeading": {
+    "description": "R4 heading."
+  },
+  "appealHelp": "Add anything that helps the reviewer. Don't include other people's private details.",
+  "@appealHelp": {
+    "description": "R4 line."
+  },
+  "appealLabel": "Your explanation",
+  "@appealLabel": {
+    "description": "R4 field label."
+  },
+  "appealLimit": "Up to 500 characters",
+  "@appealLimit": {
+    "description": "R4 field help."
+  },
+  "appealSend": "Send appeal",
+  "@appealSend": {
+    "description": "R4 button."
+  },
+  "appealReceived": "Appeal received",
+  "@appealReceived": {
+    "description": "R5 title."
+  },
+  "appealReceivedBody": "We'll look at it again. We'll tell you the result in Activity, usually within 3 days.",
+  "@appealReceivedBody": {
+    "description": "R5 line (review 23 wording)."
+  },
+  "activityRemoved": "{kind, select, post{Your post was removed} reply{Your reply was removed} other{Your message was removed}}",
+  "@activityRemoved": {
+    "description": "A1 row: a removal.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "activityAppealResult": "{result, select, reversed{Your appeal: it's back} other{Your appeal: the removal stands}}",
+  "@activityAppealResult": {
+    "description": "A1 row: an appeal result.",
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "chipRemoved": "Removed",
+  "@chipRemoved": {
+    "description": "A1 chip."
+  },
+  "chipRestored": "Restored",
+  "@chipRestored": {
+    "description": "A1 chip."
   }
 }

@@ -5,13 +5,18 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart';
 import '../../data/repositories/profile_page_repository.dart';
 import '../../data/repositories/profile_repository.dart';
+import '../../data/repositories/safety_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
+import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
+import '../feed/feed_state.dart';
+import '../safety/report_flow.dart';
 import 'widgets/profile_body.dart';
 import 'widgets/profile_parts.dart';
 
@@ -67,38 +72,62 @@ class _PersonProfileScreenState extends ConsumerState<PersonProfileScreen> {
     }
   }
 
+  /// The ••• menu: Report account (R1) and Block (the block dialog).
   Future<void> _more(String name) async {
     final l10n = AppLocalizations.of(context);
-    final block = await showBvSheet<bool>(
+    // Undo may run after this screen closed.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final choice = await showBvSheet<_More>(
       context: context,
       builder: (sheetContext) => ClipRRect(
         borderRadius: BvRadius.cardAll,
-        child: BvListRow(
-          key: const Key('profile-block'),
-          leading: const BvRowIcon(BvIcons.lock),
-          title: l10n.blockPerson(name),
-          trailing: const BvRowTrailing.none(),
-          onTap: () => Navigator.of(sheetContext).pop(true),
+        child: BvListGroup(
+          rows: [
+            BvListRow(
+              key: const Key('profile-report'),
+              leading: const BvRowIcon(BvIcons.report),
+              title: l10n.profileReport,
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheetContext).pop(_More.report),
+            ),
+            BvListRow(
+              key: const Key('profile-block'),
+              leading: const BvRowIcon(BvIcons.block, destructive: true),
+              title: l10n.blockPerson(inOwnDirection(name)),
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheetContext).pop(_More.block),
+            ),
+          ],
         ),
       ),
     );
-    if (block != true || !mounted) return;
-    final sure = await showBvSheet<bool>(
-      context: context,
-      title: l10n.blockConfirmTitle(name),
-      subtitle: l10n.blockConfirmBody,
-      footer: BvSheetFooter(
-        cancelLabel: l10n.commonCancel,
-        confirmLabel: l10n.block,
-        onConfirm: () => Navigator.of(context).pop(true),
-      ),
-      builder: (_) => const SizedBox.shrink(),
-    );
-    if (sure != true || !mounted) return;
-    final me = ref.read(authUserIdProvider).value;
-    if (me == null) return;
-    await ref.read(profilePageRepositoryProvider).block(me, widget.profileId);
-    if (mounted) context.pop();
+    if (choice == null || !mounted) return;
+    // Blocked: the profile closes, and the feed and Activity read again.
+    void changed(bool blocked) {
+      container
+        ..invalidate(feedProvider)
+        ..invalidate(activityProvider)
+        ..invalidate(profileViewProvider(widget.profileId));
+      if (blocked && mounted) context.pop();
+    }
+
+    switch (choice) {
+      case _More.report:
+        await startReport(
+          context,
+          kind: ReportKind.profile,
+          id: widget.profileId,
+          person: (id: widget.profileId, name: name),
+          onBlocked: () => changed(true),
+        );
+      case _More.block:
+        await confirmBlock(
+          context,
+          personId: widget.profileId,
+          name: name,
+          onChanged: changed,
+        );
+    }
   }
 
   @override
@@ -145,7 +174,10 @@ class _PersonProfileScreenState extends ConsumerState<PersonProfileScreen> {
                                 : _toggleFollow,
                           ),
                         ),
-                        _MoreButton(onTap: () => _more(p.firstName)),
+                        _MoreButton(
+                          onTap: () =>
+                              _more('${p.firstName} ${p.lastName}'.trim()),
+                        ),
                       ],
                     ),
                   ),
@@ -191,3 +223,5 @@ class _MoreButton extends StatelessWidget {
     );
   }
 }
+
+enum _More { report, block }

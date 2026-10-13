@@ -18,6 +18,11 @@ String? monthToJson(DateTime? d) => d == null
 String formatMonth(DateTime d, String locale) =>
     BvWesternDigitsFormatter.normalise(DateFormat.yMMM(locale).format(d));
 
+/// "12 Sep" / "12 سبتمبر": day first, as on cards and R3, with Western
+/// digits.
+String formatDayMonth(DateTime d, String locale) =>
+    BvWesternDigitsFormatter.normalise(DateFormat('d MMM', locale).format(d));
+
 /// "18 Oct" / "18 أكتوبر", always with Western digits.
 String formatDay(DateTime d, String locale) =>
     BvWesternDigitsFormatter.normalise(DateFormat.MMMd(locale).format(d));

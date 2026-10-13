@@ -17,8 +17,11 @@ import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
+import '../../data/repositories/safety_repository.dart';
+import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
 import 'feed_state.dart';
 
@@ -255,7 +258,13 @@ class PostCard extends ConsumerWidget {
                   ),
                 ]
               : [
-                  // Report comes with block in week 8.
+                  BvListRow(
+                    key: const Key('post-report'),
+                    leading: const BvRowIcon(BvIcons.report),
+                    title: l10n.postReport,
+                    trailing: const BvRowTrailing.none(),
+                    onTap: () => Navigator.of(sheet).pop(_Menu.report),
+                  ),
                   BvListRow(
                     key: const Key('post-mute'),
                     leading: const BvRowIcon(BvIcons.close),
@@ -299,6 +308,23 @@ class PostCard extends ConsumerWidget {
         } on SpaceException catch (e) {
           if (context.mounted) showSpaceError(context, e);
         }
+      case _Menu.report:
+        // Hidden for you at once (the server); the list drops it too.
+        await startReport(
+          context,
+          kind: ReportKind.post,
+          id: post.id,
+          person: (id: post.authorId, name: post.authorName),
+          onReported: () {
+            container.read(feedProvider.notifier).remove(postId: post.id);
+            onGone?.call();
+          },
+          // Blocked, or Undo: the feed and Activity read again (the
+          // server leaves blocked people out).
+          onBlocked: () => container
+            ..invalidate(feedProvider)
+            ..invalidate(activityProvider),
+        );
       case _Menu.mute:
         try {
           await repo.mute(post.authorId, true);
@@ -325,7 +351,7 @@ class PostCard extends ConsumerWidget {
   }
 }
 
-enum _Menu { edit, delete, mute }
+enum _Menu { edit, delete, mute, report }
 
 /// H1: the project tile, its name and place, and its type. Opens PJ1.
 class _ProjectStrip extends StatelessWidget {

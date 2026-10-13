@@ -30,6 +30,8 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../library/library_parts.dart';
 import '../profile/widgets/profile_parts.dart';
+import '../../data/repositories/safety_repository.dart';
+import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
 import '../work/work_item_card.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
@@ -331,6 +333,10 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
 
   Future<void> _actions(ChatMessage m, {required bool canDelete}) async {
     final l10n = AppLocalizations.of(context);
+    final me = ref.read(authUserIdProvider).value;
+    // S8c: someone else's message (not a work item card) can be reported.
+    final canReport =
+        m.authorId != null && m.authorId != me && m.kind != ChatKind.workItem;
     FocusManager.instance.primaryFocus?.unfocus();
     final choice = await showBvSheet<_Action>(
       context: context,
@@ -350,6 +356,13 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
             label: l10n.chatCopy,
             onTap: () => Navigator.of(context).pop(_Action.copy),
           ),
+          if (canReport)
+            _ActionRow(
+              key: const Key('chat-action-report'),
+              icon: BvIcons.report,
+              label: l10n.chatReport,
+              onTap: () => Navigator.of(context).pop(_Action.report),
+            ),
           if (canDelete)
             _ActionRow(
               key: const Key('chat-action-delete'),
@@ -371,6 +384,15 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
             authorName: m.authorName,
             body: m.body,
           ),
+        );
+      case _Action.report:
+        // Hidden for you at once; the thread reads again without it.
+        await startReport(
+          context,
+          kind: ReportKind.message,
+          id: m.id,
+          onReported: () =>
+              ref.invalidate(threadMessagesProvider(widget.threadId)),
         );
       case _Action.copy:
         await Clipboard.setData(ClipboardData(text: m.body ?? ''));
@@ -546,7 +568,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   }
 }
 
-enum _Action { reply, copy, delete }
+enum _Action { reply, copy, delete, report }
 
 enum _Attach { camera, gallery, pdf }
 

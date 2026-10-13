@@ -439,7 +439,12 @@ void main() {
       final app = await _feed(tester, lang, posts: posts);
       _router(tester).push('/posts/p1');
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('reply-menu-r1')), findsNothing);
+      // Someone else's reply: its menu offers Report, never Delete.
+      await _tap(tester, 'reply-menu-r1');
+      expect(find.byKey(const Key('reply-delete')), findsNothing);
+      expect(find.byKey(const Key('reply-report')), findsOneWidget);
+      await tester.tapAt(const Offset(195, 100));
+      await tester.pumpAndSettle();
       // Your reply's text is as wide as anyone's: the menu doesn't push it in.
       await tester.scrollUntilVisible(
         find.byKey(const Key('reply-r3')),

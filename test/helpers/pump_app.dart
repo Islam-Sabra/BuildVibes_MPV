@@ -8,6 +8,7 @@ import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/repositories/push_repository.dart';
+import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
@@ -38,6 +39,7 @@ import 'fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
 import 'push_fakes.dart';
+import 'safety_fakes.dart';
 import 'voice_fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
@@ -87,6 +89,7 @@ class TestApp {
     required this.activity,
     required this.push,
     required this.pushes,
+    required this.safety,
   });
 
   final SharedPreferences prefs;
@@ -106,6 +109,9 @@ class TestApp {
   /// The phone's push side, and the server calls (register, settings).
   final FakePushMessaging push;
   final FakePushRepository pushes;
+
+  /// Report, block and appeal calls.
+  final FakeSafetyRepository safety;
 
   /// Files saved with Download, and shared through the phone (F1).
   final List<String> saved;
@@ -137,6 +143,7 @@ Future<TestApp> pumpApp(
   FakePostRepository? posts,
   FakeActivityRepository? activity,
   FakePushMessaging? push,
+  FakeSafetyRepository? safety,
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
@@ -182,6 +189,7 @@ Future<TestApp> pumpApp(
   final fakeActivity = activity ?? FakeActivityRepository();
   final fakePush = push ?? FakePushMessaging();
   final fakePushes = FakePushRepository();
+  final fakeSafety = safety ?? FakeSafetyRepository();
   final saved = <String>[];
   final sharedFiles = <String>[];
 
@@ -209,6 +217,7 @@ Future<TestApp> pumpApp(
         activityRepositoryProvider.overrideWithValue(fakeActivity),
         pushMessagingProvider.overrideWithValue(fakePush),
         pushRepositoryProvider.overrideWithValue(fakePushes),
+        safetyRepositoryProvider.overrideWithValue(fakeSafety),
         voicePlaybackProvider.overrideWithValue(fakePlayback),
         pickDocumentProvider.overrideWithValue(
           ({bool pdfOnly = false}) async =>
@@ -276,6 +285,7 @@ Future<TestApp> pumpApp(
     activity: fakeActivity,
     push: fakePush,
     pushes: fakePushes,
+    safety: fakeSafety,
   );
 }
 
