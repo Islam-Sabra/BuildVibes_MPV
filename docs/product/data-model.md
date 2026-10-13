@@ -302,9 +302,9 @@ A declined request makes no notification. Useful on a reply makes none.
 
 ## 11. Push notifications (migration 14, `20261012190000_push.sql`, branch `push-db`)
 **Tables:**
-- `push_tokens`: `token` (FCM), `profile_id`, `platform` ('android' | 'ios'), `locale` ('en' | 'ar', the language of its pushes), `updated_at`. You read only your own phones.
+- `push_tokens`: `token` (FCM), `profile_id`, `platform` ('android' | 'ios'), `locale` ('en' | 'ar', the language of its pushes), `updated_at`. You read only your own phones. At most the newest 10 per person; phones not seen for 60 days are removed nightly.
 - `push_settings`: the S3 switches: `followers` (on), `replies` (on), `message_text` ("Show message text on lock screen", off). A missing row means the defaults.
-- `push_queue`: `profile_id`, `kind`, `actor_id`, `notification_id`, `thread_id`, `data` (ids for the link only), `message_text` (only when the person turned it on), `created_at`, `sent_at`, `error`. Service role only.
+- `push_queue`: `profile_id`, `kind`, `actor_id`, `notification_id`, `thread_id`, `data` (ids for the link only), `message_text` (only when the person turned it on; cleared when the message is deleted or the push is sent), `created_at`, `claimed_at`, `attempts`, `not_before` (FCM's Retry-After), `sent_at`, `error`. Service role only.
 
 **Who gets a push** (rows come only from triggers, and only for people with a phone registered):
 - Work item kinds and a request to join: by the Space's level (`space_members.notify`): `off` none, `needs_you` and `all` yes.
@@ -312,9 +312,15 @@ A declined request makes no notification. Useful on a reply makes none.
 - A chat message: everyone who may read the thread and set the Space to `all`; never the author, never across a block; at most one per thread per person every 5 minutes. Chat makes no Activity row. Work item cards in chat send nothing (their event already did).
 - A repeat request to join (after cancelling, within a day) merges into the admins' notification, so it sends no new push.
 
-**Functions:** `register_push_token(token, platform, locale)` (a token from another account moves), `unregister_push_token(token)` (sign-out), `my_push_settings()`, `set_push_settings(followers, replies, message_text)`, `prune_push_queue()` (service role; for the nightly cleanup, not scheduled).
+**Functions:** `register_push_token(token, platform, locale)` (a token from another account moves; the newest 10 are kept), `unregister_push_token(token)` (sign-out), `my_push_settings()`, `set_push_settings(followers, replies, message_text)`.
+- Service role only (the push function and cron): `claim_push(id)` takes a row once (unsent, not claimed in the last minute, not asked to wait, under 5 attempts); `finish_push(id, error)` marks it sent and clears its text; `release_push(id, wait, error)` puts it back after a temporary failure; `retry_push_queue()` lists rows to send again (unsent over a minute, under an hour old); `prune_push_queue()` removes rows over a day old and phones not seen for 60 days.
+- A push problem never blocks the step that caused it: the queue inserts warn and carry on.
 
-**Sending:** the Edge Function `push` (`supabase/functions/push/`), called by a database webhook on `push_queue` inserts, sends through FCM HTTP v1 and deletes tokens FCM reports as dead. The text comes from `strings.json` in the phone's language, and never names a project, a Space or a work item. Deploying it, its secrets (`FCM_SERVICE_ACCOUNT`, `PUSH_WEBHOOK_SECRET`) and the webhook are live changes that wait for the founder's yes.
+**Sending:** the Edge Function `push` (`supabase/functions/push/`, `verify_jwt = false`), called by a database webhook on `push_queue` inserts and every minute by cron for retries.
+- It checks the `x-push-secret` header in constant time (500 when the secret isn't set), reads only the row id, claims the row, and sends from the database copy, so a repeated call sends once.
+- FCM 429 and 5xx put the row back (after Retry-After); only an error naming the token (UNREGISTERED, an invalid registration token, SENDER_ID_MISMATCH) deletes it, never a plain 404.
+- The text comes from `strings.json` in the phone's language, and never names a project, a Space or a work item.
+- Live, each with the founder's yes: deploying it with its secrets (`FIREBASE_SERVICE_ACCOUNT`, `PUSH_WEBHOOK_SECRET`), the webhook, and the schedule in `supabase/ops/push_cron.sql`.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.

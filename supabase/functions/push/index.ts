@@ -1,15 +1,24 @@
 // Edge Function "push": sends one queued push through FCM HTTP v1.
 //
-// Called by a database webhook on push_queue inserts (not added yet: a live
-// change that waits for the founder's yes). Secrets, set in Supabase only:
-// - FCM_SERVICE_ACCOUNT: the Firebase service-account key (JSON), pasted by
-//   the founder;
+// Called by a database webhook on push_queue inserts, and every minute by
+// cron for rows to try again (supabase/ops/push_cron.sql). Neither is set
+// up yet: live changes that wait for the founder's yes.
+//
+// Deployed with verify_jwt = false (supabase/config.toml): the webhook sends
+// no signed-in user, so the shared secret is the guard. Secrets, set in
+// Supabase only:
+// - FIREBASE_SERVICE_ACCOUNT: the Firebase service-account key (JSON),
+//   pasted by the founder;
 // - PUSH_WEBHOOK_SECRET: sent by the webhook in the x-push-secret header.
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY come with every function.
+//
+// The body is trusted for one thing only, the row id. The row is claimed
+// in the database (claim_push), so a repeated call sends once, and the
+// push is built from the database copy.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import strings from "./strings.json" with { type: "json" };
-import { buildPush, type QueueRow } from "./message.ts";
+import { buildPush, classify, retryAfterSeconds, type QueueRow } from "./message.ts";
 
 type ServiceAccount = {
   project_id: string;
@@ -21,7 +30,21 @@ const db = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
-const account: ServiceAccount = JSON.parse(Deno.env.get("FCM_SERVICE_ACCOUNT") ?? "{}");
+const account: ServiceAccount = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT") ?? "{}");
+const enc = new TextEncoder();
+
+// --- The webhook secret, compared in constant time --------------------------
+
+async function digest(s: string): Promise<Uint8Array> {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(s)));
+}
+
+async function sameSecret(given: string | null, expected: string): Promise<boolean> {
+  const [a, b] = await Promise.all([digest(given ?? ""), digest(expected)]);
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
 
 // --- Google access token (cached until a minute before it expires) ---------
 
@@ -29,7 +52,6 @@ let cached: { token: string; until: number } | null = null;
 
 const b64url = (bytes: Uint8Array) =>
   btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-const enc = new TextEncoder();
 
 async function accessToken(): Promise<string> {
   if (cached && Date.now() < cached.until) return cached.token;
@@ -69,30 +91,19 @@ async function accessToken(): Promise<string> {
 
 // --- Sending ----------------------------------------------------------------
 
-// FCM says the token no longer works: the phone uninstalled or signed out.
-const deadToken = (status: number, detail: string) =>
-  status === 404 || detail.includes("UNREGISTERED") ||
-  (status === 400 && detail.includes("registration token"));
-
-Deno.serve(async (req) => {
-  if (req.headers.get("x-push-secret") !== Deno.env.get("PUSH_WEBHOOK_SECRET")) {
-    return new Response("forbidden", { status: 403 });
-  }
-  const payload = await req.json();
-  const row = payload?.record as QueueRow | undefined;
-  if (!row || payload.table !== "push_queue" || payload.type !== "INSERT") {
-    return new Response("ignored", { status: 200 });
-  }
-
-  const [{ data: tokens }, { data: actor }] = await Promise.all([
+async function send(row: QueueRow): Promise<void> {
+  const [{ data: tokens, error: tokenError }, { data: actor }] = await Promise.all([
     db.from("push_tokens").select("token, platform, locale").eq("profile_id", row.profile_id),
     row.actor_id
       ? db.from("profiles").select("first_name, last_name").eq("id", row.actor_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
+  if (tokenError) throw new Error(tokenError.message);
   const name = actor ? `${actor.first_name ?? ""} ${actor.last_name ?? ""}`.trim() : null;
 
-  const errors: string[] = [];
+  const failed: string[] = [];
+  let retry = false;
+  let wait: number | null = null;
   for (const t of tokens ?? []) {
     const push = buildPush(row, t.locale, name, strings);
     const res = await fetch(
@@ -116,18 +127,63 @@ Deno.serve(async (req) => {
         }),
       },
     );
-    if (!res.ok) {
-      const detail = await res.text();
-      if (deadToken(res.status, detail)) {
+    if (res.ok) continue;
+    const detail = await res.text();
+    switch (classify(res.status, detail)) {
+      case "dead":
         await db.from("push_tokens").delete().eq("token", t.token);
-      } else {
-        errors.push(`${res.status} ${detail.slice(0, 200)}`);
-      }
+        break;
+      case "retry":
+        retry = true;
+        wait = Math.max(wait ?? 0, retryAfterSeconds(res.headers.get("retry-after")) ?? 0);
+        failed.push(`${res.status}`);
+        break;
+      case "failed":
+        failed.push(`${res.status} ${detail.slice(0, 200)}`);
     }
   }
 
-  await db.from("push_queue")
-    .update({ sent_at: new Date().toISOString(), error: errors.join("; ").slice(0, 500) || null })
-    .eq("id", row.id);
+  const error = failed.join("; ") || null;
+  if (retry) {
+    // Back in the queue. With several phones, one that already got it may
+    // get it again: rare, and better than losing it.
+    await db.rpc("release_push", {
+      p_id: row.id,
+      p_wait: wait ? `${wait} seconds` : null,
+      p_error: error,
+    });
+  } else {
+    await db.rpc("finish_push", { p_id: row.id, p_error: error });
+  }
+}
+
+Deno.serve(async (req) => {
+  const secret = Deno.env.get("PUSH_WEBHOOK_SECRET");
+  if (!secret) return new Response("not set up", { status: 500 });
+  if (!(await sameSecret(req.headers.get("x-push-secret"), secret))) {
+    return new Response("forbidden", { status: 403 });
+  }
+
+  const payload = await req.json().catch(() => null);
+  const id = Number(payload?.record?.id);
+  if (
+    payload?.schema !== "public" || payload?.table !== "push_queue" ||
+    payload?.type !== "INSERT" || !Number.isSafeInteger(id)
+  ) {
+    return new Response("ignored", { status: 200 });
+  }
+
+  // Claim it: nothing back means another call has it, or it is done.
+  const { data: claimed, error } = await db.rpc("claim_push", { p_id: id });
+  if (error) return new Response("claim failed", { status: 500 });
+  const row = (claimed as QueueRow[] | null)?.[0];
+  if (!row) return new Response("nothing to send", { status: 200 });
+
+  try {
+    await send(row);
+  } catch (e) {
+    // Network or Google trouble: back in the queue for the next retry.
+    await db.rpc("release_push", { p_id: row.id, p_wait: null, p_error: String(e).slice(0, 500) });
+  }
   return new Response("ok", { status: 200 });
 });
