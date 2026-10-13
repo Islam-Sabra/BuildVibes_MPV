@@ -3,11 +3,12 @@
 -- Omar (c1) runs a Space with Rakesh (c2) in it, posts, and asks to delete
 -- his account. Sara (c3) follows him from outside the Space. Bob (c4) asks
 -- for nothing. Review 26: Lina (c5) and Karim (c6) are the two admins of a
--- second Space with Nour (c7) in it. Its checks are marked (r26).
+-- second Space with Nour (c7) in it. Its checks are marked (r26). Review 27
+-- (r27): Huda (c8) confirms Rakesh in a second Space on the same project.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(101);
+select plan(106);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000016c1', 'authenticated', 'authenticated', 'omar16@example.com', '{"home_market_id": "kw"}'),
@@ -16,7 +17,8 @@ insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000016c4', 'authenticated', 'authenticated', 'bob16@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000016c5', 'authenticated', 'authenticated', 'lina16@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000016c6', 'authenticated', 'authenticated', 'karim16@example.com', '{"home_market_id": "kw"}'),
-  ('00000000-0000-0000-0000-0000000016c7', 'authenticated', 'authenticated', 'nour16@example.com', '{"home_market_id": "kw"}');
+  ('00000000-0000-0000-0000-0000000016c7', 'authenticated', 'authenticated', 'nour16@example.com', '{"home_market_id": "kw"}'),
+  ('00000000-0000-0000-0000-0000000016c8', 'authenticated', 'authenticated', 'huda16@example.com', '{"home_market_id": "kw"}');
 update public.profiles set first_name = 'Omar', last_name = 'Haddad' where id = '00000000-0000-0000-0000-0000000016c1';
 
 -- [p_code_age]: seconds since the sign-in code was entered; null for none.
@@ -303,8 +305,33 @@ select is((select count(*) from public.cv_project_confirmations k
            join public.cv_projects c on c.id = k.cv_project_id
            where c.profile_id = pg_temp.uid('c2') and k.confirmed_by is null),
   1::bigint, '(r26) M3: Rakesh''s proof stays, confirmed by "Former member"');
-select ok(public.is_space_proof(current_setting('test.space')::uuid, pg_temp.uid('c2'), null),
-  '(r26) and still counts as Space proof');
+select ok(not public.is_space_proof(current_setting('test.space')::uuid, pg_temp.uid('c2'), null),
+  '(r27) R1: no new proof is ever made from a confirmer who is gone');
+
+-- (r27) R1: Huda confirms Rakesh for the same project in a second Space; she
+-- is purged after Omar.
+select pg_temp.as_user('c8');
+set local role authenticated;
+select set_config('test.space3',
+  public.create_space('Second site', null, current_setting('test.project')::uuid)::text, true);
+reset role;
+insert into public.space_members (space_id, profile_id, pass, confirmed_by) values
+  (current_setting('test.space3')::uuid, pg_temp.uid('c2'), 'crew', pg_temp.uid('c8'));
+select public.add_space_confirmations(current_setting('test.space3')::uuid);
+update public.profiles set deletion_scheduled_at = now() - interval '31 days'
+where id = pg_temp.uid('c8');
+select ok(public.purge_account(pg_temp.uid('c8')),
+  '(r27) R1: a second confirmer''s purge succeeds');
+select is((select count(*) from public.cv_project_confirmations k
+           join public.cv_projects c on c.id = k.cv_project_id
+           where c.profile_id = pg_temp.uid('c2') and k.confirmed_by is null),
+  2::bigint, '(r27) and Rakesh keeps both confirmations');
+select public.add_space_confirmations(current_setting('test.space')::uuid);
+select public.add_space_confirmations(current_setting('test.space3')::uuid);
+select is((select count(*) from public.cv_project_confirmations k
+           join public.cv_projects c on c.id = k.cv_project_id
+           where c.profile_id = pg_temp.uid('c2')),
+  2::bigint, '(r27) confirming again adds no duplicates');
 select is((select count(*) from public.reports where target_id = pg_temp.uid('c4') and reporter_id is null),
   1::bigint, '(r26) L2: Omar''s report stays');
 
@@ -344,6 +371,18 @@ where space_id = current_setting('test.space2')::uuid and profile_id = pg_temp.u
 select ok((select is_admin from public.space_members
            where space_id = current_setting('test.space2')::uuid and profile_id = pg_temp.uid('c7')),
   '(r26) the handover passes over a hidden admin');
+
+-- (r27) R2: Lina, hidden, is left as the only admin, with Nour in the Space.
+update public.space_members set is_admin = false
+where space_id = current_setting('test.space2')::uuid and profile_id = pg_temp.uid('c7');
+select pg_temp.as_user('c5');
+set local role authenticated;
+select throws_ok(format('select public.leave_space(%L)', current_setting('test.space2')), 'P0001', null,
+  '(r27) R2: a hidden sole admin can''t leave');
+reset role;
+select is((select count(*) from public.space_members
+           where space_id = current_setting('test.space2')::uuid and is_admin and left_at is null),
+  1::bigint, '(r27) and the Space keeps its admin');
 
 -- Download my data -----------------------------------------------------------------------------
 

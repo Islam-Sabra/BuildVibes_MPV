@@ -359,10 +359,11 @@ A declined request makes no notification. Useful on a reply makes none.
 
 **A hidden account can't act (review 26):**
 - It has no admin rights (`is_space_admin`), doesn't count as another admin (`has_other_admin`, `account_deletion_blockers`), can't be made admin (`set_member_admin`, `transfer_ownership`), and the last-admin handover passes it over (a hidden member is chosen only if nobody else is left).
-- `request_account_deletion()` locks the person's Spaces before the check, so two admins can't both go at once.
+- `request_account_deletion()` locks every Space the person is in before the check, so two admins can't both go at once and nobody is made admin meanwhile (review 27 R3).
+- `leave_space` refuses the last admin by their own membership row, so a hidden sole admin can't leave (review 27 R2).
 - The trigger `refuse_hidden_writer()` refuses new rows from it (42501, "restore your account first") in `posts`, `post_replies`, `messages`, `follows`, `useful_marks`, `work_items`, `work_item_events`, `library_files` and `space_join_requests`.
 - `purge_account()` locks the profile (a restore can't slip in) and waits while any avatar or post photo remains.
-- Proof stays: `cv_project_confirmations` has an `id` key and `confirmed_by` set null when the confirmer is purged (one row per CV project and confirmer, nulls included); `is_space_proof` accepts it. A purged reporter's reports stay (`reporter_id` set null).
+- Proof stays: `cv_project_confirmations` has an `id` key and `confirmed_by` set null when the confirmer is purged (one row per CV project and confirmer; several purged confirmers may remain). New proof always needs a confirmer who is still there (review 27 R1). A purged reporter's reports stay (`reporter_id` set null).
 
 **Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
 

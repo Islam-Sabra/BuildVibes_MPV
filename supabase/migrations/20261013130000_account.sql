@@ -28,6 +28,8 @@
 --   - M2: a hidden account can't write (refuse_hidden_writer) until it is
 --     restored.
 --   - M3: proof stays when the admin who confirmed it is purged.
+-- - Review 27: R1 several purged confirmers on one project; R2 a hidden sole
+--   admin can't leave; R3 the deletion locks every Space the person is in.
 --   - M4, L1: purge_account locks the profile and waits while photos remain.
 --   - L2: a purged reporter's reports stay.
 --   - L4: the export holds all of the person's own data.
@@ -67,8 +69,10 @@ alter table public.cv_project_confirmations
   alter column confirmed_by drop not null,
   add constraint cv_project_confirmations_confirmed_by_fkey
     foreign key (confirmed_by) references public.profiles (id) on delete set null,
+  -- Plain unique: several purged confirmers (null) may stay on one CV
+  -- project (review 27 R1).
   add constraint cv_project_confirmations_one_per_confirmer
-    unique nulls not distinct (cv_project_id, confirmed_by);
+    unique (cv_project_id, confirmed_by);
 
 -- Review 26 L2: a report stays when the person who made it is purged.
 alter table public.reports
@@ -336,25 +340,35 @@ begin
 end;
 $$;
 
--- M3: a confirmation whose confirmer is gone still counts while its row
--- exists.
-create or replace function public.is_space_proof(p_space uuid, p_member uuid, p_confirmer uuid)
-returns boolean
-language sql
-stable
+-- R2 (review 27): leaving is refused for the last admin by the person's own
+-- membership row, not is_space_admin(): a hidden sole admin has no admin
+-- rights but must not leave a Space with nobody to run it.
+create or replace function public.leave_space(p_space uuid)
+returns void
+language plpgsql
 security definer
 set search_path = ''
 as $$
-  select case
-    when p_confirmer is null then exists (
-      select 1 from public.cv_project_confirmations k
-      join public.cv_projects c on c.id = k.cv_project_id
-      where k.space_id = p_space and k.confirmed_by is null and c.profile_id = p_member)
-    else p_confirmer <> p_member
-      and not exists (select 1 from public.space_members c
-                      where c.space_id = p_space and c.profile_id = p_confirmer
-                        and c.confirmed_by = p_member)
-  end;
+declare
+  v_me uuid := auth.uid();
+begin
+  -- One change to a Space's admins at a time.
+  perform 1 from public.spaces where id = p_space for update;
+  if not public.is_member(p_space) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if exists (select 1 from public.space_members
+             where space_id = p_space and profile_id = v_me
+               and is_admin and left_at is null)
+     and not public.has_other_admin(p_space, v_me) then
+    raise exception 'a Space needs an admin' using errcode = 'P0001';
+  end if;
+  update public.space_members set left_at = now(), is_admin = false
+  where space_id = p_space and profile_id = v_me;
+  delete from public.team_members tm
+  using public.teams t
+  where t.id = tm.team_id and t.space_id = p_space and tm.profile_id = v_me;
+end;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -417,11 +431,12 @@ begin
   if not public.signed_in_recently() then
     raise exception 'enter the code we sent to your email first' using errcode = '42501';
   end if;
-  -- Review 26 M1: two admins of one Space asking at once can't both pass
-  -- the check. The same lock as every change to a Space's admins.
+  -- Review 26 M1, review 27 R3: every Space the person is in, so two admins
+  -- can't both pass the check, and nobody is made admin meanwhile. The
+  -- same lock as every change to a Space's admins.
   perform 1 from public.spaces s
   where s.id in (select m.space_id from public.space_members m
-                 where m.profile_id = v_me and m.is_admin and m.left_at is null)
+                 where m.profile_id = v_me and m.left_at is null)
   order by s.id
   for update;
   if exists (select 1 from public.account_deletion_blockers()) then

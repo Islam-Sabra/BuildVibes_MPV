@@ -414,6 +414,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - 63 new SQL checks (780 in all); 3 function tests.
   - For the lead: while hidden, follower counts and Useful counts still include the person (accepted in review 26, L3).
   - Review 26 applied (M1–M4, L1, L2, L4): a hidden account has no admin rights and can't write; deleting is locked per Space; proof and reports stay after a purge; the purge locks the profile and waits for the photos; the export holds all of the person's own data. 101 checks in `16_account.test.sql` (818 in all).
+  - Review 27 applied (R1–R3): several purged confirmers can stay on one project, so every purge succeeds; a hidden sole admin can't leave; the deletion locks every Space the person is in. 106 checks (823 in all).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
