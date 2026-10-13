@@ -2,11 +2,13 @@
 --
 -- Omar (b1) runs the Space (admin, Lead). Rakesh (b2) is Crew, Sara (b3)
 -- Lead and in the Team "Steel", Eve (b4) Crew. Bob (b5) is Crew with no
--- phone registered. Nina (b6) asks to join.
+-- phone registered (until the chat checks). Nina (b6) asks to join. Vera
+-- (b7) is a Viewer; Leo (b8) is Crew and leaves. Review 21's checks are
+-- marked (r21).
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(38);
+select plan(56);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000014b1', 'authenticated', 'authenticated', 'omar14@example.com', '{"home_market_id": "kw"}'),
@@ -14,7 +16,9 @@ insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000014b3', 'authenticated', 'authenticated', 'sara14@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000014b4', 'authenticated', 'authenticated', 'eve14@example.com', '{"home_market_id": "kw"}'),
   ('00000000-0000-0000-0000-0000000014b5', 'authenticated', 'authenticated', 'bob14@example.com', '{"home_market_id": "kw"}'),
-  ('00000000-0000-0000-0000-0000000014b6', 'authenticated', 'authenticated', 'nina14@example.com', '{"home_market_id": "kw"}');
+  ('00000000-0000-0000-0000-0000000014b6', 'authenticated', 'authenticated', 'nina14@example.com', '{"home_market_id": "kw"}'),
+  ('00000000-0000-0000-0000-0000000014b7', 'authenticated', 'authenticated', 'vera14@example.com', '{"home_market_id": "kw"}'),
+  ('00000000-0000-0000-0000-0000000014b8', 'authenticated', 'authenticated', 'leo14@example.com', '{"home_market_id": "kw"}');
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
   select set_config('request.jwt.claims',
@@ -53,7 +57,9 @@ insert into public.space_members (space_id, profile_id, pass, confirmed_by) valu
   (current_setting('test.space')::uuid, pg_temp.uid('b2'), 'crew', pg_temp.uid('b1')),
   (current_setting('test.space')::uuid, pg_temp.uid('b3'), 'lead', pg_temp.uid('b1')),
   (current_setting('test.space')::uuid, pg_temp.uid('b4'), 'crew', pg_temp.uid('b1')),
-  (current_setting('test.space')::uuid, pg_temp.uid('b5'), 'crew', pg_temp.uid('b1'));
+  (current_setting('test.space')::uuid, pg_temp.uid('b5'), 'crew', pg_temp.uid('b1')),
+  (current_setting('test.space')::uuid, pg_temp.uid('b7'), 'viewer', pg_temp.uid('b1')),
+  (current_setting('test.space')::uuid, pg_temp.uid('b8'), 'crew', pg_temp.uid('b1'));
 
 -- Phones -------------------------------------------------------------------------------
 
@@ -209,12 +215,33 @@ set local role authenticated;
 select public.set_push_settings(true, true, true);
 reset role;
 insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('b4'), pg_temp.uid('b1'));
+-- Bob, Vera and Leo register phones. Bob sets "Needs you"; Leo leaves.
+do $$ begin
+  for w in 5..8 loop
+    if w <> 6 then
+      perform set_config('request.jwt.claims',
+        '{"sub": "00000000-0000-0000-0000-0000000014b' || w || '", "role": "authenticated"}', true);
+      perform public.register_push_token('fcm-token-for-b' || w || '-0123456789abcdef', 'android', 'en');
+    end if;
+  end loop;
+end $$;
+select pg_temp.as_user('b5');
+set local role authenticated;
+select public.set_space_notifications(current_setting('test.space')::uuid, 'needs_you');
+reset role;
+select pg_temp.as_user('b8');
+set local role authenticated;
+select public.leave_space(current_setting('test.space')::uuid);
+reset role;
 select pg_temp.as_user('b1');
 set local role authenticated;
-select public.post_message(gen_random_uuid(),
+select public.post_message(pg_temp.id('e001'),
   (select id from public.threads where space_id = current_setting('test.space')::uuid and team_id is null),
   'Concrete arrives at 7.');
 reset role;
+select is(pg_temp.q('b7', 'chat_message'), 1::bigint, '(r21) a Viewer hears the Everyone thread');
+select is(pg_temp.q('b5', 'chat_message'), 0::bigint, '(r21) "Needs you": no chat pushes');
+select is(pg_temp.q('b8', 'chat_message'), 0::bigint, '(r21) after leaving: nothing');
 select is(pg_temp.q('b3', 'chat_message'), 1::bigint, 'a chat message: a push to a reader set to "all"');
 select is((select message_text from public.push_queue
            where profile_id = pg_temp.uid('b3') and kind = 'chat_message'),
@@ -222,6 +249,14 @@ select is((select message_text from public.push_queue
 select is(pg_temp.q('b1', 'chat_message'), 0::bigint, 'never to the author');
 select is(pg_temp.q('b2', 'chat_message'), 0::bigint, 'not to a Space set to "off"');
 select is(pg_temp.q('b4', 'chat_message'), 0::bigint, 'never across a block');
+select pg_temp.as_user('b1');
+set local role authenticated;
+select public.delete_message(pg_temp.id('e001'));
+reset role;
+select is((select count(*) from public.push_queue
+           where kind = 'chat_message' and message_text is not null
+             and data ->> 'message_id' = pg_temp.id('e001')::text), 0::bigint,
+  '(r21) deleting the message clears its text from the queue');
 
 select pg_temp.as_user('b1');
 set local role authenticated;
@@ -254,6 +289,67 @@ select is((select count(*) from public.push_queue
            where profile_id = pg_temp.uid('b3') and kind = 'chat_message'), 2::bigint,
   'a Team thread: its member hears');
 select is(pg_temp.q('b4', 'chat_message'), 1::bigint, 'nobody outside the Team does');
+select pg_temp.as_user('b3');
+set local role authenticated;
+select public.post_message(gen_random_uuid(),
+  (select id from public.threads where team_id = current_setting('test.team')::uuid),
+  'Noted.');
+reset role;
+select is(pg_temp.q('b1', 'chat_message'), 1::bigint, '(r21) an admin outside the Team hears its thread');
+
+-- Sending (r21) ------------------------------------------------------------------------
+
+select set_config('test.row', (select min(id) from public.push_queue
+  where profile_id = pg_temp.uid('b3') and kind = 'chat_message' and sent_at is null)::text, true);
+set local role service_role;
+select is((select count(*) from public.claim_push(current_setting('test.row')::bigint)), 1::bigint,
+  '(r21) the function claims a row');
+select is((select count(*) from public.claim_push(current_setting('test.row')::bigint)), 0::bigint,
+  '(r21) a repeated call gets nothing: it sends once');
+select public.release_push(current_setting('test.row')::bigint, interval '30 seconds', '429');
+select is((select count(*) from public.claim_push(current_setting('test.row')::bigint)), 0::bigint,
+  '(r21) FCM said wait: not before then');
+update public.push_queue set not_before = null, created_at = now() - interval '5 minutes'
+where id = current_setting('test.row')::bigint;
+select ok(current_setting('test.row')::bigint in (select id from public.retry_push_queue()),
+  '(r21) unsent after a minute: in the retry list');
+select is((select count(*) from public.claim_push(current_setting('test.row')::bigint)), 1::bigint,
+  '(r21) and it can be claimed again');
+select public.finish_push(current_setting('test.row')::bigint);
+select is((select message_text from public.push_queue where id = current_setting('test.row')::bigint),
+  null, '(r21) once sent, its text is gone');
+select ok(current_setting('test.row')::bigint not in (select id from public.retry_push_queue()),
+  '(r21) and it leaves the retry list');
+update public.push_queue set created_at = now() - interval '2 days'
+where id = current_setting('test.row')::bigint;
+update public.push_tokens set updated_at = now() - interval '61 days'
+where token = pg_temp.token('b7');
+select ok(public.prune_push_queue() >= 2, '(r21) the nightly cleanup runs');
+select is((select count(*) from public.push_queue where id = current_setting('test.row')::bigint),
+  0::bigint, '(r21) rows over a day old go');
+select is((select count(*) from public.push_tokens where token = pg_temp.token('b7')), 0::bigint,
+  '(r21) and phones not seen for 60 days');
+reset role;
+select pg_temp.as_user('b2');
+set local role authenticated;
+select throws_ok(format($q$select * from public.claim_push(%s)$q$, current_setting('test.row')),
+  '42501', null, '(r21) the app can not claim a push');
+reset role;
+
+-- Phones per person (r21) ---------------------------------------------------------------
+
+select pg_temp.as_user('b7');
+set local role authenticated;
+do $$ begin
+  for i in 1..12 loop
+    perform public.register_push_token('fcm-token-vera-phone-' || lpad(i::text, 2, '0') || '-abcdef', 'android', 'en');
+  end loop;
+end $$;
+select is((select count(*) from public.push_tokens), 10::bigint, '(r21) at most 10 phones per person');
+select ok(exists (select 1 from public.push_tokens where token like 'fcm-token-vera-phone-12-%')
+          and not exists (select 1 from public.push_tokens where token like 'fcm-token-vera-phone-01-%'),
+  '(r21) the newest are kept');
+reset role;
 
 -- Signing out --------------------------------------------------------------------------
 

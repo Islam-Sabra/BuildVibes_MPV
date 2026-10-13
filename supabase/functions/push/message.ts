@@ -79,3 +79,26 @@ export function buildPush(
   if (!template) throw new Error(`no text for ${row.kind}`);
   return { title: t.title, body: fill(template), data };
 }
+
+// What an FCM error means (review 21). Only an error that names the token
+// deletes it: a plain 404 (a wrong project, say) must never wipe phones.
+export type Outcome = "dead" | "retry" | "failed";
+
+export function classify(status: number, body: string): Outcome {
+  if (
+    body.includes("UNREGISTERED") ||
+    body.includes("SENDER_ID_MISMATCH") ||
+    (body.includes("INVALID_ARGUMENT") && /registration token/i.test(body))
+  ) {
+    return "dead";
+  }
+  if (status === 429 || status >= 500) return "retry";
+  return "failed";
+}
+
+// Retry-After in seconds (FCM sends seconds); null when missing or odd.
+export function retryAfterSeconds(header: string | null): number | null {
+  if (!header) return null;
+  const n = Number(header);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 3600) : null;
+}

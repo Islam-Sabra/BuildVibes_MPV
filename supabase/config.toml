@@ -446,3 +446,8 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# The push function (week 7 part 3). The database webhook and cron send no
+# signed-in user; the x-push-secret header is the guard (review 21).
+[functions.push]
+verify_jwt = false

@@ -352,6 +352,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **12 Oct, week 7 part 3, push** (review 16 §4).
   - The founder created the Firebase project "BuildVibes MVP" with the Android app; `android/app/google-services.json` is git-ignored.
   - Migration 14 (`20261012190000_push.sql`) is on `push-db`, **not live**, for the lead's review: phones, S3 switches, the queue filled by triggers (Space levels, switches, chat readers, block, 5-minute chat throttle). `14_push.test.sql`: 38 checks, 617 in all.
+  - Review 21, in place (still not live): a deleted message's text leaves the queue; claim, finish and release so a repeated call sends once and FCM 429/5xx are tried again; retry every minute and prune nightly (`supabase/ops/push_cron.sql`, not run); only an error naming the token deletes it; the webhook secret checked in constant time, `verify_jwt = false`; the newest 10 phones per person; a push problem never blocks the step. `14_push.test.sql`: 56 checks, 635 in all; 7 function tests.
   - The Edge Function `push` is written (`supabase/functions/push/`), **not deployed**; no webhook yet. Its text and links are tested with Node (`node --experimental-strip-types --test supabase/functions/push/message.test.ts`, 5 tests).
 
 ## Next tasks (in order)

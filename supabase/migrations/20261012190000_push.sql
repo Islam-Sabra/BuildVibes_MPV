@@ -2,7 +2,8 @@
 --
 -- - push_tokens: one row per phone (FCM token), with its platform and the
 --   language its pushes are written in. Kept by register_push_token and
---   unregister_push_token; a token signed in on another account moves.
+--   unregister_push_token; a token signed in on another account moves. At
+--   most the newest 10 phones per person; phones not seen for 60 days go.
 -- - push_settings: the S3 switches. New followers and Replies are on, and
 --   "Show message text on lock screen" is off, until the person changes them.
 -- - push_queue: what to send. Rows come only from triggers:
@@ -14,13 +15,20 @@
 --   - a new chat message, for each person who may read the thread and set
 --     the Space to "all": never the author, never across a block, at most
 --     one per thread per person every 5 minutes. Chat makes no Activity row.
---   Only people with a phone registered get rows.
+--   Only people with a phone registered get rows. A push problem never
+--   blocks the post, message or work item step that caused it.
 -- - The queue holds ids for the deep link, never a project, Space or work
 --   item name (founder decision), and the message text only when the
---   person turned "Show message text on lock screen" on.
+--   person turned "Show message text on lock screen" on. Deleting the
+--   message, or sending the push, clears that text.
 -- - Sending: the Edge Function `push` (supabase/functions/push), called by
---   a database webhook on push_queue inserts. Deploying it and adding the
---   webhook are live changes and wait for the founder's yes.
+--   a database webhook on push_queue inserts. It claims a row with
+--   claim_push (so a repeated call sends once), then marks it sent or
+--   failed (finish_push), or gives it back for a retry (release_push).
+--   retry_push_queue and prune_push_queue run from cron; the schedule is
+--   in supabase/ops/push_cron.sql. Deploying the function, the webhook and
+--   the schedule are live changes that wait for the founder's yes.
+-- Review 21 fixes are in this file (it wasn't live yet).
 
 -- ---------------------------------------------------------------------------
 -- Tables
@@ -34,7 +42,7 @@ create table public.push_tokens (
   locale text not null default 'en' check (locale in ('en', 'ar')),
   updated_at timestamptz not null default now()
 );
-create index push_tokens_profile_idx on public.push_tokens (profile_id);
+create index push_tokens_profile_idx on public.push_tokens (profile_id, updated_at desc);
 
 create table public.push_settings (
   profile_id uuid primary key references public.profiles (id) on delete cascade,
@@ -56,9 +64,14 @@ create table public.push_queue (
   thread_id uuid references public.threads (id) on delete cascade,
   -- Ids for the deep link only (space, item, post, request, thread, message).
   data jsonb not null default '{}'::jsonb,
-  -- Only when "Show message text on lock screen" is on.
+  -- Only when "Show message text on lock screen" is on, until sent.
   message_text text check (length(message_text) <= 200),
   created_at timestamptz not null default now(),
+  -- Sending: claimed by the function, then sent (or failed for good).
+  claimed_at timestamptz,
+  attempts integer not null default 0 check (attempts >= 0),
+  -- FCM asked to wait (Retry-After).
+  not_before timestamptz,
   sent_at timestamptz,
   error text check (length(error) <= 500)
 );
@@ -66,6 +79,8 @@ create index push_queue_thread_idx
   on public.push_queue (profile_id, thread_id, created_at desc)
   where kind = 'chat_message';
 create index push_queue_unsent_idx on public.push_queue (created_at) where sent_at is null;
+create index push_queue_message_idx
+  on public.push_queue ((data ->> 'message_id')) where kind = 'chat_message';
 
 -- ---------------------------------------------------------------------------
 -- Who gets a push
@@ -96,27 +111,32 @@ declare
   v_settings public.push_settings;
   v_wanted boolean;
 begin
-  if not exists (select 1 from public.push_tokens t where t.profile_id = new.profile_id) then
-    return null;
-  end if;
-  select * into v_settings from public.push_settings s where s.profile_id = new.profile_id;
-  v_wanted := case
-    when new.kind in ('item_assigned', 'item_done', 'item_checked', 'item_sent_back',
-                      'item_comment', 'join_request')
-      then public.space_push_level(new.space_id, new.profile_id) in ('all', 'needs_you')
-    when new.kind = 'join_confirmed' then true
-    when new.kind = 'role_confirmed' then true
-    when new.kind = 'follow' then coalesce(v_settings.followers, true)
-    when new.kind = 'post_reply' then coalesce(v_settings.replies, true)
-    else false
+  begin
+    if not exists (select 1 from public.push_tokens t where t.profile_id = new.profile_id) then
+      return null;
+    end if;
+    select * into v_settings from public.push_settings s where s.profile_id = new.profile_id;
+    v_wanted := case
+      when new.kind in ('item_assigned', 'item_done', 'item_checked', 'item_sent_back',
+                        'item_comment', 'join_request')
+        then public.space_push_level(new.space_id, new.profile_id) in ('all', 'needs_you')
+      when new.kind = 'join_confirmed' then true
+      when new.kind = 'role_confirmed' then true
+      when new.kind = 'follow' then coalesce(v_settings.followers, true)
+      when new.kind = 'post_reply' then coalesce(v_settings.replies, true)
+      else false
+    end;
+    if v_wanted then
+      insert into public.push_queue (profile_id, kind, actor_id, notification_id, data)
+      values (new.profile_id, new.kind, new.actor_id, new.id,
+              jsonb_strip_nulls(jsonb_build_object(
+                'space_id', new.space_id, 'work_item_id', new.work_item_id,
+                'post_id', new.post_id, 'request_id', new.request_id)));
+    end if;
+  exception when others then
+    -- A push problem never blocks the step that caused it.
+    raise warning 'push queue (notification %): %', new.id, sqlerrm;
   end;
-  if v_wanted then
-    insert into public.push_queue (profile_id, kind, actor_id, notification_id, data)
-    values (new.profile_id, new.kind, new.actor_id, new.id,
-            jsonb_strip_nulls(jsonb_build_object(
-              'space_id', new.space_id, 'work_item_id', new.work_item_id,
-              'post_id', new.post_id, 'request_id', new.request_id)));
-  end if;
   return null;
 end;
 $$;
@@ -138,31 +158,35 @@ begin
   if new.kind = 'work_item' or new.deleted_at is not null then
     return null;
   end if;
-  select t.team_id into v_team from public.threads t where t.id = new.thread_id;
+  begin
+    select t.team_id into v_team from public.threads t where t.id = new.thread_id;
 
-  insert into public.push_queue (profile_id, kind, actor_id, thread_id, data, message_text)
-  select m.profile_id, 'chat_message', new.author_id, new.thread_id,
-         jsonb_build_object('space_id', new.space_id, 'thread_id', new.thread_id,
-                            'message_id', new.id),
-         case when coalesce(ps.message_text, false) and new.kind = 'text'
-              then left(new.body, 200) end
-  from public.space_members m
-  left join public.push_settings ps on ps.profile_id = m.profile_id
-  where m.space_id = new.space_id
-    and m.left_at is null
-    and m.notify = 'all'
-    and m.profile_id is distinct from new.author_id
-    -- Who may read the thread (as can_use_thread, for each reader).
-    and (v_team is null or m.is_admin
-         or exists (select 1 from public.team_members tm
-                    where tm.team_id = v_team and tm.profile_id = m.profile_id))
-    and not public.blocked_between(m.profile_id, new.author_id)
-    and exists (select 1 from public.push_tokens pt where pt.profile_id = m.profile_id)
-    -- At most one push per thread per person every 5 minutes.
-    and not exists (select 1 from public.push_queue q
-                    where q.profile_id = m.profile_id and q.kind = 'chat_message'
-                      and q.thread_id = new.thread_id
-                      and q.created_at > now() - interval '5 minutes');
+    insert into public.push_queue (profile_id, kind, actor_id, thread_id, data, message_text)
+    select m.profile_id, 'chat_message', new.author_id, new.thread_id,
+           jsonb_build_object('space_id', new.space_id, 'thread_id', new.thread_id,
+                              'message_id', new.id),
+           case when coalesce(ps.message_text, false) and new.kind = 'text'
+                then left(new.body, 200) end
+    from public.space_members m
+    left join public.push_settings ps on ps.profile_id = m.profile_id
+    where m.space_id = new.space_id
+      and m.left_at is null
+      and m.notify = 'all'
+      and m.profile_id is distinct from new.author_id
+      -- Who may read the thread (as can_use_thread, for each reader).
+      and (v_team is null or m.is_admin
+           or exists (select 1 from public.team_members tm
+                      where tm.team_id = v_team and tm.profile_id = m.profile_id))
+      and not public.blocked_between(m.profile_id, new.author_id)
+      and exists (select 1 from public.push_tokens pt where pt.profile_id = m.profile_id)
+      -- At most one push per thread per person every 5 minutes.
+      and not exists (select 1 from public.push_queue q
+                      where q.profile_id = m.profile_id and q.kind = 'chat_message'
+                        and q.thread_id = new.thread_id
+                        and q.created_at > now() - interval '5 minutes');
+  exception when others then
+    raise warning 'push queue (message %): %', new.id, sqlerrm;
+  end;
   return null;
 end;
 $$;
@@ -170,12 +194,128 @@ create trigger messages_push
   after insert on public.messages
   for each row execute function public.handle_message_push();
 
+-- A deleted message: its text leaves the queue, so a late or repeated send
+-- can't show it.
+create or replace function public.handle_message_deleted_push()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.deleted_at is not null and old.deleted_at is null then
+    update public.push_queue set message_text = null
+    where kind = 'chat_message' and data ->> 'message_id' = new.id::text
+      and message_text is not null;
+  end if;
+  return null;
+end;
+$$;
+create trigger messages_deleted_push
+  after update of deleted_at on public.messages
+  for each row execute function public.handle_message_deleted_push();
+
+-- ---------------------------------------------------------------------------
+-- Sending (the push function, as the service role)
+-- ---------------------------------------------------------------------------
+
+-- Takes one row to send, once: unsent, not claimed in the last minute (a
+-- send that crashed is claimed again), and not asked to wait. Empty when
+-- another call has it, or it is done.
+create or replace function public.claim_push(p_id bigint)
+returns setof public.push_queue
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  update public.push_queue
+  set claimed_at = now(), attempts = attempts + 1
+  where id = p_id
+    and sent_at is null
+    and (claimed_at is null or claimed_at < now() - interval '1 minute')
+    and (not_before is null or not_before <= now())
+    and attempts < 5
+  returning *;
+$$;
+
+-- Sent, or failed for good: the lock-screen text goes either way.
+create or replace function public.finish_push(p_id bigint, p_error text default null)
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  update public.push_queue
+  set sent_at = now(), message_text = null, claimed_at = null, error = left(p_error, 500)
+  where id = p_id;
+$$;
+
+-- A temporary failure (FCM 429 or 5xx, a network error): back in the
+-- queue, after [p_wait] when FCM said Retry-After.
+create or replace function public.release_push(p_id bigint, p_wait interval default null, p_error text default null)
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  update public.push_queue
+  set claimed_at = null,
+      not_before = case when p_wait is null then null else now() + p_wait end,
+      error = left(p_error, 500)
+  where id = p_id and sent_at is null;
+$$;
+
+-- Every minute (cron): rows to send again. Unsent for over a minute,
+-- under an hour old, fewer than 5 attempts.
+create or replace function public.retry_push_queue()
+returns table (id bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select q.id from public.push_queue q
+  where q.sent_at is null
+    and q.created_at < now() - interval '1 minute'
+    and q.created_at > now() - interval '1 hour'
+    and q.attempts < 5
+    and (q.claimed_at is null or q.claimed_at < now() - interval '1 minute')
+    and (q.not_before is null or q.not_before <= now())
+  order by q.id
+  limit 500;
+$$;
+
+-- Nightly (cron): rows sent over a day ago, rows that gave up (over a day
+-- old), and phones not seen for 60 days.
+create or replace function public.prune_push_queue()
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_rows integer;
+  v_phones integer;
+begin
+  delete from public.push_queue where created_at < now() - interval '1 day';
+  get diagnostics v_rows = row_count;
+  delete from public.push_tokens where updated_at < now() - interval '60 days';
+  get diagnostics v_phones = row_count;
+  return v_rows + v_phones;
+end;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- The app's calls
 -- ---------------------------------------------------------------------------
 
--- On sign-in, and whenever FCM gives the phone a new token. A token signed
--- in on another account before moves to this one.
+-- On sign-in, and whenever FCM gives the phone a new token or the app
+-- language changes. A token signed in on another account before moves to
+-- this one. The newest 10 phones per person are kept.
 create or replace function public.register_push_token(
   p_token text,
   p_platform text,
@@ -198,10 +338,15 @@ begin
   end if;
   insert into public.push_tokens (token, profile_id, platform, locale, updated_at)
   values (p_token, auth.uid(), p_platform,
-          case when p_locale = 'ar' then 'ar' else 'en' end, now())
+          case when p_locale = 'ar' then 'ar' else 'en' end, clock_timestamp())
   on conflict (token) do update
   set profile_id = excluded.profile_id, platform = excluded.platform,
       locale = excluded.locale, updated_at = excluded.updated_at;
+  delete from public.push_tokens t
+  where t.profile_id = auth.uid()
+    and t.token not in (select k.token from public.push_tokens k
+                        where k.profile_id = auth.uid()
+                        order by k.updated_at desc limit 10);
 end;
 $$;
 
@@ -254,23 +399,6 @@ begin
 end;
 $$;
 
--- For the nightly cleanup (service role): drop rows sent, or failed, over
--- 7 days ago. Scheduling it waits for the founder's yes.
-create or replace function public.prune_push_queue()
-returns integer
-language sql
-volatile
-security definer
-set search_path = ''
-as $$
-  with gone as (
-    delete from public.push_queue
-    where created_at < now() - interval '7 days'
-    returning 1
-  )
-  select count(*)::int from gone;
-$$;
-
 -- ---------------------------------------------------------------------------
 -- Row-level security and grants
 -- ---------------------------------------------------------------------------
@@ -294,16 +422,27 @@ revoke execute on function
   public.space_push_level(uuid, uuid),
   public.handle_notification_push(),
   public.handle_message_push(),
+  public.handle_message_deleted_push(),
+  public.claim_push(bigint),
+  public.finish_push(bigint, text),
+  public.release_push(bigint, interval, text),
+  public.retry_push_queue(),
+  public.prune_push_queue(),
   public.register_push_token(text, text, text),
   public.unregister_push_token(text),
   public.my_push_settings(),
-  public.set_push_settings(boolean, boolean, boolean),
-  public.prune_push_queue()
+  public.set_push_settings(boolean, boolean, boolean)
   from public, anon;
+-- Internal, or the push function's and cron's only.
 revoke execute on function
   public.space_push_level(uuid, uuid),
   public.handle_notification_push(),
   public.handle_message_push(),
+  public.handle_message_deleted_push(),
+  public.claim_push(bigint),
+  public.finish_push(bigint, text),
+  public.release_push(bigint, interval, text),
+  public.retry_push_queue(),
   public.prune_push_queue()
   from authenticated;
 grant execute on function
@@ -312,4 +451,10 @@ grant execute on function
   public.my_push_settings(),
   public.set_push_settings(boolean, boolean, boolean)
   to authenticated;
-grant execute on function public.prune_push_queue() to service_role;
+grant execute on function
+  public.claim_push(bigint),
+  public.finish_push(bigint, text),
+  public.release_push(bigint, interval, text),
+  public.retry_push_queue(),
+  public.prune_push_queue()
+  to service_role;
