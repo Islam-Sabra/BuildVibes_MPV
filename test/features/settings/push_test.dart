@@ -45,6 +45,20 @@ void main() {
       );
     });
 
+    testWidgets('changing the app language registers the phone again, in '
+        'the new language [$lang]', (tester) async {
+      final app = await pumpApp(tester, language: lang);
+      final other = lang == 'en' ? 'ar' : 'en';
+      await _tap(tester, 'nav-profile');
+      await _tap(tester, 'profile-settings');
+      await _tap(tester, 'row-language');
+      await _tap(tester, 'language-$other');
+      expect(
+        app.pushes.calls.last,
+        'register fcm-test-token-0123456789 android $other',
+      );
+    });
+
     testWidgets('said no: nothing registered, and S4 says how to turn it on '
         '[$lang]', (tester) async {
       final push = FakePushMessaging(answer: PushPermission.denied);

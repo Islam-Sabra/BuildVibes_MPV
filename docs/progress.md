@@ -361,7 +361,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Settings → Notifications (S3): New followers, Replies, Show message text on lock screen (off), the Spaces line to My Spaces, and the footer. S4: "Push notifications are off" with Open phone settings, and the switches faded.
     - The Android app name is now "BuildVibes" (it was "buildvibes" in the system prompt).
     - Checked on the emulator: the prompt, a real FCM token registered on the local server, a follow queued a push (not sent: no function or webhook), S3, S4 and Open phone settings, in English and Arabic.
-    - 547 Flutter tests pass. Screenshots: `push_en_permission`, `s3_*_notifications`, `s4_*_push_off`.
+    - Review 21: a test proves a language change registers the phone again in the new language; retaken `push_en_permission` ("Allow BuildVibes") and `s4_en_push_off` (faded switches, centred title).
+    - 549 Flutter tests pass. Screenshots: `push_en_permission`, `s3_*_notifications`, `s4_*_push_off`.
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
