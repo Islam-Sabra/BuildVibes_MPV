@@ -458,6 +458,16 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Firebase Crashlytics in release builds only, sending the error type and stack trace, never the message (no personal text). 2 new tests (588 in all).
   - A signed release APK builds (checked: signed by "CN=BuildVibes, O=AECOX Technology"). Steps for App Distribution and the iOS plan in `docs/release.md`.
 
+- **13 Oct, week 9: release build merged and uploaded** (review 31):
+  - UI errors are recorded as non-fatal; `release` merged into main.
+  - Release APK 0.9.0 (1), from main at 9d96421, uploaded to Firebase App Distribution with the English and Arabic notes. **Not distributed**: the founder tests alone first, then adds group "week9" and says when.
+  - Installed on two emulators (Pixel_8 and Pixel_8_B) for the founder's own test: his account on the first; on the second, the spare account "Delete Test" for join requests and checks.
+- **13 Oct, week 9 part 3** (on `test-week9`, for the lead):
+  - `docs/test/week9-test-script.md`: one page, English and Arabic, 10 tasks with Easy / Hard / Couldn't and one line each.
+  - `supabase/ops/backup.ps1`: roles, schema and data from live into `D:\BuildVibes backups\YYYY-MM-DD\` (refuses a folder inside the repo). First backup made 13 Oct. Restore practised into the local database: every table count matched live; the local copy wiped after (`supabase/ops/restore_check.md`). Vault secrets, cron jobs, functions, Auth settings and Storage files are not in a backup; the restore notes list them.
+  - `supabase/ops/pilot_measures.sql`: active Spaces, members per Space, work items opened and checked per day, storage used. Read-only, counts only, for the founder; never shown in the app. All four run on live.
+  - **Pausing:** the free plan pauses a project after a week with no activity. Nothing is lost; it is restored from the dashboard. Watch for it in the gap between the test and the pilot.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
