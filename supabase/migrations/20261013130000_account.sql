@@ -22,6 +22,15 @@
 --   page next to Terms and Privacy. Values are set by the founder.
 -- - Reports are kept 12 months after a decision (review 23 §10):
 --   prune_reports(), run nightly by supabase/ops/account_cron.sql (not run).
+-- - Review 26:
+--   - M1: a hidden account is no Space admin: it doesn't count as another
+--     admin, can't be made admin, and the handover passes it over.
+--   - M2: a hidden account can't write (refuse_hidden_writer) until it is
+--     restored.
+--   - M3: proof stays when the admin who confirmed it is purged.
+--   - M4, L1: purge_account locks the profile and waits while photos remain.
+--   - L2: a purged reporter's reports stay.
+--   - L4: the export holds all of the person's own data.
 
 -- ---------------------------------------------------------------------------
 -- Tables and columns
@@ -46,6 +55,28 @@ create table public.data_requests (
 -- At most one open request per person.
 create unique index data_requests_one_open_idx on public.data_requests (profile_id)
   where status = 'open';
+
+-- Review 26 M3: a confirmation outlives the admin who gave it ("Former
+-- member" confirmed it). The foreign key keeps its name: the app embeds the
+-- confirmer through it.
+alter table public.cv_project_confirmations
+  drop constraint cv_project_confirmations_pkey,
+  drop constraint cv_project_confirmations_confirmed_by_fkey;
+alter table public.cv_project_confirmations
+  add column id uuid not null default gen_random_uuid() primary key,
+  alter column confirmed_by drop not null,
+  add constraint cv_project_confirmations_confirmed_by_fkey
+    foreign key (confirmed_by) references public.profiles (id) on delete set null,
+  add constraint cv_project_confirmations_one_per_confirmer
+    unique nulls not distinct (cv_project_id, confirmed_by);
+
+-- Review 26 L2: a report stays when the person who made it is purged.
+alter table public.reports
+  drop constraint reports_reporter_id_fkey;
+alter table public.reports
+  alter column reporter_id drop not null,
+  add constraint reports_reporter_id_fkey
+    foreign key (reporter_id) references public.profiles (id) on delete set null;
 
 -- ---------------------------------------------------------------------------
 -- Hidden while scheduled: the block rules cover it
@@ -147,6 +178,186 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------
+-- Hidden accounts can't act (review 26 M1, M2)
+-- ---------------------------------------------------------------------------
+
+-- M2: nothing new is written by a hidden account until it is restored.
+-- The purge runs without a signed-in user, so it isn't stopped.
+create or replace function public.refuse_hidden_writer()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is not null and public.is_hidden_account(auth.uid()) then
+    raise exception 'restore your account first' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger posts_hidden_writer before insert on public.posts
+  for each row execute function public.refuse_hidden_writer();
+create trigger post_replies_hidden_writer before insert on public.post_replies
+  for each row execute function public.refuse_hidden_writer();
+create trigger messages_hidden_writer before insert on public.messages
+  for each row execute function public.refuse_hidden_writer();
+create trigger follows_hidden_writer before insert on public.follows
+  for each row execute function public.refuse_hidden_writer();
+create trigger useful_marks_hidden_writer before insert on public.useful_marks
+  for each row execute function public.refuse_hidden_writer();
+create trigger work_items_hidden_writer before insert on public.work_items
+  for each row execute function public.refuse_hidden_writer();
+create trigger work_item_events_hidden_writer before insert on public.work_item_events
+  for each row execute function public.refuse_hidden_writer();
+create trigger library_files_hidden_writer before insert on public.library_files
+  for each row execute function public.refuse_hidden_writer();
+create trigger space_join_requests_hidden_writer before insert on public.space_join_requests
+  for each row execute function public.refuse_hidden_writer();
+
+-- M1: a hidden admin has no admin rights.
+create or replace function public.is_space_admin(p_space uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.space_members m
+    join public.spaces s on s.id = m.space_id
+    where m.space_id = p_space and m.profile_id = auth.uid()
+      and m.is_admin and m.left_at is null and s.deleted_at is null
+  )
+  and not public.is_hidden_account(auth.uid());
+$$;
+
+-- M1: a hidden admin isn't "another admin" (leave_space, set_member_admin).
+create or replace function public.has_other_admin(p_space uuid, p_profile uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (select 1 from public.space_members m
+                 where m.space_id = p_space and m.profile_id <> p_profile
+                   and m.is_admin and m.left_at is null
+                   and not public.is_hidden_account(m.profile_id));
+$$;
+
+-- M1: when an admin goes, a hidden admin doesn't count, and the next admin
+-- is someone who isn't hidden. A hidden member is chosen only when nobody
+-- else is left (they may still restore); a Space left with no members is
+-- deleted as before.
+create or replace function public.handle_space_admin_gone()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_next uuid;
+begin
+  if not old.is_admin or old.left_at is not null then
+    return old;
+  end if;
+  perform 1 from public.spaces where id = old.space_id for update;
+  if exists (select 1 from public.space_members m
+             where m.space_id = old.space_id and m.is_admin and m.left_at is null
+               and not public.is_hidden_account(m.profile_id)) then
+    return old;
+  end if;
+  select m.profile_id into v_next from public.space_members m
+  where m.space_id = old.space_id and m.left_at is null
+  order by public.is_hidden_account(m.profile_id), (m.pass = 'lead') desc, m.confirmed_at
+  limit 1;
+  if v_next is null then
+    update public.spaces set deleted_at = now()
+    where id = old.space_id and deleted_at is null;
+  else
+    update public.space_members set is_admin = true
+    where space_id = old.space_id and profile_id = v_next;
+  end if;
+  return old;
+end;
+$$;
+
+-- M1: "Make admin" refuses a hidden person.
+create or replace function public.set_member_admin(p_space uuid, p_profile uuid, p_admin boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- One change to a Space's admins at a time.
+  perform 1 from public.spaces where id = p_space for update;
+  if not public.is_space_admin(p_space) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  perform public.require_active_member(p_space, p_profile);
+  if p_admin and public.is_hidden_account(p_profile) then
+    raise exception 'this person can''t be made admin' using errcode = 'P0001';
+  end if;
+  if not p_admin and not public.has_other_admin(p_space, p_profile) then
+    raise exception 'a Space needs an admin' using errcode = 'P0001';
+  end if;
+  update public.space_members set is_admin = p_admin
+  where space_id = p_space and profile_id = p_profile;
+end;
+$$;
+
+-- M1: S15d/e refuses a hidden person.
+create or replace function public.transfer_ownership(p_space uuid, p_profile uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- One change to a Space's admins at a time.
+  perform 1 from public.spaces where id = p_space for update;
+  if not public.is_space_admin(p_space) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if p_profile = auth.uid() then
+    raise exception 'choose someone else' using errcode = '22023';
+  end if;
+  perform public.require_active_member(p_space, p_profile);
+  if public.is_hidden_account(p_profile) then
+    raise exception 'this person can''t be made admin' using errcode = 'P0001';
+  end if;
+  update public.space_members set is_admin = true
+  where space_id = p_space and profile_id = p_profile;
+  update public.space_members set is_admin = false
+  where space_id = p_space and profile_id = auth.uid();
+end;
+$$;
+
+-- M3: a confirmation whose confirmer is gone still counts while its row
+-- exists.
+create or replace function public.is_space_proof(p_space uuid, p_member uuid, p_confirmer uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case
+    when p_confirmer is null then exists (
+      select 1 from public.cv_project_confirmations k
+      join public.cv_projects c on c.id = k.cv_project_id
+      where k.space_id = p_space and k.confirmed_by is null and c.profile_id = p_member)
+    else p_confirmer <> p_member
+      and not exists (select 1 from public.space_members c
+                      where c.space_id = p_space and c.profile_id = p_confirmer
+                        and c.confirmed_by = p_member)
+  end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Deleting and restoring (the app)
 -- ---------------------------------------------------------------------------
 
@@ -165,10 +376,12 @@ as $$
   where me.profile_id = auth.uid() and me.is_admin and me.left_at is null
     and not exists (select 1 from public.space_members a
                     where a.space_id = me.space_id and a.is_admin and a.left_at is null
-                      and a.profile_id <> auth.uid())
+                      and a.profile_id <> auth.uid()
+                      and not public.is_hidden_account(a.profile_id))
     and exists (select 1 from public.space_members o
                 where o.space_id = me.space_id and o.left_at is null
-                  and o.profile_id <> auth.uid())
+                  and o.profile_id <> auth.uid()
+                  and not public.is_hidden_account(o.profile_id))
   order by s.name;
 $$;
 
@@ -204,6 +417,13 @@ begin
   if not public.signed_in_recently() then
     raise exception 'enter the code we sent to your email first' using errcode = '42501';
   end if;
+  -- Review 26 M1: two admins of one Space asking at once can't both pass
+  -- the check. The same lock as every change to a Space's admins.
+  perform 1 from public.spaces s
+  where s.id in (select m.space_id from public.space_members m
+                 where m.profile_id = v_me and m.is_admin and m.left_at is null)
+  order by s.id
+  for update;
   if exists (select 1 from public.account_deletion_blockers()) then
     raise exception 'transfer your Spaces first' using errcode = 'P0001';
   end if;
@@ -326,6 +546,36 @@ as $$
                             'id', ms.id, 'kind', ms.kind, 'body', ms.body,
                             'created_at', ms.created_at))
                           from public.messages ms where ms.author_id = r.profile_id), '[]'),
+    'work_item_notes', coalesce((select jsonb_agg(jsonb_build_object(
+                                   'ref', w.ref, 'kind', e.kind, 'note', e.note,
+                                   'created_at', e.created_at))
+                                 from public.work_item_events e
+                                 join public.work_items w on w.id = e.work_item_id
+                                 where e.actor_id = r.profile_id and e.note is not null), '[]'),
+    'library_files', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'space', s.name, 'name', f.name, 'created_at', f.created_at,
+                                 'deleted_at', f.deleted_at))
+                               from public.library_files f join public.spaces s on s.id = f.space_id
+                               where f.uploaded_by = r.profile_id), '[]'),
+    'blocked', coalesce((select jsonb_agg(jsonb_build_object(
+                           'profile_id', b.blocked_id, 'created_at', b.created_at))
+                         from public.blocks b where b.blocker_id = r.profile_id), '[]'),
+    'muted', coalesce((select jsonb_agg(jsonb_build_object(
+                         'profile_id', mu.muted_id, 'created_at', mu.created_at))
+                       from public.mutes mu where mu.muter_id = r.profile_id), '[]'),
+    'useful_marks', coalesce((select jsonb_agg(jsonb_build_object(
+                                'target_kind', u.target_kind, 'target_id', u.target_id,
+                                'created_at', u.created_at))
+                              from public.useful_marks u where u.profile_id = r.profile_id), '[]'),
+    'reports_made', coalesce((select jsonb_agg(jsonb_build_object(
+                                'target_kind', rp.target_kind, 'reason', rp.reason, 'note', rp.note,
+                                'status', rp.status, 'created_at', rp.created_at))
+                              from public.reports rp where rp.reporter_id = r.profile_id), '[]'),
+    'join_requests', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'space', s.name, 'via', j.via, 'status', j.status,
+                                 'created_at', j.created_at))
+                               from public.space_join_requests j join public.spaces s on s.id = j.space_id
+                               where j.profile_id = r.profile_id), '[]'),
     'push_settings', (select to_jsonb(ps) from public.push_settings ps where ps.profile_id = r.profile_id)
   )
   from public.data_requests r
@@ -368,7 +618,10 @@ $$;
 
 -- Deletes the user. Their own rows cascade; Space records set null (shown
 -- as "Former member"); the last-admin handover runs on their membership
--- rows. Only for an account still due.
+-- rows. Only for an account still due, with the profile locked so a
+-- restore can't slip in between (review 26 L1), and only once their
+-- avatar and post photos are gone (M4: the function's list may have been
+-- cut short; the rest go the next night).
 create or replace function public.purge_account(p_id uuid)
 returns boolean
 language plpgsql
@@ -377,8 +630,16 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not exists (select 1 from public.profiles
-                 where id = p_id and deletion_scheduled_at < now() - interval '30 days') then
+  perform 1 from public.profiles
+  where id = p_id and deletion_scheduled_at < now() - interval '30 days'
+  for update;
+  if not found then
+    return false;
+  end if;
+  if exists (select 1 from storage.objects o
+             where o.bucket_id in ('avatars', 'post-media')
+               and o.name collate "C" >= p_id::text || '/'
+               and o.name collate "C" < p_id::text || '0') then
     return false;
   end if;
   delete from auth.users where id = p_id;
@@ -417,6 +678,7 @@ grant select on public.data_requests to authenticated;
 grant all on public.data_requests to service_role;
 
 revoke execute on function
+  public.refuse_hidden_writer(),
   public.is_hidden_account(uuid),
   public.account_deletion_blockers(),
   public.signed_in_recently(),
@@ -432,6 +694,7 @@ revoke execute on function
   from public, anon;
 -- Internal (it answers about anyone), or the founder's and cron's only.
 revoke execute on function
+  public.refuse_hidden_writer(),
   public.is_hidden_account(uuid),
   public.export_my_data(uuid),
   public.mark_data_sent(uuid),
