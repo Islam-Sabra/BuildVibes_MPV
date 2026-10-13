@@ -432,6 +432,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Step 4: S13 on live with a new test account (custom SMTP confirmed by the founder in the dashboard): the delete code arrived and worked, S14 showed, the account was hidden and its phones signed out; after clearing the app's storage and signing in again with an email code the app opened on S14; Restore cleared the date, another account sees the profile again, and the phone registered for pushes again.
   - Step 5: `account-db` and `account` merged into main; 823 SQL checks, 586 Flutter tests.
 
+- **13 Oct, Translate out of the pilot** (founder decision, review 28: the pilot spends no money; Google Cloud Translation asks for a prepayment):
+  - Part 3 stopped. Branch `translate` (migration 17 `translate`, the `translate` Edge Function with a stand-in until a key exists, L1–L4 with tests) is pushed and kept, **not merged, not live, not deployed**. When Translate comes back, compare free tiers first (Microsoft Azure Translator is the first candidate).
+  - The composer's language sheet (L6) no longer says it is used to offer Translate: one code setting, `AppConfig.translateEnabled = false`. Posts still record their language.
+
+- **13 Oct, week 8 part 4** (on `arabic-pass`, for the lead's review; migration 17 **not live**):
+  - Market pack audit (`docs/market-pack-review.md`, for the founder to confirm Kuwait's values): no country fact is typed in Dart or the strings. One gap fixed: the pack's new `time_zone` (Kuwait Asia/Kuwait, Egypt Africa/Cairo), and the one-Useful-notification-a-day rule now counts the author's own day, not UTC's. Migration 17 `20261013150000_market_pack.sql`, `17_market_pack.test.sql`: 10 checks, 833 in all. If Translate comes back, its migration (on `translate`, `20261013140000`) is renamed after this one.
+  - Arabic pass (`docs/arabic-strings.md`, 750 strings since week 4, for the founder to read): checked by script (all present, Western digits, glossary, placeholders, no gendered verbs for third persons). Fixed: «دعوة من {name}»; تكليف for "assigned" everywhere; بانتظارك in one help line.
+  - Text size 1.3: every widget test can run at 1.3 (`flutter test --dart-define=BV_TEXT_SCALE_PERCENT=130`). It found text cut off in 7 places (Welcome cards, the dial code box, composer templates, badges, chips, the member pass stamp, the W2 header), all fixed with no change at normal size. At 1.3 no text is cut off; 22 tests still fail at 1.3 only because they look for rows that the larger text pushes below the screen.
+  - Emulator screenshots (Arabic, and English and Arabic at 1.3): `docs/screens/AR-*`, `AR13-*`, `EN13-*`.
+  - Review 29 applied: the lead's Arabic fixes (§1: meanings, no gendered verbs about another person, «مؤكَّد من», «مخطط», «إصدار», «قبل …», plurals for 11 and up, one tanween spelling «يومًا»); in migration 17, Kuwait mobiles may start with 41, and the founder's answers (six more Kuwait areas, 25 in all; the foreman chip «رئيس عمال (فورمن)»; no review flags left for Kuwait; Egypt stays flagged). 839 SQL checks. `AR-activity_ar.png` retaken.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
@@ -442,7 +453,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. Week 8 part 3 (review 23 §7): Translate on posts. The founder creates the Google Cloud Translation key first; built with mocks until it is set. Part 4 (Arabic pass, market pack) follows.
+2. Week 8 part 4 (review 23 §5): the Arabic pass (`docs/arabic-strings.md`) and the market pack audit (`docs/market-pack-review.md`). Translate (part 3) waits until after the pilot (review 28).
 3. iPhone push needs the Apple developer account and an APNs key (week 10).
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).

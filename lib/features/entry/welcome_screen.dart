@@ -156,6 +156,40 @@ class _AudienceCardState extends State<_AudienceCard> {
     super.dispose();
   }
 
+  /// The height of the swiping cards: as drawn, or the tallest card's title
+  /// and body at the phone's text size, whichever is taller.
+  double _cardsHeight(
+    BuildContext context,
+    List<(String, String)> cards,
+    double width,
+    BvTypeSet type,
+  ) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    final textWidth = width - BvEntrySpec.audienceIconTile - BvSpace.s16;
+    double measure(String text, TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+      )..layout(maxWidth: textWidth);
+      final h = painter.height;
+      painter.dispose();
+      return h;
+    }
+
+    // The drawn height, unless a card's words need more.
+    var height = BvEntrySpec.audienceIconTile + BvSpace.s32;
+    for (final (title, body) in cards) {
+      final h =
+          measure(title, type.headingMd) +
+          BvSpace.s4 +
+          measure(body, type.bodyMd);
+      if (h > height) height = h;
+    }
+    return height;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -199,46 +233,50 @@ class _AudienceCardState extends State<_AudienceCard> {
                 ),
               ],
             ),
-          SizedBox(
-            height: BvEntrySpec.audienceIconTile + BvSpace.s32,
-            child: PageView.builder(
-              controller: _pages,
-              itemCount: cards.length,
-              onPageChanged: (i) => setState(() => _index = i),
-              itemBuilder: (context, i) => Row(
-                spacing: BvSpace.s16,
-                children: [
-                  Container(
-                    width: BvEntrySpec.audienceIconTile,
-                    height: BvEntrySpec.audienceIconTile,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: BvColors.surfaceSubtle,
-                      borderRadius: BvRadius.cardAll,
+          LayoutBuilder(
+            builder: (context, box) => SizedBox(
+              // As tall as the tallest card's words, so a larger phone text
+              // size never cuts them.
+              height: _cardsHeight(context, cards, box.maxWidth, type),
+              child: PageView.builder(
+                controller: _pages,
+                itemCount: cards.length,
+                onPageChanged: (i) => setState(() => _index = i),
+                itemBuilder: (context, i) => Row(
+                  spacing: BvSpace.s16,
+                  children: [
+                    Container(
+                      width: BvEntrySpec.audienceIconTile,
+                      height: BvEntrySpec.audienceIconTile,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: BvColors.surfaceSubtle,
+                        borderRadius: BvRadius.cardAll,
+                      ),
+                      child: Icon(
+                        _icons[i],
+                        size: BvSize.iconLg,
+                        color: BvColors.iconAction,
+                      ),
                     ),
-                    child: Icon(
-                      _icons[i],
-                      size: BvSize.iconLg,
-                      color: BvColors.iconAction,
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: BvSpace.s4,
-                      children: [
-                        Text(cards[i].$1, style: type.headingMd),
-                        Text(
-                          cards[i].$2,
-                          style: type.bodyMd.copyWith(
-                            color: BvColors.textSecondary,
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: BvSpace.s4,
+                        children: [
+                          Text(cards[i].$1, style: type.headingMd),
+                          Text(
+                            cards[i].$2,
+                            style: type.bodyMd.copyWith(
+                              color: BvColors.textSecondary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

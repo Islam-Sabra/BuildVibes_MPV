@@ -453,9 +453,15 @@ class _PassHeader extends StatelessWidget {
               child: Row(
                 spacing: BvSpace.s8,
                 children: [
-                  Text(
-                    stamp,
-                    style: type.overline.copyWith(color: BvColors.textInverse),
+                  Flexible(
+                    child: Text(
+                      stamp,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.overline.copyWith(
+                        color: BvColors.textInverse,
+                      ),
+                    ),
                   ),
                   Expanded(
                     child: Text(

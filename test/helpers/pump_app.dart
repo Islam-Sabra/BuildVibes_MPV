@@ -67,6 +67,9 @@ final String testPdfPath = () {
   )..writeAsStringSync('%PDF-1.4\n%test\n')).path;
 }();
 
+const _textScale =
+    int.fromEnvironment('BV_TEXT_SCALE_PERCENT', defaultValue: 100) / 100;
+
 /// The fixed "today" of widget tests.
 final testNow = DateTime(2026, 10, 11);
 
@@ -162,6 +165,10 @@ Future<TestApp> pumpApp(
   List<Override> overrides = const [],
 }) async {
   tester.view.physicalSize = const Size(390, 844);
+  // The Arabic pass runs every test at a larger text size too:
+  // flutter test --dart-define=BV_TEXT_SCALE_PERCENT=130
+  tester.platformDispatcher.textScaleFactorTestValue = _textScale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   tester.platformDispatcher.localesTestValue = const [Locale('en')];

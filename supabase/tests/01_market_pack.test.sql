@@ -12,15 +12,17 @@ select results_eq(
   array['kw', 'eg'],
   'Kuwait and Egypt packs are seeded'
 );
+-- Kuwait's pack was confirmed by the founder (review 29, migration 17); a
+-- market nobody has confirmed yet keeps its flags.
 select is(
-  (select count(*) from public.markets where cardinality(needs_review) = 0),
+  (select count(*) from public.markets where cardinality(needs_review) = 0 and id <> 'kw'),
   0::bigint,
-  'every seeded market lists the fields a local must confirm'
+  'every market not yet confirmed lists the fields a local must confirm'
 );
 select is(
-  (select count(*) from public.places where not needs_review),
+  (select count(*) from public.places where not needs_review and market_id <> 'kw'),
   0::bigint,
-  'every seeded place is marked for local review'
+  'every place not yet confirmed is marked for local review'
 );
 select ok(
   (select count(*) from public.trades) >= 14,
