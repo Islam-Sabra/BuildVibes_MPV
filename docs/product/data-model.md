@@ -320,7 +320,9 @@ A declined request makes no notification. Useful on a reply makes none.
 - It checks the `x-push-secret` header in constant time (500 when the secret isn't set), reads only the row id, claims the row, and sends from the database copy, so a repeated call sends once.
 - FCM 429 and 5xx put the row back (after Retry-After); only an error naming the token (UNREGISTERED, an invalid registration token, SENDER_ID_MISMATCH) deletes it, never a plain 404.
 - The text comes from `strings.json` in the phone's language, and never names a project, a Space or a work item.
-- Live, each with the founder's yes: deploying it with its secrets (`FIREBASE_SERVICE_ACCOUNT`, `PUSH_WEBHOOK_SECRET`), the webhook, and the schedule in `supabase/ops/push_cron.sql`.
+- Each new row calls it through a trigger (`supabase/ops/push_webhook.sql`) that reads the secret from Vault and sends only `{record: {id}}`; not a dashboard webhook, which would keep the secret in plain text in the catalog. Both fetches give up after 10 seconds, inside the 60-second claim window.
+- After the 5th failed attempt a row is finished and its text dropped at once. SENDER_ID_MISMATCH (another project's key) never deletes phones.
+- Live, each with the founder's yes: deploying it with its secrets (`FIREBASE_SERVICE_ACCOUNT`, `PUSH_WEBHOOK_SECRET`, and the same value in Vault as `push_webhook_secret`), then running `supabase/ops/push_webhook.sql` and `supabase/ops/push_cron.sql`.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.

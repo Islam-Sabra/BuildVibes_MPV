@@ -25,10 +25,11 @@
 --   a database webhook on push_queue inserts. It claims a row with
 --   claim_push (so a repeated call sends once), then marks it sent or
 --   failed (finish_push), or gives it back for a retry (release_push).
---   retry_push_queue and prune_push_queue run from cron; the schedule is
---   in supabase/ops/push_cron.sql. Deploying the function, the webhook and
---   the schedule are live changes that wait for the founder's yes.
--- Review 21 fixes are in this file (it wasn't live yet).
+--   retry_push_queue and prune_push_queue run from cron. The call on each
+--   insert (a trigger reading the secret from Vault, not a dashboard
+--   webhook) and the schedule are in supabase/ops/; deploying the function
+--   and running them are live changes that wait for the founder's yes.
+-- Review 21 and 22 fixes are in this file (it wasn't live yet).
 
 -- ---------------------------------------------------------------------------
 -- Tables
@@ -253,7 +254,8 @@ as $$
 $$;
 
 -- A temporary failure (FCM 429 or 5xx, a network error): back in the
--- queue, after [p_wait] when FCM said Retry-After.
+-- queue, after [p_wait] when FCM said Retry-After. After the 5th attempt
+-- it stops: marked finished, and its text goes at once (review 22).
 create or replace function public.release_push(p_id bigint, p_wait interval default null, p_error text default null)
 returns void
 language sql
@@ -263,7 +265,9 @@ set search_path = ''
 as $$
   update public.push_queue
   set claimed_at = null,
-      not_before = case when p_wait is null then null else now() + p_wait end,
+      not_before = case when p_wait is null or attempts >= 5 then null else now() + p_wait end,
+      sent_at = case when attempts >= 5 then now() end,
+      message_text = case when attempts >= 5 then null else message_text end,
       error = left(p_error, 500)
   where id = p_id and sent_at is null;
 $$;

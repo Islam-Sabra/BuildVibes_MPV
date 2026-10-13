@@ -1,15 +1,17 @@
 // Edge Function "push": sends one queued push through FCM HTTP v1.
 //
-// Called by a database webhook on push_queue inserts, and every minute by
-// cron for rows to try again (supabase/ops/push_cron.sql). Neither is set
-// up yet: live changes that wait for the founder's yes.
+// Called by a trigger on push_queue inserts (supabase/ops/push_webhook.sql)
+// and every minute by cron for rows to try again (supabase/ops/push_cron.sql).
+// Both send {record: {id}} and the secret, read from Vault. Not a dashboard
+// webhook: it would keep the secret in plain text in the catalog (review 22).
 //
-// Deployed with verify_jwt = false (supabase/config.toml): the webhook sends
+// Deployed with verify_jwt = false (supabase/config.toml): the callers send
 // no signed-in user, so the shared secret is the guard. Secrets, set in
 // Supabase only:
 // - FIREBASE_SERVICE_ACCOUNT: the Firebase service-account key (JSON),
 //   pasted by the founder;
-// - PUSH_WEBHOOK_SECRET: sent by the webhook in the x-push-secret header.
+// - PUSH_WEBHOOK_SECRET: the same value as Vault's push_webhook_secret,
+//   sent in the x-push-secret header.
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY come with every function.
 //
 // The body is trusted for one thing only, the row id. The row is claimed
@@ -32,6 +34,10 @@ const db = createClient(
 );
 const account: ServiceAccount = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT") ?? "{}");
 const enc = new TextEncoder();
+
+// Well inside the 60-second claim window, so a slow call never overlaps a
+// retry of the same row (review 22).
+const timeout = () => AbortSignal.timeout(10_000);
 
 // --- The webhook secret, compared in constant time --------------------------
 
@@ -77,6 +83,7 @@ async function accessToken(): Promise<string> {
   );
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
+    signal: timeout(),
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
@@ -110,6 +117,7 @@ async function send(row: QueueRow): Promise<void> {
       `https://fcm.googleapis.com/v1/projects/${account.project_id}/messages:send`,
       {
         method: "POST",
+        signal: timeout(),
         headers: {
           authorization: `Bearer ${await accessToken()}`,
           "content-type": "application/json",
@@ -164,12 +172,10 @@ Deno.serve(async (req) => {
     return new Response("forbidden", { status: 403 });
   }
 
+  // Only the row id is read; the row itself comes from the database.
   const payload = await req.json().catch(() => null);
   const id = Number(payload?.record?.id);
-  if (
-    payload?.schema !== "public" || payload?.table !== "push_queue" ||
-    payload?.type !== "INSERT" || !Number.isSafeInteger(id)
-  ) {
+  if (!Number.isSafeInteger(id) || id <= 0) {
     return new Response("ignored", { status: 200 });
   }
 
