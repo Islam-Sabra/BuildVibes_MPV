@@ -30,13 +30,14 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push (founder's yes, 13 Oct) |
-| Edge Functions | `push` (FCM HTTP v1), `verify_jwt = false`, deployed 13 Oct with the founder's yes |
-| Function secrets | `FIREBASE_SERVICE_ACCOUNT` (pasted by the founder), `PUSH_WEBHOOK_SECRET` (generated, never printed). Names only here |
-| Vault | `push_webhook_secret` (the same value as `PUSH_WEBHOOK_SECRET`) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety (founder's yes, 13 Oct) |
+| Edge Functions | `push` (FCM HTTP v1) and `report-alert` (Resend), both `verify_jwt = false`, deployed 13 Oct with the founder's yes |
+| Function secrets | `FIREBASE_SERVICE_ACCOUNT` and `RESEND_API_KEY` (pasted by the founder), `PUSH_WEBHOOK_SECRET` and `REPORT_ALERT_SECRET` (generated, never printed), `ALERT_FROM` (the sign-in code sender). Names only here |
+| Vault | `push_webhook_secret` and `report_alert_secret` (the same values as the function secrets) |
 | Extensions | `pg_cron`, `pg_net` (13 Oct, for push) |
 | Push wiring | Trigger `push_queue_call` on `push_queue` inserts (`supabase/ops/push_webhook.sql`); cron `push-retry` every minute and `push-prune` at 02:30 UTC (`supabase/ops/push_cron.sql`); all run 13 Oct with the founder's yes |
-| Test accounts | `push-test-a@example.com` (Test Receiver), `push-test-b@example.com` (Test Follower), `push-test-c@example.com` (Test Third), made with the admin API for the push test (13 Oct). **Delete before the pilot** |
+| Report alerts | Trigger `reports_alert` on `reports` inserts (`supabase/ops/report_alert_webhook.sql`), run 13 Oct with the founder's yes. Kuwait's moderation address is set in `market_moderation` by SQL (the founder's support alias; not in git). The founder moderates with `supabase/ops/moderation.sql` |
+| Test accounts | `push-test-a@example.com` (Test Receiver), `push-test-b@example.com` (Test Follower), `push-test-c@example.com` (Test Third), made with the admin API for the push test (13 Oct); push-test-a's test post was reported and removed in the report-alert test. **Delete before the pilot** |
 | Storage | Bucket `avatars`: public read by link, each person writes only in their own folder |
 
 ## Log
@@ -382,12 +383,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `push-db` and `push` merged into main.
 
 - **13 Oct, week 8 part 1, database** (review 23 §2).
-  - Migration 15 (`20261013120000_safety.sql`) is on `safety-db`, **not live**, for the lead's review: reports (hidden for the reporter at once), removals with a private copy and one appeal within 14 days, `block()` and `my_blocks()`, decisions for the service role only, and the moderation address per market (`market_moderation`, service role only).
+  - Migration 15 (`20261013120000_safety.sql`) is **live** (pushed 13 Oct with the founder's yes; see below). Reviewed by the lead in reviews 24 and 25: reports (hidden for the reporter at once), removals with a private copy and one appeal within 14 days, `block()` and `my_blocks()`, decisions for the service role only, and the moderation address per market (`market_moderation`, service role only).
   - `15_safety.test.sql`: 79 checks, 716 in all. Review 24, in place: a removed chat message hides its Library copy (restored on reverse); a reported reply leaves your Activity; the moderation address in a service-role-only table; NULL is never a decision; a double tap returns the same report; feed pages, Home's replies count and a message's files leave out what you reported; the photo cleanup waits for appeals.
   - The `report-alert` Edge Function is written (`supabase/functions/report-alert/`, 2 Node tests), **not deployed**. The alert trigger (`supabase/ops/report_alert_webhook.sql`) is not run. The founder's commands are in `supabase/ops/moderation.sql`.
   - The founder still owes the moderation address for Kuwait (review 23 §6.2); until it is set, no alert is sent.
 
-- **13 Oct, week 8 part 1, screens** (on `safety`, from `safety-db`; waits for migration 15 to go live):
+- **13 Oct, week 8 part 1, screens** (merged into main with `safety-db`, 13 Oct):
   - The week 8 Figma images are in `docs/design/account/`.
   - The report reasons follow the R1 frame (Spam or scam, Harassment or abuse, Wrong or misleading, This isn't real, Shares private information, Something else); migration 15 uses the same ids.
   - Report (R1, a note for "Something else", R2 with Block this account) from: someone else's post, someone else's reply (the reply menu now shows for every reply), a person's profile, and a chat message (S8c).
@@ -398,6 +399,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checked on the emulator against the local server, in English and Arabic: Rakesh reported Omar's post, it left his feed, he blocked and unblocked Omar; the service role removed the post; Omar saw R3, appealed (R4, R5); the appeal was reversed and the post came back with its replies.
   - 565 Flutter tests pass. Screenshots: `r_*_post_menu`, `r1_*_report`, `r1b_ar_note`, `r2_*_report_sent`, `block_*_dialog`, `toast_*_blocked`, `s7_*_blocked`, `r3_*_removed`, `r3_en_appeal_open`, `r3_ar_removed_message`, `r4_*_appeal`, `r5_*_appeal_received`, `a1_en_removed_row`, `a1_en_appeal_result`, `a1_ar_removed_rows`.
 
+- **13 Oct, safety live** (review 25 and the review 24 go-live, each step with the founder's yes):
+  - Review 25 in place: R3 shows when the post was written; the photo cleanup re-checks open appeals under the lock; a note in `moderation.sql` about work item PDFs. 717 SQL checks.
+  - Migration 15 pushed (the dry run listed only `20261013120000_safety.sql`).
+  - Kuwait's moderation address stored by SQL; the pack's support email waits for part 2's migration (founder's choice).
+  - `REPORT_ALERT_SECRET` generated into Vault and the function secrets, never printed; `ALERT_FROM` set; `report-alert` deployed; the alert trigger installed.
+  - Checked first: the deployed `push` (version 3) is the same code as main, and `push-retry` runs without errors.
+  - Test on live: push-test-b reported push-test-a's test post; the alert function answered "sent" and the founder received the email; `moderation.sql` removed the post, and push-test-a got the removal notice.
+  - `safety-db` and `safety` merged into main.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b and push-test-c (and their test post), with the admin API.
 - Turn the phone provider off on the live project (it is on for the test numbers only).
@@ -407,7 +417,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 ## Next tasks (in order)
 1. Spaces (week 4): `spaces-db` merged into main (11 Oct; all 212 SQL checks pass on the Supabase CLI, also from an empty database). Migration 6 is live (pushed with the founder's yes, 11 Oct). App parts 1–3 done (Spaces, week 4).
-2. Week 8 (review 22): Arabic pass, market pack, privacy, report and block, delete account. Before the brief, the founder decides review 16 §6: Translate on posts, Save and Share, @mentions.
+2. Week 8 part 2 (review 23 §3, §10): migration 16 (account) on `account-db` for the lead's review, then the account and Settings screens. Parts 3 (Translate) and 4 (Arabic pass, market pack) follow.
 3. iPhone push needs the Apple developer account and an APNs key (week 10).
 4. Week 10 (App Store work): Arabic texts for the iPhone permission prompts (camera, microphone, photos), in an `ar.lproj/InfoPlist.strings` added to the Xcode project.
 4. Ask the founder before scheduling the nightly cleanup (an Edge Function, a live change).
