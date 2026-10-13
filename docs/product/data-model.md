@@ -324,6 +324,26 @@ A declined request makes no notification. Useful on a reply makes none.
 - After the 5th failed attempt a row is finished and its text dropped at once. SENDER_ID_MISMATCH (another project's key) never deletes phones.
 - Live, each with the founder's yes: deploying it with its secrets (`FIREBASE_SERVICE_ACCOUNT`, `PUSH_WEBHOOK_SECRET`, and the same value in Vault as `push_webhook_secret`), then running `supabase/ops/push_webhook.sql` and `supabase/ops/push_cron.sql`.
 
+## 12. Safety (migration 15, `20261013120000_safety.sql`, branch `safety-db`)
+**Tables:**
+- `reports`: `reporter_id`, `target_kind` ('post' | 'reply' | 'profile' | 'message'), `target_id`, `reason` (the six R1 reasons: spam, harassment, misleading, fake, private_info, other), `note` (needed for "other", at most 500), `status` ('open' | 'removed' | 'dismissed'), `created_at`, `decided_at`. One per reporter and thing. Nobody reads reports in the app.
+- `content_removals`: `target_kind`, `target_id`, `author_id`, `reason`, `report_id`, `removed_at`, `appeal_note`, `appeal_at`, `appeal_status` ('none' | 'open' | 'upheld' | 'reversed'). The author reads their own rows.
+- `removed_content`: the removed text (and, for a chat message, its Library link and the Library copies hidden with it), kept so an appeal can restore it. Service role only.
+- `market_moderation`: `market_id`, `email`: where report alerts go. Service role only; never public.
+- Activity gets two kinds, `content_removed` and `appeal_decided`, under "Your record"; neither sends a push.
+
+**Hidden for the reporter:** a post, reply or message you reported disappears for you at once: the read rules on posts, replies, messages and their files; `can_see_post`; feed pages, profile and project post lists; the thread list; Home's Today line and replies count; Activity rows for a reply you reported. Everyone else still sees it until it is decided. A chat document's separate Library copy is not hidden by reporting the message.
+
+**Functions:**
+- `report(kind, id, reason, note)`: only what you can see, never your own, at most 20 a day; reporting again returns the same report.
+- `block(person, on)` and `my_blocks()` (S7): the existing `blocks` table, so every block rule already on the server applies.
+- `my_removal(id)` (R3, the author only): what, why, a short copy, and whether an appeal is still open; `appeal(removal, note)`: once, within 14 days, 1–500 characters.
+- Service role only (`supabase/ops/moderation.sql`): `decide_report(id, 'remove' | 'dismiss', reason)` (a person can't be removed; every open report on the same thing is decided with it; removing a chat message hides its Library copy too; NULL is refused), `decide_appeal(removal, 'uphold' | 'reverse')` (reverse restores the content as it was), and `report_alert(id)` (the alert's id, kind, reason, time and the market's address; never the content).
+
+**Photos:** the photo cleanup leaves a removed post's photos while its appeal is open, or for 14 days after the removal.
+
+**Alert:** a trigger on new reports (`supabase/ops/report_alert_webhook.sql`, the Vault and `pg_net` pattern of push) calls the Edge Function `report-alert`, which emails the market's moderation address through Resend. Deploying it with its secrets (`REPORT_ALERT_SECRET`, `RESEND_API_KEY`, `ALERT_FROM`) and running the script are live changes for the founder's yes.
+
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
 - Crew can't create items. Viewer can't sign done. Only the owner can sign done. Only the creator (or an allowed Lead) can check.
