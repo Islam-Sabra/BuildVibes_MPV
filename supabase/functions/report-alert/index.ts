@@ -53,11 +53,19 @@ Deno.serve(async (req) => {
   if (!row?.moderation_email) return new Response("no address", { status: 200 });
 
   const mail = buildAlert(row);
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    signal: AbortSignal.timeout(10_000),
-    headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-    body: JSON.stringify({ from, to: [row.moderation_email], subject: mail.subject, text: mail.text }),
-  });
-  return new Response(res.ok ? "sent" : `resend ${res.status}`, { status: res.ok ? 200 : 502 });
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      signal: AbortSignal.timeout(10_000),
+      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({ from, to: [row.moderation_email], subject: mail.subject, text: mail.text }),
+    });
+    // The body isn't needed (review 24).
+    await res.body?.cancel();
+    return new Response(res.ok ? "sent" : `resend ${res.status}`, { status: res.ok ? 200 : 502 });
+  } catch {
+    // A timeout or a network error: nothing is lost, the report stays open
+    // in supabase/ops/moderation.sql query 1.
+    return new Response("not sent", { status: 200 });
+  }
 });

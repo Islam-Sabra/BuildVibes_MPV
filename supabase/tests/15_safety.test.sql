@@ -2,11 +2,11 @@
 --
 -- Omar (c1) posts and writes in chat. Rakesh (c2) reports. Sara (c3) sees
 -- everything else. All three are in one Space. Bob (c4) is outside it;
--- Omar blocks him.
+-- Omar blocks him. Review 24's checks are marked (r24).
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(60);
+select plan(79);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000015c1', 'authenticated', 'authenticated', 'omar15@example.com', '{"home_market_id": "kw"}'),
@@ -33,7 +33,10 @@ select ok((select relrowsecurity from pg_class where oid = 'public.content_remov
   'content_removals has row-level security');
 select ok((select relrowsecurity from pg_class where oid = 'public.removed_content'::regclass),
   'removed_content has row-level security');
-select has_column('public', 'markets', 'moderation_email', 'the market pack has a moderation address');
+select hasnt_column('public', 'markets', 'moderation_email',
+  '(r24) the moderation address is not a public market column');
+select ok((select relrowsecurity from pg_class where oid = 'public.market_moderation'::regclass),
+  '(r24) market_moderation has row-level security');
 
 -- Setting up: a Space, a post, a reply, a message --------------------------------------
 
@@ -69,6 +72,10 @@ select is((select count(*) from public.post_cards where id = pg_temp.id('a001'))
   'and its card');
 select is((select count(*) from public.post_replies where post_id = pg_temp.id('a001')), 0::bigint,
   'and its replies');
+select is((select count(*) from public.feed_page(null) where post_id = pg_temp.id('a001')), 0::bigint,
+  '(r24) and feed pages leave it out');
+select is((select count(*) from public.posts_by(pg_temp.uid('c1'), null) where post_id = pg_temp.id('a001')),
+  0::bigint, '(r24) and so does the author''s profile list');
 select is(public.report('post', pg_temp.id('a001'), 'harassment'), current_setting('test.report')::uuid,
   'reporting it again is the same report');
 select is((select count(*) from public.posts where id = pg_temp.id('a002')), 1::bigint,
@@ -142,7 +149,7 @@ reset role;
 
 -- The alert: ids and reasons only, to the market's address --------------------------------
 
-update public.markets set moderation_email = 'moderation@example.com' where id = 'kw';
+insert into public.market_moderation (market_id, email) values ('kw', 'moderation@example.com');
 set local role service_role;
 select is((select format('%s %s %s', target_kind, reason, moderation_email)
            from public.report_alert(current_setting('test.report')::uuid)),
@@ -152,6 +159,8 @@ select pg_temp.as_user('c2');
 set local role authenticated;
 select throws_ok(format($q$select * from public.report_alert(%L)$q$, current_setting('test.report')),
   '42501', null, 'the app can''t read an alert');
+select throws_ok($$select count(*) from public.market_moderation$$, '42501', null,
+  '(r24) or the moderation address');
 reset role;
 
 -- Deciding: the service role only --------------------------------------------------------
@@ -250,6 +259,140 @@ select pg_temp.as_user('c3');
 set local role authenticated;
 select is((select count(*) from public.messages where id = pg_temp.id('e001')), 1::bigint,
   'the dismissed message still shows');
+reset role;
+
+
+-- Review 24 ------------------------------------------------------------------------------
+
+-- (r24) NULL is never a decision.
+set local role service_role;
+select throws_ok(format($q$select public.decide_report(%L, null)$q$,
+  (select id from public.reports where target_kind = 'profile' and target_id = pg_temp.uid('c1'))),
+  '22023', null, '(r24) a report needs remove or dismiss');
+select throws_ok(format($q$select public.decide_appeal(%L, null)$q$, current_setting('test.removal')),
+  '22023', null, '(r24) an appeal needs uphold or reverse');
+reset role;
+select pg_temp.as_user('c2');
+set local role authenticated;
+select throws_ok(format($q$select public.block(%L, null)$q$, pg_temp.uid('c1')),
+  '22023', null, '(r24) block needs on or off');
+reset role;
+
+-- (r24) A reported reply on your post leaves your Activity.
+select pg_temp.as_user('c2');
+set local role authenticated;
+select public.create_post(pg_temp.id('a003'), 'Rakesh posts.', 'en');
+reset role;
+select pg_temp.as_user('c1');
+set local role authenticated;
+select public.add_reply(pg_temp.id('d003'), pg_temp.id('a003'), null, 'An abusive reply.');
+reset role;
+select pg_temp.as_user('c2');
+set local role authenticated;
+select is((select count(*) from public.my_activity() where reply_id = pg_temp.id('d003')), 1::bigint,
+  '(r24) before: the reply is in Activity');
+select public.report('reply', pg_temp.id('d003'), 'harassment');
+select is((select count(*) from public.my_activity() where reply_id = pg_temp.id('d003')), 0::bigint,
+  '(r24) reported: it leaves Activity, text and all');
+reset role;
+
+-- (r24) Home's replies count, and a message's files, leave out what you reported.
+select pg_temp.as_user('c2');
+set local role authenticated;
+select public.post_message(pg_temp.id('e002'), current_setting('test.thread')::uuid, 'Rakesh asks.');
+reset role;
+select pg_temp.as_user('c1');
+set local role authenticated;
+select public.post_message(pg_temp.id('e003'), current_setting('test.thread')::uuid, 'A rude answer.',
+  pg_temp.id('e002'));
+reset role;
+select pg_temp.as_user('c2');
+set local role authenticated;
+select is((select replies from public.home_day(now() - interval '1 hour')), 1,
+  '(r24) before: one reply today');
+select public.report('message', pg_temp.id('e003'), 'harassment');
+select is((select replies from public.home_day(now() - interval '1 hour')), 0,
+  '(r24) a reply you reported isn''t counted');
+reset role;
+
+-- A chat document by Omar, with its Library copy.
+select set_config('test.doc', current_setting('test.space') || '/chat/' || pg_temp.id('e004') || '/plan.pdf', true);
+insert into public.messages (id, thread_id, space_id, author_id, kind, body)
+values (pg_temp.id('e004'), current_setting('test.thread')::uuid, current_setting('test.space')::uuid,
+        pg_temp.uid('c1'), 'file', 'Level 3 plan');
+insert into public.message_attachments (message_id, storage_path, mime, bytes)
+values (pg_temp.id('e004'), current_setting('test.doc'), 'application/pdf', 1000);
+insert into public.library_files (id, space_id, name, storage_path, mime, source, source_message_id, uploaded_by)
+values (pg_temp.id('f004'), current_setting('test.space')::uuid, 'Level 3 plan', current_setting('test.doc'),
+        'application/pdf', 'chat', pg_temp.id('e004'), pg_temp.uid('c1'));
+update public.messages set library_file_id = pg_temp.id('f004') where id = pg_temp.id('e004');
+
+select pg_temp.as_user('c2');
+set local role authenticated;
+select set_config('test.docreport', public.report('message', pg_temp.id('e004'), 'inappropriate_content')::text, true);
+select is((select count(*) from public.message_attachments where message_id = pg_temp.id('e004')), 0::bigint,
+  '(r24) the reporter no longer lists the message''s files');
+reset role;
+
+set local role service_role;
+select set_config('test.docremoval', public.decide_report(current_setting('test.docreport')::uuid, 'remove')::text, true);
+reset role;
+select pg_temp.as_user('c3');
+set local role authenticated;
+select is((select count(*) from public.library_files where id = pg_temp.id('f004')), 0::bigint,
+  '(r24) a removed message takes its Library copy with it');
+select ok(not public.may_read_file(current_setting('test.doc'), pg_temp.uid('c1')::text),
+  '(r24) and nobody can open the document');
+reset role;
+select pg_temp.as_user('c1');
+set local role authenticated;
+select public.appeal(current_setting('test.docremoval')::uuid, 'It is the real plan.');
+reset role;
+set local role service_role;
+select public.decide_appeal(current_setting('test.docremoval')::uuid, 'reverse');
+reset role;
+select pg_temp.as_user('c3');
+set local role authenticated;
+select is((select count(*) from public.library_files where id = pg_temp.id('f004')), 1::bigint,
+  '(r24) reversed: the Library copy is back');
+select ok(public.may_read_file(current_setting('test.doc'), pg_temp.uid('c1')::text),
+  '(r24) and the document opens again');
+select is((select library_file_id from public.messages where id = pg_temp.id('e004')), pg_temp.id('f004'),
+  '(r24) and the message links to it again');
+reset role;
+
+-- (r24) The photo cleanup leaves a removed post's photos while it may come back.
+insert into storage.objects (bucket_id, name, owner_id, metadata)
+values ('post-media', pg_temp.uid('c1') || '/' || pg_temp.id('a004') || '/1.jpg', pg_temp.uid('c1')::text,
+        '{"mimetype": "image/jpeg", "size": 1000}');
+select pg_temp.as_user('c1');
+set local role authenticated;
+select public.create_post(pg_temp.id('a004'), 'With a photo.', 'en', null,
+  jsonb_build_array(jsonb_build_object('path', pg_temp.uid('c1') || '/' || pg_temp.id('a004') || '/1.jpg')));
+reset role;
+select pg_temp.as_user('c2');
+set local role authenticated;
+select set_config('test.photoreport', public.report('post', pg_temp.id('a004'), 'spam')::text, true);
+reset role;
+set local role service_role;
+select set_config('test.photoremoval', public.decide_report(current_setting('test.photoreport')::uuid, 'remove')::text, true);
+reset role;
+select pg_temp.as_user('c1');
+set local role authenticated;
+select public.appeal(current_setting('test.photoremoval')::uuid, 'Please look again.');
+reset role;
+-- As if the post was removed 40 days ago, with the appeal still open.
+update public.posts set deleted_at = now() - interval '40 days' where id = pg_temp.id('a004');
+update public.content_removals set removed_at = now() - interval '40 days'
+where id = current_setting('test.photoremoval')::uuid;
+set local role service_role;
+select is((select count(*) from public.orphan_post_media() o
+           where o.name like '%' || pg_temp.id('a004') || '%'), 0::bigint,
+  '(r24) an open appeal keeps the photos');
+select public.decide_appeal(current_setting('test.photoremoval')::uuid, 'uphold');
+select is((select count(*) from public.orphan_post_media() o
+           where o.name like '%' || pg_temp.id('a004') || '%'), 1::bigint,
+  '(r24) upheld and old: the photos may go');
 reset role;
 
 -- Blocking ------------------------------------------------------------------------------

@@ -15,18 +15,21 @@
 -- - block(person, on): the existing blocks table. Every block rule already
 --   on the server (posts, replies, photos, profiles, Activity, pushes)
 --   applies to blocks made here.
--- - markets.moderation_email: where report alerts go, per market (the
---   report-alert function, supabase/ops/report_alert_webhook.sql).
+-- - market_moderation: where report alerts go, per market (the
+--   report-alert function, supabase/ops/report_alert_webhook.sql). Service
+--   role only: the address is never public.
+-- Review 24 fixes are in this file (it wasn't live yet).
 
 -- ---------------------------------------------------------------------------
 -- Tables
 -- ---------------------------------------------------------------------------
 
-alter table public.markets
-  add column moderation_email text
-    check (moderation_email is null or moderation_email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$');
-comment on column public.markets.moderation_email is
-  'Where report alerts go for this market. Set by the founder; null sends none.';
+-- Where report alerts go for each market. Set by the founder by SQL; a
+-- market without a row sends none. Service role only (review 24).
+create table public.market_moderation (
+  market_id text primary key references public.markets (id) on delete cascade,
+  email text not null check (email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$')
+);
 
 create table public.reports (
   id uuid primary key default gen_random_uuid(),
@@ -69,7 +72,11 @@ create index content_removals_author_idx on public.content_removals (author_id, 
 -- The removed text, so an appeal can restore it. Service role only.
 create table public.removed_content (
   removal_id uuid primary key references public.content_removals (id) on delete cascade,
-  body text
+  body text,
+  -- A removed chat message: its Library link, and the Library copies hidden
+  -- with it (review 24).
+  library_file_id uuid,
+  library_files uuid[] not null default '{}'
 );
 
 -- Activity: "Your post was removed" and the appeal's result.
@@ -308,6 +315,8 @@ as $$
       -- Post rows only while you may see the post (not across a block).
       and (r.post_id is null or public.can_see_post(r.post_id))
       and (r.reply_id is null or pr.deleted_at is null)
+      -- A reply you reported, with its text, leaves your Activity (review 24).
+      and (r.reply_id is null or not public.reported_by_me('reply', r.reply_id))
       and (r.kind <> 'role_confirmed' or cp.id is not null)
   )
   select x.id, x.kind, x.group_kind, x.space_id, x.space_name, x.pass,
@@ -319,6 +328,254 @@ as $$
          case when x.kind = 'post_useful' then
            array(select u.name from public.useful_names(x.post_id) u) end
   from shown x;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Review 24: the rest of the app leaves out what you reported
+-- ---------------------------------------------------------------------------
+
+-- Feed pages: a post you reported doesn't come back (pages stay full).
+create or replace function public.feed_page(p_cursor jsonb default null)
+returns table (section text, post_id uuid, created_at timestamptz, since timestamptz)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_market text := (select home_market_id from public.profiles where id = v_me);
+  v_since timestamptz := coalesce((p_cursor ->> 'since')::timestamptz,
+                                  now() - interval '30 days');
+  v_section text := coalesce(p_cursor ->> 'section', 'home');
+  v_at timestamptz := (p_cursor ->> 'created_at')::timestamptz;
+  v_id uuid := (p_cursor ->> 'id')::uuid;
+  v_left int := 20;
+  v_n int;
+begin
+  if v_me is null then
+    return;
+  end if;
+  if v_section = 'home' and v_market is not null then
+    return query
+      select 'home'::text, p.id, p.created_at, v_since
+      from public.posts p
+      where p.deleted_at is null
+        and p.market_id = v_market and p.created_at > v_since
+        and (v_at is null or (p.created_at, p.id) < (v_at, v_id))
+        and (p.author_id = v_me or not public.is_blocked_with(p.author_id))
+        and not public.reported_by_me('post', p.id)
+        and not exists (select 1 from public.mutes mu
+                        where mu.muter_id = v_me and mu.muted_id = p.author_id)
+      order by p.created_at desc, p.id desc
+      limit v_left;
+    get diagnostics v_n = row_count;
+    v_left := v_left - v_n;
+    if v_left = 0 then
+      return;
+    end if;
+  end if;
+  if v_section = 'home' then
+    -- The home section ended (or there is none): the rest from the top.
+    v_at := null;
+    v_id := null;
+  end if;
+  return query
+    select 'beyond'::text, p.id, p.created_at, v_since
+    from public.posts p
+    where p.deleted_at is null
+      and not coalesce(p.market_id = v_market and p.created_at > v_since, false)
+      and (v_at is null or (p.created_at, p.id) < (v_at, v_id))
+      and (p.author_id = v_me or not public.is_blocked_with(p.author_id))
+      and not public.reported_by_me('post', p.id)
+      and not exists (select 1 from public.mutes mu
+                      where mu.muter_id = v_me and mu.muted_id = p.author_id)
+    order by p.created_at desc, p.id desc
+    limit v_left;
+end;
+$$;
+
+create or replace function public.posts_by(p_person uuid, p_cursor jsonb default null)
+returns table (post_id uuid, created_at timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, p.created_at
+  from public.posts p
+  where p.author_id = p_person and p.deleted_at is null
+    and (p_person = auth.uid() or not public.is_blocked_with(p_person))
+    and not public.reported_by_me('post', p.id)
+    and (p_cursor is null
+         or (p.created_at, p.id) < ((p_cursor ->> 'created_at')::timestamptz,
+                                    (p_cursor ->> 'id')::uuid))
+  order by p.created_at desc, p.id desc
+  limit 20;
+$$;
+
+create or replace function public.posts_tagged(p_project uuid, p_cursor jsonb default null)
+returns table (post_id uuid, created_at timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  -- The project and every project merged into it (to 5 steps), so the
+  -- project index finds the posts.
+  with recursive merged (id, depth) as (
+    select p_project, 0
+    union
+    select pr.id, m.depth + 1 from public.projects pr
+    join merged m on pr.merged_into = m.id
+    where m.depth < 5
+  )
+  select p.id, p.created_at
+  from public.posts p
+  where p.project_id in (select id from merged)
+    and public.shown_project(p_project) = p_project
+    and p.deleted_at is null
+    and (p.author_id = auth.uid() or not public.is_blocked_with(p.author_id))
+    and not public.reported_by_me('post', p.id)
+    and (p_cursor is null
+         or (p.created_at, p.id) < ((p_cursor ->> 'created_at')::timestamptz,
+                                    (p_cursor ->> 'id')::uuid))
+  order by p.created_at desc, p.id desc
+  limit 20;
+$$;
+
+-- Home: a chat reply you reported isn't counted.
+create or replace function public.home_day(p_day_start timestamptz)
+returns table (needs_you integer, active_spaces integer, replies integer)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    (select count(*)::int from public.needs_you()),
+    (select count(*)::int from public.today_in_spaces(p_day_start)),
+    -- Today's messages in your Spaces first (messages_space_idx), then
+    -- those answering one of yours.
+    (select count(*)::int
+     from public.space_members sm
+     join public.messages r
+       on r.space_id = sm.space_id and r.created_at >= public.day_start(p_day_start)
+     join public.messages mine on mine.id = r.reply_to and mine.author_id = auth.uid()
+     where sm.profile_id = auth.uid() and sm.left_at is null
+       and r.reply_to is not null
+       and r.author_id is distinct from auth.uid()
+       and r.deleted_at is null
+       and public.can_use_thread(r.thread_id)
+       and not public.blocked_between(auth.uid(), r.author_id)
+       and not public.reported_by_me('message', r.id));
+$$;
+
+-- Files: the photos, voice notes and documents of a message you reported.
+create or replace function public.may_read_file(p_name text, p_owner text)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_parts text[] := string_to_array(p_name, '/');
+  v_space uuid;
+  v_id uuid;
+begin
+  if p_owner = auth.uid()::text then
+    return true;
+  end if;
+  if public.is_shown_photo(p_name) then
+    return true;
+  end if;
+  if v_parts[2] in ('chat', 'library') then
+    begin
+      v_space := v_parts[1]::uuid;
+      v_id := v_parts[3]::uuid;
+    exception when invalid_text_representation then
+      return false;
+    end;
+    if v_parts[2] = 'chat' then
+      return exists (
+        select 1 from public.message_attachments a
+        join public.messages m on m.id = a.message_id
+        where a.storage_path = p_name and m.id = v_id and m.space_id = v_space
+          and m.deleted_at is null and public.can_use_thread(m.thread_id)
+          and not public.reported_by_me('message', m.id))
+        -- A document from chat that stays in the Library (for example
+        -- because a work item uses it) after its message was deleted.
+        or exists (
+        select 1 from public.library_files f
+        where f.storage_path = p_name and f.space_id = v_space
+          and public.can_read_library_file(f.id));
+    end if;
+    return exists (
+      select 1 from public.library_files f
+      where f.storage_path = p_name and f.id = v_id and f.space_id = v_space
+        and public.can_read_library_file(f.id));
+  end if;
+  begin
+    v_space := v_parts[1]::uuid;
+    v_id := v_parts[2]::uuid;
+  exception when invalid_text_representation then
+    return false;
+  end;
+  return public.is_member(v_space)
+    and exists (select 1 from public.work_items w
+                where w.id = v_id and w.space_id = v_space);
+end;
+$$;
+
+drop policy message_attachments_read on public.message_attachments;
+create policy message_attachments_read on public.message_attachments
+  for select to authenticated
+  using (exists (select 1 from public.messages m
+                 where m.id = message_id and m.deleted_at is null
+                   and public.can_use_thread(m.thread_id)
+                   and not public.reported_by_me('message', m.id)));
+
+-- The photo cleanup leaves a removed post's photos alone while its appeal
+-- is open, or for 14 days after the removal, so a reversal brings them back.
+create or replace function public.orphan_post_media(p_age interval default interval '7 days')
+returns table (name text)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_name text;
+begin
+  for v_name in
+    select o.name from storage.objects o
+    where o.bucket_id = 'post-media'
+      and ((o.created_at < now() - greatest(p_age, interval '1 day')
+            and not exists (select 1 from public.post_media m where m.storage_path = o.name))
+        or exists (select 1 from public.post_media m
+                   join public.posts po on po.id = m.post_id
+                   where m.storage_path = o.name
+                     and po.deleted_at < now() - interval '30 days'
+                     and not exists (select 1 from public.content_removals c
+                                     where c.target_kind = 'post' and c.target_id = po.id
+                                       and (c.appeal_status = 'open'
+                                            or c.removed_at > now() - interval '14 days'))))
+    order by o.created_at
+  loop
+    perform public.lock_file_path(v_name);
+    -- Checked again under the lock: a post may have just used it.
+    if not exists (select 1 from public.post_media m
+                   join public.posts po on po.id = m.post_id
+                   where m.storage_path = v_name
+                     and (po.deleted_at is null or po.deleted_at >= now() - interval '30 days')) then
+      insert into public.file_cleanup_claims (storage_path) values (v_name)
+      on conflict (storage_path) do nothing;
+      name := v_name;
+      return next;
+    end if;
+  end loop;
+end;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -389,6 +646,12 @@ begin
 
   -- At most 20 a day, counted under a per-person lock.
   perform pg_advisory_xact_lock(hashtextextended('report:' || v_me::text, 0));
+  -- A double tap: the first call may have just made it.
+  select r.id into v_id from public.reports r
+  where r.reporter_id = v_me and r.target_kind = p_kind and r.target_id = p_id;
+  if v_id is not null then
+    return v_id;
+  end if;
   if (select count(*) from public.reports r
       where r.reporter_id = v_me and r.created_at > now() - interval '1 day') >= 20 then
     raise exception 'too many reports today' using errcode = 'P0001';
@@ -414,6 +677,9 @@ declare
 begin
   if v_me is null then
     raise exception 'sign in first' using errcode = '42501';
+  end if;
+  if p_on is null then
+    raise exception 'on or off' using errcode = '22023';
   end if;
   if p_person is null or p_person = v_me then
     raise exception 'you can''t block yourself' using errcode = '22023';
@@ -518,8 +784,13 @@ declare
   v_report public.reports;
   v_author uuid;
   v_body text;
+  v_link uuid;
+  v_files uuid[] := '{}';
   v_removal uuid;
 begin
+  if p_action is null or p_action not in ('remove', 'dismiss') then
+    raise exception 'remove or dismiss' using errcode = '22023';
+  end if;
   select * into v_report from public.reports where id = p_id for update;
   if v_report.id is null then
     raise exception 'no such report' using errcode = 'P0002';
@@ -532,9 +803,6 @@ begin
     where target_kind = v_report.target_kind and target_id = v_report.target_id
       and status = 'open';
     return null;
-  end if;
-  if p_action <> 'remove' then
-    raise exception 'remove or dismiss' using errcode = '22023';
   end if;
   if v_report.target_kind = 'profile' then
     raise exception 'a person is not removed: block, or ask them to leave' using errcode = '22023';
@@ -554,10 +822,20 @@ begin
         update public.post_replies set deleted_at = now(), body = null where id = v_report.target_id;
       end if;
     when 'message' then
-      select author_id, body into v_author, v_body from public.messages
+      -- As delete_message: the Library copy from chat goes too (unless a
+      -- work item uses it). Kept aside, so a reversed appeal restores both.
+      select author_id, body, library_file_id into v_author, v_body, v_link
+      from public.messages
       where id = v_report.target_id and deleted_at is null for update;
       if v_author is not null then
-        update public.messages set deleted_at = now(), body = null where id = v_report.target_id;
+        update public.messages set deleted_at = now(), body = null, library_file_id = null
+        where id = v_report.target_id;
+        select coalesce(array_agg(f.id), '{}') into v_files
+        from public.library_files f
+        where f.source_message_id = v_report.target_id and f.deleted_at is null
+          and not exists (select 1 from public.work_item_attachments a
+                          where a.library_file_id = f.id);
+        update public.library_files set deleted_at = now() where id = any(v_files);
       end if;
   end case;
 
@@ -573,7 +851,8 @@ begin
   values (v_report.target_kind, v_report.target_id, v_author,
           coalesce(p_reason, v_report.reason), v_report.id)
   returning id into v_removal;
-  insert into public.removed_content (removal_id, body) values (v_removal, v_body);
+  insert into public.removed_content (removal_id, body, library_file_id, library_files)
+  values (v_removal, v_body, v_link, v_files);
   perform public.add_notification(v_author, 'content_removed', null,
     p_payload => jsonb_build_object('removal_id', v_removal, 'target_kind', v_report.target_kind));
   return v_removal;
@@ -590,8 +869,12 @@ set search_path = ''
 as $$
 declare
   v_row public.content_removals;
+  v_saved public.removed_content;
   v_body text;
 begin
+  if p_action is null or p_action not in ('uphold', 'reverse') then
+    raise exception 'uphold or reverse' using errcode = '22023';
+  end if;
   select * into v_row from public.content_removals where id = p_removal for update;
   if v_row.id is null then
     raise exception 'no such removal' using errcode = 'P0002';
@@ -599,18 +882,20 @@ begin
   if v_row.appeal_status <> 'open' then
     raise exception 'no open appeal' using errcode = 'P0001';
   end if;
-  if p_action not in ('uphold', 'reverse') then
-    raise exception 'uphold or reverse' using errcode = '22023';
-  end if;
   if p_action = 'reverse' then
-    select body into v_body from public.removed_content where removal_id = p_removal;
+    select * into v_saved from public.removed_content where removal_id = p_removal;
+    v_body := v_saved.body;
     case v_row.target_kind
       when 'post' then
         update public.posts set deleted_at = null, body = v_body where id = v_row.target_id;
       when 'reply' then
         update public.post_replies set deleted_at = null, body = v_body where id = v_row.target_id;
       when 'message' then
-        update public.messages set deleted_at = null, body = v_body where id = v_row.target_id;
+        update public.messages
+        set deleted_at = null, body = v_body, library_file_id = v_saved.library_file_id
+        where id = v_row.target_id;
+        update public.library_files set deleted_at = null, deleted_by = null
+        where id = any(v_saved.library_files);
     end case;
   end if;
   update public.content_removals
@@ -638,15 +923,15 @@ set search_path = ''
 as $$
   select r.id, r.target_kind, r.reason, r.created_at,
          coalesce(
-           (select m.moderation_email from public.markets m
-            join public.profiles a on a.home_market_id = m.id
+           (select m.email from public.market_moderation m
+            join public.profiles a on a.home_market_id = m.market_id
             where a.id = case r.target_kind
               when 'post' then (select author_id from public.posts where id = r.target_id)
               when 'reply' then (select author_id from public.post_replies where id = r.target_id)
               when 'message' then (select author_id from public.messages where id = r.target_id)
               when 'profile' then r.target_id end),
-           (select m.moderation_email from public.markets m
-            join public.profiles rp on rp.home_market_id = m.id
+           (select m.email from public.market_moderation m
+            join public.profiles rp on rp.home_market_id = m.market_id
             where rp.id = r.reporter_id))
   from public.reports r
   where r.id = p_id;
@@ -659,16 +944,18 @@ $$;
 alter table public.reports enable row level security;
 alter table public.content_removals enable row level security;
 alter table public.removed_content enable row level security;
+alter table public.market_moderation enable row level security;
 
 -- Your own removals (R3). Reports and the removed copies: no policy, so
 -- nobody in the app reads them.
 create policy content_removals_read_own on public.content_removals
   for select to authenticated using (author_id = auth.uid());
 
-revoke all on public.reports, public.content_removals, public.removed_content
-  from anon, authenticated;
+revoke all on public.reports, public.content_removals, public.removed_content,
+  public.market_moderation from anon, authenticated;
 grant select on public.content_removals to authenticated;
-grant all on public.reports, public.content_removals, public.removed_content to service_role;
+grant all on public.reports, public.content_removals, public.removed_content,
+  public.market_moderation to service_role;
 
 revoke execute on function
   public.reported_by_me(text, uuid),

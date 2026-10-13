@@ -382,8 +382,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `push-db` and `push` merged into main.
 
 - **13 Oct, week 8 part 1, database** (review 23 §2).
-  - Migration 15 (`20261013120000_safety.sql`) is on `safety-db`, **not live**, for the lead's review: reports (hidden for the reporter at once), removals with a private copy and one appeal within 14 days, `block()` and `my_blocks()`, decisions for the service role only, and `markets.moderation_email`.
-  - `15_safety.test.sql`: 60 checks, 697 in all.
+  - Migration 15 (`20261013120000_safety.sql`) is on `safety-db`, **not live**, for the lead's review: reports (hidden for the reporter at once), removals with a private copy and one appeal within 14 days, `block()` and `my_blocks()`, decisions for the service role only, and the moderation address per market (`market_moderation`, service role only).
+  - `15_safety.test.sql`: 79 checks, 716 in all. Review 24, in place: a removed chat message hides its Library copy (restored on reverse); a reported reply leaves your Activity; the moderation address in a service-role-only table; NULL is never a decision; a double tap returns the same report; feed pages, Home's replies count and a message's files leave out what you reported; the photo cleanup waits for appeals.
   - The `report-alert` Edge Function is written (`supabase/functions/report-alert/`, 2 Node tests), **not deployed**. The alert trigger (`supabase/ops/report_alert_webhook.sql`) is not run. The founder's commands are in `supabase/ops/moderation.sql`.
   - The founder still owes the moderation address for Kuwait (review 23 §6.2); until it is set, no alert is sent.
 
