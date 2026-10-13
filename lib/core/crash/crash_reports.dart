@@ -27,11 +27,13 @@ Future<void> initCrashReports() async {
   await crashlytics.setCrashlyticsCollectionEnabled(kReleaseMode);
   if (!kReleaseMode) return;
 
+  // UI errors (a layout overflow, say) don't close the app: not fatal
+  // (review 31).
   FlutterError.onError = (details) {
     crashlytics.recordError(
       ScrubbedError(crashSummary(details.exception)),
       details.stack,
-      fatal: true,
+      fatal: false,
       printDetails: false,
     );
   };
