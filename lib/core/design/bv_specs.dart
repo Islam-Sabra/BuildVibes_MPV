@@ -399,3 +399,8 @@ abstract final class BvPushSpec {
   /// work, so a person can set them before turning push on.
   static const offOpacity = 0.55;
 }
+
+/// S11 and S14: the message sits in the upper third, as drawn.
+abstract final class BvAccountSpec {
+  static const resultAlignment = Alignment(0, -0.45);
+}

@@ -27,6 +27,13 @@ final kuwait = Market.fromJson({
   'week_start': 0,
   'weekend': [5, 6],
   'needs_review': ['phone_rules'],
+  'support_email': 'help@example.com',
+  'legal': {
+    'terms': {
+      'en': 'https://example.com/terms',
+      'ar': 'https://example.com/ar/terms',
+    },
+  },
 });
 
 final egypt = Market.fromJson({
@@ -145,6 +152,21 @@ class FakeAuthRepository implements AuthRepository {
   @override
   String? get currentPhone => phone;
 
+  /// The signed-in account's email (S10, S13).
+  String? email = 'omar@example.com';
+
+  @override
+  String? get currentEmail => userId == null ? null : email;
+
+  /// S13 codes sent to the signed-in account.
+  final confirmCodes = <String>[];
+
+  @override
+  Future<void> sendConfirmCode(String email) async {
+    if (sendFailure != null) throw AuthFailureException(sendFailure!);
+    confirmCodes.add(email);
+  }
+
   /// The invite code the account was created with.
   String? inviteCode;
 
@@ -207,6 +229,8 @@ class FakeAuthRepository implements AuthRepository {
     if (code != validCode) {
       throw const AuthFailureException(AuthFailure.wrongCode);
     }
+    // Already signed in (S13): the same account, a fresh session.
+    if (userId != null) return;
     _signIn(null);
   }
 

@@ -21,6 +21,7 @@ import '../../shared/widgets/bv_text_field.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
+import '../spaces/former_member.dart';
 
 /// A thread's name: "Everyone" or the Team's.
 String threadName(AppLocalizations l10n, ChatThread t) =>
@@ -116,7 +117,7 @@ class _ThreadRow extends ConsumerWidget {
 
     String? cardLine() {
       if (card == null || cardRef == null) return null;
-      final who = card.authorName?.split(' ').first ?? l10n.workSomeone;
+      final who = personFirstName(l10n, card.authorName);
       return switch (card.eventKind) {
         WorkEventKind.done => l10n.chatLastDone(who, cardRef),
         WorkEventKind.checked => l10n.chatLastChecked(who, cardRef),

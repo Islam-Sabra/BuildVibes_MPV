@@ -35,7 +35,7 @@ class SupabaseProfileRepository implements ProfileRepository {
 
   static const _mine =
       'id, first_name, last_name, locale, trade_id, headline, home_market_id, '
-      'place_id, company_id, company_name_text, '
+      'place_id, company_id, company_name_text, deletion_scheduled_at, '
       'trade:trades(name), company:companies!profiles_company_fk(name)';
 
   static const _person =

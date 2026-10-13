@@ -5767,6 +5767,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restored'**
   String get chipRestored;
+
+  /// S1 header link.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get settingsViewProfile;
+
+  /// S1 section.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR SETTINGS, IN WORDS'**
+  String get settingsInWords;
+
+  /// S1 words row label.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIVACY'**
+  String get settingsPrivacyLabel;
+
+  /// S1 words row label.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTIFICATIONS'**
+  String get settingsNotificationsLabel;
+
+  /// S1 words row label; S8 section.
+  ///
+  /// In en, this message translates to:
+  /// **'LANGUAGE'**
+  String get settingsLanguageLabel;
+
+  /// S1 privacy words: your own count.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 blocked account} other{{n} blocked accounts}}'**
+  String wordsBlocked(int n);
+
+  /// S1 privacy words; {what} is highlighted.
+  ///
+  /// In en, this message translates to:
+  /// **'{what}. Work items, chat and the Library stay inside each Space.'**
+  String wordsPrivacy(String what);
+
+  /// S1 notification words; the three values are highlighted.
+  ///
+  /// In en, this message translates to:
+  /// **'New followers: {followers}. Replies: {replies}. Message text on the lock screen: {lockText}.'**
+  String wordsNotifications(String followers, String replies, String lockText);
+
+  /// S1: a switch that is on.
+  ///
+  /// In en, this message translates to:
+  /// **'on'**
+  String get wordsOn;
+
+  /// S1: a switch that is off.
+  ///
+  /// In en, this message translates to:
+  /// **'off'**
+  String get wordsOff;
+
+  /// S1: message text shown on the lock screen.
+  ///
+  /// In en, this message translates to:
+  /// **'shown'**
+  String get wordsShown;
+
+  /// S1: message text hidden on the lock screen.
+  ///
+  /// In en, this message translates to:
+  /// **'hidden'**
+  String get wordsHidden;
+
+  /// S1 language words, all from the market pack; {language} is highlighted.
+  ///
+  /// In en, this message translates to:
+  /// **'{language}. The week starts on {weekday}, in {country} time.'**
+  String wordsLanguage(String language, String weekday, String country);
+
+  /// S1 language words with no home market.
+  ///
+  /// In en, this message translates to:
+  /// **'{language}.'**
+  String wordsLanguageOnly(String language);
+
+  /// S1 section.
+  ///
+  /// In en, this message translates to:
+  /// **'ACCOUNT'**
+  String get settingsAccountSection;
+
+  /// S1 row, S2 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Account and security'**
+  String get accountSecurity;
+
+  /// S1 row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download my data, delete account'**
+  String get accountSecuritySub;
+
+  /// S1 row, S5 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy and safety'**
+  String get privacySafety;
+
+  /// S1 row, S8 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Language and region'**
+  String get languageRegion;
+
+  /// S1 section.
+  ///
+  /// In en, this message translates to:
+  /// **'SUPPORT'**
+  String get supportSection;
+
+  /// S1 row: writes to the pack support email.
+  ///
+  /// In en, this message translates to:
+  /// **'Help and feedback'**
+  String get helpFeedback;
+
+  /// S1 row.
+  ///
+  /// In en, this message translates to:
+  /// **'About BuildVibes and legal'**
+  String get aboutLegal;
+
+  /// S1 row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms, privacy policy'**
+  String get aboutLegalSub;
+
+  /// About sheet row.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get legalTerms;
+
+  /// About sheet row.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get legalPrivacy;
+
+  /// About sheet when the pack has no links yet.
+  ///
+  /// In en, this message translates to:
+  /// **'These pages are on their way. Write to us with any question.'**
+  String get legalSoon;
+
+  /// A link or email app failed to open.
+  ///
+  /// In en, this message translates to:
+  /// **'This couldn\'t be opened on this phone.'**
+  String get linkFailed;
+
+  /// S15 dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of BuildVibes?'**
+  String get signOutTitle;
+
+  /// S15 dialog: there are no passwords.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll need a code sent to your email to sign in again.'**
+  String get signOutBody;
+
+  /// S2 section.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR DATA'**
+  String get accountYourData;
+
+  /// S2 row, S10 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Download my data'**
+  String get downloadData;
+
+  /// S2 row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We email you a copy within 7 days'**
+  String get downloadDataSub;
+
+  /// S2 section.
+  ///
+  /// In en, this message translates to:
+  /// **'DANGER ZONE'**
+  String get dangerZone;
+
+  /// S2 row, S12 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// S2 row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed after 30 days. You can restore it until then.'**
+  String get deleteAccountSub;
+
+  /// S5 section.
+  ///
+  /// In en, this message translates to:
+  /// **'SAFETY'**
+  String get privacySafetySection;
+
+  /// S5 note.
+  ///
+  /// In en, this message translates to:
+  /// **'Work items, chat and the Library stay inside each Space. Only its members see them.'**
+  String get privacyNote;
+
+  /// S8 English card.
+  ///
+  /// In en, this message translates to:
+  /// **'Left to right'**
+  String get languageEnglishDir;
+
+  /// S8 Arabic card.
+  ///
+  /// In en, this message translates to:
+  /// **'Right to left'**
+  String get languageArabicDir;
+
+  /// S8 section.
+  ///
+  /// In en, this message translates to:
+  /// **'REGION'**
+  String get regionSection;
+
+  /// S8 row and sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get regionCountry;
+
+  /// S8 read-only row, from the pack.
+  ///
+  /// In en, this message translates to:
+  /// **'Week starts on'**
+  String get regionWeekStart;
+
+  /// S8 note.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic switches the whole app to right-to-left. Your posts keep the language they were written in.'**
+  String get regionNote;
+
+  /// S10 heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a copy of your data'**
+  String get downloadHeading;
+
+  /// S10 body.
+  ///
+  /// In en, this message translates to:
+  /// **'We email you a file with everything below, within 7 days.'**
+  String get downloadBody;
+
+  /// S10 section.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT IS INCLUDED'**
+  String get downloadIncluded;
+
+  /// S10 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile and settings'**
+  String get downloadProfile;
+
+  /// S10 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts and replies'**
+  String get downloadPosts;
+
+  /// S10 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages you sent'**
+  String get downloadMessages;
+
+  /// S10 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Your work items and notes'**
+  String get downloadWork;
+
+  /// S10 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Request my data'**
+  String get downloadRequest;
+
+  /// S10 under the button.
+  ///
+  /// In en, this message translates to:
+  /// **'We send it to {email}.'**
+  String downloadFoot(String email);
+
+  /// S11 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Request received'**
+  String get requestReceived;
+
+  /// S11 body.
+  ///
+  /// In en, this message translates to:
+  /// **'We will email {email} within 7 days.'**
+  String requestReceivedBody(String email);
+
+  /// S12 heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you delete'**
+  String get deleteHeading;
+
+  /// S12 body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is hidden right away. You have 30 days to change your mind.'**
+  String get deleteBody;
+
+  /// S12 section.
+  ///
+  /// In en, this message translates to:
+  /// **'WHAT HAPPENS'**
+  String get deleteWhat;
+
+  /// S12 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile, posts and replies are removed'**
+  String get deleteProfile;
+
+  /// S12 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Work and files in a Space stay there'**
+  String get deleteSpaceWork;
+
+  /// S12 row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown as a former member'**
+  String get deleteSpaceWorkSub;
+
+  /// S12 row.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages you sent stay in the Space\'s chat'**
+  String get deleteMessages;
+
+  /// S12 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get deleteContinue;
+
+  /// S12 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep my account'**
+  String get deleteKeep;
+
+  /// S12b heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer ownership first'**
+  String get transferFirst;
+
+  /// S12b body.
+  ///
+  /// In en, this message translates to:
+  /// **'You are the only admin of a Space that has other members. Make someone else its admin before you delete your account.'**
+  String get transferFirstBody;
+
+  /// S12b section.
+  ///
+  /// In en, this message translates to:
+  /// **'ONLY ADMIN'**
+  String get transferOnlyAdmin;
+
+  /// S13 heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get confirmHeading;
+
+  /// S13: an email code, never a password.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code we sent to {email}.'**
+  String confirmBody(String email);
+
+  /// S13 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get deleteMyAccount;
+
+  /// S13 under the button.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account will be removed on {date}. Sign in before then to restore it.'**
+  String deleteFoot(String date);
+
+  /// S14 title.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion scheduled'**
+  String get scheduledTitle;
+
+  /// S14 body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account will be deleted on {date}. Your profile is hidden. Restore it any time before then.'**
+  String scheduledBody(String date);
+
+  /// S14 button.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore my account'**
+  String get restoreAccount;
+
+  /// A Space member whose account is hidden or deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Former member'**
+  String get formerMember;
 }
 
 class _AppLocalizationsDelegate

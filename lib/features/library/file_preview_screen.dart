@@ -26,6 +26,7 @@ import '../chat/chat_tab.dart' show threadName;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
 import 'library_parts.dart';
+import '../spaces/former_member.dart';
 
 /// F1 · Drawing preview, on the dark sheet of a drawing table: the file
 /// (a PDF with pinch-zoom, or a photo), its revision, note, the items that
@@ -99,8 +100,9 @@ class FilePreviewScreen extends ConsumerWidget {
                   ?f.revLabel,
                   if (f.isPdf) 'PDF',
                   fileSize(l10n, f.bytes),
-                  if (f.uploadedByName != null)
-                    l10n.previewFrom(inOwnDirection(f.uploadedByName!)),
+                  l10n.previewFrom(
+                    inOwnDirection(personName(l10n, f.uploadedByName)),
+                  ),
                 ]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

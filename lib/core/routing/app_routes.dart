@@ -10,6 +10,15 @@ abstract final class AppRoutes {
   static const profileSettings = '/profile/settings';
   static const profileNotifications = '/profile/settings/notifications';
   static const profileBlocked = '/profile/settings/blocked';
+  static const profileAccount = '/profile/settings/account';
+  static const profileDownload = '/profile/settings/account/download';
+  static const profileDelete = '/profile/settings/account/delete';
+  static const profileDeleteBlocked =
+      '/profile/settings/account/delete/blocked';
+  static const profileDeleteConfirm =
+      '/profile/settings/account/delete/confirm';
+  static const profilePrivacy = '/profile/settings/privacy';
+  static const profileRegion = '/profile/settings/region';
   static const profileEdit = '/profile/edit';
   static const profileEditBasics = '/profile/edit/basics';
   static const profileEditAbout = '/profile/edit/about';
@@ -76,6 +85,9 @@ abstract final class AppRoutes {
 
   // Entry (signed out)
   static const loading = '/loading';
+
+  /// S14: deletion scheduled. The only screen until restored.
+  static const scheduled = '/scheduled';
   static const welcome = '/welcome';
   static const join = '/join';
   static const joinPhone = '/join/phone';

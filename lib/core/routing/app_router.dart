@@ -26,6 +26,8 @@ import '../../features/profile/edit/experience_screens.dart';
 import '../../features/profile/edit/open_to_screen.dart';
 import '../../features/profile/person_profile_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/account/account_screens.dart';
+import '../../features/account/delete_screens.dart';
 import '../../features/profile/settings_screen.dart';
 import '../../features/safety/blocked_screen.dart';
 import '../../features/safety/removed_screen.dart';
@@ -61,16 +63,19 @@ String? redirectForGate(AppGate gate, String location) {
   final inEntry = under(AppRoutes.welcome) || under(AppRoutes.join);
   final inOnboarding = under(AppRoutes.onboarding);
   final atLoading = location == AppRoutes.loading;
+  final atScheduled = location == AppRoutes.scheduled;
 
   return switch (gate) {
     AppGate.loading ||
     AppGate.profileError => atLoading ? null : AppRoutes.loading,
     AppGate.signedOut => inEntry ? null : AppRoutes.welcome,
+    AppGate.scheduled => atScheduled ? null : AppRoutes.scheduled,
     // Guests browse the tabs and may start joining at any time; people,
     // projects, Spaces and editing need an account.
     AppGate.guest =>
       inOnboarding ||
               atLoading ||
+              atScheduled ||
               under(AppRoutes.people) ||
               under(AppRoutes.projects) ||
               under(AppRoutes.posts) ||
@@ -87,7 +92,7 @@ String? redirectForGate(AppGate gate, String location) {
     // Done with onboarding: step 2 and the role picker (used by Edit
     // profile) stay open; step 1 sends Home.
     AppGate.ready =>
-      inEntry || atLoading || under(AppRoutes.onboardingAbout)
+      inEntry || atLoading || atScheduled || under(AppRoutes.onboardingAbout)
           ? AppRoutes.home
           : null,
   };
@@ -114,6 +119,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.welcome,
         builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.scheduled,
+        builder: (context, state) => const DeletionScheduledScreen(),
       ),
       GoRoute(
         path: AppRoutes.join,
@@ -344,6 +353,45 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'blocked',
                         builder: (context, state) => const BlockedScreen(),
+                      ),
+                      GoRoute(
+                        path: 'privacy',
+                        builder: (context, state) =>
+                            const PrivacySafetyScreen(),
+                      ),
+                      GoRoute(
+                        path: 'region',
+                        builder: (context, state) =>
+                            const LanguageRegionScreen(),
+                      ),
+                      GoRoute(
+                        path: 'account',
+                        builder: (context, state) =>
+                            const AccountSecurityScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'download',
+                            builder: (context, state) =>
+                                const DownloadDataScreen(),
+                          ),
+                          GoRoute(
+                            path: 'delete',
+                            builder: (context, state) =>
+                                const DeleteAccountScreen(),
+                            routes: [
+                              GoRoute(
+                                path: 'blocked',
+                                builder: (context, state) =>
+                                    const DeleteBlockedScreen(),
+                              ),
+                              GoRoute(
+                                path: 'confirm',
+                                builder: (context, state) =>
+                                    const DeleteConfirmScreen(),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       if (kDebugMode)
                         GoRoute(

@@ -23,6 +23,17 @@ String formatMonth(DateTime d, String locale) =>
 String formatDayMonth(DateTime d, String locale) =>
     BvWesternDigitsFormatter.normalise(DateFormat('d MMM', locale).format(d));
 
+/// "3 November 2026" / "3 نوفمبر 2026", with Western digits (S13, S14).
+String formatLongDate(DateTime d, String locale) =>
+    BvWesternDigitsFormatter.normalise(
+      DateFormat('d MMMM y', locale).format(d),
+    );
+
+/// The weekday name for the pack's week start (0 = Sunday … 6 = Saturday).
+String weekdayName(int day, String locale) =>
+    // 1 January 2023 was a Sunday.
+    DateFormat.EEEE(locale).format(DateTime(2023, 1, 1 + day));
+
 /// "18 Oct" / "18 أكتوبر", always with Western digits.
 String formatDay(DateTime d, String locale) =>
     BvWesternDigitsFormatter.normalise(DateFormat.MMMd(locale).format(d));

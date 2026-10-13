@@ -281,6 +281,8 @@ void main() {
       await _tap(tester, 'nav-profile');
       await _tap(tester, 'profile-settings');
       await _tap(tester, 'row-sign-out');
+      // S15 asks first.
+      await _tap(tester, 'bv-dialog-confirm');
       expect(find.text(l10n.entryCreateAccount), findsOneWidget);
     });
   }

@@ -15,6 +15,7 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import 'work_outbox.dart';
+import '../spaces/former_member.dart';
 
 /// W4 · Sign DONE: one or more photos and/or a note. Sent through the
 /// outbox, so a weak signal keeps it on the phone. True when it reached the
@@ -25,7 +26,7 @@ Future<bool?> showSignDoneSheet(BuildContext context, WorkItem item) {
     context: context,
     title: l10n.workSignTitle(ltrRun(item.ref)),
     subtitle: l10n.workSignBody(
-      inOwnDirection((item.createdByName ?? '').split(' ').first),
+      inOwnDirection(personFirstName(l10n, item.createdByName)),
     ),
     builder: (_) => _SignDone(item: item),
   );
@@ -226,7 +227,7 @@ Future<(SendBackReason, String?)?> showSendBackSheet(
   WorkItem item,
 ) {
   final l10n = AppLocalizations.of(context);
-  final owner = (item.ownerName ?? '').split(' ').first;
+  final owner = personFirstName(l10n, item.ownerName);
   return showBvSheet<(SendBackReason, String?)>(
     context: context,
     title: l10n.workSendBackTitle(ltrRun(item.ref), inOwnDirection(owner)),

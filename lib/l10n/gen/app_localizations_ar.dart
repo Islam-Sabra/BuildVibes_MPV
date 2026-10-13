@@ -3442,4 +3442,258 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chipRestored => 'مُعاد';
+
+  @override
+  String get settingsViewProfile => 'عرض الملف';
+
+  @override
+  String get settingsInWords => 'إعداداتك بالكلمات';
+
+  @override
+  String get settingsPrivacyLabel => 'الخصوصية';
+
+  @override
+  String get settingsNotificationsLabel => 'الإشعارات';
+
+  @override
+  String get settingsLanguageLabel => 'اللغة';
+
+  @override
+  String wordsBlocked(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n حسابًا محظورًا',
+      few: '$n حسابات محظورة',
+      two: 'حسابان محظوران',
+      one: 'حساب محظور واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wordsPrivacy(String what) {
+    return '$what. بنود العمل والمحادثة والمكتبة تبقى داخل كل مساحة.';
+  }
+
+  @override
+  String wordsNotifications(String followers, String replies, String lockText) {
+    return 'متابعون جدد: $followers. الردود: $replies. نص الرسائل على شاشة القفل: $lockText.';
+  }
+
+  @override
+  String get wordsOn => 'مفعّلة';
+
+  @override
+  String get wordsOff => 'متوقفة';
+
+  @override
+  String get wordsShown => 'ظاهر';
+
+  @override
+  String get wordsHidden => 'مخفي';
+
+  @override
+  String wordsLanguage(String language, String weekday, String country) {
+    return '$language. يبدأ الأسبوع يوم $weekday، بتوقيت $country.';
+  }
+
+  @override
+  String wordsLanguageOnly(String language) {
+    return '$language.';
+  }
+
+  @override
+  String get settingsAccountSection => 'الحساب';
+
+  @override
+  String get accountSecurity => 'الحساب والأمان';
+
+  @override
+  String get accountSecuritySub => 'تنزيل البيانات، حذف الحساب';
+
+  @override
+  String get privacySafety => 'الخصوصية والأمان';
+
+  @override
+  String get languageRegion => 'اللغة والمنطقة';
+
+  @override
+  String get supportSection => 'الدعم';
+
+  @override
+  String get helpFeedback => 'المساعدة والملاحظات';
+
+  @override
+  String get aboutLegal => 'عن BuildVibes والشروط';
+
+  @override
+  String get aboutLegalSub => 'الشروط وسياسة الخصوصية';
+
+  @override
+  String get legalTerms => 'شروط الاستخدام';
+
+  @override
+  String get legalPrivacy => 'سياسة الخصوصية';
+
+  @override
+  String get legalSoon => 'هذه الصفحات قيد الإعداد. يسعدنا تلقي أي سؤال.';
+
+  @override
+  String get linkFailed => 'تعذّر فتح هذا على الهاتف.';
+
+  @override
+  String get signOutTitle => 'تسجيل الخروج من BuildVibes؟';
+
+  @override
+  String get signOutBody =>
+      'للدخول مرة أخرى يلزم رمز يُرسل إلى البريد الإلكتروني.';
+
+  @override
+  String get accountYourData => 'بياناتك';
+
+  @override
+  String get downloadData => 'تنزيل بياناتي';
+
+  @override
+  String get downloadDataSub => 'نرسل نسخة بالبريد خلال 7 أيام';
+
+  @override
+  String get dangerZone => 'منطقة الخطر';
+
+  @override
+  String get deleteAccount => 'حذف الحساب';
+
+  @override
+  String get deleteAccountSub => 'يُحذف بعد 30 يومًا، ويمكن استعادته قبل ذلك.';
+
+  @override
+  String get privacySafetySection => 'الأمان';
+
+  @override
+  String get privacyNote =>
+      'بنود العمل والمحادثة والمكتبة تبقى داخل كل مساحة، ولا يراها إلا أعضاؤها.';
+
+  @override
+  String get languageEnglishDir => 'من اليسار إلى اليمين';
+
+  @override
+  String get languageArabicDir => 'من اليمين إلى اليسار';
+
+  @override
+  String get regionSection => 'المنطقة';
+
+  @override
+  String get regionCountry => 'الدولة';
+
+  @override
+  String get regionWeekStart => 'بداية الأسبوع';
+
+  @override
+  String get regionNote =>
+      'العربية تجعل التطبيق كله من اليمين إلى اليسار. تبقى المنشورات باللغة التي كُتبت بها.';
+
+  @override
+  String get downloadHeading => 'نسخة من بياناتك';
+
+  @override
+  String get downloadBody => 'نرسل بالبريد ملفًا فيه كل ما يلي، خلال 7 أيام.';
+
+  @override
+  String get downloadIncluded => 'ما يشمله';
+
+  @override
+  String get downloadProfile => 'الملف والإعدادات';
+
+  @override
+  String get downloadPosts => 'المنشورات والردود';
+
+  @override
+  String get downloadMessages => 'الرسائل المرسلة منك';
+
+  @override
+  String get downloadWork => 'بنود العمل والملاحظات الخاصة بك';
+
+  @override
+  String get downloadRequest => 'طلب بياناتي';
+
+  @override
+  String downloadFoot(String email) {
+    return 'نرسلها إلى $email.';
+  }
+
+  @override
+  String get requestReceived => 'وصل الطلب';
+
+  @override
+  String requestReceivedBody(String email) {
+    return 'سنراسل $email خلال 7 أيام.';
+  }
+
+  @override
+  String get deleteHeading => 'قبل الحذف';
+
+  @override
+  String get deleteBody => 'يُخفى الملف فورًا، وتبقى 30 يومًا لتغيير الرأي.';
+
+  @override
+  String get deleteWhat => 'ما الذي يحدث';
+
+  @override
+  String get deleteProfile => 'يُحذف الملف والمنشورات والردود';
+
+  @override
+  String get deleteSpaceWork => 'العمل والملفات في المساحة تبقى فيها';
+
+  @override
+  String get deleteSpaceWorkSub => 'باسم «عضو سابق»';
+
+  @override
+  String get deleteMessages => 'الرسائل المرسلة تبقى في محادثة المساحة';
+
+  @override
+  String get deleteContinue => 'متابعة';
+
+  @override
+  String get deleteKeep => 'إبقاء حسابي';
+
+  @override
+  String get transferFirst => 'نقل الإدارة أولًا';
+
+  @override
+  String get transferFirstBody =>
+      'لا مدير لهذه المساحة غيرك، وفيها أعضاء آخرون. يلزم نقل إدارتها إلى عضو آخر قبل حذف الحساب.';
+
+  @override
+  String get transferOnlyAdmin => 'المدير الوحيد';
+
+  @override
+  String get confirmHeading => 'تأكيد الهوية';
+
+  @override
+  String confirmBody(String email) {
+    return 'يُرجى إدخال الرمز المرسل إلى $email.';
+  }
+
+  @override
+  String get deleteMyAccount => 'حذف حسابي';
+
+  @override
+  String deleteFoot(String date) {
+    return 'سيُحذف الحساب في $date. يمكن استعادته بالدخول قبل ذلك.';
+  }
+
+  @override
+  String get scheduledTitle => 'الحذف مجدول';
+
+  @override
+  String scheduledBody(String date) {
+    return 'سيُحذف الحساب في $date. الملف مخفي الآن، ويمكن استعادته في أي وقت قبل ذلك.';
+  }
+
+  @override
+  String get restoreAccount => 'استعادة حسابي';
+
+  @override
+  String get formerMember => 'عضو سابق';
 }

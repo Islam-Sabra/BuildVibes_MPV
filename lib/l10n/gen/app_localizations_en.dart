@@ -3431,4 +3431,260 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chipRestored => 'Restored';
+
+  @override
+  String get settingsViewProfile => 'View profile';
+
+  @override
+  String get settingsInWords => 'YOUR SETTINGS, IN WORDS';
+
+  @override
+  String get settingsPrivacyLabel => 'PRIVACY';
+
+  @override
+  String get settingsNotificationsLabel => 'NOTIFICATIONS';
+
+  @override
+  String get settingsLanguageLabel => 'LANGUAGE';
+
+  @override
+  String wordsBlocked(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n blocked accounts',
+      one: '1 blocked account',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wordsPrivacy(String what) {
+    return '$what. Work items, chat and the Library stay inside each Space.';
+  }
+
+  @override
+  String wordsNotifications(String followers, String replies, String lockText) {
+    return 'New followers: $followers. Replies: $replies. Message text on the lock screen: $lockText.';
+  }
+
+  @override
+  String get wordsOn => 'on';
+
+  @override
+  String get wordsOff => 'off';
+
+  @override
+  String get wordsShown => 'shown';
+
+  @override
+  String get wordsHidden => 'hidden';
+
+  @override
+  String wordsLanguage(String language, String weekday, String country) {
+    return '$language. The week starts on $weekday, in $country time.';
+  }
+
+  @override
+  String wordsLanguageOnly(String language) {
+    return '$language.';
+  }
+
+  @override
+  String get settingsAccountSection => 'ACCOUNT';
+
+  @override
+  String get accountSecurity => 'Account and security';
+
+  @override
+  String get accountSecuritySub => 'Download my data, delete account';
+
+  @override
+  String get privacySafety => 'Privacy and safety';
+
+  @override
+  String get languageRegion => 'Language and region';
+
+  @override
+  String get supportSection => 'SUPPORT';
+
+  @override
+  String get helpFeedback => 'Help and feedback';
+
+  @override
+  String get aboutLegal => 'About BuildVibes and legal';
+
+  @override
+  String get aboutLegalSub => 'Terms, privacy policy';
+
+  @override
+  String get legalTerms => 'Terms of use';
+
+  @override
+  String get legalPrivacy => 'Privacy policy';
+
+  @override
+  String get legalSoon =>
+      'These pages are on their way. Write to us with any question.';
+
+  @override
+  String get linkFailed => 'This couldn\'t be opened on this phone.';
+
+  @override
+  String get signOutTitle => 'Sign out of BuildVibes?';
+
+  @override
+  String get signOutBody =>
+      'You\'ll need a code sent to your email to sign in again.';
+
+  @override
+  String get accountYourData => 'YOUR DATA';
+
+  @override
+  String get downloadData => 'Download my data';
+
+  @override
+  String get downloadDataSub => 'We email you a copy within 7 days';
+
+  @override
+  String get dangerZone => 'DANGER ZONE';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountSub =>
+      'Removed after 30 days. You can restore it until then.';
+
+  @override
+  String get privacySafetySection => 'SAFETY';
+
+  @override
+  String get privacyNote =>
+      'Work items, chat and the Library stay inside each Space. Only its members see them.';
+
+  @override
+  String get languageEnglishDir => 'Left to right';
+
+  @override
+  String get languageArabicDir => 'Right to left';
+
+  @override
+  String get regionSection => 'REGION';
+
+  @override
+  String get regionCountry => 'Country';
+
+  @override
+  String get regionWeekStart => 'Week starts on';
+
+  @override
+  String get regionNote =>
+      'Arabic switches the whole app to right-to-left. Your posts keep the language they were written in.';
+
+  @override
+  String get downloadHeading => 'Get a copy of your data';
+
+  @override
+  String get downloadBody =>
+      'We email you a file with everything below, within 7 days.';
+
+  @override
+  String get downloadIncluded => 'WHAT IS INCLUDED';
+
+  @override
+  String get downloadProfile => 'Profile and settings';
+
+  @override
+  String get downloadPosts => 'Posts and replies';
+
+  @override
+  String get downloadMessages => 'Messages you sent';
+
+  @override
+  String get downloadWork => 'Your work items and notes';
+
+  @override
+  String get downloadRequest => 'Request my data';
+
+  @override
+  String downloadFoot(String email) {
+    return 'We send it to $email.';
+  }
+
+  @override
+  String get requestReceived => 'Request received';
+
+  @override
+  String requestReceivedBody(String email) {
+    return 'We will email $email within 7 days.';
+  }
+
+  @override
+  String get deleteHeading => 'Before you delete';
+
+  @override
+  String get deleteBody =>
+      'Your profile is hidden right away. You have 30 days to change your mind.';
+
+  @override
+  String get deleteWhat => 'WHAT HAPPENS';
+
+  @override
+  String get deleteProfile => 'Profile, posts and replies are removed';
+
+  @override
+  String get deleteSpaceWork => 'Work and files in a Space stay there';
+
+  @override
+  String get deleteSpaceWorkSub => 'Shown as a former member';
+
+  @override
+  String get deleteMessages => 'Messages you sent stay in the Space\'s chat';
+
+  @override
+  String get deleteContinue => 'Continue';
+
+  @override
+  String get deleteKeep => 'Keep my account';
+
+  @override
+  String get transferFirst => 'Transfer ownership first';
+
+  @override
+  String get transferFirstBody =>
+      'You are the only admin of a Space that has other members. Make someone else its admin before you delete your account.';
+
+  @override
+  String get transferOnlyAdmin => 'ONLY ADMIN';
+
+  @override
+  String get confirmHeading => 'Confirm it\'s you';
+
+  @override
+  String confirmBody(String email) {
+    return 'Enter the code we sent to $email.';
+  }
+
+  @override
+  String get deleteMyAccount => 'Delete my account';
+
+  @override
+  String deleteFoot(String date) {
+    return 'Your account will be removed on $date. Sign in before then to restore it.';
+  }
+
+  @override
+  String get scheduledTitle => 'Deletion scheduled';
+
+  @override
+  String scheduledBody(String date) {
+    return 'Your account will be deleted on $date. Your profile is hidden. Restore it any time before then.';
+  }
+
+  @override
+  String get restoreAccount => 'Restore my account';
+
+  @override
+  String get formerMember => 'Former member';
 }

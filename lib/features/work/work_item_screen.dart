@@ -31,6 +31,7 @@ import '../spaces/space_errors.dart';
 import 'attach_files.dart';
 import 'work_actions.dart';
 import 'work_outbox.dart';
+import '../spaces/former_member.dart';
 
 /// W3a–g · the item page: the site tag, the banner for this state and
 /// your role, evidence, the sign-off strip, Discussion, and your action.
@@ -150,7 +151,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
       _refresh();
       _toast(
         l10n.workSentBack(
-          inOwnDirection((item.ownerName ?? '').split(' ').first),
+          inOwnDirection(personFirstName(l10n, item.ownerName)),
         ),
       );
     } on SpaceException catch (e) {
@@ -226,7 +227,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
     }
 
     String who(String? id, String? name) =>
-        id != null && id == me ? l10n.spacesYouTag : (name ?? '—');
+        id != null && id == me ? l10n.spacesYouTag : personName(l10n, name);
 
     final appBar = AppBar(
       centerTitle: true,
@@ -279,7 +280,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
     final toSign = needs.toSign.contains(item.id);
     final toCheck = needs.toCheck.contains(item.id);
     final ownerLeft = needs.toReassign.contains(item.id);
-    String first(String? name) => (name ?? '').split(' ').first;
+    String first(String? name) => personFirstName(l10n, name);
 
     // The banner for this state and your role (W3a–g).
     Widget? banner;
@@ -322,7 +323,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
           : item.ownerId == me
           ? _Banner(
               title: l10n.workWaitingCheckBy(
-                inOwnDirection(item.createdByName ?? ''),
+                inOwnDirection(personName(l10n, item.createdByName)),
               ),
               body: l10n.workWaitingCheckBody,
             )
@@ -333,7 +334,9 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
         tone: _BannerTone.positive,
         title: closedByYou
             ? l10n.workClosed
-            : l10n.workClosedBy(inOwnDirection(item.checkedByName ?? '')),
+            : l10n.workClosedBy(
+                inOwnDirection(personName(l10n, item.checkedByName)),
+              ),
         body: closedByYou && item.ownerId != me
             ? l10n.workClosedCanShow(inOwnDirection(first(item.ownerName)))
             : l10n.workClosedStays,
@@ -430,7 +433,9 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
                       ar
                           ? stampDay(item.checkedAt!)
                           : stampDay(item.checkedAt!).toUpperCase(),
-                      ar
+                      item.checkedByName == null
+                          ? l10n.formerMember
+                          : ar
                           ? _short(item.checkedByName)
                           : _short(item.checkedByName).toUpperCase(),
                     )
@@ -532,8 +537,8 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
                 if (c.kind == WorkEventKind.reassigned)
                   Text(
                     l10n.workReassignedLine(
-                      c.fromName ?? l10n.workSomeone,
-                      c.toName ?? l10n.workSomeone,
+                      personName(l10n, c.fromName),
+                      personName(l10n, c.toName),
                     ),
                     key: Key('work-reassigned-${c.id}'),
                     style: type.bodySm.copyWith(color: BvColors.textSecondary),

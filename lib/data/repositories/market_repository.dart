@@ -18,7 +18,7 @@ class MarketRepository {
         .select(
           'id, status, name, default_locale, dial_code, phone_rules, '
           'code_channel, currency, currency_decimals, week_start, weekend, '
-          'needs_review',
+          'needs_review, support_email, legal',
         )
         // Ascending: the client's default is descending.
         .order('sort', ascending: true);
