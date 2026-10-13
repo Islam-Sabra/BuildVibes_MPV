@@ -5175,5 +5175,42 @@
   "formerMember": "Former member",
   "@formerMember": {
     "description": "A Space member whose account is hidden or deleted."
+  },
+  "translate": "Translate",
+  "@translate": {
+    "description": "L1, L3: under a post in the other language."
+  },
+  "translating": "Translating…",
+  "@translating": {
+    "description": "While the translation loads."
+  },
+  "translatedFrom": "Translated from {language}",
+  "@translatedFrom": {
+    "description": "L2, L4.",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "languageNameEnglish": "English",
+  "@languageNameEnglish": {
+    "description": "A language named in a sentence (Translated from …)."
+  },
+  "languageNameArabic": "Arabic",
+  "@languageNameArabic": {
+    "description": "A language named in a sentence (Translated from …)."
+  },
+  "showOriginal": "Show original",
+  "@showOriginal": {
+    "description": "L2, L4."
+  },
+  "translateFailed": "Couldn't translate. Try again.",
+  "@translateFailed": {
+    "description": "The original stays."
+  },
+  "translateLimit": "That's today's translations. Try again tomorrow.",
+  "@translateLimit": {
+    "description": "After 100 new translations in a day."
   }
 }

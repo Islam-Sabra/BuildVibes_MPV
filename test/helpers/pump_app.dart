@@ -10,6 +10,7 @@ import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/safety_repository.dart';
+import 'package:buildvibes/data/repositories/translate_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
@@ -42,6 +43,7 @@ import 'library_fakes.dart';
 import 'post_fakes.dart';
 import 'push_fakes.dart';
 import 'safety_fakes.dart';
+import 'translate_fakes.dart';
 import 'voice_fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
@@ -94,6 +96,7 @@ class TestApp {
     required this.safety,
     required this.account,
     required this.opened,
+    required this.translate,
   });
 
   final SharedPreferences prefs;
@@ -122,6 +125,9 @@ class TestApp {
 
   /// Links and email addresses opened with the phone.
   final List<Uri> opened;
+
+  /// Translate calls (L1–L4).
+  final FakeTranslateRepository translate;
 
   /// Files saved with Download, and shared through the phone (F1).
   final List<String> saved;
@@ -155,6 +161,7 @@ Future<TestApp> pumpApp(
   FakePushMessaging? push,
   FakeSafetyRepository? safety,
   FakeAccountRepository? account,
+  FakeTranslateRepository? translate,
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
@@ -204,6 +211,7 @@ Future<TestApp> pumpApp(
   final fakeAccount = (account ?? FakeAccountRepository())
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
+  final fakeTranslate = translate ?? FakeTranslateRepository();
   final saved = <String>[];
   final sharedFiles = <String>[];
 
@@ -233,6 +241,7 @@ Future<TestApp> pumpApp(
         pushRepositoryProvider.overrideWithValue(fakePushes),
         safetyRepositoryProvider.overrideWithValue(fakeSafety),
         accountRepositoryProvider.overrideWithValue(fakeAccount),
+        translateRepositoryProvider.overrideWithValue(fakeTranslate),
         openLinkProvider.overrideWithValue((uri) async {
           opened.add(uri);
           return true;
@@ -307,6 +316,7 @@ Future<TestApp> pumpApp(
     safety: fakeSafety,
     account: fakeAccount,
     opened: opened,
+    translate: fakeTranslate,
   );
 }
 

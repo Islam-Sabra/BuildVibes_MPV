@@ -6211,6 +6211,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Former member'**
   String get formerMember;
+
+  /// L1, L3: under a post in the other language.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get translate;
+
+  /// While the translation loads.
+  ///
+  /// In en, this message translates to:
+  /// **'Translating…'**
+  String get translating;
+
+  /// L2, L4.
+  ///
+  /// In en, this message translates to:
+  /// **'Translated from {language}'**
+  String translatedFrom(String language);
+
+  /// A language named in a sentence (Translated from …).
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageNameEnglish;
+
+  /// A language named in a sentence (Translated from …).
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get languageNameArabic;
+
+  /// L2, L4.
+  ///
+  /// In en, this message translates to:
+  /// **'Show original'**
+  String get showOriginal;
+
+  /// The original stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t translate. Try again.'**
+  String get translateFailed;
+
+  /// After 100 new translations in a day.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s today\'s translations. Try again tomorrow.'**
+  String get translateLimit;
 }
 
 class _AppLocalizationsDelegate

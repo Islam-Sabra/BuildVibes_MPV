@@ -24,6 +24,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
 import 'feed_state.dart';
+import 'post_translate.dart';
 
 /// How a card shows its project tag: the strip on top (H1 Feed), a chip
 /// under the author (profile, post detail), or nothing (the project's own
@@ -161,15 +162,7 @@ class PostCard extends ConsumerWidget {
                       padding: const EdgeInsetsDirectional.only(
                         end: BvSpace.s12,
                       ),
-                      child: Text(
-                        post.body!,
-                        // In the language it was written in.
-                        textDirection: post.lang == 'ar'
-                            ? TextDirection.rtl
-                            : TextDirection.ltr,
-                        textAlign: TextAlign.start,
-                        style: type.bodyMd,
-                      ),
+                      child: PostBody(post: post),
                     ),
                 ],
               ),

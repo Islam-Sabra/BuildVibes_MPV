@@ -1018,5 +1018,13 @@
   "scheduledTitle": "الحذف مجدول",
   "scheduledBody": "سيُحذف الحساب في {date}. الملف مخفي الآن، ويمكن استعادته في أي وقت قبل ذلك.",
   "restoreAccount": "استعادة حسابي",
-  "formerMember": "عضو سابق"
+  "formerMember": "عضو سابق",
+  "translate": "ترجمة",
+  "translating": "جارٍ الترجمة…",
+  "translatedFrom": "مترجم من {language}",
+  "languageNameEnglish": "الإنجليزية",
+  "languageNameArabic": "العربية",
+  "showOriginal": "عرض الأصل",
+  "translateFailed": "تعذّرت الترجمة. يُرجى المحاولة مرة أخرى.",
+  "translateLimit": "انتهى حد الترجمة لهذا اليوم. يمكن المحاولة غدًا."
 }

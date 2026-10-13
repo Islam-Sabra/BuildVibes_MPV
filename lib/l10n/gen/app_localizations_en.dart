@@ -3687,4 +3687,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formerMember => 'Former member';
+
+  @override
+  String get translate => 'Translate';
+
+  @override
+  String get translating => 'Translating…';
+
+  @override
+  String translatedFrom(String language) {
+    return 'Translated from $language';
+  }
+
+  @override
+  String get languageNameEnglish => 'English';
+
+  @override
+  String get languageNameArabic => 'Arabic';
+
+  @override
+  String get showOriginal => 'Show original';
+
+  @override
+  String get translateFailed => 'Couldn\'t translate. Try again.';
+
+  @override
+  String get translateLimit =>
+      'That\'s today\'s translations. Try again tomorrow.';
 }

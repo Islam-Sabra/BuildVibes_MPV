@@ -461,3 +461,8 @@ verify_jwt = false
 # shared secret, not by a signed-in user.
 [functions.account-purge]
 verify_jwt = false
+
+# Translate on posts (week 8 part 3). Called by signed-in people: the
+# post is read with their own token.
+[functions.translate]
+verify_jwt = true
