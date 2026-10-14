@@ -13,6 +13,7 @@ import '../../data/models/work_item.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
+import '../entry/entry_state.dart';
 
 /// A photo waiting to be sent: a copy kept on the phone ([local]) and,
 /// once uploaded, its path in the Space ([remote]).
@@ -201,12 +202,21 @@ final workOutboxProvider = NotifierProvider<WorkOutbox, List<PendingItem>>(
 );
 
 /// New items waiting to be sent, kept on the phone between app starts.
+/// Each account has its own: on a phone a crew shares, the next person
+/// never sees (or sends) someone else's unsent work.
 class WorkOutbox extends Notifier<List<PendingItem>> {
-  static const _key = 'work_outbox';
+  /// Before accounts had their own; whose items they were is unknown.
+  static const _sharedKey = 'work_outbox';
+
+  String? _key;
 
   @override
   List<PendingItem> build() {
-    final raw = ref.watch(sharedPreferencesProvider).getString(_key);
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final userId = ref.watch(authUserIdProvider).value;
+    if (prefs.containsKey(_sharedKey)) unawaited(prefs.remove(_sharedKey));
+    _key = userId == null ? null : 'work_outbox:$userId';
+    final raw = _key == null ? null : prefs.getString(_key!);
     if (raw == null) return const [];
     try {
       return [
@@ -220,9 +230,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 
   Future<void> _save(List<PendingItem> items) async {
     state = items;
+    final key = _key;
+    if (key == null) return;
     await ref
         .read(sharedPreferencesProvider)
-        .setString(_key, jsonEncode([for (final i in items) i.toJson()]));
+        .setString(key, jsonEncode([for (final i in items) i.toJson()]));
   }
 
   Future<void> _put(PendingItem item) => _save([
