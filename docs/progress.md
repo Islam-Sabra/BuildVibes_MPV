@@ -473,7 +473,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `integration_test/main_journey_test.dart` drives the real app on an emulator against the **local** database: Rakesh signs in and asks to join "E2E site" with its code; Omar confirms him as Crew and gives him a work item; Rakesh signs it as done with a photo, writes in chat and posts; Omar checks and closes it. Only the camera and the push prompt are stood in for.
   - `integration_test/run_e2e.ps1` refuses anything but the local stack, resets and seeds it (`supabase/dev/seed_e2e.sql`), waits for the sign-in service, runs the test, then checks the database (Crew pass, item checked with 3 steps, 1 photo, the message, the post). Passed three runs in a row, about 2½ minutes each, on its own emulator `Pixel_8_E2E` (the founder's two emulators keep the release app).
   - It found two bugs, both fixed with tests: unsent work items were shared by every account on a phone; and signing out on a lost connection threw an error. A third (phone sign-in before the market list loads) is noted for after the pilot. See `docs/test/week9-findings.md`.
-  - 592 Flutter tests.
+  - 590 Flutter tests (2 new).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
