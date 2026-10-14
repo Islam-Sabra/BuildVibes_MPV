@@ -174,7 +174,16 @@ class SupabaseAuthRepository implements AuthRepository {
   );
 
   @override
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+    } on AuthRetryableFetchException {
+      // The phone is already signed out (the session is removed before the
+      // server is told). With no connection the server's copy just expires.
+    } on SocketException {
+      // The same, when the connection drops before Supabase wraps it.
+    }
+  }
 
   Future<void> _guard(
     Future<Object?> Function() run, {
