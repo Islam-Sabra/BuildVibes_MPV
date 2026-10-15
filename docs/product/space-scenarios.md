@@ -48,6 +48,7 @@ Rules for these screens: `daybook.md`.
 | | Put a note in a Space | `2557:35481` |
 | | My calendar (all Spaces and my to-dos) | `2557:35587` |
 | Messages and Space info | Messages list, with a message request | `2560:35524` |
+| | A message request from someone new | `2571:35584` |
 | | A thread between two people | `2561:35447` |
 | | Hold a message: Reply, Copy, Put in a Space, Save to my notebook, Report | `2561:35808` |
 | | Put a message in a Space, then it opens as a work item being written, quoting the message | `2561:35916` → `2561:76753` |
@@ -61,7 +62,12 @@ Photos and the drawing in the prototype are AI-generated placeholders.
 
 ## Direct messages and Space info (15 Oct)
 - **Messages** open from the chat icon in the Home app bar; the list-checks icon opens My notebook.
-- **Who can message whom:** people who share a Space, or follow each other, message directly. Anyone else arrives as a **message request** at the top of the list (open it to reply, or decline). Founder decision F10 (recommended).
+- **Who can message whom (founder decision F10, 15 Oct): we manage, we don't block.** Anyone can message anyone, as many messages as they like, with photos and files.
+  - Messages from someone with no work link to you (no shared Space, not following each other) sit in a **Message requests** row at the top of the list. Your team's chats stay on top; nothing is hidden or dropped.
+  - The thread shows a strip: "Not in your Spaces" · Report · Block. Replying turns it into a normal thread. Declining removes it quietly; the sender is not told.
+  - Photos and files from someone new open with one tap ("Tap to show"), never on their own.
+  - One push per new person, not one per message.
+  - **Spam guard (server):** an account that keeps messaging new people who never reply gets a warning, then a pause. The limit is a server setting, so it can change after the pilot without a new app version. Same idea as WhatsApp's limit on unanswered messages.
 - A thread shows which Space you share ("Both in Kuwait City Tower — Site team"), never a count.
 - **Hold a message:** Reply, Copy, Put in a Space, Save to my notebook, Report. Block is under ⋯ in the thread header.
 - **Put in a Space:** pick the Space; its daybook opens with a work item being written, the message quoted inside. Nothing is posted until Post.
