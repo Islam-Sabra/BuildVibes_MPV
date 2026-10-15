@@ -24,6 +24,8 @@ test("every kind has its text in English and Arabic", () => {
     "item_assigned", "item_done", "item_checked", "item_sent_back",
     "item_comment", "join_request", "join_confirmed", "role_confirmed",
     "follow", "post_reply", "chat_message",
+    "item_edited", "item_cancelled", "announcement_new", "checklist_for_you",
+    "activity_invited", "activity_starting", "file_new_version",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -38,6 +40,23 @@ test("the text names the person, never the work item; ids go in data", () => {
   assert.equal(p.body, "⁨Sara Al-Mutairi⁩ gave you a work item.");
   assert.equal(p.data.route, "/spaces/s1/items/i1");
   assert.equal(p.data.work_item_id, "i1");
+});
+
+test("a daybook post opens its Space; its id travels in the data", () => {
+  for (const kind of ["announcement_new", "checklist_for_you", "activity_invited",
+                      "activity_starting", "file_new_version"]) {
+    const p = buildPush(row(kind, { data: { space_id: "s1", space_post_id: "sp1" } }),
+                        "en", "Sara Ali", strings);
+    assert.equal(p.data.route, "/spaces/s1", kind);
+    assert.equal(p.data.space_post_id, "sp1");
+  }
+  // An edit to a work item still opens the item.
+  assert.equal(buildPush(row("item_edited"), "en", "Sara Ali", strings).data.route,
+               "/spaces/s1/items/i1");
+  // The reminder names nobody.
+  assert.equal(
+    buildPush(row("activity_starting", { actor_id: null }), "en", null, strings).body,
+    "A scheduled activity you are in starts in 30 minutes.");
 });
 
 test("Arabic text with the name kept in its own direction", () => {
