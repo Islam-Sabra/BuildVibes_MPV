@@ -201,5 +201,12 @@ Also in slice 1: Home H1 v3 and profile R1 v4 restyled in Daybook (no server cha
 
 **Out (don't build, even partly):** export a work item's record as PDF, approval codes, repeating work items, Translate, and the rest of the review 32 list.
 
+## Clarifications (15 Oct, after Claude Code's questions)
+1. **`edit_post`** changes title, text, place and due date. Changing the owner stays with `reassign_work_item` (it records "Given to … instead of …"). Agreed. Also include in edits, so the Daybook's "author edits files and points" holds:
+   - migration 18: adding and removing the post's own files (`post_files`), while editable, recorded in `post_edits`;
+   - migration 19: adding, rewording, reordering and removing checklist points (a ticked point can't be removed or reworded).
+2. **"Something added by someone else"** (ends Delete): any update, sign-off or event by another person, or **any** child work item (whoever made it, since its owner was already told). Events by the author alone (raised, reassigned, edits) don't count. Migration 19 adds: any tick, and any acknowledgement (Got it, Received, On my way, In my calendar) by another person.
+3. **Team posts** are visible only to that Team and the Space admins, as work items are today. Agreed; the same applies to `daybook_page`, `post_page`, `week_report`, `search_space` and `my_calendar`.
+
 ## Start now
 Begin migration 18 on branch `daybook-db` with `/effort ultracode`. Report the hash and test counts when it's pushed.
