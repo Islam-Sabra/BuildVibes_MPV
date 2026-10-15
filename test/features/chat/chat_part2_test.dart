@@ -46,7 +46,6 @@ FakeSpaceRepository _spaces({bool addFiles = true}) =>
         iAmAdmin: addFiles,
         myRights: MemberRights(
           createItems: addFiles,
-          checkItems: addFiles,
           addFiles: addFiles,
         ),
       )

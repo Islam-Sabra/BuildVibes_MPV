@@ -5,7 +5,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(28);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000010b1', 'authenticated', 'authenticated', 'omar10@example.com', '{"home_market_id": "kw"}'),
@@ -58,10 +58,11 @@ select pg_temp.as_user('b1');
 set local role authenticated;
 select public.create_work_item(pg_temp.space(), 'Seal the riser', pg_temp.uid('b2'),
   null, null, null, '[]', pg_temp.item('e001'));
+select pg_temp.as_user('b3');
+-- Sara (Lead) raises this one, so she is its author and checks it in part 5.
 -- Raised now; its loose photo (part 4) comes later.
 select public.create_work_item(pg_temp.space(), 'Patch the slab edge', pg_temp.uid('b2'),
   null, null, null, '[]', pg_temp.item('e011'));
-select pg_temp.as_user('b3');
 -- In Sara's own Space, Omar is no member: nothing there may reach him.
 select public.create_work_item(current_setting('test.other')::uuid, 'File the permit',
   pg_temp.uid('b3'), null, null, null, '[]', pg_temp.item('e002'));
@@ -84,7 +85,9 @@ select is((select needs_you from public.my_spaces()
            where space_id = current_setting('test.other')::uuid),
   1, 'and Sara''s own Space counts her item');
 select is((select needs_you from public.my_spaces() where space_id = pg_temp.space()),
-  1, 'Sara may check, so the Site team counts it for her too');
+  0, 'only the author checks: Sara (Lead, not the author) is not counted for Omar''s item');
+select throws_ok(format($$select public.check_item(%L)$$, pg_temp.item('e001')),
+  '42501', null, 'a Lead who is not the author cannot check the item');
 reset role;
 
 -- 2. Upload totals --------------------------------------------------------------------------

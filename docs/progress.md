@@ -482,6 +482,25 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The plan to 1 February (`docs/product/mvp-plan.md`, "Plan to 1 February") replaces review 30 §8's dates (first closed-test review and first TestFlight by 1 Dec; nothing after 20 Dec). Safety line: any slice not started by 15 Dec moves to after the pilot.
   - The founder keeps testing 0.9.0 (1); the emulators and the live app stay as they are.
 
+- **15 Oct, migration 18, the daybook core** (review 33 A0 and A1, branch `daybook-db`; **not live**, pushing it needs the founder's yes and must list only `20261015120000_daybook.sql`):
+  - The rule changes in A0: Crew post work; only the author checks or sends back (a Space admin when the author is gone or owns the item); only the author edits, deletes or cancels; Viewers can't add updates; no new work item cards in chat; `not_as_drawing` renamed to `not_as_asked`.
+  - New tables `space_posts` (every existing work item backfilled with the same id), `post_edits` (append-only) and `post_files`; the functions `edit_space_post`, `delete_space_post`, `cancel_space_post`, `daybook_page`, `post_page`; `needs_you()` rewritten. Drafts stay on the phone. Team posts are seen only by the Team, the admins, the author and the owner, and that now covers the old work item tables too.
+  - An independent review found 9 real problems; all fixed with tests (a deleted Team turned its posts into Everyone posts; an author lowered to Viewer could still edit; a Viewer could be given posting; an author waiting for account deletion froze their items; Cancel and Check at the same moment; paging skipped posts made at the same moment; the dev seed; weak tests).
+  - The app: the reason rename and the retired "Check and close items" right (S17k row, Reassign for the author only). `docs/product/data-model.md` §5, §6, §7, §10, §13 and a new §14.
+  - 971 SQL checks in 18 files, 590 Flutter tests.
+  - **What changes for testers on 0.9.0 (1) when this goes live:**
+    - Send back with "Not as per drawing" still works (the old name is accepted and stored as "Not as asked"; remove that once 0.9.0 is retired).
+    - A Lead or admin who didn't write an item no longer sees Check or Send back on it, and it leaves their Needs you. Only its author checks it. An admin checks it when the author has left the Space or is deleting their account, or when the author gave the work to themselves.
+    - Crew now see "New work item" and can raise work.
+    - A Viewer who writes an update gets the "not allowed" message (the 0.9.0 field is still shown to them).
+    - Reassign shows only to the item's author (the admins and Leads who had it through "Check and close items" lose it).
+    - On a member's pass (S17k), the "Check and close items" row is always off; switching it does nothing after a refresh.
+    - Raising, signing done, checking and sending back post no new card in chat; old cards stay.
+    - Team work items disappear from the Work tab, Today and Activity of members outside that Team (admins, the author and the owner still see them).
+    - An admin can't delete a Team that has work items; rename it instead.
+    - Unchanged: raising (same fields), signing as done, photos, comments by the owner, Leads and Crew, Library, chat, feed and push.
+  - **Review 34 applied (15 Oct):** only the author (or an admin acting for them) adds a work item under one (D1); an author lowered to Viewer or with posting switched off counts as gone, so the admin checks, sends back, reassigns and cancels for them (D2); a sole admin's work for themselves is checked by a Lead (D3); an old chat card for an item the reader can't see is a plain "Work item" line (L1). 988 SQL checks, 592 Flutter tests.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

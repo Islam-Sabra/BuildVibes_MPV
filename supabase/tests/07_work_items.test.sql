@@ -1,14 +1,15 @@
 -- Migration 7: work items. Run with: supabase test db
 --
 -- Omar (o1) runs the Space (admin, Lead) and raises the items. Rakesh (r2)
--- is Crew and owns them. Sara (s3) is Lead with the check right. Nadia (n4)
--- is a Viewer. Eve (e5) is not a member.
+-- is Crew and owns them. Sara (s3) is a Lead who is not their author, so she
+-- can't check them (migration 18: only the author checks). Nadia (n4) is a
+-- Viewer. Eve (e5) is not a member.
 -- Review 09 checks are marked "(r09)": each attack is refused and the
 -- normal path still works.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(97);
+select plan(110);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000007a1', 'authenticated', 'authenticated', 'omar7@example.com', '{"home_market_id": "kw"}'),
@@ -18,6 +19,8 @@ insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000007a5', 'authenticated', 'authenticated', 'eve7@example.com', '{"home_market_id": "kw"}');
 update public.profiles set first_name = 'Sara', last_name = 'Ali'
 where id = '00000000-0000-0000-0000-0000000007a3';
+update public.profiles set first_name = 'Omar', last_name = 'Saleh'
+where id = '00000000-0000-0000-0000-0000000007a1';
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
   select set_config('request.jwt.claims',
@@ -121,12 +124,22 @@ select throws_ok(
 select throws_ok(
   $$select public.create_work_item(current_setting('test.space')::uuid, 'X',
       '00000000-0000-0000-0000-0000000007a2')$$,
-  '23514', null, 'a title needs at least two letters');
-select pg_temp.as_user('a2');
+  '22023', null, 'a title needs at least two letters');
 select throws_ok(
-  $$select public.create_work_item(current_setting('test.space')::uuid, 'Crew item',
+  $$select public.create_work_item(current_setting('test.space')::uuid, repeat('x', 141),
       '00000000-0000-0000-0000-0000000007a2')$$,
-  '42501', null, 'Crew cannot raise items by default');
+  '22023', null, 'a title has at most 140 characters');
+-- Crew raise work by default (migration 18); here Rakesh gives one to Sara.
+select pg_temp.as_user('a2');
+select lives_ok(
+  $$select public.create_work_item(current_setting('test.space')::uuid, 'Crew item',
+      '00000000-0000-0000-0000-0000000007a3')$$,
+  'Crew raise items by default');
+select pg_temp.as_user('a4');
+select throws_ok(
+  $$select public.create_work_item(current_setting('test.space')::uuid, 'Viewer item',
+      '00000000-0000-0000-0000-0000000007a2')$$,
+  '42501', null, 'a Viewer never raises items');
 select pg_temp.as_user('a5');
 select throws_ok(
   $$select public.create_work_item(current_setting('test.space')::uuid, 'Eve item',
@@ -153,9 +166,31 @@ select lives_ok(
   $$insert into storage.objects (bucket_id, name, owner_id)
     values ('space-files', pg_temp.path('c001', 'leftover.jpg'), '00000000-0000-0000-0000-0000000007a2')$$,
   '(r09) the owner uploads into their item''s folder');
+select lives_ok(
+  $$insert into storage.objects (bucket_id, name, owner_id)
+    values ('space-files', pg_temp.path('c00b', 'crew.jpg'), '00000000-0000-0000-0000-0000000007a2')$$,
+  'Crew who can raise items upload for an item not made yet');
+-- The admin switches create_items off for Rakesh alone.
+select pg_temp.as_user('a1');
+select lives_ok(
+  $$select public.set_member_pass(current_setting('test.space')::uuid,
+      '00000000-0000-0000-0000-0000000007a2', 'crew', '{"create_items": false}')$$,
+  'an admin switches raising off for one Crew member');
+select is(public.member_rights(current_setting('test.space')::uuid, '00000000-0000-0000-0000-0000000007a2'),
+  '{"create_items": false, "add_files": true, "invite": false, "mark_done": true, "is_custom": true}'::jsonb,
+  'the pass is now Custom, without create_items');
+select pg_temp.as_user('a2');
 select throws_ok(
-  $$insert into storage.objects (bucket_id, name) values ('space-files', pg_temp.path('c00b', 'crew.jpg'))$$,
-  '42501', null, '(r09) Crew cannot upload for an item that doesn''t exist');
+  $$select public.create_work_item(current_setting('test.space')::uuid, 'Crew item 2',
+      '00000000-0000-0000-0000-0000000007a3')$$,
+  '42501', null, 'Crew with raising switched off cannot raise');
+select throws_ok(
+  $$insert into storage.objects (bucket_id, name) values ('space-files', pg_temp.path('c00d', 'crew.jpg'))$$,
+  '42501', null, '(r09) Crew who cannot raise cannot upload for an item that doesn''t exist');
+select pg_temp.as_user('a1');
+select public.set_member_pass(current_setting('test.space')::uuid,
+  '00000000-0000-0000-0000-0000000007a2', 'crew');
+select pg_temp.as_user('a2');
 select pg_temp.as_user('a5');
 select throws_ok(
   $$insert into storage.objects (bucket_id, name) values ('space-files', pg_temp.path('c001', 'eve.jpg'))$$,
@@ -167,7 +202,7 @@ select is((select count(*) from public.work_items), 0::bigint, 'a non-member rea
 select is((select count(*) from public.work_item_events), 0::bigint, 'a non-member reads no events');
 select is((select count(*) from public.work_item_evidence), 0::bigint, 'a non-member reads no evidence');
 select pg_temp.as_user('a4');
-select is((select count(*) from public.work_items), 2::bigint, 'a Viewer in the Space reads its items');
+select is((select count(*) from public.work_items), 3::bigint, 'a Viewer in the Space reads its items');
 select throws_ok(
   $$insert into public.work_items (space_id, number, ref, title)
     values (current_setting('test.space')::uuid, 99, 'KCT-099', 'Sneaky')$$,
@@ -201,7 +236,14 @@ select throws_ok($$select public.check_item(pg_temp.item('c001'))$$,
   '42501', null, 'the owner cannot check their own item');
 select pg_temp.as_user('a4');
 select throws_ok($$select public.check_item(pg_temp.item('c001'))$$, '42501', null, 'a Viewer cannot check');
+select pg_temp.as_user('a3');
+select throws_ok($$select public.check_item(pg_temp.item('c001'))$$,
+  '42501', null, 'a Lead who is not the author cannot check');
+select throws_ok($$select public.send_back(pg_temp.item('c001'), 'not_finished', null)$$,
+  '42501', null, 'a Lead who is not the author cannot send back');
 select pg_temp.as_user('a1');
+select throws_ok($$select public.send_back(pg_temp.item('c001'), 'not_as_shown', null)$$,
+  '22023', null, 'a reason that isn''t on the list is refused');
 select throws_ok($$select public.send_back(pg_temp.item('c001'), null, null)$$,
   '22023', null, 'sending back needs a reason');
 select throws_ok($$select public.send_back(pg_temp.item('c001'), 'other', ' ')$$,
@@ -218,10 +260,13 @@ select pg_temp.as_user('a2');
 select lives_ok($$select public.sign_done(pg_temp.item('c001'), null, pg_temp.photo('c001', 'done.jpg'))$$,
   'the owner signs again with their uploaded photo');
 select pg_temp.as_user('a3');
+select throws_ok($$select public.check_item(pg_temp.item('c001'))$$,
+  '42501', null, 'a non-author Lead still cannot check it once Done again');
+select pg_temp.as_user('a1');
 select lives_ok($$select public.check_item(pg_temp.item('c001'))$$,
-  'a member with the check right checks and closes it');
+  'the author checks and closes it');
 select is((select status || ' by ' || checked_by::text from public.work_items where id = pg_temp.item('c001')),
-  'checked by 00000000-0000-0000-0000-0000000007a3', 'Checked, by Sara');
+  'checked by 00000000-0000-0000-0000-0000000007a1', 'Checked, by Omar');
 select throws_ok($$select public.send_back(pg_temp.item('c001'), 'not_finished', null)$$,
   'P0001', null, 'a Checked item cannot be sent back');
 
@@ -233,8 +278,27 @@ select lives_ok($$select public.sign_done(current_setting('test.self')::uuid, 'S
   'an admin signs their own item as done');
 select throws_ok($$select public.check_item(current_setting('test.self')::uuid)$$,
   '42501', null, 'nobody checks an item they own, even its creator and an admin');
+-- Omar is the only admin, so a Lead checks it (review 34 D3).
 select pg_temp.as_user('a3');
-select lives_ok($$select public.check_item(current_setting('test.self')::uuid)$$, 'someone else checks it');
+select lives_ok($$select public.check_item(current_setting('test.self')::uuid)$$,
+  'with no other admin, a Lead checks an item the sole admin gave themselves');
+-- Sara made an admin: another admin checks an item its author gave themselves.
+select pg_temp.as_user('a1');
+select set_config('test.self2',
+  public.create_work_item(current_setting('test.space')::uuid, 'Sign the second permit',
+    '00000000-0000-0000-0000-0000000007a1')::text, true);
+select public.sign_done(current_setting('test.self2')::uuid, 'Signed.', '[]');
+reset role;
+update public.space_members set is_admin = true
+where space_id = current_setting('test.space')::uuid and profile_id = '00000000-0000-0000-0000-0000000007a3';
+select pg_temp.as_user('a3');
+set local role authenticated;
+select lives_ok($$select public.check_item(current_setting('test.self2')::uuid)$$,
+  'another Space admin checks an item its author owns');
+reset role;
+update public.space_members set is_admin = false
+where space_id = current_setting('test.space')::uuid and profile_id = '00000000-0000-0000-0000-0000000007a3';
+set local role authenticated;
 
 -- Evidence can't be swapped (r09, finding 1) -----------------------------------------------
 
@@ -258,8 +322,14 @@ select ok(not public.may_delete_file(pg_temp.path('c001', 'omars.jpg'), '0000000
 -- Discussion and the record (rule 1) -------------------------------------------------------
 
 select pg_temp.as_user('a4');
+select throws_ok($$select public.add_comment(current_setting('test.item2')::uuid, 'Viewer note')$$,
+  '42501', null, 'a Viewer cannot comment (reads only)');
+select pg_temp.as_user('a3');
 select lives_ok($$select public.add_comment(current_setting('test.item2')::uuid, 'Is the cover on site?')$$,
-  'a Viewer comments');
+  'a Lead who is not the owner comments');
+select pg_temp.as_user('a2');
+select lives_ok($$select public.add_comment(current_setting('test.item2')::uuid, 'On its way.')$$,
+  'the owner comments');
 select throws_ok($$select public.add_comment(current_setting('test.item2')::uuid, ' ')$$,
   '22023', null, 'an empty comment is refused');
 select pg_temp.as_user('a5');
@@ -276,7 +346,7 @@ select throws_ok($$delete from public.work_item_events$$,
   '42501', null, 'not even the database owner deletes an event');
 set local role service_role;
 select lives_ok($$update public.work_item_events set note = 'Is the cover on site? (edited by support)'
-                  where kind = 'comment'$$,
+                  where kind = 'comment' and note = 'Is the cover on site?'$$,
   '(r09) the service role can correct the record for support');
 reset role;
 
@@ -362,7 +432,7 @@ select public.create_work_item(current_setting('test.space')::uuid, 'Patch the s
   pg_temp.photo('c004', 'raised4.jpg'), pg_temp.item('c004'));
 select pg_temp.as_user('a2');
 select public.sign_done(pg_temp.item('c004'), 'Patched.', '[]');
-select pg_temp.as_user('a3');
+select pg_temp.as_user('a1');
 select public.check_item(pg_temp.item('c004'));
 select pg_temp.as_user('a2');
 select throws_ok($$select public.set_shown_work(current_setting('test.item2')::uuid, true)$$,
@@ -377,7 +447,7 @@ select pg_temp.as_user('a5');
 select results_eq(
   $$select title, place_text, checked_by_name, project_name from public.public_shown_work
     where work_item_id = pg_temp.item('c001')$$,
-  $$values ('Fix rebar at grid C7'::text, 'Grid C7'::text, 'Sara Ali'::text, 'Kuwait City Tower'::text)$$,
+  $$values ('Fix rebar at grid C7'::text, 'Grid C7'::text, 'Omar Saleh'::text, 'Kuwait City Tower'::text)$$,
   'anyone signed in sees the title, place, checker and project');
 select is((select photo_path from public.public_shown_work where work_item_id = pg_temp.item('c001')),
   pg_temp.path('c001', 'done.jpg'), 'one photo: the owner''s Done photo');

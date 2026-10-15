@@ -1,11 +1,13 @@
 -- Migration 8: work items follow-ups (review 10 part A). Run with: supabase test db
 --
--- Omar (o1) is the admin. Rakesh (r2) is Crew. Sara (s3) is Lead (she may
--- raise and check). Nadia (n4) is a Viewer. Eve (e5) is Crew too.
+-- Omar (o1) is the admin. Rakesh (r2) is Crew. Sara (s3) is Lead. Nadia (n4)
+-- is a Viewer. Eve (e5) is Crew too. Since migration 18 only an item's author
+-- checks it (a Space admin acts for an author who left), Viewers can't add
+-- updates, and owner-left items go to whoever acts for the author.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(33);
+select plan(36);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000008a1', 'authenticated', 'authenticated', 'omar8@example.com', '{"home_market_id": "kw"}'),
@@ -15,6 +17,8 @@ insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000008a5', 'authenticated', 'authenticated', 'eve8@example.com', '{"home_market_id": "kw"}');
 update public.profiles set first_name = 'Sara', last_name = 'Ali'
 where id = '00000000-0000-0000-0000-0000000008a3';
+update public.profiles set first_name = 'Omar', last_name = 'Saleh'
+where id = '00000000-0000-0000-0000-0000000008a1';
 
 create function pg_temp.as_user(p_id text) returns void language sql as $$
   select set_config('request.jwt.claims',
@@ -83,14 +87,21 @@ select pg_temp.member('a3', 'lead', true);
 select pg_temp.as_user('a1');
 set local role authenticated;
 select is((select kind from public.needs_you() where work_item_id = pg_temp.item('d002')),
-  'owner_left', 'creator gone too: a member who may check is told');
+  'owner_left', 'creator gone too: the Space admin is told');
 select pg_temp.as_user('a4');
 select is((select count(*) from public.needs_you() where work_item_id = pg_temp.item('d002')),
   0::bigint, 'a Viewer is not told');
 select pg_temp.as_user('a5');
 select is((select count(*) from public.needs_you() where work_item_id = pg_temp.item('d002')),
-  0::bigint, 'Crew without the check right is not told');
+  0::bigint, 'a Crew member is not told');
 reset role;
+select pg_temp.member('a5', 'lead');
+select pg_temp.as_user('a5');
+set local role authenticated;
+select is((select count(*) from public.needs_you() where work_item_id = pg_temp.item('d002')),
+  0::bigint, 'a Lead who is not an admin is not told');
+reset role;
+select pg_temp.member('a5', 'crew');
 select pg_temp.member('a2', 'crew');
 select pg_temp.member('a3', 'lead');
 
@@ -195,6 +206,13 @@ select throws_ok(
   '42501', null, 'a living person cannot be cleared from the record');
 select pg_temp.as_user('a4');
 set local role authenticated;
+select throws_ok($$select public.add_comment(pg_temp.item('d001'), 'Can I comment?')$$,
+  '42501', null, 'a Viewer cannot add an update');
+reset role;
+-- Nadia moves to Crew and comments; then she deletes her account.
+select pg_temp.member('a4', 'crew');
+select pg_temp.as_user('a4');
+set local role authenticated;
 select public.add_comment(pg_temp.item('d001'), 'On site tomorrow?');
 reset role;
 select lives_ok($$delete from auth.users where id = pg_temp.uid('a4')$$,
@@ -209,7 +227,8 @@ select is((select count(*) from public.work_item_events where work_item_id = pg_
 
 -- RE2 · Work you delivered -------------------------------------------------------------------
 
--- Rakesh signs d010 with a photo; Sara checks it.
+-- Rakesh signs d010 with a photo; Omar, its author, checks it (Sara, a Lead
+-- who is not the author, cannot).
 reset role;
 insert into storage.objects (bucket_id, name, owner_id)
 values ('space-files', pg_temp.path('d010', 'done.jpg'), pg_temp.uid('a2')::text);
@@ -218,11 +237,14 @@ set local role authenticated;
 select public.sign_done(pg_temp.item('d010'), 'Frame fixed.',
   jsonb_build_array(jsonb_build_object('path', pg_temp.path('d010', 'done.jpg'))));
 select pg_temp.as_user('a3');
+select throws_ok($$select public.check_item(pg_temp.item('d010'))$$,
+  '42501', null, 'a Lead who is not the author cannot check it');
+select pg_temp.as_user('a1');
 select public.check_item(pg_temp.item('d010'));
 select pg_temp.as_user('a2');
 select results_eq(
   $$select title, project_name, checked_by_name, shown, photo_path from public.my_delivered_work()$$,
-  $$values ('Fix the door frame'::text, 'Kuwait City Tower'::text, 'Sara Ali'::text, false,
+  $$values ('Fix the door frame'::text, 'Kuwait City Tower'::text, 'Omar Saleh'::text, false,
             pg_temp.path('d010', 'done.jpg'))$$,
   'the owner sees their checked work, hidden until they show it');
 select pg_temp.as_user('a1');

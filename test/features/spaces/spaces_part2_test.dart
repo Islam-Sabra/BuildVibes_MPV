@@ -225,25 +225,26 @@ void main() {
       expect(find.byKey(const Key('request-req-1')), findsOneWidget);
     });
 
-    testWidgets('member pass: Open create items makes it Custom [$lang]', (
+    testWidgets('member pass: Lock create items makes it Custom [$lang]', (
       tester,
     ) async {
       final spaces = _spaces();
       await pumpApp(tester, language: lang, spaces: spaces);
       await _openMember(tester, 'p-rakesh');
       expect(find.text(l10n.passCrew), findsOneWidget);
-      // Crew: files open; create, check and invite locked.
+      // Crew: files and create open; invite locked.
       expect(find.byKey(const Key('right-add_files-on')), findsOneWidget);
-      expect(find.byKey(const Key('right-create_items-off')), findsOneWidget);
+      expect(find.byKey(const Key('right-create_items-on')), findsOneWidget);
+      expect(find.byKey(const Key('right-invite-off')), findsOneWidget);
       expect(find.text(l10n.spacesAlways), findsOneWidget);
 
       await _tap(tester, 'right-toggle-create_items');
-      expect(spaces.calls.single, 'pass p-rakesh crew {create_items: true}');
-      expect(find.byKey(const Key('right-create_items-on')), findsOneWidget);
+      expect(spaces.calls.single, 'pass p-rakesh crew {create_items: false}');
+      expect(find.byKey(const Key('right-create_items-off')), findsOneWidget);
       expect(find.text(l10n.spacesPassCustom(l10n.passCrew)), findsOneWidget);
       expect(
         find.text(
-          l10n.spacesRightOpened(
+          l10n.spacesRightLocked(
             l10n.spacesRightCreate,
             inOwnDirection('Rakesh'),
           ),
@@ -266,12 +267,11 @@ void main() {
         'mark_done',
         'add_files',
         'create_items',
-        'check_items',
         'invite',
       ]) {
         expect(find.byKey(Key('right-$right-off')), findsOneWidget);
       }
-      expect(find.byIcon(BvIcons.lock), findsNWidgets(5));
+      expect(find.byIcon(BvIcons.lock), findsNWidgets(4));
     });
 
     testWidgets('change pass, Teams and Make admin [$lang]', (tester) async {

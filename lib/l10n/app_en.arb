@@ -1708,10 +1708,6 @@
   "@spacesRightCreate": {
     "description": "Right."
   },
-  "spacesRightCheck": "Check and close items",
-  "@spacesRightCheck": {
-    "description": "Right."
-  },
   "spacesRightInvite": "Invite people",
   "@spacesRightInvite": {
     "description": "Right."
@@ -2586,8 +2582,8 @@
   "@workReasonPhotoMissing": {
     "description": "Send back reason."
   },
-  "workReasonNotAsDrawing": "Not as per drawing",
-  "@workReasonNotAsDrawing": {
+  "workReasonNotAsAsked": "Not as asked",
+  "@workReasonNotAsAsked": {
     "description": "Send back reason."
   },
   "workReasonNotFinished": "Not finished",
@@ -3078,9 +3074,9 @@
       }
     }
   },
-  "chatItemGone": "This work item is no longer in the Space.",
-  "@chatItemGone": {
-    "description": "Card for a removed item."
+  "chatCardHidden": "Work item",
+  "@chatCardHidden": {
+    "description": "An old chat card for a work item the reader can't see: no title, no name."
   },
   "chatLastRaised": "{name} raised {ref}",
   "@chatLastRaised": {

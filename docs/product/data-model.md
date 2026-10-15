@@ -74,7 +74,7 @@ Every state change that has business rules goes through a Postgres function (`se
 **Tables:**
 - `spaces`: `id`, `name`, `about`, `kind` ('work' | 'community'), `access` ('private' | 'invite_only' | 'open'), `project_id null`, `who_can_invite` ('admins' | 'admins_leads' | 'everyone'), `created_by`, `deleted_at` (a soft delete; kept for the record).
 - `space_members`: `space_id`, `profile_id`, `pass` ('lead' | 'crew' | 'viewer'), `is_admin bool`, `custom jsonb`, `notify` ('all' | 'needs_you' | 'off'), `confirmed_by`, `confirmed_at`, `left_at null`, `removed_by`.
-  - `custom` holds only the rights changed from the pass preset: `create_items`, `check_items`, `add_files`, `invite`.
+  - `custom` holds only the rights changed from the pass preset: `create_items`, `add_files`, `invite`. (`check_items` was removed in migration 18: checking is not a right any more, see §7.)
   - Notification preferences live here, not in a separate table.
 - `space_invites`: `id`, `space_id`, `code`, `created_by`, `expires_at` (7 days), `revoked_at`.
   - The code is 6 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no look-alikes), made from strong random bytes.
@@ -92,8 +92,10 @@ Every state change that has business rules goes through a Postgres function (`se
 |---|---|---|---|---|
 | chat | ✓ | ✓ | ✓ | ✓ |
 | mark own items done (fixed) | ✓ | ✓ | — | ✓ if Lead or Crew |
-| create items | ✓ | — | — | ✓ |
-| check others' items | ✓ | — | — | ✓ |
+| create items (post work) | ✓ | ✓ (since migration 18) | — | ✓ |
+| check or send back an item | its author | its author | — | when the author left, or owns the item themselves |
+| edit, delete or cancel a post | its author | its author | — | cancel only, when the author left |
+| add an update (comment) | ✓ | ✓ | — | ✓ |
 | add files | ✓ | ✓ | — | ✓ |
 | invite | if Who can invite allows | | | ✓ |
 
@@ -146,7 +148,7 @@ Who can invite:
 - **Reading and writing:** active members; a Team thread only for that Team's members and the Space admins. Every pass can chat.
 - **Attachments:** photos, PDFs and voice notes need the "add files" right (Viewers chat in text only). They must be your own uploads under the message's folder, and their type must match the upload. A voice note is sent on its own.
 - **Deleting:** the author or a Space admin; it stays as "Message deleted" (no text, files hidden). Work item cards can't be deleted.
-- **Work item cards:** raised, done, checked, sent back and reassigned post a card into the item's Team thread when its owner is in that Team, otherwise into Everyone.
+- **Work item cards:** migration 18 stopped them. Work lives in the daybook (§14); old cards stay in the threads and still can't be deleted. Until migration 18, raised, done, checked, sent back and reassigned posted a card into the item's Team thread when its owner was in that Team, otherwise into Everyone.
 - **Limits:** 30 messages a minute (cards don't count). Uploads: 300 files or 500 MB a day per person, plus the migration 8 cap on loose files.
 - **Live updates:** Supabase Realtime on `messages`, through the same policy.
 
@@ -162,23 +164,34 @@ Who can invite:
 - `space_threads(space)` (S7k): threads with the last message and unread count.
 
 ## 7. Work items: the core (migration 7, `20261012120000_work_items.sql`, branch `work-items-db`)
-Rules from review 08. The app reads the tables (active Space members only); every change is a function.
+Rules from review 08, changed by migration 18 (review 33 A0, below). The app reads the tables; every change is a function.
+
+**Since migration 18 (`20261015120000_daybook.sql`):**
+- Every work item is also a daybook post (`space_posts`, §14) with the same id. The old tables are read through the post: only by those who may see it (Team posts: that Team, the Space admins, the author and the owner), never once it is deleted.
+- **Crew post work** (Crew preset `create_items` on; an admin can switch it off for one person, which shows the pass as Custom). A Viewer never posts: a custom `create_items` on a Viewer pass is ignored and not stored.
+- **Only the author checks or sends back.** A Space admin other than the owner does it when the author is gone, or when the author owns the item themselves; when the Space has no such admin (its only admin gave the work to themselves), any active Lead other than the owner does (review 34 D3).
+  - **The author is gone** (`author_is_gone`) when they left the Space, their account is waiting to be deleted, or they can no longer post (lowered to Viewer, or posting switched off; review 34 D2). Then they can't check, send back, reassign or cancel, and the admin acts for them; raised back, it is theirs again. The owner never checks their own work. `check_items` is gone from the rights.
+- Send back reasons: 'photo_missing' | 'not_as_asked' | 'not_finished' | 'other'. 'not_as_drawing' was renamed, in old events and stored notifications too.
+  - **Old name, for now:** `send_back` still accepts 'not_as_drawing', which the 0.9.0 (1) test build sends, and stores it as 'not_as_asked'. Remove that once 0.9.0 is retired (every tester on a build from this branch or later).
+- Only the author edits, deletes or cancels a post (§14). Updates (`add_comment`): the owner, Leads and Crew; Viewers read only.
+- Reassign: the author, or a Space admin when the author is gone.
+- No chat card for any event.
 
 **Tables:**
 - `spaces` gains `ref_prefix` (2–4 Latin capitals, set when the Space is made: the project's initials, else the Space's, else BV; existing Spaces backfilled) and `next_item_number`.
 - `work_items`: `id` (chosen by the app, so photos upload first and retries don't duplicate), `space_id`, `number`, `ref` ('KCT-001'), `title`, `owner_id`, `created_by`, `team_id null`, `place_text`, `due_date`, `status` ('open' | 'done' | 'checked'), `done_at`, `checked_by`, `checked_at`, `shown` (off by default; only when checked).
-- `work_item_events`: `kind` ('raised' | 'done' | 'checked' | 'sent_back' | 'comment'), `note`, `reason` ('photo_missing' | 'not_as_drawing' | 'not_finished' | 'other', only on sent_back). Append-only: a trigger refuses every update and delete, except clearing the actor when an account is deleted.
+- `work_item_events`: `kind` ('raised' | 'done' | 'checked' | 'sent_back' | 'comment'), `note`, `reason` ('photo_missing' | 'not_as_asked' | 'not_finished' | 'other', only on sent_back; 'not_as_drawing' until migration 18). Append-only: a trigger refuses every update and delete, except clearing the actor when an account is deleted.
 - `work_item_evidence`: photos on the raised and done events, `storage_path` in the private bucket `space-files` at `<space_id>/<item_id>/<file>`.
 
 **Functions:**
-- `create_work_item(space, title, owner, due, team, place, evidence, id)`: needs `can(space, 'create_items')`. The owner is one active member whose pass allows "mark own items done" (never a Viewer).
+- `create_work_item(space, title, owner, due, team, place, evidence, id, body, parent, source_message, quote, files)` (the last five since migration 18): needs `can(space, 'create_items')`. The owner is one active member whose pass allows "mark own items done" (never a Viewer). Title 2–140 characters.
 - `sign_done(item, note, evidence)`: the owner, while Open, with a photo or a note.
-- `check_item(item)` and `send_back(item, reason, note)`: while Done, by the creator or a member with `check_items` (admins have it), **never by the item's owner**. "Other" needs a note.
-- `add_comment(item, note)`: any active member.
+- `check_item(item)` and `send_back(item, reason, note)`: while Done, by the author; a Space admin when the author left or owns the item (migration 18). **Never by the item's owner.** "Other" needs a note.
+- `add_comment(item, note)`: the owner, Leads and Crew who can see the item, while it is live (migration 18; before, any active member).
 - `set_shown_work(item, bool)`: the owner of a Checked item.
 - `needs_you()`: open items I own, Done items I may check, join requests I can confirm (kind, Space id, item or request id). `my_spaces()` gains `needs_you` per Space. Since migration 10, `needs_you()` starts from the caller's active memberships, and `my_spaces()` runs it once for all Spaces.
 
-- `reassign_work_item(item, owner)`: while Open, by the creator or a member with `check_items`; the new owner must be able to mark items done; writes a 'reassigned' event. `needs_you()` gives the creator an 'owner_left' row when an Open item's owner is no longer an active member ("Owner left · reassign").
+- `reassign_work_item(item, owner)`: while Open, by the author, or a Space admin when the author left (migration 18); the new owner must be able to mark items done; writes a 'reassigned' event. `needs_you()` gives the creator an 'owner_left' row when an Open item's owner is no longer an active member ("Owner left · reassign").
 
 **Photos (review 09):**
 - A photo counts only if the file exists in `space-files`, under the item's folder, uploaded by the caller.
@@ -215,7 +228,7 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 - **PDFs posted in chat** are added automatically ("From chat").
 - **Removing:** the uploader or an admin, never a file a work item uses.
 - **Attaching to an item:** the item's creator, owner or a member who may check. A Team file only on that Team's items.
-- **Teams:** a Team with chat messages or files can't be deleted; rename it instead.
+- **Teams:** a Team with chat messages, files or daybook posts (migration 18) can't be deleted; rename it instead.
 - **Storage:** private bucket `space-files` (25 MB; images, PDF, audio). Work item folders take photos only. Files are opened through signed URLs, which the read policy checks.
 - **File type (accepted for the pilot, review 13):** Storage records the type the app sends with the upload (`metadata.mimetype`), limited to the bucket's list. It doesn't look inside the file. The type checks (`upload_mime`, "evidence must be a photo") rest on that declared type.
 - **Cleanup age (migration 11):** `claim_orphan_files` never claims a file younger than one day, whatever age the job asks for, so an upload still going on a weak signal is left alone.
@@ -280,6 +293,7 @@ Rules from review 08. The app reads the tables (active Space members only); ever
 | `item_done` | signed as done | the creator | the Space |
 | `item_checked`, `item_sent_back` | checked, or sent back (with the reason) | the owner | the Space |
 | `item_comment` | a comment | the owner and the creator | the Space |
+| `item_edited`, `item_cancelled` | the author edited or cancelled it (migration 18; no push until migration 19) | the owner | the Space |
 | `join_request` | a request to join | every admin | the Space |
 | `join_confirmed` | the request confirmed | the new member | the Space |
 | `role_confirmed` | proof from a Space or a teammate (the Space is in `payload`) | the person | Your record |
@@ -361,17 +375,47 @@ A declined request makes no notification. Useful on a reply makes none.
 - It has no admin rights (`is_space_admin`), doesn't count as another admin (`has_other_admin`, `account_deletion_blockers`), can't be made admin (`set_member_admin`, `transfer_ownership`), and the last-admin handover passes it over (a hidden member is chosen only if nobody else is left).
 - `request_account_deletion()` locks every Space the person is in before the check, so two admins can't both go at once and nobody is made admin meanwhile (review 27 R3).
 - `leave_space` refuses the last admin by their own membership row, so a hidden sole admin can't leave (review 27 R2).
-- The trigger `refuse_hidden_writer()` refuses new rows from it (42501, "restore your account first") in `posts`, `post_replies`, `messages`, `follows`, `useful_marks`, `work_items`, `work_item_events`, `library_files` and `space_join_requests`.
+- The trigger `refuse_hidden_writer()` refuses new rows from it (42501, "restore your account first") in `posts`, `post_replies`, `messages`, `follows`, `useful_marks`, `work_items`, `work_item_events`, `library_files`, `space_join_requests`, and since migration 18 `space_posts`, `post_edits` and `post_files`.
 - `purge_account()` locks the profile (a restore can't slip in) and waits while any avatar or post photo remains.
 - Proof stays: `cv_project_confirmations` has an `id` key and `confirmed_by` set null when the confirmer is purged (one row per CV project and confirmer; several purged confirmers may remain). New proof always needs a confirmer who is still there (review 27 R1). A purged reporter's reports stay (`reporter_id` set null).
 
-**Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
+**Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, daybook posts and edits (migration 18), Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
 
 **Reports:** `prune_reports()` deletes reports decided over 12 months ago (nightly, in the same cron script).
 
+## 14. Daybook (migration 18, `20261015120000_daybook.sql`, branch `daybook-db`, not live)
+Rules from review 33 (A0, A1 and the 15 Oct clarifications) and `docs/product/daybook.md`. The daybook is the Space's list of posts, newest first. A work item is one kind of post.
+
+**Tables:**
+- `space_posts`: `id` (chosen by the app, so a retry is the same post), `space_id`, `team_id` (null is Everyone), `kind` ('work_item' | 'checklist' | 'announcement' | 'activity' | 'file' | 'report'), `author_id`, `title` (1–200), `body` (≤5000), `place_text` (≤80), `due_date`, `parent_id` (a work item under one work item), `source_message_id` (made from a Space chat message), `quote` (words copied from a direct message or note: `author_name`, `text` 1–3000, `at`; never a link to the private thread), `template_id` (migration 20), `status` ('live' | 'cancelled'), `cancelled_by`, `cancelled_at`, `cancel_note` (≤500), `edited_at`, `created_at`, `deleted_at`.
+  - A work item is a post of kind 'work_item' with the same id (`work_items.id` references `space_posts.id`, on delete cascade). Every existing item was backfilled with its title, place, due date, Team, author and time.
+- `post_edits`: `post_id`, `editor_id`, `changes` (field → `{from, to}`, for showing "Edited: due moved from Sun to Mon"), `created_at`. Append-only (a trigger), like `work_item_events`.
+- `post_files`: a post's own photos and PDFs (not sign-off proof): `post_id`, either `storage_path` (`<space>/posts/<post>/<file>`, unique) or `library_file_id`, `added_by`, `sort`, `mime`, `bytes`, `width`, `height`. At most 10 per post. A file claimed by the cleanup can't be added.
+- Drafts stay on the phone, keyed by the post id the app chose. No table.
+
+**Who sees a post:** active members of the Space, while it isn't deleted. A Team post only that Team, the Space admins, its author and (for a work item) its owner. A Team with posts (deleted or cancelled ones too) can't be deleted (`delete_team`, P0001), so a Team post never becomes an Everyone post; rename the Team instead. The same rule now covers `work_items`, its events, proof photos and attachments, Today, Activity and the post's files (before migration 18 every member read every work item).
+
+**Names:** `space_person_name(id)` gives no name across a block or for a hidden account ("Former member" in the app).
+
+**Functions** (the only way to write; the app reads through the two page functions):
+
+| Function | Rule |
+|---|---|
+| `create_work_item(…, body, parent, source_message, quote, files)` | Lead and Crew (`create_items`). `parent`: a live, top-level work item (one level only) that the caller wrote, or acts for as an admin when its author is gone (review 34 D1); the Team is inherited. `source_message`: a chat message the caller can read, not a card; a Team thread's message makes a Team post. A retry with the same id returns the same post; someone else's id is refused. |
+| `edit_space_post(post, changes)` | Author only, while they may still post (not lowered to Viewer, posting not switched off; files need the files right), and while editable: a work item while Open (locked after Done, open again after Send back, locked for good after Checked); other kinds while live. Keys: `title`, `body`, `place`, `due`, `add_files`, `remove_files`. Every change goes into `post_edits` and tells the owner (`item_edited`). The owner is changed with Reassign, not by editing. Checklist points come in migration 19 (a ticked point can't be removed or reworded). |
+| `delete_space_post(post)` | Author only, and only while nobody else has added anything: no update, sign-off, check or file by someone else, and no work item under it, whoever made it (migration 19 adds ticks and acknowledgements). A soft delete: the post leaves the daybook, Needs you, Today and Activity, and its files are released for the cleanup. |
+| `cancel_space_post(post, note)` | The author, or a Space admin when the author is gone (left, or their account is waiting to be deleted). Not a Checked item; it locks the work items first, so a sign-off or check running at the same moment finishes before it. The post stays with a CANCELLED stamp; work items under it that aren't Checked are cancelled with it; each owner is told (`item_cancelled`). Nothing can be signed, checked or added after. |
+| `daybook_page(space, before, limit, before_id)` | The posts the caller may see, newest first (at most 100). The next page passes the last post's time and id, so posts made at the same moment aren't skipped. Each post has: stamp, paper clip (`needs_me`), cover photo, progress of the items under it, last edits. |
+| `post_page(post)` | One post in full: files, record of events, attachments, items under it, parent, all edits. |
+| `needs_you()` | Open items I own; Done items I check (I'm the author, or an admin acting for an author who is gone or owns it); "Owner left" for whoever acts for the author; join requests I can confirm. |
+
+Pushes for `item_edited` and `item_cancelled` come in migration 19.
+
+**Files:** uploads to `<space>/posts/<post>/<file>` (JPEG, PNG, WebP, HEIC or PDF): before the post exists, whoever may post (their own folder only); after, its author while it can be edited. Reads follow the post. A Library file on a live post can't be deleted, and stays when its chat message is removed (`library_file_in_use`).
+
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
-- Crew can't create items. Viewer can't sign done. Only the owner can sign done. Only the creator (or an allowed Lead) can check.
-- `work_item_events` can't be updated or deleted.
+- Viewer can't create items or sign done. Only the owner can sign done. Only the author checks (a Space admin when the author left or owns the item); the owner never checks.
+- `work_item_events` and `post_edits` can't be updated or deleted.
 - A blocked user can't read the blocker's profile.
 - The public shown-work view leaks nothing beyond its listed fields.

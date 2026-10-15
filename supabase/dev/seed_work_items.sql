@@ -57,7 +57,7 @@ select public.create_work_item(current_setting('seed.space')::uuid, 'Photos of u
   '11111111-0000-0000-0000-000000000003', current_date + 3, current_setting('seed.team')::uuid, 'Level 1 · north wall');
 select set_config('seed.i4', public.create_work_item(current_setting('seed.space')::uuid, 'Shoring removal sequence, level 2',
   '11111111-0000-0000-0000-000000000003', current_date - 1, null, 'Level 2 · bays 1-4')::text, false);
--- As Omar: KCT-005 for Rakesh, to be checked by Sami.
+-- As Omar: KCT-005 for Rakesh, to be checked by Omar (its author).
 select set_config('request.jwt.claims', '{"sub": "11111111-0000-0000-0000-000000000001", "role": "authenticated"}', false);
 select set_config('seed.i5', public.create_work_item(current_setting('seed.space')::uuid, 'Gate 3 access cleared for the pump truck',
   '11111111-0000-0000-0000-000000000003', null, null, 'Site · gate 3')::text, false);
@@ -66,8 +66,8 @@ select set_config('seed.i5', public.create_work_item(current_setting('seed.space
 select set_config('request.jwt.claims', '{"sub": "11111111-0000-0000-0000-000000000003", "role": "authenticated"}', false);
 select public.sign_done(current_setting('seed.i2')::uuid, 'Sleeves fixed and checked with MEP', '[]');
 select public.sign_done(current_setting('seed.i5')::uuid, 'Gate cleared, cones moved', '[]');
--- As Sami: checks KCT-005.
-select set_config('request.jwt.claims', '{"sub": "11111111-0000-0000-0000-000000000002", "role": "authenticated"}', false);
+-- As Omar, its author: checks KCT-005 (only the author checks, migration 18).
+select set_config('request.jwt.claims', '{"sub": "11111111-0000-0000-0000-000000000001", "role": "authenticated"}', false);
 select public.check_item(current_setting('seed.i5')::uuid);
 reset role;
 commit;

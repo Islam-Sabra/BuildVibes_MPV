@@ -2297,12 +2297,6 @@ abstract class AppLocalizations {
   /// Right.
   ///
   /// In en, this message translates to:
-  /// **'Check and close items'**
-  String get spacesRightCheck;
-
-  /// Right.
-  ///
-  /// In en, this message translates to:
   /// **'Invite people'**
   String get spacesRightInvite;
 
@@ -3299,8 +3293,8 @@ abstract class AppLocalizations {
   /// Send back reason.
   ///
   /// In en, this message translates to:
-  /// **'Not as per drawing'**
-  String get workReasonNotAsDrawing;
+  /// **'Not as asked'**
+  String get workReasonNotAsAsked;
 
   /// Send back reason.
   ///
@@ -3824,11 +3818,11 @@ abstract class AppLocalizations {
   /// **'{name} reassigned a work item'**
   String chatCardReassigned(String name);
 
-  /// Card for a removed item.
+  /// An old chat card for a work item the reader can't see: no title, no name.
   ///
   /// In en, this message translates to:
-  /// **'This work item is no longer in the Space.'**
-  String get chatItemGone;
+  /// **'Work item'**
+  String get chatCardHidden;
 
   /// S7k last line: a card. Arabic noun form, gender-neutral.
   ///

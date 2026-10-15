@@ -1254,9 +1254,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesRightCreate => 'Create work items';
 
   @override
-  String get spacesRightCheck => 'Check and close items';
-
-  @override
   String get spacesRightInvite => 'Invite people';
 
   @override
@@ -1873,7 +1870,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workReasonPhotoMissing => 'Photo missing';
 
   @override
-  String get workReasonNotAsDrawing => 'Not as per drawing';
+  String get workReasonNotAsAsked => 'Not as asked';
 
   @override
   String get workReasonNotFinished => 'Not finished';
@@ -2195,7 +2192,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatItemGone => 'This work item is no longer in the Space.';
+  String get chatCardHidden => 'Work item';
 
   @override
   String chatLastRaised(String name, String ref) {

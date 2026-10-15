@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(106);
+select plan(110);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000016c1', 'authenticated', 'authenticated', 'omar16@example.com', '{"home_market_id": "kw"}'),
@@ -59,8 +59,16 @@ begin
     delete from public.useful_marks where profile_id = v_me;
     insert into public.useful_marks (target_kind, target_id, profile_id) values ('post', pg_temp.id('a001'), v_me);
   when 'work_items' then
-    insert into public.work_items (space_id, number, ref, title)
-    values (v_space, 90 + p_n::int, 'ZZ-09' || p_n, 'Hidden test');
+    -- (migration 18) its space_posts row is made in setup, so this checks the
+    -- work_items guard itself.
+    insert into public.work_items (id, space_id, number, ref, title)
+    values (pg_temp.id('c09' || p_n), v_space, 90 + p_n::int, 'ZZ-09' || p_n, 'Hidden test');
+  when 'space_posts' then
+    insert into public.space_posts (id, space_id, kind, author_id, title)
+    values (pg_temp.id('c19' || p_n), v_space, 'announcement', v_me, 'Hidden test');
+  when 'post_edits' then
+    insert into public.post_edits (post_id, editor_id, changes)
+    values (current_setting('test.item')::uuid, v_me, '{"title": {"from": "a", "to": "b"}}');
   when 'work_item_events' then
     insert into public.work_item_events (work_item_id, actor_id, kind, note)
     values (current_setting('test.item')::uuid, v_me, 'comment', 'Hi.');
@@ -76,7 +84,8 @@ end;
 $$;
 create function pg_temp.tables() returns setof text language sql as $$
   values ('posts'), ('post_replies'), ('messages'), ('follows'), ('useful_marks'),
-         ('work_items'), ('work_item_events'), ('library_files'), ('space_join_requests');
+         ('work_items'), ('work_item_events'), ('library_files'), ('space_join_requests'),
+         ('space_posts'), ('post_edits');
 $$;
 
 select ok((select relrowsecurity from pg_class where oid = 'public.data_requests'::regclass),
@@ -117,8 +126,13 @@ set local role authenticated;
 insert into public.cv_projects (project_id, role_title)
 values (current_setting('test.project')::uuid, 'Site engineer');
 reset role;
-insert into public.work_items (space_id, number, ref, title)
-values (current_setting('test.space')::uuid, 80, 'ZZ-080', 'Rebar check level 3');
+-- (migration 18) every work item is a space_posts row with the same id.
+insert into public.space_posts (id, space_id, kind, author_id, title) values
+  (pg_temp.id('c080'), current_setting('test.space')::uuid, 'work_item', null, 'Rebar check level 3'),
+  (pg_temp.id('c091'), current_setting('test.space')::uuid, 'work_item', null, 'Hidden test'),
+  (pg_temp.id('c092'), current_setting('test.space')::uuid, 'work_item', null, 'Hidden test');
+insert into public.work_items (id, space_id, number, ref, title)
+values (pg_temp.id('c080'), current_setting('test.space')::uuid, 80, 'ZZ-080', 'Rebar check level 3');
 select set_config('test.item', (select id from public.work_items where ref = 'ZZ-080')::text, true);
 select set_config('test.thread', (select id from public.threads
   where space_id = current_setting('test.space')::uuid and team_id is null)::text, true);

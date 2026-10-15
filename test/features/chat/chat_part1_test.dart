@@ -46,7 +46,7 @@ FakeSpaceRepository _spaces({bool admin = true}) =>
         name: 'Site team',
         myPass: SpacePass.lead,
         iAmAdmin: admin,
-        myRights: const MemberRights(createItems: true, checkItems: true),
+        myRights: const MemberRights(createItems: true),
       )
       ..spacePeople[_space] = SpacePeople(
         members: [
@@ -304,6 +304,39 @@ void main() {
       );
       expect(line.data, contains(l10n.chatCardRaised('Omar Haddad')));
       expect(line.data, contains('KCT-017'));
+    });
+
+    testWidgets('an old card for an item I can\'t see: a plain line [$lang]', (
+      tester,
+    ) async {
+      final chat = _chat();
+      chat.messagesByThread[_everyone]!.add(
+        ChatMessage(
+          id: 'card-hidden',
+          threadId: _everyone,
+          kind: ChatKind.workItem,
+          createdAt: _at(10, 21),
+          authorId: 'p-rakesh',
+          authorName: 'Rakesh Nair',
+          workItemId: 'item-team-only',
+          eventKind: WorkEventKind.raised,
+        ),
+      );
+      await _openThread(tester, lang, chat: chat);
+      final card = find.byKey(const Key('chat-card-card-hidden'));
+      expect(card, findsOneWidget);
+      final line = tester.widget<Text>(card);
+      expect(line.data, contains(l10n.chatCardHidden));
+      // No name, no title, no link, no error.
+      expect(line.data, isNot(contains('Rakesh')));
+      expect(
+        find.descendant(of: card, matching: find.byType(InkWell)),
+        findsNothing,
+      );
+      expect(find.text(l10n.errorGeneric), findsNothing);
+      await tester.tap(card);
+      await tester.pumpAndSettle();
+      expect(card, findsOneWidget);
     });
 
     testWidgets('S9k: a Team thread says who can see it [$lang]', (

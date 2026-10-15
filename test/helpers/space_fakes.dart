@@ -113,7 +113,6 @@ class FakeSpaceRepository implements SpaceRepository {
       iAmAdmin: true,
       myRights: const MemberRights(
         createItems: true,
-        checkItems: true,
         addFiles: true,
         invite: true,
         markDone: true,
@@ -256,19 +255,16 @@ class FakeSpaceRepository implements SpaceRepository {
   static const _presets = {
     SpacePass.lead: {
       SpaceRight.createItems: true,
-      SpaceRight.checkItems: true,
       SpaceRight.addFiles: true,
       SpaceRight.invite: true,
     },
     SpacePass.crew: {
-      SpaceRight.createItems: false,
-      SpaceRight.checkItems: false,
+      SpaceRight.createItems: true,
       SpaceRight.addFiles: true,
       SpaceRight.invite: false,
     },
     SpacePass.viewer: {
       SpaceRight.createItems: false,
-      SpaceRight.checkItems: false,
       SpaceRight.addFiles: false,
       SpaceRight.invite: false,
     },
@@ -282,7 +278,6 @@ class FakeSpaceRepository implements SpaceRepository {
         m.isAdmin || (m.custom[right] ?? _presets[m.pass]![right]!);
     return MemberRights(
       createItems: has(SpaceRight.createItems),
-      checkItems: has(SpaceRight.checkItems),
       addFiles: has(SpaceRight.addFiles),
       invite: has(SpaceRight.invite),
       markDone: m.pass != SpacePass.viewer,

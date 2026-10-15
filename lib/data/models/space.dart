@@ -176,7 +176,6 @@ class SpaceInvite {
 class MemberRights {
   const MemberRights({
     this.createItems = false,
-    this.checkItems = false,
     this.addFiles = false,
     this.invite = false,
     this.markDone = false,
@@ -187,7 +186,6 @@ class MemberRights {
       ? const MemberRights()
       : MemberRights(
           createItems: json['create_items'] as bool? ?? false,
-          checkItems: json['check_items'] as bool? ?? false,
           addFiles: json['add_files'] as bool? ?? false,
           invite: json['invite'] as bool? ?? false,
           markDone: json['mark_done'] as bool? ?? false,
@@ -195,7 +193,6 @@ class MemberRights {
         );
 
   final bool createItems;
-  final bool checkItems;
   final bool addFiles;
   final bool invite;
   final bool markDone;
@@ -350,8 +347,8 @@ class SpaceMember {
   final SpacePass pass;
   final bool isAdmin;
 
-  /// Rights the admin changed from the pass (create_items, check_items,
-  /// add_files, invite).
+  /// Rights the admin changed from the pass (create_items, add_files,
+  /// invite).
   final Map<String, bool> custom;
   final String? confirmedById;
   final String? confirmedByName;
@@ -400,7 +397,6 @@ class SpacePeople {
 /// mark_done is set by the pass.
 abstract final class SpaceRight {
   static const createItems = 'create_items';
-  static const checkItems = 'check_items';
   static const addFiles = 'add_files';
   static const invite = 'invite';
 }

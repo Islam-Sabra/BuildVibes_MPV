@@ -1258,9 +1258,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesRightCreate => 'إنشاء بنود عمل';
 
   @override
-  String get spacesRightCheck => 'فحص البنود وإغلاقها';
-
-  @override
   String get spacesRightInvite => 'دعوة أشخاص';
 
   @override
@@ -1881,7 +1878,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workReasonPhotoMissing => 'الصورة غير موجودة';
 
   @override
-  String get workReasonNotAsDrawing => 'غير مطابق للمخطط';
+  String get workReasonNotAsAsked => 'غير مطابق للمطلوب';
 
   @override
   String get workReasonNotFinished => 'غير مكتمل';
@@ -2202,7 +2199,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get chatItemGone => 'لم يعد بند العمل هذا في المساحة.';
+  String get chatCardHidden => 'بند عمل';
 
   @override
   String chatLastRaised(String name, String ref) {

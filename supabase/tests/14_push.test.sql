@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(58);
+select plan(59);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000014b1', 'authenticated', 'authenticated', 'omar14@example.com', '{"home_market_id": "kw"}'),
@@ -113,8 +113,11 @@ select is(pg_temp.q('b2', 'item_assigned'), 1::bigint, 'a work item for Rakesh q
 select ok((select data ? 'work_item_id' and data ? 'space_id' and data::text not like '%Rebar%'
            from public.push_queue where profile_id = pg_temp.uid('b2') and kind = 'item_assigned'),
   'with the ids for the link, never the title');
+select is((select count(*) from public.messages
+           where space_id = current_setting('test.space')::uuid and kind = 'work_item'), 0::bigint,
+  '(m18) a new work item posts no card in chat');
 select is((select count(*) from public.push_queue where kind = 'chat_message'), 0::bigint,
-  'its card in chat sends no chat push');
+  'so it sends no chat push');
 
 select pg_temp.as_user('b2');
 set local role authenticated;

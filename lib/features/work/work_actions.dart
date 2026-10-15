@@ -258,7 +258,7 @@ class _SendBackState extends State<_SendBack> {
 
   String _label(AppLocalizations l10n, SendBackReason r) => switch (r) {
     SendBackReason.photoMissing => l10n.workReasonPhotoMissing,
-    SendBackReason.notAsDrawing => l10n.workReasonNotAsDrawing,
+    SendBackReason.notAsAsked => l10n.workReasonNotAsAsked,
     SendBackReason.notFinished => l10n.workReasonNotFinished,
     SendBackReason.other => l10n.workReasonOther,
   };
