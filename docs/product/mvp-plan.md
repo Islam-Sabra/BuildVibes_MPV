@@ -1,6 +1,6 @@
 # MVP plan (11 Oct 2026)
 
-**Target:** pilot live on **Friday 1 January 2027**, with one real site team. The founder has the pilot company and contacts them himself.
+**Target:** pilot live on **Monday 1 February 2027**, with one real site team. The founder has the pilot company and contacts them himself.
 
 **Scope:** sections 2 and 3 are Claude's recommendation. The founder confirms that Jobs and direct messages wait until after the pilot.
 
@@ -21,21 +21,42 @@ One real site team runs its daily work in a BuildVibes Space for four weeks, and
 | **Profile** | Photo, headline, experience, projects on the CV, Work you delivered (hidden until the person chooses), share link, follower counts. |
 | **Projects** | Shared record with no owner. "Is it already here?" and Add to my CV. Suggest an edit goes to a simple review queue. |
 | **Spaces** | Create a Space and link a project. Invite link and code. Join requests confirmed by the admin with a Lead, Crew or Viewer pass. Teams. Space info: Access, Who can invite, Notifications. |
-| **Space chat** | Everyone and Team threads, with photos, files and voice notes. Work item cards in the chat. |
-| **Work items** | Open → Done (with a photo or note) → Checked, or Sent back with a reason. One owner, due date, Team, place on site, attachments. Filters. Needs you. |
+| **Space chat** | Everyone and Team threads, with photos, files and voice notes. Work stays in the daybook; a chat message can be turned into a work item. |
+| **Work items** | Open → Done (with a photo or note) → Checked, or Sent back with a reason. One owner, due date, Team, place on site, attachments. Filters. Needs you. In the Daybook design: see `daybook.md`. |
+| **Work (Daybook)** | Writing in place with drafts; work item, checklist, announcement, scheduled activity and file posts; opening a post in place (blocks, /, turn into, tables); work items under one work item; walk mode; templates; daily report; meeting notes into work items; management report. See `daybook.md`. |
+| **Planning** | The personal notebook (private notes, checklists, to-dos, pinned notes, "Put in a Space") and My calendar across all Spaces. |
+| **Direct messages** | Between two people. |
 | **Library** | Files and drawings per Space, with preview. |
 | **Home** | Feed (public posts with photos, tagged to a project) and the Spaces tab with Needs you. |
 | **Activity and push** | Work item assigned, done, checked or sent back. Join requests. Mentions. |
 | **Basics** | Report and block, delete account, privacy settings, photo upload that copes with a weak signal. |
 
 ## 3. Not in V1 (after the pilot starts)
-- Jobs, hiring, and company pages with job management
-- Explore beyond a simple people search
-- Notebook and Planner
+- Export a work item's record as PDF
+- Approval codes
+- Repeating work items
+- Translate
+- Phone and WhatsApp sign-in
+- Jobs and hiring
+- Company job management
 - Community question Spaces
-- Direct messages and "Message about work"
-- CV import and CV PDF versions
-- Connected accounts, paid plan, sponsored posts
+- Sponsored posts
+- The paid plan
+- CV import
+- Connected accounts
+- Explore beyond people search
+
+## Plan to 1 February
+| When | What |
+|---|---|
+| 16–31 Oct | Design finish (lead): Daybook components, the rest of the app in Daybook, notebook, direct messages, Arabic |
+| 1–14 Nov | Database changes for the new scope, every rule enforced and tested on the server (review 33) |
+| by 1 Nov | Founder enrols in the Apple Developer Program and Google Play Console |
+| 15 Nov – 17 Jan | Build in 10 slices; the founder tests each on the emulator before the next starts: 1 daybook and the work item loop · 2 other kinds of post · 3 chat and direct messages · 4 people and Library · 5 opening a post in place · 6 walk mode and work items under one · 7 templates and daily report · 8 personal notebook and My calendar · 9 management report · 10 no signal and notifications |
+| by 15 Dec | First Play closed test and first TestFlight build; safety line for slices not started |
+| 18–24 Jan | Test week with 3–5 real people, then fixes |
+| 25–31 Jan | Freeze: fixes only, backups ready |
+| 1 Feb | Pilot starts |
 
 ## 4. Build order
 Weeks start on Sunday. The live status is in `docs/progress.md`.

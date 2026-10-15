@@ -475,6 +475,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - It found two bugs, both fixed with tests: unsent work items were shared by every account on a phone; and signing out on a lost connection threw an error. A third (phone sign-in before the market list loads) is noted for after the pilot. See `docs/test/week9-findings.md`.
   - 590 Flutter tests (2 new).
 
+- **15 Oct, new MVP scope and pilot date** (founder decisions, review 32; docs only):
+  - The pilot moves to **Monday 1 February 2027** (was 1 January), still four weeks with one real team.
+  - New MVP scope per review 32: Work in full in the Daybook design (`docs/product/daybook.md`), Planning (the personal notebook and My calendar) and direct messages are in; the "still out" list is in `CLAUDE.md` and `docs/product/mvp-plan.md` §3.
+  - The Space adopts the Daybook design; the rest of the app is being redrawn in it (16–31 Oct). Building waits for review 33 (the database changes and the slices).
+  - The plan to 1 February (`docs/product/mvp-plan.md`, "Plan to 1 February") replaces review 30 §8's dates (first closed-test review and first TestFlight by 1 Dec; nothing after 20 Dec). Safety line: any slice not started by 15 Dec moves to after the pilot.
+  - The founder keeps testing 0.9.0 (1); the emulators and the live app stay as they are.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

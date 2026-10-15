@@ -5,7 +5,7 @@ Read this file first in every session. Then read `docs/progress.md` to see where
 ## What this is
 BuildVibes is a mobile-first professional network and site-work app for the whole AECO industry: engineers, BIM staff, site supervisors, foremen, trades, subcontractors, suppliers and labour.
 
-**MVP goal:** one real site team runs its daily work in a BuildVibes Space for four weeks from **1 January 2027**. Members get proof on their profile from work that was checked and closed.
+**MVP goal:** one real site team runs its daily work in a BuildVibes Space for four weeks from **1 February 2027**. Members get proof on their profile from work that was checked and closed.
 
 - **Founder:** Islam (BIM Manager, Kuwait). He decides business questions. Technical and product-design calls are Claude's, explained in plain words.
 - **Design source of truth:** Figma file `IcoK4u8JFO6K8l4YYiHNkm`, signed off on 11 Oct 2026.
@@ -13,6 +13,7 @@ BuildVibes is a mobile-first professional network and site-work app for the whol
   - Arabic: page "PROTOTYPE · Core journeys · AR".
   - The prototype is frozen. If the code and the prototype disagree, the prototype wins, unless the founder says otherwise.
 - **Product docs:** `docs/product/`. Start with `mvp-plan.md`, `space-project-model.md`, `rules.md` and `arabic-glossary.md`. Component specs (sizes, colours, states) are in `components.md`. The database tables and permission rules are in `data-model.md`.
+  - The Space Work design is `docs/product/daybook.md`; every prototype scenario is listed in `docs/product/space-scenarios.md`.
 - **Old app, for reference only:** `D:\Projects\00 AECOX Technology\Build-Vibes` (GitHub `Islam-Sabra/Build-Vibes`). Port proven parts from it; never edit it. See `docs/product/codebase-audit.md`.
 
 ## Scope
@@ -22,12 +23,15 @@ BuildVibes is a mobile-first professional network and site-work app for the whol
 - profile with proof from closed work;
 - shared project records;
 - Spaces: join requests confirmed by the admin, Lead / Crew / Viewer passes, Teams, Chat, work items (Open → Done → Checked), Library;
+- Work in the Daybook design: writing in place with drafts; work item, checklist, announcement, scheduled activity and file posts; opening a post in place (blocks, /, turn into, tables); work items under one work item; walk mode; templates; daily report; meeting notes into work items; management report (see `docs/product/daybook.md`);
+- Planning: the personal notebook and My calendar across all Spaces;
+- Direct messages between two people;
 - Home feed and the Spaces tab;
 - Activity and push notifications;
 - report and block;
 - delete account.
 
-**Not in the MVP:** Jobs and hiring, company job management, Explore beyond people search, Notebook and Planner, community question Spaces, direct messages, CV import, connected accounts, paid plan, sponsored posts.
+**Not in the MVP:** export a work item's record as PDF, approval codes, repeating work items, Translate, phone and WhatsApp sign-in, Jobs and hiring, company job management, Explore beyond people search, community question Spaces, CV import, connected accounts, paid plan, sponsored posts.
 
 Don't build out-of-scope features, even partly, without the founder's yes.
 
