@@ -44,7 +44,7 @@ FakeSpaceRepository _spaces() {
       name: 'Site team',
       myPass: SpacePass.lead,
       iAmAdmin: true,
-      myRights: MemberRights(createItems: true, checkItems: true, invite: true),
+      myRights: MemberRights(createItems: true, invite: true),
     )
     ..spacePeople[_space] = SpacePeople(
       members: [

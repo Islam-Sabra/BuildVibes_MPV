@@ -46,7 +46,7 @@ FakeSpaceRepository _spaces({bool admin = true}) =>
         name: 'Site team',
         myPass: SpacePass.lead,
         iAmAdmin: admin,
-        myRights: const MemberRights(createItems: true, checkItems: true),
+        myRights: const MemberRights(createItems: true),
       )
       ..spacePeople[_space] = SpacePeople(
         members: [

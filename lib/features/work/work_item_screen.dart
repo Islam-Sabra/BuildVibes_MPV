@@ -249,11 +249,11 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
         ],
       ),
       actions: [
-        // Reassign, for the creator and members who may check, while Open.
+        // Reassign, for the author, while Open.
         if (d != null &&
             d.item.status == WorkStatus.open &&
             people != null &&
-            (d.item.createdById == me || (space?.myRights.checkItems ?? false)))
+            d.item.createdById == me)
           IconButton(
             key: const Key('work-item-more'),
             tooltip: l10n.workReassignTitle,
@@ -302,7 +302,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
     } else if (item.status == WorkStatus.open && d.sentBack != null) {
       final reason = switch (d.sentBack!.reason) {
         SendBackReason.photoMissing => l10n.workReasonPhotoMissing,
-        SendBackReason.notAsDrawing => l10n.workReasonNotAsDrawing,
+        SendBackReason.notAsAsked => l10n.workReasonNotAsAsked,
         SendBackReason.notFinished => l10n.workReasonNotFinished,
         SendBackReason.other || null => l10n.workReasonOther,
       };
@@ -607,12 +607,9 @@ class _Attached extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final files = ref.watch(itemFilesProvider(item.id)).value ?? const [];
-    final space = ref.watch(spaceDetailProvider(item.spaceId)).value;
     final canAttach =
         me != null &&
-        (me == item.createdById ||
-            me == item.ownerId ||
-            (space?.myRights.checkItems ?? false));
+        (me == item.createdById || me == item.ownerId);
     if (files.isEmpty && !canAttach) return const SizedBox.shrink();
 
     Future<void> attach() async {

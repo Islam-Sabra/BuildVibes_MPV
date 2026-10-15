@@ -1708,10 +1708,6 @@
   "@spacesRightCreate": {
     "description": "Right."
   },
-  "spacesRightCheck": "Check and close items",
-  "@spacesRightCheck": {
-    "description": "Right."
-  },
   "spacesRightInvite": "Invite people",
   "@spacesRightInvite": {
     "description": "Right."
@@ -2586,8 +2582,8 @@
   "@workReasonPhotoMissing": {
     "description": "Send back reason."
   },
-  "workReasonNotAsDrawing": "Not as per drawing",
-  "@workReasonNotAsDrawing": {
+  "workReasonNotAsAsked": "Not as asked",
+  "@workReasonNotAsAsked": {
     "description": "Send back reason."
   },
   "workReasonNotFinished": "Not finished",

@@ -245,11 +245,6 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
                     key: SpaceRight.createItems,
                   ),
                   right(
-                    l10n.spacesRightCheck,
-                    rights.checkItems,
-                    key: SpaceRight.checkItems,
-                  ),
-                  right(
                     l10n.spacesRightInvite,
                     rights.invite,
                     key: SpaceRight.invite,

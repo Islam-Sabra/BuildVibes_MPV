@@ -175,7 +175,7 @@ enum WorkEventKind {
 /// Why an item was sent back (W5). One single choice.
 enum SendBackReason {
   photoMissing('photo_missing'),
-  notAsDrawing('not_as_drawing'),
+  notAsAsked('not_as_asked'),
   notFinished('not_finished'),
   other('other');
 

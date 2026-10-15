@@ -47,7 +47,7 @@ FakeSpaceRepository _spaces() =>
         name: 'Site team',
         myPass: SpacePass.lead,
         iAmAdmin: true,
-        myRights: MemberRights(createItems: true, checkItems: true),
+        myRights: MemberRights(createItems: true),
       );
 
 WorkItem _item(
@@ -196,12 +196,12 @@ void main() {
       await _tap(tester, 'reason-other');
       await _tap(tester, 'send-back-confirm');
       expect(find.text(l10n.workOtherNeedsNote), findsOneWidget);
-      await _tap(tester, 'reason-not_as_drawing');
+      await _tap(tester, 'reason-not_as_asked');
       await _type(tester, 'send-back-note', 'Sleeve should be 150.');
       await _tap(tester, 'send-back-confirm');
       expect(
         work.calls.single,
-        'back item-1 not_as_drawing Sleeve should be 150.',
+        'back item-1 not_as_asked Sleeve should be 150.',
       );
       expect(
         find.text(l10n.workSentBack(inOwnDirection('Rakesh'))),

@@ -112,7 +112,7 @@ FakeSpaceRepository _spaces({bool canCreate = true}) =>
         projectName: 'Kuwait City Tower',
         myPass: SpacePass.lead,
         iAmAdmin: canCreate,
-        myRights: MemberRights(createItems: canCreate, checkItems: canCreate),
+        myRights: MemberRights(createItems: canCreate),
       );
 
 Future<void> _open(

@@ -2297,12 +2297,6 @@ abstract class AppLocalizations {
   /// Right.
   ///
   /// In en, this message translates to:
-  /// **'Check and close items'**
-  String get spacesRightCheck;
-
-  /// Right.
-  ///
-  /// In en, this message translates to:
   /// **'Invite people'**
   String get spacesRightInvite;
 
@@ -3299,8 +3293,8 @@ abstract class AppLocalizations {
   /// Send back reason.
   ///
   /// In en, this message translates to:
-  /// **'Not as per drawing'**
-  String get workReasonNotAsDrawing;
+  /// **'Not as asked'**
+  String get workReasonNotAsAsked;
 
   /// Send back reason.
   ///
