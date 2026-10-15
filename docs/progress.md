@@ -30,7 +30,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety, 16 account, 17 market pack (founder's yes, 13 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety, 16 account, 17 market pack (founder's yes, 13 Oct), 18 daybook core (founder's yes, 15 Oct) |
 | Edge Functions | `push` (FCM HTTP v1) and `report-alert` (Resend), both `verify_jwt = false`, deployed 13 Oct with the founder's yes |
 | Function secrets | `FIREBASE_SERVICE_ACCOUNT` and `RESEND_API_KEY` (pasted by the founder), `PUSH_WEBHOOK_SECRET` and `REPORT_ALERT_SECRET` (generated, never printed), `ALERT_FROM` (the sign-in code sender). Names only here |
 | Vault | `push_webhook_secret` and `report_alert_secret` (the same values as the function secrets) |
@@ -500,6 +500,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - An admin can't delete a Team that has work items; rename it instead.
     - Unchanged: raising (same fields), signing as done, photos, comments by the owner, Leads and Crew, Library, chat, feed and push.
   - **Review 34 applied (15 Oct):** only the author (or an admin acting for them) adds a work item under one (D1); an author lowered to Viewer or with posting switched off counts as gone, so the admin checks, sends back, reassigns and cancels for them (D2); a sole admin's work for themselves is checked by a Lead (D3); an old chat card for an item the reader can't see is a plain "Work item" line (L1). 988 SQL checks, 592 Flutter tests.
+  - **15 Oct, migration 18 live** (founder's yes; review 35 approved): `daybook-db` merged into main (08770c5); `supabase db push` listed only `20261015120000_daybook.sql`. Read-only check on live: 0 work items and 0 posts (nothing to backfill), no work item without its post, `post_edits` and `post_files` empty, the chat-card trigger and its function gone, no old reason rows, row-level security on all three tables. The 0.9.0 (1) build on the emulators now talks to the new rules (see the list above); a new build from main is needed for the reason name and the pass screen.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
