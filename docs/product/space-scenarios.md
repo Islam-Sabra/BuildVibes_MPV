@@ -54,7 +54,7 @@ Rules for these screens: `daybook.md`.
 | | Put a message in a Space, then it opens as a work item being written, quoting the message | `2561:35916` → `2561:76753` |
 | | Space info and settings (tap the Space name in the header) | `2562:35576` |
 | Arabic (AR page `2439:29889`) | Flow "AR · Daybook · مساحة العمل": daybook, writing in place, Omar's daybook | `2547:35195`, `2547:35369`, `2547:35543` |
-| | Flow "AR · Home, notebook, messages (Daybook)": Home, profile, notebook, calendar, messages list, thread, Space info | `2564:184`, `2564:366`, `2564:549`, `2564:653`, `2564:745`, `2563:170`, `2564:843` |
+| | Flow "AR · Home, notebook, messages (Daybook)": Home, profile, notebook, calendar, messages list, thread, Space info | `2564:184`, `2564:366`, `2564:549`, `2564:653`, `2564:745`, `2563:170`, `2564:843`, message request `2574:360` |
 
 The people in the demo: Islam Ahmed (BIM Manager, admin, Lead, author), Sara Al-Mutairi (site engineer, Lead), Omar Haddad (MEP foreman, Crew, owner), Rakesh Nair (electrician, Crew), Lina Khalil (architect, Crew), Mona Adel (client representative, Viewer), Yousef Karam (foreman asking to join). Author and owner are roles on each work item, not job titles.
 
