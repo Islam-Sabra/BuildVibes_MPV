@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(135);
+select plan(138);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000019' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -470,6 +470,18 @@ select is(pg_temp.n('e3', 'file_new_version', 'a109') + pg_temp.n('e4', 'file_ne
   2::bigint, 'whoever received the old version is told');
 select is(pg_temp.q('e3', 'file_new_version'), 1::bigint, 'with a push at "everything"');
 select is(pg_temp.q('e4', 'file_new_version'), 0::bigint, 'and none at "needs you"');
+select pg_temp.as_user('e6');
+set local role authenticated;
+select is((select string_agg(name, ', ' order by name) from public.post_acks_for(pg_temp.item('a104'))),
+  'Sara Ali, Vera Lane', 'anyone who can see a file post sees who received it (review 36 R1)');
+select is((select count(*) from public.post_acks_for(pg_temp.item('a101'))), 0::bigint,
+  'but not who got an announcement');
+select pg_temp.as_user('e1');
+select public.ack(pg_temp.item('a105'), 'received');
+select pg_temp.as_user('e2');
+select is((select count(*) from public.post_acks_for(pg_temp.item('a105'))), 0::bigint,
+  'nobody outside a Team sees who received its file');
+reset role;
 
 -- Pinned, and the activity on its day ---------------------------------------------------------------
 

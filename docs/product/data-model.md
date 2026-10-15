@@ -444,7 +444,7 @@ Rules from review 33 A2 and its clarifications. Checklists, announcements, sched
 | Tick a point (`tick_point`) | The author, its people and any Lead or Crew member; never a Viewer (an admin's Viewer pass included). Untick: whoever ticked it, or the author (an admin when the author is gone). A work item's points only while it is Open. |
 | Edit (`edit_space_post`) | The author. New keys: `points` ({add, edit, remove, order}; a ticked point can't be removed or reworded, but can be moved), `people` ({add, remove}), `pinned_until`, `starts_at` and `ends_at`. A key that doesn't fit the kind is refused. Place: work items, checklists, activities. Due: work items, checklists. |
 | Acknowledge (`ack`) | Any active member who can read the post, Viewers too; taken back with `p_on` false. On my way from 3 hours before the start to the end; In my calendar until the end. Nothing on a cancelled post. |
-| Who acknowledged (`post_acks_for`) | The author only (an admin when the author is gone): faces and names, never a number (rule 3). One helper, `may_see_acks`, decides. |
+| Who acknowledged (`post_acks_for`) | Faces and names, never a number (rule 3). Received on a file post: everyone who can see the post, so the crew sees who has the new revision (review 36 R1, as the prototype shows). Got it, On my way and In my calendar: the author only (an admin when the author is gone; `may_see_acks`). |
 | Delete | Ends at any tick or acknowledgement by someone else, as well as the §14 rules. |
 | Cancel | As §14; a checklist's or an activity's people and calendar adds are told. |
 

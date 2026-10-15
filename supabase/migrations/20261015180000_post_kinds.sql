@@ -28,8 +28,8 @@
 --
 -- Choices for the lead to confirm (review 36):
 -- - Ack faces: the author only (A2), or an admin acting for an author who
---   is gone. The prototype also shows Received faces to others; one helper
---   (may_see_acks) decides.
+--   is gone; Received faces on a file post to everyone who can see it
+--   (review 36 R1, as the prototype shows).
 -- - activity_starting is sent even when the person set the Space to Off
 --   (A2: "always"), since they were invited or added it themselves.
 -- - A checklist with unticked points is in its people's Needs you
@@ -181,9 +181,9 @@ as $$
                       where w.id = p.id and w.owner_id = p_profile)));
 $$;
 
--- Who may read the faces of a post's acknowledgements: its author, or an
--- admin acting for an author who is gone (review 33 A2; one place to
--- change if the lead opens Received faces to more people).
+-- Who may read the faces of Got it, On my way and In my calendar: the
+-- post's author, or an admin acting for an author who is gone (review 33
+-- A2). Received faces are open to every reader (post_acks_for).
 create or replace function public.may_see_acks(p_post public.space_posts)
 returns boolean
 language sql
@@ -663,8 +663,10 @@ begin
 end;
 $$;
 
--- Who acknowledged [p_post]: faces and names, never a count. The author
--- only (an admin when the author is gone); nobody else gets any row.
+-- Who acknowledged [p_post]: faces and names, never a count. Received on
+-- a file post: anyone who can see it (review 36 R1: the crew can see who
+-- has the new revision). Got it, On my way and In my calendar: the author
+-- only (an admin when the author is gone).
 create or replace function public.post_acks_for(p_post uuid)
 returns table (profile_id uuid, name text, kind text, at timestamptz)
 language sql
@@ -675,7 +677,8 @@ as $$
   select a.profile_id, public.space_person_name(a.profile_id), a.kind, a.created_at
   from public.space_posts p
   join public.post_acks a on a.post_id = p.id
-  where p.id = p_post and public.may_see_acks(p)
+  where p.id = p_post and public.can_see_space_post(p.id)
+    and (a.kind = 'received' or public.may_see_acks(p))
   order by a.created_at, a.profile_id;
 $$;
 
