@@ -499,6 +499,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Team work items disappear from the Work tab, Today and Activity of members outside that Team (admins, the author and the owner still see them).
     - An admin can't delete a Team that has work items; rename it instead.
     - Unchanged: raising (same fields), signing as done, photos, comments by the owner, Leads and Crew, Library, chat, feed and push.
+  - **Review 34 applied (15 Oct):** only the author (or an admin acting for them) adds a work item under one (D1); an author lowered to Viewer or with posting switched off counts as gone, so the admin checks, sends back, reassigns and cancels for them (D2); a sole admin's work for themselves is checked by a Lead (D3); an old chat card for an item the reader can't see is a plain "Work item" line (L1). 988 SQL checks, 592 Flutter tests.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

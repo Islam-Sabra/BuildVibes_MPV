@@ -1003,6 +1003,16 @@ class _CardEntry extends ConsumerWidget {
       _ => l10n.chatCardRaised(who),
     };
 
+    // An old card for an item this person can't see (a Team item whose card
+    // went to Everyone before migration 18, or a deleted post): a plain line,
+    // with no title, no name and no link (review 34 L1).
+    if (item == null && items != null) {
+      return Text(
+        joinMeta([l10n.chatCardHidden, time]),
+        key: Key('chat-card-${message.id}'),
+        style: type.bodySm.copyWith(color: BvColors.textSecondary),
+      );
+    }
     if (!full) {
       return InkWell(
         key: Key('chat-card-${message.id}'),
@@ -1026,10 +1036,7 @@ class _CardEntry extends ConsumerWidget {
           joinMeta([line, time]),
           style: type.bodySm.copyWith(color: BvColors.textSecondary),
         ),
-        if (item != null)
-          WorkItemCard(item: item, needs: needs, me: me)
-        else if (items != null)
-          EmptyNote(l10n.chatItemGone),
+        if (item != null) WorkItemCard(item: item, needs: needs, me: me),
       ],
     );
   }

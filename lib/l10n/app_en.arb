@@ -3074,9 +3074,9 @@
       }
     }
   },
-  "chatItemGone": "This work item is no longer in the Space.",
-  "@chatItemGone": {
-    "description": "Card for a removed item."
+  "chatCardHidden": "Work item",
+  "@chatCardHidden": {
+    "description": "An old chat card for a work item the reader can't see: no title, no name."
   },
   "chatLastRaised": "{name} raised {ref}",
   "@chatLastRaised": {

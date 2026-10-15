@@ -382,7 +382,9 @@ as $$
 $$;
 
 -- The author is gone from [p_space]: no longer an active member, purged
--- (null), or waiting for their account to be deleted (hidden for 30 days).
+-- (null), waiting for their account to be deleted (hidden for 30 days), or
+-- no longer able to post (lowered to Viewer, or posting switched off;
+-- review 34 D2). A Space admin then acts for them.
 create or replace function public.author_is_gone(p_space uuid, p_author uuid)
 returns boolean
 language sql
@@ -391,11 +393,12 @@ security definer
 set search_path = ''
 as $$
   select not public.is_active_member(p_space, p_author)
-      or public.is_hidden_account(p_author);
+      or public.is_hidden_account(p_author)
+      or not public.member_can(p_space, p_author, 'create_items');
 $$;
 
--- The caller acts for [p_post]'s author: they are the author (an active,
--- not hidden member), or the author is gone and the caller is a Space admin
+-- The caller acts for [p_post]'s author: they are the author (while not
+-- gone), or the author is gone and the caller is a Space admin
 -- (is_space_admin is hidden-aware).
 create or replace function public.acts_for_author(p_post public.space_posts)
 returns boolean
@@ -407,7 +410,8 @@ as $$
   select auth.uid() is not null
     and not public.is_hidden_account(auth.uid())
     and public.is_member(p_post.space_id)
-    and ((p_post.author_id = auth.uid())
+    and ((p_post.author_id = auth.uid()
+          and not public.author_is_gone(p_post.space_id, p_post.author_id))
          or (public.author_is_gone(p_post.space_id, p_post.author_id)
              and public.is_space_admin(p_post.space_id)));
 $$;
@@ -449,8 +453,10 @@ as $$
 $$;
 
 -- [p_profile] may check or send back [p_item] (Done): never its owner; its
--- author while they are an active member; a Space admin when the author is
--- gone (author_is_gone) or is the owner. The post must be live.
+-- author while not gone; when the author is gone (author_is_gone) or is the
+-- owner, a Space admin other than the owner, or, when the Space has no such
+-- admin, any active Lead other than the owner (review 34 D3: a sole admin
+-- who gave work to themselves). The post must be live.
 create or replace function public.may_check(p_item public.work_items, p_profile uuid)
 returns boolean
 language sql
@@ -466,12 +472,21 @@ as $$
       select 1 from public.space_posts p
       join public.spaces s on s.id = p.space_id and s.deleted_at is null
       where p.id = p_item.id and p.status = 'live' and p.deleted_at is null
-        and (p.author_id = p_profile
+        and ((p.author_id = p_profile
+              and not public.author_is_gone(p.space_id, p.author_id))
              or ((public.author_is_gone(p.space_id, p.author_id)
                   or p.author_id is not distinct from p_item.owner_id)
-                 and exists (select 1 from public.space_members m
-                             where m.space_id = p.space_id and m.profile_id = p_profile
-                               and m.is_admin and m.left_at is null))));
+                 and (exists (select 1 from public.space_members m
+                              where m.space_id = p.space_id and m.profile_id = p_profile
+                                and m.is_admin and m.left_at is null)
+                      or (exists (select 1 from public.space_members l
+                                  where l.space_id = p.space_id and l.profile_id = p_profile
+                                    and l.pass = 'lead' and l.left_at is null)
+                          and not exists (
+                            select 1 from public.space_members a
+                            where a.space_id = p.space_id and a.is_admin and a.left_at is null
+                              and a.profile_id is distinct from p_item.owner_id
+                              and not public.is_hidden_account(a.profile_id)))))));
 $$;
 
 -- Why [p_item] needs the caller, or null: 'open_owned' (theirs to sign,
@@ -702,8 +717,10 @@ begin
     -- For share: a Cancel or Delete of the parent running now finishes
     -- first, and the checks below see its result.
     select * into v_parent from public.space_posts where id = p_parent for share;
+    -- Only under your own work item, or one you act for (review 34 D1).
     if v_parent.id is null or v_parent.space_id <> p_space or v_parent.kind <> 'work_item'
-       or not public.can_see_space_post(v_parent.id) then
+       or not public.can_see_space_post(v_parent.id)
+       or not public.acts_for_author(v_parent) then
       raise exception 'not allowed' using errcode = '42501';
     end if;
     if v_parent.status <> 'live' or v_parent.parent_id is not null then

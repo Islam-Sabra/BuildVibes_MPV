@@ -278,16 +278,22 @@ select lives_ok($$select public.sign_done(current_setting('test.self')::uuid, 'S
   'an admin signs their own item as done');
 select throws_ok($$select public.check_item(current_setting('test.self')::uuid)$$,
   '42501', null, 'nobody checks an item they own, even its creator and an admin');
+-- Omar is the only admin, so a Lead checks it (review 34 D3).
 select pg_temp.as_user('a3');
-select throws_ok($$select public.check_item(current_setting('test.self')::uuid)$$,
-  '42501', null, 'a Lead who is not an admin cannot check it either');
--- Sara made an admin: an admin checks an item its author gave themselves.
+select lives_ok($$select public.check_item(current_setting('test.self')::uuid)$$,
+  'with no other admin, a Lead checks an item the sole admin gave themselves');
+-- Sara made an admin: another admin checks an item its author gave themselves.
+select pg_temp.as_user('a1');
+select set_config('test.self2',
+  public.create_work_item(current_setting('test.space')::uuid, 'Sign the second permit',
+    '00000000-0000-0000-0000-0000000007a1')::text, true);
+select public.sign_done(current_setting('test.self2')::uuid, 'Signed.', '[]');
 reset role;
 update public.space_members set is_admin = true
 where space_id = current_setting('test.space')::uuid and profile_id = '00000000-0000-0000-0000-0000000007a3';
 select pg_temp.as_user('a3');
 set local role authenticated;
-select lives_ok($$select public.check_item(current_setting('test.self')::uuid)$$,
+select lives_ok($$select public.check_item(current_setting('test.self2')::uuid)$$,
   'another Space admin checks an item its author owns');
 reset role;
 update public.space_members set is_admin = false

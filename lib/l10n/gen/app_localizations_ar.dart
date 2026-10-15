@@ -2199,7 +2199,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get chatItemGone => 'لم يعد بند العمل هذا في المساحة.';
+  String get chatCardHidden => 'بند عمل';
 
   @override
   String chatLastRaised(String name, String ref) {

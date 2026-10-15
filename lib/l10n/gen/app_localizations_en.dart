@@ -2192,7 +2192,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatItemGone => 'This work item is no longer in the Space.';
+  String get chatCardHidden => 'Work item';
 
   @override
   String chatLastRaised(String name, String ref) {

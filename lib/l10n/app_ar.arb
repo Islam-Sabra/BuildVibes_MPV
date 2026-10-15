@@ -620,7 +620,7 @@
   "chatCardChecked": "فحص وإغلاق من {name}",
   "chatCardSentBack": "إرجاع بند عمل من {name}",
   "chatCardReassigned": "إعادة تكليف بند عمل من {name}",
-  "chatItemGone": "لم يعد بند العمل هذا في المساحة.",
+  "chatCardHidden": "بند عمل",
   "chatLastRaised": "بند عمل جديد {ref} من {name}",
   "chatLastDone": "توقيع {ref} كمنجز من {name}",
   "chatLastChecked": "فحص وإغلاق {ref} من {name}",

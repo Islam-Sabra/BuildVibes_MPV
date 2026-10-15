@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(105);
+select plan(122);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000018' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -134,7 +134,8 @@ select pg_temp.raise('a001', 'Fix the gate', 'e2');
 select pg_temp.raise('a006', 'Fresh one', 'e2');
 select pg_temp.raise('a007', 'Has an update', 'e2');
 select pg_temp.raise('a008', 'Level 3 target', 'e2');
-select pg_temp.raise('a009', 'Under the target', 'e2', p_parent => 'a008');
+select lives_ok($$select pg_temp.raise('a009', 'Under the target', 'e2', p_parent => 'a008')$$,
+  'the author adds a work item under their own work item');
 select pg_temp.raise('a011', 'To be cancelled', 'e2');
 select pg_temp.raise('a012', 'Under the cancelled one', 'e6', p_parent => 'a011');
 select pg_temp.raise('a016', 'Sara gives this to Tariq', 'e6');
@@ -144,6 +145,8 @@ select pg_temp.raise('a003', 'Lina raised this', 'e2');
 select pg_temp.raise('a015', 'Lina leaves this open', 'e2');
 select pg_temp.as_user('e6');
 select pg_temp.raise('a005', 'MEP sleeve', 'e6', p_team => current_setting('test.team')::uuid);
+select throws_ok($$select pg_temp.raise('a090', 'Under someone else''s', 'e2', p_parent => 'a008')$$,
+  '42501', null, 'nobody else adds a work item under someone''s work item (review 34 D1)');
 
 select pg_temp.as_user('e5');
 select is((select count(*) from public.space_posts), 0::bigint, 'a non-member reads no posts');
@@ -356,6 +359,8 @@ select lives_ok($$select public.check_item(pg_temp.item('a003'))$$,
   'and an admin checks it for them');
 select lives_ok($$select public.reassign_work_item(pg_temp.item('a015'), pg_temp.uid('e6'))$$,
   'an admin reassigns for an author who left');
+select lives_ok($$select pg_temp.raise('a018', 'Under Lina''s item', 'e2', p_parent => 'a015')$$,
+  'and adds a work item under it for them');
 select lives_ok($$select public.cancel_space_post(pg_temp.item('a015'))$$,
   'and cancels for them');
 
@@ -452,6 +457,58 @@ select ok(not public.may_upload(pg_temp.post_path('a004', 'late.jpg')),
   'nor upload into it');
 select pg_temp.as_user('e1');
 select public.set_member_pass(pg_temp.sp(), pg_temp.uid('e2'), 'crew');
+
+-- Rakesh raises work for Tariq, then is lowered to Viewer (review 34 D2).
+select pg_temp.as_user('e2');
+select pg_temp.raise('a019', 'Rakesh asks Tariq', 'e6');
+select pg_temp.as_user('e6');
+select public.sign_done(pg_temp.item('a019'), 'Done for Rakesh.');
+select pg_temp.as_user('e1');
+select public.set_member_pass(pg_temp.sp(), pg_temp.uid('e2'), 'viewer');
+select pg_temp.as_user('e2');
+select throws_ok($$select public.check_item(pg_temp.item('a019'))$$, '42501', null,
+  'an author lowered to Viewer can''t check');
+select throws_ok($$select public.send_back(pg_temp.item('a019'), 'not_finished')$$, '42501', null,
+  'or send back');
+select throws_ok($$select public.reassign_work_item(pg_temp.item('a004'), pg_temp.uid('e6'))$$,
+  '42501', null, 'or reassign');
+select throws_ok($$select public.cancel_space_post(pg_temp.item('a004'))$$, '42501', null,
+  'or cancel');
+select pg_temp.as_user('e1');
+select is((select count(*) from public.needs_you() where kind = 'to_check'
+           and work_item_id = pg_temp.item('a019')), 1::bigint,
+  'the admin is asked to check for them');
+select lives_ok($$select public.send_back(pg_temp.item('a019'), 'not_finished')$$,
+  'and sends it back for them');
+select lives_ok($$select public.reassign_work_item(pg_temp.item('a004'), pg_temp.uid('e6'))$$,
+  'and reassigns for them');
+select public.set_member_pass(pg_temp.sp(), pg_temp.uid('e2'), 'crew');
+select pg_temp.as_user('e6');
+select public.sign_done(pg_temp.item('a019'), 'Done again.');
+select pg_temp.as_user('e1');
+select throws_ok($$select public.check_item(pg_temp.item('a019'))$$, '42501', null,
+  'raised back to Crew: the admin no longer acts for them');
+select throws_ok($$select public.reassign_work_item(pg_temp.item('a004'), pg_temp.uid('e3'))$$,
+  '42501', null, 'nor reassigns for them');
+select pg_temp.as_user('e2');
+select lives_ok($$select public.check_item(pg_temp.item('a019'))$$,
+  'and the author checks again');
+
+-- D3: the only admin gives work to themselves; a Lead checks it.
+select pg_temp.as_user('e1');
+select pg_temp.raise('a020', 'Omar signs the permit', 'e1');
+select public.sign_done(pg_temp.item('a020'), 'Permit signed.');
+select throws_ok($$select public.check_item(pg_temp.item('a020'))$$, '42501', null,
+  'the sole admin can''t check work they gave themselves');
+select pg_temp.as_user('e6');
+select throws_ok($$select public.check_item(pg_temp.item('a020'))$$, '42501', null,
+  'nor can a Crew member');
+select pg_temp.as_user('e3');
+select is((select count(*) from public.needs_you() where kind = 'to_check'
+           and work_item_id = pg_temp.item('a020')), 1::bigint,
+  'with no other admin, a Lead is asked to check it (review 34 D3)');
+select lives_ok($$select public.check_item(pg_temp.item('a020'))$$,
+  'and checks it');
 
 select pg_temp.as_user('e6');
 select public.sign_done(pg_temp.item('a016'), 'Done for Sara.');
