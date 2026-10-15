@@ -1,6 +1,6 @@
 # Space prototype: every scenario (Daybook, 15 Oct 2026)
 
-**Start here:** Figma EN page `2145:3`, flow "★ Space · all scenarios (Daybook)", frame `2545:35161` (it scrolls). Tap a scenario to play it; tap the time at the top-left of any screen to come back. All links checked on 15 Oct.
+**Start here:** Figma EN page `2145:3`, flow "★ Space · all scenarios (Daybook)", frame `2545:35161` (it scrolls). Tap a scenario to play it; tap the time at the top-left of any screen to come back. All links checked on 15 Oct (3,890 links, none broken). Arabic lives on the AR page; prototype links can't cross pages, so open its flows there.
 
 Rules for these screens: `daybook.md`.
 
@@ -40,8 +40,28 @@ Rules for these screens: `daybook.md`.
 | | No signal | `2544:35135` |
 | | Couldn't send | `2544:35266` |
 | | Proof on the profile | `2544:35381` |
-| Arabic | Daybook, writing in place, owner's daybook | `2547:35195`, `2547:35369`, `2547:35543` |
+| Home, profile and planning | Home feed in Daybook | `2555:35276` |
+| | Write a post in place | `2555:35388` |
+| | Profile: proof of work | `2556:35424` |
+| | My notebook (private) | `2557:35384` |
+| | Put a note in a Space | `2557:35481` |
+| | My calendar (all Spaces and my to-dos) | `2557:35587` |
+| Messages and Space info | Messages list, with a message request | `2560:35524` |
+| | A thread between two people | `2561:35447` |
+| | Hold a message: Reply, Copy, Put in a Space, Save to my notebook, Report | `2561:35808` |
+| | Put a message in a Space, then it opens as a work item being written, quoting the message | `2561:35916` → `2561:76753` |
+| | Space info and settings (tap the Space name in the header) | `2562:35576` |
+| Arabic (AR page `2439:29889`) | Flow "AR · Daybook · مساحة العمل": daybook, writing in place, Omar's daybook | `2547:35195`, `2547:35369`, `2547:35543` |
+| | Flow "AR · Home, notebook, messages (Daybook)": Home, profile, notebook, calendar, messages list, thread, Space info | `2564:184`, `2564:366`, `2564:549`, `2564:653`, `2564:745`, `2563:170`, `2564:843` |
 
 The people in the demo: Islam Ahmed (BIM Manager, admin, Lead, author), Sara Al-Mutairi (site engineer, Lead), Omar Haddad (MEP foreman, Crew, owner), Rakesh Nair (electrician, Crew), Lina Khalil (architect, Crew), Mona Adel (client representative, Viewer), Yousef Karam (foreman asking to join). Author and owner are roles on each work item, not job titles.
 
 Photos and the drawing in the prototype are AI-generated placeholders.
+
+## Direct messages and Space info (15 Oct)
+- **Messages** open from the chat icon in the Home app bar; the list-checks icon opens My notebook.
+- **Who can message whom:** people who share a Space, or follow each other, message directly. Anyone else arrives as a **message request** at the top of the list (open it to reply, or decline). Founder decision F10 (recommended).
+- A thread shows which Space you share ("Both in Kuwait City Tower — Site team"), never a count.
+- **Hold a message:** Reply, Copy, Put in a Space, Save to my notebook, Report. Block is under ⋯ in the thread header.
+- **Put in a Space:** pick the Space; its daybook opens with a work item being written, the message quoted inside. Nothing is posted until Post.
+- **Space info:** your pass, notifications (one choice: Everything / Needs you / Off), invite code with Copy and New code, who can invite (one choice: Only me / Leads / Everyone; default Leads), Space admin, Leave Space.
