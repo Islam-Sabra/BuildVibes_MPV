@@ -27,6 +27,7 @@ Rules for these screens: `daybook.md`.
 | Real life | Walk mode | `2539:34353` |
 | | Daily report | `2539:34498` |
 | | Meeting notes in the chat into work items | `2540:34503` |
+| | Week report (management report), from the Space menu ⋯ | `2566:35619` → `2566:35515` |
 | Days | Yesterday's page | `2541:34679` |
 | | The calendar | `2541:34813` |
 | | Day one, empty daybook | `2541:35060` |
@@ -65,3 +66,9 @@ Photos and the drawing in the prototype are AI-generated placeholders.
 - **Hold a message:** Reply, Copy, Put in a Space, Save to my notebook, Report. Block is under ⋯ in the thread header.
 - **Put in a Space:** pick the Space; its daybook opens with a work item being written, the message quoted inside. Nothing is posted until Post.
 - **Space info:** your pass, notifications (one choice: Everything / Needs you / Off), invite code with Copy and New code, who can invite (one choice: Only me / Leads / Everyone; default Leads), Space admin, Leave Space.
+
+## Week report (management report, 15 Oct)
+- Opens from the Space menu (⋯ in the Space header: Search, Week report, Daily report, Space info).
+- One week per page, arrows for the week before and after. "Share in chat" posts it to the Space chat.
+- Sections, all made from the daybook: **Needs a decision** (late, sent back, done and waiting for a check, with the paper clip), **Checked this week** (proof photos with the CHECKED stamp), **Targets** (progress line, "2 of 4 checked"), **Coming up** (scheduled activities and due dates).
+- No scores, rankings or per-person totals (product rule 3). Everyone in the Space can open it; it shows nothing they can't already read.
