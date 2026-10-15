@@ -44,6 +44,14 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
       return { route: `/people/${row.actor_id}` };
     case "post_reply":
       return { route: `/posts/${d.post_id}` };
+    // Daybook posts (migration 19) open their Space until the app has a
+    // route for one post; the post's id is in the data (space_post_id).
+    case "announcement_new":
+    case "checklist_for_you":
+    case "activity_invited":
+    case "activity_starting":
+    case "file_new_version":
+      return { route: `/spaces/${d.space_id}` };
     default:
       return d.work_item_id
         ? { route: `/spaces/${d.space_id}/items/${d.work_item_id}` }

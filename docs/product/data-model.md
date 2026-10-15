@@ -293,7 +293,10 @@ Rules from review 08, changed by migration 18 (review 33 A0, below). The app rea
 | `item_done` | signed as done | the creator | the Space |
 | `item_checked`, `item_sent_back` | checked, or sent back (with the reason) | the owner | the Space |
 | `item_comment` | a comment | the owner and the creator | the Space |
-| `item_edited`, `item_cancelled` | the author edited or cancelled it (migration 18; no push until migration 19) | the owner | the Space |
+| `item_edited`, `item_cancelled` | the author edited or cancelled it (migration 18; push since migration 19) | the owner; for a checklist or an activity, its people and calendar adds (migration 19) | the Space |
+| `announcement_new` | an announcement (migration 19) | its audience: Everyone, or the Team and the admins | the Space |
+| `checklist_for_you`, `activity_invited` | a checklist or an activity is for you (migration 19) | its people | the Space |
+| `file_new_version` | a new version of a file you marked Received (migration 19) | those people | the Space |
 | `join_request` | a request to join | every admin | the Space |
 | `join_confirmed` | the request confirmed | the new member | the Space |
 | `role_confirmed` | proof from a Space or a teammate (the Space is in `payload`) | the person | Your record |
@@ -321,7 +324,10 @@ A declined request makes no notification. Useful on a reply makes none.
 - `push_queue`: `profile_id`, `kind`, `actor_id`, `notification_id`, `thread_id`, `data` (ids for the link only), `message_text` (only when the person turned it on; cleared when the message is deleted or the push is sent), `created_at`, `claimed_at`, `attempts`, `not_before` (FCM's Retry-After), `sent_at`, `error`. Service role only.
 
 **Who gets a push** (rows come only from triggers, and only for people with a phone registered):
-- Work item kinds and a request to join: by the Space's level (`space_members.notify`): `off` none, `needs_you` and `all` yes.
+- Work item kinds (edits and cancels too, since migration 19), the new post kinds (`announcement_new`, `checklist_for_you`, `activity_invited`) and a request to join: by the Space's level (`space_members.notify`): `off` none, `needs_you` and `all` yes.
+- `file_new_version`: only at `all` (migration 19).
+- `activity_starting` (migration 19): always, once per person and start time, from `due_activity_reminders()`; no Activity row. The text names nobody.
+- A push about a daybook post opens its Space for now; the data carries `space_post_id`.
 - A confirmed request and a confirmed role: always. A new follower and a reply: by the S3 switch. Useful: never.
 - A chat message: everyone who may read the thread and set the Space to `all`; never the author, never across a block; at most one per thread per person every 5 minutes. Chat makes no Activity row. Work item cards in chat send nothing (their event already did).
 - A repeat request to join (after cancelling, within a day) merges into the admins' notification, so it sends no new push.
@@ -379,11 +385,11 @@ A declined request makes no notification. Useful on a reply makes none.
 - `purge_account()` locks the profile (a restore can't slip in) and waits while any avatar or post photo remains.
 - Proof stays: `cv_project_confirmations` has an `id` key and `confirmed_by` set null when the confirmer is purged (one row per CV project and confirmer; several purged confirmers may remain). New proof always needs a confirmer who is still there (review 27 R1). A purged reporter's reports stay (`reporter_id` set null).
 
-**Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, daybook posts and edits (migration 18), Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
+**Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, daybook posts and edits (migration 18), acknowledgements, ticks and the posts they were for (migration 19), Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
 
 **Reports:** `prune_reports()` deletes reports decided over 12 months ago (nightly, in the same cron script).
 
-## 14. Daybook (migration 18, `20261015120000_daybook.sql`, branch `daybook-db`, not live)
+## 14. Daybook (migration 18, `20261015120000_daybook.sql`, branch `daybook-db`, live 15 Oct)
 Rules from review 33 (A0, A1 and the 15 Oct clarifications) and `docs/product/daybook.md`. The daybook is the Space's list of posts, newest first. A work item is one kind of post.
 
 **Tables:**
@@ -412,6 +418,43 @@ Rules from review 33 (A0, A1 and the 15 Oct clarifications) and `docs/product/da
 Pushes for `item_edited` and `item_cancelled` come in migration 19.
 
 **Files:** uploads to `<space>/posts/<post>/<file>` (JPEG, PNG, WebP, HEIC or PDF): before the post exists, whoever may post (their own folder only); after, its author while it can be edited. Reads follow the post. A Library file on a live post can't be deleted, and stays when its chat message is removed (`library_file_in_use`).
+
+## 15. Other kinds of post (migration 19, `20261015180000_post_kinds.sql`, branch `post-kinds-db`, not live)
+Rules from review 33 A2 and its clarifications. Checklists, announcements, scheduled activities and file posts live in the daybook (§14) next to work items, with the same reading, Team and edit rules.
+
+**Columns on `space_posts`:** `pinned_until` (announcements), `starts_at` and `ends_at` (activities; ends after it starts, within a day) and `library_file_id` (file posts; the Library file can't be deleted while a post shares it).
+
+**Tables:**
+- `post_people`: who a checklist or an activity is for (role 'for'). Active members only; Lead or Crew for a checklist (they tick), anyone for an activity (a Viewer attends). On a Team post, Team members or Space admins only. A purged person is removed.
+- `checklist_points`: `post_id` (a checklist, or a work item), `sort`, `text` (1–300), `ticked_by`, `ticked_at`. A tick keeps its time when the person is purged ("Former member").
+- `post_acks`: `post_id`, `profile_id`, `kind` ('got_it' on announcements, 'received' on files, 'on_my_way' and 'in_my_calendar' on activities); one per person and kind. You read only your own.
+- `activity_reminders`: one "starts in 30 min" push per person and start time. Service role only.
+- `post_others`: the first tick or acknowledgement by someone other than the author. It ends Delete for good, even if taken back. Nobody reads it but the database's own functions, since it would tell readers that someone acknowledged.
+- `notifications.space_post_id`: the post a notification is about, when it isn't a work item.
+
+**Who does what:**
+
+| | Rule |
+|---|---|
+| Post any kind | Lead and Crew (`create_items`); a file post also needs the files right and a Library file the caller can read in that Space, a Team file only on that Team's post. A Team post only from inside the Team (or a Space admin). The id is the app's; a retry is the same post. |
+| Checklist | One or more people, 1 to 50 points, an optional due date. |
+| Announcement | Everyone or one Team; pinned until a time in the next 90 days, or not pinned. |
+| Scheduled activity | Starts in the future; place and people optional. Editable until it ends. |
+| File | Shares one Library file; its title is the file's name unless the author writes one. A new version is a new file post of a file that replaces the older one (`library_files.supersedes_id`): NEW VERSION stamp, "Replaces Rev C". |
+| Tick a point (`tick_point`) | The author, its people and any Lead or Crew member; never a Viewer (an admin's Viewer pass included). Untick: whoever ticked it, or the author (an admin when the author is gone). A work item's points only while it is Open. |
+| Edit (`edit_space_post`) | The author. New keys: `points` ({add, edit, remove, order}; a ticked point can't be removed or reworded, but can be moved), `people` ({add, remove}), `pinned_until`, `starts_at` and `ends_at`. A key that doesn't fit the kind is refused. Place: work items, checklists, activities. Due: work items, checklists. |
+| Acknowledge (`ack`) | Any active member who can read the post, Viewers too; taken back with `p_on` false. On my way from 3 hours before the start to the end; In my calendar until the end. Nothing on a cancelled post. |
+| Who acknowledged (`post_acks_for`) | The author only (an admin when the author is gone): faces and names, never a number (rule 3). One helper, `may_see_acks`, decides. |
+| Delete | Ends at any tick or acknowledgement by someone else, as well as the §14 rules. |
+| Cancel | As §14; a checklist's or an activity's people and calendar adds are told. |
+
+**Reading:** `space_post_json` adds the pin (while pinned), the activity's time, its people, the points' progress ("2 of 5 ticked"; every point with who ticked it when opened), the file (name, revision, size, what it replaces, whether a newer one exists), and the caller's own acknowledgements. `daybook_extras(space, from, to)` gives what sits above the list: pinned announcements, and activities starting between the phone's day start and end.
+
+**Needs you:** a live checklist I'm for, while I can still tick (not lowered to Viewer) and a point is unticked ('checklist_for_you', with the new last column `space_post_id`).
+
+**Notifications** (see §10 and §11): `announcement_new` (its audience), `checklist_for_you` and `activity_invited` (its people, also when added later), `file_new_version` (whoever marked an older version Received and can see the new post), and `item_edited` / `item_cancelled` also to a checklist's or an activity's people and calendar adds. Every fan-out goes only to people who can still see the post (someone taken out of its Team hears nothing). `activity_starting`: `due_activity_reminders()` (service role, cron every 5 minutes in `supabase/ops/activity_reminders_cron.sql`, not run yet) pushes to the people and calendar adds of activities starting in 25 to 35 minutes, once per person and start time, even when the Space is set to Off; no Activity row.
+
+**Live, each with its own yes:** deploy the push function with the new texts first, then push migration 19, then run `supabase/ops/activity_reminders_cron.sql`.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
