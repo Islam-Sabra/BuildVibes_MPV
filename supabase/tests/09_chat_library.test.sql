@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(66);
+select plan(67);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000009a1', 'authenticated', 'authenticated', 'omar9@example.com', '{"home_market_id": "kw"}'),
@@ -278,9 +278,8 @@ select lives_ok(
     pg_temp.id('e0000001')),
   'an admin raises a Team work item');
 select is((select count(*) from public.messages
-           where thread_id = pg_temp.team_thread() and kind = 'work_item'
-             and work_item_id = pg_temp.id('e0000001')), 1::bigint,
-  'raising it posts a card in the Team thread');
+           where kind = 'work_item' or work_item_id = pg_temp.id('e0000001')), 0::bigint,
+  'raising it no longer posts a card in chat');
 select lives_ok(
   format($$select public.create_work_item(%L, 'Gate 3 access', %L, null, null, 'Gate 3', %L::jsonb, %L)$$,
     pg_temp.sp(), pg_temp.uid('a2'),
@@ -289,12 +288,21 @@ select lives_ok(
     pg_temp.id('e0000002')),
   'and an item for the whole Space');
 select is((select count(*) from public.messages
-           where thread_id = pg_temp.everyone() and work_item_id = pg_temp.id('e0000002')), 1::bigint,
-  'an item without a Team posts its card in Everyone');
+           where kind = 'work_item' or work_item_id = pg_temp.id('e0000002')), 0::bigint,
+  'nor does an item without a Team');
+-- Cards posted before migration 18 stay in chat; put one in directly.
+reset role;
+insert into public.messages (id, thread_id, space_id, author_id, kind, work_item_id, work_item_event_id)
+select pg_temp.id('d0000001'), pg_temp.everyone(), pg_temp.sp(), pg_temp.uid('a1'), 'work_item',
+       e.work_item_id, e.id
+from public.work_item_events e
+where e.work_item_id = pg_temp.id('e0000002') and e.kind = 'raised';
+select pg_temp.as_user('a1');
+set local role authenticated;
 select throws_ok(
   format($$select public.delete_message(%L)$$,
-    (select id from public.messages where work_item_id = pg_temp.id('e0000002') limit 1)),
-  '42501', null, 'work item cards cannot be deleted');
+    pg_temp.id('d0000001')),
+  '42501', null, 'old work item cards cannot be deleted, even by an admin who posted them');
 select lives_ok(
   format($$select public.attach_library_file(%L, %L)$$, pg_temp.id('e0000001'), pg_temp.id('f0000004')),
   'a Team file can go on that Team''s item');
@@ -331,9 +339,16 @@ select lives_ok(
       current_setting('test.space') || '/' || pg_temp.id('e0000003')::text || '/raised.jpg'))::text,
     pg_temp.id('e0000003')),
   'an item for the MEP Team owned by someone outside it');
-select is((select t.team_id is null from public.messages m join public.threads t on t.id = m.thread_id
-           where m.work_item_id = pg_temp.id('e0000003')), true,
-  'its card goes to Everyone, so its owner sees it');
+select is((select count(*) from public.messages where work_item_id = pg_temp.id('e0000003')), 0::bigint,
+  'it posts no chat card either');
+reset role;
+select pg_temp.as_user('a3');
+set local role authenticated;
+select is((select count(*) from public.work_items where id = pg_temp.id('e0000003')), 1::bigint,
+  'its owner outside the Team still sees the item');
+reset role;
+select pg_temp.as_user('a1');
+set local role authenticated;
 select throws_ok(
   format($$select public.create_work_item(%L, 'Disguised PDF', %L, null, null, null, %L::jsonb, %L)$$,
     pg_temp.sp(), pg_temp.uid('a2'),

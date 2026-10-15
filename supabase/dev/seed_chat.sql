@@ -1,7 +1,7 @@
 -- Local test data for Space chat (week 6). Run after seed_work_items.sql:
 --   docker exec -i supabase_db_BuildVibes_MVP psql -U postgres -d postgres < supabase/dev/seed_chat.sql
 -- Omar (…01) is the Space admin, Sami (…02) Lead, Rakesh (…03) Crew in
--- the MEP Team. Work item cards are already there: the server posted them.
+-- the MEP Team. Since migration 18 work items post no cards in chat.
 
 begin;
 
@@ -21,7 +21,8 @@ begin
 end;
 $$;
 
--- The work items were raised earlier this morning: their cards too.
+-- Cards from before migration 18 (none on a fresh reset) were raised earlier
+-- this morning.
 update public.messages set created_at = now() - interval '1 hour'
 where kind = 'work_item';
 

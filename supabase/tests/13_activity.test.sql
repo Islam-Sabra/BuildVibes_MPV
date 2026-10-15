@@ -1,13 +1,14 @@
 -- Migration 13: Activity and the Home Spaces tab. Run with: supabase test db
 --
 -- Omar (a1) runs the Space (admin, Lead) and raises items. Rakesh (a2) is
--- Crew and owns them. Sara (a3) is Lead and checks. Eve (a4) asks to join
+-- Crew and owns them; Omar, their author, checks and sends back (migration 18).
+-- Sara (a3) is Lead and comments, but can't check. Eve (a4) asks to join
 -- and is confirmed. Bob (a5) asks and is declined; Omar blocks him.
 -- Nina (a6) asks and cancels, again and again. Review 19's checks are marked (r19), review 20's (r20).
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(59);
+select plan(61);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000013a1', 'authenticated', 'authenticated', 'omar13@example.com', '{"home_market_id": "kw"}'),
@@ -75,9 +76,15 @@ select is(pg_temp.n('a1', 'item_done'), 1::bigint, 'signed as done: its creator 
 
 select pg_temp.as_user('a3');
 set local role authenticated;
+select throws_ok(format($q$select public.check_item(%L)$q$, pg_temp.item('c001')),
+  '42501', null, 'a Lead who is not the author can''t check');
+reset role;
+select is(pg_temp.n('a2', 'item_checked'), 0::bigint, 'and nobody is told');
+select pg_temp.as_user('a1');
+set local role authenticated;
 select public.check_item(pg_temp.item('c001'));
 reset role;
-select is(pg_temp.n('a2', 'item_checked'), 1::bigint, 'checked: its owner hears');
+select is(pg_temp.n('a2', 'item_checked'), 1::bigint, 'checked by its author: its owner hears');
 
 select pg_temp.as_user('a1');
 set local role authenticated;
@@ -88,9 +95,12 @@ select pg_temp.as_user('a2');
 set local role authenticated;
 select public.sign_done(pg_temp.item('c003'), 'Done.', '[]');
 reset role;
-select pg_temp.as_user('a3');
+select pg_temp.as_user('a1');
 set local role authenticated;
 select public.send_back(pg_temp.item('c003'), 'photo_missing', 'Add a photo.');
+reset role;
+select pg_temp.as_user('a3');
+set local role authenticated;
 select public.add_comment(pg_temp.item('c003'), 'The north side too, please.');
 reset role;
 select is((select payload ->> 'reason' from public.notifications

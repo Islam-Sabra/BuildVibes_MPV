@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(91);
+select plan(93);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000006a1', 'authenticated', 'authenticated', 'omar@example.com', '{"home_market_id": "kw"}'),
@@ -206,8 +206,8 @@ select is((select count(*) from public.space_members where left_at is null), 2::
 select is((select count(*) from public.team_members
            where profile_id = '00000000-0000-0000-0000-0000000006a3'), 1::bigint,
   'he is in the Team he was given');
-select ok(not public.can(current_setting('test.space')::uuid, 'create_items'),
-  'Crew cannot create work items');
+select ok(public.can(current_setting('test.space')::uuid, 'create_items'),
+  'Crew can create work items (it is in the Crew preset)');
 select ok(public.can(current_setting('test.space')::uuid, 'add_files'),
   'Crew can add files');
 select ok(public.can(current_setting('test.space')::uuid, 'mark_done'),
@@ -252,6 +252,12 @@ select lives_ok(
 select is(public.member_rights(current_setting('test.space')::uuid,
                                '00000000-0000-0000-0000-0000000006a4') ->> 'mark_done',
   'false', 'a Viewer cannot mark items done');
+select is(public.member_rights(current_setting('test.space')::uuid,
+                               '00000000-0000-0000-0000-0000000006a4') ->> 'create_items',
+  'false', 'a Viewer cannot create work items');
+select ok(not (public.member_rights(current_setting('test.space')::uuid,
+                                    '00000000-0000-0000-0000-0000000006a3') ? 'check_items'),
+  'check_items is retired: it is not in the rights');
 
 -- Sara joins as Lead.
 reset role;
@@ -271,12 +277,12 @@ select lives_ok(
   'Sara is confirmed as Lead');
 
 select lives_ok(
-  format($$select public.set_member_pass(%L, %L, 'crew', '{"create_items": true, "add_files": true}')$$,
+  format($$select public.set_member_pass(%L, %L, 'crew', '{"create_items": false, "add_files": true}')$$,
          current_setting('test.space'), '00000000-0000-0000-0000-0000000006a3'),
-  'the admin opens "create work items" for Ahmed');
+  'the admin switches "create work items" off for Ahmed');
 select is((select custom from public.space_members
            where profile_id = '00000000-0000-0000-0000-0000000006a3'),
-  '{"create_items": true}'::jsonb, 'only the change from the Crew preset is kept');
+  '{"create_items": false}'::jsonb, 'only the change from the Crew preset is kept');
 select is(public.member_rights(current_setting('test.space')::uuid,
                                '00000000-0000-0000-0000-0000000006a3') ->> 'is_custom',
   'true', 'his pass shows as Custom');
@@ -313,8 +319,8 @@ reset role;
 select set_config('request.jwt.claims',
   '{"sub": "00000000-0000-0000-0000-0000000006a3", "role": "authenticated"}', true);
 set local role authenticated;
-select ok(public.can(current_setting('test.space')::uuid, 'create_items'),
-  'Ahmed can create work items now');
+select ok(not public.can(current_setting('test.space')::uuid, 'create_items'),
+  'Ahmed cannot create work items now');
 select throws_ok(
   format($$select * from public.current_invite(%L)$$, current_setting('test.space')),
   '42501', null, 'Crew still cannot invite');
