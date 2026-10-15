@@ -534,4 +534,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - All 408 SQL checks pass on Postgres 16 with a Supabase stand-in.
     - Independent review: 2 medium and 7 low findings, all fixed and re-verified.
     - Not live.
-
+- **15 Oct (evening), migration 21, notebook and My calendar** (review 33 A4; written by the lead in the cloud while the founder's PC was off; branch `notebook-db`, **not live**): `notes`, `note_files`, private bucket `notebook-files`, `save_note`, `delete_note`, `set_note_done`, `pin_note`, `mark_note_put`, `my_calendar`, `orphan_note_files`; the notebook added to Download my data and the account purge. 85 new SQL checks, all 1,211 pass. Independent review: no leak; four smaller fixes made (review 37). Migration 20 must be timestamped after `20261015230000`. Going live needs the founder's yes and must list only `20261015230000_notebook.sql`.

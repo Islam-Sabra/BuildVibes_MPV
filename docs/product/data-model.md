@@ -419,7 +419,7 @@ Pushes for `item_edited` and `item_cancelled` come in migration 19.
 
 **Files:** uploads to `<space>/posts/<post>/<file>` (JPEG, PNG, WebP, HEIC or PDF): before the post exists, whoever may post (their own folder only); after, its author while it can be edited. Reads follow the post. A Library file on a live post can't be deleted, and stays when its chat message is removed (`library_file_in_use`).
 
-## 15. Other kinds of post (migration 19, `20261015180000_post_kinds.sql`, branch `post-kinds-db`, not live)
+## 15. Other kinds of post (migration 19, `20261015180000_post_kinds.sql`, branch `post-kinds-db`, live 15 Oct)
 Rules from review 33 A2 and its clarifications. Checklists, announcements, scheduled activities and file posts live in the daybook (§14) next to work items, with the same reading, Team and edit rules.
 
 **Columns on `space_posts`:** `pinned_until` (announcements), `starts_at` and `ends_at` (activities; ends after it starts, within a day) and `library_file_id` (file posts; the Library file can't be deleted while a post shares it).
@@ -455,6 +455,30 @@ Rules from review 33 A2 and its clarifications. Checklists, announcements, sched
 **Notifications** (see §10 and §11): `announcement_new` (its audience), `checklist_for_you` and `activity_invited` (its people, also when added later), `file_new_version` (whoever marked an older version Received and can see the new post), and `item_edited` / `item_cancelled` also to a checklist's or an activity's people and calendar adds. Every fan-out goes only to people who can still see the post (someone taken out of its Team hears nothing). `activity_starting`: `due_activity_reminders()` (service role, cron every 5 minutes in `supabase/ops/activity_reminders_cron.sql`, not run yet) pushes to the people and calendar adds of activities starting in 25 to 35 minutes, once per person and start time, even when the Space is set to Off; no Activity row.
 
 **Live, each with its own yes:** deploy the push function with the new texts first, then push migration 19, then run `supabase/ops/activity_reminders_cron.sql`.
+
+## 16. Notebook and My calendar (migration 21, `20261015230000_notebook.sql`, branch `notebook-db`, not live)
+Rules from review 33 A4. Written by the lead on 15 Oct (review 37). Independent of migration 20: either may go live first.
+
+**Tables (owner only: nobody else reads them, not even a Space admin):**
+- `notes`: `id` (chosen by the app), `owner_id`, `kind` ('text' | 'checklist' | 'todo' | 'voice'), `body` (≤5000), `points` (a checklist's: `[{text, done}]`, 1–50, text 1–300), `due_at` and `done_at` (to-dos only), `pinned`, `remind_at`, `put_in_post_id` (the post it was put in), `created_at`, `updated_at`. Deleting a note removes it (it is private; there is no record to keep).
+- `note_files`: a note's photos or its one recording: `note_id`, `storage_path` (unique), `kind` ('photo' | 'voice'), `mime` (from Storage), `bytes`, `width`, `height`, `duration_ms`, `sort`. At most 10 per note. A file the cleanup has claimed can't be added.
+- Bucket `notebook-files` (private, 25 MB; photos and voice): `<me>/<note_id>/<file>`. Read only your own folder; upload only into your own folder (not into the folder of someone else's note), at most 200 files and 200 MB a day; delete only your own file that no note uses; no update.
+
+**Functions:**
+
+| Function | Rule |
+|---|---|
+| `save_note(id, kind, body, points, due_at, remind_at, pinned, files)` | New or your own. Text: words or a photo; checklist: 1–50 points; to-do: words, an optional time; voice: one recording. A recording only on a voice note. Changing the kind clears what no longer fits. `pinned` null keeps the pin; `files` null keeps the files, a list replaces them (your uploads in that note's folder only). At most 500 new notes a day, under a per-person lock that also turns a retry of the same id into an update. A hidden account can't write. |
+| `delete_note(id)` | Yours. Its files are released (the app deletes them with the Storage API; the cleanup takes any left behind). |
+| `set_note_done(id, on)`, `pin_note(id, on)` | Yours; done only on a to-do. |
+| `mark_note_put(note, post)` | Yours, and a post you wrote. "Put in a Space" itself is done in the app: it opens that Space's writing card with the note's words. The note stays private. |
+| `my_calendar(from_day, to_day, from, to)` | Up to 62 days (both ends included); the phone sends its own days and midnights, so no time zone is typed in SQL. Rows: `work_item` (live, mine to sign or written by me, due then, not yet Checked, with `needs_me`), `checklist` (live, I'm for it, due then, with `needs_me`), `activity` (live, I'm in it or put it in my calendar, starting then), `todo` (my notebook to-dos due then, done ones marked). Only Spaces I'm still in; Team posts as §14. No colour: the app gives each Space its colour. |
+
+"Remind me" is a local notification on the phone; `remind_at` is kept so the app can set it again after a reinstall. No server push.
+
+**Cleanup (service role):** `orphan_note_files(age)` claims notebook files no note uses, older than a day, under the same per-file lock; the job deletes them with the Storage API and calls `forget_cleanup_claims()` (now also for `notebook-files`). Scheduled with the other cleanups, with the founder's yes.
+
+**Account:** `export_my_data` includes the notes and their file names. `accounts_due_for_purge` lists `notebook-files` too, and `purge_account` waits until they are gone; the notes go with the account.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
