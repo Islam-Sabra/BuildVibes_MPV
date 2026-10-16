@@ -334,7 +334,7 @@ select pg_temp.as_user('e3');
 set local role authenticated;
 select throws_ok($$select pg_temp.raise('a010', 'Too deep', 'e2', p_parent => 'a009')$$, '22023', null,
   'one level only');
-select is((select daybook.post -> 'children' from public.daybook_page(pg_temp.sp()) daybook
+select is((select (daybook.post -> 'children') - 'rows' from public.daybook_page(pg_temp.sp()) daybook
            where daybook.id = pg_temp.item('a008')), '{"total": 1, "checked": 0}'::jsonb,
   'the parent shows its progress');
 select is(jsonb_array_length(public.post_page(pg_temp.item('a008')) -> 'under'), 1,
