@@ -64,7 +64,7 @@ Photos and the drawing in the prototype are AI-generated placeholders.
 - **Messages** open from the chat icon in the Home app bar; the list-checks icon opens My notebook.
 - **Who can message whom (founder decision F10, 15 Oct): we manage, we don't block.** Anyone can message anyone, as many messages as they like, with photos and files.
   - Messages from someone with no work link to you (no shared Space, not following each other) sit in a **Message requests** row at the top of the list. Your team's chats stay on top; nothing is hidden or dropped.
-  - The thread shows a strip: "Not in your Spaces" · Report · Block. Replying turns it into a normal thread. Declining removes it quietly; the sender is not told.
+  - The thread shows a strip: "Not in your Spaces" · Decline · Block (review 41). Replying turns it into a normal thread; there is no Accept button. Declining removes it quietly; the sender is not told. Report the person, Block and Mute are also in the thread's ⋯ menu; reporting one message is on holding it.
   - Photos and files from someone new open with one tap ("Tap to show"), never on their own.
   - One push per new person, not one per message.
   - **Spam guard (server):** an account that keeps messaging new people who never reply gets a warning, then a pause. The limit is a server setting, so it can change after the pilot without a new app version. Same idea as WhatsApp's limit on unanswered messages.
