@@ -1,0 +1,392 @@
+import 'package:flutter/material.dart';
+
+import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_writing_specs.dart';
+import 'bv_avatar.dart';
+import 'bv_torn_edge.dart';
+
+/// A field without a box of its own, for text typed on a card, a note or a
+/// search that draws its own fill. Overrides the theme's bordered fields.
+InputDecoration bvBareField({required String hint, required TextStyle style}) =>
+    InputDecoration(
+      isCollapsed: true,
+      filled: false,
+      contentPadding: EdgeInsets.zero,
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      hintText: hint,
+      hintStyle: style.copyWith(color: BvColors.textSecondary),
+    );
+
+/// One item on the writing card's properties line: the owner (a small
+/// avatar and the name), or an icon and text (due date, place).
+class BvWritingProperty {
+  const BvWritingProperty.person({
+    required this.label,
+    this.tint,
+    this.image,
+    this.onTap,
+  }) : icon = null;
+
+  const BvWritingProperty.icon({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  }) : tint = null,
+       image = null;
+
+  final String label;
+  final IconData? icon;
+  final Color? tint;
+  final ImageProvider? image;
+  final VoidCallback? onTap;
+}
+
+/// The work item being written in place, in the Daybook (2527:33393): a
+/// paper slip with a dashed orange outline. It holds no text of its own:
+/// the screen gives the controllers and saves the draft.
+class BvWritingCard extends StatelessWidget {
+  const BvWritingCard({
+    super.key,
+    required this.titleController,
+    required this.titlePlaceholder,
+    required this.bodyController,
+    required this.bodyPlaceholder,
+    this.titleFocusNode,
+    this.bodyFocusNode,
+    this.autofocus = false,
+    this.onTitleChanged,
+    this.onBodyChanged,
+    this.draftLabel,
+    this.kindLabel,
+    this.onKindTap,
+    this.properties = const [],
+    this.cover,
+    this.onRemoveCover,
+    this.removeCoverLabel,
+    this.tear = 0,
+  });
+
+  final TextEditingController titleController;
+  final String titlePlaceholder;
+  final TextEditingController bodyController;
+  final String bodyPlaceholder;
+  final FocusNode? titleFocusNode;
+  final FocusNode? bodyFocusNode;
+
+  /// Focus the title when the card appears.
+  final bool autofocus;
+  final ValueChanged<String>? onTitleChanged;
+  final ValueChanged<String>? onBodyChanged;
+
+  /// "Draft": shown when the card was reopened with unsaved text.
+  final String? draftLabel;
+
+  /// What is being posted ("Work item"); tapping opens the kind menu.
+  final String? kindLabel;
+  final VoidCallback? onKindTap;
+
+  /// The quiet line under the title (owner, due, place). Hidden when empty.
+  final List<BvWritingProperty> properties;
+
+  /// The cover photo, shown 128 high across the card.
+  final Widget? cover;
+  final VoidCallback? onRemoveCover;
+
+  /// Read out for the cover's remove button.
+  final String? removeCoverLabel;
+
+  /// Which torn edge ([BvSlipBorder.variant]).
+  final int tear;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    final shape = BvSlipBorder(variant: tear);
+    return CustomPaint(
+      foregroundPainter: _DashedOutline(shape),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          color: BvColors.surfaceElevated,
+          shape: shape,
+        ),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            BvWritingCardSpec.paddingSide,
+            BvSlipBorder.edgeHeightDefault + BvWritingCardSpec.paddingTop,
+            BvWritingCardSpec.paddingSide,
+            BvWritingCardSpec.paddingBottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: BvWritingCardSpec.gap,
+            children: [
+              if (draftLabel != null) _DraftMarker(label: draftLabel!),
+              if (kindLabel != null)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: _KindChip(label: kindLabel!, onTap: onKindTap),
+                ),
+              _field(
+                controller: titleController,
+                focusNode: titleFocusNode,
+                placeholder: titlePlaceholder,
+                style: type.headingLg,
+                autofocus: autofocus,
+                onChanged: onTitleChanged,
+              ),
+              if (properties.isNotEmpty) _Properties(items: properties),
+              _field(
+                controller: bodyController,
+                focusNode: bodyFocusNode,
+                placeholder: bodyPlaceholder,
+                style: type.bodyLg,
+                onChanged: onBodyChanged,
+              ),
+              if (cover != null)
+                _Cover(
+                  onRemove: onRemoveCover,
+                  removeLabel: removeCoverLabel,
+                  child: cover!,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _field({
+    required TextEditingController controller,
+    required FocusNode? focusNode,
+    required String placeholder,
+    required TextStyle style,
+    bool autofocus = false,
+    ValueChanged<String>? onChanged,
+  }) => TextField(
+    controller: controller,
+    focusNode: focusNode,
+    autofocus: autofocus,
+    onChanged: onChanged,
+    minLines: 1,
+    maxLines: null,
+    keyboardType: TextInputType.multiline,
+    textCapitalization: TextCapitalization.sentences,
+    style: style.copyWith(color: BvColors.textPrimary),
+    cursorColor: BvColors.actionPrimary,
+    cursorWidth: BvWritingCardSpec.cursorWidth,
+    decoration: bvBareField(hint: placeholder, style: style),
+  );
+}
+
+class _DraftMarker extends StatelessWidget {
+  const _DraftMarker({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      spacing: BvWritingCardSpec.draftGap,
+      children: [
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            color: BvColors.actionPrimary,
+            shape: BoxShape.circle,
+          ),
+          child: SizedBox.square(dimension: BvWritingCardSpec.draftDot),
+        ),
+        Text(
+          label,
+          style: BvType.of(
+            context,
+          ).labelSm.copyWith(color: BvColors.textAction),
+        ),
+      ],
+    );
+  }
+}
+
+class _KindChip extends StatelessWidget {
+  const _KindChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          height: BvWritingCardSpec.chipHeight,
+          padding: const EdgeInsetsDirectional.only(
+            start: BvWritingCardSpec.chipPaddingStart,
+            end: BvWritingCardSpec.chipPaddingEnd,
+          ),
+          decoration: const BoxDecoration(
+            color: BvColors.surfaceSubtle,
+            borderRadius: BvRadius.roundAll,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: BvWritingCardSpec.chipGap,
+            children: [
+              Text(
+                label,
+                style: BvType.of(
+                  context,
+                ).labelSm.copyWith(color: BvColors.textPrimary),
+              ),
+              const Icon(
+                BvIcons.caretDown,
+                size: BvWritingCardSpec.chipCaret,
+                color: BvColors.iconPrimary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Properties extends StatelessWidget {
+  const _Properties({required this.items});
+
+  final List<BvWritingProperty> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BvType.of(
+      context,
+    ).labelSm.copyWith(color: BvColors.textPrimary);
+    return Wrap(
+      spacing: BvWritingCardSpec.propertyGap,
+      runSpacing: BvWritingCardSpec.propertyRunGap,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (final p in items)
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: p.onTap,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: BvWritingCardSpec.propertyItemGap,
+              children: [
+                if (p.icon != null)
+                  Icon(
+                    p.icon,
+                    size: BvWritingCardSpec.propertyIcon,
+                    color: BvColors.iconSecondary,
+                  )
+                else
+                  ExcludeSemantics(
+                    child: BvAvatar(
+                      name: p.label,
+                      size: BvAvatarSize.xxs,
+                      tint: p.tint,
+                      image: p.image,
+                    ),
+                  ),
+                Text(p.label, style: style),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Cover extends StatelessWidget {
+  const _Cover({
+    required this.child,
+    required this.onRemove,
+    required this.removeLabel,
+  });
+
+  final Widget child;
+  final VoidCallback? onRemove;
+  final String? removeLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: BvWritingCardSpec.coverHeight,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(borderRadius: BvWritingCardSpec.coverRadius, child: child),
+          if (onRemove != null)
+            PositionedDirectional(
+              top: BvWritingCardSpec.removeTop,
+              end: BvWritingCardSpec.removeEnd,
+              child: Semantics(
+                button: true,
+                label: removeLabel,
+                child: GestureDetector(
+                  key: const Key('writing-cover-remove'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onRemove,
+                  child: Container(
+                    width: BvWritingCardSpec.removeSize,
+                    height: BvWritingCardSpec.removeSize,
+                    decoration: BoxDecoration(
+                      color: BvColors.surfaceElevated.withValues(
+                        alpha: BvWritingCardSpec.removeOpacity,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      BvIcons.close,
+                      size: BvWritingCardSpec.removeIcon,
+                      color: BvColors.iconPrimary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The card's outline, dashed: the slip's path walked in on / off steps.
+class _DashedOutline extends CustomPainter {
+  const _DashedOutline(this.shape);
+
+  final BvSlipBorder shape;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Half the stroke inside, so the dashes stay on the paper.
+    const inset = BvWritingCardSpec.border / 2;
+    final rect = (Offset.zero & size).deflate(inset);
+    final paint = Paint()
+      ..color = BvColors.actionPrimary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = BvWritingCardSpec.border;
+    final dashes = Path();
+    for (final metric in shape.getOuterPath(rect).computeMetrics()) {
+      for (
+        var d = 0.0;
+        d < metric.length;
+        d += BvWritingCardSpec.dashOn + BvWritingCardSpec.dashOff
+      ) {
+        dashes.addPath(
+          metric.extractPath(d, d + BvWritingCardSpec.dashOn),
+          Offset.zero,
+        );
+      }
+    }
+    canvas.drawPath(dashes, paint);
+  }
+
+  @override
+  bool shouldRepaint(_DashedOutline old) => old.shape != shape;
+}

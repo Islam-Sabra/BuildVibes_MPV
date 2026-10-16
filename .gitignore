@@ -54,3 +54,4 @@ docs/design/_fetch*
 # Firebase app config (push, week 7 part 3): kept off GitHub
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+test_screens/failures/

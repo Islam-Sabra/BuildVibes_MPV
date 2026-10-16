@@ -44,10 +44,7 @@ FakeSpaceRepository _spaces({bool addFiles = true}) =>
         name: 'Site team',
         myPass: addFiles ? SpacePass.lead : SpacePass.viewer,
         iAmAdmin: addFiles,
-        myRights: MemberRights(
-          createItems: addFiles,
-          addFiles: addFiles,
-        ),
+        myRights: MemberRights(createItems: addFiles, addFiles: addFiles),
       )
       ..spacePeople[_space] = SpacePeople(
         members: [

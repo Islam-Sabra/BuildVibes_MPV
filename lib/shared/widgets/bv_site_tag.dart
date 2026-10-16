@@ -133,12 +133,11 @@ class BvSiteTag extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: AlignmentDirectional.centerStart,
-                          child: BvStamp(
+                          child: BvInkStamp(
                             key: const Key('site-tag-checked'),
                             label: checkedStamp!,
-                            tone: BvStampTone.positive,
-                            tilted: true,
-                            large: true,
+                            size: BvInkStampSize.lg,
+                            tone: BvInkStampTone.positive,
                           ),
                         ),
                       ),

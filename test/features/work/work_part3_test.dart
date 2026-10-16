@@ -243,10 +243,10 @@ void main() {
         lang,
         _item(WorkStatus.checked, owner: _me),
       );
-      final stamp = tester.widget<BvStamp>(
+      final stamp = tester.widget<BvInkStamp>(
         find.byKey(const Key('site-tag-checked')),
       );
-      expect(stamp.large, isTrue);
+      expect(stamp.size, BvInkStampSize.lg);
       expect(
         stamp.label,
         contains(lang == 'ar' ? 'S. Al-Mansour' : 'S. AL-MANSOUR'),
@@ -348,7 +348,16 @@ void main() {
 
       _router(tester).push('/people/p-omar/work/w1');
       await tester.pumpAndSettle();
-      expect(find.text(l10n.deliveredCheckedRowNoName), findsOneWidget);
+      // In Arabic the stamp's word is the same text; count the row only.
+      final onStamp = find.descendant(
+        of: find.byKey(const Key('delivered-stamp')),
+        matching: find.text(l10n.deliveredCheckedRowNoName),
+      );
+      expect(
+        find.text(l10n.deliveredCheckedRowNoName).evaluate().length -
+            onStamp.evaluate().length,
+        1,
+      );
       expect(find.text(l10n.deliveredCheckedRow), findsNothing);
     });
 

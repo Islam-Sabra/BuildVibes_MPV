@@ -1,0 +1,154 @@
+// The Daybook's writing and action parts (slice 1a): the writing card, its
+// toolbar and menus, the long-press menu, send back, give to and the undo
+// bar. Measured from Figma "DS · Daybook components" and frames 2524:33180,
+// 2527:33393, 2530:33480, 2530:33802, 2540:34840 and 2519:33161.
+
+import 'package:flutter/widgets.dart';
+
+import 'bv_specs.dart';
+import 'bv_tokens.dart';
+
+/// The work item being written in place (2527:33393).
+abstract final class BvWritingCardSpec {
+  // Below the torn edge; the edge itself sits above the box in Figma.
+  static const paddingTop = 18.0;
+  static const paddingBottom = BvSpace.s16;
+  static const paddingSide = BvSpace.s16;
+  static const gap = 10.0;
+
+  /// The dashed border, walked along the slip's outline.
+  static const border = BvStroke.dash;
+  static const dashOn = 4.0;
+  static const dashOff = 3.0;
+
+  static const draftDot = BvSpace.s6;
+  static const draftGap = BvSpace.s6;
+
+  static const chipHeight = 26.0;
+  static const chipPaddingStart = 10.0;
+  static const chipPaddingEnd = BvSpace.s8;
+  static const chipGap = BvSpace.s4;
+  static const chipCaret = 14.0;
+
+  static const cursorWidth = 2.0;
+
+  /// The properties line: a wrap of owner, due and place.
+  static const propertyGap = BvSpace.s12;
+  static const propertyRunGap = BvSpace.s6;
+  static const propertyItemGap = 5.0;
+  static const propertyIcon = 15.0;
+
+  static const coverHeight = 128.0;
+  static const coverRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+  static const removeSize = 26.0;
+  static const removeTop = BvSpace.s8;
+  static const removeEnd = BvSpace.s6;
+  static const removeIcon = 14.0;
+  static const removeOpacity = 0.92;
+}
+
+/// The bar on the keyboard while writing (2527:33399).
+abstract final class BvWritingToolbarSpec {
+  static const height = 56.0;
+  static const paddingStart = BvSpace.s8;
+  static const paddingEnd = 10.0;
+  static const paddingVertical = BvSpace.s6;
+  static const gap = BvSpace.s2;
+  static const tool = BvSize.controlMd; // 44
+  static const toolRadius = BvRadius.controlAll; // 10
+  static const toolIcon = BvSize.iconLg; // 24
+  static const post = BvSize.avatarMd; // 40
+  static const postIcon = BvSize.iconMd; // 20
+}
+
+/// The More menu (2527:33433) and the kind picker (2535:34374).
+abstract final class BvPopoverMenuSpec {
+  static const widthMore = 184.0;
+  static const widthPicker = 230.0;
+  static const radius = BvRadius.cardAll; // 14
+  static const paddingVertical = BvSpace.s6;
+  static const rowHeight = 42.0;
+  static const rowPaddingStart = BvSpace.s16;
+  static const rowPaddingEndMore = BvSpace.s20;
+  static const rowPaddingEndPicker = BvSpace.s16;
+  static const rowGap = BvSpace.s12;
+  static const icon = BvSize.iconMd; // 20
+  static const check = 18.0;
+}
+
+/// The long-press menu on a slip (2530:33626, 2530:34246).
+abstract final class BvSlipMenuSpec {
+  static const width = 230.0;
+  static const radius = BvRadius.cardAll; // 14
+  static const rowPaddingHorizontal = BvSpace.s16;
+  static const rowPaddingVertical = BvSpace.s12;
+  static const rowGap = BvSpace.s12;
+  static const icon = BvSize.iconMd; // 20
+
+  /// Between the lifted slip and what shows under or over it.
+  static const anchorGap = 10.0;
+
+  /// Kept clear of the screen's top and bottom.
+  static const screenMargin = BvSpace.s16;
+}
+
+/// Send-back reasons (2530:33802).
+abstract final class BvSendBackSpec {
+  static const width = 300.0;
+  static const radius = BvRadius.cardAll; // 14
+  static const paddingHorizontal = BvSpace.s16;
+  static const paddingVertical = 14.0;
+  static const gap = BvSpace.s2;
+  static const reasonPaddingVertical = 9.0;
+  static const reasonGap = BvSpace.s12;
+  static const noteRadius = BvRadius.controlAll; // 10
+  static const notePaddingStart = BvSpace.s12;
+  static const notePaddingEnd = 10.0;
+  static const notePaddingVertical = 10.0;
+  static const noteGap = BvSpace.s8;
+  static const microphone = 18.0;
+  static const buttonTop = BvSpace.s8;
+}
+
+/// The Daybook's small radio mark (send-back reasons).
+abstract final class BvRadioSmallSpec {
+  static const size = BvSize.iconMd; // 20
+  static const offBorder = BvStroke.medium; // 1.5
+  static const onRing = BvSpace.s6;
+}
+
+/// Give to someone else (2540:34840).
+abstract final class BvGiveToSpec {
+  static const width = 270.0;
+  static const radius = BvRadius.cardAll; // 14
+  static const paddingTop = 10.0;
+  static const paddingBottom = BvSpace.s8;
+  static const searchPaddingHorizontal = BvSpace.s12;
+  static const searchPaddingBottom = BvSpace.s6;
+  static const fieldRadius = BvRadius.controlAll; // 10
+  static const fieldPaddingHorizontal = BvSpace.s12;
+  static const fieldPaddingVertical = BvSpace.s8;
+  static const fieldGap = BvSpace.s8;
+  static const searchIcon = BvSize.iconSm; // 16
+  static const rowHeight = 52.0;
+  static const rowPaddingHorizontal = 14.0;
+  static const rowPaddingVertical = BvSpace.s8;
+  static const rowGap = 10.0;
+  static const check = 18.0;
+}
+
+/// "Checked · Undo" (2519:33161).
+abstract final class BvUndoBarSpec {
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.toast));
+  static const paddingHorizontal = BvSpace.s16;
+  static const paddingVertical = BvSpace.s12;
+  static const gap = 14.0;
+  static const side = BvSpace.gutter;
+
+  /// Above the Daybook's post bar (65 high), 12 clear of it.
+  static const postBarHeight = 65.0;
+  static const lift = BvSpace.s12;
+
+  /// Then the check is locked (daybook.md).
+  static const duration = Duration(seconds: 5);
+}

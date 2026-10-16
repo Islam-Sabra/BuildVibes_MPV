@@ -2865,15 +2865,6 @@
       }
     }
   },
-  "deliveredStamp": "CHECKED · {date}",
-  "@deliveredStamp": {
-    "description": "RE1 stamp.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "workCheckConfirm": "Close it",
   "@workCheckConfirm": {
     "description": "Check dialog confirm button; short so it fits."

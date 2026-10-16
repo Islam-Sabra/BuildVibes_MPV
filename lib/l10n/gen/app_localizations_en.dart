@@ -2052,11 +2052,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String deliveredStamp(String date) {
-    return 'CHECKED · $date';
-  }
-
-  @override
   String get workCheckConfirm => 'Close it';
 
   @override

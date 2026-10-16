@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_writing_specs.dart';
 
 // Spec §6 ("DS · Controls"). Each control has a 48 × 48 tap area and is
 // disabled when its callback is null.
@@ -104,46 +105,69 @@ class BvCheckbox extends StatelessWidget {
 
 /// A radio mark. Usually shown inside a [BvChoiceCard], which handles the
 /// tap; give [onTap] only when the radio stands alone.
+///
+/// [small] is the Daybook's 20 mark (send-back reasons): a light ring when
+/// off, a thick orange ring with a white centre when on. Without [onTap] it
+/// takes only its own size, so it fits a 38 row.
 class BvRadio extends StatelessWidget {
-  const BvRadio({super.key, required this.selected, this.onTap});
+  const BvRadio({
+    super.key,
+    required this.selected,
+    this.onTap,
+    this.small = false,
+  });
 
   final bool selected;
   final VoidCallback? onTap;
+  final bool small;
 
   @override
   Widget build(BuildContext context) {
-    final mark = Container(
-      width: BvControlSpec.radioSize,
-      height: BvControlSpec.radioSize,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: BvColors.surfaceElevated,
-        border: Border.all(
-          color: selected ? BvColors.actionPrimary : BvColors.borderInput,
-          width: selected ? BvStroke.thick : BvStroke.medium,
-        ),
-      ),
-      child: selected
-          ? const DecoratedBox(
-              decoration: BoxDecoration(
-                color: BvColors.actionPrimary,
-                shape: BoxShape.circle,
-              ),
-              child: SizedBox.square(dimension: BvControlSpec.radioDot),
-            )
-          : null,
+    final mark = small ? _smallMark() : _mark();
+    Widget semantics(Widget child) => Semantics(
+      checked: selected,
+      inMutuallyExclusiveGroup: true,
+      child: child,
     );
-    return _TapArea(
-      semantics: (child) => Semantics(
-        checked: selected,
-        inMutuallyExclusiveGroup: true,
-        child: child,
-      ),
-      onTap: onTap,
-      child: mark,
-    );
+    if (small && onTap == null) return semantics(mark);
+    return _TapArea(semantics: semantics, onTap: onTap, child: mark);
   }
+
+  Widget _mark() => Container(
+    width: BvControlSpec.radioSize,
+    height: BvControlSpec.radioSize,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: BvColors.surfaceElevated,
+      border: Border.all(
+        color: selected ? BvColors.actionPrimary : BvColors.borderInput,
+        width: selected ? BvStroke.thick : BvStroke.medium,
+      ),
+    ),
+    child: selected
+        ? const DecoratedBox(
+            decoration: BoxDecoration(
+              color: BvColors.actionPrimary,
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox.square(dimension: BvControlSpec.radioDot),
+          )
+        : null,
+  );
+
+  Widget _smallMark() => Container(
+    width: BvRadioSmallSpec.size,
+    height: BvRadioSmallSpec.size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: BvColors.surfaceElevated,
+      border: Border.all(
+        color: selected ? BvColors.actionPrimary : BvColors.borderDefault,
+        width: selected ? BvRadioSmallSpec.onRing : BvRadioSmallSpec.offBorder,
+      ),
+    ),
+  );
 }
 
 class _TapArea extends StatelessWidget {

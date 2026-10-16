@@ -50,27 +50,34 @@ Future<void> shoot(
   addTearDown(tester.view.reset);
   final locale = Locale(lang);
   final key = GlobalKey();
-  await tester.pumpWidget(
-    RepaintBoundary(
-      key: key,
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        locale: locale,
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        theme: BvTheme.forLocale(locale),
-        home: Builder(builder: child),
+  // flutter_test draws shadows solid by default; the paper's soft shadows
+  // are part of the look. Restored before the test ends, as it requires.
+  debugDisableShadows = false;
+  try {
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: key,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: BvTheme.forLocale(locale),
+          home: Builder(builder: child),
+        ),
       ),
-    ),
-  );
-  await tester.pumpAndSettle();
-  await expectLater(
-    find.byKey(key),
-    matchesGoldenFile('../docs/screens/slice1/${name}_$lang.png'),
-  );
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byKey(key),
+      matchesGoldenFile('../docs/screens/slice1/${name}_$lang.png'),
+    );
+  } finally {
+    debugDisableShadows = true;
+  }
 }

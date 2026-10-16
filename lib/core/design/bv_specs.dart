@@ -159,12 +159,6 @@ abstract final class BvStampSpec {
 
   /// −3° in left-to-right, +3° in right-to-left.
   static const tiltDegrees = 3.0;
-
-  // Large: the proof stamp across a site tag ("CHECKED · 10 OCT · …",
-  // review 10): about 30 high, a 2 px border, bold, −4°.
-  static const largeHeight = 30.0;
-  static const largePaddingHorizontal = BvSpace.s12;
-  static const largeTiltDegrees = 4.0;
 }
 
 abstract final class BvSiteTagSpec {

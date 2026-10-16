@@ -528,6 +528,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - **Review 42 (approved):** R1, the purge removes the person's direct message file rows, so the other person's thread lists no broken files and a message with no words left shows as deleted; R2, `ops/moderation.sql` lists a reported direct message's files. 1,490 SQL checks (117 for migration 22).
   - **Live 16 Oct** (founder's yes, review 42 order): (1) `push` function deployed (version 6); (2) `dm-db` merged into main (9258296), `supabase db push` listed only `20261016180000_dm.sql`; (3) read-only check: `dm_threads`, `dm_members`, `dm_messages`, `dm_attachments` and `app_settings` have row-level security on, `app_settings` has one row (`dm_unanswered_limit`) and the app can't read it, bucket `dm-files` exists and is private. The `orphan_dm_files` cleanup is scheduled later with the other cleanups, with its own yes.
   - With migration 22 live, review 33's database plan (A0–A6) is complete. Next: Part B, slice 1 (the Daybook and the work item loop).
+- **16 Oct, slice 1 part 1a, Daybook components** (review 43; branch `slice1-daybook`, app only):
+  - Tokens: ExtraBold (800), avatar tints and the small avatar sizes, the paper's radii, shadows and strokes, the light dim, the Send back icon.
+  - Components in `lib/shared/widgets/`: torn-edge slip and its parts, ink stamp (lg/md/sm/xs, replaces the old large stamp), paper clip, spine and dots, masthead (full, compact, Home), day divider, post bar (and Viewer pass chip), month drop-down (first weekday from the market pack), day-one card, writing card and toolbar, writing menus, long-press menu with the dim, send-back card (small radio), give-to picker, undo bar.
+  - Screenshots, EN and AR at 390×844: `docs/screens/slice1/ds-*.png` (run `flutter test test_screens --update-goldens`).
+  - Not yet on the server, to settle before 1b/1d: a due time (only a date today), the Space's start date (day count), weather, undo of a check, a month RPC for the Space (days with posts, something due), the 12/24-hour time format in the market pack.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

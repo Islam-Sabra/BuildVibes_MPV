@@ -1,0 +1,375 @@
+import 'package:flutter/material.dart';
+
+import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_specs.dart';
+import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_writing_specs.dart';
+
+/// One row of a [BvPopoverMenu].
+class BvMenuItem<T> {
+  const BvMenuItem({
+    required this.value,
+    required this.label,
+    required this.icon,
+  });
+
+  final T value;
+  final String label;
+  final IconData icon;
+}
+
+/// The writing card's small menus (2527:33433, 2535:34374): a leading icon
+/// and a label per row. [BvPopoverMenu.more] lists things to add;
+/// [BvPopoverMenu.picker] is one single choice (what is being posted), its
+/// [selected] row in orange with a check.
+class BvPopoverMenu<T> extends StatelessWidget {
+  const BvPopoverMenu.more({
+    super.key,
+    required this.items,
+    required this.onSelected,
+  }) : selected = null,
+       picker = false;
+
+  const BvPopoverMenu.picker({
+    super.key,
+    required this.items,
+    required this.onSelected,
+    required this.selected,
+  }) : picker = true;
+
+  final List<BvMenuItem<T>> items;
+  final ValueChanged<T> onSelected;
+  final T? selected;
+  final bool picker;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Container(
+      width: picker
+          ? BvPopoverMenuSpec.widthPicker
+          : BvPopoverMenuSpec.widthMore,
+      padding: const EdgeInsetsDirectional.symmetric(
+        vertical: BvPopoverMenuSpec.paddingVertical,
+      ),
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceElevated,
+        borderRadius: BvPopoverMenuSpec.radius,
+        border: Border.fromBorderSide(
+          BorderSide(color: BvColors.borderSubtle, width: BvStroke.thin),
+        ),
+        boxShadow: BvShadow.menu,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final item in items)
+              _row(type, item, picker && item.value == selected),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _row(BvTypeSet type, BvMenuItem<T> item, bool isSelected) {
+    final colour = isSelected ? BvColors.textAction : BvColors.textPrimary;
+    return Semantics(
+      selected: picker ? isSelected : null,
+      inMutuallyExclusiveGroup: picker ? true : null,
+      button: true,
+      child: InkWell(
+        onTap: () => onSelected(item.value),
+        child: Container(
+          height: BvPopoverMenuSpec.rowHeight,
+          padding: EdgeInsetsDirectional.only(
+            start: BvPopoverMenuSpec.rowPaddingStart,
+            end: picker
+                ? BvPopoverMenuSpec.rowPaddingEndPicker
+                : BvPopoverMenuSpec.rowPaddingEndMore,
+          ),
+          child: Row(
+            spacing: BvPopoverMenuSpec.rowGap,
+            children: [
+              Icon(
+                item.icon,
+                size: BvPopoverMenuSpec.icon,
+                color: isSelected ? BvColors.textAction : BvColors.iconPrimary,
+              ),
+              Expanded(
+                child: Text(
+                  item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.bodyMd.copyWith(color: colour),
+                ),
+              ),
+              if (isSelected)
+                const Icon(
+                  BvIcons.check,
+                  size: BvPopoverMenuSpec.check,
+                  color: BvColors.textAction,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// How a [BvSlipMenu] row reads: Check is green; Send back and Cancel are
+/// red.
+enum BvSlipMenuTone { plain, positive, destructive }
+
+class BvSlipMenuItem<T> {
+  const BvSlipMenuItem({
+    required this.value,
+    required this.label,
+    required this.icon,
+    this.tone = BvSlipMenuTone.plain,
+  });
+
+  final T value;
+  final String label;
+  final IconData icon;
+  final BvSlipMenuTone tone;
+}
+
+/// The long-press menu on a slip (2530:33626): the label at the start and
+/// the icon at the end, a line between rows.
+class BvSlipMenu<T> extends StatelessWidget {
+  const BvSlipMenu({super.key, required this.items, required this.onSelected});
+
+  final List<BvSlipMenuItem<T>> items;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Container(
+      width: BvSlipMenuSpec.width,
+      clipBehavior: Clip.antiAlias,
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceElevated,
+        borderRadius: BvSlipMenuSpec.radius,
+        boxShadow: BvShadow.popover,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < items.length; i++)
+              _row(type, items[i], last: i == items.length - 1),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _row(BvTypeSet type, BvSlipMenuItem<T> item, {required bool last}) {
+    final (text, icon) = switch (item.tone) {
+      BvSlipMenuTone.plain => (BvColors.textPrimary, BvColors.iconPrimary),
+      BvSlipMenuTone.positive => (BvColors.textPositive, BvColors.textPositive),
+      BvSlipMenuTone.destructive => (
+        BvColors.textDestructive,
+        BvColors.textDestructive,
+      ),
+    };
+    return Semantics(
+      button: true,
+      child: InkWell(
+        onTap: () => onSelected(item.value),
+        child: Container(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvSlipMenuSpec.rowPaddingHorizontal,
+            vertical: BvSlipMenuSpec.rowPaddingVertical,
+          ),
+          decoration: last
+              ? null
+              : const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: BvColors.borderSubtle,
+                      width: BvStroke.thin,
+                    ),
+                  ),
+                ),
+          child: Row(
+            spacing: BvSlipMenuSpec.rowGap,
+            children: [
+              Expanded(
+                child: Text(
+                  item.label,
+                  style: type.bodyMd.copyWith(color: text),
+                ),
+              ),
+              Icon(item.icon, size: BvSlipMenuSpec.icon, color: icon),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The Daybook's dim behind long-press menus and the month drop-down:
+/// ink at 38 % over the whole screen. Tapping it closes what is open.
+class BvDim extends StatelessWidget {
+  const BvDim({super.key, required this.onTap, this.label});
+
+  final VoidCallback onTap;
+
+  /// Read out for the dim ("Close").
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: const ColoredBox(
+          color: BvColors.overlayDim,
+          child: SizedBox.expand(),
+        ),
+      ),
+    );
+  }
+}
+
+/// Lifts [lifted] above the dim at [anchor] (its place on screen, in global
+/// coordinates) and shows [popover] under it when there is room, otherwise
+/// over it, lined up with its end. The popover closes the route with
+/// `Navigator.pop(context, value)`; tapping the dim closes it with null.
+///
+/// Used for the long-press menu, send-back reasons and give-to.
+Future<T?> showBvLifted<T>(
+  BuildContext context, {
+  required Rect anchor,
+  required Widget lifted,
+  required WidgetBuilder popover,
+}) {
+  return Navigator.of(context).push<T>(
+    _LiftedRoute<T>(
+      anchor: anchor,
+      lifted: lifted,
+      popover: popover,
+      dimLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    ),
+  );
+}
+
+/// [context]'s box on screen, for [showBvLifted].
+Rect bvGlobalRect(BuildContext context) {
+  final box = context.findRenderObject()! as RenderBox;
+  return box.localToGlobal(Offset.zero) & box.size;
+}
+
+class _LiftedRoute<T> extends PopupRoute<T> {
+  _LiftedRoute({
+    required this.anchor,
+    required this.lifted,
+    required this.popover,
+    required this.dimLabel,
+  });
+
+  final Rect anchor;
+  final Widget lifted;
+  final WidgetBuilder popover;
+  final String dimLabel;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  bool get barrierDismissible => false;
+
+  @override
+  String? get barrierLabel => null;
+
+  @override
+  Duration get transitionDuration => BvMotion.fast;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    final padding = MediaQuery.paddingOf(context);
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: animation, curve: BvMotion.standard),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: BvDim(
+              label: dimLabel,
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ),
+          Positioned.fromRect(
+            rect: anchor,
+            child: IgnorePointer(child: lifted),
+          ),
+          Positioned.fill(
+            child: CustomSingleChildLayout(
+              delegate: _BelowOrAbove(
+                anchor: anchor,
+                textDirection: Directionality.of(context),
+                top: padding.top + BvSlipMenuSpec.screenMargin,
+                bottom: padding.bottom + BvSlipMenuSpec.screenMargin,
+              ),
+              child: Builder(builder: popover),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Under the anchor if it fits, else over it; end edges lined up.
+class _BelowOrAbove extends SingleChildLayoutDelegate {
+  _BelowOrAbove({
+    required this.anchor,
+    required this.textDirection,
+    required this.top,
+    required this.bottom,
+  });
+
+  final Rect anchor;
+  final TextDirection textDirection;
+  final double top;
+  final double bottom;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      constraints.loosen();
+
+  @override
+  Offset getPositionForChild(Size size, Size child) {
+    final below = anchor.bottom + BvSlipMenuSpec.anchorGap;
+    final above = anchor.top - BvSlipMenuSpec.anchorGap - child.height;
+    final y = below + child.height <= size.height - bottom
+        ? below
+        : above >= top
+        ? above
+        : top;
+    final x = textDirection == TextDirection.rtl
+        ? anchor.left
+        : anchor.right - child.width;
+    return Offset(x.clamp(0, size.width - child.width), y);
+  }
+
+  @override
+  bool shouldRelayout(_BelowOrAbove old) =>
+      old.anchor != anchor ||
+      old.textDirection != textDirection ||
+      old.top != top ||
+      old.bottom != bottom;
+}

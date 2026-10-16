@@ -608,8 +608,7 @@ class _Attached extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final files = ref.watch(itemFilesProvider(item.id)).value ?? const [];
     final canAttach =
-        me != null &&
-        (me == item.createdById || me == item.ownerId);
+        me != null && (me == item.createdById || me == item.ownerId);
     if (files.isEmpty && !canAttach) return const SizedBox.shrink();
 
     Future<void> attach() async {

@@ -345,16 +345,16 @@ class DeliveredPublicScreen extends ConsumerWidget {
                 if (work.checkedAt != null)
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
-                    child: BvStamp(
+                    child: BvInkStamp(
                       key: const Key('delivered-stamp'),
-                      label: l10n.deliveredStamp(
-                        Localizations.localeOf(context).languageCode == 'ar'
-                            ? _day(context, work.checkedAt!)
-                            : _day(context, work.checkedAt!).toUpperCase(),
-                      ),
-                      tone: BvStampTone.positive,
-                      tilted: true,
-                      large: true,
+                      // The Daybook's proof stamp: the word, then the day.
+                      label: l10n.signOffChecked,
+                      subline:
+                          Localizations.localeOf(context).languageCode == 'ar'
+                          ? _day(context, work.checkedAt!)
+                          : _day(context, work.checkedAt!).toUpperCase(),
+                      size: BvInkStampSize.lg,
+                      tone: BvInkStampTone.positive,
                     ),
                   ),
                 Text(work.title, style: type.titleLg),

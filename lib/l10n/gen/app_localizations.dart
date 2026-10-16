@@ -3584,12 +3584,6 @@ abstract class AppLocalizations {
   /// **'{name} chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown.'**
   String deliveredPrivacy(String name);
 
-  /// RE1 stamp.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED · {date}'**
-  String deliveredStamp(String date);
-
   /// Check dialog confirm button; short so it fits.
   ///
   /// In en, this message translates to:

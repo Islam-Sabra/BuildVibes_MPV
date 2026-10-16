@@ -2059,11 +2059,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String deliveredStamp(String date) {
-    return 'تم الفحص · $date';
-  }
-
-  @override
   String get workCheckConfirm => 'أغلقه';
 
   @override
