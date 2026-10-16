@@ -5,7 +5,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(85);
+select plan(101);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000021' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -170,6 +170,9 @@ select ok(not public.may_upload_note_file(pg_temp.uid('d2') || '/' || pg_temp.id
   'photos and voice notes only');
 select ok(not public.may_upload_note_file(pg_temp.uid('d2') || '/' || pg_temp.id('a004') || '/x.jpg'),
   'not into the folder of a note that is someone else''s');
+select ok(not public.may_delete_note_file(pg_temp.uid('d1') || '/' || pg_temp.id('a001') || '/p1.jpg',
+                                          pg_temp.uid('d1')::text),
+  'nor delete Omar''s unused file');
 select pg_temp.as_user('d1');
 select is((select count(*)::int from public.notes), 4, 'Omar still has his four notes');
 select is((select count(*)::int from storage.objects where bucket_id = 'notebook-files'), 2,
@@ -202,6 +205,16 @@ select ok((select due_at is null and done_at is null from public.notes where id 
 select throws_ok($$select public.save_note(pg_temp.id('a004'), 'text', 'no longer voice')$$, '22023', null,
   'a note with a recording stays a voice note');
 select public.delete_note(pg_temp.id('a008'));
+select is(public.save_note(pg_temp.id('a008'), 'text', 'A late edit from the outbox'), null,
+  'a save after delete returns null');
+select is((select count(*)::int from public.notes where id = pg_temp.id('a008')), 0,
+  'and the note doesn''t come back');
+select pg_temp.as_user('d2');
+select throws_ok($$select public.save_note(pg_temp.id('a008'), 'text', 'mine')$$, '42501', null,
+  'nobody else can take a deleted note''s id');
+select throws_ok($$select count(*) from public.deleted_notes$$, '42501', null,
+  'nobody reads the record of deleted notes');
+select pg_temp.as_user('d1');
 
 -- Put in a Space --------------------------------------------------------------------------------
 
@@ -212,6 +225,13 @@ select lives_ok($$select public.mark_note_put(pg_temp.id('a003'), pg_temp.id('b0
 select pg_temp.as_user('d2');
 select throws_ok($$select public.mark_note_put(pg_temp.id('a003'), pg_temp.id('b001'))$$, '42501', null,
   'nobody else can');
+select public.create_work_item(pg_temp.sp(), 'Rakesh''s own post', pg_temp.uid('d2'), p_id => pg_temp.id('b006'));
+select throws_ok($$select public.mark_note_put(pg_temp.id('a003'), pg_temp.id('b006'))$$, '42501', null,
+  'not even onto his own post');
+select pg_temp.as_user('d1');
+select throws_ok($$select public.mark_note_put(pg_temp.id('a001'), pg_temp.id('b006'))$$, '42501', null,
+  'and Omar can''t link his note to a post he didn''t write');
+select pg_temp.as_user('d2');
 select is((select count(*)::int from public.notes where owner_id <> auth.uid()), 0, 'and the note stays private');
 
 -- My calendar ---------------------------------------------------------------------------------
@@ -221,20 +241,43 @@ select public.create_space_post(pg_temp.id('b002'), pg_temp.sp(), 'checklist', '
   p_due => current_date + 1, p_people => array[pg_temp.uid('d2')],
   p_points => '[{"text": "Sleeves"}, {"text": "Spacers"}]'::jsonb, p_team => pg_temp.team());
 select public.create_space_post(pg_temp.id('b003'), pg_temp.sp(), 'activity', 'Site walk',
-  p_starts_at => date_trunc('day', now()) + interval '2 days 9 hours', p_people => array[pg_temp.uid('d3')]);
-select is(pg_temp.cal_titles(), array['Order 40 more sleeves', 'Order 40 more sleeves'],
-  'Omar: the work item he wrote and his to-do');
+  p_starts_at => date_trunc('day', now()) + interval '2 days 9 hours', p_people => array[pg_temp.uid('d3')],
+  p_place => 'Gate office');
+select public.create_space_post(pg_temp.id('b005'), pg_temp.sp(), 'activity', 'Team walk',
+  p_team => pg_temp.team(), p_starts_at => date_trunc('day', now()) + interval '1 day 10 hours',
+  p_people => array[pg_temp.uid('d2')]);
+select public.create_work_item(pg_temp.sp(), 'Team sleeves', pg_temp.uid('d2'), current_date + 1,
+  pg_temp.team(), p_id => pg_temp.id('b007'));
+select is(pg_temp.cal_titles(), array['Order 40 more sleeves', 'Order 40 more sleeves', 'Team sleeves'],
+  'Omar: the work items he wrote and his to-do');
 select pg_temp.as_user('d2');
-select is(pg_temp.cal_titles(), array['Before the pour', 'Bring the snag list', 'Order 40 more sleeves'],
-  'Rakesh: the work item he owns, the Team checklist he is for and his to-do');
+select is(pg_temp.cal_titles(),
+  array['Before the pour', 'Bring the snag list', 'Order 40 more sleeves', 'Team sleeves', 'Team walk'],
+  'Rakesh: the work items he owns, the Team checklist and activity he is for, and his to-do');
 select is((select count(*)::int from pg_temp.cal() as c(kind text, title text, status text, needs_me boolean)
-           where c.needs_me), 2, 'both need him');
+           where c.needs_me), 3, 'the checklist and both work items need him');
+select is((select c.place from public.my_calendar(current_date - 1, current_date + 7,
+             date_trunc('day', now()) - interval '1 day', date_trunc('day', now()) + interval '8 days') c
+           where c.title = 'Bring the snag list'), null, 'a to-do has no place');
+select public.ack(pg_temp.id('b003'), 'in_my_calendar');
+select ok(pg_temp.cal_titles() @> array['Site walk'], 'an activity he put in his calendar appears');
+select is((select c.place from public.my_calendar(current_date - 1, current_date + 7,
+             date_trunc('day', now()) - interval '1 day', date_trunc('day', now()) + interval '8 days') c
+           where c.title = 'Site walk'), 'Gate office', 'with its place');
+select public.ack(pg_temp.id('b003'), 'in_my_calendar', false);
+select ok(not (pg_temp.cal_titles() @> array['Site walk']), 'and goes when he takes it back');
 select pg_temp.as_user('d3');
 select is(pg_temp.cal_titles(), array['Site walk'], 'Vera (Viewer): the activity she is in');
 select pg_temp.as_user('d4');
 select is(pg_temp.cal_titles(), '{}'::text[], 'Eve, in no Space: nothing');
 select throws_ok($$select * from public.my_calendar(current_date, current_date + 62, now(), now() + interval '63 days')$$,
   '22023', null, 'at most 62 days');
+select throws_ok($$select * from public.my_calendar(current_date, current_date + 62, now(), now() + interval '1 day')$$,
+  '22023', null, '63 days of days alone are refused');
+select throws_ok($$select * from public.my_calendar(current_date, current_date, now(), now() + interval '62 days 2 hours')$$,
+  '22023', null, 'and 62 days and 2 hours of time alone');
+select is((select count(*)::int from public.my_calendar(current_date, current_date, now(), now() + interval '62 days 1 hour')),
+  0, 'an hour of slack for a change of clock is allowed');
 select throws_ok($$select * from public.my_calendar(current_date, current_date - 1, now(), now() - interval '1 day')$$,
   '22023', null, 'the end after the start');
 
@@ -252,7 +295,8 @@ select ok(pg_temp.cal_titles() @> array['Bring the snag list'], 'Rakesh sees his
 select pg_temp.as_user('d1');
 select public.set_team_members(pg_temp.team(), '{}');
 select pg_temp.as_user('d2');
-select is(pg_temp.cal_titles(), array['Bring the snag list', 'Order 40 more sleeves'], 'out of the Team, its checklist goes');
+select is(pg_temp.cal_titles(), array['Bring the snag list', 'Order 40 more sleeves', 'Team sleeves'],
+  'out of the Team, its checklist and activity go; the work item he owns stays');
 -- After leaving the Space, nothing from it.
 reset role;
 update public.space_members set left_at = now()
@@ -265,11 +309,13 @@ reset role;
 -- Limits and hidden accounts ------------------------------------------------------------------
 
 insert into public.notes (id, owner_id, kind, body)
-select gen_random_uuid(), pg_temp.uid('d4'), 'text', 'note ' || g from generate_series(1, 500) g;
+select gen_random_uuid(), pg_temp.uid('d4'), 'text', 'note ' || g from generate_series(1, 499) g;
 select pg_temp.as_user('d4');
 set local role authenticated;
+select lives_ok($$select public.save_note(pg_temp.id('a00a'), 'text', 'the 500th')$$, 'the 500th note of the day');
+select public.delete_note(pg_temp.id('a00a'));
 select throws_ok($$select public.save_note(gen_random_uuid(), 'text', 'one more')$$, '54000', null,
-  '500 new notes a day');
+  '500 new notes a day: deleting one doesn''t make room');
 reset role;
 update public.profiles set deletion_scheduled_at = now() where id = pg_temp.uid('d3');
 select pg_temp.as_user('d3');
@@ -314,10 +360,19 @@ select ok(public.may_delete_note_file(pg_temp.uid('d1') || '/' || pg_temp.id('a0
                                       pg_temp.uid('d1')::text),
   'a deleted note''s recording can be deleted');
 reset role;
+select pg_temp.upload('d2', 'a010', 'v.m4a', 'audio/mp4');
+select pg_temp.as_user('d2');
+set local role authenticated;
+select public.save_note(pg_temp.id('a010'), 'voice', null, null, null, null, null,
+  jsonb_build_array(jsonb_build_object('path', pg_temp.uid('d2') || '/' || pg_temp.id('a010') || '/v.m4a')));
+reset role;
 update storage.objects set created_at = now() - interval '8 days' where bucket_id = 'notebook-files';
 select ok(exists (select 1 from public.orphan_note_files()
                   where name = pg_temp.uid('d1') || '/' || pg_temp.id('a004') || '/v1.m4a'),
   'the cleanup claims it');
+select ok(not exists (select 1 from public.orphan_note_files()
+                      where name = pg_temp.uid('d2') || '/' || pg_temp.id('a010') || '/v.m4a'),
+  'but never a recording still on a note');
 -- Real Supabase refuses direct deletes from Storage unless this is set.
 set local storage.allow_delete_query = 'true';
 delete from storage.objects where bucket_id = 'notebook-files' and name like pg_temp.uid('d1') || '/%';

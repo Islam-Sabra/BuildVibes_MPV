@@ -1,7 +1,8 @@
 -- Migration 21: the personal notebook and My calendar (review 33 A4).
 -- Branch notebook-db. Not live. Written by the lead on 15 Oct while the
--- founder's PC was off. It doesn't depend on migration 20 and migration 20
--- doesn't depend on it, so either may go live first.
+-- founder's PC was off. It goes live before migration 20: migration 20 is
+-- built on this one's copies of the shared functions (export_my_data and
+-- the purge), and its later timestamp keeps the pushes in order (review 38).
 --
 -- - notes: private notes, checklists, to-dos and voice notes. Only their
 --   owner reads or writes them; nobody else, not even a Space admin or the
@@ -109,9 +110,21 @@ create policy note_files_read_own on public.note_files
   for select to authenticated
   using (exists (select 1 from public.notes n where n.id = note_id and n.owner_id = auth.uid()));
 
-revoke all on public.notes, public.note_files from anon, authenticated;
+-- A deleted note's id, so a late save from the outbox can't bring it back
+-- and deleting doesn't make room under the daily limit (review 38 N3). Only
+-- the id stays: the words and files are gone. Nobody reads it.
+create table public.deleted_notes (
+  id uuid primary key,
+  owner_id uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null,
+  deleted_at timestamptz not null default now()
+);
+create index deleted_notes_owner_idx on public.deleted_notes (owner_id, created_at);
+alter table public.deleted_notes enable row level security;
+
+revoke all on public.notes, public.note_files, public.deleted_notes from anon, authenticated;
 grant select on public.notes, public.note_files to authenticated;
-grant all on public.notes, public.note_files to service_role;
+grant all on public.notes, public.note_files, public.deleted_notes to service_role;
 
 -- ---------------------------------------------------------------------------
 -- Files: bucket notebook-files, <me>/<note_id>/<file>, owner only
@@ -253,7 +266,10 @@ $$;
 -- null keeps the files, a list replaces them.
 -- - text: words or a photo; checklist: 1 to 50 points; todo: words;
 --   voice: one recording.
--- - At most 500 new notes a day (counted under a per-person lock).
+-- - At most 500 new notes a day (counted under a per-person lock), deleted
+--   ones included.
+-- - A deleted note stays deleted: saving it again changes nothing and
+--   returns null, so the app drops its queued edit.
 create or replace function public.save_note(
   p_id uuid,
   p_kind text,
@@ -281,6 +297,12 @@ begin
   end if;
   if p_id is null then
     raise exception 'a note needs its id' using errcode = '22023';
+  end if;
+  if exists (select 1 from public.deleted_notes d where d.id = p_id) then
+    if exists (select 1 from public.deleted_notes d where d.id = p_id and d.owner_id <> v_me) then
+      raise exception 'not allowed' using errcode = '42501';
+    end if;
+    return null;
   end if;
   if p_kind is null or p_kind not in ('text', 'checklist', 'todo', 'voice') then
     raise exception 'choose a kind of note' using errcode = '22023';
@@ -317,10 +339,16 @@ begin
     if v_note.id is not null and v_note.owner_id <> v_me then
       raise exception 'not allowed' using errcode = '42501';
     end if;
+    -- Deleted while this save waited.
+    if v_note.id is null and exists (select 1 from public.deleted_notes d where d.id = p_id) then
+      return null;
+    end if;
   end if;
   if v_note.id is null then
     if (select count(*) from public.notes n
-        where n.owner_id = v_me and n.created_at > now() - interval '1 day') >= 500 then
+        where n.owner_id = v_me and n.created_at > now() - interval '1 day')
+       + (select count(*) from public.deleted_notes d
+          where d.owner_id = v_me and d.created_at > now() - interval '1 day') >= 500 then
       raise exception 'that''s 500 notes today; try again tomorrow' using errcode = '54000';
     end if;
     insert into public.notes (id, owner_id, kind, body, points, due_at, remind_at, pinned)
@@ -361,7 +389,8 @@ end;
 $$;
 
 -- Delete [p_id] (yours). Its files are released; the app removes them with
--- the Storage API, which may_delete_note_file now allows.
+-- the Storage API, which may_delete_note_file now allows. Its id is kept
+-- in deleted_notes, so it can't come back.
 create or replace function public.delete_note(p_id uuid)
 returns void
 language plpgsql
@@ -372,6 +401,10 @@ begin
   if auth.uid() is null or public.is_hidden_account(auth.uid()) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
+  insert into public.deleted_notes (id, owner_id, created_at)
+  select n.id, n.owner_id, n.created_at from public.notes n
+  where n.id = p_id and n.owner_id = auth.uid()
+  on conflict do nothing;
   delete from public.notes where id = p_id and owner_id = auth.uid();
 end;
 $$;
@@ -452,7 +485,8 @@ $$;
 -- - activity: live activities I'm in or put in my calendar, starting then;
 -- - todo: my notebook to-dos due then (done ones too, shown ticked).
 -- Only Spaces I'm still in, and Team posts only as can_see_space_post.
--- At most 62 days (both ends included). Times first, then due days, then titles.
+-- With the post's place (null for a to-do). At most 62 days (both ends
+-- included). Times first, then due days, then titles.
 create or replace function public.my_calendar(
   p_from_day date,
   p_to_day date,
@@ -467,6 +501,7 @@ returns table (
   post_id uuid,
   note_id uuid,
   title text,
+  place text,
   day date,
   starts_at timestamptz,
   ends_at timestamptz,
@@ -497,7 +532,7 @@ begin
     where m.profile_id = auth.uid() and m.left_at is null
   )
   select 'work_item'::text, p.space_id, mine.name, p.team_id, p.id, null::uuid, p.title,
-         p.due_date, null::timestamptz, null::timestamptz, w.status,
+         p.place_text, p.due_date, null::timestamptz, null::timestamptz, w.status,
          public.item_needs_me(w, p) is not null
   from mine
   join public.space_posts p on p.space_id = mine.space_id
@@ -509,7 +544,7 @@ begin
     and public.can_see_space_post(p.id)
   union all
   select 'checklist', p.space_id, mine.name, p.team_id, p.id, null, p.title,
-         p.due_date, null, null, p.status, public.checklist_needs_me(p)
+         p.place_text, p.due_date, null, null, p.status, public.checklist_needs_me(p)
   from mine
   join public.space_posts p on p.space_id = mine.space_id
   where p.kind = 'checklist' and p.status = 'live' and p.deleted_at is null
@@ -519,7 +554,7 @@ begin
     and public.can_see_space_post(p.id)
   union all
   select 'activity', p.space_id, mine.name, p.team_id, p.id, null, p.title,
-         null, p.starts_at, p.ends_at, p.status, false
+         p.place_text, null, p.starts_at, p.ends_at, p.status, false
   from mine
   join public.space_posts p on p.space_id = mine.space_id
   where p.kind = 'activity' and p.status = 'live' and p.deleted_at is null
@@ -532,12 +567,12 @@ begin
     and public.can_see_space_post(p.id)
   union all
   select 'todo', null, null, null, null, n.id,
-         coalesce(left(n.body, 200), ''), null, n.due_at, null,
+         coalesce(left(n.body, 200), ''), null, null, n.due_at, null,
          case when n.done_at is null then 'open' else 'done' end, false
   from public.notes n
   where n.owner_id = auth.uid() and n.kind = 'todo'
     and n.due_at >= p_from and n.due_at < p_to
-  order by 9 nulls last, 8 nulls last, 7;
+  order by 10 nulls last, 9 nulls last, 7;
 end;
 $$;
 

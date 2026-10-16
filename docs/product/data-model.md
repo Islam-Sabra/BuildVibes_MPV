@@ -457,10 +457,11 @@ Rules from review 33 A2 and its clarifications. Checklists, announcements, sched
 **Live, each with its own yes:** deploy the push function with the new texts first, then push migration 19, then run `supabase/ops/activity_reminders_cron.sql`.
 
 ## 16. Notebook and My calendar (migration 21, `20261015230000_notebook.sql`, branch `notebook-db`, not live)
-Rules from review 33 A4. Written by the lead on 15 Oct (review 37). Independent of migration 20: either may go live first.
+Rules from review 33 A4. Written by the lead on 15 Oct (review 37), follow-ups in review 38. **21 before 20; 20 is built on 21** (both replace `export_my_data`, and 20 has the later timestamp).
 
 **Tables (owner only: nobody else reads them, not even a Space admin):**
-- `notes`: `id` (chosen by the app), `owner_id`, `kind` ('text' | 'checklist' | 'todo' | 'voice'), `body` (≤5000), `points` (a checklist's: `[{text, done}]`, 1–50, text 1–300), `due_at` and `done_at` (to-dos only), `pinned`, `remind_at`, `put_in_post_id` (the post it was put in), `created_at`, `updated_at`. Deleting a note removes it (it is private; there is no record to keep).
+- `notes`: `id` (chosen by the app), `owner_id`, `kind` ('text' | 'checklist' | 'todo' | 'voice'), `body` (≤5000), `points` (a checklist's: `[{text, done}]`, 1–50, text 1–300), `due_at` and `done_at` (to-dos only), `pinned`, `remind_at`, `put_in_post_id` (the post it was put in), `created_at`, `updated_at`. Deleting a note removes its words and files.
+- `deleted_notes`: only the id of a deleted note (`id`, `owner_id`, `created_at`, `deleted_at`), so it can't come back. It replaces A4's `deleted_at`: a deleted note is gone, only its id stays. Nobody reads it; only `delete_note` writes it (review 38 N3).
 - `note_files`: a note's photos or its one recording: `note_id`, `storage_path` (unique), `kind` ('photo' | 'voice'), `mime` (from Storage), `bytes`, `width`, `height`, `duration_ms`, `sort`. At most 10 per note. A file the cleanup has claimed can't be added.
 - Bucket `notebook-files` (private, 25 MB; photos and voice): `<me>/<note_id>/<file>`. Read only your own folder; upload only into your own folder (not into the folder of someone else's note), at most 200 files and 200 MB a day; delete only your own file that no note uses; no update.
 
@@ -468,11 +469,11 @@ Rules from review 33 A4. Written by the lead on 15 Oct (review 37). Independent 
 
 | Function | Rule |
 |---|---|
-| `save_note(id, kind, body, points, due_at, remind_at, pinned, files)` | New or your own. Text: words or a photo; checklist: 1–50 points; to-do: words, an optional time; voice: one recording. A recording only on a voice note. Changing the kind clears what no longer fits. `pinned` null keeps the pin; `files` null keeps the files, a list replaces them (your uploads in that note's folder only). At most 500 new notes a day, under a per-person lock that also turns a retry of the same id into an update. A hidden account can't write. |
-| `delete_note(id)` | Yours. Its files are released (the app deletes them with the Storage API; the cleanup takes any left behind). |
+| `save_note(id, kind, body, points, due_at, remind_at, pinned, files)` | New or your own. Text: words or a photo; checklist: 1–50 points; to-do: words, an optional time; voice: one recording. A recording only on a voice note. Changing the kind clears what no longer fits. `pinned` null keeps the pin; `files` null keeps the files, a list replaces them (your uploads in that note's folder only). At most 500 new notes a day, deleted ones included, under a per-person lock that also turns a retry of the same id into an update. Saving a deleted note changes nothing and returns null, so the app drops its queued edit. A hidden account can't write. |
+| `delete_note(id)` | Yours. Its id is kept in `deleted_notes`. Its files are released (the app deletes them with the Storage API; the cleanup takes any left behind). |
 | `set_note_done(id, on)`, `pin_note(id, on)` | Yours; done only on a to-do. |
 | `mark_note_put(note, post)` | Yours, and a post you wrote. "Put in a Space" itself is done in the app: it opens that Space's writing card with the note's words. The note stays private. |
-| `my_calendar(from_day, to_day, from, to)` | Up to 62 days (both ends included); the phone sends its own days and midnights, so no time zone is typed in SQL. Rows: `work_item` (live, mine to sign or written by me, due then, not yet Checked, with `needs_me`), `checklist` (live, I'm for it, due then, with `needs_me`), `activity` (live, I'm in it or put it in my calendar, starting then), `todo` (my notebook to-dos due then, done ones marked). Only Spaces I'm still in; Team posts as §14. No colour: the app gives each Space its colour. |
+| `my_calendar(from_day, to_day, from, to)` | Up to 62 days (both ends included); the phone sends its own days and midnights, so no time zone is typed in SQL. Each row has the post's `place` (null for a to-do; CAL1 shows it). Rows: `work_item` (live, mine to sign or written by me, due then, not yet Checked, with `needs_me`), `checklist` (live, I'm for it, due then, with `needs_me`), `activity` (live, I'm in it or put it in my calendar, starting then), `todo` (my notebook to-dos due then, done ones marked). Only Spaces I'm still in; Team posts as §14. No colour: the app gives each Space its colour. |
 
 "Remind me" is a local notification on the phone; `remind_at` is kept so the app can set it again after a reinstall. No server push.
 
