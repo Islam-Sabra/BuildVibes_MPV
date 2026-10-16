@@ -456,7 +456,7 @@ Rules from review 33 A2 and its clarifications. Checklists, announcements, sched
 
 **Live, each with its own yes:** deploy the push function with the new texts first, then push migration 19, then run `supabase/ops/activity_reminders_cron.sql`.
 
-## 16. Notebook and My calendar (migration 21, `20261015230000_notebook.sql`, branch `notebook-db`, not live)
+## 16. Notebook and My calendar (migration 21, `20261015230000_notebook.sql`, branch `notebook-db`, live 16 Oct)
 Rules from review 33 A4. Written by the lead on 15 Oct (review 37), follow-ups in review 38. **21 before 20; 20 is built on 21** (both replace `export_my_data`, and 20 has the later timestamp).
 
 **Tables (owner only: nobody else reads them, not even a Space admin):**
@@ -481,8 +481,40 @@ Rules from review 33 A4. Written by the lead on 15 Oct (review 37), follow-ups i
 
 **Account:** `export_my_data` includes the notes and their file names. `accounts_due_for_purge` lists `notebook-files` too, and `purge_account` waits until they are gone; the notes go with the account.
 
+## 17. Pages, walk mode, meeting notes, templates, reports and search (migration 20, `20261016120000_post_pages.sql`, branch `post-pages-db`, not live)
+Rules from review 33 A3 and its clarifications; choices confirmed in review 39. **Goes live after migration 21** (review 38 N1); its copy of `export_my_data` is 21's plus pages and templates.
+
+**A post's page** (opening it in place, N1–N5):
+- `space_posts.blocks` (a list, at most 100 KB) and `blocks_version`. Title, words, place, due and points stay the post's own fields.
+- Blocks, each `{id, type, ...}` with its own id: `text` (up to 2000), `heading` (1–200, level 1 or 2), `toggle` (1–200, holding text, headings, tables, photos and files; one level), `table` (1–20 rows of 1–8 cells of up to 200 characters, every row as wide), `photo` (`path`: a photo of this post), `file` (`library_file_id`: a Library file on this post), `checklist_ref` (`point_ids`: points of this work item or checklist, each in one block only), `child_item` (`post_id`: a work item under this top-level work item, for the same readers: an Everyone page never shows a Team's work item), `item_ref` (`post_id`, in a report only: a work item of the Space its readers may all see). At most 200 blocks, toggle children included; block ids are lower-case uuids. A reference already on the saved page is kept even if its work item goes, so a page never stops saving (readers' views leave it out). Any kind but a file post has a page.
+- `validate_blocks(post, blocks)` checks all of this; a template's page holds words only.
+- `save_blocks(post, blocks, base_version, add_files)`: the author while they may post, under the edit rules (a work item only while Open). A save from an older version is refused with `40001`; the app reloads and applies its change again. `add_files` adds the post's own files in the same step. One `post_edits` row per save (`page: {from, to}`); a work item's owner hears of page saves at most once in 10 minutes.
+- A photo, file or point the page shows can't be removed by an edit (`P0001`), and a Library file a page shows stays in the Library.
+- "Turn into" happens in the app: a point is added with `edit_space_post`, a work item under this one with `create_work_item`, then the page is saved.
+- Reading: the slip gains `has_page`, `template_id` and, for a walk, `children.rows` (the first 10 work items under it: title, status, owner, photo); the opened post gains `blocks`, `blocks_version`, `refs` (a report's work items, as this reader may see them) and, under `under`, each item's owner and photo.
+
+**Walk mode and meeting notes** (R1, R1b, R3):
+- `create_walk(space, parent, title, items, place, team)`: one parent work item and, under it, one work item per photo (`{id, line, owner, photo}`, 1–30, each photo uploaded to that item's post folder first).
+- `create_from_message(space, message, parent, title, lines)`: from a text message the caller can read (not reported, not by someone blocked), one parent and one work item per line (`{id, text, owner}`, 1–30). All of them record the message; a Team thread's message keeps them in that Team.
+- Both: Lead and Crew (`create_items`), a Team walk only from inside the Team; all or nothing; the same parent id again returns it. The parent is a work item owned by its author: a **target** (`is_target`, review 39). While it has work items under it, nobody is asked to sign or check it, it can't be signed as done or checked, and so it never counts as proof on a profile; its progress is theirs ("3 of 5 checked"). Each owner gets one push for the whole batch, opening the parent, or their own work item when they can't see the parent (someone outside a Team walk's Team); each work item still has its Activity row. A retry running at the same moment waits and returns the parent.
+
+**Templates** (`post_templates`): `id`, `space_id` (null for a built-in), `team_id` (the Team of the post it came from), `kind` (work item, checklist, announcement, report), `builtin_key`, `name` (1–60), `blocks` (words only), `fields` (`{title, body, points}`), `created_by`, `deleted_at`.
+- The one built-in is the **Daily report** (`daily_report`), with three headings stored as keys, `on_site`, `done_today` and `problems` (as the prototype's R2; the app gives the words in each language).
+- `save_template(id, space, from_post, name)`: a Lead or a Space admin, at most 50 in a Space; only the words come (no photos, files or work items; points as text). `delete_template(id)`: a Lead or a Space admin; built-ins stay. `space_templates(space)`: the built-ins and the Space's own (a Team's only for that Team and the admins).
+- `create_space_post` gains `template` (the same kind and audience) and `blocks`, and posts kind `report`. `create_work_item` gains `template` (a work item template), `blocks` and `points`.
+
+**Reports:**
+- A **daily report** is a post of kind `report`, usually from the Daily report template. `daily_report_fill(space, team, from, to)` gives what was checked that day (title, ref, owner, checker, the Done photo) for "Done today", only work all the report's readers may see (an Everyone report never brings in a Team's work). Share as PDF is made on the phone.
+- `week_report(space, today, from, to)` (MR1, up to 7 days; the phone sends its own days and midnights): needs a decision (late, sent back, waiting for a check; never a target), checked this week (with the Done photo and who checked), targets (work items with work items under them still to check, and their progress), coming up (activities and due dates in the next 7 days from now). Each person sees only what they may read; rows with names, never per-person totals (rule 3); at most 30 a section.
+- `share_week_report(id, thread, week_start)`: a chat message of kind `report` with `messages.report_week`; whoever taps it opens the week report with their own rights. The 0.9.0 app shows such a message as an empty bubble.
+
+**Search** (`search_space(space, q)`): posts (title, words and page), checklist points, chat messages and Library file names the caller may read, newest first, 30 at most; 2 to 100 characters, `%` and `_` as typed. Never private notes or direct messages. Space content of someone blocked stays, without the name (as chat and the daybook).
+- `search_fold(text)`: lower case, without tatweel, harakat or direction marks; أ/إ/آ/ٱ to ا, ى to ي, ة to ه, ؤ/ئ to ء, Arabic digits to 0–9; spaces and line breaks as one space. The same folding for what is stored and what is typed (review 39). No stemming. The snippet finds the match in the text as written.
+- Stored, indexed columns `search_text` (trigram) on `space_posts`, `checklist_points`, `messages` and `library_files`. If `search_fold` changes, a migration recomputes them by touching every row (for example `update public.messages set body = body`).
+
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
+- Search, the week and daily reports and templates never show a Team's posts to someone outside the Team.
 - Viewer can't create items or sign done. Only the owner can sign done. Only the author checks (a Space admin when the author left or owns the item); the owner never checks.
 - `work_item_events` and `post_edits` can't be updated or deleted.
 - A blocked user can't read the blocker's profile.
