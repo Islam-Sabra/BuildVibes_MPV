@@ -9,8 +9,15 @@ select r.id as report_id, r.created_at, r.target_kind, r.reason, r.note,
          when 'post' then (select body from public.posts where id = r.target_id)
          when 'reply' then (select body from public.post_replies where id = r.target_id)
          when 'message' then (select body from public.messages where id = r.target_id)
+         -- A direct message: only that message, never the thread (migration 22).
+         when 'dm_message' then (select body from public.dm_messages where id = r.target_id)
          when 'profile' then (select first_name || ' ' || last_name from public.profiles where id = r.target_id)
        end as content,
+       -- A reported direct message's files (bucket dm-files; open them in
+       -- Storage): that message's only, never the thread (review 42 R2).
+       case when r.target_kind = 'dm_message' then
+         (select string_agg(a.storage_path, ', ' order by a.sort) from public.dm_attachments a
+          where a.message_id = r.target_id) end as dm_files,
        (select count(*) from public.reports o
         where o.target_kind = r.target_kind and o.target_id = r.target_id) as reports_on_it
 from public.reports r

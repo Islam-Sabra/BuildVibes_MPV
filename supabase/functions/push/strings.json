@@ -20,6 +20,8 @@
     "file_new_version": "{name} shared a new version of a file you received.",
     "chat_title": "New message from {name}",
     "chat_hidden": "Open BuildVibes to read it.",
+    "dm_request": "{name} sent you a message request.",
+    "dm_title": "Message from {name}",
     "someone": "Someone"
   },
   "ar": {
@@ -43,6 +45,8 @@
     "file_new_version": "نسخة جديدة من ملف استلمته، من {name}.",
     "chat_title": "رسالة جديدة من {name}",
     "chat_hidden": "افتح BuildVibes لقراءتها.",
+    "dm_request": "طلب رسالة من {name}.",
+    "dm_title": "رسالة من {name}",
     "someone": "أحدهم"
   }
 }

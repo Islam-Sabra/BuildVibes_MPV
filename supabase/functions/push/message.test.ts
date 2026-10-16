@@ -26,6 +26,7 @@ test("every kind has its text in English and Arabic", () => {
     "follow", "post_reply", "chat_message",
     "item_edited", "item_cancelled", "announcement_new", "checklist_for_you",
     "activity_invited", "activity_starting", "file_new_version",
+    "dm_message", "dm_request",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -57,6 +58,20 @@ test("a daybook post opens its Space; its id travels in the data", () => {
   assert.equal(
     buildPush(row("activity_starting", { actor_id: null }), "en", null, strings).body,
     "A scheduled activity you are in starts in 30 minutes.");
+});
+
+test("a direct message: like chat, one tag per thread; a request never shows text", () => {
+  const data = { dm_thread_id: "d1", message_id: "m1" };
+  const hidden = buildPush(row("dm_message", { data }), "en", "Omar Haddad", strings);
+  assert.equal(hidden.title, "Message from ⁨Omar Haddad⁩");
+  assert.equal(hidden.body, "Open BuildVibes to read it.");
+  assert.equal(hidden.tag, "d1");
+  assert.equal(hidden.data.route, "/messages/d1");
+  const shown = buildPush(row("dm_message", { data, message_text: "At the gate." }), "en", "Omar Haddad", strings);
+  assert.equal(shown.body, "At the gate.");
+  const request = buildPush(row("dm_request", { data, message_text: "Buy now" }), "en", "Sam Spam", strings);
+  assert.equal(request.body, "⁨Sam Spam⁩ sent you a message request.");
+  assert.equal(request.data.route, "/messages/d1");
 });
 
 test("Arabic text with the name kept in its own direction", () => {
