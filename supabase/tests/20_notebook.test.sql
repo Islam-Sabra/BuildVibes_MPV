@@ -318,6 +318,8 @@ update storage.objects set created_at = now() - interval '8 days' where bucket_i
 select ok(exists (select 1 from public.orphan_note_files()
                   where name = pg_temp.uid('d1') || '/' || pg_temp.id('a004') || '/v1.m4a'),
   'the cleanup claims it');
+-- Real Supabase refuses direct deletes from Storage unless this is set.
+set local storage.allow_delete_query = 'true';
 delete from storage.objects where bucket_id = 'notebook-files' and name like pg_temp.uid('d1') || '/%';
 update public.profiles set deletion_scheduled_at = now() - interval '31 days' where id = pg_temp.uid('d1');
 select is(public.purge_account(pg_temp.uid('d1')), true, 'with the files gone, the purge goes ahead');
