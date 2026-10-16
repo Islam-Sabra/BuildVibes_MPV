@@ -34,6 +34,10 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
   switch (row.kind) {
     case "chat_message":
       return { route: `/spaces/${d.space_id}/chat/${d.thread_id}` };
+    // Direct messages (migration 22): the thread; a request opens it too.
+    case "dm_message":
+    case "dm_request":
+      return { route: `/messages/${d.dm_thread_id}` };
     case "join_request":
       return { route: `/spaces/${d.space_id}`, open: "people" };
     case "join_confirmed":
@@ -81,6 +85,15 @@ export function buildPush(
       body: row.message_text ?? t.chat_hidden,
       data,
       tag: row.thread_id ?? undefined,
+    };
+  }
+  if (row.kind === "dm_message") {
+    return {
+      title: fill(t.dm_title),
+      // As chat: the text only when the person turned it on.
+      body: row.message_text ?? t.chat_hidden,
+      data,
+      tag: row.data?.dm_thread_id ?? undefined,
     };
   }
   const template = t[row.kind];

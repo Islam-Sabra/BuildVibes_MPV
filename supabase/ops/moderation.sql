@@ -9,6 +9,8 @@ select r.id as report_id, r.created_at, r.target_kind, r.reason, r.note,
          when 'post' then (select body from public.posts where id = r.target_id)
          when 'reply' then (select body from public.post_replies where id = r.target_id)
          when 'message' then (select body from public.messages where id = r.target_id)
+         -- A direct message: only that message, never the thread (migration 22).
+         when 'dm_message' then (select body from public.dm_messages where id = r.target_id)
          when 'profile' then (select first_name || ' ' || last_name from public.profiles where id = r.target_id)
        end as content,
        (select count(*) from public.reports o

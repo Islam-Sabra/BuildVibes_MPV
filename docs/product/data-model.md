@@ -512,6 +512,49 @@ Rules from review 33 A3 and its clarifications; choices confirmed in review 39. 
 - `search_fold(text)`: lower case, without tatweel, harakat or direction marks; أ/إ/آ/ٱ to ا, ى to ي, ة to ه, ؤ/ئ to ء, Arabic digits to 0–9; spaces and line breaks as one space. The same folding for what is stored and what is typed (review 39). No stemming. The snippet finds the match in the text as written.
 - Stored, indexed columns `search_text` (trigram) on `space_posts`, `checklist_points`, `messages` and `library_files`. If `search_fold` changes, a migration recomputes them by touching every row (for example `update public.messages set body = body`).
 
+## 18. Direct messages (migration 22, `20261016180000_dm.sql`, branch `dm-db`, not live)
+Rules from review 33 A5, founder decision F10 and review 41 (`space-scenarios.md`, "Direct messages and Space info"): **we manage, we don't block.** Anyone can message anyone, as much as they like, with photos, files and voice notes.
+
+**Work link:** the two are active members of the same Space (any pass, a deleted Space doesn't count), or each follows the other. Without one, the receiver gets a **Message request**.
+
+**Tables** (written only through the functions; the two people read them):
+- `dm_threads`: one per pair (`a_id < b_id`, unique), `started_by`, `created_at`, `last_message_at`. A purged person becomes null and the other keeps the thread ("Former member"); a thread with both purged goes.
+- `dm_members`: each person's `state` ('open' | 'request' | 'declined'), `last_read_at`, `declined_at`, `request_pushed_at`, `muted`. **Each person reads only their own row**, so the other never learns a decline, a read time (no read receipts) or a mute.
+- `dm_messages`: `id` (the app's), `thread_id`, `author_id`, `kind` ('text' | 'photo' | 'file' | 'voice'), `body` (up to 3000), `reply_to` (same thread), `created_at`, `deleted_at`. Never edited.
+- `dm_attachments`: `message_id`, `storage_path`, `name`, `mime`, `bytes`, `width`, `height`, `duration_ms`, `sort`. At most 10 a message; a voice note on its own. Never copied to a Library.
+- Bucket `dm-files` (private, 25 MB; photos, PDF, voice) at **`<author>/<message>/<file>`**, not A5's `<thread>/…`: a new thread's id is only known once its first message is sent, and the purge finds a person's files by their own folder. Upload into your own folder for a message not sent yet, within the daily cap shared with Space files (300 files, 500 MB). **A file is read through its message** (review 41): only the two people, never across a block, not once the message is deleted, not by someone who reported it; its sender too. Your own upload is readable before it is sent. Delete only your own file that no live message uses.
+- `app_settings`: `key`, `value`. Nobody reads it from the app; the founder changes it by SQL (with a yes), no release. `dm_unanswered_limit = {"limit": 50, "warn_at": 40, "days": 30}`.
+
+**Who sees what:** only the two people, and never across a block (either way): the thread is hidden from both and nothing can be sent. Someone waiting for account deletion stays in the thread as "Former member" and can't be messaged or write.
+
+**Requests:**
+- Replying opens the thread; there is no Accept button. A request also becomes a thread as soon as the two get a work link (joining a Space, a follow back), and **stays open if the link ends** (review 41).
+- `decline_dm(thread)` ("Not in your Spaces · Decline · Block" on a request, review 41): it leaves the receiver's lists quietly; the sender isn't told. If the sender writes again it is a request again, with no push for 30 days after the decline. Block stops it for good.
+- Photos and files from someone you haven't answered come with `tap_to_show` (shown blurred until tapped).
+
+**Spam guard:** `dm_unanswered_count(sender, days)` counts the people the sender started a thread with in the last `days` who are still in request or declined and never wrote back. Starting a thread with a **new** person (no work link): from `warn_at` such people, `start_dm` returns a warning; from `limit`, it makes nothing and returns state `paused` with `until`, the day one frees up. Existing threads are never affected, and someone with a work link is never counted.
+
+**Functions:**
+
+| Function | Rule |
+|---|---|
+| `start_dm(thread, to, message, body, attachments)` | Finds the pair's thread or makes one (the app's id); both starting at once make one. Not yourself, a missing or hidden person, or across a block (all the same `42501`). Returns `{thread, state, warning, until}`. |
+| `send_dm(id, thread, body, reply_to, attachments)` | One of the two; 30 messages a minute; a retry with the same id is the same message. |
+| `delete_dm(id)` | Your own; "Message deleted"; its files go to the cleanup. |
+| `mark_dm_read(thread)`, `decline_dm(thread)`, `mute_dm(thread, on)` | Yours. Mute is in the thread's ⋯ menu (with Report the person and Block); muted, no pushes from it. |
+| `my_dm_threads(before, before_id, limit)` | Open threads newest first (the other person, last message, an unread dot, muted), and on the first page the Message requests row (the newest request only, **never a count**). |
+| `my_dm_requests()`, `dm_thread_page(thread, before, before_id, limit)`, `dm_shared_space(thread)` | Requests; a thread's messages, newest first, with files and `tap_to_show`; the first Space both are in, for "Both in …" (never a count). |
+
+**Push:** `dm_request` once per new person (none within 30 days of a decline), never with text; `dm_message` in an open thread like Space chat, at most one per thread every 5 minutes, with the text only if the person turned on "Show message text" (S3). Not when muted, declined, across a block or to a hidden account. No Activity rows. A push opens `/messages/<thread>`. The push function needs these texts deployed before the migration goes live.
+
+**Reports:** `report('dm_message', id)` by the person it was sent to hides it for them at once; `decide_report` removes it and keeps its words for an appeal, like a Space message (`content_removals` and `removed_content`); `decide_appeal` can bring it back. Moderation (`ops/moderation.sql`) sees only that message, never the thread.
+
+**Account:** `export_my_data` has the messages the person sent (never those they received) and their threads; `accounts_due_for_purge` and `purge_account` include `dm-files`; `orphan_dm_files(age)` claims files no live message uses for the cleanup job (scheduled with the other cleanups, with the founder's yes), keeping a removed message's files while its removal can be appealed (14 days).
+
+**Live, each with its own yes:** deploy the push function with the direct message texts, then push migration 22.
+
+**Put in a Space and Save to my notebook** happen in the app: a work item with the message as its `quote` (§14), or `save_note` with its words (§16). The message stays private.
+
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
 - Search, the week and daily reports and templates never show a Team's posts to someone outside the Team.
