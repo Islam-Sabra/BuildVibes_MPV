@@ -481,7 +481,7 @@ Rules from review 33 A4. Written by the lead on 15 Oct (review 37), follow-ups i
 
 **Account:** `export_my_data` includes the notes and their file names. `accounts_due_for_purge` lists `notebook-files` too, and `purge_account` waits until they are gone; the notes go with the account.
 
-## 17. Pages, walk mode, meeting notes, templates, reports and search (migration 20, `20261016120000_post_pages.sql`, branch `post-pages-db`, not live)
+## 17. Pages, walk mode, meeting notes, templates, reports and search (migration 20, `20261016120000_post_pages.sql`, branch `post-pages-db`, live 16 Oct)
 Rules from review 33 A3 and its clarifications; choices confirmed in review 39. **Goes live after migration 21** (review 38 N1); its copy of `export_my_data` is 21's plus pages and templates.
 
 **A post's page** (opening it in place, N1–N5):

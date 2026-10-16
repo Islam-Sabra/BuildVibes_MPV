@@ -30,7 +30,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 | Google, Apple, LinkedIn | Off |
 | Redirect URLs | `com.buildvibes.buildvibes://login-callback` |
 | Authenticator app (MFA TOTP) | On (restored) |
-| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety, 16 account, 17 market pack (founder's yes, 13 Oct), 18 daybook core, 19 other kinds of post (founder's yes, 15 Oct), 21 notebook and My calendar (founder's yes, 16 Oct) |
+| Migrations applied | 1 market pack, 2 people and companies, 3 sign-up gate and onboarding, 4 profiles and projects, 5 email sign-in, 6 Spaces (all pushed with the founder's yes, 11 Oct), 7 work items, 8 work item follow-ups and Work you delivered, 9 chat and Library, 10 review 11 follow-ups, 11 chat and Library follow-ups, 12 feed, 13 Activity (founder's yes, 12 Oct), 14 push, 15 safety, 16 account, 17 market pack (founder's yes, 13 Oct), 18 daybook core, 19 other kinds of post (founder's yes, 15 Oct), 21 notebook and My calendar, 20 pages, templates, reports and search (founder's yes, 16 Oct) |
 | Edge Functions | `push` (FCM HTTP v1) and `report-alert` (Resend), both `verify_jwt = false`, deployed 13 Oct with the founder's yes. `push` redeployed 15 Oct (version 5) with the migration 19 texts, with the founder's yes |
 | Function secrets | `FIREBASE_SERVICE_ACCOUNT` and `RESEND_API_KEY` (pasted by the founder), `PUSH_WEBHOOK_SECRET` and `REPORT_ALERT_SECRET` (generated, never printed), `ALERT_FROM` (the sign-in code sender). Names only here |
 | Vault | `push_webhook_secret` and `report_alert_secret` (the same values as the function secrets) |
@@ -514,11 +514,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Live with the founder's yes: `notebook-db` merged into main (788ab8e); `supabase db push` listed only `20261015230000_notebook.sql`. Read-only check: `notes`, `note_files` and `deleted_notes` have row-level security on, the app can't read `deleted_notes`, and bucket `notebook-files` exists and is private.
   - On the local stack the notebook test needed `storage.allow_delete_query` for its Storage delete (the cloud stand-in didn't); 1,227 SQL checks in 20 files.
   - Migration 20 goes live after it, never before.
-- **16 Oct, migration 20, pages, walk mode, meeting notes, templates, reports and search** (review 33 A3, choices confirmed in review 39; branch `post-pages-db`, **not live**, goes live after 21):
+- **16 Oct, migration 20, pages, walk mode, meeting notes, templates, reports and search** (review 33 A3, choices confirmed in review 39; branch `post-pages-db`):
   - Pages inside a post (blocks, saved by version), walk mode and meeting notes (one call, all or nothing), templates with the built-in Daily report, the daily and week reports, sharing a week report in chat, and search across posts, points, chat and Library names (Arabic letter forms folded).
   - A walk or meeting parent is a target: nobody signs or checks it and it never counts as proof (review 39).
   - An independent review found 14 problems and 8 test gaps; all fixed (an owner outside a Team walk got no push; a Team child's id on an Everyone page; a target signed early could still be checked; the week report's coming-up window; work item templates couldn't be used; search across line breaks and harakat in snippets; block ids; old references blocking a save; ids by case; a retry at the same moment).
   - 1,373 SQL checks in 21 files (146 for migration 20).
+  - **Live 16 Oct** (founder's yes, review 40): `post-pages-db` merged into main (c96e125); `supabase db push` listed only `20261016120000_post_pages.sql`. Read-only check: `post_templates` has row-level security on and one built-in (`daily_report`); `space_posts` has `blocks`, `blocks_version` and `search_text`; Arabic splits into trigrams on live, so search uses its index.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
