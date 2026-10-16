@@ -97,6 +97,8 @@ flutter:
           weight: 600
         - asset: assets/fonts/PlusJakartaSans-Bold.ttf
           weight: 700
+        - asset: assets/fonts/PlusJakartaSans-ExtraBold.ttf
+          weight: 800
     - family: NotoSansArabic
       fonts:
         - asset: assets/fonts/NotoSansArabic-Regular.ttf

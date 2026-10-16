@@ -10,7 +10,7 @@ Copied from the old app (Build-Vibes, mobile/assets/fonts) on 11 Oct 2026. Famil
   https://github.com/tokotype/PlusJakartaSans/releases/tag/2.7.1
 - Also catalogued on Google Fonts (OFL)
 - Form: static TTF weights (not variable)
-- Weights bundled: 400 Regular, 500 Medium, 600 SemiBold, 700 Bold
+- Weights bundled: 400 Regular, 500 Medium, 600 SemiBold, 700 Bold, and 800 ExtraBold (added 16 Oct 2026 for the Daybook stamps, from the same 2.7.1 release zip, `ttf/PlusJakartaSans-ExtraBold.ttf`)
 
 ## Noto Sans Arabic
 

@@ -1,0 +1,76 @@
+// Screenshots for review at 390 × 844, English and Arabic, rendered with
+// the app's real fonts. Not part of `flutter test`; run:
+//   flutter test test_screens --update-goldens
+// The PNGs land in docs/screens/slice1/ (committed for the lead, review 43).
+import 'package:buildvibes/core/theme/bv_theme.dart';
+import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+const shotSize = Size(390, 844);
+const shotPixelRatio = 2.0;
+
+Future<void> loadAppFonts() async {
+  Future<void> family(String name, List<String> files) async {
+    final loader = FontLoader(name);
+    for (final f in files) {
+      loader.addFont(rootBundle.load('assets/fonts/$f'));
+    }
+    await loader.load();
+  }
+
+  await family('PlusJakartaSans', [
+    'PlusJakartaSans-Regular.ttf',
+    'PlusJakartaSans-Medium.ttf',
+    'PlusJakartaSans-SemiBold.ttf',
+    'PlusJakartaSans-Bold.ttf',
+    'PlusJakartaSans-ExtraBold.ttf',
+  ]);
+  await family('NotoSansArabic', [
+    'NotoSansArabic-Regular.ttf',
+    'NotoSansArabic-Medium.ttf',
+    'NotoSansArabic-SemiBold.ttf',
+    'NotoSansArabic-Bold.ttf',
+  ]);
+  await family('PhosphorRegular', ['Phosphor-Regular.ttf']);
+}
+
+/// Renders [child] in a 390 × 844 app frame in [lang] and saves
+/// `docs/screens/slice1/<name>_<lang>.png`.
+Future<void> shoot(
+  WidgetTester tester,
+  String name,
+  String lang,
+  Widget Function(BuildContext context) child,
+) async {
+  tester.view.physicalSize = shotSize * shotPixelRatio;
+  tester.view.devicePixelRatio = shotPixelRatio;
+  addTearDown(tester.view.reset);
+  final locale = Locale(lang);
+  final key = GlobalKey();
+  await tester.pumpWidget(
+    RepaintBoundary(
+      key: key,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        locale: locale,
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        theme: BvTheme.forLocale(locale),
+        home: Builder(builder: child),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await expectLater(
+    find.byKey(key),
+    matchesGoldenFile('../docs/screens/slice1/${name}_$lang.png'),
+  );
+}

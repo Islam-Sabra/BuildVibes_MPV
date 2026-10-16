@@ -224,4 +224,24 @@ abstract final class BvIcons {
     fontFamily: _family,
     matchTextDirection: true,
   );
+
+  // The Daybook.
+  /// arrow-counter-clockwise: Send back. A turning arrow, so it mirrors.
+  static const sendBack = IconData(
+    0xe038,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+
+  /// plus: add an update (the bottom bar's Create is the same glyph).
+  static const add = create;
+
+  /// user: a person (give to someone, assign).
+  static const person = profile;
+
+  /// info: an announcement.
+  static const info = about;
+
+  /// calendar-blank: a due date.
+  static const due = month;
 }

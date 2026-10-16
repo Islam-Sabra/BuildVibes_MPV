@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
-enum BvAvatarSize { sm, md, lg, xl }
+enum BvAvatarSize { xxs, xs, xsm, list, sm, md, lg, xl }
 
 /// Spec §9 ("DS · Avatar & Badge"). A person is a circle; a company is a
 /// rounded square. Without a photo it shows initials.
@@ -15,7 +15,12 @@ class BvAvatar extends StatelessWidget {
     this.company = false,
     this.image,
     this.twoLetters = false,
+    this.tint,
   });
+
+  /// The fill behind the initials (Daybook: [BvAvatarTints.forId]).
+  /// Default: surface subtle.
+  final Color? tint;
 
   final String name;
   final BvAvatarSize size;
@@ -27,6 +32,10 @@ class BvAvatar extends StatelessWidget {
   final bool twoLetters;
 
   static double dimension(BvAvatarSize size) => switch (size) {
+    BvAvatarSize.xxs => BvAvatarSpec.xxs,
+    BvAvatarSize.xs => BvAvatarSpec.xs,
+    BvAvatarSize.xsm => BvAvatarSpec.xsm,
+    BvAvatarSize.list => BvAvatarSpec.list,
     BvAvatarSize.sm => BvAvatarSpec.sm,
     BvAvatarSize.md => BvAvatarSpec.md,
     BvAvatarSize.lg => BvAvatarSpec.lg,
@@ -34,7 +43,12 @@ class BvAvatar extends StatelessWidget {
   };
 
   static BorderRadius companyRadius(BvAvatarSize size) => switch (size) {
-    BvAvatarSize.sm || BvAvatarSize.md => BvAvatarSpec.companyRadiusSmall,
+    BvAvatarSize.xxs ||
+    BvAvatarSize.xs ||
+    BvAvatarSize.xsm ||
+    BvAvatarSize.list ||
+    BvAvatarSize.sm ||
+    BvAvatarSize.md => BvAvatarSpec.companyRadiusSmall,
     BvAvatarSize.lg || BvAvatarSize.xl => BvAvatarSpec.companyRadiusLarge,
   };
 
@@ -109,7 +123,13 @@ class BvAvatar extends StatelessWidget {
     final type = BvType.of(context);
     final d = dimension(size);
     final style = switch (size) {
-      BvAvatarSize.sm => type.labelSm,
+      // 18 holds one letter in the smallest type (12 spills out, a Figma slip).
+      BvAvatarSize.xxs => type.metadata.copyWith(
+        fontSize: BvAvatarSpec.xxsInitials,
+        height: 1,
+      ),
+      BvAvatarSize.xs || BvAvatarSize.list || BvAvatarSize.sm => type.labelSm,
+      BvAvatarSize.xsm => type.labelMd,
       BvAvatarSize.md => type.labelMd,
       BvAvatarSize.lg => type.titleLg,
       BvAvatarSize.xl => type.headingXl,
@@ -126,7 +146,7 @@ class BvAvatar extends StatelessWidget {
         height: d,
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
-          color: BvColors.surfaceSubtle,
+          color: tint ?? BvColors.surfaceSubtle,
           shape: image == null
               ? shape.copyWith(
                   side: const BorderSide(
@@ -143,7 +163,11 @@ class BvAvatar extends StatelessWidget {
         child: image == null
             ? ExcludeSemantics(
                 child: Text(
-                  twoLetters ? tileInitialsOf(name) : initialsOf(name),
+                  size == BvAvatarSize.xxs
+                      ? initialsOf(name).characters.take(1).toString()
+                      : twoLetters
+                      ? tileInitialsOf(name)
+                      : initialsOf(name),
                   maxLines: 1,
                   style: style.copyWith(color: BvColors.textPrimary),
                 ),

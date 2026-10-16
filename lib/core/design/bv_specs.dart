@@ -15,6 +15,13 @@ abstract final class BvStroke {
   static const thin = BvSpace.borderWidth; // 1
   static const medium = 1.5;
   static const thick = 2.0;
+  // The Daybook's inks: writing card (1.25), small stamps (1.6, 1.8),
+  // paper clip (2.2), the large proof stamp (2.5).
+  static const dash = 1.25;
+  static const stampXs = 1.6;
+  static const stampSm = 1.8;
+  static const clip = 2.2;
+  static const stampLg = 2.5;
 }
 
 abstract final class BvButtonSpec {
@@ -103,6 +110,13 @@ abstract final class BvChoiceCardSpec {
 }
 
 abstract final class BvAvatarSpec {
+  // The Daybook's small faces: properties line (18), slip header (24),
+  // Home slip (28), the give-to list (30).
+  static const xxs = 18.0;
+  static const xs = 24.0;
+  static const xsm = 28.0;
+  static const list = 30.0;
+  static const xxsInitials = 9.0;
   static const sm = BvSize.avatarSm; // 32
   static const md = BvSize.avatarMd; // 40
   static const lg = BvSize.avatarLg; // 56
