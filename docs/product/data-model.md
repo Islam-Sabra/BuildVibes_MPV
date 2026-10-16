@@ -512,7 +512,7 @@ Rules from review 33 A3 and its clarifications; choices confirmed in review 39. 
 - `search_fold(text)`: lower case, without tatweel, harakat or direction marks; أ/إ/آ/ٱ to ا, ى to ي, ة to ه, ؤ/ئ to ء, Arabic digits to 0–9; spaces and line breaks as one space. The same folding for what is stored and what is typed (review 39). No stemming. The snippet finds the match in the text as written.
 - Stored, indexed columns `search_text` (trigram) on `space_posts`, `checklist_points`, `messages` and `library_files`. If `search_fold` changes, a migration recomputes them by touching every row (for example `update public.messages set body = body`).
 
-## 18. Direct messages (migration 22, `20261016180000_dm.sql`, branch `dm-db`, not live)
+## 18. Direct messages (migration 22, `20261016180000_dm.sql`, branch `dm-db`, live 16 Oct)
 Rules from review 33 A5, founder decision F10 and review 41 (`space-scenarios.md`, "Direct messages and Space info"): **we manage, we don't block.** Anyone can message anyone, as much as they like, with photos, files and voice notes.
 
 **Work link:** the two are active members of the same Space (any pass, a deleted Space doesn't count), or each follows the other. Without one, the receiver gets a **Message request**.
