@@ -525,6 +525,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The push function has the new texts (in git, not deployed): deploy it before migration 22 goes live.
   - An independent review found 8 problems and 11 test gaps; all fixed (the sender could read the receiver's row, so a decline, read time and mute showed; the file delete rule compared the wrong column, so a sender could delete a live or reported message's file; the cleanup took a removed message's files during the appeal window; a promoted request could still blur or be declined; a purged side let an outsider through; a request push after 30 days; a double tap; each file once).
   - 1,488 SQL checks in 22 files (115 for migration 22), 9 push function tests.
+  - **Review 42 (approved):** R1, the purge removes the person's direct message file rows, so the other person's thread lists no broken files and a message with no words left shows as deleted; R2, `ops/moderation.sql` lists a reported direct message's files. 1,490 SQL checks (117 for migration 22).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

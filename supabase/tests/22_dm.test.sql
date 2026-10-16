@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(115);
+select plan(117);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000022' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -511,6 +511,12 @@ select pg_temp.as_user('e2');
 set local role authenticated;
 select is((public.dm_thread_page(pg_temp.id('a001')) -> 'person' ->> 'former'), 'true',
   'as Former member');
+select ok(not exists (select 1 from jsonb_array_elements(public.dm_thread_page(pg_temp.id('a001')) -> 'messages') m
+                      where not (m ->> 'from_me')::boolean and m ? 'files'),
+  'with none of his files left listed (review 42 R1)');
+select is((select m ->> 'deleted' from jsonb_array_elements(public.dm_thread_page(pg_temp.id('a001')) -> 'messages') m
+           where m ->> 'id' = pg_temp.id('b032')::text), 'true',
+  'and his voice note shows as deleted');
 select throws_ok($$select public.send_dm(gen_random_uuid(), pg_temp.id('a001'), 'Hello?')$$, '42501', null,
   'and nobody writes to a purged account');
 select pg_temp.as_user('e5');

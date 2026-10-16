@@ -1388,6 +1388,13 @@ begin
                and o.name collate "C" < p_id::text || '0') then
     return false;
   end if;
+  -- Their files went first (their folder): their file rows go too, and a
+  -- message of theirs with no words left shows as "Message deleted"; their
+  -- words stay for the other person (review 42 R1).
+  update public.dm_messages set deleted_at = now()
+  where author_id = p_id and deleted_at is null and body is null;
+  delete from public.dm_attachments a using public.dm_messages m
+  where a.message_id = m.id and m.author_id = p_id;
   delete from auth.users where id = p_id;
   -- A thread whose two people are both gone goes too.
   delete from public.dm_threads where a_id is null and b_id is null;

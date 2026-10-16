@@ -547,9 +547,9 @@ Rules from review 33 A5, founder decision F10 and review 41 (`space-scenarios.md
 
 **Push:** `dm_request` once per new person (none within 30 days of a decline), never with text; `dm_message` in an open thread like Space chat, at most one per thread every 5 minutes, with the text only if the person turned on "Show message text" (S3). Not when muted, declined, across a block or to a hidden account. No Activity rows. A push opens `/messages/<thread>`. The push function needs these texts deployed before the migration goes live.
 
-**Reports:** `report('dm_message', id)` by the person it was sent to hides it for them at once; `decide_report` removes it and keeps its words for an appeal, like a Space message (`content_removals` and `removed_content`); `decide_appeal` can bring it back. Moderation (`ops/moderation.sql`) sees only that message, never the thread.
+**Reports:** `report('dm_message', id)` by the person it was sent to hides it for them at once; `decide_report` removes it and keeps its words for an appeal, like a Space message (`content_removals` and `removed_content`); `decide_appeal` can bring it back. Moderation (`ops/moderation.sql`) sees only that message and its files (the paths in `dm-files`), never the thread.
 
-**Account:** `export_my_data` has the messages the person sent (never those they received) and their threads; `accounts_due_for_purge` and `purge_account` include `dm-files`; `orphan_dm_files(age)` claims files no live message uses for the cleanup job (scheduled with the other cleanups, with the founder's yes), keeping a removed message's files while its removal can be appealed (14 days).
+**Account:** `export_my_data` has the messages the person sent (never those they received) and their threads; `accounts_due_for_purge` and `purge_account` include `dm-files`, and the purge then removes the person's file rows, so a message of theirs with no words left shows as "Message deleted" while their words stay for the other person (review 42); `orphan_dm_files(age)` claims files no live message uses for the cleanup job (scheduled with the other cleanups, with the founder's yes), keeping a removed message's files while its removal can be appealed (14 days).
 
 **Live, each with its own yes:** deploy the push function with the direct message texts, then push migration 22.
 
