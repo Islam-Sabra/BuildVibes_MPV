@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(110);
+select plan(146);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000020' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -222,6 +222,41 @@ select public.sign_done(pg_temp.item('a001'), 'Poured.');
 select pg_temp.as_user('e3');
 select throws_ok($$select public.save_blocks(pg_temp.item('a001'), '[]', 3)$$, 'P0001', null,
   'no page saves after Done');
+select throws_ok($$select public.save_blocks(pg_temp.item('a002'), '[{"type": "text", "text": "x"}]', 0)$$,
+  '22023', null, 'a block without its id is refused');
+select throws_ok($$select public.save_blocks(pg_temp.item('a002'), jsonb_build_array(jsonb_build_object(
+                    'id', upper(gen_random_uuid()::text), 'type', 'text', 'text', 'x')), 0)$$,
+  '22023', null, 'ids are lower-case uuids');
+select pg_temp.as_user('e1');
+select public.create_work_item(pg_temp.sp(), 'Everyone parent', pg_temp.uid('e2'), p_id => pg_temp.item('a005'));
+select public.create_work_item(pg_temp.sp(), 'Team child', pg_temp.uid('e6'), null, pg_temp.team(),
+  p_id => pg_temp.item('a006'), p_parent => pg_temp.item('a005'));
+select throws_ok($$select public.save_blocks(pg_temp.item('a005'), jsonb_build_array(pg_temp.b('e301', 'child_item',
+                    jsonb_build_object('post_id', pg_temp.item('a006')))), 0)$$, '22023', null,
+  'an Everyone page can''t show a Team''s work item (its readers would see its id)');
+select public.create_work_item(pg_temp.sp(), 'Sent back slab', pg_temp.uid('e2'), p_id => pg_temp.item('a00a'));
+select pg_temp.as_user('e2');
+select public.sign_done(pg_temp.item('a00a'), 'Done.');
+select pg_temp.as_user('e1');
+select public.send_back(pg_temp.item('a00a'), 'not_finished');
+select is(public.save_blocks(pg_temp.item('a00a'), jsonb_build_array(pg_temp.b('e302', 'text', '{"text": "Redo"}')), 0),
+  1, 'after Send back the author saves the page again');
+reset role;
+update public.space_members set pass = 'viewer' where space_id = pg_temp.sp() and profile_id = pg_temp.uid('e1');
+select pg_temp.as_user('e3');
+set local role authenticated;
+select public.create_space_post(pg_temp.item('a00b'), pg_temp.sp(), 'announcement', 'Sara''s note');
+reset role;
+update public.space_members set pass = 'viewer' where space_id = pg_temp.sp() and profile_id = pg_temp.uid('e3');
+select pg_temp.as_user('e3');
+set local role authenticated;
+select throws_ok($$select public.save_blocks(pg_temp.item('a00b'), '[]', 0)$$, '42501', null,
+  'an author lowered to Viewer can''t save the page');
+reset role;
+update public.space_members set pass = 'lead' where space_id = pg_temp.sp()
+  and profile_id in (pg_temp.uid('e1'), pg_temp.uid('e3'));
+select pg_temp.as_user('e3');
+set local role authenticated;
 
 -- Walk mode ----------------------------------------------------------------------------------------
 
@@ -258,6 +293,26 @@ select is((select count(*) from public.space_posts where parent_id = pg_temp.ite
   'still three');
 select is((select count(*) from public.needs_you() where work_item_id = pg_temp.item('6100')), 0::bigint,
   'the walk itself isn''t in its author''s Needs you');
+select throws_ok($$select public.sign_done(pg_temp.item('6100'), 'All done')$$, 'P0001', null,
+  'a walk isn''t signed as done: it is done when its work items are checked');
+select pg_temp.as_user('e1');
+select is((select count(*) from public.needs_you() where work_item_id = pg_temp.item('6100')), 0::bigint,
+  'and nobody is asked to check it');
+select pg_temp.as_user('e2');
+select public.sign_done(pg_temp.item('6101'), 'Fixed.');
+select public.sign_done(pg_temp.item('6102'), 'Fixed.');
+select pg_temp.as_user('e7');
+select public.sign_done(pg_temp.item('6103'), 'Fixed.');
+select pg_temp.as_user('e3');
+select public.check_item(pg_temp.item('6101'));
+select public.check_item(pg_temp.item('6102'));
+select public.check_item(pg_temp.item('6103'));
+select is((select d.post -> 'children' ->> 'checked' from public.daybook_page(pg_temp.sp()) d
+           where d.id = pg_temp.item('6100')), '3', 'its progress is its work items''');
+select is((select status from public.work_items where id = pg_temp.item('6100')), 'open',
+  'it takes no stamp of its own');
+select is((select count(*) from public.my_delivered_work() w where w.work_item_id = pg_temp.item('6100')),
+  0::bigint, 'and never counts as proof on a profile');
 select throws_ok($$select public.create_walk(pg_temp.sp(), pg_temp.item('6110'), 'Bad walk',
                     pg_temp.walk(array['6111', '6112'], array['e2', 'e4']))$$, '22023', null,
   'a photo for a Viewer refuses the whole walk');
@@ -282,6 +337,32 @@ select throws_ok($$select public.create_walk(pg_temp.sp(), pg_temp.item('6100'),
 select pg_temp.as_user('e4');
 select throws_ok($$select public.create_walk(pg_temp.sp(), pg_temp.item('6130'), 'Viewer',
                     pg_temp.walk(array['6131'], array['e2']))$$, '42501', null, 'a Viewer doesn''t walk');
+reset role;
+select pg_temp.upload('e6', pg_temp.post_path('6141', '1.jpg'));
+select pg_temp.as_user('e6');
+set local role authenticated;
+select public.create_walk(pg_temp.sp(), pg_temp.item('6140'), 'MEP walk', pg_temp.walk(array['6141'], array['e2']),
+  null, pg_temp.team());
+reset role;
+select is((select data ->> 'work_item_id' from public.push_queue where kind = 'item_assigned'
+           and profile_id = pg_temp.uid('e2') and data ->> 'work_item_id' in (
+             pg_temp.item('6140')::text, pg_temp.item('6141')::text)), pg_temp.item('6141')::text,
+  'an owner outside a Team walk gets one push, to the work item they can open');
+select pg_temp.as_user('e3');
+set local role authenticated;
+select throws_ok(format($$select public.create_walk(pg_temp.sp(), pg_temp.item('6150'), 'Case',
+                    jsonb_build_array(jsonb_build_object('id', %L, 'line', 'Same as the walk', 'owner', pg_temp.uid('e2'),
+                      'photo', jsonb_build_object('path', pg_temp.post_path('6151', '1.jpg')))))$$,
+                    upper(pg_temp.item('6150')::text)), '22023', null,
+  'an item with the walk''s own id, in capitals, is refused');
+select public.create_work_item(pg_temp.sp(), 'Signed early', pg_temp.uid('e3'), p_id => pg_temp.item('a007'));
+select public.sign_done(pg_temp.item('a007'), 'Done early.');
+select public.create_work_item(pg_temp.sp(), 'Added later', pg_temp.uid('e2'), p_id => pg_temp.item('a008'),
+  p_parent => pg_temp.item('a007'));
+select pg_temp.as_user('e1');
+select throws_ok($$select public.check_item(pg_temp.item('a007'))$$, '42501', null,
+  'a target signed before work went under it is never checked (no proof)');
+select pg_temp.as_user('e4');
 
 -- Meeting notes --------------------------------------------------------------------------------------
 
@@ -314,6 +395,19 @@ select throws_ok($$select public.create_from_message(pg_temp.sp(), pg_temp.item(
                     'Reported', jsonb_build_array(jsonb_build_object('id', pg_temp.item('9121'),
                       'text', 'x y', 'owner', pg_temp.uid('e2'))))$$, '42501', null,
   'nor from one the caller reported');
+select pg_temp.as_user('e2');
+select public.post_message(pg_temp.item('c205'), pg_temp.everyone(), 'Coordination 10:00');
+select throws_ok($$select public.create_from_message(pg_temp.sp(), pg_temp.item('c205'), pg_temp.item('9130'),
+                    'Coordination', jsonb_build_array(
+                      jsonb_build_object('id', pg_temp.item('9131'), 'text', 'Gate', 'owner', pg_temp.uid('e2')),
+                      jsonb_build_object('id', pg_temp.item('9132'), 'text', 'Fence', 'owner', pg_temp.uid('e4'))))$$,
+  '22023', null, 'a line for a Viewer refuses the whole meeting');
+reset role;
+select is((select count(*) from public.space_posts
+           where id in (pg_temp.item('9130'), pg_temp.item('9131'), pg_temp.item('9132'))), 0::bigint,
+  'and nothing of it is made');
+select pg_temp.as_user('e3');
+set local role authenticated;
 
 -- Templates ----------------------------------------------------------------------------------------
 
@@ -348,6 +442,30 @@ select is((select count(*) from public.space_templates(current_setting('test.spa
 select pg_temp.as_user('e2');
 select is((select count(*) from public.post_templates where id = pg_temp.item('7003')), 0::bigint,
   'a Team''s template stays in the Team');
+select is((select count(*) from public.space_templates(pg_temp.sp()) where id = pg_temp.item('7003')), 0::bigint,
+  'also through space_templates');
+select pg_temp.as_user('e3');
+select throws_ok($$select public.save_template(pg_temp.item('7202'), pg_temp.sp(), pg_temp.item('9100'), 'x')$$,
+  '42501', null, 'a Lead outside the Team can''t save its post as a template');
+select pg_temp.as_user('e5');
+select is((select count(*) from public.post_templates where id in (pg_temp.item('7001'), pg_temp.item('7003'))),
+  0::bigint, 'a non-member reads none of the Space''s templates');
+select is((select count(*) from public.space_templates(pg_temp.sp())), 0::bigint, 'nor lists them');
+select throws_ok($$select public.delete_template(pg_temp.item('7001'))$$, '42501', null, 'nor deletes one');
+select throws_ok($$select public.save_template(pg_temp.item('7203'), pg_temp.sp(), pg_temp.item('a001'), 'x')$$,
+  '42501', null, 'nor saves one');
+select throws_ok($$delete from public.post_templates where id = pg_temp.item('7001')$$, '42501', null,
+  'nor writes the table');
+select pg_temp.as_user('e1');
+select public.create_space_post(pg_temp.item('8101'), current_setting('test.space2')::uuid, 'report', 'Other report');
+select public.save_template(pg_temp.item('7101'), current_setting('test.space2')::uuid, pg_temp.item('8101'), 'Other');
+select throws_ok($$select public.create_space_post(pg_temp.item('8102'), pg_temp.sp(), 'report', 'x',
+                    p_template => pg_temp.item('7101'))$$, '42501', null,
+  'a template of another Space can''t be used here');
+select throws_ok($$select public.create_work_item(pg_temp.sp(), 'Everyone from Team', pg_temp.uid('e2'),
+                    p_id => pg_temp.item('8103'), p_template => pg_temp.item('7003'))$$, '22023', null,
+  'a Team''s template only for that Team''s posts');
+select pg_temp.as_user('e2');
 select throws_ok($$select public.delete_template(pg_temp.item('7001'))$$, '42501', null,
   'Crew can''t delete a template');
 select pg_temp.as_user('e1');
@@ -358,6 +476,18 @@ select lives_ok($$select public.delete_template(pg_temp.item('7001'))$$, 'a Lead
 select pg_temp.as_user('e2');
 select is((select count(*) from public.post_templates where id = pg_temp.item('7001')), 0::bigint,
   'and it is gone');
+select pg_temp.as_user('e3');
+select public.save_template(pg_temp.item('7004'), pg_temp.sp(), pg_temp.item('a002'), 'Slab check');
+select pg_temp.as_user('e2');
+select lives_ok($$select public.create_work_item(pg_temp.sp(), 'Slab check, B2', pg_temp.uid('e7'),
+                    p_id => pg_temp.item('a00c'), p_template => pg_temp.item('7004'),
+                    p_points => jsonb_build_array(jsonb_build_object('text', 'Cover blocks')),
+                    p_blocks => jsonb_build_array(pg_temp.b('e303', 'text', '{"text": "As the template"}')))$$,
+  'a work item is raised from a work item template, with its points and page');
+select is((select template_id::text || ' ' || jsonb_array_length(blocks) from public.space_posts
+           where id = pg_temp.item('a00c')), pg_temp.item('7004')::text || ' 1', 'recording the template');
+select is((select count(*) from public.checklist_points where post_id = pg_temp.item('a00c')), 1::bigint,
+  'and its points');
 
 -- The daily report ------------------------------------------------------------------------------------
 
@@ -384,10 +514,12 @@ update public.work_items set checked_at = now() - interval '1 day' where id = pg
 select pg_temp.as_user('e2');
 set local role authenticated;
 select is((select array_agg(f.post_id) from public.daily_report_fill(pg_temp.sp(), null,
-             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day') f),
+             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day') f
+           where f.post_id in (pg_temp.item('d101'), pg_temp.item('d102'), pg_temp.item('d103'))),
   array[pg_temp.item('d101')], 'today''s checked work for the report');
 select is((select f.done_photo_path from public.daily_report_fill(pg_temp.sp(), null,
-             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day') f),
+             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day') f
+           where f.post_id = pg_temp.item('d101')),
   pg_temp.ev_path('d101', 'done.jpg'), 'with its Done photo');
 select pg_temp.as_user('e1');
 select is((select count(*) from public.daily_report_fill(pg_temp.sp(), null,
@@ -395,8 +527,19 @@ select is((select count(*) from public.daily_report_fill(pg_temp.sp(), null,
            where f.post_id = pg_temp.item('d102')), 0::bigint,
   'an Everyone report never brings in a Team''s work, even for an admin');
 select is((select count(*) from public.daily_report_fill(pg_temp.sp(), pg_temp.team(),
-             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day') f), 2::bigint,
+             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day') f
+           where f.post_id in (pg_temp.item('d101'), pg_temp.item('d102'), pg_temp.item('d103'))), 2::bigint,
   'a Team report does');
+select pg_temp.as_user('e2');
+select is((select count(*) from public.daily_report_fill(pg_temp.sp(), pg_temp.team(),
+             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day') f
+           where f.post_id = pg_temp.item('d102')), 0::bigint,
+  'naming a Team doesn''t show its work to someone outside it');
+select pg_temp.as_user('e5');
+select is((select count(*) from public.daily_report_fill(pg_temp.sp(), null,
+             date_trunc('day', now()), date_trunc('day', now()) + interval '1 day')), 0::bigint,
+  'a non-member gets nothing');
+select pg_temp.as_user('e1');
 select throws_ok($$select * from public.daily_report_fill(pg_temp.sp(), null, now(), now() + interval '2 days')$$,
   '22023', null, 'one day at a time');
 select pg_temp.as_user('e2');
@@ -419,6 +562,19 @@ select throws_ok($$select public.create_space_post(pg_temp.item('8003'), pg_temp
 select pg_temp.as_user('e7');
 select ok(public.post_page(pg_temp.item('8001')) -> 'refs' ? pg_temp.item('d101')::text,
   'readers see the work it shows, as they may read it');
+select pg_temp.as_user('e1');
+select public.create_work_item(pg_temp.sp(), 'Soon gone', pg_temp.uid('e1'), p_id => pg_temp.item('a009'));
+select pg_temp.as_user('e2');
+select public.create_space_post(pg_temp.item('8005'), pg_temp.sp(), 'report', 'Friday report',
+  p_blocks => jsonb_build_array(pg_temp.b('e304', 'item_ref', jsonb_build_object('post_id', pg_temp.item('a009')))));
+select pg_temp.as_user('e1');
+select public.delete_space_post(pg_temp.item('a009'));
+select pg_temp.as_user('e2');
+select is(public.save_blocks(pg_temp.item('8005'), jsonb_build_array(
+            pg_temp.b('e304', 'item_ref', jsonb_build_object('post_id', pg_temp.item('a009'))),
+            pg_temp.b('e305', 'text', '{"text": "Typo fixed"}')), 0), 1,
+  'a report still saves after a work item it shows was deleted');
+select is(public.post_page(pg_temp.item('8005')) -> 'refs', null, 'and readers no longer see it');
 select pg_temp.as_user('e4');
 select throws_ok($$select public.create_space_post(pg_temp.item('8004'), pg_temp.sp(), 'report', 'Viewer')$$,
   '42501', null, 'a Viewer doesn''t post a report');
@@ -432,6 +588,8 @@ select public.create_work_item(pg_temp.sp(), 'Team late one', pg_temp.uid('e6'),
   pg_temp.team(), p_id => pg_temp.item('6202'));
 select public.create_space_post(pg_temp.item('6203'), pg_temp.sp(), 'activity', 'Next week walk',
   p_starts_at => date_trunc('day', now()) + interval '5 days 9 hours');
+select public.create_space_post(pg_temp.item('6204'), pg_temp.sp(), 'activity', 'In an hour',
+  p_starts_at => now() + interval '1 hour');
 select pg_temp.as_user('e2');
 create function pg_temp.week() returns jsonb language sql as $$
   select public.week_report(pg_temp.sp(), current_date, date_trunc('day', now()) - interval '3 days',
@@ -448,16 +606,25 @@ select ok(pg_temp.week() -> 'needs_decision' @> jsonb_build_array(jsonb_build_ob
 select ok(pg_temp.week() -> 'checked' @> jsonb_build_array(jsonb_build_object(
             'post_id', pg_temp.item('d101'), 'done_photo_path', pg_temp.ev_path('d101', 'done.jpg'))),
   'what was checked, with its photo');
-select ok(pg_temp.week() -> 'targets' @> jsonb_build_array(jsonb_build_object(
-            'post_id', pg_temp.item('6100'), 'children', jsonb_build_object('total', 3, 'checked', 0))),
-  'a target with its progress');
+select ok(not (pg_temp.week() -> 'targets' @> jsonb_build_array(jsonb_build_object(
+            'post_id', pg_temp.item('6100')))),
+  'a target whose work items are all checked leaves the targets');
+select ok(not (pg_temp.week() -> 'needs_decision' @> jsonb_build_array(jsonb_build_object(
+            'post_id', pg_temp.item('6100')))),
+  'and a target never needs a decision');
 select ok(pg_temp.week() -> 'coming_up' @> jsonb_build_array(jsonb_build_object(
             'post_id', pg_temp.item('6203'))), 'and what is coming up');
-select ok(not (pg_temp.week()::text like '%' || pg_temp.item('6202') || '%'),
-  'nothing of a Team the reader isn''t in');
+select ok(pg_temp.week() -> 'coming_up' @> jsonb_build_array(jsonb_build_object(
+            'post_id', pg_temp.item('6204'))), 'an activity later this week is coming up too');
+select ok(not (pg_temp.week()::text ~ (pg_temp.item('6202')::text || '|' || pg_temp.item('d102')::text
+                                          || '|' || pg_temp.item('9100')::text)),
+  'nothing of a Team the reader isn''t in: late, checked or target');
 select ok(not (pg_temp.week()::text ~ '"(count|counts|score|per_person)"'), 'and no per-person totals');
 select pg_temp.as_user('e1');
 select ok(pg_temp.week()::text like '%' || pg_temp.item('6202') || '%', 'an admin sees the Team''s work');
+select ok(pg_temp.week() -> 'targets' @> jsonb_build_array(jsonb_build_object(
+            'post_id', pg_temp.item('9100'), 'children', jsonb_build_object('total', 2, 'checked', 0))),
+  'a target still open shows its progress');
 select throws_ok($$select public.week_report(pg_temp.sp(), current_date, now(), now() + interval '8 days')$$,
   '22023', null, 'a week at a time');
 select pg_temp.as_user('e5');
@@ -501,14 +668,23 @@ select pg_temp.as_user('e6');
 select public.create_space_post(pg_temp.item('4002'), pg_temp.sp(), 'announcement', 'Zebra MEP',
   p_team => pg_temp.team());
 select public.post_message(pg_temp.item('c302'), pg_temp.team_thread(), 'Zebra tray');
+select public.create_space_post(pg_temp.item('4901'), pg_temp.sp(), 'checklist', 'MEP list',
+  p_team => pg_temp.team(), p_people => array[pg_temp.uid('e6')],
+  p_points => jsonb_build_array(jsonb_build_object('id', pg_temp.item('b901'), 'text', 'Zebra point MEP')));
+select public.create_space_post(pg_temp.item('4902'), pg_temp.sp(), 'announcement', 'Pour',
+  p_body => E'Pour\nslab B2 tomorrow');
 select pg_temp.as_user('e2');
 select ok(pg_temp.hits('zebra') @> array[pg_temp.item('4001'), pg_temp.item('b301'), pg_temp.item('c301'),
                                          pg_temp.item('f001')],
   'search finds posts, points, chat and files, any case');
-select ok(not (pg_temp.hits('zebra') && array[pg_temp.item('4002'), pg_temp.item('c302'), pg_temp.item('f002')]),
+select ok(not (pg_temp.hits('zebra') && array[pg_temp.item('4002'), pg_temp.item('c302'), pg_temp.item('f002'),
+                                         pg_temp.item('b901')]),
   'never a Team''s post, chat or file for someone outside the Team');
 select ok(not (pg_temp.hits('zebra') && array[pg_temp.item('c303')]), 'nor a deleted message');
 select ok(pg_temp.hits('quokkas') @> array[pg_temp.item('a001')], 'words in a page''s table are found');
+select ok(pg_temp.hits('pour slab') @> array[pg_temp.item('4902')], 'across a line break');
+select ok(public.search_snippet(repeat('بَِ', 150) || ' target here', 'target') like '%target%',
+  'the snippet holds the match, harakat or not');
 select ok(pg_temp.hits('الاعمده') @> array[pg_temp.item('4004')], 'Arabic letter forms fold (الأعمدة)');
 select ok(pg_temp.hits('مسؤوليه') @> array[pg_temp.item('4004')], 'and hamza and ta marbuta (مسئولية)');
 select is(cardinality(pg_temp.hits('z')), 0, 'one letter finds nothing');

@@ -21,13 +21,14 @@
 -- - search_space: posts and their pages, checklist points, chat and
 --   Library file names, as each person may read them, newest first.
 --
--- Choices for the lead to confirm (review 39):
+-- Choices confirmed in review 39:
 -- - The Daily report's headings follow the prototype (R2): On site, Done
 --   today, Problems, not A3's Done today, Tomorrow, Notes. The built-in
 --   stores keys; the app gives the words in each language.
 -- - The parent of a walk or of meeting notes is a work item owned by the
---   person who posts it. While it has work items under it, it isn't in
---   their Needs you (it is a target, done when its items are checked).
+--   person who posts it: a target (is_target). While it has work items
+--   under it, nobody is asked to sign or check it, it can't be signed as
+--   done, and so it never counts as proof; its progress is theirs.
 -- - Photo and file blocks point at the post's own files (post_files), so
 --   the 10-file limit holds for a page.
 -- - A template keeps the Team of the post it came from, and only that Team
@@ -41,8 +42,10 @@
 -- ---------------------------------------------------------------------------
 
 -- Lower case, NFKC, without tatweel, harakat or direction marks, Arabic
--- letter forms and digits folded. Stored columns use it, so a change here
--- needs "update t set col = col" on each table.
+-- letter forms and digits folded, any run of spaces or line breaks as one
+-- space. The stored columns and what is typed both go through it, so a
+-- change here needs every row touched (for example "update t set body =
+-- body").
 create or replace function public.search_fold(p text)
 returns text
 language sql
@@ -50,11 +53,11 @@ immutable
 parallel safe
 set search_path = ''
 as $$
-  select translate(
+  select regexp_replace(translate(
     regexp_replace(lower(normalize(coalesce(p, ''), nfkc)),
                    '[ـً-ٰٟۖ-ۭ​-‏]', '', 'g'),
     'أإآٱىیةؤئک٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹',
-    'ااااييهءءك01234567890123456789');
+    'ااااييهءءك01234567890123456789'), '\s+', ' ', 'g');
 $$;
 
 -- The words of a page: every "text" at any depth and every table cell.
@@ -72,17 +75,42 @@ as $$
   where jsonb_typeof(v) = 'string';
 $$;
 
--- About 160 characters of [p_text] around the first match of [p_q].
+-- About 160 characters of [p_text] around the first match of [p_q] (a
+-- folded query). The match is found in the folded text, then its place in
+-- the text as written (harakat and spaces dropped by folding move it).
 create or replace function public.search_snippet(p_text text, p_q text)
 returns text
-language sql
+language plpgsql
 immutable
 parallel safe
 set search_path = ''
 as $$
-  select case when p_text is null then null
-              else substring(p_text from greatest(1, strpos(public.search_fold(p_text), p_q) - 40)
-                             for 160) end;
+declare
+  v_at integer;
+  v_lo integer := 0;
+  v_hi integer;
+  v_mid integer;
+begin
+  if p_text is null then
+    return null;
+  end if;
+  v_at := strpos(public.search_fold(p_text), p_q) - 40;
+  if v_at <= 1 then
+    return left(p_text, 160);
+  end if;
+  -- The shortest start of the text whose folded length reaches v_at - 1.
+  v_hi := char_length(p_text);
+  while v_lo < v_hi loop
+    v_mid := (v_lo + v_hi) / 2;
+    if char_length(public.search_fold(left(p_text, v_mid))) >= v_at - 1 then
+      v_hi := v_mid;
+    else
+      v_lo := v_mid + 1;
+    end if;
+  end loop;
+  return substring(p_text from v_lo + 1
+                   for 160 + (char_length(p_text) - char_length(public.search_fold(p_text))));
+end;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -257,8 +285,8 @@ begin
     if v_count > 200 then
       raise exception 'at most 200 blocks' using errcode = '22023';
     end if;
-    if jsonb_typeof(v_block) <> 'object' or jsonb_typeof(v_block -> 'id') <> 'string'
-       or (v_block ->> 'id') !~ '^[0-9a-fA-F-]{36}$' then
+    if jsonb_typeof(v_block) <> 'object' or jsonb_typeof(v_block -> 'id') is distinct from 'string'
+       or (v_block ->> 'id') !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
       raise exception 'each block has its id' using errcode = '22023';
     end if;
     if (v_block ->> 'id') = any (v_ids) then
@@ -361,11 +389,19 @@ begin
         v_points := v_points || (v_point #>> '{}');
       end loop;
     elsif v_type = 'child_item' then
-      if v_kind <> 'work_item' or p_post.parent_id is not null
-         or not exists (select 1 from public.space_posts c
-                        where c.id::text = v_block ->> 'post_id' and c.parent_id = p_post.id
-                          and c.kind = 'work_item' and c.deleted_at is null) then
+      if v_kind <> 'work_item' or p_post.parent_id is not null then
         raise exception 'a work item under this one' using errcode = '22023';
+      end if;
+      -- Already on the saved page: kept, so a page never stops saving
+      -- because a work item it shows went (readers' views filter it).
+      if not (v_block -> 'post_id') <@ coalesce((select jsonb_agg(r) from jsonb_path_query(p_post.blocks,
+                'strict $.** ? (@.type == "child_item").post_id') r), '[]'::jsonb)
+         and not exists (select 1 from public.space_posts c
+                         where c.id::text = v_block ->> 'post_id' and c.parent_id = p_post.id
+                           and c.kind = 'work_item' and c.deleted_at is null
+                           and (c.team_id is null or c.team_id is not distinct from p_post.team_id)
+                           and public.can_see_space_post(c.id)) then
+        raise exception 'a work item under this one, for the same readers' using errcode = '22023';
       end if;
     elsif v_type = 'item_ref' then
       begin
@@ -373,12 +409,15 @@ begin
       exception when invalid_text_representation then
         v_ref := null;
       end;
-      if v_kind <> 'report' or v_ref is null or not exists (
+      if v_kind <> 'report' or v_ref is null
+         or (not (v_block -> 'post_id') <@ coalesce((select jsonb_agg(r) from jsonb_path_query(p_post.blocks,
+                   'strict $.** ? (@.type == "item_ref").post_id') r), '[]'::jsonb)
+             and not exists (
            select 1 from public.space_posts c
            where c.id = v_ref and c.space_id = p_post.space_id and c.kind = 'work_item'
              and c.deleted_at is null
              and (c.team_id is null or c.team_id is not distinct from p_post.team_id)
-             and public.can_see_space_post(c.id)) then
+             and public.can_see_space_post(c.id))) then
         raise exception 'a work item this report''s readers can see' using errcode = '22023';
       end if;
     end if;
@@ -586,8 +625,29 @@ $$;
 -- Walk mode and meeting notes: a parent and its work items in one call
 -- ---------------------------------------------------------------------------
 
+-- A target: a work item owned by its author with live work items under it
+-- (a walk, meeting notes). It is done when they are checked: nobody is
+-- asked to sign or check it, it can't be signed as done, and so it never
+-- counts as proof on a profile (review 39).
+create or replace function public.is_target(p_item uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.space_posts p
+    join public.work_items w on w.id = p.id
+    where p.id = p_item and p.author_id is not distinct from w.owner_id
+      and exists (select 1 from public.space_posts c
+                  where c.parent_id = p.id and c.deleted_at is null and c.status = 'live'));
+$$;
+
 -- One push per owner for a batch (a walk of 10 photos for Omar sends Omar
 -- one push, not 10). Each work item still has its Activity row.
+-- It opens the parent, or the owner's own work item when they can't see
+-- the parent (someone outside a Team walk's Team).
 create or replace function public.batch_pushes(p_parent uuid)
 returns void
 language sql
@@ -596,18 +656,20 @@ set search_path = ''
 as $$
   insert into public.push_queue (profile_id, kind, actor_id, data)
   select o.owner_id, 'item_assigned', auth.uid(),
-         jsonb_build_object('space_id', p.space_id, 'work_item_id', p.id)
+         jsonb_build_object('space_id', p.space_id, 'work_item_id',
+           case when public.can_see_space_post_as(p.id, o.owner_id) then p.id else o.child_id end)
   from public.space_posts p
   join lateral (
-    select distinct w.owner_id
+    select distinct on (w.owner_id) w.owner_id, c.id as child_id
     from public.space_posts c
     join public.work_items w on w.id = c.id
-    where c.parent_id = p.id and w.owner_id is distinct from auth.uid()) o on true
+    where c.parent_id = p.id and w.owner_id is distinct from auth.uid()
+    order by w.owner_id, c.created_at, c.id) o on true
   where p.id = p_parent
     and exists (select 1 from public.push_tokens t where t.profile_id = o.owner_id)
     and public.space_push_level(p.space_id, o.owner_id) in ('all', 'needs_you')
     and not public.blocked_between(o.owner_id, auth.uid())
-    and public.can_see_space_post_as(p.id, o.owner_id);
+    and public.can_see_space_post_as(o.child_id, o.owner_id);
 $$;
 
 -- Walk mode (R1, R1b): a parent work item [p_parent] titled [p_title], and
@@ -629,6 +691,8 @@ declare
   v_existing public.space_posts;
   v_item jsonb;
 begin
+  -- A retry running at the same time waits here, then returns the parent.
+  perform pg_advisory_xact_lock(hashtextextended('batch:' || coalesce(p_parent::text, ''), 0));
   select * into v_existing from public.space_posts where id = p_parent;
   if v_existing.id is not null then
     if v_existing.author_id = v_me and v_existing.space_id = p_space
@@ -648,15 +712,15 @@ begin
      or jsonb_array_length(p_items) not between 1 and 30 then
     raise exception 'a walk has 1 to 30 photos' using errcode = '22023';
   end if;
-  if (select count(distinct x ->> 'id') from jsonb_array_elements(p_items) x)
+  if (select count(distinct (x ->> 'id')::uuid) from jsonb_array_elements(p_items) x)
      <> jsonb_array_length(p_items)
      or exists (select 1 from jsonb_array_elements(p_items) x
                 where jsonb_typeof(x -> 'photo') is distinct from 'object'
-                   or (x ->> 'id') is null or (x ->> 'id') = p_parent::text) then
+                   or (x ->> 'id') is null or (x ->> 'id')::uuid = p_parent) then
     raise exception 'each photo has its own id and its photo' using errcode = '22023';
   end if;
   if exists (select 1 from jsonb_array_elements(p_items) x
-             join public.space_posts p on p.id::text = x ->> 'id') then
+             join public.space_posts p on p.id = (x ->> 'id')::uuid) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
 
@@ -697,6 +761,8 @@ declare
   v_msg public.messages;
   v_line jsonb;
 begin
+  -- A retry running at the same time waits here, then returns the parent.
+  perform pg_advisory_xact_lock(hashtextextended('batch:' || coalesce(p_parent::text, ''), 0));
   select * into v_existing from public.space_posts where id = p_parent;
   if v_existing.id is not null then
     if v_existing.author_id = v_me and v_existing.space_id = p_space
@@ -720,14 +786,14 @@ begin
      or jsonb_array_length(p_lines) not between 1 and 30 then
     raise exception 'meeting notes have 1 to 30 lines' using errcode = '22023';
   end if;
-  if (select count(distinct x ->> 'id') from jsonb_array_elements(p_lines) x)
+  if (select count(distinct (x ->> 'id')::uuid) from jsonb_array_elements(p_lines) x)
      <> jsonb_array_length(p_lines)
      or exists (select 1 from jsonb_array_elements(p_lines) x
-                where (x ->> 'id') is null or (x ->> 'id') = p_parent::text) then
+                where (x ->> 'id') is null or (x ->> 'id')::uuid = p_parent) then
     raise exception 'each line has its own id' using errcode = '22023';
   end if;
   if exists (select 1 from jsonb_array_elements(p_lines) x
-             join public.space_posts p on p.id::text = x ->> 'id') then
+             join public.space_posts p on p.id = (x ->> 'id')::uuid) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
 
@@ -806,9 +872,9 @@ $$;
 
 -- The week report (MR1) for [p_from] to [p_to] (the phone's week, at most
 -- 7 days and an hour; [p_today] the phone's day): what needs a decision
--- (late, sent back, waiting for a check), what was checked, targets (work
--- items with work items under them, and their progress), and what is
--- coming up in the next 7 days. Each person sees only what they may read.
+-- (late, sent back, waiting for a check; never a target), what was
+-- checked, targets (work items with work items under them still to check,
+-- and their progress), and what is coming up in the next 7 days from now. Each person sees only what they may read.
 -- Rows with names, never per-person totals (rule 3). At most 30 a section.
 create or replace function public.week_report(p_space uuid, p_today date, p_from timestamptz,
                                               p_to timestamptz)
@@ -848,6 +914,7 @@ begin
         where p.space_id = p_space and p.deleted_at is null and p.status = 'live'
           and (w.status = 'done'
                or (w.status = 'open' and (last.kind = 'sent_back' or p.due_date < p_today)))
+          and not public.is_target(p.id)
           and public.can_see_space_post(p.id)
         order by 2 desc, p.id
         limit 30) x), '[]'::jsonb),
@@ -879,7 +946,8 @@ begin
           join public.work_items cw on cw.id = c.id
           where c.parent_id = p.id and c.deleted_at is null and c.status = 'live'
             and public.can_see_space_post(c.id)
-          having count(*) > 0) ch on true
+          having count(*) > 0
+             and count(*) filter (where cw.status = 'checked') < count(*)) ch on true
         where p.space_id = p_space and p.deleted_at is null and p.status = 'live'
           and p.parent_id is null and w.status <> 'checked'
           and public.can_see_space_post(p.id)
@@ -892,7 +960,7 @@ begin
                  'starts_at', p.starts_at, 'ends_at', p.ends_at, 'place', p.place_text)) as row
         from public.space_posts p
         where p.space_id = p_space and p.kind = 'activity' and p.deleted_at is null
-          and p.status = 'live' and p.starts_at >= p_to and p.starts_at < p_to + interval '7 days'
+          and p.status = 'live' and p.starts_at >= now() and p.starts_at < now() + interval '7 days'
           and public.can_see_space_post(p.id)
         union all
         select p.id, p.due_date::timestamptz, jsonb_strip_nulls(jsonb_build_object(
@@ -1244,6 +1312,165 @@ begin
 exception
   when invalid_text_representation then
     raise exception 'a point id is not valid' using errcode = '22023';
+end;
+$function$;
+
+-- Raising a work item: also from a template, with its points and page (as in 20261015120000_daybook.sql, with those changes only).
+drop function public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid, uuid, jsonb, jsonb);
+CREATE FUNCTION public.create_work_item(p_space uuid, p_title text, p_owner uuid, p_due date DEFAULT NULL::date, p_team uuid DEFAULT NULL::uuid, p_place text DEFAULT NULL::text, p_evidence jsonb DEFAULT '[]'::jsonb, p_id uuid DEFAULT NULL::uuid, p_body text DEFAULT NULL::text, p_parent uuid DEFAULT NULL::uuid, p_source_message uuid DEFAULT NULL::uuid, p_quote jsonb DEFAULT NULL::jsonb, p_files jsonb DEFAULT '[]'::jsonb, p_template uuid DEFAULT NULL::uuid, p_blocks jsonb DEFAULT NULL::jsonb, p_points jsonb DEFAULT NULL::jsonb)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_me uuid := auth.uid();
+  v_id uuid := coalesce(p_id, gen_random_uuid());
+  v_post public.space_posts;
+  v_parent public.space_posts;
+  v_msg public.messages;
+  v_thread_team uuid;
+  v_team uuid := p_team;
+  v_item public.work_items;
+  v_number integer;
+  v_prefix text;
+  v_event uuid;
+  v_template public.post_templates;
+  v_point jsonb;
+  v_sort integer := 0;
+begin
+  -- The same id again (a retry): the same post, if it is the caller's.
+  select * into v_post from public.space_posts where id = v_id;
+  if v_post.id is not null then
+    if v_post.author_id = v_me and v_post.space_id = p_space and v_post.kind = 'work_item' then
+      return v_post.id;
+    end if;
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+
+  if not public.can(p_space, 'create_items') then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if public.folder_has_others_files(p_space, v_id)
+     or public.folder_has_others_files_in(p_space::text || '/posts/' || v_id::text || '/') then
+    raise exception 'this id is taken' using errcode = '42501';
+  end if;
+  if p_title is null or length(trim(p_title)) not between 2 and 140 then
+    raise exception 'a title of 2 to 140 characters' using errcode = '22023';
+  end if;
+  if length(p_body) > 5000 then
+    raise exception 'at most 5000 characters' using errcode = '22023';
+  end if;
+  if p_owner is null or not public.member_can(p_space, p_owner, 'mark_done') then
+    raise exception 'choose an owner who can sign it as done' using errcode = '22023';
+  end if;
+  if v_team is not null and not exists (
+       select 1 from public.teams t where t.id = v_team and t.space_id = p_space) then
+    raise exception 'team not in this Space' using errcode = '22023';
+  end if;
+  if p_quote is not null and not public.is_valid_post_quote(p_quote) then
+    raise exception 'a quote needs its text' using errcode = '22023';
+  end if;
+
+  -- Under one work item: a live, top-level work item the caller can see in
+  -- this Space. A child of a Team item stays in that Team.
+  if p_parent is not null then
+    -- For share: a Cancel or Delete of the parent running now finishes
+    -- first, and the checks below see its result.
+    select * into v_parent from public.space_posts where id = p_parent for share;
+    -- Only under your own work item, or one you act for (review 34 D1).
+    if v_parent.id is null or v_parent.space_id <> p_space or v_parent.kind <> 'work_item'
+       or not public.can_see_space_post(v_parent.id)
+       or not public.acts_for_author(v_parent) then
+      raise exception 'not allowed' using errcode = '42501';
+    end if;
+    if v_parent.status <> 'live' or v_parent.parent_id is not null then
+      raise exception 'work items go under one live work item, one level only' using errcode = '22023';
+    end if;
+    if v_parent.team_id is not null then
+      if v_team is null then
+        v_team := v_parent.team_id;
+      elsif v_team <> v_parent.team_id then
+        raise exception 'a work item under a Team item stays in that Team' using errcode = '22023';
+      end if;
+    end if;
+  end if;
+
+  -- From a chat message the caller can read; a Team thread's message stays
+  -- in that Team, so Team chat never becomes an Everyone post.
+  if p_source_message is not null then
+    select * into v_msg from public.messages where id = p_source_message;
+    if v_msg.id is null or v_msg.space_id <> p_space or v_msg.deleted_at is not null
+       or v_msg.kind = 'work_item' or not public.can_use_thread(v_msg.thread_id)
+       or public.reported_by_me('message', v_msg.id) then
+      raise exception 'not allowed' using errcode = '42501';
+    end if;
+    select t.team_id into v_thread_team from public.threads t where t.id = v_msg.thread_id;
+    if v_thread_team is not null then
+      if v_team is null then
+        v_team := v_thread_team;
+      elsif v_team <> v_thread_team then
+        raise exception 'a Team chat message stays in that Team' using errcode = '22023';
+      end if;
+    end if;
+  end if;
+
+  -- From a work item template (migration 20): one the caller may read in
+  -- this Space, for the same Team.
+  if p_template is not null then
+    select * into v_template from public.post_templates t where t.id = p_template;
+    if v_template.id is null or not public.can_read_template(v_template)
+       or (v_template.space_id is not null and v_template.space_id <> p_space) then
+      raise exception 'not allowed' using errcode = '42501';
+    end if;
+    if v_template.kind <> 'work_item'
+       or (v_template.team_id is not null and v_template.team_id is distinct from v_team) then
+      raise exception 'this template is for another kind of post or Team' using errcode = '22023';
+    end if;
+  end if;
+  if p_points is not null and (jsonb_typeof(p_points) <> 'array'
+                               or jsonb_array_length(p_points) > 50) then
+    raise exception 'at most 50 points' using errcode = '22023';
+  end if;
+
+  insert into public.space_posts (id, space_id, team_id, kind, author_id, title, body,
+                                  place_text, due_date, parent_id, source_message_id, quote,
+                                  template_id)
+  values (v_id, p_space, v_team, 'work_item', v_me, trim(p_title), nullif(trim(p_body), ''),
+          nullif(trim(p_place), ''), p_due, p_parent, p_source_message, p_quote, p_template)
+  returning * into v_post;
+
+  update public.spaces s
+  set next_item_number = s.next_item_number + 1
+  where s.id = p_space
+  returning s.next_item_number - 1, s.ref_prefix into v_number, v_prefix;
+
+  insert into public.work_items (id, space_id, number, ref, title, owner_id, created_by,
+                                 team_id, place_text, due_date)
+  values (v_id, p_space, v_number, v_prefix || '-' || lpad(v_number::text, 3, '0'),
+          trim(p_title), p_owner, v_me, v_team, nullif(trim(p_place), ''), p_due)
+  returning * into v_item;
+
+  insert into public.work_item_events (work_item_id, actor_id, kind)
+  values (v_id, v_me, 'raised')
+  returning id into v_event;
+  perform public.add_evidence(v_item, v_event, p_evidence);
+  perform public.add_post_files(v_post, p_files);
+  -- Its points and page (migration 20).
+  for v_point in select * from jsonb_array_elements(coalesce(p_points, '[]'::jsonb)) loop
+    if jsonb_typeof(v_point) <> 'object' then
+      raise exception 'a point must be an object' using errcode = '22023';
+    end if;
+    insert into public.checklist_points (id, post_id, sort, text)
+    values (coalesce(nullif(v_point ->> 'id', '')::uuid, gen_random_uuid()), v_id, v_sort,
+            public.point_text(v_point ->> 'text'));
+    v_sort := v_sort + 1;
+  end loop;
+  if p_blocks is not null then
+    perform public.validate_blocks(v_post, p_blocks);
+    update public.space_posts set blocks = p_blocks where id = v_id;
+  end if;
+  return v_id;
 end;
 $function$;
 
@@ -1797,7 +2024,7 @@ AS $function$
   )) end;
 $function$;
 
--- Needs you: a target isn't its author's to sign (as in 20261015120000_daybook.sql, with that change only).
+-- Needs you: nobody is asked to sign or check a target (as in 20261015120000_daybook.sql, with that change only).
 CREATE OR REPLACE FUNCTION public.item_needs_me(p_item work_items, p_post space_posts)
  RETURNS text
  LANGUAGE sql
@@ -1806,19 +2033,88 @@ CREATE OR REPLACE FUNCTION public.item_needs_me(p_item work_items, p_post space_
 AS $function$
   select case
     when p_post.status <> 'live' or p_post.deleted_at is not null then null
-    -- A target (work items under it, owned by its author) is done when they
-    -- are checked; it doesn't wait in its author's Needs you.
+    -- A target is done when its work items are checked: nobody is asked to
+    -- sign or check it (review 39).
+    when public.is_target(p_item.id) then null
     when p_item.status = 'open' and p_item.owner_id = auth.uid()
-         and public.member_can(p_item.space_id, auth.uid(), 'mark_done')
-         and not (p_post.author_id is not distinct from p_item.owner_id
-                  and exists (select 1 from public.space_posts c
-                              where c.parent_id = p_post.id and c.deleted_at is null
-                                and c.status = 'live')) then 'open_owned'
+         and public.member_can(p_item.space_id, auth.uid(), 'mark_done') then 'open_owned'
     when p_item.status = 'done' and public.may_check(p_item, auth.uid()) then 'to_check'
     when p_item.status = 'open'
          and not public.member_can(p_item.space_id, p_item.owner_id, 'mark_done')
          and public.acts_for_author(p_post) then 'owner_left'
   end;
+$function$;
+
+-- Checking: never a target (as in 20261015120000_daybook.sql, with that change only).
+CREATE OR REPLACE FUNCTION public.may_check(p_item work_items, p_profile uuid)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select p_profile is not null
+    and p_item.owner_id is distinct from p_profile
+    and not public.is_hidden_account(p_profile)
+    and public.is_active_member(p_item.space_id, p_profile)
+    and exists (
+      select 1 from public.space_posts p
+      join public.spaces s on s.id = p.space_id and s.deleted_at is null
+      where p.id = p_item.id and p.status = 'live' and p.deleted_at is null
+        -- Nobody checks a target, even one signed before work went under it.
+        and not public.is_target(p.id)
+        and ((p.author_id = p_profile
+              and not public.author_is_gone(p.space_id, p.author_id))
+             or ((public.author_is_gone(p.space_id, p.author_id)
+                  or p.author_id is not distinct from p_item.owner_id)
+                 and (exists (select 1 from public.space_members m
+                              where m.space_id = p.space_id and m.profile_id = p_profile
+                                and m.is_admin and m.left_at is null)
+                      or (exists (select 1 from public.space_members l
+                                  where l.space_id = p.space_id and l.profile_id = p_profile
+                                    and l.pass = 'lead' and l.left_at is null)
+                          and not exists (
+                            select 1 from public.space_members a
+                            where a.space_id = p.space_id and a.is_admin and a.left_at is null
+                              and a.profile_id is distinct from p_item.owner_id
+                              and not public.is_hidden_account(a.profile_id)))))));
+$function$;
+
+-- Sign as done: not a target, so a target never becomes proof (as in 20261015120000_daybook.sql, with that change only).
+CREATE OR REPLACE FUNCTION public.sign_done(p_item uuid, p_note text DEFAULT NULL::text, p_evidence jsonb DEFAULT '[]'::jsonb)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_me uuid := auth.uid();
+  v_item public.work_items;
+  v_event uuid;
+  v_photos integer;
+begin
+  select * into v_item from public.work_items where id = p_item for update;
+  if v_item.id is null or v_item.owner_id is distinct from v_me
+     or not public.member_can(v_item.space_id, v_me, 'mark_done') then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if not public.post_is_live(p_item) then
+    raise exception 'this work item was cancelled' using errcode = 'P0001';
+  end if;
+  if v_item.status <> 'open' then
+    raise exception 'only an open item can be signed as done' using errcode = 'P0001';
+  end if;
+  if public.is_target(p_item) then
+    raise exception 'it is done when the work items under it are checked' using errcode = 'P0001';
+  end if;
+  insert into public.work_item_events (work_item_id, actor_id, kind, note)
+  values (p_item, v_me, 'done', nullif(trim(p_note), ''))
+  returning id into v_event;
+  v_photos := public.add_evidence(v_item, v_event, p_evidence);
+  if v_photos = 0 and nullif(trim(p_note), '') is null then
+    raise exception 'add a photo or a note' using errcode = '22023';
+  end if;
+  update public.work_items set status = 'done', done_at = now() where id = p_item;
+end;
 $function$;
 
 -- Push: a batch's work items push once per owner (as in 20261015180000_post_kinds.sql, with that change only).
@@ -2006,6 +2302,7 @@ revoke execute on function
   public.delete_template(uuid),
   public.space_templates(uuid),
   public.batch_pushes(uuid),
+  public.is_target(uuid),
   public.create_walk(uuid, uuid, text, jsonb, text, uuid),
   public.create_from_message(uuid, uuid, uuid, text, jsonb),
   public.done_photo_path(uuid),
@@ -2013,6 +2310,8 @@ revoke execute on function
   public.week_report(uuid, date, timestamptz, timestamptz),
   public.share_week_report(uuid, uuid, date),
   public.search_space(uuid, text),
+  public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid, uuid, jsonb,
+                          jsonb, uuid, jsonb, jsonb),
   public.create_space_post(uuid, uuid, text, text, text, uuid, text, date, timestamptz,
                            timestamptz, timestamptz, uuid, uuid[], jsonb, uuid, jsonb, jsonb,
                            uuid, jsonb)
@@ -2023,6 +2322,7 @@ revoke execute on function
   public.validate_blocks(public.space_posts, jsonb),
   public.may_manage_templates(uuid),
   public.batch_pushes(uuid),
+  public.is_target(uuid),
   public.done_photo_path(uuid)
   from authenticated;
 -- The read rule calls it as the signed-in person.
@@ -2041,6 +2341,8 @@ grant execute on function
   public.week_report(uuid, date, timestamptz, timestamptz),
   public.share_week_report(uuid, uuid, date),
   public.search_space(uuid, text),
+  public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid, uuid, jsonb,
+                          jsonb, uuid, jsonb, jsonb),
   public.create_space_post(uuid, uuid, text, text, text, uuid, text, date, timestamptz,
                            timestamptz, timestamptz, uuid, uuid[], jsonb, uuid, jsonb, jsonb,
                            uuid, jsonb)
