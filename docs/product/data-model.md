@@ -555,6 +555,25 @@ Rules from review 33 A5, founder decision F10 and review 41 (`space-scenarios.md
 
 **Put in a Space and Save to my notebook** happen in the app: a work item with the message as its `quote` (§14), or `save_note` with its words (§16). The message stays private.
 
+## 19. Daybook extras (migration 23, `20261017120000_daybook_extras.sql`, branch `daybook-extras-db`, not live)
+Answers in review 44 (questions 2, 3, 5).
+
+**A due time.** `space_posts.due_at` (optional) sits next to `due_date` on work items and checklists. The phone sends both, its own date and its own time, so no time zone goes in SQL. `due_at_fits(day, at)` (a table check too) only lets a time that falls on that date somewhere on Earth (UTC−12 to UTC+14); a time needs a date.
+- `create_work_item(…, p_due_at)` and `create_space_post(…, p_due_at)` (checklists only) take it.
+- `edit_space_post`: `due` and `due_at` change together. A new date alone has no time (the same date sent again keeps it); a time alone keeps the date; clearing the date clears the time. The Edited line keeps its shape, `due: {from, to}`, with `from_at` and `to_at` when a time is involved; a time-only change has `from` equal to `to`, so the app reads `from_at`/`to_at` first.
+- **Late** (`is_late`): a timed item is late after its time; a date-only item is late from the day after its date (the phone's today), as before. In `week_report`, a timed item is late after its time, and is "coming up" until then, whatever the reader's today; every list with a due date carries `due_at`.
+- `my_calendar` puts a work item's or checklist's time in `starts_at`, as a to-do's. `space_post_json` and Download my data carry `due_at`.
+- `work_items.due_date` keeps the date only (it mirrors `space_posts.due_date`).
+
+**On site since.** `spaces.site_start_date` (optional) is set only by a Space admin with `set_site_start_date(space, day)`: not before 2000 and at most a year ahead; null clears it. Members read it with the Space. The daybook counts "day N" from it (that day is day 1); without it, the line shows only the date. It is never counted from the Space's creation date (rule 3).
+
+**The month drop-down.** `daybook_month(space, from_day, to_day, from, to)` covers at most 62 days. A non-member gets nothing.
+- `posts` rows: the quarter hours (`at`, rounded down to 15 minutes, distinct) with a post the caller can see, as the daybook page lists them. The phone groups them by its own days; every time zone is a whole number of quarter hours from UTC.
+- `due` rows: the days (`day`) with a live work item that isn't checked, or a live checklist with a point not ticked, the caller can see.
+- A dot per day, never a count. A Team's posts follow `can_see_space_post`.
+
+**Undo of a check** needs nothing on the server: the app holds the check for the undo bar's 5 seconds, then sends it (review 44, answer 4). The same applies to every action with an undo bar.
+
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
 - Search, the week and daily reports and templates never show a Team's posts to someone outside the Team.
