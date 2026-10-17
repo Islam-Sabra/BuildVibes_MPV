@@ -86,3 +86,11 @@ Not missing: **opening a post in place** (blocks, /, turn into, tables) is **sli
   - **Needs you:** only what you must act on;
   - **Your Spaces:** every Space once, with its latest news *that isn't already in Needs you*. With nothing else new, just the name and the time of its last activity.
   - Never counts.
+
+## F11. The daybook doesn't refresh when a push opens it
+- **What happened:** the founder tapped the push for Omar's sign-off and the Space opened, but the old page was still showing. Only after going back to Home and in again did the proof slip appear.
+- **Fix: the daybook is never stale.**
+  - Load the newest page when it's opened from a push, when the app comes back to the front, and when a push for this Space arrives while it's open.
+  - Pull down to refresh too.
+  - New entries slide in at Now, with no jump of the scroll position if the person is reading older days; a small "New ↓" chip takes them there.
+- Slice 10 still adds "open the exact slip". This fix is only about the page being current.
