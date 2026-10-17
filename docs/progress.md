@@ -557,6 +557,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Retired from 0.9.0: W3–W5, the work item card, the site tag and sign-off strip components and the item route; Activity, Needs you, Home, Library "used in", chat cards and pushes now open the Space's daybook.
   - Screenshots O1–O3, S1, Y1–Y2, B1–B3, X1–X3, E8; earlier ones regenerated.
   - Server gaps (left out): no "can delete" flag on the post JSON (so Delete isn't offered), Discuss in chat (a message can't quote a work item), voice note on a send back, a send-back as its own daybook entry, the push function's item routes (the app maps them to the Space).
+- **17 Oct, migration 24, send-backs on the daybook** (review 47; branch `sent-back-db`, **not live**): `daybook_page` returns `sent_back` entries; the owner's clip and Sign as done sit on the latest send-back (never also on the slip); the events index and month dots include send-backs. An independent review found no leak; its two clip findings (an owner who left, a reassign after a send-back) and test gaps are fixed. 1,648 SQL checks in 24 files (36 for migration 24). **Goes live only after an app build that draws send-back entries**, and the push must list only `20261017180000_sent_back.sql`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
