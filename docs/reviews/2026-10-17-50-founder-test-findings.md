@@ -122,3 +122,10 @@ Not missing: **opening a post in place** (blocks, /, turn into, tables) is **sli
 On the Arabic daybook, the time beside the spine shows "3:5" and "4 عصرًا", because the 12-hour time with its period ("3:58 عصرًا") doesn't fit the column.
 - **Fix:** the time column fits the longest time in the current language. Or, in the 12-hour clock, the period goes on a second, smaller line under the time.
 - Add a screenshot test with "11:58 مساءً".
+
+## F16. Updates by press, not swipe
+The founder expects to add an update with a **press**, not a swipe. A swipe is hidden: nothing on screen says it exists, and a foreman won't discover it (rule 2).
+- **Fix:**
+  - **Long-press** a slip: "Add update" is in the menu for everyone who may add one (owner, Lead, Crew), on every work item, sign-off and send-back slip, not only on your own.
+  - **Short press** a slip: it opens the slip (its full page comes in slice 5). Until then, a short press shows the same menu, so a tap is never a dead end.
+  - The swipe stays as a shortcut for those who find it, never the only way.
