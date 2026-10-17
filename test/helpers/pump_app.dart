@@ -7,6 +7,7 @@ import 'package:buildvibes/core/share.dart';
 import 'package:buildvibes/data/repositories/account_repository.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
+import 'package:buildvibes/core/push/push_state.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/safety_repository.dart';
@@ -171,6 +172,13 @@ Future<TestApp> pumpApp(
   FakeSafetyRepository? safety,
   FakeAccountRepository? account,
 
+  /// What this phone kept from before (an app opened again).
+  Map<String, Object> stored = const {},
+
+  /// The outbox's waits before it tries again by itself after a lost
+  /// signal.
+  List<Duration> retryLater = const [Duration(seconds: 30)],
+
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
@@ -186,7 +194,10 @@ Future<TestApp> pumpApp(
   tester.platformDispatcher.localesTestValue = const [Locale('en')];
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
-  SharedPreferences.setMockInitialValues({'app_language': ?language});
+  SharedPreferences.setMockInitialValues({
+    ...stored,
+    'app_language': ?language,
+  });
   final prefs = await SharedPreferences.getInstance();
 
   final fakeAuth =
@@ -301,6 +312,12 @@ Future<TestApp> pumpApp(
           Duration.zero,
           Duration.zero,
         ]),
+        // As the pages' old 30-second tries, unless a test sets its own.
+        outboxRetryLaterProvider.overrideWithValue(retryLater),
+        pushTokenRetryDelaysProvider.overrideWithValue(const [
+          Duration.zero,
+          Duration.zero,
+        ]),
         shareTextProvider.overrideWithValue((text) async => shared.add(text)),
         ...overrides,
       ],
@@ -337,3 +354,19 @@ Future<TestApp> pumpApp(
 
 TextDirection appDirection(WidgetTester tester) =>
     Directionality.of(tester.element(find.byType(Scaffold).first));
+
+/// The app goes to the background, then comes back to the front.
+Future<void> backToTheApp(WidgetTester tester) async {
+  for (final state in const [
+    AppLifecycleState.inactive,
+    AppLifecycleState.hidden,
+    AppLifecycleState.paused,
+    AppLifecycleState.hidden,
+    AppLifecycleState.inactive,
+    AppLifecycleState.resumed,
+  ]) {
+    tester.binding.handleAppLifecycleStateChanged(state);
+    await tester.pump();
+  }
+  await tester.pumpAndSettle();
+}

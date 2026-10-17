@@ -244,4 +244,12 @@ abstract final class BvIcons {
 
   /// calendar-blank: a due date.
   static const due = month;
+
+  /// bell-slash: notifications aren't reaching this phone (F9).
+  static const notificationsOff = IconData(0xe0d4, fontFamily: _family);
+
+  /// arrow-down and arrow-up: "New" entries below (the Daybook's Now) or
+  /// above (the Home feed's top). Up and down don't mirror.
+  static const newBelow = IconData(0xe03e, fontFamily: _family);
+  static const newAbove = IconData(0xe08e, fontFamily: _family);
 }

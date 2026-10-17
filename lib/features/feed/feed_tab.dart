@@ -9,6 +9,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import '../../core/push/push_state.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/post.dart';
 import '../../data/models/space.dart';
@@ -17,6 +18,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../../shared/widgets/bv_daybook_spine.dart';
+import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../work/daybook_words.dart';
@@ -47,15 +49,23 @@ class FeedTab extends ConsumerStatefulWidget {
 }
 
 class _FeedTabState extends ConsumerState<FeedTab> {
-  /// How often a post made with no signal is tried again while Home is
-  /// open.
-  static const _flushEvery = Duration(seconds: 30);
-
   final _scroll = ScrollController();
+  final _listKey = GlobalKey();
+
+  /// Each post's place on the page, to keep the one being read still when
+  /// new posts come in above it.
+  final _entryKeys = <String, GlobalKey>{};
   Timer? _skeletonTimer;
   var _skeletonDone = false;
   late final AppLifecycleListener _life;
-  late final Timer _flushTimer;
+
+  /// New posts came in at the top while the reader was further down
+  /// (F11): the "New" chip shows until they go to the top.
+  var _newAbove = false;
+
+  /// Whether Home was on screen at the last look ([TickerMode]): shown
+  /// again, it reads again.
+  bool? _shown;
 
   PostWritingMenu? _menu;
 
@@ -70,18 +80,40 @@ class _FeedTabState extends ConsumerState<FeedTab> {
       if (_scroll.position.extentAfter < BvSpace.s64 * 6) {
         unawaited(ref.read(feedProvider.notifier).loadMore());
       }
+      if (_newAbove && !_away) setState(() => _newAbove = false);
     });
     _skeletonTimer = Timer(BvPostSpec.skeletonFor, () {
       if (mounted) setState(() => _skeletonDone = true);
     });
-    _life = AppLifecycleListener(onResume: _flush);
-    _flushTimer = Timer.periodic(_flushEvery, (_) => _flush());
+    // The feed is never stale (F11, F18): it reads the newest posts when
+    // the app comes back to the front, when Home is shown again, and when
+    // a push arrives with Home open (build). A post made with no signal
+    // sends when it's back (the outbox also tries by itself).
+    _life = AppLifecycleListener(
+      onResume: () {
+        _flush();
+        _refresh();
+      },
+    );
+    // Kept from before (Feed shown again after Spaces): read again. A
+    // first load is already reading.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && ref.read(feedProvider).hasValue) _refresh();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Home shown again: back from another tab, or a page on top closed.
+    final shown = TickerMode.valuesOf(context).enabled;
+    if (_shown == false && shown) _refresh();
+    _shown = shown;
   }
 
   @override
   void dispose() {
     _skeletonTimer?.cancel();
-    _flushTimer.cancel();
     _life.dispose();
     _scroll.dispose();
     super.dispose();
@@ -90,6 +122,77 @@ class _FeedTabState extends ConsumerState<FeedTab> {
   void _flush() {
     if (mounted) unawaited(ref.read(postOutboxProvider.notifier).flushAll());
   }
+
+  void _refresh() {
+    if (mounted) unawaited(ref.read(feedProvider.notifier).refreshNewest());
+  }
+
+  /// The reader is further down, away from the newest posts.
+  bool get _away =>
+      _scroll.hasClients && _scroll.offset > BvNewChipSpec.awayFromNow;
+
+  /// The top of the post on top of the page, and which one it is.
+  (String, double)? _anchor(List<FeedEntry> entries) {
+    final list = _listKey.currentContext?.findRenderObject() as RenderBox?;
+    if (list == null || !list.hasSize) return null;
+    final top = list.localToGlobal(Offset.zero).dy;
+    for (final e in entries) {
+      final box =
+          _entryKeys[e.post.id]?.currentContext?.findRenderObject()
+              as RenderBox?;
+      if (box == null || !box.attached || !box.hasSize) continue;
+      final y = box.localToGlobal(Offset.zero).dy;
+      if (y + box.size.height > top) return (e.post.id, y);
+    }
+    return null;
+  }
+
+  /// New posts above while the reader is further down: the post being
+  /// read stays where it is, and the "New" chip shows.
+  void _arrivedAbove(FeedState? before, FeedState now) {
+    if (before == null || before.entries.isEmpty || !_away) return;
+    final known = {for (final e in before.entries) e.post.id};
+    final mine = {for (final p in ref.read(postOutboxProvider)) p.id};
+    // Older pages come in at the end: they aren't new.
+    final lastKnown = now.entries.lastIndexWhere(
+      (e) => known.contains(e.post.id),
+    );
+    final fresh = now.entries
+        .take(math.max(0, lastKnown))
+        .any((e) => !known.contains(e.post.id) && !mine.contains(e.post.id));
+    if (!fresh) return;
+    final anchor = _anchor(before.entries);
+    setState(() => _newAbove = true);
+    if (anchor == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final box =
+          _entryKeys[anchor.$1]?.currentContext?.findRenderObject()
+              as RenderBox?;
+      if (box == null || !box.attached || !box.hasSize) return;
+      final moved = box.localToGlobal(Offset.zero).dy - anchor.$2;
+      if (moved == 0) return;
+      final position = _scroll.position;
+      _scroll.jumpTo(
+        (position.pixels + moved).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        ),
+      );
+    });
+  }
+
+  void _toTop() {
+    setState(() => _newAbove = false);
+    if (_scroll.hasClients) {
+      unawaited(
+        _scroll.animateTo(0, duration: BvMotion.base, curve: BvMotion.standard),
+      );
+    }
+  }
+
+  GlobalKey _keyOf(String postId) =>
+      _entryKeys.putIfAbsent(postId, GlobalKey.new);
 
   PostWriting get _mode => ref.read(postWritingProvider);
   bool get _editing => _mode == PostWriting.editing;
@@ -176,6 +279,14 @@ class _FeedTabState extends ConsumerState<FeedTab> {
     final mode = ref.watch(postWritingProvider);
     final draft = ref.watch(postDraftProvider);
     final edit = ref.watch(postEditProvider);
+    // A push with Home open: read again (a Space's push is the daybook's).
+    ref.listen(pushArrivalProvider, (_, push) {
+      if (push != null && push.spaceId == null) _refresh();
+    });
+    ref.listen(feedProvider, (was, now) {
+      final value = now.value;
+      if (now.hasValue && value != null) _arrivedAbove(was?.value, value);
+    });
     final writing = mode != PostWriting.none;
     final editing = mode == PostWriting.editing;
     // The card at Now: open, or a Draft left with anything in it.
@@ -302,6 +413,9 @@ class _FeedTabState extends ConsumerState<FeedTab> {
                 child: PostCard.waiting(
                   post: _waitingPost(p, me, myName),
                   couldNotSend: p.refused,
+                  // Sent: no label, though the feed hasn't read it yet
+                  // (F17).
+                  sent: p.sent,
                   onOpen: p.refused ? () => unawaited(_reopen(p)) : null,
                 ),
               ),
@@ -310,6 +424,7 @@ class _FeedTabState extends ConsumerState<FeedTab> {
               if (i == firstBeyond && i > 0)
                 _Divider(label: l10n.feedBeyond(market ?? '')),
               BvSpineEntry(
+                key: _keyOf(entries[i].post.id),
                 home: true,
                 time: words.feedTime(entries[i].post.createdAt, now),
                 child: PostCard(
@@ -332,6 +447,9 @@ class _FeedTabState extends ConsumerState<FeedTab> {
       child: ListView(
         key: const Key('feed-list'),
         controller: _scroll,
+        // With its own controller a list doesn't pull when it's shorter
+        // than the page: pull to refresh must always work (F18).
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s16),
         children: children,
       ),
@@ -351,6 +469,7 @@ class _FeedTabState extends ConsumerState<FeedTab> {
               builder: (context, constraints) => Stack(
                 children: [
                   Positioned.fill(
+                    key: _listKey,
                     child: GestureDetector(
                       // While writing, a tap off the card puts it down.
                       behavior: HitTestBehavior.opaque,
@@ -358,6 +477,20 @@ class _FeedTabState extends ConsumerState<FeedTab> {
                       child: list,
                     ),
                   ),
+                  if (_newAbove && !writing)
+                    PositionedDirectional(
+                      start: 0,
+                      end: 0,
+                      top: BvNewChipSpec.offset,
+                      child: Center(
+                        child: BvNewChip(
+                          key: const Key('feed-new'),
+                          label: l10n.feedNew,
+                          below: false,
+                          onTap: _toTop,
+                        ),
+                      ),
+                    ),
                   if (_menu != null) ...[
                     // No dim: a tap anywhere else closes it (E2).
                     Positioned.fill(

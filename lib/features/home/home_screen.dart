@@ -13,6 +13,7 @@ import '../entry/entry_state.dart';
 import '../feed/feed_tab.dart';
 import '../feed/post_draft.dart';
 import '../profile/widgets/profile_parts.dart';
+import '../settings/push_fix.dart';
 import 'spaces_day_tab.dart';
 
 /// Home in Daybook (H1 v3 2555:35276): the wordmark and Search (people
@@ -112,6 +113,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               dots: {if (needsYou) HomeScreen.spacesTab},
               onSelect: (i) => setState(() => _tab = i),
             ),
+            // F9: pushes can't reach this phone; Fix it says how.
+            const PushNotReachingLine(),
             Expanded(
               child: _tab == HomeScreen.spacesTab
                   ? const SpacesDayTab()

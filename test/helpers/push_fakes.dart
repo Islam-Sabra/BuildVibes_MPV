@@ -11,6 +11,8 @@ class FakePushMessaging implements PushMessaging {
     this.answer = PushPermission.granted,
     this.phoneToken = 'fcm-test-token-0123456789',
     this.firstTap,
+    this.tokenFailures = 0,
+    this.makers = const ['google', 'google'],
   });
 
   PushPermission current;
@@ -21,11 +23,20 @@ class FakePushMessaging implements PushMessaging {
   Map<String, String>? firstTap;
   var asked = 0;
   var openedSettings = 0;
+  var openedAppSettings = 0;
+
+  /// The next token asks fail as Firebase does on some Xiaomi phones
+  /// ("FCM Registration failed!").
+  int tokenFailures;
+  var tokenAsks = 0;
+  var noTokenReports = 0;
+  List<String> makers;
   final _taps = StreamController<Map<String, String>>.broadcast();
   final _foreground = StreamController<Map<String, String>>.broadcast();
   final _refresh = StreamController<String>.broadcast();
 
   void tap(Map<String, String> data) => _taps.add(data);
+  void arrive(Map<String, String> data) => _foreground.add(data);
   void refreshToken(String token) => _refresh.add(token);
 
   @override
@@ -38,7 +49,14 @@ class FakePushMessaging implements PushMessaging {
   }
 
   @override
-  Future<String?> token() async => phoneToken;
+  Future<String?> token() async {
+    tokenAsks++;
+    if (tokenFailures > 0) {
+      tokenFailures--;
+      throw Exception('FCM Registration failed!');
+    }
+    return phoneToken;
+  }
 
   @override
   Stream<String> get tokenRefresh => _refresh.stream;
@@ -54,6 +72,15 @@ class FakePushMessaging implements PushMessaging {
 
   @override
   Future<void> openSettings() async => openedSettings++;
+
+  @override
+  Future<void> openAppSettings() async => openedAppSettings++;
+
+  @override
+  Future<List<String>> phoneMakers() async => makers;
+
+  @override
+  void reportNoToken() => noTokenReports++;
 
   @override
   String get platform => 'android';

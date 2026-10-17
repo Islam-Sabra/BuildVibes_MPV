@@ -3482,6 +3482,46 @@
   "@pushOpenSettings": {
     "description": "S4 button."
   },
+  "pushNotReaching": "Notifications aren't reaching this phone",
+  "@pushNotReaching": {
+    "description": "F9: the quiet line on Home and in Settings → Notifications when the phone gave no push token."
+  },
+  "pushFixIt": "Fix it",
+  "@pushFixIt": {
+    "description": "F9: the quiet line's action."
+  },
+  "pushFixTitle": "Let notifications reach this phone",
+  "@pushFixTitle": {
+    "description": "F9: the steps sheet on Xiaomi, Redmi and POCO phones."
+  },
+  "pushFixAutostart": "Autostart: on for BuildVibes.",
+  "@pushFixAutostart": {
+    "description": "F9 step 1 (the phone's own word: Autostart)."
+  },
+  "pushFixBattery": "Battery saver: \"No restrictions\" for BuildVibes.",
+  "@pushFixBattery": {
+    "description": "F9 step 2 (the phone's own words)."
+  },
+  "pushFixPlayServices": "The same battery setting for Google Play services.",
+  "@pushFixPlayServices": {
+    "description": "F9 step 3."
+  },
+  "pushFixRestart": "Then restart the phone.",
+  "@pushFixRestart": {
+    "description": "F9 step 4."
+  },
+  "pushFixOpen": "Open BuildVibes settings",
+  "@pushFixOpen": {
+    "description": "F9: opens the phone's page for BuildVibes."
+  },
+  "feedNew": "New",
+  "@feedNew": {
+    "description": "F11: the chip over the Home feed when new posts came in while reading further down."
+  },
+  "daybookNew": "New",
+  "@daybookNew": {
+    "description": "F11: the chip over the daybook when new entries came in while reading older days."
+  },
   "reportTitle": "{kind, select, post{Report this post} reply{Report this reply} message{Report this message} other{Report this account}}",
   "@reportTitle": {
     "description": "R1 title. kind: post, reply, message, profile.",

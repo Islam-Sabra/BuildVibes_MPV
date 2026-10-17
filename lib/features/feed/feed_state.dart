@@ -10,7 +10,8 @@ import '../../data/models/post.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/post_repository.dart';
 import '../entry/entry_state.dart';
-import '../work/work_outbox.dart' show outboxRetryDelaysProvider;
+import '../work/work_outbox.dart'
+    show OutboxRetry, outboxRetryDelaysProvider, outboxRetryLaterProvider;
 import 'post_draft.dart';
 import 'post_list.dart' show postListProvider;
 
@@ -47,6 +48,7 @@ class PendingPost {
     this.project,
     this.photos = const [],
     this.refused = false,
+    this.sent = false,
   });
 
   factory PendingPost.fromJson(Map<String, dynamic> j) => PendingPost(
@@ -62,6 +64,7 @@ class PendingPost {
         PendingPostPhoto.fromJson(p as Map<String, dynamic>),
     ],
     refused: j['refused'] as bool? ?? false,
+    sent: j['sent'] as bool? ?? false,
   );
 
   final String id;
@@ -76,16 +79,25 @@ class PendingPost {
   /// being written; otherwise it is back in the Draft at once.
   final bool refused;
 
-  PendingPost copyWith({List<PendingPostPhoto>? photos, bool? refused}) =>
-      PendingPost(
-        id: id,
-        body: body,
-        lang: lang,
-        madeAt: madeAt,
-        project: project,
-        photos: photos ?? this.photos,
-        refused: refused ?? this.refused,
-      );
+  /// It reached the server: its card no longer says "Waiting to send",
+  /// and it stays only until the feed has the server's copy (F17), so the
+  /// card never blinks.
+  final bool sent;
+
+  PendingPost copyWith({
+    List<PendingPostPhoto>? photos,
+    bool? refused,
+    bool? sent,
+  }) => PendingPost(
+    id: id,
+    body: body,
+    lang: lang,
+    madeAt: madeAt,
+    project: project,
+    photos: photos ?? this.photos,
+    refused: refused ?? this.refused,
+    sent: sent ?? this.sent,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -95,6 +107,7 @@ class PendingPost {
     'project': project?.toJson(),
     'photos': [for (final p in photos) p.toJson()],
     'refused': refused,
+    'sent': sent,
   };
 
   /// Only what this version wrote is read back (older ones had no time).
@@ -118,8 +131,11 @@ class PostOutbox extends Notifier<List<PendingPost>> {
   /// The ones in flight now, so a flush never sends one twice at once.
   final _sending = <String>{};
 
+  late final _retry = OutboxRetry(flushAll);
+
   @override
   List<PendingPost> build() {
+    ref.onDispose(_retry.cancel);
     final prefs = ref.watch(sharedPreferencesProvider);
     final userId = ref.watch(authUserIdProvider).value;
     if (prefs.containsKey(_sharedKey)) unawaited(prefs.remove(_sharedKey));
@@ -179,6 +195,8 @@ class PostOutbox extends Notifier<List<PendingPost>> {
   }
 
   Future<bool> _send(PendingPost p) async {
+    // On the server already: only the feed has to catch up.
+    if (p.sent) return _settle(p);
     final repo = ref.read(postRepositoryProvider);
     final delays = ref.read(outboxRetryDelaysProvider);
     var current = p.copyWith(refused: false);
@@ -241,6 +259,7 @@ class PostOutbox extends Notifier<List<PendingPost>> {
         }
         if (e.failure == SpaceFailure.network) {
           await _put(current);
+          _retry.later(ref.read(outboxRetryLaterProvider));
         } else if (!await reopenRefused(current)) {
           // A new post is being written: this one waits, refused, until
           // the card is free.
@@ -250,16 +269,28 @@ class PostOutbox extends Notifier<List<PendingPost>> {
       }
     }
 
-    // On the feed before it leaves the outbox, so the card never blinks.
+    // "Waiting to send" goes at once (F17); the card stays until the
+    // feed has the server's copy.
+    _retry.reached();
+    await _put(current.copyWith(sent: true));
+    ref.invalidate(postListProvider);
+    return _settle(current);
+  }
+
+  /// A sent [p] leaves the phone once the feed has the server's copy of
+  /// it (matched by its id), so the card never blinks and is never there
+  /// twice. With no signal for that read, it waits, without the label, and
+  /// is settled on the next try.
+  Future<bool> _settle(PendingPost p) async {
     final feed = feedProvider;
     if (ref.exists(feed)) {
       try {
         await ref.read(feed.notifier).added(p.id);
       } on SpaceException {
-        // It is on the server; the feed catches up on its next read.
+        _retry.later(ref.read(outboxRetryLaterProvider));
+        return true;
       }
     }
-    ref.invalidate(postListProvider);
     await _drop(p.id);
     for (final ph in p.photos) {
       unawaited(PostDrafts.deleteKept(ph.local));
@@ -387,6 +418,45 @@ class FeedNotifier extends AsyncNotifier<FeedState> {
     } on SpaceException {
       state = AsyncData(current.copyWith(loadingMore: false));
     }
+  }
+
+  /// Reads the first page again, quietly (F11, F18): new posts come in at
+  /// the top of their section, changed and deleted ones are as the server
+  /// has them, and older pages already loaded stay below. Nothing changes
+  /// with no signal.
+  Future<void> refreshNewest() async {
+    final current = state.value;
+    if (current == null) {
+      // It couldn't load: try again.
+      if (state.hasError) ref.invalidate(feedProvider);
+      return;
+    }
+    if (current.loadingMore) return;
+    final PostPage<FeedEntry> page;
+    try {
+      page = await ref.read(postRepositoryProvider).feed();
+    } on SpaceException {
+      return;
+    }
+    final now = state.value;
+    if (now == null || now.loadingMore) return;
+    unawaited(_keep(page.items));
+    final firstPage = {for (final e in page.items) e.post.id};
+    // Older pages loaded: what isn't on the first page any more stays
+    // below it, in its order (a post pushed down by new ones is never
+    // lost). With one page, the server's page is the whole list.
+    final below = now.entries.length <= page.items.length
+        ? const <FeedEntry>[]
+        : [
+            for (final e in now.entries)
+              if (!firstPage.contains(e.post.id)) e,
+          ];
+    state = AsyncData(
+      FeedState(
+        entries: [...page.items, ...below],
+        next: below.isEmpty ? page.next : now.next,
+      ),
+    );
   }
 
   /// A post this phone just sent: on top of the home section.

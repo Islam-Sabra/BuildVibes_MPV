@@ -575,6 +575,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Left out (not drawn or not on the server): the composer's "Start from" templates (templates are slice 7), files on a post (`create_post` takes photos only, so the paperclip adds a photo from the phone, as in the daybook).
   - Screenshots: H2-write-post, H3-write-post-filled, H4-post-draft, H5-post-waiting, H6-post-could-not-send added; H1, SI1, R1 and PR1 regenerated.
 
+- **17 Oct, slice 1 test fixes, Part B (reliability)** (review 51; branch `slice1-fixes`):
+  - Part A causes: F18, the feed list couldn't be pulled when shorter than the screen and never reloaded on return (the server had the post); F12, no app crash on record (the emulator restarted); the three replies were three separate sends.
+  - F9: the push setup no longer stops when the phone refuses a token; it retries (2/5/15/30/60 s, and on return to the app), registers on every start, and shows "Notifications aren't reaching this phone · Fix it" (Xiaomi steps) when there's still no token. An anonymous "no token" report goes through Crashlytics (no user id).
+  - F11/F18: the daybook and the Home feed read their newest page on open, on return to the app, when shown again and on a push; pull-to-refresh always works; a "New" chip when reading older entries.
+  - F17: the outboxes retry by themselves within seconds; "Waiting to send" goes the moment the server accepts it, with no duplicate slip.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

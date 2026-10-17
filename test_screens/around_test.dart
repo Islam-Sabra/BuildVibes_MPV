@@ -10,6 +10,8 @@ import 'dart:convert';
 
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
+import 'package:buildvibes/core/push/push_messaging.dart';
+import 'package:buildvibes/core/push/push_state.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/models/people.dart';
@@ -21,6 +23,7 @@ import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
+import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
 import 'package:buildvibes/features/activity/activity_state.dart';
@@ -33,6 +36,8 @@ import 'package:buildvibes/features/home/home_screen.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/profile/person_profile_screen.dart';
 import 'package:buildvibes/features/profile/profile_screen.dart';
+import 'package:buildvibes/features/settings/notifications_screen.dart';
+import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
 import 'package:buildvibes/features/work/daybook_entry.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
@@ -51,6 +56,7 @@ import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
 import '../test/helpers/post_fakes.dart';
 import '../test/helpers/profile_fakes.dart';
+import '../test/helpers/push_fakes.dart';
 import '../test/helpers/space_fakes.dart';
 import '../test/helpers/work_fakes.dart';
 import 'shot.dart';
@@ -113,6 +119,12 @@ Future<List<Override>> _base({
     postPhotoProvider.overrideWith((ref, path) => samplePhoto),
     localPhotoProvider.overrideWith((ref, path) => samplePhoto),
   ];
+}
+
+/// Pushes can't reach this phone (review 51 F9).
+class _NotReaching extends PushHealthState {
+  @override
+  PushHealth build() => PushHealth.notReaching;
 }
 
 /// Opens Home's card at Now, as Create does.
@@ -315,6 +327,70 @@ void main() {
         lang,
         (context) => _withNav(context, 0, const HomeScreen()),
         overrides: await home(),
+      );
+    });
+
+    // Review 51 F9: no Figma frame. The quiet line under Home's tabs when
+    // pushes can't reach this phone, and in Settings → Notifications; on a
+    // Xiaomi, Fix it's steps.
+    final notReaching = [
+      pushHealthProvider.overrideWith(_NotReaching.new),
+      pushPermissionProvider.overrideWith(
+        (ref) async => PushPermission.granted,
+      ),
+      pushMessagingProvider.overrideWithValue(
+        FakePushMessaging(makers: const ['xiaomi', 'redmi']),
+      ),
+      pushRepositoryProvider.overrideWithValue(FakePushRepository()),
+    ];
+
+    testWidgets('F9 Home: notifications not reaching this phone [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F9-home-not-reaching',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: [...await home(), ...notReaching],
+      );
+    });
+
+    testWidgets('F9 Settings → Notifications: the same line [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F9-settings-not-reaching',
+        lang,
+        (context) => const Pushed(NotificationsScreen()),
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          ...notReaching,
+        ],
+      );
+    });
+
+    testWidgets('F9 Fix it on a Xiaomi: the steps [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'F9-fix-it-xiaomi',
+        lang,
+        (context) => const Pushed(NotificationsScreen()),
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          ...notReaching,
+        ],
+        before: (tester) async {
+          await tester.tap(
+            find.descendant(
+              of: find.byKey(const Key('push-not-reaching')),
+              matching: find.byType(InkWell),
+            ),
+          );
+          await tester.pumpAndSettle();
+        },
       );
     });
 

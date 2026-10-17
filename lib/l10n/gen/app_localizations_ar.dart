@@ -2460,6 +2460,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pushOpenSettings => 'افتح إعدادات الهاتف';
 
   @override
+  String get pushNotReaching => 'الإشعارات لا تصل إلى هذا الهاتف';
+
+  @override
+  String get pushFixIt => 'إصلاح';
+
+  @override
+  String get pushFixTitle => 'لتصل الإشعارات إلى هذا الهاتف';
+
+  @override
+  String get pushFixAutostart => 'التشغيل التلقائي: مفعّل لتطبيق BuildVibes.';
+
+  @override
+  String get pushFixBattery => 'توفير البطارية: «بلا قيود» لتطبيق BuildVibes.';
+
+  @override
+  String get pushFixPlayServices => 'إعداد البطارية نفسه لخدمات Google Play.';
+
+  @override
+  String get pushFixRestart => 'ثم إعادة تشغيل الهاتف.';
+
+  @override
+  String get pushFixOpen => 'فتح إعدادات BuildVibes';
+
+  @override
+  String get feedNew => 'جديد';
+
+  @override
+  String get daybookNew => 'جديد';
+
+  @override
   String reportTitle(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'post': 'الإبلاغ عن هذا المنشور',

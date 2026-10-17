@@ -2442,6 +2442,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pushOpenSettings => 'Open phone settings';
 
   @override
+  String get pushNotReaching => 'Notifications aren\'t reaching this phone';
+
+  @override
+  String get pushFixIt => 'Fix it';
+
+  @override
+  String get pushFixTitle => 'Let notifications reach this phone';
+
+  @override
+  String get pushFixAutostart => 'Autostart: on for BuildVibes.';
+
+  @override
+  String get pushFixBattery =>
+      'Battery saver: \"No restrictions\" for BuildVibes.';
+
+  @override
+  String get pushFixPlayServices =>
+      'The same battery setting for Google Play services.';
+
+  @override
+  String get pushFixRestart => 'Then restart the phone.';
+
+  @override
+  String get pushFixOpen => 'Open BuildVibes settings';
+
+  @override
+  String get feedNew => 'New';
+
+  @override
+  String get daybookNew => 'New';
+
+  @override
   String reportTitle(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'post': 'Report this post',

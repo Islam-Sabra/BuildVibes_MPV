@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import '../../core/push/push_state.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
@@ -21,6 +23,7 @@ import '../../shared/widgets/bv_daybook_spine.dart';
 import '../../shared/widgets/bv_due_today_strip.dart';
 import '../../shared/widgets/bv_first_page.dart';
 import '../../shared/widgets/bv_month_dropdown.dart';
+import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../account/account_parts.dart' show myMarketProvider;
@@ -62,10 +65,6 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Older entries load while this much is left to scroll back.
   static const _loadAhead = 600.0;
 
-  /// How often something made with no signal is tried again while the
-  /// daybook is open.
-  static const _flushEvery = Duration(seconds: 30);
-
   final _scroll = ScrollController();
   final _mastheadKey = GlobalKey();
   final _viewportKey = GlobalKey();
@@ -98,7 +97,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     editing: true,
   );
   late final AppLifecycleListener _life;
-  late final Timer _flushTimer;
+
+  /// New entries came in at Now while the reader was up in older ones
+  /// (F11): the "New" chip shows until they go to Now.
+  var _newBelow = false;
+
+  /// Whether this page was on screen at the last look ([TickerMode]): a
+  /// page shown again reads again.
+  bool? _shown;
 
   String get _spaceId => widget.space.id;
   DaybookWriter get _card => _editing ? _editor : _writer;
@@ -114,16 +120,38 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     super.initState();
     _scroll.addListener(_onScroll);
     _fromBefore = ref.read(daybookDraftProvider(_spaceId)) != null;
-    // What was made with no signal sends when it's back: on opening, on
-    // coming back to the app, and every little while.
-    _life = AppLifecycleListener(onResume: _flush);
-    _flushTimer = Timer.periodic(_flushEvery, (_) => _flush());
-    WidgetsBinding.instance.addPostFrameCallback((_) => _flush());
+    // What was made with no signal sends when it's back: on opening and
+    // on coming back to the app (the outbox also tries by itself). The
+    // page is never stale (F11): it reads the newest entries when it
+    // opens (from a push too), when the app comes back to the front, and
+    // when a push for this Space arrives (build).
+    _life = AppLifecycleListener(
+      onResume: () {
+        _flush();
+        unawaited(_refresh());
+      },
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _flush();
+      // Kept from an earlier visit (another page of this Space is open
+      // underneath): read again. A first load is already reading.
+      if (mounted && ref.read(daybookPageProvider(_spaceId)).hasValue) {
+        unawaited(_refresh());
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Back on screen after a page on top of it closed: read again.
+    final shown = TickerMode.valuesOf(context).enabled;
+    if (_shown == false && shown) unawaited(_refresh());
+    _shown = shown;
   }
 
   @override
   void dispose() {
-    _flushTimer.cancel();
     _life.dispose();
     _scroll.dispose();
     super.dispose();
@@ -134,9 +162,59 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     unawaited(ref.read(workOutboxProvider.notifier).flush(_spaceId));
   }
 
+  /// Reads the newest entries again, quietly; with no signal the page
+  /// stays as it was.
+  Future<void> _refresh() async {
+    if (!mounted) return;
+    try {
+      await ref.read(daybookPageProvider(_spaceId).notifier).refresh();
+    } on SpaceException catch (e) {
+      debugPrint('daybook refresh: $e');
+    }
+  }
+
+  /// The reader is up in older entries, away from Now.
+  bool get _away =>
+      _scroll.hasClients && _scroll.offset > BvNewChipSpec.awayFromNow;
+
+  /// New entries at Now while the reader is up in older ones: the page
+  /// stays where it is, and the "New" chip shows. The list runs bottom
+  /// up, so what came in below grows the scroll extent by its height.
+  void _arrivedAtNow(List<DaybookRecord>? before, List<DaybookRecord> now) {
+    if (before == null || before.isEmpty || !_away) return;
+    final known = {for (final r in before) r.id};
+    final pending = {for (final i in ref.read(workOutboxProvider)) i.id};
+    final newest = before.first.at;
+    final fresh = now.any(
+      (r) =>
+          !known.contains(r.id) &&
+          !pending.contains(r.id) &&
+          !r.at.isBefore(newest),
+    );
+    if (!fresh) return;
+    final offset = _scroll.offset;
+    final extent = _scroll.position.maxScrollExtent;
+    setState(() => _newBelow = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final grown = _scroll.position.maxScrollExtent - extent;
+      if (grown > 0) _scroll.jumpTo(offset + grown);
+    });
+  }
+
+  void _toNow() {
+    setState(() => _newBelow = false);
+    if (_scroll.hasClients) {
+      unawaited(
+        _scroll.animateTo(0, duration: BvMotion.base, curve: BvMotion.standard),
+      );
+    }
+  }
+
   void _onScroll() {
     _updateShownDay();
     _loadOlderIfNear();
+    if (_newBelow && !_away) setState(() => _newBelow = false);
   }
 
   /// Older days hang above today on the same page (review 45 B1): load
@@ -407,6 +485,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ),
       );
     });
+    // A push about this Space while it's open: read again (F11).
+    ref.listen(pushArrivalProvider, (_, push) {
+      if (push?.spaceId == _spaceId) unawaited(_refresh());
+    });
+    ref.listen(daybookPageProvider(_spaceId), (was, now) {
+      final value = now.value;
+      if (now.hasValue && value != null) _arrivedAtNow(was?.value, value);
+    });
     final canPost = space.myRights.createItems;
     final page = ref.watch(daybookPageProvider(_spaceId));
     final due =
@@ -440,7 +526,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final body = switch (page) {
       AsyncData(:final value)
           when value.isEmpty && !card && waitingPosts.isEmpty =>
-        _FirstPage(space: space, canPost: canPost, onPost: _startWriting),
+        RefreshIndicator(
+          onRefresh: _refresh,
+          child: _FirstPage(
+            space: space,
+            canPost: canPost,
+            onPost: _startWriting,
+          ),
+        ),
       AsyncData(:final value) => _diary(
         value,
         pending,
@@ -450,9 +543,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         card: card,
       ),
-      AsyncError() => Padding(
-        padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-        child: EmptyNote(l10n.errorGeneric),
+      // Pull down to try again.
+      AsyncError() => RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+          children: [EmptyNote(l10n.errorGeneric)],
+        ),
       ),
       _ => const Center(child: CircularProgressIndicator()),
     };
@@ -493,6 +590,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 builder: (context, constraints) => Stack(
                   children: [
                     Positioned.fill(child: body),
+                    if (_newBelow && !_writing)
+                      PositionedDirectional(
+                        start: 0,
+                        end: 0,
+                        bottom: BvNewChipSpec.offset,
+                        child: Center(
+                          child: BvNewChip(
+                            key: const Key('daybook-new'),
+                            label: l10n.daybookNew,
+                            onTap: _toNow,
+                          ),
+                        ),
+                      ),
                     if (_menu != null) ...[
                       // No dim: a tap anywhere else closes it (E2).
                       Positioned.fill(
@@ -767,7 +877,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         me: me,
         now: now,
         viewer: viewer,
-        waiting: waitingPost != null || waitingProof != null,
+        // Sent, it no longer waits, though the page hasn't read it yet
+        // (F17).
+        waiting:
+            (waitingPost != null && !waitingPost.sent) ||
+            (waitingProof != null && !waitingProof.sent),
         couldNotSend: refused,
         localPhoto: (waitingPost ?? waitingProof)?.photos.firstOrNull?.local,
         landing:
@@ -801,48 +915,54 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // While writing, a tap off the card puts it down.
       behavior: HitTestBehavior.opaque,
       onTap: _writing ? _stopWriting : null,
+      // Pull down to read again; it always pulls, however short the page
+      // (F11). The list runs bottom up: the pull is at its top.
       child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          key: const Key('daybook'),
-          controller: _scroll,
-          reverse: true,
-          child: BvDaybookSpine(
-            minHeight: constraints.maxHeight,
-            children: [
-              for (final (i, day) in _days.indexed)
-                Column(
-                  key: _dayKeys.putIfAbsent(day, GlobalKey.new),
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: BvSpineSpec.entryGap,
-                  children: [
-                    // The first day loaded sits under the masthead.
-                    if (i > 0)
-                      BvDayDivider(
-                        weekday: words.weekday(day),
-                        date: words.dayMonth(day),
-                      ),
-                    for (final r in byDay[day]!) entry(r),
-                    if (card && day == today)
-                      BvSpineEntry(
-                        key: const Key('daybook-now'),
-                        time: l10n.daybookNow,
-                        dot: BvSpineDot.now,
-                        child: DaybookWritingCard(
-                          // An edit's card is its own.
-                          key: ValueKey(_editing),
-                          spaceId: _spaceId,
-                          writing: _writing,
-                          editing: _editing,
-                          words: words,
-                          fromBefore: _fromBefore && !_editing,
-                          onOpen: _startWriting,
-                          onMenu: _setMenu,
-                          onPickDue: _pickDue,
+        builder: (context, constraints) => RefreshIndicator(
+          onRefresh: _refresh,
+          child: SingleChildScrollView(
+            key: const Key('daybook'),
+            controller: _scroll,
+            reverse: true,
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: BvDaybookSpine(
+              minHeight: constraints.maxHeight,
+              children: [
+                for (final (i, day) in _days.indexed)
+                  Column(
+                    key: _dayKeys.putIfAbsent(day, GlobalKey.new),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: BvSpineSpec.entryGap,
+                    children: [
+                      // The first day loaded sits under the masthead.
+                      if (i > 0)
+                        BvDayDivider(
+                          weekday: words.weekday(day),
+                          date: words.dayMonth(day),
                         ),
-                      ),
-                  ],
-                ),
-            ],
+                      for (final r in byDay[day]!) entry(r),
+                      if (card && day == today)
+                        BvSpineEntry(
+                          key: const Key('daybook-now'),
+                          time: l10n.daybookNow,
+                          dot: BvSpineDot.now,
+                          child: DaybookWritingCard(
+                            // An edit's card is its own.
+                            key: ValueKey(_editing),
+                            spaceId: _spaceId,
+                            writing: _writing,
+                            editing: _editing,
+                            words: words,
+                            fromBefore: _fromBefore && !_editing,
+                            onOpen: _startWriting,
+                            onMenu: _setMenu,
+                            onPickDue: _pickDue,
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -867,6 +987,8 @@ class _FirstPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
+        // Pull down to read again (F11).
+        physics: const AlwaysScrollableScrollPhysics(),
         child: BvDaybookSpine(
           children: [
             ConstrainedBox(

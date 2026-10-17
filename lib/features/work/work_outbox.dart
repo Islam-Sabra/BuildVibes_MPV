@@ -94,6 +94,7 @@ class PendingItem {
     this.kind = PendingKind.signOff,
     this.photos = const [],
     this.refused = false,
+    this.sent = false,
     this.note,
     this.body,
     this.place,
@@ -115,6 +116,7 @@ class PendingItem {
         PendingPhoto.fromJson(p as Map<String, dynamic>),
     ],
     refused: json['refused'] as bool? ?? false,
+    sent: json['sent'] as bool? ?? false,
     note: json['note'] as String?,
     body: json['body'] as String?,
     place: json['place'] as String?,
@@ -146,6 +148,11 @@ class PendingItem {
   /// itself.
   final bool refused;
 
+  /// It reached the server: its slip no longer says "Waiting to send",
+  /// and it stays only until the daybook has read the server's entry
+  /// (F17), so the slip never blinks.
+  final bool sent;
+
   /// The sign-off note.
   final String? note;
 
@@ -163,24 +170,28 @@ class PendingItem {
   /// The writer's or signer's own name, for the slip while it waits.
   final String? authorName;
 
-  PendingItem copyWith({List<PendingPhoto>? photos, bool? refused}) =>
-      PendingItem(
-        id: id,
-        spaceId: spaceId,
-        title: title,
-        ownerId: ownerId,
-        ownerName: ownerName,
-        kind: kind,
-        photos: photos ?? this.photos,
-        refused: refused ?? this.refused,
-        note: note,
-        body: body,
-        place: place,
-        dueDate: dueDate,
-        dueAt: dueAt,
-        madeAt: madeAt,
-        authorName: authorName,
-      );
+  PendingItem copyWith({
+    List<PendingPhoto>? photos,
+    bool? refused,
+    bool? sent,
+  }) => PendingItem(
+    id: id,
+    spaceId: spaceId,
+    title: title,
+    ownerId: ownerId,
+    ownerName: ownerName,
+    kind: kind,
+    photos: photos ?? this.photos,
+    refused: refused ?? this.refused,
+    sent: sent ?? this.sent,
+    note: note,
+    body: body,
+    place: place,
+    dueDate: dueDate,
+    dueAt: dueAt,
+    madeAt: madeAt,
+    authorName: authorName,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -190,6 +201,7 @@ class PendingItem {
     'owner_name': ownerName,
     'photos': [for (final p in photos) p.toJson()],
     'refused': refused,
+    'sent': sent,
     'kind': kind.json,
     'note': note,
     'body': body,
@@ -244,6 +256,48 @@ final outboxRetryDelaysProvider = Provider<List<Duration>>(
   (ref) => const [Duration(seconds: 1), Duration(seconds: 3)],
 );
 
+/// Waits before an outbox tries again by itself after a lost signal, a
+/// little longer each time, then the last one over and over until it is
+/// sent (F17: the label goes within seconds of the signal coming back).
+/// Tests set their own.
+final outboxRetryLaterProvider = Provider<List<Duration>>(
+  (ref) => const [
+    Duration(seconds: 2),
+    Duration(seconds: 4),
+    Duration(seconds: 8),
+    Duration(seconds: 10),
+  ],
+);
+
+/// Tries an outbox again after a lost signal ([outboxRetryLaterProvider]).
+class OutboxRetry {
+  OutboxRetry(this._flush);
+
+  final Future<void> Function() _flush;
+  Timer? _timer;
+  var _tries = 0;
+
+  /// One try after the next wait, unless one is already due.
+  void later(List<Duration> waits) {
+    if (_timer?.isActive ?? false) return;
+    final wait = waits[_tries.clamp(0, waits.length - 1)];
+    _tries++;
+    _timer = Timer(wait, () {
+      _timer = null;
+      unawaited(_flush());
+    });
+  }
+
+  /// Something got through: the next lost signal starts from the first
+  /// wait.
+  void reached() => _tries = 0;
+
+  void cancel() {
+    _timer?.cancel();
+    _timer = null;
+  }
+}
+
 final workOutboxProvider = NotifierProvider<WorkOutbox, List<PendingItem>>(
   WorkOutbox.new,
 );
@@ -261,6 +315,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// Checks and cancels whose undo bar is showing: sent when it goes.
   final _held = <(PendingKind, String), Timer>{};
 
+  late final _retry = OutboxRetry(flushAll);
+
   @override
   List<PendingItem> build() {
     final prefs = ref.watch(sharedPreferencesProvider);
@@ -270,6 +326,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         t.cancel();
       }
       _held.clear();
+      _retry.cancel();
     });
     if (prefs.containsKey(_sharedKey)) unawaited(prefs.remove(_sharedKey));
     _key = userId == null ? null : 'work_outbox:$userId';
@@ -370,6 +427,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   }
 
   Future<bool> _send(PendingItem item) async {
+    // On the server already: only the page has to catch up.
+    if (item.sent) return _settle(item);
     final repo = ref.read(workRepositoryProvider);
     final daybook = ref.read(daybookRepositoryProvider);
     final delays = ref.read(outboxRetryDelaysProvider);
@@ -427,6 +486,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         }
         if (e.failure == SpaceFailure.network) {
           await _put(current);
+          _retry.later(ref.read(outboxRetryLaterProvider));
         } else {
           await _refused(current, e);
         }
@@ -434,14 +494,27 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       }
     }
 
-    // On the daybook before it leaves the outbox, so the slip never
-    // blinks.
-    await _refreshDaybook(item.spaceId);
+    // "Waiting to send" goes at once (F17); the slip stays until the
+    // daybook has the server's entry.
+    _retry.reached();
+    await _put(current.copyWith(sent: true));
+    ref.invalidate(mySpacesProvider);
+    return _settle(current);
+  }
+
+  /// A sent [item] leaves the phone once the daybook has read the server's
+  /// entry for it (matched by its id), so the slip never blinks and is
+  /// never there twice. With no signal for that read, it waits, without
+  /// the label, and is settled on the next try.
+  Future<bool> _settle(PendingItem item) async {
+    if (!await _refreshDaybook(item.spaceId)) {
+      _retry.later(ref.read(outboxRetryLaterProvider));
+      return true;
+    }
     await _drop(item);
     for (final p in item.photos) {
       unawaited(_deleteKept(p.local));
     }
-    ref.invalidate(mySpacesProvider);
     return true;
   }
 
@@ -537,13 +610,16 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     return true;
   }
 
-  Future<void> _refreshDaybook(String spaceId) async {
+  /// Reads the Space's daybook again, if it is open. False when it
+  /// couldn't.
+  Future<bool> _refreshDaybook(String spaceId) async {
     final page = daybookPageProvider(spaceId);
-    if (!ref.exists(page)) return;
+    if (!ref.exists(page)) return true;
     try {
       await ref.read(page.notifier).refresh();
+      return true;
     } on SpaceException {
-      // It is on the server; the page catches up on its next read.
+      return false;
     }
   }
 

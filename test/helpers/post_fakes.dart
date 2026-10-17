@@ -33,8 +33,15 @@ class FakePostRepository implements PostRepository {
   /// The feed fails as if the signal dropped (H5, H6).
   bool feedOffline = false;
 
+  /// Reading the feed or one post fails as if the signal dropped; sending
+  /// still works (the signal went between the two).
+  bool readsOffline = false;
+
   /// The next posts are refused, as the server's daily limit would.
   int refuseNext = 0;
+
+  /// The next replies reach the server but their answer is lost.
+  int replyAnswerLost = 0;
 
   void _maybeFail() {
     if (failNext > 0) {
@@ -45,7 +52,9 @@ class FakePostRepository implements PostRepository {
 
   @override
   Future<PostPage<FeedEntry>> feed({Map<String, dynamic>? cursor}) async {
-    if (feedOffline) throw const SpaceException(SpaceFailure.network);
+    if (feedOffline || readsOffline) {
+      throw const SpaceException(SpaceFailure.network);
+    }
     return PostPage(
       items: [
         for (final p in posts.where((p) => home.contains(p.id) && _shown(p)))
@@ -79,8 +88,10 @@ class FakePostRepository implements PostRepository {
   );
 
   @override
-  Future<Post?> post(String id) async =>
-      posts.where((p) => p.id == id).firstOrNull;
+  Future<Post?> post(String id) async {
+    if (readsOffline) throw const SpaceException(SpaceFailure.network);
+    return posts.where((p) => p.id == id).firstOrNull;
+  }
 
   @override
   Future<List<PostReply>> replies(String postId) async =>
@@ -151,6 +162,8 @@ class FakePostRepository implements PostRepository {
     required String body,
   }) async {
     calls.add('reply $postId ${replyTo ?? '-'} $body');
+    // As add_reply: the same id again is the same reply.
+    if (repliesByPost[postId]?.any((r) => r.id == id) ?? false) return;
     repliesByPost
         .putIfAbsent(postId, () => [])
         .add(
@@ -164,6 +177,12 @@ class FakePostRepository implements PostRepository {
             createdAt: now,
           ),
         );
+    // The reply reached the server, then the signal dropped before the
+    // answer came back.
+    if (replyAnswerLost > 0) {
+      replyAnswerLost--;
+      throw const SpaceException(SpaceFailure.network);
+    }
   }
 
   @override

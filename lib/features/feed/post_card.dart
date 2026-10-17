@@ -53,12 +53,14 @@ class PostCard extends ConsumerWidget {
     this.onChanged,
     this.onGone,
   }) : waiting = false,
-       couldNotSend = false;
+       couldNotSend = false,
+       sent = false;
 
   const PostCard.waiting({
     super.key,
     required this.post,
     this.couldNotSend = false,
+    this.sent = false,
     this.onOpen,
   }) : waiting = true,
        tag = PostTag.shown,
@@ -72,6 +74,10 @@ class PostCard extends ConsumerWidget {
 
   /// The server refused it: tapping fixes it ([onOpen]).
   final bool couldNotSend;
+
+  /// It reached the server and the feed hasn't read it yet: no "Waiting to
+  /// send" (F17).
+  final bool sent;
 
   final Post post;
   final PostTag tag;
@@ -217,7 +223,7 @@ class PostCard extends ConsumerWidget {
                   : () => context.push('${AppRoutes.projects}/${project.id}'),
             ),
           ),
-        if (waiting)
+        if (waiting && !sent)
           Text(
             couldNotSend ? l10n.daybookCouldNotSend : l10n.daybookWaitingToSend,
             key: Key('post-waiting-${post.id}'),

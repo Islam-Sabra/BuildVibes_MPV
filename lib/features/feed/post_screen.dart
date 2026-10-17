@@ -46,6 +46,11 @@ class _PostScreenState extends ConsumerState<PostScreen> {
   ({String id, String name, String body})? _replyTo;
   var _sending = false;
 
+  /// The reply being sent, with the id the app chose for it. Sent again
+  /// unchanged (the signal dropped before the answer came), it keeps that
+  /// id, so the server keeps one reply (F19).
+  ({String id, String body, String? replyTo})? _attempt;
+
   @override
   void dispose() {
     _text.dispose();
@@ -57,15 +62,22 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     if (body.isEmpty || _sending) return;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _sending = true);
+    final replyTo = _replyTo?.id;
+    final last = _attempt;
+    final attempt = last != null && last.body == body && last.replyTo == replyTo
+        ? last
+        : (id: newUuid(), body: body, replyTo: replyTo);
+    _attempt = attempt;
     try {
       await ref
           .read(postRepositoryProvider)
           .addReply(
-            id: newUuid(),
+            id: attempt.id,
             postId: widget.postId,
-            replyTo: _replyTo?.id,
+            replyTo: replyTo,
             body: body,
           );
+      _attempt = null;
       _text.clear();
       _replyTo = null;
       ref.invalidate(postRepliesProvider(widget.postId));

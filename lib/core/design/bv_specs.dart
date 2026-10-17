@@ -372,3 +372,33 @@ abstract final class BvPushSpec {
 abstract final class BvAccountSpec {
   static const resultAlignment = Alignment(0, -0.45);
 }
+
+/// F9: "Notifications aren't reaching this phone", a quiet line with Fix
+/// it, on Home and in Settings → Notifications. No Figma frame: the Due
+/// today strip's build, in the subtle surface.
+abstract final class BvQuietLineSpec {
+  static const paddingStart = BvSpace.gutter;
+
+  /// Fix it's tap area reaches nearly to the edge.
+  static const paddingEnd = BvSpace.s4;
+  static const gap = BvSpace.s8;
+  static const icon = BvSize.iconSm;
+  static const actionPadding = BvSpace.s12;
+}
+
+/// F11: the "New" chip when new entries arrive while the reader is away
+/// from Now (the Daybook's bottom, the Home feed's top).
+abstract final class BvNewChipSpec {
+  static const height = BvSpace.s32;
+  static const paddingHorizontal = BvSpace.s12;
+  static const gap = BvSpace.s4;
+  static const icon = BvSize.iconSm;
+  static const tapPadding = (BvSize.touchMin - height) / 2;
+
+  /// From the list's edge at Now.
+  static const offset = BvSpace.s12;
+
+  /// Further than this from Now, the reader is up in older entries: new
+  /// ones wait behind the chip instead of moving the page.
+  static const awayFromNow = BvSpace.s64 + BvSpace.s32;
+}

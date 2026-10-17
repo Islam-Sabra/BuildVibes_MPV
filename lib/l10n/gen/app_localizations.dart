@@ -4142,6 +4142,66 @@ abstract class AppLocalizations {
   /// **'Open phone settings'**
   String get pushOpenSettings;
 
+  /// F9: the quiet line on Home and in Settings → Notifications when the phone gave no push token.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications aren\'t reaching this phone'**
+  String get pushNotReaching;
+
+  /// F9: the quiet line's action.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix it'**
+  String get pushFixIt;
+
+  /// F9: the steps sheet on Xiaomi, Redmi and POCO phones.
+  ///
+  /// In en, this message translates to:
+  /// **'Let notifications reach this phone'**
+  String get pushFixTitle;
+
+  /// F9 step 1 (the phone's own word: Autostart).
+  ///
+  /// In en, this message translates to:
+  /// **'Autostart: on for BuildVibes.'**
+  String get pushFixAutostart;
+
+  /// F9 step 2 (the phone's own words).
+  ///
+  /// In en, this message translates to:
+  /// **'Battery saver: \"No restrictions\" for BuildVibes.'**
+  String get pushFixBattery;
+
+  /// F9 step 3.
+  ///
+  /// In en, this message translates to:
+  /// **'The same battery setting for Google Play services.'**
+  String get pushFixPlayServices;
+
+  /// F9 step 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Then restart the phone.'**
+  String get pushFixRestart;
+
+  /// F9: opens the phone's page for BuildVibes.
+  ///
+  /// In en, this message translates to:
+  /// **'Open BuildVibes settings'**
+  String get pushFixOpen;
+
+  /// F11: the chip over the Home feed when new posts came in while reading further down.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get feedNew;
+
+  /// F11: the chip over the daybook when new entries came in while reading older days.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get daybookNew;
+
   /// R1 title. kind: post, reply, message, profile.
   ///
   /// In en, this message translates to:
