@@ -129,3 +129,10 @@ The founder expects to add an update with a **press**, not a swipe. A swipe is h
   - **Long-press** a slip: "Add update" is in the menu for everyone who may add one (owner, Lead, Crew), on every work item, sign-off and send-back slip, not only on your own.
   - **Short press** a slip: it opens the slip (its full page comes in slice 5). Until then, a short press shows the same menu, so a tap is never a dead end.
   - The swipe stays as a shortcut for those who find it, never the only way.
+
+## F17. "Waiting to send" stays after the post has sent
+- **What happened:** in airplane mode the work item showed "Waiting to send" (right). With airplane mode off, it reached the server: Omar's emulator showed it. But on the founder's phone the slip kept saying "Waiting to send".
+- **Fix:** when the outbox sends a post, its local slip is replaced by the server's entry, matched by the app-chosen id, and the label goes at once.
+  - Check there is no second, duplicate slip.
+  - Test: a post made with no signal, then the signal returns, then exactly one slip, without the label, within a few seconds, with the app open and also after it's reopened.
+- It's the same family as F11 (the page must reflect the server).
