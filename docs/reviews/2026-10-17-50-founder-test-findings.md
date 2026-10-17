@@ -18,3 +18,21 @@ On his first try, the founder tapped the orange + to write a work item and lande
   - The thread shows "Replying to …" with that person's name.
   - The `post_reply` notification goes to the person answered (and the post's author, as now).
   - Tests: three levels of answering; the notification goes to the right person; a deleted reply's answers stay under the same comment.
+
+## F3. No way into your Spaces from Home, and no way to create or join one
+Home → Spaces (`SpacesDayTab`, "your day") lists only Spaces with something new today, so on a quiet day it shows nothing, even though the founder has two Spaces. New Space is reachable only through Profile → people icon → My Spaces → Create.
+- **Fix:** Home → Spaces always lists **all your Spaces**: Spaces with news today first, then the rest, most recent first.
+- Above the list sit **New Space** and **Enter an invite code**. With no Space, the empty state shows the same two, large.
+- A foreman with a code from his engineer must reach "Enter an invite code" in one tap from Home.
+
+## F4. No "site only" wording (the founder's rule, repeated)
+BuildVibes is for the whole industry: offices, BIM, design, suppliers as well as sites (rule 2). "Your day on site" says this is for site works only.
+- **Remove or neutralise every general phrase that assumes a site**, in English and Arabic:
+  - `homeDayTitle` "Your day on site" → **"Your day"**;
+  - `postWritingHint` "What happened on site today?" → **"What happened at work today?"**;
+  - `feedEmpty` "Share what happened on site today." → **"Share what happened at work today."**;
+  - `spacesEmptyBody` "site updates" → **"updates"**;
+  - `daybookPlaceHint` "Where on site" → **"Where"** (a room, a level, a drawing or an office);
+  - `spacesInviteHow` "read it out on site" → **"read it out"**.
+- **Kept, because it's only shown when chosen:** "day N on site" in the daybook masthead appears only when a Space admin sets **On site since**. An office or BIM Space never sets it, so it never sees it.
+- **Check:** grep both ARB files for "site" and "موقع" and list any other general phrase in the report.
