@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(73);
+select plan(122);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000023' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -39,6 +39,25 @@ create function pg_temp.month_rows(p_kind text) returns bigint language sql as $
   select count(*) from public.daybook_month(pg_temp.sp(), current_date - 30, current_date + 30,
                                             now() - interval '30 days', now() + interval '30 days') m
   where m.kind = p_kind;
+$$;
+-- A daybook entry as the signed-in person sees it (all pages at once).
+create function pg_temp.entry(p_kind text, p_id uuid) returns jsonb language sql as $$
+  select d.entry from public.daybook_page(pg_temp.sp(), null, 100) d
+  where d.kind = p_kind and d.id = p_id;
+$$;
+-- The done events of a work item, oldest first.
+create function pg_temp.sign_off(p_item text, p_n integer) returns uuid language sql as $$
+  select e.id from public.work_item_events e
+  where e.work_item_id = pg_temp.item(p_item) and e.kind = 'done'
+  order by e.created_at, e.id offset p_n - 1 limit 1;
+$$;
+-- Run as the database owner: the events just made move to a time of
+-- their own (a test runs in one transaction, so now() never moves).
+create function pg_temp.stamp(p_minutes_ago integer) returns void language sql as $$
+  alter table public.work_item_events disable trigger work_item_events_append_only;
+  update public.work_item_events set created_at = now() - make_interval(mins => p_minutes_ago)
+  where created_at = now();
+  alter table public.work_item_events enable trigger work_item_events_append_only;
 $$;
 create function pg_temp.due_days() returns date[] language sql as $$
   select coalesce(array_agg(m.day order by m.day), '{}')
@@ -254,6 +273,247 @@ select throws_ok($$select public.set_site_start_date(pg_temp.sp(), date '1999-12
 select lives_ok($$select public.set_site_start_date(pg_temp.sp(), null)$$, 'the admin clears it');
 select is((select site_start_date from public.spaces where id = pg_temp.sp()), null, 'cleared');
 
+-- The daybook's entries (review 45) -------------------------------------------------------------
+
+reset role;
+insert into public.library_files (id, space_id, team_id, name, storage_path, mime, bytes,
+                                  rev_label, uploaded_by)
+select pg_temp.item('f00' || n), pg_temp.sp(), null, 'M-20' || n,
+       pg_temp.sp() || '/library/' || pg_temp.item('f00' || n) || '/m.pdf', 'application/pdf', 1000,
+       'Rev C', pg_temp.uid('e1')
+from generate_series(1, 4) n;
+select pg_temp.as_user('e1');
+set local role authenticated;
+select lives_ok($$select public.create_work_item(pg_temp.sp(), 'Sleeves at grid C7', pg_temp.uid('e2'),
+                    p_id => pg_temp.item('b001'))$$,
+  'Omar raises a work item for Rakesh');
+select public.attach_library_file(pg_temp.item('b001'), pg_temp.item('f00' || n))
+from generate_series(1, 4) n;
+select is(jsonb_array_length(pg_temp.entry('post', pg_temp.item('b001')) -> 'attachments'), 3,
+  'the slip carries its first three Library files');
+select is(pg_temp.entry('post', pg_temp.item('b001')) -> 'attachments' -> 0 ->> 'rev_label', 'Rev C',
+  'each with its revision');
+select is(pg_temp.entry('post', pg_temp.item('b001')) ->> 'attachments_more', 'true',
+  'and says there are more');
+reset role;
+select pg_temp.stamp(60);
+
+select pg_temp.as_user('e2');
+set local role authenticated;
+select ok((pg_temp.entry('post', pg_temp.item('b001')) ->> 'needs_me')::boolean,
+  'the owner''s clip is on the work item slip while it is open');
+select public.sign_done(pg_temp.item('b001'), 'All six fixed.');
+reset role;
+select pg_temp.stamp(50);
+insert into public.work_item_evidence (event_id, work_item_id, storage_path, kind, taken_at, place_text)
+values (pg_temp.sign_off('b001', 1), pg_temp.item('b001'),
+        pg_temp.sp() || '/' || pg_temp.item('b001') || '/proof.jpg', 'photo', now() - interval '51 minutes',
+        'Level 2, grid C7');
+
+select pg_temp.as_user('e1');
+set local role authenticated;
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) ->> 'title', 'Sleeves at grid C7',
+  'a sign-off is its own entry, quoting the work item');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) ->> 'note', 'All six fixed.',
+  'with the note');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) -> 'photos' -> 0 ->> 'place',
+  'Level 2, grid C7', 'and the photos');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) -> 'outcome' ->> 'kind', 'done',
+  'waiting for a check');
+select is((pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) ->> 'at')::timestamptz,
+  now() - interval '50 minutes', 'at its own time');
+select ok((pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) ->> 'needs_me')::boolean,
+  'the author''s clip is on the sign-off');
+select ok(not (pg_temp.entry('post', pg_temp.item('b001')) ->> 'needs_me')::boolean,
+  'not on the work item slip');
+select pg_temp.as_user('e2');
+select ok(not (pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) ->> 'needs_me')::boolean
+          and not (pg_temp.entry('post', pg_temp.item('b001')) ->> 'needs_me')::boolean,
+  'the owner has no clip while it waits');
+
+select pg_temp.as_user('e1');
+select public.send_back(pg_temp.item('b001'), 'photo_missing', 'One sleeve has no photo.');
+reset role;
+select pg_temp.stamp(40);
+select pg_temp.as_user('e2');
+set local role authenticated;
+select ok((pg_temp.entry('post', pg_temp.item('b001')) ->> 'needs_me')::boolean,
+  'sent back, the clip is on the owner''s slip again');
+select public.sign_done(pg_temp.item('b001'), 'Photo added.');
+reset role;
+select pg_temp.stamp(30);
+select pg_temp.as_user('e1');
+set local role authenticated;
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) -> 'outcome' ->> 'kind', 'sent_back',
+  'the first sign-off is stamped SENT BACK');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) -> 'outcome' ->> 'reason', 'photo_missing',
+  'with the reason');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) -> 'outcome' ->> 'note',
+  'One sleeve has no photo.', 'and the note');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 2)) -> 'outcome' ->> 'kind', 'done',
+  'the second waits for a check');
+select ok(not (pg_temp.entry('sign_off', pg_temp.sign_off('b001', 1)) ->> 'needs_me')::boolean
+          and (pg_temp.entry('sign_off', pg_temp.sign_off('b001', 2)) ->> 'needs_me')::boolean,
+  'the clip is on the latest sign-off only');
+select public.check_item(pg_temp.item('b001'));
+reset role;
+select pg_temp.stamp(20);
+select pg_temp.as_user('e1');
+set local role authenticated;
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 2)) -> 'outcome' ->> 'kind', 'checked',
+  'checked, the second sign-off is stamped CHECKED');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b001', 2)) -> 'outcome' ->> 'by_name', 'Omar Haddad',
+  'by whom');
+select ok(not (pg_temp.entry('sign_off', pg_temp.sign_off('b001', 2)) ->> 'needs_me')::boolean,
+  'and has no clip');
+select pg_temp.as_user('e2');
+select lives_ok($$select public.add_comment(pg_temp.item('b001'), 'Cleaned the area too.')$$,
+  'the owner adds an update');
+reset role;
+select pg_temp.stamp(10);
+select pg_temp.as_user('e3');
+set local role authenticated;
+select is((select d.entry ->> 'note' from public.daybook_page(pg_temp.sp(), null, 100) d
+           where d.kind = 'update' and d.entry ->> 'post_id' = pg_temp.item('b001')::text),
+  'Cleaned the area too.', 'an update is its own entry too');
+
+-- Given to someone else.
+select pg_temp.as_user('e1');
+select lives_ok($$select public.create_work_item(pg_temp.sp(), 'Gate 2 hinges', pg_temp.uid('e2'),
+                    p_id => pg_temp.item('b003'))$$, 'another work item for Rakesh');
+select public.reassign_work_item(pg_temp.item('b003'), pg_temp.uid('e3'));
+select is(pg_temp.entry('post', pg_temp.item('b003')) -> 'given_to' ->> 'to_name', 'Sara Ali',
+  'the slip says who it was given to');
+select is(pg_temp.entry('post', pg_temp.item('b003')) -> 'given_to' ->> 'from_name', 'Rakesh Nair',
+  'instead of whom');
+
+-- A Team's sign-off stays in the Team.
+select pg_temp.as_user('e6');
+select lives_ok($$select public.create_work_item(pg_temp.sp(), 'MEP risers', pg_temp.uid('e6'),
+                    p_team => pg_temp.team(), p_id => pg_temp.item('b002'))$$, 'a Team work item');
+reset role;
+select pg_temp.stamp(15);
+select pg_temp.as_user('e6');
+set local role authenticated;
+select public.sign_done(pg_temp.item('b002'), 'Risers in.');
+reset role;
+select pg_temp.stamp(180);
+select pg_temp.as_user('e6');
+set local role authenticated;
+select ok(pg_temp.entry('sign_off', pg_temp.sign_off('b002', 1)) is not null,
+  'the Team sees its sign-off');
+select pg_temp.as_user('e2');
+select ok(pg_temp.entry('sign_off', pg_temp.sign_off('b002', 1)) is null,
+  'someone outside the Team never gets it');
+select pg_temp.as_user('e5');
+select is((select count(*) from public.daybook_page(pg_temp.sp(), null, 100)), 0::bigint,
+  'nor does someone outside the Space get any entry');
+
+select pg_temp.as_user('e2');
+select ok(exists (select 1 from public.daybook_month(pg_temp.sp(), current_date - 30, current_date + 30,
+                                                     now() - interval '30 days', now() + interval '30 days') m
+                  where m.kind = 'posts'
+                    and m.at = date_bin('15 minutes', now() - interval '180 minutes',
+                                        timestamptz '2000-01-01 00:00+00'))
+          is false, 'nor a dot for it');
+select pg_temp.as_user('e6');
+select ok(exists (select 1 from public.daybook_month(pg_temp.sp(), current_date - 30, current_date + 30,
+                                                     now() - interval '30 days', now() + interval '30 days') m
+                  where m.kind = 'posts'
+                    and m.at = date_bin('15 minutes', now() - interval '180 minutes',
+                                        timestamptz '2000-01-01 00:00+00')),
+  'which the Team gets');
+
+-- Only the Library files the reader may read are on the slip, in the list
+-- and in the count.
+reset role;
+insert into public.library_files (id, space_id, team_id, name, storage_path, mime, bytes, uploaded_by)
+select pg_temp.item('f01' || n), pg_temp.sp(), pg_temp.team(), 'MEP-' || n,
+       pg_temp.sp() || '/library/' || pg_temp.item('f01' || n) || '/m.pdf', 'application/pdf', 1000,
+       pg_temp.uid('e6')
+from generate_series(1, 3) n;
+insert into public.work_item_attachments (work_item_id, library_file_id, added_by)
+select pg_temp.item('b003'), pg_temp.item('f01' || n), pg_temp.uid('e1') from generate_series(1, 3) n
+union all
+select pg_temp.item('b003'), pg_temp.item('f004'), pg_temp.uid('e1');
+select pg_temp.as_user('e2');
+set local role authenticated;
+select is(pg_temp.entry('post', pg_temp.item('b003')) -> 'attachments' -> 0 ->> 'name', 'M-204',
+  'outside the Team, only the Everyone file is on the slip');
+select ok(jsonb_array_length(pg_temp.entry('post', pg_temp.item('b003')) -> 'attachments') = 1
+          and pg_temp.entry('post', pg_temp.item('b003')) ->> 'attachments_more' is null,
+  'and no "more"');
+select pg_temp.as_user('e1');
+select ok(jsonb_array_length(pg_temp.entry('post', pg_temp.item('b003')) -> 'attachments') = 3
+          and (pg_temp.entry('post', pg_temp.item('b003')) ->> 'attachments_more')::boolean,
+  'the admin gets three and "more"');
+
+-- A Viewer, a cancelled item and a deleted item.
+select lives_ok($$select public.create_work_item(pg_temp.sp(), 'Core B door sets', pg_temp.uid('e2'),
+                    p_id => pg_temp.item('b004'))$$, 'a work item for Rakesh');
+select pg_temp.as_user('e2');
+select public.sign_done(pg_temp.item('b004'), 'Doors hung.');
+select pg_temp.as_user('e4');
+select ok(not (pg_temp.entry('sign_off', pg_temp.sign_off('b004', 1)) ->> 'needs_me')::boolean
+          and not (pg_temp.entry('post', pg_temp.item('b004')) ->> 'needs_me')::boolean,
+  'a Viewer never gets a clip');
+select pg_temp.as_user('e1');
+select ok((pg_temp.entry('sign_off', pg_temp.sign_off('b004', 1)) ->> 'needs_me')::boolean,
+  'the author does');
+select lives_ok($$select public.cancel_space_post(pg_temp.item('b004'))$$, 'then cancels it');
+select is(pg_temp.entry('sign_off', pg_temp.sign_off('b004', 1)) -> 'outcome' ->> 'kind', 'cancelled',
+  'its sign-off stays, as the record, marked cancelled');
+select ok(not (pg_temp.entry('sign_off', pg_temp.sign_off('b004', 1)) ->> 'needs_me')::boolean,
+  'with no clip');
+reset role;
+update public.space_posts set deleted_at = now() where id = pg_temp.item('b004');
+select pg_temp.as_user('e1');
+set local role authenticated;
+select ok(pg_temp.entry('sign_off', pg_temp.sign_off('b004', 1)) is null
+          and pg_temp.entry('post', pg_temp.item('b004')) is null,
+  'a deleted item''s entries go with it');
+select ok(not has_function_privilege('authenticated', 'public.daybook_post_json(public.space_posts)', 'execute')
+          and not has_function_privilege('authenticated',
+                    'public.daybook_event_json(public.work_item_events, public.space_posts)', 'execute')
+          and not has_function_privilege('anon', 'public.daybook_page(uuid, timestamptz, integer, uuid)', 'execute'),
+  'the entry builders are internal, and anon reads no daybook');
+
+-- Paging: entries made at the same moment are neither skipped nor repeated.
+reset role;
+create function pg_temp.walk() returns bigint language plpgsql as $$
+declare
+  v_at timestamptz;
+  v_id uuid;
+  v_seen uuid[] := '{}';
+  v_row record;
+begin
+  loop
+    select d.created_at, d.id into v_row from public.daybook_page(pg_temp.sp(), v_at, 1, v_id) d;
+    exit when v_row.id is null;
+    v_seen := v_seen || v_row.id;
+    v_at := v_row.created_at;
+    v_id := v_row.id;
+  end loop;
+  return (select count(distinct x) from unnest(v_seen) x);
+end;
+$$;
+select pg_temp.as_user('e1');
+set local role authenticated;
+select is(pg_temp.walk(),
+  (select count(*) from public.daybook_page(pg_temp.sp(), null, 100)),
+  'one at a time, the cursor reaches every entry once');
+select is((select count(*) from public.daybook_page(pg_temp.sp(), null, 100) d
+           where d.created_at = now()) > 1, true,
+  'including several made at the same moment');
+
+-- The month's dots count sign-offs and updates.
+select ok(exists (select 1 from public.daybook_month(pg_temp.sp(), current_date - 30, current_date + 30,
+                                                     now() - interval '30 days', now() + interval '30 days') m
+                  where m.kind = 'posts'
+                    and m.at = date_bin('15 minutes', now() - interval '10 minutes',
+                                        timestamptz '2000-01-01 00:00+00')),
+  'an update lights its quarter hour');
+
 -- The month drop-down ---------------------------------------------------------------------------
 
 -- A Team post by Tariq, and two of Omar's posts within the same quarter hour.
@@ -340,12 +600,16 @@ select pg_temp.as_user('e4');
 set local role authenticated;
 select is(pg_temp.month_rows('posts') + pg_temp.month_rows('due'), 0::bigint,
   'nor someone who has left');
+select is((select count(*) from public.daybook_page(pg_temp.sp(), null, 100)), 0::bigint,
+  'who gets no daybook entries either');
 reset role;
 update public.spaces set deleted_at = now() where id = pg_temp.sp();
 select pg_temp.as_user('e1');
 set local role authenticated;
 select is(pg_temp.month_rows('posts') + pg_temp.month_rows('due'), 0::bigint,
   'a deleted Space shows nothing, even to its admin');
+select is((select count(*) from public.daybook_page(pg_temp.sp(), null, 100)), 0::bigint,
+  'no daybook entries');
 select throws_ok($$select public.set_site_start_date(pg_temp.sp(), date '2026-09-05')$$,
   '42501', null, 'and its start date can''t be set');
 reset role;

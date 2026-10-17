@@ -16,6 +16,13 @@
 --   cancelled. Dots, never counts: post times come rounded to 15 minutes,
 --   distinct, so the phone groups them by its own days (every time zone is
 --   a whole number of 15 minutes from UTC).
+-- - The daybook's entries (review 45): daybook_page returns sign-offs and
+--   updates as their own entries at their own times, next to posts, with
+--   one cursor. A sign-off carries its photos, note and outcome (checked,
+--   sent back or still done). The paper clip for whoever checks sits on
+--   the latest sign-off, not the work item slip. The slip gains its first
+--   Library files (with revisions) and the last "given to"; the month's
+--   dots count sign-offs and updates too.
 -- - Undo of a check needs nothing here: the app holds the check for the
 --   undo bar's 5 seconds, then sends it (review 44, answer 4).
 
@@ -51,6 +58,40 @@ as $$
   select case when p_post.due_at is not null then p_post.due_at < now()
               else p_post.due_date < p_today end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- The daybook's entries: each sign-off and update knows its Space, so the
+-- daybook reads them newest first from an index (review 45, M1)
+-- ---------------------------------------------------------------------------
+
+alter table public.work_item_events add column space_id uuid
+  references public.spaces (id) on delete cascade;
+
+create function public.set_event_space()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  new.space_id := (select w.space_id from public.work_items w where w.id = new.work_item_id);
+  return new;
+end;
+$$;
+
+create trigger work_item_events_space
+  before insert on public.work_item_events
+  for each row execute function public.set_event_space();
+
+-- Events are append-only; filling the new column is the one exception.
+alter table public.work_item_events disable trigger work_item_events_append_only;
+update public.work_item_events e set space_id = w.space_id
+from public.work_items w where w.id = e.work_item_id;
+alter table public.work_item_events enable trigger work_item_events_append_only;
+alter table public.work_item_events alter column space_id set not null;
+
+create index work_item_events_daybook_idx on public.work_item_events
+  (space_id, created_at desc, id desc) where kind in ('done', 'comment');
 
 -- ---------------------------------------------------------------------------
 -- On site since
@@ -806,7 +847,7 @@ exception
 end;
 $function$;
 
--- A post's JSON: its due time (as in 20261016120000_post_pages.sql, with that change only).
+-- A post's JSON: its due time; on a work item its first Library files and the last time it was given to someone else; the full JSON's attachments with their revision and a tie-break on id (as in 20261016120000_post_pages.sql, with those changes only).
 CREATE OR REPLACE FUNCTION public.space_post_json(p_post space_posts, p_full boolean)
  RETURNS jsonb
  LANGUAGE sql
@@ -899,6 +940,31 @@ AS $function$
     'needs_me', coalesce((
       select public.item_needs_me(w, p_post) is not null
       from public.work_items w where w.id = p_post.id), public.checklist_needs_me(p_post)),
+    -- A work item's first three Library files, for the slip's chips, and
+    -- whether there are more (review 45 M3). The full page lists them all.
+    'attachments', (
+      select jsonb_agg(jsonb_build_object('library_file_id', a.id, 'name', a.name,
+                                          'rev_label', a.rev_label) order by a.created_at, a.id)
+      from (select lf.id, lf.name, lf.rev_label, wa.created_at
+            from public.work_item_attachments wa
+            join public.library_files lf on lf.id = wa.library_file_id
+            where wa.work_item_id = p_post.id and public.can_read_library_file(lf.id)
+            order by wa.created_at, lf.id limit 3) a),
+    'attachments_more', (
+      select true
+      from public.work_item_attachments wa
+      where wa.work_item_id = p_post.id and public.can_read_library_file(wa.library_file_id)
+      having count(*) > 3),
+    -- The last time it was given to someone else.
+    'given_to', (
+      select jsonb_build_object('from_id', e.from_owner_id,
+                                'from_name', public.space_person_name(e.from_owner_id),
+                                'to_id', e.to_owner_id,
+                                'to_name', public.space_person_name(e.to_owner_id),
+                                'at', e.created_at)
+      from public.work_item_events e
+      where e.work_item_id = p_post.id and e.kind = 'reassigned'
+      order by e.created_at desc, e.id desc limit 1),
     'has_page', jsonb_array_length(p_post.blocks) > 0,
     'template_id', p_post.template_id,
     'cover_path', (
@@ -969,8 +1035,9 @@ AS $function$
       from public.work_item_events e where e.work_item_id = p_post.id),
     'attachments', (
       select jsonb_agg(jsonb_build_object('library_file_id', lf.id, 'name', lf.name,
+                                          'rev_label', lf.rev_label,
                                           'mime', lf.mime, 'bytes', lf.bytes)
-                       order by a.created_at)
+                       order by a.created_at, lf.id)
       from public.work_item_attachments a
       join public.library_files lf on lf.id = a.library_file_id
       where a.work_item_id = p_post.id and public.can_read_library_file(lf.id)),
@@ -1316,11 +1383,10 @@ $function$;
 -- The month drop-down
 -- ---------------------------------------------------------------------------
 
--- 'posts' rows: a time (15 minutes) with a post the caller can see, as the
--- daybook page lists them. 'due' rows: a day with a live work item that
+-- 'posts' rows: a time (15 minutes) with an entry the caller can see, as
+-- the daybook page lists them. 'due' rows: a day with a live work item that
 -- isn't checked, or a live checklist with a point not ticked, the caller
--- can see. Days and times
--- come from the phone, as in my_calendar.
+-- can see. Days and times come from the phone, as in my_calendar.
 create function public.daybook_month(p_space uuid, p_from_day date, p_to_day date,
                                      p_from timestamptz, p_to timestamptz)
 returns table (kind text, at timestamptz, day date)
@@ -1341,12 +1407,30 @@ begin
     return;
   end if;
   return query
+  -- Posts and their sign-offs and updates in the window; each post's
+  -- visibility is checked once.
+  with seen as (
+    select p.id as post_id, p.created_at as at
+    from public.space_posts p
+    where p.space_id = p_space and p.deleted_at is null
+      and p.created_at >= p_from and p.created_at < p_to
+    union all
+    -- Sign-offs and updates are entries too (review 45 M4).
+    select e.work_item_id, e.created_at
+    from public.work_item_events e
+    where e.space_id = p_space and e.kind in ('done', 'comment')
+      and e.created_at >= p_from and e.created_at < p_to
+  ),
+  visible as (
+    select v.post_id
+    from (select distinct seen.post_id from seen) v
+    join public.space_posts p on p.id = v.post_id and p.deleted_at is null
+    where public.can_see_space_post(v.post_id)
+  )
   select distinct 'posts'::text,
-         date_bin('15 minutes', p.created_at, timestamptz '2000-01-01 00:00+00'), null::date
-  from public.space_posts p
-  where p.space_id = p_space and p.deleted_at is null
-    and p.created_at >= p_from and p.created_at < p_to
-    and public.can_see_space_post(p.id)
+         date_bin('15 minutes', seen.at, timestamptz '2000-01-01 00:00+00'), null::date
+  from seen
+  join visible on visible.post_id = seen.post_id
   union
   select 'due'::text, null::timestamptz, p.due_date
   from public.space_posts p
@@ -1363,28 +1447,171 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- The daybook's entries (review 45 M1, M2)
+-- ---------------------------------------------------------------------------
+
+-- A post on the daybook. The paper clip of a Done work item waiting for my
+-- check sits on its latest sign-off, never on the slip; the owner's clip
+-- (Open, Sent back) stays on the slip, next to Sign as done.
+create function public.daybook_post_json(p_post public.space_posts)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select public.space_post_json(p_post, false)
+    || case when w.id is null then '{}'::jsonb
+            else jsonb_build_object('needs_me', coalesce(
+                   public.item_needs_me(w, p_post) is distinct from 'to_check'
+                   and public.item_needs_me(w, p_post) is not null, false)) end
+  from (select 1) one
+  left join public.work_items w on w.id = p_post.id;
+$$;
+
+-- A sign-off (a done event) or an update (a comment) on the daybook: its
+-- own entry at its own time, quoting the work item. A sign-off's outcome
+-- is what came after it: checked or sent back; else cancelled, if the item
+-- was, or still done.
+create function public.daybook_event_json(p_event public.work_item_events, p_post public.space_posts)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_strip_nulls(jsonb_build_object(
+    'id', p_event.id,
+    'post_id', p_post.id,
+    'space_id', p_post.space_id,
+    'team_id', p_post.team_id,
+    'ref', w.ref,
+    'title', p_post.title,
+    'post_status', p_post.status,
+    'item_status', w.status,
+    'actor_id', p_event.actor_id,
+    'actor_name', public.space_person_name(p_event.actor_id),
+    'note', p_event.note,
+    'at', p_event.created_at,
+    'photos', (
+      select jsonb_agg(jsonb_build_object('path', ev.storage_path, 'taken_at', ev.taken_at,
+                                          'place', ev.place_text) order by ev.created_at, ev.id)
+      from public.work_item_evidence ev where ev.event_id = p_event.id),
+    'outcome', case when p_event.kind = 'done' then (
+      select case
+        when nx.kind = 'checked' then jsonb_build_object(
+          'kind', 'checked', 'by_id', nx.actor_id,
+          'by_name', public.space_person_name(nx.actor_id), 'at', nx.created_at)
+        when nx.kind = 'sent_back' then jsonb_strip_nulls(jsonb_build_object(
+          'kind', 'sent_back', 'reason', nx.reason, 'note', nx.note, 'by_id', nx.actor_id,
+          'by_name', public.space_person_name(nx.actor_id), 'at', nx.created_at))
+        when p_post.status = 'cancelled' then jsonb_build_object('kind', 'cancelled')
+        else jsonb_build_object('kind', 'done')
+      end
+      from (select 1) one
+      left join lateral (
+        select x.kind, x.actor_id, x.reason, x.note, x.created_at
+        from public.work_item_events x
+        where x.work_item_id = p_event.work_item_id and x.kind in ('done', 'checked', 'sent_back')
+          and (x.created_at, x.id) > (p_event.created_at, p_event.id)
+        order by x.created_at, x.id
+        limit 1) nx on true) end,
+    'needs_me', case when p_event.kind = 'done' then
+      w.status = 'done'
+      and not exists (select 1 from public.work_item_events x
+                      where x.work_item_id = p_event.work_item_id and x.kind = 'done'
+                        and (x.created_at, x.id) > (p_event.created_at, p_event.id))
+      and public.item_needs_me(w, p_post) is not distinct from 'to_check' end
+  ))
+  from public.work_items w
+  where w.id = p_post.id;
+$$;
+
+-- The daybook, newest first: posts, sign-offs and updates, with one cursor
+-- (time, id). An entry is seen as its work item is (can_see_space_post);
+-- a deleted item's entries go with it, a cancelled item's stay.
+drop function public.daybook_page(uuid, timestamptz, integer, uuid);
+create function public.daybook_page(p_space uuid, p_before timestamptz default null,
+                                    p_limit integer default 30, p_before_id uuid default null)
+returns table (id uuid, created_at timestamptz, kind text, entry jsonb)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  -- Each kind newest first from its own index, stopping at a page, then
+  -- merged into one page.
+  with posts as (
+    select p.id, p.created_at, 'post'::text as kind, p.id as post_id, null::uuid as event_id
+    from public.space_posts p
+    where p.space_id = p_space and p.deleted_at is null
+      and public.is_member(p_space)
+      and (p_before is null
+           or (p_before_id is null and p.created_at < p_before)
+           or (p.created_at, p.id) < (p_before, p_before_id))
+      and public.can_see_space_post(p.id)
+    order by p.created_at desc, p.id desc
+    limit least(greatest(coalesce(p_limit, 30), 1), 100)
+  ),
+  events as (
+    select e.id, e.created_at,
+           case e.kind when 'done' then 'sign_off' else 'update' end as kind,
+           e.work_item_id as post_id, e.id as event_id
+    from public.work_item_events e
+    join public.space_posts p on p.id = e.work_item_id and p.deleted_at is null
+    where e.space_id = p_space and e.kind in ('done', 'comment')
+      and public.is_member(p_space)
+      and (p_before is null
+           or (p_before_id is null and e.created_at < p_before)
+           or (e.created_at, e.id) < (p_before, p_before_id))
+      and public.can_see_space_post(p.id)
+    order by e.created_at desc, e.id desc
+    limit least(greatest(coalesce(p_limit, 30), 1), 100)
+  ),
+  page as (
+    select x.* from (select * from posts union all select * from events) x
+    order by x.created_at desc, x.id desc
+    limit least(greatest(coalesce(p_limit, 30), 1), 100)
+  )
+  select pg.id, pg.created_at, pg.kind,
+         case when pg.kind = 'post' then public.daybook_post_json(p)
+              else public.daybook_event_json(e, p) end
+  from page pg
+  join public.space_posts p on p.id = pg.post_id
+  left join public.work_item_events e on e.id = pg.event_id
+  order by pg.created_at desc, pg.id desc;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Grants
 -- ---------------------------------------------------------------------------
 
 revoke execute on function
+  public.set_event_space(),
   public.due_at_fits(date, timestamptz),
   public.is_late(public.space_posts, date),
   public.set_site_start_date(uuid, date),
   public.daybook_month(uuid, date, date, timestamptz, timestamptz),
+  public.daybook_post_json(public.space_posts),
+  public.daybook_event_json(public.work_item_events, public.space_posts),
+  public.daybook_page(uuid, timestamptz, integer, uuid),
   public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid, uuid, jsonb,
                           jsonb, uuid, jsonb, jsonb, timestamptz),
   public.create_space_post(uuid, uuid, text, text, text, uuid, text, date, timestamptz,
                            timestamptz, timestamptz, uuid, uuid[], jsonb, uuid, jsonb, jsonb,
                            uuid, jsonb, timestamptz)
   from public, anon;
--- Internal helpers.
+-- Internal helpers: they answer about any post, without its own checks.
 revoke execute on function
-  public.is_late(public.space_posts, date)
+  public.is_late(public.space_posts, date),
+  public.daybook_post_json(public.space_posts),
+  public.daybook_event_json(public.work_item_events, public.space_posts)
   from authenticated;
 grant execute on function
   public.due_at_fits(date, timestamptz),
   public.set_site_start_date(uuid, date),
   public.daybook_month(uuid, date, date, timestamptz, timestamptz),
+  public.daybook_page(uuid, timestamptz, integer, uuid),
   public.create_work_item(uuid, text, uuid, date, uuid, text, jsonb, uuid, text, uuid, uuid, jsonb,
                           jsonb, uuid, jsonb, jsonb, timestamptz),
   public.create_space_post(uuid, uuid, text, text, text, uuid, text, date, timestamptz,
