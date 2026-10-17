@@ -534,6 +534,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Screenshots, EN and AR at 390×844: `docs/screens/slice1/ds-*.png` (run `flutter test test_screens --update-goldens`).
   - Not yet on the server, to settle before 1b/1d: a due time (only a date today), the Space's start date (day count), weather, undo of a check, a month RPC for the Space (days with posts, something due), the 12/24-hour time format in the market pack.
 
+- **17 Oct, migration 23, Daybook extras** (review 44; branch `daybook-extras-db`, **not live**): an optional due time (`space_posts.due_at`; a timed item is late after its time), "On site since" (`spaces.site_start_date`, set only by a Space admin), and `daybook_month` for the month drop-down (dots, never counts). Undo of a check stays in the app (no server change). An independent review found 1 medium and 3 low problems and test gaps; all fixed (an edit resending the same date dropped the time; a ticked checklist lit its day; a timed item fell out of "coming up" past the reader's midnight; targets lacked the time). 1,563 SQL checks in 23 files (73 for migration 23). Going live needs the founder's yes and must list only `20261017120000_daybook_extras.sql`.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
