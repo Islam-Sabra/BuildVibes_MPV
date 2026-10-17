@@ -97,8 +97,8 @@ Not missing: **opening a post in place** (blocks, /, turn into, tables) is **sli
 
 ## F12. The app closed on "Sign as done" (emulator, Omar)
 - **What happened:** on the second work item, tapping "Sign as done" closed the app completely. The first sign-off on the emulator had worked.
-- **Status:** Claude Code reads the emulator's crash log. The cause and fix go here.
-- A crash in the core loop is the most serious kind of finding: fix it first in the test-fix round, with a test that reproduces it.
+- **Status:** the whole emulator restarted (not only the app), and the log wasn't read before the restart. Not reproduced: the same Sign as done then worked on the emulator (the send-back and check loop afterwards).
+- **In the fix round:** search the emulator's and the phone's logs for any `FATAL EXCEPTION` in BuildVibes today. If one is found, it's the first fix, with a test. If not, close F12 as an emulator restart.
 
 ## F13. Activity rows can't be tapped
 - **What happened:** in Activity (Arabic), the rows are only notices. Tapping "فحص NST-003 من Islam Ahmed" does nothing.
