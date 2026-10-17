@@ -258,13 +258,14 @@ reset role;
 
 -- Review 17 ---------------------------------------------------------------------------------
 
--- A1: one level of replies. b002 answers b001, so nothing may answer b002.
+-- A1, changed by migration 25 (review 50 F2): two levels on screen. An
+-- answer to b002 (which answers b001) is filed under b001.
 select pg_temp.as_user('f2');
 set local role authenticated;
-select throws_ok(format($q$select public.add_reply(gen_random_uuid(), %L, %L, 'x')$q$,
-  pg_temp.post('a001'), pg_temp.post('b002')),
-  '22023', null, 'a reply to a second-level reply is refused');
+select public.add_reply(pg_temp.post('b0f1'), pg_temp.post('a001'), pg_temp.post('b002'), 'x');
 reset role;
+select is((select reply_to from public.post_replies where id = pg_temp.post('b0f1')),
+  pg_temp.post('b001'), 'an answer to a second-level reply is filed under its top comment');
 
 -- B10: the author doesn't see a reply from someone they blocked.
 insert into public.blocks (blocker_id, blocked_id) values (pg_temp.uid('f1'), pg_temp.uid('f3'));
