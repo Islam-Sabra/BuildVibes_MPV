@@ -97,10 +97,10 @@ void main() {
           .getTopLeft(find.byKey(const Key('daybook-entry-post-rebar')))
           .dy;
       expect(rebar, greaterThan(sleeves));
-      expect(
-        find.text(words.clock(DateTime(2026, 10, 15, 8, 14))),
-        findsOneWidget,
-      );
+      // On the spine, the part of the day on its own line (F15).
+      final at = words.spineClock(DateTime(2026, 10, 15, 8, 14));
+      expect(find.text(at.time), findsOneWidget);
+      if (at.period != null) expect(find.text(at.period!), findsWidgets);
       // My own post says "You"; the meta names the owner and the due.
       expect(find.text(l10n.daybookYou), findsWidgets);
       expect(

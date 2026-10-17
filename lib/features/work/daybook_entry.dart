@@ -55,12 +55,16 @@ class DaybookEntry extends StatelessWidget {
   final DaybookWords words;
 
   @override
-  Widget build(BuildContext context) => BvSpineEntry(
-    key: Key('daybook-entry-${slip.record.id}'),
-    time: words.clock(slip.record.at),
-    dot: slip.dot,
-    child: slip,
-  );
+  Widget build(BuildContext context) {
+    final at = words.spineClock(slip.record.at);
+    return BvSpineEntry(
+      key: Key('daybook-entry-${slip.record.id}'),
+      time: at.time,
+      period: at.period,
+      dot: slip.dot,
+      child: slip,
+    );
+  }
 }
 
 /// The slip of a daybook entry: a work item [DaybookPost], the owner's

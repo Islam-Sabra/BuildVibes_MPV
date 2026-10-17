@@ -1673,7 +1673,7 @@ abstract class AppLocalizations {
   /// H1e card body (work Spaces only in the MVP).
   ///
   /// In en, this message translates to:
-  /// **'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.'**
+  /// **'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, updates and anything waiting for you.'**
   String get spacesEmptyBody;
 
   /// H1e note under the card.
@@ -1925,7 +1925,7 @@ abstract class AppLocalizations {
   /// S16 explanation.
   ///
   /// In en, this message translates to:
-  /// **'Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.'**
+  /// **'Send the code on WhatsApp or read it out. The Space admin confirms each person before they join.'**
   String get spacesInviteHow;
 
   /// Text shared with the system share sheet.
@@ -3323,7 +3323,7 @@ abstract class AppLocalizations {
   /// Empty feed.
   ///
   /// In en, this message translates to:
-  /// **'No posts yet. Share what happened on site today.'**
+  /// **'No posts yet. Share what happened at work today.'**
   String get feedEmpty;
 
   /// H5.
@@ -5108,6 +5108,12 @@ abstract class AppLocalizations {
   /// **'{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
   String daybookClock12(String time, String period);
 
+  /// The part of the day alone, as the time spine prints it on a second, smaller line under a 12-hour time ("11:58" then "pm"). The same words as daybookClock12.
+  ///
+  /// In en, this message translates to:
+  /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
+  String daybookClockPeriod(String period);
+
   /// Proof slip header, after the signer's name.
   ///
   /// In en, this message translates to:
@@ -5237,7 +5243,7 @@ abstract class AppLocalizations {
   /// Writing: the place field placeholder.
   ///
   /// In en, this message translates to:
-  /// **'Where on site'**
+  /// **'Where'**
   String get daybookPlaceHint;
 
   /// Due time picker: keep the date only.
@@ -5771,7 +5777,7 @@ abstract class AppLocalizations {
   /// The text field of a post being written on Home (H2).
   ///
   /// In en, this message translates to:
-  /// **'What happened on site today?'**
+  /// **'What happened at work today?'**
   String get postWritingHint;
 
   /// The More menu while writing a post: tag a project from your profile.

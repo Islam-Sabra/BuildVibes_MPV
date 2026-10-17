@@ -19,6 +19,7 @@ import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_project_tag.dart';
 import '../../shared/widgets/bv_slip.dart';
+import '../../shared/widgets/bv_tap_target.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../data/repositories/safety_repository.dart';
@@ -132,71 +133,63 @@ class PostCard extends ConsumerWidget {
       key: Key('post-${post.id}'),
       tear: BvSlipBorder.forId(post.id).variant,
       onTap: onOpen,
-      children: [
-        Row(
-          spacing: BvSpace.s8,
-          children: [
-            Expanded(
-              child: GestureDetector(
-                key: Key('post-author-${post.id}'),
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _openAuthor(context, me),
-                child: Row(
-                  spacing: BvSpace.s8,
-                  children: [
-                    BvAvatar(
-                      name: post.authorName,
-                      size: BvAvatarSize.xsm,
-                      tint: BvAvatarTints.forId(post.authorId),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            inOwnDirection(post.authorName),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: type.labelSm.copyWith(
-                              color: BvColors.textPrimary,
-                            ),
-                          ),
-                          if (byline.isNotEmpty)
-                            Text(
-                              byline,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: type.metadata.copyWith(
-                                color: BvColors.textSecondary,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      // Level with the name, at the top end corner (review 50 F19); with
+      // no line under the name, level with the name beside the avatar.
+      menu: waiting
+          ? null
+          : BvSlipCornerMenu(
+              key: Key('post-menu-${post.id}'),
+              label: l10n.postMenu,
+              onTap: () => _menu(context, ref, mine),
             ),
-            if (!waiting)
-              Semantics(
-                button: true,
-                label: l10n.postMenu,
-                excludeSemantics: true,
-                child: InkResponse(
-                  key: Key('post-menu-${post.id}'),
-                  radius: BvSize.touchMin / 2,
-                  onTap: () => _menu(context, ref, mine),
-                  child: const SizedBox.square(
-                    dimension: BvSize.controlMd,
-                    child: Icon(
-                      BvIcons.more,
-                      size: BvHomeSpec.menuIcon,
-                      color: BvColors.iconPrimary,
-                    ),
+      menuLine: byline.isEmpty ? BvHomeSpec.authorAvatar : BvSlipSpec.firstLine,
+      children: [
+        GestureDetector(
+          key: Key('post-author-${post.id}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _openAuthor(context, me),
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              end: waiting ? 0 : BvSlipCornerMenu.reserve,
+            ),
+            child: Row(
+              spacing: BvSpace.s8,
+              children: [
+                BvAvatar(
+                  name: post.authorName,
+                  size: BvAvatarSize.xsm,
+                  tint: BvAvatarTints.forId(post.authorId),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        inOwnDirection(post.authorName),
+                        key: Key('post-name-${post.id}'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.labelSm.copyWith(
+                          color: BvColors.textPrimary,
+                          fontWeight: BvHomeSpec.nameWeight,
+                        ),
+                      ),
+                      if (byline.isNotEmpty)
+                        Text(
+                          byline,
+                          key: Key('post-byline-${post.id}'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: type.metadata.copyWith(
+                            color: BvColors.textSecondary,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
         if ((post.body ?? '').isNotEmpty)
           Text(
@@ -239,25 +232,34 @@ class PostCard extends ConsumerWidget {
             key: Key('post-proof-${post.id}'),
             style: type.metadata.copyWith(color: BvColors.textSecondary),
           ),
+        // Useful and Reply, each with a 48 touch area that reaches into
+        // the gap above and the padding below. No share arrow: sharing a
+        // post isn't built.
         if (!waiting)
-          Row(
-            spacing: BvHomeSpec.actionsGap,
-            children: [
-              _Action(
-                key: Key('post-useful-${post.id}'),
-                icon: BvIcons.useful,
-                label: l10n.postUseful,
-                active: post.myUseful,
-                // Not on your own post.
-                onTap: mine ? null : useful,
+          BvTapTarget(
+            outset: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
+            child: SizedBox(
+              height: BvHomeSpec.actionsHeight,
+              child: Row(
+                spacing: BvHomeSpec.actionsGap,
+                children: [
+                  _Action(
+                    key: Key('post-useful-${post.id}'),
+                    icon: BvIcons.useful,
+                    label: l10n.postUseful,
+                    active: post.myUseful,
+                    // Not on your own post.
+                    onTap: mine ? null : useful,
+                  ),
+                  _Action(
+                    key: Key('post-reply-${post.id}'),
+                    icon: BvIcons.chat,
+                    label: l10n.postReply,
+                    onTap: onOpen,
+                  ),
+                ],
               ),
-              _Action(
-                key: Key('post-reply-${post.id}'),
-                icon: BvIcons.chat,
-                label: l10n.postReply,
-                onTap: onOpen,
-              ),
-            ],
+            ),
           ),
       ],
     );
@@ -490,15 +492,15 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final color = active ? BvColors.textAction : BvColors.textSecondary;
-    return Semantics(
-      button: true,
-      selected: active,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        // The look is small; the touch area is 44 high.
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: BvSize.controlMd),
+    // The look is small; the touch area is 48 × 48 (outside everything
+    // else, so a touch beside the words reaches them).
+    return BvTapTarget(
+      child: Semantics(
+        button: true,
+        selected: active,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             spacing: BvHomeSpec.actionGap,

@@ -1206,7 +1206,7 @@
   "@spacesEmptyTitle": {
     "description": "H1e card title."
   },
-  "spacesEmptyBody": "A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.",
+  "spacesEmptyBody": "A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, updates and anything waiting for you.",
   "@spacesEmptyBody": {
     "description": "H1e card body (work Spaces only in the MVP)."
   },
@@ -1394,7 +1394,7 @@
   "@spacesNewCodeNote": {
     "description": "S16 note."
   },
-  "spacesInviteHow": "Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.",
+  "spacesInviteHow": "Send the code on WhatsApp or read it out. The Space admin confirms each person before they join.",
   "@spacesInviteHow": {
     "description": "S16 explanation."
   },
@@ -2668,7 +2668,7 @@
       }
     }
   },
-  "feedEmpty": "No posts yet. Share what happened on site today.",
+  "feedEmpty": "No posts yet. Share what happened at work today.",
   "@feedEmpty": {
     "description": "Empty feed."
   },
@@ -4337,6 +4337,15 @@
       }
     }
   },
+  "daybookClockPeriod": "{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}",
+  "@daybookClockPeriod": {
+    "description": "The part of the day alone, as the time spine prints it on a second, smaller line under a 12-hour time (\"11:58\" then \"pm\"). The same words as daybookClock12.",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
   "daybookSignedAsDone": "signed as done",
   "@daybookSignedAsDone": {
     "description": "Proof slip header, after the signer's name."
@@ -4456,7 +4465,7 @@
   "@daybookOwnerNow": {
     "description": "Give-to picker: under the current owner."
   },
-  "daybookPlaceHint": "Where on site",
+  "daybookPlaceHint": "Where",
   "@daybookPlaceHint": {
     "description": "Writing: the place field placeholder."
   },
@@ -4863,7 +4872,7 @@
       }
     }
   },
-  "postWritingHint": "What happened on site today?",
+  "postWritingHint": "What happened at work today?",
   "@postWritingHint": {
     "description": "The text field of a post being written on Home (H2)."
   },

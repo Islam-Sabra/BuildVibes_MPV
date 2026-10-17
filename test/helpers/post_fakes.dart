@@ -43,6 +43,10 @@ class FakePostRepository implements PostRepository {
   /// The next replies reach the server but their answer is lost.
   int replyAnswerLost = 0;
 
+  /// The server before migration 25: a reply may only answer a top-level
+  /// reply, and a reply to a second-level one is refused.
+  bool oneLevelReplies = false;
+
   void _maybeFail() {
     if (failNext > 0) {
       failNext--;
@@ -164,6 +168,16 @@ class FakePostRepository implements PostRepository {
     calls.add('reply $postId ${replyTo ?? '-'} $body');
     // As add_reply: the same id again is the same reply.
     if (repliesByPost[postId]?.any((r) => r.id == id) ?? false) return;
+    final target = replyTo == null
+        ? null
+        : repliesByPost[postId]?.where((r) => r.id == replyTo).firstOrNull;
+    if (replyTo != null &&
+        (target == null || (oneLevelReplies && target.replyTo != null))) {
+      throw const SpaceException(
+        SpaceFailure.badInput,
+        'reply to a reply on this post',
+      );
+    }
     repliesByPost
         .putIfAbsent(postId, () => [])
         .add(
@@ -172,7 +186,10 @@ class FakePostRepository implements PostRepository {
             postId: postId,
             authorId: 'user-1',
             authorName: 'Omar Haddad',
-            replyTo: replyTo,
+            // Migration 25: filed under the top comment, keeping the
+            // person answered.
+            replyTo: target == null ? null : target.replyTo ?? target.id,
+            replyToPerson: oneLevelReplies ? null : target?.authorId,
             body: body,
             createdAt: now,
           ),

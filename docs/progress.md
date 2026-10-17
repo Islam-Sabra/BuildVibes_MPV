@@ -585,6 +585,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **17 Oct, slice 1 test fixes, Part D (signing and checking)** (review 51; branch `slice1-fixes`): F6 the proof screen opens with "Take a photo" one tap away and a "Without a photo" link (then the note is required; the slip shows the note with no frame); F7 a tap never signs, "Send as done" is held 5 s with "Signed as done · Undo" (Undo sends nothing and reopens the proof with its photos and note); F5 a soft sound and a light haptic when the server accepts a sign-off or a post (haptic only on silent; own-made tone in `assets/sounds/`).
 
+- **18 Oct, slice 1 test fixes, Part E (words and layout)** (review 51; branch `slice1-fixes`): F4 the "site only" wording is gone in EN and AR (a test fails on new "site"/"موقع" strings unless kept on purpose); F15 in the 12-hour clock the period sits on a small second line under the time, so "11:58 مساءً" fits; F19 the feed card and the post page follow H1 (⋯ level with the name, semibold name with the headline, the card hugs short posts, replies as small slips with "Replying to …"); F2's app side works before and after migration 25. F14 left for the founder.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

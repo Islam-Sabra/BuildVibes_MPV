@@ -221,6 +221,33 @@ void main() {
       expect(ar(23, 59), '11:59 مساءً');
     });
 
+    test('F15: the spine splits a 12-hour time from its part of the day', () {
+      final t = DateTime(2026, 10, 15, 23, 58);
+      expect(_words('ar', use24: false).spineClock(t), (
+        time: '11:58',
+        period: 'مساءً',
+      ));
+      expect(_words('en', use24: false).spineClock(t), (
+        time: '11:58',
+        period: 'pm',
+      ));
+      // 24-hour: one line.
+      expect(_words('ar', use24: true).spineClock(t), (
+        time: '23:58',
+        period: null,
+      ));
+      // Home: only today's time has a part of the day.
+      final now = DateTime(2026, 10, 15, 23, 59);
+      expect(_words('en', use24: false).feedTime(t, now).period, 'pm');
+      expect(
+        _words(
+          'en',
+          use24: false,
+        ).feedTime(DateTime(2026, 10, 14, 23, 58), now).period,
+        isNull,
+      );
+    });
+
     test("the large stamp's line: the short name in capitals, the time", () {
       final at = DateTime(2026, 10, 15, 9, 40);
       expect(_words('en').stampLine('Omar Haddad', at), 'OMAR H · 09:40');

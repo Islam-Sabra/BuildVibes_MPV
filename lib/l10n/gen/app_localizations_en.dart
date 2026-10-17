@@ -887,7 +887,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesEmptyBody =>
-      'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.';
+      'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, updates and anything waiting for you.';
 
   @override
   String get spacesEmptyFeedNote =>
@@ -1028,7 +1028,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesInviteHow =>
-      'Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.';
+      'Send the code on WhatsApp or read it out. The Space admin confirms each person before they join.';
 
   @override
   String spacesShareText(String space, String code) {
@@ -1892,7 +1892,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get feedEmpty => 'No posts yet. Share what happened on site today.';
+  String get feedEmpty => 'No posts yet. Share what happened at work today.';
 
   @override
   String get feedCouldntLoad => 'Couldn\'t load your Feed';
@@ -3065,6 +3065,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String daybookClockPeriod(String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'morning': 'am',
+      'noon': 'pm',
+      'afternoon': 'pm',
+      'evening': 'pm',
+      'other': 'pm',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get daybookSignedAsDone => 'signed as done';
 
   @override
@@ -3136,7 +3148,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookOwnerNow => 'now';
 
   @override
-  String get daybookPlaceHint => 'Where on site';
+  String get daybookPlaceHint => 'Where';
 
   @override
   String get daybookNoTime => 'No time';
@@ -3426,7 +3438,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get postWritingHint => 'What happened on site today?';
+  String get postWritingHint => 'What happened at work today?';
 
   @override
   String get postWritingProject => 'Project';

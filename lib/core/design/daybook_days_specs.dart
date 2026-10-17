@@ -21,6 +21,11 @@ abstract final class BvSpineSpec {
   static const labelToSpine = BvSpace.s12;
   static const labelTop = 14.0;
 
+  /// A 12-hour time's part of the day ("pm", "مساءً"), on its own smaller
+  /// line under the time (review 50 F15).
+  static const periodSize = 10.0;
+  static const periodLine = 12.0;
+
   /// A 3.5 circle with a 2 px halo (or ring), 9 across in all.
   static const dotSize = 9.0;
   static const dotRadius = 3.5;

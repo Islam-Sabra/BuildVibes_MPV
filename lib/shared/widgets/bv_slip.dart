@@ -18,6 +18,10 @@ import 'bv_torn_edge.dart';
 /// paper clip there, sticking out above the tear, when the slip needs you.
 /// Both mirror in right to left. A [cancelled] slip fades; a [lifted] one
 /// (under the long-press menu) casts a deeper shadow.
+///
+/// [menu] (a [BvSlipCornerMenu]) is the ⋯ at the top end corner, level with the
+/// first line, its 48 touch area inside the paper (review 50 F19). Leave
+/// [BvSlipCornerMenu.reserve] free at the end of the first child.
 class BvSlip extends StatelessWidget {
   const BvSlip({
     super.key,
@@ -27,6 +31,8 @@ class BvSlip extends StatelessWidget {
     this.clip = false,
     this.cancelled = false,
     this.lifted = false,
+    this.menu,
+    this.menuLine = BvSlipSpec.firstLine,
     this.onTap,
     this.onDoubleTap,
     this.onLongPress,
@@ -40,6 +46,11 @@ class BvSlip extends StatelessWidget {
   final bool clip;
   final bool cancelled;
   final bool lifted;
+  final Widget? menu;
+
+  /// The height of the first line the ⋯ centres on: 16 for a name over a
+  /// headline, the avatar's when the name sits alone beside it.
+  final double menuLine;
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
   final VoidCallback? onLongPress;
@@ -95,6 +106,12 @@ class BvSlip extends StatelessWidget {
             end: BvSlipSpec.clipEnd,
             child: const BvPaperClip(),
           ),
+        if (menu != null)
+          PositionedDirectional(
+            top: border.edgeHeight + BvSlipSpec.menuTopFor(menuLine),
+            end: 0,
+            child: menu!,
+          ),
       ],
     );
     if (cancelled) {
@@ -115,6 +132,43 @@ class BvSlip extends StatelessWidget {
       child: slip,
     );
   }
+}
+
+/// The ⋯ on a slip ([BvSlip.menu]): an 18 icon at the paper's top end
+/// corner, centred on the first line, in a 48 × 48 touch area.
+class BvSlipCornerMenu extends StatelessWidget {
+  const BvSlipCornerMenu({super.key, required this.label, required this.onTap});
+
+  /// Room the first line leaves at its end for the icon.
+  static const reserve = BvSlipSpec.menuIcon + BvSlipSpec.menuGap;
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    excludeSemantics: true,
+    child: InkResponse(
+      radius: BvSize.touchMin / 2,
+      onTap: onTap,
+      child: const SizedBox.square(
+        dimension: BvSize.touchMin,
+        child: Padding(
+          padding: EdgeInsetsDirectional.only(end: BvSlipSpec.paddingSide),
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Icon(
+              BvIcons.more,
+              size: BvSlipSpec.menuIcon,
+              color: BvColors.iconPrimary,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// §2a: avatar 24 in the person's tint, the name and an optional action

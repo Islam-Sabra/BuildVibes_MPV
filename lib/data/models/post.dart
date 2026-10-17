@@ -217,8 +217,11 @@ class PostPage<T> {
   final Map<String, dynamic>? next;
 }
 
-/// A reply on a post. [replyTo] is the top-level reply it answers; [toName]
-/// is the person tapped ("Replying to {name}").
+/// A reply on a post. [replyTo] is the top-level reply it is filed under;
+/// [replyToPerson] is the person it answers ("Replying to {name}", review
+/// 50 F2). The server keeps that person from migration 25 on; before it,
+/// or for older replies, it is null and the top-level reply's author is
+/// the one answered.
 @immutable
 class PostReply {
   const PostReply({
@@ -230,6 +233,7 @@ class PostReply {
     required this.createdAt,
     this.authorHeadline,
     this.replyTo,
+    this.replyToPerson,
     this.myUseful = false,
   });
 
@@ -242,6 +246,8 @@ class PostReply {
       authorName: _join(author?['first_name'], author?['last_name']),
       authorHeadline: author?['headline'] as String?,
       replyTo: json['reply_to'] as String?,
+      // Absent before migration 25.
+      replyToPerson: json['reply_to_person'] as String?,
       body: json['body'] as String? ?? '',
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -253,6 +259,7 @@ class PostReply {
   final String authorName;
   final String? authorHeadline;
   final String? replyTo;
+  final String? replyToPerson;
   final String body;
   final DateTime createdAt;
   final bool myUseful;
@@ -264,6 +271,7 @@ class PostReply {
     authorName: authorName,
     authorHeadline: authorHeadline,
     replyTo: replyTo,
+    replyToPerson: replyToPerson,
     body: body,
     createdAt: createdAt,
     myUseful: myUseful ?? this.myUseful,

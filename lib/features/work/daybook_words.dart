@@ -8,6 +8,10 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../spaces/former_member.dart';
 
+/// A time on the spine: the time, and on a 12-hour phone its part of the
+/// day for the smaller line under it.
+typedef SpineTime = ({String time, String? period});
+
 /// The Daybook's words for days and times, in the app language with
 /// Western digits. [use24] follows the phone's own clock setting
 /// (MediaQuery.alwaysUse24HourFormat, review 44 answer 6), one format for
@@ -25,12 +29,28 @@ class DaybookWords {
   /// "08:14"; on a 12-hour phone "8:14 am", "2 pm" ("2 ظهرًا" in Arabic,
   /// the AR frames' words).
   String clock(DateTime t) {
+    if (use24) return _clock24(t);
+    final (time, period) = _clock12(t);
+    return l10n.daybookClock12(time, period);
+  }
+
+  /// The time spine's label: "08:14"; on a 12-hour phone the time and,
+  /// for a second smaller line under it, its part of the day ("11:58",
+  /// "مساءً"), so the longest time fits the column in every language
+  /// (review 50 F15).
+  SpineTime spineClock(DateTime t) {
+    if (use24) return (time: _clock24(t), period: null);
+    final (time, period) = _clock12(t);
+    return (time: time, period: l10n.daybookClockPeriod(period));
+  }
+
+  String _clock24(DateTime t) => BvWesternDigitsFormatter.normalise(
+    DateFormat.Hm(locale).format(t.toLocal()),
+  );
+
+  /// "11:58" (or "2" on the hour) and the part of the day.
+  (String, String) _clock12(DateTime t) {
     final local = t.toLocal();
-    if (use24) {
-      return BvWesternDigitsFormatter.normalise(
-        DateFormat.Hm(locale).format(local),
-      );
-    }
     final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
     final time = local.minute == 0
         ? '$hour'
@@ -42,7 +62,7 @@ class DaybookWords {
         : local.hour < 18
         ? 'afternoon'
         : 'evening';
-    return l10n.daybookClock12(time, period);
+    return (time, period);
   }
 
   /// "Thursday".
@@ -50,14 +70,16 @@ class DaybookWords {
 
   /// Home's time spine (H1 v3): "06:10" today, "Wed" this past week, then
   /// "12 Oct".
-  String feedTime(DateTime t, DateTime now) {
+  /// Today's time has its part of the day on a line of its own
+  /// ([spineClock]).
+  SpineTime feedTime(DateTime t, DateTime now) {
     final day = dayOf(t);
     final today = dayOf(now);
-    if (day == today) return clock(t);
+    if (day == today) return spineClock(t);
     if (today.difference(day).inDays < DateTime.daysPerWeek) {
-      return _f('EEE', day);
+      return (time: _f('EEE', day), period: null);
     }
-    return _f('d MMM', day);
+    return (time: _f('d MMM', day), period: null);
   }
 
   /// "15 October".

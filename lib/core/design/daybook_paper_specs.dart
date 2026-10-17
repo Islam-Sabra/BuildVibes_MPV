@@ -30,6 +30,15 @@ abstract final class BvSlipSpec {
   /// slip has both, so they never overlap (review 45, 1b note).
   static const stampEndWithClip = 44.0;
 
+  /// The ⋯ menu (H1 v3 2555:35317): 18, 8 after the first line, centred
+  /// on its 16-high first line in a 48 touch area that starts at the top
+  /// of the paper (review 50 F19).
+  static const menuIcon = 18.0;
+  static const menuGap = BvSpace.s8;
+  static const firstLine = BvSpace.s16;
+  static double menuTopFor(double line) =>
+      paddingTop + line / 2 - BvSize.touchMin / 2;
+
   /// A proof with no photo (F6, review 50): the large stamp is pressed
   /// under the note at the end side, in its own room (with some for its
   /// tilt), never over the header. No frame draws it.

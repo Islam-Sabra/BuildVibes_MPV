@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/data/models/profile.dart';
@@ -175,6 +176,84 @@ void main() {
         find.byKey(const Key('post-photo-p-omar2/p1/a.jpg')),
         findsOneWidget,
       );
+    });
+
+    testWidgets('F19: the card: ⋯ level with the name, the name in semibold '
+        'with the headline under it, the text right under, actions with a '
+        '48 touch area [$lang]', (tester) async {
+      final posts = _posts()
+        ..posts.add(
+          Post(
+            id: 'p4',
+            authorId: 'p-lina',
+            authorName: 'Lina Haddad',
+            body: 'Ok.',
+            lang: 'en',
+            createdAt: testNow.subtract(const Duration(hours: 5)),
+          ),
+        )
+        ..home.add('p4');
+      final app = await _feed(tester, lang, posts: posts);
+      Rect at(String key) => tester.getRect(find.byKey(Key(key)));
+      final name = at('post-name-p1');
+      final menu = at('post-menu-p1');
+      expect(menu.center.dy, closeTo(name.center.dy, 1));
+      expect(menu.size, const Size(48, 48));
+      // At the card's top end corner, inside the paper.
+      final card = at('post-p1');
+      expect(
+        lang == 'ar' ? menu.left : card.right - menu.right,
+        closeTo(lang == 'ar' ? card.left : 0, 1),
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('post-name-p1')))
+            .style!
+            .fontWeight,
+        FontWeight.w600,
+      );
+      expect(
+        tester.widget<Text>(find.byKey(const Key('post-byline-p1'))).data,
+        contains('Site Engineer, Al Hamra Contracting'),
+      );
+      // The text directly under the author block: the slip's 10 gap.
+      final byline = at('post-byline-p1');
+      final body = tester.getRect(
+        find.text('First pour on the podium transfer slab is done.'),
+      );
+      expect(body.top - byline.bottom, closeTo(10, 1));
+      // Useful takes a touch 20 above its middle (48 high, centred).
+      await tester.ensureVisible(find.byKey(const Key('post-useful-p1')));
+      await tester.pumpAndSettle();
+      final useful = at('post-useful-p1');
+      await tester.tapAt(useful.center.translate(0, -20));
+      await tester.pumpAndSettle();
+      expect(app.posts.calls, ['useful post p1 true']);
+      await tester.tapAt(useful.center.translate(0, 20));
+      await tester.pumpAndSettle();
+      expect(app.posts.calls.last, 'useful post p1 false');
+
+      // No headline: the name sits centred with the avatar, no empty line,
+      // and ⋯ stays level with it.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('post-p4')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('post-byline-p4')), findsNothing);
+      final avatar = tester.getRect(
+        find.descendant(
+          of: find.byKey(const Key('post-p4')),
+          matching: find.byType(BvAvatar),
+        ),
+      );
+      final alone = at('post-name-p4');
+      expect(alone.center.dy, closeTo(avatar.center.dy, 1));
+      expect(at('post-menu-p4').center.dy, closeTo(alone.center.dy, 1));
+      // The card hugs a short post: the text, then the actions.
+      final short = at('post-p4');
+      final actions = at('post-useful-p4');
+      expect(short.bottom - actions.bottom, lessThan(20));
     });
 
     testWidgets('Useful: on and off; never on your own post [$lang]', (
@@ -517,7 +596,15 @@ void main() {
       final r1 = tester.getRect(find.byKey(const Key('reply-r1')));
       final r2 = tester.getRect(find.byKey(const Key('reply-r2')));
       expect(lang == 'ar' ? r2.right < r1.right : r2.left > r1.left, isTrue);
-      // Replying to Mariam answers the top-level reply, named for her.
+      // An answer reads "Replying to" its top-level reply's author, when
+      // the server doesn't name the person (before migration 25).
+      expect(
+        tester.widget<Text>(find.byKey(const Key('reply-to-r2'))).data,
+        l10n.postReplyingTo(inOwnDirection('Faisal Al-Rashidi')),
+      );
+      expect(find.byKey(const Key('reply-to-r1')), findsNothing);
+      // Replying to Mariam answers her reply (review 50 F2): the server
+      // files it under Faisal's.
       await _tap(tester, 'reply-reply-r2');
       expect(find.text(l10n.postReplyingTo('Mariam Al-Sabah')), findsOneWidget);
       // English text stays left to right in Arabic: the quote and the box.
@@ -539,8 +626,127 @@ void main() {
         TextDirection.ltr,
       );
       await _tap(tester, 'post-reply-send');
-      expect(app.posts.calls.single, 'reply p1 r1 Thanks.');
+      expect(app.posts.calls.single, 'reply p1 r2 Thanks.');
       expect(find.byKey(const Key('post-replying')), findsNothing);
+      // Filed under Faisal's, "Replying to Mariam Al-Sabah".
+      final mine = app.posts.repliesByPost['p1']!.last;
+      expect(mine.replyTo, 'r1');
+      expect(
+        tester.widget<Text>(find.byKey(Key('reply-to-${mine.id}'))).data,
+        l10n.postReplyingTo(inOwnDirection('Mariam Al-Sabah')),
+      );
+    });
+
+    testWidgets('F2: before migration 25 an answer to an answer goes to the '
+        'top-level reply [$lang]', (tester) async {
+      final posts = _posts()
+        ..oneLevelReplies = true
+        ..repliesByPost['p1'] = [
+          PostReply(
+            id: 'r1',
+            postId: 'p1',
+            authorId: 'p-faisal',
+            authorName: 'Faisal Al-Rashidi',
+            body: 'Good catch on C7.',
+            createdAt: testNow.subtract(const Duration(hours: 1)),
+          ),
+          PostReply(
+            id: 'r2',
+            postId: 'p1',
+            authorId: 'p-mariam',
+            authorName: 'Mariam Al-Sabah',
+            replyTo: 'r1',
+            body: 'Model updated.',
+            createdAt: testNow.subtract(const Duration(minutes: 30)),
+          ),
+        ];
+      final app = await _feed(tester, lang, posts: posts);
+      _router(tester).push('/posts/p1');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'reply-reply-r2');
+      await tester.enterText(
+        find.byKey(const Key('post-reply-input')),
+        'Thanks.',
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, 'post-reply-send');
+      // Refused for r2, then sent to r1 with the same id: one reply, and
+      // no error.
+      expect(app.posts.calls, ['reply p1 r2 Thanks.', 'reply p1 r1 Thanks.']);
+      expect(app.posts.repliesByPost['p1'], hasLength(3));
+      expect(app.posts.repliesByPost['p1']!.last.replyTo, 'r1');
+      expect(find.byKey(const Key('post-replying')), findsNothing);
+      expect(find.text(l10n.errorGeneric), findsNothing);
+    });
+
+    testWidgets('F19: a reply slip: name and time on one line, the text and '
+        'its actions under the name, the menu level with the name [$lang]', (
+      tester,
+    ) async {
+      final posts = _posts()
+        ..repliesByPost['p1'] = [
+          PostReply(
+            id: 'r1',
+            postId: 'p1',
+            authorId: 'p-faisal',
+            authorName: 'Faisal Al-Rashidi',
+            authorHeadline: 'Site Engineer',
+            body: 'Good catch on C7.',
+            createdAt: testNow.subtract(const Duration(minutes: 4)),
+          ),
+          PostReply(
+            id: 'r2',
+            postId: 'p1',
+            authorId: 'p-mariam',
+            authorName: 'Mariam Al-Sabah',
+            replyTo: 'r1',
+            replyToPerson: 'p-faisal',
+            body: 'Model updated.',
+            createdAt: testNow.subtract(const Duration(minutes: 2)),
+          ),
+        ];
+      await _feed(tester, lang, posts: posts);
+      _router(tester).push('/posts/p1');
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('reply-r2')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      Rect at(String key) => tester.getRect(find.byKey(Key(key)));
+      for (final id in ['r1', 'r2']) {
+        final name = at('reply-name-$id');
+        final time = at('reply-time-$id');
+        final body = at('reply-body-$id');
+        final useful = at('reply-useful-$id');
+        final menu = at('reply-menu-$id');
+        // One line.
+        expect(time.center.dy, closeTo(name.center.dy, 1));
+        // The text and the actions start under the name.
+        if (lang == 'ar') {
+          expect(body.right, closeTo(name.right, 1));
+          expect(useful.right, closeTo(name.right, 1));
+        } else {
+          expect(body.left, closeTo(name.left, 1));
+          expect(useful.left, closeTo(name.left, 1));
+        }
+        expect(useful.top, greaterThan(body.bottom));
+        // ⋯ level with the name, 48 × 48.
+        expect(menu.center.dy, closeTo(name.center.dy, 1));
+        expect(menu.size, const Size(48, 48));
+      }
+      // Under the name, not the headline (replies show who and when).
+      expect(find.text('Site Engineer'), findsNothing);
+      // Every top-level slip as wide as the others; an answer starts under
+      // the name above it.
+      final r1 = at('reply-r1');
+      final r2 = at('reply-r2');
+      expect(r2.width, lessThan(r1.width));
+      if (lang == 'ar') {
+        expect(r2.right, closeTo(at('reply-name-r1').right, 1));
+      } else {
+        expect(r2.left, closeTo(at('reply-name-r1').left, 1));
+      }
     });
 
     testWidgets('H13/H14: delete your own reply only [$lang]', (tester) async {
@@ -648,7 +854,6 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Site Engineer'), findsOneWidget);
       expect(find.text(l10n.timeMinutesShort(4)), findsOneWidget);
       await _tap(tester, 'reply-useful-r1');
       expect(app.posts.calls.single, 'useful reply r1 true');

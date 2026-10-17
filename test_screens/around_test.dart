@@ -35,6 +35,9 @@ import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/feed/feed_state.dart';
 import 'package:buildvibes/features/feed/post_card.dart';
 import 'package:buildvibes/features/feed/post_draft.dart';
+import 'package:buildvibes/features/feed/post_screen.dart';
+import 'package:buildvibes/core/design/bv_tokens.dart';
+import 'package:buildvibes/core/design/daybook_days_specs.dart';
 import 'package:buildvibes/features/home/home_screen.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/profile/person_profile_screen.dart';
@@ -107,6 +110,7 @@ Future<List<Override>> _base({
   List<ActivityRow> rows = const [],
   FakeSpaceRepository? spaces,
   Map<String, Object> phone = const {},
+  DateTime? now,
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
@@ -116,7 +120,7 @@ Future<List<Override>> _base({
     sharedPreferencesProvider.overrideWithValue(prefs),
     authUserIdProvider.overrideWithValue(AsyncData(me)),
     appGateProvider.overrideWithValue(AppGate.ready),
-    clockProvider.overrideWithValue(() => DaybookSamples.thursday),
+    clockProvider.overrideWithValue(() => now ?? DaybookSamples.thursday),
     activityRepositoryProvider.overrideWithValue(
       FakeActivityRepository(cards: needs, today: today, rows: rows),
     ),
@@ -286,6 +290,8 @@ void main() {
       List<NeedsCard> needs = const [],
       List<SpaceToday> today = const [],
       FakeSpaceRepository? spaces,
+      FakePostRepository? posts,
+      DateTime? now,
     }) async => [
       ...await _base(
         me: DaybookSamples.islam,
@@ -293,8 +299,9 @@ void main() {
         needs: needs,
         today: today,
         spaces: spaces,
+        now: now,
       ),
-      postRepositoryProvider.overrideWithValue(homePosts()),
+      postRepositoryProvider.overrideWithValue(posts ?? homePosts()),
       myProfileProvider.overrideWith((ref) async => islamMe),
       marketsProvider.overrideWith((ref) async => const <Market>[]),
       newPostIdProvider.overrideWithValue(() => 'post-clash'),
@@ -344,6 +351,154 @@ void main() {
         lang,
         (context) => _withNav(context, 0, const HomeScreen()),
         overrides: await home(),
+      );
+    });
+
+    // Review 50 F19 and F15, against H1 v3 2555:35276 (AR 2564:184): a
+    // short post with no headline (the name centred with the avatar), a
+    // long post and a short one, on a 12-hour phone, so the spine shows
+    // "11:58" with "pm" (مساءً) under it.
+    testWidgets('F19 Home feed cards, 12-hour spine [$lang]', (tester) async {
+      TestWidgetsFlutterBinding
+              .instance
+              .platformDispatcher
+              .alwaysUse24HourFormatTestValue =
+          false;
+      // The 12-hour time fits the column in the app's fonts: the time on
+      // its line, the part of the day on the smaller one under it.
+      final type = lang == 'ar' ? BvType.arabic : BvType.latin;
+      double width(String text, TextStyle style) {
+        final painter = TextPainter(
+          text: TextSpan(text: text, style: style),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        return painter.width;
+      }
+
+      const room = BvSpineSpec.homeTimeColumn - BvSpineSpec.labelToSpine;
+      expect(width('11:58', type.labelSm), lessThanOrEqualTo(room));
+      expect(
+        width(
+          t('pm', 'مساءً'),
+          type.metadata.copyWith(fontSize: BvSpineSpec.periodSize),
+        ),
+        lessThanOrEqualTo(room),
+      );
+      final posts = FakePostRepository(now: DaybookSamples.thursday)
+        ..posts.addAll([
+          Post(
+            id: 'post-short-plain',
+            authorId: DaybookSamples.lina,
+            authorName: s.linaName,
+            body: t(
+              'Ducts on level 3 are in.',
+              'تم تركيب مجاري الهواء في الطابق 3.',
+            ),
+            lang: lang,
+            createdAt: DateTime(2026, 10, 15, 23, 58),
+          ),
+          Post(
+            id: 'post-long',
+            authorId: DaybookSamples.sara,
+            authorName: s.saraName,
+            authorHeadline: t(
+              'Senior Structural Engineer',
+              'مهندسة إنشائية أولى',
+            ),
+            authorCompany: t('Gulf Design Studio', 'جلف ديزاين ستوديو'),
+            body: t(
+              'Checked the transfer beams on the podium today with the team '
+                  'and the BIM model side by side. Two openings for the '
+                  'sleeves were 50 mm off; both are marked and the fix is in '
+                  'the model now. Thanks to everyone who stayed late for it.',
+              'راجعنا اليوم كمرات النقل في البوديوم مع الفريق والنموذج جنبًا '
+                  'إلى جنب. فتحتان للأكمام كانتا منحرفتين 50 مم؛ تم تحديدهما '
+                  'وأُضيف التعديل إلى النموذج. شكرًا لكل من بقي متأخرًا لأجل '
+                  'ذلك.',
+            ),
+            lang: lang,
+            createdAt: DateTime(2026, 10, 15, 21, 15),
+          ),
+          Post(
+            id: 'post-short',
+            authorId: DaybookSamples.omar,
+            authorName: s.omarName,
+            authorHeadline: t('MEP Foreman', 'رئيس عمال MEP'),
+            authorCompany: t('Gulf Build Co.', 'جلف بيلد'),
+            body: t(
+              'Night shift starts at 8.',
+              'الوردية الليلية تبدأ الساعة 8.',
+            ),
+            lang: lang,
+            createdAt: DateTime(2026, 10, 15, 18, 40),
+          ),
+        ])
+        ..home.addAll(['post-short-plain', 'post-long', 'post-short']);
+      await shoot(
+        tester,
+        'F19-feed-cards',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(
+          posts: posts,
+          now: DateTime(2026, 10, 15, 23, 59),
+        ),
+      );
+    });
+
+    testWidgets('F19 the post page: three replies, one Replying to '
+        '[$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      final posts = homePosts()
+        ..repliesByPost['post-pour'] = [
+          PostReply(
+            id: 'reply-faisal',
+            postId: 'post-pour',
+            authorId: 'p-faisal',
+            authorName: t('Faisal Al-Rashidi', 'فيصل الرشيدي'),
+            body: t(
+              'Great work. Was the slab cured with blankets overnight?',
+              'عمل رائع. هل غُطّيت البلاطة بالبطانيات للمعالجة طوال الليل؟',
+            ),
+            createdAt: DateTime(2026, 10, 15, 7, 2),
+          ),
+          PostReply(
+            id: 'reply-omar',
+            postId: 'post-pour',
+            authorId: DaybookSamples.omar,
+            authorName: s.omarName,
+            replyTo: 'reply-faisal',
+            replyToPerson: 'p-faisal',
+            body: t(
+              'Yes, wet blankets until 6 this morning.',
+              'نعم، بطانيات مبللة حتى السادسة صباحًا.',
+            ),
+            createdAt: DateTime(2026, 10, 15, 7, 40),
+          ),
+          PostReply(
+            id: 'reply-mariam',
+            postId: 'post-pour',
+            authorId: 'p-mariam',
+            authorName: t('Mariam Al-Sabah', 'مريم الصباح'),
+            body: t('Thanks, team.', 'شكرًا للفريق.'),
+            createdAt: DateTime(2026, 10, 15, 8, 15),
+          ),
+        ];
+      await shoot(
+        tester,
+        'F19-post-page',
+        lang,
+        (_) => const Pushed(PostScreen(postId: 'post-pour')),
+        overrides: await home(posts: posts),
+        // The replies, under the post.
+        before: (tester) async {
+          await tester.scrollUntilVisible(
+            find.byKey(const Key('reply-reply-reply-mariam')),
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.pumpAndSettle();
+        },
       );
     });
 

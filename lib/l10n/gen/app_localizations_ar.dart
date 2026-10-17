@@ -881,7 +881,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesEmptyBody =>
-      'المساحة هي المكان الذي يدير فيه فريق المشروع عمله اليومي. عندما تنضم إلى مساحة، يظهر تقريرك اليومي هنا: الردود وتحديثات الموقع وكل ما ينتظرك.';
+      'المساحة هي المكان الذي يدير فيه فريق المشروع عمله اليومي. عندما تنضم إلى مساحة، يظهر تقريرك اليومي هنا: الردود والتحديثات وكل ما ينتظرك.';
 
   @override
   String get spacesEmptyFeedNote =>
@@ -1020,7 +1020,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesInviteHow =>
-      'أرسل الرمز عبر واتساب أو اقرأه في الموقع. يؤكد مدير المساحة كل شخص قبل انضمامه.';
+      'أرسل الرمز عبر واتساب أو اقرأه عليهم. يؤكد مدير المساحة كل شخص قبل انضمامه.';
 
   @override
   String spacesShareText(String space, String code) {
@@ -1897,7 +1897,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get feedEmpty => 'لا منشورات بعد. شارك ما حدث في الموقع اليوم.';
+  String get feedEmpty => 'لا منشورات بعد. شارك ما حدث في العمل اليوم.';
 
   @override
   String get feedCouldntLoad => 'تعذّر تحميل الأخبار';
@@ -3077,6 +3077,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String daybookClockPeriod(String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'morning': 'صباحًا',
+      'noon': 'ظهرًا',
+      'afternoon': 'عصرًا',
+      'evening': 'مساءً',
+      'other': 'مساءً',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get daybookSignedAsDone => 'وقّع كمنجز';
 
   @override
@@ -3148,7 +3160,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookOwnerNow => 'الآن';
 
   @override
-  String get daybookPlaceHint => 'أين في الموقع';
+  String get daybookPlaceHint => 'أين';
 
   @override
   String get daybookNoTime => 'بدون وقت';
@@ -3439,7 +3451,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get postWritingHint => 'ماذا حدث في الموقع اليوم؟';
+  String get postWritingHint => 'ماذا حدث في العمل اليوم؟';
 
   @override
   String get postWritingProject => 'المشروع';

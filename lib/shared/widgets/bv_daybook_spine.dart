@@ -78,16 +78,22 @@ class BvDaybookSpine extends StatelessWidget {
 
 /// One entry on the spine: the time ("08:14", "Now", "Wed"), the dot on the
 /// spine, then [child] (the slip) to its end.
+///
+/// On a 12-hour phone [period] ("pm", "مساءً") goes on a second, smaller
+/// line under the time, so "11:58 مساءً" never cuts off in the column
+/// (review 50 F15).
 class BvSpineEntry extends StatelessWidget {
   const BvSpineEntry({
     super.key,
     required this.time,
     required this.child,
+    this.period,
     this.dot = BvSpineDot.quiet,
     this.home = false,
   });
 
   final String time;
+  final String? period;
   final Widget child;
   final BvSpineDot dot;
   final bool home;
@@ -96,6 +102,9 @@ class BvSpineEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final column = home ? BvSpineSpec.homeTimeColumn : BvSpineSpec.timeColumn;
+    final color = dot == BvSpineDot.now
+        ? BvColors.textAction
+        : BvColors.textSecondary;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: BvSpineSpec.slipGap,
@@ -110,17 +119,36 @@ class BvSpineEntry extends StatelessWidget {
                 start: 0,
                 top: BvSpineSpec.labelTop,
                 width: column - BvSpineSpec.labelToSpine,
-                child: Text(
-                  time,
-                  maxLines: 1,
-                  textAlign: TextAlign.end,
-                  overflow: TextOverflow.visible,
-                  softWrap: false,
-                  style: type.labelSm.copyWith(
-                    color: dot == BvSpineDot.now
-                        ? BvColors.textAction
-                        : BvColors.textSecondary,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      time,
+                      key: const Key('spine-time'),
+                      maxLines: 1,
+                      textAlign: TextAlign.end,
+                      overflow: TextOverflow.visible,
+                      softWrap: false,
+                      style: type.labelSm.copyWith(color: color),
+                    ),
+                    if (period != null)
+                      Text(
+                        period!,
+                        key: const Key('spine-period'),
+                        maxLines: 1,
+                        textAlign: TextAlign.end,
+                        overflow: TextOverflow.visible,
+                        softWrap: false,
+                        style: type.metadata.copyWith(
+                          color: color,
+                          fontSize: BvSpineSpec.periodSize,
+                          height:
+                              BvSpineSpec.periodLine / BvSpineSpec.periodSize,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               PositionedDirectional(

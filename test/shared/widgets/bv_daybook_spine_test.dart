@@ -106,6 +106,50 @@ void main() {
       expect(_fromStart(tester, lang), BvSpineSpec.homeTimeColumn);
     });
 
+    testBoth('F15: a 12-hour time puts its part of the day on a smaller '
+        'line under it, inside the column', (tester, lang) async {
+      for (final home in [true, false]) {
+        await pumpComponent(
+          tester,
+          BvDaybookSpine(
+            home: home,
+            children: [
+              BvSpineEntry(
+                time: '11:58',
+                period: isRtl(lang) ? 'مساءً' : 'pm',
+                home: home,
+                child: _slip,
+              ),
+            ],
+          ),
+          lang: lang,
+          scroll: false,
+        );
+        final time = tester.getRect(find.byKey(const Key('spine-time')));
+        final period = tester.getRect(find.byKey(const Key('spine-period')));
+        expect(period.top, greaterThanOrEqualTo(time.bottom));
+        double size(Key k) =>
+            tester.widget<Text>(find.byKey(k)).style!.fontSize!;
+        expect(
+          size(const Key('spine-period')),
+          lessThan(size(const Key('spine-time'))),
+        );
+        // Both end at the label's end, and neither is wider than the column
+        // before the spine.
+        final column =
+            (home ? BvSpineSpec.homeTimeColumn : BvSpineSpec.timeColumn) -
+            BvSpineSpec.labelToSpine;
+        final screen = tester.getRect(find.byType(BvDaybookSpine));
+        for (final r in [time, period]) {
+          final fromStart = isRtl(lang)
+              ? screen.right - r.left
+              : r.right - screen.left;
+          expect(fromStart, lessThanOrEqualTo(column + 0.5));
+          expect(r.width, lessThanOrEqualTo(column));
+        }
+      }
+    });
+
     testBoth('"Now" is in the action colour', (tester, lang) async {
       await _pump(tester, lang, dot: BvSpineDot.now, time: 'Now');
       expect(textStyle(tester, 'Now').color, BvColors.textAction);

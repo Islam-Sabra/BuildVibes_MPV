@@ -182,8 +182,10 @@ class SupabasePostRepository implements PostRepository {
   Future<List<PostReply>> replies(String postId) => _guard(() async {
     final rows = await _client
         .from('post_replies')
+        // Every column, so reply_to_person comes when the server has it
+        // (migration 25) and nothing fails before it.
         .select(
-          'id, post_id, author_id, reply_to, body, created_at, '
+          '*, '
           'author:profiles!post_replies_author_id_fkey(first_name, last_name, headline)',
         )
         .eq('post_id', postId)

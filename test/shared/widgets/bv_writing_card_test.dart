@@ -291,7 +291,7 @@ void main() {
       tester,
       BvWritingCard(
         bodyController: body,
-        bodyPlaceholder: 'What happened on site today?',
+        bodyPlaceholder: 'What happened at work today?',
         autofocus: true,
         author: const BvWritingAuthor(
           name: 'Islam Ahmed',

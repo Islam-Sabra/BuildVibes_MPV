@@ -7,6 +7,7 @@
 import 'package:flutter/painting.dart';
 
 import 'bv_specs.dart';
+import 'daybook_paper_specs.dart';
 import 'bv_tokens.dart';
 
 /// The Space emblem (Space/Plan 2307:68648): a floor plan on the subtle
@@ -182,4 +183,34 @@ abstract final class BvHomeSpec {
   static const actionIcon = 18.0;
   static const actionGap = BvSpace.s6;
   static const menuIcon = 18.0;
+
+  /// The card's author (review 50 F19): avatar 28, the name in semibold.
+  static const authorAvatar = BvAvatarSpec.xsm;
+  static const nameWeight = FontWeight.w600;
+
+  /// The actions' row: with the 10 gap above and the slip's 14 padding
+  /// below, each action's touch area is 48 high.
+  static const actionsHeight =
+      BvSize.touchMin - BvSlipSpec.gap - BvSlipSpec.paddingBottom;
+}
+
+/// The post page's replies (review 50 F19): small slips one under the
+/// other, an answer indented so its slip starts under the name above it.
+abstract final class BvReplySpec {
+  static const sectionTop = BvSpace.s16;
+  static const gap = BvSpace.s12;
+
+  /// The avatar and its gap: the text and the actions start under the
+  /// name.
+  static const indent = BvHomeSpec.authorAvatar + BvSpace.s8;
+
+  /// An answer's slip starts under the name above it.
+  static const answerIndent = BvSlipSpec.paddingSide + indent;
+  static const nameGap = BvSpace.s6;
+  static const actionsGap = BvSpace.s20;
+
+  // The reply bar, in the Daybook post bar's style (spec §8).
+  static const barAvatar = BvAvatarSpec.sm;
+  static const sendSize = BvSize.touchMin;
+  static const sendIcon = BvSize.iconMd;
 }

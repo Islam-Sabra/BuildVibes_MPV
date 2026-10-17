@@ -409,7 +409,8 @@ class _FeedTabState extends ConsumerState<FeedTab> {
             for (final p in waiting)
               BvSpineEntry(
                 home: true,
-                time: words.feedTime(p.madeAt, now),
+                time: words.feedTime(p.madeAt, now).time,
+                period: words.feedTime(p.madeAt, now).period,
                 child: PostCard.waiting(
                   post: _waitingPost(p, me, myName),
                   couldNotSend: p.refused,
@@ -426,7 +427,8 @@ class _FeedTabState extends ConsumerState<FeedTab> {
               BvSpineEntry(
                 key: _keyOf(entries[i].post.id),
                 home: true,
-                time: words.feedTime(entries[i].post.createdAt, now),
+                time: words.feedTime(entries[i].post.createdAt, now).time,
+                period: words.feedTime(entries[i].post.createdAt, now).period,
                 child: PostCard(
                   post: entries[i].post,
                   ago: false,

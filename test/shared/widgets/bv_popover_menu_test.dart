@@ -237,7 +237,7 @@ void main() {
       BvPopoverField(
         icon: BvIcons.place,
         controller: controller,
-        placeholder: 'Where on site',
+        placeholder: 'Where',
         maxLength: 4,
         onDone: (text) => done = text,
       ),
@@ -247,7 +247,7 @@ void main() {
       tester.getSize(find.byType(BvPopoverField)).width,
       BvPopoverMenuSpec.placeWidth,
     );
-    expect(find.text('Where on site'), findsOneWidget);
+    expect(find.text('Where'), findsOneWidget);
     expect(find.byIcon(BvIcons.place), findsOneWidget);
     await tester.enterText(find.byKey(const Key('popover-field')), 'Gate 3');
     await tester.testTextInput.receiveAction(TextInputAction.done);
