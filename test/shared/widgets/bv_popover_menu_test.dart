@@ -224,4 +224,33 @@ void main() {
     expect(result, isNull);
     expect(find.byType(BvDim), findsNothing);
   });
+
+  testBoth('a popover field: the menu box, an icon, done gives the text', (
+    tester,
+    lang,
+  ) async {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    String? done;
+    await pumpComponent(
+      tester,
+      BvPopoverField(
+        icon: BvIcons.place,
+        controller: controller,
+        placeholder: 'Where on site',
+        maxLength: 4,
+        onDone: (text) => done = text,
+      ),
+      lang: lang,
+    );
+    expect(
+      tester.getSize(find.byType(BvPopoverField)).width,
+      BvPopoverMenuSpec.placeWidth,
+    );
+    expect(find.text('Where on site'), findsOneWidget);
+    expect(find.byIcon(BvIcons.place), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('popover-field')), 'Gate 3');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    expect(done, 'Gate');
+  });
 }

@@ -1,6 +1,5 @@
 // The Daybook's paper (slice 1a): slips, ink stamps and the paper clip,
 // against Figma D1 (2518:33001) and 2519:33049.
-import 'dart:async';
 
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
@@ -11,8 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'shot.dart';
-
-const _photo = AssetImage('assets/dev/site_sample.jpg');
 
 /// Sample text, English and Arabic: the prototype's words (D1 2518:33001,
 /// AR 2547:35195), never a fresh translation.
@@ -91,7 +88,7 @@ Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
     ),
     BvSlipPhoto(
       height: BvSlipSpec.photoHeightProof,
-      image: _photo,
+      image: samplePhoto,
       stamp: checked
           ? BvInkStamp(
               label: s.t('CHECKED', 'تم الفحص'),
@@ -222,18 +219,6 @@ Widget _stamps(_S s) {
   );
 }
 
-Future<void> _warmPhoto(WidgetTester tester) => tester.runAsync(() {
-  final done = Completer<void>();
-  final stream = _photo.resolve(ImageConfiguration.empty);
-  late final ImageStreamListener listener;
-  listener = ImageStreamListener((_, _) {
-    stream.removeListener(listener);
-    done.complete();
-  }, onError: (e, _) => done.completeError(e));
-  stream.addListener(listener);
-  return done.future;
-});
-
 void main() {
   setUpAll(loadAppFonts);
 
@@ -241,7 +226,7 @@ void main() {
     final s = _S(lang == 'ar');
 
     testWidgets('ds-paper [$lang]', (tester) async {
-      await _warmPhoto(tester);
+      await warmSamplePhoto(tester);
       await shoot(
         tester,
         'ds-paper',
@@ -251,7 +236,7 @@ void main() {
     });
 
     testWidgets('ds-paper-2 [$lang]', (tester) async {
-      await _warmPhoto(tester);
+      await warmSamplePhoto(tester);
       await shoot(
         tester,
         'ds-paper-2',

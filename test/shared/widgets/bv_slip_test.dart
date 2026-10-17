@@ -76,10 +76,8 @@ void main() {
       expect(find.byKey(const Key('slip-cancelled')), findsNothing);
     });
 
-    testBoth('the stamp and clip sit at the top end corner', (
-      tester,
-      lang,
-    ) async {
+    testBoth('the stamp and clip sit at the top end corner, never on '
+        'each other', (tester, lang) async {
       await pumpComponent(tester, _slip(clip: true), lang: lang);
       final slip = tester.getRect(find.byKey(const Key('slip-paper')));
       final stamp = tester.getRect(find.byKey(_stampKey));
@@ -89,12 +87,24 @@ void main() {
       expect(stamp.top - slip.top, edge + BvSlipSpec.stampTop);
       expect(clip.top - slip.top, edge + BvSlipSpec.clipTop);
       if (isRtl(lang)) {
-        expect(stamp.left - slip.left, BvSlipSpec.stampEnd);
+        expect(stamp.left - slip.left, BvSlipSpec.stampEndWithClip);
         expect(clip.left - slip.left, BvSlipSpec.clipEnd);
       } else {
-        expect(slip.right - stamp.right, BvSlipSpec.stampEnd);
+        expect(slip.right - stamp.right, BvSlipSpec.stampEndWithClip);
         expect(slip.right - clip.right, BvSlipSpec.clipEnd);
       }
+      // Even tilted, the clip stays clear of the stamp.
+      expect(stamp.overlaps(clip.inflate(-BvSpace.s2)), isFalse);
+    });
+
+    testBoth('a stamp alone sits in the corner', (tester, lang) async {
+      await pumpComponent(tester, _slip(), lang: lang);
+      final slip = tester.getRect(find.byKey(const Key('slip-paper')));
+      final stamp = tester.getRect(find.byKey(_stampKey));
+      expect(
+        isRtl(lang) ? stamp.left - slip.left : slip.right - stamp.right,
+        BvSlipSpec.stampEnd,
+      );
     });
 
     testBoth('cancelled: faded, title struck through', (tester, lang) async {

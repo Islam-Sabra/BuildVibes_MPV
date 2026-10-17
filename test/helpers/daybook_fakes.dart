@@ -1,11 +1,14 @@
+import 'dart:io';
+
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 
-/// A Space's daybook with no network. [posts] are each Space's posts in any
-/// order; pages come back newest first, as daybook_page sends them.
+/// A Space's daybook with no network. [posts] are each Space's entries
+/// (posts, sign-offs, updates) in any order; pages come back newest first,
+/// as daybook_page sends them.
 class FakeDaybookRepository implements DaybookRepository {
-  final posts = <String, List<DaybookPost>>{};
+  final posts = <String, List<DaybookRecord>>{};
   final months = <String, DaybookMonth>{};
 
   /// my_calendar's work items, every Space.
@@ -16,8 +19,19 @@ class FakeDaybookRepository implements DaybookRepository {
   final pageCalls = <String>[];
   bool failPages = false;
 
+  /// Writing: what was uploaded and created, in order. While [offline],
+  /// both fail as a lost signal; [refuse] makes the server say no.
+  final uploads = <String>[];
+  final created = <NewWorkItem>[];
+  bool offline = false;
+  bool refuse = false;
+
+  /// How a created work item reads back on the page; null leaves the page
+  /// as it was.
+  DaybookPost Function(NewWorkItem item)? asPosted;
+
   @override
-  Future<List<DaybookPost>> page(
+  Future<List<DaybookRecord>> page(
     String spaceId, {
     DateTime? before,
     String? beforeId,
@@ -25,15 +39,15 @@ class FakeDaybookRepository implements DaybookRepository {
   }) async {
     pageCalls.add('$spaceId ${before?.toIso8601String()}');
     if (failPages) throw const SpaceException(SpaceFailure.network);
-    final all = [...?posts[spaceId]]
+    final all = <DaybookRecord>[...?posts[spaceId]]
       ..sort((a, b) {
-        final t = b.createdAt.compareTo(a.createdAt);
+        final t = b.at.compareTo(a.at);
         return t != 0 ? t : b.id.compareTo(a.id);
       });
     return all
         .where((p) {
           if (before == null) return true;
-          final t = p.createdAt.compareTo(before);
+          final t = p.at.compareTo(before);
           return t < 0 ||
               (t == 0 && beforeId != null && p.id.compareTo(beforeId) < 0);
         })
@@ -53,4 +67,31 @@ class FakeDaybookRepository implements DaybookRepository {
     for (final i in calendar)
       if (i.day == DateTime(day.year, day.month, day.day)) i,
   ];
+
+  void _check() {
+    if (offline) throw const SpaceException(SpaceFailure.network);
+    if (refuse) throw const SpaceException(SpaceFailure.badInput);
+  }
+
+  @override
+  Future<String> uploadPostPhoto(
+    String spaceId,
+    String postId,
+    File file,
+  ) async {
+    _check();
+    final path = '$spaceId/posts/$postId/${uploads.length}.jpg';
+    uploads.add(path);
+    return path;
+  }
+
+  @override
+  Future<void> createWorkItem(NewWorkItem item) async {
+    _check();
+    // The same id again is the same post.
+    if (created.any((c) => c.id == item.id)) return;
+    created.add(item);
+    final post = asPosted?.call(item);
+    if (post != null) posts[item.spaceId] = [...?posts[item.spaceId], post];
+  }
 }

@@ -544,6 +544,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Screenshots: D1-daybook, L1-late-due-today, DY1-yesterday, DY2-calendar, DY3-day-one, V1-viewer (EN and AR).
   - Server gaps (stop rule, left out): the proof slip (sign-off photo, note, time) and file chips aren't in `daybook_page`'s JSON; reassign events neither.
 
+- **17 Oct, slice 1 part 1c, writing in place, with review 45 B1–B3** (branch `slice1-daybook`):
+  - The notepad opens a work item card at "Now": title, body, Assign (Lead and Crew only), Location, Due date with an optional time, a cover photo; Post needs a title and an owner. The phone chooses the id; the draft is kept on the phone (per account and Space) and comes back after the app is closed; with no signal the post waits in the outbox ("Waiting to send") and sends later, photos first.
+  - B1 one continuous daybook; B2 the Arabic due wording; B3 the daybook reads entries: the proof slip (photo, large stamp, note, the check hint), updates, file chips, "Given to … instead of …"; the clip follows `needs_me` per entry.
+  - Screenshots: E1–E7 added; D1, L1, DY1, DY2, DY3, V1 regenerated.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

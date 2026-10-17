@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
@@ -68,6 +69,8 @@ class BvWritingCard extends StatelessWidget {
     this.cover,
     this.onRemoveCover,
     this.removeCoverLabel,
+    this.titleMaxLength,
+    this.bodyMaxLength,
   });
 
   final TextEditingController titleController;
@@ -99,6 +102,10 @@ class BvWritingCard extends StatelessWidget {
 
   /// Read out for the cover's remove button.
   final String? removeCoverLabel;
+
+  /// What the server takes; typing stops there.
+  final int? titleMaxLength;
+  final int? bodyMaxLength;
 
   @override
   Widget build(BuildContext context) {
@@ -132,20 +139,24 @@ class BvWritingCard extends StatelessWidget {
                 if (kindLabel != null)
                   _KindChip(label: kindLabel!, onTap: onKindTap),
                 _field(
+                  key: const Key('writing-title'),
                   controller: titleController,
                   focusNode: titleFocusNode,
                   placeholder: titlePlaceholder,
                   style: type.headingLg,
                   autofocus: autofocus,
                   onChanged: onTitleChanged,
+                  maxLength: titleMaxLength,
                 ),
                 if (properties.isNotEmpty) _Properties(items: properties),
                 _field(
+                  key: const Key('writing-body'),
                   controller: bodyController,
                   focusNode: bodyFocusNode,
                   placeholder: bodyPlaceholder,
                   style: type.bodyLg,
                   onChanged: onBodyChanged,
+                  maxLength: bodyMaxLength,
                 ),
                 if (cover != null)
                   _Cover(
@@ -162,14 +173,20 @@ class BvWritingCard extends StatelessWidget {
   }
 
   Widget _field({
+    required Key key,
     required TextEditingController controller,
     required FocusNode? focusNode,
     required String placeholder,
     required TextStyle style,
     bool autofocus = false,
     ValueChanged<String>? onChanged,
+    int? maxLength,
   }) => TextField(
+    key: key,
     controller: controller,
+    inputFormatters: [
+      if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
+    ],
     focusNode: focusNode,
     autofocus: autofocus,
     onChanged: onChanged,

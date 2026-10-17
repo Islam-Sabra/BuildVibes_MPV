@@ -8,9 +8,12 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
+import '../../core/design/daybook_writing_specs.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
+import '../../data/models/work_item.dart';
+import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
@@ -19,22 +22,28 @@ import '../../shared/widgets/bv_due_today_strip.dart';
 import '../../shared/widgets/bv_first_page.dart';
 import '../../shared/widgets/bv_month_dropdown.dart';
 import '../../shared/widgets/bv_post_bar.dart';
+import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../account/account_parts.dart' show myMarketProvider;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/pass_words.dart';
+import 'daybook_draft.dart';
 import 'daybook_entry.dart';
 import 'daybook_state.dart';
 import 'daybook_words.dart';
+import 'daybook_writing.dart';
+import 'work_outbox.dart';
 
 /// The Space's Work tab: the daybook (D1). Today's masthead at the top, the
-/// newest entries at the bottom; scrolling up goes back through older days,
-/// each after a day divider (DY1), and the masthead names the day at the
-/// top. Tapping it drops down the month (DY2). An empty Space shows its
-/// first page (DY3); a Viewer reads only (V1).
+/// newest entries at the bottom; scrolling up goes back through older days
+/// on the same page, each after a day divider (DY1), and the masthead
+/// names the day at the top. Tapping it drops down the month (DY2). An
+/// empty Space shows its first page (DY3); a Viewer reads only (V1).
 ///
-/// Part 1b reads only: the post bar starts writing in part 1c.
+/// The post bar's notepad writes a work item in place at "Now" (E1–E5):
+/// the masthead shrinks to one line and the writing toolbar takes the post
+/// bar's place. A card left with text stays as a Draft (E4).
 class DaybookTab extends ConsumerStatefulWidget {
   const DaybookTab({super.key, required this.space});
 
@@ -45,8 +54,12 @@ class DaybookTab extends ConsumerStatefulWidget {
 }
 
 class _DaybookTabState extends ConsumerState<DaybookTab> {
-  /// Older posts load while this much is left to scroll back.
+  /// Older entries load while this much is left to scroll back.
   static const _loadAhead = 600.0;
+
+  /// How often a post made with no signal is tried again while the
+  /// daybook is open.
+  static const _flushEvery = Duration(seconds: 30);
 
   final _scroll = ScrollController();
   final _mastheadKey = GlobalKey();
@@ -60,25 +73,56 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// the page. Null at rest on the newest posts: today.
   DateTime? _shownDay;
 
+  /// Writing in place: the card is open with the keyboard's toolbar.
+  var _writing = false;
+  DaybookWritingMenu? _menu;
+
+  /// The card on the page was left from before: it says "Draft".
+  late bool _fromBefore;
+
+  late final DaybookWriter _writer = DaybookWriter(ref, _spaceId);
+  late final AppLifecycleListener _life;
+  late final Timer _flushTimer;
+
   String get _spaceId => widget.space.id;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    _fromBefore = ref.read(daybookDraftProvider(_spaceId)) != null;
+    // A post made with no signal sends when it's back: on opening, on
+    // coming back to the app, and every little while.
+    _life = AppLifecycleListener(onResume: _flush);
+    _flushTimer = Timer.periodic(_flushEvery, (_) => _flush());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _flush());
   }
 
   @override
   void dispose() {
+    _flushTimer.cancel();
+    _life.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
+  void _flush() {
+    if (!mounted) return;
+    unawaited(ref.read(workOutboxProvider.notifier).flush(_spaceId));
+  }
+
   void _onScroll() {
     _updateShownDay();
-    if (_scroll.position.extentAfter < _loadAhead) {
-      unawaited(ref.read(daybookPageProvider(_spaceId).notifier).loadOlder());
+    _loadOlderIfNear();
+  }
+
+  /// Older days hang above today on the same page (review 45 B1): load
+  /// them while the top is near, including when the page isn't full yet.
+  void _loadOlderIfNear() {
+    if (!_scroll.hasClients || _scroll.position.extentAfter >= _loadAhead) {
+      return;
     }
+    unawaited(ref.read(daybookPageProvider(_spaceId).notifier).loadOlder());
   }
 
   void _updateShownDay() {
@@ -106,9 +150,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final provider = daybookPageProvider(_spaceId);
     final pages = ref.read(provider.notifier);
     for (;;) {
-      final posts = ref.read(provider).value ?? const <DaybookPost>[];
-      if (posts.isEmpty ||
-          !dayOf(posts.last.createdAt).isAfter(day) ||
+      final entries = ref.read(provider).value ?? const <DaybookRecord>[];
+      if (entries.isEmpty ||
+          !dayOf(entries.last.at).isAfter(day) ||
           !pages.hasOlder ||
           !await pages.loadOlder()) {
         break;
@@ -160,6 +204,57 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (picked != null && mounted) await _jumpTo(picked);
   }
 
+  /// Opens the card at "Now", with a new post id (or the Draft's).
+  void _startWriting() {
+    ref
+        .read(daybookDraftProvider(_spaceId).notifier)
+        .open(ref.read(newPostIdProvider)());
+    setState(() {
+      _writing = true;
+      _menu = null;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) _scroll.jumpTo(0);
+    });
+  }
+
+  /// Puts the card down: with text it stays as the Draft; empty, it goes.
+  void _stopWriting() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final draft = ref.read(daybookDraftProvider(_spaceId));
+    unawaited(ref.read(daybookDraftProvider(_spaceId).notifier).close());
+    setState(() {
+      _writing = false;
+      _menu = null;
+      if (draft != null && !draft.isEmpty) _fromBefore = true;
+    });
+  }
+
+  void _setMenu(DaybookWritingMenu? menu) => setState(() => _menu = menu);
+
+  Future<void> _pickDue() async {
+    _setMenu(null);
+    final draft = _writer.draft;
+    final picked = await ref.read(pickDueProvider)(
+      context,
+      now: ref.read(clockProvider)(),
+      day: draft?.dueDate,
+      at: draft?.dueAt,
+    );
+    if (picked != null) await _writer.setDue(picked);
+  }
+
+  Future<void> _post(String? myName) async {
+    await _writer.post(authorName: myName);
+    if (!mounted) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _writing = false;
+      _menu = null;
+      _fromBefore = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -177,14 +272,33 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final due =
         ref.watch(daybookDueTodayProvider(_spaceId)).value ??
         const <CalendarWorkItem>[];
+    final draft = ref.watch(daybookDraftProvider(_spaceId));
+    final waiting = [
+      for (final i in ref.watch(workOutboxProvider))
+        if (i.kind == PendingKind.workItem && i.spaceId == _spaceId) i,
+    ];
+    final myName = canPost
+        ? ref
+              .watch(spacePeopleProvider(_spaceId))
+              .value
+              ?.member(me ?? '')
+              ?.person
+              .fullName
+        : null;
+    final card = canPost && (_writing || (draft != null && !draft.isEmpty));
 
     final shown = _shownDay ?? today;
     final body = switch (page) {
-      AsyncData(:final value) when value.isEmpty => _FirstPage(
-        space: space,
-        canPost: canPost,
+      AsyncData(:final value) when value.isEmpty && !card && waiting.isEmpty =>
+        _FirstPage(space: space, canPost: canPost, onPost: _startWriting),
+      AsyncData(:final value) => _diary(
+        value,
+        waiting,
+        words,
+        me: me,
+        now: now,
+        card: card,
       ),
-      AsyncData(:final value) => _diary(value, words, me, now),
       AsyncError() => Padding(
         padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
         child: EmptyNote(l10n.errorGeneric),
@@ -192,83 +306,226 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _ => const Center(child: CircularProgressIndicator()),
     };
 
-    return ColoredBox(
-      color: BvColors.surfaceApp,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          BvDaybookMasthead(
-            key: _mastheadKey,
-            weekday: words.weekday(shown),
-            dateLine: words.dateLine(shown, space.siteStartDate),
-            onTap: () => _openMonth(today, shown),
-          ),
-          if (due.isNotEmpty)
-            BvDueTodayStrip(
-              l10n.daybookDueTodayStrip(due.map((i) => i.title).join(' · ')),
+    return PopScope(
+      canPop: !_writing,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _menu != null ? _setMenu(null) : _stopWriting();
+      },
+      child: ColoredBox(
+        color: BvColors.surfaceApp,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_writing)
+              BvDaybookMasthead.compact(
+                key: _mastheadKey,
+                title: words.compactDate(today),
+              )
+            else
+              BvDaybookMasthead(
+                key: _mastheadKey,
+                weekday: words.weekday(shown),
+                dateLine: words.dateLine(shown, space.siteStartDate),
+                onTap: () => _openMonth(today, shown),
+              ),
+            if (due.isNotEmpty && !_writing)
+              BvDueTodayStrip(
+                l10n.daybookDueTodayStrip(due.map((i) => i.title).join(' · ')),
+              ),
+            Expanded(
+              key: _viewportKey,
+              child: LayoutBuilder(
+                builder: (context, constraints) => Stack(
+                  children: [
+                    Positioned.fill(child: body),
+                    if (_menu != null) ...[
+                      // No dim: a tap anywhere else closes it (E2).
+                      Positioned.fill(
+                        child: GestureDetector(
+                          key: const Key('writing-menu-away'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _setMenu(null),
+                        ),
+                      ),
+                      PositionedDirectional(
+                        start: BvPopoverMenuSpec.writingStart,
+                        bottom: BvPopoverMenuSpec.writingGap,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: math.max(
+                              0,
+                              constraints.maxHeight -
+                                  2 * BvPopoverMenuSpec.writingGap,
+                            ),
+                          ),
+                          child: DaybookWritingPopover(
+                            key: ValueKey(_menu),
+                            spaceId: _spaceId,
+                            menu: _menu!,
+                            me: me,
+                            onMenu: _setMenu,
+                            onPickDue: _pickDue,
+                            onClose: () => _setMenu(null),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
-          Expanded(key: _viewportKey, child: body),
-          if (canPost)
-            BvPostBar(placeholder: l10n.daybookWorkItem)
-          else
-            BvPostBar.viewer(
-              passLabel: passName(l10n, space.myPass),
-              readOnly: l10n.daybookReadOnly,
-            ),
-        ],
+            if (!canPost)
+              BvPostBar.viewer(
+                passLabel: passName(l10n, space.myPass),
+                readOnly: l10n.daybookReadOnly,
+              )
+            else if (_writing)
+              BvWritingToolbar(
+                cameraLabel: l10n.daybookCamera,
+                onCamera: () => _writer.addPhoto(camera: true),
+                attachLabel: l10n.daybookAddPhoto,
+                onAttach: () => _writer.addPhoto(camera: false),
+                moreLabel: l10n.daybookMore,
+                onMore: () => _setMenu(
+                  _menu == DaybookWritingMenu.more
+                      ? null
+                      : DaybookWritingMenu.more,
+                ),
+                moreActive: _menu == DaybookWritingMenu.more,
+                postLabel: l10n.daybookPost,
+                onPost: draft?.canPost ?? false ? () => _post(myName) : null,
+                // A title but nobody to do it: choose someone.
+                onPostBlocked: draft?.titleFits ?? false
+                    ? () => _setMenu(DaybookWritingMenu.assign)
+                    : null,
+              )
+            // A Draft on the page takes the post bar's place until it is
+            // posted or emptied (E4).
+            else if (!card)
+              BvPostBar(
+                placeholder: l10n.daybookWorkItem,
+                onWrite: _startWriting,
+              ),
+          ],
+        ),
       ),
     );
   }
 
+  /// A post still in the outbox, as its slip at the time Post was tapped.
+  DaybookPost _waitingPost(PendingItem i, String? me, DateTime now) =>
+      DaybookPost(
+        id: i.id,
+        kind: DaybookPost.workItemKind,
+        createdAt: i.madeAt ?? now,
+        title: i.title,
+        authorId: me,
+        authorName: i.authorName,
+        place: i.place,
+        dueDate: i.dueDate,
+        dueAt: i.dueAt,
+        item: DaybookItem(
+          status: WorkStatus.open,
+          ownerId: i.ownerId,
+          ownerName: i.ownerName,
+        ),
+      );
+
   Widget _diary(
-    List<DaybookPost> posts,
-    DaybookWords words,
-    String? me,
-    DateTime now,
-  ) {
+    List<DaybookRecord> records,
+    List<PendingItem> waiting,
+    DaybookWords words, {
+    required String? me,
+    required DateTime now,
+    required bool card,
+  }) {
+    final l10n = AppLocalizations.of(context);
     final viewer = widget.space.myPass == SpacePass.viewer;
-    // Oldest first, grouped by the phone's own days.
-    final byDay = <DateTime, List<DaybookPost>>{};
-    for (final p in posts.reversed) {
-      if (!p.isWorkItem) continue;
-      byDay.putIfAbsent(dayOf(p.createdAt), () => []).add(p);
+    final today = dayOf(now);
+    // Work items, and their sign-offs and updates (other kinds of post
+    // come in slice 2), with the posts still waiting for a signal.
+    final shown = [
+      for (final r in records)
+        if (r is! DaybookPost || r.isWorkItem) r,
+    ];
+    final onServer = {for (final r in shown) r.id};
+    final unsent = {
+      for (final i in waiting)
+        if (!onServer.contains(i.id)) i.id: i,
+    };
+    final all =
+        [...shown, for (final i in unsent.values) _waitingPost(i, me, now)]
+          ..sort((a, b) {
+            final t = a.at.compareTo(b.at);
+            return t != 0 ? t : a.id.compareTo(b.id);
+          });
+    // Oldest first, grouped by the phone's own days; the card is today's.
+    final byDay = <DateTime, List<DaybookRecord>>{};
+    for (final r in all) {
+      byDay.putIfAbsent(dayOf(r.at), () => []).add(r);
     }
-    _days = byDay.keys.toList();
+    if (card) byDay.putIfAbsent(today, () => []);
+    _days = byDay.keys.toList()..sort();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _updateShownDay();
+      if (!mounted) return;
+      _updateShownDay();
+      _loadOlderIfNear();
     });
 
-    return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        key: const Key('daybook'),
-        controller: _scroll,
-        reverse: true,
-        child: BvDaybookSpine(
-          minHeight: constraints.maxHeight,
-          children: [
-            for (final (i, day) in _days.indexed)
-              Column(
-                key: _dayKeys.putIfAbsent(day, GlobalKey.new),
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: BvSpineSpec.entryGap,
-                children: [
-                  // The first day loaded sits under the masthead.
-                  if (i > 0)
-                    BvDayDivider(
-                      weekday: words.weekday(day),
-                      date: words.dayMonth(day),
-                    ),
-                  for (final p in byDay[day]!)
-                    DaybookEntry(
-                      post: p,
-                      words: words,
-                      me: me,
-                      now: now,
-                      viewer: viewer,
-                    ),
-                ],
-              ),
-          ],
+    return GestureDetector(
+      // While writing, a tap off the card puts it down.
+      behavior: HitTestBehavior.opaque,
+      onTap: _writing ? _stopWriting : null,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          key: const Key('daybook'),
+          controller: _scroll,
+          reverse: true,
+          child: BvDaybookSpine(
+            minHeight: constraints.maxHeight,
+            children: [
+              for (final (i, day) in _days.indexed)
+                Column(
+                  key: _dayKeys.putIfAbsent(day, GlobalKey.new),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: BvSpineSpec.entryGap,
+                  children: [
+                    // The first day loaded sits under the masthead.
+                    if (i > 0)
+                      BvDayDivider(
+                        weekday: words.weekday(day),
+                        date: words.dayMonth(day),
+                      ),
+                    for (final r in byDay[day]!)
+                      DaybookEntry(
+                        record: r,
+                        words: words,
+                        me: me,
+                        now: now,
+                        viewer: viewer,
+                        waiting: unsent.containsKey(r.id),
+                        localCover: unsent[r.id]?.photos.firstOrNull?.local,
+                      ),
+                    if (card && day == today)
+                      BvSpineEntry(
+                        key: const Key('daybook-now'),
+                        time: l10n.daybookNow,
+                        dot: BvSpineDot.now,
+                        child: DaybookWritingCard(
+                          spaceId: _spaceId,
+                          writing: _writing,
+                          words: words,
+                          fromBefore: _fromBefore,
+                          onOpen: _startWriting,
+                          onMenu: _setMenu,
+                          onPickDue: _pickDue,
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -277,10 +534,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
 /// Day one (DY3): the first page, inset from the start over the spine.
 class _FirstPage extends StatelessWidget {
-  const _FirstPage({required this.space, required this.canPost});
+  const _FirstPage({
+    required this.space,
+    required this.canPost,
+    required this.onPost,
+  });
 
   final SpaceDetail space;
   final bool canPost;
+  final VoidCallback onPost;
 
   @override
   Widget build(BuildContext context) {
@@ -308,12 +570,12 @@ class _FirstPage extends StatelessWidget {
                     title: l10n.daybookFirstTitle,
                     body: l10n.daybookFirstBody,
                     actions: [
-                      // Writing in place comes in part 1c.
                       if (canPost)
                         BvFirstPageAction(
                           icon: BvIcons.confirmed,
                           label: l10n.daybookFirstPost,
                           primary: true,
+                          onTap: onPost,
                         ),
                       if (space.canInvite)
                         BvFirstPageAction(

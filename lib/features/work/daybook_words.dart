@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:intl/intl.dart';
 
 import '../../core/l10n/bidi.dart';
@@ -20,10 +21,28 @@ class DaybookWords {
   String _f(String pattern, DateTime d) =>
       BvWesternDigitsFormatter.normalise(DateFormat(pattern, locale).format(d));
 
-  /// "08:14", or "8:14 AM" on a 12-hour phone.
-  String clock(DateTime t) => BvWesternDigitsFormatter.normalise(
-    (use24 ? DateFormat.Hm(locale) : DateFormat.jm(locale)).format(t.toLocal()),
-  );
+  /// "08:14"; on a 12-hour phone "8:14 am", "2 pm" ("2 ظهرًا" in Arabic,
+  /// the AR frames' words).
+  String clock(DateTime t) {
+    final local = t.toLocal();
+    if (use24) {
+      return BvWesternDigitsFormatter.normalise(
+        DateFormat.Hm(locale).format(local),
+      );
+    }
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final time = local.minute == 0
+        ? '$hour'
+        : '$hour:${local.minute.toString().padLeft(2, '0')}';
+    final period = local.hour < 12
+        ? 'morning'
+        : local.hour < 15
+        ? 'noon'
+        : local.hour < 18
+        ? 'afternoon'
+        : 'evening';
+    return l10n.daybookClock12(time, period);
+  }
 
   /// "Thursday".
   String weekday(DateTime day) => _f('EEEE', day);
@@ -33,6 +52,24 @@ class DaybookWords {
 
   /// "Thu 15 Oct".
   String shortDate(DateTime day) => _f('EEE d MMM', day);
+
+  /// "Thursday 15 October": the masthead's one line while writing.
+  String compactDate(DateTime day) => _f('EEEE d MMMM', day);
+
+  /// The due on the writing card: "Sun 18 Oct", or "Sun 18 Oct, 14:00".
+  String dueProperty(DateTime day, DateTime? at) => at == null
+      ? shortDate(day)
+      : l10n.daybookDueProperty(shortDate(day), clock(at));
+
+  /// The large stamp's second line: "OMAR H · 09:40", "عمر ح · 09:40".
+  /// Latin names in capitals, as the stamp prints them.
+  String stampLine(String? name, DateTime at) {
+    final parts = personName(l10n, name).trim().split(RegExp(r'\s+'));
+    final short = parts.length < 2
+        ? parts.first
+        : '${parts.first} ${parts.last.characters.first}';
+    return l10n.daybookStampBy(short.toUpperCase(), clock(at));
+  }
 
   /// "15 October, day 41 on site": day 1 is [siteStart]; only the date
   /// without one, or before it.

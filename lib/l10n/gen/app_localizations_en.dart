@@ -3682,4 +3682,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookFirstInvite => 'Invite your team';
+
+  @override
+  String daybookClock12(String time, String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'morning': 'am',
+      'noon': 'pm',
+      'afternoon': 'pm',
+      'evening': 'pm',
+      'other': 'pm',
+    });
+    return '$time $_temp0';
+  }
+
+  @override
+  String get daybookSignedAsDone => 'signed as done';
+
+  @override
+  String get daybookAddedUpdate => 'added an update';
+
+  @override
+  String daybookStampBy(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get daybookDoubleTapToCheck => 'Double-tap the photo to check it';
+
+  @override
+  String daybookGivenTo(String to, String from, String time) {
+    return 'Given to $to instead of $from at $time';
+  }
+
+  @override
+  String daybookFileChip(String name, String revision) {
+    return '$name $revision';
+  }
+
+  @override
+  String get daybookWaitingToSend => 'Waiting to send';
+
+  @override
+  String get daybookNow => 'Now';
+
+  @override
+  String get daybookDraft => 'Draft';
+
+  @override
+  String get daybookWritingTitle => 'Title';
+
+  @override
+  String get daybookWritingBody => 'Write what needs doing';
+
+  @override
+  String get daybookAssign => 'Assign';
+
+  @override
+  String get daybookLocation => 'Location';
+
+  @override
+  String get daybookDueDateMenu => 'Due date';
+
+  @override
+  String daybookDueProperty(String date, String time) {
+    return '$date, $time';
+  }
+
+  @override
+  String get daybookCamera => 'Take a photo';
+
+  @override
+  String get daybookAddPhoto => 'Add a photo';
+
+  @override
+  String get daybookMore => 'More';
+
+  @override
+  String get daybookPost => 'Post';
+
+  @override
+  String get daybookRemovePhoto => 'Remove photo';
+
+  @override
+  String get daybookGiveToSearch => 'Give to…';
+
+  @override
+  String get daybookOwnerNow => 'now';
+
+  @override
+  String get daybookPlaceHint => 'Where on site';
+
+  @override
+  String get daybookNoTime => 'No time';
+
+  @override
+  String get daybookDueTimeHelp => 'Due by a time?';
 }

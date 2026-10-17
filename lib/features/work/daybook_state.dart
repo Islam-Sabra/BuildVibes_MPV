@@ -6,11 +6,12 @@ import '../../data/repositories/daybook_repository.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 
 final daybookPageProvider = AsyncNotifierProvider.autoDispose
-    .family<DaybookPages, List<DaybookPost>, String>(DaybookPages.new);
+    .family<DaybookPages, List<DaybookRecord>, String>(DaybookPages.new);
 
-/// A Space's daybook as loaded so far, newest first. Every kind of post is
-/// kept (they page the list); the page shows work items only until slice 2.
-class DaybookPages extends AsyncNotifier<List<DaybookPost>> {
+/// A Space's daybook as loaded so far, newest first: posts, sign-offs and
+/// updates. Every kind of post is kept (they page the list); the page shows
+/// work items only until slice 2.
+class DaybookPages extends AsyncNotifier<List<DaybookRecord>> {
   DaybookPages(this.spaceId);
 
   final String spaceId;
@@ -23,7 +24,7 @@ class DaybookPages extends AsyncNotifier<List<DaybookPost>> {
   bool get hasOlder => !_reachedStart;
 
   @override
-  Future<List<DaybookPost>> build() async {
+  Future<List<DaybookRecord>> build() async {
     _reachedStart = false;
     final page = await ref
         .watch(daybookRepositoryProvider)
@@ -43,12 +44,7 @@ class DaybookPages extends AsyncNotifier<List<DaybookPost>> {
       final last = current.last;
       final page = await ref
           .read(daybookRepositoryProvider)
-          .page(
-            spaceId,
-            before: last.createdAt,
-            beforeId: last.id,
-            limit: pageSize,
-          );
+          .page(spaceId, before: last.at, beforeId: last.id, limit: pageSize);
       if (!ref.mounted) return false;
       _reachedStart = page.length < pageSize;
       state = AsyncData([...current, ...page]);
@@ -56,6 +52,28 @@ class DaybookPages extends AsyncNotifier<List<DaybookPost>> {
     } finally {
       _loadingOlder = false;
     }
+  }
+
+  /// Reads the newest page again (after a post was sent) and keeps the
+  /// older pages already loaded, without showing a load.
+  Future<void> refreshNewest() async {
+    final page = await ref
+        .read(daybookRepositoryProvider)
+        .page(spaceId, limit: pageSize);
+    if (!ref.mounted) return;
+    final current = state.value ?? const <DaybookRecord>[];
+    if (page.length < pageSize) {
+      _reachedStart = true;
+      state = AsyncData(page);
+      return;
+    }
+    final oldest = page.last;
+    bool older(DaybookRecord r) {
+      final t = r.at.compareTo(oldest.at);
+      return t < 0 || (t == 0 && r.id.compareTo(oldest.id) < 0);
+    }
+
+    state = AsyncData([...page, ...current.where(older)]);
   }
 }
 

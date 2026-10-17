@@ -85,7 +85,8 @@ class BvSlip extends StatelessWidget {
                 (cancelled
                     ? BvSlipSpec.stampTopCancelled
                     : BvSlipSpec.stampTop),
-            end: BvSlipSpec.stampEnd,
+            // Beside the paper clip when both show, never under it.
+            end: clip ? BvSlipSpec.stampEndWithClip : BvSlipSpec.stampEnd,
             child: stamp!,
           ),
         if (clip)

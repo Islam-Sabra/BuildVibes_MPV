@@ -7,7 +7,8 @@ import '../../core/design/daybook_writing_specs.dart';
 
 /// The bar on the keyboard while writing in the Daybook (2527:33399):
 /// camera, attach and More at the start, Post at the end. Post is off
-/// while [onPost] is null (an empty title).
+/// while [onPost] is null (an empty title); a tap on it then calls
+/// [onPostBlocked], if given (to say what is missing).
 class BvWritingToolbar extends StatelessWidget {
   const BvWritingToolbar({
     super.key,
@@ -21,6 +22,7 @@ class BvWritingToolbar extends StatelessWidget {
     required this.onPost,
     this.moreActive = false,
     this.moreKey,
+    this.onPostBlocked,
   });
 
   // The labels are read out; the buttons show icons only.
@@ -32,6 +34,7 @@ class BvWritingToolbar extends StatelessWidget {
   final VoidCallback? onMore;
   final String postLabel;
   final VoidCallback? onPost;
+  final VoidCallback? onPostBlocked;
 
   /// The More menu is open.
   final bool moreActive;
@@ -68,7 +71,7 @@ class BvWritingToolbar extends StatelessWidget {
             active: moreActive,
           ),
           const Spacer(),
-          _Post(label: postLabel, onTap: onPost),
+          _Post(label: postLabel, onTap: onPost, onBlocked: onPostBlocked),
         ],
       ),
     );
@@ -125,10 +128,15 @@ class _Tool extends StatelessWidget {
 }
 
 class _Post extends StatelessWidget {
-  const _Post({required this.label, required this.onTap});
+  const _Post({
+    required this.label,
+    required this.onTap,
+    required this.onBlocked,
+  });
 
   final String label;
   final VoidCallback? onTap;
+  final VoidCallback? onBlocked;
 
   @override
   Widget build(BuildContext context) {
@@ -141,7 +149,7 @@ class _Post extends StatelessWidget {
       child: GestureDetector(
         key: const Key('writing-post'),
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: onTap ?? onBlocked,
         child: SizedBox.square(
           dimension: BvWritingToolbarSpec.touch,
           child: Center(

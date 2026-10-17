@@ -26,6 +26,10 @@ abstract final class BvSlipSpec {
   static const clipTop = -14.0;
   static const clipEnd = BvSpace.s16;
 
+  /// The stamp moves past the clip (14 wide, tilted to about 21) when a
+  /// slip has both, so they never overlap (review 45, 1b note).
+  static const stampEndWithClip = 44.0;
+
   // Header: avatar 24, name, action phrase.
   static const headerHeight = BvAvatarSpec.xs;
   static const headerGap = BvSpace.s8;

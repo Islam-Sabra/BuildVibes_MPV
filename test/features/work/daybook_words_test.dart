@@ -32,7 +32,7 @@ void main() {
       final arPost = const DaybookSamples('ar').sleevesDone();
       expect(
         ar.meta(arPost, me: me, now: past),
-        'لعمر حداد، قبل الخميس 15 أكتوبر',
+        'لعمر حداد، موعده الخميس 15 أكتوبر',
       );
     });
 
@@ -41,7 +41,7 @@ void main() {
       final past = DateTime(2026, 10, 13, 9);
       expect(
         ar.meta(post, me: me, now: past),
-        'ل${inOwnDirection('Omar Haddad')}، قبل الخميس 15 أكتوبر',
+        'ل${inOwnDirection('Omar Haddad')}، موعده الخميس 15 أكتوبر',
       );
     });
 
@@ -51,7 +51,7 @@ void main() {
       expect(ar.meta(post, me: me, now: _thu), 'لك، قبل الساعة 14:00 اليوم');
       expect(
         _words('en', use24: false).meta(post, me: me, now: _thu),
-        'For you, by today 2:00\u202FPM',
+        'For you, by today 2 pm',
       );
     });
 
@@ -74,7 +74,7 @@ void main() {
       expect(en.meta(due(today), me: me, now: _thu), 'For you, by today');
       expect(ar.meta(due(today), me: me, now: _thu), 'لك، خلال اليوم');
       expect(en.meta(due(tomorrow), me: me, now: _thu), 'For you, by tomorrow');
-      expect(ar.meta(due(tomorrow), me: me, now: _thu), 'لك، خلال يوم غد');
+      expect(ar.meta(due(tomorrow), me: me, now: _thu), 'لك، غدًا');
       expect(
         en.meta(due(tomorrow, DateTime(2026, 10, 16, 9)), me: me, now: _thu),
         'For you, by tomorrow 09:00',
@@ -86,7 +86,7 @@ void main() {
       expect(en.meta(due(sunday), me: me, now: _thu), 'For you, by Sun 18 Oct');
       expect(
         ar.meta(due(sunday), me: me, now: _thu),
-        'لك، قبل الأحد 18 أكتوبر',
+        'لك، موعده الأحد 18 أكتوبر',
       );
       expect(
         ar.meta(due(sunday, DateTime(2026, 10, 18, 9)), me: me, now: _thu),
@@ -123,6 +123,102 @@ void main() {
       expect(
         lookupAppLocalizations(const Locale('ar')).daybookLate(1),
         'متأخر يومًا واحدًا',
+      );
+    });
+  });
+
+  group('review 45 B2: every due pattern, in Arabic and English', () {
+    const me = DaybookSamples.islam;
+    DaybookPost due(DateTime day, [DateTime? at]) =>
+        const DaybookSamples('en').item(
+          id: 'p',
+          at: _thu,
+          title: 't',
+          authorId: 'x',
+          authorName: 'X',
+          ownerId: me,
+          ownerName: 'I',
+          due: day,
+          dueAt: at,
+        );
+    final today = DateTime(2026, 10, 15);
+    final wednesday = DateTime(2026, 10, 21);
+    final twoPm = DateTime(2026, 10, 15, 14);
+    String meta(
+      String lang,
+      DaybookPost post,
+      DateTime now, {
+      bool use24 = true,
+    }) => _words(lang, use24: use24).meta(post, me: me, now: now);
+
+    test('by today, no time: "خلال اليوم"', () {
+      expect(meta('ar', due(today), _thu), 'لك، خلال اليوم');
+      expect(meta('en', due(today), _thu), 'For you, by today');
+    });
+
+    test('by tomorrow, no time: "غدًا"', () {
+      final tomorrow = DateTime(2026, 10, 16);
+      expect(meta('ar', due(tomorrow), _thu), 'لك، غدًا');
+      expect(meta('en', due(tomorrow), _thu), 'For you, by tomorrow');
+    });
+
+    test('by a date: "موعده الأربعاء 21 أكتوبر", never "before"', () {
+      expect(meta('ar', due(wednesday), _thu), 'لك، موعده الأربعاء 21 أكتوبر');
+      expect(meta('en', due(wednesday), _thu), 'For you, by Wed 21 Oct');
+      expect(meta('ar', due(wednesday), _thu), isNot(contains('قبل')));
+    });
+
+    test('by a time today: 12-hour as the AR frame, and 24-hour', () {
+      expect(
+        meta('ar', due(today, twoPm), _thu, use24: false),
+        'لك، قبل الساعة 2 ظهرًا اليوم',
+      );
+      expect(meta('ar', due(today, twoPm), _thu), 'لك، قبل الساعة 14:00 اليوم');
+      expect(
+        meta('en', due(today, twoPm), _thu, use24: false),
+        'For you, by today 2 pm',
+      );
+      expect(meta('en', due(today, twoPm), _thu), 'For you, by today 14:00');
+    });
+
+    test('late: "كان موعده …"', () {
+      final friday = DateTime(2026, 10, 16, 9);
+      expect(meta('ar', due(today), friday), 'لك، كان موعده الخميس 15 أكتوبر');
+      expect(meta('en', due(today), friday), 'For you, was due Thu 15 Oct');
+      expect(
+        meta('ar', due(today, twoPm), DateTime(2026, 10, 15, 15)),
+        'لك، كان موعده الساعة 14:00 اليوم',
+      );
+    });
+
+    test('the 12-hour clock: the part of the day in words', () {
+      String ar(int h, [int m = 0]) =>
+          _words('ar', use24: false).clock(DateTime(2026, 10, 15, h, m));
+      String en(int h, [int m = 0]) =>
+          _words('en', use24: false).clock(DateTime(2026, 10, 15, h, m));
+      expect(ar(8, 14), '8:14 صباحًا');
+      expect(ar(14), '2 ظهرًا');
+      expect(ar(16, 30), '4:30 عصرًا');
+      expect(ar(20), '8 مساءً');
+      expect(en(0, 5), '12:05 am');
+      expect(en(12), '12 pm');
+    });
+
+    test("the large stamp's line: the short name in capitals, the time", () {
+      final at = DateTime(2026, 10, 15, 9, 40);
+      expect(_words('en').stampLine('Omar Haddad', at), 'OMAR H · 09:40');
+      expect(_words('ar').stampLine('عمر حداد', at), 'عمر ح · 09:40');
+      expect(_words('en').stampLine('Sara Al-Mutairi', at), 'SARA A · 09:40');
+    });
+
+    test('the writing card: one line for the day, a due with a time', () {
+      expect(_words('en').compactDate(today), 'Thursday 15 October');
+      expect(_words('ar').compactDate(today), 'الخميس 15 أكتوبر');
+      final sunday = DateTime(2026, 10, 18);
+      expect(_words('en').dueProperty(sunday, null), 'Sun 18 Oct');
+      expect(
+        _words('ar').dueProperty(sunday, DateTime(2026, 10, 18, 14)),
+        'الأحد 18 أكتوبر، 14:00',
       );
     });
   });
@@ -225,7 +321,7 @@ void main() {
       final t = DateTime(2026, 10, 15, 8, 14);
       expect(_words('en').clock(t), '08:14');
       expect(_words('ar').clock(t), '08:14');
-      expect(_words('en', use24: false).clock(t), '8:14\u202FAM');
+      expect(_words('en', use24: false).clock(t), '8:14 am');
       expect(_words('ar', use24: false).clock(t), isNot(contains('٨')));
     });
   });

@@ -253,4 +253,30 @@ void main() {
     await tapEach(tester, touchSquareEdges(tester, remove));
     expect(taps, ['remove', 'remove', 'remove', 'remove']);
   });
+
+  testBoth('typing stops at what the server takes', (tester, lang) async {
+    final title = TextEditingController();
+    final body = TextEditingController();
+    addTearDown(title.dispose);
+    addTearDown(body.dispose);
+    await pumpComponent(
+      tester,
+      BvWritingCard(
+        titleController: title,
+        titlePlaceholder: 'Title',
+        bodyController: body,
+        bodyPlaceholder: 'Write what needs doing',
+        titleMaxLength: 5,
+        bodyMaxLength: 3,
+      ),
+      lang: lang,
+    );
+    await tester.enterText(
+      find.byKey(const Key('writing-title')),
+      'Cable tray',
+    );
+    await tester.enterText(find.byKey(const Key('writing-body')), 'Fix it');
+    expect(title.text, 'Cable');
+    expect(body.text, 'Fix');
+  });
 }

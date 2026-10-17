@@ -4,6 +4,8 @@
 -- Run after a reset of the local database:
 --   supabase db reset --local
 --   docker exec -i supabase_db_BuildVibes_MVP psql -U postgres -d postgres -q < supabase/dev/seed_daybook.sql
+-- Reset again before `supabase test db`: some of its checks count every
+-- profile and project in the database.
 --
 -- Sign in with any of the emails below; the 6-digit code arrives in the
 -- local mail catcher (Mailpit, http://127.0.0.1:54324). Every address is
@@ -23,9 +25,11 @@
 --   Yesterday 11:20  Cable tray hangers, level 4: Islam for Omar, due
 --                    yesterday, open: Late by 1 day on Omar's daybook (L1).
 --   Yesterday 16:20  Gate 3 access cleared for the pump truck: Islam for
---                    Omar, signed and checked (DY1).
+--                    Omar, signed at 17:05 and checked at 17:30 (DY1).
 --   Today 08:14      Sleeves at grid C7 before the pour: Islam for Omar,
---                    signed as done, waiting for Islam's check (D1).
+--                    with the drawing M-201 Rev C from the Library.
+--   Today 09:40      Omar's sign-off of the sleeves, with a photo: its own
+--                    entry, waiting for Islam's check (D1, review 45 M1).
 --   Today 10:05      Rebar spacing, level 3 slab: Sara for Islam, due today
 --                    at 14:00, moved from next Thursday (D1), so it is on
 --                    Islam's "Due today" strip until 14:00.
@@ -134,6 +138,27 @@ select set_config('request.jwt.claims', '{"sub": "dbdb0000-0000-0000-0000-000000
 select public.check_item(current_setting('seed.gate')::uuid);
 reset role;
 
+-- The drawing on the sleeves (D1's "M-201 Rev C"), as Islam's Library
+-- file. A seed row only: no file is uploaded, so it doesn't open.
+insert into public.library_files (id, space_id, name, storage_path, mime, bytes, rev_label,
+                                  uploaded_by)
+values ('dbdb0000-0000-0000-0000-0000000000f1', current_setting('seed.space')::uuid,
+        'M-201.pdf',
+        current_setting('seed.space') || '/library/dbdb0000-0000-0000-0000-0000000000f1/M-201.pdf',
+        'application/pdf', 2400000, 'Rev C', 'dbdb0000-0000-0000-0000-000000000001');
+insert into public.work_item_attachments (work_item_id, library_file_id, added_by)
+values (current_setting('seed.sleeves')::uuid, 'dbdb0000-0000-0000-0000-0000000000f1',
+        'dbdb0000-0000-0000-0000-000000000001');
+
+-- Omar's photo on the sleeves sign-off. A seed row only: the photo itself
+-- isn't uploaded, so the app shows its grey place.
+insert into public.work_item_evidence (event_id, work_item_id, storage_path, taken_at, place_text)
+select e.id, e.work_item_id,
+       current_setting('seed.space') || '/' || current_setting('seed.sleeves') || '/proof.jpg',
+       (current_date + time '09:39') at time zone 'Asia/Kuwait', 'Level 2, grid C7'
+from public.work_item_events e
+where e.work_item_id = current_setting('seed.sleeves')::uuid and e.kind = 'done';
+
 -- The prototype's times on the spine (the functions stamp "now").
 update public.space_posts p set created_at = v.at
 from (values
@@ -145,6 +170,28 @@ from (values
 where p.id = v.id::uuid;
 update public.work_items w set created_at = p.created_at
 from public.space_posts p where p.id = w.id and p.space_id = current_setting('seed.space')::uuid;
+-- The sign-offs and the check are entries at their own times (review 45
+-- M1). Events are append-only; the seed is the one exception.
+alter table public.work_item_events disable trigger work_item_events_append_only;
+update public.work_item_events e set created_at = case e.kind
+    when 'raised' then w.created_at
+    else v.at end
+from public.work_items w,
+     (values
+       (current_setting('seed.gate'), 'done', (current_date - 1 + time '17:05') at time zone 'Asia/Kuwait'),
+       (current_setting('seed.gate'), 'checked', (current_date - 1 + time '17:30') at time zone 'Asia/Kuwait'),
+       (current_setting('seed.sleeves'), 'done', (current_date + time '09:40') at time zone 'Asia/Kuwait')
+     ) as v (id, kind, at)
+where w.id = e.work_item_id and e.work_item_id = v.id::uuid
+  and (e.kind = v.kind or (e.kind = 'raised' and v.kind = 'done'));
+alter table public.work_item_events enable trigger work_item_events_append_only;
+update public.work_items w set done_at = e.created_at
+from public.work_item_events e
+where e.work_item_id = w.id and e.kind = 'done'
+  and w.id in (current_setting('seed.gate')::uuid, current_setting('seed.sleeves')::uuid);
+update public.work_items w set checked_at = e.created_at
+from public.work_item_events e
+where e.work_item_id = w.id and e.kind = 'checked' and w.id = current_setting('seed.gate')::uuid;
 commit;
 
 select w.ref, w.status, p.title, p.due_date, p.due_at, p.created_at

@@ -4,6 +4,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import 'bv_writing_card.dart' show bvBareField;
 
 /// One row of a [BvPopoverMenu].
 class BvMenuItem<T> {
@@ -372,4 +373,70 @@ class _BelowOrAbove extends SingleChildLayoutDelegate {
       old.textDirection != textDirection ||
       old.top != top ||
       old.bottom != bottom;
+}
+
+/// One line typed in a popover over the diary (the writing card's
+/// Location): the popover box, an icon and a bare field. [onDone] gets
+/// the text when the keyboard's done key is pressed.
+class BvPopoverField extends StatelessWidget {
+  const BvPopoverField({
+    super.key,
+    required this.icon,
+    required this.controller,
+    required this.placeholder,
+    required this.onDone,
+    this.maxLength,
+  });
+
+  final IconData icon;
+  final TextEditingController controller;
+  final String placeholder;
+  final ValueChanged<String> onDone;
+  final int? maxLength;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BvType.of(context).bodyMd;
+    return Container(
+      width: BvPopoverMenuSpec.placeWidth,
+      padding: const EdgeInsetsDirectional.all(BvPopoverMenuSpec.placePadding),
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceElevated,
+        borderRadius: BvPopoverMenuSpec.radius,
+        border: Border.fromBorderSide(
+          BorderSide(color: BvColors.borderSubtle, width: BvStroke.thin),
+        ),
+        boxShadow: BvShadow.menu,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Row(
+          spacing: BvPopoverMenuSpec.rowGap,
+          children: [
+            Icon(
+              icon,
+              size: BvPopoverMenuSpec.icon,
+              color: BvColors.iconPrimary,
+            ),
+            Expanded(
+              child: TextField(
+                key: const Key('popover-field'),
+                controller: controller,
+                autofocus: true,
+                maxLength: maxLength,
+                textInputAction: TextInputAction.done,
+                onSubmitted: onDone,
+                style: style.copyWith(color: BvColors.textPrimary),
+                cursorColor: BvColors.actionPrimary,
+                decoration: bvBareField(
+                  hint: placeholder,
+                  style: style,
+                ).copyWith(counterText: ''),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

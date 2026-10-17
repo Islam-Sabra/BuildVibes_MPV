@@ -5201,5 +5201,152 @@
   "daybookFirstInvite": "Invite your team",
   "@daybookFirstInvite": {
     "description": "Day one card: opens the invite screen."
+  },
+  "daybookClock12": "{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}",
+  "@daybookClock12": {
+    "description": "A 12-hour time on the Daybook: the hour (and minutes when not :00) and the part of the day (\"2 pm\", \"8:14 am\"). period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookSignedAsDone": "signed as done",
+  "@daybookSignedAsDone": {
+    "description": "Proof slip header, after the signer's name."
+  },
+  "daybookAddedUpdate": "added an update",
+  "@daybookAddedUpdate": {
+    "description": "Update slip header, after the writer's name."
+  },
+  "daybookStampBy": "{name} · {time}",
+  "@daybookStampBy": {
+    "description": "Second line of the large stamp on a proof photo: the signer's short name and the time (\"OMAR H · 09:40\").",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDoubleTapToCheck": "Double-tap the photo to check it",
+  "@daybookDoubleTapToCheck": {
+    "description": "Hint on a proof waiting for your check."
+  },
+  "daybookGivenTo": "Given to {to} instead of {from} at {time}",
+  "@daybookGivenTo": {
+    "description": "Work item slip: the last time it was given to someone else.",
+    "placeholders": {
+      "to": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookFileChip": "{name} {revision}",
+  "@daybookFileChip": {
+    "description": "A Library file on a work item slip: its name and revision (\"M-201 Rev C\").",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "revision": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWaitingToSend": "Waiting to send",
+  "@daybookWaitingToSend": {
+    "description": "A post made with no signal: it sends when the signal is back."
+  },
+  "daybookNow": "Now",
+  "@daybookNow": {
+    "description": "Spine label of the card being written."
+  },
+  "daybookDraft": "Draft",
+  "@daybookDraft": {
+    "description": "On a card reopened with unsent text: only the author sees it."
+  },
+  "daybookWritingTitle": "Title",
+  "@daybookWritingTitle": {
+    "description": "Writing card: title placeholder."
+  },
+  "daybookWritingBody": "Write what needs doing",
+  "@daybookWritingBody": {
+    "description": "Writing card: text placeholder."
+  },
+  "daybookAssign": "Assign",
+  "@daybookAssign": {
+    "description": "Writing More menu: choose who does it."
+  },
+  "daybookLocation": "Location",
+  "@daybookLocation": {
+    "description": "Writing More menu: where on site."
+  },
+  "daybookDueDateMenu": "Due date",
+  "@daybookDueDateMenu": {
+    "description": "Writing More menu: when it is due."
+  },
+  "daybookDueProperty": "{date}, {time}",
+  "@daybookDueProperty": {
+    "description": "Writing card: a due date with a time (\"Sun 18 Oct, 14:00\").",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookCamera": "Take a photo",
+  "@daybookCamera": {
+    "description": "Writing toolbar: camera (read out)."
+  },
+  "daybookAddPhoto": "Add a photo",
+  "@daybookAddPhoto": {
+    "description": "Writing toolbar: attach a photo from the phone (read out)."
+  },
+  "daybookMore": "More",
+  "@daybookMore": {
+    "description": "Writing toolbar: More (read out)."
+  },
+  "daybookPost": "Post",
+  "@daybookPost": {
+    "description": "Writing toolbar: Post (read out)."
+  },
+  "daybookRemovePhoto": "Remove photo",
+  "@daybookRemovePhoto": {
+    "description": "Writing card: the cover photo's remove button (read out)."
+  },
+  "daybookGiveToSearch": "Give to…",
+  "@daybookGiveToSearch": {
+    "description": "Give-to picker: search placeholder."
+  },
+  "daybookOwnerNow": "now",
+  "@daybookOwnerNow": {
+    "description": "Give-to picker: under the current owner."
+  },
+  "daybookPlaceHint": "Where on site",
+  "@daybookPlaceHint": {
+    "description": "Writing: the place field placeholder."
+  },
+  "daybookNoTime": "No time",
+  "@daybookNoTime": {
+    "description": "Due time picker: keep the date only."
+  },
+  "daybookDueTimeHelp": "Due by a time?",
+  "@daybookDueTimeHelp": {
+    "description": "Due time picker: its title. Optional."
   }
 }

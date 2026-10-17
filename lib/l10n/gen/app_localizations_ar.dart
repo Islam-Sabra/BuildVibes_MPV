@@ -3577,14 +3577,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookDueDate(String date) {
-    return 'قبل $date';
+    return 'موعده $date';
   }
 
   @override
   String get daybookDueToday => 'خلال اليوم';
 
   @override
-  String get daybookDueTomorrow => 'خلال يوم غد';
+  String get daybookDueTomorrow => 'غدًا';
 
   @override
   String daybookDueDateAt(String date, String time) {
@@ -3701,4 +3701,99 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookFirstInvite => 'ادعُ فريقك';
+
+  @override
+  String daybookClock12(String time, String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'morning': 'صباحًا',
+      'noon': 'ظهرًا',
+      'afternoon': 'عصرًا',
+      'evening': 'مساءً',
+      'other': 'مساءً',
+    });
+    return '$time $_temp0';
+  }
+
+  @override
+  String get daybookSignedAsDone => 'وقّع كمنجز';
+
+  @override
+  String get daybookAddedUpdate => 'تحديث جديد';
+
+  @override
+  String daybookStampBy(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get daybookDoubleTapToCheck => 'انقر مرتين على الصورة لفحصها';
+
+  @override
+  String daybookGivenTo(String to, String from, String time) {
+    return 'أُسند إلى $to بدلًا من $from الساعة $time';
+  }
+
+  @override
+  String daybookFileChip(String name, String revision) {
+    return '$name $revision';
+  }
+
+  @override
+  String get daybookWaitingToSend => 'بانتظار الإرسال';
+
+  @override
+  String get daybookNow => 'الآن';
+
+  @override
+  String get daybookDraft => 'مسودة';
+
+  @override
+  String get daybookWritingTitle => 'العنوان';
+
+  @override
+  String get daybookWritingBody => 'اكتب ما يجب عمله';
+
+  @override
+  String get daybookAssign => 'تكليف';
+
+  @override
+  String get daybookLocation => 'المكان';
+
+  @override
+  String get daybookDueDateMenu => 'الموعد';
+
+  @override
+  String daybookDueProperty(String date, String time) {
+    return '$date، $time';
+  }
+
+  @override
+  String get daybookCamera => 'التقاط صورة';
+
+  @override
+  String get daybookAddPhoto => 'إضافة صورة';
+
+  @override
+  String get daybookMore => 'المزيد';
+
+  @override
+  String get daybookPost => 'نشر';
+
+  @override
+  String get daybookRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get daybookGiveToSearch => 'التكليف إلى…';
+
+  @override
+  String get daybookOwnerNow => 'الآن';
+
+  @override
+  String get daybookPlaceHint => 'أين في الموقع';
+
+  @override
+  String get daybookNoTime => 'بدون وقت';
+
+  @override
+  String get daybookDueTimeHelp => 'قبل ساعة محددة؟';
 }

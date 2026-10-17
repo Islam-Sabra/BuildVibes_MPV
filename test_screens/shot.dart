@@ -2,6 +2,8 @@
 // the app's real fonts. Not part of `flutter test`; run:
 //   flutter test test_screens --update-goldens
 // The PNGs land in docs/screens/slice1/ (committed for the lead, review 43).
+import 'dart:async';
+
 import 'package:buildvibes/core/theme/bv_theme.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,22 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const shotSize = Size(390, 844);
+
+/// The one site photo the shots use (the Components gallery's).
+const samplePhoto = AssetImage('assets/dev/site_sample.jpg');
+
+/// Decodes [samplePhoto] for real, so the shots draw it.
+Future<void> warmSamplePhoto(WidgetTester tester) => tester.runAsync(() {
+  final done = Completer<void>();
+  final stream = samplePhoto.resolve(ImageConfiguration.empty);
+  late final ImageStreamListener listener;
+  listener = ImageStreamListener((_, _) {
+    stream.removeListener(listener);
+    done.complete();
+  }, onError: (e, _) => done.completeError(e));
+  stream.addListener(listener);
+  return done.future;
+});
 const shotPixelRatio = 2.0;
 
 Future<void> loadAppFonts() async {

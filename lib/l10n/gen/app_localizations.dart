@@ -6133,6 +6133,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invite your team'**
   String get daybookFirstInvite;
+
+  /// A 12-hour time on the Daybook: the hour (and minutes when not :00) and the part of the day ("2 pm", "8:14 am"). period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
+  String daybookClock12(String time, String period);
+
+  /// Proof slip header, after the signer's name.
+  ///
+  /// In en, this message translates to:
+  /// **'signed as done'**
+  String get daybookSignedAsDone;
+
+  /// Update slip header, after the writer's name.
+  ///
+  /// In en, this message translates to:
+  /// **'added an update'**
+  String get daybookAddedUpdate;
+
+  /// Second line of the large stamp on a proof photo: the signer's short name and the time ("OMAR H · 09:40").
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {time}'**
+  String daybookStampBy(String name, String time);
+
+  /// Hint on a proof waiting for your check.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap the photo to check it'**
+  String get daybookDoubleTapToCheck;
+
+  /// Work item slip: the last time it was given to someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'Given to {to} instead of {from} at {time}'**
+  String daybookGivenTo(String to, String from, String time);
+
+  /// A Library file on a work item slip: its name and revision ("M-201 Rev C").
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {revision}'**
+  String daybookFileChip(String name, String revision);
+
+  /// A post made with no signal: it sends when the signal is back.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to send'**
+  String get daybookWaitingToSend;
+
+  /// Spine label of the card being written.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get daybookNow;
+
+  /// On a card reopened with unsent text: only the author sees it.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get daybookDraft;
+
+  /// Writing card: title placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get daybookWritingTitle;
+
+  /// Writing card: text placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what needs doing'**
+  String get daybookWritingBody;
+
+  /// Writing More menu: choose who does it.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get daybookAssign;
+
+  /// Writing More menu: where on site.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get daybookLocation;
+
+  /// Writing More menu: when it is due.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get daybookDueDateMenu;
+
+  /// Writing card: a due date with a time ("Sun 18 Oct, 14:00").
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {time}'**
+  String daybookDueProperty(String date, String time);
+
+  /// Writing toolbar: camera (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get daybookCamera;
+
+  /// Writing toolbar: attach a photo from the phone (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get daybookAddPhoto;
+
+  /// Writing toolbar: More (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get daybookMore;
+
+  /// Writing toolbar: Post (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get daybookPost;
+
+  /// Writing card: the cover photo's remove button (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get daybookRemovePhoto;
+
+  /// Give-to picker: search placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Give to…'**
+  String get daybookGiveToSearch;
+
+  /// Give-to picker: under the current owner.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get daybookOwnerNow;
+
+  /// Writing: the place field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Where on site'**
+  String get daybookPlaceHint;
+
+  /// Due time picker: keep the date only.
+  ///
+  /// In en, this message translates to:
+  /// **'No time'**
+  String get daybookNoTime;
+
+  /// Due time picker: its title. Optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Due by a time?'**
+  String get daybookDueTimeHelp;
 }
 
 class _AppLocalizationsDelegate

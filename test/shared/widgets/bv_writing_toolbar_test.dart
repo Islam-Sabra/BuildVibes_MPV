@@ -100,4 +100,31 @@ void main() {
     await tapEach(tester, touchSquareEdges(tester, tool.first));
     expect(more, 4);
   });
+
+  testBoth('a tap on Post while it is off says what is missing', (
+    tester,
+    lang,
+  ) async {
+    var blocked = 0;
+    await pumpComponent(
+      tester,
+      BvWritingToolbar(
+        cameraLabel: 'Camera',
+        onCamera: () {},
+        attachLabel: 'Attach',
+        onAttach: () {},
+        moreLabel: 'More',
+        onMore: () {},
+        postLabel: 'Post',
+        onPost: null,
+        onPostBlocked: () => blocked++,
+      ),
+      lang: lang,
+      scroll: false,
+    );
+    // Still drawn off.
+    expect(_postFill(tester), BvColors.surfaceSubtle);
+    await tester.tap(find.byKey(const Key('writing-post')));
+    expect(blocked, 1);
+  });
 }
