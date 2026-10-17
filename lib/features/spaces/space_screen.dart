@@ -14,7 +14,7 @@ import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
 import '../library/library_tab.dart';
-import '../work/work_tab.dart';
+import '../work/daybook_tab.dart';
 import 'people_tab.dart';
 import 'space_info_screen.dart';
 
@@ -151,7 +151,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         ),
       ),
       body: switch (_tab) {
-        SpaceScreen.workTab => WorkTab(space: detail),
+        SpaceScreen.workTab => DaybookTab(space: detail),
         SpaceScreen.chatTab => ChatTab(space: detail),
         SpaceScreen.libraryTab => LibraryTab(space: detail),
         SpaceScreen.peopleTab => PeopleTab(space: detail),

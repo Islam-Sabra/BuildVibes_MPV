@@ -1,7 +1,6 @@
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
-import 'package:buildvibes/features/work/new_work_item_screen.dart';
 import 'package:buildvibes/features/work/work_item_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -120,121 +119,6 @@ final _raised = _event(WorkEventKind.raised, actor: _me, name: 'Omar Haddad');
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
-
-    Future<FakeWorkRepository> openNew(WidgetTester tester) async {
-      final work = FakeWorkRepository();
-      final app = await pumpApp(
-        tester,
-        language: lang,
-        spaces: _spaces(),
-        work: work,
-      );
-      expect(app.work, same(work));
-      _router(tester).push('/spaces/$_space/items/new');
-      await tester.pumpAndSettle();
-      return work;
-    }
-
-    Future<void> fillIn(WidgetTester tester) async {
-      await _tap(tester, 'work-take-photo');
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('work-title')),
-          matching: find.byType(TextField),
-        ),
-        'Sleeves at grid C7 before the pour',
-      );
-      await tester.pumpAndSettle();
-      await _tap(tester, 'work-owner');
-      // Viewers can't own items.
-      expect(find.byKey(const Key('owner-p-nadia')), findsNothing);
-      await _tap(tester, 'owner-p-rakesh');
-      await _tap(tester, 'work-due');
-      await _tap(tester, 'due-tomorrow');
-      await _tap(tester, 'work-place');
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('work-place-field')),
-          matching: find.byType(TextField),
-        ),
-        'Grid C7',
-      );
-      await _tap(tester, 'work-place-save');
-      await _tap(tester, 'work-team');
-      await _tap(tester, 'team-team-mep');
-    }
-
-    testWidgets(
-      'W2: the next reference, the photo first, then the form [$lang]',
-      (tester) async {
-        await openNew(tester);
-        expect(find.byType(NewWorkItemScreen), findsOneWidget);
-        expect(find.text(l10n.workNewStamp('KCT-006')), findsOneWidget);
-        expect(find.byKey(const Key('work-photo-prompt')), findsOneWidget);
-        expect(find.text(l10n.workNewFooterNoOwner), findsOneWidget);
-      },
-    );
-
-    testWidgets('W2: a title and an owner are needed [$lang]', (tester) async {
-      final work = await openNew(tester);
-      await _tap(tester, 'work-create');
-      expect(find.text(l10n.workTitleRequired), findsOneWidget);
-      expect(find.text(l10n.workOwnerRequired), findsOneWidget);
-      expect(work.created, isEmpty);
-    });
-
-    testWidgets('W2: create with a photo, owner, due, place and Team [$lang]', (
-      tester,
-    ) async {
-      final work = await openNew(tester);
-      await fillIn(tester);
-      expect(find.byKey(const Key('work-new-photo')), findsOneWidget);
-      expect(
-        find.text(l10n.workNewFooter(inOwnDirection('Rakesh'))),
-        findsOneWidget,
-      );
-      await _tap(tester, 'work-create');
-
-      final made = work.created.single;
-      expect(made.title, 'Sleeves at grid C7 before the pour');
-      expect(made.ownerId, 'p-rakesh');
-      expect(made.due, DateTime(testNow.year, testNow.month, testNow.day + 1));
-      expect(made.place, 'Grid C7');
-      expect(made.teamId, 'team-mep');
-      // The photo was uploaded first, into the item's own folder.
-      expect(made.photos.single.path, startsWith('$_space/${made.id}/'));
-      expect(find.byType(NewWorkItemScreen), findsNothing);
-    });
-
-    testWidgets('W2: on a weak signal it waits on the phone: Retry [$lang]', (
-      tester,
-    ) async {
-      final work = await openNew(tester);
-      await fillIn(tester);
-      // Every try fails.
-      work.failNext = 3;
-      await _tap(tester, 'work-create');
-      expect(work.created, isEmpty);
-      expect(find.text(l10n.workNotSentNote), findsWidgets);
-
-      // Back on the Work tab: "Not sent yet", with the photo kept.
-      _router(tester).go('/home');
-      await tester.pumpAndSettle();
-      _router(tester).push('/spaces/$_space');
-      await tester.pumpAndSettle();
-      expect(find.text(l10n.workNotSent), findsOneWidget);
-
-      final retry = find.byWidgetPredicate(
-        (w) =>
-            w.key is ValueKey<String> &&
-            (w.key! as ValueKey<String>).value.startsWith('work-retry-'),
-      );
-      await tester.tap(retry.first);
-      await tester.pumpAndSettle();
-      expect(work.created.single.photos, hasLength(1));
-      expect(find.text(l10n.workNotSent), findsNothing);
-      expect(find.text(l10n.workSent), findsOneWidget);
-    });
 
     testWidgets('W3a: an Open item you own: Sign as done [$lang]', (
       tester,

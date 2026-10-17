@@ -16,9 +16,8 @@ import '../library/library_parts.dart';
 import '../library/library_tab.dart' show currentFiles;
 import '../profile/widgets/profile_parts.dart';
 
-/// W2-A · Attach to KCT-022: from the Space Library, from the phone (it
-/// goes to the Library too), or another photo for the tag ([onTakePhoto],
-/// W2 only). Returns the Library file's id, or null.
+/// W2-A · Attach to KCT-022: from the Space Library, or from the phone (it
+/// goes to the Library too). Returns the Library file's id, or null.
 ///
 /// A Team file only goes on that Team's items, so the choices are limited
 /// to Everyone files and the item's Team ([teamId]).
@@ -29,7 +28,6 @@ Future<String?> chooseFileToAttach(
   String? teamId,
   String? teamName,
   Set<String> exclude = const {},
-  VoidCallback? onTakePhoto,
 }) async {
   final l10n = AppLocalizations.of(context);
   FocusManager.instance.primaryFocus?.unfocus();
@@ -56,24 +54,12 @@ Future<String?> chooseFileToAttach(
             trailing: const BvRowTrailing.none(),
             onTap: () => Navigator.of(sheetContext).pop(_From.phone),
           ),
-          if (onTakePhoto != null)
-            BvListRow(
-              key: const Key('attach-take-photo'),
-              title: l10n.workAttachPhoto,
-              subtitle: l10n.workAttachPhotoHelp,
-              leading: const BvRowIcon(BvIcons.camera),
-              trailing: const BvRowTrailing.none(),
-              onTap: () => Navigator.of(sheetContext).pop(_From.photo),
-            ),
         ],
       ),
     ),
   );
   if (choice == null || !context.mounted) return null;
   switch (choice) {
-    case _From.photo:
-      onTakePhoto?.call();
-      return null;
     case _From.phone:
       return context.push<String>(
         AppRoutes.libraryAdd(spaceId, forTeam: teamId ?? AppRoutes.forEveryone),
@@ -89,7 +75,7 @@ Future<String?> chooseFileToAttach(
   }
 }
 
-enum _From { library, phone, photo }
+enum _From { library, phone }
 
 /// A sheet of the Space's current files that fit an item (Everyone files,
 /// and [teamId]'s). Returns the chosen file's id.
@@ -164,21 +150,12 @@ class _LibraryPicker extends ConsumerWidget {
   }
 }
 
-/// W3 "Attached" and W2's picked files: name, then "From the Space Library
-/// · 4.8 MB". Opens F1.
+/// W3 "Attached": name, then "From the Space Library · 4.8 MB". Opens F1.
 class AttachedFileRow extends StatelessWidget {
-  const AttachedFileRow({
-    super.key,
-    required this.spaceId,
-    required this.file,
-    this.onRemove,
-  });
+  const AttachedFileRow({super.key, required this.spaceId, required this.file});
 
   final String spaceId;
   final LibraryFile file;
-
-  /// W2: take it off before the item is made.
-  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -190,20 +167,7 @@ class AttachedFileRow extends StatelessWidget {
         l10n.workAttachedFromLibrary,
         fileSize(l10n, file.bytes),
       ]),
-      trailing: onRemove == null
-          ? const BvRowTrailing.chevron()
-          : BvRowTrailing.badge(
-              IconButton(
-                key: Key('attached-remove-${file.id}'),
-                tooltip: l10n.chatRemoveFile,
-                icon: const Icon(
-                  BvIcons.close,
-                  size: BvSize.iconMd,
-                  color: BvColors.iconSecondary,
-                ),
-                onPressed: onRemove,
-              ),
-            ),
+      trailing: const BvRowTrailing.chevron(),
       onTap: () => context.push(AppRoutes.libraryFile(spaceId, file.id)),
     );
   }

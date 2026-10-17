@@ -42,6 +42,29 @@ double _fromStart(WidgetTester tester, String lang) {
 
 void main() {
   group('BvDaybookSpine', () {
+    testBoth('a minimum height: the line runs it all, entries at the bottom', (
+      tester,
+      lang,
+    ) async {
+      await pumpComponent(
+        tester,
+        const SingleChildScrollView(
+          child: BvDaybookSpine(
+            minHeight: 600,
+            children: [BvSpineEntry(time: '08:14', child: _slip)],
+          ),
+        ),
+        lang: lang,
+        scroll: false,
+      );
+      final spine = tester.getRect(find.byType(BvDaybookSpine));
+      final line = tester.getRect(find.byKey(const Key('daybook-spine-line')));
+      final slip = tester.getRect(find.byKey(const Key('slip')));
+      expect(spine.height, 600);
+      expect(line.height, 600);
+      expect(spine.bottom - slip.bottom, BvSpineSpec.paddingBottom);
+    });
+
     testBoth('the line sits at the start, the slip to its end', (
       tester,
       lang,

@@ -2187,50 +2187,6 @@
   "@spacesLastAdmin": {
     "description": "Last admin tries to leave (P0001)."
   },
-  "workPrivacyLine": "Members are people the Space admin confirmed. Nothing here is visible outside the Space.",
-  "@workPrivacyLine": {
-    "description": "S20 privacy line."
-  },
-  "workFilterAll": "All",
-  "@workFilterAll": {
-    "description": "S20 filter."
-  },
-  "workFilterMine": "Mine",
-  "@workFilterMine": {
-    "description": "S20 filter: items I own or raised."
-  },
-  "workFilterOpen": "Open",
-  "@workFilterOpen": {
-    "description": "S20 filter (glossary: chips مفتوحة)."
-  },
-  "workFilterToCheck": "To check",
-  "@workFilterToCheck": {
-    "description": "S20 filter."
-  },
-  "workFilterChecked": "Checked",
-  "@workFilterChecked": {
-    "description": "S20 filter."
-  },
-  "workSectionNeedsYou": "NEEDS YOU",
-  "@workSectionNeedsYou": {
-    "description": "S20 section."
-  },
-  "workSectionOpen": "OPEN",
-  "@workSectionOpen": {
-    "description": "S20 section: open, and done items waiting for someone else."
-  },
-  "workSectionWaitingCheck": "WAITING FOR A CHECK",
-  "@workSectionWaitingCheck": {
-    "description": "To check filter: done items others check."
-  },
-  "workSectionCheckedWeek": "CHECKED THIS WEEK",
-  "@workSectionCheckedWeek": {
-    "description": "S20 section."
-  },
-  "workSectionCheckedEarlier": "CHECKED EARLIER",
-  "@workSectionCheckedEarlier": {
-    "description": "Checked filter."
-  },
   "workStatusOpen": "OPEN",
   "@workStatusOpen": {
     "description": "Card status."
@@ -2331,30 +2287,6 @@
   "@workCheckIt": {
     "description": "Card action."
   },
-  "workNewItem": "New item",
-  "@workNewItem": {
-    "description": "S20 button."
-  },
-  "workEmptyTitle": "No work items yet",
-  "@workEmptyTitle": {
-    "description": "S20 empty."
-  },
-  "workEmptyCanCreate": "Raise the first one with New item. The owner signs it as done, then it's checked.",
-  "@workEmptyCanCreate": {
-    "description": "S20 empty, can create."
-  },
-  "workEmptyCannot": "Items appear here when someone raises one for the team.",
-  "@workEmptyCannot": {
-    "description": "S20 empty, can't create."
-  },
-  "workNothingNeedsYou": "Nothing needs you right now.",
-  "@workNothingNeedsYou": {
-    "description": "S20 empty Needs you."
-  },
-  "workFilterEmpty": "Nothing here.",
-  "@workFilterEmpty": {
-    "description": "S20 empty filter."
-  },
   "workStatusOwnerLeft": "OWNER LEFT · REASSIGN",
   "@workStatusOwnerLeft": {
     "description": "Card status: the owner left the Space (review 09)."
@@ -2363,115 +2295,9 @@
   "@workReassign": {
     "description": "Card action."
   },
-  "workNewTitle": "New work item",
-  "@workNewTitle": {
-    "description": "W2 title."
-  },
-  "workTakePhoto": "Take a photo",
-  "@workTakePhoto": {
-    "description": "W2 photo tile."
-  },
   "workFromGallery": "Choose from gallery",
   "@workFromGallery": {
     "description": "W2 fallback."
-  },
-  "workRetake": "Retake",
-  "@workRetake": {
-    "description": "W2 photo button."
-  },
-  "workPhotoFirst": "Start with a photo of the spot.",
-  "@workPhotoFirst": {
-    "description": "W2 photo tile hint."
-  },
-  "workNewStamp": "NEW · {ref}",
-  "@workNewStamp": {
-    "description": "W2 stamp with the next reference.",
-    "placeholders": {
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "workNewStampPlain": "NEW",
-  "@workNewStampPlain": {
-    "description": "W2 stamp when the reference isn't known."
-  },
-  "workTitleHint": "What needs doing · one line is enough",
-  "@workTitleHint": {
-    "description": "W2 title placeholder."
-  },
-  "workTitleRequired": "Write what needs doing.",
-  "@workTitleRequired": {
-    "description": "W2 error."
-  },
-  "workCellOwner": "OWNER · ONE PERSON",
-  "@workCellOwner": {
-    "description": "W2 cell."
-  },
-  "workCellDue": "DUE",
-  "@workCellDue": {
-    "description": "W2 cell."
-  },
-  "workCellPlace": "PLACE ON SITE",
-  "@workCellPlace": {
-    "description": "W2 cell."
-  },
-  "workCellTeam": "TEAM",
-  "@workCellTeam": {
-    "description": "W2 cell."
-  },
-  "workChoose": "Choose",
-  "@workChoose": {
-    "description": "W2 empty cell."
-  },
-  "workOwnerRequired": "Choose who does it.",
-  "@workOwnerRequired": {
-    "description": "W2 error."
-  },
-  "workNoDue": "No due date",
-  "@workNoDue": {
-    "description": "W2 due option."
-  },
-  "workToday": "Today",
-  "@workToday": {
-    "description": "W2 due option."
-  },
-  "workTomorrow": "Tomorrow",
-  "@workTomorrow": {
-    "description": "W2 due option."
-  },
-  "workPickDate": "Pick a date",
-  "@workPickDate": {
-    "description": "W2 due option."
-  },
-  "workNoTeam": "No Team",
-  "@workNoTeam": {
-    "description": "W2 team option."
-  },
-  "workPlaceHint": "e.g. Level 2 · Grid C7",
-  "@workPlaceHint": {
-    "description": "W2 place placeholder."
-  },
-  "workNewFooter": "{owner} gets it in Needs you. When it's marked done, you check it.",
-  "@workNewFooter": {
-    "description": "W2 footer.",
-    "placeholders": {
-      "owner": {
-        "type": "String"
-      }
-    }
-  },
-  "workNewFooterNoOwner": "The owner gets it in Needs you. When it's marked done, you check it.",
-  "@workNewFooterNoOwner": {
-    "description": "W2 footer before an owner is chosen."
-  },
-  "workCreate": "Create item",
-  "@workCreate": {
-    "description": "W2 button."
-  },
-  "workNotSent": "Not sent yet",
-  "@workNotSent": {
-    "description": "Outbox card."
   },
   "workRetry": "Retry",
   "@workRetry": {
@@ -2480,10 +2306,6 @@
   "workNotSentNote": "Saved on this phone. Retry when the signal is back.",
   "@workNotSentNote": {
     "description": "Outbox card."
-  },
-  "workSent": "Sent.",
-  "@workSent": {
-    "description": "Toast after a retry."
   },
   "workSignOff": "SIGN-OFF",
   "@workSignOff": {
@@ -3400,14 +3222,6 @@
   },
   "workAttachPhoneHelp": "PDF or image · saved to the Space Library too",
   "@workAttachPhoneHelp": {
-    "description": "W2-A option helper."
-  },
-  "workAttachPhoto": "Take another photo",
-  "@workAttachPhoto": {
-    "description": "W2-A option."
-  },
-  "workAttachPhotoHelp": "Adds to the photos on the tag",
-  "@workAttachPhotoHelp": {
     "description": "W2-A option helper."
   },
   "workAttached": "ATTACHED",
@@ -5162,5 +4976,230 @@
   "formerMember": "Former member",
   "@formerMember": {
     "description": "A Space member whose account is hidden or deleted."
+  },
+  "daybookDateLine": "{date}, day {day} on site",
+  "@daybookDateLine": {
+    "description": "Masthead date line when the Space has an On site since date (D1).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookYou": "You",
+  "@daybookYou": {
+    "description": "Slip header for your own post; the avatar keeps your initials."
+  },
+  "daybookForYou": "For you",
+  "@daybookForYou": {
+    "description": "Slip meta: you own the work item."
+  },
+  "daybookForPerson": "For {name}",
+  "@daybookForPerson": {
+    "description": "Slip meta: who owns the work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookMeta": "{who}, {due}",
+  "@daybookMeta": {
+    "description": "Slip meta: owner, then due (\"For Omar Haddad, by Thu 15 Oct\").",
+    "placeholders": {
+      "who": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueDate": "by {date}",
+  "@daybookDueDate": {
+    "description": "Due on a day (\"by Thu 15 Oct\").",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueToday": "by today",
+  "@daybookDueToday": {
+    "description": "Due today, no time. Arabic never says 'before today' (review 44 C2)."
+  },
+  "daybookDueTomorrow": "by tomorrow",
+  "@daybookDueTomorrow": {
+    "description": "Due tomorrow, no time."
+  },
+  "daybookDueDateAt": "by {date} {time}",
+  "@daybookDueDateAt": {
+    "description": "Due on a day at a time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueTodayAt": "by today {time}",
+  "@daybookDueTodayAt": {
+    "description": "Due today at a time (AR frame 2547:35262).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueTomorrowAt": "by tomorrow {time}",
+  "@daybookDueTomorrowAt": {
+    "description": "Due tomorrow at a time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWasDue": "was due {date}",
+  "@daybookWasDue": {
+    "description": "A late item's due day (L1).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWasDueAt": "was due {date} {time}",
+  "@daybookWasDueAt": {
+    "description": "A late item's due day and time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWasDueTodayAt": "was due today {time}",
+  "@daybookWasDueTodayAt": {
+    "description": "A timed item that went late today.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLate": "{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}",
+  "@daybookLate": {
+    "description": "Late line on an open item past its due (L1). 0: late today, after its time.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookDueTodayStrip": "Due today: {titles}",
+  "@daybookDueTodayStrip": {
+    "description": "Strip under the masthead (L1): items due today for you or by you.",
+    "placeholders": {
+      "titles": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPoints": "{n, plural, =1{1 point} other{{n} points}}",
+  "@daybookPoints": {
+    "description": "Slip chip: checklist points on a work item.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookEditedDue": "Edited: due moved from {from} to {to}",
+  "@daybookEditedDue": {
+    "description": "Slip history line after the due was edited.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookToday": "today",
+  "@daybookToday": {
+    "description": "A day word in the edited line."
+  },
+  "daybookTomorrow": "tomorrow",
+  "@daybookTomorrow": {
+    "description": "A day word in the edited line."
+  },
+  "daybookCancelledBy": "Cancelled by {name} at {time}",
+  "@daybookCancelledBy": {
+    "description": "Meta line of a cancelled work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookStampDone": "DONE",
+  "@daybookStampDone": {
+    "description": "Ink stamp (glossary Done)."
+  },
+  "daybookStampChecked": "CHECKED",
+  "@daybookStampChecked": {
+    "description": "Ink stamp (glossary Checked)."
+  },
+  "daybookStampSentBack": "SENT BACK",
+  "@daybookStampSentBack": {
+    "description": "Ink stamp after Send back."
+  },
+  "daybookStampCancelled": "CANCELLED",
+  "@daybookStampCancelled": {
+    "description": "Ink stamp on a cancelled post."
+  },
+  "daybookWorkItem": "Work item",
+  "@daybookWorkItem": {
+    "description": "Post bar notepad (glossary)."
+  },
+  "daybookReadOnly": "Read only",
+  "@daybookReadOnly": {
+    "description": "Viewer post bar, after the pass chip (V1)."
+  },
+  "daybookMonthPosts": "Posts",
+  "@daybookMonthPosts": {
+    "description": "Month drop-down legend: a day with posts."
+  },
+  "daybookMonthDue": "Something due",
+  "@daybookMonthDue": {
+    "description": "Month drop-down legend: a day with something due."
+  },
+  "daybookFirstTitle": "The first page of your daybook",
+  "@daybookFirstTitle": {
+    "description": "Day one card title (DY3)."
+  },
+  "daybookFirstBody": "Everything your team posts will hang here, day by day.",
+  "@daybookFirstBody": {
+    "description": "Day one card body."
+  },
+  "daybookFirstPost": "Post the first work item",
+  "@daybookFirstPost": {
+    "description": "Day one card, main action."
+  },
+  "daybookFirstInvite": "Invite your team",
+  "@daybookFirstInvite": {
+    "description": "Day one card: opens the invite screen."
   }
 }

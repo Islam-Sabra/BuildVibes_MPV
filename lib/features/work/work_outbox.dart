@@ -10,7 +10,6 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
-import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../entry/entry_state.dart';
@@ -53,12 +52,8 @@ class PendingPhoto {
   };
 }
 
-/// What a pending entry sends: a new item (W2) or a sign-off (W4).
-enum PendingKind { create, signDone }
-
-/// A new work item (W2) or a sign-off (W4) that isn't on the server yet.
-/// Kept on the phone until it is, so a weak site signal never loses it or
-/// its photos.
+/// A sign-off (W4) that isn't on the server yet. Kept on the phone until it
+/// is, so a weak site signal never loses it or its photos.
 @immutable
 class PendingItem {
   const PendingItem({
@@ -67,15 +62,10 @@ class PendingItem {
     required this.title,
     required this.ownerId,
     required this.ownerName,
-    this.due,
-    this.teamId,
-    this.place,
     this.photos = const [],
     this.failed = false,
-    this.kind = PendingKind.create,
     this.note,
     this.ref,
-    this.attachFileIds = const [],
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -84,46 +74,31 @@ class PendingItem {
     title: json['title'] as String,
     ownerId: json['owner_id'] as String,
     ownerName: json['owner_name'] as String? ?? '',
-    due: json['due'] == null ? null : DateTime.parse(json['due'] as String),
-    teamId: json['team_id'] as String?,
-    place: json['place'] as String?,
     photos: [
       for (final p in json['photos'] as List? ?? const [])
         PendingPhoto.fromJson(p as Map<String, dynamic>),
     ],
     failed: json['failed'] as bool? ?? false,
-    kind: json['kind'] == 'sign_done'
-        ? PendingKind.signDone
-        : PendingKind.create,
     note: json['note'] as String?,
     ref: json['ref'] as String?,
-    attachFileIds: [
-      for (final id in json['attach'] as List? ?? const []) id as String,
-    ],
   );
 
+  /// The work item's id.
   final String id;
   final String spaceId;
   final String title;
   final String ownerId;
   final String ownerName;
-  final DateTime? due;
-  final String? teamId;
-  final String? place;
   final List<PendingPhoto> photos;
 
   /// The last try didn't get through: "Not sent yet · Retry".
   final bool failed;
-  final PendingKind kind;
 
-  /// The sign-off note (W4).
+  /// The sign-off note.
   final String? note;
 
-  /// The item's reference, for a sign-off ("KCT-021").
+  /// The item's reference ("KCT-021").
   final String? ref;
-
-  /// Library files to attach once the new item exists (W2-A).
-  final List<String> attachFileIds;
 
   PendingItem copyWith({List<PendingPhoto>? photos, bool? failed}) =>
       PendingItem(
@@ -132,15 +107,10 @@ class PendingItem {
         title: title,
         ownerId: ownerId,
         ownerName: ownerName,
-        due: due,
-        teamId: teamId,
-        place: place,
         photos: photos ?? this.photos,
         failed: failed ?? this.failed,
-        kind: kind,
         note: note,
         ref: ref,
-        attachFileIds: attachFileIds,
       );
 
   Map<String, dynamic> toJson() => {
@@ -149,16 +119,17 @@ class PendingItem {
     'title': title,
     'owner_id': ownerId,
     'owner_name': ownerName,
-    'due': due?.toIso8601String(),
-    'team_id': teamId,
-    'place': place,
     'photos': [for (final p in photos) p.toJson()],
     'failed': failed,
-    'kind': kind == PendingKind.signDone ? 'sign_done' : 'create',
+    'kind': _signDone,
     'note': note,
     'ref': ref,
-    'attach': attachFileIds,
   };
+
+  /// Older versions also kept new items here (the 0.9.0 W2 form, retired in
+  /// slice 1); only sign-offs are read back.
+  static const _signDone = 'sign_done';
+  static bool isSignOff(Map<String, dynamic> json) => json['kind'] == _signDone;
 }
 
 /// Takes a photo for evidence: the camera, or the gallery as a fallback.
@@ -201,7 +172,7 @@ final workOutboxProvider = NotifierProvider<WorkOutbox, List<PendingItem>>(
   WorkOutbox.new,
 );
 
-/// New items waiting to be sent, kept on the phone between app starts.
+/// Sign-offs waiting to be sent, kept on the phone between app starts.
 /// Each account has its own: on a phone a crew shares, the next person
 /// never sees (or sends) someone else's unsent work.
 class WorkOutbox extends Notifier<List<PendingItem>> {
@@ -220,8 +191,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     if (raw == null) return const [];
     try {
       return [
-        for (final j in jsonDecode(raw) as List)
-          PendingItem.fromJson(j as Map<String, dynamic>),
+        for (final j in (jsonDecode(raw) as List).cast<Map<String, dynamic>>())
+          if (PendingItem.isSignOff(j)) PendingItem.fromJson(j),
       ];
     } on FormatException {
       return const [];
@@ -248,12 +219,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       if (i.spaceId == spaceId) i,
   ];
 
-  /// Keeps [item], uploads its photos and creates it, trying again on a
+  /// Keeps [item], uploads its photos and signs it, trying again on a
   /// weak signal. True when it reached the server; otherwise it stays here
   /// as "Not sent yet".
   Future<bool> send(PendingItem item) async {
     final repo = ref.read(workRepositoryProvider);
-    final library = ref.read(libraryRepositoryProvider);
     final delays = ref.read(outboxRetryDelaysProvider);
     var current = item.copyWith(failed: false);
     await _put(current);
@@ -298,30 +268,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
         ];
         await withRetries(
-          () => item.kind == PendingKind.signDone
-              ? repo.signDone(item.id, note: item.note, photos: sent)
-              : repo.createItem(
-                  NewWorkItem(
-                    id: item.id,
-                    spaceId: item.spaceId,
-                    title: item.title,
-                    ownerId: item.ownerId,
-                    due: item.due,
-                    teamId: item.teamId,
-                    place: item.place,
-                    photos: sent,
-                  ),
-                ),
+          () => repo.signDone(item.id, note: item.note, photos: sent),
         );
-        // W2-A: files picked before the item existed. A refusal (a Team
-        // file on another Team's item) leaves the item made; attach on W3.
-        for (final fileId in item.attachFileIds) {
-          try {
-            await withRetries(() => library.attach(item.id, fileId));
-          } on SpaceException catch (e) {
-            if (e.failure == SpaceFailure.network) rethrow;
-          }
-        }
         break;
       } on SpaceException catch (e) {
         // Refused photos from an earlier try: upload them again, once.
@@ -347,7 +295,6 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       unawaited(_deleteKept(p.local));
     }
     ref
-      ..invalidate(itemFilesProvider(item.id))
       ..invalidate(workItemDetailProvider(item.id))
       ..invalidate(workItemsProvider(item.spaceId))
       ..invalidate(workNeedsProvider(item.spaceId))

@@ -6,6 +6,8 @@ import 'package:buildvibes/core/theme/bv_theme.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -39,12 +41,17 @@ Future<void> loadAppFonts() async {
 
 /// Renders [child] in a 390 × 844 app frame in [lang] and saves
 /// `docs/screens/slice1/<name>_<lang>.png`.
+///
+/// A whole screen gets its providers from [overrides], and [before] puts it
+/// in the state to shoot (a scroll, a tap) once it has settled.
 Future<void> shoot(
   WidgetTester tester,
   String name,
   String lang,
-  Widget Function(BuildContext context) child,
-) async {
+  Widget Function(BuildContext context) child, {
+  List<Override>? overrides,
+  Future<void> Function(WidgetTester tester)? before,
+}) async {
   tester.view.physicalSize = shotSize * shotPixelRatio;
   tester.view.devicePixelRatio = shotPixelRatio;
   addTearDown(tester.view.reset);
@@ -54,25 +61,29 @@ Future<void> shoot(
   // are part of the look. Restored before the test ends, as it requires.
   debugDisableShadows = false;
   try {
+    final app = MaterialApp(
+      debugShowCheckedModeBanner: false,
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: BvTheme.forLocale(locale),
+      home: Builder(builder: child),
+    );
     await tester.pumpWidget(
       RepaintBoundary(
         key: key,
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          locale: locale,
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          theme: BvTheme.forLocale(locale),
-          home: Builder(builder: child),
-        ),
+        child: overrides == null
+            ? app
+            : ProviderScope(overrides: overrides, child: app),
       ),
     );
     await tester.pumpAndSettle();
+    await before?.call(tester);
     await expectLater(
       find.byKey(key),
       matchesGoldenFile('../docs/screens/slice1/${name}_$lang.png'),

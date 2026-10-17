@@ -211,7 +211,8 @@ class SupabaseSpaceRepository implements SpaceRepository {
     final space = await _client
         .from('spaces')
         .select(
-          'id, name, about, project_id, who_can_invite, project:projects(name)',
+          'id, name, about, project_id, who_can_invite, site_start_date, '
+          'project:projects(name)',
         )
         .eq('id', spaceId)
         .maybeSingle();
@@ -240,6 +241,10 @@ class SupabaseSpaceRepository implements SpaceRepository {
       myRights: MemberRights.fromJson(rights),
       whoCanInvite: SpaceInviters.fromJson(space['who_can_invite']),
       myNotify: SpaceNotify.fromJson(member['notify']),
+      siteStartDate: switch (space['site_start_date']) {
+        final String day => DateTime.parse(day),
+        _ => null,
+      },
     );
   });
 

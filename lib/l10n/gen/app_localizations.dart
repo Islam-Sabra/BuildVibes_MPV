@@ -2810,72 +2810,6 @@ abstract class AppLocalizations {
   /// **'Make someone else an admin first, or delete the Space.'**
   String get spacesLastAdmin;
 
-  /// S20 privacy line.
-  ///
-  /// In en, this message translates to:
-  /// **'Members are people the Space admin confirmed. Nothing here is visible outside the Space.'**
-  String get workPrivacyLine;
-
-  /// S20 filter.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get workFilterAll;
-
-  /// S20 filter: items I own or raised.
-  ///
-  /// In en, this message translates to:
-  /// **'Mine'**
-  String get workFilterMine;
-
-  /// S20 filter (glossary: chips مفتوحة).
-  ///
-  /// In en, this message translates to:
-  /// **'Open'**
-  String get workFilterOpen;
-
-  /// S20 filter.
-  ///
-  /// In en, this message translates to:
-  /// **'To check'**
-  String get workFilterToCheck;
-
-  /// S20 filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Checked'**
-  String get workFilterChecked;
-
-  /// S20 section.
-  ///
-  /// In en, this message translates to:
-  /// **'NEEDS YOU'**
-  String get workSectionNeedsYou;
-
-  /// S20 section: open, and done items waiting for someone else.
-  ///
-  /// In en, this message translates to:
-  /// **'OPEN'**
-  String get workSectionOpen;
-
-  /// To check filter: done items others check.
-  ///
-  /// In en, this message translates to:
-  /// **'WAITING FOR A CHECK'**
-  String get workSectionWaitingCheck;
-
-  /// S20 section.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED THIS WEEK'**
-  String get workSectionCheckedWeek;
-
-  /// Checked filter.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED EARLIER'**
-  String get workSectionCheckedEarlier;
-
   /// Card status.
   ///
   /// In en, this message translates to:
@@ -2966,42 +2900,6 @@ abstract class AppLocalizations {
   /// **'Check it'**
   String get workCheckIt;
 
-  /// S20 button.
-  ///
-  /// In en, this message translates to:
-  /// **'New item'**
-  String get workNewItem;
-
-  /// S20 empty.
-  ///
-  /// In en, this message translates to:
-  /// **'No work items yet'**
-  String get workEmptyTitle;
-
-  /// S20 empty, can create.
-  ///
-  /// In en, this message translates to:
-  /// **'Raise the first one with New item. The owner signs it as done, then it\'s checked.'**
-  String get workEmptyCanCreate;
-
-  /// S20 empty, can't create.
-  ///
-  /// In en, this message translates to:
-  /// **'Items appear here when someone raises one for the team.'**
-  String get workEmptyCannot;
-
-  /// S20 empty Needs you.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing needs you right now.'**
-  String get workNothingNeedsYou;
-
-  /// S20 empty filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing here.'**
-  String get workFilterEmpty;
-
   /// Card status: the owner left the Space (review 09).
   ///
   /// In en, this message translates to:
@@ -3014,155 +2912,11 @@ abstract class AppLocalizations {
   /// **'Reassign'**
   String get workReassign;
 
-  /// W2 title.
-  ///
-  /// In en, this message translates to:
-  /// **'New work item'**
-  String get workNewTitle;
-
-  /// W2 photo tile.
-  ///
-  /// In en, this message translates to:
-  /// **'Take a photo'**
-  String get workTakePhoto;
-
   /// W2 fallback.
   ///
   /// In en, this message translates to:
   /// **'Choose from gallery'**
   String get workFromGallery;
-
-  /// W2 photo button.
-  ///
-  /// In en, this message translates to:
-  /// **'Retake'**
-  String get workRetake;
-
-  /// W2 photo tile hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Start with a photo of the spot.'**
-  String get workPhotoFirst;
-
-  /// W2 stamp with the next reference.
-  ///
-  /// In en, this message translates to:
-  /// **'NEW · {ref}'**
-  String workNewStamp(String ref);
-
-  /// W2 stamp when the reference isn't known.
-  ///
-  /// In en, this message translates to:
-  /// **'NEW'**
-  String get workNewStampPlain;
-
-  /// W2 title placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'What needs doing · one line is enough'**
-  String get workTitleHint;
-
-  /// W2 error.
-  ///
-  /// In en, this message translates to:
-  /// **'Write what needs doing.'**
-  String get workTitleRequired;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'OWNER · ONE PERSON'**
-  String get workCellOwner;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'DUE'**
-  String get workCellDue;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'PLACE ON SITE'**
-  String get workCellPlace;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'TEAM'**
-  String get workCellTeam;
-
-  /// W2 empty cell.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose'**
-  String get workChoose;
-
-  /// W2 error.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose who does it.'**
-  String get workOwnerRequired;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'No due date'**
-  String get workNoDue;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'Today'**
-  String get workToday;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'Tomorrow'**
-  String get workTomorrow;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick a date'**
-  String get workPickDate;
-
-  /// W2 team option.
-  ///
-  /// In en, this message translates to:
-  /// **'No Team'**
-  String get workNoTeam;
-
-  /// W2 place placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Level 2 · Grid C7'**
-  String get workPlaceHint;
-
-  /// W2 footer.
-  ///
-  /// In en, this message translates to:
-  /// **'{owner} gets it in Needs you. When it\'s marked done, you check it.'**
-  String workNewFooter(String owner);
-
-  /// W2 footer before an owner is chosen.
-  ///
-  /// In en, this message translates to:
-  /// **'The owner gets it in Needs you. When it\'s marked done, you check it.'**
-  String get workNewFooterNoOwner;
-
-  /// W2 button.
-  ///
-  /// In en, this message translates to:
-  /// **'Create item'**
-  String get workCreate;
-
-  /// Outbox card.
-  ///
-  /// In en, this message translates to:
-  /// **'Not sent yet'**
-  String get workNotSent;
 
   /// Outbox card.
   ///
@@ -3175,12 +2929,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved on this phone. Retry when the signal is back.'**
   String get workNotSentNote;
-
-  /// Toast after a retry.
-  ///
-  /// In en, this message translates to:
-  /// **'Sent.'**
-  String get workSent;
 
   /// W3 section (glossary).
   ///
@@ -4189,18 +3937,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PDF or image · saved to the Space Library too'**
   String get workAttachPhoneHelp;
-
-  /// W2-A option.
-  ///
-  /// In en, this message translates to:
-  /// **'Take another photo'**
-  String get workAttachPhoto;
-
-  /// W2-A option helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Adds to the photos on the tag'**
-  String get workAttachPhotoHelp;
 
   /// W3 section label.
   ///
@@ -6199,6 +5935,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Former member'**
   String get formerMember;
+
+  /// Masthead date line when the Space has an On site since date (D1).
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, day {day} on site'**
+  String daybookDateLine(String date, int day);
+
+  /// Slip header for your own post; the avatar keeps your initials.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get daybookYou;
+
+  /// Slip meta: you own the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'For you'**
+  String get daybookForYou;
+
+  /// Slip meta: who owns the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'For {name}'**
+  String daybookForPerson(String name);
+
+  /// Slip meta: owner, then due ("For Omar Haddad, by Thu 15 Oct").
+  ///
+  /// In en, this message translates to:
+  /// **'{who}, {due}'**
+  String daybookMeta(String who, String due);
+
+  /// Due on a day ("by Thu 15 Oct").
+  ///
+  /// In en, this message translates to:
+  /// **'by {date}'**
+  String daybookDueDate(String date);
+
+  /// Due today, no time. Arabic never says 'before today' (review 44 C2).
+  ///
+  /// In en, this message translates to:
+  /// **'by today'**
+  String get daybookDueToday;
+
+  /// Due tomorrow, no time.
+  ///
+  /// In en, this message translates to:
+  /// **'by tomorrow'**
+  String get daybookDueTomorrow;
+
+  /// Due on a day at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'by {date} {time}'**
+  String daybookDueDateAt(String date, String time);
+
+  /// Due today at a time (AR frame 2547:35262).
+  ///
+  /// In en, this message translates to:
+  /// **'by today {time}'**
+  String daybookDueTodayAt(String time);
+
+  /// Due tomorrow at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'by tomorrow {time}'**
+  String daybookDueTomorrowAt(String time);
+
+  /// A late item's due day (L1).
+  ///
+  /// In en, this message translates to:
+  /// **'was due {date}'**
+  String daybookWasDue(String date);
+
+  /// A late item's due day and time.
+  ///
+  /// In en, this message translates to:
+  /// **'was due {date} {time}'**
+  String daybookWasDueAt(String date, String time);
+
+  /// A timed item that went late today.
+  ///
+  /// In en, this message translates to:
+  /// **'was due today {time}'**
+  String daybookWasDueTodayAt(String time);
+
+  /// Late line on an open item past its due (L1). 0: late today, after its time.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}'**
+  String daybookLate(int n);
+
+  /// Strip under the masthead (L1): items due today for you or by you.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today: {titles}'**
+  String daybookDueTodayStrip(String titles);
+
+  /// Slip chip: checklist points on a work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 point} other{{n} points}}'**
+  String daybookPoints(int n);
+
+  /// Slip history line after the due was edited.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited: due moved from {from} to {to}'**
+  String daybookEditedDue(String from, String to);
+
+  /// A day word in the edited line.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get daybookToday;
+
+  /// A day word in the edited line.
+  ///
+  /// In en, this message translates to:
+  /// **'tomorrow'**
+  String get daybookTomorrow;
+
+  /// Meta line of a cancelled work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by {name} at {time}'**
+  String daybookCancelledBy(String name, String time);
+
+  /// Ink stamp (glossary Done).
+  ///
+  /// In en, this message translates to:
+  /// **'DONE'**
+  String get daybookStampDone;
+
+  /// Ink stamp (glossary Checked).
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKED'**
+  String get daybookStampChecked;
+
+  /// Ink stamp after Send back.
+  ///
+  /// In en, this message translates to:
+  /// **'SENT BACK'**
+  String get daybookStampSentBack;
+
+  /// Ink stamp on a cancelled post.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCELLED'**
+  String get daybookStampCancelled;
+
+  /// Post bar notepad (glossary).
+  ///
+  /// In en, this message translates to:
+  /// **'Work item'**
+  String get daybookWorkItem;
+
+  /// Viewer post bar, after the pass chip (V1).
+  ///
+  /// In en, this message translates to:
+  /// **'Read only'**
+  String get daybookReadOnly;
+
+  /// Month drop-down legend: a day with posts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get daybookMonthPosts;
+
+  /// Month drop-down legend: a day with something due.
+  ///
+  /// In en, this message translates to:
+  /// **'Something due'**
+  String get daybookMonthDue;
+
+  /// Day one card title (DY3).
+  ///
+  /// In en, this message translates to:
+  /// **'The first page of your daybook'**
+  String get daybookFirstTitle;
+
+  /// Day one card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything your team posts will hang here, day by day.'**
+  String get daybookFirstBody;
+
+  /// Day one card, main action.
+  ///
+  /// In en, this message translates to:
+  /// **'Post the first work item'**
+  String get daybookFirstPost;
+
+  /// Day one card: opens the invite screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite your team'**
+  String get daybookFirstInvite;
 }
 
 class _AppLocalizationsDelegate

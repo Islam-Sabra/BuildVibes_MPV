@@ -7,10 +7,8 @@ import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/library/add_file_screen.dart';
 import 'package:buildvibes/features/library/file_preview_screen.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
-import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -454,51 +452,6 @@ void main() {
         find.text(l10n.chatTeamPrivacy(inOwnDirection('MEP Team'))),
         findsOneWidget,
       );
-    });
-
-    testWidgets('W2-A: files picked before the item exists [$lang]', (
-      tester,
-    ) async {
-      await _open(tester, lang, '/spaces/$_space/items/new');
-      await _tap(tester, 'work-new-attach');
-      expect(find.text(l10n.workAttachTitle('KCT-006')), findsOneWidget);
-      expect(find.byKey(const Key('attach-take-photo')), findsOneWidget);
-      await _tap(tester, 'attach-from-library');
-      await _tap(tester, 'file-f-all');
-      expect(find.byKey(const Key('attached-f-all')), findsOneWidget);
-      await _tap(tester, 'attached-remove-f-all');
-      expect(find.byKey(const Key('attached-f-all')), findsNothing);
-    });
-
-    testWidgets('outbox: a new item gets its files once it exists [$lang]', (
-      tester,
-    ) async {
-      final library = _library();
-      final app = await _open(
-        tester,
-        lang,
-        '/spaces/$_space',
-        library: library,
-      );
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(Navigator).first),
-      );
-      library.refuseAttach = null;
-      final sent = await container
-          .read(workOutboxProvider.notifier)
-          .send(
-            const PendingItem(
-              id: 'item-new',
-              spaceId: _space,
-              title: 'Seal the riser',
-              ownerId: _me,
-              ownerName: 'Omar Haddad',
-              attachFileIds: ['f-all'],
-            ),
-          );
-      expect(sent, isTrue);
-      expect(app.work.created.single.id, 'item-new');
-      expect(library.calls.single, 'attach item-new f-all');
     });
   }
 

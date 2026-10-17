@@ -24,15 +24,9 @@ abstract class WorkRepository {
   /// you are not a member.
   Future<WorkItemDetail?> detail(String itemId);
 
-  /// The reference the next item will get ("KCT-006"), for the W2 stamp.
-  Future<String?> nextRef(String spaceId);
-
   /// Uploads a photo to `<space>/<item>/<new uuid>.jpg` and returns the
   /// path. Every call uses a new name, so a retry never replaces a file.
   Future<String> uploadPhoto(String spaceId, String itemId, File file);
-
-  /// [itemId] is chosen by the app: a retry returns the same item.
-  Future<void> createItem(NewWorkItem item);
 
   Future<void> addComment(String itemId, String text);
 
@@ -54,29 +48,6 @@ abstract class WorkRepository {
 
   /// RE1: what [profileId] chose to show.
   Future<List<DeliveredWork>> shownWorkOf(String profileId);
-}
-
-/// What W2 sends to create_work_item. Photos are already uploaded.
-class NewWorkItem {
-  const NewWorkItem({
-    required this.id,
-    required this.spaceId,
-    required this.title,
-    required this.ownerId,
-    this.due,
-    this.teamId,
-    this.place,
-    this.photos = const [],
-  });
-
-  final String id;
-  final String spaceId;
-  final String title;
-  final String ownerId;
-  final DateTime? due;
-  final String? teamId;
-  final String? place;
-  final List<WorkPhoto> photos;
 }
 
 /// A random version 4 UUID (item ids and photo names).
@@ -210,18 +181,6 @@ class SupabaseWorkRepository implements WorkRepository {
   }
 
   @override
-  Future<String?> nextRef(String spaceId) => _guard(() async {
-    final row = await _client
-        .from('spaces')
-        .select('ref_prefix, next_item_number')
-        .eq('id', spaceId)
-        .maybeSingle();
-    if (row == null) return null;
-    final n = (row['next_item_number'] as num).toInt();
-    return '${row['ref_prefix']}-${n.toString().padLeft(3, '0')}';
-  });
-
-  @override
   Future<String> uploadPhoto(String spaceId, String itemId, File file) =>
       _guard(() async {
         final path = '$spaceId/$itemId/${newUuid()}.jpg';
@@ -234,34 +193,6 @@ class SupabaseWorkRepository implements WorkRepository {
             );
         return path;
       });
-
-  @override
-  Future<void> createItem(NewWorkItem item) => _guard(
-    () => _client.rpc<String>(
-      'create_work_item',
-      params: {
-        'p_space': item.spaceId,
-        'p_title': item.title.trim(),
-        'p_owner': item.ownerId,
-        'p_due': item.due == null
-            ? null
-            : '${item.due!.year.toString().padLeft(4, '0')}-'
-                  '${item.due!.month.toString().padLeft(2, '0')}-'
-                  '${item.due!.day.toString().padLeft(2, '0')}',
-        'p_team': item.teamId,
-        'p_place': item.place?.trim(),
-        'p_evidence': [
-          for (final p in item.photos)
-            {
-              'path': p.path,
-              'taken_at': p.takenAt?.toUtc().toIso8601String(),
-              'place': p.place,
-            },
-        ],
-        'p_id': item.id,
-      },
-    ),
-  );
 
   @override
   Future<void> addComment(String itemId, String text) => _guard(

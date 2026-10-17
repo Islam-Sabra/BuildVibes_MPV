@@ -90,7 +90,6 @@ class _SignDoneState extends ConsumerState<_SignDone> {
             title: widget.item.title,
             ownerId: widget.item.ownerId ?? '',
             ownerName: widget.item.ownerName ?? '',
-            kind: PendingKind.signDone,
             note: note.isEmpty ? null : note,
             ref: widget.item.ref,
             photos: List.of(_photos),

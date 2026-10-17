@@ -536,6 +536,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **17 Oct, migration 23, Daybook extras** (review 44; branch `daybook-extras-db`, **not live**): an optional due time (`space_posts.due_at`; a timed item is late after its time), "On site since" (`spaces.site_start_date`, set only by a Space admin), and `daybook_month` for the month drop-down (dots, never counts). Undo of a check stays in the app (no server change). An independent review found 1 medium and 3 low problems and test gaps; all fixed (an edit resending the same date dropped the time; a ticked checklist lit its day; a timed item fell out of "coming up" past the reader's midnight; targets lacked the time). 1,563 SQL checks in 23 files (73 for migration 23). Going live needs the founder's yes and must list only `20261017120000_daybook_extras.sql`.
 
+- **17 Oct, slice 1 part 1b, the daybook page** (branch `slice1-daybook`, app only; needs migration 23 live before it ships):
+  - The Space's Work tab is now the daybook: newest at the bottom, day dividers, the masthead names the day in view ("day N on site" from "On site since", no weather), the month drop-down jumps to a day (dots from `daybook_month`), the Due today strip (from `my_calendar`), the Late line, day one, a Viewer's read-only bar. Times follow the phone's 12/24-hour setting.
+  - Retired from 0.9.0: the Work list (W2) and the New item screen. W3–W5 stay until part 1d (Activity, Needs you, Home and chat still open them).
+  - Local seed `supabase/dev/seed_daybook.sql` with the prototype's people and posts.
+  - Screenshots: D1-daybook, L1-late-due-today, DY1-yesterday, DY2-calendar, DY3-day-one, V1-viewer (EN and AR).
+  - Server gaps (stop rule, left out): the proof slip (sign-off photo, note, time) and file chips aren't in `daybook_page`'s JSON; reassign events neither.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

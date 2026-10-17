@@ -10,15 +10,13 @@ class FakeWorkRepository implements WorkRepository {
   final itemsBySpace = <String, List<WorkItem>>{};
   final needsBySpace = <String, WorkNeeds>{};
   final details = <String, WorkItemDetail>{};
-  final created = <NewWorkItem>[];
   final uploads = <String>[];
   final calls = <String>[];
 
   /// The next calls fail as if the signal dropped.
   int failNext = 0;
-  String? nextRefValue = 'KCT-006';
 
-  /// The next creates or sign-offs fail as if the signal dropped (uploads
+  /// The next sign-offs fail as if the signal dropped (uploads
   /// still work).
   int failSendNext = 0;
 
@@ -60,20 +58,11 @@ class FakeWorkRepository implements WorkRepository {
   Future<WorkItemDetail?> detail(String itemId) async => details[itemId];
 
   @override
-  Future<String?> nextRef(String spaceId) async => nextRefValue;
-
-  @override
   Future<String> uploadPhoto(String spaceId, String itemId, File file) async {
     _maybeFail();
     final path = '$spaceId/$itemId/photo-${uploads.length + 1}.jpg';
     uploads.add(path);
     return path;
-  }
-
-  @override
-  Future<void> createItem(NewWorkItem item) async {
-    _maybeFailSend(item.photos.map((p) => p.path));
-    created.add(item);
   }
 
   @override

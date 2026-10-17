@@ -21,16 +21,27 @@ enum BvSpineDot {
 ///
 /// Set [home] for Home's narrower time column (48 instead of 56); the
 /// entries must use the same setting.
+///
+/// With [minHeight] (the page's height) the spine runs the whole page and
+/// the entries sit at its bottom, newest last, as in Figma's diary.
 class BvDaybookSpine extends StatelessWidget {
-  const BvDaybookSpine({super.key, required this.children, this.home = false});
+  const BvDaybookSpine({
+    super.key,
+    required this.children,
+    this.home = false,
+    this.minHeight,
+  });
 
   final List<Widget> children;
   final bool home;
+  final double? minHeight;
 
   @override
   Widget build(BuildContext context) {
     final column = home ? BvSpineSpec.homeTimeColumn : BvSpineSpec.timeColumn;
-    return Stack(
+    final spine = Stack(
+      // A minimum height reaches the entries' column, which then fills it.
+      fit: minHeight == null ? StackFit.loose : StackFit.passthrough,
       children: [
         PositionedDirectional(
           start: column - BvSpineSpec.lineWidth / 2,
@@ -49,12 +60,18 @@ class BvDaybookSpine extends StatelessWidget {
             end: BvSpineSpec.paddingEnd,
           ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: BvSpineSpec.entryGap,
             children: children,
           ),
         ),
       ],
+    );
+    if (minHeight == null) return spine;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight!),
+      child: spine,
     );
   }
 }

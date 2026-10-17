@@ -60,7 +60,6 @@ abstract final class AppRoutes {
   static String spaceInfo(String id) => '/spaces/$id/info';
   static String spaceTransfer(String id) => '/spaces/$id/transfer';
   static String spaceTeamNew(String id) => '/spaces/$id/teams/new';
-  static String workNew(String id) => '/spaces/$id/items/new';
   static String workItem(String id, String itemId) =>
       '/spaces/$id/items/$itemId';
   static String spaceTeam(String id, String teamId) =>

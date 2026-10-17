@@ -1593,40 +1593,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesLastAdmin => 'اجعل شخصًا آخر مديرًا أولًا، أو احذف المساحة.';
 
   @override
-  String get workPrivacyLine =>
-      'الأعضاء أشخاص أكّدهم مدير المساحة. لا يظهر شيء هنا خارج المساحة.';
-
-  @override
-  String get workFilterAll => 'الكل';
-
-  @override
-  String get workFilterMine => 'الخاصة بي';
-
-  @override
-  String get workFilterOpen => 'مفتوحة';
-
-  @override
-  String get workFilterToCheck => 'للفحص';
-
-  @override
-  String get workFilterChecked => 'تم الفحص';
-
-  @override
-  String get workSectionNeedsYou => 'بانتظارك';
-
-  @override
-  String get workSectionOpen => 'مفتوحة';
-
-  @override
-  String get workSectionWaitingCheck => 'بانتظار الفحص';
-
-  @override
-  String get workSectionCheckedWeek => 'تم فحصها هذا الأسبوع';
-
-  @override
-  String get workSectionCheckedEarlier => 'تم فحصها سابقًا';
-
-  @override
   String get workStatusOpen => 'مفتوح';
 
   @override
@@ -1698,109 +1664,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workCheckIt => 'افحصه';
 
   @override
-  String get workNewItem => 'بند جديد';
-
-  @override
-  String get workEmptyTitle => 'لا بنود عمل بعد';
-
-  @override
-  String get workEmptyCanCreate =>
-      'أنشئ أول بند من «بند جديد». يوقّعه المكلّف كمنجز، ثم يُفحص.';
-
-  @override
-  String get workEmptyCannot => 'تظهر البنود هنا عند إنشاء بند للفريق.';
-
-  @override
-  String get workNothingNeedsYou => 'لا شيء بانتظارك الآن.';
-
-  @override
-  String get workFilterEmpty => 'لا شيء هنا.';
-
-  @override
   String get workStatusOwnerLeft => 'بلا مكلّف · أعد التكليف';
 
   @override
   String get workReassign => 'أعد التكليف';
 
   @override
-  String get workNewTitle => 'بند عمل جديد';
-
-  @override
-  String get workTakePhoto => 'التقط صورة';
-
-  @override
   String get workFromGallery => 'اختر من المعرض';
-
-  @override
-  String get workRetake => 'إعادة التصوير';
-
-  @override
-  String get workPhotoFirst => 'ابدأ بصورة للمكان.';
-
-  @override
-  String workNewStamp(String ref) {
-    return 'جديد · $ref';
-  }
-
-  @override
-  String get workNewStampPlain => 'جديد';
-
-  @override
-  String get workTitleHint => 'ما المطلوب · سطر واحد يكفي';
-
-  @override
-  String get workTitleRequired => 'اكتب ما المطلوب.';
-
-  @override
-  String get workCellOwner => 'المكلّف · شخص واحد';
-
-  @override
-  String get workCellDue => 'الاستحقاق';
-
-  @override
-  String get workCellPlace => 'المكان في الموقع';
-
-  @override
-  String get workCellTeam => 'الفريق';
-
-  @override
-  String get workChoose => 'اختر';
-
-  @override
-  String get workOwnerRequired => 'اختر من سينفّذه.';
-
-  @override
-  String get workNoDue => 'بلا موعد';
-
-  @override
-  String get workToday => 'اليوم';
-
-  @override
-  String get workTomorrow => 'غدًا';
-
-  @override
-  String get workPickDate => 'اختر تاريخًا';
-
-  @override
-  String get workNoTeam => 'بلا فريق';
-
-  @override
-  String get workPlaceHint => 'مثال: الدور 2 · المحور C7';
-
-  @override
-  String workNewFooter(String owner) {
-    return 'يصل إلى $owner في «بانتظارك». وعند توقيعه كمنجز تفحصه أنت.';
-  }
-
-  @override
-  String get workNewFooterNoOwner =>
-      'يصل إلى المكلّف في «بانتظارك». وعند توقيعه كمنجز تفحصه أنت.';
-
-  @override
-  String get workCreate => 'إنشاء البند';
-
-  @override
-  String get workNotSent => 'لم يُرسل بعد';
 
   @override
   String get workRetry => 'إعادة المحاولة';
@@ -1808,9 +1678,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get workNotSentNote =>
       'محفوظ على هذا الهاتف. أعد المحاولة عند عودة الإشارة.';
-
-  @override
-  String get workSent => 'تم الإرسال.';
 
   @override
   String get workSignOff => 'التوقيعات';
@@ -2412,12 +2279,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get workAttachPhoneHelp =>
       'PDF أو صورة · تُحفظ في مكتبة المساحة أيضًا';
-
-  @override
-  String get workAttachPhoto => 'التقط صورة أخرى';
-
-  @override
-  String get workAttachPhotoHelp => 'تُضاف إلى صور البند';
 
   @override
   String get workAttached => 'مرفقات';
@@ -3692,4 +3553,152 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get formerMember => 'عضو سابق';
+
+  @override
+  String daybookDateLine(String date, int day) {
+    return '$date، اليوم $day في الموقع';
+  }
+
+  @override
+  String get daybookYou => 'أنت';
+
+  @override
+  String get daybookForYou => 'لك';
+
+  @override
+  String daybookForPerson(String name) {
+    return 'ل$name';
+  }
+
+  @override
+  String daybookMeta(String who, String due) {
+    return '$who، $due';
+  }
+
+  @override
+  String daybookDueDate(String date) {
+    return 'قبل $date';
+  }
+
+  @override
+  String get daybookDueToday => 'خلال اليوم';
+
+  @override
+  String get daybookDueTomorrow => 'خلال يوم غد';
+
+  @override
+  String daybookDueDateAt(String date, String time) {
+    return 'قبل الساعة $time يوم $date';
+  }
+
+  @override
+  String daybookDueTodayAt(String time) {
+    return 'قبل الساعة $time اليوم';
+  }
+
+  @override
+  String daybookDueTomorrowAt(String time) {
+    return 'قبل الساعة $time غدًا';
+  }
+
+  @override
+  String daybookWasDue(String date) {
+    return 'كان موعده $date';
+  }
+
+  @override
+  String daybookWasDueAt(String date, String time) {
+    return 'كان موعده الساعة $time يوم $date';
+  }
+
+  @override
+  String daybookWasDueTodayAt(String time) {
+    return 'كان موعده الساعة $time اليوم';
+  }
+
+  @override
+  String daybookLate(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'متأخر $n يوم',
+      many: 'متأخر $n يومًا',
+      few: 'متأخر $n أيام',
+      two: 'متأخر يومين',
+      one: 'متأخر يومًا واحدًا',
+      zero: 'متأخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookDueTodayStrip(String titles) {
+    return 'مستحق اليوم: $titles';
+  }
+
+  @override
+  String daybookPoints(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n نقطة',
+      many: '$n نقطة',
+      few: '$n نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookEditedDue(String from, String to) {
+    return 'عُدّل: نُقل الموعد من $from إلى $to';
+  }
+
+  @override
+  String get daybookToday => 'اليوم';
+
+  @override
+  String get daybookTomorrow => 'غدًا';
+
+  @override
+  String daybookCancelledBy(String name, String time) {
+    return 'أُلغي من قِبل $name الساعة $time';
+  }
+
+  @override
+  String get daybookStampDone => 'منجز';
+
+  @override
+  String get daybookStampChecked => 'تم الفحص';
+
+  @override
+  String get daybookStampSentBack => 'مُرجَع';
+
+  @override
+  String get daybookStampCancelled => 'ملغى';
+
+  @override
+  String get daybookWorkItem => 'بند عمل';
+
+  @override
+  String get daybookReadOnly => 'للقراءة فقط';
+
+  @override
+  String get daybookMonthPosts => 'منشورات';
+
+  @override
+  String get daybookMonthDue => 'موعد مستحق';
+
+  @override
+  String get daybookFirstTitle => 'الصفحة الأولى من يومية فريقك';
+
+  @override
+  String get daybookFirstBody => 'كل ما ينشره فريقك سيُعلَّق هنا، يومًا بيوم.';
+
+  @override
+  String get daybookFirstPost => 'انشر أول بند عمل';
+
+  @override
+  String get daybookFirstInvite => 'ادعُ فريقك';
 }

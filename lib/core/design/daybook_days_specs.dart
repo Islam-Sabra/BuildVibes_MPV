@@ -148,3 +148,12 @@ abstract final class BvFirstPageSpec {
   static const actionGap = BvSpace.s8;
   static const actionIcon = 18.0;
 }
+
+/// The "Due today" strip under the masthead (L1 2539:34715).
+abstract final class BvDueTodaySpec {
+  static const paddingStart = BvSpace.s20;
+  static const paddingEnd = BvSpace.s16;
+  static const paddingVertical = BvSpace.s8;
+  static const gap = BvSpace.s8;
+  static const icon = BvSize.iconSm; // 16
+}

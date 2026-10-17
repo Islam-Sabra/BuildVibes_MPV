@@ -362,7 +362,7 @@ class _WorkItemScreenState extends ConsumerState<WorkItemScreen> {
     ];
     final pending = ref
         .watch(workOutboxProvider)
-        .where((p) => p.id == item.id && p.kind == PendingKind.signDone)
+        .where((p) => p.id == item.id)
         .firstOrNull;
 
     Widget? footer;

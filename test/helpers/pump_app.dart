@@ -12,6 +12,7 @@ import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
+import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
@@ -37,6 +38,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'account_fakes.dart';
 import 'activity_fakes.dart';
 import 'chat_fakes.dart';
+import 'daybook_fakes.dart';
 import 'fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
@@ -84,6 +86,7 @@ class TestApp {
     required this.spaces,
     required this.shared,
     required this.work,
+    required this.daybook,
     required this.chat,
     required this.library,
     required this.recorder,
@@ -106,6 +109,7 @@ class TestApp {
   final FakeProjectRepository projects;
   final FakeSpaceRepository spaces;
   final FakeWorkRepository work;
+  final FakeDaybookRepository daybook;
   final FakeChatRepository chat;
   final FakeLibraryRepository library;
   final FakeVoiceRecorder recorder;
@@ -146,10 +150,14 @@ Future<TestApp> pumpApp(
   bool onboarded = true,
   String region = 'KW',
   bool phoneSignIn = false,
+
+  /// The phone's "now" (default [testNow]).
+  DateTime? now,
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
   FakeSpaceRepository? spaces,
   FakeWorkRepository? work,
+  FakeDaybookRepository? daybook,
   FakeChatRepository? chat,
   FakeLibraryRepository? library,
   FakeVoiceRecorder? recorder,
@@ -199,6 +207,7 @@ Future<TestApp> pumpApp(
   final fakeSpaces = spaces ?? FakeSpaceRepository(now: testNow);
   final shared = <String>[];
   final fakeWork = work ?? FakeWorkRepository();
+  final fakeDaybook = daybook ?? FakeDaybookRepository();
   final fakeChat = chat ?? FakeChatRepository(now: testNow);
   final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
@@ -228,9 +237,10 @@ Future<TestApp> pumpApp(
         phoneSignInProvider.overrideWithValue(phoneSignIn),
         profilePageRepositoryProvider.overrideWithValue(pages),
         projectRepositoryProvider.overrideWithValue(projects),
-        clockProvider.overrideWithValue(() => testNow),
+        clockProvider.overrideWithValue(() => now ?? testNow),
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
         workRepositoryProvider.overrideWithValue(fakeWork),
+        daybookRepositoryProvider.overrideWithValue(fakeDaybook),
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
@@ -301,6 +311,7 @@ Future<TestApp> pumpApp(
     spaces: fakeSpaces,
     shared: shared,
     work: fakeWork,
+    daybook: fakeDaybook,
     chat: fakeChat,
     library: fakeLibrary,
     recorder: fakeRecorder,

@@ -52,6 +52,7 @@ abstract final class BvSlipSpec {
   // Photo. 190 on a proof; a work item cover is 110 or 120.
   static const photoRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
   static const photoHeightProof = 190.0;
+  static const photoHeightCover = 110.0;
   static const photoStampTop = BvSpace.s16;
   static const photoStampStart = BvSpace.s64;
 
@@ -63,6 +64,10 @@ abstract final class BvSlipSpec {
   static const actionPaddingVertical = 9.0;
   static const actionGap = BvSpace.s8;
   static const actionIconSize = 18.0;
+
+  // Late line (L1 2539:34737): a calendar 14 and the words, in red.
+  static const lateGap = BvSpace.s6;
+  static const lateIconSize = 14.0;
 }
 
 /// The Daybook's ink stamp (spec §3): white fill, ExtraBold capitals,
