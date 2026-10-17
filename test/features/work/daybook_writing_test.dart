@@ -80,8 +80,12 @@ Future<void> _title(WidgetTester tester, String text) async {
   await tester.pumpAndSettle();
 }
 
+/// Assign through More (picking from Post would post at once).
 Future<void> _assign(WidgetTester tester, String name) async {
-  await tester.tap(find.byKey(const Key('writing-post')));
+  final l10n = AppLocalizations.of(tester.element(find.byType(BvWritingCard)));
+  await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(l10n.daybookAssign));
   await tester.pumpAndSettle();
   await tester.tap(
     find.descendant(of: find.byType(BvGiveToPicker), matching: find.text(name)),
@@ -124,21 +128,24 @@ void main() {
       expect(card.onKindTap, isNull);
       // Post is off with no title.
       expect(_toolbar(tester).onPost, isNull);
-      expect(_toolbar(tester).onPostBlocked, isNull);
     });
 
-    testWidgets('Post needs a title of 2 or more and an owner; Post without '
-        'one opens the picker [$lang]', (tester) async {
-      await _open(tester, lang);
+    testWidgets('Post turns on with a title of 2 or more; with nobody to do '
+        'it, it opens the picker, and picking someone posts at once '
+        '[$lang]', (tester) async {
+      final app = await _open(tester, lang);
       await _write(tester);
       await _title(tester, 'A');
       expect(_toolbar(tester).onPost, isNull);
       await _title(tester, s.cableTraysTitle);
-      expect(_toolbar(tester).onPost, isNull);
+      expect(_toolbar(tester).onPost, isNotNull);
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
-      // The picker: Lead and Crew only, never the Viewer; me last.
+      expect(app.daybook.created, isEmpty);
+      // The picker: Lead and Crew only, never the Viewer; me last. It says
+      // "Assign to…" (review 46).
       final picker = tester.widget<BvGiveToPicker>(find.byType(BvGiveToPicker));
+      expect(picker.searchPlaceholder, l10n.daybookAssignSearch);
       expect(picker.people.map((p) => p.name), [
         s.omarName,
         s.rakeshName,
@@ -155,7 +162,16 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(BvGiveToPicker), findsNothing);
-      expect(_toolbar(tester).onPost, isNotNull);
+      expect(app.daybook.created.single.ownerId, DaybookSamples.omar);
+      expect(find.byType(BvWritingCard), findsNothing);
+    });
+
+    testWidgets('Assign from More only sets the owner [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      await _write(tester);
+      await _title(tester, s.cableTraysTitle);
+      await _assign(tester, s.omarName);
+      expect(app.daybook.created, isEmpty);
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
       expect(card.properties.single.label, s.omarName);
     });
@@ -361,6 +377,76 @@ void main() {
       expect(app.prefs.getString('work_outbox:${DaybookSamples.islam}'), '[]');
     });
 
+    testWidgets('review 46: a photo alone keeps the Draft [$lang]', (
+      tester,
+    ) async {
+      final app = await _open(tester, lang);
+      await _write(tester);
+      await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(200, 260));
+      await tester.pumpAndSettle();
+      expect(find.byType(BvWritingCard), findsOneWidget);
+      expect(find.text(l10n.daybookDraft), findsOneWidget);
+      expect(jsonDecode(app.prefs.getString(_draftKey)!)['photo'], isNotNull);
+    });
+
+    testWidgets('review 46: tapping the due while writing offers Remove; '
+        'removing takes it off the card [$lang]', (tester) async {
+      final draft = jsonEncode(
+        WorkItemDraft(
+          id: 'draft-1',
+          title: s.cableTraysTitle,
+          dueDate: _sunday,
+        ).toJson(),
+      );
+      await _open(tester, lang, draft: draft, due: (day: null, at: null));
+      await tester.tap(find.byKey(const Key('daybook-draft')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(words.dueProperty(_sunday, null)));
+      await tester.pumpAndSettle();
+      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
+      expect(card.properties, isEmpty);
+      expect(
+        _read(tester, daybookDraftProvider(DaybookSamples.space))!.dueDate,
+        isNull,
+      );
+    });
+
+    testWidgets("review 46: a post the server refuses comes back as the "
+        "Draft, \"Couldn't send. Tap to fix\"; nothing is lost [$lang]", (
+      tester,
+    ) async {
+      final daybook = FakeDaybookRepository()..refuse = true;
+      final app = await _open(tester, lang, daybook: daybook);
+      await _write(tester);
+      await _title(tester, s.cableTraysTitle);
+      await _assign(tester, s.omarName);
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      expect(find.text(l10n.daybookCouldNotSend), findsOneWidget);
+      expect(find.text(s.cableTraysTitle), findsOneWidget);
+      expect(_read(tester, workOutboxProvider), isEmpty);
+      expect(
+        jsonDecode(app.prefs.getString(_draftKey)!)['could_not_send'],
+        isTrue,
+      );
+      // Tapping reopens writing, with what was written.
+      await tester.tap(find.byKey(const Key('daybook-draft')));
+      await tester.pumpAndSettle();
+      expect(find.byType(BvWritingToolbar), findsOneWidget);
+      final draft = _read(tester, daybookDraftProvider(DaybookSamples.space))!;
+      expect(draft.title, s.cableTraysTitle);
+      expect(draft.ownerId, DaybookSamples.omar);
+      // Fixed and posted: it goes.
+      daybook.refuse = false;
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
+      expect(daybook.created.single.title, s.cableTraysTitle);
+      expect(find.text(l10n.daybookCouldNotSend), findsNothing);
+    });
+
     testWidgets('a Viewer can\'t write [$lang]', (tester) async {
       await _open(tester, lang, pass: SpacePass.viewer);
       expect(find.byKey(const Key('post-bar-notepad')), findsNothing);
@@ -377,6 +463,17 @@ void main() {
       expect(find.byType(BvWritingToolbar), findsOneWidget);
     });
   }
+
+  test('review 46: a draft is kept as soon as anything is entered', () {
+    const empty = WorkItemDraft(id: 'd');
+    expect(empty.isEmpty, isTrue);
+    expect(empty.copyWith(title: ' ').isEmpty, isTrue);
+    expect(empty.copyWith(photo: () => 'p.jpg').isEmpty, isFalse);
+    expect(empty.copyWith(ownerId: 'o').isEmpty, isFalse);
+    expect(empty.copyWith(dueDate: () => _sunday).isEmpty, isFalse);
+    expect(empty.copyWith(place: () => 'Gate 3').isEmpty, isFalse);
+    expect(empty.copyWith(body: 'x').isEmpty, isFalse);
+  });
 
   group('the outbox, for a new work item', () {
     test('kept and read back; the 0.9.0 "create" items are not', () {

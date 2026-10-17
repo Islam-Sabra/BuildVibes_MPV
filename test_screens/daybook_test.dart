@@ -1,8 +1,12 @@
-// The daybook page (slice 1b, with review 45 B1–B3) and writing in place
-// (slice 1c), against Figma D1 2518:33001, L1 2539:34633, DY1 2541:34679,
-// DY2 2541:34813, DY3 2541:35060, V1 2542:35109, E 2524:33180, 2524:33369,
-// 2524:33577, 2524:33780, 2524:33936, 2535:34221, the assign picker
-// 2540:34840 and the AR frames 2547:35195 and 2547:35369. Run:
+// The daybook page (slice 1b, with review 45 B1–B3), writing in place
+// (slice 1c, with review 46) and the loop (slice 1d), against Figma D1
+// 2518:33001, L1 2539:34633, DY1 2541:34679, DY2 2541:34813, DY3
+// 2541:35060, V1 2542:35109, E 2524:33180, 2524:33369, 2524:33577,
+// 2524:33780, 2524:33936, 2535:34221, the assign picker 2540:34840, the
+// loop's O1 2529:33382, O2 2529:33493, O3 2529:33514, S1 2530:33826, Y1
+// 2530:33953, Y2 2530:34038, B1 2530:33480, B2 2530:33643, B3 2519:33049,
+// X1 2530:34134, X2 2540:34693, X2-given 2540:34880, X3 2530:34263, and the
+// AR frames 2547:35195, 2547:35369 and 2547:35543. Run:
 //   flutter test test_screens/daybook_test.dart --update-goldens
 import 'dart:convert';
 
@@ -24,6 +28,7 @@ import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
+import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -124,7 +129,9 @@ Future<void> _fill(
   await _tap(tester, find.byKey(const Key('post-bar-notepad')));
   await _type(tester, 'writing-title', s.cableTraysTitle);
   await _type(tester, 'writing-body', s.traysBody);
-  await _tap(tester, find.byKey(const Key('writing-post')));
+  // Assign through More: picking from Post would post at once.
+  await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+  await _tap(tester, find.text(l10n.daybookAssign));
   await _tap(
     tester,
     find.descendant(
@@ -140,6 +147,18 @@ Future<void> _fill(
   await tester.testTextInput.receiveAction(TextInputAction.done);
   await tester.pumpAndSettle();
   await _tap(tester, find.bySemanticsLabel(l10n.daybookCamera));
+}
+
+/// Long-presses the slip of entry [id]: lifted over the dim, its menu.
+Future<void> _longPress(WidgetTester tester, String id) async {
+  final slip = find.descendant(
+    of: find.byKey(Key('daybook-entry-$id')),
+    matching: find.byType(BvSlip),
+  );
+  await tester.ensureVisible(slip.first);
+  await tester.pumpAndSettle();
+  await tester.longPress(slip.first);
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -451,6 +470,344 @@ void main() {
           await _fill(tester, s, l10n);
           await _tap(tester, find.byKey(const Key('writing-post')));
         },
+      );
+    });
+
+    testWidgets('E8 a refused post: back to the Draft [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      final daybook = FakeDaybookRepository()..refuse = true;
+      await shoot(
+        tester,
+        'E8-could-not-send',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [s.sleevesDone(), s.sleevesSignOff()],
+          me: DaybookSamples.islam,
+          now: _elevenTwenty,
+          daybook: daybook,
+        ),
+        before: (tester) async {
+          await _fill(tester, s, l10n);
+          await _tap(tester, find.byKey(const Key('writing-post')));
+        },
+      );
+    });
+
+    // The loop (1d).
+
+    testWidgets('O1 Omar\'s daybook [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'O1-omars-daybook',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.o1(),
+          me: DaybookSamples.omar,
+          now: DaybookSamples.thursday,
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+      );
+    });
+
+    testWidgets('O2 sign as done: the proof and a note [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'O2-sign-as-done',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.o1(),
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 9, 40),
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+        before: (tester) async {
+          await _tap(tester, find.text(l10n.daybookSignAsDone).first);
+          await _type(tester, 'proof-note', s.sleevesNote);
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('O3 the proof posted, Omar\'s view [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'O3-proof-posted',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [s.sleevesDone(), s.sleevesSignOff(needsMe: false)],
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 9, 41),
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+      );
+    });
+
+    testWidgets('S1 sent back, Omar\'s view [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'S1-sent-back-owner',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.s1(),
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 10, 15),
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+      );
+    });
+
+    testWidgets('Y1 swipe a work item to add an update [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'Y1-swipe-update',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.o1(),
+          me: DaybookSamples.omar,
+          now: DaybookSamples.thursday,
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+        before: (tester) async {
+          await tester.drag(
+            find.descendant(
+              of: find.byKey(const Key('daybook-entry-post-sleeves')),
+              matching: find.byKey(const Key('swipe-reveal')),
+            ),
+            Offset(lang == 'ar' ? -80 : 80, 0),
+          );
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('Y2 the update hangs under its work item [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'Y2-update-posted',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [s.o1().first, s.sleevesUpdate()],
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 9, 6),
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+      );
+    });
+
+    testWidgets('B1 long-press Omar\'s proof [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'B1-long-press-proof',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.d1(),
+          me: DaybookSamples.islam,
+          now: DaybookSamples.thursday,
+        ),
+        before: (tester) => _longPress(tester, 'event-sleeves-done'),
+      );
+    });
+
+    testWidgets('B2 send back with a reason [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'B2-send-back-reasons',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.d1(),
+          me: DaybookSamples.islam,
+          now: DaybookSamples.thursday,
+        ),
+        before: (tester) async {
+          await _longPress(tester, 'event-sleeves-done');
+          await _tap(tester, find.text(l10n.daybookSendBack));
+          await _tap(tester, find.text(l10n.daybookReasonNotAsAsked));
+          await tester.enterText(
+            find.descendant(
+              of: find.byKey(const Key('send-back-card')),
+              matching: find.byType(TextField),
+            ),
+            s.sentBackNote,
+          );
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('B3 checked, with Undo [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'B3-checked-undo',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.d1(),
+          me: DaybookSamples.islam,
+          now: DateTime(2026, 10, 15, 10, 12),
+        ),
+        before: (tester) async {
+          final photo = find.descendant(
+            of: find.byKey(const Key('daybook-entry-event-sleeves-done')),
+            matching: find.byKey(const Key('slip-photo')),
+          );
+          await tester.tap(photo);
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.tap(photo);
+          await tester.pumpAndSettle();
+        },
+      );
+      // The undo bar's 5 seconds, then the check is sent.
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('X1 long-press your own work item [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'X1-own-item-menu',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [
+            s.sleevesDone(),
+            s.sleevesSignOff(needsMe: false),
+            s.traysForOmar(needsMe: false),
+          ],
+          me: DaybookSamples.islam,
+          now: _elevenTwenty,
+        ),
+        before: (tester) => _longPress(tester, 'post-trays'),
+      );
+    });
+
+    testWidgets('X2 give it to someone else [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'X2-give-to',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [
+            s.sleevesDone(),
+            s.sleevesSignOff(needsMe: false),
+            s.traysForOmar(needsMe: false),
+          ],
+          me: DaybookSamples.islam,
+          now: _elevenTwenty,
+        ),
+        before: (tester) async {
+          await _longPress(tester, 'post-trays');
+          await _tap(tester, find.text(l10n.daybookGiveTo));
+        },
+      );
+    });
+
+    testWidgets('X2 given to Rakesh instead [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'X2-given',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [
+            s.sleevesDone(),
+            s.sleevesSignOff(needsMe: false),
+            s.traysForOmar(
+              needsMe: false,
+              givenTo: DaybookGivenTo(
+                at: DateTime(2026, 10, 15, 12, 30),
+                fromName: s.omarName,
+                toName: s.rakeshName,
+              ),
+            ),
+          ],
+          me: DaybookSamples.islam,
+          now: DateTime(2026, 10, 15, 12, 31),
+        ),
+      );
+    });
+
+    testWidgets('X3 edited and cancelled work items [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      final trays = s.traysForOmar(needsMe: false);
+      await shoot(
+        tester,
+        'X3-cancelled',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [
+            s.sleevesDone(),
+            s.sleevesSignOff(needsMe: false),
+            s.item(
+              id: trays.id,
+              at: trays.createdAt,
+              title: trays.title,
+              authorId: DaybookSamples.islam,
+              authorName: s.islamName,
+              ownerId: DaybookSamples.omar,
+              ownerName: s.omarName,
+              due: DateTime(2026, 10, 19),
+              cover: trays.coverPath,
+              edit: DaybookDueEdit(
+                from: DateTime(2026, 10, 18),
+                to: DateTime(2026, 10, 19),
+              ),
+            ),
+            s.doorHardware(),
+          ],
+          me: DaybookSamples.islam,
+          now: DateTime(2026, 10, 15, 12, 6),
+        ),
       );
     });
   }

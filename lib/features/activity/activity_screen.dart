@@ -363,8 +363,9 @@ class _Row extends ConsumerWidget {
         case ActivityKind.postReply || ActivityKind.postUseful
             when post != null:
           context.push(AppRoutes.post(post));
+        // A work item lives on its Space's daybook (slice 1).
         case _ when space != null && itemId != null:
-          context.push(AppRoutes.workItem(space, itemId));
+          context.push(AppRoutes.space(space));
         case _:
           break;
       }

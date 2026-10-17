@@ -24,6 +24,14 @@ Future<void> _openNotifications(WidgetTester tester) async {
 }
 
 void main() {
+  test("a work item's push opens its Space's daybook (the exact slip is "
+      'slice 10)', () {
+    expect(pushRoute('/spaces/s1/items/i1'), '/spaces/s1');
+    expect(pushRoute('/spaces/s1'), '/spaces/s1');
+    expect(pushRoute('/spaces/s1/chat/t1'), '/spaces/s1/chat/t1');
+    expect(pushRoute('/posts/p1'), '/posts/p1');
+  });
+
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
 

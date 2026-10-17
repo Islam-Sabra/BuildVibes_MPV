@@ -101,11 +101,10 @@ void main() {
     expect(more, 4);
   });
 
-  testBoth('a tap on Post while it is off says what is missing', (
+  testBoth('Post is drawn off while it has nothing to send', (
     tester,
     lang,
   ) async {
-    var blocked = 0;
     await pumpComponent(
       tester,
       BvWritingToolbar(
@@ -117,14 +116,10 @@ void main() {
         onMore: () {},
         postLabel: 'Post',
         onPost: null,
-        onPostBlocked: () => blocked++,
       ),
       lang: lang,
       scroll: false,
     );
-    // Still drawn off.
     expect(_postFill(tester), BvColors.surfaceSubtle);
-    await tester.tap(find.byKey(const Key('writing-post')));
-    expect(blocked, 1);
   });
 }

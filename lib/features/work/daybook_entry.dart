@@ -10,24 +10,68 @@ import '../../data/models/daybook.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_daybook_spine.dart';
+import '../../shared/widgets/bv_popover_menu.dart' show bvGlobalRect;
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
+import '../../shared/widgets/bv_swipe_reveal.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
+import '../../shared/widgets/bv_update_note.dart';
 import '../spaces/former_member.dart';
 import 'daybook_words.dart';
 
+/// What a slip lets the reader do (the loop, slice 1 part 1d). Null
+/// callbacks are not offered: a Viewer gets none.
+@immutable
+class DaybookSlipActions {
+  const DaybookSlipActions({
+    this.onLongPress,
+    this.onCheck,
+    this.onSignDone,
+    this.onUpdate,
+  });
+
+  /// Long-press: the lifted slip and its menu. Gets the slip's place on
+  /// screen.
+  final ValueChanged<Rect>? onLongPress;
+
+  /// Double-tap the proof photo (B3).
+  final VoidCallback? onCheck;
+
+  /// The owner's "Sign as done" pill (O1).
+  final VoidCallback? onSignDone;
+
+  /// Swipe towards the end side: add an update (Y1). Gets the slip's
+  /// place on screen.
+  final ValueChanged<Rect>? onUpdate;
+}
+
 /// One entry on the daybook's spine: its time, the dot, and its slip (D1,
-/// L1, DY1, V1). A work item [DaybookPost], the owner's proof
-/// ([DaybookSignOff]: quote, big photo, large stamp, note) or an update
-/// ([DaybookUpdate]: a small note quoting the item). Read only in slice 1
-/// part 1c: opening a post in place, the long-press menu and double-tap come
-/// in later parts.
-///
-/// A [viewer] gets no paper clip and no hint. A post still [waiting] to be
-/// sent (no signal) says so, and shows its photo from the phone
-/// ([localCover]).
+/// L1, DY1, V1, the loop's frames). See [DaybookSlip].
 class DaybookEntry extends StatelessWidget {
-  const DaybookEntry({
+  const DaybookEntry({super.key, required this.slip, required this.words});
+
+  final DaybookSlip slip;
+  final DaybookWords words;
+
+  @override
+  Widget build(BuildContext context) => BvSpineEntry(
+    key: Key('daybook-entry-${slip.record.id}'),
+    time: words.clock(slip.record.at),
+    dot: slip.dot,
+    child: slip,
+  );
+}
+
+/// The slip of a daybook entry: a work item [DaybookPost], the owner's
+/// proof ([DaybookSignOff]: quote, big photo, large stamp, note) or an
+/// update ([DaybookUpdate]: a small note quoting the item, Y2). [lifted]
+/// draws it over the dim under the long-press menu, with no gestures.
+///
+/// A [viewer] gets no paper clip and no hint. A post or proof still
+/// [waiting] to be sent says so, and shows its photo from the phone
+/// ([localPhoto]).
+class DaybookSlip extends StatelessWidget {
+  const DaybookSlip({
     super.key,
     required this.record,
     required this.words,
@@ -35,7 +79,13 @@ class DaybookEntry extends StatelessWidget {
     required this.now,
     this.viewer = false,
     this.waiting = false,
-    this.localCover,
+    this.couldNotSend = false,
+    this.localPhoto,
+    this.actions = const DaybookSlipActions(),
+    this.landing = false,
+    this.checker,
+    this.lifted = false,
+    this.onTap,
   });
 
   final DaybookRecord record;
@@ -44,23 +94,76 @@ class DaybookEntry extends StatelessWidget {
   final DateTime now;
   final bool viewer;
   final bool waiting;
-  final String? localCover;
+
+  /// A post the server refused while another card was being written.
+  final bool couldNotSend;
+  final String? localPhoto;
+  final DaybookSlipActions actions;
+
+  /// The CHECKED stamp lands now (a check made here).
+  final bool landing;
+
+  /// Who checks a proof next (the work item's author), for its owner.
+  final String? checker;
+  final bool lifted;
+
+  /// A tap on the slip.
+  final VoidCallback? onTap;
+
+  /// The spine's dot: needs you, checked, or quiet.
+  BvSpineDot get dot {
+    final r = record;
+    return switch (r) {
+      DaybookPost() when _postClip(r) => BvSpineDot.needsYou,
+      DaybookPost() when r.stamp?.kind == DaybookStampKind.checked =>
+        BvSpineDot.checked,
+      DaybookSignOff() when _signOffClip(r) => BvSpineDot.needsYou,
+      DaybookSignOff() when r.outcome.kind == DaybookOutcomeKind.checked =>
+        BvSpineDot.checked,
+      _ => BvSpineDot.quiet,
+    };
+  }
+
+  bool _postClip(DaybookPost p) => p.needsMe && !viewer && !waiting;
+  bool _signOffClip(DaybookSignOff s) => s.needsMe && !viewer && !waiting;
 
   @override
   Widget build(BuildContext context) {
     final record = this.record;
-    final (dot, slip) = switch (record) {
+    final slip = switch (record) {
       DaybookPost() => _postSlip(context, record),
       DaybookSignOff() => _signOffSlip(context, record),
-      DaybookUpdate() => _updateSlip(context, record),
+      DaybookUpdate() => _updateNote(context, record),
     };
-    return BvSpineEntry(
-      key: Key('daybook-entry-${record.id}'),
-      time: words.clock(record.at),
-      dot: dot,
-      child: slip,
+    final update = actions.onUpdate;
+    if (lifted || update == null || record is! DaybookPost) return slip;
+    return Builder(
+      builder: (context) => BvSwipeReveal(
+        actionLabel: AppLocalizations.of(context).daybookAddUpdate,
+        onAction: () => update(bvGlobalRect(context)),
+        child: slip,
+      ),
     );
   }
+
+  /// The same slip with [actions], or [lifted] over the dim.
+  DaybookSlip copyWith({DaybookSlipActions? actions, bool? lifted}) =>
+      DaybookSlip(
+        key: key,
+        record: record,
+        words: words,
+        me: me,
+        now: now,
+        viewer: viewer,
+        waiting: waiting,
+        couldNotSend: couldNotSend,
+        localPhoto: localPhoto,
+        actions: actions ?? this.actions,
+        landing: landing,
+        checker: checker,
+        lifted: lifted ?? this.lifted,
+        onTap: onTap,
+      );
 
   BvSlipHeader _header(
     AppLocalizations l10n,
@@ -76,9 +179,34 @@ class DaybookEntry extends StatelessWidget {
         : BvAvatarTints.forId(personId),
   );
 
-  (BvSpineDot, Widget) _postSlip(BuildContext context, DaybookPost post) {
+  /// The slip with its long-press, measured where it is on screen.
+  Widget _slip({
+    required String id,
+    required List<Widget> children,
+    Widget? stamp,
+    bool clip = false,
+    bool cancelled = false,
+  }) {
+    final press = actions.onLongPress;
+    return Builder(
+      builder: (context) => BvSlip(
+        tear: BvSlipBorder.forId(id).variant,
+        stamp: stamp,
+        clip: clip,
+        cancelled: cancelled,
+        lifted: lifted,
+        onTap: lifted ? null : onTap,
+        onLongPress: lifted || press == null
+            ? null
+            : () => press(bvGlobalRect(context)),
+        children: children,
+      ),
+    );
+  }
+
+  Widget _postSlip(BuildContext context, DaybookPost post) {
     final l10n = AppLocalizations.of(context);
-    final clip = post.needsMe && !viewer && !waiting;
+    final clip = _postClip(post);
     final cancelledAt = post.stamp?.at;
     final edited = words.editedDue(post.dueEdit, now);
     final given = post.givenTo;
@@ -115,8 +243,14 @@ class DaybookEntry extends StatelessWidget {
           label: l10n.daybookPoints(post.pointsTotal),
         ),
     ];
-    final slip = BvSlip(
-      tear: BvSlipBorder.forId(post.id).variant,
+    // The author cancelled it: "Cancelled by you" for them.
+    final byMe =
+        post.authorId != null &&
+        post.authorId == me &&
+        post.stamp?.byName == post.authorName;
+    final signDone = actions.onSignDone;
+    return _slip(
+      id: post.id,
       stamp: stamp,
       clip: clip,
       cancelled: post.cancelled,
@@ -125,17 +259,19 @@ class DaybookEntry extends StatelessWidget {
         BvSlipTitle(post.title, cancelled: post.cancelled),
         BvSlipMeta(
           post.cancelled && cancelledAt != null
-              ? l10n.daybookCancelledBy(
-                  personName(l10n, post.stamp?.byName),
-                  words.clock(cancelledAt),
-                )
+              ? byMe
+                    ? l10n.daybookCancelledByYou(words.clock(cancelledAt))
+                    : l10n.daybookCancelledBy(
+                        personName(l10n, post.stamp?.byName),
+                        words.clock(cancelledAt),
+                      )
               : words.meta(post, me: me, now: now),
         ),
         if (post.isLate(now)) BvSlipLate(l10n.daybookLate(post.lateDays(now))),
         if ((post.place ?? '').isNotEmpty) BvSlipPlace(post.place!),
         if (chips.isNotEmpty) BvSlipChips(children: chips),
-        if (localCover != null)
-          _LocalPhoto(path: localCover!)
+        if (localPhoto != null)
+          _LocalPhoto(path: localPhoto!, height: BvSlipSpec.photoHeightCover)
         else if (post.coverPath != null)
           _Photo(path: post.coverPath!, height: BvSlipSpec.photoHeightCover),
         if (given != null)
@@ -147,15 +283,18 @@ class DaybookEntry extends StatelessWidget {
             ),
           ),
         if (edited != null) BvSlipHistory(edited),
-        if (waiting) BvSlipHistory(l10n.daybookWaitingToSend),
+        if (couldNotSend)
+          BvSlipError(l10n.daybookCouldNotSend)
+        else if (waiting)
+          BvSlipHistory(l10n.daybookWaitingToSend),
+        if (signDone != null && !lifted)
+          BvSlipPill.action(
+            label: l10n.daybookSignAsDone,
+            icon: BvIcons.camera,
+            onTap: signDone,
+          ),
       ],
     );
-    final dot = clip
-        ? BvSpineDot.needsYou
-        : post.stamp?.kind == DaybookStampKind.checked
-        ? BvSpineDot.checked
-        : BvSpineDot.quiet;
-    return (dot, slip);
   }
 
   /// "M-201" from "M-201.pdf": the chip names the drawing, not its format.
@@ -168,9 +307,9 @@ class DaybookEntry extends StatelessWidget {
 
   static const _extensionMax = 5;
 
-  (BvSpineDot, Widget) _signOffSlip(BuildContext context, DaybookSignOff s) {
+  Widget _signOffSlip(BuildContext context, DaybookSignOff s) {
     final l10n = AppLocalizations.of(context);
-    final clip = s.needsMe && !viewer;
+    final clip = _signOffClip(s);
     final outcome = s.outcome;
     final cancelled = outcome.kind == DaybookOutcomeKind.cancelled;
     final stamp = switch (outcome.kind) {
@@ -184,6 +323,7 @@ class DaybookEntry extends StatelessWidget {
         size: BvInkStampSize.lg,
         tone: BvInkStampTone.positive,
         subline: words.stampLine(outcome.byName, outcome.at ?? s.at),
+        land: landing,
       ),
       DaybookOutcomeKind.sentBack => BvInkStamp(
         label: l10n.daybookStampSentBack,
@@ -197,54 +337,74 @@ class DaybookEntry extends StatelessWidget {
         tone: BvInkStampTone.muted,
       ),
     };
-    final photo = s.photos.firstOrNull;
-    final slip = BvSlip(
-      tear: BvSlipBorder.forId(s.id).variant,
+    final hasPhoto = localPhoto != null || s.photos.isNotEmpty;
+    final check = clip && !lifted ? actions.onCheck : null;
+    final checkedAt = outcome.at;
+    return _slip(
+      id: s.id,
       // With no photo, the stamp goes on the slip.
-      stamp: photo == null ? stamp : null,
+      stamp: hasPhoto ? null : stamp,
       clip: clip,
       cancelled: cancelled,
       children: [
         _header(l10n, s.actorId, s.actorName, action: l10n.daybookSignedAsDone),
         BvSlipQuote(s.title),
-        if (photo != null)
-          _Photo(
-            path: photo.path,
+        if (localPhoto != null)
+          _LocalPhoto(
+            path: localPhoto!,
             height: BvSlipSpec.photoHeightProof,
             stamp: stamp,
+          )
+        else if (s.photos.isNotEmpty)
+          _Photo(
+            path: s.photos.first.path,
+            height: BvSlipSpec.photoHeightProof,
+            stamp: stamp,
+            onDoubleTap: check,
           ),
         if ((s.note ?? '').isNotEmpty) BvSlipNote(s.note!),
-        // The double-tap itself comes with the loop (part 1d).
-        if (clip) BvSlipPill.hint(label: l10n.daybookDoubleTapToCheck),
+        if (clip && hasPhoto)
+          BvSlipPill.hint(label: l10n.daybookDoubleTapToCheck),
+        if (outcome.kind == DaybookOutcomeKind.checked &&
+            outcome.byId != null &&
+            outcome.byId == me &&
+            checkedAt != null)
+          BvSlipHistory(l10n.daybookYouChecked(words.clock(checkedAt))),
+        if (outcome.kind == DaybookOutcomeKind.sentBack)
+          BvSlipHistory(words.sentBack(outcome, s.at)),
+        if (outcome.kind == DaybookOutcomeKind.done &&
+            s.actorId == me &&
+            checker != null)
+          BvSlipHistory(l10n.daybookChecksNext(checker!)),
+        if (waiting) BvSlipHistory(l10n.daybookWaitingToSend),
       ],
     );
-    final dot = clip
-        ? BvSpineDot.needsYou
-        : outcome.kind == DaybookOutcomeKind.checked
-        ? BvSpineDot.checked
-        : BvSpineDot.quiet;
-    return (dot, slip);
   }
 
-  (BvSpineDot, Widget) _updateSlip(BuildContext context, DaybookUpdate u) {
+  Widget _updateNote(BuildContext context, DaybookUpdate u) {
     final l10n = AppLocalizations.of(context);
-    final photo = u.photos.firstOrNull;
-    return (
-      BvSpineDot.quiet,
-      BvSlip(
-        tear: BvSlipBorder.forId(u.id).variant,
-        children: [
-          _header(
-            l10n,
-            u.actorId,
-            u.actorName,
-            action: l10n.daybookAddedUpdate,
-          ),
-          BvSlipQuote(u.title),
-          if ((u.note ?? '').isNotEmpty) BvSlipNote(u.note!),
-          if (photo != null)
-            _Photo(path: photo.path, height: BvSlipSpec.photoHeightCover),
-        ],
+    final note = BvUpdateNote(
+      key: Key('daybook-update-${u.id}'),
+      quote: u.title,
+      name: personName(l10n, u.actorName),
+      text: u.note ?? '',
+      tint: u.actorId == null
+          ? BvAvatarTints.plain
+          : BvAvatarTints.forId(u.actorId!),
+      photo: u.photos.isEmpty
+          ? null
+          : _Photo(
+              path: u.photos.first.path,
+              height: BvSlipSpec.photoHeightCover,
+            ),
+    );
+    final press = actions.onLongPress;
+    if (lifted || press == null) return note;
+    return Builder(
+      builder: (context) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPress: () => press(bvGlobalRect(context)),
+        child: note,
       ),
     );
   }
@@ -258,14 +418,37 @@ final daybookPhotoProvider = Provider.autoDispose
       return url == null ? null : NetworkImage(url);
     });
 
-/// A photo kept on the phone (a draft's, or a post's waiting to be sent).
+/// A photo kept on the phone (a draft's, or one waiting to be sent).
 final localPhotoProvider = Provider.autoDispose.family<ImageProvider, String>(
   (ref, path) => FileImage(File(path)),
 );
 
 /// A photo from the Space's private files, cropped to [height].
 class _Photo extends ConsumerWidget {
-  const _Photo({required this.path, required this.height, this.stamp});
+  const _Photo({
+    required this.path,
+    required this.height,
+    this.stamp,
+    this.onDoubleTap,
+  });
+
+  final String path;
+  final double height;
+  final Widget? stamp;
+  final VoidCallback? onDoubleTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => BvSlipPhoto(
+    height: height,
+    stamp: stamp,
+    onDoubleTap: onDoubleTap,
+    image: ref.watch(daybookPhotoProvider(path)),
+  );
+}
+
+/// A photo still on the phone, waiting to be sent.
+class _LocalPhoto extends ConsumerWidget {
+  const _LocalPhoto({required this.path, required this.height, this.stamp});
 
   final String path;
   final double height;
@@ -275,19 +458,6 @@ class _Photo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => BvSlipPhoto(
     height: height,
     stamp: stamp,
-    image: ref.watch(daybookPhotoProvider(path)),
-  );
-}
-
-/// The cover of a post still waiting to be sent, from the phone.
-class _LocalPhoto extends ConsumerWidget {
-  const _LocalPhoto({required this.path});
-
-  final String path;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => BvSlipPhoto(
-    height: BvSlipSpec.photoHeightCover,
     image: ref.watch(localPhotoProvider(path)),
   );
 }

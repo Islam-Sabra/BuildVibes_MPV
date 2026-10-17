@@ -14,6 +14,7 @@ import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../entry/entry_state.dart';
+import 'daybook_draft.dart';
 import 'daybook_state.dart';
 
 /// A photo waiting to be sent: a copy kept on the phone ([local]) and,
@@ -56,12 +57,18 @@ class PendingPhoto {
 
 /// What waits in the outbox.
 enum PendingKind {
-  /// A sign-off (W4) of an existing work item.
+  /// The owner's sign-off of a work item, with its proof photos.
   signOff('sign_done'),
 
-  /// A work item written in place in the Daybook (1c), not on the server
-  /// yet.
-  workItem('daybook_work_item');
+  /// A work item written in place in the Daybook, not on the server yet.
+  workItem('daybook_work_item'),
+
+  /// A check, held for the undo bar's 5 seconds first (review 44, answer
+  /// 4).
+  check('check_item'),
+
+  /// Cancelling a work item, held for the undo bar's 5 seconds first.
+  cancel('cancel_post');
 
   const PendingKind(this.json);
   final String json;
@@ -72,10 +79,10 @@ enum PendingKind {
       values.where((k) => k.json == value).firstOrNull;
 }
 
-/// Something made on the phone that isn't on the server yet: a sign-off or
-/// a new work item. Kept on the phone until it is, so a weak site signal
-/// never loses it or its photos. The app chose its id, so sending it again
-/// is safe.
+/// Something done on the phone that isn't on the server yet: a sign-off,
+/// a new work item, a check or a cancel. Kept on the phone until it is, so
+/// a weak site signal never loses it or its photos. The app chose the
+/// work item's id, so sending it again is safe.
 @immutable
 class PendingItem {
   const PendingItem({
@@ -86,10 +93,8 @@ class PendingItem {
     required this.ownerName,
     this.kind = PendingKind.signOff,
     this.photos = const [],
-    this.failed = false,
     this.refused = false,
     this.note,
-    this.ref,
     this.body,
     this.place,
     this.dueDate,
@@ -109,10 +114,8 @@ class PendingItem {
       for (final p in json['photos'] as List? ?? const [])
         PendingPhoto.fromJson(p as Map<String, dynamic>),
     ],
-    failed: json['failed'] as bool? ?? false,
     refused: json['refused'] as bool? ?? false,
     note: json['note'] as String?,
-    ref: json['ref'] as String?,
     body: json['body'] as String?,
     place: json['place'] as String?,
     dueDate: _day(json['due_date']),
@@ -139,18 +142,12 @@ class PendingItem {
   final String ownerName;
   final List<PendingPhoto> photos;
 
-  /// The last try didn't get through: "Not sent yet · Retry".
-  final bool failed;
-
   /// The server said no (not a lost signal): it isn't tried again by
-  /// itself. The Couldn't send screen comes in slice 10.
+  /// itself.
   final bool refused;
 
   /// The sign-off note.
   final String? note;
-
-  /// The item's reference ("KCT-021").
-  final String? ref;
 
   // A new work item's text and properties; the due date and time are the
   // phone's own.
@@ -159,35 +156,31 @@ class PendingItem {
   final DateTime? dueDate;
   final DateTime? dueAt;
 
-  /// When Post was tapped: the slip hangs at this time until it is sent.
+  /// When it was done on the phone: the slip hangs at this time until it
+  /// is sent.
   final DateTime? madeAt;
 
-  /// The writer's own name, for the slip's avatar while it waits.
+  /// The writer's or signer's own name, for the slip while it waits.
   final String? authorName;
 
-  PendingItem copyWith({
-    List<PendingPhoto>? photos,
-    bool? failed,
-    bool? refused,
-  }) => PendingItem(
-    id: id,
-    spaceId: spaceId,
-    title: title,
-    ownerId: ownerId,
-    ownerName: ownerName,
-    kind: kind,
-    photos: photos ?? this.photos,
-    failed: failed ?? this.failed,
-    refused: refused ?? this.refused,
-    note: note,
-    ref: ref,
-    body: body,
-    place: place,
-    dueDate: dueDate,
-    dueAt: dueAt,
-    madeAt: madeAt,
-    authorName: authorName,
-  );
+  PendingItem copyWith({List<PendingPhoto>? photos, bool? refused}) =>
+      PendingItem(
+        id: id,
+        spaceId: spaceId,
+        title: title,
+        ownerId: ownerId,
+        ownerName: ownerName,
+        kind: kind,
+        photos: photos ?? this.photos,
+        refused: refused ?? this.refused,
+        note: note,
+        body: body,
+        place: place,
+        dueDate: dueDate,
+        dueAt: dueAt,
+        madeAt: madeAt,
+        authorName: authorName,
+      );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -196,11 +189,9 @@ class PendingItem {
     'owner_id': ownerId,
     'owner_name': ownerName,
     'photos': [for (final p in photos) p.toJson()],
-    'failed': failed,
     'refused': refused,
     'kind': kind.json,
     'note': note,
-    'ref': ref,
     'body': body,
     'place': place,
     'due_date': dueDate?.toIso8601String(),
@@ -212,6 +203,9 @@ class PendingItem {
   /// Only the kinds this version knows are read back.
   static bool isKnown(Map<String, dynamic> json) =>
       PendingKind.fromJson(json['kind']) != null;
+
+  /// The same thing waiting: a kind of one work item.
+  bool same(PendingItem other) => other.id == id && other.kind == kind;
 }
 
 /// Takes a photo for evidence: the camera, or the gallery as a fallback.
@@ -254,8 +248,8 @@ final workOutboxProvider = NotifierProvider<WorkOutbox, List<PendingItem>>(
   WorkOutbox.new,
 );
 
-/// Sign-offs and new work items waiting to be sent, kept on the phone
-/// between app starts.
+/// Sign-offs, new work items, checks and cancels waiting to be sent, kept
+/// on the phone between app starts.
 /// Each account has its own: on a phone a crew shares, the next person
 /// never sees (or sends) someone else's unsent work.
 class WorkOutbox extends Notifier<List<PendingItem>> {
@@ -264,10 +258,19 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 
   String? _key;
 
+  /// Checks and cancels whose undo bar is showing: sent when it goes.
+  final _held = <(PendingKind, String), Timer>{};
+
   @override
   List<PendingItem> build() {
     final prefs = ref.watch(sharedPreferencesProvider);
     final userId = ref.watch(authUserIdProvider).value;
+    ref.onDispose(() {
+      for (final t in _held.values) {
+        t.cancel();
+      }
+      _held.clear();
+    });
     if (prefs.containsKey(_sharedKey)) unawaited(prefs.remove(_sharedKey));
     _key = userId == null ? null : 'work_outbox:$userId';
     final raw = _key == null ? null : prefs.getString(_key!);
@@ -293,50 +296,84 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 
   Future<void> _put(PendingItem item) => _save([
     for (final i in state)
-      if (i.id != item.id) i,
+      if (!i.same(item)) i,
     item,
   ]);
 
-  List<PendingItem> forSpace(String spaceId) => [
+  Future<void> _drop(PendingItem item) => _save([
     for (final i in state)
-      if (i.spaceId == spaceId) i,
-  ];
+      if (!i.same(item)) i,
+  ]);
 
   /// The ones in flight now, so a flush never sends one twice at once.
-  final _sending = <String>{};
+  final _sending = <(PendingKind, String)>{};
 
-  /// Sends every new work item of [spaceId] still waiting for a signal
-  /// (not one the server refused). Called when the daybook opens, comes
-  /// back to the front, and every little while it shows one waiting.
+  /// Whether [kind] of [id] is still held for its undo bar.
+  bool isHeld(PendingKind kind, String id) => _held.containsKey((kind, id));
+
+  /// Keeps [item] (a check or a cancel) on the phone for [hold], the undo
+  /// bar's time, then sends it. If the app closes meanwhile, it is sent on
+  /// the next open ([flushAll]). [undo] takes it back before anything
+  /// reaches the server.
+  Future<void> hold(PendingItem item, Duration hold) async {
+    final key = (item.kind, item.id);
+    _held.remove(key)?.cancel();
+    await _put(item);
+    _held[key] = Timer(hold, () {
+      _held.remove(key);
+      unawaited(send(item));
+    });
+  }
+
+  /// Undo: the held [kind] of [id] never leaves the phone.
+  Future<void> undo(PendingKind kind, String id) async {
+    _held.remove((kind, id))?.cancel();
+    await _save([
+      for (final i in state)
+        if (i.kind != kind || i.id != id) i,
+    ]);
+  }
+
+  /// Sends everything of [spaceId] still waiting for a signal (not what
+  /// the server refused, nor what an undo bar still holds). Called when
+  /// the daybook opens, comes back to the front, and every little while.
   Future<void> flush(String spaceId) async {
-    for (final item in forSpace(spaceId)) {
-      if (item.kind == PendingKind.workItem &&
-          !item.refused &&
-          !_sending.contains(item.id)) {
-        await send(item);
-      }
+    for (final item in state.where((i) => i.spaceId == spaceId).toList()) {
+      if (_due(item)) await send(item);
     }
   }
 
-  /// Keeps [item], uploads its photos and sends it (signs it, or creates
-  /// the work item), trying again on a weak signal. True when it reached
-  /// the server; otherwise it stays here as "Not sent yet" ("Waiting to
-  /// send" on the daybook).
+  /// [flush] for every Space, on opening the app: a check whose undo bar
+  /// was cut short by closing the app is sent now.
+  Future<void> flushAll() async {
+    for (final item in state.toList()) {
+      if (_due(item)) await send(item);
+    }
+  }
+
+  bool _due(PendingItem item) =>
+      !item.refused &&
+      !_sending.contains((item.kind, item.id)) &&
+      !_held.containsKey((item.kind, item.id));
+
+  /// Keeps [item], uploads its photos and sends it, trying again on a weak
+  /// signal. True when it reached the server; otherwise it stays here
+  /// ("Waiting to send" on the daybook), unless the server refused it.
   Future<bool> send(PendingItem item) async {
-    if (!_sending.add(item.id)) return false;
+    final key = (item.kind, item.id);
+    if (!_sending.add(key)) return false;
     try {
       return await _send(item);
     } finally {
-      _sending.remove(item.id);
+      _sending.remove(key);
     }
   }
 
   Future<bool> _send(PendingItem item) async {
     final repo = ref.read(workRepositoryProvider);
     final daybook = ref.read(daybookRepositoryProvider);
-    final newItem = item.kind == PendingKind.workItem;
     final delays = ref.read(outboxRetryDelaysProvider);
-    var current = item.copyWith(failed: false, refused: false);
+    var current = item.copyWith(refused: false);
     await _put(current);
 
     Future<T> withRetries<T>(Future<T> Function() run) async {
@@ -366,7 +403,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           }
           // A new name on every try: nothing is ever overwritten.
           final path = await withRetries(
-            () => newItem
+            () => item.kind == PendingKind.workItem
                 ? daybook.uploadPostPhoto(item.spaceId, item.id, File(p.local))
                 : repo.uploadPhoto(item.spaceId, item.id, File(p.local)),
           );
@@ -376,31 +413,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           );
           await _put(current);
         }
-        if (newItem) {
-          await withRetries(
-            () => daybook.createWorkItem(
-              NewWorkItem(
-                id: item.id,
-                spaceId: item.spaceId,
-                title: item.title,
-                ownerId: item.ownerId,
-                body: item.body,
-                place: item.place,
-                dueDate: item.dueDate,
-                dueAt: item.dueAt,
-                photoPaths: [for (final p in photos) p.remote!],
-              ),
-            ),
-          );
-        } else {
-          final sent = [
-            for (final p in photos)
-              WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
-          ];
-          await withRetries(
-            () => repo.signDone(item.id, note: item.note, photos: sent),
-          );
-        }
+        await withRetries(() => _call(item, photos));
         break;
       } on SpaceException catch (e) {
         // Refused photos from an earlier try: upload them again, once.
@@ -412,41 +425,97 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           await _put(current);
           continue;
         }
-        await _put(
-          current.copyWith(
-            failed: true,
-            refused: e.failure != SpaceFailure.network,
-          ),
-        );
+        if (e.failure == SpaceFailure.network) {
+          await _put(current);
+        } else {
+          await _refused(current);
+        }
         return false;
       }
     }
 
     // On the daybook before it leaves the outbox, so the slip never
-    // blinks out.
-    final page = daybookPageProvider(item.spaceId);
-    if (newItem && ref.exists(page)) {
-      try {
-        await ref.read(page.notifier).refreshNewest();
-      } on SpaceException {
-        // It is on the server; the page catches up on its next read.
-      }
-    }
-
-    // Sent: drop the kept copies.
-    await _save([
-      for (final i in state)
-        if (i.id != item.id) i,
-    ]);
+    // blinks.
+    await _refreshDaybook(item.spaceId);
+    await _drop(item);
     for (final p in item.photos) {
       unawaited(_deleteKept(p.local));
     }
-    ref
-      ..invalidate(workItemDetailProvider(item.id))
-      ..invalidate(workItemsProvider(item.spaceId))
-      ..invalidate(workNeedsProvider(item.spaceId))
-      ..invalidate(mySpacesProvider);
+    ref.invalidate(mySpacesProvider);
     return true;
+  }
+
+  Future<void> _call(
+    PendingItem item,
+    List<PendingPhoto> photos,
+  ) => switch (item.kind) {
+    PendingKind.workItem =>
+      ref
+          .read(daybookRepositoryProvider)
+          .createWorkItem(
+            NewWorkItem(
+              id: item.id,
+              spaceId: item.spaceId,
+              title: item.title,
+              ownerId: item.ownerId,
+              body: item.body,
+              place: item.place,
+              dueDate: item.dueDate,
+              dueAt: item.dueAt,
+              photoPaths: [for (final p in photos) p.remote!],
+            ),
+          ),
+    PendingKind.signOff =>
+      ref
+          .read(workRepositoryProvider)
+          .signDone(
+            item.id,
+            note: item.note,
+            photos: [
+              for (final p in photos)
+                WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
+            ],
+          ),
+    PendingKind.check => ref.read(workRepositoryProvider).checkItem(item.id),
+    PendingKind.cancel =>
+      ref.read(daybookRepositoryProvider).cancelPost(item.id),
+  };
+
+  /// The server said no. A new work item goes back to a Draft in place
+  /// ("Couldn't send. Tap to fix", review 46), with nothing lost. Anything
+  /// else leaves the phone: the daybook shows what the server has.
+  Future<void> _refused(PendingItem item) async {
+    if (item.kind == PendingKind.workItem) {
+      if (await reopenRefused(item)) return;
+      // A new card is being written: this one waits, refused, until it is
+      // put down.
+      await _put(item.copyWith(refused: true));
+      return;
+    }
+    await _drop(item);
+    for (final p in item.photos) {
+      unawaited(_deleteKept(p.local));
+    }
+    await _refreshDaybook(item.spaceId);
+  }
+
+  /// A refused work item back into the Space's Draft, unless a card is
+  /// being written there. True when it moved.
+  Future<bool> reopenRefused(PendingItem item) async {
+    final draft = ref.read(daybookDraftProvider(item.spaceId).notifier);
+    if (!await draft.restoreRefused(item)) return false;
+    await _drop(item);
+    return true;
+  }
+
+  Future<void> _refreshDaybook(String spaceId) async {
+    final page = daybookPageProvider(spaceId);
+    if (!ref.exists(page)) return;
+    try {
+      await ref.read(page.notifier).refresh();
+    } on SpaceException {
+      // It is on the server; the page catches up on its next read.
+    }
   }
 
   static Future<void> _deleteKept(String path) async {
@@ -455,10 +524,5 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     } on FileSystemException {
       // Already gone.
     }
-  }
-
-  Future<bool> retry(String id) async {
-    final item = state.where((i) => i.id == id).firstOrNull;
-    return item == null ? false : send(item);
   }
 }

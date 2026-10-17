@@ -14,15 +14,8 @@ import 'space_repository.dart';
 abstract class WorkRepository {
   Future<List<WorkItem>> items(String spaceId);
 
-  /// What needs the signed-in person in [spaceId].
-  Future<WorkNeeds> needs(String spaceId);
-
   /// A short-lived link to a photo in the private bucket.
   Future<String> photoUrl(String path);
-
-  /// The item page: the item and its whole record. Null when it is gone or
-  /// you are not a member.
-  Future<WorkItemDetail?> detail(String itemId);
 
   /// Uploads a photo to `<space>/<item>/<new uuid>.jpg` and returns the
   /// path. Every call uses a new name, so a retry never replaces a file.
@@ -32,12 +25,12 @@ abstract class WorkRepository {
 
   Future<void> reassign(String itemId, String ownerId);
 
-  /// W4: the owner signs. Photos are already uploaded.
+  /// The owner signs as done. Photos are already uploaded.
   Future<void> signDone(String itemId, {String? note, List<WorkPhoto> photos});
 
   Future<void> checkItem(String itemId);
 
-  /// W5. [note] is required for [SendBackReason.other].
+  /// [note] is required for [SendBackReason.other].
   Future<void> sendBack(String itemId, SendBackReason reason, {String? note});
 
   /// Show a Checked item on your profile, or hide it.
@@ -69,16 +62,7 @@ class SupabaseWorkRepository implements WorkRepository {
 
   final SupabaseClient _client;
 
-  // Each table has several links to profiles: name the one meant.
-  static const _item =
-      'id, space_id, ref, title, status, created_at, owner_id, created_by, '
-      'team_id, place_text, due_date, done_at, checked_by, checked_at, shown, '
-      'owner:profiles!work_items_owner_id_fkey(first_name, last_name), '
-      'creator:profiles!work_items_created_by_fkey(first_name, last_name), '
-      'checker:profiles!work_items_checked_by_fkey(first_name, last_name), '
-      'team:teams(name), '
-      'events:work_item_events(kind, note, created_at), '
-      'evidence:work_item_evidence(storage_path, created_at)';
+  static const _item = 'id, space_id, ref, title';
 
   Future<T> _guard<T>(Future<T> Function() run) async {
     try {
@@ -105,80 +89,6 @@ class SupabaseWorkRepository implements WorkRepository {
         .order('created_at', ascending: false);
     return [for (final r in rows) WorkItem.fromJson(r)];
   });
-
-  @override
-  Future<WorkNeeds> needs(String spaceId) => _guard(() async {
-    final rows = (await _client.rpc<List<dynamic>>('needs_you'))
-        .cast<Map<String, dynamic>>()
-        .where((r) => r['space_id'] == spaceId && r['work_item_id'] != null);
-    return WorkNeeds(
-      toSign: {
-        for (final r in rows)
-          if (r['kind'] == 'open_owned') r['work_item_id'] as String,
-      },
-      toCheck: {
-        for (final r in rows)
-          if (r['kind'] == 'to_check') r['work_item_id'] as String,
-      },
-      toReassign: {
-        for (final r in rows)
-          if (r['kind'] == 'owner_left') r['work_item_id'] as String,
-      },
-    );
-  });
-
-  static const _event =
-      'id, kind, note, reason, created_at, actor_id, '
-      'actor:profiles!work_item_events_actor_id_fkey(first_name, last_name), '
-      'evidence:work_item_evidence(storage_path, taken_at, place_text), '
-      'from_owner:profiles!work_item_events_from_owner_id_fkey(first_name, last_name), '
-      'to_owner:profiles!work_item_events_to_owner_id_fkey(first_name, last_name)';
-
-  @override
-  Future<WorkItemDetail?> detail(String itemId) => _guard(() async {
-    final row = await _client
-        .from('work_items')
-        .select('$_item, record:work_item_events($_event)')
-        .eq('id', itemId)
-        .maybeSingle();
-    if (row == null) return null;
-    final events = [
-      for (final e in row['record'] as List? ?? const [])
-        _eventFrom(e as Map<String, dynamic>),
-    ]..sort((a, b) => a.at.compareTo(b.at));
-    return WorkItemDetail(item: WorkItem.fromJson(row), events: events);
-  });
-
-  static WorkEvent _eventFrom(Map<String, dynamic> e) {
-    String? nameOf(Object? row) {
-      if (row is! Map<String, dynamic>) return null;
-      final n = '${row['first_name'] ?? ''} ${row['last_name'] ?? ''}'.trim();
-      return n.isEmpty ? null : n;
-    }
-
-    final name = nameOf(e['actor']);
-    return WorkEvent(
-      id: e['id'] as String,
-      kind: WorkEventKind.fromJson(e['kind']),
-      at: DateTime.parse(e['created_at'] as String),
-      actorId: e['actor_id'] as String?,
-      actorName: name,
-      fromName: nameOf(e['from_owner']),
-      toName: nameOf(e['to_owner']),
-      note: e['note'] as String?,
-      reason: SendBackReason.fromJson(e['reason']),
-      photos: [
-        for (final p in e['evidence'] as List? ?? const [])
-          WorkPhoto(
-            path: (p as Map<String, dynamic>)['storage_path'] as String,
-            takenAt: p['taken_at'] == null
-                ? null
-                : DateTime.parse(p['taken_at'] as String),
-            place: p['place_text'] as String?,
-          ),
-      ],
-    );
-  }
 
   @override
   Future<String> uploadPhoto(String spaceId, String itemId, File file) =>
@@ -295,19 +205,10 @@ final workItemsProvider = FutureProvider.autoDispose
       (ref, spaceId) => ref.watch(workRepositoryProvider).items(spaceId),
     );
 
-final workNeedsProvider = FutureProvider.autoDispose.family<WorkNeeds, String>(
-  (ref, spaceId) => ref.watch(workRepositoryProvider).needs(spaceId),
-);
-
 /// Signed links last an hour; kept while a screen shows the photo.
 final workPhotoUrlProvider = FutureProvider.autoDispose.family<String, String>(
   (ref, path) => ref.watch(workRepositoryProvider).photoUrl(path),
 );
-
-final workItemDetailProvider = FutureProvider.autoDispose
-    .family<WorkItemDetail?, String>(
-      (ref, itemId) => ref.watch(workRepositoryProvider).detail(itemId),
-    );
 
 final myDeliveredWorkProvider = FutureProvider.autoDispose<List<DeliveredWork>>(
   (ref) => ref.watch(workRepositoryProvider).myDeliveredWork(),

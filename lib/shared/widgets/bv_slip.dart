@@ -11,8 +11,8 @@ import 'bv_torn_edge.dart';
 /// Spec §2: the Daybook's paper slip. White paper with a torn top edge and
 /// the slip shadow; its [children] stack with a 10 gap (compose them from
 /// [BvSlipHeader], [BvSlipTitle], [BvSlipMeta], [BvSlipLate], [BvSlipPlace],
-/// [BvSlipChips], [BvSlipQuote], [BvSlipPhoto], [BvSlipNote], [BvSlipPill]
-/// and [BvSlipHistory]).
+/// [BvSlipChips], [BvSlipQuote], [BvSlipPhoto], [BvSlipNote], [BvSlipPill],
+/// [BvSlipHistory] and [BvSlipError]).
 ///
 /// [stamp] (a [BvInkStamp]) sits at the top end corner; [clip] puts the
 /// paper clip there, sticking out above the tear, when the slip needs you.
@@ -256,6 +256,20 @@ class BvSlipLate extends StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+/// A slip's line in red when something went wrong ("Couldn't send. Tap
+/// to fix").
+class BvSlipError extends StatelessWidget {
+  const BvSlipError(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: BvType.of(context).labelSm.copyWith(color: BvColors.textDestructive),
   );
 }
 

@@ -123,19 +123,11 @@ FakeLibraryRepository _library() => FakeLibraryRepository(now: testNow)
 
 FakeWorkRepository _work() => FakeWorkRepository()
   ..itemsBySpace[_space] = [
-    WorkItem(
+    const WorkItem(
       id: 'item-17',
       spaceId: _space,
       ref: 'KCT-017',
       title: 'Sleeves at grid C7',
-      status: WorkStatus.open,
-      createdAt: testNow,
-      ownerId: _me,
-      ownerName: 'Omar Haddad',
-      createdById: _me,
-      createdByName: 'Omar Haddad',
-      teamId: 'team-mep',
-      teamName: 'MEP Team',
     ),
   ];
 
@@ -149,10 +141,6 @@ Future<TestApp> _open(
   FakeWorkRepository? work,
 }) async {
   final w = work ?? _work();
-  w.details['item-17'] = WorkItemDetail(
-    item: w.itemsBySpace[_space]!.first,
-    events: const [],
-  );
   final app = await pumpApp(
     tester,
     language: lang,
@@ -411,46 +399,6 @@ void main() {
       expect(
         library.calls.single,
         'add Level 3 plan.pdf team:team-mep rev:Rev D supersedes:f-mep2',
-      );
-    });
-
-    testWidgets('W3: Attached; attach only files that fit; Team chat '
-        '[$lang]', (tester) async {
-      final library = _library()..attachedTo['item-17'] = ['f-all'];
-      await _open(
-        tester,
-        lang,
-        '/spaces/$_space/items/item-17',
-        library: library,
-      );
-      expect(find.text(l10n.workAttached), findsOneWidget);
-      expect(find.byKey(const Key('attached-f-all')), findsOneWidget);
-      await _tap(tester, 'work-attach');
-      await _tap(tester, 'attach-from-library');
-      expect(
-        find.text(l10n.libraryPickTeamNote(inOwnDirection('MEP Team'))),
-        findsOneWidget,
-      );
-      // Structure's file doesn't fit a MEP item; f-all is attached already.
-      Finder inPicker(String key) => find.descendant(
-        of: find.byKey(const Key('library-picker')),
-        matching: find.byKey(Key(key)),
-      );
-      expect(inPicker('file-f-st'), findsNothing);
-      expect(inPicker('file-f-all'), findsNothing);
-      expect(inPicker('file-f-mep2'), findsOneWidget);
-      await _tap(tester, 'file-f-mep2');
-      expect(library.calls.single, 'attach item-17 f-mep2');
-      expect(find.text(l10n.workAttachedToast), findsOneWidget);
-      ScaffoldMessenger.of(
-        tester.element(find.byKey(const Key('work-attached'))),
-      ).hideCurrentSnackBar();
-      await tester.pumpAndSettle();
-
-      await _tap(tester, 'work-team-chat');
-      expect(
-        find.text(l10n.chatTeamPrivacy(inOwnDirection('MEP Team'))),
-        findsOneWidget,
       );
     });
   }

@@ -50,7 +50,6 @@ import '../../features/library/add_file_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
-import '../../features/work/work_item_screen.dart';
 import 'app_routes.dart';
 
 export 'app_routes.dart';
@@ -250,7 +249,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => AddFileScreen(
               spaceId: state.pathParameters['id']!,
               supersedesId: state.uri.queryParameters['supersedes'],
-              forTeam: state.uri.queryParameters['for'],
             ),
           ),
           GoRoute(
@@ -265,13 +263,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => ThreadScreen(
               spaceId: state.pathParameters['id']!,
               threadId: state.pathParameters['threadId']!,
-            ),
-          ),
-          GoRoute(
-            path: 'items/:itemId',
-            builder: (context, state) => WorkItemScreen(
-              spaceId: state.pathParameters['id']!,
-              itemId: state.pathParameters['itemId']!,
             ),
           ),
           // "new" before ":teamId".

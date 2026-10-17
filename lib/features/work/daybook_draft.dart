@@ -6,10 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../data/models/daybook.dart';
 import '../entry/entry_state.dart';
+import 'work_outbox.dart';
 
-/// The work item being written in place (E1–E4). The app chose its [id]
-/// when the card opened, so it is the same post however often it is sent.
+/// The work item being written in place (E1–E4), or a posted one being
+/// edited (X1 Edit). The app chose its [id] when the card opened, so it is
+/// the same post however often it is sent.
 @immutable
 class WorkItemDraft {
   const WorkItemDraft({
@@ -22,6 +25,7 @@ class WorkItemDraft {
     this.dueDate,
     this.dueAt,
     this.photo,
+    this.couldNotSend = false,
   });
 
   factory WorkItemDraft.fromJson(Map<String, dynamic> json) => WorkItemDraft(
@@ -34,6 +38,33 @@ class WorkItemDraft {
     dueDate: _day(json['due_date']),
     dueAt: _time(json['due_at']),
     photo: json['photo'] as String?,
+    couldNotSend: json['could_not_send'] as bool? ?? false,
+  );
+
+  /// A post the server refused, back as the Draft it was (review 46).
+  factory WorkItemDraft.refused(PendingItem item) => WorkItemDraft(
+    id: item.id,
+    title: item.title,
+    body: item.body ?? '',
+    ownerId: item.ownerId,
+    ownerName: item.ownerName,
+    place: item.place,
+    dueDate: item.dueDate,
+    dueAt: item.dueAt,
+    photo: item.photos.firstOrNull?.local,
+    couldNotSend: true,
+  );
+
+  /// A posted work item, to edit.
+  factory WorkItemDraft.of(DaybookPost post) => WorkItemDraft(
+    id: post.id,
+    title: post.title,
+    body: post.body ?? '',
+    ownerId: post.item?.ownerId,
+    ownerName: post.item?.ownerName,
+    place: post.place,
+    dueDate: post.dueDate,
+    dueAt: post.dueAt,
   );
 
   static DateTime? _time(Object? value) =>
@@ -70,16 +101,27 @@ class WorkItemDraft {
   /// camera's cache and the app being closed.
   final String? photo;
 
-  /// Nothing typed: no draft (the card just closes).
-  bool get isEmpty => title.trim().isEmpty && body.trim().isEmpty;
+  /// The server refused it when it was posted: "Couldn't send. Tap to fix".
+  final bool couldNotSend;
 
-  /// A title the server takes (2 to 140 characters).
+  /// Nothing entered at all: no draft (the card just closes). A photo, an
+  /// owner, a date or a place alone is kept (review 46: the photo often
+  /// comes first).
+  bool get isEmpty =>
+      title.trim().isEmpty &&
+      body.trim().isEmpty &&
+      ownerId == null &&
+      place == null &&
+      dueDate == null &&
+      photo == null;
+
+  /// A title the server takes (2 to 140 characters): Post turns on.
   bool get titleFits {
     final length = title.trim().length;
     return length >= titleMin && length <= titleMax;
   }
 
-  /// Post is on: a title that fits, and someone to do it.
+  /// Ready to send: a title that fits, and someone to do it.
   bool get canPost => titleFits && ownerId != null;
 
   WorkItemDraft copyWith({
@@ -101,6 +143,7 @@ class WorkItemDraft {
     dueDate: dueDate == null ? this.dueDate : dueDate(),
     dueAt: dueAt == null ? this.dueAt : dueAt(),
     photo: photo == null ? this.photo : photo(),
+    couldNotSend: couldNotSend,
   );
 
   Map<String, dynamic> toJson() => {
@@ -113,19 +156,26 @@ class WorkItemDraft {
     'due_date': dueDate?.toIso8601String(),
     'due_at': dueAt?.toUtc().toIso8601String(),
     'photo': photo,
+    'could_not_send': couldNotSend,
   };
 }
 
-/// The card being written in one Space, or null. While it holds text it is
-/// saved on the phone as it changes, per account and Space, so a killed
-/// app comes back to it as a Draft that only its author sees (E4). Drafts
-/// never go to the server (data-model §14).
+/// The card in place: a new work item's ([DaybookDraft]) or an edit's
+/// ([DaybookEdit]).
+abstract class DaybookCard extends Notifier<WorkItemDraft?> {
+  Future<void> put(WorkItemDraft draft);
+}
+
+/// The card being written in one Space, or null. As soon as anything is
+/// entered it is saved on the phone as it changes, per account and Space,
+/// so a killed app comes back to it as a Draft that only its author sees
+/// (E4). Drafts never go to the server (data-model §14).
 final daybookDraftProvider =
     NotifierProvider.family<DaybookDraft, WorkItemDraft?, String>(
       DaybookDraft.new,
     );
 
-class DaybookDraft extends Notifier<WorkItemDraft?> {
+class DaybookDraft extends DaybookCard {
   DaybookDraft(this.spaceId);
 
   final String spaceId;
@@ -148,7 +198,8 @@ class DaybookDraft extends Notifier<WorkItemDraft?> {
   /// Opens a new card with [id], or keeps the one being written.
   void open(String id) => state ??= WorkItemDraft(id: id);
 
-  /// Sets the card and saves it while it has text.
+  /// Sets the card and saves it once anything is entered.
+  @override
   Future<void> put(WorkItemDraft draft) async {
     state = draft;
     final key = _key;
@@ -161,8 +212,17 @@ class DaybookDraft extends Notifier<WorkItemDraft?> {
     }
   }
 
-  /// The card closes: an empty one is gone, with its photo; one with text
-  /// stays as the Draft.
+  /// A post the server refused comes back as the Draft, unless another
+  /// card holds something. True when it did.
+  Future<bool> restoreRefused(PendingItem item) async {
+    final current = state;
+    if (current != null && !current.isEmpty) return false;
+    await put(WorkItemDraft.refused(item));
+    return true;
+  }
+
+  /// The card closes: an empty one is gone, with its photo; one with
+  /// anything in it stays as the Draft.
   Future<void> close() async {
     final draft = state;
     if (draft != null && draft.isEmpty) await discard();
@@ -186,5 +246,38 @@ class DaybookDraft extends Notifier<WorkItemDraft?> {
     } on FileSystemException {
       // Already gone.
     }
+  }
+}
+
+/// A posted work item being edited in place (X1 Edit → 2524:33577): its
+/// card at Now, filled with what it says. Only on the screen; putting it
+/// down leaves the post as it was.
+final daybookEditProvider =
+    NotifierProvider.family<DaybookEdit, WorkItemDraft?, String>(
+      DaybookEdit.new,
+    );
+
+class DaybookEdit extends DaybookCard {
+  DaybookEdit(this.spaceId);
+
+  final String spaceId;
+
+  /// The post as it was, to send only what changed.
+  DaybookPost? original;
+
+  @override
+  WorkItemDraft? build() => null;
+
+  void start(DaybookPost post) {
+    original = post;
+    state = WorkItemDraft.of(post);
+  }
+
+  @override
+  Future<void> put(WorkItemDraft draft) async => state = draft;
+
+  void stop() {
+    original = null;
+    state = null;
   }
 }

@@ -24,13 +24,10 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_pass_card.dart';
 import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_sheet.dart';
-import '../../shared/widgets/bv_sign_off_strip.dart';
 import '../../shared/widgets/bv_site_photo.dart';
-import '../../shared/widgets/bv_site_tag.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_tabs.dart';
 import '../../shared/widgets/bv_text_field.dart';
-import '../../shared/widgets/bv_work_item_card.dart';
 import '../settings/language_sheet.dart';
 
 const _samplePhoto = AssetImage('assets/dev/site_sample.jpg');
@@ -374,80 +371,7 @@ class _ComponentsGalleryScreenState extends State<ComponentsGalleryScreen> {
               ],
             ),
           ]),
-          _Section('13 · BvSiteTag', [
-            BvSiteTag(
-              itemId: 'KCT-021',
-              team: s.team,
-              title: s.itemTitle,
-              place: s.place,
-              from: s.fromName,
-              owner: s.personName,
-              due: s.due,
-            ),
-            BvSiteTag(
-              itemId: 'KCT-024',
-              team: s.team,
-              title: s.itemTitle2,
-              place: s.place,
-              from: s.fromName,
-              owner: s.personName,
-              due: s.dueOverdue,
-              overdue: true,
-            ),
-          ]),
-          _Section('14 · BvSignOffStrip', [
-            BvSignOffStrip(
-              steps: [
-                BvSignOffStep(
-                  kind: BvSignOffStepKind.raised,
-                  person: s.fromName,
-                  when: s.when1,
-                ),
-                BvSignOffStep(
-                  kind: BvSignOffStepKind.done,
-                  person: s.personName,
-                  when: s.when2,
-                ),
-                const BvSignOffStep(kind: BvSignOffStepKind.checked),
-              ],
-            ),
-            BvSignOffStrip(
-              steps: [
-                BvSignOffStep(
-                  kind: BvSignOffStepKind.raised,
-                  person: s.fromName,
-                  when: s.when1,
-                ),
-                const BvSignOffStep(kind: BvSignOffStepKind.done),
-                const BvSignOffStep(kind: BvSignOffStepKind.checked),
-              ],
-            ),
-          ]),
-          _Section('15 · BvWorkItemCard', [
-            for (final status in BvWorkStatus.values)
-              BvWorkItemCard(
-                reference: s.reference,
-                status: status,
-                statusLine: s.statusLine(status),
-                title: s.itemTitle,
-                place: s.place,
-                people: s.people,
-                evidence: switch (status) {
-                  BvWorkStatus.done => BvWorkEvidence(
-                    text: s.evidenceDone,
-                    photo: _samplePhoto,
-                  ),
-                  BvWorkStatus.checked => BvWorkEvidence(
-                    text: s.evidenceChecked,
-                    photo: _samplePhoto,
-                  ),
-                  _ => null,
-                },
-                actionLabel: s.action(status),
-                onTap: () {},
-              ),
-          ]),
-          _Section('16 · BvPassCard', [
+          _Section('13 · BvPassCard', [
             for (final kind in BvPassKind.values)
               BvPassCard(
                 kind: kind,
@@ -457,7 +381,7 @@ class _ComponentsGalleryScreenState extends State<ComponentsGalleryScreen> {
                 onTap: () => setState(() => _pass = kind),
               ),
           ]),
-          _Section('17 · BvSitePhoto', [
+          _Section('14 · BvSitePhoto', [
             BvSitePhoto(photo: _samplePhoto, stamp: s.photoStamp),
             BvSitePhoto(photo: null, stamp: s.photoStamp),
           ]),
@@ -580,20 +504,6 @@ class _Samples {
     required this.sheetBody,
     required this.stampChecked,
     required this.stampMuted,
-    required this.team,
-    required this.itemTitle,
-    required this.itemTitle2,
-    required this.place,
-    required this.due,
-    required this.dueOverdue,
-    required this.when1,
-    required this.when2,
-    required this.reference,
-    required this.statusLines,
-    required this.people,
-    required this.evidenceDone,
-    required this.evidenceChecked,
-    required this.actions,
     required this.passOpensLines,
     required this.passForLines,
     required this.photoStamp,
@@ -613,11 +523,6 @@ class _Samples {
   final List<String> badges;
   final String openSheet, sheetTitle, sheetSubtitle, sheetBody;
   final String stampChecked, stampMuted;
-  final String team, itemTitle, itemTitle2, place, due, dueOverdue;
-  final String when1, when2, reference;
-  final List<String> statusLines;
-  final String people, evidenceDone, evidenceChecked;
-  final List<String?> actions;
   final List<String> passOpensLines, passForLines;
   final String photoStamp;
 
@@ -628,8 +533,6 @@ class _Samples {
     BvButtonStyle.destructive => destructive,
   };
   String badge(BvBadgeTone tone) => badges[tone.index];
-  String statusLine(BvWorkStatus status) => statusLines[status.index];
-  String? action(BvWorkStatus status) => actions[status.index];
   String passOpens(BvPassKind kind) => passOpensLines[kind.index];
   String passFor(BvPassKind kind) => passForLines[kind.index];
 
@@ -680,25 +583,6 @@ class _Samples {
     sheetBody: 'Sheet content goes here.',
     stampChecked: 'CHECKED',
     stampMuted: 'DRAFT',
-    team: 'STRUCTURE',
-    itemTitle: 'Fix rebar spacing at grid C7',
-    itemTitle2: 'Close the slab opening at grid D4',
-    place: 'Level 2 · Grid C7',
-    due: 'Sun 12 Oct',
-    dueOverdue: 'Thu 9 Oct',
-    when1: '9 Oct · 08:10',
-    when2: '11 Oct · 14:22',
-    reference: 'KCT-021 · STRUCTURE',
-    statusLines: [
-      'OPEN · DUE SUN 12 OCT',
-      'DONE · YOU CHECK IT',
-      'CHECKED · THU 9 OCT',
-      'OVERDUE · 2 DAYS',
-    ],
-    people: 'Owner: you · from Sara Al-Mutairi',
-    evidenceDone: '“Fixed to the drawing, 150 mm.”',
-    evidenceChecked: 'Checked by Sara · 1 photo',
-    actions: ['Sign as done', 'Check it', null, 'Sign as done'],
     passOpensLines: [
       'Opens: all items, Teams, Library, settings',
       'Opens: items given to them, Chat, Library',
@@ -760,25 +644,6 @@ class _Samples {
     sheetBody: 'هنا محتوى النافذة.',
     stampChecked: 'تم الفحص',
     stampMuted: 'مسودة',
-    team: 'إنشائي',
-    itemTitle: 'تعديل تباعد حديد التسليح عند المحور C7',
-    itemTitle2: 'إغلاق فتحة البلاطة عند المحور D4',
-    place: 'الدور 2 · المحور C7',
-    due: 'الأحد 12 أكتوبر',
-    dueOverdue: 'الخميس 9 أكتوبر',
-    when1: '9 أكتوبر · 08:10',
-    when2: '11 أكتوبر · 14:22',
-    reference: 'KCT-021 · إنشائي',
-    statusLines: [
-      'مفتوحة · الاستحقاق الأحد 12 أكتوبر',
-      'منجز · بانتظار فحصك',
-      'تم الفحص · الخميس 9 أكتوبر',
-      'متأخر · يومان',
-    ],
-    people: 'المكلّف: أنت · من سارة المطيري',
-    evidenceDone: '«تم التعديل وفق المخطط، 150 مم.»',
-    evidenceChecked: 'فحصته سارة · صورة واحدة',
-    actions: ['وقّع كمنجز', 'افحصه', null, 'وقّع كمنجز'],
     passOpensLines: [
       'يفتح: كل البنود، الفرق، المكتبة، الإعدادات',
       'يفتح: البنود المكلّف بها، المحادثة، المكتبة',

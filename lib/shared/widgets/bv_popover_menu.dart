@@ -315,7 +315,10 @@ class _LiftedRoute<T> extends PopupRoute<T> {
           ),
           Positioned.fromRect(
             rect: anchor,
-            child: IgnorePointer(child: lifted),
+            // The page's text style: the slip's words keep their look.
+            child: IgnorePointer(
+              child: Material(type: MaterialType.transparency, child: lifted),
+            ),
           ),
           Positioned.fill(
             child: CustomSingleChildLayout(

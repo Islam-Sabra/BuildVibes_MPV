@@ -60,8 +60,6 @@ abstract final class AppRoutes {
   static String spaceInfo(String id) => '/spaces/$id/info';
   static String spaceTransfer(String id) => '/spaces/$id/transfer';
   static String spaceTeamNew(String id) => '/spaces/$id/teams/new';
-  static String workItem(String id, String itemId) =>
-      '/spaces/$id/items/$itemId';
   static String spaceTeam(String id, String teamId) =>
       '/spaces/$id/teams/$teamId';
   static String spaceThread(String id, String threadId) =>
@@ -69,18 +67,10 @@ abstract final class AppRoutes {
   static String libraryFile(String id, String fileId) =>
       '/spaces/$id/library/$fileId';
 
-  /// Add a file, or a new revision of [supersedes]. [forTeam] fixes who
-  /// sees it, for a file attached to an item: a Team id, or "everyone".
-  static String libraryAdd(String id, {String? supersedes, String? forTeam}) {
-    final query = [
-      if (supersedes != null) 'supersedes=$supersedes',
-      if (forTeam != null) 'for=$forTeam',
-    ];
-    return '/spaces/$id/library/new${query.isEmpty ? '' : '?${query.join('&')}'}';
-  }
-
-  /// [AppRoutes.libraryAdd]'s "for" value for Everyone.
-  static const forEveryone = 'everyone';
+  /// Add a file, or a new revision of [supersedes].
+  static String libraryAdd(String id, {String? supersedes}) =>
+      '/spaces/$id/library/new'
+      '${supersedes == null ? '' : '?supersedes=$supersedes'}';
 
   // Entry (signed out)
   static const loading = '/loading';

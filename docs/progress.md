@@ -551,6 +551,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - B1 one continuous daybook; B2 the Arabic due wording; B3 the daybook reads entries: the proof slip (photo, large stamp, note, the check hint), updates, file chips, "Given to … instead of …"; the clip follows `needs_me` per entry.
   - Screenshots: E1–E7 added; D1, L1, DY1, DY2, DY3, V1 regenerated.
 
+- **17 Oct, slice 1 part 1d, the work item loop, with review 46's 1c fixes** (branch `slice1-daybook`):
+  - Review 46: Post is active with a title (no owner opens Assign and posts on the pick); a due date can be removed (writing and Edit, "Edited: due removed"); the Arabic 12-hour ranges; a refused post goes back to a Draft with "Couldn't send. Tap to fix"; a draft is kept as soon as anything is entered; alef names show two letters; "Assign to…".
+  - The loop: Sign as done with the camera (pill, or hold the post bar's camera), check by double-tap with a 5-second Undo before anything is sent, long-press menus, send back with one reason, an update by swiping, Edit, Give to someone else, Cancel (also held 5 s with Undo).
+  - Retired from 0.9.0: W3–W5, the work item card, the site tag and sign-off strip components and the item route; Activity, Needs you, Home, Library "used in", chat cards and pushes now open the Space's daybook.
+  - Screenshots O1–O3, S1, Y1–Y2, B1–B3, X1–X3, E8; earlier ones regenerated.
+  - Server gaps (left out): no "can delete" flag on the post JSON (so Delete isn't offered), Discuss in chat (a message can't quote a work item), voice note on a send back, a send-back as its own daybook entry, the push function's item routes (the app maps them to the Space).
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

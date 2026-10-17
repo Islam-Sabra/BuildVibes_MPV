@@ -48,28 +48,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stampSelected => 'مختار';
 
   @override
-  String get signOffLabel => 'التوقيعات';
-
-  @override
-  String get signOffRaised => 'أُنشئ';
-
-  @override
-  String get signOffDone => 'منجز';
-
-  @override
   String get signOffChecked => 'تم الفحص';
-
-  @override
-  String get signOffWaiting => 'قيد الانتظار';
-
-  @override
-  String get siteTagFrom => 'من';
-
-  @override
-  String get siteTagOwner => 'المكلّف';
-
-  @override
-  String get siteTagDue => 'الاستحقاق';
 
   @override
   String get passLead => 'تصريح مسؤول';
@@ -665,9 +644,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get removePhoto => 'إزالة الصورة';
 
   @override
-  String get placeLabel => 'المدينة أو المنطقة';
-
-  @override
   String get placeOptional => 'المدينة أو المنطقة (اختياري)';
 
   @override
@@ -806,12 +782,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get newProjectNote =>
       'هذا يعرّف المشروع ويضعه في سيرتك بدورك. لا أحد يملك المشروع، ويمكن لكل من عمل فيه إضافته إلى سيرته.';
-
-  @override
-  String get projectNameRequired => 'اكتب اسم المشروع.';
-
-  @override
-  String get projectTypeRequired => 'اختر النوع.';
 
   @override
   String get projectNameHint => 'مثال: مجمع الكوت المرحلة 2';
@@ -1593,287 +1563,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesLastAdmin => 'اجعل شخصًا آخر مديرًا أولًا، أو احذف المساحة.';
 
   @override
-  String get workStatusOpen => 'مفتوح';
-
-  @override
-  String workStatusOpenDue(String date) {
-    return 'مفتوح · الاستحقاق $date';
-  }
-
-  @override
-  String workStatusOverdue(String date) {
-    return 'مفتوح · كان مستحقًا $date';
-  }
-
-  @override
-  String get workStatusDoneYouCheck => 'منجز · تفحصه أنت';
-
-  @override
-  String get workStatusDoneWaiting => 'منجز · بانتظار الفحص';
-
-  @override
-  String workStatusChecked(String date) {
-    return 'تم الفحص · $date';
-  }
-
-  @override
-  String get workOwnerYou => 'المكلّف: أنت';
-
-  @override
-  String workOwner(String name) {
-    return 'المكلّف: $name';
-  }
-
-  @override
-  String get workFromYou => 'منك';
-
-  @override
-  String workFrom(String name) {
-    return 'من $name';
-  }
-
-  @override
-  String workCheckedByLine(String name) {
-    return 'الفحص: $name';
-  }
-
-  @override
-  String workCheckedBy(String name) {
-    return 'الفحص: $name';
-  }
-
-  @override
-  String workPhotos(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n صورة',
-      many: '$n صورة',
-      few: '$n صور',
-      two: 'صورتان',
-      one: 'صورة واحدة',
-      zero: 'بلا صورة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get workSignAsDone => 'وقّع كمنجز';
-
-  @override
-  String get workCheckIt => 'افحصه';
-
-  @override
-  String get workStatusOwnerLeft => 'بلا مكلّف · أعد التكليف';
-
-  @override
-  String get workReassign => 'أعد التكليف';
-
-  @override
-  String get workFromGallery => 'اختر من المعرض';
-
-  @override
-  String get workRetry => 'إعادة المحاولة';
-
-  @override
-  String get workNotSentNote =>
-      'محفوظ على هذا الهاتف. أعد المحاولة عند عودة الإشارة.';
-
-  @override
-  String get workSignOff => 'التوقيعات';
-
-  @override
-  String get workEvidence => 'الإثبات';
-
-  @override
-  String get workPhotosLabel => 'الصور';
-
-  @override
-  String get workDiscussion => 'النقاش';
-
-  @override
-  String get workAddComment => 'أضف تعليقًا';
-
-  @override
-  String get workSendComment => 'إرسال';
-
-  @override
-  String get workNoComments => 'لا تعليقات بعد.';
-
-  @override
-  String workWaitingCheckBy(String name) {
-    return 'بانتظار فحص $name';
-  }
-
-  @override
-  String get workWaitingCheckBody => 'يمكن قبوله أو إرجاعه مع ذكر السبب.';
-
-  @override
-  String workCheckBannerTitle(String name) {
-    return 'تم توقيعه كمنجز بواسطة $name. افحصه.';
-  }
-
-  @override
-  String get workCheckBannerBody =>
-      'انظر إلى الصورة، ثم اقبله أو أرجعه مع ذكر السبب.';
-
-  @override
-  String get workDoneWaiting => 'منجز. بانتظار الفحص.';
-
-  @override
-  String get workClosed => 'أُغلق. يبقى في سجل المساحة.';
-
-  @override
-  String workClosedCanShow(String name) {
-    return 'يمكن عرضه في ملف $name كعمل منجز.';
-  }
-
-  @override
-  String workClosedBy(String name) {
-    return 'الإغلاق: $name';
-  }
-
-  @override
-  String get workClosedStays => 'يبقى في سجل المساحة.';
-
-  @override
-  String workSentBackTitle(String reason) {
-    return 'أُرجع: $reason';
-  }
-
-  @override
-  String get workReasonPhotoMissing => 'الصورة غير موجودة';
-
-  @override
-  String get workReasonNotAsAsked => 'غير مطابق للمطلوب';
-
-  @override
-  String get workReasonNotFinished => 'غير مكتمل';
-
-  @override
-  String get workReasonOther => 'سبب آخر';
-
-  @override
-  String get workOwnerLeftTitle => 'المكلّف خارج المساحة الآن';
-
-  @override
-  String get workOwnerLeftBody => 'كلّف شخصًا آخر بإكماله.';
-
-  @override
-  String workCheckedStamp(String date, String name) {
-    return 'تم الفحص · $date · $name';
-  }
-
-  @override
-  String get workYouCheckIt => 'تفحصه أنت';
-
-  @override
-  String get workCheckAndClose => 'افحص وأغلق';
-
-  @override
-  String get workSendBack => 'إرجاع';
-
-  @override
-  String get workReassignTitle => 'إعادة التكليف إلى';
-
-  @override
-  String workReassigned(String name) {
-    return 'المكلّف الآن: $name.';
-  }
-
-  @override
   String get workItemGone => 'هذا البند غير متاح.';
 
   @override
-  String workTodayAt(String time) {
-    return 'اليوم $time';
-  }
-
-  @override
-  String workSignTitle(String ref) {
-    return 'وقّع $ref كمنجز';
-  }
-
-  @override
-  String workSignBody(String name) {
-    return 'يُكتب اسمك والوقت في التوقيع. أضف صورة أو ملاحظة تساعد $name في الفحص.';
-  }
-
-  @override
-  String get workAddPhoto => 'أضف صورة';
-
-  @override
   String get workNote => 'ملاحظة';
-
-  @override
-  String get workNoteHint => 'ما الذي أُنجز';
-
-  @override
-  String get workSignNeedsSomething => 'أضف صورة أو ملاحظة.';
-
-  @override
-  String get workSigned => 'تم التوقيع كمنجز. بانتظار الفحص.';
-
-  @override
-  String get workPendingSignOff => 'التوقيع لم يُرسل بعد';
-
-  @override
-  String workSendBackTitle(String ref, String name) {
-    return 'إرجاع $ref إلى $name';
-  }
-
-  @override
-  String workSendBackBody(String name) {
-    return 'يعود البند مفتوحًا مع سببك مكتوبًا عليه، ويصل إلى «بانتظارك» لدى $name.';
-  }
-
-  @override
-  String get workReason => 'السبب';
-
-  @override
-  String workNoteFor(String name) {
-    return 'ملاحظة إلى $name';
-  }
-
-  @override
-  String workSendBackTo(String name) {
-    return 'إرجاع إلى $name';
-  }
-
-  @override
-  String get workReasonRequired => 'اختر سببًا.';
-
-  @override
-  String get workOtherNeedsNote => 'اذكر ما الخطأ.';
-
-  @override
-  String workSentBack(String name) {
-    return 'تم الإرجاع إلى $name.';
-  }
-
-  @override
-  String workCheckTitle(String ref) {
-    return 'فحص $ref وإغلاقه؟';
-  }
-
-  @override
-  String get workCheckBody =>
-      'يُكتب اسمك والوقت في التوقيع. يُغلق ويبقى في سجل المساحة.';
-
-  @override
-  String get workShowOnProfile => 'اعرضه في ملفي';
-
-  @override
-  String get workShowOnProfileHelp =>
-      'العنوان وصورة واحدة والمكان ومن فحصه فقط. لا تظهر المساحة ولا النقاش.';
-
-  @override
-  String workReassignedLine(String from, String to) {
-    return 'أُعيد التكليف من $from إلى $to';
-  }
-
-  @override
-  String get workSomeone => 'شخص ما';
 
   @override
   String get deliveredTitle => 'عمل أنجزته';
@@ -1924,9 +1617,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String deliveredPrivacy(String name) {
     return 'عُرض هذا باختيار $name. يبقى النقاش والملفات والمساحة خاصة. يظهر العنوان والصورة والمكان ومن فحصه فقط.';
   }
-
-  @override
-  String get workCheckConfirm => 'أغلقه';
 
   @override
   String get deliveredNoneShown =>
@@ -2107,9 +1797,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatRemoveFile => 'إزالة';
 
   @override
-  String get chatFileNotAllowed => 'ملفات PDF والصور فقط.';
-
-  @override
   String get chatFileTooBig => 'حتى 25 ميغابايت للملف.';
 
   @override
@@ -2262,48 +1949,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get previewSendFile => 'مشاركة الملف';
 
   @override
-  String workAttachTitle(String ref) {
-    return 'إرفاق بـ$ref';
-  }
-
-  @override
-  String get workAttachLibrary => 'من مكتبة المساحة';
-
-  @override
-  String get workAttachLibraryHelp =>
-      'مخططات وملفات تمت مشاركتها في هذه المساحة';
-
-  @override
-  String get workAttachPhone => 'من هاتفك';
-
-  @override
-  String get workAttachPhoneHelp =>
-      'PDF أو صورة · تُحفظ في مكتبة المساحة أيضًا';
-
-  @override
-  String get workAttached => 'مرفقات';
-
-  @override
-  String get workAttachedFromLibrary => 'من مكتبة المساحة';
-
-  @override
-  String get workAttach => 'إرفاق مخطط أو ملف';
-
-  @override
-  String get workAttachedToast => 'تم الإرفاق.';
-
-  @override
-  String get workAlsoInTeamChat => 'أيضًا في محادثة الفريق';
-
-  @override
-  String get libraryPickTitle => 'اختر من المكتبة';
-
-  @override
-  String libraryPickTeamNote(String team) {
-    return 'يمكن إرفاق ملفات «الجميع» وملفات $team فقط بهذا البند.';
-  }
-
-  @override
   String get chatFileRemoved => 'تمت إزالة الملف';
 
   @override
@@ -2400,9 +2045,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postDeleted => 'حُذف المنشور.';
 
   @override
-  String get postOpenPhoto => 'فتح الصورة';
-
-  @override
   String get postTitle => 'منشور';
 
   @override
@@ -2458,9 +2100,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postFailedHint => 'تحقق من اتصالك وحاول مرة أخرى.';
-
-  @override
-  String get postDiscardDraft => 'حذف المسودة';
 
   @override
   String get composerPostingTo => 'النشر إلى';
@@ -3718,9 +3357,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookSignedAsDone => 'وقّع كمنجز';
 
   @override
-  String get daybookAddedUpdate => 'تحديث جديد';
-
-  @override
   String daybookStampBy(String name, String time) {
     return '$name · $time';
   }
@@ -3796,4 +3432,112 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookDueTimeHelp => 'قبل ساعة محددة؟';
+
+  @override
+  String get daybookAssignSearch => 'التكليف إلى…';
+
+  @override
+  String get daybookCouldNotSend => 'تعذّر الإرسال. انقر للتصحيح';
+
+  @override
+  String get daybookEditedDueRemoved => 'عُدّل: أُزيل الموعد';
+
+  @override
+  String get daybookRemoveDue => 'إزالة';
+
+  @override
+  String get daybookSignAsDone => 'وقّع كمنجز';
+
+  @override
+  String get daybookHoldToProve => 'اضغط مطوّلًا للإثبات';
+
+  @override
+  String daybookChecksNext(String name) {
+    return 'يفحصه $name بعد ذلك';
+  }
+
+  @override
+  String daybookYouChecked(String time) {
+    return 'فحصته الساعة $time. صار مقفلًا، وهذا هو السجل.';
+  }
+
+  @override
+  String daybookSentBackLine(String time, String reason) {
+    return 'أُرجع الساعة $time · $reason';
+  }
+
+  @override
+  String daybookSentBackLineNote(String time, String reason, String note) {
+    return 'أُرجع الساعة $time · $reason: $note';
+  }
+
+  @override
+  String get daybookCheck => 'فحص';
+
+  @override
+  String get daybookSendBack => 'إرجاع';
+
+  @override
+  String get daybookAddUpdate => 'إضافة تحديث';
+
+  @override
+  String get daybookEdit => 'تعديل';
+
+  @override
+  String get daybookGiveTo => 'تكليف شخص آخر';
+
+  @override
+  String get daybookCancelItem => 'إلغاء بند العمل';
+
+  @override
+  String daybookSendBackTo(String name) {
+    return 'إرجاع إلى $name';
+  }
+
+  @override
+  String get daybookReasonPhotoMissing => 'الصورة غير موجودة';
+
+  @override
+  String get daybookReasonNotAsAsked => 'غير مطابق للمطلوب';
+
+  @override
+  String get daybookReasonNotFinished => 'غير مكتمل';
+
+  @override
+  String get daybookReasonOther => 'سبب آخر';
+
+  @override
+  String get daybookNoteOptional => 'ملاحظة (اختياري)';
+
+  @override
+  String get daybookNoteNeeded => 'اكتب ما المشكلة';
+
+  @override
+  String get daybookChecked => 'تم الفحص';
+
+  @override
+  String get daybookCancelled => 'أُلغي';
+
+  @override
+  String get daybookUndo => 'تراجع';
+
+  @override
+  String get daybookUpdateHint => 'اكتب تحديثًا';
+
+  @override
+  String get daybookSendAsDone => 'أرسل كمنجز';
+
+  @override
+  String get daybookAddAnotherPhoto => 'أضف صورة أخرى';
+
+  @override
+  String get daybookCloseProof => 'إغلاق';
+
+  @override
+  String get daybookSave => 'حفظ';
+
+  @override
+  String daybookCancelledByYou(String time) {
+    return 'ألغيته الساعة $time';
+  }
 }

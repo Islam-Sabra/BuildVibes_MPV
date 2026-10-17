@@ -204,6 +204,23 @@ void main() {
       expect(en(12), '12 pm');
     });
 
+    test('review 46: the Arabic part of the day, at every boundary', () {
+      String ar(int h, int m) =>
+          _words('ar', use24: false).clock(DateTime(2026, 10, 15, h, m));
+      // 00:00–11:59 صباحًا
+      expect(ar(0, 0), '12 صباحًا');
+      expect(ar(11, 59), '11:59 صباحًا');
+      // 12:00–14:59 ظهرًا
+      expect(ar(12, 0), '12 ظهرًا');
+      expect(ar(14, 59), '2:59 ظهرًا');
+      // 15:00–17:59 عصرًا
+      expect(ar(15, 0), '3 عصرًا');
+      expect(ar(17, 59), '5:59 عصرًا');
+      // 18:00–23:59 مساءً
+      expect(ar(18, 0), '6 مساءً');
+      expect(ar(23, 59), '11:59 مساءً');
+    });
+
     test("the large stamp's line: the short name in capitals, the time", () {
       final at = DateTime(2026, 10, 15, 9, 40);
       expect(_words('en').stampLine('Omar Haddad', at), 'OMAR H · 09:40');
@@ -309,12 +326,10 @@ void main() {
         'Edited: due moved from 14:00 to 16:00',
       );
       expect(_words('en').editedDue(null, _thu), isNull);
-      expect(
-        _words(
-          'en',
-        ).editedDue(DaybookDueEdit(from: DateTime(2026, 10, 15)), _thu),
-        isNull,
-      );
+      // Review 46: a due taken off says so.
+      final removed = DaybookDueEdit(from: DateTime(2026, 10, 15));
+      expect(_words('en').editedDue(removed, _thu), 'Edited: due removed');
+      expect(_words('ar').editedDue(removed, _thu), 'عُدّل: أُزيل الموعد');
     });
 
     test('the clock follows the phone, with Western digits', () {

@@ -10,6 +10,7 @@ import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
 import '../settings/push_host.dart';
+import '../work/outbox_host.dart';
 
 /// The frame around the four tabs: the current tab and the bottom bar.
 class AppShell extends ConsumerWidget {
@@ -24,8 +25,9 @@ class AppShell extends ConsumerWidget {
     final unread = ref.watch(unreadActivityProvider).value ?? false;
     const activityTab = 2;
     return Scaffold(
-      // Push while signed in (permission, this phone's token, taps).
-      body: PushHost(child: navigationShell),
+      // Push while signed in (permission, this phone's token, taps), and
+      // what waits on the phone to be sent.
+      body: OutboxHost(child: PushHost(child: navigationShell)),
       bottomNavigationBar: BvBottomBar(
         selectedIndex: navigationShell.currentIndex,
         // Tapping the current tab again goes back to its first screen.

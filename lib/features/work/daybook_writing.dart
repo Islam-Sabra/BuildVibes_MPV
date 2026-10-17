@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_tokens.dart';
 import '../../data/models/space.dart';
+import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_writing_card.dart';
-import '../../core/design/bv_tokens.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import 'daybook_draft.dart';
@@ -26,11 +27,13 @@ final newPostIdProvider = Provider<String Function()>((ref) => newUuid);
 /// What opens over the diary while writing (E2, E3).
 enum DaybookWritingMenu { more, assign, place }
 
-/// A due day and, when chosen, its time: both the phone's own.
-typedef PickedDue = ({DateTime day, DateTime? at});
+/// A due day and, when chosen, its time: both the phone's own. A null
+/// [day] takes the due off (Remove).
+typedef PickedDue = ({DateTime? day, DateTime? at});
 
 /// Picks a due date, then an optional time ("No time" keeps the date
-/// only). Null when cancelled. A provider so tests can stand in for the
+/// only). With [removable], the date picker also offers Remove (review
+/// 46). Null when cancelled. A provider so tests can stand in for the
 /// pickers.
 typedef PickDue =
     Future<PickedDue?> Function(
@@ -50,13 +53,17 @@ Future<PickedDue?> _pickDue(
 }) async {
   final l10n = AppLocalizations.of(context);
   final today = DateTime(now.year, now.month, now.day);
-  final picked = await showDatePicker(
+  final picked = await showDialog<_DayChoice>(
     context: context,
-    firstDate: today,
-    lastDate: DateTime(today.year + _yearsAhead, today.month, today.day),
-    initialDate: day == null || day.isBefore(today) ? today : day,
+    builder: (_) => _DueDayDialog(
+      today: today,
+      initial: day == null || day.isBefore(today) ? today : day,
+      removable: day != null,
+    ),
   );
   if (picked == null || !context.mounted) return null;
+  final pickedDay = picked.day;
+  if (pickedDay == null) return (day: null, at: null);
   final time = await showTimePicker(
     context: context,
     initialTime: TimeOfDay.fromDateTime(at ?? now),
@@ -64,21 +71,103 @@ Future<PickedDue?> _pickDue(
     cancelText: l10n.daybookNoTime,
   );
   return (
-    day: picked,
+    day: pickedDay,
     at: time == null
         ? null
         : DateTime(
-            picked.year,
-            picked.month,
-            picked.day,
+            pickedDay.year,
+            pickedDay.month,
+            pickedDay.day,
             time.hour,
             time.minute,
           ),
   );
 }
 
+/// The day picked in [_DueDayDialog]; null [day] is Remove.
+typedef _DayChoice = ({DateTime? day});
+
 /// How far ahead a due date can be chosen.
 const _yearsAhead = 2;
+
+/// The due date's calendar, with Remove when the card already has one.
+class _DueDayDialog extends StatefulWidget {
+  const _DueDayDialog({
+    required this.today,
+    required this.initial,
+    required this.removable,
+  });
+
+  final DateTime today;
+  final DateTime initial;
+  final bool removable;
+
+  @override
+  State<_DueDayDialog> createState() => _DueDayDialogState();
+}
+
+class _DueDayDialogState extends State<_DueDayDialog> {
+  late var _day = widget.initial;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final material = MaterialLocalizations.of(context);
+    final today = widget.today;
+    return Dialog(
+      key: const Key('due-day-picker'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CalendarDatePicker(
+            initialDate: _day,
+            firstDate: today,
+            lastDate: DateTime(
+              today.year + _yearsAhead,
+              today.month,
+              today.day,
+            ),
+            onDateChanged: (d) => setState(() => _day = d),
+          ),
+          Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: BvSpace.s8,
+              vertical: BvSpace.s8,
+            ),
+            child: Row(
+              children: [
+                if (widget.removable)
+                  TextButton(
+                    key: const Key('due-remove'),
+                    onPressed: () =>
+                        Navigator.of(context).pop<_DayChoice>((day: null)),
+                    child: Text(
+                      l10n.daybookRemoveDue,
+                      style: BvType.of(
+                        context,
+                      ).labelMd.copyWith(color: BvColors.textDestructive),
+                    ),
+                  ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(material.cancelButtonLabel),
+                ),
+                TextButton(
+                  key: const Key('due-ok'),
+                  onPressed: () =>
+                      Navigator.of(context).pop<_DayChoice>((day: _day)),
+                  child: Text(material.okButtonLabel),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /// Who can own a work item (review 44 C5): Lead and Crew members who are
 /// active in the Space, never a Viewer. Each with their first Team ("MEP")
@@ -103,17 +192,23 @@ List<BvGiveToPerson> assignablePeople(SpacePeople people, {String? me}) {
 }
 
 /// Writing in one Space: the card's changes, its photo, due and owner, and
-/// Post. The card itself is [DaybookWritingCard]; the toolbar and the
-/// menus belong to the daybook page.
+/// Post. With [editing], the card is a posted work item's, and Save sends
+/// only what changed (edit_space_post). The card itself is
+/// [DaybookWritingCard]; the toolbar and the menus belong to the daybook
+/// page.
 class DaybookWriter {
-  DaybookWriter(this.ref, this.spaceId);
+  DaybookWriter(this.ref, this.spaceId, {this.editing = false});
 
   final WidgetRef ref;
   final String spaceId;
+  final bool editing;
 
-  DaybookDraft get _notifier =>
-      ref.read(daybookDraftProvider(spaceId).notifier);
-  WorkItemDraft? get draft => ref.read(daybookDraftProvider(spaceId));
+  DaybookCard get _notifier => editing
+      ? ref.read(daybookEditProvider(spaceId).notifier)
+      : ref.read(daybookDraftProvider(spaceId).notifier);
+  WorkItemDraft? get draft => editing
+      ? ref.read(daybookEditProvider(spaceId))
+      : ref.read(daybookDraftProvider(spaceId));
 
   Future<void> _put(WorkItemDraft Function(WorkItemDraft d) change) async {
     final d = draft;
@@ -183,13 +278,44 @@ class DaybookWriter {
           ),
     );
     // The photo now belongs to the outbox, until it is sent.
-    await _notifier.discard(keepPhoto: true);
+    await ref
+        .read(daybookDraftProvider(spaceId).notifier)
+        .discard(keepPhoto: true);
+  }
+
+  /// What an edit changes, against the post as it was; empty when nothing
+  /// did.
+  PostEdit changes() {
+    final d = draft;
+    final was = ref.read(daybookEditProvider(spaceId).notifier).original;
+    if (d == null || was == null) return const PostEdit();
+    String? text(String? s) => (s ?? '').trim().isEmpty ? null : s!.trim();
+    final title = d.title.trim();
+    return PostEdit(
+      title: title == was.title ? null : title,
+      body: text(d.body),
+      bodyChanged: text(d.body) != text(was.body),
+      place: d.place,
+      placeChanged: text(d.place) != text(was.place),
+      dueChanged: d.dueDate != was.dueDate || d.dueAt != was.dueAt,
+      dueDate: d.dueDate,
+      dueAt: d.dueAt,
+    );
+  }
+
+  /// Save an edit: edit_space_post with only what changed.
+  Future<void> save() async {
+    final edit = changes();
+    final id = draft?.id;
+    if (id == null || edit.isEmpty) return;
+    await ref.read(daybookRepositoryProvider).editPost(id, edit);
   }
 }
 
-/// The work item being written in place at "Now" (E1, E3), or its Draft
-/// when the card was left with text (E4; only its author sees it). While
-/// not [writing] it is read only, and a tap reopens it.
+/// The work item being written in place at "Now" (E1, E3), its Draft when
+/// the card was left with anything in it (E4; only its author sees it),
+/// or a posted work item being edited ([editing], X1 Edit). While not
+/// [writing] it is read only, and a tap reopens it.
 class DaybookWritingCard extends ConsumerStatefulWidget {
   const DaybookWritingCard({
     super.key,
@@ -200,11 +326,13 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
     required this.onOpen,
     required this.onMenu,
     required this.onPickDue,
+    this.editing = false,
   });
 
   final String spaceId;
   final bool writing;
   final DaybookWords words;
+  final bool editing;
 
   /// Left from before (the app closed or the card was put down): "Draft".
   final bool fromBefore;
@@ -217,7 +345,11 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
 }
 
 class _WritingCardState extends ConsumerState<DaybookWritingCard> {
-  late final DaybookWriter _writer = DaybookWriter(ref, widget.spaceId);
+  late final DaybookWriter _writer = DaybookWriter(
+    ref,
+    widget.spaceId,
+    editing: widget.editing,
+  );
   late final TextEditingController _title;
   late final TextEditingController _body;
   final _titleFocus = FocusNode();
@@ -249,7 +381,11 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final draft = ref.watch(daybookDraftProvider(widget.spaceId));
+    final draft = ref.watch(
+      widget.editing
+          ? daybookEditProvider(widget.spaceId)
+          : daybookDraftProvider(widget.spaceId),
+    );
     if (draft == null) return const SizedBox.shrink();
     final writing = widget.writing;
     void menu(DaybookWritingMenu m) => writing ? widget.onMenu(m) : null;
@@ -275,7 +411,10 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           BvWritingProperty.person(
             label: personName(l10n, draft.ownerName),
             tint: BvAvatarTints.forId(draft.ownerId!),
-            onTap: writing ? () => menu(DaybookWritingMenu.assign) : null,
+            // An edit keeps the owner: Give to someone else changes it.
+            onTap: writing && !widget.editing
+                ? () => menu(DaybookWritingMenu.assign)
+                : null,
           ),
         if (draft.dueDate != null)
           BvWritingProperty.icon(
@@ -298,6 +437,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             ),
       onRemoveCover: writing ? _writer.removePhoto : null,
       removeCoverLabel: l10n.daybookRemovePhoto,
+      errorLine: draft.couldNotSend && !writing
+          ? l10n.daybookCouldNotSend
+          : null,
     );
     if (writing) {
       // A tap on the card's paper stays on the card (a tap elsewhere puts
@@ -321,8 +463,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
 }
 
 /// What opens over the diary while writing: the More menu (Assign,
-/// Location, Due date; review 44 C5: no Checklist or Template in slice 1),
-/// the assign picker, or the place field.
+/// Location, Due date; review 44 C5: no Checklist or Template in slice 1;
+/// an edit has no Assign), the assign picker, or the place field.
+/// [onAssigned] follows a pick in the assign picker.
 class DaybookWritingPopover extends ConsumerStatefulWidget {
   const DaybookWritingPopover({
     super.key,
@@ -332,14 +475,18 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
     required this.onMenu,
     required this.onPickDue,
     required this.onClose,
+    required this.onAssigned,
+    this.editing = false,
   });
 
   final String spaceId;
   final DaybookWritingMenu menu;
   final String? me;
+  final bool editing;
   final ValueChanged<DaybookWritingMenu> onMenu;
   final VoidCallback onPickDue;
   final VoidCallback onClose;
+  final VoidCallback onAssigned;
 
   @override
   ConsumerState<DaybookWritingPopover> createState() => _PopoverState();
@@ -348,7 +495,11 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
 enum _More { assign, location, due }
 
 class _PopoverState extends ConsumerState<DaybookWritingPopover> {
-  late final DaybookWriter _writer = DaybookWriter(ref, widget.spaceId);
+  late final DaybookWriter _writer = DaybookWriter(
+    ref,
+    widget.spaceId,
+    editing: widget.editing,
+  );
   late final TextEditingController _place;
 
   @override
@@ -371,11 +522,12 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
         return BvPopoverMenu<_More>.more(
           key: const Key('writing-more-menu'),
           items: [
-            BvMenuItem(
-              value: _More.assign,
-              label: l10n.daybookAssign,
-              icon: BvIcons.person,
-            ),
+            if (!widget.editing)
+              BvMenuItem(
+                value: _More.assign,
+                label: l10n.daybookAssign,
+                icon: BvIcons.person,
+              ),
             BvMenuItem(
               value: _More.location,
               label: l10n.daybookLocation,
@@ -406,10 +558,11 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
           people: assignablePeople(people, me: widget.me),
           currentOwnerId: _writer.draft?.ownerId,
           currentLabel: l10n.daybookOwnerNow,
-          searchPlaceholder: l10n.daybookGiveToSearch,
+          // The menu says "Assign" (review 46).
+          searchPlaceholder: l10n.daybookAssignSearch,
           onPick: (p) async {
             await _writer.setOwner(p);
-            widget.onClose();
+            widget.onAssigned();
           },
         );
       case DaybookWritingMenu.place:

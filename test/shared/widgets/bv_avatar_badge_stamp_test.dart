@@ -41,8 +41,21 @@ void main() {
       final lilMuqawalat = word([lam, lam, meem, qaf, alef]); // للمقا…
       expect(BvAvatar.initialsOf('$alNoor $lilMuqawalat'), word([noon]));
       expect(BvAvatar.initialsOf(lilMuqawalat), word([meem]));
-      // A short word that only looks like a prefix is kept as it is.
-      expect(BvAvatar.initialsOf(word([alef, lam, noon])), word([alef]));
+      // A short word that only looks like a prefix is kept as it is; it
+      // starts with an alef, so two letters.
+      expect(BvAvatar.initialsOf(word([alef, lam, noon])), word([alef, lam]));
+    });
+
+    test('Arabic names starting with an alef show two letters (review 46)', () {
+      expect(BvAvatar.initialsOf('إسلام أحمد'), 'إس');
+      expect(BvAvatar.initialsOf('أحمد'), 'أح');
+      expect(BvAvatar.initialsOf('آمال سعيد'), 'آم');
+      expect(BvAvatar.initialsOf('ايمن علي'), 'اي');
+      expect(BvAvatar.tileInitialsOf('إسلام'), 'إس');
+      // Every other Arabic name keeps one letter.
+      expect(BvAvatar.initialsOf('عمر حداد'), 'ع');
+      expect(BvAvatar.initialsOf('سارة المطيري'), 'س');
+      expect(BvAvatar.tileInitialsOf('الجميع'), 'ج');
     });
 
     testBoth('sizes, person circle and company square', (tester, lang) async {

@@ -25,6 +25,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_sheet.dart';
+import '../../shared/widgets/bv_slip.dart' show BvSlipQuote;
 import '../../shared/widgets/bv_text_field.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -33,7 +34,6 @@ import '../profile/widgets/profile_parts.dart';
 import '../../data/repositories/safety_repository.dart';
 import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
-import '../work/work_item_card.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
 import 'chat_state.dart';
 import 'chat_tab.dart';
@@ -967,8 +967,9 @@ class _PendingFooter extends StatelessWidget {
   }
 }
 
-/// A work item step, posted by the server: who did what, then the item's
-/// card as it is now (S8k).
+/// A work item step, posted by the server (before migration 18): who did
+/// what, then the item's title quoted. Both open the Space's daybook,
+/// where the work item lives (slice 1).
 class _CardEntry extends ConsumerWidget {
   const _CardEntry({
     required this.spaceId,
@@ -989,9 +990,6 @@ class _CardEntry extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final items = ref.watch(workItemsProvider(spaceId)).value;
-    final needs =
-        ref.watch(workNeedsProvider(spaceId)).value ?? const WorkNeeds();
-    final me = ref.watch(authUserIdProvider).value;
     final item = items?.where((i) => i.id == message.workItemId).firstOrNull;
     // Always the name: "You" doesn't fit the Arabic noun forms.
     final who = personName(l10n, message.authorName);
@@ -1013,12 +1011,11 @@ class _CardEntry extends ConsumerWidget {
         style: type.bodySm.copyWith(color: BvColors.textSecondary),
       );
     }
+    void open() => context.push(AppRoutes.space(spaceId));
     if (!full) {
       return InkWell(
         key: Key('chat-card-${message.id}'),
-        onTap: item == null
-            ? null
-            : () => context.push(AppRoutes.workItem(spaceId, item.id)),
+        onTap: item == null ? null : open,
         child: Text(
           // The reference first: two Latin parts side by side would merge
           // and swap places in a right-to-left line.
@@ -1036,7 +1033,12 @@ class _CardEntry extends ConsumerWidget {
           joinMeta([line, time]),
           style: type.bodySm.copyWith(color: BvColors.textSecondary),
         ),
-        if (item != null) WorkItemCard(item: item, needs: needs, me: me),
+        if (item != null)
+          InkWell(
+            key: Key('work-item-${item.id}'),
+            onTap: open,
+            child: BvSlipQuote(item.title),
+          ),
       ],
     );
   }

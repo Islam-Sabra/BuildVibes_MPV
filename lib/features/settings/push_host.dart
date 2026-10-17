@@ -117,8 +117,9 @@ class _PushHostState extends ConsumerState<PushHost> {
   /// Only the app's own pages: a Space, its item or thread, a post, a
   /// person, or your profile.
   void _open(Map<String, String> data) {
-    final route = data['route'];
-    if (!mounted || route == null) return;
+    final sent = data['route'];
+    if (!mounted || sent == null) return;
+    final route = pushRoute(sent);
     final router = GoRouter.of(context);
     if (route == AppRoutes.profile) {
       router.go(route);
@@ -143,4 +144,12 @@ class _PushHostState extends ConsumerState<PushHost> {
     });
     return widget.child;
   }
+}
+
+/// Where a push's route opens. A work item's push names its slip
+/// (`/spaces/<space>/items/<item>`); until slice 10 opens the exact slip,
+/// it opens the Space's daybook, where the work item lives.
+String pushRoute(String route) {
+  final item = RegExp(r'^(/spaces/[^/]+)/items/[^/]+$').firstMatch(route);
+  return item == null ? route : item.group(1)!;
 }

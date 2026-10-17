@@ -45,11 +45,11 @@ String needsOverline(AppLocalizations l10n, NeedsKind kind) => switch (kind) {
   NeedsKind.joinRequest => l10n.needsOverJoin,
 };
 
-/// Opens what the card is about: the work item, or the Space's People tab.
+/// Opens what the card is about: the work item's Space on its daybook, or
+/// the Space's People tab.
 void openNeeds(BuildContext context, NeedsCard c) {
-  final item = c.workItemId;
-  if (item != null) {
-    context.push(AppRoutes.workItem(c.spaceId, item));
+  if (c.workItemId != null) {
+    context.push(AppRoutes.space(c.spaceId));
   } else {
     context.push(AppRoutes.space(c.spaceId), extra: SpaceOpen.people);
   }

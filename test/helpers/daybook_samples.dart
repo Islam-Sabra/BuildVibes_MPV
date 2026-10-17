@@ -316,4 +316,111 @@ class DaybookSamples {
     day: DateTime(2026, 10, 16),
     status: WorkStatus.open,
   );
+
+  // The loop (part 1d): Omar's side O1–O3, S1, Y1–Y2; your side B1–B3,
+  // X1–X3.
+
+  /// O1 2529:33382: Omar's Thursday. The sleeves are his to sign (the
+  /// clip on the slip, review 45 M2), the cable trays too.
+  List<DaybookRecord> o1() => [
+    item(
+      id: 'post-sleeves',
+      at: DateTime(2026, 10, 15, 8, 14),
+      title: sleeves,
+      authorId: islam,
+      authorName: islamName,
+      ownerId: omar,
+      ownerName: omarName,
+      due: DateTime(2026, 10, 15),
+      place: levelTwo,
+      points: 2,
+      needsMe: true,
+      attachments: const [
+        DaybookAttachment(name: 'M-201.pdf', revLabel: 'Rev C'),
+      ],
+    ),
+    traysForOmar(),
+  ];
+
+  /// The cable trays, Islam's, for Omar by Sunday (O1 11:20, X1).
+  DaybookPost traysForOmar({bool needsMe = true, DaybookGivenTo? givenTo}) =>
+      item(
+        id: 'post-trays',
+        at: DateTime(2026, 10, 15, 11, 20),
+        title: cableTraysTitle,
+        authorId: islam,
+        authorName: islamName,
+        ownerId: givenTo == null ? omar : rakesh,
+        ownerName: givenTo == null ? omarName : rakeshName,
+        due: DateTime(2026, 10, 18),
+        needsMe: needsMe,
+        cover: '$space/posts/post-trays/photo.jpg',
+        givenTo: givenTo,
+      );
+
+  String get sentBackNote => t(
+    'One sleeve is 50 mm short. Check M-201.',
+    'حسب المخطط M-201، جلبة واحدة أقصر بـ 50 مم.',
+  );
+
+  /// S1 2530:33826: Islam sent Omar's proof back at 10:12; the sleeves are
+  /// open again, Omar's to sign.
+  List<DaybookRecord> s1() => [
+    item(
+      id: 'post-sleeves',
+      at: DateTime(2026, 10, 15, 8, 14),
+      title: sleeves,
+      authorId: islam,
+      authorName: islamName,
+      ownerId: omar,
+      ownerName: omarName,
+      due: DateTime(2026, 10, 15),
+      place: levelTwo,
+      stamp: DaybookStampKind.sentBack,
+      needsMe: true,
+    ),
+    sleevesSignOff(
+      needsMe: false,
+      outcome: DaybookOutcome(
+        kind: DaybookOutcomeKind.sentBack,
+        at: DateTime(2026, 10, 15, 10, 12),
+        byId: islam,
+        byName: islamName,
+        reason: SendBackReason.notAsAsked,
+        note: sentBackNote,
+      ),
+    ),
+  ];
+
+  /// Y2 2530:34038: Omar's update at 09:05.
+  DaybookUpdate sleevesUpdate() => DaybookUpdate(
+    id: 'event-sleeves-update',
+    at: DateTime(2026, 10, 15, 9, 5),
+    postId: 'post-sleeves',
+    title: sleeves,
+    actorId: omar,
+    actorName: omarName,
+    note: t('Sleeves arrived. Fixing them now.', 'وصلت الجلب. أركّبها الآن.'),
+  );
+
+  /// X3 2530:34263: an item Islam cancelled at 12:05.
+  DaybookPost doorHardware() => DaybookPost(
+    id: 'post-door',
+    kind: DaybookPost.workItemKind,
+    createdAt: DateTime(2026, 10, 15, 12, 5),
+    title: t('Door hardware for core B?', 'أقفال أبواب النواة B؟'),
+    cancelled: true,
+    authorId: islam,
+    authorName: islamName,
+    item: DaybookItem(
+      status: WorkStatus.open,
+      ownerId: omar,
+      ownerName: omarName,
+    ),
+    stamp: DaybookStamp(
+      kind: DaybookStampKind.cancelled,
+      at: DateTime(2026, 10, 15, 12, 5),
+      byName: islamName,
+    ),
+  );
 }

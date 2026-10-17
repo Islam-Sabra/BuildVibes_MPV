@@ -14,6 +14,7 @@ import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
+import 'package:buildvibes/shared/widgets/bv_update_note.dart';
 import 'package:buildvibes/core/design/daybook_paper_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -274,16 +275,14 @@ void main() {
         ),
         findsOneWidget,
       );
+      // Y2: a small note quoting the item, the writer's face and words.
       final update = find.byKey(const Key('daybook-entry-e-update'));
       expect(
-        find.descendant(of: update, matching: find.byType(BvSlipQuote)),
+        find.descendant(of: update, matching: find.byType(BvUpdateNote)),
         findsOneWidget,
       );
       expect(
-        find.descendant(
-          of: update,
-          matching: find.text(l10n.daybookAddedUpdate),
-        ),
+        find.descendant(of: update, matching: find.text(s.cableTraysTitle)),
         findsOneWidget,
       );
       expect(

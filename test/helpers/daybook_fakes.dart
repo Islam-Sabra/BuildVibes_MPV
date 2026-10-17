@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildvibes/data/models/daybook.dart';
@@ -23,6 +24,9 @@ class FakeDaybookRepository implements DaybookRepository {
   /// both fail as a lost signal; [refuse] makes the server say no.
   final uploads = <String>[];
   final created = <NewWorkItem>[];
+
+  /// Edits and cancels, as `edit <id> <json>` and `cancel <id>`.
+  final calls = <String>[];
   bool offline = false;
   bool refuse = false;
 
@@ -93,5 +97,17 @@ class FakeDaybookRepository implements DaybookRepository {
     created.add(item);
     final post = asPosted?.call(item);
     if (post != null) posts[item.spaceId] = [...?posts[item.spaceId], post];
+  }
+
+  @override
+  Future<void> editPost(String postId, PostEdit edit) async {
+    _check();
+    calls.add('edit $postId ${jsonEncode(edit.toJson())}');
+  }
+
+  @override
+  Future<void> cancelPost(String postId) async {
+    _check();
+    calls.add('cancel $postId');
   }
 }

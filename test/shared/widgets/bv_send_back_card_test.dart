@@ -92,13 +92,12 @@ void main() {
     expect(_ring(tester, 1), BvColors.borderDefault);
     expect(_enabled(tester), isTrue);
 
-    // The radio is at the start, the microphone at the end.
+    // The radio is at the start.
     final radio = tester.getCenter(find.byType(BvRadio).first).dx;
     final label = tester.getCenter(find.text('Photo missing')).dx;
     expect(isRtl(lang) ? radio > label : radio < label, isTrue);
-    final mic = tester.getCenter(find.byIcon(BvIcons.microphone)).dx;
-    final note = tester.getCenter(find.byType(TextField)).dx;
-    expect(isRtl(lang) ? mic < note : mic > note, isTrue);
+    // No voice note to hold: no microphone (send_back takes none).
+    expect(find.byIcon(BvIcons.microphone), findsNothing);
   });
 
   testBoth('"Something else" needs a note before sending', (
@@ -141,6 +140,10 @@ void main() {
       ),
       lang: lang,
     );
+    // The microphone sits at the note's end.
+    final mic = tester.getCenter(find.byIcon(BvIcons.microphone)).dx;
+    final field = tester.getCenter(find.byType(TextField)).dx;
+    expect(isRtl(lang) ? mic < field : mic > field, isTrue);
     await tester.longPress(find.byKey(const Key('send-back-microphone')));
     expect(events, ['start', 'end']);
   });

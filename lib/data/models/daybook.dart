@@ -58,15 +58,24 @@ class DaybookStamp {
 /// The work item behind a post (space_post_json "item").
 @immutable
 class DaybookItem {
-  const DaybookItem({required this.status, this.ownerId, this.ownerName});
+  const DaybookItem({
+    required this.status,
+    this.ownerId,
+    this.ownerName,
+    this.ref,
+  });
 
   factory DaybookItem.fromJson(Map<String, dynamic> json) => DaybookItem(
     status: WorkStatus.fromJson(json['status']),
     ownerId: json['owner_id'] as String?,
     ownerName: json['owner_name'] as String?,
+    ref: json['ref'] as String?,
   );
 
   final WorkStatus status;
+
+  /// "KCT-021".
+  final String? ref;
   final String? ownerId;
 
   /// Null across a block or for a hidden account: "Former member".
@@ -74,7 +83,8 @@ class DaybookItem {
 }
 
 /// A change of due in the latest edit ("Edited: due moved from Thu to
-/// today"). A time-only change has the same [from] and [to] days.
+/// today", or "Edited: due removed" when [to] is null). A time-only change
+/// has the same [from] and [to] days.
 @immutable
 class DaybookDueEdit {
   const DaybookDueEdit({this.from, this.to, this.fromAt, this.toAt});
@@ -104,6 +114,9 @@ class DaybookDueEdit {
 
   bool get timeOnly =>
       from != null && from == to && (fromAt != null || toAt != null);
+
+  /// The due was taken off.
+  bool get removed => from != null && to == null;
 }
 
 /// One entry on a Space's daybook (daybook_page, review 45 M1): a post,
@@ -162,6 +175,7 @@ class DaybookPost extends DaybookRecord {
     required this.kind,
     required this.createdAt,
     required this.title,
+    this.body,
     this.cancelled = false,
     this.authorId,
     this.authorName,
@@ -188,6 +202,7 @@ class DaybookPost extends DaybookRecord {
       kind: json['kind'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       title: json['title'] as String? ?? '',
+      body: json['body'] as String?,
       cancelled: json['status'] == 'cancelled',
       authorId: json['author_id'] as String?,
       authorName: json['author_name'] as String?,
@@ -228,6 +243,9 @@ class DaybookPost extends DaybookRecord {
   final String kind;
   final DateTime createdAt;
   final String title;
+
+  /// The text under the title, as written.
+  final String? body;
   final bool cancelled;
   final String? authorId;
 
@@ -263,6 +281,43 @@ class DaybookPost extends DaybookRecord {
   String get postId => id;
 
   bool get isWorkItem => kind == workItemKind;
+
+  bool get isOpen => !cancelled && item?.status == WorkStatus.open;
+
+  /// The slip as the phone shows it while something it did waits to be
+  /// sent: signed, checked or cancelled here.
+  DaybookPost shownAs({
+    required DaybookStamp stamp,
+    WorkStatus? status,
+    bool cancelled = false,
+  }) => DaybookPost(
+    id: id,
+    kind: kind,
+    createdAt: createdAt,
+    title: title,
+    body: body,
+    cancelled: cancelled || this.cancelled,
+    authorId: authorId,
+    authorName: authorName,
+    place: place,
+    dueDate: dueDate,
+    dueAt: dueAt,
+    item: item == null
+        ? null
+        : DaybookItem(
+            status: status ?? item!.status,
+            ownerId: item!.ownerId,
+            ownerName: item!.ownerName,
+            ref: item!.ref,
+          ),
+    stamp: stamp,
+    pointsTotal: pointsTotal,
+    coverPath: coverPath,
+    dueEdit: dueEdit,
+    attachments: attachments,
+    attachmentsMore: attachmentsMore,
+    givenTo: givenTo,
+  );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
   /// no time, from the day after its date.
@@ -305,19 +360,34 @@ enum DaybookOutcomeKind {
 
 @immutable
 class DaybookOutcome {
-  const DaybookOutcome({required this.kind, this.at, this.byName, this.reason});
+  const DaybookOutcome({
+    required this.kind,
+    this.at,
+    this.byId,
+    this.byName,
+    this.reason,
+    this.note,
+  });
 
   factory DaybookOutcome.fromJson(Map<String, dynamic>? json) => DaybookOutcome(
     kind: DaybookOutcomeKind.fromJson(json?['kind']),
     at: _time(json?['at']),
+    byId: json?['by_id'] as String?,
     byName: json?['by_name'] as String?,
     reason: SendBackReason.fromJson(json?['reason']),
+    note: json?['note'] as String?,
   );
 
   final DaybookOutcomeKind kind;
   final DateTime? at;
+
+  /// Who checked it or sent it back.
+  final String? byId;
   final String? byName;
+
+  /// A send-back's reason and note.
   final SendBackReason? reason;
+  final String? note;
 }
 
 /// A sign-off on the daybook: the owner's proof at its own time, quoting
@@ -373,6 +443,30 @@ class DaybookSignOff extends DaybookRecord {
   /// The paper clip: the latest sign-off of a Done item, for whoever may
   /// check it (review 45 M2).
   final bool needsMe;
+
+  /// The proof as the phone shows it while a check made here waits for its
+  /// undo bar, or for a signal.
+  DaybookSignOff checkedBy({
+    required String? id,
+    required String? name,
+    required DateTime at,
+  }) => DaybookSignOff(
+    id: this.id,
+    at: this.at,
+    postId: postId,
+    title: title,
+    ref: ref,
+    actorId: actorId,
+    actorName: actorName,
+    note: note,
+    photos: photos,
+    outcome: DaybookOutcome(
+      kind: DaybookOutcomeKind.checked,
+      at: at,
+      byId: id,
+      byName: name,
+    ),
+  );
 }
 
 /// An update on the daybook: a small note quoting its work item.

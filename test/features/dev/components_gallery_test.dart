@@ -20,7 +20,7 @@ void main() {
         expect(find.byType(ComponentsGalleryScreen), findsOneWidget);
 
         // Scroll through every section; any layout overflow fails the test.
-        for (var i = 1; i <= 17; i++) {
+        for (var i = 1; i <= 14; i++) {
           await tester.scrollUntilVisible(
             find.textContaining(RegExp('^$i · ')),
             300,

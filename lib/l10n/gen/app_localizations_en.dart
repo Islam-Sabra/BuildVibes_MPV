@@ -48,28 +48,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stampSelected => 'SELECTED';
 
   @override
-  String get signOffLabel => 'SIGN-OFF';
-
-  @override
-  String get signOffRaised => 'RAISED';
-
-  @override
-  String get signOffDone => 'DONE';
-
-  @override
   String get signOffChecked => 'CHECKED';
-
-  @override
-  String get signOffWaiting => 'Waiting';
-
-  @override
-  String get siteTagFrom => 'FROM';
-
-  @override
-  String get siteTagOwner => 'OWNER';
-
-  @override
-  String get siteTagDue => 'DUE';
 
   @override
   String get passLead => 'LEAD PASS';
@@ -667,9 +646,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removePhoto => 'Remove photo';
 
   @override
-  String get placeLabel => 'City or area';
-
-  @override
   String get placeOptional => 'City or area (optional)';
 
   @override
@@ -809,12 +785,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get newProjectNote =>
       'This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.';
-
-  @override
-  String get projectNameRequired => 'Write the project name.';
-
-  @override
-  String get projectTypeRequired => 'Choose the type.';
 
   @override
   String get projectNameHint => 'e.g. Al Kout Mall Phase 2';
@@ -1586,285 +1556,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Make someone else an admin first, or delete the Space.';
 
   @override
-  String get workStatusOpen => 'OPEN';
-
-  @override
-  String workStatusOpenDue(String date) {
-    return 'OPEN · DUE $date';
-  }
-
-  @override
-  String workStatusOverdue(String date) {
-    return 'OPEN · WAS DUE $date';
-  }
-
-  @override
-  String get workStatusDoneYouCheck => 'DONE · YOU CHECK IT';
-
-  @override
-  String get workStatusDoneWaiting => 'DONE · WAITING FOR A CHECK';
-
-  @override
-  String workStatusChecked(String date) {
-    return 'CHECKED · $date';
-  }
-
-  @override
-  String get workOwnerYou => 'Owner: you';
-
-  @override
-  String workOwner(String name) {
-    return 'Owner: $name';
-  }
-
-  @override
-  String get workFromYou => 'from you';
-
-  @override
-  String workFrom(String name) {
-    return 'from $name';
-  }
-
-  @override
-  String workCheckedByLine(String name) {
-    return 'checked by $name';
-  }
-
-  @override
-  String workCheckedBy(String name) {
-    return 'Checked by $name';
-  }
-
-  @override
-  String workPhotos(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n photos',
-      one: '1 photo',
-      zero: 'No photo',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get workSignAsDone => 'Sign as done';
-
-  @override
-  String get workCheckIt => 'Check it';
-
-  @override
-  String get workStatusOwnerLeft => 'OWNER LEFT · REASSIGN';
-
-  @override
-  String get workReassign => 'Reassign';
-
-  @override
-  String get workFromGallery => 'Choose from gallery';
-
-  @override
-  String get workRetry => 'Retry';
-
-  @override
-  String get workNotSentNote =>
-      'Saved on this phone. Retry when the signal is back.';
-
-  @override
-  String get workSignOff => 'SIGN-OFF';
-
-  @override
-  String get workEvidence => 'EVIDENCE';
-
-  @override
-  String get workPhotosLabel => 'PHOTOS';
-
-  @override
-  String get workDiscussion => 'DISCUSSION';
-
-  @override
-  String get workAddComment => 'Add a comment';
-
-  @override
-  String get workSendComment => 'Send';
-
-  @override
-  String get workNoComments => 'No comments yet.';
-
-  @override
-  String workWaitingCheckBy(String name) {
-    return 'Waiting for $name to check';
-  }
-
-  @override
-  String get workWaitingCheckBody =>
-      'It can be accepted or sent back with a reason.';
-
-  @override
-  String workCheckBannerTitle(String name) {
-    return '$name marked this done. Check it.';
-  }
-
-  @override
-  String get workCheckBannerBody =>
-      'Look at the photo, then accept it or send it back with a reason.';
-
-  @override
-  String get workDoneWaiting => 'Done. Waiting for a check.';
-
-  @override
-  String get workClosed => 'Closed. It stays in the Space record.';
-
-  @override
-  String workClosedCanShow(String name) {
-    return '$name can show it on their profile as work they delivered.';
-  }
-
-  @override
-  String workClosedBy(String name) {
-    return 'Closed by $name';
-  }
-
-  @override
-  String get workClosedStays => 'It stays in the Space record.';
-
-  @override
-  String workSentBackTitle(String reason) {
-    return 'Sent back: $reason';
-  }
-
-  @override
-  String get workReasonPhotoMissing => 'Photo missing';
-
-  @override
-  String get workReasonNotAsAsked => 'Not as asked';
-
-  @override
-  String get workReasonNotFinished => 'Not finished';
-
-  @override
-  String get workReasonOther => 'Other';
-
-  @override
-  String get workOwnerLeftTitle => 'The owner left the Space';
-
-  @override
-  String get workOwnerLeftBody => 'Give it to someone else to finish.';
-
-  @override
-  String workCheckedStamp(String date, String name) {
-    return 'CHECKED · $date · $name';
-  }
-
-  @override
-  String get workYouCheckIt => 'You check it';
-
-  @override
-  String get workCheckAndClose => 'Check and close';
-
-  @override
-  String get workSendBack => 'Send back';
-
-  @override
-  String get workReassignTitle => 'Reassign to';
-
-  @override
-  String workReassigned(String name) {
-    return '$name owns it now.';
-  }
-
-  @override
   String get workItemGone => 'This item isn\'t available.';
 
   @override
-  String workTodayAt(String time) {
-    return 'Today $time';
-  }
-
-  @override
-  String workSignTitle(String ref) {
-    return 'Sign DONE on $ref';
-  }
-
-  @override
-  String workSignBody(String name) {
-    return 'Your name and the time go on the sign-off. Add a photo or a note so $name can check it.';
-  }
-
-  @override
-  String get workAddPhoto => 'Add photo';
-
-  @override
   String get workNote => 'Note';
-
-  @override
-  String get workNoteHint => 'What was done';
-
-  @override
-  String get workSignNeedsSomething => 'Add a photo or a note.';
-
-  @override
-  String get workSigned => 'Signed as done. It\'s waiting for a check.';
-
-  @override
-  String get workPendingSignOff => 'Sign-off not sent yet';
-
-  @override
-  String workSendBackTitle(String ref, String name) {
-    return 'Send $ref back to $name';
-  }
-
-  @override
-  String workSendBackBody(String name) {
-    return 'The tag goes back to Open with your reason written on it, and into $name\'s Needs you.';
-  }
-
-  @override
-  String get workReason => 'Reason';
-
-  @override
-  String workNoteFor(String name) {
-    return 'Note for $name';
-  }
-
-  @override
-  String workSendBackTo(String name) {
-    return 'Send back to $name';
-  }
-
-  @override
-  String get workReasonRequired => 'Choose a reason.';
-
-  @override
-  String get workOtherNeedsNote => 'Say what is wrong.';
-
-  @override
-  String workSentBack(String name) {
-    return 'Sent back to $name.';
-  }
-
-  @override
-  String workCheckTitle(String ref) {
-    return 'Check and close $ref?';
-  }
-
-  @override
-  String get workCheckBody =>
-      'Your name and the time go on the sign-off. It closes and stays in the Space record.';
-
-  @override
-  String get workShowOnProfile => 'Show on my profile';
-
-  @override
-  String get workShowOnProfileHelp =>
-      'Only the title, one photo, the place and who checked it. Never the Space or the discussion.';
-
-  @override
-  String workReassignedLine(String from, String to) {
-    return 'Reassigned from $from to $to';
-  }
-
-  @override
-  String get workSomeone => 'someone';
 
   @override
   String get deliveredTitle => 'Work you delivered';
@@ -1916,9 +1611,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String deliveredPrivacy(String name) {
     return '$name chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown.';
   }
-
-  @override
-  String get workCheckConfirm => 'Close it';
 
   @override
   String get deliveredNoneShown =>
@@ -2099,9 +1791,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatRemoveFile => 'Remove';
 
   @override
-  String get chatFileNotAllowed => 'Only PDF files and photos.';
-
-  @override
   String get chatFileTooBig => 'Files up to 25 MB.';
 
   @override
@@ -2256,48 +1945,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previewSendFile => 'Share the file';
 
   @override
-  String workAttachTitle(String ref) {
-    return 'Attach to $ref';
-  }
-
-  @override
-  String get workAttachLibrary => 'From the Space Library';
-
-  @override
-  String get workAttachLibraryHelp =>
-      'Drawings and files already shared in this Space';
-
-  @override
-  String get workAttachPhone => 'From your phone';
-
-  @override
-  String get workAttachPhoneHelp =>
-      'PDF or image · saved to the Space Library too';
-
-  @override
-  String get workAttached => 'ATTACHED';
-
-  @override
-  String get workAttachedFromLibrary => 'From the Space Library';
-
-  @override
-  String get workAttach => 'Attach a drawing or file';
-
-  @override
-  String get workAttachedToast => 'Attached.';
-
-  @override
-  String get workAlsoInTeamChat => 'ALSO IN THE TEAM CHAT';
-
-  @override
-  String get libraryPickTitle => 'Choose from the Library';
-
-  @override
-  String libraryPickTeamNote(String team) {
-    return 'Only files for Everyone and for $team can go on this item.';
-  }
-
-  @override
   String get chatFileRemoved => 'File removed';
 
   @override
@@ -2395,9 +2042,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDeleted => 'Post deleted.';
 
   @override
-  String get postOpenPhoto => 'Open photo';
-
-  @override
   String get postTitle => 'Post';
 
   @override
@@ -2454,9 +2098,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postFailedHint => 'Check your connection and try again.';
-
-  @override
-  String get postDiscardDraft => 'Discard draft';
 
   @override
   String get composerPostingTo => 'POSTING TO';
@@ -3699,9 +3340,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookSignedAsDone => 'signed as done';
 
   @override
-  String get daybookAddedUpdate => 'added an update';
-
-  @override
   String daybookStampBy(String name, String time) {
     return '$name · $time';
   }
@@ -3777,4 +3415,112 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookDueTimeHelp => 'Due by a time?';
+
+  @override
+  String get daybookAssignSearch => 'Assign to…';
+
+  @override
+  String get daybookCouldNotSend => 'Couldn\'t send. Tap to fix';
+
+  @override
+  String get daybookEditedDueRemoved => 'Edited: due removed';
+
+  @override
+  String get daybookRemoveDue => 'Remove';
+
+  @override
+  String get daybookSignAsDone => 'Sign as done';
+
+  @override
+  String get daybookHoldToProve => 'Hold to prove';
+
+  @override
+  String daybookChecksNext(String name) {
+    return '$name checks it next';
+  }
+
+  @override
+  String daybookYouChecked(String time) {
+    return 'You checked it at $time. It\'s locked now, this is the record.';
+  }
+
+  @override
+  String daybookSentBackLine(String time, String reason) {
+    return 'Sent back at $time · $reason';
+  }
+
+  @override
+  String daybookSentBackLineNote(String time, String reason, String note) {
+    return 'Sent back at $time · $reason: $note';
+  }
+
+  @override
+  String get daybookCheck => 'Check';
+
+  @override
+  String get daybookSendBack => 'Send back';
+
+  @override
+  String get daybookAddUpdate => 'Add update';
+
+  @override
+  String get daybookEdit => 'Edit';
+
+  @override
+  String get daybookGiveTo => 'Give to someone else';
+
+  @override
+  String get daybookCancelItem => 'Cancel work item';
+
+  @override
+  String daybookSendBackTo(String name) {
+    return 'Send back to $name';
+  }
+
+  @override
+  String get daybookReasonPhotoMissing => 'Photo missing';
+
+  @override
+  String get daybookReasonNotAsAsked => 'Not as asked';
+
+  @override
+  String get daybookReasonNotFinished => 'Not finished';
+
+  @override
+  String get daybookReasonOther => 'Something else';
+
+  @override
+  String get daybookNoteOptional => 'Add a note (optional)';
+
+  @override
+  String get daybookNoteNeeded => 'Say what is wrong';
+
+  @override
+  String get daybookChecked => 'Checked';
+
+  @override
+  String get daybookCancelled => 'Cancelled';
+
+  @override
+  String get daybookUndo => 'Undo';
+
+  @override
+  String get daybookUpdateHint => 'Write an update';
+
+  @override
+  String get daybookSendAsDone => 'Send as done';
+
+  @override
+  String get daybookAddAnotherPhoto => 'Add another photo';
+
+  @override
+  String get daybookCloseProof => 'Close';
+
+  @override
+  String get daybookSave => 'Save';
+
+  @override
+  String daybookCancelledByYou(String time) {
+    return 'Cancelled by you at $time';
+  }
 }

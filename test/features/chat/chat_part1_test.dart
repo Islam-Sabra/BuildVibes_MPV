@@ -3,6 +3,7 @@ import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/features/work/daybook_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -151,21 +152,13 @@ FakeChatRepository _chat() => FakeChatRepository(now: _at(10, 30))
 
 FakeWorkRepository _work() => FakeWorkRepository()
   ..itemsBySpace[_space] = [
-    WorkItem(
+    const WorkItem(
       id: 'item-17',
       spaceId: _space,
       ref: 'KCT-017',
       title: 'Sleeves at grid C7 before the pour',
-      status: WorkStatus.done,
-      createdAt: testNow,
-      ownerId: 'p-rakesh',
-      ownerName: 'Rakesh Nair',
-      createdById: _me,
-      createdByName: 'Omar Haddad',
-      place: 'Level 2 · Grid C7',
     ),
-  ]
-  ..needsBySpace[_space] = const WorkNeeds(toCheck: {'item-17'});
+  ];
 
 Future<TestApp> _openThread(
   WidgetTester tester,
@@ -264,13 +257,16 @@ void main() {
       final mine = tester.getCenter(find.byKey(const Key('chat-message-m3')));
       final theirs = tester.getCenter(find.byKey(const Key('chat-message-m2')));
       expect(lang == 'ar' ? mine.dx < theirs.dx : mine.dx > theirs.dx, isTrue);
-      // The card says who did what, then shows the item as it is now.
+      // The card says who did what, then quotes the item; it opens the
+      // Space's daybook, where the item lives (slice 1).
       expect(
         find.textContaining(l10n.chatCardDone('Rakesh Nair')),
         findsOneWidget,
       );
-      expect(find.byKey(const Key('work-item-item-17')), findsOneWidget);
-      expect(find.text(l10n.workCheckIt), findsOneWidget);
+      expect(find.text('Sleeves at grid C7 before the pour'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('work-item-item-17')));
+      await tester.pumpAndSettle();
+      expect(find.byType(DaybookTab), findsOneWidget);
     });
 
     testWidgets('one full card per item; its older steps are a line [$lang]', (

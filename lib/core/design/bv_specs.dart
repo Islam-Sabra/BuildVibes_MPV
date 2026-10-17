@@ -110,13 +110,17 @@ abstract final class BvChoiceCardSpec {
 }
 
 abstract final class BvAvatarSpec {
-  // The Daybook's small faces: properties line (18), slip header (24),
-  // Home slip (28), the give-to list (30).
+  // The Daybook's small faces: properties line (18), an update (20), slip
+  // header (24), Home slip (28), the give-to list (30).
   static const xxs = 18.0;
+  static const note = 20.0;
   static const xs = 24.0;
   static const xsm = 28.0;
   static const list = 30.0;
   static const xxsInitials = 9.0;
+
+  /// Two letters inside 20 (Figma's 12 spills over the edge).
+  static const noteInitials = 10.0;
   static const sm = BvSize.avatarSm; // 32
   static const md = BvSize.avatarMd; // 40
   static const lg = BvSize.avatarLg; // 56
@@ -161,33 +165,17 @@ abstract final class BvStampSpec {
   static const tiltDegrees = 3.0;
 }
 
+/// The site tag's shape (a punched card), which the invite code card keeps.
 abstract final class BvSiteTagSpec {
   static const radius = BorderRadius.all(Radius.circular(16));
   static const border = BvStroke.medium;
   static const holeSize = 12.0;
   static const holeTop = BvSpace.s8;
-  static const headPaddingTop = 14.0;
-  static const headPaddingSide = BvSpace.s16;
-  static const headPaddingBottom = 10.0;
-  static const bodyPaddingSide = BvSpace.s16;
-  static const bodyPaddingBottom = 14.0;
-  static const bodyGap = BvSpace.s8;
-  static const placeIconSize = BvSize.iconSm; // 16
-  static const placeGap = BvSpace.s6;
-  static const cellPaddingVertical = 10.0;
-  static const cellPaddingHorizontal = BvSpace.s12;
-  static const cellGap = BvSpace.s4;
-  static const headGap = BvSpace.s8;
 }
 
 /// RE1 · the label column of the facts table.
 abstract final class BvDeliveredSpec {
   static const labelWidth = 96.0;
-}
-
-/// W4 · Sign DONE sheet.
-abstract final class BvSignDoneSpec {
-  static const thumb = 96.0;
 }
 
 /// A centred dialog for a choice that can't be undone (S15c Leave, S15e
@@ -208,28 +196,6 @@ abstract final class BvCodeTagSpec {
   static const paddingBottom = BvSpace.s16;
   static const gap = BvSpace.s8;
   static const codeLetterSpacing = 4.0;
-}
-
-abstract final class BvSignOffSpec {
-  static const labelGap = BvSpace.s8;
-  static const radius = BorderRadius.all(Radius.circular(12));
-  static const cellPaddingTop = 10.0;
-  static const cellPaddingSide = 10.0;
-  static const cellPaddingBottom = BvSpace.s12;
-  static const cellGap = BvSpace.s6;
-}
-
-abstract final class BvWorkItemCardSpec {
-  static const radius = BvRadius.cardAll; // 14
-  static const headerPaddingVertical = BvSpace.s12;
-  static const paddingHorizontal = BvSpace.s16;
-  static const bodyPaddingVertical = 14.0;
-  static const bodyGap = BvSpace.s4;
-  static const thumbSize = BvSize.avatarMd; // 40
-  static const thumbRadius = BorderRadius.all(Radius.circular(8));
-  static const evidenceGap = BvSpace.s8;
-  static const actionPaddingBottom = 14.0;
-  static const headerGap = BvSpace.s8;
 }
 
 abstract final class BvPassCardSpec {

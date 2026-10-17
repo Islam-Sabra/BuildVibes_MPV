@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/l10n/bidi.dart';
 import '../../data/models/daybook.dart';
+import '../../data/models/work_item.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../spaces/former_member.dart';
@@ -71,6 +72,36 @@ class DaybookWords {
     return l10n.daybookStampBy(short.toUpperCase(), clock(at));
   }
 
+  /// A send-back reason, as the card lists it.
+  String reason(SendBackReason? r) => switch (r) {
+    SendBackReason.photoMissing => l10n.daybookReasonPhotoMissing,
+    SendBackReason.notAsAsked => l10n.daybookReasonNotAsAsked,
+    SendBackReason.notFinished => l10n.daybookReasonNotFinished,
+    SendBackReason.other || null => l10n.daybookReasonOther,
+  };
+
+  /// "Sent back at 10:12 · Not as asked: One sleeve is 50 mm short."
+  String sentBack(DaybookOutcome outcome, DateTime fallback) {
+    final time = clock(outcome.at ?? fallback);
+    final note = outcome.note?.trim() ?? '';
+    return note.isEmpty
+        ? l10n.daybookSentBackLine(time, reason(outcome.reason))
+        : l10n.daybookSentBackLineNote(
+            time,
+            reason(outcome.reason),
+            inOwnDirection(note),
+          );
+  }
+
+  /// "Level 2, grid C7 · 15 Oct 09:40 · Omar Haddad": the label on a proof
+  /// photo (O2).
+  /// The place and the name keep their own direction.
+  String photoLabel({String? place, required DateTime at, String? name}) => [
+    if ((place ?? '').isNotEmpty) inOwnDirection(place!),
+    '${_f('d MMM', at)} ${clock(at)}',
+    if ((name ?? '').isNotEmpty) inOwnDirection(name!),
+  ].join(' · ');
+
   /// "15 October, day 41 on site": day 1 is [siteStart]; only the date
   /// without one, or before it.
   String dateLine(DateTime day, DateTime? siteStart) {
@@ -135,9 +166,10 @@ class DaybookWords {
         : l10n.daybookDueDateAt(date, time);
   }
 
-  /// "Edited: due moved from Thu to today", or null when the last edit
-  /// didn't move the due (or cleared it).
+  /// "Edited: due moved from Thu to today", "Edited: due removed", or null
+  /// when the last edit didn't touch the due.
   String? editedDue(DaybookDueEdit? edit, DateTime now) {
+    if (edit != null && edit.removed) return l10n.daybookEditedDueRemoved;
     if (edit == null || edit.from == null || edit.to == null) return null;
     if (edit.timeOnly) {
       if (edit.fromAt == null || edit.toAt == null) return null;

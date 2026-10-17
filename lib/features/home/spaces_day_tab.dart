@@ -231,7 +231,8 @@ class _TodayCard extends ConsumerWidget {
       final file = r.fileId;
       final thread = r.threadId;
       if (r.change == SpaceChange.workItem && item != null) {
-        context.push(AppRoutes.workItem(r.spaceId, item));
+        // On the Space's daybook, where the work item lives.
+        context.push(AppRoutes.space(r.spaceId));
       } else if (r.change == SpaceChange.library && file != null) {
         context.push(AppRoutes.libraryFile(r.spaceId, file));
       } else if (r.change == SpaceChange.chat && thread != null) {

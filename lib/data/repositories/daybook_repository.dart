@@ -43,6 +43,54 @@ abstract class DaybookRepository {
   /// create_work_item. The app chose [NewWorkItem.id], so sending it again
   /// is the same post.
   Future<void> createWorkItem(NewWorkItem item);
+
+  /// edit_space_post: only what changed ([PostEdit]); the author only,
+  /// while the work item is Open.
+  Future<void> editPost(String postId, PostEdit edit);
+
+  /// cancel_space_post: it stays on the daybook, stamped CANCELLED.
+  Future<void> cancelPost(String postId);
+}
+
+/// What an edit changes on a work item (edit_space_post's keys). A field
+/// left out stays as it is. [dueChanged] sends the due day and time
+/// together; a null [dueDate] takes the due off ("Edited: due removed").
+@immutable
+class PostEdit {
+  const PostEdit({
+    this.title,
+    this.body,
+    this.place,
+    this.placeChanged = false,
+    this.bodyChanged = false,
+    this.dueChanged = false,
+    this.dueDate,
+    this.dueAt,
+  });
+
+  final String? title;
+  final String? body;
+  final bool bodyChanged;
+  final String? place;
+  final bool placeChanged;
+  final bool dueChanged;
+  final DateTime? dueDate;
+  final DateTime? dueAt;
+
+  bool get isEmpty =>
+      title == null && !bodyChanged && !placeChanged && !dueChanged;
+
+  /// The JSON edit_space_post takes; the due day and time are the phone's
+  /// own.
+  Map<String, Object?> toJson() => {
+    'title': ?title?.trim(),
+    if (bodyChanged) 'body': body?.trim() ?? '',
+    if (placeChanged) 'place': place?.trim() ?? '',
+    if (dueChanged) ...{
+      'due': dueDate == null ? null : _date(dueDate!),
+      'due_at': dueAt == null ? null : _instant(dueAt!),
+    },
+  };
 }
 
 /// A work item written in place, as create_work_item takes it. The due
@@ -197,6 +245,19 @@ class SupabaseDaybookRepository implements DaybookRepository {
         ],
       },
     ),
+  );
+
+  @override
+  Future<void> editPost(String postId, PostEdit edit) => _guard(
+    () => _client.rpc<void>(
+      'edit_space_post',
+      params: {'p_id': postId, 'p_changes': edit.toJson()},
+    ),
+  );
+
+  @override
+  Future<void> cancelPost(String postId) => _guard(
+    () => _client.rpc<void>('cancel_space_post', params: {'p_id': postId}),
   );
 }
 

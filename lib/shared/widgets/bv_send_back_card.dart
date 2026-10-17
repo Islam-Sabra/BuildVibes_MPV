@@ -9,8 +9,9 @@ import 'bv_controls.dart';
 import 'bv_tap_target.dart';
 
 /// Send-back reasons, shown in place under the lifted slip (2530:33802):
-/// one choice of reason, an optional note (typed, or held for a voice
-/// note) and the Send back button. The screen decides when sending is
+/// one choice of reason, an optional note and the Send back button. The
+/// note's microphone (hold for a voice note) shows only with
+/// [onMicrophoneHoldStart]. The screen decides when sending is
 /// allowed: [onSend] is null until it is (a reason, and a note for
 /// "Something else").
 class BvSendBackCard<T> extends StatelessWidget {
@@ -192,8 +193,12 @@ class _Note extends StatelessWidget {
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsetsDirectional.symmetric(
-                    vertical: BvSendBackSpec.notePaddingVertical,
+                  padding: EdgeInsetsDirectional.only(
+                    top: BvSendBackSpec.notePaddingVertical,
+                    bottom: BvSendBackSpec.notePaddingVertical,
+                    end: onHoldStart == null
+                        ? BvSendBackSpec.notePaddingEnd
+                        : 0,
                   ),
                   child: TextField(
                     controller: controller,
@@ -209,36 +214,35 @@ class _Note extends StatelessWidget {
                   ),
                 ),
               ),
-              Semantics(
-                button: true,
-                label: microphoneLabel,
-                child: GestureDetector(
-                  key: const Key('send-back-microphone'),
-                  behavior: HitTestBehavior.opaque,
-                  onLongPressStart: onHoldStart == null
-                      ? null
-                      : (_) => onHoldStart!(),
-                  onLongPressEnd: onHoldEnd == null
-                      ? null
-                      : (_) => onHoldEnd!(),
-                  child: const SizedBox(
-                    width: BvSendBackSpec.microphoneTouch,
-                    child: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Padding(
-                        padding: EdgeInsetsDirectional.only(
-                          end: BvSendBackSpec.notePaddingEnd,
-                        ),
-                        child: Icon(
-                          BvIcons.microphone,
-                          size: BvSendBackSpec.microphone,
-                          color: BvColors.iconPrimary,
+              if (onHoldStart != null)
+                Semantics(
+                  button: true,
+                  label: microphoneLabel,
+                  child: GestureDetector(
+                    key: const Key('send-back-microphone'),
+                    behavior: HitTestBehavior.opaque,
+                    onLongPressStart: (_) => onHoldStart!(),
+                    onLongPressEnd: onHoldEnd == null
+                        ? null
+                        : (_) => onHoldEnd!(),
+                    child: const SizedBox(
+                      width: BvSendBackSpec.microphoneTouch,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Padding(
+                          padding: EdgeInsetsDirectional.only(
+                            end: BvSendBackSpec.notePaddingEnd,
+                          ),
+                          child: Icon(
+                            BvIcons.microphone,
+                            size: BvSendBackSpec.microphone,
+                            color: BvColors.iconPrimary,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

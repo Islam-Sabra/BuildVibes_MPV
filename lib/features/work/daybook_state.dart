@@ -54,15 +54,20 @@ class DaybookPages extends AsyncNotifier<List<DaybookRecord>> {
     }
   }
 
-  /// Reads the newest page again (after a post was sent) and keeps the
-  /// older pages already loaded, without showing a load.
-  Future<void> refreshNewest() async {
+  /// The most a page reads at once (daybook_page).
+  static const _pageMax = 100;
+
+  /// Reads again what is loaded (after something was sent: a post, a
+  /// sign-off, a check, an edit), without showing a load. Older pages
+  /// past the first hundred entries are kept as they were.
+  Future<void> refresh() async {
+    final current = state.value ?? const <DaybookRecord>[];
+    final limit = current.length.clamp(pageSize, _pageMax);
     final page = await ref
         .read(daybookRepositoryProvider)
-        .page(spaceId, limit: pageSize);
+        .page(spaceId, limit: limit);
     if (!ref.mounted) return;
-    final current = state.value ?? const <DaybookRecord>[];
-    if (page.length < pageSize) {
+    if (page.length < limit) {
       _reachedStart = true;
       state = AsyncData(page);
       return;

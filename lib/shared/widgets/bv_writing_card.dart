@@ -71,6 +71,7 @@ class BvWritingCard extends StatelessWidget {
     this.removeCoverLabel,
     this.titleMaxLength,
     this.bodyMaxLength,
+    this.errorLine,
   });
 
   final TextEditingController titleController;
@@ -106,6 +107,10 @@ class BvWritingCard extends StatelessWidget {
   /// What the server takes; typing stops there.
   final int? titleMaxLength;
   final int? bodyMaxLength;
+
+  /// A red line at the foot of the card: the post was refused ("Couldn't
+  /// send. Tap to fix", review 46).
+  final String? errorLine;
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +168,14 @@ class BvWritingCard extends StatelessWidget {
                     onRemove: onRemoveCover,
                     removeLabel: removeCoverLabel,
                     child: cover!,
+                  ),
+                if (errorLine != null)
+                  Text(
+                    errorLine!,
+                    key: const Key('writing-card-error'),
+                    style: type.labelSm.copyWith(
+                      color: BvColors.textDestructive,
+                    ),
                   ),
               ],
             ),
