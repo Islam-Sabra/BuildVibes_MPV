@@ -69,3 +69,16 @@ Not missing: **opening a post in place** (blocks, /, turn into, tables) is **sli
   - **Show the real state:** if no token after a retry, a quiet line on Home and in Settings → Notifications: "Notifications aren't reaching this phone", with **"Fix it"**. On Xiaomi, that opens the app's settings page with short steps (Autostart, battery "No restrictions").
   - **Server cleanup:** a token not seen for 30 days is dropped, so pushes don't go to dead devices.
   - **Report the failure:** a "no token" state is visible to us (an anonymous count, no personal data), so the pilot shows how many phones are affected.
+
+## F10. Home → Spaces cards: hierarchy and reach (Omar's screen, emulator)
+- **The header takes too much of the screen:** "SATURDAY 17 OCTOBER / Your day on site / 1 thing needs you · 1 Space active" is about a fifth of the screen above the first card.
+  - Make it **one compact line**: the date, then "1 thing needs you", in a small type.
+  - The title goes (F4 already removes "on site"). The useful part is the list.
+- **The Space name comes first, and bigger.** In a Needs you card, the order is:
+  1. the **Space name** (a semibold label, with its emblem), as in the "Today in your Spaces" rows;
+  2. **what happened** ("Islam Ahmed gave you a work item: Fix cable tray at level 2");
+  3. the ref and time, small.
+- **Open on the trailing side, within thumb reach:** the **whole card** opens the item.
+  - The "Open" button moves to the **end side** of the card (right in English, left in Arabic), level with the text, not under it.
+  - The card is at least 64 points tall, so it's easy to hit.
+- The same order and the same tap rule apply to every card in Needs you (NY1) and to Activity rows.
