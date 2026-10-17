@@ -4,8 +4,7 @@
 -- Run after a reset of the local database:
 --   supabase db reset --local
 --   docker exec -i supabase_db_BuildVibes_MVP psql -U postgres -d postgres -q < supabase/dev/seed_daybook.sql
--- Reset again before `supabase test db`: some of its checks count every
--- profile and project in the database.
+-- `supabase test db` also passes with this loaded.
 --
 -- Sign in with any of the emails below; the 6-digit code arrives in the
 -- local mail catcher (Mailpit, http://127.0.0.1:54324). Every address is
