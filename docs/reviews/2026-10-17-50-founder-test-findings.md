@@ -82,3 +82,7 @@ Not missing: **opening a post in place** (blocks, /, turn into, tables) is **sli
   - The "Open" button moves to the **end side** of the card (right in English, left in Arabic), level with the text, not under it.
   - The card is at least 64 points tall, so it's easy to hit.
 - The same order and the same tap rule apply to every card in Needs you (NY1) and to Activity rows.
+- **No duplicates.** The same event showed twice: in Needs you ("gave you a work item") and in "Today in your Spaces" ("raised NST-002"). With F3, the tab has two parts:
+  - **Needs you:** only what you must act on;
+  - **Your Spaces:** every Space once, with its latest news *that isn't already in Needs you*. With nothing else new, just the name and the time of its last activity.
+  - Never counts.
