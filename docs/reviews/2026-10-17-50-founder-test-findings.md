@@ -36,3 +36,26 @@ BuildVibes is for the whole industry: offices, BIM, design, suppliers as well as
   - `spacesInviteHow` "read it out on site" → **"read it out"**.
 - **Kept, because it's only shown when chosen:** "day N on site" in the daybook masthead appears only when a Space admin sets **On site since**. An office or BIM Space never sets it, so it never sees it.
 - **Check:** grep both ARB files for "site" and "موقع" and list any other general phrase in the report.
+
+## F5. Posting gives a sound
+- A short, soft sound with a light haptic when a post or a sign-off is accepted.
+- It follows the phone's silent mode: silent means haptic only.
+- Nothing plays for a post that is only waiting to send; the sound comes when it actually sends.
+
+## F6. Sign as done must not always need a photo
+The server already accepts **a photo or a note** (`sign_done`: "add a photo or a note"); only the app forces the camera.
+- **Fix:** "Sign as done" opens the proof screen with the camera ready, plus a clear **"Without a photo"** link.
+- Without a photo, the note is required ("What was done?").
+- The proof slip shows the note, with no photo and no empty frame. The checker can still send it back with "Photo missing".
+- Camera only stays the rule *when* a photo is added (founder's decision, review 47).
+
+## F7. No accidental "done"
+The founder worries that the owner signs by mistake while scrolling.
+- **Fix:**
+  - **A tap never signs.** "Sign as done" only opens the proof screen; nothing is sent until **"Send as done"** is pressed there.
+  - After sending, the same **5-second Undo** bar as a check, and nothing goes to the server until it closes (review 44, answer 4).
+  - The pill and the camera button keep a full 48-point tap area, but they react to a tap, never to a scroll that starts on them.
+- No extra "Are you sure?" dialog: the proof screen plus Undo already protect it, without slowing every sign-off.
+
+## F8. "Notion-like" pages in a work item
+Not missing: **opening a post in place** (blocks, /, turn into, tables) is **slice 5**, and **work items under one** are slice 6. Their server side is live (migration 20), but no screens are built yet.
