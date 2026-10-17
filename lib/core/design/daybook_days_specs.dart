@@ -112,6 +112,12 @@ abstract final class BvMonthDropdownSpec {
 
   static const caret = BvSize.iconLg; // 24
 
+  /// Each caret's touch square. It reaches past the caret by [caretInset]
+  /// into the top and end padding, and takes the gap under the header row,
+  /// so the weekday names follow it directly.
+  static const caretTouch = BvSize.touchMin; // 48
+  static const caretInset = (caretTouch - caret) / 2;
+
   static const cellPaddingVertical = BvSpace.s4;
   static const cellGap = 3.0;
   static const circle = BvSize.avatarSm; // 32

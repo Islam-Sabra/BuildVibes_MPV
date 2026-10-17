@@ -15,48 +15,45 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'shot.dart';
 
-/// Sample words per language.
+/// Sample words per language: the prototype's (E 2524:33180, AR
+/// 2547:35369) where a frame has them, the app's ARB words for the
+/// send-back reasons, and plain, gender-neutral Arabic for the rest.
 Map<String, String> _words(String lang) => lang == 'ar'
     ? const {
         'title': 'العنوان',
         'body': 'اكتب ما يجب عمله',
         'draft': 'مسودة',
         'workItem': 'بند عمل',
-        'filledTitle': 'علّاقات حامل الكابلات، الطابق 4',
-        'filledBody': 'ثبّت العلّاقات كل 1.5 م قبل إغلاق السقف.',
+        'filledTitle': 'علّاقات حوامل الكابلات، الدور 4',
+        'filledBody': 'ركّب العلّاقات كل 1.5 م قبل إغلاق السقف.',
         'omar': 'عمر حداد',
         'due': 'الأحد 18 أكتوبر',
-        'place': 'ممر الطابق 4',
+        'place': 'ممر الدور 4',
         'assign': 'تكليف',
         'location': 'المكان',
-        'dueDate': 'تاريخ الاستحقاق',
-        'checklist': 'قائمة تحقق',
-        'template': 'قالب',
-        'announcement': 'إعلان',
-        'scheduled': 'نشاط مجدول',
-        'file': 'ملف',
-        'check': 'افحص',
+        'dueDate': 'الموعد',
+        'check': 'فحص',
         'sendBack': 'إرجاع',
-        'addUpdate': 'أضف تحديثًا',
-        'discuss': 'ناقش في المحادثة',
+        'addUpdate': 'إضافة تحديث',
+        'discuss': 'النقاش في المحادثة',
         'edit': 'تعديل',
-        'giveTo': 'أعطه لشخص آخر',
-        'cancel': 'ألغِ بند العمل',
+        'giveTo': 'تكليف شخص آخر',
+        'cancel': 'إلغاء بند العمل',
         'sendBackTo': 'إرجاع إلى عمر',
-        'photoMissing': 'الصورة ناقصة',
-        'notAsAsked': 'ليس كما طُلب',
+        'photoMissing': 'الصورة غير موجودة',
+        'notAsAsked': 'غير مطابق للمطلوب',
         'notFinished': 'غير مكتمل',
         'somethingElse': 'سبب آخر',
-        'note': 'كُمّ واحد أقصر بـ 50 مم. راجع M-201.',
-        'notePlaceholder': 'أضف ملاحظة (اختياري)',
-        'giveToSearch': 'أعطِ إلى…',
+        'note': 'حسب المخطط M-201، جلبة واحدة أقصر بـ 50 مم.',
+        'notePlaceholder': 'ملاحظة (اختياري)',
+        'giveToSearch': 'التكليف إلى…',
         'now': 'الآن',
         'rakesh': 'راكيش ناير',
-        'lina': 'لينا سعد',
-        'mona': 'منى فارس',
-        'mep': 'MEP',
+        'lina': 'لينا خليل',
+        'mona': 'منى عادل',
+        'mep': 'الكهروميكانيك',
         'site': 'الموقع',
-        'architecture': 'معماري',
+        'architecture': 'المعماري',
         'checked': 'تم الفحص',
         'undo': 'تراجع',
       }
@@ -73,11 +70,6 @@ Map<String, String> _words(String lang) => lang == 'ar'
         'assign': 'Assign',
         'location': 'Location',
         'dueDate': 'Due date',
-        'checklist': 'Checklist',
-        'template': 'Template',
-        'announcement': 'Announcement',
-        'scheduled': 'Scheduled activity',
-        'file': 'File',
         'check': 'Check',
         'sendBack': 'Send back',
         'addUpdate': 'Add update',
@@ -95,8 +87,8 @@ Map<String, String> _words(String lang) => lang == 'ar'
         'giveToSearch': 'Give to…',
         'now': 'now',
         'rakesh': 'Rakesh Nair',
-        'lina': 'Lina Saad',
-        'mona': 'Mona Faris',
+        'lina': 'Lina Khalil',
+        'mona': 'Mona Adel',
         'mep': 'MEP',
         'site': 'Site',
         'architecture': 'Architecture',
@@ -163,14 +155,13 @@ void main() {
           SizedBox(
             width: _slipWidth,
             child: BvWritingCard(
-              tear: 1,
               titleController: controller(w['filledTitle']!),
               titlePlaceholder: w['title']!,
               bodyController: controller(w['filledBody']!),
               bodyPlaceholder: w['body']!,
               draftLabel: w['draft'],
+              // Slice 1 posts work items only: no kind to choose (C5).
               kindLabel: w['workItem'],
-              onKindTap: () {},
               properties: [
                 BvWritingProperty.person(
                   label: w['omar']!,
@@ -201,31 +192,12 @@ void main() {
             child: BvPopoverMenu<String>.picker(
               selected: 'workItem',
               onSelected: (_) {},
+              // Slice 1 has one kind; the others come in slice 2 (C5).
               items: [
                 BvMenuItem(
                   value: 'workItem',
                   label: w['workItem']!,
                   icon: BvIcons.confirmed,
-                ),
-                BvMenuItem(
-                  value: 'checklist',
-                  label: w['checklist']!,
-                  icon: BvIcons.workItems,
-                ),
-                BvMenuItem(
-                  value: 'announcement',
-                  label: w['announcement']!,
-                  icon: BvIcons.info,
-                ),
-                BvMenuItem(
-                  value: 'scheduled',
-                  label: w['scheduled']!,
-                  icon: BvIcons.due,
-                ),
-                BvMenuItem(
-                  value: 'file',
-                  label: w['file']!,
-                  icon: BvIcons.document,
                 ),
               ],
             ),
@@ -238,6 +210,7 @@ void main() {
               padding: const EdgeInsetsDirectional.only(start: 64),
               child: BvPopoverMenu<String>.more(
                 onSelected: (_) {},
+                // Only what slice 1 does: no Template, no Checklist (C5).
                 items: [
                   BvMenuItem(
                     value: 'assign',
@@ -253,16 +226,6 @@ void main() {
                     value: 'due',
                     label: w['dueDate']!,
                     icon: BvIcons.due,
-                  ),
-                  BvMenuItem(
-                    value: 'checklist',
-                    label: w['checklist']!,
-                    icon: BvIcons.workItems,
-                  ),
-                  BvMenuItem(
-                    value: 'template',
-                    label: w['template']!,
-                    icon: BvIcons.copy,
                   ),
                 ],
               ),

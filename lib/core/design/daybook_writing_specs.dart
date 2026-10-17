@@ -10,13 +10,16 @@ import 'bv_tokens.dart';
 
 /// The work item being written in place (2527:33393).
 abstract final class BvWritingCardSpec {
-  // Below the torn edge; the edge itself sits above the box in Figma.
+  /// A straight dashed rectangle with the slip's small radius (review 44,
+  /// C3).
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.slip));
+
   static const paddingTop = 18.0;
   static const paddingBottom = BvSpace.s16;
   static const paddingSide = BvSpace.s16;
   static const gap = 10.0;
 
-  /// The dashed border, walked along the slip's outline.
+  /// The dashed border.
   static const border = BvStroke.dash;
   static const dashOn = 4.0;
   static const dashOff = 3.0;
@@ -30,6 +33,13 @@ abstract final class BvWritingCardSpec {
   static const chipGap = BvSpace.s4;
   static const chipCaret = 14.0;
 
+  /// The chip's 48 high touch area: the gap below (the title starts
+  /// there), and the rest above.
+  static const chipTouchOutset = EdgeInsetsDirectional.only(
+    top: BvSize.touchMin - chipHeight - gap,
+    bottom: gap,
+  );
+
   static const cursorWidth = 2.0;
 
   /// The properties line: a wrap of owner, due and place.
@@ -38,6 +48,16 @@ abstract final class BvWritingCardSpec {
   static const propertyItemGap = 5.0;
   static const propertyIcon = 15.0;
 
+  /// One line of properties, as laid out.
+  static const propertyHeight = 18.0;
+
+  /// The line's 48 high touch area: the gap below (the body starts there),
+  /// and the rest above, into the gap and the title.
+  static const propertyTouchOutset = EdgeInsetsDirectional.only(
+    top: BvSize.touchMin - propertyHeight - gap,
+    bottom: gap,
+  );
+
   static const coverHeight = 128.0;
   static const coverRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
   static const removeSize = 26.0;
@@ -45,15 +65,27 @@ abstract final class BvWritingCardSpec {
   static const removeEnd = BvSpace.s6;
   static const removeIcon = 14.0;
   static const removeOpacity = 0.92;
+
+  /// The remove button's touch area: a 48 square around it. Past the
+  /// cover's top and end it reaches into the card's gap and padding.
+  static const removeInset = (BvSize.touchMin - removeSize) / 2;
+  static const removeTouchOutset = EdgeInsetsDirectional.only(
+    top: removeInset - removeTop,
+    end: removeInset - removeEnd,
+  );
 }
 
 /// The bar on the keyboard while writing (2527:33399).
 abstract final class BvWritingToolbarSpec {
   static const height = 56.0;
-  static const paddingStart = BvSpace.s8;
-  static const paddingEnd = 10.0;
-  static const paddingVertical = BvSpace.s6;
-  static const gap = BvSpace.s2;
+
+  /// Each tool and Post sit centred in a 48 square touch area (review 44,
+  /// C4), side by side; the padding gives back what the squares add, so
+  /// the first tool and Post keep their places.
+  static const touch = BvSize.touchMin; // 48
+  static const paddingStart = BvSpace.s8 - (touch - tool) / 2;
+  static const paddingEnd = 10.0 - (touch - post) / 2;
+  static const paddingVertical = (height - touch) / 2;
   static const tool = BvSize.controlMd; // 44
   static const toolRadius = BvRadius.controlAll; // 10
   static const toolIcon = BvSize.iconLg; // 24
@@ -99,14 +131,20 @@ abstract final class BvSendBackSpec {
   static const paddingHorizontal = BvSpace.s16;
   static const paddingVertical = 14.0;
   static const gap = BvSpace.s2;
-  static const reasonPaddingVertical = 9.0;
+
+  /// 42 high rows (20 radio, 11 above and below): full-width rows, so a
+  /// gloved finger finds them (review 44, C4).
+  static const reasonPaddingVertical = 11.0;
   static const reasonGap = BvSpace.s12;
   static const noteRadius = BvRadius.controlAll; // 10
   static const notePaddingStart = BvSpace.s12;
   static const notePaddingEnd = 10.0;
   static const notePaddingVertical = 10.0;
-  static const noteGap = BvSpace.s8;
   static const microphone = 18.0;
+
+  /// The microphone's touch area: 48 wide at the note's end, the note's
+  /// full height.
+  static const microphoneTouch = BvSize.touchMin;
   static const buttonTop = BvSpace.s8;
 }
 
@@ -130,6 +168,12 @@ abstract final class BvGiveToSpec {
   static const fieldPaddingVertical = BvSpace.s8;
   static const fieldGap = BvSpace.s8;
   static const searchIcon = BvSize.iconSm; // 16
+
+  /// The search field's touch area takes the padding above and below it.
+  static const searchTouchOutset = EdgeInsetsDirectional.only(
+    top: paddingTop,
+    bottom: searchPaddingBottom,
+  );
   static const rowHeight = 52.0;
   static const rowPaddingHorizontal = 14.0;
   static const rowPaddingVertical = BvSpace.s8;

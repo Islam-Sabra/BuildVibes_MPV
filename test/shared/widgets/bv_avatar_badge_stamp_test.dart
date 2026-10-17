@@ -15,26 +15,22 @@ void main() {
       expect(BvAvatar.tileInitialsOf('Everyone'), 'EV');
       expect(BvAvatar.tileInitialsOf('Structure'), 'ST');
       expect(BvAvatar.tileInitialsOf('MEP Team'), 'MT');
-      final nonJoiner = String.fromCharCode(0x200C);
-      // "الجميع": the article is skipped, then two letters.
-      expect(BvAvatar.tileInitialsOf('الجميع'), 'ج$nonJoinerم');
+      expect(BvAvatar.tileInitialsOf('Al-Rashid'), 'RA');
+      // "الجميع": the article is skipped, then one letter.
+      expect(BvAvatar.tileInitialsOf('الجميع'), 'ج');
     });
 
-    test('initials: first and last word; Arabic letters kept apart', () {
+    test('initials: first and last word as typed; Arabic one letter', () {
       expect(BvAvatar.initialsOf('Omar Haddad'), 'OH');
       expect(BvAvatar.initialsOf('sara al mutairi'), 'SM');
       expect(BvAvatar.initialsOf('Omar'), 'O');
-      expect(BvAvatar.initialsOf('Sami Al-Mansour'), 'SM');
-      expect(BvAvatar.initialsOf('Hany El-Sayed'), 'HS');
+      expect(BvAvatar.initialsOf('Sara Al-Mutairi'), 'SA');
+      expect(BvAvatar.initialsOf('Hany El-Sayed'), 'HE');
       expect(BvAvatar.initialsOf('Jean-Paul Smith'), 'JS');
       expect(BvAvatar.initialsOf('  '), '');
       final omar = String.fromCharCode(0x0639); // ع
       final haddad = String.fromCharCode(0x062D); // ح
-      final nonJoiner = String.fromCharCode(0x200C);
-      expect(
-        BvAvatar.initialsOf('$omarمر $haddadداد'),
-        '$omar$nonJoiner$haddad',
-      );
+      expect(BvAvatar.initialsOf('$omarمر $haddadداد'), omar);
     });
 
     test('Arabic initials skip the prefixes "ال" and "لل"', () {
@@ -43,11 +39,8 @@ void main() {
       const reh = 0x0631, meem = 0x0645, qaf = 0x0642;
       final alNoor = word([alef, lam, noon, waw, reh]); // النور
       final lilMuqawalat = word([lam, lam, meem, qaf, alef]); // للمقا…
-      final nonJoiner = String.fromCharCode(0x200C);
-      expect(
-        BvAvatar.initialsOf('$alNoor $lilMuqawalat'),
-        '${word([noon])}$nonJoiner${word([meem])}',
-      );
+      expect(BvAvatar.initialsOf('$alNoor $lilMuqawalat'), word([noon]));
+      expect(BvAvatar.initialsOf(lilMuqawalat), word([meem]));
       // A short word that only looks like a prefix is kept as it is.
       expect(BvAvatar.initialsOf(word([alef, lam, noon])), word([alef]));
     });

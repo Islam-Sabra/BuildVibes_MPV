@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
+import 'bv_tap_target.dart';
 
 /// One way to start an empty Daybook, on [BvFirstPage].
 class BvFirstPageAction {
@@ -50,19 +51,25 @@ class BvFirstPage extends StatelessWidget {
         start: BvFirstPageSpec.paddingHorizontal,
         end: BvFirstPageSpec.paddingHorizontal,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        spacing: BvFirstPageSpec.gap,
-        children: [
-          Text(title, textAlign: TextAlign.center, style: type.titleLg),
-          Text(
-            body,
-            textAlign: TextAlign.center,
-            style: type.bodySm.copyWith(color: BvColors.textSecondary),
-          ),
-          for (final a in actions) _ActionRow(action: a),
-        ],
+      // The last action reaches its 48 touch area into the bottom padding.
+      child: BvTapTarget(
+        outset: const EdgeInsetsDirectional.only(
+          bottom: BvFirstPageSpec.paddingBottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          spacing: BvFirstPageSpec.gap,
+          children: [
+            Text(title, textAlign: TextAlign.center, style: type.titleLg),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: type.bodySm.copyWith(color: BvColors.textSecondary),
+            ),
+            for (final a in actions) _ActionRow(action: a),
+          ],
+        ),
       ),
     );
   }
@@ -79,7 +86,9 @@ class _ActionRow extends StatelessWidget {
     final foreground = action.primary
         ? BvColors.actionPrimaryForeground
         : BvColors.textPrimary;
-    return Material(
+    // 40 high, as drawn; the touch area reaches 48 into the gaps.
+    final row = Material(
+      key: Key('first-page-action-${action.label}'),
       color: action.primary ? BvColors.actionPrimary : BvColors.surfaceSubtle,
       borderRadius: BvFirstPageSpec.actionRadius,
       clipBehavior: Clip.antiAlias,
@@ -109,5 +118,6 @@ class _ActionRow extends StatelessWidget {
         ),
       ),
     );
+    return action.onTap == null ? row : BvTapTarget(child: row);
   }
 }

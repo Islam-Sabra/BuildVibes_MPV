@@ -68,4 +68,36 @@ void main() {
     final post = tester.getCenter(find.byIcon(BvIcons.send)).dx;
     expect(isRtl(lang) ? camera > post : camera < post, isTrue);
   });
+
+  testBoth('tools and Post keep their look in 48 × 48 touch areas', (
+    tester,
+    lang,
+  ) async {
+    var posts = 0;
+    var more = 0;
+    await pumpComponent(
+      tester,
+      _bar(onPost: () => posts++, onMore: () => more++),
+      lang: lang,
+      scroll: false,
+    );
+    final post = find.byKey(const Key('writing-post'));
+    expect(tester.getSize(post), const Size.square(BvSize.touchMin));
+    expect(
+      tester.getSize(
+        find.descendant(of: post, matching: find.byType(AnimatedContainer)),
+      ),
+      const Size.square(BvWritingToolbarSpec.post),
+    );
+    await tapEach(tester, touchSquareEdges(tester, post));
+    expect(posts, 4);
+
+    final tool = find.ancestor(
+      of: find.byIcon(BvIcons.more),
+      matching: find.byType(GestureDetector),
+    );
+    expect(tester.getSize(tool.first), const Size.square(BvSize.touchMin));
+    await tapEach(tester, touchSquareEdges(tester, tool.first));
+    expect(more, 4);
+  });
 }

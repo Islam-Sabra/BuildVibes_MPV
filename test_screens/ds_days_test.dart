@@ -31,7 +31,6 @@ const _text = {
     'title': 'The first page of your daybook',
     'body': 'Everything your team posts will hang here, day by day.',
     'first': 'Post the first work item',
-    'pin': 'Pin an announcement',
     'invite': 'Invite your team',
   },
   'ar': {
@@ -49,7 +48,6 @@ const _text = {
     'title': 'الصفحة الأولى من يومية فريقك',
     'body': 'كل ما ينشره فريقك سيُعلَّق هنا، يومًا بيوم.',
     'first': 'انشر أول بند عمل',
-    'pin': 'ثبّت إعلانًا',
     'invite': 'ادعُ فريقك',
   },
 };
@@ -156,7 +154,7 @@ void main() {
                       label: t['first']!,
                       primary: true,
                     ),
-                    BvFirstPageAction(icon: BvIcons.info, label: t['pin']!),
+                    // No "Pin an announcement" until slice 2 (C5).
                     BvFirstPageAction(icon: BvIcons.team, label: t['invite']!),
                   ],
                 ),

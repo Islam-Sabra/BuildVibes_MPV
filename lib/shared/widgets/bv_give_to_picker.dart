@@ -5,6 +5,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import 'bv_writing_card.dart' show bvBareField;
 import 'bv_avatar.dart';
+import 'bv_tap_target.dart';
 
 /// A Space member who can own a work item.
 class BvGiveToPerson {
@@ -56,6 +57,7 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
   TextEditingController? _own;
   TextEditingController get _search =>
       widget.searchController ?? (_own ??= TextEditingController());
+  final _searchFocus = FocusNode();
 
   @override
   void initState() {
@@ -76,6 +78,7 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
   void dispose() {
     _search.removeListener(_onSearch);
     _own?.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -96,8 +99,8 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
 
     return Container(
       width: BvGiveToSpec.width,
+      // The top padding sits with the search field, inside its touch area.
       padding: const EdgeInsetsDirectional.only(
-        top: BvGiveToSpec.paddingTop,
         bottom: BvGiveToSpec.paddingBottom,
       ),
       decoration: const BoxDecoration(
@@ -114,12 +117,13 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvGiveToSpec.searchPaddingHorizontal,
-                0,
+                BvGiveToSpec.paddingTop,
                 BvGiveToSpec.searchPaddingHorizontal,
                 BvGiveToSpec.searchPaddingBottom,
               ),
               child: _Search(
                 controller: _search,
+                focusNode: _searchFocus,
                 placeholder: widget.searchPlaceholder,
                 autofocus: widget.autofocus,
               ),
@@ -150,18 +154,23 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
 class _Search extends StatelessWidget {
   const _Search({
     required this.controller,
+    required this.focusNode,
     required this.placeholder,
     required this.autofocus,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
   final String placeholder;
   final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
     final style = BvType.of(context).bodyMd;
-    return Container(
+    // The whole field focuses the search, and its touch area reaches into
+    // the padding above and below (48 high in all).
+    final field = Container(
+      key: const Key('give-to-search'),
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: BvGiveToSpec.fieldPaddingHorizontal,
         vertical: BvGiveToSpec.fieldPaddingVertical,
@@ -181,6 +190,7 @@ class _Search extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
+              focusNode: focusNode,
               autofocus: autofocus,
               textInputAction: TextInputAction.search,
               style: style.copyWith(color: BvColors.textPrimary),
@@ -189,6 +199,14 @@ class _Search extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+    return BvTapTarget(
+      outset: BvGiveToSpec.searchTouchOutset,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: focusNode.requestFocus,
+        child: field,
       ),
     );
   }

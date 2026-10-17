@@ -11,7 +11,7 @@ import '../../helpers/pump_component.dart';
 const _people = [
   BvGiveToPerson(id: 'omar', name: 'Omar Haddad', team: 'Site'),
   BvGiveToPerson(id: 'rakesh', name: 'Rakesh Nair', team: 'MEP'),
-  BvGiveToPerson(id: 'lina', name: 'Lina Saad', team: 'Site'),
+  BvGiveToPerson(id: 'lina', name: 'Lina Khalil', team: 'Site'),
 ];
 
 Widget _picker({ValueChanged<BvGiveToPerson>? onPick}) => BvGiveToPicker(
@@ -66,8 +66,25 @@ void main() {
 
     await tester.enterText(find.byType(TextField), 'site');
     await tester.pump();
-    expect(find.text('Lina Saad'), findsOneWidget);
+    expect(find.text('Lina Khalil'), findsOneWidget);
     expect(find.text('Omar Haddad'), findsOneWidget);
     expect(find.text('Rakesh Nair'), findsNothing);
+  });
+
+  testBoth('the search field focuses from a 48 high touch area', (
+    tester,
+    lang,
+  ) async {
+    await pumpComponent(tester, _picker(), lang: lang);
+    final field = tester.getRect(find.byKey(const Key('give-to-search')));
+    const outset = BvGiveToSpec.searchTouchOutset;
+    expect(
+      outset.top + field.height + outset.bottom,
+      greaterThanOrEqualTo(BvSize.touchMin),
+    );
+    await tester.tapAt(field.topCenter.translate(0, 1 - outset.top));
+    await tester.pump();
+    final text = tester.widget<TextField>(find.byType(TextField));
+    expect(text.focusNode!.hasFocus, isTrue);
   });
 }

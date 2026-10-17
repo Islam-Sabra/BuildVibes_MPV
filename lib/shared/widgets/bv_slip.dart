@@ -5,6 +5,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import 'bv_avatar.dart';
 import 'bv_paper_clip.dart';
+import 'bv_tap_target.dart';
 import 'bv_torn_edge.dart';
 
 /// Spec §2: the Daybook's paper slip. White paper with a torn top edge and
@@ -63,10 +64,17 @@ class BvSlip extends StatelessWidget {
               start: BvSlipSpec.paddingSide,
               end: BvSlipSpec.paddingSide,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: BvSlipSpec.gap,
-              children: children,
+            // A small control at the bottom (Sign as done) reaches its 48
+            // touch area into the bottom padding.
+            child: BvTapTarget(
+              outset: const EdgeInsetsDirectional.only(
+                bottom: BvSlipSpec.paddingBottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: BvSlipSpec.gap,
+                children: children,
+              ),
             ),
           ),
         ),
@@ -108,18 +116,24 @@ class BvSlip extends StatelessWidget {
   }
 }
 
-/// §2a: avatar 24 in the person's tint, the name ("You" on your own
-/// posts) and an optional action phrase ("signed as done").
+/// §2a: avatar 24 in the person's tint, the name and an optional action
+/// phrase ("signed as done").
 class BvSlipHeader extends StatelessWidget {
   const BvSlipHeader({
     super.key,
     required this.name,
+    this.label,
     this.action,
     this.tint,
     this.image,
   });
 
+  /// The person's name; the avatar's initials come from it.
   final String name;
+
+  /// Shown instead of [name] ("You" on your own posts); the avatar keeps
+  /// the person's own initials.
+  final String? label;
   final String? action;
 
   /// [BvAvatarTints.forId] of the person.
@@ -137,7 +151,7 @@ class BvSlipHeader extends StatelessWidget {
           BvAvatar(name: name, size: BvAvatarSize.xs, tint: tint, image: image),
           Flexible(
             child: Text(
-              name,
+              label ?? name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: type.labelSm.copyWith(color: BvColors.textPrimary),
@@ -222,11 +236,15 @@ class BvSlipChips extends StatelessWidget {
 
   final List<Widget> children;
 
+  // The row's touch area is 48 high, so a tappable chip's reaches past
+  // the row into the gaps.
   @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: BvSlipSpec.chipRowGap,
-    runSpacing: BvSlipSpec.chipRowGap,
-    children: children,
+  Widget build(BuildContext context) => BvTapTarget(
+    child: Wrap(
+      spacing: BvSlipSpec.chipRowGap,
+      runSpacing: BvSlipSpec.chipRowGap,
+      children: children,
+    ),
   );
 }
 
@@ -245,9 +263,8 @@ class BvSlipChip extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
+  Widget build(BuildContext context) {
+    final chip = Container(
       height: BvSlipSpec.chipHeight,
       padding: const EdgeInsetsDirectional.only(
         start: BvSlipSpec.chipPaddingStart,
@@ -280,8 +297,19 @@ class BvSlipChip extends StatelessWidget {
           ),
         ],
       ),
-    ),
-  );
+    );
+    if (onTap == null) return chip;
+    return BvTapTarget(
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: chip,
+        ),
+      ),
+    );
+  }
 }
 
 /// §2f: a proof quoting its work item: an orange bar and one line.
@@ -454,14 +482,24 @@ class BvSlipPill extends StatelessWidget {
         ],
       ),
     );
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: action
-          ? Semantics(
-              button: true,
-              child: GestureDetector(onTap: onTap, child: pill),
-            )
-          : pill,
+    if (!action) {
+      return Align(alignment: AlignmentDirectional.centerStart, child: pill);
+    }
+    // Under 48 high: the touch area reaches into the gap above and the
+    // slip's padding below.
+    return BvTapTarget(
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Semantics(
+          button: true,
+          child: GestureDetector(
+            key: const Key('slip-pill-action'),
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: pill,
+          ),
+        ),
+      ),
     );
   }
 }

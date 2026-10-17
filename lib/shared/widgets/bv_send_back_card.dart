@@ -6,6 +6,7 @@ import '../../core/design/daybook_writing_specs.dart';
 import 'bv_writing_card.dart' show bvBareField;
 import 'bv_button.dart';
 import 'bv_controls.dart';
+import 'bv_tap_target.dart';
 
 /// Send-back reasons, shown in place under the lifted slip (2530:33802):
 /// one choice of reason, an optional note (typed, or held for a voice
@@ -174,52 +175,73 @@ class _Note extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = BvType.of(context).bodySm;
-    return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        BvSendBackSpec.notePaddingStart,
-        BvSendBackSpec.notePaddingVertical,
-        BvSendBackSpec.notePaddingEnd,
-        BvSendBackSpec.notePaddingVertical,
-      ),
-      decoration: const BoxDecoration(
-        color: BvColors.surfaceSubtle,
-        borderRadius: BvSendBackSpec.noteRadius,
-      ),
-      child: Row(
-        spacing: BvSendBackSpec.noteGap,
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              onChanged: onChanged,
-              minLines: 1,
-              maxLines: null,
-              keyboardType: TextInputType.multiline,
-              textCapitalization: TextCapitalization.sentences,
-              style: style.copyWith(color: BvColors.textPrimary),
-              cursorColor: BvColors.actionPrimary,
-              decoration: bvBareField(hint: placeholder, style: style),
-            ),
-          ),
-          Semantics(
-            button: true,
-            label: microphoneLabel,
-            child: GestureDetector(
-              key: const Key('send-back-microphone'),
-              behavior: HitTestBehavior.opaque,
-              onLongPressStart: onHoldStart == null
-                  ? null
-                  : (_) => onHoldStart!(),
-              onLongPressEnd: onHoldEnd == null ? null : (_) => onHoldEnd!(),
-              child: const Icon(
-                BvIcons.microphone,
-                size: BvSendBackSpec.microphone,
-                color: BvColors.iconPrimary,
+    // The microphone's touch area runs the note's full height and 48 wide;
+    // past a one-line note it reaches into the gaps above and below.
+    return BvTapTarget(
+      child: Container(
+        padding: const EdgeInsetsDirectional.only(
+          start: BvSendBackSpec.notePaddingStart,
+        ),
+        decoration: const BoxDecoration(
+          color: BvColors.surfaceSubtle,
+          borderRadius: BvSendBackSpec.noteRadius,
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    vertical: BvSendBackSpec.notePaddingVertical,
+                  ),
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    onChanged: onChanged,
+                    minLines: 1,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    textCapitalization: TextCapitalization.sentences,
+                    style: style.copyWith(color: BvColors.textPrimary),
+                    cursorColor: BvColors.actionPrimary,
+                    decoration: bvBareField(hint: placeholder, style: style),
+                  ),
+                ),
               ),
-            ),
+              Semantics(
+                button: true,
+                label: microphoneLabel,
+                child: GestureDetector(
+                  key: const Key('send-back-microphone'),
+                  behavior: HitTestBehavior.opaque,
+                  onLongPressStart: onHoldStart == null
+                      ? null
+                      : (_) => onHoldStart!(),
+                  onLongPressEnd: onHoldEnd == null
+                      ? null
+                      : (_) => onHoldEnd!(),
+                  child: const SizedBox(
+                    width: BvSendBackSpec.microphoneTouch,
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          end: BvSendBackSpec.notePaddingEnd,
+                        ),
+                        child: Icon(
+                          BvIcons.microphone,
+                          size: BvSendBackSpec.microphone,
+                          color: BvColors.iconPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -50,14 +50,13 @@ class BvWritingToolbar extends StatelessWidget {
         BvWritingToolbarSpec.paddingVertical,
       ),
       color: BvColors.surfaceElevated,
-      // In front, so the line doesn't take height from the 44 tools.
+      // In front, so the line doesn't take height from the tools.
       foregroundDecoration: const BoxDecoration(
         border: Border(
           top: BorderSide(color: BvColors.borderSubtle, width: BvStroke.thin),
         ),
       ),
       child: Row(
-        spacing: BvWritingToolbarSpec.gap,
         children: [
           _Tool(icon: BvIcons.camera, label: cameraLabel, onTap: onCamera),
           _Tool(icon: BvIcons.attach, label: attachLabel, onTap: onAttach),
@@ -100,19 +99,24 @@ class _Tool extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Container(
-          width: BvWritingToolbarSpec.tool,
-          height: BvWritingToolbarSpec.tool,
-          decoration: BoxDecoration(
-            color: active ? BvColors.surfaceSubtle : null,
-            borderRadius: BvWritingToolbarSpec.toolRadius,
-          ),
-          child: Icon(
-            icon,
-            size: BvWritingToolbarSpec.toolIcon,
-            color: onTap == null
-                ? BvColors.actionDisabledForeground
-                : BvColors.iconPrimary,
+        child: SizedBox.square(
+          dimension: BvWritingToolbarSpec.touch,
+          child: Center(
+            child: Container(
+              width: BvWritingToolbarSpec.tool,
+              height: BvWritingToolbarSpec.tool,
+              decoration: BoxDecoration(
+                color: active ? BvColors.surfaceSubtle : null,
+                borderRadius: BvWritingToolbarSpec.toolRadius,
+              ),
+              child: Icon(
+                icon,
+                size: BvWritingToolbarSpec.toolIcon,
+                color: onTap == null
+                    ? BvColors.actionDisabledForeground
+                    : BvColors.iconPrimary,
+              ),
+            ),
           ),
         ),
       ),
@@ -138,21 +142,28 @@ class _Post extends StatelessWidget {
         key: const Key('writing-post'),
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: BvMotion.fast,
-          curve: BvMotion.standard,
-          width: BvWritingToolbarSpec.post,
-          height: BvWritingToolbarSpec.post,
-          decoration: BoxDecoration(
-            color: enabled ? BvColors.actionPrimary : BvColors.surfaceSubtle,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            BvIcons.send,
-            size: BvWritingToolbarSpec.postIcon,
-            color: enabled
-                ? BvColors.actionPrimaryForeground
-                : BvColors.textSecondary,
+        child: SizedBox.square(
+          dimension: BvWritingToolbarSpec.touch,
+          child: Center(
+            child: AnimatedContainer(
+              duration: BvMotion.fast,
+              curve: BvMotion.standard,
+              width: BvWritingToolbarSpec.post,
+              height: BvWritingToolbarSpec.post,
+              decoration: BoxDecoration(
+                color: enabled
+                    ? BvColors.actionPrimary
+                    : BvColors.surfaceSubtle,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                BvIcons.send,
+                size: BvWritingToolbarSpec.postIcon,
+                color: enabled
+                    ? BvColors.actionPrimaryForeground
+                    : BvColors.textSecondary,
+              ),
+            ),
           ),
         ),
       ),

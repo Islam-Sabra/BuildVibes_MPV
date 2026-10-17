@@ -67,4 +67,26 @@ void main() {
       expect(isRtl(lang) ? chip > note : chip < note, isTrue);
     });
   });
+
+  testBoth('the 44 notepad has a 48 high touch area', (tester, lang) async {
+    var writes = 0;
+    await pumpComponent(
+      tester,
+      BvPostBar(
+        placeholder: 'Work item',
+        onWrite: () => writes++,
+        onCamera: () {},
+        onProve: () {},
+      ),
+      lang: lang,
+      scroll: false,
+    );
+    final notepad = tester.getRect(find.byKey(const Key('post-bar-notepad')));
+    const reach = BvSize.touchMin / 2 - 1;
+    await tapEach(tester, [
+      notepad.center.translate(0, -reach),
+      notepad.center.translate(0, reach),
+    ]);
+    expect(writes, 2);
+  });
 }

@@ -52,9 +52,10 @@ class BvAvatar extends StatelessWidget {
     BvAvatarSize.lg || BvAvatarSize.xl => BvAvatarSpec.companyRadiusLarge,
   };
 
-  /// Up to two initials: first and last word. Arabic letters are kept
-  /// apart (zero-width non-joiner) so they read as initials, not a word,
-  /// and the prefixes "ال" and "لل" are skipped ("النور للمقاولات" → ن م).
+  /// Latin: the first letters of the first and last word, as typed
+  /// ("Sara Al-Mutairi" → SA). Arabic: one letter, as the AR frames show;
+  /// two read as a word ("سم"). The prefixes "ال" and "لل" are skipped
+  /// ("النور للمقاولات" → ن). Review 44 C1.
   static String initialsOf(String name) {
     final words = name
         .trim()
@@ -65,28 +66,21 @@ class BvAvatar extends StatelessWidget {
     final picked = words.length == 1
         ? [words.first]
         : [words.first, words.last];
-    final runes = [
-      for (final w in picked)
-        _initialRune(_withoutLatinArticle(w).runes.toList()),
-    ];
-    final letters = runes.map(String.fromCharCode);
-    final arabic = runes.any(_isArabic);
-    return arabic
-        ? letters.join(String.fromCharCode(_zeroWidthNonJoiner))
-        : letters.join().toUpperCase();
+    final runes = [for (final w in picked) _initialRune(w.runes.toList())];
+    if (runes.any(_isArabic)) return String.fromCharCode(runes.first);
+    return runes.map(String.fromCharCode).join().toUpperCase();
   }
 
-  /// [initialsOf], but a single word gives its first two letters.
+  /// [initialsOf], but a single Latin word gives its first two letters,
+  /// after an article ("Al-Rashid" → RA).
   static String tileInitialsOf(String name) {
     final words = name.trim().split(RegExp(r'\s+'));
     if (words.length != 1 || words.first.isEmpty) return initialsOf(name);
     var runes = _withoutLatinArticle(words.first).runes.toList();
     final first = _initialRune(runes);
     runes = runes.sublist(runes.indexOf(first));
-    final letters = runes.take(2).map(String.fromCharCode);
-    return runes.any(_isArabic)
-        ? letters.join(String.fromCharCode(_zeroWidthNonJoiner))
-        : letters.join().toUpperCase();
+    if (runes.any(_isArabic)) return String.fromCharCode(first);
+    return runes.take(2).map(String.fromCharCode).join().toUpperCase();
   }
 
   static int _initialRune(List<int> word) {
@@ -109,14 +103,12 @@ class BvAvatar extends StatelessWidget {
   static bool _isArabic(int rune) =>
       rune >= _arabicFirst && rune <= _arabicLast;
 
-  // Unicode Arabic block, the letters of the prefixes, and the mark that
-  // stops letters joining.
+  // Unicode Arabic block and the letters of the prefixes.
   static const _arabicFirst = 0x0600;
   static const _arabicLast = 0x06FF;
   static const _alef = 0x0627;
   static const _lam = 0x0644;
   static const _prefixLength = 2;
-  static const _zeroWidthNonJoiner = 0x200C;
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart' show kLongPressTimeout, kPressTimeout;
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/daybook_writing_specs.dart';
@@ -157,5 +158,60 @@ void main() {
     );
     expect(tester.getSize(find.byType(BvRadio).first), const Size.square(48));
     expect(tester.getSize(find.byType(BvRadio).last), const Size.square(20));
+  });
+
+  testBoth('the microphone looks 18 and has a 48 × 48 touch area', (
+    tester,
+    lang,
+  ) async {
+    final note = TextEditingController();
+    addTearDown(note.dispose);
+    var holds = 0;
+    await pumpComponent(
+      tester,
+      BvSendBackCard<_Reason>(
+        title: 'Send back to Omar',
+        reasons: _reasons,
+        selected: null,
+        onSelected: (_) {},
+        noteController: note,
+        notePlaceholder: 'Add a note',
+        onMicrophoneHoldStart: () => holds++,
+        onMicrophoneHoldEnd: () {},
+        sendLabel: 'Send back',
+        onSend: null,
+      ),
+      lang: lang,
+    );
+    final icon = find.byIcon(BvIcons.microphone);
+    expect(tester.getSize(icon), const Size.square(BvSendBackSpec.microphone));
+    final target = find.byKey(const Key('send-back-microphone'));
+    expect(tester.getSize(target).width, BvSendBackSpec.microphoneTouch);
+    final centre = tester.getCenter(target);
+    const reach = BvSize.touchMin / 2 - 1;
+    for (final p in [
+      centre.translate(-reach, 0),
+      centre.translate(reach, 0),
+      centre.translate(0, -reach),
+      centre.translate(0, reach),
+    ]) {
+      final gesture = await tester.startGesture(p);
+      await tester.pump(kLongPressTimeout + kPressTimeout);
+      await gesture.up();
+      await tester.pump();
+    }
+    expect(holds, 4);
+  });
+
+  testBoth('reasons are full-width rows at least 42 high', (
+    tester,
+    lang,
+  ) async {
+    await pumpComponent(tester, _Host(onSend: (_) {}), lang: lang);
+    final row = find.ancestor(
+      of: find.text('Photo missing'),
+      matching: find.byType(GestureDetector),
+    );
+    expect(tester.getSize(row.first).height, greaterThanOrEqualTo(42));
   });
 }

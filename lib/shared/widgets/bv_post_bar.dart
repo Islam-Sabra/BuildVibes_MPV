@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
+import 'bv_tap_target.dart';
 
 /// The bar under the Daybook (spec §8): a notepad that starts writing in
 /// place, and the camera ("hold to prove"). For a Viewer pass,
@@ -95,39 +96,42 @@ class BvPostBar extends StatelessWidget {
         child: Row(
           spacing: BvPostBarSpec.gap,
           children: [
+            // The 44 notepad's touch area reaches 48 into the bar's padding.
             Expanded(
-              child: Material(
-                key: const Key('post-bar-notepad'),
-                color: BvColors.surfaceSubtle,
-                borderRadius: BvPostBarSpec.notepadRadius,
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: onWrite,
-                  child: SizedBox(
-                    height: BvPostBarSpec.notepadHeight,
-                    child: Padding(
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: BvPostBarSpec.notepadPadding,
-                      ),
-                      child: Row(
-                        spacing: BvPostBarSpec.notepadGap,
-                        children: [
-                          const Icon(
-                            BvIcons.workItems,
-                            size: BvPostBarSpec.notepadIcon,
-                            color: BvColors.iconPrimary,
-                          ),
-                          Expanded(
-                            child: Text(
-                              placeholder!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: type.bodyMd.copyWith(
-                                color: BvColors.textSecondary,
+              child: BvTapTarget(
+                child: Material(
+                  key: const Key('post-bar-notepad'),
+                  color: BvColors.surfaceSubtle,
+                  borderRadius: BvPostBarSpec.notepadRadius,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: onWrite,
+                    child: SizedBox(
+                      height: BvPostBarSpec.notepadHeight,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.symmetric(
+                          horizontal: BvPostBarSpec.notepadPadding,
+                        ),
+                        child: Row(
+                          spacing: BvPostBarSpec.notepadGap,
+                          children: [
+                            const Icon(
+                              BvIcons.workItems,
+                              size: BvPostBarSpec.notepadIcon,
+                              color: BvColors.iconPrimary,
+                            ),
+                            Expanded(
+                              child: Text(
+                                placeholder!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: type.bodyMd.copyWith(
+                                  color: BvColors.textSecondary,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

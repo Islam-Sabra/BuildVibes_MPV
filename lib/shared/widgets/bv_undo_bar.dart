@@ -22,10 +22,11 @@ class BvUndoBar extends StatelessWidget {
     final style = BvType.of(
       context,
     ).labelMd.copyWith(color: BvColors.textInverse);
+    // The action's touch area takes the bar's end padding and is at least
+    // 48 × 48 (review 44, C4).
     return Container(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: BvUndoBarSpec.paddingHorizontal,
-        vertical: BvUndoBarSpec.paddingVertical,
+      padding: const EdgeInsetsDirectional.only(
+        start: BvUndoBarSpec.paddingHorizontal,
       ),
       decoration: const BoxDecoration(
         color: BvColors.brandInk,
@@ -34,17 +35,40 @@ class BvUndoBar extends StatelessWidget {
       child: Row(
         spacing: BvUndoBarSpec.gap,
         children: [
-          Expanded(child: Text(message, style: style)),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.symmetric(
+                vertical: BvUndoBarSpec.paddingVertical,
+              ),
+              child: Text(message, style: style),
+            ),
+          ),
           Semantics(
             button: true,
             child: GestureDetector(
+              key: const Key('undo-bar-action'),
               behavior: HitTestBehavior.opaque,
               onTap: onAction,
-              child: Text(
-                actionLabel,
-                style: style.copyWith(
-                  decoration: TextDecoration.underline,
-                  decorationColor: BvColors.textInverse,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: BvSize.touchMin,
+                  minHeight: BvSize.touchMin,
+                ),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    end: BvUndoBarSpec.paddingHorizontal,
+                  ),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    widthFactor: 1,
+                    child: Text(
+                      actionLabel,
+                      style: style.copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: BvColors.textInverse,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -145,14 +145,18 @@ class BvMonthDropdown extends StatelessWidget {
       ],
     );
 
+    // A 24 caret in a 48 square touch area (rule 2).
     Widget caret(IconData icon, VoidCallback? onTap, Key key) => InkResponse(
       key: key,
       onTap: onTap,
       radius: BvMonthDropdownSpec.caret,
-      child: Icon(
-        icon,
-        size: BvMonthDropdownSpec.caret,
-        color: BvColors.iconPrimary,
+      child: SizedBox.square(
+        dimension: BvMonthDropdownSpec.caretTouch,
+        child: Icon(
+          icon,
+          size: BvMonthDropdownSpec.caret,
+          color: BvColors.iconPrimary,
+        ),
       ),
     );
 
@@ -164,12 +168,18 @@ class BvMonthDropdown extends StatelessWidget {
       child: Material(
         color: BvColors.surfaceElevated,
         borderRadius: BvMonthDropdownSpec.radius,
+        // The carets' touch squares reach into the top and end padding and
+        // the gap below, so the header row sits closer to those edges.
         child: Padding(
-          padding: const EdgeInsetsDirectional.all(BvMonthDropdownSpec.padding),
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            BvMonthDropdownSpec.padding,
+            BvMonthDropdownSpec.padding - BvMonthDropdownSpec.caretInset,
+            BvMonthDropdownSpec.padding - BvMonthDropdownSpec.caretInset,
+            BvMonthDropdownSpec.padding,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
-            spacing: BvMonthDropdownSpec.gap,
             children: [
               Row(
                 children: [
@@ -189,65 +199,11 @@ class BvMonthDropdown extends StatelessWidget {
                   caret(BvIcons.caretForward, onNext, const Key('month-next')),
                 ],
               ),
-              Row(
-                children: [
-                  for (var i = 0; i < days; i++)
-                    Expanded(
-                      child: Text(
-                        // 1 January 2023 was a Sunday.
-                        DateFormat.E(locale).format(
-                          DateTime(2023, 1, 1 + (firstWeekday + i) % days),
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.clip,
-                        style: type.labelSm.copyWith(
-                          color: BvColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              for (var r = 0; r < rows; r++)
-                Row(
-                  children: [
-                    for (var c = 0; c < days; c++)
-                      Expanded(child: Center(child: cell(r * days + c))),
-                  ],
+              Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  end: BvMonthDropdownSpec.caretInset,
                 ),
-              Row(
-                spacing: BvMonthDropdownSpec.legendGap,
-                children: [
-                  legend(
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: BvColors.textSecondary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: SizedBox.square(
-                        dimension: BvMonthDropdownSpec.legendDot,
-                      ),
-                    ),
-                    postsLabel,
-                  ),
-                  legend(
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.fromBorderSide(
-                          BorderSide(
-                            color: BvColors.actionPrimary,
-                            width: BvMonthDropdownSpec.ring,
-                          ),
-                        ),
-                      ),
-                      child: SizedBox.square(
-                        dimension: BvMonthDropdownSpec.legendRing,
-                      ),
-                    ),
-                    dueLabel,
-                  ),
-                ],
+                child: _grid(type, locale, days, rows, cell, legend),
               ),
             ],
           ),
@@ -255,4 +211,73 @@ class BvMonthDropdown extends StatelessWidget {
       ),
     );
   }
+
+  Widget _grid(
+    BvTypeSet type,
+    String locale,
+    int days,
+    int rows,
+    Widget Function(int index) cell,
+    Widget Function(Widget mark, String label) legend,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    spacing: BvMonthDropdownSpec.gap,
+    children: [
+      Row(
+        children: [
+          for (var i = 0; i < days; i++)
+            Expanded(
+              child: Text(
+                // 1 January 2023 was a Sunday.
+                DateFormat.E(
+                  locale,
+                ).format(DateTime(2023, 1, 1 + (firstWeekday + i) % days)),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+                style: type.labelSm.copyWith(color: BvColors.textSecondary),
+              ),
+            ),
+        ],
+      ),
+      for (var r = 0; r < rows; r++)
+        Row(
+          children: [
+            for (var c = 0; c < days; c++)
+              Expanded(child: Center(child: cell(r * days + c))),
+          ],
+        ),
+      Row(
+        spacing: BvMonthDropdownSpec.legendGap,
+        children: [
+          legend(
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                color: BvColors.textSecondary,
+                shape: BoxShape.circle,
+              ),
+              child: SizedBox.square(dimension: BvMonthDropdownSpec.legendDot),
+            ),
+            postsLabel,
+          ),
+          legend(
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.fromBorderSide(
+                  BorderSide(
+                    color: BvColors.actionPrimary,
+                    width: BvMonthDropdownSpec.ring,
+                  ),
+                ),
+              ),
+              child: SizedBox.square(dimension: BvMonthDropdownSpec.legendRing),
+            ),
+            dueLabel,
+          ),
+        ],
+      ),
+    ],
+  );
 }

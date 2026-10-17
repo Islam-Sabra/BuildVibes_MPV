@@ -78,4 +78,23 @@ void main() {
     expect(undone, 1);
     expect(find.byType(BvUndoBar), findsNothing);
   });
+
+  testBoth('Undo has a 48 × 48 touch area', (tester, lang) async {
+    var undone = 0;
+    await pumpComponent(
+      tester,
+      BvUndoBar(
+        message: 'Checked',
+        actionLabel: 'Undo',
+        onAction: () => undone++,
+      ),
+      lang: lang,
+    );
+    final action = find.byKey(const Key('undo-bar-action'));
+    final size = tester.getSize(action);
+    expect(size.width, greaterThanOrEqualTo(BvSize.touchMin));
+    expect(size.height, greaterThanOrEqualTo(BvSize.touchMin));
+    await tapEach(tester, touchSquareEdges(tester, action));
+    expect(undone, 4);
+  });
 }

@@ -14,7 +14,8 @@ import 'shot.dart';
 
 const _photo = AssetImage('assets/dev/site_sample.jpg');
 
-/// Sample text, English and Arabic.
+/// Sample text, English and Arabic: the prototype's words (D1 2518:33001,
+/// AR 2547:35195), never a fresh translation.
 class _S {
   const _S(this.ar);
   final bool ar;
@@ -48,15 +49,20 @@ Widget _workItemSlip(_S s) => BvSlip(
   stamp: BvInkStamp(label: s.t('DONE', 'منجز')),
   children: [
     BvSlipHeader(
-      name: s.t('You', 'أنت'),
-      action: s.t('posted a work item', 'نشرت بند عمل'),
+      name: s.t('Islam Ahmed', 'إسلام أحمد'),
+      label: s.t('You', 'أنت'),
       tint: BvAvatarTints.plain,
     ),
-    BvSlipTitle(s.t('Fix sleeves at grid C7', 'تثبيت الأكمام عند المحور C7')),
+    BvSlipTitle(
+      s.t(
+        'Sleeves at grid C7 before the pour',
+        'تركيب الجلب عند المحور C7 قبل الصبّ',
+      ),
+    ),
     BvSlipMeta(
       s.t('For Omar Haddad, by Thu 15 Oct', 'لعمر حداد، قبل الخميس 15 أكتوبر'),
     ),
-    BvSlipPlace(s.t('Level 2, grid C7', 'الطابق 2، المحور C7')),
+    BvSlipPlace(s.t('Level 2, grid C7', 'الدور 2، المحور C7')),
     BvSlipChips(
       children: [
         BvSlipChip(
@@ -80,7 +86,7 @@ Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
     BvSlipQuote(
       s.t(
         'Sleeves at grid C7 before the pour',
-        'الأكمام عند المحور C7 قبل الصب',
+        'تركيب الجلب عند المحور C7 قبل الصبّ',
       ),
     ),
     BvSlipPhoto(
@@ -102,7 +108,7 @@ Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
     BvSlipNote(
       s.t(
         'All six fixed and checked with MEP.',
-        'الستة مثبتة وتمت مراجعتها مع فريق MEP.',
+        'رُكّبت الست كلها وراجعتها مع فريق الكهروميكانيك.',
       ),
     ),
     if (checked)
@@ -116,7 +122,7 @@ Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
       BvSlipPill.hint(
         label: s.t(
           'Double-tap the photo to check it',
-          'انقر مرتين على الصورة لفحصه',
+          'انقر مرتين على الصورة لفحصها',
         ),
       ),
   ],
@@ -131,9 +137,9 @@ Widget _saraSlip(_S s) => BvSlip(
       tint: BvAvatarTints.clay,
     ),
     BvSlipTitle(
-      s.t('Rebar spacing, level 3 slab', 'تباعد حديد التسليح، بلاطة الطابق 3'),
+      s.t('Rebar spacing, level 3 slab', 'تباعد حديد التسليح، بلاطة الدور 3'),
     ),
-    BvSlipMeta(s.t('For you, by today 2 pm', 'لك، قبل اليوم 2 م')),
+    BvSlipMeta(s.t('For you, by today 2 pm', 'لك، قبل الساعة 2 ظهرًا اليوم')),
     BvSlipHistory(
       s.t(
         'Edited: due moved from Thu to today',
@@ -152,9 +158,9 @@ Widget _omarSlip(_S s) => BvSlip(
       tint: BvAvatarTints.clay,
     ),
     BvSlipTitle(
-      s.t('Rebar spacing, level 3 slab', 'تباعد حديد التسليح، بلاطة الطابق 3'),
+      s.t('Rebar spacing, level 3 slab', 'تباعد حديد التسليح، بلاطة الدور 3'),
     ),
-    BvSlipMeta(s.t('For you, by today 2 pm', 'لك، قبل اليوم 2 م')),
+    BvSlipMeta(s.t('For you, by today 2 pm', 'لك، قبل الساعة 2 ظهرًا اليوم')),
     BvSlipPill.action(
       icon: BvIcons.camera,
       label: s.t('Sign as done', 'وقّع كمنجز'),
@@ -172,9 +178,13 @@ Widget _cancelledSlip(_S s) => BvSlip(
     tone: BvInkStampTone.muted,
   ),
   children: [
-    BvSlipHeader(name: s.t('You', 'أنت'), tint: BvAvatarTints.plain),
+    BvSlipHeader(
+      name: s.t('Islam Ahmed', 'إسلام أحمد'),
+      label: s.t('You', 'أنت'),
+      tint: BvAvatarTints.plain,
+    ),
     BvSlipTitle(
-      s.t('Clean the level 1 store', 'تنظيف مخزن الطابق 1'),
+      s.t('Clean the level 1 store', 'تنظيف مخزن الدور 1'),
       cancelled: true,
     ),
     BvSlipMeta(s.t('Cancelled by you at 12:05', 'ألغيته الساعة 12:05')),

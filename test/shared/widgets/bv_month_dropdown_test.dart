@@ -112,4 +112,39 @@ void main() {
       expect(picked, DateTime(2026, 10, 18));
     });
   });
+
+  testBoth('the carets look 24 and have 48 × 48 touch areas', (
+    tester,
+    lang,
+  ) async {
+    var previous = 0, next = 0;
+    await _pump(
+      tester,
+      lang,
+      onPrevious: () => previous++,
+      onNext: () => next++,
+    );
+    for (final key in const [Key('month-previous'), Key('month-next')]) {
+      final caret = find.byKey(key);
+      expect(tester.getSize(caret), const Size.square(BvSize.touchMin));
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(of: caret, matching: find.byType(Icon)),
+            )
+            .size,
+        BvMonthDropdownSpec.caret,
+      );
+      await tapEach(tester, touchSquareEdges(tester, caret));
+    }
+    expect((previous, next), (4, 4));
+    // The forward caret keeps its place: the 24 glyph ends 16 from the end
+    // edge, centred in its square.
+    final grid = tester.getRect(find.byType(BvMonthDropdown));
+    final forward = tester.getCenter(find.byKey(const Key('month-next')));
+    expect(
+      isRtl(lang) ? forward.dx - grid.left : grid.right - forward.dx,
+      BvMonthDropdownSpec.padding + BvMonthDropdownSpec.caret / 2,
+    );
+  });
 }

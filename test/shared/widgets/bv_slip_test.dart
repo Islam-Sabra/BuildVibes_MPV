@@ -301,6 +301,75 @@ void main() {
       expect(signed, 1);
     });
 
+    testBoth('Sign as done and a tappable chip: 48 × 48 touch areas', (
+      tester,
+      lang,
+    ) async {
+      var signed = 0;
+      var opened = 0;
+      await pumpComponent(
+        tester,
+        Column(
+          spacing: BvSpace.s24,
+          children: [
+            BvSlip(
+              children: [
+                const BvSlipTitle('Sleeves at grid C7 before the pour'),
+                BvSlipChips(
+                  children: [
+                    BvSlipChip(
+                      key: const Key('chip'),
+                      icon: BvIcons.document,
+                      label: 'M-201',
+                      onTap: () => opened++,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            BvSlip(
+              children: [
+                const BvSlipTitle('Rebar spacing, level 3 slab'),
+                BvSlipPill.action(
+                  icon: BvIcons.camera,
+                  label: 'Sign as done',
+                  onTap: () => signed++,
+                ),
+              ],
+            ),
+          ],
+        ),
+        lang: lang,
+      );
+      final pill = find.byKey(const Key('slip-pill-action'));
+      expect(tester.getSize(pill).height, lessThan(BvSize.touchMin));
+      await tapEach(tester, touchSquareEdges(tester, pill));
+      expect(signed, 4);
+
+      final chip = find.byKey(const Key('chip'));
+      expect(tester.getSize(chip).height, BvSlipSpec.chipHeight);
+      await tapEach(tester, touchSquareEdges(tester, chip));
+      expect(opened, 4);
+    });
+
+    testBoth('"You": the label shows, the avatar keeps the real name', (
+      tester,
+      lang,
+    ) async {
+      await pumpComponent(
+        tester,
+        const BvSlipHeader(name: 'Islam Ahmed', label: 'You'),
+        lang: lang,
+      );
+      expect(find.text('You'), findsOneWidget);
+      expect(find.text('Islam Ahmed'), findsNothing);
+      expect(
+        tester.widget<BvAvatar>(find.byType(BvAvatar)).name,
+        'Islam Ahmed',
+      );
+      expect(find.text('IA'), findsOneWidget);
+    });
+
     testBoth('history and note lines', (tester, lang) async {
       await pumpComponent(
         tester,

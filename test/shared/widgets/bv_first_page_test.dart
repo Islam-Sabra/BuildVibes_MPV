@@ -73,4 +73,38 @@ void main() {
       expect(taps, ['post', 'pin']);
     });
   });
+
+  testBoth('the 40 high actions have 48 high touch areas', (
+    tester,
+    lang,
+  ) async {
+    final taps = <String>[];
+    await pumpComponent(
+      tester,
+      BvFirstPage(
+        title: 'The first page of your daybook',
+        body: 'Everything your team posts will hang here, day by day.',
+        actions: [
+          BvFirstPageAction(
+            icon: BvIcons.confirmed,
+            label: 'Post',
+            primary: true,
+            onTap: () => taps.add('post'),
+          ),
+          BvFirstPageAction(
+            icon: BvIcons.team,
+            label: 'Invite',
+            onTap: () => taps.add('invite'),
+          ),
+        ],
+      ),
+      lang: lang,
+    );
+    for (final label in ['Post', 'Invite']) {
+      final row = find.byKey(Key('first-page-action-$label'));
+      expect(tester.getSize(row).height, lessThan(BvSize.touchMin));
+      await tapEach(tester, touchSquareEdges(tester, row));
+    }
+    expect(taps, [...List.filled(4, 'post'), ...List.filled(4, 'invite')]);
+  });
 }
