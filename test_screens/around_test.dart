@@ -6,6 +6,7 @@
 // words) with its draft, waiting and refused states. The Space menu MN1
 // is in daybook_test.dart. Run:
 //   flutter test test_screens/around_test.dart --update-goldens
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:buildvibes/core/design/bv_icons.dart';
@@ -26,8 +27,10 @@ import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
+import 'package:buildvibes/features/activity/activity_screen.dart';
 import 'package:buildvibes/features/activity/activity_state.dart';
 import 'package:buildvibes/features/activity/needs_you_screen.dart';
+import 'package:buildvibes/features/create/create_sheet.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/feed/feed_state.dart';
 import 'package:buildvibes/features/feed/post_card.dart';
@@ -100,6 +103,9 @@ Widget _withNav(BuildContext context, int tab, Widget child) {
 Future<List<Override>> _base({
   required String me,
   List<NeedsCard> needs = const [],
+  List<SpaceToday> today = const [],
+  List<ActivityRow> rows = const [],
+  FakeSpaceRepository? spaces,
   Map<String, Object> phone = const {},
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
@@ -112,8 +118,9 @@ Future<List<Override>> _base({
     appGateProvider.overrideWithValue(AppGate.ready),
     clockProvider.overrideWithValue(() => DaybookSamples.thursday),
     activityRepositoryProvider.overrideWithValue(
-      FakeActivityRepository(cards: needs),
+      FakeActivityRepository(cards: needs, today: today, rows: rows),
     ),
+    if (spaces != null) spaceRepositoryProvider.overrideWithValue(spaces),
     needsCardsProvider.overrideWith((ref) async => needs),
     daybookPhotoProvider.overrideWith((ref, path) => samplePhoto),
     postPhotoProvider.overrideWith((ref, path) => samplePhoto),
@@ -274,39 +281,49 @@ void main() {
       locale: lang,
     );
 
-    Future<List<Override>> home({Map<String, Object> phone = const {}}) async =>
-        [
-          ...await _base(me: DaybookSamples.islam, phone: phone),
-          postRepositoryProvider.overrideWithValue(homePosts()),
-          myProfileProvider.overrideWith((ref) async => islamMe),
-          marketsProvider.overrideWith((ref) async => const <Market>[]),
-          newPostIdProvider.overrideWithValue(() => 'post-clash'),
-          pickPhotoProvider.overrideWithValue(
-            ({required camera}) async => XFile('camera.jpg'),
-          ),
-          keepPhotoProvider.overrideWithValue((photo) async => 'kept.jpg'),
-          // Islam's profile: Kuwait City Tower, with a confirmed role.
-          profileViewProvider.overrideWith(
-            (ref, id) async => ProfileView(
-              id: DaybookSamples.islam,
-              firstName: islamMe.firstName,
-              lastName: islamMe.lastName,
-              followerCount: 0,
-              followingCount: 0,
-              projects: [
-                CvProjectEntry(
-                  id: 'cv-kct-islam',
-                  projectId: 'proj-kct',
-                  projectName: kct,
-                  role: t('BIM Manager', 'مدير BIM'),
-                  showOnProfile: true,
-                  confirmed: true,
-                  placeName: sharq,
-                ),
-              ],
+    Future<List<Override>> home({
+      Map<String, Object> phone = const {},
+      List<NeedsCard> needs = const [],
+      List<SpaceToday> today = const [],
+      FakeSpaceRepository? spaces,
+    }) async => [
+      ...await _base(
+        me: DaybookSamples.islam,
+        phone: phone,
+        needs: needs,
+        today: today,
+        spaces: spaces,
+      ),
+      postRepositoryProvider.overrideWithValue(homePosts()),
+      myProfileProvider.overrideWith((ref) async => islamMe),
+      marketsProvider.overrideWith((ref) async => const <Market>[]),
+      newPostIdProvider.overrideWithValue(() => 'post-clash'),
+      pickPhotoProvider.overrideWithValue(
+        ({required camera}) async => XFile('camera.jpg'),
+      ),
+      keepPhotoProvider.overrideWithValue((photo) async => 'kept.jpg'),
+      // Islam's profile: Kuwait City Tower, with a confirmed role.
+      profileViewProvider.overrideWith(
+        (ref, id) async => ProfileView(
+          id: DaybookSamples.islam,
+          firstName: islamMe.firstName,
+          lastName: islamMe.lastName,
+          followerCount: 0,
+          followingCount: 0,
+          projects: [
+            CvProjectEntry(
+              id: 'cv-kct-islam',
+              projectId: 'proj-kct',
+              projectName: kct,
+              role: t('BIM Manager', 'مدير BIM'),
+              showOnProfile: true,
+              confirmed: true,
+              placeName: sharq,
             ),
-          ),
-        ];
+          ],
+        ),
+      ),
+    ];
 
     /// The post at Now: its text, the photo and the project tag.
     String draftJson({bool couldNotSend = false}) => jsonEncode(
@@ -327,6 +344,276 @@ void main() {
         lang,
         (context) => _withNav(context, 0, const HomeScreen()),
         overrides: await home(),
+      );
+    });
+
+    // Review 51 Part C (F3, F10, F1, F13). Home → Spaces has no v3 frame
+    // of its own: the Needs you rows (2544:35068) and H1's header and tabs
+    // (2555:35276, AR 2564:184) set its language.
+    final khiran = t('Khiran villas — Finishing', 'فلل الخيران — التشطيبات');
+    final salmiya = t('Salmiya Seafront', 'واجهة السالمية البحرية');
+    FakeSpaceRepository mySpaces() {
+      SpaceDetail detail(String id, String name, SpacePass pass) => SpaceDetail(
+        id: id,
+        name: name,
+        myPass: pass,
+        iAmAdmin: false,
+        myRights: MemberRights(
+          createItems: pass != SpacePass.viewer,
+          markDone: pass != SpacePass.viewer,
+        ),
+      );
+      return FakeSpaceRepository(now: DaybookSamples.thursday)
+        ..spaces.addAll([
+          SpaceSummary(
+            id: DaybookSamples.space,
+            name: s.spaceName,
+            pass: SpacePass.lead,
+            isAdmin: true,
+            projectId: 'proj-kct',
+            projectName: kct,
+          ),
+          SpaceSummary(
+            id: 'space-khiran',
+            name: khiran,
+            pass: SpacePass.crew,
+            isAdmin: false,
+          ),
+          SpaceSummary(
+            id: 'space-salmiya',
+            name: salmiya,
+            pass: SpacePass.viewer,
+            isAdmin: false,
+          ),
+        ])
+        ..details[DaybookSamples.space] = s.detail()
+        ..details['space-khiran'] = detail(
+          'space-khiran',
+          khiran,
+          SpacePass.crew,
+        )
+        ..details['space-salmiya'] = detail(
+          'space-salmiya',
+          salmiya,
+          SpacePass.viewer,
+        );
+    }
+
+    final dayNeeds = [
+      NeedsCard(
+        kind: NeedsKind.youCheck,
+        spaceId: DaybookSamples.space,
+        spaceName: s.spaceName,
+        at: DateTime(2026, 10, 15, 9, 40),
+        workItemId: 'post-sleeves',
+        workItemRef: 'KCT-021',
+        workItemTitle: s.sleeves,
+        actorName: s.omarName,
+      ),
+      NeedsCard(
+        kind: NeedsKind.forYou,
+        spaceId: DaybookSamples.space,
+        spaceName: s.spaceName,
+        at: DateTime(2026, 10, 15, 8),
+        workItemId: 'post-rebar',
+        workItemRef: 'KCT-024',
+        workItemTitle: s.rebar().title,
+        actorName: s.saraName,
+        due: DateTime(2026, 10, 15),
+      ),
+    ];
+    final dayNews = [
+      // Already in Needs you: its Space shows only when.
+      SpaceToday(
+        spaceId: DaybookSamples.space,
+        spaceName: s.spaceName,
+        change: SpaceChange.workItem,
+        at: DateTime(2026, 10, 15, 9, 40),
+        workItemId: 'post-sleeves',
+        workItemRef: 'KCT-021',
+        workItemTitle: s.sleeves,
+        eventKind: 'done',
+        actorName: s.omarName,
+      ),
+      SpaceToday(
+        spaceId: 'space-khiran',
+        spaceName: khiran,
+        change: SpaceChange.chat,
+        at: DateTime(2026, 10, 15, 8, 25),
+        threadId: 'thread-khiran',
+        messageKind: 'text',
+        messageBody: t(
+          'Tiles for villa 3 arrive on Sunday morning.',
+          'بلاط الفيلا 3 يصل صباح الأحد.',
+        ),
+        actorName: s.linaName,
+      ),
+    ];
+
+    Future<void> spacesTab(WidgetTester tester) async {
+      await tester.tap(find.text(l10n.homeSpaces));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('C1 Home → Spaces: Needs you and Your Spaces [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'C1-home-spaces',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(
+          needs: dayNeeds,
+          today: dayNews,
+          spaces: mySpaces(),
+        ),
+        before: spacesTab,
+      );
+    });
+
+    testWidgets('C2 Home → Spaces with no Space yet [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'C2-home-spaces-empty',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(spaces: FakeSpaceRepository()),
+        before: spacesTab,
+      );
+    });
+
+    Future<void> create(WidgetTester tester) async {
+      unawaited(
+        showCreateChoice(
+          tester.element(find.byType(HomeScreen)),
+          onPost: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('C3 Create: Post to everyone or a work item [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'C3-create-choice',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(spaces: mySpaces()),
+        before: create,
+      );
+    });
+
+    testWidgets('C4 Create: which Space, the last one first [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'C4-create-pick-space',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(
+          spaces: mySpaces(),
+          phone: {'last_space:${DaybookSamples.islam}': 'space-khiran'},
+        ),
+        before: (tester) async {
+          await create(tester);
+          await tester.tap(find.byKey(const Key('create-work-item')));
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('C5 Activity: every row opens what it is about [$lang]', (
+      tester,
+    ) async {
+      ActivityRow row(
+        String id,
+        ActivityKind kind,
+        ActivityGroupKind group,
+        DateTime at, {
+        String? actor,
+        String? actorId,
+        String? item,
+        String? ref,
+        bool read = true,
+        String? post,
+        String? context,
+      }) => ActivityRow(
+        id: id,
+        kind: kind,
+        group: group,
+        createdAt: at,
+        spaceId: group == ActivityGroupKind.space ? DaybookSamples.space : null,
+        spaceName: group == ActivityGroupKind.space ? s.spaceName : null,
+        myPass: group == ActivityGroupKind.space ? 'lead' : null,
+        workItemId: item == null ? null : 'post-$id',
+        workItemRef: ref,
+        workItemTitle: item,
+        actorId: actorId,
+        actorName: actor,
+        read: read,
+        postId: post,
+        context: context,
+      );
+      final rows = [
+        row(
+          'done',
+          ActivityKind.itemDone,
+          ActivityGroupKind.space,
+          DateTime(2026, 10, 15, 9, 40),
+          actor: s.omarName,
+          actorId: DaybookSamples.omar,
+          item: s.sleeves,
+          ref: 'KCT-021',
+          read: false,
+        ),
+        row(
+          'comment',
+          ActivityKind.itemComment,
+          ActivityGroupKind.space,
+          DateTime(2026, 10, 15, 8, 10),
+          actor: s.saraName,
+          actorId: DaybookSamples.sara,
+          item: s.rebar().title,
+          ref: 'KCT-024',
+        ),
+        row(
+          'follow',
+          ActivityKind.follow,
+          ActivityGroupKind.network,
+          DateTime(2026, 10, 14, 18),
+          actor: s.rakeshName,
+          actorId: DaybookSamples.rakesh,
+        ),
+        row(
+          'reply',
+          ActivityKind.postReply,
+          ActivityGroupKind.posts,
+          DateTime(2026, 10, 14, 16),
+          actor: s.linaName,
+          actorId: DaybookSamples.lina,
+          post: 'post-pour',
+          context: t(
+            'Great work on the night shift.',
+            'عمل رائع في الوردية الليلية.',
+          ),
+        ),
+      ];
+      await shoot(
+        tester,
+        'C5-activity',
+        lang,
+        (context) => _withNav(context, 2, const ActivityScreen()),
+        overrides: await _base(
+          me: DaybookSamples.islam,
+          needs: dayNeeds.take(1).toList(),
+          rows: rows,
+        ),
       );
     });
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,13 +20,15 @@ import '../chat/chat_tab.dart';
 import '../library/library_tab.dart';
 import '../work/daybook_tab.dart';
 import 'people_tab.dart';
+import 'spaces_state.dart';
 
 /// What the Space menu offers now (MN1).
 enum _SpaceMenu { info }
 
-/// How a Space opens: on its People tab, and with the invite screen on top
-/// right after it was created (review 06, S5).
-enum SpaceOpen { people, invite }
+/// How a Space opens: on its People tab, with the invite screen on top
+/// right after it was created (review 06, S5), or on its daybook with the
+/// work item card open, from Create (review 50 F1).
+enum SpaceOpen { people, invite, write }
 
 /// A Space: the Space header (MN1) and the tabs Work · Chat · People ·
 /// Library at the bottom.
@@ -44,14 +48,22 @@ class SpaceScreen extends ConsumerStatefulWidget {
 }
 
 class _SpaceScreenState extends ConsumerState<SpaceScreen> {
-  late var _tab = widget.open == null
-      ? SpaceScreen.workTab
-      : SpaceScreen.peopleTab;
+  late var _tab = switch (widget.open) {
+    SpaceOpen.people || SpaceOpen.invite => SpaceScreen.peopleTab,
+    SpaceOpen.write || null => SpaceScreen.workTab,
+  };
 
   @override
   void initState() {
     super.initState();
     _markSeen();
+    // Create lists this Space first next time (F1); after the first
+    // frame, as a provider can't change while the tree builds.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        unawaited(ref.read(lastSpaceProvider.notifier).opened(widget.spaceId));
+      }
+    });
     if (widget.open == SpaceOpen.invite) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.push(AppRoutes.spaceInvite(widget.spaceId));
@@ -149,7 +161,10 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         onMore: _openMenu,
       ),
       body: switch (_tab) {
-        SpaceScreen.workTab => DaybookTab(space: detail),
+        SpaceScreen.workTab => DaybookTab(
+          space: detail,
+          startWriting: widget.open == SpaceOpen.write,
+        ),
         SpaceScreen.chatTab => ChatTab(space: detail),
         SpaceScreen.libraryTab => LibraryTab(space: detail),
         SpaceScreen.peopleTab => PeopleTab(space: detail),

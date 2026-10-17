@@ -6,6 +6,7 @@ import '../../core/design/bv_icons.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../activity/activity_state.dart';
+import '../create/create_sheet.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
 import '../feed/post_draft.dart';
@@ -45,15 +46,22 @@ class AppShell extends ConsumerWidget {
           );
         },
         createLabel: l10n.navCreate,
-        // Create writes a post in place on Home, at Now (H2), from every
-        // tab. Creating needs an account: guests see the join wall.
+        // Create (F1): "Post to everyone" writes a post in place on Home,
+        // at Now (H2), from every tab; "Work item in a Space" opens that
+        // Space's daybook with its card open. Creating needs an account:
+        // guests see the join wall.
         onCreate: () {
           if (guest) {
             showJoinWall(context);
             return;
           }
-          ref.read(postWritingProvider.notifier).write();
-          navigationShell.goBranch(homeTab, initialLocation: true);
+          showCreateChoice(
+            context,
+            onPost: () {
+              ref.read(postWritingProvider.notifier).write();
+              navigationShell.goBranch(homeTab, initialLocation: true);
+            },
+          );
         },
         items: [
           BvBottomBarItem(

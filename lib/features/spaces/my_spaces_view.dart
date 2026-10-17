@@ -21,9 +21,10 @@ import 'code_sheet.dart';
 import 'space_errors.dart';
 import 'spaces_state.dart';
 
-/// Home → Spaces until week 7 builds the daily Spaces tab: My Spaces
-/// (S1 v2, project Spaces only), or the empty state (H1e) with "Enter an
-/// invite code". Your own waiting or declined requests sit on top.
+/// My Spaces (S1 v2, project Spaces only), or the empty state (H1e) with
+/// Enter an invite code and New Space, which Home → Spaces shows too
+/// while you have no Space. Your own waiting or declined requests sit on
+/// top.
 class MySpacesView extends ConsumerWidget {
   const MySpacesView({super.key});
 
@@ -32,7 +33,12 @@ class MySpacesView extends ConsumerWidget {
     final guest = ref.watch(appGateProvider) == AppGate.guest;
     if (guest) {
       return _Page(
-        children: [_EmptyCard(onEnterCode: () => showJoinWall(context))],
+        children: [
+          _EmptyCard(
+            onEnterCode: () => showJoinWall(context),
+            onNewSpace: () => showJoinWall(context),
+          ),
+        ],
       );
     }
     final spaces = ref.watch(mySpacesProvider);
@@ -67,7 +73,10 @@ class MySpacesView extends ConsumerWidget {
         children: [
           for (final r in waiting) _RequestCard(request: r),
           if (mine.isEmpty)
-            _EmptyCard(onEnterCode: () => showInviteCodeSheet(context))
+            _EmptyCard(
+              onEnterCode: () => showInviteCodeSheet(context),
+              onNewSpace: () => context.push(AppRoutes.spacesNew),
+            )
           else
             _SpaceList(spaces: mine),
         ],
@@ -222,12 +231,14 @@ class _RequestCard extends ConsumerWidget {
   }
 }
 
-/// H1e, Spaces part: "Join your first Space" with Enter an invite code.
-/// "Find Spaces to join" is Discover, which is not in the MVP.
+/// H1e, Spaces part: "Join your first Space" with Enter an invite code
+/// and New Space, both large (F3). "Find Spaces to join" is Discover,
+/// which is not in the MVP.
 class _EmptyCard extends StatelessWidget {
-  const _EmptyCard({required this.onEnterCode});
+  const _EmptyCard({required this.onEnterCode, required this.onNewSpace});
 
   final VoidCallback onEnterCode;
+  final VoidCallback onNewSpace;
 
   @override
   Widget build(BuildContext context) {
@@ -254,6 +265,13 @@ class _EmptyCard extends StatelessWidget {
                 label: l10n.spacesEnterCode,
                 expand: true,
                 onPressed: onEnterCode,
+              ),
+              BvButton(
+                key: const Key('spaces-new-space'),
+                label: l10n.spacesNewTitle,
+                style: BvButtonStyle.secondary,
+                expand: true,
+                onPressed: onNewSpace,
               ),
             ],
           ),

@@ -257,6 +257,9 @@ void main() {
       final app = await _feed(tester, lang);
       await tester.tap(find.byKey(const Key('nav-create')));
       await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
       expect(find.text(l10n.postWritingAuthor), findsOneWidget);
       expect(find.text(l10n.daybookNow), findsOneWidget);
@@ -311,6 +314,9 @@ void main() {
       final app = await _feed(tester, lang);
       await tester.tap(find.byKey(const Key('nav-create')));
       await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
       for (var i = 0; i < 4; i++) {
         await tester.tap(find.bySemanticsLabel(l10n.daybookAddPhoto));
         await tester.pumpAndSettle();
@@ -334,6 +340,9 @@ void main() {
         '[$lang]', (tester) async {
       final app = await _feed(tester, lang);
       await tester.tap(find.byKey(const Key('nav-create')));
+      await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
       await tester.pumpAndSettle();
       // The photo often comes first (review 46).
       await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
@@ -376,6 +385,9 @@ void main() {
       final app = await _feed(tester, lang, posts: posts);
       await tester.tap(find.byKey(const Key('nav-create')));
       await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('writing-body')),
         'Rebar done.',
@@ -407,6 +419,9 @@ void main() {
       final posts = _posts()..refuseNext = 1;
       final app = await _feed(tester, lang, posts: posts);
       await tester.tap(find.byKey(const Key('nav-create')));
+      await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('writing-body')),

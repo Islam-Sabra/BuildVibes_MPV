@@ -3578,29 +3578,11 @@ abstract class AppLocalizations {
   /// **'{n}h'**
   String timeHoursShort(int n);
 
-  /// H1b title.
-  ///
-  /// In en, this message translates to:
-  /// **'Your day on site'**
-  String get homeDayTitle;
-
   /// H1b summary, first part (orange).
   ///
   /// In en, this message translates to:
   /// **'{n, plural, =1{1 thing needs you} other{{n} things need you}}'**
   String homeDayNeedsYou(int n);
-
-  /// H1b summary: Spaces with something new today.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 Space active} other{{n} Spaces active}}'**
-  String homeDaySpacesActive(int n);
-
-  /// H1b summary: replies today to your chat messages.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 reply} other{{n} replies}}'**
-  String homeDayReplies(int n);
 
   /// H1b section.
   ///
@@ -3613,30 +3595,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See all'**
   String get homeSeeAll;
-
-  /// H1b section.
-  ///
-  /// In en, this message translates to:
-  /// **'TODAY IN YOUR SPACES'**
-  String get homeTodayInSpaces;
-
-  /// H1b end, when nothing needs you.
-  ///
-  /// In en, this message translates to:
-  /// **'That\'s your day'**
-  String get homeThatsYourDay;
-
-  /// H1b end line.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing else needs you right now'**
-  String get homeNothingElse;
-
-  /// H1b row: the Space is linked to a project.
-  ///
-  /// In en, this message translates to:
-  /// **'Project'**
-  String get homeProject;
 
   /// Home top bar search tooltip.
   ///
@@ -3703,36 +3661,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'due {date}'**
   String needsDue(String date);
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · FOR YOU'**
-  String get needsOverForYou;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · YOU CHECK IT'**
-  String get needsOverCheck;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · SENT BACK'**
-  String get needsOverSentBack;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · OWNER LEFT'**
-  String get needsOverOwnerLeft;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'SPACE · REQUEST TO JOIN'**
-  String get needsOverJoin;
 
   /// Needs-you button.
   ///
@@ -3823,12 +3751,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your posts'**
   String get activityGroupPosts;
-
-  /// A1 group stamp; letters stay Latin.
-  ///
-  /// In en, this message translates to:
-  /// **'REV {letter}'**
-  String activityRev(String letter);
 
   /// A1 row.
   ///
@@ -5851,6 +5773,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Up to 4 photos.'**
   String get postWritingPhotosMax;
+
+  /// H1b header line, after the date, when nothing needs you.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs you'**
+  String get homeNothingNeedsYou;
+
+  /// H1b section: every Space once, its latest news.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR SPACES'**
+  String get homeYourSpaces;
+
+  /// Create choice (F1): a public post in the Home feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Post to everyone'**
+  String get createPostToEveryone;
+
+  /// Create choice: under Post to everyone.
+  ///
+  /// In en, this message translates to:
+  /// **'In the Home feed, for everyone'**
+  String get createPostToEveryoneLine;
+
+  /// Create choice (F1): write a work item in one of your Spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Work item in a Space'**
+  String get createWorkItem;
+
+  /// Create choice: under Work item in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the Space\'s members see it'**
+  String get createWorkItemLine;
+
+  /// Create, second step: the Spaces where you can write work items.
+  ///
+  /// In en, this message translates to:
+  /// **'Which Space?'**
+  String get createPickSpace;
+
+  /// Create, Space list: the Space you opened last, listed first.
+  ///
+  /// In en, this message translates to:
+  /// **'Last opened'**
+  String get createLastSpace;
+
+  /// Create, Space list: none where you can create work items.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.'**
+  String get createNoWorkSpaces;
 }
 
 class _AppLocalizationsDelegate

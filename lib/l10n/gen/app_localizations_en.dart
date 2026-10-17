@@ -2039,9 +2039,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeDayTitle => 'Your day on site';
-
-  @override
   String homeDayNeedsYou(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2053,44 +2050,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String homeDaySpacesActive(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n Spaces active',
-      one: '1 Space active',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String homeDayReplies(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n replies',
-      one: '1 reply',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get homeNeedsYou => 'NEEDS YOU';
 
   @override
   String get homeSeeAll => 'See all';
-
-  @override
-  String get homeTodayInSpaces => 'TODAY IN YOUR SPACES';
-
-  @override
-  String get homeThatsYourDay => 'That\'s your day';
-
-  @override
-  String get homeNothingElse => 'Nothing else needs you right now';
-
-  @override
-  String get homeProject => 'Project';
 
   @override
   String get homeSearch => 'Search people';
@@ -2142,21 +2105,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String needsDue(String date) {
     return 'due $date';
   }
-
-  @override
-  String get needsOverForYou => 'WORK ITEM · FOR YOU';
-
-  @override
-  String get needsOverCheck => 'WORK ITEM · YOU CHECK IT';
-
-  @override
-  String get needsOverSentBack => 'WORK ITEM · SENT BACK';
-
-  @override
-  String get needsOverOwnerLeft => 'WORK ITEM · OWNER LEFT';
-
-  @override
-  String get needsOverJoin => 'SPACE · REQUEST TO JOIN';
 
   @override
   String get needsOpen => 'Open';
@@ -2228,11 +2176,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activityGroupPosts => 'Your posts';
-
-  @override
-  String activityRev(String letter) {
-    return 'REV $letter';
-  }
 
   @override
   String activityAssigned(String name, String ref) {
@@ -3490,4 +3433,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postWritingPhotosMax => 'Up to 4 photos.';
+
+  @override
+  String get homeNothingNeedsYou => 'Nothing needs you';
+
+  @override
+  String get homeYourSpaces => 'YOUR SPACES';
+
+  @override
+  String get createPostToEveryone => 'Post to everyone';
+
+  @override
+  String get createPostToEveryoneLine => 'In the Home feed, for everyone';
+
+  @override
+  String get createWorkItem => 'Work item in a Space';
+
+  @override
+  String get createWorkItemLine => 'Only the Space\'s members see it';
+
+  @override
+  String get createPickSpace => 'Which Space?';
+
+  @override
+  String get createLastSpace => 'Last opened';
+
+  @override
+  String get createNoWorkSpaces =>
+      'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.';
 }

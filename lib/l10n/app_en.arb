@@ -2878,31 +2878,9 @@
       }
     }
   },
-  "homeDayTitle": "Your day on site",
-  "@homeDayTitle": {
-    "description": "H1b title."
-  },
   "homeDayNeedsYou": "{n, plural, =1{1 thing needs you} other{{n} things need you}}",
   "@homeDayNeedsYou": {
     "description": "H1b summary, first part (orange).",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "homeDaySpacesActive": "{n, plural, =1{1 Space active} other{{n} Spaces active}}",
-  "@homeDaySpacesActive": {
-    "description": "H1b summary: Spaces with something new today.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "homeDayReplies": "{n, plural, =1{1 reply} other{{n} replies}}",
-  "@homeDayReplies": {
-    "description": "H1b summary: replies today to your chat messages.",
     "placeholders": {
       "n": {
         "type": "int"
@@ -2916,22 +2894,6 @@
   "homeSeeAll": "See all",
   "@homeSeeAll": {
     "description": "H1b: more than 3 needs; opens Activity."
-  },
-  "homeTodayInSpaces": "TODAY IN YOUR SPACES",
-  "@homeTodayInSpaces": {
-    "description": "H1b section."
-  },
-  "homeThatsYourDay": "That's your day",
-  "@homeThatsYourDay": {
-    "description": "H1b end, when nothing needs you."
-  },
-  "homeNothingElse": "Nothing else needs you right now",
-  "@homeNothingElse": {
-    "description": "H1b end line."
-  },
-  "homeProject": "Project",
-  "@homeProject": {
-    "description": "H1b row: the Space is linked to a project."
   },
   "homeSearch": "Search people",
   "@homeSearch": {
@@ -3033,26 +2995,6 @@
         "type": "String"
       }
     }
-  },
-  "needsOverForYou": "WORK ITEM · FOR YOU",
-  "@needsOverForYou": {
-    "description": "A1 overline."
-  },
-  "needsOverCheck": "WORK ITEM · YOU CHECK IT",
-  "@needsOverCheck": {
-    "description": "A1 overline."
-  },
-  "needsOverSentBack": "WORK ITEM · SENT BACK",
-  "@needsOverSentBack": {
-    "description": "A1 overline."
-  },
-  "needsOverOwnerLeft": "WORK ITEM · OWNER LEFT",
-  "@needsOverOwnerLeft": {
-    "description": "A1 overline."
-  },
-  "needsOverJoin": "SPACE · REQUEST TO JOIN",
-  "@needsOverJoin": {
-    "description": "A1 overline."
   },
   "needsOpen": "Open",
   "@needsOpen": {
@@ -3161,15 +3103,6 @@
   "activityGroupPosts": "Your posts",
   "@activityGroupPosts": {
     "description": "A1 group."
-  },
-  "activityRev": "REV {letter}",
-  "@activityRev": {
-    "description": "A1 group stamp; letters stay Latin.",
-    "placeholders": {
-      "letter": {
-        "type": "String"
-      }
-    }
   },
   "activityAssigned": "{name} gave you {ref}",
   "@activityAssigned": {
@@ -4938,5 +4871,41 @@
   "postWritingPhotosMax": "Up to 4 photos.",
   "@postWritingPhotosMax": {
     "description": "Writing a post: a fifth photo was tried (create_post takes four)."
+  },
+  "homeNothingNeedsYou": "Nothing needs you",
+  "@homeNothingNeedsYou": {
+    "description": "H1b header line, after the date, when nothing needs you."
+  },
+  "homeYourSpaces": "YOUR SPACES",
+  "@homeYourSpaces": {
+    "description": "H1b section: every Space once, its latest news."
+  },
+  "createPostToEveryone": "Post to everyone",
+  "@createPostToEveryone": {
+    "description": "Create choice (F1): a public post in the Home feed."
+  },
+  "createPostToEveryoneLine": "In the Home feed, for everyone",
+  "@createPostToEveryoneLine": {
+    "description": "Create choice: under Post to everyone."
+  },
+  "createWorkItem": "Work item in a Space",
+  "@createWorkItem": {
+    "description": "Create choice (F1): write a work item in one of your Spaces."
+  },
+  "createWorkItemLine": "Only the Space's members see it",
+  "@createWorkItemLine": {
+    "description": "Create choice: under Work item in a Space."
+  },
+  "createPickSpace": "Which Space?",
+  "@createPickSpace": {
+    "description": "Create, second step: the Spaces where you can write work items."
+  },
+  "createLastSpace": "Last opened",
+  "@createLastSpace": {
+    "description": "Create, Space list: the Space you opened last, listed first."
+  },
+  "createNoWorkSpaces": "There's no Space yet where you can write work items. Join one with an invite code, or start a new Space.",
+  "@createNoWorkSpaces": {
+    "description": "Create, Space list: none where you can create work items."
   }
 }

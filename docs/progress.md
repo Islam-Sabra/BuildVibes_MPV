@@ -581,6 +581,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - F11/F18: the daybook and the Home feed read their newest page on open, on return to the app, when shown again and on a push; pull-to-refresh always works; a "New" chip when reading older entries.
   - F17: the outboxes retry by themselves within seconds; "Waiting to send" goes the moment the server accepts it, with no duplicate slip.
 
+- **17 Oct, slice 1 test fixes, Part C (getting around)** (review 51; branch `slice1-fixes`): Home → Spaces has one compact date line, New Space and Enter an invite code always on top, Needs you cards with the Space name first and the whole card tappable, and every Space once under "Your Spaces"; every Activity row opens what it's about (the REV stamp and A–F letters are gone); + offers "Post to everyone" or "Work item in a Space ▸"; a short or long press on any slip gives Add update to the owner, Lead and Crew. Server gaps: no last-activity time per Space, one news row per Space, no create right in `my_spaces()`, no server-side last-opened Space.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

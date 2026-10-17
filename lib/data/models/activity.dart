@@ -48,7 +48,6 @@ class ActivityRow {
     required this.kind,
     required this.group,
     required this.createdAt,
-    required this.seq,
     this.spaceId,
     this.spaceName,
     this.myPass,
@@ -74,7 +73,6 @@ class ActivityRow {
     kind: ActivityKind.fromJson(j['kind'])!,
     group: ActivityGroupKind.fromJson(j['group_kind']),
     createdAt: DateTime.parse(j['created_at'] as String),
-    seq: (j['seq'] as num).toInt(),
     spaceId: j['space_id'] as String?,
     spaceName: j['space_name'] as String?,
     myPass: j['my_pass'] as String?,
@@ -102,8 +100,6 @@ class ActivityRow {
   final ActivityGroupKind group;
   final DateTime createdAt;
 
-  /// Its place in its group: 1 is the oldest in the window (letter A).
-  final int seq;
   final String? spaceId;
   final String? spaceName;
   final String? myPass;
@@ -135,34 +131,6 @@ class ActivityRow {
   /// Groups rows: a Space's id, or the group's name.
   String get groupKey =>
       group == ActivityGroupKind.space ? 'space:${spaceId ?? ''}' : group.name;
-}
-
-/// "A", "B" … "Z", then "AA", "AB" …: REV letters, always Latin.
-String revLetter(int seq) {
-  var n = seq;
-  var out = '';
-  while (n > 0) {
-    final r = (n - 1) % 26;
-    out = String.fromCharCode(0x41 + r) + out;
-    n = (n - 1) ~/ 26;
-  }
-  return out;
-}
-
-/// The H1b header counts: each your own.
-@immutable
-class HomeDay {
-  const HomeDay({this.needsYou = 0, this.activeSpaces = 0, this.replies = 0});
-
-  factory HomeDay.fromJson(Map<String, dynamic> j) => HomeDay(
-    needsYou: (j['needs_you'] as num?)?.toInt() ?? 0,
-    activeSpaces: (j['active_spaces'] as num?)?.toInt() ?? 0,
-    replies: (j['replies'] as num?)?.toInt() ?? 0,
-  );
-
-  final int needsYou;
-  final int activeSpaces;
-  final int replies;
 }
 
 /// Which Space tab a "Today in your Spaces" row opens.

@@ -55,6 +55,9 @@ Future<void> _writeOffline(
   posts.failNext = 3;
   await tester.tap(find.byKey(const Key('nav-create')));
   await tester.pumpAndSettle();
+  // Create's choice (F1): Post to everyone.
+  await tester.tap(find.byKey(const Key('create-post')));
+  await tester.pumpAndSettle();
   await tester.enterText(find.byKey(const Key('writing-body')), body);
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('writing-post')));

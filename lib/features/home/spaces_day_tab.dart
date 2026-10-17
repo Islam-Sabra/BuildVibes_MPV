@@ -3,27 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
-import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/ago.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/activity.dart';
-import '../../data/repositories/profile_page_repository.dart';
+import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_space_tile.dart';
 import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
 import '../activity/activity_state.dart';
 import '../activity/needs_card.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../profile/widgets/profile_parts.dart';
+import '../spaces/code_sheet.dart';
 import '../spaces/my_spaces_view.dart';
 
-/// Home → Spaces (H1b): your day on site. The header, at most 3 things
-/// that need you, and what is new today in your Spaces. Without a Space:
-/// My Spaces' empty state (H1e) with "Enter an invite code".
+/// Home → Spaces (H1b, review 50 F3 + F10): one line with the date and
+/// what needs you; New Space and Enter an invite code; at most 3 things
+/// that need you; then Your Spaces, every Space once. Without a Space:
+/// My Spaces' empty state (H1e), where both actions are large.
 class SpacesDayTab extends ConsumerWidget {
   const SpacesDayTab({super.key});
 
@@ -42,7 +45,6 @@ class SpacesDayTab extends ConsumerWidget {
     final type = BvType.of(context);
     final needs = ref.watch(needsCardsProvider).value ?? const <NeedsCard>[];
     final today = ref.watch(todayInSpacesProvider).value ?? const [];
-    final day = ref.watch(homeDayProvider).value ?? const HomeDay();
 
     Future<void> refresh() async {
       refreshDay(ref.invalidate);
@@ -62,12 +64,14 @@ class SpacesDayTab extends ConsumerWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsetsDirectional.fromSTEB(
           BvSpace.gutter,
-          BvSpace.s8,
+          BvSpace.s12,
           BvSpace.gutter,
           BvSpace.s32,
         ),
         children: [
-          _Header(day: day),
+          _Header(needs: needs.length),
+          const SizedBox(height: BvSpace.s12),
+          const _SpaceActions(),
           if (needs.isNotEmpty) ...[
             const SizedBox(height: BvSpace.s24),
             overline(l10n.homeNeedsYou),
@@ -86,43 +90,22 @@ class SpacesDayTab extends ConsumerWidget {
                 ),
               ),
           ],
-          if (today.isNotEmpty) ...[
-            const SizedBox(height: BvSpace.s16),
-            overline(l10n.homeTodayInSpaces),
-            const SizedBox(height: BvSpace.s8),
-            _TodayCard(rows: today.take(BvActivitySpec.todayRows).toList()),
-          ],
-          if (needs.isEmpty) ...[
-            const SizedBox(height: BvSpace.s32),
-            Column(
-              key: const Key('home-thats-your-day'),
-              spacing: BvSpace.s4,
-              children: [
-                const Icon(
-                  BvIcons.check,
-                  size: BvSize.iconMd,
-                  color: BvColors.iconPrimary,
-                ),
-                Text(l10n.homeThatsYourDay, style: type.titleMd),
-                Text(
-                  l10n.homeNothingElse,
-                  style: type.bodySm.copyWith(color: BvColors.textSecondary),
-                ),
-              ],
-            ),
-          ],
+          const SizedBox(height: BvSpace.s24),
+          overline(l10n.homeYourSpaces),
+          const SizedBox(height: BvSpace.s8),
+          _YourSpaces(spaces: spaces.value!, today: today, needs: needs),
         ],
       ),
     );
   }
 }
 
-/// "WEDNESDAY 7 OCTOBER · KUWAIT CITY", "Your day on site", and the
-/// summary line. Each part of the line hides at 0.
+/// One small line: "SATURDAY 17 OCTOBER · 1 thing needs you" (F10). No
+/// title, no place, and no other counts.
 class _Header extends ConsumerWidget {
-  const _Header({required this.day});
+  const _Header({required this.needs});
 
-  final HomeDay day;
+  final int needs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -130,81 +113,111 @@ class _Header extends ConsumerWidget {
     final type = BvType.of(context);
     final locale = Localizations.localeOf(context);
     final now = ref.watch(clockProvider)();
-    final me = ref.watch(authUserIdProvider).value;
-    final city = me == null
-        ? null
-        : ref.watch(profileViewProvider(me)).value?.placeName?.of(locale);
     final date = BvWesternDigitsFormatter.normalise(
       DateFormat('EEEE d MMMM', locale.languageCode).format(now),
     ).toUpperCase();
-
-    final rest = [
-      if (day.activeSpaces > 0) l10n.homeDaySpacesActive(day.activeSpaces),
-      if (day.replies > 0) l10n.homeDayReplies(day.replies),
-    ];
-    final muted = type.bodySm.copyWith(color: BvColors.textSecondary);
-    return Column(
+    final muted = type.labelSm.copyWith(color: BvColors.textSecondary);
+    return Text.rich(
       key: const Key('home-day-header'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: BvSpace.s4,
-      children: [
-        Text(
-          joinMeta([date, ?city]),
-          style: type.overline.copyWith(color: BvColors.textSecondary),
-        ),
-        Text(l10n.homeDayTitle, style: type.headingXl),
-        if (day.needsYou > 0 || rest.isNotEmpty)
-          Text.rich(
-            key: const Key('home-day-summary'),
-            TextSpan(
-              children: [
-                if (day.needsYou > 0) ...[
-                  const WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.only(end: BvSpace.s6),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: BvColors.iconAction,
-                          shape: BoxShape.circle,
-                        ),
-                        child: SizedBox.square(
-                          dimension: BvActivitySpec.newDot,
-                        ),
-                      ),
-                    ),
-                  ),
-                  TextSpan(
-                    text: l10n.homeDayNeedsYou(day.needsYou),
-                    style: type.labelLg.copyWith(color: BvColors.textAction),
-                  ),
-                ],
-                if (rest.isNotEmpty)
-                  TextSpan(
-                    text: day.needsYou > 0
-                        ? ' · ${joinMeta(rest)}'
-                        : joinMeta(rest),
-                    style: muted,
-                  ),
-              ],
-            ),
+      TextSpan(
+        children: [
+          TextSpan(
+            text: date,
+            style: type.overline.copyWith(color: BvColors.textSecondary),
           ),
+          TextSpan(text: ' · ', style: muted),
+          if (needs > 0) ...[
+            const WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(end: BvSpace.s6),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: BvColors.iconAction,
+                    shape: BoxShape.circle,
+                  ),
+                  child: SizedBox.square(dimension: BvActivitySpec.newDot),
+                ),
+              ),
+            ),
+            TextSpan(
+              text: l10n.homeDayNeedsYou(needs),
+              style: type.labelSm.copyWith(color: BvColors.textAction),
+            ),
+          ] else
+            TextSpan(text: l10n.homeNothingNeedsYou, style: muted),
+        ],
+      ),
+    );
+  }
+}
+
+/// New Space and Enter an invite code, side by side above the list (F3):
+/// a foreman with a code is one tap from joining.
+class _SpaceActions extends StatelessWidget {
+  const _SpaceActions();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      spacing: BvActivitySpec.actionsGap,
+      children: [
+        Expanded(
+          child: BvButton(
+            key: const Key('home-new-space'),
+            label: l10n.spacesNewTitle,
+            style: BvButtonStyle.secondary,
+            size: BvButtonSize.medium,
+            expand: true,
+            onPressed: () => context.push(AppRoutes.spacesNew),
+          ),
+        ),
+        Expanded(
+          child: BvButton(
+            key: const Key('home-enter-code'),
+            label: l10n.spacesEnterCode,
+            style: BvButtonStyle.secondary,
+            size: BvButtonSize.medium,
+            expand: true,
+            onPressed: () => showInviteCodeSheet(context),
+          ),
+        ),
       ],
     );
   }
 }
 
-/// TODAY IN YOUR SPACES: one row per Space, its most important change.
-class _TodayCard extends ConsumerWidget {
-  const _TodayCard({required this.rows});
+/// YOUR SPACES (F3, F10): every Space once. Spaces with news today come
+/// first, newest first, each with its latest news unless Needs you
+/// already shows it; then the rest, as my_spaces() orders them. Never a
+/// count.
+class _YourSpaces extends ConsumerWidget {
+  const _YourSpaces({
+    required this.spaces,
+    required this.today,
+    required this.needs,
+  });
 
-  final List<SpaceToday> rows;
+  final List<SpaceSummary> spaces;
+  final List<SpaceToday> today;
+  final List<NeedsCard> needs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final now = ref.watch(clockProvider)();
+    final news = {for (final t in today) t.spaceId: t};
+    final inNeeds = {
+      for (final c in needs)
+        if (c.workItemId != null) c.workItemId!,
+    };
+    final ordered = [
+      ...spaces.where((s) => news.containsKey(s.id)).toList()
+        ..sort((a, b) => news[b.id]!.at.compareTo(news[a.id]!.at)),
+      ...spaces.where((s) => !news.containsKey(s.id)),
+    ];
 
     String line(SpaceToday r) {
       final name = inOwnDirection(r.actorName ?? l10n.activitySomeone);
@@ -226,91 +239,92 @@ class _TodayCard extends ConsumerWidget {
       };
     }
 
-    void open(SpaceToday r) {
-      final item = r.workItemId;
-      final file = r.fileId;
-      final thread = r.threadId;
-      if (r.change == SpaceChange.workItem && item != null) {
-        // On the Space's daybook, where the work item lives.
-        context.push(AppRoutes.space(r.spaceId));
-      } else if (r.change == SpaceChange.library && file != null) {
-        context.push(AppRoutes.libraryFile(r.spaceId, file));
-      } else if (r.change == SpaceChange.chat && thread != null) {
-        context.push(AppRoutes.spaceThread(r.spaceId, thread));
+    // Where the news is: a Library file, a chat thread, or the daybook,
+    // where work items live.
+    void open(String spaceId, SpaceToday? r) {
+      final file = r?.fileId;
+      final thread = r?.threadId;
+      if (r?.change == SpaceChange.library && file != null) {
+        context.push(AppRoutes.libraryFile(spaceId, file));
+      } else if (r?.change == SpaceChange.chat && thread != null) {
+        context.push(AppRoutes.spaceThread(spaceId, thread));
       } else {
-        context.push(AppRoutes.space(r.spaceId));
+        context.push(AppRoutes.space(spaceId));
       }
     }
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: BvColors.surfaceElevated,
-        borderRadius: BvRadius.cardAll,
-        border: Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
-      ),
+    Widget row(SpaceSummary s) {
+      final r = news[s.id];
+      // Already in Needs you: only the name and when it happened.
+      final repeat =
+          r != null &&
+          r.change == SpaceChange.workItem &&
+          inNeeds.contains(r.workItemId);
+      final shown = repeat ? null : r;
+      return InkWell(
+        key: Key('home-space-${s.id}'),
+        onTap: () => open(s.id, shown),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: BvActivitySpec.cardMinHeight,
+          ),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.all(
+              BvActivitySpec.cardPadding,
+            ),
+            child: Row(
+              spacing: BvActivitySpec.cardGap,
+              children: [
+                BvSpaceTile(name: s.name),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: BvActivitySpec.lineGap,
+                    children: [
+                      Text(
+                        inOwnDirection(s.name),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.titleMd,
+                      ),
+                      if (shown != null)
+                        Text(
+                          line(shown),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: type.bodySm,
+                        ),
+                    ],
+                  ),
+                ),
+                if (r != null)
+                  Text(
+                    formatRowAgo(l10n, r.at.toLocal(), now),
+                    style: type.metadata.copyWith(
+                      color: BvColors.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ProfileCard(
+      padding: false,
       child: Column(
+        key: const Key('home-your-spaces'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (var i = 0; i < rows.length; i++) ...[
+          for (final (i, s) in ordered.indexed) ...[
             if (i > 0)
               const Divider(
                 height: BvStroke.thin,
                 thickness: BvStroke.thin,
                 color: BvColors.borderDefault,
               ),
-            InkWell(
-              key: Key('today-${rows[i].spaceId}'),
-              onTap: () => open(rows[i]),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.all(BvSpace.s12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: BvSpace.s12,
-                  children: [
-                    const BvRowIcon(BvIcons.crane, ink: true),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: BvSpace.s2,
-                        children: [
-                          Text.rich(
-                            TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: inOwnDirection(rows[i].spaceName),
-                                  style: type.titleMd,
-                                ),
-                                if (rows[i].projectName != null)
-                                  TextSpan(
-                                    text: '  ${l10n.homeProject}',
-                                    style: type.metadata.copyWith(
-                                      color: BvColors.textSecondary,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            line(rows[i]),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: type.bodySm,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      formatRowAgo(l10n, rows[i].at.toLocal(), now),
-                      style: type.metadata.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            row(s),
           ],
         ],
       ),

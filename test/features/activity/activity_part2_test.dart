@@ -1,7 +1,11 @@
+import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/activity/activity_screen.dart';
 import 'package:buildvibes/features/chat/thread_screen.dart';
+import 'package:buildvibes/features/feed/post_screen.dart';
+import 'package:buildvibes/features/profile/profile_screen.dart';
+import 'package:buildvibes/features/spaces/new_space_screen.dart';
 import 'package:buildvibes/features/profile/person_profile_screen.dart';
 import 'package:buildvibes/features/projects/add_project_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
@@ -41,6 +45,16 @@ Future<void> _reveal(WidgetTester tester, String key, String list) async {
 GoRouter _router(WidgetTester tester) =>
     GoRouter.of(tester.element(find.byType(Navigator).first));
 
+FakeSpaceRepository _twoSpaces() => _oneSpace()
+  ..spaces.add(
+    const SpaceSummary(
+      id: 'space-2',
+      name: 'Khiran villas — Finishing',
+      pass: SpacePass.lead,
+      isAdmin: true,
+    ),
+  );
+
 FakeSpaceRepository _oneSpace() =>
     FakeSpaceRepository(now: testNow)
       ..spaces.add(
@@ -71,7 +85,7 @@ ActivityRow _row(
   String id,
   ActivityKind kind,
   ActivityGroupKind group,
-  int seq, {
+  int hour, {
   bool read = false,
   String? space = 'space-1',
   List<String> useful = const [],
@@ -79,8 +93,7 @@ ActivityRow _row(
   id: id,
   kind: kind,
   group: group,
-  createdAt: testNow.subtract(Duration(hours: 10 - seq)),
-  seq: seq,
+  createdAt: testNow.subtract(Duration(hours: 10 - hour)),
   spaceId: group == ActivityGroupKind.space ? space : null,
   spaceName: group == ActivityGroupKind.space ? 'Tower B — Site team' : null,
   myPass: group == ActivityGroupKind.space ? 'crew' : null,
@@ -99,49 +112,77 @@ void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
 
-    testWidgets('H1b: the date, Your day on site, and only parts above 0 '
-        '[$lang]', (tester) async {
-      final activity = FakeActivityRepository(
-        day: const HomeDay(activeSpaces: 2, replies: 3),
-      );
+    testWidgets('H1b (F10): one line, the date and what needs you; no '
+        'title and no other counts [$lang]', (tester) async {
+      final activity = FakeActivityRepository();
       await pumpApp(
         tester,
         language: lang,
-        spaces: _oneSpace(),
+        spaces: _twoSpaces(),
         activity: activity,
       );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
-      expect(find.text(l10n.homeDayTitle), findsOneWidget);
+      final header = tester
+          .widget<RichText>(
+            find
+                .descendant(
+                  of: find.byKey(const Key('home-day-header')),
+                  matching: find.byType(RichText),
+                )
+                .first,
+          )
+          .text
+          .toPlainText();
       // Sunday 11 October 2026, Western digits in both languages.
-      expect(find.textContaining('11'), findsWidgets);
-      expect(
-        find.textContaining(lang == 'ar' ? 'الأحد' : 'SUNDAY'),
-        findsOneWidget,
-      );
+      expect(header, contains(lang == 'ar' ? 'الأحد' : 'SUNDAY'));
+      expect(header, contains('11'));
+      expect(header, contains(l10n.homeNothingNeedsYou));
       // Today starts at the phone's midnight.
       expect(activity.askedFrom, DateTime(2026, 10, 11));
-      final summary = tester.widget<RichText>(
-        find
-            .descendant(
-              of: find.byKey(const Key('home-day-summary')),
-              matching: find.byType(RichText),
-            )
-            .first,
-      );
-      final text = summary.text.toPlainText();
-      expect(text, contains(l10n.homeDaySpacesActive(2)));
-      expect(text, contains(l10n.homeDayReplies(3)));
-      // Nothing needs you: that part hides, and the day ends here.
-      expect(text, isNot(contains(l10n.homeDayNeedsYou(1))));
-      expect(find.byKey(const Key('home-thats-your-day')), findsOneWidget);
       expect(find.byKey(const Key('tab-dot-1')), findsNothing);
+      // It is one line, well under a tenth of the screen.
+      expect(
+        tester.getSize(find.byKey(const Key('home-day-header'))).height,
+        lessThan(844 / 10),
+      );
+    });
+
+    testWidgets('H1b (F3): New Space and Enter an invite code above the '
+        'list, one tap each [$lang]', (tester) async {
+      await pumpApp(tester, language: lang, spaces: _twoSpaces());
+      await tester.tap(find.text(l10n.homeSpaces));
+      await tester.pumpAndSettle();
+      double top(String key) => tester.getTopLeft(find.byKey(Key(key))).dy;
+      expect(top('home-enter-code'), lessThan(top('home-your-spaces')));
+      expect(top('home-new-space'), lessThan(top('home-your-spaces')));
+      await _tap(tester, 'home-enter-code');
+      expect(find.byKey(const Key('invite-code-field')), findsOneWidget);
+      Navigator.of(tester.element(find.byKey(const Key('code-sheet')))).pop();
+      await tester.pumpAndSettle();
+      await _tap(tester, 'home-new-space');
+      expect(find.byType(NewSpaceScreen), findsOneWidget);
+    });
+
+    testWidgets('H1b (F3): with no Space, the empty state has both, '
+        'large [$lang]', (tester) async {
+      await pumpApp(tester, language: lang);
+      await tester.tap(find.text(l10n.homeSpaces));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('spaces-empty')), findsOneWidget);
+      for (final key in ['spaces-enter-code', 'spaces-new-space']) {
+        expect(
+          tester.getSize(find.byKey(Key(key))).width,
+          greaterThan(390 / 2),
+        );
+      }
+      await _tap(tester, 'spaces-new-space');
+      expect(find.byType(NewSpaceScreen), findsOneWidget);
     });
 
     testWidgets('H1b: at most 3 Needs you, See all opens Needs you, and the '
         'Spaces dot [$lang]', (tester) async {
       final activity = FakeActivityRepository(
-        day: const HomeDay(needsYou: 4),
         cards: [
           _card(NeedsKind.forYou, 'i1'),
           _card(NeedsKind.youCheck, 'i22'),
@@ -160,7 +201,16 @@ void main() {
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('tab-dot-1')), findsNothing);
-      expect(find.byKey(const Key('home-thats-your-day')), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('home-day-header')),
+          matching: find.textContaining(
+            l10n.homeDayNeedsYou(4),
+            findRichText: true,
+          ),
+        ),
+        findsOneWidget,
+      );
       var shown = 0;
       for (final id in ['i1', 'i22', 'i333', 'r1']) {
         if (find.byKey(Key('needs-$id')).evaluate().isNotEmpty) shown++;
@@ -180,17 +230,116 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ActivityScreen), findsOneWidget);
       expect(find.text(l10n.activityNeedsHeader(4)), findsOneWidget);
-      // A1: the button that fits each card.
       expect(find.text(l10n.needsCheck), findsOneWidget);
       await _reveal(tester, 'needs-open-r1', 'activity');
       expect(find.text(l10n.needsReview), findsOneWidget);
-      expect(find.text(l10n.needsOverJoin), findsOneWidget);
       await _tap(tester, 'needs-open-r1');
       expect(find.byType(SpaceScreen), findsOneWidget);
     });
 
-    testWidgets('H1b: Today in your Spaces opens the tab where the change '
-        'is [$lang]', (tester) async {
+    testWidgets('F10: a Needs you card, the Space first, Open on the end '
+        'side level with the text, and the whole card opens it [$lang]', (
+      tester,
+    ) async {
+      final activity = FakeActivityRepository(
+        cards: [_card(NeedsKind.forYou, 'i1')],
+      );
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _oneSpace(),
+        activity: activity,
+      );
+      await tester.tap(find.text(l10n.homeSpaces));
+      await tester.pumpAndSettle();
+      final card = find.byKey(const Key('needs-i1'));
+      expect(
+        tester.getSize(card).height,
+        greaterThanOrEqualTo(BvActivitySpec.cardMinHeight),
+      );
+      Finder inCard(Finder f) => find.descendant(of: card, matching: f);
+      final space = inCard(find.textContaining('Tower B — Site team'));
+      final what = inCard(find.textContaining('Rebar on grid C7'));
+      final meta = inCard(find.textContaining('TB-002'));
+      // The Space name, then what happened, then the ref and time.
+      expect(tester.getTopLeft(space).dy, lessThan(tester.getTopLeft(what).dy));
+      expect(tester.getTopLeft(what).dy, lessThan(tester.getTopLeft(meta).dy));
+      expect(tester.widget<Text>(space).style!.fontWeight, FontWeight.w600);
+      // Open on the end side, level with the text.
+      final open = find.byKey(const Key('needs-open-i1'));
+      final openX = tester.getCenter(open).dx;
+      final whatX = tester.getCenter(what).dx;
+      expect(lang == 'ar' ? openX < whatX : openX > whatX, isTrue);
+      final openY = tester.getCenter(open).dy;
+      expect(openY, greaterThan(tester.getTopLeft(space).dy));
+      expect(openY, lessThan(tester.getBottomLeft(meta).dy));
+      // A tap anywhere on the card opens it.
+      await tester.tap(meta);
+      await tester.pumpAndSettle();
+      expect(find.byType(SpaceScreen), findsOneWidget);
+    });
+
+    testWidgets('F3 + F10: Your Spaces, every Space once, news first, '
+        'never a Needs you item again [$lang]', (tester) async {
+      final activity = FakeActivityRepository(
+        cards: [_card(NeedsKind.forYou, 'item-7')],
+        today: [
+          // Space 1's news is the work item Needs you shows already.
+          SpaceToday(
+            spaceId: 'space-1',
+            spaceName: 'Tower B — Site team',
+            change: SpaceChange.workItem,
+            at: testNow.subtract(const Duration(hours: 2)),
+            workItemId: 'item-7',
+            workItemRef: 'TB-007',
+            workItemTitle: 'Rebar on grid C7',
+            eventKind: 'raised',
+            actorName: 'Sara Ali',
+          ),
+        ],
+      );
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _twoSpaces(),
+        activity: activity,
+      );
+      await tester.tap(find.text(l10n.homeSpaces));
+      await tester.pumpAndSettle();
+      final list = find.byKey(const Key('home-your-spaces'));
+      // Each Space once; the one with news today first.
+      final one = find.byKey(const Key('home-space-space-1'));
+      final two = find.byKey(const Key('home-space-space-2'));
+      expect(one, findsOneWidget);
+      expect(two, findsOneWidget);
+      expect(tester.getTopLeft(one).dy, lessThan(tester.getTopLeft(two).dy));
+      // The work item shows once, in Needs you; its Space only says when.
+      expect(
+        find.descendant(of: list, matching: find.textContaining('TB-007')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: one, matching: find.text(l10n.rowHoursAgo(2))),
+        findsOneWidget,
+      );
+      // No counts on a Space: the only digits are that time.
+      final digits = tester
+          .widgetList<Text>(
+            find.descendant(of: list, matching: find.byType(Text)),
+          )
+          .map((t) => t.data ?? '')
+          .where((t) => t.contains(RegExp('[0-9]')));
+      expect(digits.where((t) => t != l10n.rowHoursAgo(2)), isEmpty);
+      expect(
+        tester.getSize(two).height,
+        greaterThanOrEqualTo(BvActivitySpec.cardMinHeight),
+      );
+      await _tap(tester, 'home-space-space-2');
+      expect(find.byType(SpaceScreen), findsOneWidget);
+    });
+
+    testWidgets('H1b: a Space\'s news opens the tab where the change is '
+        '[$lang]', (tester) async {
       final activity = FakeActivityRepository(
         today: [
           SpaceToday(
@@ -214,15 +363,14 @@ void main() {
       );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
-      expect(find.text(l10n.homeTodayInSpaces), findsOneWidget);
+      expect(find.text(l10n.homeYourSpaces), findsOneWidget);
       expect(
         find.textContaining('Podium slab poured last night.'),
         findsOneWidget,
       );
-      expect(find.textContaining(l10n.homeProject), findsOneWidget);
       // The row's time in the frame's form: "3h ago" / "قبل 3 ساعات".
       expect(find.text(l10n.rowHoursAgo(3)), findsOneWidget);
-      await _tap(tester, 'today-space-1');
+      await _tap(tester, 'home-space-space-1');
       expect(find.byType(ThreadScreen), findsOneWidget);
     });
 
@@ -254,7 +402,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l10n.rowYesterday), findsOneWidget);
       final line = find.descendant(
-        of: find.byKey(const Key('today-space-1')),
+        of: find.byKey(const Key('home-space-space-1')),
         matching: find.textContaining('Gate 3'),
       );
       final text = tester.widget<Text>(line).data!;
@@ -265,7 +413,7 @@ void main() {
       }
     });
 
-    testWidgets('A1: groups with REV letters, unread markers, then read; '
+    testWidgets('A1 (F13): groups, no REV letters, unread dots, then read; '
         'the Activity dot [$lang]', (tester) async {
       final activity = FakeActivityRepository(
         rows: [
@@ -293,8 +441,12 @@ void main() {
       // Nothing needs you: the line, then the changes.
       expect(find.text(l10n.activityEmptyTitle), findsOneWidget);
       expect(find.textContaining(l10n.activityChanges), findsOneWidget);
-      // The Space group's stamp shows its latest letter.
-      expect(find.text(l10n.activityRev('B')), findsOneWidget);
+      // No revision letters and no REV stamp: they read like a drawing's
+      // revision table.
+      expect(find.textContaining('REV'), findsNothing);
+      for (final letter in ['A', 'B']) {
+        expect(find.text(letter), findsNothing);
+      }
       expect(
         find.text(l10n.activitySpaceLine(l10n.spacesPassCrew)),
         findsOneWidget,
@@ -309,6 +461,10 @@ void main() {
         top('activity-group-record'),
         lessThan(top('activity-group-network')),
       );
+      // Unread dots as they were; then marked read, and the dot goes.
+      expect(find.byKey(const Key('activity-unread')), findsWidgets);
+      expect(app.activity.calls, contains('mark-read'));
+      expect(find.byKey(const Key('nav-activity-dot')), findsNothing);
       await tester.scrollUntilVisible(
         find.byKey(const Key('activity-group-posts')),
         200,
@@ -321,19 +477,45 @@ void main() {
         ),
         findsOneWidget,
       );
-      // Unread markers as they were; then marked read, and the dot goes.
-      expect(find.byKey(const Key('letter-unread')), findsWidgets);
-      expect(app.activity.calls, contains('mark-read'));
-      expect(find.byKey(const Key('nav-activity-dot')), findsNothing);
-      // A row opens its target.
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('activity-row-c')),
-        -200,
-        scrollable: find.byType(Scrollable).last,
-      );
-      await _tap(tester, 'activity-row-c');
-      expect(find.byType(PersonProfileScreen), findsOneWidget);
     });
+
+    // F13: every row opens what it is about; the whole row is the tap.
+    for (final (kind, group, target) in [
+      (ActivityKind.itemChecked, ActivityGroupKind.space, SpaceScreen),
+      (ActivityKind.itemAssigned, ActivityGroupKind.space, SpaceScreen),
+      (ActivityKind.joinRequest, ActivityGroupKind.space, SpaceScreen),
+      (ActivityKind.joinConfirmed, ActivityGroupKind.space, SpaceScreen),
+      (ActivityKind.follow, ActivityGroupKind.network, PersonProfileScreen),
+      (ActivityKind.postReply, ActivityGroupKind.posts, PostScreen),
+      (ActivityKind.roleConfirmed, ActivityGroupKind.record, ProfileScreen),
+    ]) {
+      testWidgets('A1 (F13): ${kind.json} opens $target [$lang]', (
+        tester,
+      ) async {
+        final spaces = _oneSpace()
+          ..details['space-1'] = const SpaceDetail(
+            id: 'space-1',
+            name: 'Tower B — Site team',
+            myPass: SpacePass.crew,
+            iAmAdmin: true,
+            myRights: MemberRights(),
+          );
+        await pumpApp(
+          tester,
+          language: lang,
+          spaces: spaces,
+          activity: FakeActivityRepository(
+            rows: [_row('x', kind, group, 1, read: true)],
+          ),
+        );
+        await _tap(tester, 'nav-activity');
+        final row = find.byKey(const Key('activity-row-x'));
+        // The far end of the row, away from its words, opens it too.
+        await tester.tapAt(tester.getTopRight(row) + const Offset(-4, 4));
+        await tester.pumpAndSettle();
+        expect(find.byType(target), findsOneWidget);
+      });
+    }
 
     testWidgets('Useful never shows a count: names you follow, or none '
         '[$lang]', (tester) async {
@@ -367,7 +549,7 @@ void main() {
       );
       expect(two.data, contains('Sara Ali'));
       expect(two.data, isNot(contains(RegExp('[0-9]'))));
-      expect(find.byKey(const Key('letter-read')), findsNWidgets(2));
+      expect(find.byKey(const Key('activity-unread')), findsNothing);
     });
 
     testWidgets('A2: nothing yet, the ledger and Add a project [$lang]', (

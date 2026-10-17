@@ -53,9 +53,13 @@ import 'work_outbox.dart';
 /// The loop (part 1d) lives on the slips: Sign as done, double-tap to
 /// check, long-press menus, swipe to add an update ([DaybookLoop]).
 class DaybookTab extends ConsumerStatefulWidget {
-  const DaybookTab({super.key, required this.space});
+  const DaybookTab({super.key, required this.space, this.startWriting = false});
 
   final SpaceDetail space;
+
+  /// Opened from Create's "Work item in a Space" (F1): the card opens at
+  /// Now, when the reader may write work items here.
+  final bool startWriting;
 
   @override
   ConsumerState<DaybookTab> createState() => _DaybookTabState();
@@ -132,6 +136,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       },
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.startWriting && widget.space.myRights.createItems) {
+        _startWriting();
+      }
       _flush();
       // Kept from an earlier visit (another page of this Space is open
       // underneath): read again. A first load is already reading.
@@ -887,7 +894,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         landing:
             r is DaybookSignOff && outbox.isHeld(PendingKind.check, r.postId),
         checker: r is DaybookSignOff ? posts[r.postId]?.authorName : null,
-        onTap: !refused
+        // While writing, a tap on a slip puts the card down, as anywhere
+        // off it; otherwise a short press shows the slip's menu (F16).
+        onTap: _writing
+            ? _stopWriting
+            : !refused
             ? null
             : waitingPost != null
             ? () => unawaited(_reopen(waitingPost))

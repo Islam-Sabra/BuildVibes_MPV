@@ -354,11 +354,17 @@ abstract final class BvActivitySpec {
   /// On the Spaces tab label and the Activity tab icon. Never a number.
   static const newDot = BvSpace.s6;
 
-  /// The REV letter marker on each Activity row.
-  static const letterMarker = BvSize.iconLg; // 24
-
   static const needsOnHome = 3;
-  static const todayRows = 5;
+
+  /// F10: a Needs you card and a Your Spaces row are easy to hit.
+  static const cardMinHeight = 64.0;
+  static const cardPadding = BvSpace.s12;
+  static const cardPaddingStart = BvSpace.s16;
+  static const cardGap = BvSpace.s12;
+  static const lineGap = BvSpace.s2;
+
+  /// Home → Spaces: New Space and Enter an invite code above the list.
+  static const actionsGap = BvSpace.s8;
 }
 
 /// Week 7 part 3: Settings → Notifications (S3, S4).

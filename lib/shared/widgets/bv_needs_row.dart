@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import 'bv_paper_clip.dart';
+import 'bv_space_tile.dart';
 
 /// One Space in Needs you (2544:35078): a small tile with its first
 /// letter, its name, then its rows.
@@ -15,7 +16,6 @@ class BvNeedsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
-    final initial = name.characters.isEmpty ? '' : name.characters.first;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: BvNeedsSpec.rowGap,
@@ -23,16 +23,7 @@ class BvNeedsGroup extends StatelessWidget {
         Row(
           spacing: BvSpace.s8,
           children: [
-            Container(
-              width: BvNeedsSpec.spaceTile,
-              height: BvNeedsSpec.spaceTile,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: BvColors.surfaceSubtle,
-                borderRadius: BvRadius.smallAll,
-              ),
-              child: Text(initial.toUpperCase(), style: type.labelSm),
-            ),
+            BvSpaceTile(name: name),
             Expanded(
               child: Text(
                 name,

@@ -31,7 +31,8 @@ class DaybookSlipActions {
   });
 
   /// Long-press: the lifted slip and its menu. Gets the slip's place on
-  /// screen.
+  /// screen. Until a slip opens its own page (slice 5), a short press
+  /// shows the same menu, so a tap is never a dead end (F16).
   final ValueChanged<Rect>? onLongPress;
 
   /// Double-tap the proof photo (B3).
@@ -40,8 +41,8 @@ class DaybookSlipActions {
   /// The owner's "Sign as done" pill (O1).
   final VoidCallback? onSignDone;
 
-  /// Swipe towards the end side: add an update (Y1). Gets the slip's
-  /// place on screen.
+  /// Swipe towards the end side: add an update (Y1), a shortcut to the
+  /// menu's Add update. Gets the slip's place on screen.
   final ValueChanged<Rect>? onUpdate;
 }
 
@@ -183,7 +184,8 @@ class DaybookSlip extends StatelessWidget {
         : BvAvatarTints.forId(personId),
   );
 
-  /// The slip with its long-press, measured where it is on screen.
+  /// The slip with its long-press, measured where it is on screen. A
+  /// short press does what [onTap] says, else shows the same menu.
   Widget _slip({
     required String id,
     required List<Widget> children,
@@ -199,7 +201,10 @@ class DaybookSlip extends StatelessWidget {
         clip: clip,
         cancelled: cancelled,
         lifted: lifted,
-        onTap: lifted ? null : onTap,
+        onTap: lifted
+            ? null
+            : onTap ??
+                  (press == null ? null : () => press(bvGlobalRect(context))),
         onLongPress: lifted || press == null
             ? null
             : () => press(bvGlobalRect(context)),

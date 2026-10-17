@@ -214,7 +214,6 @@ void main() {
             kind: ActivityKind.contentRemoved,
             group: ActivityGroupKind.record,
             createdAt: testNow,
-            seq: 1,
             removalId: 'rm-1',
             targetKind: 'post',
           ),

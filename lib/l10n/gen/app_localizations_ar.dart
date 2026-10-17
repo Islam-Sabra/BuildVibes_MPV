@@ -2042,9 +2042,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get homeDayTitle => 'يومك في الموقع';
-
-  @override
   String homeDayNeedsYou(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2058,49 +2055,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String homeDaySpacesActive(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n مساحة نشطة',
-      many: '$n مساحة نشطة',
-      few: '$n مساحات نشطة',
-      two: 'مساحتان نشطتان',
-      one: 'مساحة واحدة نشطة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String homeDayReplies(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n ردًّا',
-      few: '$n ردود',
-      two: 'ردّان',
-      one: 'ردّ واحد',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get homeNeedsYou => 'بانتظارك';
 
   @override
   String get homeSeeAll => 'عرض الكل';
-
-  @override
-  String get homeTodayInSpaces => 'اليوم في مساحاتك';
-
-  @override
-  String get homeThatsYourDay => 'هذا يومك';
-
-  @override
-  String get homeNothingElse => 'لا شيء آخر بانتظارك الآن';
-
-  @override
-  String get homeProject => 'مشروع';
 
   @override
   String get homeSearch => 'ابحث عن أشخاص';
@@ -2152,21 +2110,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String needsDue(String date) {
     return 'الاستحقاق $date';
   }
-
-  @override
-  String get needsOverForYou => 'بند عمل · لك';
-
-  @override
-  String get needsOverCheck => 'بند عمل · بانتظار فحصك';
-
-  @override
-  String get needsOverSentBack => 'بند عمل · مُرجَع';
-
-  @override
-  String get needsOverOwnerLeft => 'بند عمل · بلا مكلّف';
-
-  @override
-  String get needsOverJoin => 'مساحة · طلب انضمام';
 
   @override
   String get needsOpen => 'فتح';
@@ -2238,11 +2181,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get activityGroupPosts => 'منشوراتك';
-
-  @override
-  String activityRev(String letter) {
-    return 'REV $letter';
-  }
 
   @override
   String activityAssigned(String name, String ref) {
@@ -3508,4 +3446,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postWritingPhotosMax => 'حتى 4 صور.';
+
+  @override
+  String get homeNothingNeedsYou => 'لا شيء بانتظارك';
+
+  @override
+  String get homeYourSpaces => 'مساحاتك';
+
+  @override
+  String get createPostToEveryone => 'منشور للجميع';
+
+  @override
+  String get createPostToEveryoneLine => 'في الأخبار، يراه الجميع';
+
+  @override
+  String get createWorkItem => 'بند عمل في مساحة';
+
+  @override
+  String get createWorkItemLine => 'يراه أعضاء المساحة فقط';
+
+  @override
+  String get createPickSpace => 'في أي مساحة؟';
+
+  @override
+  String get createLastSpace => 'آخر مساحة فُتحت';
+
+  @override
+  String get createNoWorkSpaces =>
+      'لا توجد بعد مساحة يمكن كتابة بنود العمل فيها. يمكن الانضمام إلى مساحة برمز دعوة، أو إنشاء مساحة جديدة.';
 }

@@ -61,24 +61,28 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Profile'), findsOneWidget);
   });
 
-  testWidgets('Create writes a post in place on Home, from every tab', (
-    tester,
-  ) async {
-    await pumpApp(tester);
-    await tester.tap(find.byKey(const Key('nav-profile')));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'Create, Post to everyone: a post in place on Home, from every tab',
+    (tester) async {
+      await pumpApp(tester);
+      await tester.tap(find.byKey(const Key('nav-profile')));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('nav-create')));
-    await tester.pumpAndSettle();
-    expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('nav-create')));
+      await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
 
-    // Nothing written: putting it down leaves no Draft.
-    await tester.tapAt(const Offset(195, 160));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('post-writing-card')), findsNothing);
-    expect(find.byType(HomeScreen), findsOneWidget);
-  });
+      // Nothing written: putting it down leaves no Draft.
+      await tester.tapAt(const Offset(195, 160));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('post-writing-card')), findsNothing);
+      expect(find.byType(HomeScreen), findsOneWidget);
+    },
+  );
 
   testWidgets('every slot is at least the minimum touch size', (tester) async {
     await pumpApp(tester);

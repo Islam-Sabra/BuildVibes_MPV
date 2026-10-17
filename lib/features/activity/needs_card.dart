@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/ago.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/l10n/months.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/activity.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_space_tile.dart';
+import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_screen.dart' show SpaceOpen;
 
 /// "Sara Al-Mutairi gave you a work item: confirm the beam schedule".
@@ -36,15 +40,6 @@ String needsTitle(AppLocalizations l10n, NeedsCard c) {
   };
 }
 
-/// A1's overline: "WORK ITEM · FOR YOU".
-String needsOverline(AppLocalizations l10n, NeedsKind kind) => switch (kind) {
-  NeedsKind.forYou => l10n.needsOverForYou,
-  NeedsKind.youCheck => l10n.needsOverCheck,
-  NeedsKind.sentBack => l10n.needsOverSentBack,
-  NeedsKind.ownerLeft => l10n.needsOverOwnerLeft,
-  NeedsKind.joinRequest => l10n.needsOverJoin,
-};
-
 /// Opens what the card is about: the work item's Space on its daybook, or
 /// the Space's People tab.
 void openNeeds(BuildContext context, NeedsCard c) {
@@ -55,28 +50,29 @@ void openNeeds(BuildContext context, NeedsCard c) {
   }
 }
 
-/// One thing that needs you. On Home (H1b): an orange card with one Open
-/// button. In Activity (A1): an overline and the button that fits (Open,
-/// Check, Review request).
-class NeedsYouCard extends StatelessWidget {
+/// One thing that needs you (F10). The Space first, with its tile; then
+/// what happened; then the ref, the time and the due date, small. The
+/// whole card opens it; the button sits on the end side, level with the
+/// text: Open on Home, and in Activity (A1) the one that fits (Check,
+/// Review request).
+class NeedsYouCard extends ConsumerWidget {
   const NeedsYouCard({super.key, required this.card, this.activity = false});
 
   final NeedsCard card;
   final bool activity;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final locale = Localizations.localeOf(context).languageCode;
+    final now = ref.watch(clockProvider)();
     final due = card.due;
-    final line = card.kind == NeedsKind.joinRequest
-        ? null
-        : joinMeta([
-            if (card.workItemRef != null) ltrRun(card.workItemRef!),
-            inOwnDirection(card.spaceName),
-            if (due != null) l10n.needsDue(formatDay(due, locale)),
-          ]);
+    final line = joinMeta([
+      if (card.workItemRef != null) ltrRun(card.workItemRef!),
+      formatRowAgo(l10n, card.at.toLocal(), now),
+      if (due != null) l10n.needsDue(formatDay(due, locale)),
+    ]);
     final label = !activity
         ? l10n.needsOpen
         : switch (card.kind) {
@@ -85,39 +81,79 @@ class NeedsYouCard extends StatelessWidget {
             _ => l10n.needsOpen,
           };
     final id = card.workItemId ?? card.requestId ?? card.spaceId;
-    return Container(
+    void open() => openNeeds(context, card);
+    return Material(
       key: Key('needs-$id'),
-      padding: const EdgeInsetsDirectional.all(BvSpace.s16),
-      decoration: BoxDecoration(
-        color: BvColors.surfaceElevated,
+      color: BvColors.surfaceElevated,
+      shape: RoundedRectangleBorder(
         borderRadius: BvRadius.cardAll,
-        border: Border.all(
+        side: BorderSide(
           color: activity ? BvColors.borderDefault : BvColors.borderSelected,
           width: BvStroke.thin,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: BvSpace.s8,
-        children: [
-          if (activity)
-            Text(
-              needsOverline(l10n, card.kind),
-              style: type.overline.copyWith(color: BvColors.textAction),
-            ),
-          Text(needsTitle(l10n, card), style: type.titleMd),
-          if (line != null)
-            Text(
-              line,
-              style: type.bodySm.copyWith(color: BvColors.textSecondary),
-            ),
-          BvButton(
-            key: Key('needs-open-$id'),
-            label: label,
-            size: BvButtonSize.medium,
-            onPressed: () => openNeeds(context, card),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: open,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: BvActivitySpec.cardMinHeight,
           ),
-        ],
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              BvActivitySpec.cardPaddingStart,
+              BvActivitySpec.cardPadding,
+              BvActivitySpec.cardPadding,
+              BvActivitySpec.cardPadding,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: BvSpace.s6,
+              children: [
+                Row(
+                  spacing: BvSpace.s8,
+                  children: [
+                    BvSpaceTile(name: card.spaceName),
+                    Expanded(
+                      child: Text(
+                        inOwnDirection(card.spaceName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.titleMd,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  spacing: BvActivitySpec.cardGap,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: BvActivitySpec.lineGap,
+                        children: [
+                          Text(needsTitle(l10n, card), style: type.bodyMd),
+                          Text(
+                            line,
+                            style: type.metadata.copyWith(
+                              color: BvColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    BvButton(
+                      key: Key('needs-open-$id'),
+                      label: label,
+                      size: BvButtonSize.medium,
+                      onPressed: open,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

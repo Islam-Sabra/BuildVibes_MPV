@@ -19,7 +19,6 @@ abstract class ActivityRepository {
   Future<bool> unread();
 
   /// [dayStart] is the phone's midnight.
-  Future<HomeDay> homeDay(DateTime dayStart);
   Future<List<SpaceToday>> today(DateTime dayStart);
   Future<List<NeedsCard>> needs();
   Future<void> markSpaceSeen(String spaceId);
@@ -62,17 +61,6 @@ class SupabaseActivityRepository implements ActivityRepository {
   @override
   Future<bool> unread() =>
       _guard(() async => await _client.rpc<bool>('unread_activity'));
-
-  @override
-  Future<HomeDay> homeDay(DateTime dayStart) => _guard(() async {
-    final rows = _rows(
-      await _client.rpc<List<dynamic>>(
-        'home_day',
-        params: {'p_day_start': dayStart.toUtc().toIso8601String()},
-      ),
-    );
-    return rows.isEmpty ? const HomeDay() : HomeDay.fromJson(rows.first);
-  });
 
   @override
   Future<List<SpaceToday>> today(DateTime dayStart) => _guard(() async {

@@ -28,6 +28,7 @@ import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
+import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -749,6 +750,63 @@ void main() {
       await _longPress(tester, 'event-sleeves-done');
       expect(find.byKey(const Key('slip-menu')), findsNothing);
       expect(find.byKey(const Key('swipe-reveal')), findsNothing);
+    });
+
+    testWidgets("F16: Crew on someone else's slips: long-press, or a short "
+        'press, shows Add update on the item, its sign-off and its '
+        'send-back [$lang]', (tester) async {
+      // Rakesh (Crew) neither wrote nor owns the sleeves item.
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.s1(),
+        me: DaybookSamples.rakesh,
+        pass: SpacePass.crew,
+      );
+      for (final id in [
+        'post-sleeves',
+        'event-sleeves-done',
+        'event-sleeves-back',
+      ]) {
+        await _longPress(tester, id);
+        expect(_menu(tester), contains(l10n.daybookAddUpdate), reason: id);
+        // Off the menu and the lifted slip: the dim's corner.
+        await tester.tapAt(const Offset(4, 4));
+        await tester.pumpAndSettle();
+        // A short press: the same menu (until the slip's page, slice 5).
+        // On the proof's photo the tap waits out a double-tap (Check).
+        await tester.tap(_in(id, find.byType(BvSlip)).first);
+        await tester.pump(kDoubleTapTimeout);
+        await tester.pumpAndSettle();
+        expect(_menu(tester), contains(l10n.daybookAddUpdate), reason: id);
+        if (id != 'event-sleeves-back') {
+          // Off the menu and the lifted slip: the dim's corner.
+          await tester.tapAt(const Offset(4, 4));
+          await tester.pumpAndSettle();
+        }
+      }
+      await _pick(tester, l10n.daybookAddUpdate);
+      await tester.enterText(find.byKey(const Key('popover-field')), 'Seen');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'comment post-sleeves Seen');
+    });
+
+    testWidgets("F16: a Viewer's short press does nothing either [$lang]", (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        lang,
+        posts: s.d1(viewer: true),
+        me: DaybookSamples.mona,
+        pass: SpacePass.viewer,
+      );
+      await tester.ensureVisible(_entry('post-rebar'));
+      await tester.pumpAndSettle();
+      await tester.tap(_in('post-rebar', find.byType(BvSlip)).first);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('slip-menu')), findsNothing);
     });
 
     testWidgets('X2: give to someone else: Lead and Crew, the owner "now"; '

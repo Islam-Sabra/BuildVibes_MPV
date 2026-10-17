@@ -727,6 +727,29 @@ void main() {
       );
     });
 
+    // Review 51 F16: no Figma frame (X1's menu). Rakesh (Crew) neither
+    // wrote nor owns the sleeves item: Add update is his too.
+    testWidgets("C6 long-press someone else's work item [$lang]", (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'C6-long-press-other-item',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.s1(),
+          me: DaybookSamples.rakesh,
+          pass: SpacePass.crew,
+          admin: false,
+          now: DaybookSamples.thursday,
+        ),
+        before: (tester) => _longPress(tester, 'post-sleeves'),
+      );
+    });
+
     testWidgets('X2 give it to someone else [$lang]', (tester) async {
       await warmSamplePhoto(tester);
       await shoot(
