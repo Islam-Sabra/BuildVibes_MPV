@@ -131,7 +131,7 @@ The founder expects to add an update with a **press**, not a swipe. A swipe is h
   - The swipe stays as a shortcut for those who find it, never the only way.
 
 ## F17. "Waiting to send" stays after the post has sent
-- **What happened:** in airplane mode the work item showed "Waiting to send" (right). With airplane mode off, it reached the server: Omar's emulator showed it. But on the founder's phone the slip kept saying "Waiting to send".
+- **What happened:** in airplane mode the work item showed "Waiting to send" (right). With airplane mode off, it reached the server: Omar's emulator showed it. On the founder's phone the slip kept saying "Waiting to send" for a while after that, then the label went by itself. **Downgraded:** it isn't stuck, only late.
 - **Fix:** when the outbox sends a post, its local slip is replaced by the server's entry, matched by the app-chosen id, and the label goes at once.
   - Check there is no second, duplicate slip.
   - Test: a post made with no signal, then the signal returns, then exactly one slip, without the label, within a few seconds, with the app open and also after it's reopened.
