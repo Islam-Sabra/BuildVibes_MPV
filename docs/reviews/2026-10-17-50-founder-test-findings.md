@@ -136,3 +136,11 @@ The founder expects to add an update with a **press**, not a swipe. A swipe is h
   - Check there is no second, duplicate slip.
   - Test: a post made with no signal, then the signal returns, then exactly one slip, without the label, within a few seconds, with the app open and also after it's reopened.
 - It's the same family as F11 (the page must reflect the server).
+
+## F18. A Home post appears on the founder's phone but not in Omar's feed
+- **What happened:** a post written with + appears on the phone. On the emulator (Omar), it doesn't appear even after pull-to-refresh and switching tabs. Posts are public to everyone signed in (§9), so Omar should see it.
+- **To check (Claude Code, read-only):**
+  - did the post reach the server, or is the phone showing only its local slip?
+  - does `feed_page` as Omar return it?
+  - is there a block or mute between them?
+- The cause and the fix go here.
