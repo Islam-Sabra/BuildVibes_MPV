@@ -94,3 +94,8 @@ Not missing: **opening a post in place** (blocks, /, turn into, tables) is **sli
   - Pull down to refresh too.
   - New entries slide in at Now, with no jump of the scroll position if the person is reading older days; a small "New ↓" chip takes them there.
 - Slice 10 still adds "open the exact slip". This fix is only about the page being current.
+
+## F12. The app closed on "Sign as done" (emulator, Omar)
+- **What happened:** on the second work item, tapping "Sign as done" closed the app completely. The first sign-off on the emulator had worked.
+- **Status:** Claude Code reads the emulator's crash log. The cause and fix go here.
+- A crash in the core loop is the most serious kind of finding: fix it first in the test-fix round, with a test that reproduces it.
