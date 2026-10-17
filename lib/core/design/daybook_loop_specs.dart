@@ -47,6 +47,12 @@ abstract final class BvProofCameraSpec {
   static const linkOpacity = 0.95;
   static const linkIcon = BvSize.iconSm; // 16
 
+  // Answer 3 (review 47): the item name opens your other open items, in
+  // the writing card's single-choice menu, just under it. No frame draws
+  // it; the menu is the kind picker's.
+  static const switchGap = BvSpace.s8;
+  static const switchMaxHeight = 0.5; // of the photo
+
   // The label on the photo: place, date and time, name.
   static const labelInset = BvSpace.s12;
   static const labelPaddingHorizontal = 10.0;

@@ -6,6 +6,8 @@ import 'package:buildvibes/features/profile/person_profile_screen.dart';
 import 'package:buildvibes/features/projects/add_project_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/features/activity/needs_you_screen.dart';
+import 'package:buildvibes/shared/widgets/bv_needs_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -136,7 +138,7 @@ void main() {
       expect(find.byKey(const Key('tab-dot-1')), findsNothing);
     });
 
-    testWidgets('H1b: at most 3 Needs you, See all opens Activity, and the '
+    testWidgets('H1b: at most 3 Needs you, See all opens Needs you, and the '
         'Spaces dot [$lang]', (tester) async {
       final activity = FakeActivityRepository(
         day: const HomeDay(needsYou: 4),
@@ -169,6 +171,13 @@ void main() {
       expect(find.textContaining('Rebar on grid C7'), findsNWidgets(3));
       await _reveal(tester, 'home-needs-all', 'spaces-day');
       await _tap(tester, 'home-needs-all');
+      // Needs you, across Spaces (2544:35068).
+      expect(find.byType(NeedsYouScreen), findsOneWidget);
+      expect(find.byType(BvNeedsRow), findsNWidgets(4));
+      expect(find.text(l10n.needsRowJoin), findsOneWidget);
+      // Activity (A1) lists them too, each with the button that fits.
+      GoRouter.of(tester.element(find.byType(Navigator).first)).go('/activity');
+      await tester.pumpAndSettle();
       expect(find.byType(ActivityScreen), findsOneWidget);
       expect(find.text(l10n.activityNeedsHeader(4)), findsOneWidget);
       // A1: the button that fits each card.

@@ -33,6 +33,14 @@ abstract final class AppRoutes {
 
   // Full screens over the tabs
   static const people = '/people';
+
+  /// Needs you, across all Spaces (2544:35068).
+  static const needs = '/needs';
+
+  /// From Home's app bar: My notebook (slice 8) and Messages (slice 3).
+  /// Placeholders until then (review 43).
+  static const notebook = '/notebook';
+  static const messages = '/messages';
   static String personWork(String profileId, String itemId) =>
       '/people/$profileId/work/$itemId';
   static const projects = '/projects';

@@ -95,7 +95,8 @@ class DaybookSlip extends StatelessWidget {
   final bool viewer;
   final bool waiting;
 
-  /// A post the server refused while another card was being written.
+  /// The server refused it: a post while another card was being written,
+  /// or a sign-off (its photos stay on the phone). A tap fixes it.
   final bool couldNotSend;
   final String? localPhoto;
   final DaybookSlipActions actions;
@@ -120,6 +121,8 @@ class DaybookSlip extends StatelessWidget {
       DaybookSignOff() when _signOffClip(r) => BvSpineDot.needsYou,
       DaybookSignOff() when r.outcome.kind == DaybookOutcomeKind.checked =>
         BvSpineDot.checked,
+      DaybookSentBack() when r.needsMe && !viewer && !waiting =>
+        BvSpineDot.needsYou,
       _ => BvSpineDot.quiet,
     };
   }
@@ -133,6 +136,7 @@ class DaybookSlip extends StatelessWidget {
     final slip = switch (record) {
       DaybookPost() => _postSlip(context, record),
       DaybookSignOff() => _signOffSlip(context, record),
+      DaybookSentBack() => _sentBackSlip(context, record),
       DaybookUpdate() => _updateNote(context, record),
     };
     final update = actions.onUpdate;
@@ -223,11 +227,9 @@ class DaybookSlip extends StatelessWidget {
         label: l10n.daybookStampChecked,
         tone: BvInkStampTone.positive,
       ),
-      DaybookStampKind.sentBack => BvInkStamp(
-        label: l10n.daybookStampSentBack,
-        tone: BvInkStampTone.destructive,
-      ),
-      DaybookStampKind.newVersion || null => null,
+      // SENT BACK is on the proof it answered; the send-back has its own
+      // slip (S1).
+      DaybookStampKind.sentBack || DaybookStampKind.newVersion || null => null,
     };
     final chips = [
       for (final f in post.attachments)
@@ -312,7 +314,9 @@ class DaybookSlip extends StatelessWidget {
     final clip = _signOffClip(s);
     final outcome = s.outcome;
     final cancelled = outcome.kind == DaybookOutcomeKind.cancelled;
+    // A refused proof isn't done: no stamp until it is sent.
     final stamp = switch (outcome.kind) {
+      DaybookOutcomeKind.done when couldNotSend => null,
       DaybookOutcomeKind.done => BvInkStamp(
         label: l10n.daybookStampDone,
         size: BvInkStampSize.lg,
@@ -370,13 +374,47 @@ class DaybookSlip extends StatelessWidget {
             outcome.byId == me &&
             checkedAt != null)
           BvSlipHistory(l10n.daybookYouChecked(words.clock(checkedAt))),
+        // The reason and note are on the send-back's own slip (S1).
         if (outcome.kind == DaybookOutcomeKind.sentBack)
-          BvSlipHistory(words.sentBack(outcome, s.at)),
+          BvSlipHistory(
+            l10n.daybookSentBackAt(words.clock(outcome.at ?? s.at)),
+          ),
         if (outcome.kind == DaybookOutcomeKind.done &&
             s.actorId == me &&
-            checker != null)
+            checker != null &&
+            !couldNotSend)
           BvSlipHistory(l10n.daybookChecksNext(checker!)),
-        if (waiting) BvSlipHistory(l10n.daybookWaitingToSend),
+        // A refused sign-off keeps its photos on the phone (review 47,
+        // answer 5): a tap reopens the proof.
+        if (couldNotSend)
+          BvSlipError(l10n.daybookCouldNotSend)
+        else if (waiting)
+          BvSlipHistory(l10n.daybookWaitingToSend),
+      ],
+    );
+  }
+
+  /// A send-back at its own time (S1 2530:33826): who sent it back, the
+  /// quote, the reason and note, and for the owner the paper clip with
+  /// Sign as done while it is the latest.
+  Widget _sentBackSlip(BuildContext context, DaybookSentBack b) {
+    final l10n = AppLocalizations.of(context);
+    final clip = b.needsMe && !viewer && !waiting;
+    final signDone = actions.onSignDone;
+    return _slip(
+      id: b.id,
+      clip: clip,
+      cancelled: b.cancelled,
+      children: [
+        _header(l10n, b.actorId, b.actorName, action: l10n.daybookSentItBack),
+        BvSlipQuote(b.title),
+        BvSlipNote(words.sentBackText(b.reason, b.note)),
+        if (signDone != null && !lifted)
+          BvSlipPill.action(
+            label: l10n.daybookSignAsDone,
+            icon: BvIcons.camera,
+            onTap: signDone,
+          ),
       ],
     );
   }

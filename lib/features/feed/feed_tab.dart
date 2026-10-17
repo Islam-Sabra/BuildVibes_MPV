@@ -14,15 +14,20 @@ import '../../data/models/space.dart';
 import '../../data/repositories/market_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_daybook_masthead.dart';
+import '../../shared/widgets/bv_daybook_spine.dart';
+import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../work/daybook_words.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
 import 'feed_state.dart';
 import 'post_card.dart';
 
-/// H1 v2 · Feed: posts waiting on this phone, then site updates from the
-/// home market, the "Beyond {market}" divider, and the rest. H4 skeleton,
-/// H5 couldn't load, H6 offline, and an empty feed with Create.
+/// H1 v3 · Feed in Daybook: today's masthead, posts waiting on this
+/// phone, then site updates on the time spine, from the home market, the
+/// "Beyond {market}" divider, and the rest. H4 skeleton, H5 couldn't load,
+/// H6 offline, and an empty feed with Create.
 class FeedTab extends ConsumerStatefulWidget {
   const FeedTab({super.key});
 
@@ -91,11 +96,32 @@ class _FeedTabState extends ConsumerState<FeedTab> {
     final firstBeyond = entries.indexWhere(
       (e) => e.section == FeedSection.beyond,
     );
+    final words = DaybookWords(
+      l10n,
+      locale.toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final now = ref.watch(clockProvider)();
     final children = <Widget>[
-      for (final p in pending.reversed) _PendingBanner(post: p),
+      BvDaybookMasthead.home(
+        weekday: words.weekday(now),
+        dateLine: l10n.homeFeedLine(words.dayMonth(now)),
+      ),
+      for (final p in pending.reversed)
+        Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvSpace.gutter,
+            vertical: BvSpace.s6,
+          ),
+          child: _PendingBanner(post: p),
+        ),
       if (data.offline)
         Container(
           key: const Key('feed-offline'),
+          margin: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvSpace.gutter,
+            vertical: BvSpace.s6,
+          ),
           padding: const EdgeInsetsDirectional.all(BvSpace.s12),
           decoration: const BoxDecoration(
             color: BvColors.surfaceSubtle,
@@ -104,40 +130,54 @@ class _FeedTabState extends ConsumerState<FeedTab> {
           child: Text(l10n.feedOffline, style: BvType.of(context).labelMd),
         ),
       if (entries.isEmpty)
-        Column(
-          key: const Key('feed-empty'),
-          spacing: BvSpace.s16,
+        Padding(
+          padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+          child: Column(
+            key: const Key('feed-empty'),
+            spacing: BvSpace.s16,
+            children: [
+              EmptyNote(l10n.feedEmpty),
+              BvButton(
+                key: const Key('feed-create'),
+                label: l10n.feedNewPost,
+                onPressed: () => context.push(AppRoutes.postNew),
+              ),
+            ],
+          ),
+        )
+      else
+        // H1 v3: the posts on the time spine, newest first.
+        BvDaybookSpine(
+          home: true,
           children: [
-            EmptyNote(l10n.feedEmpty),
-            BvButton(
-              key: const Key('feed-create'),
-              label: l10n.feedNewPost,
-              onPressed: () => context.push(AppRoutes.postNew),
-            ),
+            for (var i = 0; i < entries.length; i++) ...[
+              // The divider only when there were home posts above it.
+              if (i == firstBeyond && i > 0)
+                _Divider(label: l10n.feedBeyond(market ?? '')),
+              BvSpineEntry(
+                home: true,
+                time: words.feedTime(entries[i].post.createdAt, now),
+                child: PostCard(
+                  post: entries[i].post,
+                  ago: false,
+                  onOpen: () =>
+                      context.push(AppRoutes.post(entries[i].post.id)),
+                  onChanged: ref.read(feedProvider.notifier).replace,
+                ),
+              ),
+            ],
           ],
         ),
-      for (var i = 0; i < entries.length; i++) ...[
-        // The divider only when there were home posts above it.
-        if (i == firstBeyond && i > 0)
-          _Divider(label: l10n.feedBeyond(market ?? '')),
-        PostCard(
-          post: entries[i].post,
-          onOpen: () => context.push(AppRoutes.post(entries[i].post.id)),
-          onChanged: ref.read(feedProvider.notifier).replace,
-        ),
-      ],
       if (data.loadingMore) const Center(child: CircularProgressIndicator()),
     ];
 
     return RefreshIndicator(
       onRefresh: () => ref.refresh(feedProvider.future),
-      child: ListView.separated(
+      child: ListView(
         key: const Key('feed-list'),
         controller: _scroll,
-        padding: const EdgeInsetsDirectional.all(BvSpace.s16),
-        itemCount: children.length,
-        separatorBuilder: (_, _) => const SizedBox(height: BvSpace.s12),
-        itemBuilder: (_, i) => children[i],
+        padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s16),
+        children: children,
       ),
     );
   }

@@ -122,9 +122,44 @@ class SupabaseActivityRepository implements ActivityRepository {
         : _rows(
             await _client
                 .from('work_item_events')
-                .select('work_item_id, kind, actor_id, created_at')
+                .select('id, work_item_id, kind, actor_id, created_at')
                 .inFilter('work_item_id', itemIds)
                 .order('created_at', ascending: false),
+          );
+    // The work items' due times and covers (their posts), and the photos
+    // of the sign-offs waiting for a check: the rows of Needs you.
+    final posts = itemIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : _rows(
+            await _client
+                .from('space_posts')
+                .select('id, due_at')
+                .inFilter('id', itemIds),
+          );
+    final covers = itemIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : _rows(
+            await _client
+                .from('post_files')
+                .select('post_id, storage_path, sort, created_at')
+                .inFilter('post_id', itemIds)
+                .like('mime', 'image/%')
+                .not('storage_path', 'is', null)
+                .order('sort')
+                .order('created_at'),
+          );
+    final doneIds = [
+      for (final e in events)
+        if (e['kind'] == 'done') e['id'] as String,
+    ];
+    final proofs = doneIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : _rows(
+            await _client
+                .from('work_item_evidence')
+                .select('event_id, storage_path, created_at')
+                .inFilter('event_id', doneIds)
+                .order('created_at'),
           );
     final requests = requestIds.isEmpty
         ? const <Map<String, dynamic>>[]
@@ -155,6 +190,25 @@ class SupabaseActivityRepository implements ActivityRepository {
 
     final me = _client.auth.currentUser?.id;
     final itemById = {for (final i in items) i['id'] as String: i};
+    final dueAtById = {
+      for (final p in posts)
+        if (p['due_at'] != null)
+          p['id'] as String: DateTime.parse(p['due_at'] as String),
+    };
+    final coverById = <String, String>{};
+    for (final f in covers) {
+      coverById.putIfAbsent(
+        f['post_id'] as String,
+        () => f['storage_path'] as String,
+      );
+    }
+    final proofByEvent = <String, String>{};
+    for (final f in proofs) {
+      proofByEvent.putIfAbsent(
+        f['event_id'] as String,
+        () => f['storage_path'] as String,
+      );
+    }
     // Newest event of each kind per item.
     Map<String, dynamic>? latest(String item, Set<String> kinds) => events
         .where((e) => e['work_item_id'] == item && kinds.contains(e['kind']))
@@ -170,18 +224,21 @@ class SupabaseActivityRepository implements ActivityRepository {
       final item = itemId == null ? null : itemById[itemId];
       if (itemId != null && item == null) continue;
       final due = item?['due_date'] as String?;
-      NeedsCard card(NeedsKind kind, String? actor) => NeedsCard(
-        kind: kind,
-        spaceId: spaceId,
-        spaceName: spaces[spaceId] ?? '',
-        at: at,
-        workItemId: itemId,
-        workItemRef: item?['ref'] as String?,
-        workItemTitle: item?['title'] as String?,
-        due: due == null ? null : DateTime.parse(due),
-        requestId: n['request_id'] as String?,
-        actorName: actor,
-      );
+      NeedsCard card(NeedsKind kind, String? actor, {String? photo}) =>
+          NeedsCard(
+            kind: kind,
+            spaceId: spaceId,
+            spaceName: spaces[spaceId] ?? '',
+            at: at,
+            workItemId: itemId,
+            workItemRef: item?['ref'] as String?,
+            workItemTitle: item?['title'] as String?,
+            due: due == null ? null : DateTime.parse(due),
+            requestId: n['request_id'] as String?,
+            actorName: actor,
+            dueAt: itemId == null ? null : dueAtById[itemId],
+            photoPath: photo ?? (itemId == null ? null : coverById[itemId]),
+          );
       switch (n['kind']) {
         case 'open_owned':
           final last = latest(itemId!, const {
@@ -196,7 +253,13 @@ class SupabaseActivityRepository implements ActivityRepository {
           );
         case 'to_check':
           final done = latest(itemId!, const {'done'});
-          cards.add(card(NeedsKind.youCheck, nameOf(done?['actor_id'])));
+          cards.add(
+            card(
+              NeedsKind.youCheck,
+              nameOf(done?['actor_id']),
+              photo: done == null ? null : proofByEvent[done['id']],
+            ),
+          );
         case 'owner_left':
           cards.add(card(NeedsKind.ownerLeft, null));
         case 'join_request':

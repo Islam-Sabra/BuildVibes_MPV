@@ -35,10 +35,19 @@ enum DaybookSlipAction { check, sendBack, update, edit, giveTo, cancel }
 /// reader may do comes from the record and the pass; the server decides
 /// again on every call.
 class DaybookLoop {
-  DaybookLoop(this.ref, this.space, {required this.onEdit});
+  DaybookLoop(
+    this.ref,
+    this.space, {
+    required this.onEdit,
+    this.openItems = const [],
+  });
 
   final WidgetRef ref;
   final SpaceDetail space;
+
+  /// The reader's open work items on the page, due soonest first: the
+  /// proof screen offers them to switch to (review 47, answer 3).
+  final List<DaybookPost> openItems;
 
   /// Edit opens the post's card in place (the daybook page holds it).
   final ValueChanged<DaybookPost> onEdit;
@@ -67,13 +76,21 @@ class DaybookLoop {
         onCheck: r is DaybookSignOff && r.needsMe
             ? () => unawaited(check(context, r))
             : null,
-        onSignDone:
-            r is DaybookPost &&
-                r.isOpen &&
-                r.item?.ownerId == me &&
-                !signing.contains(r.id)
-            ? () => unawaited(signDone(context, r))
-            : null,
+        // Where the server puts the owner's clip (needs_me): the latest
+        // send-back of an item sent back, else the item's own slip. Never
+        // two on one item.
+        onSignDone: switch (r) {
+          DaybookPost()
+              when r.needsMe &&
+                  r.isOpen &&
+                  r.item?.ownerId == me &&
+                  !signing.contains(r.id) =>
+            () => unawaited(signDone(context, r)),
+          DaybookSentBack()
+              when r.needsMe && !r.cancelled && !signing.contains(r.postId) =>
+            () => unawaited(signDone(context, posts[r.postId] ?? _itemOf(r))),
+          _ => null,
+        },
         onUpdate: r is DaybookPost && !r.cancelled
             ? (at) => unawaited(_update(context, r.id, lifted, at))
             : null,
@@ -106,10 +123,22 @@ class DaybookLoop {
           if (mine && r.isOpen) DaybookSlipAction.giveTo,
           if (mine && !checked) DaybookSlipAction.cancel,
         ];
+      case DaybookSentBack():
+        return [if (!r.cancelled) DaybookSlipAction.update];
       case DaybookUpdate():
         return const [];
     }
   }
+
+  /// The work item a send-back quotes, when its own slip isn't loaded (an
+  /// older page): enough to prove it.
+  static DaybookPost _itemOf(DaybookSentBack b) => DaybookPost(
+    id: b.postId,
+    kind: DaybookPost.workItemKind,
+    createdAt: b.at,
+    title: b.title,
+    item: DaybookItem(status: b.itemStatus, ref: b.ref),
+  );
 
   Future<void> _longPress(
     BuildContext context,
@@ -243,20 +272,66 @@ class DaybookLoop {
     );
   }
 
-  /// Sign as done with the camera (O1 → O2): the camera first, then the
-  /// proof with an optional note.
+  /// Sign as done with the camera (O1 → O2): the camera first (never the
+  /// gallery: founder, review 47), then the proof with an optional note.
   Future<void> signDone(BuildContext context, DaybookPost p) async {
     final picked = await ref.read(pickPhotoProvider)(camera: true);
     if (picked == null || !context.mounted) return;
     final kept = await ref.read(keepPhotoProvider)(picked);
     if (!context.mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) => ProofCamera(spaceId: _spaceId, post: p, first: kept),
-      ),
+    await _prove(
+      context,
+      p,
+      photos: [
+        PendingPhoto(
+          local: kept,
+          takenAt: ref.read(clockProvider)(),
+          place: p.place,
+        ),
+      ],
     );
   }
+
+  /// A refused sign-off ("Couldn't send. Tap to fix", answer 5): the proof
+  /// again with its photos and note, to send again or for another item.
+  Future<void> reopenProof(
+    BuildContext context,
+    PendingItem item, {
+    DaybookPost? post,
+  }) => _prove(
+    context,
+    post ??
+        DaybookPost(
+          id: item.id,
+          kind: DaybookPost.workItemKind,
+          createdAt: item.madeAt ?? ref.read(clockProvider)(),
+          title: item.title,
+          place: item.photos.firstOrNull?.place,
+        ),
+    photos: item.photos,
+    note: item.note,
+    refused: item,
+  );
+
+  Future<void> _prove(
+    BuildContext context,
+    DaybookPost p, {
+    required List<PendingPhoto> photos,
+    String? note,
+    PendingItem? refused,
+  }) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      fullscreenDialog: true,
+      builder: (_) => ProofCamera(
+        spaceId: _spaceId,
+        post: p,
+        photos: photos,
+        choices: openItems,
+        note: note,
+        refused: refused,
+      ),
+    ),
+  );
 
   /// Send back with a reason (B2), in place under the lifted proof.
   Future<void> _sendBack(
@@ -276,6 +351,8 @@ class DaybookLoop {
     if (result == null || !context.mounted) return;
     await _call(
       context,
+      RefusedAction.sendBack,
+      s.postId,
       () => ref
           .read(workRepositoryProvider)
           .sendBack(s.postId, result.$1, note: result.$2),
@@ -298,6 +375,8 @@ class DaybookLoop {
     if (text == null || text.trim().isEmpty || !context.mounted) return;
     await _call(
       context,
+      RefusedAction.update,
+      postId,
       () => ref.read(workRepositoryProvider).addComment(postId, text),
     );
   }
@@ -332,20 +411,81 @@ class DaybookLoop {
     }
     await _call(
       context,
+      RefusedAction.giveTo,
+      p.id,
       () => ref.read(workRepositoryProvider).reassign(p.id, picked.id),
     );
   }
 
-  /// Runs a change on the server, then reads the daybook again; a refusal
-  /// or a lost signal says so.
-  Future<void> _call(BuildContext context, Future<void> Function() run) async {
+  /// Runs a change on the server, then reads the daybook again. A lost
+  /// signal says so; a refusal says why in plain words (review 47, answer
+  /// 5) and the page reads again too.
+  Future<void> _call(
+    BuildContext context,
+    RefusedAction action,
+    String postId,
+    Future<void> Function() run,
+  ) async {
     try {
       await run();
     } on SpaceException catch (e) {
-      if (context.mounted) showSpaceError(context, e);
+      if (e.failure == SpaceFailure.network) {
+        if (context.mounted) showSpaceError(context, e);
+        return;
+      }
+      await refresh();
+      ref
+          .read(refusalsProvider.notifier)
+          .add(
+            DaybookRefusal(
+              action: action,
+              spaceId: _spaceId,
+              postId: postId,
+              why: RefusalWhy.of(e),
+            ),
+          );
       return;
     }
     await refresh();
+  }
+
+  /// "Couldn't check: this item was cancelled". [records] is the page read
+  /// again: when the server only says the item changed, it tells how.
+  static String refusalText(
+    AppLocalizations l10n,
+    DaybookRefusal r,
+    List<DaybookRecord> records,
+  ) {
+    final action = switch (r.action) {
+      RefusedAction.check => l10n.daybookCouldNotCheck,
+      RefusedAction.sendBack => l10n.daybookCouldNotSendBack,
+      RefusedAction.cancel => l10n.daybookCouldNotCancel,
+      RefusedAction.giveTo => l10n.daybookCouldNotGiveTo,
+      RefusedAction.update => l10n.daybookCouldNotUpdate,
+    };
+    var why = r.why;
+    if (why == RefusalWhy.changed) {
+      final post = records
+          .whereType<DaybookPost>()
+          .where((p) => p.id == r.postId)
+          .firstOrNull;
+      if (post?.cancelled ?? false) {
+        why = RefusalWhy.cancelled;
+      } else if (post?.item?.status == WorkStatus.checked) {
+        why = RefusalWhy.checked;
+      }
+    }
+    final reason = switch (why) {
+      RefusalWhy.cancelled => l10n.daybookWhyCancelled,
+      RefusalWhy.checked => l10n.daybookWhyChecked,
+      RefusalWhy.changed => l10n.daybookWhyChanged,
+      RefusalWhy.removed => l10n.daybookWhyRemoved,
+      RefusalWhy.notAllowed => l10n.daybookWhyNotAllowed,
+      RefusalWhy.unknown => null,
+    };
+    return reason == null
+        ? l10n.daybookRefusedPlain(action)
+        : l10n.daybookRefusedBecause(action, reason);
   }
 
   Future<void> refresh() async {

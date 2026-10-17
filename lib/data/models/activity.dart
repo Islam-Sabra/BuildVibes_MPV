@@ -255,6 +255,8 @@ class NeedsCard {
     this.due,
     this.requestId,
     this.actorName,
+    this.dueAt,
+    this.photoPath,
   });
 
   final NeedsKind kind;
@@ -269,4 +271,11 @@ class NeedsCard {
 
   /// Who gave, signed, sent back, or asked; null when it was you.
   final String? actorName;
+
+  /// The due time, when the item has one.
+  final DateTime? dueAt;
+
+  /// The row's photo (Needs you, 2544:35068): the proof to check, or the
+  /// work item's cover.
+  final String? photoPath;
 }

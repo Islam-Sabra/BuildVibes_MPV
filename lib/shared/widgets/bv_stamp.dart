@@ -74,7 +74,10 @@ class BvStamp extends StatelessWidget {
   }
 }
 
-enum BvInkStampSize { xs, sm, md, lg }
+/// [xs9] and [xs8] are xs with 9 and 8 px words: the profile's CONFIRMED
+/// and WAITING (R1 v4 2556:35511), and CHECKED on a proof card's photo
+/// (2556:35435).
+enum BvInkStampSize { xs8, xs9, xs, sm, md, lg }
 
 /// DONE and NEW ROLE are [action], CHECKED and CONFIRMED [positive],
 /// CANCELLED [muted], SENT BACK [destructive].
@@ -119,12 +122,17 @@ class BvInkStamp extends StatelessWidget {
     BvInkStampSize.lg => BvInkStampSpec.tiltLg,
     BvInkStampSize.md => BvInkStampSpec.tiltMd,
     BvInkStampSize.sm => BvInkStampSpec.tiltSm,
-    BvInkStampSize.xs => BvInkStampSpec.tiltXs,
+    BvInkStampSize.xs ||
+    BvInkStampSize.xs9 ||
+    BvInkStampSize.xs8 => BvInkStampSpec.tiltXs,
   };
 
   static double opacityOf(BvInkStampSize size) => switch (size) {
     BvInkStampSize.lg || BvInkStampSize.md => BvInkStampSpec.opacityInk,
-    BvInkStampSize.sm || BvInkStampSize.xs => BvInkStampSpec.opacityFull,
+    BvInkStampSize.sm ||
+    BvInkStampSize.xs ||
+    BvInkStampSize.xs9 ||
+    BvInkStampSize.xs8 => BvInkStampSpec.opacityFull,
   };
 
   /// The tilt in radians for [direction]: clockwise (positive) in left to
@@ -140,14 +148,18 @@ class BvInkStamp extends StatelessWidget {
     BvInkStampSize.lg => BvInkStampSpec.borderLg,
     BvInkStampSize.md => BvInkStampSpec.borderMd,
     BvInkStampSize.sm => BvInkStampSpec.borderSm,
-    BvInkStampSize.xs => BvInkStampSpec.borderXs,
+    BvInkStampSize.xs ||
+    BvInkStampSize.xs9 ||
+    BvInkStampSize.xs8 => BvInkStampSpec.borderXs,
   };
 
   static EdgeInsetsDirectional _padding(BvInkStampSize size) => switch (size) {
     BvInkStampSize.lg => BvInkStampSpec.paddingLg,
     BvInkStampSize.md => BvInkStampSpec.paddingMd,
     BvInkStampSize.sm => BvInkStampSpec.paddingSm,
-    BvInkStampSize.xs => BvInkStampSpec.paddingXs,
+    BvInkStampSize.xs ||
+    BvInkStampSize.xs9 ||
+    BvInkStampSize.xs8 => BvInkStampSpec.paddingXs,
   };
 
   static double _fontSize(BvInkStampSize size) => switch (size) {
@@ -155,7 +167,14 @@ class BvInkStamp extends StatelessWidget {
     BvInkStampSize.md => BvInkStampSpec.fontSizeMd,
     BvInkStampSize.sm => BvInkStampSpec.fontSizeSm,
     BvInkStampSize.xs => BvInkStampSpec.fontSizeXs,
+    BvInkStampSize.xs9 => BvInkStampSpec.fontSizeXs9,
+    BvInkStampSize.xs8 => BvInkStampSpec.fontSizeXs8,
   };
+
+  bool get _xs =>
+      size == BvInkStampSize.xs ||
+      size == BvInkStampSize.xs9 ||
+      size == BvInkStampSize.xs8;
 
   @override
   Widget build(BuildContext context) {
@@ -175,9 +194,7 @@ class BvInkStamp extends StatelessWidget {
       padding: _padding(size),
       decoration: BoxDecoration(
         color: BvColors.surfaceElevated,
-        borderRadius: size == BvInkStampSize.xs
-            ? BvInkStampSpec.radiusXs
-            : BvInkStampSpec.radius,
+        borderRadius: _xs ? BvInkStampSpec.radiusXs : BvInkStampSpec.radius,
         border: Border.all(color: color, width: _border(size)),
       ),
       child: Column(
@@ -189,9 +206,7 @@ class BvInkStamp extends StatelessWidget {
             style: ink(
               fontSize,
               FontWeight.w800,
-              size == BvInkStampSize.xs
-                  ? BvInkStampSpec.trackingEmXs
-                  : BvInkStampSpec.trackingEm,
+              _xs ? BvInkStampSpec.trackingEmXs : BvInkStampSpec.trackingEm,
             ),
           ),
           if (subline != null && size == BvInkStampSize.lg)

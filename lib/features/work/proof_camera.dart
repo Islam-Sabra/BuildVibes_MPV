@@ -10,6 +10,8 @@ import '../../core/design/daybook_loop_specs.dart';
 import '../../data/models/daybook.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -23,34 +25,52 @@ import 'work_outbox.dart';
 /// with the place, the date and time and who took it. Another photo and
 /// an optional note can go with it; the round button sends it as done
 /// through the outbox, so a weak signal never loses it.
+///
+/// Proof photos come from the camera only (founder, review 47): the time
+/// and place are real. Tapping the item name lists the reader's other
+/// open items ([choices]) to prove one of them instead (answer 3).
+///
+/// A sign-off the server refused opens here again with its photos and
+/// note ([refused], answer 5); × then asks before anything is deleted.
 class ProofCamera extends ConsumerStatefulWidget {
   const ProofCamera({
     super.key,
     required this.spaceId,
     required this.post,
-    required this.first,
+    required this.photos,
+    this.choices = const [],
+    this.note,
+    this.refused,
   });
 
   final String spaceId;
   final DaybookPost post;
 
-  /// The first photo, kept in the app's folder.
-  final String first;
+  /// The photos so far, kept in the app's folder (the first just taken).
+  final List<PendingPhoto> photos;
+
+  /// The reader's open work items, due soonest first.
+  final List<DaybookPost> choices;
+  final String? note;
+
+  /// The refused sign-off this reopens.
+  final PendingItem? refused;
 
   @override
   ConsumerState<ProofCamera> createState() => _ProofCameraState();
 }
 
 class _ProofCameraState extends ConsumerState<ProofCamera> {
-  final _note = TextEditingController();
-  late final _taken = ref.read(clockProvider)();
-  late final _photos = <PendingPhoto>[_photo(widget.first)];
+  late final _note = TextEditingController(text: widget.note);
+  late var _post = widget.post;
+  late final _photos = List.of(widget.photos);
+  late final _taken = _photos.first.takenAt;
+  var _switching = false;
 
-  PendingPhoto _photo(String kept) => PendingPhoto(
-    local: kept,
-    takenAt: ref.read(clockProvider)(),
-    place: widget.post.place,
-  );
+  List<DaybookPost> get _choices => [
+    if (!widget.choices.any((c) => c.id == widget.post.id)) widget.post,
+    ...widget.choices,
+  ];
 
   @override
   void dispose() {
@@ -62,14 +82,45 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
     final picked = await ref.read(pickPhotoProvider)(camera: true);
     if (picked == null || !mounted) return;
     final kept = await ref.read(keepPhotoProvider)(picked);
-    if (mounted) setState(() => _photos.add(_photo(kept)));
+    if (!mounted) return;
+    setState(
+      () => _photos.add(
+        PendingPhoto(
+          local: kept,
+          takenAt: ref.read(clockProvider)(),
+          place: _post.place,
+        ),
+      ),
+    );
   }
 
-  void _leave() {
-    for (final p in _photos) {
+  /// The photos taken here, not the refused sign-off's.
+  Iterable<PendingPhoto> get _new {
+    final before = {
+      for (final p in widget.refused?.photos ?? const <PendingPhoto>[]) p.local,
+    };
+    return _photos.where((p) => !before.contains(p.local));
+  }
+
+  Future<void> _leave() async {
+    final refused = widget.refused;
+    if (refused != null) {
+      final l10n = AppLocalizations.of(context);
+      final delete = await showBvDialog(
+        context: context,
+        title: l10n.daybookDiscardProofTitle,
+        body: l10n.daybookDiscardProofBody,
+        cancelLabel: l10n.daybookDiscardProofKeep,
+        confirmLabel: l10n.daybookDiscardProofDelete,
+        destructive: true,
+      );
+      if (!mounted) return;
+      if (delete) await ref.read(workOutboxProvider.notifier).discard(refused);
+    }
+    for (final p in _new) {
       unawaited(DaybookDraft.deleteKept(p.local));
     }
-    Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop();
   }
 
   String? _myName() {
@@ -82,30 +133,41 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
         .fullName;
   }
 
-  void _send() {
+  Future<void> _send() async {
     final me = ref.read(authUserIdProvider).value ?? '';
     final name = _myName() ?? '';
     final note = _note.text.trim();
+    final outbox = ref.read(workOutboxProvider.notifier);
+    final refused = widget.refused;
+    // Another item: the photos upload again into its own folder.
+    final moved = refused != null && refused.id != _post.id;
+    if (moved) await outbox.forget(refused);
     unawaited(HapticFeedback.heavyImpact());
     unawaited(
-      ref
-          .read(workOutboxProvider.notifier)
-          .send(
-            PendingItem(
-              kind: PendingKind.signOff,
-              id: widget.post.id,
-              spaceId: widget.spaceId,
-              title: widget.post.title,
-              ownerId: me,
-              ownerName: name,
-              note: note.isEmpty ? null : note,
-              photos: List.of(_photos),
-              madeAt: ref.read(clockProvider)(),
-              authorName: name,
-            ),
-          ),
+      outbox.send(
+        PendingItem(
+          kind: PendingKind.signOff,
+          id: _post.id,
+          spaceId: widget.spaceId,
+          title: _post.title,
+          ownerId: me,
+          ownerName: name,
+          note: note.isEmpty ? null : note,
+          photos: [
+            for (final p in _photos)
+              PendingPhoto(
+                local: p.local,
+                takenAt: p.takenAt,
+                place: _post.place,
+                remote: moved ? null : p.remote,
+              ),
+          ],
+          madeAt: refused?.madeAt ?? ref.read(clockProvider)(),
+          authorName: name,
+        ),
+      ),
     );
-    Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -124,10 +186,16 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
         ?.person
         .fullName;
     final inverse = BvColors.textInverse;
+    final choices = _choices;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _leave();
+        if (didPop) return;
+        if (_switching) {
+          setState(() => _switching = false);
+        } else {
+          unawaited(_leave());
+        }
       },
       child: Scaffold(
         key: const Key('proof-camera'),
@@ -136,47 +204,97 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image(
-                    image: ref.watch(localPhotoProvider(_photos.last.local)),
-                    fit: BoxFit.cover,
-                  ),
-                  SafeArea(
-                    bottom: false,
-                    child: Align(
-                      alignment: AlignmentDirectional.topCenter,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          top: BvProofCameraSpec.linkTop,
-                          start: BvSpace.gutter,
-                          end: BvSpace.gutter,
-                        ),
-                        child: _Link(
-                          title: widget.post.title,
-                          closeLabel: l10n.daybookCloseProof,
-                          onClose: _leave,
+              child: LayoutBuilder(
+                builder: (context, constraints) => Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image(
+                      image: ref.watch(localPhotoProvider(_photos.last.local)),
+                      fit: BoxFit.cover,
+                    ),
+                    PositionedDirectional(
+                      start: BvProofCameraSpec.labelInset,
+                      end: BvProofCameraSpec.labelInset,
+                      bottom: BvProofCameraSpec.labelInset,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _Label(
+                          words.photoLabel(
+                            place: _post.place,
+                            at: _taken,
+                            name: name,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  PositionedDirectional(
-                    start: BvProofCameraSpec.labelInset,
-                    end: BvProofCameraSpec.labelInset,
-                    bottom: BvProofCameraSpec.labelInset,
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: _Label(
-                        words.photoLabel(
-                          place: widget.post.place,
-                          at: _taken,
-                          name: name,
+                    if (_switching)
+                      Positioned.fill(
+                        child: GestureDetector(
+                          key: const Key('proof-switch-away'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => setState(() => _switching = false),
+                        ),
+                      ),
+                    SafeArea(
+                      bottom: false,
+                      child: Align(
+                        alignment: AlignmentDirectional.topCenter,
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                            top: BvProofCameraSpec.linkTop,
+                            start: BvSpace.gutter,
+                            end: BvSpace.gutter,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: BvProofCameraSpec.switchGap,
+                            children: [
+                              _Link(
+                                title: _post.title,
+                                closeLabel: l10n.daybookCloseProof,
+                                onClose: () => unawaited(_leave()),
+                                switchLabel: l10n.daybookSwitchItem,
+                                onSwitch: choices.length < 2
+                                    ? null
+                                    : () => setState(
+                                        () => _switching = !_switching,
+                                      ),
+                              ),
+                              if (_switching)
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxHeight:
+                                        constraints.maxHeight *
+                                        BvProofCameraSpec.switchMaxHeight,
+                                  ),
+                                  child: SingleChildScrollView(
+                                    child: BvPopoverMenu<String>.picker(
+                                      key: const Key('proof-switch'),
+                                      selected: _post.id,
+                                      items: [
+                                        for (final c in choices)
+                                          BvMenuItem(
+                                            value: c.id,
+                                            label: c.title,
+                                            icon: BvIcons.workItems,
+                                          ),
+                                      ],
+                                      onSelected: (id) => setState(() {
+                                        _post = choices.firstWhere(
+                                          (c) => c.id == id,
+                                        );
+                                        _switching = false;
+                                      }),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             SafeArea(
@@ -237,7 +355,7 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                         ),
                         _SendButton(
                           label: l10n.daybookSendAsDone,
-                          onTap: _send,
+                          onTap: () => unawaited(_send()),
                         ),
                         const Spacer(),
                       ],
@@ -259,73 +377,112 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
 }
 
 /// The work item the photo is for: a white pill with its title and ×.
+/// With other open items, the title opens them ([onSwitch]).
 class _Link extends StatelessWidget {
   const _Link({
     required this.title,
     required this.closeLabel,
     required this.onClose,
+    required this.switchLabel,
+    this.onSwitch,
   });
 
   final String title;
   final String closeLabel;
   final VoidCallback onClose;
+  final String switchLabel;
+  final VoidCallback? onSwitch;
 
   @override
-  Widget build(BuildContext context) => Opacity(
-    opacity: BvProofCameraSpec.linkOpacity,
-    child: Container(
-      padding: const EdgeInsetsDirectional.only(
-        start: BvProofCameraSpec.linkPaddingStart,
-        end: BvProofCameraSpec.linkPaddingEnd,
-      ),
-      decoration: const BoxDecoration(
-        color: BvColors.surfaceElevated,
-        borderRadius: BvRadius.roundAll,
+  Widget build(BuildContext context) {
+    final text = Padding(
+      padding: const EdgeInsetsDirectional.symmetric(
+        vertical: BvProofCameraSpec.linkPaddingVertical,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        spacing: BvProofCameraSpec.linkGap,
+        spacing: BvSpace.s4,
         children: [
           Flexible(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(
-                vertical: BvProofCameraSpec.linkPaddingVertical,
-              ),
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: BvType.of(
-                  context,
-                ).labelMd.copyWith(color: BvColors.textPrimary),
-              ),
+            child: Text(
+              title,
+              key: const Key('proof-item'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BvType.of(
+                context,
+              ).labelMd.copyWith(color: BvColors.textPrimary),
             ),
           ),
-          // The × is small; its touch area is 48.
-          Semantics(
-            button: true,
-            label: closeLabel,
-            excludeSemantics: true,
-            child: GestureDetector(
-              key: const Key('proof-close'),
-              behavior: HitTestBehavior.opaque,
-              onTap: onClose,
-              child: const SizedBox.square(
-                dimension: BvSize.touchMin,
-                child: Center(
-                  child: Icon(
-                    BvIcons.close,
-                    size: BvProofCameraSpec.linkIcon,
-                    color: BvColors.iconPrimary,
+          if (onSwitch != null)
+            const Icon(
+              BvIcons.caretDown,
+              size: BvProofCameraSpec.linkIcon,
+              color: BvColors.iconPrimary,
+            ),
+        ],
+      ),
+    );
+    return Opacity(
+      opacity: BvProofCameraSpec.linkOpacity,
+      child: Container(
+        padding: const EdgeInsetsDirectional.only(
+          start: BvProofCameraSpec.linkPaddingStart,
+          end: BvProofCameraSpec.linkPaddingEnd,
+        ),
+        decoration: const BoxDecoration(
+          color: BvColors.surfaceElevated,
+          borderRadius: BvRadius.roundAll,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: BvProofCameraSpec.linkGap,
+          children: [
+            Flexible(
+              child: onSwitch == null
+                  ? text
+                  : Semantics(
+                      button: true,
+                      label: switchLabel,
+                      child: GestureDetector(
+                        key: const Key('proof-switch-open'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: onSwitch,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minHeight: BvSize.touchMin,
+                          ),
+                          child: Center(widthFactor: 1, child: text),
+                        ),
+                      ),
+                    ),
+            ),
+            // The × is small; its touch area is 48.
+            Semantics(
+              button: true,
+              label: closeLabel,
+              excludeSemantics: true,
+              child: GestureDetector(
+                key: const Key('proof-close'),
+                behavior: HitTestBehavior.opaque,
+                onTap: onClose,
+                child: const SizedBox.square(
+                  dimension: BvSize.touchMin,
+                  child: Center(
+                    child: Icon(
+                      BvIcons.close,
+                      size: BvProofCameraSpec.linkIcon,
+                      color: BvColors.iconPrimary,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// "Level 2, grid C7 · 15 Oct 09:40 · Omar Haddad" on the photo.

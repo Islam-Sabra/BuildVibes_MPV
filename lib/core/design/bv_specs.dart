@@ -124,6 +124,9 @@ abstract final class BvAvatarSpec {
   static const sm = BvSize.avatarSm; // 32
   static const md = BvSize.avatarMd; // 40
   static const lg = BvSize.avatarLg; // 56
+
+  /// The profile header in Daybook (R1 v4).
+  static const profile = 64.0;
   static const xl = BvSize.avatarXl; // 88
   static const companyRadiusSmall = BorderRadius.all(Radius.circular(8));
   static const companyRadiusLarge = BvRadius.cardAll; // 14
@@ -339,10 +342,6 @@ abstract final class BvToastSpec {
 
 /// Post cards (H1 v2) and the composer (C1, C2).
 abstract final class BvPostSpec {
-  /// One photo: its own shape, kept between these.
-  static const photoAspect = 4 / 3;
-  static const photoMinAspect = 0.8;
-  static const photoMaxAspect = 1.8;
   static const photoGap = BvSpace.s2;
 
   /// The composer's photo tiles and "Start from" tiles.

@@ -103,7 +103,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   String get _spaceId => widget.space.id;
   DaybookWriter get _card => _editing ? _editor : _writer;
 
-  DaybookLoop get _loop => DaybookLoop(ref, widget.space, onEdit: _startEdit);
+  /// The reader's open items on the page, for the proof screen's list.
+  var _openItems = const <DaybookPost>[];
+
+  DaybookLoop get _loop =>
+      DaybookLoop(ref, widget.space, onEdit: _startEdit, openItems: _openItems);
 
   @override
   void initState() {
@@ -347,9 +351,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     _startWriting();
   }
 
-  /// The work item a hold of the post bar's camera proves: the reader's
-  /// open item due first (late first), else the oldest.
-  DaybookPost? _toProve(
+  /// The reader's open work items, due first (late first), else the
+  /// oldest. A hold of the post bar's camera proves the first; the proof
+  /// screen lists them all (review 47, answer 3).
+  List<DaybookPost> _toProve(
     List<DaybookRecord> records,
     String? me,
     Set<String> signing,
@@ -372,7 +377,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       final d = due(a).compareTo(due(b));
       return d != 0 ? d : a.createdAt.compareTo(b.createdAt);
     });
-    return mine.firstOrNull;
+    return mine;
   }
 
   static const _farFuture = 9999;
@@ -389,6 +394,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final today = dayOf(now);
     final me = ref.watch(authUserIdProvider).value;
     final space = widget.space;
+    // A refused check, send-back or cancel says why; the page has read
+    // again (review 47, answer 5).
+    ref.listen(refusalsProvider, (_, r) {
+      if (r == null || r.spaceId != _spaceId) return;
+      showSpaceMessage(
+        context,
+        DaybookLoop.refusalText(
+          l10n,
+          r,
+          ref.read(daybookPageProvider(_spaceId)).value ?? const [],
+        ),
+      );
+    });
     final canPost = space.myRights.createItems;
     final page = ref.watch(daybookPageProvider(_spaceId));
     final due =
@@ -438,7 +456,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ),
       _ => const Center(child: CircularProgressIndicator()),
     };
-    final prove = canPost ? _toProve(records, me, signing) : null;
+    _openItems = canPost ? _toProve(records, me, signing) : const [];
+    final prove = _openItems.firstOrNull;
     final cardDraft = _editing ? edit : draft;
 
     return PopScope(
@@ -650,6 +669,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         // The check is on the latest proof: the one that needed it.
         if (check == null || !r.needsMe) return r;
         return r.checkedBy(id: me, name: myName, at: check.madeAt ?? now);
+      case DaybookSentBack():
       case DaybookUpdate():
         return r;
     }
@@ -675,6 +695,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final cancels = byKind(PendingKind.cancel);
     final checks = byKind(PendingKind.check);
     final signOffs = byKind(PendingKind.signOff);
+    // A refused proof isn't done: the item shows as the server has it.
+    final sending = {
+      for (final e in signOffs.entries)
+        if (!e.value.refused) e.key: e.value,
+    };
     // Work items, and their sign-offs and updates (other kinds of post
     // come in slice 2), with what still waits for a signal.
     final shown = [
@@ -684,7 +709,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             r,
             cancels,
             checks,
-            signOffs,
+            sending,
             me: me,
             myName: myName,
             now: now,
@@ -699,12 +724,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       for (final i in pending)
         if (i.kind == PendingKind.workItem && !onServer.contains(i.id)) i.id: i,
     };
-    // A proof waiting to be sent, until the server has the item as done.
+    // A proof waiting to be sent, until the server has the item as done;
+    // a refused one stays on the phone until it is fixed or deleted.
     final unsentProofs = {
       for (final i in signOffs.values)
-        if (records.whereType<DaybookPost>().any(
-          (p) => p.id == i.id && p.item?.status == WorkStatus.open,
-        ))
+        if (i.refused ||
+            records.whereType<DaybookPost>().any(
+              (p) => p.id == i.id && p.item?.status == WorkStatus.open,
+            ))
           '${PendingKind.signOff.json}-${i.id}': i,
     };
     final all =
@@ -732,7 +759,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     Widget entry(DaybookRecord r) {
       final waitingPost = unsent[r.id];
       final waitingProof = unsentProofs[r.id];
-      final refused = waitingPost?.refused ?? false;
+      final refused =
+          (waitingPost?.refused ?? false) || (waitingProof?.refused ?? false);
       final slip = DaybookSlip(
         record: r,
         words: words,
@@ -745,7 +773,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         landing:
             r is DaybookSignOff && outbox.isHeld(PendingKind.check, r.postId),
         checker: r is DaybookSignOff ? posts[r.postId]?.authorName : null,
-        onTap: refused ? () => unawaited(_reopen(waitingPost!)) : null,
+        onTap: !refused
+            ? null
+            : waitingPost != null
+            ? () => unawaited(_reopen(waitingPost))
+            : () => unawaited(
+                _loop.reopenProof(
+                  context,
+                  waitingProof!,
+                  post: posts[waitingProof.id],
+                ),
+              ),
       );
       return DaybookEntry(
         words: words,

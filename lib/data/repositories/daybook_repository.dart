@@ -20,7 +20,7 @@ abstract class DaybookRepository {
   /// The entries (posts, sign-offs, updates) before [before] (with
   /// [beforeId], entries made at the same moment aren't skipped), newest
   /// first, at most [limit].
-  Future<List<DaybookRecord>> page(
+  Future<DaybookPageRows> page(
     String spaceId, {
     DateTime? before,
     String? beforeId,
@@ -154,7 +154,7 @@ class SupabaseDaybookRepository implements DaybookRepository {
       (result as List? ?? const []).cast<Map<String, dynamic>>();
 
   @override
-  Future<List<DaybookRecord>> page(
+  Future<DaybookPageRows> page(
     String spaceId, {
     DateTime? before,
     String? beforeId,
@@ -171,7 +171,7 @@ class SupabaseDaybookRepository implements DaybookRepository {
         },
       ),
     );
-    return [for (final r in rows) ?DaybookRecord.fromRow(r)];
+    return DaybookPageRows.fromRows(rows);
   });
 
   @override

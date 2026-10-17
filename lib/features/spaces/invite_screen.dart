@@ -16,6 +16,38 @@ import '../entry/widgets/entry_scaffold.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'space_errors.dart';
 
+/// A new invite code after the admin confirms; the old one stops working
+/// (S16, Space info).
+Future<void> renewInviteCode(
+  BuildContext context,
+  WidgetRef ref,
+  String spaceId,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final yes = await showBvSheet<bool>(
+    context: context,
+    title: l10n.spacesNewCodeTitle,
+    footer: BvSheetFooter(
+      cancelLabel: l10n.commonCancel,
+      confirmLabel: l10n.spacesNewCode,
+      onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+    ),
+    builder: (sheetContext) => Text(
+      l10n.spacesNewCodeNote,
+      style: BvType.of(
+        sheetContext,
+      ).bodyMd.copyWith(color: BvColors.textSecondary),
+    ),
+  );
+  if (yes != true) return;
+  try {
+    await ref.read(spaceRepositoryProvider).renewInvite(spaceId);
+    ref.invalidate(spaceInviteProvider(spaceId));
+  } on SpaceException catch (e) {
+    if (context.mounted) showSpaceError(context, e);
+  }
+}
+
 /// S16 · Invite people, MVP version: the invite code only. No people
 /// search, no Suggested and no link (they need the web page; review 06).
 class InviteScreen extends ConsumerWidget {
@@ -35,31 +67,6 @@ class InviteScreen extends ConsumerWidget {
     Future<void> share(SpaceInvite code) => ref.read(shareTextProvider)(
       l10n.spacesShareText(space?.name ?? '', code.code),
     );
-
-    Future<void> renew() async {
-      final yes = await showBvSheet<bool>(
-        context: context,
-        title: l10n.spacesNewCodeTitle,
-        footer: BvSheetFooter(
-          cancelLabel: l10n.commonCancel,
-          confirmLabel: l10n.spacesNewCode,
-          onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-        ),
-        builder: (sheetContext) => Text(
-          l10n.spacesNewCodeNote,
-          style: BvType.of(
-            sheetContext,
-          ).bodyMd.copyWith(color: BvColors.textSecondary),
-        ),
-      );
-      if (yes != true) return;
-      try {
-        await ref.read(spaceRepositoryProvider).renewInvite(spaceId);
-        ref.invalidate(spaceInviteProvider(spaceId));
-      } on SpaceException catch (e) {
-        if (context.mounted) showSpaceError(context, e);
-      }
-    }
 
     return EntryScaffold(
       title: l10n.spacesInviteTitle(inOwnDirection(space?.name ?? '')),
@@ -105,7 +112,7 @@ class InviteScreen extends ConsumerWidget {
                     label: l10n.spacesNewCode,
                     style: BvButtonStyle.secondary,
                     expand: true,
-                    onPressed: renew,
+                    onPressed: () => renewInviteCode(context, ref, spaceId),
                   ),
                   Text(
                     l10n.spacesNewCodeNote,

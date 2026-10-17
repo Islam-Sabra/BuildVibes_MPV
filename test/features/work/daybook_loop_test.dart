@@ -3,6 +3,7 @@
 // menus (B1, X1), send back with a reason (B2, S1), an update by swiping
 // (Y1, Y2), edit, give to someone else and cancel (X1–X3).
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
@@ -85,6 +86,12 @@ Future<TestApp> _open(
   await tester.pumpAndSettle();
   return app;
 }
+
+/// The Sign as done pills (in Arabic the header's "signed as done" has
+/// the same words).
+Finder _signPills(AppLocalizations l10n) => find.byWidgetPredicate(
+  (w) => w is BvSlipPill && w.icon != null && w.label == l10n.daybookSignAsDone,
+);
 
 Finder _entry(String id) => find.byKey(Key('daybook-entry-$id'));
 
@@ -197,6 +204,223 @@ void main() {
       expect(app.work.calls, isEmpty);
     });
 
+    testWidgets('review 47, answer 3: the item name lists your other open '
+        'items; picking one proves it instead. Camera only [$lang]', (
+      tester,
+    ) async {
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+      );
+      await tester.longPress(find.byKey(const Key('post-bar-camera')));
+      await tester.pumpAndSettle();
+      expect(find.text(s.sleeves), findsOneWidget);
+      await tester.tap(find.byKey(const Key('proof-switch-open')));
+      await tester.pumpAndSettle();
+      final menu = tester.widget<BvPopoverMenu<String>>(
+        find.byKey(const Key('proof-switch')),
+      );
+      // Due soonest first; the one shown is chosen.
+      expect(
+        [for (final i in menu.items) i.value],
+        ['post-sleeves', 'post-trays'],
+      );
+      expect(menu.selected, 'post-sleeves');
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('proof-switch')),
+          matching: find.text(s.cableTraysTitle),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('proof-switch')), findsNothing);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('proof-item'))).data,
+        s.cableTraysTitle,
+      );
+      await tester.tap(find.byKey(const Key('proof-add-photo')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, startsWith('done post-trays'));
+      // Proof photos come from the camera only (founder, review 47).
+      expect(app.cameraAsks, everyElement(isTrue));
+      expect(app.cameraAsks, hasLength(2));
+    });
+
+    testWidgets('review 47, answer 5: a refused sign-off keeps its photos: '
+        '"Couldn\'t send. Tap to fix" on the proof; the tap reopens it; x '
+        'asks before deleting [$lang]', (tester) async {
+      final work = FakeWorkRepository()
+        ..refuse = const SpaceException(
+          SpaceFailure.rule,
+          'this work item was cancelled',
+        );
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+        work: work,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BvPostBar)),
+      );
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('proof-note')),
+        s.sleevesNote,
+      );
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      expect(work.calls, isEmpty);
+      final kept = container.read(workOutboxProvider).single;
+      expect(kept.refused, isTrue);
+      expect(kept.photos, hasLength(1));
+      expect(File(kept.photos.single.local).existsSync(), isTrue);
+      expect(find.text(l10n.daybookCouldNotSend), findsOneWidget);
+      // Not DONE on the item: the server didn't take it.
+      expect(
+        _in('post-sleeves', find.text(l10n.daybookStampDone)),
+        findsNothing,
+      );
+
+      // Tap to fix: the proof again, with the note.
+      await tester.tap(find.text(l10n.daybookCouldNotSend));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProofCamera), findsOneWidget);
+      expect(find.text(s.sleevesNote), findsOneWidget);
+      // x asks; Keep keeps it on the phone.
+      await tester.tap(find.byKey(const Key('proof-close')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookDiscardProofTitle), findsOneWidget);
+      await tester.tap(find.text(l10n.daybookDiscardProofKeep));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProofCamera), findsNothing);
+      expect(container.read(workOutboxProvider), hasLength(1));
+
+      // Fixed: sent for the other item, with the same photo.
+      work.refuse = null;
+      await tester.tap(find.text(l10n.daybookCouldNotSend));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('proof-switch-open')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('proof-switch')),
+          matching: find.text(s.cableTraysTitle),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      expect(work.calls.single, 'done post-trays ${s.sleevesNote} 1');
+      expect(container.read(workOutboxProvider), isEmpty);
+      expect(app.work.uploads.last, contains('/post-trays/'));
+    });
+
+    testWidgets('review 47, answer 5: x on a refused proof, then Delete: '
+        'the photos go [$lang]', (tester) async {
+      final work = FakeWorkRepository()
+        ..refuse = const SpaceException(SpaceFailure.notAllowed);
+      await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+        work: work,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BvPostBar)),
+      );
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      final photo = container.read(workOutboxProvider).single.photos.single;
+      await tester.tap(find.text(l10n.daybookCouldNotSend));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('proof-close')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.daybookDiscardProofDelete));
+      await tester.pumpAndSettle();
+      expect(container.read(workOutboxProvider), isEmpty);
+      expect(find.text(l10n.daybookCouldNotSend), findsNothing);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      expect(File(photo.local).existsSync(), isFalse);
+    });
+
+    testWidgets('review 47, answer 5: a refused check says why in plain '
+        'words, then the page reads again [$lang]', (tester) async {
+      final work = FakeWorkRepository()
+        ..refuse = const SpaceException(
+          SpaceFailure.rule,
+          'only a done item can be checked',
+        );
+      final daybook = FakeDaybookRepository();
+      await _open(tester, lang, posts: s.d1(), work: work, daybook: daybook);
+      // Meanwhile the author cancelled it.
+      daybook.posts[DaybookSamples.space] = [
+        for (final r in s.d1())
+          if (r is DaybookPost && r.id == 'post-sleeves')
+            r.shownAs(
+              stamp: const DaybookStamp(kind: DaybookStampKind.cancelled),
+              cancelled: true,
+            )
+          else
+            r,
+      ];
+      await _doubleTapProof(tester);
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          l10n.daybookRefusedBecause(
+            l10n.daybookCouldNotCheck,
+            l10n.daybookWhyCancelled,
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(work.calls, isEmpty);
+    });
+
+    testWidgets('review 47, answer 5: a refused send-back says why [$lang]', (
+      tester,
+    ) async {
+      final work = FakeWorkRepository()
+        ..refuse = const SpaceException(SpaceFailure.notAllowed);
+      await _open(tester, lang, posts: s.d1(), work: work);
+      await _longPress(tester, 'event-sleeves-done');
+      await _pick(tester, l10n.daybookSendBack);
+      await tester.tap(find.text(l10n.daybookReasonNotFinished));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('send-back-card')),
+          matching: find.text(l10n.daybookSendBack),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          l10n.daybookRefusedBecause(
+            l10n.daybookCouldNotSendBack,
+            l10n.daybookWhyNotAllowed,
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a proof sent with no signal waits on the page, DONE on '
         'the item, then sends [$lang]', (tester) async {
       final work = FakeWorkRepository()..failSendNext = 3;
@@ -248,8 +472,9 @@ void main() {
       expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
     });
 
-    testWidgets('S1: sent back: SENT BACK on the proof with the reason; the '
-        'clip and Sign as done on the item [$lang]', (tester) async {
+    testWidgets('S1: sent back: SENT BACK on the proof, "Sent back at '
+        '10:12"; the send-back is its own slip with the reason and note, '
+        'the clip and the only Sign as done [$lang]', (tester) async {
       await _open(
         tester,
         lang,
@@ -265,8 +490,27 @@ void main() {
         _in(
           'event-sleeves-done',
           find.text(
-            l10n.daybookSentBackLineNote(
-              words.clock(DateTime(2026, 10, 15, 10, 12)),
+            l10n.daybookSentBackAt(words.clock(DateTime(2026, 10, 15, 10, 12))),
+          ),
+        ),
+        findsOneWidget,
+      );
+      // The reason is no longer on the proof.
+      expect(
+        _in('event-sleeves-done', find.textContaining(s.sentBackNote)),
+        findsNothing,
+      );
+      final back = _entry('event-sleeves-back');
+      expect(back, findsOneWidget);
+      expect(
+        _in('event-sleeves-back', find.text(l10n.daybookSentItBack)),
+        findsOneWidget,
+      );
+      expect(
+        _in(
+          'event-sleeves-back',
+          find.text(
+            l10n.daybookSentBackText(
               l10n.daybookReasonNotAsAsked,
               inOwnDirection(s.sentBackNote),
             ),
@@ -274,11 +518,55 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(_in('post-sleeves', find.byType(BvPaperClip)), findsOneWidget);
       expect(
-        _in('post-sleeves', find.text(l10n.daybookSignAsDone)),
+        _in('event-sleeves-back', find.byType(BvPaperClip)),
         findsOneWidget,
       );
+      // Never two Sign as done on one item: not on the item's own slip.
+      expect(_in('post-sleeves', find.byType(BvPaperClip)), findsNothing);
+      expect(_signPills(l10n), findsOneWidget);
+      expect(_in('event-sleeves-back', _signPills(l10n)), findsOneWidget);
+    });
+
+    testWidgets('S1: Sign as done on the send-back proves the item; signed '
+        'again, the clip moves to the new proof [$lang]', (tester) async {
+      final work = FakeWorkRepository();
+      final daybook = FakeDaybookRepository();
+      await _open(
+        tester,
+        lang,
+        posts: s.s1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+        work: work,
+        daybook: daybook,
+      );
+      await tester.tap(_in('event-sleeves-back', _signPills(l10n)));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProofCamera), findsOneWidget);
+      // The server after the second sign-off: the send-back asks nobody.
+      daybook.posts[DaybookSamples.space] = [
+        ...s.s1().where((r) => r.id != 'event-sleeves-back'),
+        s.sleevesSentBack(needsMe: false),
+      ];
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      expect(work.calls, contains(startsWith('done post-sleeves')));
+      expect(_in('event-sleeves-back', find.byType(BvPaperClip)), findsNothing);
+      expect(_signPills(l10n), findsNothing);
+    });
+
+    testWidgets('a never-signed item keeps Sign as done on its own slip '
+        '[$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        posts: [s.o1().first],
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+      );
+      final id = s.o1().first.id;
+      expect(_in(id, _signPills(l10n)), findsOneWidget);
     });
 
     testWidgets('Y1, Y2: swipe a slip to the end side, write an update; it '

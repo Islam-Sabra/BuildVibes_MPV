@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/activity/activity_screen.dart';
+import '../../features/activity/needs_you_screen.dart';
 import '../../features/dev/components_gallery_screen.dart';
 import '../../features/entry/code_screen.dart';
 import '../../features/entry/email_screen.dart';
@@ -12,6 +13,8 @@ import '../../features/entry/loading_screen.dart';
 import '../../features/entry/phone_screen.dart';
 import '../../features/entry/welcome_screen.dart';
 import '../../features/explore/explore_screen.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_placeholder_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/onboarding/about_you_screen.dart';
 import '../../features/onboarding/people_screen.dart';
@@ -78,6 +81,9 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.projects) ||
               under(AppRoutes.posts) ||
               under(AppRoutes.spaces) ||
+              under(AppRoutes.needs) ||
+              under(AppRoutes.notebook) ||
+              under(AppRoutes.messages) ||
               under(AppRoutes.removals) ||
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
@@ -203,6 +209,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.spaces,
         builder: (context, state) => const MySpacesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.needs,
+        builder: (context, state) => const NeedsYouScreen(),
+      ),
+      // Placeholders until slices 8 and 3 (review 43).
+      GoRoute(
+        path: AppRoutes.notebook,
+        builder: (context, state) => BvPlaceholderScreen(
+          title: AppLocalizations.of(context).homeNotebook,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.messages,
+        builder: (context, state) => BvPlaceholderScreen(
+          title: AppLocalizations.of(context).homeMessages,
+        ),
       ),
       GoRoute(
         path: '${AppRoutes.removals}/:id',

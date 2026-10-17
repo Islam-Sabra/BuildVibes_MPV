@@ -126,14 +126,15 @@ class DaybookDueEdit {
 sealed class DaybookRecord {
   const DaybookRecord();
 
-  /// daybook_page's row: `kind` is 'post', 'sign_off' or 'update'; null
-  /// for a kind this version doesn't know.
+  /// daybook_page's row: `kind` is 'post', 'sign_off', 'sent_back' or
+  /// 'update'; null for a kind this version doesn't know.
   static DaybookRecord? fromRow(Map<String, dynamic> row) {
     final entry = row['entry'] as Map<String, dynamic>?;
     if (entry == null) return null;
     return switch (row['kind']) {
       'post' => DaybookPost.fromJson(entry),
       'sign_off' => DaybookSignOff.fromJson(entry),
+      'sent_back' => DaybookSentBack.fromJson(entry),
       'update' => DaybookUpdate.fromJson(entry),
       _ => null,
     };
@@ -144,6 +145,36 @@ sealed class DaybookRecord {
 
   /// The work item a sign-off or update belongs to, or the post itself.
   String get postId;
+}
+
+/// One daybook_page call: the entries this version draws, and how many
+/// rows the server sent with the cursor of the last one. Paging follows the
+/// rows, so a kind this version doesn't know never ends it early.
+@immutable
+class DaybookPageRows {
+  const DaybookPageRows(
+    this.records, {
+    required this.rows,
+    this.lastAt,
+    this.lastId,
+  });
+
+  /// The rows as daybook_page sends them (`id`, `created_at`, `kind`,
+  /// `entry`), newest first.
+  factory DaybookPageRows.fromRows(List<Map<String, dynamic>> rows) {
+    final last = rows.lastOrNull;
+    return DaybookPageRows(
+      [for (final r in rows) ?DaybookRecord.fromRow(r)],
+      rows: rows.length,
+      lastAt: _time(last?['created_at']),
+      lastId: last?['id'] as String?,
+    );
+  }
+
+  final List<DaybookRecord> records;
+  final int rows;
+  final DateTime? lastAt;
+  final String? lastId;
 }
 
 /// A Library file on a work item's slip ("M-201 Rev C").
@@ -467,6 +498,69 @@ class DaybookSignOff extends DaybookRecord {
       byName: name,
     ),
   );
+}
+
+/// A send-back on the daybook (migration 24, S1 2530:33826): who sent the
+/// proof back, the reason and the note, at its own time, quoting the work
+/// item. While it is the latest and the item waits to be signed again,
+/// the owner's paper clip and Sign as done sit here ([needsMe]).
+@immutable
+class DaybookSentBack extends DaybookRecord {
+  const DaybookSentBack({
+    required this.id,
+    required this.at,
+    required this.postId,
+    required this.title,
+    this.ref,
+    this.actorId,
+    this.actorName,
+    this.reason,
+    this.note,
+    this.itemStatus = WorkStatus.open,
+    this.cancelled = false,
+    this.needsMe = false,
+  });
+
+  factory DaybookSentBack.fromJson(Map<String, dynamic> json) =>
+      DaybookSentBack(
+        id: json['id'] as String,
+        at: DateTime.parse(json['at'] as String),
+        postId: json['post_id'] as String,
+        title: json['title'] as String? ?? '',
+        ref: json['ref'] as String?,
+        actorId: json['actor_id'] as String?,
+        actorName: json['actor_name'] as String?,
+        reason: SendBackReason.fromJson(json['reason']),
+        note: json['note'] as String?,
+        itemStatus: WorkStatus.fromJson(json['item_status']),
+        cancelled: json['post_status'] == 'cancelled',
+        needsMe: json['needs_me'] as bool? ?? false,
+      );
+
+  @override
+  final String id;
+  @override
+  final DateTime at;
+  @override
+  final String postId;
+
+  /// The work item's title, shown as the quote.
+  final String title;
+  final String? ref;
+  final String? actorId;
+
+  /// Null across a block or for a hidden account: "Former member".
+  final String? actorName;
+  final SendBackReason? reason;
+  final String? note;
+  final WorkStatus itemStatus;
+
+  /// The work item was cancelled since.
+  final bool cancelled;
+
+  /// The owner's paper clip and Sign as done: the latest send-back of an
+  /// item waiting to be signed again (never two on one item).
+  final bool needsMe;
 }
 
 /// An update on the daybook: a small note quoting its work item.

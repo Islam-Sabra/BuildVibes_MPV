@@ -58,6 +58,26 @@ void main() {
       expect(BvAvatar.tileInitialsOf('الجميع'), 'ج');
     });
 
+    testBoth('the 18 avatar: one Latin letter; an alef name keeps two', (
+      tester,
+      lang,
+    ) async {
+      await pumpComponent(
+        tester,
+        const Column(
+          children: [
+            BvAvatar(name: 'Omar Haddad', size: BvAvatarSize.xxs),
+            BvAvatar(name: 'إسلام أحمد', size: BvAvatarSize.xxs),
+            BvAvatar(name: 'سارة المطيري', size: BvAvatarSize.xxs),
+          ],
+        ),
+        lang: lang,
+      );
+      expect(find.text('O'), findsOneWidget);
+      expect(find.text('إس'), findsOneWidget);
+      expect(find.text('س'), findsOneWidget);
+    });
+
     testBoth('sizes, person circle and company square', (tester, lang) async {
       await pumpComponent(
         tester,

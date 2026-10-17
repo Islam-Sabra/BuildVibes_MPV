@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/around_specs.dart';
 import '../../core/design/bv_icons.dart';
-import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -14,10 +14,11 @@ import '../feed/feed_tab.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'spaces_day_tab.dart';
 
-/// Home: Feed (opens first; H1 v2) and Spaces, your day on site (H1b).
-/// The Spaces label gets a dot while something needs you. Search opens
-/// people search in Explore. Guests get no feed (the guest feed isn't in
-/// the MVP).
+/// Home in Daybook (H1 v3 2555:35276): the wordmark and its three icons
+/// (Search opens people search in Explore; the notebook and Messages open
+/// placeholders until slices 8 and 3), the small Feed and Spaces tabs, and
+/// the tab. Spaces, your day on site (H1b), gets a dot while something
+/// needs you. Guests get no feed (the guest feed isn't in the MVP).
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -37,49 +38,100 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final guest = ref.watch(appGateProvider) == AppGate.guest;
     final needsYou =
         !guest && (ref.watch(needsCardsProvider).value?.isNotEmpty ?? false);
+    Widget icon(String key, IconData glyph, String label, VoidCallback onTap) =>
+        Semantics(
+          button: true,
+          label: label,
+          excludeSemantics: true,
+          child: InkResponse(
+            key: Key(key),
+            radius: BvSize.touchMin / 2,
+            onTap: onTap,
+            child: SizedBox.square(
+              dimension: BvHomeSpec.barButton,
+              child: Icon(
+                glyph,
+                size: BvSize.iconLg,
+                color: BvColors.iconPrimary,
+              ),
+            ),
+          ),
+        );
     return Scaffold(
-      appBar: AppBar(
-        // The wordmark stays in Latin letters in both languages.
-        title: Text(
-          l10n.appTitle,
-          style: BvType.latin.headingLg.copyWith(color: BvColors.brandInk),
+      backgroundColor: BvColors.surfaceApp,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                BvHomeSpec.barPaddingStart,
+                BvHomeSpec.barPaddingVertical,
+                BvHomeSpec.barPaddingEnd,
+                BvHomeSpec.barPaddingVertical,
+              ),
+              child: Row(
+                spacing: BvHomeSpec.barGap,
+                children: [
+                  Expanded(
+                    // The wordmark stays in Latin letters in both languages,
+                    // at the start of the bar.
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        l10n.appTitle,
+                        textDirection: TextDirection.ltr,
+                        style: BvType.latin.headingLg.copyWith(
+                          color: BvColors.brandInk,
+                          fontSize: BvHomeSpec.wordmarkSize,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                  icon(
+                    'home-search',
+                    BvIcons.search,
+                    l10n.homeSearch,
+                    () => context.go(AppRoutes.explore),
+                  ),
+                  if (!guest) ...[
+                    icon(
+                      'home-notebook',
+                      BvIcons.workItems,
+                      l10n.homeNotebook,
+                      () => context.push(AppRoutes.notebook),
+                    ),
+                    icon(
+                      'home-messages',
+                      BvIcons.chat,
+                      l10n.homeMessages,
+                      () => context.push(AppRoutes.messages),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            BvTabs.small(
+              key: const Key('home-tabs'),
+              labels: [l10n.homeFeed, l10n.homeSpaces],
+              selectedIndex: _tab,
+              dots: {if (needsYou) HomeScreen.spacesTab},
+              onSelect: (i) => setState(() => _tab = i),
+            ),
+            Expanded(
+              child: _tab == HomeScreen.spacesTab
+                  ? const SpacesDayTab()
+                  : guest
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+                      child: EmptyNote(l10n.placeholderBody),
+                    )
+                  : const FeedTab(),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            key: const Key('home-search'),
-            tooltip: l10n.homeSearch,
-            icon: const Icon(BvIcons.search),
-            onPressed: () => context.go(AppRoutes.explore),
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          BvTabs(
-            key: const Key('home-tabs'),
-            fill: true,
-            labels: [l10n.homeFeed, l10n.homeSpaces],
-            selectedIndex: _tab,
-            dots: {if (needsYou) HomeScreen.spacesTab},
-            onSelect: (i) => setState(() => _tab = i),
-          ),
-          const Divider(
-            height: BvStroke.thin,
-            thickness: BvStroke.thin,
-            color: BvColors.borderDefault,
-          ),
-          Expanded(
-            child: _tab == HomeScreen.spacesTab
-                ? const SpacesDayTab()
-                : guest
-                ? Padding(
-                    padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-                    child: EmptyNote(l10n.placeholderBody),
-                  )
-                : const FeedTab(),
-          ),
-        ],
       ),
     );
   }

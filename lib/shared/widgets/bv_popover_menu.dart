@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design/around_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -19,47 +20,63 @@ class BvMenuItem<T> {
   final IconData icon;
 }
 
-/// The writing card's small menus (2527:33433, 2535:34374): a leading icon
-/// and a label per row. [BvPopoverMenu.more] lists things to add;
+/// The small menus: a leading icon and a label per row. While writing
+/// (2527:33433, 2535:34374), [BvPopoverMenu.more] lists things to add and
 /// [BvPopoverMenu.picker] is one single choice (what is being posted), its
-/// [selected] row in orange with a check.
+/// [selected] row in orange with a check. [BvPopoverMenu.screen] is a
+/// screen's ⋯ menu (the Space menu, MN1 2566:35755).
 class BvPopoverMenu<T> extends StatelessWidget {
   const BvPopoverMenu.more({
     super.key,
     required this.items,
     required this.onSelected,
   }) : selected = null,
-       picker = false;
+       picker = false,
+       screen = false;
 
   const BvPopoverMenu.picker({
     super.key,
     required this.items,
     required this.onSelected,
     required this.selected,
-  }) : picker = true;
+  }) : picker = true,
+       screen = false;
+
+  const BvPopoverMenu.screen({
+    super.key,
+    required this.items,
+    required this.onSelected,
+  }) : selected = null,
+       picker = false,
+       screen = true;
 
   final List<BvMenuItem<T>> items;
   final ValueChanged<T> onSelected;
   final T? selected;
   final bool picker;
+  final bool screen;
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     return Container(
-      width: picker
+      width: screen
+          ? BvScreenMenuSpec.width
+          : picker
           ? BvPopoverMenuSpec.widthPicker
           : BvPopoverMenuSpec.widthMore,
       padding: const EdgeInsetsDirectional.symmetric(
         vertical: BvPopoverMenuSpec.paddingVertical,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: BvColors.surfaceElevated,
         borderRadius: BvPopoverMenuSpec.radius,
-        border: Border.fromBorderSide(
-          BorderSide(color: BvColors.borderSubtle, width: BvStroke.thin),
-        ),
-        boxShadow: BvShadow.menu,
+        border: screen
+            ? null
+            : const Border.fromBorderSide(
+                BorderSide(color: BvColors.borderSubtle, width: BvStroke.thin),
+              ),
+        boxShadow: screen ? BvShadow.screenMenu : BvShadow.menu,
       ),
       child: Material(
         type: MaterialType.transparency,
@@ -83,10 +100,14 @@ class BvPopoverMenu<T> extends StatelessWidget {
       child: InkWell(
         onTap: () => onSelected(item.value),
         child: Container(
-          height: BvPopoverMenuSpec.rowHeight,
+          height: screen
+              ? BvScreenMenuSpec.rowHeight
+              : BvPopoverMenuSpec.rowHeight,
           padding: EdgeInsetsDirectional.only(
             start: BvPopoverMenuSpec.rowPaddingStart,
-            end: picker
+            end: screen
+                ? BvScreenMenuSpec.rowPadding
+                : picker
                 ? BvPopoverMenuSpec.rowPaddingEndPicker
                 : BvPopoverMenuSpec.rowPaddingEndMore,
           ),

@@ -4,7 +4,7 @@ import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
 /// [note] is an update's face (20, Y2).
-enum BvAvatarSize { xxs, note, xs, xsm, list, sm, md, lg, xl }
+enum BvAvatarSize { xxs, note, xs, xsm, list, sm, md, lg, profile, xl }
 
 /// Spec §9 ("DS · Avatar & Badge"). A person is a circle; a company is a
 /// rounded square. Without a photo it shows initials.
@@ -41,6 +41,7 @@ class BvAvatar extends StatelessWidget {
     BvAvatarSize.sm => BvAvatarSpec.sm,
     BvAvatarSize.md => BvAvatarSpec.md,
     BvAvatarSize.lg => BvAvatarSpec.lg,
+    BvAvatarSize.profile => BvAvatarSpec.profile,
     BvAvatarSize.xl => BvAvatarSpec.xl,
   };
 
@@ -52,7 +53,9 @@ class BvAvatar extends StatelessWidget {
     BvAvatarSize.list ||
     BvAvatarSize.sm ||
     BvAvatarSize.md => BvAvatarSpec.companyRadiusSmall,
-    BvAvatarSize.lg || BvAvatarSize.xl => BvAvatarSpec.companyRadiusLarge,
+    BvAvatarSize.lg ||
+    BvAvatarSize.profile ||
+    BvAvatarSize.xl => BvAvatarSpec.companyRadiusLarge,
   };
 
   /// Latin: the first letters of the first and last word, as typed
@@ -114,6 +117,15 @@ class BvAvatar extends StatelessWidget {
     return article == 'al' || article == 'el' ? word.substring(dash + 1) : word;
   }
 
+  /// The 18 avatar holds one Latin letter; an Arabic name keeps what
+  /// [initialsOf] gives, so an alef name still shows two ("إ" alone reads
+  /// as "!", review 46).
+  static String _smallestInitials(String name) {
+    final initials = initialsOf(name);
+    if (initials.runes.any(_isArabic)) return initials;
+    return initials.characters.take(1).toString();
+  }
+
   static bool _isArabic(int rune) =>
       rune >= _arabicFirst && rune <= _arabicLast;
 
@@ -143,7 +155,7 @@ class BvAvatar extends StatelessWidget {
       ),
       BvAvatarSize.xs || BvAvatarSize.list || BvAvatarSize.sm => type.labelSm,
       BvAvatarSize.xsm => type.labelMd,
-      BvAvatarSize.md => type.labelMd,
+      BvAvatarSize.md || BvAvatarSize.profile => type.labelMd,
       BvAvatarSize.lg => type.titleLg,
       BvAvatarSize.xl => type.headingXl,
     };
@@ -177,7 +189,7 @@ class BvAvatar extends StatelessWidget {
             ? ExcludeSemantics(
                 child: Text(
                   size == BvAvatarSize.xxs
-                      ? initialsOf(name).characters.take(1).toString()
+                      ? _smallestInitials(name)
                       : twoLetters
                       ? tileInitialsOf(name)
                       : initialsOf(name),

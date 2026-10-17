@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../shared/widgets/bv_text_field.dart';
+import '../models/market.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
 
@@ -85,6 +86,10 @@ abstract class SpaceRepository {
   });
 
   Future<void> setNotifications(String spaceId, SpaceNotify level);
+
+  /// "On site since": the daybook's day 1. A Space admin only; null clears
+  /// it (set_site_start_date, migration 23).
+  Future<void> setSiteStartDate(String spaceId, DateTime? day);
 
   /// [profileId] becomes an admin; you stay as a member.
   Future<void> transferOwnership(String spaceId, String profileId);
@@ -212,7 +217,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .from('spaces')
         .select(
           'id, name, about, project_id, who_can_invite, site_start_date, '
-          'project:projects(name)',
+          'project:projects(name, location_text, place:places(name))',
         )
         .eq('id', spaceId)
         .maybeSingle();
@@ -230,12 +235,17 @@ class SupabaseSpaceRepository implements SpaceRepository {
       params: {'p_space': spaceId, 'p_profile': me},
     );
     final project = space['project'] as Map<String, dynamic>?;
+    final place = project?['place'] as Map<String, dynamic>?;
     return SpaceDetail(
       id: space['id'] as String,
       name: space['name'] as String,
       about: space['about'] as String?,
       projectId: space['project_id'] as String?,
       projectName: project?['name'] as String?,
+      projectPlace: place == null
+          ? null
+          : LocalizedText.fromJson(place['name'] as Map<String, dynamic>),
+      projectLocation: project?['location_text'] as String?,
       myPass: SpacePass.fromJson(member['pass']),
       iAmAdmin: member['is_admin'] as bool? ?? false,
       myRights: MemberRights.fromJson(rights),
@@ -466,6 +476,22 @@ class SupabaseSpaceRepository implements SpaceRepository {
     () => _client.rpc<void>(
       'set_space_notifications',
       params: {'p_space': spaceId, 'p_level': level.json},
+    ),
+  );
+
+  @override
+  Future<void> setSiteStartDate(String spaceId, DateTime? day) => _guard(
+    () => _client.rpc<void>(
+      'set_site_start_date',
+      params: {
+        'p_space': spaceId,
+        // The phone's own day, as a date with no time.
+        'p_day': day == null
+            ? null
+            : '${day.year.toString().padLeft(4, '0')}-'
+                  '${day.month.toString().padLeft(2, '0')}-'
+                  '${day.day.toString().padLeft(2, '0')}',
+      },
     ),
   );
 

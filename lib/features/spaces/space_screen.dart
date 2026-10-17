@@ -8,7 +8,9 @@ import '../../core/routing/app_routes.dart';
 import '../../data/repositories/activity_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_avatar.dart';
+import '../../core/design/around_specs.dart';
+import '../../shared/widgets/bv_popover_menu.dart';
+import '../../shared/widgets/bv_space_header.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
@@ -16,14 +18,16 @@ import '../chat/chat_tab.dart';
 import '../library/library_tab.dart';
 import '../work/daybook_tab.dart';
 import 'people_tab.dart';
-import 'space_info_screen.dart';
+
+/// What the Space menu offers now (MN1).
+enum _SpaceMenu { info }
 
 /// How a Space opens: on its People tab, and with the invite screen on top
 /// right after it was created (review 06, S5).
 enum SpaceOpen { people, invite }
 
-/// A Space: header (S10k top) and the tabs Work · Chat · People · Library
-/// at the bottom (S7k).
+/// A Space: the Space header (MN1) and the tabs Work · Chat · People ·
+/// Library at the bottom.
 class SpaceScreen extends ConsumerStatefulWidget {
   const SpaceScreen({super.key, required this.spaceId, this.open});
 
@@ -67,20 +71,54 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     refreshDay(container.invalidate);
   }
 
-  /// Space info (S15). "Members" there comes back to the People tab.
-  Future<void> _openInfo() async {
-    final result = await context.push<SpaceInfoResult>(
-      AppRoutes.spaceInfo(widget.spaceId),
+  /// The Space menu (MN1 2566:35619): only what works now. Search (slice
+  /// 4), Daily report (slice 7) and Week report (slice 9) join it when
+  /// they are built; nothing says "coming soon" (review 43).
+  Future<void> _openMenu() async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showGeneralDialog<_SpaceMenu>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: BvColors.overlayScrim,
+      pageBuilder: (menuContext, _, _) => SafeArea(
+        child: Align(
+          alignment: AlignmentDirectional.topEnd,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(
+              top: BvScreenMenuSpec.top,
+              end: BvScreenMenuSpec.end,
+            ),
+            child: BvPopoverMenu<_SpaceMenu>.screen(
+              key: const Key('space-menu'),
+              items: [
+                BvMenuItem(
+                  value: _SpaceMenu.info,
+                  label: l10n.spacesInfoTitle,
+                  icon: BvIcons.info,
+                ),
+              ],
+              onSelected: (v) => Navigator.of(menuContext).pop(v),
+            ),
+          ),
+        ),
+      ),
     );
-    if (mounted && result == SpaceInfoResult.showPeople) {
-      setState(() => _tab = SpaceScreen.peopleTab);
+    if (!mounted) return;
+    switch (picked) {
+      case _SpaceMenu.info:
+        await _openInfo();
+      case null:
+        break;
     }
   }
+
+  /// Space info (SI1).
+  Future<void> _openInfo() => context.push(AppRoutes.spaceInfo(widget.spaceId));
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
     final space = ref.watch(spaceDetailProvider(widget.spaceId));
     final detail = space.value;
 
@@ -100,55 +138,15 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 0,
-        actions: [
-          IconButton(
-            key: const Key('space-more'),
-            tooltip: l10n.spacesInfoTitle,
-            icon: const Icon(BvIcons.more),
-            onPressed: _openInfo,
-          ),
-        ],
-        title: GestureDetector(
-          onTap: _openInfo,
-          behavior: HitTestBehavior.opaque,
-          child: Row(
-            key: const Key('space-header'),
-            spacing: BvSpace.s12,
-            children: [
-              BvProjectAvatar(
-                id: detail.id,
-                icon: BvIcons.crane,
-                size: BvAvatarSize.sm,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      detail.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: type.titleMd,
-                    ),
-                    Text(
-                      detail.projectId == null
-                          ? l10n.spacesPrivateWork
-                          : l10n.spacesProjectSpaceLine,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: type.bodySm.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+      appBar: BvSpaceHeader(
+        name: detail.name,
+        line: detail.projectId == null
+            ? l10n.spacesPrivateWork
+            : l10n.spacesProjectSpaceLine,
+        backLabel: MaterialLocalizations.of(context).backButtonTooltip,
+        moreLabel: l10n.spacesMenu,
+        onOpen: _openInfo,
+        onMore: _openMenu,
       ),
       body: switch (_tab) {
         SpaceScreen.workTab => DaybookTab(space: detail),
@@ -176,7 +174,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           ),
           BvBottomBarItem(
             key: const Key('space-tab-people'),
-            icon: BvIcons.people,
+            icon: BvIcons.team,
             label: l10n.spacesTabPeople,
           ),
           BvBottomBarItem(

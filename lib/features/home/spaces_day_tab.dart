@@ -81,7 +81,7 @@ class SpacesDayTab extends ConsumerWidget {
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
                   key: const Key('home-needs-all'),
-                  onPressed: () => context.go(AppRoutes.activity),
+                  onPressed: () => context.push(AppRoutes.needs),
                   child: Text(l10n.homeSeeAll),
                 ),
               ),

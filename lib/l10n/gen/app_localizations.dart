@@ -956,12 +956,6 @@ abstract class AppLocalizations {
   /// **'Experience'**
   String get profileTabExperience;
 
-  /// Proof card label. Capitals in English.
-  ///
-  /// In en, this message translates to:
-  /// **'PROOF · WHERE IT\'S CONFIRMED'**
-  String get proofLabel;
-
   /// A CV project confirmed by a teammate.
   ///
   /// In en, this message translates to:
@@ -1057,24 +1051,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See all projects'**
   String get profileSeeAllProjects;
-
-  /// Own profile section.
-  ///
-  /// In en, this message translates to:
-  /// **'Work you delivered'**
-  String get workDeliveredTitle;
-
-  /// Visitor profile section.
-  ///
-  /// In en, this message translates to:
-  /// **'Work delivered'**
-  String get workDeliveredVisitorTitle;
-
-  /// Own profile section.
-  ///
-  /// In en, this message translates to:
-  /// **'You choose what shows. Only items checked and closed in a Space.'**
-  String get workDeliveredBody;
 
   /// Work delivered empty state.
   ///
@@ -2366,12 +2342,6 @@ abstract class AppLocalizations {
   /// **'{names} and others'**
   String listAndOthers(String names);
 
-  /// "Owners: Omar Haddad and you".
-  ///
-  /// In en, this message translates to:
-  /// **'you'**
-  String get youLower;
-
   /// Profile project row: who confirmed (founder decision, 11 Oct).
   ///
   /// In en, this message translates to:
@@ -2384,77 +2354,11 @@ abstract class AppLocalizations {
   /// **'Space info'**
   String get spacesInfoTitle;
 
-  /// S15 row, read-only.
-  ///
-  /// In en, this message translates to:
-  /// **'Access'**
-  String get spacesAccess;
-
-  /// S15 Access row.
-  ///
-  /// In en, this message translates to:
-  /// **'Private work · linked to {project}'**
-  String spacesAccessLinked(String project);
-
-  /// S15 Invite people row.
-  ///
-  /// In en, this message translates to:
-  /// **'Share the invite code'**
-  String get spacesInviteRowSub;
-
-  /// S15 Members row.
-  ///
-  /// In en, this message translates to:
-  /// **'Owners: {names}'**
-  String spacesOwnersLine(String names);
-
   /// S15 row and S15k-I title.
   ///
   /// In en, this message translates to:
   /// **'Who can invite'**
   String get spacesWhoCanInvite;
-
-  /// S15k-I subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Every invite still needs a Space admin to confirm the join.'**
-  String get spacesWhoCanInviteNote;
-
-  /// Who can invite option.
-  ///
-  /// In en, this message translates to:
-  /// **'Space admins'**
-  String get spacesInviteAdmins;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Only admins share the invite code.'**
-  String get spacesInviteAdminsHelp;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Admins and Leads'**
-  String get spacesInviteLeads;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'People with a Lead pass can invite their own crews.'**
-  String get spacesInviteLeadsHelp;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone in the Space'**
-  String get spacesInviteEveryone;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Anyone can share the code. Admins still confirm each join.'**
-  String get spacesInviteEveryoneHelp;
 
   /// S15 row and S15k-N title.
   ///
@@ -2462,47 +2366,11 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get spacesNotifications;
 
-  /// S15k-N subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'For this Space only.'**
-  String get spacesNotificationsNote;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone posts and my Teams'**
-  String get spacesNotifyAll;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Messages in Everyone and in your Teams, plus anything that needs you.'**
-  String get spacesNotifyAllHelp;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Needs you only'**
-  String get spacesNotifyNeedsYou;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Items you own, items to check and people asking to join.'**
-  String get spacesNotifyNeedsYouHelp;
-
   /// Option.
   ///
   /// In en, this message translates to:
   /// **'Off'**
   String get spacesNotifyOff;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'No alerts. Needs you still shows on your Home.'**
-  String get spacesNotifyOffHelp;
 
   /// S15 row and S15d title.
   ///
@@ -2557,12 +2425,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You left {space}.'**
   String spacesLeft(String space);
-
-  /// S15 header action, admins.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get spacesEdit;
 
   /// Edit sheet title.
   ///
@@ -5750,18 +5612,6 @@ abstract class AppLocalizations {
   /// **'You checked it at {time}. It\'s locked now, this is the record.'**
   String daybookYouChecked(String time);
 
-  /// On a proof that was sent back: when, and the reason (S1).
-  ///
-  /// In en, this message translates to:
-  /// **'Sent back at {time} · {reason}'**
-  String daybookSentBackLine(String time, String reason);
-
-  /// On a proof that was sent back: when, the reason and the note (S1).
-  ///
-  /// In en, this message translates to:
-  /// **'Sent back at {time} · {reason}: {note}'**
-  String daybookSentBackLineNote(String time, String reason, String note);
-
   /// Long-press menu on someone's proof (B1).
   ///
   /// In en, this message translates to:
@@ -5893,6 +5743,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancelled by you at {time}'**
   String daybookCancelledByYou(String time);
+
+  /// After the name on a send-back slip: "Islam Ahmed sent it back" (S1).
+  ///
+  /// In en, this message translates to:
+  /// **'sent it back'**
+  String get daybookSentItBack;
+
+  /// On a proof that was sent back; the reason is on the send-back slip (S1).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back at {time}'**
+  String daybookSentBackAt(String time);
+
+  /// A send-back slip: the reason, then the note (S1).
+  ///
+  /// In en, this message translates to:
+  /// **'{reason}. {note}'**
+  String daybookSentBackText(String reason, String note);
+
+  /// A check the server refused (review 47, answer 5).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check'**
+  String get daybookCouldNotCheck;
+
+  /// A send-back the server refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send back'**
+  String get daybookCouldNotSendBack;
+
+  /// A cancel the server refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t cancel'**
+  String get daybookCouldNotCancel;
+
+  /// Give to someone else, refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t give it to someone else'**
+  String get daybookCouldNotGiveTo;
+
+  /// An update, refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the update'**
+  String get daybookCouldNotUpdate;
+
+  /// What was refused and why: "Couldn't check: this item was cancelled".
+  ///
+  /// In en, this message translates to:
+  /// **'{action}: {reason}'**
+  String daybookRefusedBecause(String action, String reason);
+
+  /// What was refused, when the server gives no reason.
+  ///
+  /// In en, this message translates to:
+  /// **'{action}.'**
+  String daybookRefusedPlain(String action);
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'this item was cancelled'**
+  String get daybookWhyCancelled;
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'it was already checked'**
+  String get daybookWhyChecked;
+
+  /// Why it was refused: someone else changed the item first.
+  ///
+  /// In en, this message translates to:
+  /// **'it changed in the meantime'**
+  String get daybookWhyChanged;
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'it was removed'**
+  String get daybookWhyRemoved;
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'your pass doesn\'t allow it'**
+  String get daybookWhyNotAllowed;
+
+  /// Read out for the item name at the top of the proof screen: it lists your other open items (review 47, answer 3).
+  ///
+  /// In en, this message translates to:
+  /// **'Prove another work item'**
+  String get daybookSwitchItem;
+
+  /// The x on a refused proof that was reopened.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this proof?'**
+  String get daybookDiscardProofTitle;
+
+  /// Body of the dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'The photos are only on this phone. Deleted, they are gone.'**
+  String get daybookDiscardProofBody;
+
+  /// Keep the refused proof on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get daybookDiscardProofKeep;
+
+  /// Delete the refused proof and its photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get daybookDiscardProofDelete;
+
+  /// Read out for the ⋯ in the Space header (MN1).
+  ///
+  /// In en, this message translates to:
+  /// **'Space menu'**
+  String get spacesMenu;
+
+  /// Space info group: your own pass and notifications (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get spacesInfoYou;
+
+  /// Space info group: the invite code (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get spacesInfoInvite;
+
+  /// Space info group: the Space itself (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get spacesInfoSpace;
+
+  /// Space info row (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Your pass'**
+  String get spacesYourPass;
+
+  /// One of the three notification choices in Space info (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Everything'**
+  String get spacesNotifyChoiceAll;
+
+  /// One of the three notification choices in Space info (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Needs you'**
+  String get spacesNotifyChoiceNeedsYou;
+
+  /// Who can invite, in Space info (SI1): Space admins only.
+  ///
+  /// In en, this message translates to:
+  /// **'Only me'**
+  String get spacesInviteChoiceAdmins;
+
+  /// Who can invite, in Space info (SI1): admins and Lead passes.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get spacesInviteChoiceLeads;
+
+  /// Who can invite, in Space info (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get spacesInviteChoiceEveryone;
+
+  /// Copy the invite code (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get spacesCopy;
+
+  /// After Copy in Space info.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code copied'**
+  String get spacesCodeCopied;
+
+  /// Space info row: who runs the Space (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Space admin'**
+  String get spacesAdminRow;
+
+  /// Space info row: the day work started on site, the daybook's day 1 (review 44, answer 2).
+  ///
+  /// In en, this message translates to:
+  /// **'On site since'**
+  String get spacesOnSiteSince;
+
+  /// On site since, when no day is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get spacesOnSiteNotSet;
+
+  /// On site since: pick another day.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another day'**
+  String get spacesOnSiteChange;
+
+  /// On site since: clear it. The daybook then shows only the date.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the day'**
+  String get spacesOnSiteRemove;
+
+  /// Under the On site since sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Work counts \"day 1 on site\" from this day.'**
+  String get spacesOnSiteNote;
+
+  /// Space info row for admins: edit the name and About.
+  ///
+  /// In en, this message translates to:
+  /// **'Name and About'**
+  String get spacesEditNameAbout;
+
+  /// Needs you across all Spaces (2544:35068).
+  ///
+  /// In en, this message translates to:
+  /// **'Needs you'**
+  String get needsTitle;
+
+  /// Needs you row: a proof waiting for your check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it'**
+  String get needsRowCheck;
+
+  /// Needs you row: a work item given to you.
+  ///
+  /// In en, this message translates to:
+  /// **'For you'**
+  String get needsRowForYou;
+
+  /// Needs you row: your proof was sent back.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back'**
+  String get needsRowSentBack;
+
+  /// Needs you row: the owner left the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it to someone'**
+  String get needsRowOwnerLeft;
+
+  /// Needs you row: a join request you can confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Asks to join'**
+  String get needsRowJoin;
+
+  /// Needs you, empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs you now.'**
+  String get needsNone;
+
+  /// Profile section (R1 v4): work that was checked and closed in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of work'**
+  String get profileProofOfWork;
+
+  /// Profile section (R1 v4).
+  ///
+  /// In en, this message translates to:
+  /// **'Projects, confirmed by teammates'**
+  String get profileProjectsConfirmed;
+
+  /// Stamp on a project a teammate confirmed (R1 v4).
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRMED'**
+  String get proofStampConfirmed;
+
+  /// Stamp on a project not confirmed yet (R1 v4).
+  ///
+  /// In en, this message translates to:
+  /// **'WAITING'**
+  String get proofStampWaiting;
+
+  /// Own profile: opens Work you delivered, to show or hide each item.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what shows'**
+  String get proofChooseShown;
+
+  /// Home masthead line (H1 v3). The feed has no follow filter, so it says "your network".
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, from your network'**
+  String homeFeedLine(String date);
+
+  /// Home app bar: the list-checks icon opens My notebook (slice 8).
+  ///
+  /// In en, this message translates to:
+  /// **'My notebook'**
+  String get homeNotebook;
+
+  /// Home app bar: the chat icon opens Messages (slice 3).
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get homeMessages;
 }
 
 class _AppLocalizationsDelegate

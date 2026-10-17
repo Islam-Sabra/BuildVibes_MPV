@@ -110,3 +110,32 @@ Future<void> shoot(
     debugDisableShadows = true;
   }
 }
+
+/// [child] pushed over an empty page, so its app bar has Back as in the
+/// app.
+class Pushed extends StatefulWidget {
+  const Pushed(this.child, {super.key});
+
+  final Widget child;
+
+  @override
+  State<Pushed> createState() => _PushedState();
+}
+
+class _PushedState extends State<Pushed> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => Navigator.of(context).push(
+        PageRouteBuilder<void>(
+          transitionDuration: Duration.zero,
+          pageBuilder: (_, _, _) => widget.child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => const ColoredBox(color: Colors.white);
+}

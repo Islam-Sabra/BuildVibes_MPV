@@ -501,9 +501,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileTabExperience => 'Experience';
 
   @override
-  String get proofLabel => 'PROOF · WHERE IT\'S CONFIRMED';
-
-  @override
   String get proofConfirmed => 'Confirmed';
 
   @override
@@ -553,16 +550,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSeeAllProjects => 'See all projects';
-
-  @override
-  String get workDeliveredTitle => 'Work you delivered';
-
-  @override
-  String get workDeliveredVisitorTitle => 'Work delivered';
-
-  @override
-  String get workDeliveredBody =>
-      'You choose what shows. Only items checked and closed in a Space.';
 
   @override
   String get workDeliveredEmpty => 'Nothing checked yet.';
@@ -1310,9 +1297,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get youLower => 'you';
-
-  @override
   String proofConfirmedBy(String names) {
     return 'Confirmed by $names';
   }
@@ -1321,74 +1305,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesInfoTitle => 'Space info';
 
   @override
-  String get spacesAccess => 'Access';
-
-  @override
-  String spacesAccessLinked(String project) {
-    return 'Private work · linked to $project';
-  }
-
-  @override
-  String get spacesInviteRowSub => 'Share the invite code';
-
-  @override
-  String spacesOwnersLine(String names) {
-    return 'Owners: $names';
-  }
-
-  @override
   String get spacesWhoCanInvite => 'Who can invite';
-
-  @override
-  String get spacesWhoCanInviteNote =>
-      'Every invite still needs a Space admin to confirm the join.';
-
-  @override
-  String get spacesInviteAdmins => 'Space admins';
-
-  @override
-  String get spacesInviteAdminsHelp => 'Only admins share the invite code.';
-
-  @override
-  String get spacesInviteLeads => 'Admins and Leads';
-
-  @override
-  String get spacesInviteLeadsHelp =>
-      'People with a Lead pass can invite their own crews.';
-
-  @override
-  String get spacesInviteEveryone => 'Everyone in the Space';
-
-  @override
-  String get spacesInviteEveryoneHelp =>
-      'Anyone can share the code. Admins still confirm each join.';
 
   @override
   String get spacesNotifications => 'Notifications';
 
   @override
-  String get spacesNotificationsNote => 'For this Space only.';
-
-  @override
-  String get spacesNotifyAll => 'Everyone posts and my Teams';
-
-  @override
-  String get spacesNotifyAllHelp =>
-      'Messages in Everyone and in your Teams, plus anything that needs you.';
-
-  @override
-  String get spacesNotifyNeedsYou => 'Needs you only';
-
-  @override
-  String get spacesNotifyNeedsYouHelp =>
-      'Items you own, items to check and people asking to join.';
-
-  @override
   String get spacesNotifyOff => 'Off';
-
-  @override
-  String get spacesNotifyOffHelp =>
-      'No alerts. Needs you still shows on your Home.';
 
   @override
   String get spacesTransfer => 'Transfer ownership';
@@ -1422,9 +1345,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String spacesLeft(String space) {
     return 'You left $space.';
   }
-
-  @override
-  String get spacesEdit => 'Edit';
 
   @override
   String get spacesEditTitle => 'Edit Space';
@@ -3445,16 +3365,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String daybookSentBackLine(String time, String reason) {
-    return 'Sent back at $time · $reason';
-  }
-
-  @override
-  String daybookSentBackLineNote(String time, String reason, String note) {
-    return 'Sent back at $time · $reason: $note';
-  }
-
-  @override
   String get daybookCheck => 'Check';
 
   @override
@@ -3523,4 +3433,177 @@ class AppLocalizationsEn extends AppLocalizations {
   String daybookCancelledByYou(String time) {
     return 'Cancelled by you at $time';
   }
+
+  @override
+  String get daybookSentItBack => 'sent it back';
+
+  @override
+  String daybookSentBackAt(String time) {
+    return 'Sent back at $time';
+  }
+
+  @override
+  String daybookSentBackText(String reason, String note) {
+    return '$reason. $note';
+  }
+
+  @override
+  String get daybookCouldNotCheck => 'Couldn\'t check';
+
+  @override
+  String get daybookCouldNotSendBack => 'Couldn\'t send back';
+
+  @override
+  String get daybookCouldNotCancel => 'Couldn\'t cancel';
+
+  @override
+  String get daybookCouldNotGiveTo => 'Couldn\'t give it to someone else';
+
+  @override
+  String get daybookCouldNotUpdate => 'Couldn\'t add the update';
+
+  @override
+  String daybookRefusedBecause(String action, String reason) {
+    return '$action: $reason';
+  }
+
+  @override
+  String daybookRefusedPlain(String action) {
+    return '$action.';
+  }
+
+  @override
+  String get daybookWhyCancelled => 'this item was cancelled';
+
+  @override
+  String get daybookWhyChecked => 'it was already checked';
+
+  @override
+  String get daybookWhyChanged => 'it changed in the meantime';
+
+  @override
+  String get daybookWhyRemoved => 'it was removed';
+
+  @override
+  String get daybookWhyNotAllowed => 'your pass doesn\'t allow it';
+
+  @override
+  String get daybookSwitchItem => 'Prove another work item';
+
+  @override
+  String get daybookDiscardProofTitle => 'Delete this proof?';
+
+  @override
+  String get daybookDiscardProofBody =>
+      'The photos are only on this phone. Deleted, they are gone.';
+
+  @override
+  String get daybookDiscardProofKeep => 'Keep';
+
+  @override
+  String get daybookDiscardProofDelete => 'Delete';
+
+  @override
+  String get spacesMenu => 'Space menu';
+
+  @override
+  String get spacesInfoYou => 'You';
+
+  @override
+  String get spacesInfoInvite => 'Invite';
+
+  @override
+  String get spacesInfoSpace => 'Space';
+
+  @override
+  String get spacesYourPass => 'Your pass';
+
+  @override
+  String get spacesNotifyChoiceAll => 'Everything';
+
+  @override
+  String get spacesNotifyChoiceNeedsYou => 'Needs you';
+
+  @override
+  String get spacesInviteChoiceAdmins => 'Only me';
+
+  @override
+  String get spacesInviteChoiceLeads => 'Leads';
+
+  @override
+  String get spacesInviteChoiceEveryone => 'Everyone';
+
+  @override
+  String get spacesCopy => 'Copy';
+
+  @override
+  String get spacesCodeCopied => 'Invite code copied';
+
+  @override
+  String get spacesAdminRow => 'Space admin';
+
+  @override
+  String get spacesOnSiteSince => 'On site since';
+
+  @override
+  String get spacesOnSiteNotSet => 'Not set';
+
+  @override
+  String get spacesOnSiteChange => 'Choose another day';
+
+  @override
+  String get spacesOnSiteRemove => 'Remove the day';
+
+  @override
+  String get spacesOnSiteNote => 'Work counts \"day 1 on site\" from this day.';
+
+  @override
+  String get spacesEditNameAbout => 'Name and About';
+
+  @override
+  String get needsTitle => 'Needs you';
+
+  @override
+  String get needsRowCheck => 'Check it';
+
+  @override
+  String get needsRowForYou => 'For you';
+
+  @override
+  String get needsRowSentBack => 'Sent back';
+
+  @override
+  String get needsRowOwnerLeft => 'Give it to someone';
+
+  @override
+  String get needsRowJoin => 'Asks to join';
+
+  @override
+  String get needsNone => 'Nothing needs you now.';
+
+  @override
+  String get profileProofOfWork => 'Proof of work';
+
+  @override
+  String get profileProjectsConfirmed => 'Projects, confirmed by teammates';
+
+  @override
+  String get proofStampConfirmed => 'CONFIRMED';
+
+  @override
+  String get proofStampWaiting => 'WAITING';
+
+  @override
+  String get proofChooseShown => 'Choose what shows';
+
+  @override
+  String homeFeedLine(String date) {
+    return '$date, from your network';
+  }
+
+  @override
+  String get homeNotebook => 'My notebook';
+
+  @override
+  String get homeMessages => 'Messages';
 }

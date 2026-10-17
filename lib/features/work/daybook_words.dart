@@ -48,6 +48,18 @@ class DaybookWords {
   /// "Thursday".
   String weekday(DateTime day) => _f('EEEE', day);
 
+  /// Home's time spine (H1 v3): "06:10" today, "Wed" this past week, then
+  /// "12 Oct".
+  String feedTime(DateTime t, DateTime now) {
+    final day = dayOf(t);
+    final today = dayOf(now);
+    if (day == today) return clock(t);
+    if (today.difference(day).inDays < DateTime.daysPerWeek) {
+      return _f('EEE', day);
+    }
+    return _f('d MMM', day);
+  }
+
   /// "15 October".
   String dayMonth(DateTime day) => _f('d MMMM', day);
 
@@ -80,17 +92,13 @@ class DaybookWords {
     SendBackReason.other || null => l10n.daybookReasonOther,
   };
 
-  /// "Sent back at 10:12 · Not as asked: One sleeve is 50 mm short."
-  String sentBack(DaybookOutcome outcome, DateTime fallback) {
-    final time = clock(outcome.at ?? fallback);
-    final note = outcome.note?.trim() ?? '';
-    return note.isEmpty
-        ? l10n.daybookSentBackLine(time, reason(outcome.reason))
-        : l10n.daybookSentBackLineNote(
-            time,
-            reason(outcome.reason),
-            inOwnDirection(note),
-          );
+  /// "Not as asked. One sleeve is 50 mm short.": a send-back's reason and
+  /// its note, in the note's own direction.
+  String sentBackText(SendBackReason? r, String? note) {
+    final text = note?.trim() ?? '';
+    return text.isEmpty
+        ? reason(r)
+        : l10n.daybookSentBackText(reason(r), inOwnDirection(text));
   }
 
   /// "Level 2, grid C7 · 15 Oct 09:40 · Omar Haddad": the label on a proof
@@ -141,12 +149,23 @@ class DaybookWords {
   String? _due(DaybookPost post, DateTime now) {
     final day = post.dueDate;
     if (day == null) return null;
+    return due(day, post.dueAt, now: now, late: post.isLate(now));
+  }
+
+  /// "by today 14:00", "by Sun 18 Oct", "was due Wed 14 Oct": a work
+  /// item's due as its slip says it (Needs you rows too).
+  String due(
+    DateTime day,
+    DateTime? at, {
+    required DateTime now,
+    required bool late,
+  }) {
     final today = dayOf(now);
-    final time = post.dueAt == null ? null : clock(post.dueAt!);
+    final time = at == null ? null : clock(at);
     final isToday = day == today;
     final isTomorrow = day == today.add(const Duration(days: 1));
     final date = shortDate(day);
-    if (post.isLate(now)) {
+    if (late) {
       if (time == null) return l10n.daybookWasDue(date);
       return isToday
           ? l10n.daybookWasDueTodayAt(time)

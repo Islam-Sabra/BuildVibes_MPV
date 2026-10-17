@@ -108,7 +108,7 @@ class _PostListState extends ConsumerState<PostList> {
         for (final p in posts)
           PostCard(
             post: p,
-            tag: widget.source.projectId != null ? PostTag.none : PostTag.chip,
+            tag: widget.source.projectId != null ? PostTag.none : PostTag.shown,
             onOpen: () => context.push(AppRoutes.post(p.id)),
             onChanged: (c) => setState(() => _changed[c.id] = c),
             onGone: () => setState(() => _gone.add(p.id)),

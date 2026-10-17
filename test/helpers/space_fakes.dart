@@ -372,17 +372,21 @@ class FakeSpaceRepository implements SpaceRepository {
     bool? iAmAdmin,
     SpaceInviters? whoCanInvite,
     SpaceNotify? myNotify,
+    DateTime? Function()? siteStart,
   }) => SpaceDetail(
     id: d.id,
     name: name ?? d.name,
     about: about ?? d.about,
     projectId: d.projectId,
     projectName: d.projectName,
+    projectPlace: d.projectPlace,
+    projectLocation: d.projectLocation,
     myPass: d.myPass,
     iAmAdmin: iAmAdmin ?? d.iAmAdmin,
     myRights: d.myRights,
     whoCanInvite: whoCanInvite ?? d.whoCanInvite,
     myNotify: myNotify ?? d.myNotify,
+    siteStartDate: siteStart == null ? d.siteStartDate : siteStart(),
   );
 
   @override
@@ -405,6 +409,14 @@ class FakeSpaceRepository implements SpaceRepository {
   Future<void> setNotifications(String spaceId, SpaceNotify level) async {
     calls.add('notify ${level.json}');
     details[spaceId] = _detail(details[spaceId]!, myNotify: level);
+  }
+
+  @override
+  Future<void> setSiteStartDate(String spaceId, DateTime? day) async {
+    final d = details[spaceId]!;
+    if (!d.iAmAdmin) throw const SpaceException(SpaceFailure.notAllowed);
+    calls.add('site start ${day?.toIso8601String().substring(0, 10)}');
+    details[spaceId] = _detail(d, siteStart: () => day);
   }
 
   @override

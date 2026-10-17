@@ -214,6 +214,8 @@ class SpaceDetail {
     this.about,
     this.projectId,
     this.projectName,
+    this.projectPlace,
+    this.projectLocation,
     this.whoCanInvite = SpaceInviters.admins,
     this.myNotify = SpaceNotify.all,
     this.siteStartDate,
@@ -224,6 +226,11 @@ class SpaceDetail {
   final String? about;
   final String? projectId;
   final String? projectName;
+
+  /// The linked project's place from the market pack, or what was typed
+  /// as its location (Space info's project tag).
+  final LocalizedText? projectPlace;
+  final String? projectLocation;
   final SpacePass myPass;
   final bool iAmAdmin;
   final MemberRights myRights;

@@ -684,10 +684,6 @@
   "@profileTabExperience": {
     "description": "Profile tab."
   },
-  "proofLabel": "PROOF · WHERE IT'S CONFIRMED",
-  "@proofLabel": {
-    "description": "Proof card label. Capitals in English."
-  },
   "proofConfirmed": "Confirmed",
   "@proofConfirmed": {
     "description": "A CV project confirmed by a teammate."
@@ -759,18 +755,6 @@
   "profileSeeAllProjects": "See all projects",
   "@profileSeeAllProjects": {
     "description": "Link to the Projects tab."
-  },
-  "workDeliveredTitle": "Work you delivered",
-  "@workDeliveredTitle": {
-    "description": "Own profile section."
-  },
-  "workDeliveredVisitorTitle": "Work delivered",
-  "@workDeliveredVisitorTitle": {
-    "description": "Visitor profile section."
-  },
-  "workDeliveredBody": "You choose what shows. Only items checked and closed in a Space.",
-  "@workDeliveredBody": {
-    "description": "Own profile section."
   },
   "workDeliveredEmpty": "Nothing checked yet.",
   "@workDeliveredEmpty": {
@@ -1813,10 +1797,6 @@
       }
     }
   },
-  "youLower": "you",
-  "@youLower": {
-    "description": "\"Owners: Omar Haddad and you\"."
-  },
   "proofConfirmedBy": "Confirmed by {names}",
   "@proofConfirmedBy": {
     "description": "Profile project row: who confirmed (founder decision, 11 Oct).",
@@ -1830,95 +1810,17 @@
   "@spacesInfoTitle": {
     "description": "S15 title."
   },
-  "spacesAccess": "Access",
-  "@spacesAccess": {
-    "description": "S15 row, read-only."
-  },
-  "spacesAccessLinked": "Private work · linked to {project}",
-  "@spacesAccessLinked": {
-    "description": "S15 Access row.",
-    "placeholders": {
-      "project": {
-        "type": "String"
-      }
-    }
-  },
-  "spacesInviteRowSub": "Share the invite code",
-  "@spacesInviteRowSub": {
-    "description": "S15 Invite people row."
-  },
-  "spacesOwnersLine": "Owners: {names}",
-  "@spacesOwnersLine": {
-    "description": "S15 Members row.",
-    "placeholders": {
-      "names": {
-        "type": "String"
-      }
-    }
-  },
   "spacesWhoCanInvite": "Who can invite",
   "@spacesWhoCanInvite": {
     "description": "S15 row and S15k-I title."
-  },
-  "spacesWhoCanInviteNote": "Every invite still needs a Space admin to confirm the join.",
-  "@spacesWhoCanInviteNote": {
-    "description": "S15k-I subtitle."
-  },
-  "spacesInviteAdmins": "Space admins",
-  "@spacesInviteAdmins": {
-    "description": "Who can invite option."
-  },
-  "spacesInviteAdminsHelp": "Only admins share the invite code.",
-  "@spacesInviteAdminsHelp": {
-    "description": "Option help."
-  },
-  "spacesInviteLeads": "Admins and Leads",
-  "@spacesInviteLeads": {
-    "description": "Option."
-  },
-  "spacesInviteLeadsHelp": "People with a Lead pass can invite their own crews.",
-  "@spacesInviteLeadsHelp": {
-    "description": "Option help."
-  },
-  "spacesInviteEveryone": "Everyone in the Space",
-  "@spacesInviteEveryone": {
-    "description": "Option."
-  },
-  "spacesInviteEveryoneHelp": "Anyone can share the code. Admins still confirm each join.",
-  "@spacesInviteEveryoneHelp": {
-    "description": "Option help."
   },
   "spacesNotifications": "Notifications",
   "@spacesNotifications": {
     "description": "S15 row and S15k-N title."
   },
-  "spacesNotificationsNote": "For this Space only.",
-  "@spacesNotificationsNote": {
-    "description": "S15k-N subtitle."
-  },
-  "spacesNotifyAll": "Everyone posts and my Teams",
-  "@spacesNotifyAll": {
-    "description": "Option."
-  },
-  "spacesNotifyAllHelp": "Messages in Everyone and in your Teams, plus anything that needs you.",
-  "@spacesNotifyAllHelp": {
-    "description": "Option help."
-  },
-  "spacesNotifyNeedsYou": "Needs you only",
-  "@spacesNotifyNeedsYou": {
-    "description": "Option."
-  },
-  "spacesNotifyNeedsYouHelp": "Items you own, items to check and people asking to join.",
-  "@spacesNotifyNeedsYouHelp": {
-    "description": "Option help."
-  },
   "spacesNotifyOff": "Off",
   "@spacesNotifyOff": {
     "description": "Option."
-  },
-  "spacesNotifyOffHelp": "No alerts. Needs you still shows on your Home.",
-  "@spacesNotifyOffHelp": {
-    "description": "Option help."
   },
   "spacesTransfer": "Transfer ownership",
   "@spacesTransfer": {
@@ -1970,10 +1872,6 @@
         "type": "String"
       }
     }
-  },
-  "spacesEdit": "Edit",
-  "@spacesEdit": {
-    "description": "S15 header action, admins."
   },
   "spacesEditTitle": "Edit Space",
   "@spacesEditTitle": {
@@ -4855,33 +4753,6 @@
       }
     }
   },
-  "daybookSentBackLine": "Sent back at {time} · {reason}",
-  "@daybookSentBackLine": {
-    "description": "On a proof that was sent back: when, and the reason (S1).",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      },
-      "reason": {
-        "type": "String"
-      }
-    }
-  },
-  "daybookSentBackLineNote": "Sent back at {time} · {reason}: {note}",
-  "@daybookSentBackLineNote": {
-    "description": "On a proof that was sent back: when, the reason and the note (S1).",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      },
-      "reason": {
-        "type": "String"
-      },
-      "note": {
-        "type": "String"
-      }
-    }
-  },
   "daybookCheck": "Check",
   "@daybookCheck": {
     "description": "Long-press menu on someone's proof (B1)."
@@ -4979,5 +4850,252 @@
         "type": "String"
       }
     }
+  },
+  "daybookSentItBack": "sent it back",
+  "@daybookSentItBack": {
+    "description": "After the name on a send-back slip: \"Islam Ahmed sent it back\" (S1)."
+  },
+  "daybookSentBackAt": "Sent back at {time}",
+  "@daybookSentBackAt": {
+    "description": "On a proof that was sent back; the reason is on the send-back slip (S1).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookSentBackText": "{reason}. {note}",
+  "@daybookSentBackText": {
+    "description": "A send-back slip: the reason, then the note (S1).",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      },
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookCouldNotCheck": "Couldn't check",
+  "@daybookCouldNotCheck": {
+    "description": "A check the server refused (review 47, answer 5)."
+  },
+  "daybookCouldNotSendBack": "Couldn't send back",
+  "@daybookCouldNotSendBack": {
+    "description": "A send-back the server refused."
+  },
+  "daybookCouldNotCancel": "Couldn't cancel",
+  "@daybookCouldNotCancel": {
+    "description": "A cancel the server refused."
+  },
+  "daybookCouldNotGiveTo": "Couldn't give it to someone else",
+  "@daybookCouldNotGiveTo": {
+    "description": "Give to someone else, refused."
+  },
+  "daybookCouldNotUpdate": "Couldn't add the update",
+  "@daybookCouldNotUpdate": {
+    "description": "An update, refused."
+  },
+  "daybookRefusedBecause": "{action}: {reason}",
+  "@daybookRefusedBecause": {
+    "description": "What was refused and why: \"Couldn't check: this item was cancelled\".",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookRefusedPlain": "{action}.",
+  "@daybookRefusedPlain": {
+    "description": "What was refused, when the server gives no reason.",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWhyCancelled": "this item was cancelled",
+  "@daybookWhyCancelled": {
+    "description": "Why it was refused."
+  },
+  "daybookWhyChecked": "it was already checked",
+  "@daybookWhyChecked": {
+    "description": "Why it was refused."
+  },
+  "daybookWhyChanged": "it changed in the meantime",
+  "@daybookWhyChanged": {
+    "description": "Why it was refused: someone else changed the item first."
+  },
+  "daybookWhyRemoved": "it was removed",
+  "@daybookWhyRemoved": {
+    "description": "Why it was refused."
+  },
+  "daybookWhyNotAllowed": "your pass doesn't allow it",
+  "@daybookWhyNotAllowed": {
+    "description": "Why it was refused."
+  },
+  "daybookSwitchItem": "Prove another work item",
+  "@daybookSwitchItem": {
+    "description": "Read out for the item name at the top of the proof screen: it lists your other open items (review 47, answer 3)."
+  },
+  "daybookDiscardProofTitle": "Delete this proof?",
+  "@daybookDiscardProofTitle": {
+    "description": "The x on a refused proof that was reopened."
+  },
+  "daybookDiscardProofBody": "The photos are only on this phone. Deleted, they are gone.",
+  "@daybookDiscardProofBody": {
+    "description": "Body of the dialog."
+  },
+  "daybookDiscardProofKeep": "Keep",
+  "@daybookDiscardProofKeep": {
+    "description": "Keep the refused proof on the phone."
+  },
+  "daybookDiscardProofDelete": "Delete",
+  "@daybookDiscardProofDelete": {
+    "description": "Delete the refused proof and its photos."
+  },
+  "spacesMenu": "Space menu",
+  "@spacesMenu": {
+    "description": "Read out for the ⋯ in the Space header (MN1)."
+  },
+  "spacesInfoYou": "You",
+  "@spacesInfoYou": {
+    "description": "Space info group: your own pass and notifications (SI1)."
+  },
+  "spacesInfoInvite": "Invite",
+  "@spacesInfoInvite": {
+    "description": "Space info group: the invite code (SI1)."
+  },
+  "spacesInfoSpace": "Space",
+  "@spacesInfoSpace": {
+    "description": "Space info group: the Space itself (SI1)."
+  },
+  "spacesYourPass": "Your pass",
+  "@spacesYourPass": {
+    "description": "Space info row (SI1)."
+  },
+  "spacesNotifyChoiceAll": "Everything",
+  "@spacesNotifyChoiceAll": {
+    "description": "One of the three notification choices in Space info (SI1)."
+  },
+  "spacesNotifyChoiceNeedsYou": "Needs you",
+  "@spacesNotifyChoiceNeedsYou": {
+    "description": "One of the three notification choices in Space info (SI1)."
+  },
+  "spacesInviteChoiceAdmins": "Only me",
+  "@spacesInviteChoiceAdmins": {
+    "description": "Who can invite, in Space info (SI1): Space admins only."
+  },
+  "spacesInviteChoiceLeads": "Leads",
+  "@spacesInviteChoiceLeads": {
+    "description": "Who can invite, in Space info (SI1): admins and Lead passes."
+  },
+  "spacesInviteChoiceEveryone": "Everyone",
+  "@spacesInviteChoiceEveryone": {
+    "description": "Who can invite, in Space info (SI1)."
+  },
+  "spacesCopy": "Copy",
+  "@spacesCopy": {
+    "description": "Copy the invite code (SI1)."
+  },
+  "spacesCodeCopied": "Invite code copied",
+  "@spacesCodeCopied": {
+    "description": "After Copy in Space info."
+  },
+  "spacesAdminRow": "Space admin",
+  "@spacesAdminRow": {
+    "description": "Space info row: who runs the Space (SI1)."
+  },
+  "spacesOnSiteSince": "On site since",
+  "@spacesOnSiteSince": {
+    "description": "Space info row: the day work started on site, the daybook's day 1 (review 44, answer 2)."
+  },
+  "spacesOnSiteNotSet": "Not set",
+  "@spacesOnSiteNotSet": {
+    "description": "On site since, when no day is set."
+  },
+  "spacesOnSiteChange": "Choose another day",
+  "@spacesOnSiteChange": {
+    "description": "On site since: pick another day."
+  },
+  "spacesOnSiteRemove": "Remove the day",
+  "@spacesOnSiteRemove": {
+    "description": "On site since: clear it. The daybook then shows only the date."
+  },
+  "spacesOnSiteNote": "Work counts \"day 1 on site\" from this day.",
+  "@spacesOnSiteNote": {
+    "description": "Under the On site since sheet title."
+  },
+  "spacesEditNameAbout": "Name and About",
+  "@spacesEditNameAbout": {
+    "description": "Space info row for admins: edit the name and About."
+  },
+  "needsTitle": "Needs you",
+  "@needsTitle": {
+    "description": "Needs you across all Spaces (2544:35068)."
+  },
+  "needsRowCheck": "Check it",
+  "@needsRowCheck": {
+    "description": "Needs you row: a proof waiting for your check."
+  },
+  "needsRowForYou": "For you",
+  "@needsRowForYou": {
+    "description": "Needs you row: a work item given to you."
+  },
+  "needsRowSentBack": "Sent back",
+  "@needsRowSentBack": {
+    "description": "Needs you row: your proof was sent back."
+  },
+  "needsRowOwnerLeft": "Give it to someone",
+  "@needsRowOwnerLeft": {
+    "description": "Needs you row: the owner left the Space."
+  },
+  "needsRowJoin": "Asks to join",
+  "@needsRowJoin": {
+    "description": "Needs you row: a join request you can confirm."
+  },
+  "needsNone": "Nothing needs you now.",
+  "@needsNone": {
+    "description": "Needs you, empty."
+  },
+  "profileProofOfWork": "Proof of work",
+  "@profileProofOfWork": {
+    "description": "Profile section (R1 v4): work that was checked and closed in a Space."
+  },
+  "profileProjectsConfirmed": "Projects, confirmed by teammates",
+  "@profileProjectsConfirmed": {
+    "description": "Profile section (R1 v4)."
+  },
+  "proofStampConfirmed": "CONFIRMED",
+  "@proofStampConfirmed": {
+    "description": "Stamp on a project a teammate confirmed (R1 v4)."
+  },
+  "proofStampWaiting": "WAITING",
+  "@proofStampWaiting": {
+    "description": "Stamp on a project not confirmed yet (R1 v4)."
+  },
+  "proofChooseShown": "Choose what shows",
+  "@proofChooseShown": {
+    "description": "Own profile: opens Work you delivered, to show or hide each item."
+  },
+  "homeFeedLine": "{date}, from your network",
+  "@homeFeedLine": {
+    "description": "Home masthead line (H1 v3). The feed has no follow filter, so it says \"your network\".",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeNotebook": "My notebook",
+  "@homeNotebook": {
+    "description": "Home app bar: the list-checks icon opens My notebook (slice 8)."
+  },
+  "homeMessages": "Messages",
+  "@homeMessages": {
+    "description": "Home app bar: the chat icon opens Messages (slice 3)."
   }
 }

@@ -73,8 +73,8 @@ abstract final class BvIcons {
   static const workItems = IconData(0xeadc, fontFamily: _family);
   // Phosphor: shield-check
   static const pass = IconData(0xe40c, fontFamily: _family);
-  // Phosphor: folder
-  static const library = IconData(0xe24a, fontFamily: _family);
+  // Phosphor: folder-simple (the Space's Library tab, MN1)
+  static const library = IconData(0xe25a, fontFamily: _family);
   // Phosphor: calendar
   static const calendar = IconData(0xe108, fontFamily: _family);
   // Phosphor: gear

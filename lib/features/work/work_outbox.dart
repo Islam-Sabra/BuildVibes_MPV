@@ -428,7 +428,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         if (e.failure == SpaceFailure.network) {
           await _put(current);
         } else {
-          await _refused(current);
+          await _refused(current, e);
         }
         return false;
       }
@@ -481,23 +481,52 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       ref.read(daybookRepositoryProvider).cancelPost(item.id),
   };
 
-  /// The server said no. A new work item goes back to a Draft in place
-  /// ("Couldn't send. Tap to fix", review 46), with nothing lost. Anything
-  /// else leaves the phone: the daybook shows what the server has.
-  Future<void> _refused(PendingItem item) async {
-    if (item.kind == PendingKind.workItem) {
-      if (await reopenRefused(item)) return;
-      // A new card is being written: this one waits, refused, until it is
-      // put down.
-      await _put(item.copyWith(refused: true));
-      return;
+  /// The server said no. Nothing is ever dropped silently (review 47,
+  /// answer 5):
+  /// - a new work item goes back to a Draft in place ("Couldn't send. Tap
+  ///   to fix", review 46);
+  /// - a sign-off keeps its photos on the phone and shows on its proof
+  ///   slip as "Couldn't send. Tap to fix"; tapping reopens the proof;
+  /// - a check or a cancel leaves the phone, the page reads again, and a
+  ///   short line says why ([refusalsProvider]).
+  Future<void> _refused(PendingItem item, SpaceException e) async {
+    switch (item.kind) {
+      case PendingKind.workItem:
+        if (await reopenRefused(item)) return;
+        // A new card is being written: this one waits, refused, until it
+        // is put down.
+        await _put(item.copyWith(refused: true));
+      case PendingKind.signOff:
+        await _put(item.copyWith(refused: true));
+      case PendingKind.check || PendingKind.cancel:
+        await _drop(item);
+        await _refreshDaybook(item.spaceId);
+        ref
+            .read(refusalsProvider.notifier)
+            .add(
+              DaybookRefusal(
+                action: item.kind == PendingKind.check
+                    ? RefusedAction.check
+                    : RefusedAction.cancel,
+                spaceId: item.spaceId,
+                postId: item.id,
+                why: RefusalWhy.of(e),
+              ),
+            );
     }
+  }
+
+  /// A refused sign-off taken off the phone for good: its photos too.
+  Future<void> discard(PendingItem item) async {
     await _drop(item);
     for (final p in item.photos) {
       unawaited(_deleteKept(p.local));
     }
-    await _refreshDaybook(item.spaceId);
   }
+
+  /// A refused sign-off that is being sent again for another work item:
+  /// its photos go with the new one, so they stay on the phone.
+  Future<void> forget(PendingItem item) => _drop(item);
 
   /// A refused work item back into the Space's Draft, unless a card is
   /// being written there. True when it moved.
@@ -525,4 +554,58 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       // Already gone.
     }
   }
+}
+
+/// What the server refused on the daybook (review 47, answer 5).
+enum RefusedAction { check, sendBack, cancel, giveTo, update }
+
+/// Why, when the server's message says it.
+enum RefusalWhy {
+  cancelled,
+  checked,
+  changed,
+  removed,
+  notAllowed,
+  unknown;
+
+  static RefusalWhy of(SpaceException e) {
+    final m = (e.message ?? '').toLowerCase();
+    return switch (e.failure) {
+      SpaceFailure.notAllowed => notAllowed,
+      SpaceFailure.rule when m.contains('checked work') => checked,
+      SpaceFailure.rule when m.contains('cancelled') => cancelled,
+      SpaceFailure.rule when m.contains('removed') => removed,
+      SpaceFailure.rule when m.contains('only a') || m.contains('only an') =>
+        changed,
+      _ => unknown,
+    };
+  }
+}
+
+/// One refusal to say in plain words, then the page reads again.
+@immutable
+class DaybookRefusal {
+  const DaybookRefusal({
+    required this.action,
+    required this.spaceId,
+    required this.postId,
+    required this.why,
+  });
+
+  final RefusedAction action;
+  final String spaceId;
+  final String postId;
+  final RefusalWhy why;
+}
+
+final refusalsProvider = NotifierProvider<Refusals, DaybookRefusal?>(
+  Refusals.new,
+);
+
+/// The latest refusal, for the daybook to say once.
+class Refusals extends Notifier<DaybookRefusal?> {
+  @override
+  DaybookRefusal? build() => null;
+
+  void add(DaybookRefusal r) => state = r;
 }

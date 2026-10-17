@@ -100,7 +100,11 @@ class TestApp {
     required this.safety,
     required this.account,
     required this.opened,
+    required this.cameraAsks,
   });
+
+  /// Each photo asked for: true from the camera, false from the gallery.
+  final List<bool> cameraAsks;
 
   final SharedPreferences prefs;
   final FakeAuthRepository auth;
@@ -221,6 +225,7 @@ Future<TestApp> pumpApp(
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
   final saved = <String>[];
+  final cameraAsks = <bool>[];
   final sharedFiles = <String>[];
 
   await tester.pumpWidget(
@@ -280,9 +285,10 @@ Future<TestApp> pumpApp(
           (name, mime, bytes) async => sharedFiles.add(name),
         ),
         // No camera and no waiting between tries in tests.
-        pickPhotoProvider.overrideWithValue(
-          ({required camera}) async => XFile(testPhotoPath),
-        ),
+        pickPhotoProvider.overrideWithValue(({required camera}) async {
+          cameraAsks.add(camera);
+          return XFile(testPhotoPath);
+        }),
         // A fresh copy each time: a sent item deletes its kept copy.
         keepPhotoProvider.overrideWithValue(
           (photo) async => File(photo.path)
@@ -325,6 +331,7 @@ Future<TestApp> pumpApp(
     safety: fakeSafety,
     account: fakeAccount,
     opened: opened,
+    cameraAsks: cameraAsks,
   );
 }
 

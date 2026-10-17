@@ -499,9 +499,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileTabExperience => 'الخبرات';
 
   @override
-  String get proofLabel => 'الإثبات · أين تم التأكيد';
-
-  @override
   String get proofConfirmed => 'مؤكَّد';
 
   @override
@@ -551,16 +548,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileSeeAllProjects => 'كل المشاريع';
-
-  @override
-  String get workDeliveredTitle => 'العمل الذي سلّمته';
-
-  @override
-  String get workDeliveredVisitorTitle => 'العمل المُسلَّم';
-
-  @override
-  String get workDeliveredBody =>
-      'أنت تختار ما يظهر. فقط البنود التي تم فحصها وإغلاقها في مساحة.';
 
   @override
   String get workDeliveredEmpty => 'لا شيء تم فحصه بعد.';
@@ -1314,9 +1301,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get youLower => 'أنت';
-
-  @override
   String proofConfirmedBy(String names) {
     return 'مؤكَّد من $names';
   }
@@ -1325,73 +1309,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesInfoTitle => 'معلومات المساحة';
 
   @override
-  String get spacesAccess => 'الوصول';
-
-  @override
-  String spacesAccessLinked(String project) {
-    return 'عمل خاص · مرتبط بـ$project';
-  }
-
-  @override
-  String get spacesInviteRowSub => 'شارك رمز الدعوة';
-
-  @override
-  String spacesOwnersLine(String names) {
-    return 'مديرو المساحة: $names';
-  }
-
-  @override
   String get spacesWhoCanInvite => 'من يمكنه الدعوة';
-
-  @override
-  String get spacesWhoCanInviteNote =>
-      'كل انضمام يحتاج إلى تأكيد مدير المساحة.';
-
-  @override
-  String get spacesInviteAdmins => 'مديرو المساحة';
-
-  @override
-  String get spacesInviteAdminsHelp => 'المديرون فقط يشاركون رمز الدعوة.';
-
-  @override
-  String get spacesInviteLeads => 'المديرون وأصحاب تصريح مسؤول';
-
-  @override
-  String get spacesInviteLeadsHelp => 'يمكن لأصحاب تصريح مسؤول دعوة طواقمهم.';
-
-  @override
-  String get spacesInviteEveryone => 'كل من في المساحة';
-
-  @override
-  String get spacesInviteEveryoneHelp =>
-      'يمكن لأي عضو مشاركة الرمز، ويؤكد المديرون كل انضمام.';
 
   @override
   String get spacesNotifications => 'الإشعارات';
 
   @override
-  String get spacesNotificationsNote => 'لهذه المساحة فقط.';
-
-  @override
-  String get spacesNotifyAll => '«الجميع» وفِرقي';
-
-  @override
-  String get spacesNotifyAllHelp =>
-      'رسائل «الجميع» وفِرقك، وكل ما هو بانتظارك.';
-
-  @override
-  String get spacesNotifyNeedsYou => 'بانتظارك فقط';
-
-  @override
-  String get spacesNotifyNeedsYouHelp =>
-      'البنود المكلّف بها، والبنود التي تحتاج فحصًا، وطلبات الانضمام.';
-
-  @override
   String get spacesNotifyOff => 'إيقاف';
-
-  @override
-  String get spacesNotifyOffHelp =>
-      'لا تنبيهات. يبقى «بانتظارك» ظاهرًا في الرئيسية.';
 
   @override
   String get spacesTransfer => 'نقل إدارة المساحة';
@@ -1425,9 +1349,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String spacesLeft(String space) {
     return 'غادرت $space.';
   }
-
-  @override
-  String get spacesEdit => 'تعديل';
 
   @override
   String get spacesEditTitle => 'تعديل المساحة';
@@ -3462,16 +3383,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String daybookSentBackLine(String time, String reason) {
-    return 'أُرجع الساعة $time · $reason';
-  }
-
-  @override
-  String daybookSentBackLineNote(String time, String reason, String note) {
-    return 'أُرجع الساعة $time · $reason: $note';
-  }
-
-  @override
   String get daybookCheck => 'فحص';
 
   @override
@@ -3540,4 +3451,178 @@ class AppLocalizationsAr extends AppLocalizations {
   String daybookCancelledByYou(String time) {
     return 'ألغيته الساعة $time';
   }
+
+  @override
+  String get daybookSentItBack => 'أرجع البند';
+
+  @override
+  String daybookSentBackAt(String time) {
+    return 'أُرجع الساعة $time';
+  }
+
+  @override
+  String daybookSentBackText(String reason, String note) {
+    return '$reason. $note';
+  }
+
+  @override
+  String get daybookCouldNotCheck => 'تعذّر الفحص';
+
+  @override
+  String get daybookCouldNotSendBack => 'تعذّر الإرجاع';
+
+  @override
+  String get daybookCouldNotCancel => 'تعذّر الإلغاء';
+
+  @override
+  String get daybookCouldNotGiveTo => 'تعذّر تكليف شخص آخر';
+
+  @override
+  String get daybookCouldNotUpdate => 'تعذّرت إضافة التحديث';
+
+  @override
+  String daybookRefusedBecause(String action, String reason) {
+    return '$action: $reason';
+  }
+
+  @override
+  String daybookRefusedPlain(String action) {
+    return '$action.';
+  }
+
+  @override
+  String get daybookWhyCancelled => 'تم إلغاء هذا البند';
+
+  @override
+  String get daybookWhyChecked => 'تم فحصه من قبل';
+
+  @override
+  String get daybookWhyChanged => 'تغيّر في هذه الأثناء';
+
+  @override
+  String get daybookWhyRemoved => 'تمت إزالته';
+
+  @override
+  String get daybookWhyNotAllowed => 'تصريحك لا يسمح بذلك';
+
+  @override
+  String get daybookSwitchItem => 'إثبات بند عمل آخر';
+
+  @override
+  String get daybookDiscardProofTitle => 'حذف هذا الإثبات؟';
+
+  @override
+  String get daybookDiscardProofBody =>
+      'الصور موجودة على هذا الهاتف فقط. إذا حذفتها لن تعود.';
+
+  @override
+  String get daybookDiscardProofKeep => 'إبقاء';
+
+  @override
+  String get daybookDiscardProofDelete => 'حذف';
+
+  @override
+  String get spacesMenu => 'قائمة المساحة';
+
+  @override
+  String get spacesInfoYou => 'أنت';
+
+  @override
+  String get spacesInfoInvite => 'الدعوة';
+
+  @override
+  String get spacesInfoSpace => 'المساحة';
+
+  @override
+  String get spacesYourPass => 'تصريحك';
+
+  @override
+  String get spacesNotifyChoiceAll => 'كل شيء';
+
+  @override
+  String get spacesNotifyChoiceNeedsYou => 'بانتظارك';
+
+  @override
+  String get spacesInviteChoiceAdmins => 'أنا فقط';
+
+  @override
+  String get spacesInviteChoiceLeads => 'المسؤولون';
+
+  @override
+  String get spacesInviteChoiceEveryone => 'الجميع';
+
+  @override
+  String get spacesCopy => 'نسخ';
+
+  @override
+  String get spacesCodeCopied => 'تم نسخ رمز الدعوة';
+
+  @override
+  String get spacesAdminRow => 'مدير المساحة';
+
+  @override
+  String get spacesOnSiteSince => 'في الموقع منذ';
+
+  @override
+  String get spacesOnSiteNotSet => 'غير محدد';
+
+  @override
+  String get spacesOnSiteChange => 'اختيار يوم آخر';
+
+  @override
+  String get spacesOnSiteRemove => 'إزالة اليوم';
+
+  @override
+  String get spacesOnSiteNote =>
+      'تعدّ صفحة العمل «اليوم 1 في الموقع» من هذا اليوم.';
+
+  @override
+  String get spacesEditNameAbout => 'الاسم والنبذة';
+
+  @override
+  String get needsTitle => 'بانتظارك';
+
+  @override
+  String get needsRowCheck => 'للفحص';
+
+  @override
+  String get needsRowForYou => 'لك';
+
+  @override
+  String get needsRowSentBack => 'أُرجع إليك';
+
+  @override
+  String get needsRowOwnerLeft => 'يحتاج مكلّفًا';
+
+  @override
+  String get needsRowJoin => 'طلب انضمام';
+
+  @override
+  String get needsNone => 'لا شيء بانتظارك الآن.';
+
+  @override
+  String get profileProofOfWork => 'إثبات العمل';
+
+  @override
+  String get profileProjectsConfirmed => 'مشاريع أكّدها الزملاء';
+
+  @override
+  String get proofStampConfirmed => 'مؤكد';
+
+  @override
+  String get proofStampWaiting => 'بالانتظار';
+
+  @override
+  String get proofChooseShown => 'اختر ما يظهر';
+
+  @override
+  String homeFeedLine(String date) {
+    return '$date، من شبكتك';
+  }
+
+  @override
+  String get homeNotebook => 'دفتري';
+
+  @override
+  String get homeMessages => 'الرسائل';
 }

@@ -256,6 +256,17 @@ abstract final class BvShadow {
   static const proof = [
     BoxShadow(color: Color(0x14594026), offset: Offset(0, 1), blurRadius: 2),
   ];
+  // Around the daybook (slice 1e): Space info's slips (SI1), the Space
+  // menu (MN1), Needs you rows (2544:35068).
+  static const infoSlip = [
+    BoxShadow(color: Color(0x12332414), offset: Offset(0, 1), blurRadius: 3),
+  ];
+  static const screenMenu = [
+    BoxShadow(color: Color(0x29000000), offset: Offset(0, 8), blurRadius: 24),
+  ];
+  static const needsRow = [
+    BoxShadow(color: Color(0x14594026), offset: Offset(0, 1), blurRadius: 4),
+  ];
 }
 
 /// Font families bundled in assets/fonts.

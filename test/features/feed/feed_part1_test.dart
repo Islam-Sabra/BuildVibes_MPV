@@ -146,11 +146,10 @@ void main() {
       );
     });
 
-    testWidgets('the card: project strip with its type, names, no counts '
+    testWidgets('the card (H1 v3): the project tag, names, no counts '
         '[$lang]', (tester) async {
       await _feed(tester, lang);
       expect(find.byKey(const Key('post-project-pr-1')), findsOneWidget);
-      expect(find.text(lang == 'ar' ? 'تجاري' : 'COMMERCIAL'), findsOneWidget);
       expect(
         find.text(l10n.postUsefulTwo('Mariam Al-Sabah', 'Rakesh Nair')),
         findsOneWidget,
@@ -501,19 +500,21 @@ void main() {
           ),
         ];
       final app = await _feed(tester, lang, posts: posts);
-      // "3h", not "3h ago".
-      expect(find.textContaining(l10n.timeHoursShort(3)), findsWidgets);
-      expect(find.textContaining(l10n.timeHoursAgo(3)), findsNothing);
+      // On the Feed the time is on the spine (H1 v3), not on the card.
+      expect(find.textContaining(l10n.timeHoursShort(3)), findsNothing);
       _router(tester).push('/posts/p1');
       await tester.pumpAndSettle();
-      // The project strip, as in the Feed; no avatar on the card.
+      // "3h", not "3h ago"; the project tag and the author's face, as in
+      // the Feed.
+      expect(find.textContaining(l10n.timeHoursShort(3)), findsWidgets);
+      expect(find.textContaining(l10n.timeHoursAgo(3)), findsNothing);
       expect(find.byKey(const Key('post-project-pr-1')), findsOneWidget);
       expect(
         find.descendant(
           of: find.byKey(const Key('post-p1')),
           matching: find.byType(BvAvatar),
         ),
-        findsNothing,
+        findsOneWidget,
       );
       await tester.scrollUntilVisible(
         find.byKey(const Key('reply-r1')),

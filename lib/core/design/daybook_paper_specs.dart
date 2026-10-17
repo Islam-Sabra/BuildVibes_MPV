@@ -106,6 +106,8 @@ abstract final class BvInkStampSpec {
   static const fontSizeMd = 15.0;
   static const fontSizeSm = 11.0;
   static const fontSizeXs = 10.0;
+  static const fontSizeXs9 = 9.0;
+  static const fontSizeXs8 = 8.0;
 
   /// The second line of the large stamp ("OMAR H · 09:40").
   static const sublineFontSize = 10.0;

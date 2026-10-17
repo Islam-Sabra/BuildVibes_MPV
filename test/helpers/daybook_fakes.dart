@@ -34,8 +34,12 @@ class FakeDaybookRepository implements DaybookRepository {
   /// as it was.
   DaybookPost Function(NewWorkItem item)? asPosted;
 
+  /// Entries of a kind this version doesn't know: the server sends their
+  /// rows, the app draws nothing.
+  final unknown = <String>{};
+
   @override
-  Future<List<DaybookRecord>> page(
+  Future<DaybookPageRows> page(
     String spaceId, {
     DateTime? before,
     String? beforeId,
@@ -48,7 +52,7 @@ class FakeDaybookRepository implements DaybookRepository {
         final t = b.at.compareTo(a.at);
         return t != 0 ? t : b.id.compareTo(a.id);
       });
-    return all
+    final rows = all
         .where((p) {
           if (before == null) return true;
           final t = p.at.compareTo(before);
@@ -57,6 +61,15 @@ class FakeDaybookRepository implements DaybookRepository {
         })
         .take(limit)
         .toList();
+    return DaybookPageRows(
+      [
+        for (final r in rows)
+          if (!unknown.contains(r.id)) r,
+      ],
+      rows: rows.length,
+      lastAt: rows.lastOrNull?.at,
+      lastId: rows.lastOrNull?.id,
+    );
   }
 
   @override

@@ -136,7 +136,7 @@ class _PersonProfileScreenState extends ConsumerState<PersonProfileScreen> {
     final profile = ref.watch(profileViewProvider(widget.profileId));
 
     return Scaffold(
-      appBar: AppBar(backgroundColor: BvColors.surfaceSubtle),
+      appBar: AppBar(backgroundColor: BvColors.surfaceApp),
       body: profile.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => Center(

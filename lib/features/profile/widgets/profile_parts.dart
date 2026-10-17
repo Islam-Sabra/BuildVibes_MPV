@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show Bidi;
 
+import '../../../core/design/around_specs.dart';
 import '../../../core/design/bv_icons.dart';
 import '../../../core/design/bv_specs.dart';
 import '../../../core/design/bv_tokens.dart';
@@ -10,6 +11,7 @@ import '../../../core/l10n/months.dart';
 import '../../../data/models/profile.dart';
 import '../../../l10n/gen/app_localizations.dart';
 import '../../../shared/widgets/bv_avatar.dart';
+import '../../../shared/widgets/bv_stamp.dart';
 import '../../../shared/widgets/bv_badge.dart';
 import '../../../shared/widgets/bv_chip.dart';
 
@@ -48,25 +50,24 @@ class ProfileHeader extends StatelessWidget {
       if (showFollowing) l10n.profileFollowing(profile.followingCount),
     ].join(' · ');
 
-    return Container(
-      color: BvColors.surfaceSubtle,
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        BvSpace.gutter,
-        BvSpace.s8,
-        BvSpace.gutter,
-        BvSpace.s16,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: BvSpace.s12,
-        children: [
-          Row(
-            spacing: BvProfileSpec.avatarGap,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            BvProfileHeadSpec.paddingHorizontal,
+            BvProfileHeadSpec.paddingTop,
+            BvProfileHeadSpec.paddingHorizontal,
+            BvProfileHeadSpec.paddingBottom,
+          ),
+          child: Row(
+            spacing: BvProfileHeadSpec.gap,
             children: [
               BvAvatar(
                 key: const Key('profile-avatar'),
                 name: profile.fullName,
-                size: BvAvatarSize.xl,
+                size: BvAvatarSize.profile,
+                tint: BvAvatarTints.forId(profile.id),
                 image: profile.photoUrl == null
                     ? null
                     : NetworkImage(profile.photoUrl!),
@@ -74,7 +75,7 @@ class ProfileHeader extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: BvSpace.s2,
+                  spacing: BvProfileHeadSpec.lineGap,
                   children: [
                     Text(
                       profile.fullName,
@@ -85,7 +86,9 @@ class ProfileHeader extends StatelessWidget {
                       Text(
                         roleLine,
                         key: const Key('profile-role-line'),
-                        style: type.bodyMd,
+                        style: type.bodySm.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
                       ),
                     if (metaLine.isNotEmpty)
                       Text(
@@ -94,19 +97,29 @@ class ProfileHeader extends StatelessWidget {
                           color: BvColors.textSecondary,
                         ),
                       ),
+                    Text(
+                      counts,
+                      key: const Key('profile-counts'),
+                      style: type.metadata.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          Text(
-            counts,
-            key: const Key('profile-counts'),
-            style: type.bodySm.copyWith(color: BvColors.textSecondary),
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            BvProfileHeadSpec.paddingHorizontal,
+            0,
+            BvProfileHeadSpec.paddingHorizontal,
+            BvProfileHeadSpec.actionsPaddingBottom,
           ),
-          actions,
-        ],
-      ),
+          child: actions,
+        ),
+      ],
     );
   }
 }
@@ -241,6 +254,93 @@ class CvProjectRow extends StatelessWidget {
                     : BvBadgeTone.neutral,
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One project on the profile's Overview (R1 v4 2556:35506): a dot, the
+/// project, its place and dates, and CONFIRMED (a teammate confirmed it)
+/// or WAITING. Opens the project record.
+class ProjectProofRow extends StatelessWidget {
+  const ProjectProofRow({super.key, required this.entry});
+
+  final CvProjectEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final locale = Localizations.localeOf(context);
+    final arabic = locale.languageCode == 'ar';
+    final dates = formatMonthRange(
+      l10n,
+      locale.toLanguageTag(),
+      start: entry.start,
+      end: entry.end,
+    );
+    final line = joinMeta([?entry.placeName?.of(locale), dates]);
+    final stamp = entry.confirmed
+        ? l10n.proofStampConfirmed
+        : l10n.proofStampWaiting;
+    return Material(
+      color: BvColors.surfaceSubtle,
+      borderRadius: BvRadius.smallAll,
+      child: InkWell(
+        key: Key('cv-project-${entry.projectId}'),
+        borderRadius: BvRadius.smallAll,
+        onTap: () => context.push('/projects/${entry.projectId}'),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvProjectProofSpec.rowPaddingHorizontal,
+            vertical: BvProjectProofSpec.rowPaddingVertical,
+          ),
+          child: Row(
+            spacing: BvProjectProofSpec.rowGap,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: BvProjectColors.forId(entry.projectId),
+                  shape: BoxShape.circle,
+                ),
+                child: const SizedBox.square(dimension: BvProjectProofSpec.dot),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(entry.projectName, style: type.labelMd),
+                    if (line.isNotEmpty)
+                      Text(
+                        line,
+                        style: type.metadata.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
+                      ),
+                    if (entry.confirmedBy.isNotEmpty)
+                      Text(
+                        l10n.proofConfirmedBy(
+                          confirmerNames(l10n, entry.confirmedBy),
+                        ),
+                        key: Key('proof-by-${entry.projectId}'),
+                        style: type.metadata.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              BvInkStamp(
+                key: Key('proof-${entry.projectId}'),
+                label: arabic ? stamp : stamp.toUpperCase(),
+                size: BvInkStampSize.xs9,
+                tone: entry.confirmed
+                    ? BvInkStampTone.positive
+                    : BvInkStampTone.muted,
+              ),
+            ],
+          ),
         ),
       ),
     );

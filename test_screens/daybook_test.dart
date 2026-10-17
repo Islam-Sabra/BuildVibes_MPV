@@ -6,7 +6,9 @@
 // loop's O1 2529:33382, O2 2529:33493, O3 2529:33514, S1 2530:33826, Y1
 // 2530:33953, Y2 2530:34038, B1 2530:33480, B2 2530:33643, B3 2519:33049,
 // X1 2530:34134, X2 2540:34693, X2-given 2540:34880, X3 2530:34263, and the
-// AR frames 2547:35195, 2547:35369 and 2547:35543. Run:
+// AR frames 2547:35195, 2547:35369 and 2547:35543; part 1e's Space menu
+// MN1 2566:35619 and review 47's answers 3 (O4, the item switch) and 5
+// (O5, a refused sign-off). Run:
 //   flutter test test_screens/daybook_test.dart --update-goldens
 import 'dart:convert';
 
@@ -62,6 +64,7 @@ Future<List<Override>> _overrides(
   DaybookMonth month = const DaybookMonth(),
   Map<String, Object> phone = const {},
   FakeDaybookRepository? daybook,
+  FakeWorkRepository? work,
 }) async {
   // The phone's storage for drafts and the outbox; test_screens/ is a test
   // folder the analyzer doesn't know.
@@ -83,7 +86,7 @@ Future<List<Override>> _overrides(
     authUserIdProvider.overrideWithValue(AsyncData(me)),
     myMarketProvider.overrideWithValue(kuwait),
     clockProvider.overrideWithValue(() => now),
-    workRepositoryProvider.overrideWithValue(FakeWorkRepository()),
+    workRepositoryProvider.overrideWithValue(work ?? FakeWorkRepository()),
     daybookRepositoryProvider.overrideWithValue(
       (daybook ?? FakeDaybookRepository())
         ..posts[DaybookSamples.space] = posts
@@ -772,6 +775,79 @@ void main() {
           me: DaybookSamples.islam,
           now: DateTime(2026, 10, 15, 12, 31),
         ),
+      );
+    });
+
+    testWidgets('MN1 the Space menu [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'MN1-space-menu',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.d1(),
+          me: DaybookSamples.islam,
+          now: DaybookSamples.thursday,
+        ),
+        before: (tester) => _tap(tester, find.byKey(const Key('space-more'))),
+      );
+    });
+
+    testWidgets('O4 prove another work item [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'O4-switch-item',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.o1(),
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 9, 40),
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+        before: (tester) async {
+          await tester.longPress(find.byKey(const Key('post-bar-camera')));
+          await tester.pumpAndSettle();
+          await _tap(tester, find.byKey(const Key('proof-switch-open')));
+        },
+      );
+    });
+
+    testWidgets('O5 a refused sign-off keeps its photos [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      final work = FakeWorkRepository()
+        ..refuse = const SpaceException(
+          SpaceFailure.rule,
+          'this work item was cancelled',
+        );
+      await shoot(
+        tester,
+        'O5-could-not-send',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.o1(),
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 9, 40),
+          pass: SpacePass.crew,
+          admin: false,
+          work: work,
+        ),
+        before: (tester) async {
+          await _tap(tester, find.text(l10n.daybookSignAsDone).first);
+          await _type(tester, 'proof-note', s.sleevesNote);
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pumpAndSettle();
+          await _tap(tester, find.byKey(const Key('proof-send')));
+        },
       );
     });
 

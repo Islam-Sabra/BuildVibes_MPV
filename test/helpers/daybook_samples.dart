@@ -364,7 +364,8 @@ class DaybookSamples {
   );
 
   /// S1 2530:33826: Islam sent Omar's proof back at 10:12; the sleeves are
-  /// open again, Omar's to sign.
+  /// open again, Omar's to sign: his clip is on the send-back (migration
+  /// 24), not on the item.
   List<DaybookRecord> s1() => [
     item(
       id: 'post-sleeves',
@@ -377,7 +378,6 @@ class DaybookSamples {
       due: DateTime(2026, 10, 15),
       place: levelTwo,
       stamp: DaybookStampKind.sentBack,
-      needsMe: true,
     ),
     sleevesSignOff(
       needsMe: false,
@@ -390,7 +390,22 @@ class DaybookSamples {
         note: sentBackNote,
       ),
     ),
+    sleevesSentBack(),
   ];
+
+  /// S1's send-back at 10:12, with Omar's clip while it is the latest.
+  DaybookSentBack sleevesSentBack({bool needsMe = true}) => DaybookSentBack(
+    id: 'event-sleeves-back',
+    at: DateTime(2026, 10, 15, 10, 12),
+    postId: 'post-sleeves',
+    title: sleeves,
+    ref: 'KCT-021',
+    actorId: islam,
+    actorName: islamName,
+    reason: SendBackReason.notAsAsked,
+    note: sentBackNote,
+    needsMe: needsMe,
+  );
 
   /// Y2 2530:34038: Omar's update at 09:05.
   DaybookUpdate sleevesUpdate() => DaybookUpdate(

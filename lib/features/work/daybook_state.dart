@@ -23,32 +23,55 @@ class DaybookPages extends AsyncNotifier<List<DaybookRecord>> {
   /// False once the Space's first post is loaded.
   bool get hasOlder => !_reachedStart;
 
+  /// Where the next older page starts: the last row the server sent,
+  /// drawn or not.
+  DateTime? _cursorAt;
+  String? _cursorId;
+
+  void _follow(DaybookPageRows page, int limit) {
+    _reachedStart = page.rows < limit;
+    if (page.lastAt != null) {
+      _cursorAt = page.lastAt;
+      _cursorId = page.lastId;
+    }
+  }
+
   @override
   Future<List<DaybookRecord>> build() async {
     _reachedStart = false;
+    _cursorAt = null;
+    _cursorId = null;
     final page = await ref
         .watch(daybookRepositoryProvider)
         .page(spaceId, limit: pageSize);
-    _reachedStart = page.length < pageSize;
-    return page;
+    _follow(page, pageSize);
+    return page.records;
   }
 
-  /// Loads the next older page. True when it added posts.
+  /// Loads the next older page. True when it added entries.
   Future<bool> loadOlder() async {
     final current = state.value;
-    if (_loadingOlder || _reachedStart || current == null || current.isEmpty) {
+    if (_loadingOlder ||
+        _reachedStart ||
+        current == null ||
+        _cursorAt == null) {
       return false;
     }
     _loadingOlder = true;
     try {
-      final last = current.last;
       final page = await ref
           .read(daybookRepositoryProvider)
-          .page(spaceId, before: last.at, beforeId: last.id, limit: pageSize);
+          .page(
+            spaceId,
+            before: _cursorAt,
+            beforeId: _cursorId,
+            limit: pageSize,
+          );
       if (!ref.mounted) return false;
-      _reachedStart = page.length < pageSize;
-      state = AsyncData([...current, ...page]);
-      return page.isNotEmpty;
+      _follow(page, pageSize);
+      state = AsyncData([...current, ...page.records]);
+      // Rows of kinds this version doesn't draw still move the cursor.
+      return page.rows > 0;
     } finally {
       _loadingOlder = false;
     }
@@ -67,18 +90,22 @@ class DaybookPages extends AsyncNotifier<List<DaybookRecord>> {
         .read(daybookRepositoryProvider)
         .page(spaceId, limit: limit);
     if (!ref.mounted) return;
-    if (page.length < limit) {
-      _reachedStart = true;
-      state = AsyncData(page);
+    if (page.rows < limit) {
+      _follow(page, limit);
+      state = AsyncData(page.records);
       return;
     }
-    final oldest = page.last;
+    final oldestAt = page.lastAt!;
+    final oldestId = page.lastId!;
     bool older(DaybookRecord r) {
-      final t = r.at.compareTo(oldest.at);
-      return t < 0 || (t == 0 && r.id.compareTo(oldest.id) < 0);
+      final t = r.at.compareTo(oldestAt);
+      return t < 0 || (t == 0 && r.id.compareTo(oldestId) < 0);
     }
 
-    state = AsyncData([...page, ...current.where(older)]);
+    final kept = current.where(older).toList();
+    // The cursor stays where the loaded pages end.
+    if (kept.isEmpty) _follow(page, limit);
+    state = AsyncData([...page.records, ...kept]);
   }
 }
 

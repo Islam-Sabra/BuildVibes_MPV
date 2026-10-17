@@ -18,6 +18,15 @@ class FakeWorkRepository implements WorkRepository {
   /// still work).
   int failSendNext = 0;
 
+  /// The server says no to sign-offs, checks and send-backs with this
+  /// (not a lost signal).
+  SpaceException? refuse;
+
+  void _maybeRefuse() {
+    final e = refuse;
+    if (e != null) throw e;
+  }
+
   /// Uploads the server cleaned up: sending them is refused as bad input.
   final cleanedUp = <String>{};
 
@@ -76,12 +85,14 @@ class FakeWorkRepository implements WorkRepository {
     List<WorkPhoto> photos = const [],
   }) async {
     _maybeFailSend(photos.map((p) => p.path));
+    _maybeRefuse();
     calls.add('done $itemId ${note ?? ''} ${photos.length}');
   }
 
   @override
   Future<void> checkItem(String itemId) async {
     _maybeFail();
+    _maybeRefuse();
     calls.add('check $itemId');
   }
 
@@ -92,6 +103,7 @@ class FakeWorkRepository implements WorkRepository {
     String? note,
   }) async {
     _maybeFail();
+    _maybeRefuse();
     calls.add('back $itemId ${reason.json} ${note ?? ''}');
   }
 
