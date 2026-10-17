@@ -2384,12 +2384,6 @@ abstract class AppLocalizations {
   /// **'Delete Space'**
   String get spacesDeleteSpace;
 
-  /// S15 row.
-  ///
-  /// In en, this message translates to:
-  /// **'Owners only. Removes it for everyone.'**
-  String get spacesDeleteSpaceHelp;
-
   /// Confirm button.
   ///
   /// In en, this message translates to:
@@ -3530,192 +3524,6 @@ abstract class AppLocalizations {
   /// **'Back to Home'**
   String get postBackHome;
 
-  /// P3.
-  ///
-  /// In en, this message translates to:
-  /// **'Posting to your network…'**
-  String get postPosting;
-
-  /// P3b / C14.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t post. Saved as a draft.'**
-  String get postFailed;
-
-  /// P3b.
-  ///
-  /// In en, this message translates to:
-  /// **'Check your connection and try again.'**
-  String get postFailedHint;
-
-  /// C1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'POSTING TO'**
-  String get composerPostingTo;
-
-  /// C1 audience.
-  ///
-  /// In en, this message translates to:
-  /// **'Your network'**
-  String get composerYourNetwork;
-
-  /// C1 audience line.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone'**
-  String get composerEveryone;
-
-  /// C1 audience line.
-  ///
-  /// In en, this message translates to:
-  /// **'tagged {project}'**
-  String composerTagged(String project);
-
-  /// C1 placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'What happened on site today?'**
-  String get composerHint;
-
-  /// C1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'START FROM'**
-  String get composerStartFrom;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Progress update'**
-  String get tplProgress;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Done today · Next · Holding us up'**
-  String get tplProgressHelp;
-
-  /// Template lines put in the post.
-  ///
-  /// In en, this message translates to:
-  /// **'Done today:\nNext:\nHolding us up:'**
-  String get tplProgressLines;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Milestone'**
-  String get tplMilestone;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'What · When · Who did it'**
-  String get tplMilestoneHelp;
-
-  /// Template lines.
-  ///
-  /// In en, this message translates to:
-  /// **'What:\nWhen:\nWho did it:'**
-  String get tplMilestoneLines;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Site visit'**
-  String get tplVisit;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Where · What we found · Actions'**
-  String get tplVisitHelp;
-
-  /// Template lines.
-  ///
-  /// In en, this message translates to:
-  /// **'Where:\nWhat we found:\nActions:'**
-  String get tplVisitLines;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Ask the community'**
-  String get tplAsk;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Question · Who knows'**
-  String get tplAskHelp;
-
-  /// Template lines.
-  ///
-  /// In en, this message translates to:
-  /// **'Question:\nWho knows:'**
-  String get tplAskLines;
-
-  /// Footer tool.
-  ///
-  /// In en, this message translates to:
-  /// **'Media'**
-  String get composerMedia;
-
-  /// Footer tool.
-  ///
-  /// In en, this message translates to:
-  /// **'Project'**
-  String get composerProject;
-
-  /// Post button.
-  ///
-  /// In en, this message translates to:
-  /// **'Post'**
-  String get composerPost;
-
-  /// Edit post button.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get composerSave;
-
-  /// Footer hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose how to start, or just write'**
-  String get composerChooseHint;
-
-  /// Footer hint when tagged.
-  ///
-  /// In en, this message translates to:
-  /// **'Posting to {project}'**
-  String composerPostingToProject(String project);
-
-  /// Audience line (review 16: replaces the member count).
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone on BuildVibes can see this.'**
-  String get composerAudience;
-
-  /// Audience line with a project.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone on BuildVibes can see this. It also shows on the project\'s page.'**
-  String get composerAudienceProject;
-
-  /// L5. The language code of the post.
-  ///
-  /// In en, this message translates to:
-  /// **'Written in {lang, select, ar{Arabic} other{English}}'**
-  String composerWrittenIn(String lang);
-
-  /// L5 link.
-  ///
-  /// In en, this message translates to:
-  /// **'Change'**
-  String get composerChange;
-
   /// Language name (each in its own script).
   ///
   /// In en, this message translates to:
@@ -3728,113 +3536,17 @@ abstract class AppLocalizations {
   /// **'العربية'**
   String get langArabic;
 
-  /// L6 option.
-  ///
-  /// In en, this message translates to:
-  /// **'Detected automatically'**
-  String get langAuto;
-
-  /// L6 title.
-  ///
-  /// In en, this message translates to:
-  /// **'Language of this post'**
-  String get composerLangTitle;
-
-  /// L6 line under the title.
-  ///
-  /// In en, this message translates to:
-  /// **'We use this to offer Translate to readers who don\'t read it.'**
-  String get composerLangWhy;
-
-  /// A language's name in the app's language (L6).
-  ///
-  /// In en, this message translates to:
-  /// **'{lang, select, ar{Arabic} other{English}}'**
-  String langName(String lang);
-
-  /// Too many photos.
-  ///
-  /// In en, this message translates to:
-  /// **'Up to 4 photos.'**
-  String get composerPhotosMax;
-
-  /// Tooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove photo'**
-  String get composerRemovePhoto;
-
-  /// C3 title.
-  ///
-  /// In en, this message translates to:
-  /// **'Post to'**
-  String get postToTitle;
-
-  /// C3 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WHO SEES IT'**
-  String get postToWho;
-
-  /// C3 row.
-  ///
-  /// In en, this message translates to:
-  /// **'Followers and Explore · anyone can see'**
-  String get postToNetworkHelp;
-
-  /// C3 note.
-  ///
-  /// In en, this message translates to:
-  /// **'Posts are public and can be tagged to a project. Work for your team goes in the project\'s Space as a work item.'**
-  String get postToNote;
-
-  /// C10 title.
-  ///
-  /// In en, this message translates to:
-  /// **'Link a project'**
-  String get tagTitle;
-
-  /// C10.
-  ///
-  /// In en, this message translates to:
-  /// **'Only projects where you have a confirmed role.'**
-  String get tagHelp;
-
   /// C10 empty.
   ///
   /// In en, this message translates to:
   /// **'Add a project on your profile first'**
   String get tagEmpty;
 
-  /// C10 line.
-  ///
-  /// In en, this message translates to:
-  /// **'Work for your team goes in the project\'s Space as a work item'**
-  String get tagSpaceNote;
-
   /// C10: remove the tag.
   ///
   /// In en, this message translates to:
   /// **'No project'**
   String get tagNone;
-
-  /// C13.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard this post?'**
-  String get discardTitle;
-
-  /// C13.
-  ///
-  /// In en, this message translates to:
-  /// **'Your text, photo and project link will be lost.'**
-  String get discardBody;
-
-  /// C13.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get discardConfirm;
 
   /// Project sheet section.
   ///
@@ -3865,12 +3577,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n}h'**
   String timeHoursShort(int n);
-
-  /// C13 cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep editing'**
-  String get discardKeep;
 
   /// H1b title.
   ///
@@ -5909,7 +5615,7 @@ abstract class AppLocalizations {
   /// Who can invite, in Space info (SI1): Space admins only.
   ///
   /// In en, this message translates to:
-  /// **'Only me'**
+  /// **'Admins'**
   String get spacesInviteChoiceAdmins;
 
   /// Who can invite, in Space info (SI1): admins and Lead passes.
@@ -6050,23 +5756,41 @@ abstract class AppLocalizations {
   /// **'Choose what shows'**
   String get proofChooseShown;
 
-  /// Home masthead line (H1 v3). The feed has no follow filter, so it says "your network".
+  /// A post being written on Home (H2 2555:35426): who writes it and who sees it. Posts are public to every signed-in person.
   ///
   /// In en, this message translates to:
-  /// **'{date}, from your network'**
-  String homeFeedLine(String date);
+  /// **'You · to everyone'**
+  String get postWritingAuthor;
 
-  /// Home app bar: the list-checks icon opens My notebook (slice 8).
+  /// The language picker while writing a post (L6): the language found from its letters, chosen by default.
   ///
   /// In en, this message translates to:
-  /// **'My notebook'**
-  String get homeNotebook;
+  /// **'Detected: {lang, select, ar{Arabic} other{English}}'**
+  String postLangAuto(String lang);
 
-  /// Home app bar: the chat icon opens Messages (slice 3).
+  /// The text field of a post being written on Home (H2).
   ///
   /// In en, this message translates to:
-  /// **'Messages'**
-  String get homeMessages;
+  /// **'What happened on site today?'**
+  String get postWritingHint;
+
+  /// The More menu while writing a post: tag a project from your profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get postWritingProject;
+
+  /// The More menu while writing a post: its language; opens the language picker (L6).
+  ///
+  /// In en, this message translates to:
+  /// **'Written in {lang, select, ar{Arabic} other{English}}'**
+  String postWritingLang(String lang);
+
+  /// Writing a post: a fifth photo was tried (create_post takes four).
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 4 photos.'**
+  String get postWritingPhotosMax;
 }
 
 class _AppLocalizationsDelegate

@@ -832,7 +832,7 @@ void main() {
       await _longPress(tester, 'post-trays');
       await _pick(tester, l10n.daybookEdit);
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.titleController.text, s.cableTraysTitle);
+      expect(card.titleController!.text, s.cableTraysTitle);
       // The owner changes with Give to, not Edit: no Assign.
       await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
       await tester.pumpAndSettle();

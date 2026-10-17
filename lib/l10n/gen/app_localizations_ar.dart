@@ -1324,9 +1324,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesDeleteSpace => 'حذف المساحة';
 
   @override
-  String get spacesDeleteSpaceHelp => 'للمديرين فقط. تُحذف لدى الجميع.';
-
-  @override
   String get spacesDeleteButton => 'حذف';
 
   @override
@@ -2014,176 +2011,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postBackHome => 'العودة إلى الرئيسية';
 
   @override
-  String get postPosting => 'جارٍ النشر لشبكتك…';
-
-  @override
-  String get postFailed => 'تعذّر النشر. حُفظ كمسودة.';
-
-  @override
-  String get postFailedHint => 'تحقق من اتصالك وحاول مرة أخرى.';
-
-  @override
-  String get composerPostingTo => 'النشر إلى';
-
-  @override
-  String get composerYourNetwork => 'شبكتك';
-
-  @override
-  String get composerEveryone => 'الجميع';
-
-  @override
-  String composerTagged(String project) {
-    return 'مرتبط بـ$project';
-  }
-
-  @override
-  String get composerHint => 'ماذا حدث في الموقع اليوم؟';
-
-  @override
-  String get composerStartFrom => 'ابدأ من';
-
-  @override
-  String get tplProgress => 'تحديث سير العمل';
-
-  @override
-  String get tplProgressHelp => 'تم اليوم · التالي · ما يعيقنا';
-
-  @override
-  String get tplProgressLines => 'تم اليوم:\nالتالي:\nما يعيقنا:';
-
-  @override
-  String get tplMilestone => 'إنجاز مرحلة';
-
-  @override
-  String get tplMilestoneHelp => 'ماذا · متى · من أنجزه';
-
-  @override
-  String get tplMilestoneLines => 'ماذا:\nمتى:\nمن أنجزه:';
-
-  @override
-  String get tplVisit => 'زيارة موقع';
-
-  @override
-  String get tplVisitHelp => 'أين · ماذا وجدنا · الإجراءات';
-
-  @override
-  String get tplVisitLines => 'أين:\nماذا وجدنا:\nالإجراءات:';
-
-  @override
-  String get tplAsk => 'اسأل المجتمع';
-
-  @override
-  String get tplAskHelp => 'السؤال · من يعرف';
-
-  @override
-  String get tplAskLines => 'السؤال:\nمن يعرف:';
-
-  @override
-  String get composerMedia => 'الوسائط';
-
-  @override
-  String get composerProject => 'المشروع';
-
-  @override
-  String get composerPost => 'نشر';
-
-  @override
-  String get composerSave => 'حفظ';
-
-  @override
-  String get composerChooseHint => 'اختر طريقة البدء، أو اكتب مباشرة';
-
-  @override
-  String composerPostingToProject(String project) {
-    return 'النشر إلى $project';
-  }
-
-  @override
-  String get composerAudience => 'يمكن لأي شخص على BuildVibes رؤية هذا.';
-
-  @override
-  String get composerAudienceProject =>
-      'يمكن لأي شخص على BuildVibes رؤية هذا. ويظهر أيضًا في صفحة المشروع.';
-
-  @override
-  String composerWrittenIn(String lang) {
-    String _temp0 = intl.Intl.selectLogic(lang, {
-      'ar': 'بالعربية',
-      'other': 'بالإنجليزية',
-    });
-    return 'مكتوب $_temp0';
-  }
-
-  @override
-  String get composerChange => 'تغيير';
-
-  @override
   String get langEnglish => 'English';
 
   @override
   String get langArabic => 'العربية';
 
   @override
-  String get langAuto => 'يُحدَّد تلقائيًا';
-
-  @override
-  String get composerLangTitle => 'لغة هذا المنشور';
-
-  @override
-  String get composerLangWhy =>
-      'نستخدمها لنعرض الترجمة على القرّاء الذين لا يقرؤون هذه اللغة.';
-
-  @override
-  String langName(String lang) {
-    String _temp0 = intl.Intl.selectLogic(lang, {
-      'ar': 'العربية',
-      'other': 'الإنجليزية',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String get composerPhotosMax => 'حتى 4 صور.';
-
-  @override
-  String get composerRemovePhoto => 'إزالة الصورة';
-
-  @override
-  String get postToTitle => 'النشر إلى';
-
-  @override
-  String get postToWho => 'من يراه';
-
-  @override
-  String get postToNetworkHelp => 'المتابعون والاستكشاف · يمكن لأي شخص الرؤية';
-
-  @override
-  String get postToNote =>
-      'المنشورات عامة ويمكن ربطها بمشروع. عمل فريقك يذهب إلى مساحة المشروع كبند عمل.';
-
-  @override
-  String get tagTitle => 'ربط بمشروع';
-
-  @override
-  String get tagHelp => 'المشاريع التي لديك فيها دور مؤكَّد فقط.';
-
-  @override
   String get tagEmpty => 'أضف مشروعًا في ملفك أولًا';
 
   @override
-  String get tagSpaceNote => 'عمل فريقك يذهب إلى مساحة المشروع كبند عمل';
-
-  @override
   String get tagNone => 'بدون مشروع';
-
-  @override
-  String get discardTitle => 'حذف هذا المنشور؟';
-
-  @override
-  String get discardBody => 'سيُحذف النص والصور ورابط المشروع.';
-
-  @override
-  String get discardConfirm => 'حذف';
 
   @override
   String get projectPosts => 'المنشورات';
@@ -2203,9 +2040,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String timeHoursShort(int n) {
     return '$n س';
   }
-
-  @override
-  String get discardKeep => 'متابعة التعديل';
 
   @override
   String get homeDayTitle => 'يومك في الموقع';
@@ -3543,7 +3377,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesNotifyChoiceNeedsYou => 'بانتظارك';
 
   @override
-  String get spacesInviteChoiceAdmins => 'أنا فقط';
+  String get spacesInviteChoiceAdmins => 'المدراء';
 
   @override
   String get spacesInviteChoiceLeads => 'المسؤولون';
@@ -3616,13 +3450,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get proofChooseShown => 'اختر ما يظهر';
 
   @override
-  String homeFeedLine(String date) {
-    return '$date، من شبكتك';
+  String get postWritingAuthor => 'أنت · للجميع';
+
+  @override
+  String postLangAuto(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'العربية',
+      'other': 'الإنجليزية',
+    });
+    return 'تلقائي: $_temp0';
   }
 
   @override
-  String get homeNotebook => 'دفتري';
+  String get postWritingHint => 'ماذا حدث في الموقع اليوم؟';
 
   @override
-  String get homeMessages => 'الرسائل';
+  String get postWritingProject => 'المشروع';
+
+  @override
+  String postWritingLang(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'بالعربية',
+      'other': 'بالإنجليزية',
+    });
+    return 'مكتوب $_temp0';
+  }
+
+  @override
+  String get postWritingPhotosMax => 'حتى 4 صور.';
 }

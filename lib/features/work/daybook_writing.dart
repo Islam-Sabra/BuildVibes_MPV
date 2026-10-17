@@ -429,14 +429,15 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             onTap: writing ? () => menu(DaybookWritingMenu.place) : null,
           ),
       ],
-      cover: draft.photo == null
-          ? null
-          : Image(
-              image: ref.watch(localPhotoProvider(draft.photo!)),
-              fit: BoxFit.cover,
-            ),
-      onRemoveCover: writing ? _writer.removePhoto : null,
-      removeCoverLabel: l10n.daybookRemovePhoto,
+      photos: [
+        if (draft.photo != null)
+          Image(
+            image: ref.watch(localPhotoProvider(draft.photo!)),
+            fit: BoxFit.cover,
+          ),
+      ],
+      onRemovePhoto: writing ? (_) => _writer.removePhoto() : null,
+      removePhotoLabel: l10n.daybookRemovePhoto,
       errorLine: draft.couldNotSend && !writing
           ? l10n.daybookCouldNotSend
           : null,

@@ -10,7 +10,7 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../spaces/code_sheet.dart';
 
 /// Opened by Create in the My Spaces header (S1). The Create tab itself
-/// opens the composer (C1 v2).
+/// writes a post in place on Home (H2).
 Future<void> showSpacesCreateSheet(BuildContext context) => showBvSheet(
   context: context,
   title: AppLocalizations.of(context).navCreate,

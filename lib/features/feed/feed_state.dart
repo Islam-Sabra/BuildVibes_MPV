@@ -11,6 +11,8 @@ import '../../data/models/space.dart';
 import '../../data/repositories/post_repository.dart';
 import '../entry/entry_state.dart';
 import '../work/work_outbox.dart' show outboxRetryDelaysProvider;
+import 'post_draft.dart';
+import 'post_list.dart' show postListProvider;
 
 /// A photo kept on the phone until its post is sent; [remote] once
 /// uploaded.
@@ -26,83 +28,108 @@ class PendingPostPhoto {
   final String local;
   final String? remote;
 
+  /// Back to the phone copy only, to upload again.
+  PendingPostPhoto get notUploaded => PendingPostPhoto(local: local);
+
   Map<String, dynamic> toJson() => {'local': local, 'remote': remote};
 }
 
-/// A post written on this phone that isn't on the server yet: "Posting to
-/// your network…", or "Couldn't post. Saved as a draft. · Retry".
+/// A post written on this phone that isn't on the server yet. The app
+/// chose its [id] when the card opened, so sending it again is the same
+/// post. On Home it hangs at [madeAt] with "Waiting to send" (H5).
 @immutable
 class PendingPost {
   const PendingPost({
     required this.id,
     required this.body,
     required this.lang,
-    this.projectId,
-    this.projectName,
+    required this.madeAt,
+    this.project,
     this.photos = const [],
-    this.failed = false,
+    this.refused = false,
   });
 
   factory PendingPost.fromJson(Map<String, dynamic> j) => PendingPost(
     id: j['id'] as String,
     body: j['body'] as String,
     lang: j['lang'] as String,
-    projectId: j['project_id'] as String?,
-    projectName: j['project_name'] as String?,
+    madeAt: DateTime.parse(j['made_at'] as String).toLocal(),
+    project: j['project'] == null
+        ? null
+        : PostProject.fromCache(j['project'] as Map<String, dynamic>),
     photos: [
       for (final p in (j['photos'] as List?) ?? const [])
         PendingPostPhoto.fromJson(p as Map<String, dynamic>),
     ],
-    failed: j['failed'] as bool? ?? false,
+    refused: j['refused'] as bool? ?? false,
   );
 
   final String id;
   final String body;
   final String lang;
-  final String? projectId;
-  final String? projectName;
+  final DateTime madeAt;
+  final PostProject? project;
   final List<PendingPostPhoto> photos;
-  final bool failed;
 
-  PendingPost copyWith({List<PendingPostPhoto>? photos, bool? failed}) =>
+  /// The server said no (not a lost signal): it isn't tried again by
+  /// itself. It waits, "Couldn't send. Tap to fix", while another post is
+  /// being written; otherwise it is back in the Draft at once.
+  final bool refused;
+
+  PendingPost copyWith({List<PendingPostPhoto>? photos, bool? refused}) =>
       PendingPost(
         id: id,
         body: body,
         lang: lang,
-        projectId: projectId,
-        projectName: projectName,
+        madeAt: madeAt,
+        project: project,
         photos: photos ?? this.photos,
-        failed: failed ?? this.failed,
+        refused: refused ?? this.refused,
       );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'body': body,
     'lang': lang,
-    'project_id': projectId,
-    'project_name': projectName,
+    'made_at': madeAt.toUtc().toIso8601String(),
+    'project': project?.toJson(),
     'photos': [for (final p in photos) p.toJson()],
-    'failed': failed,
+    'refused': refused,
   };
+
+  /// Only what this version wrote is read back (older ones had no time).
+  static bool isKnown(Map<String, dynamic> j) => j['made_at'] is String;
 }
 
 final postOutboxProvider = NotifierProvider<PostOutbox, List<PendingPost>>(
   PostOutbox.new,
 );
 
-/// Posts waiting to be sent, kept on the phone between app starts. Closing
-/// the app loses nothing.
+/// Posts waiting to be sent, kept on the phone between app starts, so a
+/// weak site signal never loses one or its photos. Each account has its
+/// own: on a phone a crew shares, the next person never sees (or sends)
+/// someone else's post.
 class PostOutbox extends Notifier<List<PendingPost>> {
-  static const _key = 'post_outbox';
+  /// Before accounts had their own; whose posts they were is unknown.
+  static const _sharedKey = 'post_outbox';
+
+  String? _key;
+
+  /// The ones in flight now, so a flush never sends one twice at once.
+  final _sending = <String>{};
 
   @override
   List<PendingPost> build() {
-    final raw = ref.watch(sharedPreferencesProvider).getString(_key);
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final userId = ref.watch(authUserIdProvider).value;
+    if (prefs.containsKey(_sharedKey)) unawaited(prefs.remove(_sharedKey));
+    _key = userId == null ? null : 'post_outbox:$userId';
+    final raw = _key == null ? null : prefs.getString(_key!);
     if (raw == null) return const [];
     try {
       return [
-        for (final j in jsonDecode(raw) as List)
-          PendingPost.fromJson(j as Map<String, dynamic>),
+        for (final j in (jsonDecode(raw) as List).cast<Map<String, dynamic>>())
+          if (PendingPost.isKnown(j)) PendingPost.fromJson(j),
       ];
     } on FormatException {
       return const [];
@@ -111,9 +138,11 @@ class PostOutbox extends Notifier<List<PendingPost>> {
 
   Future<void> _save(List<PendingPost> items) async {
     state = items;
+    final key = _key;
+    if (key == null) return;
     await ref
         .read(sharedPreferencesProvider)
-        .setString(_key, jsonEncode([for (final i in items) i.toJson()]));
+        .setString(key, jsonEncode([for (final i in items) i.toJson()]));
   }
 
   Future<void> _put(PendingPost p) => _save([
@@ -122,13 +151,37 @@ class PostOutbox extends Notifier<List<PendingPost>> {
     p,
   ]);
 
-  /// Keeps [p], uploads its photos and posts it, trying again on a weak
-  /// signal. True when it reached the server. A refusal (not a lost
-  /// signal) keeps it as a draft and is rethrown.
+  Future<void> _drop(String id) => _save([
+    for (final i in state)
+      if (i.id != id) i,
+  ]);
+
+  /// Sends everything still waiting for a signal (not what the server
+  /// refused). Called when the app opens, when Home comes back to the
+  /// front, and every little while.
+  Future<void> flushAll() async {
+    for (final p in state.toList()) {
+      if (!p.refused && !_sending.contains(p.id)) await send(p);
+    }
+  }
+
+  /// Keeps [p], uploads its photos first and posts it, trying again on a
+  /// weak signal. True when it reached the server; otherwise it stays here
+  /// ("Waiting to send"), unless the server refused it: then it goes back
+  /// to the Draft ("Couldn't send. Tap to fix", review 46).
   Future<bool> send(PendingPost p) async {
+    if (!_sending.add(p.id)) return false;
+    try {
+      return await _send(p);
+    } finally {
+      _sending.remove(p.id);
+    }
+  }
+
+  Future<bool> _send(PendingPost p) async {
     final repo = ref.read(postRepositoryProvider);
     final delays = ref.read(outboxRetryDelaysProvider);
-    var current = p.copyWith(failed: false);
+    var current = p.copyWith(refused: false);
     await _put(current);
 
     Future<T> withRetries<T>(Future<T> Function() run) async {
@@ -136,6 +189,7 @@ class PostOutbox extends Notifier<List<PendingPost>> {
         try {
           return await run();
         } on SpaceException catch (e) {
+          // Only a lost connection is worth another try.
           if (e.failure != SpaceFailure.network || attempt >= delays.length) {
             rethrow;
           }
@@ -144,73 +198,83 @@ class PostOutbox extends Notifier<List<PendingPost>> {
       }
     }
 
-    try {
-      final photos = <PendingPostPhoto>[];
-      for (final ph in current.photos) {
-        if (ph.remote != null) {
-          photos.add(ph);
+    // Photos uploaded by an earlier try. After a long wait the nightly
+    // cleanup may have claimed them; the phone copies are still here.
+    var reused = current.photos.any((ph) => ph.remote != null);
+    for (;;) {
+      try {
+        final photos = <PendingPostPhoto>[];
+        for (final ph in current.photos) {
+          if (ph.remote != null) {
+            photos.add(ph);
+            continue;
+          }
+          // A new name on every try: nothing is ever overwritten.
+          final path = await withRetries(
+            () => repo.uploadPhoto(current.id, File(ph.local)),
+          );
+          photos.add(PendingPostPhoto(local: ph.local, remote: path));
+          current = current.copyWith(
+            photos: [...photos, ...current.photos.skip(photos.length)],
+          );
+          await _put(current);
+        }
+        await withRetries(
+          () => repo.create(
+            id: current.id,
+            body: current.body,
+            lang: current.lang,
+            projectId: current.project?.id,
+            photos: [for (final ph in photos) PostPhoto(path: ph.remote!)],
+          ),
+        );
+        break;
+      } on SpaceException catch (e) {
+        // Refused photos from an earlier try: upload them again, once.
+        if (reused && e.failure == SpaceFailure.badInput) {
+          reused = false;
+          current = current.copyWith(
+            photos: [for (final ph in current.photos) ph.notUploaded],
+          );
+          await _put(current);
           continue;
         }
-        final path = await withRetries(
-          () => repo.uploadPhoto(current.id, File(ph.local)),
-        );
-        photos.add(PendingPostPhoto(local: ph.local, remote: path));
-        current = current.copyWith(
-          photos: [...photos, ...current.photos.skip(photos.length)],
-        );
-        await _put(current);
+        if (e.failure == SpaceFailure.network) {
+          await _put(current);
+        } else if (!await reopenRefused(current)) {
+          // A new post is being written: this one waits, refused, until
+          // the card is free.
+          await _put(current.copyWith(refused: true));
+        }
+        return false;
       }
-      await withRetries(
-        () => repo.create(
-          id: current.id,
-          body: current.body,
-          lang: current.lang,
-          projectId: current.projectId,
-          photos: [for (final ph in photos) PostPhoto(path: ph.remote!)],
-        ),
-      );
-    } on SpaceException catch (e) {
-      await _put(current.copyWith(failed: true));
-      if (e.failure == SpaceFailure.network) return false;
-      rethrow;
     }
-    await _save([
-      for (final i in state)
-        if (i.id != p.id) i,
-    ]);
-    for (final ph in p.photos) {
-      unawaited(_deleteKept(ph.local));
-    }
-    // Shown at once at the top of the feed.
+
+    // On the feed before it leaves the outbox, so the card never blinks.
     final feed = feedProvider;
-    if (ref.exists(feed)) await ref.read(feed.notifier).added(p.id);
+    if (ref.exists(feed)) {
+      try {
+        await ref.read(feed.notifier).added(p.id);
+      } on SpaceException {
+        // It is on the server; the feed catches up on its next read.
+      }
+    }
+    ref.invalidate(postListProvider);
+    await _drop(p.id);
+    for (final ph in p.photos) {
+      unawaited(PostDrafts.deleteKept(ph.local));
+    }
     return true;
   }
 
-  Future<bool> retry(String id) async {
-    final p = state.where((i) => i.id == id).firstOrNull;
-    return p == null ? false : send(p);
-  }
-
-  /// "Discard draft": the post and its kept photos go.
-  Future<void> discard(String id) async {
-    final p = state.where((i) => i.id == id).firstOrNull;
-    if (p == null) return;
-    await _save([
-      for (final i in state)
-        if (i.id != id) i,
-    ]);
-    for (final ph in p.photos) {
-      unawaited(_deleteKept(ph.local));
+  /// A refused post back into the Draft, unless a card is being written.
+  /// True when it moved; its photos go with it.
+  Future<bool> reopenRefused(PendingPost p) async {
+    if (!await ref.read(postDraftProvider.notifier).restoreRefused(p)) {
+      return false;
     }
-  }
-
-  static Future<void> _deleteKept(String path) async {
-    try {
-      await File(path).delete();
-    } on FileSystemException {
-      // Already gone.
-    }
+    await _drop(p.id);
+    return true;
   }
 }
 

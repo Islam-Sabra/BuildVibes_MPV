@@ -11,13 +11,13 @@ import '../../shared/widgets/bv_tabs.dart';
 import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../feed/feed_tab.dart';
+import '../feed/post_draft.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'spaces_day_tab.dart';
 
-/// Home in Daybook (H1 v3 2555:35276): the wordmark and its three icons
-/// (Search opens people search in Explore; the notebook and Messages open
-/// placeholders until slices 8 and 3), the small Feed and Spaces tabs, and
-/// the tab. Spaces, your day on site (H1b), gets a dot while something
+/// Home in Daybook (H1 v3 2555:35276): the wordmark and Search (people
+/// search in Explore; the notebook and Messages icons come with slices 8
+/// and 3, review 48), the small Feed and Spaces tabs, and the tab. Spaces, your day on site (H1b), gets a dot while something
 /// needs you. Guests get no feed (the guest feed isn't in the MVP).
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -38,6 +38,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final guest = ref.watch(appGateProvider) == AppGate.guest;
     final needsYou =
         !guest && (ref.watch(needsCardsProvider).value?.isNotEmpty ?? false);
+    // Writing a post happens on the Feed, at Now (H2).
+    ref.listen(postWritingProvider, (_, mode) {
+      if (mode != PostWriting.none && _tab != HomeScreen.feedTab) {
+        setState(() => _tab = HomeScreen.feedTab);
+      }
+    });
     Widget icon(String key, IconData glyph, String label, VoidCallback onTap) =>
         Semantics(
           button: true,
@@ -96,20 +102,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     l10n.homeSearch,
                     () => context.go(AppRoutes.explore),
                   ),
-                  if (!guest) ...[
-                    icon(
-                      'home-notebook',
-                      BvIcons.workItems,
-                      l10n.homeNotebook,
-                      () => context.push(AppRoutes.notebook),
-                    ),
-                    icon(
-                      'home-messages',
-                      BvIcons.chat,
-                      l10n.homeMessages,
-                      () => context.push(AppRoutes.messages),
-                    ),
-                  ],
                 ],
               ),
             ),

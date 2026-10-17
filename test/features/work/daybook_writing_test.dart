@@ -239,7 +239,7 @@ void main() {
         words.dueProperty(_sunday, _twoPm),
         s.traysPlace,
       ]);
-      expect(card.cover, isNotNull);
+      expect(card.photos, hasLength(1));
 
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();

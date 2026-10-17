@@ -17,6 +17,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_project_tag.dart';
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_sheet.dart';
@@ -26,7 +27,9 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
+import '../work/daybook_entry.dart' show localPhotoProvider;
 import 'feed_state.dart';
+import 'post_draft.dart';
 
 /// Whether a card shows its project tag: yes (Home, profile, post
 /// detail), or not on the project's own sheet.
@@ -36,6 +39,10 @@ enum PostTag { shown, none }
 /// their line, the text in its own language, the photos, the project tag,
 /// who found it useful (names, never a count), then Useful · Reply.
 /// [ago] adds how long ago it was posted, where no time spine shows it.
+///
+/// [PostCard.waiting] is a post still on this phone (H5): its photos from
+/// the phone, "Waiting to send" and nothing to do on it yet; or, refused
+/// while another post was being written, "Couldn't send. Tap to fix".
 class PostCard extends ConsumerWidget {
   const PostCard({
     super.key,
@@ -45,7 +52,26 @@ class PostCard extends ConsumerWidget {
     this.onOpen,
     this.onChanged,
     this.onGone,
-  });
+  }) : waiting = false,
+       couldNotSend = false;
+
+  const PostCard.waiting({
+    super.key,
+    required this.post,
+    this.couldNotSend = false,
+    this.onOpen,
+  }) : waiting = true,
+       tag = PostTag.shown,
+       ago = false,
+       onChanged = null,
+       onGone = null;
+
+  /// On the phone, not on the server yet: [post]'s photo paths are the
+  /// phone's own.
+  final bool waiting;
+
+  /// The server refused it: tapping fixes it ([onOpen]).
+  final bool couldNotSend;
 
   final Post post;
   final PostTag tag;
@@ -68,7 +94,9 @@ class PostCard extends ConsumerWidget {
     final now = ref.watch(clockProvider)();
     final mine = post.authorId == me;
     final project = post.project;
-    final names = ref.watch(usefulNamesProvider(post.id)).value ?? const [];
+    final names = waiting
+        ? const <String>[]
+        : ref.watch(usefulNamesProvider(post.id)).value ?? const [];
 
     final byline = joinMeta([
       [?post.authorHeadline, ?post.authorCompany].join(', '),
@@ -143,24 +171,25 @@ class PostCard extends ConsumerWidget {
                 ),
               ),
             ),
-            Semantics(
-              button: true,
-              label: l10n.postMenu,
-              excludeSemantics: true,
-              child: InkResponse(
-                key: Key('post-menu-${post.id}'),
-                radius: BvSize.touchMin / 2,
-                onTap: () => _menu(context, ref, mine),
-                child: const SizedBox.square(
-                  dimension: BvSize.controlMd,
-                  child: Icon(
-                    BvIcons.more,
-                    size: BvHomeSpec.menuIcon,
-                    color: BvColors.iconPrimary,
+            if (!waiting)
+              Semantics(
+                button: true,
+                label: l10n.postMenu,
+                excludeSemantics: true,
+                child: InkResponse(
+                  key: Key('post-menu-${post.id}'),
+                  radius: BvSize.touchMin / 2,
+                  onTap: () => _menu(context, ref, mine),
+                  child: const SizedBox.square(
+                    dimension: BvSize.controlMd,
+                    child: Icon(
+                      BvIcons.more,
+                      size: BvHomeSpec.menuIcon,
+                      color: BvColors.iconPrimary,
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
         if ((post.body ?? '').isNotEmpty)
@@ -173,11 +202,28 @@ class PostCard extends ConsumerWidget {
             textAlign: TextAlign.start,
             style: type.bodyMd,
           ),
-        if (post.photos.isNotEmpty) _Photos(photos: post.photos),
+        if (post.photos.isNotEmpty)
+          _Photos(photos: post.photos, local: waiting),
         if (project != null && tag == PostTag.shown)
           Align(
             alignment: AlignmentDirectional.centerStart,
-            child: _ProjectTag(project: project),
+            child: BvProjectTag(
+              key: Key('post-project-${project.id}'),
+              projectId: project.id,
+              name: project.name,
+              place: project.place(Localizations.localeOf(context)),
+              onTap: waiting
+                  ? null
+                  : () => context.push('${AppRoutes.projects}/${project.id}'),
+            ),
+          ),
+        if (waiting)
+          Text(
+            couldNotSend ? l10n.daybookCouldNotSend : l10n.daybookWaitingToSend,
+            key: Key('post-waiting-${post.id}'),
+            style: couldNotSend
+                ? type.labelSm.copyWith(color: BvColors.textDestructive)
+                : type.metadata.copyWith(color: BvColors.textSecondary),
           ),
         if (names.isNotEmpty)
           Text(
@@ -187,25 +233,26 @@ class PostCard extends ConsumerWidget {
             key: Key('post-proof-${post.id}'),
             style: type.metadata.copyWith(color: BvColors.textSecondary),
           ),
-        Row(
-          spacing: BvHomeSpec.actionsGap,
-          children: [
-            _Action(
-              key: Key('post-useful-${post.id}'),
-              icon: BvIcons.useful,
-              label: l10n.postUseful,
-              active: post.myUseful,
-              // Not on your own post.
-              onTap: mine ? null : useful,
-            ),
-            _Action(
-              key: Key('post-reply-${post.id}'),
-              icon: BvIcons.chat,
-              label: l10n.postReply,
-              onTap: onOpen,
-            ),
-          ],
-        ),
+        if (!waiting)
+          Row(
+            spacing: BvHomeSpec.actionsGap,
+            children: [
+              _Action(
+                key: Key('post-useful-${post.id}'),
+                icon: BvIcons.useful,
+                label: l10n.postUseful,
+                active: post.myUseful,
+                // Not on your own post.
+                onTap: mine ? null : useful,
+              ),
+              _Action(
+                key: Key('post-reply-${post.id}'),
+                icon: BvIcons.chat,
+                label: l10n.postReply,
+                onTap: onOpen,
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -268,10 +315,10 @@ class PostCard extends ConsumerWidget {
     final container = ProviderScope.containerOf(context);
     switch (choice) {
       case _Menu.edit:
-        await context.push(AppRoutes.postEdit(post.id));
-        ref.invalidate(postProvider(post.id));
-        final edited = await ref.read(postProvider(post.id).future);
-        if (edited != null) onChanged?.call(edited);
+        // In place on Home, at Now: one card for writing and editing
+        // (review 48). Saving puts the card back everywhere it shows.
+        ref.read(postWritingProvider.notifier).edit(post);
+        context.go(AppRoutes.home);
       case _Menu.delete:
         final yes = await showBvDialog(
           context: context,
@@ -337,66 +384,6 @@ class PostCard extends ConsumerWidget {
 
 enum _Menu { edit, delete, mute, report }
 
-/// The project under the post (H1 v3 2555:35321): a dot, its name and
-/// its place. Opens the project record (PJ1).
-class _ProjectTag extends StatelessWidget {
-  const _ProjectTag({required this.project});
-
-  final PostProject project;
-
-  @override
-  Widget build(BuildContext context) {
-    final type = BvType.of(context);
-    final place = project.place(Localizations.localeOf(context));
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        key: Key('post-project-${project.id}'),
-        behavior: HitTestBehavior.opaque,
-        onTap: () => context.push('${AppRoutes.projects}/${project.id}'),
-        child: Container(
-          padding: const EdgeInsetsDirectional.only(
-            start: BvHomeSpec.tagPaddingStart,
-            end: BvHomeSpec.tagPaddingEnd,
-            top: BvHomeSpec.tagPaddingVertical,
-            bottom: BvHomeSpec.tagPaddingVertical,
-          ),
-          decoration: const BoxDecoration(
-            color: BvColors.surfaceSubtle,
-            borderRadius: BvHomeSpec.tagRadius,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: BvHomeSpec.tagGap,
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: BvProjectColors.forId(project.id),
-                  shape: BoxShape.circle,
-                ),
-                child: const SizedBox.square(dimension: BvHomeSpec.tagDot),
-              ),
-              Flexible(
-                child: Text(
-                  inOwnDirection(project.name),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: type.labelSm,
-                ),
-              ),
-              if (place != null)
-                Text(
-                  place,
-                  style: type.metadata.copyWith(color: BvColors.textSecondary),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// A post's photo through a short-lived link; null while the link loads.
 /// Screens stand in for it in tests.
 final postPhotoProvider = Provider.autoDispose.family<ImageProvider?, String>((
@@ -409,14 +396,19 @@ final postPhotoProvider = Provider.autoDispose.family<ImageProvider?, String>((
 
 /// One photo large; two to four in a grid. A tap opens it full screen.
 class _Photos extends ConsumerWidget {
-  const _Photos({required this.photos});
+  const _Photos({required this.photos, this.local = false});
 
   final List<PostPhoto> photos;
+
+  /// Still on the phone: [PostPhoto.path] is the phone's copy.
+  final bool local;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     Widget tile(PostPhoto p) {
-      final photo = ref.watch(postPhotoProvider(p.path));
+      final photo = local
+          ? ref.watch(localPhotoProvider(p.path))
+          : ref.watch(postPhotoProvider(p.path));
       final image = Stack(
         fit: StackFit.expand,
         children: [

@@ -567,6 +567,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Not built: Write a post in place (H2): it would replace the composer (C1); see the report.
   - Screenshots: MN1, SI1, NY1, H1, R1, PR1, O4, O5 added; S1 and the others regenerated.
 
+- **17 Oct, review 48's fixes and slice 1 part 1f, write a post in place** (branch `slice1-daybook`, app only):
+  - Review 48: Home's masthead shows the date alone ("15 October"); the notebook and Messages icons and their placeholder routes are gone until slices 8 and 3 (Search stays; the placeholder screen stays for Explore); who can invite says "Admins" ("المدراء"); the demo text uses one spelling and title (the profile's proof card has the daybook's "تركيب الجلب عند المحور C7 قبل الصبّ", Rakesh is "راكيش" everywhere).
+  - 1f (H2 `2555:35388`): Create, from every tab, opens a post card in place at Now on Home's spine ("You · to everyone", the text, up to four photos from the camera or the phone, the project tag) with the writing toolbar; ⋯ has Project (projects on your profile with a confirmed role) and the post's language (found from the letters, or English or Arabic). It **replaces the composer**: the C1 screen, its route and its strings are gone, and Edit on your own post opens the same card at Now (text and language only, as `edit_post` allows).
+  - The phone chooses the post's id; the Draft is kept per account as soon as anything is entered and survives the app being closed; with no signal the post waits on Home ("Waiting to send") and sends later, photos first (the post outbox, now per account, flushed on opening, on coming back and every 30 s); a refused post goes back to its Draft with "Couldn't send. Tap to fix".
+  - Left out (not drawn or not on the server): the composer's "Start from" templates (templates are slice 7), files on a post (`create_post` takes photos only, so the paperclip adds a photo from the phone, as in the daybook).
+  - Screenshots: H2-write-post, H3-write-post-filled, H4-post-draft, H5-post-waiting, H6-post-could-not-send added; H1, SI1, R1 and PR1 regenerated.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

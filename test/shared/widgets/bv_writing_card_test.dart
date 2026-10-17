@@ -3,6 +3,7 @@ import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/daybook_writing_specs.dart';
 import 'package:buildvibes/shared/widgets/bv_avatar.dart';
+import 'package:buildvibes/shared/widgets/bv_project_tag.dart';
 import 'package:buildvibes/shared/widgets/bv_torn_edge.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:flutter/material.dart';
@@ -66,8 +67,8 @@ void main() {
           BvWritingProperty.icon(icon: BvIcons.due, label: 'Sun 18 Oct'),
           BvWritingProperty.icon(icon: BvIcons.place, label: 'Level 4'),
         ],
-        cover: const ColoredBox(color: BvColors.surfaceSubtle),
-        onRemoveCover: () => removed++,
+        photos: const [ColoredBox(color: BvColors.surfaceSubtle)],
+        onRemovePhoto: (_) => removed++,
       ),
       lang: lang,
     );
@@ -80,7 +81,7 @@ void main() {
     await tester.tap(find.text('Work item'));
     expect(kindTaps, 1);
 
-    final remove = find.byKey(const Key('writing-cover-remove'));
+    final remove = find.byKey(const Key('writing-photo-remove-0'));
     expect(tester.getSize(remove), const Size.square(26));
     // The remove button sits at the cover's top end corner.
     final cover = tester.getRect(find.byType(ColoredBox).last);
@@ -203,8 +204,8 @@ void main() {
             onTap: () => taps.add('owner'),
           ),
         ],
-        cover: const ColoredBox(color: BvColors.surfaceSubtle),
-        onRemoveCover: () => taps.add('remove'),
+        photos: const [ColoredBox(color: BvColors.surfaceSubtle)],
+        onRemovePhoto: (_) => taps.add('remove'),
       ),
       lang: lang,
     );
@@ -244,10 +245,10 @@ void main() {
     // The remove button: 26 to see, a 48 square to touch, partly outside
     // the cover.
     taps.clear();
-    final remove = find.byKey(const Key('writing-cover-remove'));
+    final remove = find.byKey(const Key('writing-photo-remove-0'));
     expect(tester.getSize(remove), const Size.square(26));
     expect(
-      tester.getSize(find.byKey(const Key('writing-cover-remove-target'))),
+      tester.getSize(find.byKey(const Key('writing-photo-remove-target-0'))),
       const Size.square(BvSize.touchMin),
     );
     await tapEach(tester, touchSquareEdges(tester, remove));
@@ -278,5 +279,85 @@ void main() {
     await tester.enterText(find.byKey(const Key('writing-body')), 'Fix it');
     expect(title.text, 'Cable');
     expect(body.text, 'Fix');
+  });
+
+  testBoth('a post (H2): the author line, no title, photos side by side, '
+      'the project tag', (tester, lang) async {
+    final body = TextEditingController();
+    addTearDown(body.dispose);
+    final removed = <int>[];
+    var tagTaps = 0;
+    await pumpComponent(
+      tester,
+      BvWritingCard(
+        bodyController: body,
+        bodyPlaceholder: 'What happened on site today?',
+        autofocus: true,
+        author: const BvWritingAuthor(
+          name: 'Islam Ahmed',
+          label: 'You · to everyone',
+        ),
+        photos: const [
+          ColoredBox(key: Key('p0'), color: BvColors.surfaceSubtle),
+          ColoredBox(key: Key('p1'), color: BvColors.surfaceSubtle),
+        ],
+        photoHeight: BvWritingCardSpec.postPhotoHeight,
+        onRemovePhoto: removed.add,
+        footer: BvProjectTag(
+          projectId: 'proj-kct',
+          name: 'Kuwait City Tower',
+          place: 'Sharq',
+          onTap: () => tagTaps++,
+        ),
+      ),
+      lang: lang,
+    );
+    expect(find.byKey(const Key('writing-title')), findsNothing);
+    expect(find.text('You · to everyone'), findsOneWidget);
+    expect(
+      tester.widget<BvAvatar>(find.byType(BvAvatar)).size,
+      BvAvatarSize.xs,
+    );
+    // The text takes the focus: there is no title.
+    expect(
+      tester.widget<TextField>(find.byKey(const Key('writing-body'))).autofocus,
+      isTrue,
+    );
+    final first = tester.getRect(find.byKey(const Key('p0')));
+    final second = tester.getRect(find.byKey(const Key('p1')));
+    expect(first.height, BvWritingCardSpec.postPhotoHeight);
+    expect(first.width, closeTo(second.width, 0.01));
+    // Side by side, in reading order.
+    expect(
+      isRtl(lang) ? first.left > second.left : first.left < second.left,
+      isTrue,
+    );
+    await tester.tap(find.byKey(const Key('writing-photo-remove-1')));
+    expect(removed, [1]);
+    // The tag sits at the start, under the photos.
+    final tag = tester.getRect(find.byType(BvProjectTag));
+    expect(tag.top, greaterThan(first.bottom));
+    await tester.tap(find.byType(BvProjectTag));
+    expect(tagTaps, 1);
+    expect(find.text('Sharq'), findsOneWidget);
+  });
+
+  testBoth('the project tag reads only, without a tap', (tester, lang) async {
+    await pumpComponent(
+      tester,
+      const BvProjectTag(projectId: 'proj-kct', name: 'Kuwait City Tower'),
+      lang: lang,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(BvProjectTag),
+        matching: find.byType(GestureDetector),
+      ),
+      findsNothing,
+    );
+    expect(
+      tester.getSize(find.byType(BvProjectTag)).height,
+      lessThan(BvSize.touchMin),
+    );
   });
 }

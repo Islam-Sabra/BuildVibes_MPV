@@ -13,8 +13,6 @@ import '../../features/entry/loading_screen.dart';
 import '../../features/entry/phone_screen.dart';
 import '../../features/entry/welcome_screen.dart';
 import '../../features/explore/explore_screen.dart';
-import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_placeholder_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/onboarding/about_you_screen.dart';
 import '../../features/onboarding/people_screen.dart';
@@ -47,7 +45,6 @@ import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
 import '../../features/chat/thread_screen.dart';
-import '../../features/feed/composer_screen.dart';
 import '../../features/feed/post_screen.dart';
 import '../../features/library/add_file_screen.dart';
 import '../../features/library/file_preview_screen.dart';
@@ -82,8 +79,6 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.posts) ||
               under(AppRoutes.spaces) ||
               under(AppRoutes.needs) ||
-              under(AppRoutes.notebook) ||
-              under(AppRoutes.messages) ||
               under(AppRoutes.removals) ||
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
@@ -103,8 +98,8 @@ String? redirectForGate(AppGate gate, String location) {
 }
 
 /// Entry and onboarding sit outside the tabs. Each tab keeps its own
-/// history (an indexed stack of branches). Create is not a tab: it opens
-/// the composer over the current tab.
+/// history (an indexed stack of branches). Create is not a tab: it writes
+/// a post in place on Home.
 final appRouterProvider = Provider<GoRouter>((ref) {
   // The router re-checks where it may be whenever the gate changes.
   final gate = ValueNotifier<AppGate>(ref.read(appGateProvider));
@@ -186,20 +181,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             NewProjectScreen(initialName: state.extra as String?),
       ),
       GoRoute(
-        path: AppRoutes.postNew,
-        builder: (context, state) => const ComposerScreen(),
-      ),
-      GoRoute(
         path: '${AppRoutes.posts}/:id',
         builder: (context, state) =>
             PostScreen(postId: state.pathParameters['id']!),
-        routes: [
-          GoRoute(
-            path: 'edit',
-            builder: (context, state) =>
-                ComposerScreen(editId: state.pathParameters['id']),
-          ),
-        ],
       ),
       GoRoute(
         path: '${AppRoutes.projects}/:id',
@@ -213,19 +197,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.needs,
         builder: (context, state) => const NeedsYouScreen(),
-      ),
-      // Placeholders until slices 8 and 3 (review 43).
-      GoRoute(
-        path: AppRoutes.notebook,
-        builder: (context, state) => BvPlaceholderScreen(
-          title: AppLocalizations.of(context).homeNotebook,
-        ),
-      ),
-      GoRoute(
-        path: AppRoutes.messages,
-        builder: (context, state) => BvPlaceholderScreen(
-          title: AppLocalizations.of(context).homeMessages,
-        ),
       ),
       GoRoute(
         path: '${AppRoutes.removals}/:id',

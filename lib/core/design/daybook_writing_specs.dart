@@ -59,6 +59,10 @@ abstract final class BvWritingCardSpec {
   );
 
   static const coverHeight = 128.0;
+
+  /// A post's photos (H2 2555:35428): 110 high, side by side.
+  static const postPhotoHeight = 110.0;
+  static const photoGap = BvSpace.s4;
   static const coverRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
   static const removeSize = 26.0;
   static const removeTop = BvSpace.s8;

@@ -33,6 +33,9 @@ class FakePostRepository implements PostRepository {
   /// The feed fails as if the signal dropped (H5, H6).
   bool feedOffline = false;
 
+  /// The next posts are refused, as the server's daily limit would.
+  int refuseNext = 0;
+
   void _maybeFail() {
     if (failNext > 0) {
       failNext--;
@@ -104,6 +107,10 @@ class FakePostRepository implements PostRepository {
     List<PostPhoto> photos = const [],
   }) async {
     _maybeFail();
+    if (refuseNext > 0) {
+      refuseNext--;
+      throw const SpaceException(SpaceFailure.rule, 'too many posts today');
+    }
     calls.add('create $lang ${projectId ?? '-'} ${photos.length} $body');
     if (posts.any((p) => p.id == id)) return;
     posts.insert(

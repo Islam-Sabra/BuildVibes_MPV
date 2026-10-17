@@ -1,13 +1,18 @@
 // Slice 1 part 1e, around the daybook, against Figma: Space info SI1
 // 2562:35576 (AR 2564:843), Needs you NY1 2544:35068, Home in Daybook H1
 // v3 2555:35276 (AR 2564:184), Profile: proof of work R1 v4 2556:35424
-// (AR 2564:366) and Proof on the profile PR1 2544:35381. The Space menu
-// MN1 is in daybook_test.dart. Run:
+// (AR 2564:366) and Proof on the profile PR1 2544:35381; part 1f's Write
+// a post in place H2 2555:35388 (no AR frame: the AR Home 2564:184's
+// words) with its draft, waiting and refused states. The Space menu MN1
+// is in daybook_test.dart. Run:
 //   flutter test test_screens/around_test.dart --update-goldens
+import 'dart:convert';
+
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/market.dart';
+import 'package:buildvibes/data/models/people.dart';
 import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/data/models/profile.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -21,19 +26,24 @@ import 'package:buildvibes/data/repositories/work_repository.dart';
 import 'package:buildvibes/features/activity/activity_state.dart';
 import 'package:buildvibes/features/activity/needs_you_screen.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
+import 'package:buildvibes/features/feed/feed_state.dart';
 import 'package:buildvibes/features/feed/post_card.dart';
+import 'package:buildvibes/features/feed/post_draft.dart';
 import 'package:buildvibes/features/home/home_screen.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/profile/person_profile_screen.dart';
 import 'package:buildvibes/features/profile/profile_screen.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
 import 'package:buildvibes/features/work/daybook_entry.dart';
+import 'package:buildvibes/features/work/daybook_writing.dart';
+import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test/helpers/activity_fakes.dart';
@@ -84,10 +94,11 @@ Widget _withNav(BuildContext context, int tab, Widget child) {
 Future<List<Override>> _base({
   required String me,
   List<NeedsCard> needs = const [],
+  Map<String, Object> phone = const {},
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
-  SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues(phone);
   final prefs = await SharedPreferences.getInstance();
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
@@ -100,7 +111,16 @@ Future<List<Override>> _base({
     needsCardsProvider.overrideWith((ref) async => needs),
     daybookPhotoProvider.overrideWith((ref, path) => samplePhoto),
     postPhotoProvider.overrideWith((ref, path) => samplePhoto),
+    localPhotoProvider.overrideWith((ref, path) => samplePhoto),
   ];
+}
+
+/// Opens Home's card at Now, as Create does.
+Future<void> _write(WidgetTester tester) async {
+  ProviderScope.containerOf(
+    tester.element(find.byType(HomeScreen)),
+  ).read(postWritingProvider.notifier).write();
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -120,6 +140,7 @@ void main() {
 
   for (final lang in ['en', 'ar']) {
     final s = DaybookSamples(lang);
+    final l10n = lookupAppLocalizations(Locale(lang));
     String t(String en, String ar) => lang == 'ar' ? ar : en;
     final kct = t('Kuwait City Tower', 'برج مدينة الكويت');
     final sharq = const LocalizedText(en: 'Sharq', ar: 'شرق');
@@ -201,44 +222,192 @@ void main() {
       );
     });
 
+    FakePostRepository
+    homePosts() => FakePostRepository(now: DaybookSamples.thursday)
+      ..posts.add(
+        Post(
+          id: 'post-pour',
+          authorId: DaybookSamples.omar,
+          authorName: s.omarName,
+          authorHeadline: t('MEP Foreman', 'رئيس عمال MEP'),
+          authorCompany: t('Gulf Build Co.', 'جلف بيلد'),
+          body: t(
+            'First pour on the podium slab is done. Thanks to the concrete '
+                'crew for a clean night shift.',
+            'انتهت أول صبّة لبلاطة البوديوم. شكراً لفريق الخرسانة على وردية '
+                'ليلية نظيفة.',
+          ),
+          lang: lang,
+          project: PostProject(id: 'proj-kct', name: kct, placeName: sharq),
+          createdAt: DateTime(2026, 10, 15, 6, 10),
+          photos: const [PostPhoto(path: 'pour.jpg')],
+        ),
+      )
+      ..home.add('post-pour')
+      ..useful['post-pour'] = [
+        t('Mariam Al-Sabah', 'مريم الصباح'),
+        s.rakeshName,
+      ];
+
+    final kctTag = PostProject(id: 'proj-kct', name: kct, placeName: sharq);
+    final clash = t(
+      'Clash between the duct and the beam at D4 solved by raising the duct '
+          '150 mm.',
+      'حُلّ التعارض بين مجرى الهواء والكمرة عند D4 برفع المجرى 150 مم.',
+    );
+    final islamMe = MyProfile(
+      id: DaybookSamples.islam,
+      firstName: t('Islam', 'إسلام'),
+      lastName: t('Ahmed', 'أحمد'),
+      locale: lang,
+    );
+
+    Future<List<Override>> home({Map<String, Object> phone = const {}}) async =>
+        [
+          ...await _base(me: DaybookSamples.islam, phone: phone),
+          postRepositoryProvider.overrideWithValue(homePosts()),
+          myProfileProvider.overrideWith((ref) async => islamMe),
+          marketsProvider.overrideWith((ref) async => const <Market>[]),
+          newPostIdProvider.overrideWithValue(() => 'post-clash'),
+          pickPhotoProvider.overrideWithValue(
+            ({required camera}) async => XFile('camera.jpg'),
+          ),
+          keepPhotoProvider.overrideWithValue((photo) async => 'kept.jpg'),
+          // Islam's profile: Kuwait City Tower, with a confirmed role.
+          profileViewProvider.overrideWith(
+            (ref, id) async => ProfileView(
+              id: DaybookSamples.islam,
+              firstName: islamMe.firstName,
+              lastName: islamMe.lastName,
+              followerCount: 0,
+              followingCount: 0,
+              projects: [
+                CvProjectEntry(
+                  id: 'cv-kct-islam',
+                  projectId: 'proj-kct',
+                  projectName: kct,
+                  role: t('BIM Manager', 'مدير BIM'),
+                  showOnProfile: true,
+                  confirmed: true,
+                  placeName: sharq,
+                ),
+              ],
+            ),
+          ),
+        ];
+
+    /// The post at Now: its text, the photo and the project tag.
+    String draftJson({bool couldNotSend = false}) => jsonEncode(
+      PostDraft(
+        id: 'post-clash',
+        body: clash,
+        lang: PostLang.of(lang),
+        project: kctTag,
+        photos: const ['kept.jpg'],
+      ).toJson()..['could_not_send'] = couldNotSend,
+    );
+
     testWidgets('H1 Home in Daybook [$lang]', (tester) async {
       await warmSamplePhoto(tester);
-      final posts = FakePostRepository(now: DaybookSamples.thursday)
-        ..posts.add(
-          Post(
-            id: 'post-pour',
-            authorId: DaybookSamples.omar,
-            authorName: s.omarName,
-            authorHeadline: t('MEP Foreman', 'رئيس عمال MEP'),
-            authorCompany: t('Gulf Build Co.', 'جلف بيلد'),
-            body: t(
-              'First pour on the podium slab is done. Thanks to the concrete '
-                  'crew for a clean night shift.',
-              'انتهت أول صبّة لبلاطة البوديوم. شكراً لفريق الخرسانة على وردية '
-                  'ليلية نظيفة.',
-            ),
-            lang: lang,
-            project: PostProject(id: 'proj-kct', name: kct, placeName: sharq),
-            createdAt: DateTime(2026, 10, 15, 6, 10),
-            photos: const [PostPhoto(path: 'pour.jpg')],
-          ),
-        )
-        ..home.add('post-pour')
-        ..useful['post-pour'] = [
-          t('Mariam Al-Sabah', 'مريم الصباح'),
-          t('Rakesh Nair', 'راكش ناير'),
-        ];
       await shoot(
         tester,
         'H1-home',
         lang,
         (context) => _withNav(context, 0, const HomeScreen()),
-        overrides: [
-          ...await _base(me: DaybookSamples.islam),
-          postRepositoryProvider.overrideWithValue(posts),
-          myProfileProvider.overrideWith((ref) async => null),
-          marketsProvider.overrideWith((ref) async => const <Market>[]),
-        ],
+        overrides: await home(),
+      );
+    });
+
+    testWidgets('H2 Write a post in place, empty [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H2-write-post',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(),
+        before: _write,
+      );
+    });
+
+    testWidgets('H3 the post filled: a photo and the project tag [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H3-write-post-filled',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(),
+        // Written as on site: the text, a photo, then the project.
+        before: (tester) async {
+          await _write(tester);
+          await tester.enterText(find.byKey(const Key('writing-body')), clash);
+          await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
+          await tester.pumpAndSettle();
+          await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(l10n.postWritingProject));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(kct));
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('H4 the post left as a Draft [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H4-post-draft',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(
+          phone: {'post_draft:${DaybookSamples.islam}': draftJson()},
+        ),
+      );
+    });
+
+    testWidgets('H5 no signal: the post waits to send [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      final waiting = PendingPost(
+        id: 'post-clash',
+        body: clash,
+        lang: lang,
+        madeAt: DateTime(2026, 10, 15, 9, 41),
+        project: kctTag,
+        photos: const [PendingPostPhoto(local: 'kept.jpg')],
+      );
+      await shoot(
+        tester,
+        'H5-post-waiting',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(
+          phone: {
+            'post_outbox:${DaybookSamples.islam}': jsonEncode([
+              waiting.toJson(),
+            ]),
+          },
+        ),
+      );
+    });
+
+    testWidgets('H6 refused: back to its Draft, "Couldn\'t send" [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H6-post-could-not-send',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(
+          phone: {
+            'post_draft:${DaybookSamples.islam}': draftJson(couldNotSend: true),
+          },
+        ),
       );
     });
 
@@ -278,10 +447,8 @@ void main() {
     List<DeliveredWork> shown() => [
       DeliveredWork(
         id: 'w-sleeves',
-        title: t(
-          'Sleeves at grid C7 before the pour',
-          'جلب الأنابيب عند المحور C7 قبل الصب',
-        ),
+        // The daybook's own title (review 48).
+        title: s.sleeves,
         projectName: kct,
         checkedByName: s.islamName,
         checkedAt: DateTime(2026, 10, 15, 10, 12),
@@ -290,10 +457,7 @@ void main() {
       ),
       DeliveredWork(
         id: 'w-rebar',
-        title: t(
-          'Rebar spacing, level 3 slab',
-          'تباعد حديد التسليح، بلاطة الدور 3',
-        ),
+        title: s.rebar().title,
         projectName: kct,
         checkedByName: s.saraName,
         checkedAt: DateTime(2026, 10, 14, 15),
@@ -302,10 +466,7 @@ void main() {
       ),
       DeliveredWork(
         id: 'w-trays',
-        title: t(
-          'Cable tray hangers, level 4',
-          'علّاقات حوامل الكابلات، الدور 4',
-        ),
+        title: s.cableTraysTitle,
         projectName: kct,
         checkedByName: s.islamName,
         checkedAt: DateTime(2026, 10, 12, 11),

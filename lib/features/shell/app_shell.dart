@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
-import '../../core/routing/app_routes.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
 import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
+import '../feed/post_draft.dart';
 import '../settings/push_host.dart';
 import '../work/outbox_host.dart';
 
@@ -23,6 +23,7 @@ class AppShell extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final guest = ref.watch(appGateProvider) == AppGate.guest;
     final unread = ref.watch(unreadActivityProvider).value ?? false;
+    const homeTab = 0;
     const activityTab = 2;
     return Scaffold(
       // Push while signed in (permission, this phone's token, taps), and
@@ -44,11 +45,16 @@ class AppShell extends ConsumerWidget {
           );
         },
         createLabel: l10n.navCreate,
-        // Create opens the composer (C1 v2). Creating needs an account:
-        // guests see the join wall.
-        onCreate: () => guest
-            ? showJoinWall(context)
-            : GoRouter.of(context).push(AppRoutes.postNew),
+        // Create writes a post in place on Home, at Now (H2), from every
+        // tab. Creating needs an account: guests see the join wall.
+        onCreate: () {
+          if (guest) {
+            showJoinWall(context);
+            return;
+          }
+          ref.read(postWritingProvider.notifier).write();
+          navigationShell.goBranch(homeTab, initialLocation: true);
+        },
         items: [
           BvBottomBarItem(
             key: const Key('nav-home'),

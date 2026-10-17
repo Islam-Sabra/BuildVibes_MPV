@@ -45,16 +45,28 @@ class BvWritingProperty {
   final VoidCallback? onTap;
 }
 
-/// The work item being written in place, in the Daybook (2527:33393,
-/// AR 2547:35369): white paper in a straight dashed orange outline with a
-/// small radius. A draft has no torn edge: it hasn't been torn off yet
-/// (review 44, C3). It holds no text of its own: the screen gives the
-/// controllers and saves the draft.
+/// Who is writing, at the top of a post being written on Home (H2
+/// 2555:35420): a small face and "You · to everyone".
+class BvWritingAuthor {
+  const BvWritingAuthor({required this.name, required this.label, this.tint});
+
+  final String name;
+  final String label;
+  final Color? tint;
+}
+
+/// Something being written in place: a work item in the Daybook
+/// (2527:33393, AR 2547:35369), or a post on Home (H2 2555:35388, with
+/// [author], no title, up to four [photos] and the project tag as
+/// [footer]). White paper in a straight dashed orange outline with a small
+/// radius. A draft has no torn edge: it hasn't been torn off yet (review
+/// 44, C3). It holds no text of its own: the screen gives the controllers
+/// and saves the draft.
 class BvWritingCard extends StatelessWidget {
   const BvWritingCard({
     super.key,
-    required this.titleController,
-    required this.titlePlaceholder,
+    this.titleController,
+    this.titlePlaceholder = '',
     required this.bodyController,
     required this.bodyPlaceholder,
     this.titleFocusNode,
@@ -66,15 +78,19 @@ class BvWritingCard extends StatelessWidget {
     this.kindLabel,
     this.onKindTap,
     this.properties = const [],
-    this.cover,
-    this.onRemoveCover,
-    this.removeCoverLabel,
+    this.author,
+    this.photos = const [],
+    this.photoHeight = BvWritingCardSpec.coverHeight,
+    this.onRemovePhoto,
+    this.removePhotoLabel,
+    this.footer,
     this.titleMaxLength,
     this.bodyMaxLength,
     this.errorLine,
   });
 
-  final TextEditingController titleController;
+  /// Null for a post: it has no title, only its text.
+  final TextEditingController? titleController;
   final String titlePlaceholder;
   final TextEditingController bodyController;
   final String bodyPlaceholder;
@@ -97,12 +113,22 @@ class BvWritingCard extends StatelessWidget {
   /// The quiet line under the title (owner, due, place). Hidden when empty.
   final List<BvWritingProperty> properties;
 
-  /// The cover photo, shown 128 high across the card.
-  final Widget? cover;
-  final VoidCallback? onRemoveCover;
+  /// Who is writing, above the text (a post).
+  final BvWritingAuthor? author;
 
-  /// Read out for the cover's remove button.
-  final String? removeCoverLabel;
+  /// The photos, side by side across the card, [photoHeight] high: a work
+  /// item's one cover (128), or a post's one to four (110).
+  final List<Widget> photos;
+  final double photoHeight;
+
+  /// Removes the photo at that index; null while read only.
+  final ValueChanged<int>? onRemovePhoto;
+
+  /// Read out for each photo's remove button.
+  final String? removePhotoLabel;
+
+  /// Under the photos: a post's project tag.
+  final Widget? footer;
 
   /// What the server takes; typing stops there.
   final int? titleMaxLength;
@@ -143,16 +169,18 @@ class BvWritingCard extends StatelessWidget {
                 if (draftLabel != null) _DraftMarker(label: draftLabel!),
                 if (kindLabel != null)
                   _KindChip(label: kindLabel!, onTap: onKindTap),
-                _field(
-                  key: const Key('writing-title'),
-                  controller: titleController,
-                  focusNode: titleFocusNode,
-                  placeholder: titlePlaceholder,
-                  style: type.headingLg,
-                  autofocus: autofocus,
-                  onChanged: onTitleChanged,
-                  maxLength: titleMaxLength,
-                ),
+                if (author != null) _Author(author: author!),
+                if (titleController != null)
+                  _field(
+                    key: const Key('writing-title'),
+                    controller: titleController!,
+                    focusNode: titleFocusNode,
+                    placeholder: titlePlaceholder,
+                    style: type.headingLg,
+                    autofocus: autofocus,
+                    onChanged: onTitleChanged,
+                    maxLength: titleMaxLength,
+                  ),
                 if (properties.isNotEmpty) _Properties(items: properties),
                 _field(
                   key: const Key('writing-body'),
@@ -160,14 +188,36 @@ class BvWritingCard extends StatelessWidget {
                   focusNode: bodyFocusNode,
                   placeholder: bodyPlaceholder,
                   style: type.bodyLg,
+                  // A post has no title: its text takes the focus.
+                  autofocus: autofocus && titleController == null,
                   onChanged: onBodyChanged,
                   maxLength: bodyMaxLength,
                 ),
-                if (cover != null)
-                  _Cover(
-                    onRemove: onRemoveCover,
-                    removeLabel: removeCoverLabel,
-                    child: cover!,
+                if (photos.isNotEmpty)
+                  _PhotoRow(
+                    removable: onRemovePhoto != null,
+                    height: photoHeight,
+                    child: Row(
+                      spacing: BvWritingCardSpec.photoGap,
+                      children: [
+                        for (final (i, photo) in photos.indexed)
+                          Expanded(
+                            child: _Cover(
+                              index: i,
+                              onRemove: onRemovePhoto == null
+                                  ? null
+                                  : () => onRemovePhoto!(i),
+                              removeLabel: removePhotoLabel,
+                              child: photo,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                if (footer != null)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: footer,
                   ),
                 if (errorLine != null)
                   Text(
@@ -211,6 +261,58 @@ class BvWritingCard extends StatelessWidget {
     cursorColor: BvColors.actionPrimary,
     cursorWidth: BvWritingCardSpec.cursorWidth,
     decoration: bvBareField(hint: placeholder, style: style),
+  );
+}
+
+/// The photos' row. Each remove button's touch area reaches past the
+/// row's top and end, so the row passes those touches on too.
+class _PhotoRow extends StatelessWidget {
+  const _PhotoRow({
+    required this.removable,
+    required this.height,
+    required this.child,
+  });
+
+  final bool removable;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final row = SizedBox(height: height, child: child);
+    if (!removable) return row;
+    return BvTapTarget(outset: BvWritingCardSpec.removeTouchOutset, child: row);
+  }
+}
+
+class _Author extends StatelessWidget {
+  const _Author({required this.author});
+
+  final BvWritingAuthor author;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    spacing: BvSpace.s8,
+    children: [
+      ExcludeSemantics(
+        child: BvAvatar(
+          name: author.name,
+          size: BvAvatarSize.xs,
+          tint: author.tint,
+        ),
+      ),
+      Flexible(
+        child: Text(
+          author.label,
+          key: const Key('writing-author'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: BvType.of(
+            context,
+          ).labelSm.copyWith(color: BvColors.textPrimary),
+        ),
+      ),
+    ],
   );
 }
 
@@ -357,19 +459,20 @@ class _Properties extends StatelessWidget {
 
 class _Cover extends StatelessWidget {
   const _Cover({
+    required this.index,
     required this.child,
     required this.onRemove,
     required this.removeLabel,
   });
 
+  final int index;
   final Widget child;
   final VoidCallback? onRemove;
   final String? removeLabel;
 
   @override
   Widget build(BuildContext context) {
-    final cover = SizedBox(
-      height: BvWritingCardSpec.coverHeight,
+    final cover = SizedBox.expand(
       child: Stack(
         fit: StackFit.expand,
         clipBehavior: Clip.none,
@@ -385,14 +488,14 @@ class _Cover extends StatelessWidget {
                 button: true,
                 label: removeLabel,
                 child: GestureDetector(
-                  key: const Key('writing-cover-remove-target'),
+                  key: Key('writing-photo-remove-target-$index'),
                   behavior: HitTestBehavior.opaque,
                   onTap: onRemove,
                   child: SizedBox.square(
                     dimension: BvSize.touchMin,
                     child: Center(
                       child: Container(
-                        key: const Key('writing-cover-remove'),
+                        key: Key('writing-photo-remove-$index'),
                         width: BvWritingCardSpec.removeSize,
                         height: BvWritingCardSpec.removeSize,
                         decoration: BoxDecoration(

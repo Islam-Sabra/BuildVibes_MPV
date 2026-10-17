@@ -37,10 +37,6 @@ abstract final class AppRoutes {
   /// Needs you, across all Spaces (2544:35068).
   static const needs = '/needs';
 
-  /// From Home's app bar: My notebook (slice 8) and Messages (slice 3).
-  /// Placeholders until then (review 43).
-  static const notebook = '/notebook';
-  static const messages = '/messages';
   static String personWork(String profileId, String itemId) =>
       '/people/$profileId/work/$itemId';
   static const projects = '/projects';
@@ -52,9 +48,7 @@ abstract final class AppRoutes {
 
   // Posts. "new" before ":id".
   static const posts = '/posts';
-  static const postNew = '/posts/new';
   static String post(String id) => '/posts/$id';
-  static String postEdit(String id) => '/posts/$id/edit';
   static const projectsAdd = '/projects/add';
   static const projectsNew = '/projects/new';
 

@@ -1320,9 +1320,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesDeleteSpace => 'Delete Space';
 
   @override
-  String get spacesDeleteSpaceHelp => 'Owners only. Removes it for everyone.';
-
-  @override
   String get spacesDeleteButton => 'Delete';
 
   @override
@@ -2011,177 +2008,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postBackHome => 'Back to Home';
 
   @override
-  String get postPosting => 'Posting to your network…';
-
-  @override
-  String get postFailed => 'Couldn\'t post. Saved as a draft.';
-
-  @override
-  String get postFailedHint => 'Check your connection and try again.';
-
-  @override
-  String get composerPostingTo => 'POSTING TO';
-
-  @override
-  String get composerYourNetwork => 'Your network';
-
-  @override
-  String get composerEveryone => 'Everyone';
-
-  @override
-  String composerTagged(String project) {
-    return 'tagged $project';
-  }
-
-  @override
-  String get composerHint => 'What happened on site today?';
-
-  @override
-  String get composerStartFrom => 'START FROM';
-
-  @override
-  String get tplProgress => 'Progress update';
-
-  @override
-  String get tplProgressHelp => 'Done today · Next · Holding us up';
-
-  @override
-  String get tplProgressLines => 'Done today:\nNext:\nHolding us up:';
-
-  @override
-  String get tplMilestone => 'Milestone';
-
-  @override
-  String get tplMilestoneHelp => 'What · When · Who did it';
-
-  @override
-  String get tplMilestoneLines => 'What:\nWhen:\nWho did it:';
-
-  @override
-  String get tplVisit => 'Site visit';
-
-  @override
-  String get tplVisitHelp => 'Where · What we found · Actions';
-
-  @override
-  String get tplVisitLines => 'Where:\nWhat we found:\nActions:';
-
-  @override
-  String get tplAsk => 'Ask the community';
-
-  @override
-  String get tplAskHelp => 'Question · Who knows';
-
-  @override
-  String get tplAskLines => 'Question:\nWho knows:';
-
-  @override
-  String get composerMedia => 'Media';
-
-  @override
-  String get composerProject => 'Project';
-
-  @override
-  String get composerPost => 'Post';
-
-  @override
-  String get composerSave => 'Save';
-
-  @override
-  String get composerChooseHint => 'Choose how to start, or just write';
-
-  @override
-  String composerPostingToProject(String project) {
-    return 'Posting to $project';
-  }
-
-  @override
-  String get composerAudience => 'Everyone on BuildVibes can see this.';
-
-  @override
-  String get composerAudienceProject =>
-      'Everyone on BuildVibes can see this. It also shows on the project\'s page.';
-
-  @override
-  String composerWrittenIn(String lang) {
-    String _temp0 = intl.Intl.selectLogic(lang, {
-      'ar': 'Arabic',
-      'other': 'English',
-    });
-    return 'Written in $_temp0';
-  }
-
-  @override
-  String get composerChange => 'Change';
-
-  @override
   String get langEnglish => 'English';
 
   @override
   String get langArabic => 'العربية';
 
   @override
-  String get langAuto => 'Detected automatically';
-
-  @override
-  String get composerLangTitle => 'Language of this post';
-
-  @override
-  String get composerLangWhy =>
-      'We use this to offer Translate to readers who don\'t read it.';
-
-  @override
-  String langName(String lang) {
-    String _temp0 = intl.Intl.selectLogic(lang, {
-      'ar': 'Arabic',
-      'other': 'English',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String get composerPhotosMax => 'Up to 4 photos.';
-
-  @override
-  String get composerRemovePhoto => 'Remove photo';
-
-  @override
-  String get postToTitle => 'Post to';
-
-  @override
-  String get postToWho => 'WHO SEES IT';
-
-  @override
-  String get postToNetworkHelp => 'Followers and Explore · anyone can see';
-
-  @override
-  String get postToNote =>
-      'Posts are public and can be tagged to a project. Work for your team goes in the project\'s Space as a work item.';
-
-  @override
-  String get tagTitle => 'Link a project';
-
-  @override
-  String get tagHelp => 'Only projects where you have a confirmed role.';
-
-  @override
   String get tagEmpty => 'Add a project on your profile first';
 
   @override
-  String get tagSpaceNote =>
-      'Work for your team goes in the project\'s Space as a work item';
-
-  @override
   String get tagNone => 'No project';
-
-  @override
-  String get discardTitle => 'Discard this post?';
-
-  @override
-  String get discardBody => 'Your text, photo and project link will be lost.';
-
-  @override
-  String get discardConfirm => 'Discard';
 
   @override
   String get projectPosts => 'POSTS';
@@ -2201,9 +2037,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String timeHoursShort(int n) {
     return '${n}h';
   }
-
-  @override
-  String get discardKeep => 'Keep editing';
 
   @override
   String get homeDayTitle => 'Your day on site';
@@ -3525,7 +3358,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesNotifyChoiceNeedsYou => 'Needs you';
 
   @override
-  String get spacesInviteChoiceAdmins => 'Only me';
+  String get spacesInviteChoiceAdmins => 'Admins';
 
   @override
   String get spacesInviteChoiceLeads => 'Leads';
@@ -3597,13 +3430,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get proofChooseShown => 'Choose what shows';
 
   @override
-  String homeFeedLine(String date) {
-    return '$date, from your network';
+  String get postWritingAuthor => 'You · to everyone';
+
+  @override
+  String postLangAuto(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return 'Detected: $_temp0';
   }
 
   @override
-  String get homeNotebook => 'My notebook';
+  String get postWritingHint => 'What happened on site today?';
 
   @override
-  String get homeMessages => 'Messages';
+  String get postWritingProject => 'Project';
+
+  @override
+  String postWritingLang(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return 'Written in $_temp0';
+  }
+
+  @override
+  String get postWritingPhotosMax => 'Up to 4 photos.';
 }

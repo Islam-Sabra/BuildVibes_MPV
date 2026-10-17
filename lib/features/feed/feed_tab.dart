@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_writing_specs.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/post.dart';
 import '../../data/models/space.dart';
@@ -16,6 +17,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../../shared/widgets/bv_daybook_spine.dart';
+import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../work/daybook_words.dart';
 import '../entry/entry_state.dart';
@@ -23,11 +25,20 @@ import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
 import 'feed_state.dart';
 import 'post_card.dart';
+import 'post_draft.dart';
+import 'post_writing.dart';
 
-/// H1 v3 · Feed in Daybook: today's masthead, posts waiting on this
-/// phone, then site updates on the time spine, from the home market, the
-/// "Beyond {market}" divider, and the rest. H4 skeleton, H5 couldn't load,
-/// H6 offline, and an empty feed with Create.
+/// H1 v3 · Feed in Daybook: today's masthead, then on the time spine the
+/// post being written at Now (H2), posts waiting on this phone, and site
+/// updates from the home market, the "Beyond {market}" divider, and the
+/// rest. H4 skeleton, H5 couldn't load, H6 offline, and an empty feed with
+/// Create.
+///
+/// Create (from every tab) writes a post in place at Now (H2): the writing
+/// toolbar sits on the keyboard. A card with anything in it stays as a
+/// Draft; with no signal a post waits on the phone ("Waiting to send") and
+/// sends when the signal is back; a refused one comes back to its Draft
+/// ("Couldn't send. Tap to fix").
 class FeedTab extends ConsumerStatefulWidget {
   const FeedTab({super.key});
 
@@ -36,13 +47,25 @@ class FeedTab extends ConsumerStatefulWidget {
 }
 
 class _FeedTabState extends ConsumerState<FeedTab> {
+  /// How often a post made with no signal is tried again while Home is
+  /// open.
+  static const _flushEvery = Duration(seconds: 30);
+
   final _scroll = ScrollController();
   Timer? _skeletonTimer;
   var _skeletonDone = false;
+  late final AppLifecycleListener _life;
+  late final Timer _flushTimer;
+
+  PostWritingMenu? _menu;
+
+  /// The card on the page was left from before: it says "Draft".
+  late bool _fromBefore;
 
   @override
   void initState() {
     super.initState();
+    _fromBefore = ref.read(postDraftProvider) != null;
     _scroll.addListener(() {
       if (_scroll.position.extentAfter < BvSpace.s64 * 6) {
         unawaited(ref.read(feedProvider.notifier).loadMore());
@@ -51,20 +74,120 @@ class _FeedTabState extends ConsumerState<FeedTab> {
     _skeletonTimer = Timer(BvPostSpec.skeletonFor, () {
       if (mounted) setState(() => _skeletonDone = true);
     });
+    _life = AppLifecycleListener(onResume: _flush);
+    _flushTimer = Timer.periodic(_flushEvery, (_) => _flush());
   }
 
   @override
   void dispose() {
     _skeletonTimer?.cancel();
+    _flushTimer.cancel();
+    _life.dispose();
     _scroll.dispose();
     super.dispose();
   }
+
+  void _flush() {
+    if (mounted) unawaited(ref.read(postOutboxProvider.notifier).flushAll());
+  }
+
+  PostWriting get _mode => ref.read(postWritingProvider);
+  bool get _editing => _mode == PostWriting.editing;
+  PostWriter get _writer => PostWriter(ref, editing: _editing);
+
+  void _write() => ref.read(postWritingProvider.notifier).write();
+
+  /// Puts the card down: with anything in it, it stays as the Draft;
+  /// empty, it goes. An edit put down leaves the post as it was.
+  void _stopWriting() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (_editing) {
+      ref.read(postEditProvider.notifier).stop();
+    } else {
+      final draft = ref.read(postDraftProvider);
+      unawaited(ref.read(postDraftProvider.notifier).close());
+      if (draft != null && !draft.isEmpty) _fromBefore = true;
+    }
+    ref.read(postWritingProvider.notifier).stop();
+    setState(() => _menu = null);
+  }
+
+  void _setMenu(PostWritingMenu? menu) => setState(() => _menu = menu);
+
+  Future<void> _addPhoto({required bool camera}) async {
+    _setMenu(null);
+    if (!_writer.roomForPhoto) {
+      showSpaceMessage(
+        context,
+        AppLocalizations.of(context).postWritingPhotosMax,
+      );
+      return;
+    }
+    await _writer.addPhoto(camera: camera);
+  }
+
+  Future<void> _post() async {
+    await _writer.post();
+    if (!mounted) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    ref.read(postWritingProvider.notifier).stop();
+    setState(() {
+      _menu = null;
+      _fromBefore = false;
+    });
+  }
+
+  Future<void> _save() async {
+    try {
+      await _writer.save();
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+      return;
+    }
+    if (mounted) _stopWriting();
+  }
+
+  /// A refused post that waited while another card was written: back into
+  /// the Draft when the card is free, and writing reopens.
+  Future<void> _reopen(PendingPost p) async {
+    final moved = await ref.read(postOutboxProvider.notifier).reopenRefused(p);
+    if (!mounted || !moved) return;
+    _fromBefore = true;
+    _write();
+  }
+
+  /// A post still on the phone, as its card at the time Post was tapped.
+  Post _waitingPost(PendingPost p, String me, String myName) => Post(
+    id: p.id,
+    authorId: me,
+    authorName: myName,
+    body: p.body.isEmpty ? null : p.body,
+    lang: p.lang,
+    project: p.project,
+    createdAt: p.madeAt,
+    photos: [for (final ph in p.photos) PostPhoto(path: ph.local)],
+  );
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final feed = ref.watch(feedProvider);
     final pending = ref.watch(postOutboxProvider);
+    final mode = ref.watch(postWritingProvider);
+    final draft = ref.watch(postDraftProvider);
+    final edit = ref.watch(postEditProvider);
+    final writing = mode != PostWriting.none;
+    final editing = mode == PostWriting.editing;
+    // The card at Now: open, or a Draft left with anything in it.
+    final card = writing || (draft != null && !draft.isEmpty);
+    // Opening the card shows Now, at the top.
+    ref.listen(postWritingProvider, (was, now) {
+      if (now == PostWriting.none) return;
+      setState(() => _menu = null);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scroll.hasClients) _scroll.jumpTo(0);
+      });
+    });
     // After 3 seconds of loading, the copy kept on the phone (H4).
     final data =
         feed.value ??
@@ -75,16 +198,20 @@ class _FeedTabState extends ConsumerState<FeedTab> {
               }
             : null);
     final locale = Localizations.localeOf(context);
-    final marketId = ref.watch(myProfileProvider).value?.homeMarketId;
+    final profile = ref.watch(myProfileProvider).value;
+    final me = ref.watch(authUserIdProvider).value ?? '';
+    final myName = profile == null
+        ? ''
+        : '${profile.firstName} ${profile.lastName}';
     final market = ref
         .watch(marketsProvider)
         .value
-        ?.where((m) => m.id == marketId)
+        ?.where((m) => m.id == profile?.homeMarketId)
         .firstOrNull
         ?.name
         .of(locale);
 
-    if (data == null) {
+    if (data == null && !card) {
       if (feed.hasError) {
         return _CouldntLoad(onRetry: () => ref.invalidate(feedProvider));
       }
@@ -92,7 +219,7 @@ class _FeedTabState extends ConsumerState<FeedTab> {
       return const _Skeleton();
     }
 
-    final entries = data.entries;
+    final entries = data?.entries ?? const <FeedEntry>[];
     final firstBeyond = entries.indexWhere(
       (e) => e.section == FeedSection.beyond,
     );
@@ -102,20 +229,19 @@ class _FeedTabState extends ConsumerState<FeedTab> {
       use24: MediaQuery.alwaysUse24HourFormatOf(context),
     );
     final now = ref.watch(clockProvider)();
+    final onServer = {for (final e in entries) e.post.id};
+    final waiting = [
+      for (final p in pending.reversed)
+        if (!onServer.contains(p.id)) p,
+    ];
+    final cardDraft = editing ? edit : draft;
     final children = <Widget>[
       BvDaybookMasthead.home(
         weekday: words.weekday(now),
-        dateLine: l10n.homeFeedLine(words.dayMonth(now)),
+        // The date alone: the feed isn't only people you follow (review 48).
+        dateLine: words.dayMonth(now),
       ),
-      for (final p in pending.reversed)
-        Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: BvSpace.gutter,
-            vertical: BvSpace.s6,
-          ),
-          child: _PendingBanner(post: p),
-        ),
-      if (data.offline)
+      if (data?.offline ?? false)
         Container(
           key: const Key('feed-offline'),
           margin: const EdgeInsetsDirectional.symmetric(
@@ -129,7 +255,7 @@ class _FeedTabState extends ConsumerState<FeedTab> {
           ),
           child: Text(l10n.feedOffline, style: BvType.of(context).labelMd),
         ),
-      if (entries.isEmpty)
+      if (entries.isEmpty && !card && waiting.isEmpty)
         Padding(
           padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
           child: Column(
@@ -140,16 +266,45 @@ class _FeedTabState extends ConsumerState<FeedTab> {
               BvButton(
                 key: const Key('feed-create'),
                 label: l10n.feedNewPost,
-                onPressed: () => context.push(AppRoutes.postNew),
+                onPressed: _write,
               ),
             ],
           ),
         )
       else
-        // H1 v3: the posts on the time spine, newest first.
+        // H1 v3: the posts on the time spine, newest first; the card at
+        // Now above them (H2).
         BvDaybookSpine(
           home: true,
           children: [
+            if (card)
+              BvSpineEntry(
+                key: const Key('feed-now'),
+                home: true,
+                time: l10n.daybookNow,
+                dot: BvSpineDot.now,
+                child: PostWritingCard(
+                  // An edit's card is its own.
+                  key: ValueKey(editing),
+                  writing: writing,
+                  editing: editing,
+                  // A refused post is back as the Draft (review 46).
+                  fromBefore:
+                      (_fromBefore || (draft?.couldNotSend ?? false)) &&
+                      !editing,
+                  onOpen: _write,
+                ),
+              ),
+            for (final p in waiting)
+              BvSpineEntry(
+                home: true,
+                time: words.feedTime(p.madeAt, now),
+                child: PostCard.waiting(
+                  post: _waitingPost(p, me, myName),
+                  couldNotSend: p.refused,
+                  onOpen: p.refused ? () => unawaited(_reopen(p)) : null,
+                ),
+              ),
             for (var i = 0; i < entries.length; i++) ...[
               // The divider only when there were home posts above it.
               if (i == firstBeyond && i > 0)
@@ -168,16 +323,102 @@ class _FeedTabState extends ConsumerState<FeedTab> {
             ],
           ],
         ),
-      if (data.loadingMore) const Center(child: CircularProgressIndicator()),
+      if (data?.loadingMore ?? false)
+        const Center(child: CircularProgressIndicator()),
     ];
 
-    return RefreshIndicator(
+    final list = RefreshIndicator(
       onRefresh: () => ref.refresh(feedProvider.future),
       child: ListView(
         key: const Key('feed-list'),
         controller: _scroll,
         padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s16),
         children: children,
+      ),
+    );
+
+    return PopScope(
+      canPop: !writing,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _menu != null ? _setMenu(null) : _stopWriting();
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) => Stack(
+                children: [
+                  Positioned.fill(
+                    child: GestureDetector(
+                      // While writing, a tap off the card puts it down.
+                      behavior: HitTestBehavior.opaque,
+                      onTap: writing ? _stopWriting : null,
+                      child: list,
+                    ),
+                  ),
+                  if (_menu != null) ...[
+                    // No dim: a tap anywhere else closes it (E2).
+                    Positioned.fill(
+                      child: GestureDetector(
+                        key: const Key('post-menu-away'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => _setMenu(null),
+                      ),
+                    ),
+                    PositionedDirectional(
+                      start: BvPopoverMenuSpec.writingStart,
+                      bottom: BvPopoverMenuSpec.writingGap,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: math.max(
+                            0,
+                            constraints.maxHeight -
+                                2 * BvPopoverMenuSpec.writingGap,
+                          ),
+                        ),
+                        child: PostWritingPopover(
+                          key: ValueKey((_menu, editing)),
+                          menu: _menu!,
+                          editing: editing,
+                          onMenu: _setMenu,
+                          onClose: () => _setMenu(null),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          if (writing)
+            BvWritingToolbar(
+              cameraLabel: l10n.daybookCamera,
+              // An edit keeps its photos (edit_post).
+              onCamera: editing ? null : () => _addPhoto(camera: true),
+              attachLabel: l10n.daybookAddPhoto,
+              onAttach: editing ? null : () => _addPhoto(camera: false),
+              moreLabel: l10n.daybookMore,
+              onMore: () => _setMenu(
+                _menu == PostWritingMenu.more ? null : PostWritingMenu.more,
+              ),
+              moreActive: _menu == PostWritingMenu.more,
+              postLabel: editing ? l10n.daybookSave : l10n.daybookPost,
+              // Text or a photo (create_post); an edit keeps its photos.
+              onPost:
+                  (cardDraft?.canPost ?? false) ||
+                      (editing &&
+                          (ref
+                                  .read(postEditProvider.notifier)
+                                  .original
+                                  ?.photos
+                                  .isNotEmpty ??
+                              false))
+                  ? (editing ? _save : _post)
+                  : null,
+            ),
+        ],
       ),
     );
   }
@@ -202,84 +443,6 @@ class _Divider extends StatelessWidget {
         ),
         const Expanded(child: Divider(color: BvColors.borderDefault)),
       ],
-    );
-  }
-}
-
-/// P3 "Posting to your network…", or P3b "Couldn't post. Saved as a
-/// draft." with Retry. Nothing is lost.
-class _PendingBanner extends ConsumerWidget {
-  const _PendingBanner({required this.post});
-
-  final PendingPost post;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    final photo = post.photos.firstOrNull;
-    return Container(
-      key: Key('feed-pending-${post.id}'),
-      padding: const EdgeInsetsDirectional.all(BvSpace.s16),
-      decoration: BoxDecoration(
-        color: BvColors.surfaceElevated,
-        borderRadius: BvRadius.cardAll,
-        border: Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
-      ),
-      child: Row(
-        spacing: BvSpace.s12,
-        children: [
-          if (photo != null)
-            ClipRRect(
-              borderRadius: BvRadius.smallAll,
-              child: Image.file(
-                File(photo.local),
-                width: BvSize.avatarMd,
-                height: BvSize.avatarMd,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) =>
-                    const SizedBox(width: BvSize.avatarMd),
-              ),
-            ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: BvSpace.s4,
-              children: [
-                Text(
-                  post.failed ? l10n.postFailed : l10n.postPosting,
-                  style: type.labelMd,
-                ),
-                if (post.failed)
-                  Text(
-                    l10n.postFailedHint,
-                    style: type.bodySm.copyWith(color: BvColors.textSecondary),
-                  )
-                else
-                  const LinearProgressIndicator(
-                    color: BvColors.textAction,
-                    backgroundColor: BvColors.borderDefault,
-                  ),
-              ],
-            ),
-          ),
-          if (post.failed)
-            BvButton(
-              key: Key('feed-retry-${post.id}'),
-              label: l10n.chatRetry,
-              style: BvButtonStyle.tertiary,
-              size: BvButtonSize.medium,
-              padded: false,
-              onPressed: () async {
-                try {
-                  await ref.read(postOutboxProvider.notifier).retry(post.id);
-                } on SpaceException catch (e) {
-                  if (context.mounted) showSpaceError(context, e);
-                }
-              },
-            ),
-        ],
-      ),
     );
   }
 }
