@@ -99,3 +99,26 @@ Not missing: **opening a post in place** (blocks, /, turn into, tables) is **sli
 - **What happened:** on the second work item, tapping "Sign as done" closed the app completely. The first sign-off on the emulator had worked.
 - **Status:** Claude Code reads the emulator's crash log. The cause and fix go here.
 - A crash in the core loop is the most serious kind of finding: fix it first in the test-fix round, with a test that reproduces it.
+
+## F13. Activity rows can't be tapped
+- **What happened:** in Activity (Arabic), the rows are only notices. Tapping "فحص NST-003 من Islam Ahmed" does nothing.
+- **Fix:** every row opens what it's about, as Needs you does:
+  - a work item opens the Space's daybook (the exact slip comes in slice 10);
+  - a join opens the Space;
+  - a reply opens the post.
+  - The whole row is the tap area; no row is a dead end.
+- **The "REV F" box at the top of the Space card in Activity:** unclear to the founder. It reads like a drawing revision, not an activity. Remove it, or say plainly what it is. The A–F letters per row need the same check: they look like a revision table.
+
+## F14. "تم الفحص" fits only real inspections
+**Founder's decision; the lead's recommendation is below.**
+- "Checked" in Arabic is "تم الفحص" (glossary). The founder notes it only fits work that was physically inspected; a drawing, a submittal or an office task isn't "فحص".
+- **Lead's recommendation: "تم التحقق"** (verified). It fits site work and office work alike, and it's plain Arabic.
+  - The verb is "تحقّق"; the button is "تحقّق"; "Double-tap the photo to verify it" is "انقر مرتين على الصورة للتحقق".
+  - Avoid "مُراجَع", which is too close to "مُرجَع" (Sent back), and "مُعتمد", which suggests a formal approval (approval codes are out of the MVP).
+- English stays "Checked".
+- **If the founder agrees:** update the glossary in `CLAUDE.md`, `docs/product/arabic-glossary.md`, both ARB files, the stamps, and the AR Figma frames (lead).
+
+## F15. The Arabic time column is cut off
+On the Arabic daybook, the time beside the spine shows "3:5" and "4 عصرًا", because the 12-hour time with its period ("3:58 عصرًا") doesn't fit the column.
+- **Fix:** the time column fits the longest time in the current language. Or, in the 12-hour clock, the period goes on a second, smaller line under the time.
+- Add a screenshot test with "11:58 مساءً".
