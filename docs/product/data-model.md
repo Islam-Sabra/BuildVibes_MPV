@@ -577,12 +577,21 @@ Answers in review 44 (questions 2, 3, 5).
 - `sign_off`: a done event, its own entry at its own time. It carries the work item's id, ref and title (shown as the quote), who signed, the note, the photos (path, taken at, place), the time, and its **outcome**: `checked` (by, at) if a check followed it, `sent_back` (reason, note, by, at) if a send-back did, otherwise `cancelled` if the item was cancelled, else `done`. An item sent back and signed again has two sign-offs: the older stamped SENT BACK, the newer DONE or CHECKED.
 - `update`: a comment event: who wrote it, the note, any photos, the time, and the item's title as the quote.
 - An entry is seen as its work item is (`can_see_space_post`); a deleted item's entries go with it, a cancelled item's stay as the record.
-- **The paper clip** (`needs_me`): for whoever may check, it is on the latest sign-off while the item is Done, never on the work item slip. For the owner (Open or Sent back), it stays on the slip, next to Sign as done.
+- **The paper clip** (`needs_me`): for whoever may check, it is on the latest sign-off while the item is Done, never on the work item slip. For the owner of an item never signed, it stays on the slip, next to Sign as done; once sent back, it is on the latest send-back (migration 24, §20).
 - The work item slip also has `attachments` (its first three Library files the reader may read: name, `rev_label`), `attachments_more`, and `given_to` (the last reassignment: from, to, at). The full post JSON lists every attachment, with `rev_label` too.
 - `daybook_month`'s dots count sign-offs and updates too.
 - Each event row carries its `space_id` (set on insert), so the daybook reads sign-offs and updates newest first from an index, as it reads posts.
 
 **Undo of a check** needs nothing on the server: the app holds the check for the undo bar's 5 seconds, then sends it (review 44, answer 4). The same applies to every action with an undo bar.
+
+## 20. Send-backs on the daybook (migration 24, `20261017180000_sent_back.sql`, branch `sent-back-db`, not live)
+Review 47, server gap 1 (S1 `2530:33826`).
+- `daybook_page` also returns **`sent_back` entries**: who sent it back (`actor_id`, `actor_name`), `reason`, `note`, the time (`at`), and the work item as the quote (`post_id`, `ref`, `title`, `item_status`, `post_status`). Same cursor as the other entries; seen as the work item is.
+- **The owner's paper clip and Sign as done** (`needs_me`) are on the **latest send-back** while the item waits to be signed again by the owner it was sent back to (Open, no later sign-off, send-back or reassignment). Never two on one item: then the slip's `needs_me` is off.
+- The clip stays on the **work item slip** when the item was never signed, when it was given to someone else after the send-back (the new owner's clip), and when the owner left (the author's clip, next to Give to someone else: only the owner can sign). A cancelled item and a target ask nobody.
+- **Deploy order:** the app must draw `sent_back` entries (and page on the rows the server returns, not the ones it draws) before this goes live; the 1d build drops unknown kinds.
+- The proof it answered keeps its SENT BACK outcome (§19).
+- The events index (`work_item_events_daybook_idx`) and `daybook_month`'s dots include send-backs.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.

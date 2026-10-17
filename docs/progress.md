@@ -534,6 +534,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - **Live 17 Oct** (founder's yes, review 46): `daybook-extras-db` merged into main; `supabase db push` listed only `20261017120000_daybook_extras.sql`. Read-only check: `space_posts.due_at` and `spaces.site_start_date` exist, `work_item_events.space_id` exists and is not null; `daybook_month`, `set_site_start_date` and the two entry helpers exist. No Edge Function change.
   - Weather is out of the MVP (founder, 17 Oct).
 
+- **17 Oct, migration 24, send-backs on the daybook** (review 47; branch `sent-back-db`, **not live**): `daybook_page` returns `sent_back` entries; the owner's clip and Sign as done sit on the latest send-back (never also on the slip); the events index and month dots include send-backs. An independent review found no leak; its two clip findings (an owner who left, a reassign after a send-back) and test gaps are fixed. 1,648 SQL checks in 24 files (36 for migration 24). **Goes live only after an app build that draws send-back entries**, and the push must list only `20261017180000_sent_back.sql`.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

@@ -337,8 +337,9 @@ reset role;
 select pg_temp.stamp(40);
 select pg_temp.as_user('e2');
 set local role authenticated;
-select ok((pg_temp.entry('post', pg_temp.item('b001')) ->> 'needs_me')::boolean,
-  'sent back, the clip is on the owner''s slip again');
+-- Migration 24 moved the owner's clip from the slip to the latest send-back.
+select ok(not (pg_temp.entry('post', pg_temp.item('b001')) ->> 'needs_me')::boolean,
+  'sent back, the owner''s clip is not on the slip (it is on the send-back, migration 24)');
 select public.sign_done(pg_temp.item('b001'), 'Photo added.');
 reset role;
 select pg_temp.stamp(30);
