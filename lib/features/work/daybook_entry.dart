@@ -351,8 +351,6 @@ class DaybookSlip extends StatelessWidget {
     final checkedAt = outcome.at;
     return _slip(
       id: s.id,
-      // With no photo, the stamp goes on the slip.
-      stamp: hasPhoto ? null : stamp,
       clip: clip,
       cancelled: cancelled,
       children: [
@@ -372,6 +370,16 @@ class DaybookSlip extends StatelessWidget {
             onDoubleTap: check,
           ),
         if ((s.note ?? '').isNotEmpty) BvSlipNote(s.note!),
+        // With no photo (F6), the stamp is pressed under the note: no
+        // empty frame, and clear of the header.
+        if (!hasPhoto && stamp != null)
+          Padding(
+            padding: BvSlipSpec.stampNoPhotoPadding,
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: stamp,
+            ),
+          ),
         if (clip && hasPhoto)
           BvSlipPill.hint(label: l10n.daybookDoubleTapToCheck),
         if (outcome.kind == DaybookOutcomeKind.checked &&

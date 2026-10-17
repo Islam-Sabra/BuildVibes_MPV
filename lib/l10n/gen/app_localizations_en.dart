@@ -3232,6 +3232,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookAddAnotherPhoto => 'Add another photo';
 
   @override
+  String get daybookWithoutPhoto => 'Without a photo';
+
+  @override
+  String get daybookWhatWasDone => 'What was done?';
+
+  @override
+  String get daybookSignedUndo => 'Signed as done';
+
+  @override
   String get daybookCloseProof => 'Close';
 
   @override

@@ -4591,6 +4591,18 @@
   "@daybookAddAnotherPhoto": {
     "description": "Read out for the + tile next to the proof photo (O2)."
   },
+  "daybookWithoutPhoto": "Without a photo",
+  "@daybookWithoutPhoto": {
+    "description": "The link on the proof screen (F6): sign as done with a note and no photo."
+  },
+  "daybookWhatWasDone": "What was done?",
+  "@daybookWhatWasDone": {
+    "description": "Placeholder of the note on the proof screen without a photo (F6): the note is required then."
+  },
+  "daybookSignedUndo": "Signed as done",
+  "@daybookSignedUndo": {
+    "description": "The undo bar after Send as done (F7); nothing is sent until it closes. Glossary."
+  },
   "daybookCloseProof": "Close",
   "@daybookCloseProof": {
     "description": "Read out for the × on the linked work item at the top of the proof photo: leaves without signing."

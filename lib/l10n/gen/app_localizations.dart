@@ -5414,6 +5414,24 @@ abstract class AppLocalizations {
   /// **'Add another photo'**
   String get daybookAddAnotherPhoto;
 
+  /// The link on the proof screen (F6): sign as done with a note and no photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Without a photo'**
+  String get daybookWithoutPhoto;
+
+  /// Placeholder of the note on the proof screen without a photo (F6): the note is required then.
+  ///
+  /// In en, this message translates to:
+  /// **'What was done?'**
+  String get daybookWhatWasDone;
+
+  /// The undo bar after Send as done (F7); nothing is sent until it closes. Glossary.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed as done'**
+  String get daybookSignedUndo;
+
   /// Read out for the × on the linked work item at the top of the proof photo: leaves without signing.
   ///
   /// In en, this message translates to:

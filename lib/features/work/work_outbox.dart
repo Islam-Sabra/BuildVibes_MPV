@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../core/sound/sent_chime.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_repository.dart';
@@ -497,6 +498,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     // "Waiting to send" goes at once (F17); the slip stays until the
     // daybook has the server's entry.
     _retry.reached();
+    // F5: a post or a sign-off the server took, not a check or a cancel.
+    if (item.kind == PendingKind.signOff || item.kind == PendingKind.workItem) {
+      unawaited(ref.read(sentChimeProvider).play());
+    }
     await _put(current.copyWith(sent: true));
     ref.invalidate(mySpacesProvider);
     return _settle(current);

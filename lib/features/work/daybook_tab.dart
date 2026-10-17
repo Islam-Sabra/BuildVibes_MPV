@@ -885,10 +885,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         viewer: viewer,
         // Sent, it no longer waits, though the page hasn't read it yet
-        // (F17).
+        // (F17). Under its undo bar, a proof isn't waiting for a signal
+        // (F7).
         waiting:
             (waitingPost != null && !waitingPost.sent) ||
-            (waitingProof != null && !waitingProof.sent),
+            (waitingProof != null &&
+                !waitingProof.sent &&
+                !outbox.isHeld(PendingKind.signOff, waitingProof.id)),
         couldNotSend: refused,
         localPhoto: (waitingPost ?? waitingProof)?.photos.firstOrNull?.local,
         landing:

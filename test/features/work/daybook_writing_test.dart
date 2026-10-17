@@ -363,6 +363,8 @@ void main() {
       expect(find.text(s.cableTraysTitle), findsOneWidget);
       expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
       expect(daybook.created, isEmpty);
+      // F5: no sound while it only waits.
+      expect(app.chimes, isEmpty);
       // Kept on the phone: it outlives the app being closed.
       final kept = app.prefs.getString('work_outbox:${DaybookSamples.islam}')!;
       expect(jsonDecode(kept), hasLength(1));
@@ -373,6 +375,7 @@ void main() {
       await tester.pump(const Duration(seconds: 31));
       await tester.pumpAndSettle();
       expect(daybook.created.single.id, waitingId);
+      expect(app.chimes, ['haptic', 'sound']);
       expect(find.text(l10n.daybookWaitingToSend), findsNothing);
       expect(app.prefs.getString('work_outbox:${DaybookSamples.islam}'), '[]');
     });

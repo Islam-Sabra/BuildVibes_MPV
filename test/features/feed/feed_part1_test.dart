@@ -378,9 +378,8 @@ void main() {
       expect(app.prefs.getString('post_draft:user-1'), isNull);
     });
 
-    testWidgets('H5: no signal: it waits on the phone, then sends [$lang]', (
-      tester,
-    ) async {
+    testWidgets('H5: no signal: it waits on the phone, then sends, with the '
+        'sound (F5) [$lang]', (tester) async {
       final posts = _posts()..failNext = 9;
       final app = await _feed(tester, lang, posts: posts);
       await tester.tap(find.byKey(const Key('nav-create')));
@@ -402,6 +401,8 @@ void main() {
       expect(app.prefs.getString('post_outbox:user-1'), contains('Rebar'));
       expect(app.prefs.getString('post_outbox'), isNull);
       expect(app.posts.calls, isEmpty);
+      // F5: no sound while it only waits.
+      expect(app.chimes, isEmpty);
 
       // The signal is back: photos first, then the post, once.
       posts.failNext = 0;
@@ -409,6 +410,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(app.posts.uploads, hasLength(1));
       expect(app.posts.calls.single, 'create en - 1 Rebar done.');
+      // F5: the sound and haptic when the server took it.
+      expect(app.chimes, ['haptic', 'sound']);
       expect(find.text(l10n.daybookWaitingToSend), findsNothing);
       expect(app.prefs.getString('post_outbox:user-1'), isNot(contains('R')));
     });

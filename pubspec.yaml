@@ -85,6 +85,8 @@ flutter:
   assets:
     # Sample photo for the debug-only Components gallery.
     - assets/dev/
+    # The "sent" sound (F5); see assets/sounds/SOURCE.md.
+    - assets/sounds/sent.wav
 
   fonts:
     - family: PlusJakartaSans

@@ -30,7 +30,7 @@ import 'work_outbox.dart';
 enum DaybookSlipAction { check, sendBack, update, edit, giveTo, cancel }
 
 /// The work item loop in one Space (slice 1 part 1d): sign as done with
-/// the camera, check by double-tap with Undo, the long-press menus, send
+/// a photo or a note, check by double-tap with Undo, the long-press menus, send
 /// back with a reason, updates, give to someone else, cancel. What the
 /// reader may do comes from the record and the pass; the server decides
 /// again on every call.
@@ -272,25 +272,11 @@ class DaybookLoop {
     );
   }
 
-  /// Sign as done with the camera (O1 → O2): the camera first (never the
-  /// gallery: founder, review 47), then the proof with an optional note.
-  Future<void> signDone(BuildContext context, DaybookPost p) async {
-    final picked = await ref.read(pickPhotoProvider)(camera: true);
-    if (picked == null || !context.mounted) return;
-    final kept = await ref.read(keepPhotoProvider)(picked);
-    if (!context.mounted) return;
-    await _prove(
-      context,
-      p,
-      photos: [
-        PendingPhoto(
-          local: kept,
-          takenAt: ref.read(clockProvider)(),
-          place: p.place,
-        ),
-      ],
-    );
-  }
+  /// Sign as done (O1 → O2): only opens the proof screen, the camera one
+  /// tap away and "Without a photo" (F6, F7). Nothing is sent until Send
+  /// as done there, and then only once the undo bar has gone.
+  Future<void> signDone(BuildContext context, DaybookPost p) =>
+      _prove(context, p, photos: const []);
 
   /// A refused sign-off ("Couldn't send. Tap to fix", answer 5): the proof
   /// again with its photos and note, to send again or for another item.
@@ -300,38 +286,63 @@ class DaybookLoop {
     DaybookPost? post,
   }) => _prove(
     context,
-    post ??
-        DaybookPost(
-          id: item.id,
-          kind: DaybookPost.workItemKind,
-          createdAt: item.madeAt ?? ref.read(clockProvider)(),
-          title: item.title,
-          place: item.photos.firstOrNull?.place,
-        ),
+    post ?? _itemFor(item),
     photos: item.photos,
     note: item.note,
     refused: item,
   );
 
+  /// The work item a held or refused sign-off proves.
+  DaybookPost _itemFor(PendingItem item) =>
+      openItems.where((p) => p.id == item.id).firstOrNull ??
+      DaybookPost(
+        id: item.id,
+        kind: DaybookPost.workItemKind,
+        createdAt: item.madeAt ?? ref.read(clockProvider)(),
+        title: item.title,
+        place: item.photos.firstOrNull?.place,
+      );
+
+  /// The proof screen. Sent, "Signed as done · Undo" shows for 5 seconds
+  /// while the sign-off waits on the phone (F7; review 44, answer 4).
   Future<void> _prove(
     BuildContext context,
     DaybookPost p, {
     required List<PendingPhoto> photos,
     String? note,
     PendingItem? refused,
-  }) => Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      fullscreenDialog: true,
-      builder: (_) => ProofCamera(
-        spaceId: _spaceId,
-        post: p,
-        photos: photos,
-        choices: openItems,
-        note: note,
-        refused: refused,
+  }) async {
+    final sent = await Navigator.of(context).push<PendingItem>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ProofCamera(
+          spaceId: _spaceId,
+          post: p,
+          photos: photos,
+          choices: openItems,
+          note: note,
+          refused: refused,
+        ),
       ),
-    ),
-  );
+    );
+    if (sent == null || !context.mounted) return;
+    showBvUndoBar(
+      context,
+      message: AppLocalizations.of(context).daybookSignedUndo,
+      actionLabel: AppLocalizations.of(context).daybookUndo,
+      onAction: () => unawaited(_undoSignOff(context, sent)),
+    );
+  }
+
+  /// Undo: the sign-off never leaves the phone, and the proof screen opens
+  /// again with its photos and note, so nothing is lost.
+  Future<void> _undoSignOff(BuildContext context, PendingItem sent) async {
+    await ref
+        .read(workOutboxProvider.notifier)
+        .undo(PendingKind.signOff, sent.id);
+    if (!context.mounted) return;
+    await _prove(context, _itemFor(sent), photos: sent.photos, note: sent.note);
+  }
 
   /// Send back with a reason (B2), in place under the lifted proof.
   Future<void> _sendBack(

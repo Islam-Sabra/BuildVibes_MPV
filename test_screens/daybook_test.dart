@@ -7,8 +7,9 @@
 // 2530:33953, Y2 2530:34038, B1 2530:33480, B2 2530:33643, B3 2519:33049,
 // X1 2530:34134, X2 2540:34693, X2-given 2540:34880, X3 2530:34263, and the
 // AR frames 2547:35195, 2547:35369 and 2547:35543; part 1e's Space menu
-// MN1 2566:35619 and review 47's answers 3 (O4, the item switch) and 5
-// (O5, a refused sign-off). Run:
+// MN1 2566:35619, review 47's answers 3 (O4, the item switch) and 5
+// (O5, a refused sign-off), and review 51's Part D (D1 without a photo,
+// D2 its proof slip, D3 the undo bar after Send as done). Run:
 //   flutter test test_screens/daybook_test.dart --update-goldens
 import 'dart:convert';
 
@@ -537,6 +538,7 @@ void main() {
         ),
         before: (tester) async {
           await _tap(tester, find.text(l10n.daybookSignAsDone).first);
+          await _tap(tester, find.byKey(const Key('proof-take-photo')));
           await _type(tester, 'proof-note', s.sleevesNote);
           FocusManager.instance.primaryFocus?.unfocus();
           await tester.pumpAndSettle();
@@ -866,12 +868,92 @@ void main() {
         ),
         before: (tester) async {
           await _tap(tester, find.text(l10n.daybookSignAsDone).first);
+          await _tap(tester, find.byKey(const Key('proof-take-photo')));
+          await _type(tester, 'proof-note', s.sleevesNote);
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pumpAndSettle();
+          await _tap(tester, find.byKey(const Key('proof-send')));
+          // The undo bar's 5 seconds, then the server says no.
+          await tester.pump(const Duration(seconds: 6));
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    // Review 51, Part D: signing without a photo (F6), and Undo (F7).
+
+    testWidgets('D1 proof without a photo, the note [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'D1-proof-without-photo',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.o1(),
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 9, 40),
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+        before: (tester) async {
+          await _tap(tester, find.text(l10n.daybookSignAsDone).first);
+          await _tap(tester, find.byKey(const Key('proof-without-photo')));
+          await _type(tester, 'proof-note', s.sleevesNote);
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('D2 a proof slip with a note only [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'D2-proof-slip-note-only',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: [
+            s.sleevesDone(),
+            s.sleevesSignOff(photos: const []),
+            s.rebar(),
+          ],
+          me: DaybookSamples.islam,
+          now: DateTime(2026, 10, 15, 10, 12),
+        ),
+      );
+    });
+
+    testWidgets('D3 signed as done, with Undo [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'D3-signed-undo',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.o1(),
+          me: DaybookSamples.omar,
+          now: DateTime(2026, 10, 15, 9, 40),
+          pass: SpacePass.crew,
+          admin: false,
+        ),
+        before: (tester) async {
+          await _tap(tester, find.text(l10n.daybookSignAsDone).first);
+          await _tap(tester, find.byKey(const Key('proof-take-photo')));
           await _type(tester, 'proof-note', s.sleevesNote);
           FocusManager.instance.primaryFocus?.unfocus();
           await tester.pumpAndSettle();
           await _tap(tester, find.byKey(const Key('proof-send')));
         },
       );
+      // The undo bar's 5 seconds, then the sign-off is sent.
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('X3 edited and cancelled work items [$lang]', (tester) async {

@@ -583,6 +583,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **17 Oct, slice 1 test fixes, Part C (getting around)** (review 51; branch `slice1-fixes`): Home → Spaces has one compact date line, New Space and Enter an invite code always on top, Needs you cards with the Space name first and the whole card tappable, and every Space once under "Your Spaces"; every Activity row opens what it's about (the REV stamp and A–F letters are gone); + offers "Post to everyone" or "Work item in a Space ▸"; a short or long press on any slip gives Add update to the owner, Lead and Crew. Server gaps: no last-activity time per Space, one news row per Space, no create right in `my_spaces()`, no server-side last-opened Space.
 
+- **17 Oct, slice 1 test fixes, Part D (signing and checking)** (review 51; branch `slice1-fixes`): F6 the proof screen opens with "Take a photo" one tap away and a "Without a photo" link (then the note is required; the slip shows the note with no frame); F7 a tap never signs, "Send as done" is held 5 s with "Signed as done · Undo" (Undo sends nothing and reopens the proof with its photos and note); F5 a soft sound and a light haptic when the server accepts a sign-off or a post (haptic only on silent; own-made tone in `assets/sounds/`).
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

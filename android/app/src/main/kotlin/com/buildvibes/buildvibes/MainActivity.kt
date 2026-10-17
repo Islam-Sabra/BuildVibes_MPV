@@ -3,6 +3,7 @@ package com.buildvibes.buildvibes
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -49,6 +50,18 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "phoneMakers" -> result.success(listOf(Build.MANUFACTURER, Build.BRAND))
+                    else -> result.notImplemented()
+                }
+            }
+        // F5: the "sent" sound plays only when the ringer is on; silent
+        // and vibrate get the haptic alone.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "buildvibes/sound")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "ringerNormal" -> result.success(
+                        getSystemService(AudioManager::class.java).ringerMode ==
+                            AudioManager.RINGER_MODE_NORMAL,
+                    )
                     else -> result.notImplemented()
                 }
             }

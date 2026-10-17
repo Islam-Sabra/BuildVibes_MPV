@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_loop_specs.dart';
+import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
 import '../../data/models/daybook.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -20,11 +21,14 @@ import 'daybook_entry.dart' show localPhotoProvider;
 import 'daybook_words.dart';
 import 'work_outbox.dart';
 
-/// Sign as done with the camera (O2 2529:33493): the photo just taken,
-/// linked to its work item (its title at the top, × to leave), labelled
-/// with the place, the date and time and who took it. Another photo and
-/// an optional note can go with it; the round button sends it as done
-/// through the outbox, so a weak signal never loses it.
+/// Sign as done (O2 2529:33493): linked to its work item (its title at
+/// the top, × to leave). It opens with the camera one tap away and
+/// "Without a photo" (F6, review 50); a tap on Sign as done never signs
+/// (F7). The photo is labelled with the place, the date and time and who
+/// took it; another photo and an optional note can go with it. Without a
+/// photo, the note is needed ("What was done?"). The round button holds
+/// it for the 5-second undo bar, then sends it through the outbox, so a
+/// weak signal never loses it.
 ///
 /// Proof photos come from the camera only (founder, review 47): the time
 /// and place are real. Tapping the item name lists the reader's other
@@ -61,16 +65,28 @@ class ProofCamera extends ConsumerStatefulWidget {
 }
 
 class _ProofCameraState extends ConsumerState<ProofCamera> {
-  late final _note = TextEditingController(text: widget.note);
+  late final _note = TextEditingController(text: widget.note)
+    ..addListener(_noteChanged);
   late var _post = widget.post;
   late final _photos = List.of(widget.photos);
-  late final _taken = _photos.first.takenAt;
+
+  /// "Without a photo" chosen: the note says what was done. A note-only
+  /// proof opens again this way.
+  late var _noPhoto =
+      widget.photos.isEmpty && (widget.note ?? '').trim().isNotEmpty;
   var _switching = false;
+  var _sending = false;
 
   List<DaybookPost> get _choices => [
     if (!widget.choices.any((c) => c.id == widget.post.id)) widget.post,
     ...widget.choices,
   ];
+
+  /// A photo, or without one a note: what the server needs (sign_done).
+  bool get _canSend =>
+      !_sending && (_photos.isNotEmpty || _note.text.trim().isNotEmpty);
+
+  void _noteChanged() => setState(() {});
 
   @override
   void dispose() {
@@ -133,7 +149,12 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
         .fullName;
   }
 
+  /// Send as done: held on the phone for the undo bar's 5 seconds, then
+  /// sent through the outbox (F7; review 44, answer 4). The screen closes
+  /// with what it holds, for the daybook's "Signed as done · Undo".
   Future<void> _send() async {
+    if (!_canSend) return;
+    setState(() => _sending = true);
     final me = ref.read(authUserIdProvider).value ?? '';
     final name = _myName() ?? '';
     final note = _note.text.trim();
@@ -143,31 +164,28 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
     final moved = refused != null && refused.id != _post.id;
     if (moved) await outbox.forget(refused);
     unawaited(HapticFeedback.heavyImpact());
-    unawaited(
-      outbox.send(
-        PendingItem(
-          kind: PendingKind.signOff,
-          id: _post.id,
-          spaceId: widget.spaceId,
-          title: _post.title,
-          ownerId: me,
-          ownerName: name,
-          note: note.isEmpty ? null : note,
-          photos: [
-            for (final p in _photos)
-              PendingPhoto(
-                local: p.local,
-                takenAt: p.takenAt,
-                place: _post.place,
-                remote: moved ? null : p.remote,
-              ),
-          ],
-          madeAt: refused?.madeAt ?? ref.read(clockProvider)(),
-          authorName: name,
-        ),
-      ),
+    final item = PendingItem(
+      kind: PendingKind.signOff,
+      id: _post.id,
+      spaceId: widget.spaceId,
+      title: _post.title,
+      ownerId: me,
+      ownerName: name,
+      note: note.isEmpty ? null : note,
+      photos: [
+        for (final p in _photos)
+          PendingPhoto(
+            local: p.local,
+            takenAt: p.takenAt,
+            place: _post.place,
+            remote: moved ? null : p.remote,
+          ),
+      ],
+      madeAt: refused?.madeAt ?? ref.read(clockProvider)(),
+      authorName: name,
     );
-    if (mounted) Navigator.of(context).pop();
+    await outbox.hold(item, BvUndoBarSpec.duration);
+    if (mounted) Navigator.of(context).pop(item);
   }
 
   @override
@@ -187,6 +205,50 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
         .fullName;
     final inverse = BvColors.textInverse;
     final choices = _choices;
+    final photo = _photos.isNotEmpty;
+    final noteField = Container(
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: BvProofCameraSpec.notePaddingHorizontal,
+        vertical: BvProofCameraSpec.notePaddingVertical,
+      ),
+      decoration: BoxDecoration(
+        color: inverse.withValues(alpha: BvProofCameraSpec.noteOpacity),
+        borderRadius: BvProofCameraSpec.noteRadius,
+      ),
+      child: TextField(
+        key: const Key('proof-note'),
+        controller: _note,
+        // Chosen without a photo: the note is next.
+        autofocus: !photo,
+        minLines: 1,
+        maxLines: photo
+            ? BvProofCameraSpec.noteLines
+            : BvProofCameraSpec.noteLinesRequired,
+        maxLength: BvProofCameraSpec.noteMax,
+        textCapitalization: TextCapitalization.sentences,
+        style: type.bodyMd.copyWith(color: inverse),
+        cursorColor: inverse,
+        decoration:
+            bvBareField(
+              hint: photo ? l10n.daybookNoteOptional : l10n.daybookWhatWasDone,
+              style: type.bodyMd,
+            ).copyWith(
+              counterText: '',
+              hintStyle: type.bodyMd.copyWith(
+                color: inverse.withValues(alpha: BvProofCameraSpec.hintOpacity),
+              ),
+            ),
+      ),
+    );
+    final send = _SendButton(
+      label: l10n.daybookSendAsDone,
+      onTap: _canSend ? () => unawaited(_send()) : null,
+    );
+    final sendLabel = Text(
+      l10n.daybookSendAsDone,
+      textAlign: TextAlign.center,
+      style: type.labelMd.copyWith(color: inverse),
+    );
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -208,25 +270,36 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                 builder: (context, constraints) => Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image(
-                      image: ref.watch(localPhotoProvider(_photos.last.local)),
-                      fit: BoxFit.cover,
-                    ),
-                    PositionedDirectional(
-                      start: BvProofCameraSpec.labelInset,
-                      end: BvProofCameraSpec.labelInset,
-                      bottom: BvProofCameraSpec.labelInset,
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: _Label(
-                          words.photoLabel(
-                            place: _post.place,
-                            at: _taken,
-                            name: name,
+                    if (photo) ...[
+                      Image(
+                        image: ref.watch(
+                          localPhotoProvider(_photos.last.local),
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                      PositionedDirectional(
+                        start: BvProofCameraSpec.labelInset,
+                        end: BvProofCameraSpec.labelInset,
+                        bottom: BvProofCameraSpec.labelInset,
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: _Label(
+                            words.photoLabel(
+                              place: _post.place,
+                              at: _photos.first.takenAt,
+                              name: name,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ] else
+                      // Camera only (founder, review 47), one tap away.
+                      Center(
+                        child: _Shutter(
+                          label: l10n.daybookCamera,
+                          onTap: _addPhoto,
+                        ),
+                      ),
                     if (_switching)
                       Positioned.fill(
                         child: GestureDetector(
@@ -307,64 +380,34 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: BvProofCameraSpec.controlsGap,
                   children: [
-                    Container(
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: BvProofCameraSpec.notePaddingHorizontal,
-                        vertical: BvProofCameraSpec.notePaddingVertical,
-                      ),
-                      decoration: BoxDecoration(
-                        color: inverse.withValues(
-                          alpha: BvProofCameraSpec.noteOpacity,
-                        ),
-                        borderRadius: BvProofCameraSpec.noteRadius,
-                      ),
-                      child: TextField(
-                        key: const Key('proof-note'),
-                        controller: _note,
-                        minLines: 1,
-                        maxLines: BvProofCameraSpec.noteLines,
-                        maxLength: BvProofCameraSpec.noteMax,
-                        textCapitalization: TextCapitalization.sentences,
-                        style: type.bodyMd.copyWith(color: inverse),
-                        cursorColor: inverse,
-                        decoration:
-                            bvBareField(
-                              hint: l10n.daybookNoteOptional,
-                              style: type.bodyMd,
-                            ).copyWith(
-                              counterText: '',
-                              hintStyle: type.bodyMd.copyWith(
-                                color: inverse.withValues(
-                                  alpha: BvProofCameraSpec.hintOpacity,
-                                ),
+                    if (photo) ...[
+                      noteField,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: _Thumbs(
+                                photos: [for (final p in _photos) p.local],
+                                addLabel: l10n.daybookAddAnotherPhoto,
+                                onAdd: _addPhoto,
                               ),
                             ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: _Thumbs(
-                              photos: [for (final p in _photos) p.local],
-                              addLabel: l10n.daybookAddAnotherPhoto,
-                              onAdd: _addPhoto,
-                            ),
                           ),
-                        ),
-                        _SendButton(
-                          label: l10n.daybookSendAsDone,
-                          onTap: () => unawaited(_send()),
-                        ),
-                        const Spacer(),
-                      ],
-                    ),
-                    Text(
-                      l10n.daybookSendAsDone,
-                      textAlign: TextAlign.center,
-                      style: type.labelMd.copyWith(color: inverse),
-                    ),
+                          send,
+                          const Spacer(),
+                        ],
+                      ),
+                      sendLabel,
+                    ] else if (_noPhoto) ...[
+                      noteField,
+                      Center(child: send),
+                      sendLabel,
+                    ] else
+                      _WithoutPhoto(
+                        label: l10n.daybookWithoutPhoto,
+                        onTap: () => setState(() => _noPhoto = true),
+                      ),
                   ],
                 ),
               ),
@@ -374,6 +417,92 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
       ),
     );
   }
+}
+
+/// Before the first photo: the camera in the middle, a white ring with
+/// "Take a photo" under it (F6).
+class _Shutter extends StatelessWidget {
+  const _Shutter({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    excludeSemantics: true,
+    child: GestureDetector(
+      key: const Key('proof-take-photo'),
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvProofCameraSpec.shutterGap,
+        children: [
+          Container(
+            width: BvProofCameraSpec.shutter,
+            height: BvProofCameraSpec.shutter,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: BvColors.textInverse,
+                width: BvProofCameraSpec.shutterStroke,
+              ),
+            ),
+            child: const Icon(
+              BvIcons.camera,
+              size: BvProofCameraSpec.shutterIcon,
+              color: BvColors.iconInverse,
+            ),
+          ),
+          Text(
+            label,
+            style: BvType.of(
+              context,
+            ).labelMd.copyWith(color: BvColors.textInverse),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// "Without a photo": a plain underlined link, 48 high (F6).
+class _WithoutPhoto extends StatelessWidget {
+  const _WithoutPhoto({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Semantics(
+      button: true,
+      child: GestureDetector(
+        key: const Key('proof-without-photo'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: BvSize.touchMin,
+            minWidth: BvSize.touchMin,
+          ),
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              label,
+              style: BvType.of(context).labelMd.copyWith(
+                color: BvColors.textInverse,
+                decoration: TextDecoration.underline,
+                decorationColor: BvColors.textInverse,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// The work item the photo is for: a white pill with its title and ×.
@@ -589,34 +718,40 @@ class _SendButton extends StatelessWidget {
   const _SendButton({required this.label, required this.onTap});
 
   final String label;
-  final VoidCallback onTap;
+
+  /// Null until there is a photo or a note: dimmed.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
+    enabled: onTap != null,
     label: label,
     excludeSemantics: true,
     child: GestureDetector(
       key: const Key('proof-send'),
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        width: BvProofCameraSpec.ring,
-        height: BvProofCameraSpec.ring,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: BvColors.brandEnergy,
-            width: BvProofCameraSpec.ringStroke,
-          ),
-        ),
-        alignment: Alignment.center,
-        child: const DecoratedBox(
+      child: Opacity(
+        opacity: onTap == null ? BvProofCameraSpec.sendDisabledOpacity : 1,
+        child: Container(
+          width: BvProofCameraSpec.ring,
+          height: BvProofCameraSpec.ring,
           decoration: BoxDecoration(
-            color: BvColors.surfaceElevated,
             shape: BoxShape.circle,
+            border: Border.all(
+              color: BvColors.brandEnergy,
+              width: BvProofCameraSpec.ringStroke,
+            ),
           ),
-          child: SizedBox.square(dimension: BvProofCameraSpec.button),
+          alignment: Alignment.center,
+          child: const DecoratedBox(
+            decoration: BoxDecoration(
+              color: BvColors.surfaceElevated,
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox.square(dimension: BvProofCameraSpec.button),
+          ),
         ),
       ),
     ),

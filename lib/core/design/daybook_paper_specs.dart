@@ -30,6 +30,14 @@ abstract final class BvSlipSpec {
   /// slip has both, so they never overlap (review 45, 1b note).
   static const stampEndWithClip = 44.0;
 
+  /// A proof with no photo (F6, review 50): the large stamp is pressed
+  /// under the note at the end side, in its own room (with some for its
+  /// tilt), never over the header. No frame draws it.
+  static const stampNoPhotoPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s8,
+    vertical: BvSpace.s6,
+  );
+
   // Header: avatar 24, name, action phrase.
   static const headerHeight = BvAvatarSpec.xs;
   static const headerGap = BvSpace.s8;

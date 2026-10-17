@@ -204,6 +204,9 @@ class DaybookSamples {
     DaybookOutcome outcome = const DaybookOutcome(
       kind: DaybookOutcomeKind.done,
     ),
+    List<WorkPhoto> photos = const [
+      WorkPhoto(path: '$space/post-sleeves/proof.jpg'),
+    ],
   }) => DaybookSignOff(
     id: 'event-sleeves-done',
     at: DateTime(2026, 10, 15, 9, 40),
@@ -213,7 +216,7 @@ class DaybookSamples {
     actorId: omar,
     actorName: omarName,
     note: sleevesNote,
-    photos: const [WorkPhoto(path: '$space/post-sleeves/proof.jpg')],
+    photos: photos,
     outcome: outcome,
     needsMe: needsMe,
   );

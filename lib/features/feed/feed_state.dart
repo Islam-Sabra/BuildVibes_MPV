@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../core/sound/sent_chime.dart';
 import '../../data/models/post.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/post_repository.dart';
@@ -272,6 +273,7 @@ class PostOutbox extends Notifier<List<PendingPost>> {
     // "Waiting to send" goes at once (F17); the card stays until the
     // feed has the server's copy.
     _retry.reached();
+    unawaited(ref.read(sentChimeProvider).play());
     await _put(current.copyWith(sent: true));
     ref.invalidate(postListProvider);
     return _settle(current);

@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
+import 'package:buildvibes/core/sound/sent_chime.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
@@ -133,6 +134,20 @@ Future<void> _doubleTapProof(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// F6: the proof screen opens with the camera one tap away.
+Future<void> _takePhoto(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('proof-take-photo')));
+  await tester.pumpAndSettle();
+}
+
+/// Send as done, then the undo bar's 5 seconds: only then is it sent (F7).
+Future<void> _sendDone(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('proof-send')));
+  await tester.pumpAndSettle();
+  await tester.pump(_undoGone);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
@@ -158,6 +173,7 @@ void main() {
       expect(_in('post-sleeves', find.byType(BvPaperClip)), findsOneWidget);
       await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
       await tester.pumpAndSettle();
+      await _takePhoto(tester);
       // O2: the photo linked to its work item, labelled with the place.
       expect(find.byType(ProofCamera), findsOneWidget);
       expect(find.text(s.sleeves), findsOneWidget);
@@ -171,8 +187,7 @@ void main() {
         find.byKey(const Key('proof-note')),
         s.sleevesNote,
       );
-      await tester.tap(find.byKey(const Key('proof-send')));
-      await tester.pumpAndSettle();
+      await _sendDone(tester);
       expect(find.byType(ProofCamera), findsNothing);
       expect(app.work.calls.single, 'done post-sleeves ${s.sleevesNote} 2');
       // Both photos went to the item's own folder first.
@@ -242,14 +257,12 @@ void main() {
         tester.widget<Text>(find.byKey(const Key('proof-item'))).data,
         s.cableTraysTitle,
       );
-      await tester.tap(find.byKey(const Key('proof-add-photo')));
+      await tester.tap(find.byKey(const Key('proof-take-photo')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('proof-send')));
-      await tester.pumpAndSettle();
+      await _sendDone(tester);
       expect(app.work.calls.single, startsWith('done post-trays'));
       // Proof photos come from the camera only (founder, review 47).
-      expect(app.cameraAsks, everyElement(isTrue));
-      expect(app.cameraAsks, hasLength(2));
+      expect(app.cameraAsks, [true]);
     });
 
     testWidgets('review 47, answer 5: a refused sign-off keeps its photos: '
@@ -273,12 +286,12 @@ void main() {
       );
       await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
       await tester.pumpAndSettle();
+      await _takePhoto(tester);
       await tester.enterText(
         find.byKey(const Key('proof-note')),
         s.sleevesNote,
       );
-      await tester.tap(find.byKey(const Key('proof-send')));
-      await tester.pumpAndSettle();
+      await _sendDone(tester);
       expect(work.calls, isEmpty);
       final kept = container.read(workOutboxProvider).single;
       expect(kept.refused, isTrue);
@@ -318,8 +331,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('proof-send')));
-      await tester.pumpAndSettle();
+      await _sendDone(tester);
       expect(work.calls.single, 'done post-trays ${s.sleevesNote} 1');
       expect(container.read(workOutboxProvider), isEmpty);
       expect(app.work.uploads.last, contains('/post-trays/'));
@@ -342,8 +354,8 @@ void main() {
       );
       await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('proof-send')));
-      await tester.pumpAndSettle();
+      await _takePhoto(tester);
+      await _sendDone(tester);
       final photo = container.read(workOutboxProvider).single.photos.single;
       await tester.tap(find.text(l10n.daybookCouldNotSend));
       await tester.pumpAndSettle();
@@ -435,8 +447,8 @@ void main() {
       );
       await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('proof-send')));
-      await tester.pumpAndSettle();
+      await _takePhoto(tester);
+      await _sendDone(tester);
       expect(work.calls, isEmpty);
       expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
       expect(
@@ -545,13 +557,13 @@ void main() {
       await tester.tap(_in('event-sleeves-back', _signPills(l10n)));
       await tester.pumpAndSettle();
       expect(find.byType(ProofCamera), findsOneWidget);
+      await _takePhoto(tester);
       // The server after the second sign-off: the send-back asks nobody.
       daybook.posts[DaybookSamples.space] = [
         ...s.s1().where((r) => r.id != 'event-sleeves-back'),
         s.sleevesSentBack(needsMe: false),
       ];
-      await tester.tap(find.byKey(const Key('proof-send')));
-      await tester.pumpAndSettle();
+      await _sendDone(tester);
       expect(work.calls, contains(startsWith('done post-sleeves')));
       expect(_in('event-sleeves-back', find.byType(BvPaperClip)), findsNothing);
       expect(_signPills(l10n), findsNothing);
@@ -568,6 +580,232 @@ void main() {
       );
       final id = s.o1().first.id;
       expect(_in(id, _signPills(l10n)), findsOneWidget);
+    });
+
+    // Part D of review 51: signing without a photo (F6), no accidental
+    // done (F7) and the sound (F5).
+
+    testWidgets('F6: Sign as done opens the proof with the camera one tap '
+        'away and "Without a photo"; without one the note is needed, and '
+        'the proof shows it with no photo [$lang]', (tester) async {
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+      );
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProofCamera), findsOneWidget);
+      // Nothing asked of the camera yet, and nothing to send.
+      expect(app.cameraAsks, isEmpty);
+      expect(find.byKey(const Key('proof-take-photo')), findsOneWidget);
+      expect(find.text(l10n.daybookCamera), findsOneWidget);
+      expect(find.byKey(const Key('proof-send')), findsNothing);
+      await tester.tap(find.text(l10n.daybookWithoutPhoto));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookWhatWasDone), findsOneWidget);
+      // No note yet: Send as done does nothing.
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProofCamera), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('proof-note')),
+        s.sleevesNote,
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ProofCamera), findsNothing);
+      // The proof on the page: the note and DONE, no photo, no frame.
+      const proof = 'sign_done-post-sleeves';
+      expect(_entry(proof), findsOneWidget);
+      expect(_in(proof, find.text(s.sleevesNote)), findsOneWidget);
+      expect(_in(proof, find.text(l10n.daybookStampDone)), findsOneWidget);
+      expect(_in(proof, find.byType(BvSlipPhoto)), findsNothing);
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'done post-sleeves ${s.sleevesNote} 0');
+      expect(app.work.uploads, isEmpty);
+      expect(app.cameraAsks, isEmpty);
+    });
+
+    testWidgets('F6: a proof with no photo shows the note and DONE with no '
+        'empty frame; the checker can send it back with "Photo missing" '
+        '[$lang]', (tester) async {
+      final work = FakeWorkRepository();
+      await _open(
+        tester,
+        lang,
+        posts: [
+          s.sleevesDone(),
+          s.sleevesSignOff(photos: const []),
+        ],
+        work: work,
+      );
+      const proof = 'event-sleeves-done';
+      expect(_in(proof, find.text(s.sleevesNote)), findsOneWidget);
+      expect(_in(proof, find.text(l10n.daybookStampDone)), findsOneWidget);
+      expect(_in(proof, find.byType(BvSlipPhoto)), findsNothing);
+      expect(_in(proof, find.byType(BvPaperClip)), findsOneWidget);
+      await _longPress(tester, proof);
+      await _pick(tester, l10n.daybookSendBack);
+      await tester.tap(find.text(l10n.daybookReasonPhotoMissing));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('send-back-card')),
+          matching: find.text(l10n.daybookSendBack),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(work.calls.single, 'back post-sleeves photo_missing ');
+    });
+
+    testWidgets('F7: a tap on Sign as done never signs; Send as done shows '
+        '"Signed as done · Undo", and sign_done goes only when it closes, '
+        'with the sound (F5) [$lang]', (tester) async {
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BvPostBar)),
+      );
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
+      await tester.pumpAndSettle();
+      expect(container.read(workOutboxProvider), isEmpty);
+      await _takePhoto(tester);
+      expect(container.read(workOutboxProvider), isEmpty);
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookSignedUndo), findsOneWidget);
+      expect(find.byKey(const Key('undo-bar-action')), findsOneWidget);
+      // Held on the phone: DONE on the item, not "Waiting to send".
+      expect(
+        container.read(workOutboxProvider).single.kind,
+        PendingKind.signOff,
+      );
+      expect(
+        _in('post-sleeves', find.text(l10n.daybookStampDone)),
+        findsOneWidget,
+      );
+      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      await tester.pump(const Duration(seconds: 4));
+      expect(app.work.calls, isEmpty);
+      expect(app.work.uploads, isEmpty);
+      expect(app.chimes, isEmpty);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'done post-sleeves  1');
+      expect(app.chimes, ['haptic', 'sound']);
+    });
+
+    testWidgets('F7: Undo: nothing reaches the server, and the proof opens '
+        'again with its photo and note [$lang]', (tester) async {
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BvPostBar)),
+      );
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
+      await tester.pumpAndSettle();
+      await _takePhoto(tester);
+      await tester.enterText(
+        find.byKey(const Key('proof-note')),
+        s.sleevesNote,
+      );
+      await tester.tap(find.byKey(const Key('proof-send')));
+      await tester.pumpAndSettle();
+      final photo = container.read(workOutboxProvider).single.photos.single;
+      await tester.tap(find.byKey(const Key('undo-bar-action')));
+      await tester.pumpAndSettle();
+      expect(container.read(workOutboxProvider), isEmpty);
+      expect(find.byType(ProofCamera), findsOneWidget);
+      expect(find.text(s.sleevesNote), findsOneWidget);
+      expect(find.byKey(const Key('proof-label')), findsOneWidget);
+      expect(File(photo.local).existsSync(), isTrue);
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(app.work.calls, isEmpty);
+      expect(app.chimes, isEmpty);
+      // Sent again from here, it goes with the same photo.
+      await _sendDone(tester);
+      expect(app.work.calls.single, 'done post-sleeves ${s.sleevesNote} 1');
+    });
+
+    testWidgets('F7: a scroll that starts on Sign as done or on the post '
+        'bar camera opens nothing [$lang]', (tester) async {
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+      );
+      final pill = _in(
+        'post-sleeves',
+        find.byKey(const Key('slip-pill-action')),
+      );
+      for (final dy in [200.0, -200.0]) {
+        await tester.ensureVisible(pill);
+        await tester.pumpAndSettle();
+        await tester.drag(pill, Offset(0, dy));
+        await tester.pumpAndSettle();
+        expect(find.byType(ProofCamera), findsNothing);
+      }
+      // Pressed and moved for a second: neither a tap nor a hold.
+      await tester.timedDrag(
+        find.byKey(const Key('post-bar-camera')),
+        const Offset(0, -150),
+        const Duration(seconds: 1),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ProofCamera), findsNothing);
+      expect(find.byType(BvWritingCard), findsNothing);
+      expect(app.cameraAsks, isEmpty);
+      expect(app.work.calls, isEmpty);
+    });
+
+    testWidgets('F5: no sound while a proof only waits for a signal; the '
+        'sound when it is sent; none for a check [$lang]', (tester) async {
+      final work = FakeWorkRepository()..failSendNext = 3;
+      final app = await _open(
+        tester,
+        lang,
+        posts: s.o1(),
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+        work: work,
+      );
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
+      await tester.pumpAndSettle();
+      await _takePhoto(tester);
+      await _sendDone(tester);
+      expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
+      expect(app.chimes, isEmpty);
+      await tester.pump(const Duration(seconds: 31));
+      await tester.pumpAndSettle();
+      expect(work.calls.single, startsWith('done post-sleeves'));
+      expect(app.chimes, ['haptic', 'sound']);
+    });
+
+    testWidgets('F5: a check is not a post: no sound [$lang]', (tester) async {
+      final app = await _open(tester, lang, posts: s.d1());
+      await _doubleTapProof(tester);
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'check post-sleeves');
+      expect(app.chimes, isEmpty);
     });
 
     testWidgets('Y1, Y2: swipe a slip to the end side, write an update; it '
@@ -981,6 +1219,54 @@ void main() {
     await next.read(workOutboxProvider.notifier).flushAll();
     expect(work.calls.single, 'check post-sleeves');
     expect(next.read(workOutboxProvider), isEmpty);
+  });
+
+  test('a sign-off held for its undo bar is sent on the next open if the '
+      'app closed meanwhile (F7)', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final work = FakeWorkRepository();
+    final heard = <String>[];
+    ProviderContainer open() => ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        authUserIdProvider.overrideWithValue(
+          const AsyncData(DaybookSamples.omar),
+        ),
+        workRepositoryProvider.overrideWithValue(work),
+        daybookRepositoryProvider.overrideWithValue(FakeDaybookRepository()),
+        sentChimeProvider.overrideWithValue(
+          SentChime(
+            soundOn: () async => true,
+            playSound: () async => heard.add('sound'),
+            haptic: () async => heard.add('haptic'),
+          ),
+        ),
+      ],
+    );
+    final first = open();
+    await first
+        .read(workOutboxProvider.notifier)
+        .hold(
+          const PendingItem(
+            id: 'post-sleeves',
+            spaceId: DaybookSamples.space,
+            title: 'Sleeves',
+            ownerId: DaybookSamples.omar,
+            ownerName: 'Omar Haddad',
+            note: 'Sleeves fixed',
+          ),
+          const Duration(seconds: 5),
+        );
+    first.dispose();
+    expect(work.calls, isEmpty);
+
+    final next = open();
+    addTearDown(next.dispose);
+    await next.read(workOutboxProvider.notifier).flushAll();
+    expect(work.calls.single, 'done post-sleeves Sleeves fixed 0');
+    expect(next.read(workOutboxProvider), isEmpty);
+    expect(heard, ['haptic', 'sound']);
   });
 
   test('undo: a held check never leaves the phone', () async {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
+import 'package:buildvibes/core/sound/sent_chime.dart';
 import 'package:buildvibes/data/repositories/account_repository.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
@@ -102,7 +103,12 @@ class TestApp {
     required this.account,
     required this.opened,
     required this.cameraAsks,
+    required this.chimes,
   });
+
+  /// The "sent" sound and haptic (F5), in the order they came: 'haptic'
+  /// and 'sound' for each post or sign-off the server accepted.
+  final List<String> chimes;
 
   /// Each photo asked for: true from the camera, false from the gallery.
   final List<bool> cameraAsks;
@@ -237,6 +243,7 @@ Future<TestApp> pumpApp(
   final opened = <Uri>[];
   final saved = <String>[];
   final cameraAsks = <bool>[];
+  final chimes = <String>[];
   final sharedFiles = <String>[];
 
   await tester.pumpWidget(
@@ -319,6 +326,13 @@ Future<TestApp> pumpApp(
           Duration.zero,
         ]),
         shareTextProvider.overrideWithValue((text) async => shared.add(text)),
+        sentChimeProvider.overrideWithValue(
+          SentChime(
+            soundOn: () async => true,
+            playSound: () async => chimes.add('sound'),
+            haptic: () async => chimes.add('haptic'),
+          ),
+        ),
         ...overrides,
       ],
       child: const BuildVibesApp(),
@@ -349,6 +363,7 @@ Future<TestApp> pumpApp(
     account: fakeAccount,
     opened: opened,
     cameraAsks: cameraAsks,
+    chimes: chimes,
   );
 }
 

@@ -81,4 +81,18 @@ abstract final class BvProofCameraSpec {
 
   /// A sign-off note's length on the server (work_item_events.note).
   static const noteMax = 1000;
+
+  // F6 (review 50): before the first photo, the camera is one tap away
+  // in the middle (a white ring, unlike the orange Send as done), with
+  // "Without a photo" under it all. No frame draws it; sizes follow O2.
+  static const shutter = 72.0;
+  static const shutterStroke = BvStroke.thick;
+  static const shutterIcon = BvSize.iconLg; // 24
+  static const shutterGap = BvSpace.s8;
+
+  /// Without a photo the note says what was done: more room for it.
+  static const noteLinesRequired = 5;
+
+  /// Send as done before the note is written (without a photo).
+  static const sendDisabledOpacity = 0.4;
 }

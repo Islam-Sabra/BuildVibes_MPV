@@ -3244,6 +3244,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookAddAnotherPhoto => 'أضف صورة أخرى';
 
   @override
+  String get daybookWithoutPhoto => 'بلا صورة';
+
+  @override
+  String get daybookWhatWasDone => 'ما الذي أُنجز؟';
+
+  @override
+  String get daybookSignedUndo => 'وُقّع كمنجز';
+
+  @override
   String get daybookCloseProof => 'إغلاق';
 
   @override
