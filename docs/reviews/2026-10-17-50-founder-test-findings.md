@@ -144,3 +144,27 @@ The founder expects to add an update with a **press**, not a swipe. A swipe is h
   - does `feed_page` as Omar return it?
   - is there a block or mute between them?
 - The cause and the fix go here.
+
+## F19. The feed card and the post page don't look like the agreed design
+The founder compared Omar's screens (emulator, Arabic) with what was agreed: text size, spacing and alignment aren't at the prototype's level. Measured against AR H1 `2564:184` (and EN H1 `2555:35276`).
+
+**Feed card (Home):**
+- **The ⋯ menu** sits on its own line, lower than the name. In the frame it's level with the author's name, at the card's top trailing corner (top-left in Arabic).
+- **The author block** is small and light. The frame has the avatar, the **name in semibold** and the **headline under it** ("رئيس عمال MEP، جلف بيلد"). When a person has no headline, the name sits centred with the avatar, with no empty line.
+- **The text** is smaller and further from the author than in the frame. Use the frame's body style and spacing (text directly under the author block). No large empty area inside a short post: the card hugs its content.
+- **The actions** (مفيد, رد, and the share arrow on the far side) take the frame's size and position, with 48-point tap areas.
+- **Time:** the spine shows the time (F15 fixes the cut "1:5…").
+
+**Post page (replies):** this screen still has the 0.9.0 look and wasn't restyled in slice 1.
+- **The post at the top:** the same card as the feed.
+- **Each reply** is a small slip:
+  - the avatar, then the **name and time on one line**;
+  - "Replying to …" under them when it answers a reply (F2);
+  - the text in the body style;
+  - مفيد and رد under the text, aligned with it;
+  - ⋯ level with the name, at the top trailing corner.
+  - No reply without an avatar. Consistent widths, not bubbles of random width.
+- **The reply bar:** the frame's input style, with the sender's avatar, the field, and the send button on the end side.
+- **The same post, three identical replies** ("hello islam" ×2, "helllo islam") from Islam Ahmed: check whether that was three sends or a retry that posted twice. The id is chosen by the app, so a retry must never duplicate. If it was a retry, it's a bug; add a test.
+
+**Check:** a screenshot test of a feed card with no headline, a long post, a short post, and a post page with 3 replies (one "Replying to"), in EN and AR, compared with H1.
