@@ -318,7 +318,7 @@ select lives_ok($$select public.cancel_space_post(pg_temp.item('a011'), 'Not nee
 select is((select string_agg(status, ',' order by id) from public.space_posts
            where id in (pg_temp.item('a011'), pg_temp.item('a012'))), 'cancelled,cancelled',
   'the work items under it are cancelled with it');
-select is((select daybook.post -> 'stamp' ->> 'kind' from public.daybook_page(pg_temp.sp()) daybook
+select is((select daybook.entry -> 'stamp' ->> 'kind' from public.daybook_page(pg_temp.sp()) daybook
            where daybook.id = pg_temp.item('a011')), 'cancelled',
   'it stays in the daybook with a CANCELLED stamp');
 select pg_temp.as_user('e2');
@@ -334,7 +334,7 @@ select pg_temp.as_user('e3');
 set local role authenticated;
 select throws_ok($$select pg_temp.raise('a010', 'Too deep', 'e2', p_parent => 'a009')$$, '22023', null,
   'one level only');
-select is((select (daybook.post -> 'children') - 'rows' from public.daybook_page(pg_temp.sp()) daybook
+select is((select (daybook.entry -> 'children') - 'rows' from public.daybook_page(pg_temp.sp()) daybook
            where daybook.id = pg_temp.item('a008')), '{"total": 1, "checked": 0}'::jsonb,
   'the parent shows its progress');
 select is(jsonb_array_length(public.post_page(pg_temp.item('a008')) -> 'under'), 1,
@@ -428,7 +428,7 @@ select throws_ok($$select pg_temp.raise('a004', 'Someone else''s id', 'e2')$$, '
 -- Reading the daybook ---------------------------------------------------------------------------------------
 
 select pg_temp.as_user('e6');
-select is((select (daybook.post ->> 'needs_me')::boolean from public.daybook_page(pg_temp.sp()) daybook
+select is((select (daybook.entry ->> 'needs_me')::boolean from public.daybook_page(pg_temp.sp()) daybook
            where daybook.id = pg_temp.item('a007')), true,
   'the paper clip: work given to me needs me');
 reset role;

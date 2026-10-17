@@ -249,7 +249,7 @@ select throws_ok($$select public.tick_point(pg_temp.item('b003'), true)$$, '4250
   'nor a non-member');
 select pg_temp.as_user('e2');
 select lives_ok($$select public.tick_point(pg_temp.item('b001'), false)$$, 'the author unticks it');
-select is((select d.post -> 'points' from public.daybook_page(pg_temp.sp()) d
+select is((select d.entry -> 'points' from public.daybook_page(pg_temp.sp()) d
            where d.id = pg_temp.item('a102')), '{"total": 3, "ticked": 1}'::jsonb,
   'the slip shows 1 of 3 ticked');
 select is((select p ->> 'ticked_by_name' from jsonb_array_elements(
@@ -309,7 +309,7 @@ set local role authenticated;
 select is((select count(*) from public.needs_you() where kind = 'checklist_for_you'
            and space_post_id = pg_temp.item('a102')), 1::bigint,
   'a checklist with points to tick is in its people''s Needs you');
-select is((select (d.post ->> 'needs_me')::boolean from public.daybook_page(pg_temp.sp()) d
+select is((select (d.entry ->> 'needs_me')::boolean from public.daybook_page(pg_temp.sp()) d
            where d.id = pg_temp.item('a102')), true, 'with the paper clip');
 select pg_temp.as_user('e2');
 select is((select count(*) from public.needs_you() where kind = 'checklist_for_you'), 0::bigint,
@@ -330,7 +330,7 @@ select pg_temp.as_user('e3');
 set local role authenticated;
 select is((select count(*) from public.needs_you() where space_post_id = pg_temp.item('a102')),
   0::bigint, 'someone lowered to Viewer no longer has it in Needs you');
-select is((select (d.post ->> 'needs_me')::boolean from public.daybook_page(pg_temp.sp()) d
+select is((select (d.entry ->> 'needs_me')::boolean from public.daybook_page(pg_temp.sp()) d
            where d.id = pg_temp.item('a102')), false, 'nor the paper clip');
 reset role;
 update public.space_members set pass = 'lead'
@@ -358,7 +358,7 @@ select lives_ok($$select public.ack(pg_temp.item('a101'), 'got_it')$$, 'twice is
 select throws_ok($$select public.ack(pg_temp.item('a101'), 'received')$$, '22023', null,
   'each kind takes its own acknowledgement');
 select is((select count(*) from public.post_acks), 1::bigint, 'everyone reads only their own');
-select is((select d.post -> 'my_acks' from public.daybook_page(pg_temp.sp()) d
+select is((select d.entry -> 'my_acks' from public.daybook_page(pg_temp.sp()) d
            where d.id = pg_temp.item('a101')), '["got_it"]'::jsonb, 'and sees it on the slip');
 select pg_temp.as_user('e4');
 select lives_ok($$select public.ack(pg_temp.item('a101'), 'got_it')$$, 'a Viewer acknowledges too');
@@ -459,9 +459,9 @@ select pg_temp.as_user('e2');
 set local role authenticated;
 select lives_ok($$select public.create_space_post(pg_temp.item('a109'), pg_temp.sp(), 'file', null,
                     p_library_file => pg_temp.item('f004'))$$, 'the new version is shared');
-select is((select d.post -> 'stamp' ->> 'kind' from public.daybook_page(pg_temp.sp()) d
+select is((select d.entry -> 'stamp' ->> 'kind' from public.daybook_page(pg_temp.sp()) d
            where d.id = pg_temp.item('a109')), 'new_version', 'with a NEW VERSION stamp');
-select is((select d.post -> 'file' -> 'replaces' ->> 'rev_label' from public.daybook_page(pg_temp.sp()) d
+select is((select d.entry -> 'file' -> 'replaces' ->> 'rev_label' from public.daybook_page(pg_temp.sp()) d
            where d.id = pg_temp.item('a109')), 'Rev C', 'saying what it replaces');
 select throws_ok($$select public.delete_library_file(pg_temp.item('f001'))$$, 'P0001', null,
   'a file a post shares stays in the Library');

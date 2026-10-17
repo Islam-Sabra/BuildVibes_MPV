@@ -411,7 +411,7 @@ Rules from review 33 (A0, A1 and the 15 Oct clarifications) and `docs/product/da
 | `edit_space_post(post, changes)` | Author only, while they may still post (not lowered to Viewer, posting not switched off; files need the files right), and while editable: a work item while Open (locked after Done, open again after Send back, locked for good after Checked); other kinds while live. Keys: `title`, `body`, `place`, `due`, `add_files`, `remove_files`. Every change goes into `post_edits` and tells the owner (`item_edited`). The owner is changed with Reassign, not by editing. Checklist points come in migration 19 (a ticked point can't be removed or reworded). |
 | `delete_space_post(post)` | Author only, and only while nobody else has added anything: no update, sign-off, check or file by someone else, and no work item under it, whoever made it (migration 19 adds ticks and acknowledgements). A soft delete: the post leaves the daybook, Needs you, Today and Activity, and its files are released for the cleanup. |
 | `cancel_space_post(post, note)` | The author, or a Space admin when the author is gone (left, or their account is waiting to be deleted). Not a Checked item; it locks the work items first, so a sign-off or check running at the same moment finishes before it. The post stays with a CANCELLED stamp; work items under it that aren't Checked are cancelled with it; each owner is told (`item_cancelled`). Nothing can be signed, checked or added after. |
-| `daybook_page(space, before, limit, before_id)` | The posts the caller may see, newest first (at most 100). The next page passes the last post's time and id, so posts made at the same moment aren't skipped. Each post has: stamp, paper clip (`needs_me`), cover photo, progress of the items under it, last edits. |
+| `daybook_page(space, before, limit, before_id)` | The entries the caller may see, newest first (at most 100): posts, sign-offs and updates (migration 23, §19). The next page passes the last entry's time and id, so entries made at the same moment aren't skipped. Each post has: stamp, paper clip (`needs_me`), cover photo, progress of the items under it, last edits. |
 | `post_page(post)` | One post in full: files, record of events, attachments, items under it, parent, all edits. |
 | `needs_you()` | Open items I own; Done items I check (I'm the author, or an admin acting for an author who is gone or owns it); "Owner left" for whoever acts for the author; join requests I can confirm. |
 
@@ -554,6 +554,35 @@ Rules from review 33 A5, founder decision F10 and review 41 (`space-scenarios.md
 **Live, each with its own yes:** deploy the push function with the direct message texts, then push migration 22.
 
 **Put in a Space and Save to my notebook** happen in the app: a work item with the message as its `quote` (§14), or `save_note` with its words (§16). The message stays private.
+
+## 19. Daybook extras (migration 23, `20261017120000_daybook_extras.sql`, branch `daybook-extras-db`, not live)
+Answers in review 44 (questions 2, 3, 5).
+
+**A due time.** `space_posts.due_at` (optional) sits next to `due_date` on work items and checklists. The phone sends both, its own date and its own time, so no time zone goes in SQL. `due_at_fits(day, at)` (a table check too) only lets a time that falls on that date somewhere on Earth (UTC−12 to UTC+14); a time needs a date.
+- `create_work_item(…, p_due_at)` and `create_space_post(…, p_due_at)` (checklists only) take it.
+- `edit_space_post`: `due` and `due_at` change together. A new date alone has no time (the same date sent again keeps it); a time alone keeps the date; clearing the date clears the time. The Edited line keeps its shape, `due: {from, to}`, with `from_at` and `to_at` when a time is involved; a time-only change has `from` equal to `to`, so the app reads `from_at`/`to_at` first.
+- **Late** (`is_late`): a timed item is late after its time; a date-only item is late from the day after its date (the phone's today), as before. In `week_report`, a timed item is late after its time, and is "coming up" until then, whatever the reader's today; every list with a due date carries `due_at`.
+- `my_calendar` puts a work item's or checklist's time in `starts_at`, as a to-do's. `space_post_json` and Download my data carry `due_at`.
+- `work_items.due_date` keeps the date only (it mirrors `space_posts.due_date`).
+
+**On site since.** `spaces.site_start_date` (optional) is set only by a Space admin with `set_site_start_date(space, day)`: not before 2000 and at most a year ahead; null clears it. Members read it with the Space. The daybook counts "day N" from it (that day is day 1); without it, the line shows only the date. It is never counted from the Space's creation date (rule 3).
+
+**The month drop-down.** `daybook_month(space, from_day, to_day, from, to)` covers at most 62 days. A non-member gets nothing.
+- `posts` rows: the quarter hours (`at`, rounded down to 15 minutes, distinct) with a post the caller can see, as the daybook page lists them. The phone groups them by its own days; every time zone is a whole number of quarter hours from UTC.
+- `due` rows: the days (`day`) with a live work item that isn't checked, or a live checklist with a point not ticked, the caller can see.
+- A dot per day, never a count. A Team's posts follow `can_see_space_post`.
+
+**The daybook's entries** (review 45 M1–M4). `daybook_page(space, before, limit, before_id)` now returns `(id, created_at, kind, entry)`, newest first, with one cursor (time, id) across all kinds:
+- `post`: the post's JSON, as before.
+- `sign_off`: a done event, its own entry at its own time. It carries the work item's id, ref and title (shown as the quote), who signed, the note, the photos (path, taken at, place), the time, and its **outcome**: `checked` (by, at) if a check followed it, `sent_back` (reason, note, by, at) if a send-back did, otherwise `cancelled` if the item was cancelled, else `done`. An item sent back and signed again has two sign-offs: the older stamped SENT BACK, the newer DONE or CHECKED.
+- `update`: a comment event: who wrote it, the note, any photos, the time, and the item's title as the quote.
+- An entry is seen as its work item is (`can_see_space_post`); a deleted item's entries go with it, a cancelled item's stay as the record.
+- **The paper clip** (`needs_me`): for whoever may check, it is on the latest sign-off while the item is Done, never on the work item slip. For the owner (Open or Sent back), it stays on the slip, next to Sign as done.
+- The work item slip also has `attachments` (its first three Library files the reader may read: name, `rev_label`), `attachments_more`, and `given_to` (the last reassignment: from, to, at). The full post JSON lists every attachment, with `rev_label` too.
+- `daybook_month`'s dots count sign-offs and updates too.
+- Each event row carries its `space_id` (set on insert), so the daybook reads sign-offs and updates newest first from an index, as it reads posts.
+
+**Undo of a check** needs nothing on the server: the app holds the check for the undo bar's 5 seconds, then sends it (review 44, answer 4). The same applies to every action with an undo bar.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
