@@ -243,6 +243,20 @@ Step 9 on the founder's phone: one compact date line ✓; New Space and Enter an
 ## F29. Withdrawn: the place was never set
 The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn't used, so NST-007 correctly has no place. **Not a bug.** Claude Code still checks once on the emulator that a place set through ⋯ → Location reaches the server, online and from the outbox (a cheap guard, since F22 and F29 were both close calls).
 
+## F30. The feed card doesn't show that a post has replies
+- **What the founder said:** on Home, a post with replies looks the same as one without. He only found Omar's reply by opening the post. He had asked for this before.
+- **Fix (lead's call):** under the post's text, one quiet line with **the latest reply**: the replier's small face and name, and the start of the reply ("Omar Haddad: Seen it, thanks Islam"). When more than one person has replied, up to three small faces sit before it. Tapping the line opens the post at that reply.
+  - **No number** (rule 3): faces and the latest words show that there are replies, and who replied.
+  - A reply that answers you is in bold until you open the post.
+  - The same line goes on the post card wherever it appears (Home feed, profile, project).
+- **Server:** the feed and post JSON carry the latest live reply (id, author, first 80 characters, time) and up to three distinct reply authors. A blocked person's replies are never used.
+- **Figma:** the lead adds the line to H1 (EN `2555:35276`, AR `2564:184`) before the build.
+
+## F31. A "Reply" button on your own reply
+- **What happened:** after the founder answered Omar, his own reply showed a Reply button.
+- **Fix:** no **Reply** and no **Useful** on your own replies; only ⋯ (Edit, Delete). Others can still reply to your reply.
+- Step 11 itself passed: the reply sits under Omar's, reads "Replying to Omar Haddad" (F2 ✓), and the keyboard didn't hide the text on the phone.
+
 ## Retest results so far (steps 1–9)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
 - **Step 10, a post to everyone:** in Omar's feed without a restart, and pull-to-refresh works on a short feed (F18 ✓).
