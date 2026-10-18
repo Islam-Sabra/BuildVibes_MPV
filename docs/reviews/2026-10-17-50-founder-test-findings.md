@@ -168,3 +168,15 @@ The founder compared Omar's screens (emulator, Arabic) with what was agreed: tex
 - **The same post, three identical replies** ("hello islam" ×2, "helllo islam") from Islam Ahmed: check whether that was three sends or a retry that posted twice. The id is chosen by the app, so a retry must never duplicate. If it was a retry, it's a bug; add a test.
 
 **Check:** a screenshot test of a feed card with no headline, a long post, a short post, and a post page with 3 replies (one "Replying to"), in EN and AR, compared with H1.
+
+---
+
+# Retest, 18 Oct 2026 (build 7060c03)
+
+## F20. An Activity row opens the Space, not the work item
+- **What happened:** the founder tapped an Activity row about a work item. The Space opened at its newest entries, and he had to find the item himself.
+- **Expected:** the row opens **the slip it's about**: the Space scrolls to that entry and highlights it briefly, wherever it sits in the daybook. For a sign-off, that's the proof slip; for a send-back, the send-back slip; for an update, the update.
+- **Bring it forward from slice 10:** a foreman who taps "Omar signed as done" must land on that proof, not search for it. The same target is used by pushes, Needs you cards, and Activity rows.
+  - If the entry is older than the loaded page, load around it (by its cursor), not from Now.
+  - If it was deleted, open the Space with a short "This entry was removed".
+- **Test:** an Activity row for an entry three days old opens with that slip on screen and highlighted, in EN and AR.
