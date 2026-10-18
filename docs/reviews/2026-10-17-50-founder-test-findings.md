@@ -195,6 +195,14 @@ Claude Code saw NST-006 on live with no place, due date or time and reported the
 - **Expected (D1):** the masthead follows the day of the slips at the top of the screen. Above Saturday's slips it says Saturday; the divider before Sunday's slips says Sunday. The same day never appears twice in a row.
 - **Test:** a daybook with two days. Scrolled to the older day, the masthead shows that day; at Now, it shows today, with exactly one divider between them, in EN and AR.
 
+## F24. The keyboard hides the update being written
+- **What happened:** on the founder's Xiaomi, after Add update the keyboard opened over the field, so he couldn't see what he was typing. He typed blind, then pressed the keyboard's OK to close it and read the text.
+- **Severity: high.** Every text field must stay visible while typing, above the keyboard; a foreman can't type blind.
+- **Fix:** the update sheet (and every sheet with a text field: send-back note, proof note, reply) moves up with the keyboard (`viewInsets.bottom`, `isScrollControlled`, the sheet scrolls so the field and its send button sit just above the keyboard).
+  - Check on the Xiaomi (HyperOS, gesture bar) and with the keyboard's suggestion strip on, not only on the emulator.
+  - The keyboard's action key sends only where a single line makes sense; in a multi-line note it adds a new line, and the send button stays visible.
+- **Test:** a widget test with a 300-point keyboard inset: the field and the send button are fully on screen, for each sheet, in EN and AR.
+
 ## Retest results so far (steps 1–6)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
 - **Undo after "Send as done" (F7):** Undo at 1.2 s sent nothing and brought back the proof screen with the photo. Left alone, the sign-off reached the server after exactly 5 seconds.
