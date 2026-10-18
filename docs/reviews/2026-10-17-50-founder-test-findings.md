@@ -201,7 +201,19 @@ Claude Code saw NST-006 on live with no place, due date or time and reported the
 - **Fix:** the update sheet (and every sheet with a text field: send-back note, proof note, reply) moves up with the keyboard (`viewInsets.bottom`, `isScrollControlled`, the sheet scrolls so the field and its send button sit just above the keyboard).
   - Check on the Xiaomi (HyperOS, gesture bar) and with the keyboard's suggestion strip on, not only on the emulator.
   - The keyboard's action key sends only where a single line makes sense; in a multi-line note it adds a new line, and the send button stays visible.
+- **Cause seen in the founder's screenshot:** the Add update sheet quotes the whole slip, with its full-size photo and stamp, so the field is pushed below the keyboard. **The sheet quotes the item in one line** (ref, title, a small thumbnail), with the field right under it.
+- The keyboard's ✓ key sends the update at once. That's fine for a one-line update, once the text is visible.
 - **Test:** a widget test with a 300-point keyboard inset: the field and the send button are fully on screen, for each sheet, in EN and AR.
+
+## F25. A work item and what happened to it read as separate posts
+- **What the founder said:** the work item, its proof, the send-back, the check and the update each appear as a separate slip with its own area. At first look they read as separate issues. He wants a work item and its updates to read as **one element**.
+- **Lead's recommendation (needs the founder's ok: it changes the signed-off prototype):** **one card per work item**.
+  - The card holds the item (title, owner, due, place), its current stamp (OPEN, DONE, SENT BACK, CHECKED), the latest proof photo, and a short trail inside, one line per event ("Omar signed as done · 10:56", "Sent back: Photo missing · 10:52", "Islam: Area cleaned · 10:59"). The last three lines show; "Show earlier" opens the rest.
+  - When something new happens, the card moves down to Now, as a chat moves to the top in WhatsApp. On the earlier day, a thin one-line trace stays ("Omar signed as done · Fix door closer ▸"), so each day's record is still true; tapping it goes to the card.
+  - The gestures stay: double-tap the photo to check, long-press for the menu, the paper clip when it needs you.
+  - Slice 2's checklists, announcements and files follow the same rule: one card, its trail inside.
+- **Cost:** the lead redraws D1, S1, E and the AR daybook in Figma first, for the founder's look. Then a server change (`daybook_page` returns one entry per post, at its last activity, with its events inside, plus the traces) and the slip rework: about 2–3 days, before slice 2.
+- **Cheaper alternative, not recommended:** keep separate slips and link them (a thread line on the spine, a ref chip). About a day, but an item still takes four slips on screen.
 
 ## Retest results so far (steps 1–6)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
