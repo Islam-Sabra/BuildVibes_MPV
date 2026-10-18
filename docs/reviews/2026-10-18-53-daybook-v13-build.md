@@ -133,6 +133,7 @@ Change the values in `BvType`, so every screen follows. The token names stay.
 - **F28, Home → Spaces:** "Join with a code" instead of the cut "Enter an invite co…"; a quiet › instead of the orange Open buttons; Needs you grouped by Space; "added an update" wording; the last-activity time on every Space; the Space emblem in the tile.
 - **F30, replies visible on the feed card:** the latest reply line with up to three faces, no number (review 50). Server: the latest live reply and up to three reply authors in the feed and post JSON; it can go in migration 26. Build from the H1 frames once the lead has updated them.
 - **F31:** no Reply and no Useful on your own replies.
+- **F32, Activity v3:** one list, newest first, grouped by day, all sources mixed; one slim "Needs you ›" line at the top that opens Home → Spaces (review 50). Build from A1 v3 once the lead has drawn it.
 - **F21** (attach a file) is slice 2. Nothing in this round.
 
 ## Part E: report

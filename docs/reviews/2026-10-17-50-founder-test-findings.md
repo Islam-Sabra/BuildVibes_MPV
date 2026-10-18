@@ -257,6 +257,22 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 - **Fix:** no **Reply** and no **Useful** on your own replies; only ⋯ (Edit, Delete). Others can still reply to your reply.
 - Step 11 itself passed: the reply sits under Omar's, reads "Replying to Omar Haddad" (F2 ✓), and the keyboard didn't hide the text on the phone.
 
+## F32. Activity is split into blocks, so Home's activity sits at the bottom
+- **What the founder said:** Activity shows Needs you with the Space names first, then a block per Space (what changed, newest to oldest), and only at the very bottom the activity from Home (replies to his posts). Something that just happened can be far down. The screen needs rethinking.
+- **Cause:** A1 v2 groups rows by source (each Space, Your record, Your network, Your posts) and sorts the groups, not the rows.
+- **Activity v3 (lead's call):**
+  - **One list, newest first,** grouped only by day ("Today", "Yesterday", "Wednesday 14 October"). Spaces, your posts, people and your record are mixed in time order.
+  - **Each row** (at least 64 points tall):
+    - the person's face;
+    - one line saying what happened ("Omar Haddad replied to your post: Seen it, thanks Islam");
+    - under it, in small grey, where it happened ("NBKCH SITE TEAM" or "Your post · retest post");
+    - the time on the end side.
+    - An unread row has a dot and a bold name. Tapping the row opens the exact thing (F20).
+  - **No Needs you block:** Needs you lives on Home → Spaces, and showing it twice was the duplication of F10. At the top sits one slim line, "2 things need you ›", which opens Home → Spaces. A row that still needs you carries the paper clip.
+  - No groups by source, no REV stamp, no letters. The last 30 days, loading more as you scroll.
+  - Two text sizes (F27).
+- **Figma:** the lead draws A1 v3 (EN and AR) before the build.
+
 ## Retest results so far (steps 1–9)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
 - **Step 10, a post to everyone:** in Omar's feed without a restart, and pull-to-refresh works on a short feed (F18 ✓).
