@@ -538,6 +538,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - **Live 17 Oct** (founder's yes, review 48): `sent-back-db` merged into main; `supabase db push` listed only `20261017180000_sent_back.sql`. Read-only check: `work_item_events_daybook_idx` exists and covers done, comment and sent_back. The 1e build (draws send-back entries) goes on the founder's phone the same day.
 
 - **17 Oct, migration 25, fixes from the founder's slice 1 test** (review 51 Part F; branch `test-fixes-db`, **not live**): replies answer any reply on the post, filed under the top comment with the person answered (`reply_to_person`), who gets the notification; `drop_stale_push_tokens()` drops tokens not seen for 30 days (service role, for the nightly cleanup). 1,672 SQL checks in 25 files (24 for migration 25). Live with the founder's yes, as the only file in the push.
+  - **Live 18 Oct** (founder's yes, review 52): `test-fixes-db` merged into main; `supabase db push` listed only `20261017220000_test_fixes.sql`. Read-only check: `post_replies.reply_to_person` exists (4 older replies back-filled), `drop_stale_push_tokens` exists and the app can't run it. Scheduling it nightly is a later step, with its own yes.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
