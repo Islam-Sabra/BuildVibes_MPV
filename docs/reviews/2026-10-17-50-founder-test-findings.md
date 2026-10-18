@@ -195,6 +195,10 @@ Claude Code saw NST-006 on live with no place, due date or time and reported the
 - **Expected (D1):** the masthead follows the day of the slips at the top of the screen. Above Saturday's slips it says Saturday; the divider before Sunday's slips says Sunday. The same day never appears twice in a row.
 - **Test:** a daybook with two days. Scrolled to the older day, the masthead shows that day; at Now, it shows today, with exactly one divider between them, in EN and AR.
 
-## Not yet seen in the retest
-- **The 5-second Undo after "Send as done":** not tested. The bar had closed before Claude Code's tap; the sign-off then went as designed. Test it on the next sign-off.
-- **A push to Omar while his app is in the background, and an item arriving without a refresh:** sent on live with no error, but not seen on the emulator. Check both later in the retest.
+## Retest results so far (steps 1–6)
+- **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
+- **Undo after "Send as done" (F7):** Undo at 1.2 s sent nothing and brought back the proof screen with the photo. Left alone, the sign-off reached the server after exactly 5 seconds.
+- **Pushes to the emulator:** sent on live with no error. They didn't reach the emulator because its Play services connection had gone stale after the PC changed networks. After switching the emulator's network off and on, the push landed within 6 seconds. Not an app bug.
+
+## Test note: emulators and pushes
+Before testing pushes on an emulator, switch its network off and on, especially after the PC has changed networks. A stale Play services connection looks exactly like F9 ("no push"), but the server log shows the push sent with no error.
