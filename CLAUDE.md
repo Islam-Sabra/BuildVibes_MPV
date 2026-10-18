@@ -84,7 +84,7 @@ Don't build out-of-scope features, even partly, without the founder's yes.
 | Owner of a work item | المكلّف |
 | Sign as done | وقّع كمنجز |
 | Done | منجز |
-| Checked | تم الفحص |
+| Checked | تم التحقق |
 | Send back | إرجاع |
 | Lead / Crew / Viewer | مسؤول / فريق تنفيذ / مُطّلع |
 | Pass | تصريح |

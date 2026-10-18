@@ -27,8 +27,8 @@
   "ar": {
     "title": "BuildVibes",
     "item_assigned": "بند عمل جديد لك من {name}.",
-    "item_done": "بند عمل منجز بتوقيع {name}، بانتظار فحصك.",
-    "item_checked": "تم فحص بند عملك بواسطة {name}.",
+    "item_done": "بند عمل منجز بتوقيع {name}، بانتظار تحقّقك.",
+    "item_checked": "تم التحقق من بند عملك بواسطة {name}.",
     "item_sent_back": "أُرجع إليك بند عمل من {name}.",
     "item_comment": "تعليق جديد من {name} على بند عمل.",
     "join_request": "طلب انضمام من {name} إلى مساحة تديرها.",

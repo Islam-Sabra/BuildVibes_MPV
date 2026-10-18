@@ -1,5 +1,7 @@
 # Arabic strings since week 4
 
+> **18 Oct:** "Checked" is now **تم التحقق** and "Check" **تحقّق** (founder, review 50 F14). Older rows below that still say فحص are superseded; the ARB files are the source of truth.
+
 **For:** Islam, to read the Arabic and mark anything to change.
 **How:** write the better Arabic next to a row, or under the table. I'll put each change into `lib/l10n/app_ar.arb`.
 
@@ -92,7 +94,7 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Viewer | مُطّلع |
 | {pass} pass | تصريح {pass} |
 | GIVE A PASS FOR THIS SPACE | امنح تصريحًا لهذه المساحة |
-| Opens: create items · check and close · files · invite | يتيح: إنشاء البنود · الفحص والإغلاق · الملفات · الدعوة |
+| Opens: create items · check and close · files · invite | يتيح: إنشاء البنود · التحقق والإغلاق · الملفات · الدعوة |
 | Engineers, supervisors | المهندسون والمشرفون |
 | Opens: chat · mark own items done with a photo · files | يتيح: المحادثة · توقيع البنود المكلّف بها كمنجزة بصورة · الملفات |
 | Foremen, technicians, subcontractors | رؤساء العمال والفنيون ومقاولو الباطن |
@@ -112,7 +114,7 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Mark own items done | توقيع البنود المكلّف بها كمنجزة |
 | Add files to the Library | إضافة ملفات إلى المكتبة |
 | Create work items | إنشاء بنود عمل |
-| Check and close items | فحص البنود وإغلاقها |
+| Check and close items | التحقق من البنود وإغلاقها |
 | Invite people | دعوة أشخاص |
 | Always | دائمًا |
 | Open | فتح |
@@ -151,7 +153,7 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Everyone posts and my Teams | «الجميع» وفِرقي |
 | Messages in Everyone and in your Teams, plus anything that needs you. | رسائل «الجميع» وفِرقك، وكل ما هو بانتظارك. |
 | Needs you only | بانتظارك فقط |
-| Items you own, items to check and people asking to join. | البنود المكلّف بها، والبنود التي تحتاج فحصًا، وطلبات الانضمام. |
+| Items you own, items to check and people asking to join. | البنود المكلّف بها، والبنود التي تحتاج تحققًا، وطلبات الانضمام. |
 | Off | إيقاف |
 | No alerts. Needs you still shows on your Home. | لا تنبيهات. يبقى «بانتظارك» ظاهرًا في الرئيسية. |
 | Transfer ownership | نقل إدارة المساحة |
@@ -197,20 +199,20 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Make someone else an admin first, or delete the Space. | اجعل شخصًا آخر مديرًا أولًا، أو احذف المساحة. |
 | {name} gave you a work item: {title} | بند عمل لك من {name}: {title} |
 | A work item for you: {title} | بند عمل لك: {title} |
-| {name} signed a work item as done: {title} | منجز بتوقيع {name}، بانتظار فحصك: {title} |
-| Signed as done. You check it: {title} | منجز، بانتظار فحصك: {title} |
+| {name} signed a work item as done: {title} | منجز بتوقيع {name}، بانتظار تحقّقك: {title} |
+| Signed as done. You check it: {title} | منجز، بانتظار تحقّقك: {title} |
 | {name} sent a work item back: {title} | أُرجع إليك بند عمل من {name}: {title} |
 | A work item came back to you: {title} | أُرجع إليك بند عمل: {title} |
 | The owner left. Reassign it: {title} | لم يعد المكلّف في المساحة. يلزم تكليف شخص آخر: {title} |
 | {name} asked to join {space} | طلب انضمام من {name} إلى {space} |
 | due {date} | الاستحقاق {date} |
 | WORK ITEM · FOR YOU | بند عمل · لك |
-| WORK ITEM · YOU CHECK IT | بند عمل · بانتظار فحصك |
+| WORK ITEM · YOU CHECK IT | بند عمل · بانتظار تحقّقك |
 | WORK ITEM · SENT BACK | بند عمل · مُرجَع |
 | WORK ITEM · OWNER LEFT | بند عمل · بلا مكلّف |
 | SPACE · REQUEST TO JOIN | مساحة · طلب انضمام |
 | Open | فتح |
-| Check | افحص |
+| Check | تحقّق |
 | Review request | راجع الطلب |
 
 ## Work items
@@ -221,28 +223,28 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | All | الكل |
 | Mine | الخاصة بي |
 | Open | مفتوحة |
-| To check | للفحص |
-| Checked | تم الفحص |
+| To check | للتحقق |
+| Checked | تم التحقق |
 | NEEDS YOU | بانتظارك |
 | OPEN | مفتوحة |
-| WAITING FOR A CHECK | بانتظار الفحص |
-| CHECKED THIS WEEK | تم فحصها هذا الأسبوع |
-| CHECKED EARLIER | تم فحصها سابقًا |
+| WAITING FOR A CHECK | بانتظار التحقق |
+| CHECKED THIS WEEK | تم التحقق منها هذا الأسبوع |
+| CHECKED EARLIER | تم التحقق منها سابقًا |
 | OPEN | مفتوح |
 | OPEN · DUE {date} | مفتوح · الاستحقاق {date} |
 | OPEN · WAS DUE {date} | مفتوح · كان مستحقًا {date} |
-| DONE · YOU CHECK IT | منجز · تفحصه أنت |
-| DONE · WAITING FOR A CHECK | منجز · بانتظار الفحص |
-| CHECKED · {date} | تم الفحص · {date} |
+| DONE · YOU CHECK IT | منجز · تتحقّق منه أنت |
+| DONE · WAITING FOR A CHECK | منجز · بانتظار التحقق |
+| CHECKED · {date} | تم التحقق · {date} |
 | Owner: you | المكلّف: أنت |
 | Owner: {name} | المكلّف: {name} |
 | from you | منك |
 | from {name} | من {name} |
-| checked by {name} | الفحص: {name} |
-| Checked by {name} | الفحص: {name} |
+| checked by {name} | التحقق: {name} |
+| Checked by {name} | التحقق: {name} |
 | {n, plural, =0{No photo} =1{1 photo} other{{n} photos}} | {n, plural, =0{بلا صورة} =1{صورة واحدة} =2{صورتان} few{{n} صور} many{{n} صورة} other{{n} صورة}} |
 | Sign as done | وقّع كمنجز |
-| Check it | افحصه |
+| Check it | تحقّق منه |
 | New item | بند جديد |
 | No work items yet | لا بنود عمل بعد |
 | Raise the first one with New item. The owner signs it as done, then it's checked. | أنشئ أول بند من «بند جديد». يوقّعه المكلّف كمنجز، ثم يُفحص. |
@@ -272,8 +274,8 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Pick a date | اختر تاريخًا |
 | No Team | بلا فريق |
 | e.g. Level 2 · Grid C7 | مثال: الدور 2 · المحور C7 |
-| {owner} gets it in Needs you. When it's marked done, you check it. | يصل إلى {owner} في «بانتظارك». وعند توقيعه كمنجز تفحصه أنت. |
-| The owner gets it in Needs you. When it's marked done, you check it. | يصل إلى المكلّف في «بانتظارك». وعند توقيعه كمنجز تفحصه أنت. |
+| {owner} gets it in Needs you. When it's marked done, you check it. | يصل إلى {owner} في «بانتظارك». وعند توقيعه كمنجز تتحقّق منه أنت. |
+| The owner gets it in Needs you. When it's marked done, you check it. | يصل إلى المكلّف في «بانتظارك». وعند توقيعه كمنجز تتحقّق منه أنت. |
 | Create item | إنشاء البند |
 | Not sent yet | لم يُرسل بعد |
 | Retry | إعادة المحاولة |
@@ -290,7 +292,7 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | It can be accepted or sent back with a reason. | يمكن قبوله أو إرجاعه مع ذكر السبب. |
 | {name} marked this done. Check it. | تم توقيعه كمنجز بواسطة {name}. افحصه. |
 | Look at the photo, then accept it or send it back with a reason. | انظر إلى الصورة، ثم اقبله أو أرجعه مع ذكر السبب. |
-| Done. Waiting for a check. | منجز. بانتظار الفحص. |
+| Done. Waiting for a check. | منجز. بانتظار التحقق. |
 | Closed. It stays in the Space record. | أُغلق. يبقى في سجل المساحة. |
 | {name} can show it on their profile as work they delivered. | يمكن عرضه في ملف {name} كعمل منجز. |
 | Closed by {name} | الإغلاق: {name} |
@@ -302,8 +304,8 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Other | سبب آخر |
 | The owner left the Space | المكلّف خارج المساحة الآن |
 | Give it to someone else to finish. | كلّف شخصًا آخر بإكماله. |
-| CHECKED · {date} · {name} | تم الفحص · {date} · {name} |
-| You check it | تفحصه أنت |
+| CHECKED · {date} · {name} | تم التحقق · {date} · {name} |
+| You check it | تتحقّق منه أنت |
 | Check and close | افحص وأغلق |
 | Send back | إرجاع |
 | Reassign to | إعادة التكليف إلى |
@@ -316,7 +318,7 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Note | ملاحظة |
 | What was done | ما الذي أُنجز |
 | Add a photo or a note. | أضف صورة أو ملاحظة. |
-| Signed as done. It's waiting for a check. | تم التوقيع كمنجز. بانتظار الفحص. |
+| Signed as done. It's waiting for a check. | تم التوقيع كمنجز. بانتظار التحقق. |
 | Sign-off not sent yet | التوقيع لم يُرسل بعد |
 | Send {ref} back to {name} | إرجاع {ref} إلى {name} |
 | The tag goes back to Open with your reason written on it, and into {name}'s Needs you. | يعود البند مفتوحًا مع سببك مكتوبًا عليه، ويصل إلى «بانتظارك» لدى {name}. |
@@ -336,7 +338,7 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Only work items that were checked and closed in a Space. Everything is hidden until you switch it on. Shown items appear on your profile. | بنود العمل التي فُحصت وأُغلقت في مساحة فقط. كل شيء مخفي حتى تُظهره. تظهر البنود المعروضة في ملفك. |
 | SHOWN ON PROFILE | معروض في الملف |
 | Hidden · tap to show | مخفي · اضغط للعرض |
-| Checked by {name} · {date} | الفحص: {name} · {date} |
+| Checked by {name} · {date} | التحقق: {name} · {date} |
 | People see who checked each item. Items from a Space you left stay yours to show or hide. | يرى الناس من فحص كل بند. تبقى بنود المساحة التي غادرتها لك لتعرضها أو تخفيها. |
 | Nothing yet. Work items you own appear here once they're checked. | لا شيء بعد. تظهر هنا بنودك بعد فحصها. |
 | See all | عرض الكل |
@@ -346,11 +348,11 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Place | المكان |
 | Checked by | الفحص |
 | {name} chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown. | عُرض هذا باختيار {name}. يبقى النقاش والملفات والمساحة خاصة. يظهر العنوان والصورة والمكان ومن فحصه فقط. |
-| CHECKED · {date} | تم الفحص · {date} |
+| CHECKED · {date} | تم التحقق · {date} |
 | Close it | أغلقه |
 | Nothing shown yet. Tap See all to choose what shows. | لا شيء معروض بعد. اضغط «عرض الكل» لتختار ما يظهر. |
-| Checked · {date} | تم الفحص · {date} |
-| Checked | تم الفحص |
+| Checked · {date} | تم التحقق · {date} |
+| Checked | تم التحقق |
 | Attach to {ref} | إرفاق بـ{ref} |
 | From the Space Library | من مكتبة المساحة |
 | Drawings and files already shared in this Space | مخططات وملفات تمت مشاركتها في هذه المساحة |
@@ -598,7 +600,7 @@ A line like `{n, plural, =1{…} other{…}}` holds the forms for different numb
 | Your post was found useful | منشورك مفيد للآخرين |
 | Assigned | تكليف |
 | Done | منجز |
-| Checked | تم الفحص |
+| Checked | تم التحقق |
 | Sent back | مُرجَع |
 | Comment | تعليق |
 | Approved | مقبول |

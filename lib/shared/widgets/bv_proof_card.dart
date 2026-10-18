@@ -27,7 +27,7 @@ class BvProofCard extends StatelessWidget {
   final String id;
   final String title;
 
-  /// "CHECKED" / "تم الفحص".
+  /// "CHECKED" / "تم التحقق".
   final String stamp;
   final String? project;
 

@@ -1787,7 +1787,7 @@ abstract class AppLocalizations {
   /// S5 placeholder. No country facts.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Tower B — Site team'**
+  /// **'e.g. Tower B — Design team'**
   String get spacesNameHint;
 
   /// S5 error.

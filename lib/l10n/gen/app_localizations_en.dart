@@ -951,7 +951,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesNameLabel => 'Name';
 
   @override
-  String get spacesNameHint => 'e.g. Tower B — Site team';
+  String get spacesNameHint => 'e.g. Tower B — Design team';
 
   @override
   String get spacesNameRequired => 'Write a name with at least 2 letters.';

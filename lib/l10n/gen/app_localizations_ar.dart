@@ -48,7 +48,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stampSelected => 'مختار';
 
   @override
-  String get signOffChecked => 'تم الفحص';
+  String get signOffChecked => 'تم التحقق';
 
   @override
   String get passLead => 'تصريح مسؤول';
@@ -106,7 +106,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get entryAudience4Title => 'مقاولو الباطن';
 
   @override
-  String get entryAudience4Body => 'احصل على فحص العمل واعتماده في وقته.';
+  String get entryAudience4Body => 'احصل على التحقق من العمل واعتماده في وقته.';
 
   @override
   String get entryAudience5Title => 'الموردون والتجار';
@@ -550,7 +550,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileSeeAllProjects => 'كل المشاريع';
 
   @override
-  String get workDeliveredEmpty => 'لا شيء تم فحصه بعد.';
+  String get workDeliveredEmpty => 'لا شيء تم التحقق منه بعد.';
 
   @override
   String get experienceEmpty => 'لم تُضف خبرة بعد.';
@@ -943,7 +943,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesNameLabel => 'الاسم';
 
   @override
-  String get spacesNameHint => 'مثال: البرج B — فريق الموقع';
+  String get spacesNameHint => 'مثال: البرج B — فريق التصميم';
 
   @override
   String get spacesNameRequired => 'اكتب اسمًا من حرفين على الأقل.';
@@ -1144,7 +1144,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesLeadOpens =>
-      'يتيح: إنشاء البنود · الفحص والإغلاق · الملفات · الدعوة';
+      'يتيح: إنشاء البنود · التحقق والإغلاق · الملفات · الدعوة';
 
   @override
   String get spacesLeadFor => 'المهندسون والمشرفون';
@@ -1501,15 +1501,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String deliveredCheckedBy(String name, String date) {
-    return 'الفحص: $name · $date';
+    return 'التحقق: $name · $date';
   }
 
   @override
   String get deliveredFooter =>
-      'يرى الناس من فحص كل بند. تبقى بنود المساحة التي غادرتها لك لتعرضها أو تخفيها.';
+      'يرى الناس من تحقّق من كل بند. تبقى بنود المساحة التي غادرتها لك لتعرضها أو تخفيها.';
 
   @override
-  String get deliveredEmpty => 'لا شيء بعد. تظهر هنا بنودك بعد فحصها.';
+  String get deliveredEmpty => 'لا شيء بعد. تظهر هنا بنودك بعد التحقق منها.';
 
   @override
   String get deliveredSeeAll => 'عرض الكل';
@@ -1529,11 +1529,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deliveredPlace => 'المكان';
 
   @override
-  String get deliveredCheckedRow => 'الفحص';
+  String get deliveredCheckedRow => 'التحقق';
 
   @override
   String deliveredPrivacy(String name) {
-    return 'عُرض هذا باختيار $name. يبقى النقاش والملفات والمساحة خاصة. يظهر العنوان والصورة والمكان ومن فحصه فقط.';
+    return 'عُرض هذا باختيار $name. يبقى النقاش والملفات والمساحة خاصة. يظهر العنوان والصورة والمكان ومن تحقّق منه فقط.';
   }
 
   @override
@@ -1542,11 +1542,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String deliveredCheckedOn(String date) {
-    return 'تم الفحص · $date';
+    return 'تم التحقق · $date';
   }
 
   @override
-  String get deliveredCheckedRowNoName => 'تم الفحص';
+  String get deliveredCheckedRowNoName => 'تم التحقق';
 
   @override
   String get chatEveryone => 'الجميع';
@@ -1655,7 +1655,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chatCardChecked(String name) {
-    return 'فحص وإغلاق من $name';
+    return 'تحقّق وإغلاق من $name';
   }
 
   @override
@@ -1683,7 +1683,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chatLastChecked(String name, String ref) {
-    return 'فحص وإغلاق $ref من $name';
+    return 'تحقّق وإغلاق $ref من $name';
   }
 
   @override
@@ -2078,12 +2078,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String needsYouCheck(String name, String title) {
-    return 'منجز بتوقيع $name، بانتظار فحصك: $title';
+    return 'منجز بتوقيع $name، بانتظار تحقّقك: $title';
   }
 
   @override
   String needsYouCheckSelf(String title) {
-    return 'منجز، بانتظار فحصك: $title';
+    return 'منجز، بانتظار تحقّقك: $title';
   }
 
   @override
@@ -2115,7 +2115,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get needsOpen => 'فتح';
 
   @override
-  String get needsCheck => 'افحص';
+  String get needsCheck => 'تحقّق';
 
   @override
   String get needsReview => 'راجع الطلب';
@@ -2124,7 +2124,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String todayItem(String event, String name, String ref, String title) {
     String _temp0 = intl.Intl.selectLogic(event, {
       'done': '$ref منجز بتوقيع $name',
-      'checked': 'فحص $ref من $name',
+      'checked': 'تحقّق $ref من $name',
       'sent_back': 'إرجاع $ref من $name',
       'comment': 'تعليق من $name على $ref',
       'reassigned': 'إعادة تكليف $ref من $name',
@@ -2194,7 +2194,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String activityChecked(String name, String ref) {
-    return 'فحص $ref من $name';
+    return 'تحقّق $ref من $name';
   }
 
   @override
@@ -2262,7 +2262,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chipDone => 'منجز';
 
   @override
-  String get chipChecked => 'تم الفحص';
+  String get chipChecked => 'تم التحقق';
 
   @override
   String get chipSentBack => 'مُرجَع';
@@ -3032,7 +3032,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookStampDone => 'منجز';
 
   @override
-  String get daybookStampChecked => 'تم الفحص';
+  String get daybookStampChecked => 'تم التحقق';
 
   @override
   String get daybookStampSentBack => 'مُرجَع';
@@ -3097,7 +3097,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookDoubleTapToCheck => 'انقر مرتين على الصورة لفحصها';
+  String get daybookDoubleTapToCheck => 'انقر مرتين على الصورة للتحقق';
 
   @override
   String daybookGivenTo(String to, String from, String time) {
@@ -3188,16 +3188,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookChecksNext(String name) {
-    return 'يفحصه $name بعد ذلك';
+    return 'يتحقّق منه $name بعد ذلك';
   }
 
   @override
   String daybookYouChecked(String time) {
-    return 'فحصته الساعة $time. صار مقفلًا، وهذا هو السجل.';
+    return 'تحقّقت منه الساعة $time. صار مقفلًا، وهذا هو السجل.';
   }
 
   @override
-  String get daybookCheck => 'فحص';
+  String get daybookCheck => 'تحقّق';
 
   @override
   String get daybookSendBack => 'إرجاع';
@@ -3238,7 +3238,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookNoteNeeded => 'اكتب ما المشكلة';
 
   @override
-  String get daybookChecked => 'تم الفحص';
+  String get daybookChecked => 'تم التحقق';
 
   @override
   String get daybookCancelled => 'أُلغي';
@@ -3289,7 +3289,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookCouldNotCheck => 'تعذّر الفحص';
+  String get daybookCouldNotCheck => 'تعذّر التحقق';
 
   @override
   String get daybookCouldNotSendBack => 'تعذّر الإرجاع';
@@ -3317,7 +3317,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookWhyCancelled => 'تم إلغاء هذا البند';
 
   @override
-  String get daybookWhyChecked => 'تم فحصه من قبل';
+  String get daybookWhyChecked => 'تم التحقق منه من قبل';
 
   @override
   String get daybookWhyChanged => 'تغيّر في هذه الأثناء';
@@ -3406,7 +3406,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get needsTitle => 'بانتظارك';
 
   @override
-  String get needsRowCheck => 'للفحص';
+  String get needsRowCheck => 'للتحقق';
 
   @override
   String get needsRowForYou => 'لك';

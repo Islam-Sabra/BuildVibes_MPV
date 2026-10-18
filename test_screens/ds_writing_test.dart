@@ -32,7 +32,7 @@ Map<String, String> _words(String lang) => lang == 'ar'
         'assign': 'تكليف',
         'location': 'المكان',
         'dueDate': 'الموعد',
-        'check': 'فحص',
+        'check': 'تحقّق',
         'sendBack': 'إرجاع',
         'addUpdate': 'إضافة تحديث',
         'discuss': 'النقاش في المحادثة',
@@ -54,7 +54,7 @@ Map<String, String> _words(String lang) => lang == 'ar'
         'mep': 'الكهروميكانيك',
         'site': 'الموقع',
         'architecture': 'المعماري',
-        'checked': 'تم الفحص',
+        'checked': 'تم التحقق',
         'undo': 'تراجع',
       }
     : const {

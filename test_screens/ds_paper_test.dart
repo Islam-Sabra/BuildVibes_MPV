@@ -91,7 +91,7 @@ Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
       image: samplePhoto,
       stamp: checked
           ? BvInkStamp(
-              label: s.t('CHECKED', 'تم الفحص'),
+              label: s.t('CHECKED', 'تم التحقق'),
               size: BvInkStampSize.lg,
               tone: BvInkStampTone.positive,
               subline: s.t('ISLAM A · 10:12', 'إسلام أ · 10:12'),
@@ -112,14 +112,14 @@ Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
       BvSlipHistory(
         s.t(
           "You checked it at 10:12. It's locked now, this is the record.",
-          'فحصته الساعة 10:12. أصبح مقفلاً الآن، وهذا هو السجل.',
+          'تحقّقت منه الساعة 10:12. أصبح مقفلاً الآن، وهذا هو السجل.',
         ),
       )
     else
       BvSlipPill.hint(
         label: s.t(
           'Double-tap the photo to check it',
-          'انقر مرتين على الصورة لفحصها',
+          'انقر مرتين على الصورة للتحقق',
         ),
       ),
   ],
@@ -191,7 +191,7 @@ Widget _cancelledSlip(_S s) => BvSlip(
 Widget _stamps(_S s) {
   final tones = [
     (BvInkStampTone.action, s.t('DONE', 'منجز')),
-    (BvInkStampTone.positive, s.t('CHECKED', 'تم الفحص')),
+    (BvInkStampTone.positive, s.t('CHECKED', 'تم التحقق')),
     (BvInkStampTone.muted, s.t('CANCELLED', 'ملغى')),
     (BvInkStampTone.destructive, s.t('SENT BACK', 'مُرجَع')),
   ];

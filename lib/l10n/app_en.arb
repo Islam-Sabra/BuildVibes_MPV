@@ -1287,7 +1287,7 @@
   "@spacesNameLabel": {
     "description": "S5 field."
   },
-  "spacesNameHint": "e.g. Tower B — Site team",
+  "spacesNameHint": "e.g. Tower B — Design team",
   "@spacesNameHint": {
     "description": "S5 placeholder. No country facts."
   },

@@ -50,7 +50,6 @@ void main() {
       'cellLocation',
       'wrongLocation',
       'correctValueHelp',
-      'spacesNameHint',
       'daybookDateLine',
       'spacesOnSiteSince',
       'spacesOnSiteNote',

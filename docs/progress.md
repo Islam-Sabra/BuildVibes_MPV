@@ -587,6 +587,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **18 Oct, slice 1 test fixes, Part E (words and layout)** (review 51; branch `slice1-fixes`): F4 the "site only" wording is gone in EN and AR (a test fails on new "site"/"موقع" strings unless kept on purpose); F15 in the 12-hour clock the period sits on a small second line under the time, so "11:58 مساءً" fits; F19 the feed card and the post page follow H1 (⋯ level with the name, semibold name with the headline, the card hugs short posts, replies as small slips with "Replying to …"); F2's app side works before and after migration 25. F14 left for the founder.
 
+- **18 Oct, F14 (founder's ok):** "Checked" in Arabic is **تم التحقق**, the action **تحقّق**, "Double-tap the photo to check it" **انقر مرتين على الصورة للتحقق**: all 27 app strings, the stamps, the glossary (`CLAUDE.md`, `arabic-glossary.md`) and the push texts (`strings.json`; the push function needs a deploy, with its own yes). The New Space hint is "e.g. Tower B — Design team" / "مثال: البرج B — فريق التصميم".
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
