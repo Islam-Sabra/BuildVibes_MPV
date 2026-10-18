@@ -202,6 +202,7 @@ Claude Code saw NST-006 on live with no place, due date or time and reported the
   - Check on the Xiaomi (HyperOS, gesture bar) and with the keyboard's suggestion strip on, not only on the emulator.
   - The keyboard's action key sends only where a single line makes sense; in a multi-line note it adds a new line, and the send button stays visible.
 - **Cause seen in the founder's screenshot:** the Add update sheet quotes the whole slip, with its full-size photo and stamp, so the field is pushed below the keyboard. **The sheet quotes the item in one line** (ref, title, a small thumbnail), with the field right under it.
+- **Also the post page's reply bar** (retest step 11, emulator): it sits behind the keyboard while it opens, so the first tap on send missed. The bar must ride on top of the keyboard from the first frame.
 - The keyboard's ✓ key sends the update at once. That's fine for a one-line update, once the text is visible.
 - **Test:** a widget test with a 300-point keyboard inset: the field and the send button are fully on screen, for each sheet, in EN and AR.
 
@@ -244,6 +245,7 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 
 ## Retest results so far (steps 1–9)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
+- **Step 10, a post to everyone:** in Omar's feed without a restart, and pull-to-refresh works on a short feed (F18 ✓).
 - **Step 8, no signal:** "Waiting to send", then one slip once the signal returned. The due date and time reached the server (17:00) and the push reached Omar in 5 seconds. No place was set (F29 withdrawn). "Waiting to send" went away at once, leaving one slip (F17 ✓).
 - **Undo after "Send as done" (F7):** Undo at 1.2 s sent nothing and brought back the proof screen with the photo. Left alone, the sign-off reached the server after exactly 5 seconds.
 - **Pushes to the emulator:** sent on live with no error. They didn't reach the emulator because its Play services connection had gone stale after the PC changed networks. After switching the emulator's network off and on, the push landed within 6 seconds. Not an app bug.
