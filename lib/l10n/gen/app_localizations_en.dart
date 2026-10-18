@@ -2739,6 +2739,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutLegalSub => 'Terms, privacy policy';
 
   @override
+  String aboutBuild(String version, String build, String commit) {
+    return 'Version $version · build $build · $commit';
+  }
+
+  @override
   String get legalTerms => 'Terms of use';
 
   @override
@@ -3446,6 +3451,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String daybookCardRef(String ref) {
     return '· $ref';
   }
+
+  @override
+  String get daybookRemoved => 'This was removed';
+
+  @override
+  String daybookQuote(String ref, String title) {
+    return '$ref · $title';
+  }
+
+  @override
+  String get daybookSendUpdate => 'Send update';
 
   @override
   String daybookTrace(String what, String title) {

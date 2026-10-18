@@ -28,11 +28,12 @@ abstract class DaybookRepository {
   });
 
   /// "Show earlier": the post's history lines before the line at [before]
-  /// and [beforeId], newest first, at most [limit].
+  /// and [beforeId], newest first, at most [limit]. With no [before], from
+  /// the newest: none when the post was deleted or can't be seen (F20).
   Future<List<DaybookEvent>> history(
     String postId, {
-    required DateTime before,
-    required String beforeId,
+    DateTime? before,
+    String? beforeId,
     int limit = historyPage,
   });
 
@@ -189,8 +190,8 @@ class SupabaseDaybookRepository implements DaybookRepository {
   @override
   Future<List<DaybookEvent>> history(
     String postId, {
-    required DateTime before,
-    required String beforeId,
+    DateTime? before,
+    String? beforeId,
     int limit = DaybookRepository.historyPage,
   }) => _guard(() async {
     final rows = _rows(
@@ -198,7 +199,7 @@ class SupabaseDaybookRepository implements DaybookRepository {
         'post_history',
         params: {
           'p_post': postId,
-          'p_before': _instant(before),
+          'p_before': before == null ? null : _instant(before),
           'p_before_id': beforeId,
           'p_limit': limit,
         },

@@ -48,6 +48,11 @@ abstract final class BvMastheadSpec {
   static const linePaddingVertical = BvSpace.s8;
   static const lineGap = BvSpace.s8;
 
+  /// F23: the masthead names the day of what is at this line, just under
+  /// the top of the page: a sliver of the day before above it doesn't
+  /// count.
+  static const readingLine = BvSpace.s40;
+
   // Home.
   static const paddingHorizontal = BvSpace.s20;
   static const homePaddingTop = BvSpace.s12;

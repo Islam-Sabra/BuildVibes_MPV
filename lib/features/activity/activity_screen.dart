@@ -21,6 +21,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_screen.dart' show SpaceOpen;
+import '../work/daybook_target.dart';
 import 'activity_state.dart';
 import 'needs_card.dart';
 
@@ -352,6 +353,7 @@ class _Row extends ConsumerWidget {
     final post = row.postId;
     final actor = row.actorId;
     final removal = row.removalId;
+    final workItem = row.workItemId;
     final VoidCallback? open = switch (row.kind) {
       ActivityKind.joinRequest when space != null => () => context.push(
         AppRoutes.space(space),
@@ -366,8 +368,14 @@ class _Row extends ConsumerWidget {
       ),
       ActivityKind.postReply || ActivityKind.postUseful when post != null =>
         () => context.push(AppRoutes.post(post)),
-      // A work item lives on its Space's daybook (the exact slip comes in
-      // slice 10); a confirmed join opens the Space.
+      // A work item opens at its card on its Space's daybook, at the line
+      // the row is about (F20); a confirmed join opens the Space.
+      _ when space != null && workItem != null => () => openWorkCard(
+        context,
+        spaceId: space,
+        postId: workItem,
+        eventId: row.eventId,
+      ),
       _ when space != null => () => context.push(AppRoutes.space(space)),
       _ => null,
     };

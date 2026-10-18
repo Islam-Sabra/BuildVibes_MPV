@@ -18,6 +18,20 @@ val uploadKey = Properties().apply {
     if (file.exists()) file.inputStream().use { load(it) }
 }
 
+// The build number (versionCode) goes up with every build without editing
+// pubspec.yaml: it is the number of commits in git, so each new commit's
+// build is higher than the last one installed (review 53 Part D). With no
+// git (a source copy), or with a higher --build-number, Flutter's number is
+// used. docs/release.md.
+val gitBuildNumber: Int? = try {
+    providers.exec {
+        commandLine("git", "rev-list", "--count", "HEAD")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim().toIntOrNull()
+} catch (e: Exception) {
+    null
+}
+
 android {
     namespace = "com.buildvibes.buildvibes"
     compileSdk = flutter.compileSdkVersion
@@ -30,10 +44,11 @@ android {
 
     defaultConfig {
         applicationId = "com.buildvibes.buildvibes"
-        // The version comes from pubspec.yaml (0.9.0+1: name and build number).
+        // The version name comes from pubspec.yaml (0.9.0); the build number
+        // from git (above).
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
+        versionCode = maxOf(flutter.versionCode, gitBuildNumber ?: 0)
         versionName = flutter.versionName
     }
 

@@ -360,12 +360,24 @@ void main() {
     });
 
     testWidgets('no signal: the slip waits, then sends with the same id when '
-        'the signal is back [$lang]', (tester) async {
+        'the signal is back; a place set through ⋯ → Location goes with it '
+        '(F29) [$lang]', (tester) async {
       final daybook = FakeDaybookRepository()..offline = true;
       final app = await _open(tester, lang, daybook: daybook);
       await _write(tester);
       await _title(tester, s.cableTraysTitle);
       await _assign(tester, s.omarName);
+      // F29: the place, through More → Location.
+      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.daybookLocation));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('popover-field')),
+        s.traysPlace,
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       // On the page at the time Post was tapped, waiting.
@@ -378,12 +390,15 @@ void main() {
       final kept = app.prefs.getString('work_outbox:${DaybookSamples.islam}')!;
       expect(jsonDecode(kept), hasLength(1));
       final waitingId = (jsonDecode(kept) as List).single['id'];
+      // The place waits on the phone with it.
+      expect((jsonDecode(kept) as List).single['place'], s.traysPlace);
 
       // The signal is back: the next try sends it.
       daybook.offline = false;
       await tester.pump(const Duration(seconds: 31));
       await tester.pumpAndSettle();
       expect(daybook.created.single.id, waitingId);
+      expect(daybook.created.single.place, s.traysPlace);
       expect(app.chimes, ['haptic', 'sound']);
       expect(find.text(l10n.daybookWaitingToSend), findsNothing);
       expect(app.prefs.getString('work_outbox:${DaybookSamples.islam}'), '[]');

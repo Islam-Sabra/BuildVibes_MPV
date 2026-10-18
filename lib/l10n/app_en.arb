@@ -3871,6 +3871,21 @@
   "@aboutLegalSub": {
     "description": "S1 row subtitle."
   },
+  "aboutBuild": "Version {version} · build {build} · {commit}",
+  "@aboutBuild": {
+    "description": "About sheet: which build is on this phone (review 53 Part D). The commit is the short git commit, or 'dev'.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      },
+      "commit": {
+        "type": "String"
+      }
+    }
+  },
   "legalTerms": "Terms of use",
   "@legalTerms": {
     "description": "About sheet row."
@@ -4851,6 +4866,26 @@
         "type": "String"
       }
     }
+  },
+  "daybookRemoved": "This was removed",
+  "@daybookRemoved": {
+    "description": "F20: an Activity row, a push or a Needs you card opened a work item that was deleted or can no longer be seen."
+  },
+  "daybookQuote": "{ref} · {title}",
+  "@daybookQuote": {
+    "description": "F24: the work item quoted in one line on the update and send-back sheets.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookSendUpdate": "Send update",
+  "@daybookSendUpdate": {
+    "description": "F24: the round send button of the Add update sheet, read out."
   },
   "daybookTrace": "{what} · {title}",
   "@daybookTrace": {

@@ -81,12 +81,22 @@ class FakeDaybookRepository implements DaybookRepository {
   @override
   Future<List<DaybookEvent>> history(
     String postId, {
-    required DateTime before,
-    required String beforeId,
+    DateTime? before,
+    String? beforeId,
     int limit = DaybookRepository.historyPage,
   }) async {
     historyCalls.add(postId);
     if (failPages) throw const SpaceException(SpaceFailure.network);
+    // From the newest: the card's own lines, then the earlier ones; none
+    // for a post that is gone (post_history).
+    if (before == null) {
+      final card = posts.values
+          .expand((cards) => cards)
+          .where((c) => c.id == postId)
+          .firstOrNull;
+      if (card == null) return const [];
+      return [...card.history, ...?earlier[postId]].take(limit).toList();
+    }
     return [
       for (final e in earlier[postId] ?? const <DaybookEvent>[])
         if (_before(e.at, e.id, before, beforeId)) e,

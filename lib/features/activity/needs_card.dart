@@ -14,6 +14,7 @@ import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_space_tile.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_screen.dart' show SpaceOpen;
+import '../work/daybook_target.dart';
 
 /// "Sara Al-Mutairi gave you a work item: confirm the beam schedule".
 String needsTitle(AppLocalizations l10n, NeedsCard c) {
@@ -40,11 +41,12 @@ String needsTitle(AppLocalizations l10n, NeedsCard c) {
   };
 }
 
-/// Opens what the card is about: the work item's Space on its daybook, or
-/// the Space's People tab.
+/// Opens what the card is about: the work item's card on its Space's
+/// daybook (F20), or the Space's People tab.
 void openNeeds(BuildContext context, NeedsCard c) {
-  if (c.workItemId != null) {
-    context.push(AppRoutes.space(c.spaceId));
+  final item = c.workItemId;
+  if (item != null) {
+    openWorkCard(context, spaceId: c.spaceId, postId: item);
   } else {
     context.push(AppRoutes.space(c.spaceId), extra: SpaceOpen.people);
   }

@@ -26,6 +26,7 @@ import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
+import 'package:buildvibes/features/work/daybook_target.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -305,12 +306,109 @@ void main() {
           await _longPress(tester, 'post-sleeves');
           await _tap(tester, find.text(l10n.daybookAddUpdate));
           await tester.enterText(
-            find.byKey(const Key('popover-field')),
+            find.byKey(const Key('bv-send-field')),
             s.t('Area cleaned', 'نُظّفت المنطقة'),
           );
           await tester.pumpAndSettle();
         },
       );
+    });
+
+    // Review 53 Part D.
+
+    testWidgets('D F24 Add update over the keyboard [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'D-F24-update-sheet-keyboard',
+        lang,
+        _space,
+        keyboard: true,
+        overrides: await _overrides(
+          s,
+          posts: s.v13(),
+          me: DaybookSamples.islam,
+          now: _afterSignOff,
+        ),
+        before: (tester) async {
+          await _longPress(tester, 'post-sleeves');
+          await _tap(tester, find.text(l10n.daybookAddUpdate));
+          await tester.enterText(
+            find.byKey(const Key('bv-send-field')),
+            s.t('Area cleaned', 'نُظّفت المنطقة'),
+          );
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('D F24 send back over the keyboard [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'D-F24-send-back-keyboard',
+        lang,
+        _space,
+        keyboard: true,
+        overrides: await _overrides(
+          s,
+          posts: s.v13(),
+          me: DaybookSamples.islam,
+          now: _afterSignOff,
+        ),
+        before: (tester) async {
+          await _longPress(tester, 'post-sleeves');
+          await _tap(tester, find.text(l10n.daybookSendBack));
+          await _tap(tester, find.text(l10n.daybookReasonNotAsAsked));
+          await tester.enterText(
+            find.descendant(
+              of: find.byKey(const Key('send-back-card')),
+              matching: find.byType(TextField),
+            ),
+            s.sentBackNote,
+          );
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    // F20: an Activity row about Wednesday's gate opens the daybook at that
+    // card, its history at Omar's sign-off, the ring on for a second.
+    testWidgets('D F20 the card a row opened, highlighted [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      final target = ValueNotifier<DaybookTarget?>(null);
+      addTearDown(target.dispose);
+      await shoot(
+        tester,
+        'D-F20-highlight',
+        lang,
+        (_) => ValueListenableBuilder(
+          valueListenable: target,
+          builder: (_, t, _) =>
+              SpaceScreen(spaceId: DaybookSamples.space, target: t),
+        ),
+        overrides: await _overrides(
+          s,
+          posts: s.d1(),
+          me: DaybookSamples.islam,
+          now: _afterSignOff,
+        ),
+        before: (tester) async {
+          target.value = const DaybookTarget(
+            'post-gate',
+            eventId: 'ev-gate-done',
+          );
+          final ring = find.byKey(const Key('bv-highlight-ring'));
+          for (var i = 0; i < 20 && ring.evaluate().isEmpty; i++) {
+            await tester.pump(const Duration(milliseconds: 50));
+          }
+          expect(ring, findsOneWidget);
+        },
+      );
+      // The ring fades before the test ends.
+      await tester.pumpAndSettle();
     });
 
     testWidgets('L1 late, and due today [$lang]', (tester) async {

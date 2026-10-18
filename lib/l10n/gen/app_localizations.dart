@@ -4598,6 +4598,12 @@ abstract class AppLocalizations {
   /// **'Terms, privacy policy'**
   String get aboutLegalSub;
 
+  /// About sheet: which build is on this phone (review 53 Part D). The commit is the short git commit, or 'dev'.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} · build {build} · {commit}'**
+  String aboutBuild(String version, String build, String commit);
+
   /// About sheet row.
   ///
   /// In en, this message translates to:
@@ -5803,6 +5809,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'· {ref}'**
   String daybookCardRef(String ref);
+
+  /// F20: an Activity row, a push or a Needs you card opened a work item that was deleted or can no longer be seen.
+  ///
+  /// In en, this message translates to:
+  /// **'This was removed'**
+  String get daybookRemoved;
+
+  /// F24: the work item quoted in one line on the update and send-back sheets.
+  ///
+  /// In en, this message translates to:
+  /// **'{ref} · {title}'**
+  String daybookQuote(String ref, String title);
+
+  /// F24: the round send button of the Add update sheet, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Send update'**
+  String get daybookSendUpdate;
 
   /// Daybook trace on an earlier day: what happened, then the work item's title.
   ///

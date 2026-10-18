@@ -66,6 +66,7 @@ class ActivityRow {
     this.removalId,
     this.targetKind,
     this.result,
+    this.eventId,
   });
 
   factory ActivityRow.fromJson(Map<String, dynamic> j) => ActivityRow(
@@ -91,6 +92,7 @@ class ActivityRow {
     ],
     toReply: (j['payload'] as Map?)?['to'] == 'reply',
     removalId: (j['payload'] as Map?)?['removal_id'] as String?,
+    eventId: (j['payload'] as Map?)?['event_id'] as String?,
     targetKind: (j['payload'] as Map?)?['target_kind'] as String?,
     result: (j['payload'] as Map?)?['result'] as String?,
   );
@@ -127,6 +129,10 @@ class ActivityRow {
   final String? removalId;
   final String? targetKind;
   final String? result;
+
+  /// The work item event a row is about (its history line), when the
+  /// server says (F20).
+  final String? eventId;
 
   /// Groups rows: a Space's id, or the group's name.
   String get groupKey =>

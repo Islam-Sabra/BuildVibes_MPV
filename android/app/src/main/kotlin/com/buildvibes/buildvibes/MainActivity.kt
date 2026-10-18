@@ -50,6 +50,18 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "phoneMakers" -> result.success(listOf(Build.MANUFACTURER, Build.BRAND))
+                    // Settings → About: the installed version and build number
+                    // (versionCode, the git commit count; docs/release.md).
+                    "buildInfo" -> {
+                        val info = packageManager.getPackageInfo(packageName, 0)
+                        val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            info.longVersionCode
+                        } else {
+                            @Suppress("DEPRECATION")
+                            info.versionCode.toLong()
+                        }
+                        result.success(mapOf("version" to info.versionName, "build" to code.toString()))
+                    }
                     else -> result.notImplemented()
                 }
             }

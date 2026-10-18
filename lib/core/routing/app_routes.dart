@@ -56,6 +56,18 @@ abstract final class AppRoutes {
   static const spaces = '/spaces';
   static const spacesNew = '/spaces/new';
   static String space(String id) => '/spaces/$id';
+
+  /// The Space's daybook at one work item's card, and at one line of its
+  /// history (F20): what an Activity row, a push and a Needs you card open.
+  static String spaceCard(String id, String postId, {String? eventId}) => Uri(
+    path: space(id),
+    queryParameters: {
+      spaceCardParam: postId,
+      if (eventId != null && eventId.isNotEmpty) spaceEventParam: eventId,
+    },
+  ).toString();
+  static const spaceCardParam = 'card';
+  static const spaceEventParam = 'event';
   static String spaceInvite(String id) => '/spaces/$id/invite';
   static String spaceMember(String id, String profileId) =>
       '/spaces/$id/members/$profileId';

@@ -824,10 +824,11 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.byKey(const Key('popover-field')),
+        find.byKey(const Key('bv-send-field')),
         'Half done',
       );
-      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      await tester.testTextInput.receiveAction(TextInputAction.send);
       await tester.pumpAndSettle();
       expect(app.work.calls.single, 'comment post-sleeves Half done');
     });
@@ -1007,8 +1008,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(_menu(tester), [l10n.daybookAddUpdate]);
       await _pick(tester, l10n.daybookAddUpdate);
-      await tester.enterText(find.byKey(const Key('popover-field')), 'Seen');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.enterText(find.byKey(const Key('bv-send-field')), 'Seen');
+      await tester.pump();
+      await tester.testTextInput.receiveAction(TextInputAction.send);
       await tester.pumpAndSettle();
       expect(app.work.calls.single, 'comment post-sleeves Seen');
     });

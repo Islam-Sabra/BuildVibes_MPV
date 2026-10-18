@@ -5,13 +5,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/daybook_loop_specs.dart' show BvFieldSheetSpec;
 import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
+import '../../core/l10n/bidi.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_field_sheet.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_send_back_card.dart';
@@ -20,6 +23,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
+import 'daybook_photos.dart';
 import 'daybook_state.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart' show assignablePeople;
@@ -69,7 +73,7 @@ class DaybookLoop {
     final menu = _menu(card, me: me);
     final lifted = view.copyWith(lifted: true);
     void press(Rect at) =>
-        unawaited(_longPress(context, card, lifted, at, menu));
+        unawaited(_longPress(context, card, lifted, at, menu, view.localPhoto));
     return view.copyWith(
       actions: DaybookCardActions(
         onMenu: menu.isEmpty ? null : press,
@@ -89,7 +93,7 @@ class DaybookLoop {
             ? (at) => unawaited(_giveTo(context, post, lifted, at))
             : null,
         onUpdate: !post.cancelled
-            ? (at) => unawaited(_update(context, post.id, lifted, at))
+            ? (_) => unawaited(_update(context, card, view.localPhoto))
             : null,
       ),
     );
@@ -121,6 +125,7 @@ class DaybookLoop {
     DaybookCardView lifted,
     Rect at,
     List<DaybookSlipAction> menu,
+    String? localPhoto,
   ) async {
     final l10n = AppLocalizations.of(context);
     unawaited(HapticFeedback.mediumImpact());
@@ -140,9 +145,9 @@ class DaybookLoop {
       case DaybookSlipAction.check:
         await check(context, card);
       case DaybookSlipAction.sendBack:
-        await _sendBack(context, card, lifted, at);
+        await _sendBack(context, card, localPhoto);
       case DaybookSlipAction.update:
-        await _update(context, post.id, lifted, at);
+        await _update(context, card, localPhoto);
       case DaybookSlipAction.edit:
         onEdit(post);
       case DaybookSlipAction.giveTo:
@@ -319,23 +324,22 @@ class DaybookLoop {
     await _prove(context, _itemFor(sent), photos: sent.photos, note: sent.note);
   }
 
-  /// Send back with a reason (B2), in place under the lifted proof.
+  /// Send back with a reason (B2), on a sheet that sits on the keyboard,
+  /// the item quoted in one line (F24).
   Future<void> _sendBack(
     BuildContext context,
     DaybookCard card,
-    DaybookCardView lifted,
-    Rect at,
+    String? localPhoto,
   ) async {
     final post = card.post;
-    final result = await showBvLifted<(SendBackReason, String?)>(
-      context,
-      anchor: at,
-      lifted: lifted,
-      popover: (_) => DaybookSendBack(
-        owner: personFirstName(
-          AppLocalizations.of(context),
-          card.proof?.byName ?? post.item?.ownerName,
-        ),
+    final l10n = AppLocalizations.of(context);
+    final result = await showBvFieldSheet<(SendBackReason, String?)>(
+      context: context,
+      title: l10n.daybookSendBackTo(
+        personFirstName(l10n, card.proof?.byName ?? post.item?.ownerName),
+      ),
+      builder: (_) => DaybookSendBack(
+        quote: DaybookItemQuote(card: card, localPhoto: localPhoto),
       ),
     );
     if (result == null || !context.mounted) return;
@@ -349,18 +353,20 @@ class DaybookLoop {
     );
   }
 
-  /// An update (Y1 → Y2): one line under the lifted slip.
+  /// An update (Y1 → Y2): one line on a sheet that sits on the keyboard,
+  /// the item quoted in one line above it (W1 v13c 2582:77206, F24).
   Future<void> _update(
     BuildContext context,
-    String postId,
-    DaybookCardView lifted,
-    Rect at,
+    DaybookCard card,
+    String? localPhoto,
   ) async {
-    final text = await showBvLifted<String>(
-      context,
-      anchor: at,
-      lifted: lifted,
-      popover: (_) => const DaybookUpdateField(),
+    final postId = card.id;
+    final text = await showBvFieldSheet<String>(
+      context: context,
+      title: AppLocalizations.of(context).daybookAddUpdate,
+      builder: (_) => DaybookUpdateField(
+        quote: DaybookItemQuote(card: card, localPhoto: localPhoto),
+      ),
     );
     if (text == null || text.trim().isEmpty || !context.mounted) return;
     await _call(
@@ -485,14 +491,14 @@ class DaybookLoop {
   }
 }
 
-/// The send-back card's state (B2): one reason, an optional note
-/// ("Something else" needs one). Pops with the reason and the note. No
-/// microphone: send_back takes no voice note.
+/// The send-back sheet's state (B2): the item quoted, one reason, an
+/// optional note ("Something else" needs one). Pops with the reason and
+/// the note. No microphone: send_back takes no voice note.
 class DaybookSendBack extends StatefulWidget {
-  const DaybookSendBack({super.key, required this.owner});
+  const DaybookSendBack({super.key, required this.quote});
 
-  /// The owner's first name: "Send back to Omar".
-  final String owner;
+  /// The item, in one line.
+  final Widget quote;
 
   @override
   State<DaybookSendBack> createState() => _DaybookSendBackState();
@@ -520,9 +526,9 @@ class _DaybookSendBackState extends State<DaybookSendBack> {
       Localizations.localeOf(context).toLanguageTag(),
       use24: MediaQuery.alwaysUse24HourFormatOf(context),
     );
-    return BvSendBackCard<SendBackReason>(
+    return BvSendBackCard<SendBackReason>.inSheet(
       key: const Key('send-back-card'),
-      title: l10n.daybookSendBackTo(widget.owner),
+      quote: widget.quote,
       reasons: [
         for (final r in SendBackReason.values)
           (value: r, label: words.reason(r)),
@@ -545,10 +551,14 @@ class _DaybookSendBackState extends State<DaybookSendBack> {
   }
 }
 
-/// One line for an update, under the lifted slip. Pops with the text on
-/// the keyboard's done key.
+/// The Add update sheet's content: the item quoted in one line, then one
+/// line for the update and its send button. Pops with the text, on the
+/// button or the keyboard's send key.
 class DaybookUpdateField extends StatefulWidget {
-  const DaybookUpdateField({super.key});
+  const DaybookUpdateField({super.key, required this.quote});
+
+  /// The item, in one line.
+  final Widget quote;
 
   @override
   State<DaybookUpdateField> createState() => _DaybookUpdateFieldState();
@@ -564,15 +574,58 @@ class _DaybookUpdateFieldState extends State<DaybookUpdateField> {
   }
 
   @override
-  Widget build(BuildContext context) => BvPopoverField(
-    key: const Key('update-field'),
-    icon: BvIcons.add,
-    controller: _text,
-    placeholder: AppLocalizations.of(context).daybookUpdateHint,
-    maxLength: updateMax,
-    onDone: (text) => Navigator.of(context).pop(text),
-  );
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final text = _text.text.trim();
+    return Column(
+      key: const Key('update-field'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvFieldSheetSpec.gap,
+      children: [
+        widget.quote,
+        BvSendField(
+          controller: _text,
+          placeholder: l10n.daybookUpdateHint,
+          sendLabel: l10n.daybookSendUpdate,
+          maxLength: updateMax,
+          onChanged: (_) => setState(() {}),
+          onSend: text.isEmpty
+              ? null
+              : () => Navigator.of(context).pop(_text.text),
+        ),
+      ],
+    );
+  }
 
   /// An update's length (the same as a note).
   static const updateMax = 1000;
+}
+
+/// The work item quoted in one line on a sheet (F24): its ref and title,
+/// and a small thumbnail of its latest photo.
+class DaybookItemQuote extends ConsumerWidget {
+  const DaybookItemQuote({super.key, required this.card, this.localPhoto});
+
+  final DaybookCard card;
+
+  /// A sign-off's photo still on the phone.
+  final String? localPhoto;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final post = card.post;
+    final itemRef = post.item?.ref;
+    final title = inOwnDirection(post.title);
+    final local = localPhoto;
+    final path = card.proof?.photos.firstOrNull?.path ?? post.coverPath;
+    return BvItemQuote(
+      text: itemRef == null ? title : l10n.daybookQuote(itemRef, title),
+      image: local != null
+          ? ref.watch(localPhotoProvider(local))
+          : path == null
+          ? null
+          : ref.watch(daybookPhotoProvider(path)),
+    );
+  }
 }

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/push/push_state.dart';
@@ -21,6 +22,7 @@ import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../../shared/widgets/bv_due_today_strip.dart';
 import '../../shared/widgets/bv_first_page.dart';
+import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_month_dropdown.dart';
 import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_post_bar.dart';
@@ -37,6 +39,7 @@ import 'daybook_card.dart';
 import 'daybook_draft.dart';
 import 'daybook_loop.dart';
 import 'daybook_state.dart';
+import 'daybook_target.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart';
 import 'work_outbox.dart';
@@ -57,9 +60,19 @@ import 'work_outbox.dart';
 /// The loop lives on the cards: Sign as done, double-tap to check, the
 /// menu on a long-press or a tap, swipe to add an update ([DaybookLoop]).
 class DaybookTab extends ConsumerStatefulWidget {
-  const DaybookTab({super.key, required this.space, this.startWriting = false});
+  const DaybookTab({
+    super.key,
+    required this.space,
+    this.startWriting = false,
+    this.target,
+  });
 
   final SpaceDetail space;
+
+  /// Opened from an Activity row, a push or a Needs you card (F20): the
+  /// page loads down to that card, scrolls to it and highlights it, its
+  /// history open at the event's line. Gone: "This was removed".
+  final DaybookTarget? target;
 
   /// Opened from Create's "Work item in a Space" (F1): the card opens at
   /// Now, when the reader may write work items here.
@@ -115,11 +128,20 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Cards whose whole history is open (Show earlier, or a trace).
   final _expanded = <String>{};
 
+  /// The card to open at, until the page has it (F20).
+  late DaybookTarget? _target = widget.target;
+  var _revealing = false;
+
+  /// The card highlighted last, and how many times one was (each reveal
+  /// flashes again).
+  String? _highlighted;
+  var _flashes = 0;
+
   /// The loaded days, oldest first.
   var _days = <DateTime>[];
 
-  /// The day the masthead names once scrolled back: the one at the top of
-  /// the page. Null at rest on the newest cards: today.
+  /// The day the masthead names: the one at the top of the page (F23).
+  /// Null with no days: today.
   DateTime? _shownDay;
 
   /// Writing in place: the card is open with the keyboard's toolbar.
@@ -187,6 +209,70 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         unawaited(_refresh());
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(DaybookTab old) {
+    super.didUpdateWidget(old);
+    if (widget.target != old.target) _target = widget.target;
+  }
+
+  /// Opens the page at [_target]'s card (F20), once the first page is in:
+  /// loads down to it ([DaybookCards.find]), opens its history at the
+  /// event's line (reading "Show earlier" if it is older), scrolls to it
+  /// and highlights it. A post that was deleted, or can't be seen any
+  /// more, says "This was removed".
+  Future<void> _reveal() async {
+    final target = _target;
+    if (target == null || _revealing || !mounted) return;
+    _revealing = true;
+    _target = null;
+    try {
+      final l10n = AppLocalizations.of(context);
+      final pages = ref.read(daybookCardsProvider(_spaceId).notifier);
+      final bool found;
+      try {
+        found = await pages.find(target.postId);
+      } on SpaceException catch (e) {
+        if (mounted) showSpaceError(context, e);
+        return;
+      }
+      if (!mounted) return;
+      if (!found) {
+        showSpaceMessage(context, l10n.daybookRemoved);
+        return;
+      }
+      var line = target.eventId;
+      if (line != null) {
+        try {
+          if (!await pages.findLine(target.postId, line)) line = null;
+        } on SpaceException {
+          // Opens at the card.
+          line = null;
+        }
+        if (!mounted) return;
+      }
+      setState(() {
+        if (line != null) _expanded.add(target.postId);
+        _newBelow = false;
+      });
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+      final at =
+          (line == null ? null : _lineKeys[line]?.currentContext) ??
+          _cardKeys[target.postId]?.currentContext;
+      if (at != null && at.mounted) {
+        await Scrollable.ensureVisible(at, alignment: 0.5);
+      }
+      if (!mounted) return;
+      setState(() {
+        _highlighted = target.postId;
+        _flashes++;
+      });
+      _updateShownDay();
+    } finally {
+      _revealing = false;
+    }
   }
 
   @override
@@ -312,24 +398,36 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     unawaited(ref.read(daybookCardsProvider(_spaceId).notifier).loadOlder());
   }
 
+  /// The masthead names the day of what is at the top of the page (F23),
+  /// at Now too: the latest day whose divider has reached the reading line
+  /// just under the top, else the first day on the page. That day's divider is then hidden, so the
+  /// same day never shows twice in a row ([_dividerHidden]).
   void _updateShownDay() {
     final viewport =
         _viewportKey.currentContext?.findRenderObject() as RenderBox?;
-    if (viewport == null || !viewport.hasSize || _days.isEmpty) return;
-    if (!_scroll.hasClients || _scroll.offset <= 0) {
+    if (viewport == null || !viewport.hasSize) return;
+    if (_days.isEmpty) {
       if (_shownDay != null) setState(() => _shownDay = null);
       return;
     }
     final top = viewport.localToGlobal(Offset.zero).dy;
-    DateTime? shown = _days.first;
+    DateTime? shown;
     for (final day in _days) {
       final box =
           _dayKeys[day]?.currentContext?.findRenderObject() as RenderBox?;
-      if (box == null || !box.hasSize) continue;
-      if (box.localToGlobal(Offset.zero).dy <= top) shown = day;
+      if (box == null || !box.attached || !box.hasSize) continue;
+      // The first day laid out is the top one, even below the top edge.
+      shown ??= day;
+      if (box.localToGlobal(Offset.zero).dy <=
+          top + BvMastheadSpec.readingLine) {
+        shown = day;
+      }
     }
     if (shown != _shownDay) setState(() => _shownDay = shown);
   }
+
+  /// The divider of the day the masthead names: the masthead says it.
+  bool _dividerHidden(DateTime day) => !_writing && day == _shownDay;
 
   /// Shows [day]: loads older pages until it is reached, then puts the
   /// latest day on or before it at the top.
@@ -651,6 +749,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         if (i.kind == PendingKind.signOff) i.id,
     };
     final cards = page.value ?? const <DaybookCard>[];
+    if (_target != null && page.hasValue && !_revealing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_reveal()));
+    }
 
     final shown = _shownDay ?? today;
     final waitingPosts = [
@@ -1116,10 +1217,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         key: _cardKeys.putIfAbsent(c.id, GlobalKey.new),
         child: KeyedSubtree(
           key: Key('daybook-card-${c.id}'),
-          // A post not on the server yet has nothing to do on it.
-          child: unsent != null
-              ? view
-              : _loop.withActions(context, view, me: me, signing: signing),
+          // The card a row or a push opened (F20).
+          child: BvHighlight(
+            flash: _highlighted == c.id ? _flashes : null,
+            // A post not on the server yet has nothing to do on it.
+            child: unsent != null
+                ? view
+                : _loop.withActions(context, view, me: me, signing: signing),
+          ),
         ),
       );
     }
@@ -1173,10 +1278,21 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         spacing: BvCardSpec.gap,
                         children: [
-                          BvDayDivider(
-                            label: day == today
-                                ? l10n.daybookTodayDivider
-                                : words.compactDate(day),
+                          // Under a masthead naming the same day, it keeps
+                          // its place but doesn't show (F23).
+                          Visibility(
+                            key: Key(
+                              'daybook-divider-${day.toIso8601String()}',
+                            ),
+                            visible: !_dividerHidden(day),
+                            maintainSize: true,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: BvDayDivider(
+                              label: day == today
+                                  ? l10n.daybookTodayDivider
+                                  : words.compactDate(day),
+                            ),
                           ),
                           for (final (_, _, row) in byDay[day]!)
                             switch (row) {

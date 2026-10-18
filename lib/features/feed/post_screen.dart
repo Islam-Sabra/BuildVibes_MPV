@@ -425,32 +425,33 @@ class _ReplyView extends ConsumerWidget {
           ),
         ),
         // Each with a 48 touch area, into the gap above and the padding
-        // below.
-        Padding(
-          padding: underName,
-          child: BvTapTarget(
-            outset: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
-            child: SizedBox(
-              height: BvHomeSpec.actionsHeight,
-              child: Row(
-                spacing: BvReplySpec.actionsGap,
-                children: [
-                  _ReplyAction(
-                    key: Key('reply-useful-${reply.id}'),
-                    label: l10n.postUseful,
-                    active: reply.myUseful,
-                    onTap: mine ? null : useful,
-                  ),
-                  _ReplyAction(
-                    key: Key('reply-reply-${reply.id}'),
-                    label: l10n.postReply,
-                    onTap: onReply,
-                  ),
-                ],
+        // below. None on your own reply: only its ⋯ (F31).
+        if (!mine)
+          Padding(
+            padding: underName,
+            child: BvTapTarget(
+              outset: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
+              child: SizedBox(
+                height: BvHomeSpec.actionsHeight,
+                child: Row(
+                  spacing: BvReplySpec.actionsGap,
+                  children: [
+                    _ReplyAction(
+                      key: Key('reply-useful-${reply.id}'),
+                      label: l10n.postUseful,
+                      active: reply.myUseful,
+                      onTap: useful,
+                    ),
+                    _ReplyAction(
+                      key: Key('reply-reply-${reply.id}'),
+                      label: l10n.postReply,
+                      onTap: onReply,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

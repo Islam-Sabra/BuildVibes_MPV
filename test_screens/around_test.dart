@@ -47,6 +47,7 @@ import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/profile/settings_screen.dart';
+import 'package:buildvibes/core/config/build_info.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
@@ -244,6 +245,32 @@ void main() {
         lang,
         (_) => const Pushed(SettingsScreen()),
         overrides: await _base(me: DaybookSamples.islam),
+      );
+    });
+
+    // Review 53 Part D: which build is on the phone.
+    testWidgets('D About: version, build and commit [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'D-about',
+        lang,
+        (_) => const Pushed(SettingsScreen()),
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          buildInfoProvider.overrideWith(
+            (ref) async => const BuildInfo(
+              version: '0.9.0',
+              build: '295',
+              commit: 'c8b6512',
+            ),
+          ),
+        ],
+        before: (tester) async {
+          await tester.ensureVisible(find.byKey(const Key('row-about')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('row-about')));
+          await tester.pumpAndSettle();
+        },
       );
     });
 
@@ -543,6 +570,44 @@ void main() {
             find.byKey(const Key('reply-reply-reply-mariam')),
             200,
             scrollable: find.byType(Scrollable).first,
+          );
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    // Review 53 Part D (F24): the reply bar rides on the keyboard.
+    testWidgets('D F24 the post page reply bar over the keyboard [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      final posts = homePosts()
+        ..repliesByPost['post-pour'] = [
+          PostReply(
+            id: 'reply-faisal',
+            postId: 'post-pour',
+            authorId: 'p-faisal',
+            authorName: t('Faisal Al-Rashidi', 'فيصل الرشيدي'),
+            body: t(
+              'Great work. Was the slab cured with blankets overnight?',
+              'عمل رائع. هل غُطّيت البلاطة بالبطانيات للمعالجة طوال الليل؟',
+            ),
+            createdAt: DateTime(2026, 10, 15, 7, 2),
+          ),
+        ];
+      await shoot(
+        tester,
+        'D-F24-reply-bar-keyboard',
+        lang,
+        (_) => const Pushed(PostScreen(postId: 'post-pour')),
+        keyboard: true,
+        overrides: await home(posts: posts),
+        before: (tester) async {
+          await tester.tap(find.byKey(const Key('reply-reply-reply-faisal')));
+          await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('post-reply-input')),
+            t('Yes, wet blankets until 6.', 'نعم، بطانيات مبللة حتى السادسة.'),
           );
           await tester.pumpAndSettle();
         },

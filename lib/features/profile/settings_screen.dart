@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/build_info.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -406,15 +407,45 @@ class _LegalSheet extends ConsumerWidget {
     final market = ref.watch(myMarketProvider);
     final terms = market?.legalLink('terms', locale);
     final privacy = market?.legalLink('privacy', locale);
-    if (terms == null && privacy == null) {
-      return Text(
-        l10n.legalSoon,
-        key: const Key('legal-soon'),
-        style: BvType.of(
-          context,
-        ).bodyMd.copyWith(color: BvColors.textSecondary),
-      );
-    }
+    final build = ref.watch(buildInfoProvider).value;
+    final legal = terms == null && privacy == null
+        ? Text(
+            l10n.legalSoon,
+            key: const Key('legal-soon'),
+            style: BvType.of(
+              context,
+            ).bodyMd.copyWith(color: BvColors.textSecondary),
+          )
+        : _legalLinks(context, ref, l10n, terms, privacy);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvSpace.s16,
+      children: [
+        legal,
+        // Which build is on this phone (review 53 Part D).
+        if (build != null)
+          Text(
+            l10n.aboutBuild(
+              ltrRun(build.version),
+              ltrRun(build.build),
+              ltrRun(build.commit),
+            ),
+            key: const Key('about-build'),
+            style: BvType.of(
+              context,
+            ).metadata.copyWith(color: BvColors.textSecondary),
+          ),
+      ],
+    );
+  }
+
+  Widget _legalLinks(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    Uri? terms,
+    Uri? privacy,
+  ) {
     return ClipRRect(
       borderRadius: BvRadius.cardAll,
       child: BvListGroup(

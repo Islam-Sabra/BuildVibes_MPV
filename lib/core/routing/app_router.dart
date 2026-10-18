@@ -44,6 +44,7 @@ import '../../features/spaces/new_space_screen.dart';
 import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
+import '../../features/work/daybook_target.dart';
 import '../../features/chat/thread_screen.dart';
 import '../../features/feed/post_screen.dart';
 import '../../features/library/add_file_screen.dart';
@@ -220,6 +221,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => SpaceScreen(
           spaceId: state.pathParameters['id']!,
           open: state.extra as SpaceOpen?,
+          target: DaybookTarget.fromQuery(state.uri.queryParameters),
         ),
         routes: [
           GoRoute(

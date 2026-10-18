@@ -2,6 +2,8 @@
 // the proof photo before it is sent. Measured from Figma Y1 (2530:33953)
 // and O2 (2529:33493). Values that already exist as tokens point at them.
 
+import 'package:flutter/widgets.dart';
+
 import 'bv_specs.dart';
 import 'bv_tokens.dart';
 
@@ -81,4 +83,45 @@ abstract final class BvProofCameraSpec {
 
   /// Send as done before the note is written (without a photo).
   static const sendDisabledOpacity = 0.4;
+}
+
+/// A sheet with a field that rides on the keyboard (W1 v13c 2582:77206,
+/// F24): the update and send-back sheets. White, rounded at the top, the
+/// item quoted in one line with a small thumbnail, then the field.
+abstract final class BvFieldSheetSpec {
+  static const radius = BorderRadius.vertical(top: Radius.circular(16));
+  static const paddingTop = 20.0;
+  static const paddingSide = BvSpace.s16;
+  static const paddingBottom = BvSpace.s12;
+  static const gap = BvSpace.s12;
+  static const handleTop = BvSpace.s8;
+
+  // The quote: one line on the subtle paper.
+  static const quotePaddingStart = BvSpace.s8;
+  static const quotePaddingEnd = BvSpace.s8;
+  static const quotePaddingVertical = BvSpace.s6;
+  static const quoteRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+  static const quoteGap = 10.0;
+  static const thumb = 32.0;
+  static const thumbRadius = BorderRadius.all(Radius.circular(BvRadius.tiny));
+  static const thumbIcon = BvSize.iconSm;
+
+  // The field and the round send button.
+  static const fieldGap = BvSpace.s8;
+  static const fieldPaddingHorizontal = 14.0;
+  static const fieldPaddingVertical = BvSpace.s12;
+  static const fieldRadius = BorderRadius.all(Radius.circular(BvRadius.toast));
+  static const fieldBorder = BvStroke.medium; // 1.5
+  static const send = BvSize.controlMd; // 44
+  static const sendIcon = 20.0;
+}
+
+/// The card an Activity row, a push or a Needs you card opens (F20): a
+/// ring around it for about a second, then it fades.
+abstract final class BvCardHighlightSpec {
+  static const hold = Duration(milliseconds: 1000);
+  static const fade = BvMotion.slow;
+  static const width = BvStroke.thick;
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.slip));
+  static const outset = BvSpace.s4;
 }

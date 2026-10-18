@@ -51,6 +51,7 @@ class FakeActivityRepository implements ActivityRepository {
           removalId: r.removalId,
           targetKind: r.targetKind,
           result: r.result,
+          eventId: r.eventId,
         ),
     ];
   }

@@ -19,6 +19,7 @@ import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
 import '../library/library_tab.dart';
 import '../work/daybook_tab.dart';
+import '../work/daybook_target.dart';
 import 'people_tab.dart';
 import 'spaces_state.dart';
 
@@ -33,10 +34,13 @@ enum SpaceOpen { people, invite, write }
 /// A Space: the Space header (MN1) and the tabs Work · Chat · People ·
 /// Library at the bottom.
 class SpaceScreen extends ConsumerStatefulWidget {
-  const SpaceScreen({super.key, required this.spaceId, this.open});
+  const SpaceScreen({super.key, required this.spaceId, this.open, this.target});
 
   final String spaceId;
   final SpaceOpen? open;
+
+  /// Opened at a work item's card (F20): the Work tab, at that card.
+  final DaybookTarget? target;
 
   static const workTab = 0;
   static const chatTab = 1;
@@ -48,10 +52,12 @@ class SpaceScreen extends ConsumerStatefulWidget {
 }
 
 class _SpaceScreenState extends ConsumerState<SpaceScreen> {
-  late var _tab = switch (widget.open) {
-    SpaceOpen.people || SpaceOpen.invite => SpaceScreen.peopleTab,
-    SpaceOpen.write || null => SpaceScreen.workTab,
-  };
+  late var _tab = widget.target != null
+      ? SpaceScreen.workTab
+      : switch (widget.open) {
+          SpaceOpen.people || SpaceOpen.invite => SpaceScreen.peopleTab,
+          SpaceOpen.write || null => SpaceScreen.workTab,
+        };
 
   @override
   void initState() {
@@ -164,6 +170,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         SpaceScreen.workTab => DaybookTab(
           space: detail,
           startWriting: widget.open == SpaceOpen.write,
+          target: widget.target,
         ),
         SpaceScreen.chatTab => ChatTab(space: detail),
         SpaceScreen.libraryTab => LibraryTab(space: detail),
