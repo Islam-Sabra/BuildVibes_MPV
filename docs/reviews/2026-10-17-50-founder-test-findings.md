@@ -187,11 +187,8 @@ The founder compared Omar's screens (emulator, Arabic) with what was agreed: tex
 - **When:** with **slice 2**, which builds the file post and file upload, not as a slice 1 fix. Slice 1 shows the gallery only. The server side (Library, `space-files`) is already live.
 - **Proof photos stay camera only** (founder's decision, review 47). This choice is for attachments to a post, never for the proof of "Sign as done".
 
-## F22. The due date, time and place are lost when a work item is sent
-- **What happened:** the founder wrote "Fix door closer" through **+ → Work item in a Space ▸ → NBKCH SITE TEAM** (the new F1 path), with Omar as owner, a due date with a time, and the place "Room 2". On live, NST-006 has no place, no due date and no due time. Omar's slip shows only "For you".
-- **Severity: high.** Late and Due today depend on it, and so does "Where".
-- **To check:** does the F1 path open the same writing card and the same send code as the Work item bar inside the Space? Do the draft and the outbox keep `due_at` and `place`, and does the send pass them to `create_post`? Does the founder's own slip show them before and after sending?
-- **Test:** a work item written through each path, with owner, due date and time, and place, sent online and sent from the outbox after no signal. The server row has all three; the slip shows them on both phones.
+## F22. Withdrawn: the due date, time and place were never added
+Claude Code saw NST-006 on live with no place, due date or time and reported them lost. The founder confirms he posted it with an owner only, so the server row is correct. **Not a bug.** Test due date, time and place on the next work item, through + → Work item in a Space ▸.
 
 ## F23. The masthead shows the wrong day while older slips are in view
 - **What happened:** the masthead said "Sunday 18 October" above Saturday's 4:07 and 4:08 pm slips, and then a divider said "Sunday 18 October" again before today's slips.
