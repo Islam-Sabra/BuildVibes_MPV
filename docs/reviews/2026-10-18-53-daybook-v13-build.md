@@ -90,14 +90,21 @@ Follow the frames above, in English and Arabic.
 ## Part C: text sizes v2, two sizes (founder's choice)
 Change the values in `BvType`, so every screen follows. The token names stay.
 
-| Role | Latin | Arabic | Tokens |
+| Role | Latin | Arabic (Almarai) | Tokens |
 |---|---|---|---|
 | Main, bold | 15/22 Bold | 16/26 Bold | `headingMd`, `titleLg` |
-| Main, semibold | 15/22 SemiBold | 16/26 SemiBold | `titleMd`, `labelLg`, `button` |
-| Main, medium | 15/22 Medium | 16/26 Medium | `labelMd` |
+| Main, semibold | 15/22 SemiBold | 16/26 Bold | `titleMd`, `labelLg`, `button` |
+| Main, medium | 15/22 Medium | 16/26 Regular | `labelMd` |
 | Main, regular | 15/22 Regular | 16/26 Regular | `bodyLg`, `bodyMd`, `bodySm` |
-| Small | 12/16 Medium | 13/18 Medium | `labelSm`, `overline` (SemiBold) |
+| Small | 12/16 Medium | 13/18 Regular | `labelSm`, `overline` (Latin SemiBold, Arabic Bold) |
 | Small, regular | 12/16 Regular | 13/18 Regular | `metadata` |
+
+- **The Arabic font is Almarai** (founder's choice, 18 Oct), replacing Noto Sans Arabic. Almarai has Regular and Bold only, so Arabic hierarchy is bold against regular, plus colour.
+  - Bundle Almarai Regular and Bold from Google Fonts (SIL Open Font Licence), and record the source and licence in `assets/fonts/SOURCE.md`.
+  - **Subset it to the Arabic blocks** (`pyftsubset`, U+0600–06FF, U+0750–077F, U+08A0–08FF, U+FB50–FDFF, U+FE70–FEFF, plus Arabic punctuation). That way Latin words and digits inside Arabic text keep falling back to Plus Jakarta Sans, as today.
+  - Remove the Noto Sans Arabic files once nothing uses them.
+  - Figma: the `Type/Arabic/*` styles and the Arabic v13, H1 v4 and A1 v3 frames already use Almarai.
+  - Check the Arabic screens for line height and clipping, especially stamps, chips and the two-line time.
 
 - **`displayBrand`, `headingXl` and `headingLg` keep their values**, but are used only in `lib/features/entry/` (sign-in, loading).
   - There are three exceptions: `BvAvatar` xl initials, `BvCodeTag` (the invite code) and `BvCodeField`.

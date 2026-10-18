@@ -273,6 +273,10 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
   - Two text sizes (F27).
 - **Figma (founder ok, 18 Oct):** A1 v3 EN `2587:76920`, AR `2589:445`.
 
+## F33. The Arabic font: Almarai
+- **What the founder asked:** Arabic that reads like Facebook. Facebook has no Arabic font of its own; it uses the phone's font. Shown six options side by side (AR page `2590:471`), the founder chose **Almarai** (18 Oct).
+- **Change:** Almarai replaces Noto Sans Arabic, in Regular and Bold, subset to Arabic so Latin and digits stay in Plus Jakarta Sans. Details are in review 53 Part C. `CLAUDE.md` and the Figma `Type/Arabic/*` styles are updated.
+
 ## Retest results (steps 1–13, complete 18 Oct)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
 - **Step 11, reply to a reply:** under Omar's reply, "Replying to Omar Haddad" (F2 ✓); the keyboard didn't hide the text on the Xiaomi.

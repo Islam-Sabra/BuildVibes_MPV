@@ -67,7 +67,7 @@ Don't build out-of-scope features, even partly, without the founder's yes.
   - Western digits in Arabic.
   - Use `Directionality`-aware widgets (`EdgeInsetsDirectional`, `AlignmentDirectional`, `start`/`end`), never `left`/`right`.
   - Arrow and chevron icons flip in right-to-left.
-- **Fonts:** Plus Jakarta Sans (Latin) and Noto Sans Arabic, in `assets/fonts/` (copy them from the old repo's `mobile/assets/fonts/`).
+- **Fonts:** Plus Jakarta Sans (Latin) and **Almarai** (Arabic, Regular and Bold; founder's choice, 18 Oct, replacing Noto Sans Arabic), in `assets/fonts/`. Almarai is subset to Arabic so Latin words and digits inside Arabic text still use Plus Jakarta Sans; source and OFL licence in `assets/fonts/SOURCE.md`.
 - **Folders:**
   - `lib/core/` (design, theme, routing, l10n, config, market pack)
   - `lib/data/` (models, repositories, Supabase)

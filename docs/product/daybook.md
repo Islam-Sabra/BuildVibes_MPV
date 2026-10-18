@@ -18,7 +18,7 @@ Founder decisions, 14–15 Oct 2026. Figma: EN page "PROTOTYPE · Full app v1 ·
 ## The daybook (v13, founder ok 18 Oct; replaces the hour spine)
 Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (checked, Undo), `2582:77206` (Add update above the keyboard); AR `2583:373`. Text sizes: `2583:76944`.
 - **The masthead is one line:** the day name (bold) and the date (grey), both at the main size. No weather and no day count in the masthead (weather is out of the MVP; "day N on site" only in Space info).
-- **Two text sizes** (founder, 18 Oct): main 15 (Arabic 16) for everything people read; small 12 (Arabic 13) for times, refs, day dividers and labels. Titles stand out by bold, not size.
+- **Two text sizes** (founder, 18 Oct): main 15 (Arabic 16) for everything people read; small 12 (Arabic 13) for times, refs, day dividers and labels. Titles stand out by bold, not size. Arabic is set in **Almarai** (Regular and Bold).
 - **Cards take the full width** (16 from each edge). There is no hour spine and no time column: the time sits inside the card.
 - **One card per work item.** The card holds:
   - the header: the author, the ref, and at the end the time of the latest activity;
