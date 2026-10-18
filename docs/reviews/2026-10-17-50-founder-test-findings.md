@@ -241,7 +241,7 @@ Step 9 on the founder's phone: one compact date line ✓; New Space and Enter an
 
 ## Retest results so far (steps 1–9)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
-- **Step 8, no signal:** "Waiting to send", then one slip once the signal returned, with the due date, time and place (F17 ✓; F22 confirmed not a bug).
+- **Step 8, no signal:** "Waiting to send", then one slip once the signal returned. The due date and time reached the server (17:00) and the push reached Omar in 5 seconds. **The place did not arrive** (NST-007 has no place; "Room 3" is in the title). To check: was it set through ⋯ → Location? If yes, it is a bug on the no-signal path.
 - **Undo after "Send as done" (F7):** Undo at 1.2 s sent nothing and brought back the proof screen with the photo. Left alone, the sign-off reached the server after exactly 5 seconds.
 - **Pushes to the emulator:** sent on live with no error. They didn't reach the emulator because its Play services connection had gone stale after the PC changed networks. After switching the emulator's network off and on, the push landed within 6 seconds. Not an app bug.
 
