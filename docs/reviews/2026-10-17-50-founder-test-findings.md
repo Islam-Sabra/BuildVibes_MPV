@@ -186,3 +186,18 @@ The founder compared Omar's screens (emulator, Arabic) with what was agreed: tex
 - **Expected (daybook.md: a work item has "files"):** attach opens a small choice: **Photo from gallery** or **File** (PDF, Office documents, images). A file goes into the Space's Library and is shown on the slip with its name and revision (`attachments` in `daybook_post_json`, review 45).
 - **When:** with **slice 2**, which builds the file post and file upload, not as a slice 1 fix. Slice 1 shows the gallery only. The server side (Library, `space-files`) is already live.
 - **Proof photos stay camera only** (founder's decision, review 47). This choice is for attachments to a post, never for the proof of "Sign as done".
+
+## F22. The due date, time and place are lost when a work item is sent
+- **What happened:** the founder wrote "Fix door closer" through **+ → Work item in a Space ▸ → NBKCH SITE TEAM** (the new F1 path), with Omar as owner, a due date with a time, and the place "Room 2". On live, NST-006 has no place, no due date and no due time. Omar's slip shows only "For you".
+- **Severity: high.** Late and Due today depend on it, and so does "Where".
+- **To check:** does the F1 path open the same writing card and the same send code as the Work item bar inside the Space? Do the draft and the outbox keep `due_at` and `place`, and does the send pass them to `create_post`? Does the founder's own slip show them before and after sending?
+- **Test:** a work item written through each path, with owner, due date and time, and place, sent online and sent from the outbox after no signal. The server row has all three; the slip shows them on both phones.
+
+## F23. The masthead shows the wrong day while older slips are in view
+- **What happened:** the masthead said "Sunday 18 October" above Saturday's 4:07 and 4:08 pm slips, and then a divider said "Sunday 18 October" again before today's slips.
+- **Expected (D1):** the masthead follows the day of the slips at the top of the screen. Above Saturday's slips it says Saturday; the divider before Sunday's slips says Sunday. The same day never appears twice in a row.
+- **Test:** a daybook with two days. Scrolled to the older day, the masthead shows that day; at Now, it shows today, with exactly one divider between them, in EN and AR.
+
+## Not yet seen in the retest
+- **The 5-second Undo after "Send as done":** not tested. The bar had closed before Claude Code's tap; the sign-off then went as designed. Test it on the next sign-off.
+- **A push to Omar while his app is in the background, and an item arriving without a refresh:** sent on live with no error, but not seen on the emulator. Check both later in the retest.
