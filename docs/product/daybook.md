@@ -2,7 +2,7 @@
 
 Founder decisions, 14–15 Oct 2026. Figma: EN page "PROTOTYPE · Full app v1 · EN" (`2145:3`), flow "★ Space · all scenarios (Daybook)" (`2545:35161`). The full scenario map is in `space-scenarios.md`.
 
-**Name:** Daybook (Arabic: دفتر اليومية). It names the style and the Work experience. "Make it Daybook" means: paper slips, ink stamps, the time spine, writing in place, the keyboard toolbar, and gestures.
+**Name:** Daybook (Arabic: دفتر اليومية). It names the style and the Work experience. "Make it Daybook" means: paper cards, ink stamps, one card per work item with its history inside, writing in place, the keyboard toolbar, and gestures.
 
 **Design terms behind it:** light skeuomorphism (tactile paper), a timeline or journal layout, content-first in-place editing with a keyboard accessory toolbar, progressive disclosure, gesture-first.
 
@@ -15,12 +15,21 @@ Founder decisions, 14–15 Oct 2026. Figma: EN page "PROTOTYPE · Full app v1 ·
 6. **Only the main action on a screen gets the full orange fill** (Post, Sign as done, Check). Everything else is a text button or a soft pill.
 7. **The one-minute test.** A foreman must manage every main action in under a minute without help.
 
-## The daybook
-- Each day opens with a masthead: the day name large, the date, the day count on site, and the weather from the phone. While typing it shrinks to one line.
-- A thin hour spine runs down the leading edge. Each post hangs on it at its time. Days are separated by a day divider. Tap the date to drop down the month (dots for posts, rings for due dates).
-- Posts are paper slips with a torn top edge and a soft shadow. Photos are big.
-- Stamps are tilted ink stamps with name and time: DONE (action colour), CHECKED (positive), SENT BACK (destructive), CANCELLED (grey), NEW VERSION.
-- **Needs you** is a paper clip on the slip's top trailing corner.
+## The daybook (v13, founder ok 18 Oct; replaces the hour spine)
+Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (checked, Undo), `2582:77206` (Add update above the keyboard); AR `2583:373`. Text sizes: `2583:76944`.
+- **The masthead is one line:** the day name (18) and the date (13). No weather and no day count in the masthead (weather is out of the MVP; "day N on site" only in Space info).
+- **Cards take the full width** (16 from each edge). There is no hour spine and no time column: the time sits inside the card.
+- **One card per work item.** The card holds:
+  - the header: the author, the ref, and at the end the time of the latest activity;
+  - the title, then the facts (owner and due date, place) as quiet lines with icons;
+  - the latest proof photo, with its stamp (DONE, CHECKED, SENT BACK, CANCELLED);
+  - **the history**: one line per event (sign-off with its note, send-back with the reason, check, update, edit, given to someone else), each with a small face and its time, behind a thin line on the leading side. The last three show; **Show earlier** opens the rest;
+  - the one action for the viewer: "Sign as done" (owner), the double-tap hint (author, when done), nothing when checked.
+- **The card moves to Now** when something new happens to it, as a chat moves up in WhatsApp. On each earlier day, a thin **trace** keeps what happened that day ("Omar Haddad added an update · Sleeves at grid C7 · 4:07 pm ›"); tapping it scrolls to the card.
+- Days are separated by a small day divider ("Wednesday 14 October", "Today").
+- Cards are paper with a torn top edge and a soft shadow. Stamps are tilted ink stamps with name and time: DONE (action colour), CHECKED (positive), SENT BACK (destructive), CANCELLED (grey), NEW VERSION.
+- **Needs you** is a paper clip on the card's top trailing corner.
+- Other kinds of post (slice 2) follow the same rule: one card, its history inside.
 
 ## Writing, in place
 1. Tap **Work item** in the bottom bar. An empty card appears at the bottom of the daybook (at "Now"), not in a sheet. A dashed edge means not posted.
@@ -39,9 +48,9 @@ Founder decisions, 14–15 Oct 2026. Figma: EN page "PROTOTYPE · Full app v1 ·
 
 ## Acting on work items
 - **Owner:** a "Sign as done" chip on the slip, or hold the round camera button: the camera opens linked to that work item (its name at the top; the photo labelled with place, date, time and name). Holding fills a ring; releasing sends it as done.
-- **Author:** double-tap the proof photo to check it (stamp drops 130%→100%, −15°→−9°, 180 ms, one strong haptic; "Checked" toast with Undo for 5 s, then locked). Long-press the proof: Check, Send back, Add update, Discuss in chat.
+- **Author:** double-tap the proof photo to check it (stamp drops 130%→100%, −15°→−9°, 180 ms, one strong haptic; "Checked" toast with Undo for 5 s, then locked). Long-press the card: Check, Send back, Add update, Discuss in chat.
 - **Send back** stays in place: one choice (Photo missing, Not as asked, Not finished, Something else), optional note or voice. The owner sees SENT BACK on the photo, the reason, the paper clip, and "Sign as done" again.
-- **Swipe a slip** (towards the trailing edge) to add an update. It hangs under the work item as a small note quoting it.
+- **Add update:** long-press (or tap) the card → Add update; a swipe is a shortcut. The update becomes a line in the card's history. The sheet quotes the item in one line and sits right above the keyboard.
 - **Long-press your own work item:** Edit, Add update, Give to someone else, Discuss in chat, Cancel work item.
 - Edited: a grey line ("Edited: due moved from Sun to Mon"). Cancelled: faded, struck-through title, CANCELLED stamp. Reassigned: "Given to Rakesh Nair instead of Omar Haddad at 12:30". Late: "Late by 1 day" in red; a "Due today" strip under the masthead.
 

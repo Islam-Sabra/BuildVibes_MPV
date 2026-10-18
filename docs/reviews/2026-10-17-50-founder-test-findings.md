@@ -207,13 +207,29 @@ Claude Code saw NST-006 on live with no place, due date or time and reported the
 
 ## F25. A work item and what happened to it read as separate posts
 - **What the founder said:** the work item, its proof, the send-back, the check and the update each appear as a separate slip with its own area. At first look they read as separate issues. He wants a work item and its updates to read as **one element**.
-- **Lead's recommendation (needs the founder's ok: it changes the signed-off prototype):** **one card per work item**.
+- **Founder's ok (18 Oct): one card per work item.** Redrawn as Daybook v13 (see `daybook.md`, "The daybook (v13)").
   - The card holds the item (title, owner, due, place), its current stamp (OPEN, DONE, SENT BACK, CHECKED), the latest proof photo, and a short trail inside, one line per event ("Omar signed as done · 10:56", "Sent back: Photo missing · 10:52", "Islam: Area cleaned · 10:59"). The last three lines show; "Show earlier" opens the rest.
   - When something new happens, the card moves down to Now, as a chat moves to the top in WhatsApp. On the earlier day, a thin one-line trace stays ("Omar signed as done · Fix door closer ▸"), so each day's record is still true; tapping it goes to the card.
   - The gestures stay: double-tap the photo to check, long-press for the menu, the paper clip when it needs you.
   - Slice 2's checklists, announcements and files follow the same rule: one card, its trail inside.
 - **Cost:** the lead redraws D1, S1, E and the AR daybook in Figma first, for the founder's look. Then a server change (`daybook_page` returns one entry per post, at its last activity, with its events inside, plus the traces) and the slip rework: about 2–3 days, before slice 2.
 - **Cheaper alternative, not recommended:** keep separate slips and link them (a thread line on the spine, a ref chip). About a day, but an item still takes four slips on screen.
+
+## F26. No hour spine: cards take the full width, the time goes inside the card
+- **What the founder said:** the time column on the leading side takes space and makes the slips narrow. Put the time inside the card so it uses the full width.
+- **Decision (lead, with F25):** no hour spine and no time column. Cards are full width (16 from each edge). The card's header ends with the time of its latest activity; each history line has its own time. Day dividers stay.
+- Figma: v13 frames, EN `2581:35611`, `2582:35982`, `2582:36114`, `2582:77206`; AR `2583:373`.
+
+## F27. Text sizes: headings are too big next to the content, on every screen
+- **What the founder said:** the day name ("Thursday", 28; Arabic 32) and Home's "Your day" (24; Arabic 28) are very big next to the cards. All screens' text sizes need a study.
+- **Rule (lead), text sizes v2** (Figma `2583:76944`):
+  - nothing on a working screen is bigger than **18** (`heading-md`): screen titles, the day in the daybook, section titles;
+  - **20** (`heading-lg`) only for an empty state's single line;
+  - **24–32** (`heading-xl`, `display-brand`) only on sign-in and the brand screen;
+  - card title 16 (Arabic 18), body 14, facts and history 13, names and chips 12, times and refs 12;
+  - hierarchy comes from weight and colour, not size.
+- **In code:** the daybook masthead uses `displayBrand`; `spaces_day_tab.dart` uses `headingXl`; `activity_screen.dart` and `profile_parts.dart` use `headingLg` for titles. Each moves to the rule above. A test fails if a screen outside `entry/` uses `displayBrand` or `headingXl`.
+- **Check:** the lead compares every built screen with the rule (EN and AR) in the next review, with screenshots.
 
 ## Retest results so far (steps 1–6)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
