@@ -27,7 +27,7 @@ The retest is complete; the findings are in review 50. The slice 1 loop works on
 1. Merge `slice1-fixes` into `slice1-daybook`, then `slice1-daybook` into `main` (after `test-fixes-db`, which is live). Analyze and tests must be clean on `main`.
 2. Branch `slice1-v13` from `main` and start Part A.
 
-**Order inside Part D:** F30 (replies on the feed card) and F32 (Activity v3) wait for the lead's Figma frames. Do the other items first.
+**Order inside Part D:** F30 and F32 wait for the founder's look at H1 v4 and A1 v3 (EN drawn 18 Oct; AR follows). Do the other items first.
 
 ## Part A: the server (migration 26, `daybook-cards-db`, not live)
 - **`space_posts.last_activity_at`** (not null):
@@ -135,9 +135,9 @@ Change the values in `BvType`, so every screen follows. The token names stay.
   - Settings → About shows the version, the build number and the short commit, so the founder and the lead can see which build is on a phone.
 - **F29 (withdrawn):** check once that a place set through ⋯ → Location reaches the server, online and from the outbox, and add that to the outbox test.
 - **F28, Home → Spaces:** "Join with a code" instead of the cut "Enter an invite co…"; a quiet › instead of the orange Open buttons; Needs you grouped by Space; "added an update" wording; the last-activity time on every Space; the Space emblem in the tile.
-- **F30, replies visible on the feed card:** the latest reply line with up to three faces, no number (review 50). Server: the latest live reply and up to three reply authors in the feed and post JSON; it can go in migration 26. Build from the H1 frames once the lead has updated them.
+- **F30, replies visible on the feed card:** the latest reply line with up to three faces, no number (review 50). Server: the latest live reply and up to three reply authors in the feed and post JSON; it can go in migration 26. Frame: H1 v4 `2587:35849`, which also brings Home in line with v13: no hour spine, full-width cards, the one-line date, two sizes. The wordmark is a logo and keeps its size.
 - **F31:** no Reply and no Useful on your own replies.
-- **F32, Activity v3:** one list, newest first, grouped by day, all sources mixed; one slim "Needs you ›" line at the top that opens Home → Spaces (review 50). Build from A1 v3 once the lead has drawn it.
+- **F32, Activity v3:** one list, newest first, grouped by day, all sources mixed; one slim "Needs you ›" line at the top that opens Home → Spaces (review 50). Frame: A1 v3 `2587:76920`.
 - **F21** (attach a file) is slice 2. Nothing in this round.
 
 ## Part E: report
