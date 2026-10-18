@@ -17,7 +17,7 @@ All three are drawn in Figma and written into `docs/product/daybook.md` ("The da
 - **Text sizes:** `2583:76944`.
 
 Branches:
-- `slice1-v13` from `slice1-fixes`, for the app;
+- `slice1-v13` from `main` (after the merge in Part 0), for the app;
 - `daybook-cards-db` from `main`, for migration 26.
 
 Push and report after each part. About 2–3 days.
