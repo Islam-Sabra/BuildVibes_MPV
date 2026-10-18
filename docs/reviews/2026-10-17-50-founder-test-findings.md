@@ -239,9 +239,15 @@ Step 9 on the founder's phone: one compact date line ✓; New Space and Enter an
   - a Space with nothing new ("Test site") still shows the time of its last activity, as F10 says;
   - the Space tile uses the Space's floor-plan emblem, as in the Space header, not a letter.
 
+## F29. The place may be lost when a work item is sent with no signal
+- **What happened:** "Paint Room 3" (NST-007) was written in airplane mode with Omar, a due date and time, and the place "Room 3", and sent. When the signal came back, the due date and time reached the server, but the place did not. The founder says he added Room 3 as the place.
+- **To do (Claude Code):** reproduce it on the emulator: ⋯ → Location, then send with airplane mode on, then off. Repeat with the signal on. Find where the place is dropped (the card, the draft, the outbox, or the send) and fix it.
+- **Test:** a work item with owner, due date and time, and place, sent online and from the outbox. The server row has all three, and the card shows them on both phones.
+- Until it's reproduced, treat it as a bug: the place is how a foreman finds the work.
+
 ## Retest results so far (steps 1–9)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
-- **Step 8, no signal:** "Waiting to send", then one slip once the signal returned. The due date and time reached the server (17:00) and the push reached Omar in 5 seconds. **The place did not arrive** (NST-007 has no place; "Room 3" is in the title). To check: was it set through ⋯ → Location? If yes, it is a bug on the no-signal path.
+- **Step 8, no signal:** "Waiting to send", then one slip once the signal returned. The due date and time reached the server (17:00) and the push reached Omar in 5 seconds. **The place did not arrive** (F29). "Waiting to send" went away at once, leaving one slip (F17 ✓).
 - **Undo after "Send as done" (F7):** Undo at 1.2 s sent nothing and brought back the proof screen with the photo. Left alone, the sign-off reached the server after exactly 5 seconds.
 - **Pushes to the emulator:** sent on live with no error. They didn't reach the emulator because its Play services connection had gone stale after the PC changed networks. After switching the emulator's network off and on, the push landed within 6 seconds. Not an app bug.
 
