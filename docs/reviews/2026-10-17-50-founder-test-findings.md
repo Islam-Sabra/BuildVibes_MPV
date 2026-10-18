@@ -250,7 +250,7 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
   - A reply that answers you is in bold until you open the post.
   - The same line goes on the post card wherever it appears (Home feed, profile, project).
 - **Server:** the feed and post JSON carry the latest live reply (id, author, first 80 characters, time) and up to three distinct reply authors. A blocked person's replies are never used.
-- **Figma:** the lead adds the line to H1 (EN `2555:35276`, AR `2564:184`) before the build.
+- **Figma (founder ok, 18 Oct):** H1 v4 EN `2587:35849`, AR `2588:412`: the reply line on both cards, plus the v13 rules for Home (no hour spine, full-width cards, one-line date, two sizes).
 
 ## F31. A "Reply" button on your own reply
 - **What happened:** after the founder answered Omar, his own reply showed a Reply button.
@@ -271,7 +271,7 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
   - **No Needs you block:** Needs you lives on Home → Spaces, and showing it twice was the duplication of F10. At the top sits one slim line, "2 things need you ›", which opens Home → Spaces. A row that still needs you carries the paper clip.
   - No groups by source, no REV stamp, no letters. The last 30 days, loading more as you scroll.
   - Two text sizes (F27).
-- **Figma:** the lead draws A1 v3 (EN and AR) before the build.
+- **Figma (founder ok, 18 Oct):** A1 v3 EN `2587:76920`, AR `2589:445`.
 
 ## Retest results (steps 1–13, complete 18 Oct)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
