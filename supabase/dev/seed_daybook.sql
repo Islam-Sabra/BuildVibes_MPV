@@ -191,6 +191,31 @@ where e.work_item_id = w.id and e.kind = 'done'
 update public.work_items w set checked_at = e.created_at
 from public.work_item_events e
 where e.work_item_id = w.id and e.kind = 'checked' and w.id = current_setting('seed.gate')::uuid;
+-- Every raised line, and the rebar's due-date edit (made as it was posted),
+-- at its post's time too, so no seeded record is left at "now".
+alter table public.work_item_events disable trigger work_item_events_append_only;
+update public.work_item_events e set created_at = p.created_at
+from public.space_posts p
+where p.id = e.work_item_id and e.kind = 'raised'
+  and p.space_id = current_setting('seed.space')::uuid;
+alter table public.work_item_events enable trigger work_item_events_append_only;
+alter table public.post_edits disable trigger post_edits_append_only;
+update public.post_edits pe set created_at = p.created_at
+from public.space_posts p
+where p.id = pe.post_id and p.space_id = current_setting('seed.space')::uuid;
+alter table public.post_edits enable trigger post_edits_append_only;
+update public.space_posts p set edited_at = p.created_at
+where p.space_id = current_setting('seed.space')::uuid and p.edited_at is not null;
+-- The times above moved after the functions ran: work each post's last
+-- activity out again, as migration 26's back-fill does, so daybook_cards
+-- keeps the prototype's order.
+update public.space_posts p
+set last_activity_at = greatest(
+  p.created_at,
+  p.cancelled_at,
+  (select max(e.created_at) from public.work_item_events e where e.work_item_id = p.id),
+  (select max(pe.created_at) from public.post_edits pe where pe.post_id = p.id))
+where p.space_id = current_setting('seed.space')::uuid;
 commit;
 
 select w.ref, w.status, p.title, p.due_date, p.due_at, p.created_at
