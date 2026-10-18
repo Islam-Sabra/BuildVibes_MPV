@@ -222,13 +222,11 @@ Claude Code saw NST-006 on live with no place, due date or time and reported the
 
 ## F27. Text sizes: headings are too big next to the content, on every screen
 - **What the founder said:** the day name ("Thursday", 28; Arabic 32) and Home's "Your day" (24; Arabic 28) are very big next to the cards. All screens' text sizes need a study.
-- **Rule (lead), text sizes v2** (Figma `2583:76944`):
-  - nothing on a working screen is bigger than **18** (`heading-md`): screen titles, the day in the daybook, section titles;
-  - **20** (`heading-lg`) only for an empty state's single line;
-  - **24–32** (`heading-xl`, `display-brand`) only on sign-in and the brand screen;
-  - card title 16 (Arabic 18), body 14, facts and history 13, names and chips 12, times and refs 12;
-  - hierarchy comes from weight and colour, not size.
-- **In code:** the daybook masthead uses `displayBrand`; `spaces_day_tab.dart` uses `headingXl`; `activity_screen.dart` and `profile_parts.dart` use `headingLg` for titles. Each moves to the rule above. A test fails if a screen outside `entry/` uses `displayBrand` or `headingXl`.
+- **Founder's choice (18 Oct): two sizes on every working screen** (Figma board `2583:76944`; compared side by side with five sizes).
+  - **Main: 15 (Arabic 16)** for everything people read: the day, titles, facts, history, names, buttons. Titles and the day are **bold**; names and actions medium; the rest regular, in grey where secondary.
+  - **Small: 12 (Arabic 13)** for times, refs, day dividers and labels.
+  - Bigger text only on sign-in and the brand screen, plus three named exceptions: the large avatar's initials, the invite code tag and the code field.
+- **In code:** the daybook masthead uses `displayBrand`; `spaces_day_tab.dart` uses `headingXl`; `activity_screen.dart` and `profile_parts.dart` use `headingLg` for titles. Each moves to the rule above. A test fails if a file outside `entry/` and the three exceptions uses `displayBrand`, `headingXl` or `headingLg`.
 - **Check:** the lead compares every built screen with the rule (EN and AR) in the next review, with screenshots.
 
 ## Retest results so far (steps 1–6)
