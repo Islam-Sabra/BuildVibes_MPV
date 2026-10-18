@@ -1,3 +1,7 @@
+import 'package:buildvibes/core/design/around_specs.dart';
+import 'package:buildvibes/core/design/bv_specs.dart';
+import 'package:buildvibes/core/design/bv_tokens.dart';
+import 'package:buildvibes/core/design/daybook_paper_specs.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/models/post.dart';
@@ -178,9 +182,10 @@ void main() {
       );
     });
 
-    testWidgets('F19: the card: ⋯ level with the name, the name in semibold '
-        'with the headline under it, the text right under, actions with a '
-        '48 touch area [$lang]', (tester) async {
+    testWidgets('H1 v4: the card: the avatar, the name in main semibold '
+        'with the headline under it, the time and ⋯ at the end, level with '
+        'the author; the text right under; actions with a 48 touch area '
+        '[$lang]', (tester) async {
       final posts = _posts()
         ..posts.add(
           Post(
@@ -195,22 +200,37 @@ void main() {
         ..home.add('p4');
       final app = await _feed(tester, lang, posts: posts);
       Rect at(String key) => tester.getRect(find.byKey(Key(key)));
-      final name = at('post-name-p1');
-      final menu = at('post-menu-p1');
-      expect(menu.center.dy, closeTo(name.center.dy, 1));
-      expect(menu.size, const Size(48, 48));
-      // At the card's top end corner, inside the paper.
-      final card = at('post-p1');
-      expect(
-        lang == 'ar' ? menu.left : card.right - menu.right,
-        closeTo(lang == 'ar' ? card.left : 0, 1),
+      Rect avatarOf(String id) => tester.getRect(
+        find.descendant(
+          of: find.byKey(Key('post-$id')),
+          matching: find.byType(BvAvatar),
+        ),
       );
+      final avatar = avatarOf('p1');
+      expect(avatar.size, const Size.square(BvAvatarSpec.post));
+      final menu = at('post-menu-p1');
+      final time = at('post-time-p1');
+      expect(menu.center.dy, closeTo(avatar.center.dy, 1));
+      expect(time.center.dy, closeTo(avatar.center.dy, 1));
+      expect(menu.size, const Size.square(BvHomeSpec.menuIcon));
+      // The time, then ⋯ at the card's end, inside the paper.
+      final card = at('post-p1');
+      if (lang == 'ar') {
+        expect(menu.right, lessThan(time.left));
+        expect(menu.left - card.left, closeTo(BvSlipSpec.paddingSide, 1));
+      } else {
+        expect(menu.left, greaterThan(time.right));
+        expect(card.right - menu.right, closeTo(BvSlipSpec.paddingSide, 1));
+      }
+      // The card is full width, 16 from each edge: no hour spine.
+      expect(card.left, closeTo(BvSpace.gutter, 0.5));
+      expect(card.right, closeTo(390 - BvSpace.gutter, 0.5));
       expect(
         tester
             .widget<Text>(find.byKey(const Key('post-name-p1')))
             .style!
             .fontWeight,
-        FontWeight.w600,
+        (lang == 'ar' ? BvType.arabic : BvType.latin).titleMd.fontWeight,
       );
       expect(
         tester.widget<Text>(find.byKey(const Key('post-byline-p1'))).data,
@@ -241,15 +261,13 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.byKey(const Key('post-byline-p4')), findsNothing);
-      final avatar = tester.getRect(
-        find.descendant(
-          of: find.byKey(const Key('post-p4')),
-          matching: find.byType(BvAvatar),
-        ),
-      );
       final alone = at('post-name-p4');
-      expect(alone.center.dy, closeTo(avatar.center.dy, 1));
+      expect(alone.center.dy, closeTo(avatarOf('p4').center.dy, 1));
       expect(at('post-menu-p4').center.dy, closeTo(alone.center.dy, 1));
+      // ⋯ answers a touch beside it (48 × 48).
+      await tester.tapAt(at('post-menu-p4').center.translate(0, 14));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('post-report')), findsOneWidget);
       // The card hugs a short post: the text, then the actions.
       final short = at('post-p4');
       final actions = at('post-useful-p4');
@@ -341,7 +359,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
       expect(find.text(l10n.postWritingAuthor), findsOneWidget);
-      expect(find.text(l10n.daybookNow), findsOneWidget);
       // Post waits for text or a photo.
       expect(_postOn(tester), isFalse);
 
@@ -833,14 +850,24 @@ void main() {
           ),
         ];
       final app = await _feed(tester, lang, posts: posts);
-      // On the Feed the time is on the spine (H1 v3), not on the card.
-      expect(find.textContaining(l10n.timeHoursShort(3)), findsNothing);
+      // The card's time (H1 v4), on the Feed and on the post page alike.
+      final time = tester
+          .widget<Text>(find.byKey(const Key('post-time-p1')))
+          .data;
       _router(tester).push('/posts/p1');
       await tester.pumpAndSettle();
-      // "3h", not "3h ago"; the project tag and the author's face, as in
-      // the Feed.
-      expect(find.textContaining(l10n.timeHoursShort(3)), findsWidgets);
-      expect(find.textContaining(l10n.timeHoursAgo(3)), findsNothing);
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(
+                of: find.byKey(const Key('post-p1')),
+                matching: find.byKey(const Key('post-time-p1')),
+              ),
+            )
+            .data,
+        time,
+      );
+      // The project tag and the author's face, as in the Feed.
       expect(find.byKey(const Key('post-project-pr-1')), findsOneWidget);
       expect(
         find.descendant(

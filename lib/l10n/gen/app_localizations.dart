@@ -3596,6 +3596,12 @@ abstract class AppLocalizations {
   /// **'See all'**
   String get homeSeeAll;
 
+  /// Home → Spaces: join a Space with the code an engineer gave you (review 50 F28).
+  ///
+  /// In en, this message translates to:
+  /// **'Join with a code'**
+  String get homeJoinWithCode;
+
   /// Home top bar search tooltip.
   ///
   /// In en, this message translates to:
@@ -3662,28 +3668,10 @@ abstract class AppLocalizations {
   /// **'due {date}'**
   String needsDue(String date);
 
-  /// Needs-you button.
-  ///
-  /// In en, this message translates to:
-  /// **'Open'**
-  String get needsOpen;
-
-  /// A1 button for an item to check.
-  ///
-  /// In en, this message translates to:
-  /// **'Check'**
-  String get needsCheck;
-
-  /// A1 button for a join request.
-  ///
-  /// In en, this message translates to:
-  /// **'Review request'**
-  String get needsReview;
-
   /// H1b row: a work item event.
   ///
   /// In en, this message translates to:
-  /// **'{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} commented on {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}'**
+  /// **'{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} added an update · {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}'**
   String todayItem(String event, String name, String ref, String title);
 
   /// H1b row: a Library file.
@@ -3710,77 +3698,11 @@ abstract class AppLocalizations {
   /// **'Someone'**
   String get activitySomeone;
 
-  /// A1 section: your own count.
-  ///
-  /// In en, this message translates to:
-  /// **'NEEDS YOU · {n}'**
-  String activityNeedsHeader(int n);
-
-  /// A1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'CHANGES TO YOUR RECORD'**
-  String get activityChanges;
-
-  /// A1 section line.
-  ///
-  /// In en, this message translates to:
-  /// **'Last 7 days'**
-  String get activityLast7;
-
-  /// A1 group line.
-  ///
-  /// In en, this message translates to:
-  /// **'Space · your pass: {pass}'**
-  String activitySpaceLine(String pass);
-
-  /// A1 group.
-  ///
-  /// In en, this message translates to:
-  /// **'Your record'**
-  String get activityGroupRecord;
-
   /// A1 group.
   ///
   /// In en, this message translates to:
   /// **'Your network'**
   String get activityGroupNetwork;
-
-  /// A1 group.
-  ///
-  /// In en, this message translates to:
-  /// **'Your posts'**
-  String get activityGroupPosts;
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} gave you {ref}'**
-  String activityAssigned(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} signed {ref} as done'**
-  String activityDone(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} checked {ref}'**
-  String activityChecked(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} sent {ref} back'**
-  String activitySentBack(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} commented on {ref}'**
-  String activityComment(String name, String ref);
 
   /// A1 row.
   ///
@@ -3809,7 +3731,7 @@ abstract class AppLocalizations {
   /// A1 row.
   ///
   /// In en, this message translates to:
-  /// **'New follower: {name}'**
+  /// **'{name} started following you'**
   String activityFollow(String name);
 
   /// A1 row.
@@ -3842,47 +3764,59 @@ abstract class AppLocalizations {
   /// **'Your post was found useful'**
   String get activityUseful0;
 
-  /// A1 status chip.
+  /// A1 v3 row: the owner signed a work item as done.
   ///
   /// In en, this message translates to:
-  /// **'Assigned'**
-  String get chipAssigned;
+  /// **'{name} signed as done: {title}'**
+  String activityItemDone(String name, String title);
 
-  /// A1 status chip (glossary).
+  /// A1 v3 row: the author checked a work item.
   ///
   /// In en, this message translates to:
-  /// **'Done'**
-  String get chipDone;
+  /// **'{name} checked: {title}'**
+  String activityItemChecked(String name, String title);
 
-  /// A1 status chip (glossary).
+  /// A1 v3 row: a work item was sent back to you.
   ///
   /// In en, this message translates to:
-  /// **'Checked'**
-  String get chipChecked;
+  /// **'{name} sent back: {title}'**
+  String activityItemSentBack(String name, String title);
 
-  /// A1 status chip.
+  /// A1 v3 row: someone added an update to a work item (the daybook's word, F28).
   ///
   /// In en, this message translates to:
-  /// **'Sent back'**
-  String get chipSentBack;
+  /// **'{name} added an update: {title}'**
+  String activityItemUpdate(String name, String title);
 
-  /// A1 status chip.
+  /// A1 v3 row: someone confirmed your role on a project.
   ///
   /// In en, this message translates to:
-  /// **'Comment'**
-  String get chipComment;
+  /// **'{name} confirmed your role on {project}'**
+  String activityRoleConfirmedOn(String name, String project);
 
-  /// A1 status chip: a request to join confirmed.
+  /// A1 v3 row: a reply to your post, with the start of the reply.
   ///
   /// In en, this message translates to:
-  /// **'Approved'**
-  String get chipApproved;
+  /// **'{name} replied to your post: {text}'**
+  String activityReplyPostText(String name, String text);
 
-  /// A1 status chip: a role confirmed.
+  /// A1 v3 row: a reply to your reply, with the start of it.
   ///
   /// In en, this message translates to:
-  /// **'Confirmed'**
-  String get chipConfirmed;
+  /// **'{name} replied to you: {text}'**
+  String activityReplyReplyText(String name, String text);
+
+  /// A1 v3 row, the small grey line: it happened on your post.
+  ///
+  /// In en, this message translates to:
+  /// **'Your post'**
+  String get activityWherePost;
+
+  /// A1 v3 row, the small grey line: it happened on your profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile'**
+  String get activityWhereProfile;
 
   /// A2 title.
   ///
@@ -4447,18 +4381,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{result, select, reversed{Your appeal: it\'s back} other{Your appeal: the removal stands}}'**
   String activityAppealResult(String result);
-
-  /// A1 chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Removed'**
-  String get chipRemoved;
-
-  /// A1 chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Restored'**
-  String get chipRestored;
 
   /// S1 header link.
   ///
@@ -5096,12 +5018,6 @@ abstract class AppLocalizations {
   /// **'{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
   String daybookClock12(String time, String period);
 
-  /// The part of the day alone, as the time spine prints it on a second, smaller line under a 12-hour time ("11:58" then "pm"). The same words as daybookClock12.
-  ///
-  /// In en, this message translates to:
-  /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
-  String daybookClockPeriod(String period);
-
   /// Second line of the large stamp on a proof photo: the signer's short name and the time ("OMAR H · 09:40").
   ///
   /// In en, this message translates to:
@@ -5125,12 +5041,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waiting to send'**
   String get daybookWaitingToSend;
-
-  /// Spine label of the card being written.
-  ///
-  /// In en, this message translates to:
-  /// **'Now'**
-  String get daybookNow;
 
   /// On a card reopened with unsent text: only the author sees it.
   ///

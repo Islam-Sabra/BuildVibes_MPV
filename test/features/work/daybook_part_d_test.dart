@@ -240,11 +240,9 @@ void main() {
           ActivityRow(
             id: 'a1',
             kind: ActivityKind.itemDone,
-            group: ActivityGroupKind.space,
             createdAt: DaybookSamples.sleevesFirstDoneAt,
             spaceId: DaybookSamples.space,
             spaceName: s.spaceName,
-            myPass: 'lead',
             workItemId: 'post-sleeves',
             workItemRef: 'KCT-014',
             workItemTitle: s.sleeves,

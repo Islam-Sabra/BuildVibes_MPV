@@ -2895,6 +2895,10 @@
   "@homeSeeAll": {
     "description": "H1b: more than 3 needs; opens Activity."
   },
+  "homeJoinWithCode": "Join with a code",
+  "@homeJoinWithCode": {
+    "description": "Home → Spaces: join a Space with the code an engineer gave you (review 50 F28)."
+  },
   "homeSearch": "Search people",
   "@homeSearch": {
     "description": "Home top bar search tooltip."
@@ -2996,19 +3000,7 @@
       }
     }
   },
-  "needsOpen": "Open",
-  "@needsOpen": {
-    "description": "Needs-you button."
-  },
-  "needsCheck": "Check",
-  "@needsCheck": {
-    "description": "A1 button for an item to check."
-  },
-  "needsReview": "Review request",
-  "@needsReview": {
-    "description": "A1 button for a join request."
-  },
-  "todayItem": "{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} commented on {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}",
+  "todayItem": "{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} added an update · {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}",
   "@todayItem": {
     "description": "H1b row: a work item event.",
     "placeholders": {
@@ -3066,103 +3058,9 @@
   "@activitySomeone": {
     "description": "When the name is unknown."
   },
-  "activityNeedsHeader": "NEEDS YOU · {n}",
-  "@activityNeedsHeader": {
-    "description": "A1 section: your own count.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "activityChanges": "CHANGES TO YOUR RECORD",
-  "@activityChanges": {
-    "description": "A1 section."
-  },
-  "activityLast7": "Last 7 days",
-  "@activityLast7": {
-    "description": "A1 section line."
-  },
-  "activitySpaceLine": "Space · your pass: {pass}",
-  "@activitySpaceLine": {
-    "description": "A1 group line.",
-    "placeholders": {
-      "pass": {
-        "type": "String"
-      }
-    }
-  },
-  "activityGroupRecord": "Your record",
-  "@activityGroupRecord": {
-    "description": "A1 group."
-  },
   "activityGroupNetwork": "Your network",
   "@activityGroupNetwork": {
     "description": "A1 group."
-  },
-  "activityGroupPosts": "Your posts",
-  "@activityGroupPosts": {
-    "description": "A1 group."
-  },
-  "activityAssigned": "{name} gave you {ref}",
-  "@activityAssigned": {
-    "description": "A1 row.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "activityDone": "{name} signed {ref} as done",
-  "@activityDone": {
-    "description": "A1 row.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "activityChecked": "{name} checked {ref}",
-  "@activityChecked": {
-    "description": "A1 row.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "activitySentBack": "{name} sent {ref} back",
-  "@activitySentBack": {
-    "description": "A1 row.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "activityComment": "{name} commented on {ref}",
-  "@activityComment": {
-    "description": "A1 row.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "ref": {
-        "type": "String"
-      }
-    }
   },
   "activityJoinRequest": "{name} asked to join",
   "@activityJoinRequest": {
@@ -3200,7 +3098,7 @@
       }
     }
   },
-  "activityFollow": "New follower: {name}",
+  "activityFollow": "{name} started following you",
   "@activityFollow": {
     "description": "A1 row.",
     "placeholders": {
@@ -3252,33 +3150,97 @@
   "@activityUseful0": {
     "description": "A1 row: no names you follow. No count."
   },
-  "chipAssigned": "Assigned",
-  "@chipAssigned": {
-    "description": "A1 status chip."
+  "activityItemDone": "{name} signed as done: {title}",
+  "@activityItemDone": {
+    "description": "A1 v3 row: the owner signed a work item as done.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
   },
-  "chipDone": "Done",
-  "@chipDone": {
-    "description": "A1 status chip (glossary)."
+  "activityItemChecked": "{name} checked: {title}",
+  "@activityItemChecked": {
+    "description": "A1 v3 row: the author checked a work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
   },
-  "chipChecked": "Checked",
-  "@chipChecked": {
-    "description": "A1 status chip (glossary)."
+  "activityItemSentBack": "{name} sent back: {title}",
+  "@activityItemSentBack": {
+    "description": "A1 v3 row: a work item was sent back to you.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
   },
-  "chipSentBack": "Sent back",
-  "@chipSentBack": {
-    "description": "A1 status chip."
+  "activityItemUpdate": "{name} added an update: {title}",
+  "@activityItemUpdate": {
+    "description": "A1 v3 row: someone added an update to a work item (the daybook's word, F28).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
   },
-  "chipComment": "Comment",
-  "@chipComment": {
-    "description": "A1 status chip."
+  "activityRoleConfirmedOn": "{name} confirmed your role on {project}",
+  "@activityRoleConfirmedOn": {
+    "description": "A1 v3 row: someone confirmed your role on a project.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "project": {
+        "type": "String"
+      }
+    }
   },
-  "chipApproved": "Approved",
-  "@chipApproved": {
-    "description": "A1 status chip: a request to join confirmed."
+  "activityReplyPostText": "{name} replied to your post: {text}",
+  "@activityReplyPostText": {
+    "description": "A1 v3 row: a reply to your post, with the start of the reply.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
   },
-  "chipConfirmed": "Confirmed",
-  "@chipConfirmed": {
-    "description": "A1 status chip: a role confirmed."
+  "activityReplyReplyText": "{name} replied to you: {text}",
+  "@activityReplyReplyText": {
+    "description": "A1 v3 row: a reply to your reply, with the start of it.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "activityWherePost": "Your post",
+  "@activityWherePost": {
+    "description": "A1 v3 row, the small grey line: it happened on your post."
+  },
+  "activityWhereProfile": "Your profile",
+  "@activityWhereProfile": {
+    "description": "A1 v3 row, the small grey line: it happened on your profile."
   },
   "activityEmptyTitle": "Nothing needs you right now.",
   "@activityEmptyTitle": {
@@ -3733,14 +3695,6 @@
         "type": "String"
       }
     }
-  },
-  "chipRemoved": "Removed",
-  "@chipRemoved": {
-    "description": "A1 chip."
-  },
-  "chipRestored": "Restored",
-  "@chipRestored": {
-    "description": "A1 chip."
   },
   "settingsViewProfile": "View profile",
   "@settingsViewProfile": {
@@ -4316,15 +4270,6 @@
       }
     }
   },
-  "daybookClockPeriod": "{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}",
-  "@daybookClockPeriod": {
-    "description": "The part of the day alone, as the time spine prints it on a second, smaller line under a 12-hour time (\"11:58\" then \"pm\"). The same words as daybookClock12.",
-    "placeholders": {
-      "period": {
-        "type": "String"
-      }
-    }
-  },
   "daybookStampBy": "{name} · {time}",
   "@daybookStampBy": {
     "description": "Second line of the large stamp on a proof photo: the signer's short name and the time (\"OMAR H · 09:40\").",
@@ -4356,10 +4301,6 @@
   "daybookWaitingToSend": "Waiting to send",
   "@daybookWaitingToSend": {
     "description": "A post made with no signal: it sends when the signal is back."
-  },
-  "daybookNow": "Now",
-  "@daybookNow": {
-    "description": "Spine label of the card being written."
   },
   "daybookDraft": "Draft",
   "@daybookDraft": {

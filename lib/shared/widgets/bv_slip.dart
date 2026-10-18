@@ -35,6 +35,8 @@ class BvSlip extends StatelessWidget {
     this.lifted = false,
     this.menu,
     this.menuLine = BvSlipSpec.firstLine,
+    this.paddingTop = BvSlipSpec.paddingTop,
+    this.paddingBottom = BvSlipSpec.paddingBottom,
     this.onTap,
     this.onDoubleTap,
     this.onLongPress,
@@ -53,6 +55,11 @@ class BvSlip extends StatelessWidget {
   /// The height of the first line the ⋯ centres on: 16 for a name over a
   /// headline, the avatar's when the name sits alone beside it.
   final double menuLine;
+
+  /// Below the tear and at the bottom: a post card (H1 v4) is 14 and 6,
+  /// its actions' row making up the rest of their 48 touch area.
+  final double paddingTop;
+  final double paddingBottom;
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
   final VoidCallback? onLongPress;
@@ -72,17 +79,15 @@ class BvSlip extends StatelessWidget {
           ),
           child: Padding(
             padding: EdgeInsetsDirectional.only(
-              top: border.edgeHeight + BvSlipSpec.paddingTop,
-              bottom: BvSlipSpec.paddingBottom,
+              top: border.edgeHeight + paddingTop,
+              bottom: paddingBottom,
               start: BvSlipSpec.paddingSide,
               end: BvSlipSpec.paddingSide,
             ),
             // A small control at the bottom (Sign as done) reaches its 48
             // touch area into the bottom padding.
             child: BvTapTarget(
-              outset: const EdgeInsetsDirectional.only(
-                bottom: BvSlipSpec.paddingBottom,
-              ),
+              outset: EdgeInsetsDirectional.only(bottom: paddingBottom),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: BvSlipSpec.gap,

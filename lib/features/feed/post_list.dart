@@ -110,6 +110,8 @@ class _PostListState extends ConsumerState<PostList> {
             post: p,
             tag: widget.source.projectId != null ? PostTag.none : PostTag.shown,
             onOpen: () => context.push(AppRoutes.post(p.id)),
+            onReplyLine: (reply) =>
+                context.push(AppRoutes.post(p.id, reply: reply)),
             onChanged: (c) => setState(() => _changed[c.id] = c),
             onGone: () => setState(() => _gone.add(p.id)),
           ),

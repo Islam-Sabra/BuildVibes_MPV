@@ -37,22 +37,5 @@ void main() {
       await tester.tap(find.text('Thursday'));
       expect(taps, 1);
     });
-
-    testBoth('Home has a subline', (tester, lang) async {
-      await pumpComponent(
-        tester,
-        const BvDaybookMasthead.home(
-          weekday: 'Thursday',
-          dateLine: '15 October, from people you follow',
-        ),
-        lang: lang,
-        scroll: false,
-      );
-      final day = tester.getRect(find.text('Thursday'));
-      final line = tester.getRect(
-        find.text('15 October, from people you follow'),
-      );
-      expect(line.top, greaterThanOrEqualTo(day.bottom));
-    });
   });
 }

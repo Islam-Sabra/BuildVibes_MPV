@@ -183,8 +183,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '${AppRoutes.posts}/:id',
-        builder: (context, state) =>
-            PostScreen(postId: state.pathParameters['id']!),
+        builder: (context, state) => PostScreen(
+          postId: state.pathParameters['id']!,
+          replyId: state.uri.queryParameters['reply'],
+        ),
       ),
       GoRoute(
         path: '${AppRoutes.projects}/:id',

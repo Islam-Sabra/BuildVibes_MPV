@@ -42,9 +42,13 @@ import 'post_card.dart';
 typedef _ReplyTarget = ({String id, String top, String name, String body});
 
 class PostScreen extends ConsumerStatefulWidget {
-  const PostScreen({super.key, required this.postId});
+  const PostScreen({super.key, required this.postId, this.replyId});
 
   final String postId;
+
+  /// Opened from a card's latest reply line (F30): the page scrolls to
+  /// this reply once the replies are in.
+  final String? replyId;
 
   @override
   ConsumerState<PostScreen> createState() => _PostScreenState();
@@ -52,6 +56,25 @@ class PostScreen extends ConsumerStatefulWidget {
 
 class _PostScreenState extends ConsumerState<PostScreen> {
   final _text = TextEditingController();
+
+  /// Each reply's place on the page, to scroll to one.
+  final _replyKeys = <String, GlobalKey>{};
+  var _scrolled = false;
+
+  GlobalKey _replyKey(String id) => _replyKeys.putIfAbsent(id, GlobalKey.new);
+
+  void _scrollTo(String replyId) {
+    final target = _replyKeys[replyId]?.currentContext;
+    if (target == null) return;
+    unawaited(
+      Scrollable.ensureVisible(
+        target,
+        alignment: BvReplySpec.scrollAlignment,
+        duration: BvMotion.base,
+        curve: BvMotion.standard,
+      ),
+    );
+  }
 
   /// H17: the reply this answers, the top-level reply it is filed under,
   /// and the person tapped.
@@ -134,6 +157,21 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     }
 
     final replies = ref.watch(postRepliesProvider(widget.postId)).value;
+    // Opening the post sees its latest reply: the card's line is no longer
+    // bold (F30).
+    final latest = p.latestReply;
+    if (latest != null && !ref.read(seenRepliesProvider).contains(latest.id)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(seenRepliesProvider.notifier).seen(latest.id);
+      });
+    }
+    final goTo = widget.replyId;
+    if (goTo != null && replies != null && !_scrolled) {
+      _scrolled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollTo(goTo);
+      });
+    }
     final all = replies ?? const <PostReply>[];
     final top = [
       for (final r in all)
@@ -182,6 +220,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                 // The same card as on Home.
                 PostCard(
                   post: p,
+                  onReplyLine: _scrollTo,
                   onChanged: (changed) {
                     ref.read(feedProvider.notifier).replace(changed);
                     ref.invalidate(postProvider(widget.postId));
@@ -205,6 +244,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                     children: [
                       for (final r in [...top, ...orphans]) ...[
                         _ReplyView(
+                          key: _replyKey(r.id),
                           reply: r,
                           answered: answered(r),
                           onReply: () => replyTo(r),
@@ -217,6 +257,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                               start: BvReplySpec.answerIndent,
                             ),
                             child: _ReplyView(
+                              key: _replyKey(child.id),
                               reply: child,
                               answered: answered(child),
                               onReply: () => replyTo(child),
@@ -247,6 +288,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
 /// Reply under it, all starting under the name; ⋯ level with the name.
 class _ReplyView extends ConsumerWidget {
   const _ReplyView({
+    super.key,
     required this.reply,
     required this.answered,
     required this.onReply,

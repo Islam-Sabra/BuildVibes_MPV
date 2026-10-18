@@ -78,7 +78,81 @@ class PostProject {
       );
 }
 
-/// A post card (post_cards): author, text, photos and the tag. No counts.
+/// The newest reply on a post card (post_cards' latest_reply, migration
+/// 26, review 50 F30): its first 80 characters, who wrote it and whether
+/// it answers the reader ([toMe]).
+@immutable
+class LatestReply {
+  const LatestReply({
+    required this.id,
+    required this.body,
+    required this.authorId,
+    required this.authorName,
+    required this.createdAt,
+    this.authorPhoto,
+    this.toMe = false,
+  });
+
+  factory LatestReply.fromJson(Map<String, dynamic> j) => LatestReply(
+    id: j['id'] as String,
+    body: j['body'] as String? ?? '',
+    authorId: j['author_id'] as String,
+    authorName: j['author_name'] as String? ?? '',
+    authorPhoto: j['author_photo'] as String?,
+    createdAt: DateTime.parse(j['created_at'] as String),
+    toMe: j['to_me'] as bool? ?? false,
+  );
+
+  final String id;
+  final String body;
+  final String authorId;
+  final String authorName;
+  final String? authorPhoto;
+  final DateTime createdAt;
+
+  /// A reply to the reader, or a top comment on the reader's post.
+  final bool toMe;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'body': body,
+    'author_id': authorId,
+    'author_name': authorName,
+    'author_photo': authorPhoto,
+    'created_at': createdAt.toIso8601String(),
+    'to_me': toMe,
+  };
+}
+
+/// One of up to three people who replied (post_cards' reply_faces), the
+/// most recent first. Never a count.
+@immutable
+class ReplyFace {
+  const ReplyFace({required this.id, required this.name, this.photo});
+
+  factory ReplyFace.fromJson(Map<String, dynamic> j) => ReplyFace(
+    id: j['id'] as String,
+    name: j['name'] as String? ?? '',
+    photo: j['photo'] as String?,
+  );
+
+  final String id;
+  final String name;
+  final String? photo;
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'photo': photo};
+}
+
+List<ReplyFace> _faces(Object? list) => [
+  for (final f in (list as List?) ?? const [])
+    ReplyFace.fromJson(f as Map<String, dynamic>),
+];
+
+LatestReply? _latest(Object? json) =>
+    json == null ? null : LatestReply.fromJson(json as Map<String, dynamic>);
+
+/// A post card (post_cards): author, text, photos, the tag, and the latest
+/// reply with up to three faces. No counts.
 @immutable
 class Post {
   const Post({
@@ -94,6 +168,8 @@ class Post {
     this.editedAt,
     this.photos = const [],
     this.myUseful = false,
+    this.latestReply,
+    this.replyFaces = const [],
   });
 
   factory Post.fromJson(Map<String, dynamic> json) => Post(
@@ -120,6 +196,9 @@ class Post {
         PostPhoto.fromJson(m as Map<String, dynamic>),
     ],
     myUseful: json['my_useful'] as bool? ?? false,
+    // Absent before migration 26.
+    latestReply: _latest(json['latest_reply']),
+    replyFaces: _faces(json['reply_faces']),
   );
 
   final String id;
@@ -137,6 +216,10 @@ class Post {
   final List<PostPhoto> photos;
   final bool myUseful;
 
+  /// Null with no replies.
+  final LatestReply? latestReply;
+  final List<ReplyFace> replyFaces;
+
   /// For the offline copy of the feed (H6).
   Map<String, dynamic> toCache() => {
     'id': id,
@@ -151,6 +234,8 @@ class Post {
     'edited_at': editedAt?.toIso8601String(),
     'media': [for (final p in photos) p.toJson()],
     'my_useful': myUseful,
+    'latest_reply': latestReply?.toJson(),
+    'reply_faces': [for (final f in replyFaces) f.toJson()],
   };
 
   static Post fromCache(Map<String, dynamic> j) => Post(
@@ -173,6 +258,8 @@ class Post {
         PostPhoto.fromJson(m as Map<String, dynamic>),
     ],
     myUseful: j['my_useful'] as bool? ?? false,
+    latestReply: _latest(j['latest_reply']),
+    replyFaces: _faces(j['reply_faces']),
   );
 
   Post copyWith({
@@ -194,6 +281,8 @@ class Post {
     editedAt: editedAt ?? this.editedAt,
     photos: photos,
     myUseful: myUseful ?? this.myUseful,
+    latestReply: latestReply,
+    replyFaces: replyFaces,
   );
 }
 

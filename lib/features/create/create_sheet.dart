@@ -4,13 +4,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/around_specs.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
-import '../../shared/widgets/bv_space_tile.dart';
+import '../../shared/widgets/bv_space_emblem.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/code_sheet.dart';
 import '../spaces/space_screen.dart' show SpaceOpen;
@@ -188,7 +189,7 @@ class _PickSpace extends ConsumerWidget {
             for (final s in list)
               BvListRow(
                 key: Key('create-space-${s.id}'),
-                leading: BvSpaceTile(name: s.name),
+                leading: const BvSpaceEmblem(height: BvSpaceEmblemSpec.tile),
                 title: s.name,
                 subtitle: s.id == last
                     ? l10n.createLastSpace

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/around_specs.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
@@ -17,7 +18,6 @@ import '../../data/repositories/market_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
-import '../../shared/widgets/bv_daybook_spine.dart';
 import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -30,10 +30,10 @@ import 'post_card.dart';
 import 'post_draft.dart';
 import 'post_writing.dart';
 
-/// H1 v3 · Feed in Daybook: today's masthead, then on the time spine the
-/// post being written at Now (H2), posts waiting on this phone, and site
-/// updates from the home market, the "Beyond {market}" divider, and the
-/// rest. H4 skeleton, H5 couldn't load, H6 offline, and an empty feed with
+/// H1 v4 · Feed (2587:35849, AR 2588:412): today's one-line date, then
+/// full-width cards: the post being written at Now (H2), posts waiting on
+/// this phone, and site updates from the home market, the "Beyond
+/// {market}" divider, and the rest. H4 skeleton, H5 couldn't load, H6 offline, and an empty feed with
 /// Create.
 ///
 /// Create (from every tab) writes a post in place at Now (H2): the writing
@@ -347,11 +347,9 @@ class _FeedTabState extends ConsumerState<FeedTab> {
     ];
     final cardDraft = editing ? edit : draft;
     final children = <Widget>[
-      BvDaybookMasthead.home(
-        weekday: words.weekday(now),
-        // The date alone: the feed isn't only people you follow (review 48).
-        dateLine: words.dayMonth(now),
-      ),
+      // The one-line date (H1 v4): the date alone, as the feed isn't only
+      // people you follow (review 48).
+      BvDaybookMasthead(weekday: words.weekday(now), date: words.dayMonth(now)),
       if (data?.offline ?? false)
         Container(
           key: const Key('feed-offline'),
@@ -383,16 +381,22 @@ class _FeedTabState extends ConsumerState<FeedTab> {
           ),
         )
       else
-        // H1 v3: the posts on the time spine, newest first; the card at
-        // Now above them (H2).
-        BvDaybookSpine(
-          children: [
-            if (card)
-              BvSpineEntry(
-                key: const Key('feed-now'),
-                time: l10n.daybookNow,
-                dot: BvSpineDot.now,
-                child: PostWritingCard(
+        // H1 v4: full-width cards, newest first, 16 from each edge; the
+        // card at Now above them (H2). No hour spine: each card has its
+        // time.
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            BvSpace.gutter,
+            BvHomeSpec.feedPaddingTop,
+            BvSpace.gutter,
+            0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: BvHomeSpec.cardGap,
+            children: [
+              if (card)
+                PostWritingCard(
                   // An edit's card is its own.
                   key: ValueKey(editing),
                   writing: writing,
@@ -403,12 +407,8 @@ class _FeedTabState extends ConsumerState<FeedTab> {
                       !editing,
                   onOpen: _write,
                 ),
-              ),
-            for (final p in waiting)
-              BvSpineEntry(
-                time: words.feedTime(p.madeAt, now).time,
-                period: words.feedTime(p.madeAt, now).period,
-                child: PostCard.waiting(
+              for (final p in waiting)
+                PostCard.waiting(
                   post: _waitingPost(p, me, myName),
                   couldNotSend: p.refused,
                   // Sent: no label, though the feed hasn't read it yet
@@ -416,25 +416,23 @@ class _FeedTabState extends ConsumerState<FeedTab> {
                   sent: p.sent,
                   onOpen: p.refused ? () => unawaited(_reopen(p)) : null,
                 ),
-              ),
-            for (var i = 0; i < entries.length; i++) ...[
-              // The divider only when there were home posts above it.
-              if (i == firstBeyond && i > 0)
-                _Divider(label: l10n.feedBeyond(market ?? '')),
-              BvSpineEntry(
-                key: _keyOf(entries[i].post.id),
-                time: words.feedTime(entries[i].post.createdAt, now).time,
-                period: words.feedTime(entries[i].post.createdAt, now).period,
-                child: PostCard(
+              for (var i = 0; i < entries.length; i++) ...[
+                // The divider only when there were home posts above it.
+                if (i == firstBeyond && i > 0)
+                  _Divider(label: l10n.feedBeyond(market ?? '')),
+                PostCard(
+                  key: _keyOf(entries[i].post.id),
                   post: entries[i].post,
-                  ago: false,
                   onOpen: () =>
                       context.push(AppRoutes.post(entries[i].post.id)),
+                  onReplyLine: (reply) => context.push(
+                    AppRoutes.post(entries[i].post.id, reply: reply),
+                  ),
                   onChanged: ref.read(feedProvider.notifier).replace,
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       if (data?.loadingMore ?? false)
         const Center(child: CircularProgressIndicator()),

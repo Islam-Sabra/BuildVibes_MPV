@@ -205,7 +205,9 @@ void main() {
         ),
         lang: lang,
       );
-      expect(find.text('K'), findsOneWidget);
+      // The Space's emblem, not its first letter (F28).
+      expect(find.byType(BvSpaceEmblem), findsOneWidget);
+      expect(find.text('K'), findsNothing);
       expect(textStyle(tester, 'Check it').color, BvColors.textAction);
       expect(
         tester.getSize(

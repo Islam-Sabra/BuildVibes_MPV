@@ -2061,6 +2061,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeSeeAll => 'عرض الكل';
 
   @override
+  String get homeJoinWithCode => 'انضم برمز';
+
+  @override
   String get homeSearch => 'ابحث عن أشخاص';
 
   @override
@@ -2112,21 +2115,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get needsOpen => 'فتح';
-
-  @override
-  String get needsCheck => 'تحقّق';
-
-  @override
-  String get needsReview => 'راجع الطلب';
-
-  @override
   String todayItem(String event, String name, String ref, String title) {
     String _temp0 = intl.Intl.selectLogic(event, {
       'done': '$ref منجز بتوقيع $name',
       'checked': 'تحقّق $ref من $name',
       'sent_back': 'إرجاع $ref من $name',
-      'comment': 'تعليق من $name على $ref',
+      'comment': 'تحديث من $name · $ref',
       'reassigned': 'إعادة تكليف $ref من $name',
       'other': 'بند جديد $ref من $name',
     });
@@ -2158,54 +2152,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activitySomeone => 'أحدهم';
 
   @override
-  String activityNeedsHeader(int n) {
-    return 'بانتظارك · $n';
-  }
-
-  @override
-  String get activityChanges => 'تغييرات في سجلك';
-
-  @override
-  String get activityLast7 => 'آخر 7 أيام';
-
-  @override
-  String activitySpaceLine(String pass) {
-    return 'مساحة · تصريحك: $pass';
-  }
-
-  @override
-  String get activityGroupRecord => 'سجلك';
-
-  @override
   String get activityGroupNetwork => 'شبكتك';
-
-  @override
-  String get activityGroupPosts => 'منشوراتك';
-
-  @override
-  String activityAssigned(String name, String ref) {
-    return 'تكليف لك بـ$ref من $name';
-  }
-
-  @override
-  String activityDone(String name, String ref) {
-    return '$ref منجز بتوقيع $name';
-  }
-
-  @override
-  String activityChecked(String name, String ref) {
-    return 'تحقّق $ref من $name';
-  }
-
-  @override
-  String activitySentBack(String name, String ref) {
-    return 'إرجاع $ref من $name';
-  }
-
-  @override
-  String activityComment(String name, String ref) {
-    return 'تعليق من $name على $ref';
-  }
 
   @override
   String activityJoinRequest(String name) {
@@ -2256,25 +2203,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activityUseful0 => 'منشورك مفيد للآخرين';
 
   @override
-  String get chipAssigned => 'تكليف';
+  String activityItemDone(String name, String title) {
+    return 'منجز بتوقيع $name: $title';
+  }
 
   @override
-  String get chipDone => 'منجز';
+  String activityItemChecked(String name, String title) {
+    return 'تم الفحص من $name: $title';
+  }
 
   @override
-  String get chipChecked => 'تم التحقق';
+  String activityItemSentBack(String name, String title) {
+    return 'إرجاع من $name: $title';
+  }
 
   @override
-  String get chipSentBack => 'مُرجَع';
+  String activityItemUpdate(String name, String title) {
+    return 'تحديث من $name: $title';
+  }
 
   @override
-  String get chipComment => 'تعليق';
+  String activityRoleConfirmedOn(String name, String project) {
+    return 'تأكيد دورك في $project من $name';
+  }
 
   @override
-  String get chipApproved => 'مقبول';
+  String activityReplyPostText(String name, String text) {
+    return 'ردّ من $name على منشورك: $text';
+  }
 
   @override
-  String get chipConfirmed => 'مؤكَّد';
+  String activityReplyReplyText(String name, String text) {
+    return 'ردّ من $name عليك: $text';
+  }
+
+  @override
+  String get activityWherePost => 'منشورك';
+
+  @override
+  String get activityWhereProfile => 'ملفك';
 
   @override
   String get activityEmptyTitle => 'لا شيء بانتظارك الآن.';
@@ -2654,12 +2621,6 @@ class AppLocalizationsAr extends AppLocalizations {
     });
     return '$_temp0';
   }
-
-  @override
-  String get chipRemoved => 'محذوف';
-
-  @override
-  String get chipRestored => 'مُستعاد';
 
   @override
   String get settingsViewProfile => 'عرض الملف';
@@ -3067,18 +3028,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String daybookClockPeriod(String period) {
-    String _temp0 = intl.Intl.selectLogic(period, {
-      'morning': 'صباحًا',
-      'noon': 'ظهرًا',
-      'afternoon': 'عصرًا',
-      'evening': 'مساءً',
-      'other': 'مساءً',
-    });
-    return '$_temp0';
-  }
-
-  @override
   String daybookStampBy(String name, String time) {
     return '$name · $time';
   }
@@ -3093,9 +3042,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookWaitingToSend => 'بانتظار الإرسال';
-
-  @override
-  String get daybookNow => 'الآن';
 
   @override
   String get daybookDraft => 'مسودة';

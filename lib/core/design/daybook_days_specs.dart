@@ -1,4 +1,4 @@
-// Measurements of the Daybook's day parts: the time spine, the masthead,
+// Measurements of the Daybook's day parts: the masthead,
 // the day divider, the post bar, the month drop-down and the day-one card.
 // From the Figma frames 2518:33001, 2541:34679, 2541:34813, 2541:35060 and
 // 2542:35109 (slice 1a spec, sections 5 to 8, 14 and 15).
@@ -7,39 +7,6 @@ import 'package:flutter/widgets.dart';
 
 import 'bv_specs.dart';
 import 'bv_tokens.dart';
-
-/// Home's time spine and its entries (spec §5, H1 v3).
-abstract final class BvSpineSpec {
-  /// The time column.
-  static const timeColumn = BvSize.touchMin; // 48
-
-  /// The spine is centred on the end of the time column.
-  static const lineWidth = BvStroke.medium; // 1.5
-
-  /// The time label ends this far before the spine's centre.
-  static const labelToSpine = BvSpace.s12;
-  static const labelTop = 14.0;
-
-  /// A 12-hour time's part of the day ("pm", "مساءً"), on its own smaller
-  /// line under the time (review 50 F15).
-  static const periodSize = 10.0;
-  static const periodLine = 12.0;
-
-  /// A 3.5 circle with a 2 px halo (or ring), 9 across in all.
-  static const dotSize = 9.0;
-  static const dotRadius = 3.5;
-  static const dotStroke = BvStroke.thick; // 2
-  static const dotTop = 17.0;
-
-  /// The entry row's own height; the label and dot hang below it.
-  static const rowHeight = BvSize.iconLg; // 24
-  static const slipGap = BvSpace.s8;
-
-  static const paddingTop = BvSpace.s16;
-  static const paddingBottom = 18.0;
-  static const paddingEnd = BvSpace.s16;
-  static const entryGap = 22.0;
-}
 
 /// The masthead above the diary (spec §6; v13 2581:35635).
 abstract final class BvMastheadSpec {
@@ -52,11 +19,6 @@ abstract final class BvMastheadSpec {
   /// the top of the page: a sliver of the day before above it doesn't
   /// count.
   static const readingLine = BvSpace.s40;
-
-  // Home.
-  static const paddingHorizontal = BvSpace.s20;
-  static const homePaddingTop = BvSpace.s12;
-  static const homePaddingBottom = BvSpace.s6;
 }
 
 /// The line between days (v13 2581:35639): a thin rule on each side of the

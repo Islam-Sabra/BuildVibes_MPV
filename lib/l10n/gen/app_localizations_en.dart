@@ -2056,6 +2056,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSeeAll => 'See all';
 
   @override
+  String get homeJoinWithCode => 'Join with a code';
+
+  @override
   String get homeSearch => 'Search people';
 
   @override
@@ -2107,21 +2110,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get needsOpen => 'Open';
-
-  @override
-  String get needsCheck => 'Check';
-
-  @override
-  String get needsReview => 'Review request';
-
-  @override
   String todayItem(String event, String name, String ref, String title) {
     String _temp0 = intl.Intl.selectLogic(event, {
       'done': '$name signed $ref as done',
       'checked': '$name checked $ref',
       'sent_back': '$name sent $ref back',
-      'comment': '$name commented on $ref',
+      'comment': '$name added an update · $ref',
       'reassigned': '$name reassigned $ref',
       'other': '$name raised $ref',
     });
@@ -2153,54 +2147,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activitySomeone => 'Someone';
 
   @override
-  String activityNeedsHeader(int n) {
-    return 'NEEDS YOU · $n';
-  }
-
-  @override
-  String get activityChanges => 'CHANGES TO YOUR RECORD';
-
-  @override
-  String get activityLast7 => 'Last 7 days';
-
-  @override
-  String activitySpaceLine(String pass) {
-    return 'Space · your pass: $pass';
-  }
-
-  @override
-  String get activityGroupRecord => 'Your record';
-
-  @override
   String get activityGroupNetwork => 'Your network';
-
-  @override
-  String get activityGroupPosts => 'Your posts';
-
-  @override
-  String activityAssigned(String name, String ref) {
-    return '$name gave you $ref';
-  }
-
-  @override
-  String activityDone(String name, String ref) {
-    return '$name signed $ref as done';
-  }
-
-  @override
-  String activityChecked(String name, String ref) {
-    return '$name checked $ref';
-  }
-
-  @override
-  String activitySentBack(String name, String ref) {
-    return '$name sent $ref back';
-  }
-
-  @override
-  String activityComment(String name, String ref) {
-    return '$name commented on $ref';
-  }
 
   @override
   String activityJoinRequest(String name) {
@@ -2224,7 +2171,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String activityFollow(String name) {
-    return 'New follower: $name';
+    return '$name started following you';
   }
 
   @override
@@ -2251,25 +2198,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityUseful0 => 'Your post was found useful';
 
   @override
-  String get chipAssigned => 'Assigned';
+  String activityItemDone(String name, String title) {
+    return '$name signed as done: $title';
+  }
 
   @override
-  String get chipDone => 'Done';
+  String activityItemChecked(String name, String title) {
+    return '$name checked: $title';
+  }
 
   @override
-  String get chipChecked => 'Checked';
+  String activityItemSentBack(String name, String title) {
+    return '$name sent back: $title';
+  }
 
   @override
-  String get chipSentBack => 'Sent back';
+  String activityItemUpdate(String name, String title) {
+    return '$name added an update: $title';
+  }
 
   @override
-  String get chipComment => 'Comment';
+  String activityRoleConfirmedOn(String name, String project) {
+    return '$name confirmed your role on $project';
+  }
 
   @override
-  String get chipApproved => 'Approved';
+  String activityReplyPostText(String name, String text) {
+    return '$name replied to your post: $text';
+  }
 
   @override
-  String get chipConfirmed => 'Confirmed';
+  String activityReplyReplyText(String name, String text) {
+    return '$name replied to you: $text';
+  }
+
+  @override
+  String get activityWherePost => 'Your post';
+
+  @override
+  String get activityWhereProfile => 'Your profile';
 
   @override
   String get activityEmptyTitle => 'Nothing needs you right now.';
@@ -2646,12 +2613,6 @@ class AppLocalizationsEn extends AppLocalizations {
     });
     return '$_temp0';
   }
-
-  @override
-  String get chipRemoved => 'Removed';
-
-  @override
-  String get chipRestored => 'Restored';
 
   @override
   String get settingsViewProfile => 'View profile';
@@ -3055,18 +3016,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String daybookClockPeriod(String period) {
-    String _temp0 = intl.Intl.selectLogic(period, {
-      'morning': 'am',
-      'noon': 'pm',
-      'afternoon': 'pm',
-      'evening': 'pm',
-      'other': 'pm',
-    });
-    return '$_temp0';
-  }
-
-  @override
   String daybookStampBy(String name, String time) {
     return '$name · $time';
   }
@@ -3081,9 +3030,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookWaitingToSend => 'Waiting to send';
-
-  @override
-  String get daybookNow => 'Now';
 
   @override
   String get daybookDraft => 'Draft';

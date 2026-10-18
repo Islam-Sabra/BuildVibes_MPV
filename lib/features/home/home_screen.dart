@@ -16,33 +16,29 @@ import '../profile/widgets/profile_parts.dart';
 import '../settings/push_fix.dart';
 import 'spaces_day_tab.dart';
 
-/// Home in Daybook (H1 v3 2555:35276): the wordmark and Search (people
-/// search in Explore; the notebook and Messages icons come with slices 8
-/// and 3, review 48), the small Feed and Spaces tabs, and the tab. Spaces, your day on site (H1b), gets a dot while something
-/// needs you. Guests get no feed (the guest feed isn't in the MVP).
-class HomeScreen extends ConsumerStatefulWidget {
+/// Home (H1 v4 2587:35849): the wordmark and Search (people search in
+/// Explore; the notebook and Messages icons come with slices 8 and 3,
+/// review 48), the small Feed and Spaces tabs, and the tab. Spaces, your
+/// day on site (H1b), gets a dot while something needs you. Guests get no
+/// feed (the guest feed isn't in the MVP).
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   static const feedTab = 0;
   static const spacesTab = 1;
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  var _tab = HomeScreen.feedTab;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tab = ref.watch(homeTabProvider);
+    void select(int i) => ref.read(homeTabProvider.notifier).show(i);
     final l10n = AppLocalizations.of(context);
     final guest = ref.watch(appGateProvider) == AppGate.guest;
     final needsYou =
         !guest && (ref.watch(needsCardsProvider).value?.isNotEmpty ?? false);
     // Writing a post happens on the Feed, at Now (H2).
     ref.listen(postWritingProvider, (_, mode) {
-      if (mode != PostWriting.none && _tab != HomeScreen.feedTab) {
-        setState(() => _tab = HomeScreen.feedTab);
+      if (mode != PostWriting.none && tab != HomeScreen.feedTab) {
+        select(HomeScreen.feedTab);
       }
     });
     Widget icon(String key, IconData glyph, String label, VoidCallback onTap) =>
@@ -113,14 +109,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             BvTabs.small(
               key: const Key('home-tabs'),
               labels: [l10n.homeFeed, l10n.homeSpaces],
-              selectedIndex: _tab,
+              selectedIndex: tab,
               dots: {if (needsYou) HomeScreen.spacesTab},
-              onSelect: (i) => setState(() => _tab = i),
+              onSelect: select,
             ),
             // F9: pushes can't reach this phone; Fix it says how.
             const PushNotReachingLine(),
             Expanded(
-              child: _tab == HomeScreen.spacesTab
+              child: tab == HomeScreen.spacesTab
                   ? const SpacesDayTab()
                   : guest
                   ? Padding(
@@ -134,4 +130,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+}
+
+/// Which of Home's tabs shows: Feed or Spaces. Activity's "Needs you" line
+/// opens Spaces (review 50 F32).
+final homeTabProvider = NotifierProvider<HomeTab, int>(HomeTab.new);
+
+class HomeTab extends Notifier<int> {
+  @override
+  int build() => HomeScreen.feedTab;
+
+  void show(int tab) => state = tab;
 }

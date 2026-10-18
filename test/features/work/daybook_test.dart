@@ -10,7 +10,6 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_card_history.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
-import 'package:buildvibes/shared/widgets/bv_daybook_spine.dart';
 import 'package:buildvibes/shared/widgets/bv_due_today_strip.dart';
 import 'package:buildvibes/shared/widgets/bv_first_page.dart';
 import 'package:buildvibes/shared/widgets/bv_month_dropdown.dart';
@@ -121,8 +120,6 @@ void main() {
       expect(masthead.date, words.dayMonth(_now));
       expect(find.textContaining('41'), findsNothing);
       // No hour spine: the cards take the width, 16 from each edge.
-      expect(find.byType(BvSpineEntry), findsNothing);
-      expect(find.byType(BvDaybookSpine), findsNothing);
       final card = tester.getRect(_inCard('post-sleeves', find.byType(BvSlip)));
       expect(card.left, 16);
       expect(card.right, 390 - 16.0);

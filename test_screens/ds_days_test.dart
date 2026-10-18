@@ -1,12 +1,11 @@
 // The Daybook's day parts: the one-line masthead and the day divider (v13,
-// review 53 Part B), Home's spine, the post bars, the month drop-down and
+// review 53 Part B), the post bars, the month drop-down and
 // the day-one card. Run:
 //   flutter test test_screens/ds_days_test.dart --update-goldens
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
-import 'package:buildvibes/shared/widgets/bv_daybook_spine.dart';
 import 'package:buildvibes/shared/widgets/bv_first_page.dart';
 import 'package:buildvibes/shared/widgets/bv_month_dropdown.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
@@ -19,7 +18,6 @@ const _text = {
   'en': {
     'weekday': 'Thursday',
     'date': '15 October',
-    'now': 'Now',
     'yesterday': 'Wednesday 14 October',
     'workItem': 'Work item',
     'viewer': 'Viewer',
@@ -34,7 +32,6 @@ const _text = {
   'ar': {
     'weekday': 'الخميس',
     'date': '15 أكتوبر',
-    'now': 'الآن',
     'yesterday': 'الأربعاء 14 أكتوبر',
     'workItem': 'بند عمل',
     'viewer': 'مُطّلع',
@@ -47,15 +44,6 @@ const _text = {
     'invite': 'ادعُ فريقك',
   },
 };
-
-Widget _slip(double height) => Container(
-  height: height,
-  decoration: const BoxDecoration(
-    color: BvColors.surfaceElevated,
-    borderRadius: BvRadius.controlAll,
-    boxShadow: BvShadow.slip,
-  ),
-);
 
 void main() {
   setUpAll(loadAppFonts);
@@ -78,17 +66,6 @@ void main() {
                 weekday: t['weekday']!,
                 date: t['date']!,
                 onTap: () {},
-              ),
-              BvDaybookSpine(
-                children: [
-                  BvSpineEntry(time: '08:14', child: _slip(72)),
-                  BvSpineEntry(time: '09:40', child: _slip(96)),
-                  BvSpineEntry(
-                    time: t['now']!,
-                    dot: BvSpineDot.now,
-                    child: _slip(56),
-                  ),
-                ],
               ),
               Padding(
                 padding: const EdgeInsetsDirectional.symmetric(

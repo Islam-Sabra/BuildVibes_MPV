@@ -48,7 +48,11 @@ abstract final class AppRoutes {
 
   // Posts. "new" before ":id".
   static const posts = '/posts';
-  static String post(String id) => '/posts/$id';
+
+  /// A post; with [reply], scrolled to that reply (the feed card's latest
+  /// reply line, review 50 F30).
+  static String post(String id, {String? reply}) =>
+      reply == null ? '/posts/$id' : '/posts/$id?reply=$reply';
   static const projectsAdd = '/projects/add';
   static const projectsNew = '/projects/new';
 

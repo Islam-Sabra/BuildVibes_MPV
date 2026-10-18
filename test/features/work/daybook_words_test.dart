@@ -237,31 +237,16 @@ void main() {
       expect(ar(23, 59), '11:59 مساءً');
     });
 
-    test('F15: the spine splits a 12-hour time from its part of the day', () {
-      final t = DateTime(2026, 10, 15, 23, 58);
-      expect(_words('ar', use24: false).spineClock(t), (
-        time: '11:58',
-        period: 'مساءً',
-      ));
-      expect(_words('en', use24: false).spineClock(t), (
-        time: '11:58',
-        period: 'pm',
-      ));
-      // 24-hour: one line.
-      expect(_words('ar', use24: true).spineClock(t), (
-        time: '23:58',
-        period: null,
-      ));
-      // Home: only today's time has a part of the day.
+    test('H1 v4: a post card shows the time today, then the day', () {
       final now = DateTime(2026, 10, 15, 23, 59);
-      expect(_words('en', use24: false).feedTime(t, now).period, 'pm');
+      final en = _words('en', use24: false);
+      expect(en.feedTime(DateTime(2026, 10, 15, 13, 44), now), '1:44 pm');
       expect(
-        _words(
-          'en',
-          use24: false,
-        ).feedTime(DateTime(2026, 10, 14, 23, 58), now).period,
-        isNull,
+        _words('ar', use24: false).feedTime(DateTime(2026, 10, 15, 6, 10), now),
+        '6:10 صباحًا',
       );
+      expect(en.feedTime(DateTime(2026, 10, 14, 23, 58), now), 'Wed');
+      expect(en.feedTime(DateTime(2026, 10, 2, 9), now), '2 Oct');
     });
 
     test("the large stamp's line: the short name in capitals, the time", () {
