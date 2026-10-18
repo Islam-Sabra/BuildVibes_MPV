@@ -14,6 +14,7 @@ import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/space_errors.dart';
+import 'push_fix.dart';
 import 'push_host.dart';
 
 final pushSettingsProvider = FutureProvider.autoDispose<PushSettings>(
@@ -48,7 +49,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     super.dispose();
   }
 
-  // Back from the phone's settings: read the permission again.
+  // Back from the phone's settings: read the permission again (PushHost
+  // tries for the token again).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -114,6 +116,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
         key: const Key('notifications'),
         padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s32),
         children: [
+          // F9: allowed, but the phone has no push token.
+          const PushNotReachingLine(),
           if (off)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(

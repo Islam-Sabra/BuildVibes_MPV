@@ -4,14 +4,17 @@ import 'dart:io';
 import 'package:buildvibes/app.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/share.dart';
+import 'package:buildvibes/core/sound/sent_chime.dart';
 import 'package:buildvibes/data/repositories/account_repository.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/core/push/push_messaging.dart';
+import 'package:buildvibes/core/push/push_state.dart';
 import 'package:buildvibes/data/repositories/auth_repository.dart';
 import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
+import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
@@ -37,6 +40,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'account_fakes.dart';
 import 'activity_fakes.dart';
 import 'chat_fakes.dart';
+import 'daybook_fakes.dart';
 import 'fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
@@ -84,6 +88,7 @@ class TestApp {
     required this.spaces,
     required this.shared,
     required this.work,
+    required this.daybook,
     required this.chat,
     required this.library,
     required this.recorder,
@@ -97,7 +102,16 @@ class TestApp {
     required this.safety,
     required this.account,
     required this.opened,
+    required this.cameraAsks,
+    required this.chimes,
   });
+
+  /// The "sent" sound and haptic (F5), in the order they came: 'haptic'
+  /// and 'sound' for each post or sign-off the server accepted.
+  final List<String> chimes;
+
+  /// Each photo asked for: true from the camera, false from the gallery.
+  final List<bool> cameraAsks;
 
   final SharedPreferences prefs;
   final FakeAuthRepository auth;
@@ -106,6 +120,7 @@ class TestApp {
   final FakeProjectRepository projects;
   final FakeSpaceRepository spaces;
   final FakeWorkRepository work;
+  final FakeDaybookRepository daybook;
   final FakeChatRepository chat;
   final FakeLibraryRepository library;
   final FakeVoiceRecorder recorder;
@@ -146,10 +161,14 @@ Future<TestApp> pumpApp(
   bool onboarded = true,
   String region = 'KW',
   bool phoneSignIn = false,
+
+  /// The phone's "now" (default [testNow]).
+  DateTime? now,
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
   FakeSpaceRepository? spaces,
   FakeWorkRepository? work,
+  FakeDaybookRepository? daybook,
   FakeChatRepository? chat,
   FakeLibraryRepository? library,
   FakeVoiceRecorder? recorder,
@@ -158,6 +177,13 @@ Future<TestApp> pumpApp(
   FakePushMessaging? push,
   FakeSafetyRepository? safety,
   FakeAccountRepository? account,
+
+  /// What this phone kept from before (an app opened again).
+  Map<String, Object> stored = const {},
+
+  /// The outbox's waits before it tries again by itself after a lost
+  /// signal.
+  List<Duration> retryLater = const [Duration(seconds: 30)],
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
@@ -174,7 +200,10 @@ Future<TestApp> pumpApp(
   tester.platformDispatcher.localesTestValue = const [Locale('en')];
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
-  SharedPreferences.setMockInitialValues({'app_language': ?language});
+  SharedPreferences.setMockInitialValues({
+    ...stored,
+    'app_language': ?language,
+  });
   final prefs = await SharedPreferences.getInstance();
 
   final fakeAuth =
@@ -199,6 +228,7 @@ Future<TestApp> pumpApp(
   final fakeSpaces = spaces ?? FakeSpaceRepository(now: testNow);
   final shared = <String>[];
   final fakeWork = work ?? FakeWorkRepository();
+  final fakeDaybook = daybook ?? FakeDaybookRepository();
   final fakeChat = chat ?? FakeChatRepository(now: testNow);
   final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
@@ -212,6 +242,8 @@ Future<TestApp> pumpApp(
     ..profiles ??= fakeProfiles;
   final opened = <Uri>[];
   final saved = <String>[];
+  final cameraAsks = <bool>[];
+  final chimes = <String>[];
   final sharedFiles = <String>[];
 
   await tester.pumpWidget(
@@ -228,9 +260,10 @@ Future<TestApp> pumpApp(
         phoneSignInProvider.overrideWithValue(phoneSignIn),
         profilePageRepositoryProvider.overrideWithValue(pages),
         projectRepositoryProvider.overrideWithValue(projects),
-        clockProvider.overrideWithValue(() => testNow),
+        clockProvider.overrideWithValue(() => now ?? testNow),
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
         workRepositoryProvider.overrideWithValue(fakeWork),
+        daybookRepositoryProvider.overrideWithValue(fakeDaybook),
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
@@ -270,9 +303,10 @@ Future<TestApp> pumpApp(
           (name, mime, bytes) async => sharedFiles.add(name),
         ),
         // No camera and no waiting between tries in tests.
-        pickPhotoProvider.overrideWithValue(
-          ({required camera}) async => XFile(testPhotoPath),
-        ),
+        pickPhotoProvider.overrideWithValue(({required camera}) async {
+          cameraAsks.add(camera);
+          return XFile(testPhotoPath);
+        }),
         // A fresh copy each time: a sent item deletes its kept copy.
         keepPhotoProvider.overrideWithValue(
           (photo) async => File(photo.path)
@@ -285,7 +319,20 @@ Future<TestApp> pumpApp(
           Duration.zero,
           Duration.zero,
         ]),
+        // As the pages' old 30-second tries, unless a test sets its own.
+        outboxRetryLaterProvider.overrideWithValue(retryLater),
+        pushTokenRetryDelaysProvider.overrideWithValue(const [
+          Duration.zero,
+          Duration.zero,
+        ]),
         shareTextProvider.overrideWithValue((text) async => shared.add(text)),
+        sentChimeProvider.overrideWithValue(
+          SentChime(
+            soundOn: () async => true,
+            playSound: () async => chimes.add('sound'),
+            haptic: () async => chimes.add('haptic'),
+          ),
+        ),
         ...overrides,
       ],
       child: const BuildVibesApp(),
@@ -301,6 +348,7 @@ Future<TestApp> pumpApp(
     spaces: fakeSpaces,
     shared: shared,
     work: fakeWork,
+    daybook: fakeDaybook,
     chat: fakeChat,
     library: fakeLibrary,
     recorder: fakeRecorder,
@@ -314,8 +362,26 @@ Future<TestApp> pumpApp(
     safety: fakeSafety,
     account: fakeAccount,
     opened: opened,
+    cameraAsks: cameraAsks,
+    chimes: chimes,
   );
 }
 
 TextDirection appDirection(WidgetTester tester) =>
     Directionality.of(tester.element(find.byType(Scaffold).first));
+
+/// The app goes to the background, then comes back to the front.
+Future<void> backToTheApp(WidgetTester tester) async {
+  for (final state in const [
+    AppLifecycleState.inactive,
+    AppLifecycleState.hidden,
+    AppLifecycleState.paused,
+    AppLifecycleState.hidden,
+    AppLifecycleState.inactive,
+    AppLifecycleState.resumed,
+  ]) {
+    tester.binding.handleAppLifecycleStateChanged(state);
+    await tester.pump();
+  }
+  await tester.pumpAndSettle();
+}

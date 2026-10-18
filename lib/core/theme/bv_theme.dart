@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 
 import '../design/bv_specs.dart';
+import '../design/bv_icons.dart';
 import '../design/bv_tokens.dart';
 
 abstract final class BvTheme {
@@ -88,6 +89,11 @@ abstract final class BvTheme {
       iconTheme: const IconThemeData(
         color: BvColors.iconPrimary,
         size: BvSize.iconLg,
+      ),
+      // Back in app bars is Phosphor's arrow, never a Material icon; it
+      // mirrors in right to left.
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (_) => const Icon(BvIcons.arrowBack),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: BvColors.surfaceApp,

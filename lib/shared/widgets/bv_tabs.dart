@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design/around_specs.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
-/// Spec §3: top tabs, for example Home's Feed / Spaces.
+/// Spec §3: top tabs. [BvTabs.small] are the Daybook's (H1 v3 Feed /
+/// Spaces, R1 v4 the profile's tabs): small labels at the start, a short
+/// line under the chosen one, no line under the row.
 class BvTabs extends StatelessWidget {
   const BvTabs({
     super.key,
@@ -12,7 +15,18 @@ class BvTabs extends StatelessWidget {
     required this.onSelect,
     this.fill = false,
     this.dots = const {},
-  });
+  }) : small = false;
+
+  const BvTabs.small({
+    super.key,
+    required this.labels,
+    required this.selectedIndex,
+    required this.onSelect,
+    this.dots = const {},
+  }) : fill = false,
+       small = true;
+
+  final bool small;
 
   final List<String> labels;
   final int selectedIndex;
@@ -29,6 +43,7 @@ class BvTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
+    if (small) return _small(type);
     Widget tab(int i) => Semantics(
       button: true,
       selected: i == selectedIndex,
@@ -99,6 +114,80 @@ class BvTabs extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(children: [for (var i = 0; i < labels.length; i++) tab(i)]),
+    );
+  }
+}
+
+extension on BvTabs {
+  Widget _small(BvTypeSet type) {
+    Widget tab(int i) {
+      final selected = i == selectedIndex;
+      return Semantics(
+        button: true,
+        selected: selected,
+        child: GestureDetector(
+          key: Key('tab-$i'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onSelect(i),
+          // The look is small; the touch area is 44 high.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: BvSize.controlMd),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(
+                top: BvSmallTabsSpec.paddingTop,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: BvSmallTabsSpec.lineGap,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: BvSpace.s4,
+                    children: [
+                      Text(
+                        labels[i],
+                        maxLines: 1,
+                        style: type.labelMd.copyWith(
+                          color: selected
+                              ? BvColors.textPrimary
+                              : BvColors.textSecondary,
+                        ),
+                      ),
+                      if (dots.contains(i) && !selected)
+                        BvNewDot(key: Key('tab-dot-$i')),
+                    ],
+                  ),
+                  DecoratedBox(
+                    key: selected ? const Key('tab-indicator') : null,
+                    decoration: BoxDecoration(
+                      color: selected ? BvColors.actionPrimary : null,
+                      borderRadius: BvSmallTabsSpec.lineRadius,
+                    ),
+                    child: const SizedBox(
+                      width: BvSmallTabsSpec.lineWidth,
+                      height: BvSmallTabsSpec.lineHeight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: BvSmallTabsSpec.paddingHorizontal,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: BvSmallTabsSpec.gap,
+        children: [for (var i = 0; i < labels.length; i++) tab(i)],
+      ),
     );
   }
 }

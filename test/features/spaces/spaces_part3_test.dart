@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/months.dart';
 import 'package:buildvibes/data/models/profile.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/spaces/new_team_screen.dart';
@@ -5,6 +6,7 @@ import 'package:buildvibes/features/spaces/space_info_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/spaces/team_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_segmented.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -95,25 +97,25 @@ void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
 
-    testWidgets('Space info for an admin: every row; Access is read-only '
-        '[$lang]', (tester) async {
+    testWidgets('Space info for an admin (SI1): You, Invite, Space; the '
+        'project tag; the admins [$lang]', (tester) async {
       await pumpApp(tester, language: lang, spaces: _spaces(saraAdmin: true));
       await _openInfo(tester);
       expect(find.text(_spaceName), findsOneWidget);
-      expect(
-        find.text(l10n.spacesAccessLinked('Harbour Tower')),
-        findsOneWidget,
-      );
-      expect(
-        find.text(
-          l10n.spacesOwnersLine(l10n.listAnd('Sara Ali', l10n.youLower)),
-        ),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Harbour Tower'), findsOneWidget);
+      expect(find.text(l10n.spacesInfoYou), findsOneWidget);
+      expect(find.text(l10n.spacesInfoInvite), findsOneWidget);
+      expect(find.text(l10n.spacesInfoSpace), findsOneWidget);
+      expect(find.text(l10n.spacesPassLead), findsOneWidget);
       for (final key in [
+        'info-pass',
         'info-invite',
+        'info-copy',
+        'info-new-code',
         'info-inviters',
         'info-notify',
+        'info-admins',
+        'info-site-start',
         'info-transfer',
         'info-delete',
         'info-leave',
@@ -121,9 +123,7 @@ void main() {
       ]) {
         expect(find.byKey(Key(key)), findsOneWidget, reason: key);
       }
-      // Tapping Access does nothing (no chevron, no screen).
-      await _tap(tester, 'info-access');
-      expect(find.byType(SpaceInfoScreen), findsOneWidget);
+      expect(find.text(l10n.spacesOnSiteNotSet), findsOneWidget);
     });
 
     testWidgets('Space info for a member: no admin rows [$lang]', (
@@ -137,6 +137,9 @@ void main() {
         'info-delete',
         'space-edit',
         'info-invite',
+        'info-new-code',
+        // Not set: only admins see the row.
+        'info-site-start',
       ]) {
         expect(find.byKey(Key(key)), findsNothing, reason: key);
       }
@@ -144,24 +147,75 @@ void main() {
       expect(find.byKey(const Key('info-leave')), findsOneWidget);
     });
 
-    testWidgets('Who can invite and Notifications are single choices '
-        '[$lang]', (tester) async {
+    testWidgets('Who can invite and Notifications are one choice each, '
+        'saved at once [$lang]', (tester) async {
       final spaces = _spaces();
       await pumpApp(tester, language: lang, spaces: spaces);
       await _openInfo(tester);
 
-      await _tap(tester, 'info-inviters');
-      expect(find.text(l10n.spacesWhoCanInviteNote), findsOneWidget);
       await _tap(tester, 'inviters-everyone');
-      await _tap(tester, 'bv-sheet-confirm');
       expect(spaces.calls.last, 'update $_spaceName everyone');
-      expect(find.text(l10n.spacesInviteEveryone), findsOneWidget);
-
-      await _tap(tester, 'info-notify');
       await _tap(tester, 'notify-needs-you');
-      await _tap(tester, 'bv-sheet-confirm');
       expect(spaces.calls.last, 'notify needs_you');
-      expect(find.text(l10n.spacesNotifyNeedsYou), findsOneWidget);
+      final notify = tester.widget<BvSegmented<SpaceNotify>>(
+        find.descendant(
+          of: find.byKey(const Key('info-notify')),
+          matching: find.byType(BvSegmented<SpaceNotify>),
+        ),
+      );
+      expect(notify.value, SpaceNotify.needsYou);
+    });
+
+    testWidgets('On site since: an admin picks the day, then removes it; '
+        'others see it read-only once set [$lang]', (tester) async {
+      final spaces = _spaces();
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: spaces,
+        overrides: [
+          pickSiteStartProvider.overrideWithValue(
+            (context, {required initial, required last}) async =>
+                DateTime(2026, 9, 5),
+          ),
+        ],
+      );
+      await _openInfo(tester);
+      await _tap(tester, 'info-site-start');
+      expect(spaces.calls.last, 'site start 2026-09-05');
+      expect(
+        find.text(formatLongDate(DateTime(2026, 9, 5), lang)),
+        findsOneWidget,
+      );
+      await _tap(tester, 'info-site-start');
+      await _tap(tester, 'site-start-remove');
+      expect(spaces.calls.last, 'site start null');
+      expect(find.text(l10n.spacesOnSiteNotSet), findsOneWidget);
+    });
+
+    testWidgets('On site since, for a member: shown once set, not '
+        'changeable [$lang]', (tester) async {
+      final spaces = _spaces(iAmAdmin: false);
+      final d = spaces.details[_space]!;
+      spaces.details[_space] = SpaceDetail(
+        id: d.id,
+        name: d.name,
+        projectId: d.projectId,
+        projectName: d.projectName,
+        myPass: d.myPass,
+        iAmAdmin: false,
+        myRights: d.myRights,
+        siteStartDate: DateTime(2026, 9, 5),
+      );
+      await pumpApp(tester, language: lang, spaces: spaces);
+      await _openInfo(tester);
+      expect(
+        find.text(formatLongDate(DateTime(2026, 9, 5), lang)),
+        findsOneWidget,
+      );
+      await _tap(tester, 'info-site-start');
+      expect(spaces.calls, isEmpty);
+      expect(find.byKey(const Key('site-start-remove')), findsNothing);
     });
 
     testWidgets('Edit the name and About [$lang]', (tester) async {
@@ -175,15 +229,13 @@ void main() {
       await _type(tester, 'edit-space-name', 'Tower C — Finishes');
       await _tap(tester, 'edit-space-save');
       expect(spaces.calls.last, 'update Tower C — Finishes admins');
+      // The name is at the top of the list.
+      await tester.drag(
+        find.byKey(const Key('space-info')),
+        const Offset(0, 2000),
+      );
+      await tester.pumpAndSettle();
       expect(find.text('Tower C — Finishes'), findsOneWidget);
-    });
-
-    testWidgets('Members goes back to the People tab [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, spaces: _spaces());
-      await _openInfo(tester);
-      await _tap(tester, 'info-members');
-      expect(find.byType(SpaceScreen), findsOneWidget);
-      expect(find.byKey(const Key('space-people')), findsOneWidget);
     });
 
     testWidgets('leave asks first; a member leaves and goes Home [$lang]', (

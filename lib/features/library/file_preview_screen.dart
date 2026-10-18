@@ -426,8 +426,8 @@ class _InfoCard extends StatelessWidget {
                 for (final u in detail.usedIn)
                   GestureDetector(
                     key: Key('preview-used-${u.itemId}'),
-                    onTap: () =>
-                        context.push(AppRoutes.workItem(spaceId, u.itemId)),
+                    // On the Space's daybook, where the work item lives.
+                    onTap: () => context.push(AppRoutes.space(spaceId)),
                     child: Text(
                       joinMeta([u.ref, u.title]),
                       style: type.bodySm.copyWith(color: BvColors.textAction),

@@ -73,8 +73,8 @@ abstract final class BvIcons {
   static const workItems = IconData(0xeadc, fontFamily: _family);
   // Phosphor: shield-check
   static const pass = IconData(0xe40c, fontFamily: _family);
-  // Phosphor: folder
-  static const library = IconData(0xe24a, fontFamily: _family);
+  // Phosphor: folder-simple (the Space's Library tab, MN1)
+  static const library = IconData(0xe25a, fontFamily: _family);
   // Phosphor: calendar
   static const calendar = IconData(0xe108, fontFamily: _family);
   // Phosphor: gear
@@ -224,4 +224,32 @@ abstract final class BvIcons {
     fontFamily: _family,
     matchTextDirection: true,
   );
+
+  // The Daybook.
+  /// arrow-counter-clockwise: Send back. A turning arrow, so it mirrors.
+  static const sendBack = IconData(
+    0xe038,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+
+  /// plus: add an update (the bottom bar's Create is the same glyph).
+  static const add = create;
+
+  /// user: a person (give to someone, assign).
+  static const person = profile;
+
+  /// info: an announcement.
+  static const info = about;
+
+  /// calendar-blank: a due date.
+  static const due = month;
+
+  /// bell-slash: notifications aren't reaching this phone (F9).
+  static const notificationsOff = IconData(0xe0d4, fontFamily: _family);
+
+  /// arrow-down and arrow-up: "New" entries below (the Daybook's Now) or
+  /// above (the Home feed's top). Up and down don't mirror.
+  static const newBelow = IconData(0xe03e, fontFamily: _family);
+  static const newAbove = IconData(0xe08e, fontFamily: _family);
 }

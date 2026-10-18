@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/activity/activity_screen.dart';
+import '../../features/activity/needs_you_screen.dart';
 import '../../features/dev/components_gallery_screen.dart';
 import '../../features/entry/code_screen.dart';
 import '../../features/entry/email_screen.dart';
@@ -44,14 +45,11 @@ import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
 import '../../features/spaces/space_screen.dart';
 import '../../features/chat/thread_screen.dart';
-import '../../features/feed/composer_screen.dart';
 import '../../features/feed/post_screen.dart';
 import '../../features/library/add_file_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
-import '../../features/work/new_work_item_screen.dart';
-import '../../features/work/work_item_screen.dart';
 import 'app_routes.dart';
 
 export 'app_routes.dart';
@@ -80,6 +78,7 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.projects) ||
               under(AppRoutes.posts) ||
               under(AppRoutes.spaces) ||
+              under(AppRoutes.needs) ||
               under(AppRoutes.removals) ||
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
@@ -99,8 +98,8 @@ String? redirectForGate(AppGate gate, String location) {
 }
 
 /// Entry and onboarding sit outside the tabs. Each tab keeps its own
-/// history (an indexed stack of branches). Create is not a tab: it opens
-/// the composer over the current tab.
+/// history (an indexed stack of branches). Create is not a tab: it writes
+/// a post in place on Home.
 final appRouterProvider = Provider<GoRouter>((ref) {
   // The router re-checks where it may be whenever the gate changes.
   final gate = ValueNotifier<AppGate>(ref.read(appGateProvider));
@@ -182,20 +181,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             NewProjectScreen(initialName: state.extra as String?),
       ),
       GoRoute(
-        path: AppRoutes.postNew,
-        builder: (context, state) => const ComposerScreen(),
-      ),
-      GoRoute(
         path: '${AppRoutes.posts}/:id',
         builder: (context, state) =>
             PostScreen(postId: state.pathParameters['id']!),
-        routes: [
-          GoRoute(
-            path: 'edit',
-            builder: (context, state) =>
-                ComposerScreen(editId: state.pathParameters['id']),
-          ),
-        ],
       ),
       GoRoute(
         path: '${AppRoutes.projects}/:id',
@@ -205,6 +193,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.spaces,
         builder: (context, state) => const MySpacesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.needs,
+        builder: (context, state) => const NeedsYouScreen(),
       ),
       GoRoute(
         path: '${AppRoutes.removals}/:id',
@@ -245,19 +237,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) =>
                 TransferScreen(spaceId: state.pathParameters['id']!),
           ),
-          // "new" before ":itemId".
-          GoRoute(
-            path: 'items/new',
-            builder: (context, state) =>
-                NewWorkItemScreen(spaceId: state.pathParameters['id']!),
-          ),
           // "new" before ":fileId".
           GoRoute(
             path: 'library/new',
             builder: (context, state) => AddFileScreen(
               spaceId: state.pathParameters['id']!,
               supersedesId: state.uri.queryParameters['supersedes'],
-              forTeam: state.uri.queryParameters['for'],
             ),
           ),
           GoRoute(
@@ -272,13 +257,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => ThreadScreen(
               spaceId: state.pathParameters['id']!,
               threadId: state.pathParameters['threadId']!,
-            ),
-          ),
-          GoRoute(
-            path: 'items/:itemId',
-            builder: (context, state) => WorkItemScreen(
-              spaceId: state.pathParameters['id']!,
-              itemId: state.pathParameters['itemId']!,
             ),
           ),
           // "new" before ":teamId".

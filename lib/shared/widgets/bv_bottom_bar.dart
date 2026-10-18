@@ -55,6 +55,7 @@ class BvBottomBar extends StatelessWidget {
     Widget tab(int i) => _TabSlot(
       item: items[i],
       selected: i == selectedIndex,
+      space: onCreate == null,
       onTap: () => onSelect(i),
     );
 
@@ -99,11 +100,16 @@ class _TabSlot extends StatelessWidget {
   const _TabSlot({
     required this.item,
     required this.selected,
+    required this.space,
     required this.onTap,
   });
 
   final BvBottomBarItem item;
   final bool selected;
+
+  /// A Space's own tabs (Space tab bar 2080:11864): the chosen one is
+  /// orange, with no line above it.
+  final bool space;
   final VoidCallback onTap;
 
   @override
@@ -119,9 +125,11 @@ class _TabSlot extends StatelessWidget {
           children: [
             // Kept in the layout when inactive, so icons never jump.
             DecoratedBox(
-              key: selected ? const Key('nav-indicator') : null,
+              key: selected && !space ? const Key('nav-indicator') : null,
               decoration: BoxDecoration(
-                color: selected ? BvColors.surfaceSelected : Colors.transparent,
+                color: selected && !space
+                    ? BvColors.surfaceSelected
+                    : Colors.transparent,
                 borderRadius: BvBottomBarSize.indicatorRadius,
               ),
               child: const SizedBox(
@@ -135,9 +143,11 @@ class _TabSlot extends StatelessWidget {
               children: [
                 Icon(
                   item.icon,
-                  color: selected
-                      ? BvColors.iconPrimary
-                      : BvColors.iconSecondary,
+                  color: !selected
+                      ? BvColors.iconSecondary
+                      : space
+                      ? BvColors.textAction
+                      : BvColors.iconPrimary,
                   size: BvSize.iconLg,
                 ),
                 if (item.dot)
@@ -151,7 +161,11 @@ class _TabSlot extends StatelessWidget {
             const SizedBox(height: BvBottomBarSize.gap),
             _Label(
               item.label,
-              color: selected ? BvColors.textPrimary : BvColors.textSecondary,
+              color: !selected
+                  ? BvColors.textSecondary
+                  : space
+                  ? BvColors.textAction
+                  : BvColors.textPrimary,
             ),
           ],
         ),

@@ -8,6 +8,7 @@ import '../../core/routing/app_routes.dart';
 import '../../data/repositories/profile_page_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_pill_button.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
 import 'widgets/profile_body.dart';
@@ -59,7 +60,7 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.navProfile),
-        backgroundColor: BvColors.surfaceSubtle,
+        backgroundColor: BvColors.surfaceApp,
         actions: [
           // R1 v3: My Spaces (S1).
           IconButton(
@@ -90,14 +91,14 @@ class ProfileScreen extends ConsumerWidget {
                     ProfileHeader(
                       profile: p,
                       showFollowing: true,
-                      // Sharing waits for a web page that opens profiles.
-                      actions: BvButton(
-                        key: const Key('profile-edit'),
-                        label: l10n.profileEdit,
-                        style: BvButtonStyle.secondary,
-                        size: BvButtonSize.medium,
-                        expand: true,
-                        onPressed: () => context.push(AppRoutes.profileEdit),
+                      // Share waits for a web page that opens profiles.
+                      actions: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: BvPillButton(
+                          key: const Key('profile-edit'),
+                          label: l10n.profileEdit,
+                          onTap: () => context.push(AppRoutes.profileEdit),
+                        ),
                       ),
                     ),
                     ProfileBody(profile: p, own: true),

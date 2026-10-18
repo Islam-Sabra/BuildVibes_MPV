@@ -85,6 +85,8 @@ flutter:
   assets:
     # Sample photo for the debug-only Components gallery.
     - assets/dev/
+    # The "sent" sound (F5); see assets/sounds/SOURCE.md.
+    - assets/sounds/sent.wav
 
   fonts:
     - family: PlusJakartaSans
@@ -97,6 +99,8 @@ flutter:
           weight: 600
         - asset: assets/fonts/PlusJakartaSans-Bold.ttf
           weight: 700
+        - asset: assets/fonts/PlusJakartaSans-ExtraBold.ttf
+          weight: 800
     - family: NotoSansArabic
       fonts:
         - asset: assets/fonts/NotoSansArabic-Regular.ttf

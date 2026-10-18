@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../crash/crash_reports.dart';
+
 /// Whether the phone lets BuildVibes show notifications.
 enum PushPermission { granted, denied, notAsked }
 
@@ -16,6 +18,9 @@ abstract class PushMessaging {
 
   /// Android 13+ shows the system prompt; no extra screen (review 16 §4).
   Future<PushPermission> requestPermission();
+
+  /// This phone's push token. Null, or an error, when the phone couldn't
+  /// register (F9): the caller tries again.
   Future<String?> token();
   Stream<String> get tokenRefresh;
 
@@ -30,6 +35,16 @@ abstract class PushMessaging {
 
   /// S4: the phone's notification settings for BuildVibes.
   Future<void> openSettings();
+
+  /// F9: the phone's own page for BuildVibes (Autostart, battery).
+  Future<void> openAppSettings();
+
+  /// Who made the phone and its brand, lower case ("xiaomi", "redmi").
+  Future<List<String>> phoneMakers();
+
+  /// F9: counts a phone that got no push token, with nothing about the
+  /// person.
+  void reportNoToken();
 
   String get platform;
 }
@@ -90,13 +105,33 @@ class FirebasePushMessaging implements PushMessaging {
       _ready ? FirebaseMessaging.onMessage.map(_data) : const Stream.empty();
 
   @override
-  Future<void> openSettings() async {
+  Future<void> openSettings() => _invoke('openNotificationSettings');
+
+  @override
+  Future<void> openAppSettings() => _invoke('openAppSettings');
+
+  Future<void> _invoke(String method) async {
     try {
-      await _settings.invokeMethod<void>('openNotificationSettings');
+      await _settings.invokeMethod<void>(method);
     } on PlatformException catch (e) {
-      debugPrint('openNotificationSettings: $e');
+      debugPrint('$method: $e');
     }
   }
+
+  @override
+  Future<List<String>> phoneMakers() async {
+    if (!Platform.isAndroid) return const [];
+    try {
+      final makers = await _settings.invokeListMethod<String>('phoneMakers');
+      return [for (final m in makers ?? const <String>[]) m.toLowerCase()];
+    } on PlatformException catch (e) {
+      debugPrint('phoneMakers: $e');
+      return const [];
+    }
+  }
+
+  @override
+  void reportNoToken() => reportNoPushToken();
 
   @override
   String get platform => Platform.isIOS ? 'ios' : 'android';

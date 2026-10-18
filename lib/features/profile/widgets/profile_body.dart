@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/design/around_specs.dart';
 import '../../../core/design/bv_icons.dart';
 import '../../../core/design/bv_specs.dart';
 import '../../../core/design/bv_tokens.dart';
@@ -36,7 +37,7 @@ class _ProfileBodyState extends State<ProfileBody> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        BvTabs(
+        BvTabs.small(
           labels: [
             l10n.profileTabOverview,
             l10n.profileTabPosts,
@@ -46,15 +47,10 @@ class _ProfileBodyState extends State<ProfileBody> {
           selectedIndex: _tab,
           onSelect: (i) => setState(() => _tab = i),
         ),
-        const Divider(
-          height: BvStroke.thin,
-          thickness: BvStroke.thin,
-          color: BvColors.borderDefault,
-        ),
         Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(
             BvSpace.gutter,
-            BvSpace.s16,
+            BvProfileHeadSpec.bodyPaddingTop,
             BvSpace.gutter,
             BvSpace.s32,
           ),
@@ -98,38 +94,46 @@ class _Overview extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: BvProfileSpec.sectionGap,
       children: [
-        if (own)
-          ProfileCard(
-            child: Column(
-              key: const Key('proof-card'),
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  l10n.proofLabel,
-                  style: type.overline.copyWith(color: BvColors.textSecondary),
+        ProofOfWork(
+          key: const Key('work-delivered'),
+          profileId: profile.id,
+          own: own,
+        ),
+        if (own || projects.isNotEmpty)
+          Column(
+            key: Key(own ? 'proof-card' : 'profile-projects'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: BvProjectProofSpec.gap,
+            children: [
+              Text(
+                l10n.profileProjectsConfirmed,
+                style: type.labelMd.copyWith(color: BvColors.textSecondary),
+              ),
+              if (projects.isEmpty) ...[
+                Text(l10n.proofEmptyTitle, style: type.titleMd),
+                EmptyNote(l10n.proofEmptyBody),
+                BvButton(
+                  key: const Key('proof-add-project'),
+                  label: l10n.addProject,
+                  style: BvButtonStyle.secondary,
+                  expand: true,
+                  onPressed: () => context.push(AppRoutes.projectsAdd),
                 ),
-                if (projects.isEmpty) ...[
-                  const SizedBox(height: BvSpace.s8),
-                  Text(l10n.proofEmptyTitle, style: type.titleMd),
-                  const SizedBox(height: BvSpace.s4),
-                  EmptyNote(l10n.proofEmptyBody),
-                  const SizedBox(height: BvSpace.s12),
-                  BvButton(
-                    key: const Key('proof-add-project'),
-                    label: l10n.addProject,
-                    style: BvButtonStyle.secondary,
-                    expand: true,
-                    onPressed: () => context.push(AppRoutes.projectsAdd),
-                  ),
-                ] else
-                  DividedColumn(
-                    children: [
-                      for (final p in projects.take(3))
-                        CvProjectRow(entry: p, showProof: true),
-                    ],
+              ] else ...[
+                for (final p in projects.take(3)) ProjectProofRow(entry: p),
+                if (projects.length > 3)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: BvButton(
+                      label: l10n.profileSeeAllProjects,
+                      style: BvButtonStyle.tertiary,
+                      size: BvButtonSize.medium,
+                      padded: false,
+                      onPressed: onSeeAllProjects,
+                    ),
                   ),
               ],
-            ),
+            ],
           ),
         if (own && done < total)
           ClipRRect(
@@ -153,46 +157,6 @@ class _Overview extends StatelessWidget {
               UserText(profile.about!, style: type.bodyMd),
             ],
           ),
-        if (!own && projects.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SectionTitle(l10n.profileTabProjects),
-              DividedColumn(
-                children: [
-                  for (final p in projects.take(3))
-                    CvProjectRow(entry: p, showProof: true),
-                ],
-              ),
-              if (projects.length > 3)
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: BvButton(
-                    label: l10n.profileSeeAllProjects,
-                    style: BvButtonStyle.tertiary,
-                    size: BvButtonSize.medium,
-                    padded: false,
-                    onPressed: onSeeAllProjects,
-                  ),
-                ),
-            ],
-          ),
-        Column(
-          key: const Key('work-delivered'),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: BvSpace.s8,
-          children: [
-            SectionTitle(
-              own ? l10n.workDeliveredTitle : l10n.workDeliveredVisitorTitle,
-            ),
-            if (own)
-              Text(
-                l10n.workDeliveredBody,
-                style: type.bodySm.copyWith(color: BvColors.textSecondary),
-              ),
-            DeliveredPreview(profileId: profile.id, own: own),
-          ],
-        ),
       ],
     );
   }

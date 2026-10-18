@@ -12,11 +12,14 @@ import '../../data/models/work_item.dart';
 import '../../data/repositories/profile_page_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../core/design/around_specs.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_proof_card.dart';
 import '../../shared/widgets/bv_site_photo.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../entry/widgets/entry_scaffold.dart';
+import '../work/daybook_entry.dart' show daybookPhotoProvider;
 import '../spaces/space_errors.dart';
 import 'widgets/profile_parts.dart';
 
@@ -138,58 +141,81 @@ class _Grid extends StatelessWidget {
   }
 }
 
-/// The profile section: what the person shows (up to four), and for
-/// yourself "See all" to choose (RE2).
-class DeliveredPreview extends ConsumerWidget {
-  const DeliveredPreview({
-    super.key,
-    required this.profileId,
-    required this.own,
-  });
+/// Proof of work on a profile (R1 v4 2556:35424, 2544:35381): what the
+/// person chose to show, each as a proof card (the Done photo with
+/// CHECKED, the title, the project, who checked it and when). For
+/// yourself, "Choose what shows" opens RE2. No counts (rule 3).
+class ProofOfWork extends ConsumerWidget {
+  const ProofOfWork({super.key, required this.profileId, required this.own});
 
   final String profileId;
   final bool own;
 
+  /// The most shown on the profile; the rest is a tap away.
+  static const shownMax = 3;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
     final shown = ref.watch(shownWorkProvider(profileId)).value ?? const [];
     final mine = own
         ? ref.watch(myDeliveredWorkProvider).value ?? const <DeliveredWork>[]
         : const <DeliveredWork>[];
+    final stamp = arabic
+        ? l10n.signOffChecked
+        : l10n.signOffChecked.toUpperCase();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvSpace.s8,
+      spacing: BvProofCardSpec.listGap,
       children: [
-        if (shown.isEmpty)
-          ProfileCard(
-            child: EmptyNote(
-              mine.isEmpty ? l10n.workDeliveredEmpty : l10n.deliveredNoneShown,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.profileProofOfWork,
+                style: BvType.of(context).titleLg,
+              ),
             ),
+            // For yourself: show or hide each item (RE2).
+            if (own && mine.isNotEmpty)
+              BvButton(
+                key: const Key('delivered-see-all'),
+                label: l10n.proofChooseShown,
+                style: BvButtonStyle.tertiary,
+                size: BvButtonSize.medium,
+                padded: false,
+                onPressed: () => context.push(AppRoutes.profileDelivered),
+              ),
+          ],
+        ),
+        if (shown.isEmpty)
+          EmptyNote(
+            mine.isEmpty ? l10n.workDeliveredEmpty : l10n.deliveredNoneShown,
           )
         else
-          _Grid(
-            children: [
-              for (final w in shown.take(4))
-                DeliveredCard(
-                  work: w,
-                  onTap: () =>
-                      context.push(AppRoutes.personWork(profileId, w.id)),
-                ),
-            ],
-          ),
-        if (own && mine.isNotEmpty)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: BvButton(
-              key: const Key('delivered-see-all'),
-              label: l10n.deliveredSeeAll,
-              style: BvButtonStyle.tertiary,
-              size: BvButtonSize.medium,
-              padded: false,
-              onPressed: () => context.push(AppRoutes.profileDelivered),
+          for (final w in shown.take(shownMax))
+            BvProofCard(
+              key: Key('delivered-${w.id}'),
+              id: w.id,
+              title: w.title,
+              stamp: stamp,
+              project: w.projectName,
+              checkerName: w.checkedByName,
+              checkedLine: w.checkedAt == null
+                  ? null
+                  // No name across a block: still Checked (review 11).
+                  : w.checkedByName == null
+                  ? l10n.deliveredCheckedOn(_day(context, w.checkedAt!))
+                  : l10n.deliveredCheckedBy(
+                      w.checkedByName!,
+                      _day(context, w.checkedAt!),
+                    ),
+              photo: w.photoPath == null
+                  ? null
+                  : ref.watch(daybookPhotoProvider(w.photoPath!)),
+              onTap: () => context.push(AppRoutes.personWork(profileId, w.id)),
             ),
-          ),
       ],
     );
   }
@@ -345,16 +371,16 @@ class DeliveredPublicScreen extends ConsumerWidget {
                 if (work.checkedAt != null)
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
-                    child: BvStamp(
+                    child: BvInkStamp(
                       key: const Key('delivered-stamp'),
-                      label: l10n.deliveredStamp(
-                        Localizations.localeOf(context).languageCode == 'ar'
-                            ? _day(context, work.checkedAt!)
-                            : _day(context, work.checkedAt!).toUpperCase(),
-                      ),
-                      tone: BvStampTone.positive,
-                      tilted: true,
-                      large: true,
+                      // The Daybook's proof stamp: the word, then the day.
+                      label: l10n.signOffChecked,
+                      subline:
+                          Localizations.localeOf(context).languageCode == 'ar'
+                          ? _day(context, work.checkedAt!)
+                          : _day(context, work.checkedAt!).toUpperCase(),
+                      size: BvInkStampSize.lg,
+                      tone: BvInkStampTone.positive,
                     ),
                   ),
                 Text(work.title, style: type.titleLg),

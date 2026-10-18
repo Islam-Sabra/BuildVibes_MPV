@@ -5,19 +5,15 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 
 /// The Library with no network. Tests fill [filesBySpace] (newest first),
-/// [usedIn] and [attachedTo].
+/// and [usedIn].
 class FakeLibraryRepository implements LibraryRepository {
   FakeLibraryRepository({DateTime? now}) : now = now ?? DateTime(2026, 10, 11);
 
   final DateTime now;
   final filesBySpace = <String, List<LibraryFile>>{};
   final usedIn = <String, List<FileUse>>{};
-  final attachedTo = <String, List<String>>{};
   final uploads = <String>[];
   final calls = <String>[];
-
-  /// The next attach is refused with this failure.
-  SpaceFailure? refuseAttach;
 
   LibraryFile? _find(String id) {
     for (final list in filesBySpace.values) {
@@ -101,22 +97,6 @@ class FakeLibraryRepository implements LibraryRepository {
           ),
         );
   }
-
-  @override
-  Future<void> attach(String itemId, String fileId) async {
-    final refuse = refuseAttach;
-    if (refuse != null) {
-      refuseAttach = null;
-      throw SpaceException(refuse);
-    }
-    calls.add('attach $itemId $fileId');
-    attachedTo.putIfAbsent(itemId, () => []).add(fileId);
-  }
-
-  @override
-  Future<List<LibraryFile>> itemFiles(String itemId) async => [
-    for (final id in attachedTo[itemId] ?? const <String>[]) ?_find(id),
-  ];
 
   /// False gives links (to play a voice note); true, the default, is no
   /// network: previews show "can't show".

@@ -52,37 +52,9 @@
   "@stampSelected": {
     "description": "Stamp on the chosen pass card. Capitals in English."
   },
-  "signOffLabel": "SIGN-OFF",
-  "@signOffLabel": {
-    "description": "Section label above the sign-off strip."
-  },
-  "signOffRaised": "RAISED",
-  "@signOffRaised": {
-    "description": "Sign-off step."
-  },
-  "signOffDone": "DONE",
-  "@signOffDone": {
-    "description": "Sign-off step."
-  },
   "signOffChecked": "CHECKED",
   "@signOffChecked": {
     "description": "Sign-off step."
-  },
-  "signOffWaiting": "Waiting",
-  "@signOffWaiting": {
-    "description": "Sign-off step not signed yet."
-  },
-  "siteTagFrom": "FROM",
-  "@siteTagFrom": {
-    "description": "Site tag cell: who raised the item."
-  },
-  "siteTagOwner": "OWNER",
-  "@siteTagOwner": {
-    "description": "Site tag cell: owner of the work item."
-  },
-  "siteTagDue": "DUE",
-  "@siteTagDue": {
-    "description": "Site tag cell: due date."
   },
   "passLead": "LEAD PASS",
   "@passLead": {
@@ -712,10 +684,6 @@
   "@profileTabExperience": {
     "description": "Profile tab."
   },
-  "proofLabel": "PROOF · WHERE IT'S CONFIRMED",
-  "@proofLabel": {
-    "description": "Proof card label. Capitals in English."
-  },
   "proofConfirmed": "Confirmed",
   "@proofConfirmed": {
     "description": "A CV project confirmed by a teammate."
@@ -787,18 +755,6 @@
   "profileSeeAllProjects": "See all projects",
   "@profileSeeAllProjects": {
     "description": "Link to the Projects tab."
-  },
-  "workDeliveredTitle": "Work you delivered",
-  "@workDeliveredTitle": {
-    "description": "Own profile section."
-  },
-  "workDeliveredVisitorTitle": "Work delivered",
-  "@workDeliveredVisitorTitle": {
-    "description": "Visitor profile section."
-  },
-  "workDeliveredBody": "You choose what shows. Only items checked and closed in a Space.",
-  "@workDeliveredBody": {
-    "description": "Own profile section."
   },
   "workDeliveredEmpty": "Nothing checked yet.",
   "@workDeliveredEmpty": {
@@ -918,10 +874,6 @@
   "removePhoto": "Remove photo",
   "@removePhoto": {
     "description": "Button."
-  },
-  "placeLabel": "City or area",
-  "@placeLabel": {
-    "description": "Field label."
   },
   "placeOptional": "City or area (optional)",
   "@placeOptional": {
@@ -1108,14 +1060,6 @@
   "@newProjectNote": {
     "description": "P14 note."
   },
-  "projectNameRequired": "Write the project name.",
-  "@projectNameRequired": {
-    "description": "Validation."
-  },
-  "projectTypeRequired": "Choose the type.",
-  "@projectTypeRequired": {
-    "description": "Validation."
-  },
   "projectNameHint": "e.g. Al Kout Mall Phase 2",
   "@projectNameHint": {
     "description": "Field placeholder."
@@ -1262,7 +1206,7 @@
   "@spacesEmptyTitle": {
     "description": "H1e card title."
   },
-  "spacesEmptyBody": "A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.",
+  "spacesEmptyBody": "A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, updates and anything waiting for you.",
   "@spacesEmptyBody": {
     "description": "H1e card body (work Spaces only in the MVP)."
   },
@@ -1343,7 +1287,7 @@
   "@spacesNameLabel": {
     "description": "S5 field."
   },
-  "spacesNameHint": "e.g. Tower B — Site team",
+  "spacesNameHint": "e.g. Tower B — Design team",
   "@spacesNameHint": {
     "description": "S5 placeholder. No country facts."
   },
@@ -1450,7 +1394,7 @@
   "@spacesNewCodeNote": {
     "description": "S16 note."
   },
-  "spacesInviteHow": "Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.",
+  "spacesInviteHow": "Send the code on WhatsApp or read it out. The Space admin confirms each person before they join.",
   "@spacesInviteHow": {
     "description": "S16 explanation."
   },
@@ -1853,10 +1797,6 @@
       }
     }
   },
-  "youLower": "you",
-  "@youLower": {
-    "description": "\"Owners: Omar Haddad and you\"."
-  },
   "proofConfirmedBy": "Confirmed by {names}",
   "@proofConfirmedBy": {
     "description": "Profile project row: who confirmed (founder decision, 11 Oct).",
@@ -1870,95 +1810,17 @@
   "@spacesInfoTitle": {
     "description": "S15 title."
   },
-  "spacesAccess": "Access",
-  "@spacesAccess": {
-    "description": "S15 row, read-only."
-  },
-  "spacesAccessLinked": "Private work · linked to {project}",
-  "@spacesAccessLinked": {
-    "description": "S15 Access row.",
-    "placeholders": {
-      "project": {
-        "type": "String"
-      }
-    }
-  },
-  "spacesInviteRowSub": "Share the invite code",
-  "@spacesInviteRowSub": {
-    "description": "S15 Invite people row."
-  },
-  "spacesOwnersLine": "Owners: {names}",
-  "@spacesOwnersLine": {
-    "description": "S15 Members row.",
-    "placeholders": {
-      "names": {
-        "type": "String"
-      }
-    }
-  },
   "spacesWhoCanInvite": "Who can invite",
   "@spacesWhoCanInvite": {
     "description": "S15 row and S15k-I title."
-  },
-  "spacesWhoCanInviteNote": "Every invite still needs a Space admin to confirm the join.",
-  "@spacesWhoCanInviteNote": {
-    "description": "S15k-I subtitle."
-  },
-  "spacesInviteAdmins": "Space admins",
-  "@spacesInviteAdmins": {
-    "description": "Who can invite option."
-  },
-  "spacesInviteAdminsHelp": "Only admins share the invite code.",
-  "@spacesInviteAdminsHelp": {
-    "description": "Option help."
-  },
-  "spacesInviteLeads": "Admins and Leads",
-  "@spacesInviteLeads": {
-    "description": "Option."
-  },
-  "spacesInviteLeadsHelp": "People with a Lead pass can invite their own crews.",
-  "@spacesInviteLeadsHelp": {
-    "description": "Option help."
-  },
-  "spacesInviteEveryone": "Everyone in the Space",
-  "@spacesInviteEveryone": {
-    "description": "Option."
-  },
-  "spacesInviteEveryoneHelp": "Anyone can share the code. Admins still confirm each join.",
-  "@spacesInviteEveryoneHelp": {
-    "description": "Option help."
   },
   "spacesNotifications": "Notifications",
   "@spacesNotifications": {
     "description": "S15 row and S15k-N title."
   },
-  "spacesNotificationsNote": "For this Space only.",
-  "@spacesNotificationsNote": {
-    "description": "S15k-N subtitle."
-  },
-  "spacesNotifyAll": "Everyone posts and my Teams",
-  "@spacesNotifyAll": {
-    "description": "Option."
-  },
-  "spacesNotifyAllHelp": "Messages in Everyone and in your Teams, plus anything that needs you.",
-  "@spacesNotifyAllHelp": {
-    "description": "Option help."
-  },
-  "spacesNotifyNeedsYou": "Needs you only",
-  "@spacesNotifyNeedsYou": {
-    "description": "Option."
-  },
-  "spacesNotifyNeedsYouHelp": "Items you own, items to check and people asking to join.",
-  "@spacesNotifyNeedsYouHelp": {
-    "description": "Option help."
-  },
   "spacesNotifyOff": "Off",
   "@spacesNotifyOff": {
     "description": "Option."
-  },
-  "spacesNotifyOffHelp": "No alerts. Needs you still shows on your Home.",
-  "@spacesNotifyOffHelp": {
-    "description": "Option help."
   },
   "spacesTransfer": "Transfer ownership",
   "@spacesTransfer": {
@@ -1966,10 +1828,6 @@
   },
   "spacesDeleteSpace": "Delete Space",
   "@spacesDeleteSpace": {
-    "description": "S15 row."
-  },
-  "spacesDeleteSpaceHelp": "Owners only. Removes it for everyone.",
-  "@spacesDeleteSpaceHelp": {
     "description": "S15 row."
   },
   "spacesDeleteButton": "Delete",
@@ -2010,10 +1868,6 @@
         "type": "String"
       }
     }
-  },
-  "spacesEdit": "Edit",
-  "@spacesEdit": {
-    "description": "S15 header action, admins."
   },
   "spacesEditTitle": "Edit Space",
   "@spacesEditTitle": {
@@ -2187,609 +2041,13 @@
   "@spacesLastAdmin": {
     "description": "Last admin tries to leave (P0001)."
   },
-  "workPrivacyLine": "Members are people the Space admin confirmed. Nothing here is visible outside the Space.",
-  "@workPrivacyLine": {
-    "description": "S20 privacy line."
-  },
-  "workFilterAll": "All",
-  "@workFilterAll": {
-    "description": "S20 filter."
-  },
-  "workFilterMine": "Mine",
-  "@workFilterMine": {
-    "description": "S20 filter: items I own or raised."
-  },
-  "workFilterOpen": "Open",
-  "@workFilterOpen": {
-    "description": "S20 filter (glossary: chips مفتوحة)."
-  },
-  "workFilterToCheck": "To check",
-  "@workFilterToCheck": {
-    "description": "S20 filter."
-  },
-  "workFilterChecked": "Checked",
-  "@workFilterChecked": {
-    "description": "S20 filter."
-  },
-  "workSectionNeedsYou": "NEEDS YOU",
-  "@workSectionNeedsYou": {
-    "description": "S20 section."
-  },
-  "workSectionOpen": "OPEN",
-  "@workSectionOpen": {
-    "description": "S20 section: open, and done items waiting for someone else."
-  },
-  "workSectionWaitingCheck": "WAITING FOR A CHECK",
-  "@workSectionWaitingCheck": {
-    "description": "To check filter: done items others check."
-  },
-  "workSectionCheckedWeek": "CHECKED THIS WEEK",
-  "@workSectionCheckedWeek": {
-    "description": "S20 section."
-  },
-  "workSectionCheckedEarlier": "CHECKED EARLIER",
-  "@workSectionCheckedEarlier": {
-    "description": "Checked filter."
-  },
-  "workStatusOpen": "OPEN",
-  "@workStatusOpen": {
-    "description": "Card status."
-  },
-  "workStatusOpenDue": "OPEN · DUE {date}",
-  "@workStatusOpenDue": {
-    "description": "Card status.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "workStatusOverdue": "OPEN · WAS DUE {date}",
-  "@workStatusOverdue": {
-    "description": "Card status, past the due date.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "workStatusDoneYouCheck": "DONE · YOU CHECK IT",
-  "@workStatusDoneYouCheck": {
-    "description": "Card status."
-  },
-  "workStatusDoneWaiting": "DONE · WAITING FOR A CHECK",
-  "@workStatusDoneWaiting": {
-    "description": "Card status."
-  },
-  "workStatusChecked": "CHECKED · {date}",
-  "@workStatusChecked": {
-    "description": "Card status.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "workOwnerYou": "Owner: you",
-  "@workOwnerYou": {
-    "description": "Card people line."
-  },
-  "workOwner": "Owner: {name}",
-  "@workOwner": {
-    "description": "Card people line.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workFromYou": "from you",
-  "@workFromYou": {
-    "description": "Card people line."
-  },
-  "workFrom": "from {name}",
-  "@workFrom": {
-    "description": "Card people line.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workCheckedByLine": "checked by {name}",
-  "@workCheckedByLine": {
-    "description": "Card people line, Checked.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workCheckedBy": "Checked by {name}",
-  "@workCheckedBy": {
-    "description": "Card evidence, Checked.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workPhotos": "{n, plural, =0{No photo} =1{1 photo} other{{n} photos}}",
-  "@workPhotos": {
-    "description": "Card evidence.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "workSignAsDone": "Sign as done",
-  "@workSignAsDone": {
-    "description": "Card action (glossary)."
-  },
-  "workCheckIt": "Check it",
-  "@workCheckIt": {
-    "description": "Card action."
-  },
-  "workNewItem": "New item",
-  "@workNewItem": {
-    "description": "S20 button."
-  },
-  "workEmptyTitle": "No work items yet",
-  "@workEmptyTitle": {
-    "description": "S20 empty."
-  },
-  "workEmptyCanCreate": "Raise the first one with New item. The owner signs it as done, then it's checked.",
-  "@workEmptyCanCreate": {
-    "description": "S20 empty, can create."
-  },
-  "workEmptyCannot": "Items appear here when someone raises one for the team.",
-  "@workEmptyCannot": {
-    "description": "S20 empty, can't create."
-  },
-  "workNothingNeedsYou": "Nothing needs you right now.",
-  "@workNothingNeedsYou": {
-    "description": "S20 empty Needs you."
-  },
-  "workFilterEmpty": "Nothing here.",
-  "@workFilterEmpty": {
-    "description": "S20 empty filter."
-  },
-  "workStatusOwnerLeft": "OWNER LEFT · REASSIGN",
-  "@workStatusOwnerLeft": {
-    "description": "Card status: the owner left the Space (review 09)."
-  },
-  "workReassign": "Reassign",
-  "@workReassign": {
-    "description": "Card action."
-  },
-  "workNewTitle": "New work item",
-  "@workNewTitle": {
-    "description": "W2 title."
-  },
-  "workTakePhoto": "Take a photo",
-  "@workTakePhoto": {
-    "description": "W2 photo tile."
-  },
-  "workFromGallery": "Choose from gallery",
-  "@workFromGallery": {
-    "description": "W2 fallback."
-  },
-  "workRetake": "Retake",
-  "@workRetake": {
-    "description": "W2 photo button."
-  },
-  "workPhotoFirst": "Start with a photo of the spot.",
-  "@workPhotoFirst": {
-    "description": "W2 photo tile hint."
-  },
-  "workNewStamp": "NEW · {ref}",
-  "@workNewStamp": {
-    "description": "W2 stamp with the next reference.",
-    "placeholders": {
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "workNewStampPlain": "NEW",
-  "@workNewStampPlain": {
-    "description": "W2 stamp when the reference isn't known."
-  },
-  "workTitleHint": "What needs doing · one line is enough",
-  "@workTitleHint": {
-    "description": "W2 title placeholder."
-  },
-  "workTitleRequired": "Write what needs doing.",
-  "@workTitleRequired": {
-    "description": "W2 error."
-  },
-  "workCellOwner": "OWNER · ONE PERSON",
-  "@workCellOwner": {
-    "description": "W2 cell."
-  },
-  "workCellDue": "DUE",
-  "@workCellDue": {
-    "description": "W2 cell."
-  },
-  "workCellPlace": "PLACE ON SITE",
-  "@workCellPlace": {
-    "description": "W2 cell."
-  },
-  "workCellTeam": "TEAM",
-  "@workCellTeam": {
-    "description": "W2 cell."
-  },
-  "workChoose": "Choose",
-  "@workChoose": {
-    "description": "W2 empty cell."
-  },
-  "workOwnerRequired": "Choose who does it.",
-  "@workOwnerRequired": {
-    "description": "W2 error."
-  },
-  "workNoDue": "No due date",
-  "@workNoDue": {
-    "description": "W2 due option."
-  },
-  "workToday": "Today",
-  "@workToday": {
-    "description": "W2 due option."
-  },
-  "workTomorrow": "Tomorrow",
-  "@workTomorrow": {
-    "description": "W2 due option."
-  },
-  "workPickDate": "Pick a date",
-  "@workPickDate": {
-    "description": "W2 due option."
-  },
-  "workNoTeam": "No Team",
-  "@workNoTeam": {
-    "description": "W2 team option."
-  },
-  "workPlaceHint": "e.g. Level 2 · Grid C7",
-  "@workPlaceHint": {
-    "description": "W2 place placeholder."
-  },
-  "workNewFooter": "{owner} gets it in Needs you. When it's marked done, you check it.",
-  "@workNewFooter": {
-    "description": "W2 footer.",
-    "placeholders": {
-      "owner": {
-        "type": "String"
-      }
-    }
-  },
-  "workNewFooterNoOwner": "The owner gets it in Needs you. When it's marked done, you check it.",
-  "@workNewFooterNoOwner": {
-    "description": "W2 footer before an owner is chosen."
-  },
-  "workCreate": "Create item",
-  "@workCreate": {
-    "description": "W2 button."
-  },
-  "workNotSent": "Not sent yet",
-  "@workNotSent": {
-    "description": "Outbox card."
-  },
-  "workRetry": "Retry",
-  "@workRetry": {
-    "description": "Outbox card."
-  },
-  "workNotSentNote": "Saved on this phone. Retry when the signal is back.",
-  "@workNotSentNote": {
-    "description": "Outbox card."
-  },
-  "workSent": "Sent.",
-  "@workSent": {
-    "description": "Toast after a retry."
-  },
-  "workSignOff": "SIGN-OFF",
-  "@workSignOff": {
-    "description": "W3 section (glossary)."
-  },
-  "workEvidence": "EVIDENCE",
-  "@workEvidence": {
-    "description": "W3 section (glossary)."
-  },
-  "workPhotosLabel": "PHOTOS",
-  "@workPhotosLabel": {
-    "description": "W3 section: photos from when it was raised."
-  },
-  "workDiscussion": "DISCUSSION",
-  "@workDiscussion": {
-    "description": "W3 section."
-  },
-  "workAddComment": "Add a comment",
-  "@workAddComment": {
-    "description": "W3 field."
-  },
-  "workSendComment": "Send",
-  "@workSendComment": {
-    "description": "W3 comment button."
-  },
-  "workNoComments": "No comments yet.",
-  "@workNoComments": {
-    "description": "W3 empty discussion."
-  },
-  "workWaitingCheckBy": "Waiting for {name} to check",
-  "@workWaitingCheckBy": {
-    "description": "W3b banner.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workWaitingCheckBody": "It can be accepted or sent back with a reason.",
-  "@workWaitingCheckBody": {
-    "description": "W3b banner."
-  },
-  "workCheckBannerTitle": "{name} marked this done. Check it.",
-  "@workCheckBannerTitle": {
-    "description": "W3c banner.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workCheckBannerBody": "Look at the photo, then accept it or send it back with a reason.",
-  "@workCheckBannerBody": {
-    "description": "W3c banner."
-  },
-  "workDoneWaiting": "Done. Waiting for a check.",
-  "@workDoneWaiting": {
-    "description": "W3 banner for others."
-  },
-  "workClosed": "Closed. It stays in the Space record.",
-  "@workClosed": {
-    "description": "W3d banner (review 08 wording)."
-  },
-  "workClosedCanShow": "{name} can show it on their profile as work they delivered.",
-  "@workClosedCanShow": {
-    "description": "W3d banner line.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workClosedBy": "Closed by {name}",
-  "@workClosedBy": {
-    "description": "W3g banner.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workClosedStays": "It stays in the Space record.",
-  "@workClosedStays": {
-    "description": "W3g banner line."
-  },
-  "workSentBackTitle": "Sent back: {reason}",
-  "@workSentBackTitle": {
-    "description": "W3 banner after a send-back.",
-    "placeholders": {
-      "reason": {
-        "type": "String"
-      }
-    }
-  },
-  "workReasonPhotoMissing": "Photo missing",
-  "@workReasonPhotoMissing": {
-    "description": "Send back reason."
-  },
-  "workReasonNotAsAsked": "Not as asked",
-  "@workReasonNotAsAsked": {
-    "description": "Send back reason."
-  },
-  "workReasonNotFinished": "Not finished",
-  "@workReasonNotFinished": {
-    "description": "Send back reason."
-  },
-  "workReasonOther": "Other",
-  "@workReasonOther": {
-    "description": "Send back reason."
-  },
-  "workOwnerLeftTitle": "The owner left the Space",
-  "@workOwnerLeftTitle": {
-    "description": "W3 banner."
-  },
-  "workOwnerLeftBody": "Give it to someone else to finish.",
-  "@workOwnerLeftBody": {
-    "description": "W3 banner."
-  },
-  "workCheckedStamp": "CHECKED · {date} · {name}",
-  "@workCheckedStamp": {
-    "description": "W3d tilted stamp.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      },
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workYouCheckIt": "You check it",
-  "@workYouCheckIt": {
-    "description": "Sign-off strip."
-  },
-  "workCheckAndClose": "Check and close",
-  "@workCheckAndClose": {
-    "description": "W3c button."
-  },
-  "workSendBack": "Send back",
-  "@workSendBack": {
-    "description": "W3c button (glossary)."
-  },
-  "workReassignTitle": "Reassign to",
-  "@workReassignTitle": {
-    "description": "Reassign sheet title."
-  },
-  "workReassigned": "{name} owns it now.",
-  "@workReassigned": {
-    "description": "Toast.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "workItemGone": "This item isn't available.",
   "@workItemGone": {
     "description": "W3 when gone or not a member."
   },
-  "workTodayAt": "Today {time}",
-  "@workTodayAt": {
-    "description": "Sign-off time today.",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "workSignTitle": "Sign DONE on {ref}",
-  "@workSignTitle": {
-    "description": "W4 sheet title.",
-    "placeholders": {
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "workSignBody": "Your name and the time go on the sign-off. Add a photo or a note so {name} can check it.",
-  "@workSignBody": {
-    "description": "W4 sheet body.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workAddPhoto": "Add photo",
-  "@workAddPhoto": {
-    "description": "W4 photo tile."
-  },
   "workNote": "Note",
   "@workNote": {
     "description": "W4 field."
-  },
-  "workNoteHint": "What was done",
-  "@workNoteHint": {
-    "description": "W4 note placeholder."
-  },
-  "workSignNeedsSomething": "Add a photo or a note.",
-  "@workSignNeedsSomething": {
-    "description": "W4 error."
-  },
-  "workSigned": "Signed as done. It's waiting for a check.",
-  "@workSigned": {
-    "description": "Toast after W4."
-  },
-  "workPendingSignOff": "Sign-off not sent yet",
-  "@workPendingSignOff": {
-    "description": "Outbox: a sign-off waiting."
-  },
-  "workSendBackTitle": "Send {ref} back to {name}",
-  "@workSendBackTitle": {
-    "description": "W5 sheet title.",
-    "placeholders": {
-      "ref": {
-        "type": "String"
-      },
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workSendBackBody": "The tag goes back to Open with your reason written on it, and into {name}'s Needs you.",
-  "@workSendBackBody": {
-    "description": "W5 sheet body.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workReason": "Reason",
-  "@workReason": {
-    "description": "W5 label."
-  },
-  "workNoteFor": "Note for {name}",
-  "@workNoteFor": {
-    "description": "W5 field.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workSendBackTo": "Send back to {name}",
-  "@workSendBackTo": {
-    "description": "W5 button.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workReasonRequired": "Choose a reason.",
-  "@workReasonRequired": {
-    "description": "W5 error."
-  },
-  "workOtherNeedsNote": "Say what is wrong.",
-  "@workOtherNeedsNote": {
-    "description": "W5 error for Other."
-  },
-  "workSentBack": "Sent back to {name}.",
-  "@workSentBack": {
-    "description": "Toast after W5.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "workCheckTitle": "Check and close {ref}?",
-  "@workCheckTitle": {
-    "description": "Check dialog title.",
-    "placeholders": {
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "workCheckBody": "Your name and the time go on the sign-off. It closes and stays in the Space record.",
-  "@workCheckBody": {
-    "description": "Check dialog body."
-  },
-  "workShowOnProfile": "Show on my profile",
-  "@workShowOnProfile": {
-    "description": "Owner switch on a Checked item (review 08 wording)."
-  },
-  "workShowOnProfileHelp": "Only the title, one photo, the place and who checked it. Never the Space or the discussion.",
-  "@workShowOnProfileHelp": {
-    "description": "Switch helper."
-  },
-  "workReassignedLine": "Reassigned from {from} to {to}",
-  "@workReassignedLine": {
-    "description": "Discussion line for a reassigned event.",
-    "placeholders": {
-      "from": {
-        "type": "String"
-      },
-      "to": {
-        "type": "String"
-      }
-    }
-  },
-  "workSomeone": "someone",
-  "@workSomeone": {
-    "description": "A person whose account was deleted."
   },
   "deliveredTitle": "Work you delivered",
   "@deliveredTitle": {
@@ -2864,19 +2122,6 @@
         "type": "String"
       }
     }
-  },
-  "deliveredStamp": "CHECKED · {date}",
-  "@deliveredStamp": {
-    "description": "RE1 stamp.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "workCheckConfirm": "Close it",
-  "@workCheckConfirm": {
-    "description": "Check dialog confirm button; short so it fits."
   },
   "deliveredNoneShown": "Nothing shown yet. Tap See all to choose what shows.",
   "@deliveredNoneShown": {
@@ -3162,10 +2407,6 @@
   "@chatRemoveFile": {
     "description": "Remove a picked file (tooltip)."
   },
-  "chatFileNotAllowed": "Only PDF files and photos.",
-  "@chatFileNotAllowed": {
-    "description": "Wrong file type."
-  },
   "chatFileTooBig": "Files up to 25 MB.",
   "@chatFileTooBig": {
     "description": "File too large."
@@ -3386,72 +2627,6 @@
   "@previewSendFile": {
     "description": "F1 top share icon (system share)."
   },
-  "workAttachTitle": "Attach to {ref}",
-  "@workAttachTitle": {
-    "description": "W2-A title.",
-    "placeholders": {
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
-  "workAttachLibrary": "From the Space Library",
-  "@workAttachLibrary": {
-    "description": "W2-A option."
-  },
-  "workAttachLibraryHelp": "Drawings and files already shared in this Space",
-  "@workAttachLibraryHelp": {
-    "description": "W2-A option helper."
-  },
-  "workAttachPhone": "From your phone",
-  "@workAttachPhone": {
-    "description": "W2-A option."
-  },
-  "workAttachPhoneHelp": "PDF or image · saved to the Space Library too",
-  "@workAttachPhoneHelp": {
-    "description": "W2-A option helper."
-  },
-  "workAttachPhoto": "Take another photo",
-  "@workAttachPhoto": {
-    "description": "W2-A option."
-  },
-  "workAttachPhotoHelp": "Adds to the photos on the tag",
-  "@workAttachPhotoHelp": {
-    "description": "W2-A option helper."
-  },
-  "workAttached": "ATTACHED",
-  "@workAttached": {
-    "description": "W3 section label."
-  },
-  "workAttachedFromLibrary": "From the Space Library",
-  "@workAttachedFromLibrary": {
-    "description": "W3 attached file line."
-  },
-  "workAttach": "Attach a drawing or file",
-  "@workAttach": {
-    "description": "W2 / W3 button."
-  },
-  "workAttachedToast": "Attached.",
-  "@workAttachedToast": {
-    "description": "Toast."
-  },
-  "workAlsoInTeamChat": "ALSO IN THE TEAM CHAT",
-  "@workAlsoInTeamChat": {
-    "description": "W3 Discussion label suffix (opens the Team thread)."
-  },
-  "libraryPickTitle": "Choose from the Library",
-  "@libraryPickTitle": {
-    "description": "Library picker title."
-  },
-  "libraryPickTeamNote": "Only files for Everyone and for {team} can go on this item.",
-  "@libraryPickTeamNote": {
-    "description": "Library picker helper on a Team item.",
-    "placeholders": {
-      "team": {
-        "type": "String"
-      }
-    }
-  },
   "chatFileRemoved": "File removed",
   "@chatFileRemoved": {
     "description": "A shared Library file that was removed since (review 14)."
@@ -3493,7 +2668,7 @@
       }
     }
   },
-  "feedEmpty": "No posts yet. Share what happened on site today.",
+  "feedEmpty": "No posts yet. Share what happened at work today.",
   "@feedEmpty": {
     "description": "Empty feed."
   },
@@ -3592,10 +2767,6 @@
   "@postDeleted": {
     "description": "Toast."
   },
-  "postOpenPhoto": "Open photo",
-  "@postOpenPhoto": {
-    "description": "Photo tap tooltip."
-  },
   "postTitle": "Post",
   "@postTitle": {
     "description": "H10 title."
@@ -3661,149 +2832,6 @@
   "@postBackHome": {
     "description": "P6 button."
   },
-  "postPosting": "Posting to your network…",
-  "@postPosting": {
-    "description": "P3."
-  },
-  "postFailed": "Couldn't post. Saved as a draft.",
-  "@postFailed": {
-    "description": "P3b / C14."
-  },
-  "postFailedHint": "Check your connection and try again.",
-  "@postFailedHint": {
-    "description": "P3b."
-  },
-  "postDiscardDraft": "Discard draft",
-  "@postDiscardDraft": {
-    "description": "P3b secondary action."
-  },
-  "composerPostingTo": "POSTING TO",
-  "@composerPostingTo": {
-    "description": "C1 overline."
-  },
-  "composerYourNetwork": "Your network",
-  "@composerYourNetwork": {
-    "description": "C1 audience."
-  },
-  "composerEveryone": "Everyone",
-  "@composerEveryone": {
-    "description": "C1 audience line."
-  },
-  "composerTagged": "tagged {project}",
-  "@composerTagged": {
-    "description": "C1 audience line.",
-    "placeholders": {
-      "project": {
-        "type": "String"
-      }
-    }
-  },
-  "composerHint": "What happened on site today?",
-  "@composerHint": {
-    "description": "C1 placeholder."
-  },
-  "composerStartFrom": "START FROM",
-  "@composerStartFrom": {
-    "description": "C1 overline."
-  },
-  "tplProgress": "Progress update",
-  "@tplProgress": {
-    "description": "Template."
-  },
-  "tplProgressHelp": "Done today · Next · Holding us up",
-  "@tplProgressHelp": {
-    "description": "Template."
-  },
-  "tplProgressLines": "Done today:\nNext:\nHolding us up:",
-  "@tplProgressLines": {
-    "description": "Template lines put in the post."
-  },
-  "tplMilestone": "Milestone",
-  "@tplMilestone": {
-    "description": "Template."
-  },
-  "tplMilestoneHelp": "What · When · Who did it",
-  "@tplMilestoneHelp": {
-    "description": "Template."
-  },
-  "tplMilestoneLines": "What:\nWhen:\nWho did it:",
-  "@tplMilestoneLines": {
-    "description": "Template lines."
-  },
-  "tplVisit": "Site visit",
-  "@tplVisit": {
-    "description": "Template."
-  },
-  "tplVisitHelp": "Where · What we found · Actions",
-  "@tplVisitHelp": {
-    "description": "Template."
-  },
-  "tplVisitLines": "Where:\nWhat we found:\nActions:",
-  "@tplVisitLines": {
-    "description": "Template lines."
-  },
-  "tplAsk": "Ask the community",
-  "@tplAsk": {
-    "description": "Template."
-  },
-  "tplAskHelp": "Question · Who knows",
-  "@tplAskHelp": {
-    "description": "Template."
-  },
-  "tplAskLines": "Question:\nWho knows:",
-  "@tplAskLines": {
-    "description": "Template lines."
-  },
-  "composerMedia": "Media",
-  "@composerMedia": {
-    "description": "Footer tool."
-  },
-  "composerProject": "Project",
-  "@composerProject": {
-    "description": "Footer tool."
-  },
-  "composerPost": "Post",
-  "@composerPost": {
-    "description": "Post button."
-  },
-  "composerSave": "Save",
-  "@composerSave": {
-    "description": "Edit post button."
-  },
-  "composerChooseHint": "Choose how to start, or just write",
-  "@composerChooseHint": {
-    "description": "Footer hint."
-  },
-  "composerPostingToProject": "Posting to {project}",
-  "@composerPostingToProject": {
-    "description": "Footer hint when tagged.",
-    "placeholders": {
-      "project": {
-        "type": "String"
-      }
-    }
-  },
-  "composerAudience": "Everyone on BuildVibes can see this.",
-  "@composerAudience": {
-    "description": "Audience line (review 16: replaces the member count)."
-  },
-  "composerAudienceProject": "Everyone on BuildVibes can see this. It also shows on the project's page.",
-  "@composerAudienceProject": {
-    "description": "Audience line with a project."
-  },
-  "composerWrittenIn": "Written in {lang, select, ar{Arabic} other{English}}",
-  "@composerWrittenIn": {
-    "description": "L5. The language code of the post.",
-    "placeholders": {
-      "lang": {
-        "type": "String"
-      }
-    }
-  },
-  "composerChange": "Change",
-  "@composerChange": {
-    "description": "L5 link."
-  },
   "langEnglish": "English",
   "@langEnglish": {
     "description": "Language name (each in its own script)."
@@ -3812,82 +2840,13 @@
   "@langArabic": {
     "description": "Language name."
   },
-  "langAuto": "Detected automatically",
-  "@langAuto": {
-    "description": "L6 option."
-  },
-  "composerLangTitle": "Language of this post",
-  "@composerLangTitle": {
-    "description": "L6 title."
-  },
-  "composerLangWhy": "We use this to offer Translate to readers who don't read it.",
-  "@composerLangWhy": {
-    "description": "L6 line under the title."
-  },
-  "langName": "{lang, select, ar{Arabic} other{English}}",
-  "@langName": {
-    "description": "A language's name in the app's language (L6).",
-    "placeholders": {
-      "lang": {
-        "type": "String"
-      }
-    }
-  },
-  "composerPhotosMax": "Up to 4 photos.",
-  "@composerPhotosMax": {
-    "description": "Too many photos."
-  },
-  "composerRemovePhoto": "Remove photo",
-  "@composerRemovePhoto": {
-    "description": "Tooltip."
-  },
-  "postToTitle": "Post to",
-  "@postToTitle": {
-    "description": "C3 title."
-  },
-  "postToWho": "WHO SEES IT",
-  "@postToWho": {
-    "description": "C3 overline."
-  },
-  "postToNetworkHelp": "Followers and Explore · anyone can see",
-  "@postToNetworkHelp": {
-    "description": "C3 row."
-  },
-  "postToNote": "Posts are public and can be tagged to a project. Work for your team goes in the project's Space as a work item.",
-  "@postToNote": {
-    "description": "C3 note."
-  },
-  "tagTitle": "Link a project",
-  "@tagTitle": {
-    "description": "C10 title."
-  },
-  "tagHelp": "Only projects where you have a confirmed role.",
-  "@tagHelp": {
-    "description": "C10."
-  },
   "tagEmpty": "Add a project on your profile first",
   "@tagEmpty": {
     "description": "C10 empty."
   },
-  "tagSpaceNote": "Work for your team goes in the project's Space as a work item",
-  "@tagSpaceNote": {
-    "description": "C10 line."
-  },
   "tagNone": "No project",
   "@tagNone": {
     "description": "C10: remove the tag."
-  },
-  "discardTitle": "Discard this post?",
-  "@discardTitle": {
-    "description": "C13."
-  },
-  "discardBody": "Your text, photo and project link will be lost.",
-  "@discardBody": {
-    "description": "C13."
-  },
-  "discardConfirm": "Discard",
-  "@discardConfirm": {
-    "description": "C13."
   },
   "projectPosts": "POSTS",
   "projectPostsEmpty": "No posts tagged with this project yet.",
@@ -3919,35 +2878,9 @@
       }
     }
   },
-  "discardKeep": "Keep editing",
-  "@discardKeep": {
-    "description": "C13 cancel."
-  },
-  "homeDayTitle": "Your day on site",
-  "@homeDayTitle": {
-    "description": "H1b title."
-  },
   "homeDayNeedsYou": "{n, plural, =1{1 thing needs you} other{{n} things need you}}",
   "@homeDayNeedsYou": {
     "description": "H1b summary, first part (orange).",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "homeDaySpacesActive": "{n, plural, =1{1 Space active} other{{n} Spaces active}}",
-  "@homeDaySpacesActive": {
-    "description": "H1b summary: Spaces with something new today.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "homeDayReplies": "{n, plural, =1{1 reply} other{{n} replies}}",
-  "@homeDayReplies": {
-    "description": "H1b summary: replies today to your chat messages.",
     "placeholders": {
       "n": {
         "type": "int"
@@ -3961,22 +2894,6 @@
   "homeSeeAll": "See all",
   "@homeSeeAll": {
     "description": "H1b: more than 3 needs; opens Activity."
-  },
-  "homeTodayInSpaces": "TODAY IN YOUR SPACES",
-  "@homeTodayInSpaces": {
-    "description": "H1b section."
-  },
-  "homeThatsYourDay": "That's your day",
-  "@homeThatsYourDay": {
-    "description": "H1b end, when nothing needs you."
-  },
-  "homeNothingElse": "Nothing else needs you right now",
-  "@homeNothingElse": {
-    "description": "H1b end line."
-  },
-  "homeProject": "Project",
-  "@homeProject": {
-    "description": "H1b row: the Space is linked to a project."
   },
   "homeSearch": "Search people",
   "@homeSearch": {
@@ -4078,26 +2995,6 @@
         "type": "String"
       }
     }
-  },
-  "needsOverForYou": "WORK ITEM · FOR YOU",
-  "@needsOverForYou": {
-    "description": "A1 overline."
-  },
-  "needsOverCheck": "WORK ITEM · YOU CHECK IT",
-  "@needsOverCheck": {
-    "description": "A1 overline."
-  },
-  "needsOverSentBack": "WORK ITEM · SENT BACK",
-  "@needsOverSentBack": {
-    "description": "A1 overline."
-  },
-  "needsOverOwnerLeft": "WORK ITEM · OWNER LEFT",
-  "@needsOverOwnerLeft": {
-    "description": "A1 overline."
-  },
-  "needsOverJoin": "SPACE · REQUEST TO JOIN",
-  "@needsOverJoin": {
-    "description": "A1 overline."
   },
   "needsOpen": "Open",
   "@needsOpen": {
@@ -4206,15 +3103,6 @@
   "activityGroupPosts": "Your posts",
   "@activityGroupPosts": {
     "description": "A1 group."
-  },
-  "activityRev": "REV {letter}",
-  "@activityRev": {
-    "description": "A1 group stamp; letters stay Latin.",
-    "placeholders": {
-      "letter": {
-        "type": "String"
-      }
-    }
   },
   "activityAssigned": "{name} gave you {ref}",
   "@activityAssigned": {
@@ -4526,6 +3414,46 @@
   "pushOpenSettings": "Open phone settings",
   "@pushOpenSettings": {
     "description": "S4 button."
+  },
+  "pushNotReaching": "Notifications aren't reaching this phone",
+  "@pushNotReaching": {
+    "description": "F9: the quiet line on Home and in Settings → Notifications when the phone gave no push token."
+  },
+  "pushFixIt": "Fix it",
+  "@pushFixIt": {
+    "description": "F9: the quiet line's action."
+  },
+  "pushFixTitle": "Let notifications reach this phone",
+  "@pushFixTitle": {
+    "description": "F9: the steps sheet on Xiaomi, Redmi and POCO phones."
+  },
+  "pushFixAutostart": "Autostart: on for BuildVibes.",
+  "@pushFixAutostart": {
+    "description": "F9 step 1 (the phone's own word: Autostart)."
+  },
+  "pushFixBattery": "Battery saver: \"No restrictions\" for BuildVibes.",
+  "@pushFixBattery": {
+    "description": "F9 step 2 (the phone's own words)."
+  },
+  "pushFixPlayServices": "The same battery setting for Google Play services.",
+  "@pushFixPlayServices": {
+    "description": "F9 step 3."
+  },
+  "pushFixRestart": "Then restart the phone.",
+  "@pushFixRestart": {
+    "description": "F9 step 4."
+  },
+  "pushFixOpen": "Open BuildVibes settings",
+  "@pushFixOpen": {
+    "description": "F9: opens the phone's page for BuildVibes."
+  },
+  "feedNew": "New",
+  "@feedNew": {
+    "description": "F11: the chip over the Home feed when new posts came in while reading further down."
+  },
+  "daybookNew": "New",
+  "@daybookNew": {
+    "description": "F11: the chip over the daybook when new entries came in while reading older days."
   },
   "reportTitle": "{kind, select, post{Report this post} reply{Report this reply} message{Report this message} other{Report this account}}",
   "@reportTitle": {
@@ -5171,5 +4099,834 @@
   "formerMember": "Former member",
   "@formerMember": {
     "description": "A Space member whose account is hidden or deleted."
+  },
+  "daybookDateLine": "{date}, day {day} on site",
+  "@daybookDateLine": {
+    "description": "Masthead date line when the Space has an On site since date (D1).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookYou": "You",
+  "@daybookYou": {
+    "description": "Slip header for your own post; the avatar keeps your initials."
+  },
+  "daybookForYou": "For you",
+  "@daybookForYou": {
+    "description": "Slip meta: you own the work item."
+  },
+  "daybookForPerson": "For {name}",
+  "@daybookForPerson": {
+    "description": "Slip meta: who owns the work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookMeta": "{who}, {due}",
+  "@daybookMeta": {
+    "description": "Slip meta: owner, then due (\"For Omar Haddad, by Thu 15 Oct\").",
+    "placeholders": {
+      "who": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueDate": "by {date}",
+  "@daybookDueDate": {
+    "description": "Due on a day (\"by Thu 15 Oct\").",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueToday": "by today",
+  "@daybookDueToday": {
+    "description": "Due today, no time. Arabic never says 'before today' (review 44 C2)."
+  },
+  "daybookDueTomorrow": "by tomorrow",
+  "@daybookDueTomorrow": {
+    "description": "Due tomorrow, no time."
+  },
+  "daybookDueDateAt": "by {date} {time}",
+  "@daybookDueDateAt": {
+    "description": "Due on a day at a time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueTodayAt": "by today {time}",
+  "@daybookDueTodayAt": {
+    "description": "Due today at a time (AR frame 2547:35262).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDueTomorrowAt": "by tomorrow {time}",
+  "@daybookDueTomorrowAt": {
+    "description": "Due tomorrow at a time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWasDue": "was due {date}",
+  "@daybookWasDue": {
+    "description": "A late item's due day (L1).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWasDueAt": "was due {date} {time}",
+  "@daybookWasDueAt": {
+    "description": "A late item's due day and time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWasDueTodayAt": "was due today {time}",
+  "@daybookWasDueTodayAt": {
+    "description": "A timed item that went late today.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLate": "{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}",
+  "@daybookLate": {
+    "description": "Late line on an open item past its due (L1). 0: late today, after its time.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookDueTodayStrip": "Due today: {titles}",
+  "@daybookDueTodayStrip": {
+    "description": "Strip under the masthead (L1): items due today for you or by you.",
+    "placeholders": {
+      "titles": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPoints": "{n, plural, =1{1 point} other{{n} points}}",
+  "@daybookPoints": {
+    "description": "Slip chip: checklist points on a work item.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookEditedDue": "Edited: due moved from {from} to {to}",
+  "@daybookEditedDue": {
+    "description": "Slip history line after the due was edited.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookToday": "today",
+  "@daybookToday": {
+    "description": "A day word in the edited line."
+  },
+  "daybookTomorrow": "tomorrow",
+  "@daybookTomorrow": {
+    "description": "A day word in the edited line."
+  },
+  "daybookCancelledBy": "Cancelled by {name} at {time}",
+  "@daybookCancelledBy": {
+    "description": "Meta line of a cancelled work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookStampDone": "DONE",
+  "@daybookStampDone": {
+    "description": "Ink stamp (glossary Done)."
+  },
+  "daybookStampChecked": "CHECKED",
+  "@daybookStampChecked": {
+    "description": "Ink stamp (glossary Checked)."
+  },
+  "daybookStampSentBack": "SENT BACK",
+  "@daybookStampSentBack": {
+    "description": "Ink stamp after Send back."
+  },
+  "daybookStampCancelled": "CANCELLED",
+  "@daybookStampCancelled": {
+    "description": "Ink stamp on a cancelled post."
+  },
+  "daybookWorkItem": "Work item",
+  "@daybookWorkItem": {
+    "description": "Post bar notepad (glossary)."
+  },
+  "daybookReadOnly": "Read only",
+  "@daybookReadOnly": {
+    "description": "Viewer post bar, after the pass chip (V1)."
+  },
+  "daybookMonthPosts": "Posts",
+  "@daybookMonthPosts": {
+    "description": "Month drop-down legend: a day with posts."
+  },
+  "daybookMonthDue": "Something due",
+  "@daybookMonthDue": {
+    "description": "Month drop-down legend: a day with something due."
+  },
+  "daybookFirstTitle": "The first page of your daybook",
+  "@daybookFirstTitle": {
+    "description": "Day one card title (DY3)."
+  },
+  "daybookFirstBody": "Everything your team posts will hang here, day by day.",
+  "@daybookFirstBody": {
+    "description": "Day one card body."
+  },
+  "daybookFirstPost": "Post the first work item",
+  "@daybookFirstPost": {
+    "description": "Day one card, main action."
+  },
+  "daybookFirstInvite": "Invite your team",
+  "@daybookFirstInvite": {
+    "description": "Day one card: opens the invite screen."
+  },
+  "daybookClock12": "{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}",
+  "@daybookClock12": {
+    "description": "A 12-hour time on the Daybook: the hour (and minutes when not :00) and the part of the day (\"2 pm\", \"8:14 am\"). period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookClockPeriod": "{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}",
+  "@daybookClockPeriod": {
+    "description": "The part of the day alone, as the time spine prints it on a second, smaller line under a 12-hour time (\"11:58\" then \"pm\"). The same words as daybookClock12.",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookSignedAsDone": "signed as done",
+  "@daybookSignedAsDone": {
+    "description": "Proof slip header, after the signer's name."
+  },
+  "daybookStampBy": "{name} · {time}",
+  "@daybookStampBy": {
+    "description": "Second line of the large stamp on a proof photo: the signer's short name and the time (\"OMAR H · 09:40\").",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDoubleTapToCheck": "Double-tap the photo to check it",
+  "@daybookDoubleTapToCheck": {
+    "description": "Hint on a proof waiting for your check."
+  },
+  "daybookGivenTo": "Given to {to} instead of {from} at {time}",
+  "@daybookGivenTo": {
+    "description": "Work item slip: the last time it was given to someone else.",
+    "placeholders": {
+      "to": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookFileChip": "{name} {revision}",
+  "@daybookFileChip": {
+    "description": "A Library file on a work item slip: its name and revision (\"M-201 Rev C\").",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "revision": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWaitingToSend": "Waiting to send",
+  "@daybookWaitingToSend": {
+    "description": "A post made with no signal: it sends when the signal is back."
+  },
+  "daybookNow": "Now",
+  "@daybookNow": {
+    "description": "Spine label of the card being written."
+  },
+  "daybookDraft": "Draft",
+  "@daybookDraft": {
+    "description": "On a card reopened with unsent text: only the author sees it."
+  },
+  "daybookWritingTitle": "Title",
+  "@daybookWritingTitle": {
+    "description": "Writing card: title placeholder."
+  },
+  "daybookWritingBody": "Write what needs doing",
+  "@daybookWritingBody": {
+    "description": "Writing card: text placeholder."
+  },
+  "daybookAssign": "Assign",
+  "@daybookAssign": {
+    "description": "Writing More menu: choose who does it."
+  },
+  "daybookLocation": "Location",
+  "@daybookLocation": {
+    "description": "Writing More menu: where on site."
+  },
+  "daybookDueDateMenu": "Due date",
+  "@daybookDueDateMenu": {
+    "description": "Writing More menu: when it is due."
+  },
+  "daybookDueProperty": "{date}, {time}",
+  "@daybookDueProperty": {
+    "description": "Writing card: a due date with a time (\"Sun 18 Oct, 14:00\").",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookCamera": "Take a photo",
+  "@daybookCamera": {
+    "description": "Writing toolbar: camera (read out)."
+  },
+  "daybookAddPhoto": "Add a photo",
+  "@daybookAddPhoto": {
+    "description": "Writing toolbar: attach a photo from the phone (read out)."
+  },
+  "daybookMore": "More",
+  "@daybookMore": {
+    "description": "Writing toolbar: More (read out)."
+  },
+  "daybookPost": "Post",
+  "@daybookPost": {
+    "description": "Writing toolbar: Post (read out)."
+  },
+  "daybookRemovePhoto": "Remove photo",
+  "@daybookRemovePhoto": {
+    "description": "Writing card: the cover photo's remove button (read out)."
+  },
+  "daybookGiveToSearch": "Give to…",
+  "@daybookGiveToSearch": {
+    "description": "Give-to picker: search placeholder."
+  },
+  "daybookOwnerNow": "now",
+  "@daybookOwnerNow": {
+    "description": "Give-to picker: under the current owner."
+  },
+  "daybookPlaceHint": "Where",
+  "@daybookPlaceHint": {
+    "description": "Writing: the place field placeholder."
+  },
+  "daybookNoTime": "No time",
+  "@daybookNoTime": {
+    "description": "Due time picker: keep the date only."
+  },
+  "daybookDueTimeHelp": "Due by a time?",
+  "@daybookDueTimeHelp": {
+    "description": "Due time picker: its title. Optional."
+  },
+  "daybookAssignSearch": "Assign to…",
+  "@daybookAssignSearch": {
+    "description": "Writing: the assign picker's search field (the More menu says \"Assign\"). Review 46."
+  },
+  "daybookCouldNotSend": "Couldn't send. Tap to fix",
+  "@daybookCouldNotSend": {
+    "description": "A Draft whose post the server refused (not a missing signal), in red under the card. Tapping reopens writing. Review 46."
+  },
+  "daybookEditedDueRemoved": "Edited: due removed",
+  "@daybookEditedDueRemoved": {
+    "description": "Grey history line on a slip after its author took the due date off."
+  },
+  "daybookRemoveDue": "Remove",
+  "@daybookRemoveDue": {
+    "description": "Due date picker: takes the due date (and time) off."
+  },
+  "daybookSignAsDone": "Sign as done",
+  "@daybookSignAsDone": {
+    "description": "The action pill on the owner's open work item slip (camera icon). Glossary."
+  },
+  "daybookHoldToProve": "Hold to prove",
+  "@daybookHoldToProve": {
+    "description": "Read out for the post bar's camera: holding it signs your open work item as done with a photo."
+  },
+  "daybookChecksNext": "{name} checks it next",
+  "@daybookChecksNext": {
+    "description": "On the owner's own proof slip while it waits for the check (O3).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookYouChecked": "You checked it at {time}. It's locked now, this is the record.",
+  "@daybookYouChecked": {
+    "description": "On a proof the reader checked (B3).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookCheck": "Check",
+  "@daybookCheck": {
+    "description": "Long-press menu on someone's proof (B1)."
+  },
+  "daybookSendBack": "Send back",
+  "@daybookSendBack": {
+    "description": "Long-press menu on someone's proof, and the send-back card's button (B1, B2). Glossary."
+  },
+  "daybookAddUpdate": "Add update",
+  "@daybookAddUpdate": {
+    "description": "Long-press menu; also read out for the + a swipe shows (Y1)."
+  },
+  "daybookEdit": "Edit",
+  "@daybookEdit": {
+    "description": "Long-press menu on your own work item (X1)."
+  },
+  "daybookGiveTo": "Give to someone else",
+  "@daybookGiveTo": {
+    "description": "Long-press menu on your own work item (X1)."
+  },
+  "daybookCancelItem": "Cancel work item",
+  "@daybookCancelItem": {
+    "description": "Long-press menu on your own work item (X1), in red."
+  },
+  "daybookSendBackTo": "Send back to {name}",
+  "@daybookSendBackTo": {
+    "description": "The send-back card's title (B2), with the owner's first name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookReasonPhotoMissing": "Photo missing",
+  "@daybookReasonPhotoMissing": {
+    "description": "Send-back reason (one choice)."
+  },
+  "daybookReasonNotAsAsked": "Not as asked",
+  "@daybookReasonNotAsAsked": {
+    "description": "Send-back reason (one choice)."
+  },
+  "daybookReasonNotFinished": "Not finished",
+  "@daybookReasonNotFinished": {
+    "description": "Send-back reason (one choice)."
+  },
+  "daybookReasonOther": "Something else",
+  "@daybookReasonOther": {
+    "description": "Send-back reason (one choice); it needs a note."
+  },
+  "daybookNoteOptional": "Add a note (optional)",
+  "@daybookNoteOptional": {
+    "description": "Placeholder of a short note: on the send-back card (B2) and with the proof photo (O2)."
+  },
+  "daybookNoteNeeded": "Say what is wrong",
+  "@daybookNoteNeeded": {
+    "description": "Placeholder of the send-back note once \"Something else\" is chosen: it needs a note."
+  },
+  "daybookChecked": "Checked",
+  "@daybookChecked": {
+    "description": "The undo bar after a check (B3). Glossary."
+  },
+  "daybookCancelled": "Cancelled",
+  "@daybookCancelled": {
+    "description": "The undo bar after cancelling a work item."
+  },
+  "daybookUndo": "Undo",
+  "@daybookUndo": {
+    "description": "The undo bar's action: nothing reaches the server."
+  },
+  "daybookUpdateHint": "Write an update",
+  "@daybookUpdateHint": {
+    "description": "The one-line field of an update (after a swipe or Add update)."
+  },
+  "daybookSendAsDone": "Send as done",
+  "@daybookSendAsDone": {
+    "description": "The round button under the proof photo (O2): signs the work item as done."
+  },
+  "daybookAddAnotherPhoto": "Add another photo",
+  "@daybookAddAnotherPhoto": {
+    "description": "Read out for the + tile next to the proof photo (O2)."
+  },
+  "daybookWithoutPhoto": "Without a photo",
+  "@daybookWithoutPhoto": {
+    "description": "The link on the proof screen (F6): sign as done with a note and no photo."
+  },
+  "daybookWhatWasDone": "What was done?",
+  "@daybookWhatWasDone": {
+    "description": "Placeholder of the note on the proof screen without a photo (F6): the note is required then."
+  },
+  "daybookSignedUndo": "Signed as done",
+  "@daybookSignedUndo": {
+    "description": "The undo bar after Send as done (F7); nothing is sent until it closes. Glossary."
+  },
+  "daybookCloseProof": "Close",
+  "@daybookCloseProof": {
+    "description": "Read out for the × on the linked work item at the top of the proof photo: leaves without signing."
+  },
+  "daybookSave": "Save",
+  "@daybookSave": {
+    "description": "Read out for the round send button while editing a posted work item."
+  },
+  "daybookCancelledByYou": "Cancelled by you at {time}",
+  "@daybookCancelledByYou": {
+    "description": "Meta line of a work item its author cancelled, for that author (X3).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookSentItBack": "sent it back",
+  "@daybookSentItBack": {
+    "description": "After the name on a send-back slip: \"Islam Ahmed sent it back\" (S1)."
+  },
+  "daybookSentBackAt": "Sent back at {time}",
+  "@daybookSentBackAt": {
+    "description": "On a proof that was sent back; the reason is on the send-back slip (S1).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookSentBackText": "{reason}. {note}",
+  "@daybookSentBackText": {
+    "description": "A send-back slip: the reason, then the note (S1).",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      },
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookCouldNotCheck": "Couldn't check",
+  "@daybookCouldNotCheck": {
+    "description": "A check the server refused (review 47, answer 5)."
+  },
+  "daybookCouldNotSendBack": "Couldn't send back",
+  "@daybookCouldNotSendBack": {
+    "description": "A send-back the server refused."
+  },
+  "daybookCouldNotCancel": "Couldn't cancel",
+  "@daybookCouldNotCancel": {
+    "description": "A cancel the server refused."
+  },
+  "daybookCouldNotGiveTo": "Couldn't give it to someone else",
+  "@daybookCouldNotGiveTo": {
+    "description": "Give to someone else, refused."
+  },
+  "daybookCouldNotUpdate": "Couldn't add the update",
+  "@daybookCouldNotUpdate": {
+    "description": "An update, refused."
+  },
+  "daybookRefusedBecause": "{action}: {reason}",
+  "@daybookRefusedBecause": {
+    "description": "What was refused and why: \"Couldn't check: this item was cancelled\".",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookRefusedPlain": "{action}.",
+  "@daybookRefusedPlain": {
+    "description": "What was refused, when the server gives no reason.",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookWhyCancelled": "this item was cancelled",
+  "@daybookWhyCancelled": {
+    "description": "Why it was refused."
+  },
+  "daybookWhyChecked": "it was already checked",
+  "@daybookWhyChecked": {
+    "description": "Why it was refused."
+  },
+  "daybookWhyChanged": "it changed in the meantime",
+  "@daybookWhyChanged": {
+    "description": "Why it was refused: someone else changed the item first."
+  },
+  "daybookWhyRemoved": "it was removed",
+  "@daybookWhyRemoved": {
+    "description": "Why it was refused."
+  },
+  "daybookWhyNotAllowed": "your pass doesn't allow it",
+  "@daybookWhyNotAllowed": {
+    "description": "Why it was refused."
+  },
+  "daybookSwitchItem": "Prove another work item",
+  "@daybookSwitchItem": {
+    "description": "Read out for the item name at the top of the proof screen: it lists your other open items (review 47, answer 3)."
+  },
+  "daybookDiscardProofTitle": "Delete this proof?",
+  "@daybookDiscardProofTitle": {
+    "description": "The x on a refused proof that was reopened."
+  },
+  "daybookDiscardProofBody": "The photos are only on this phone. Deleted, they are gone.",
+  "@daybookDiscardProofBody": {
+    "description": "Body of the dialog."
+  },
+  "daybookDiscardProofKeep": "Keep",
+  "@daybookDiscardProofKeep": {
+    "description": "Keep the refused proof on the phone."
+  },
+  "daybookDiscardProofDelete": "Delete",
+  "@daybookDiscardProofDelete": {
+    "description": "Delete the refused proof and its photos."
+  },
+  "spacesMenu": "Space menu",
+  "@spacesMenu": {
+    "description": "Read out for the ⋯ in the Space header (MN1)."
+  },
+  "spacesInfoYou": "You",
+  "@spacesInfoYou": {
+    "description": "Space info group: your own pass and notifications (SI1)."
+  },
+  "spacesInfoInvite": "Invite",
+  "@spacesInfoInvite": {
+    "description": "Space info group: the invite code (SI1)."
+  },
+  "spacesInfoSpace": "Space",
+  "@spacesInfoSpace": {
+    "description": "Space info group: the Space itself (SI1)."
+  },
+  "spacesYourPass": "Your pass",
+  "@spacesYourPass": {
+    "description": "Space info row (SI1)."
+  },
+  "spacesNotifyChoiceAll": "Everything",
+  "@spacesNotifyChoiceAll": {
+    "description": "One of the three notification choices in Space info (SI1)."
+  },
+  "spacesNotifyChoiceNeedsYou": "Needs you",
+  "@spacesNotifyChoiceNeedsYou": {
+    "description": "One of the three notification choices in Space info (SI1)."
+  },
+  "spacesInviteChoiceAdmins": "Admins",
+  "@spacesInviteChoiceAdmins": {
+    "description": "Who can invite, in Space info (SI1): Space admins only."
+  },
+  "spacesInviteChoiceLeads": "Leads",
+  "@spacesInviteChoiceLeads": {
+    "description": "Who can invite, in Space info (SI1): admins and Lead passes."
+  },
+  "spacesInviteChoiceEveryone": "Everyone",
+  "@spacesInviteChoiceEveryone": {
+    "description": "Who can invite, in Space info (SI1)."
+  },
+  "spacesCopy": "Copy",
+  "@spacesCopy": {
+    "description": "Copy the invite code (SI1)."
+  },
+  "spacesCodeCopied": "Invite code copied",
+  "@spacesCodeCopied": {
+    "description": "After Copy in Space info."
+  },
+  "spacesAdminRow": "Space admin",
+  "@spacesAdminRow": {
+    "description": "Space info row: who runs the Space (SI1)."
+  },
+  "spacesOnSiteSince": "On site since",
+  "@spacesOnSiteSince": {
+    "description": "Space info row: the day work started on site, the daybook's day 1 (review 44, answer 2)."
+  },
+  "spacesOnSiteNotSet": "Not set",
+  "@spacesOnSiteNotSet": {
+    "description": "On site since, when no day is set."
+  },
+  "spacesOnSiteChange": "Choose another day",
+  "@spacesOnSiteChange": {
+    "description": "On site since: pick another day."
+  },
+  "spacesOnSiteRemove": "Remove the day",
+  "@spacesOnSiteRemove": {
+    "description": "On site since: clear it. The daybook then shows only the date."
+  },
+  "spacesOnSiteNote": "Work counts \"day 1 on site\" from this day.",
+  "@spacesOnSiteNote": {
+    "description": "Under the On site since sheet title."
+  },
+  "spacesEditNameAbout": "Name and About",
+  "@spacesEditNameAbout": {
+    "description": "Space info row for admins: edit the name and About."
+  },
+  "needsTitle": "Needs you",
+  "@needsTitle": {
+    "description": "Needs you across all Spaces (2544:35068)."
+  },
+  "needsRowCheck": "Check it",
+  "@needsRowCheck": {
+    "description": "Needs you row: a proof waiting for your check."
+  },
+  "needsRowForYou": "For you",
+  "@needsRowForYou": {
+    "description": "Needs you row: a work item given to you."
+  },
+  "needsRowSentBack": "Sent back",
+  "@needsRowSentBack": {
+    "description": "Needs you row: your proof was sent back."
+  },
+  "needsRowOwnerLeft": "Give it to someone",
+  "@needsRowOwnerLeft": {
+    "description": "Needs you row: the owner left the Space."
+  },
+  "needsRowJoin": "Asks to join",
+  "@needsRowJoin": {
+    "description": "Needs you row: a join request you can confirm."
+  },
+  "needsNone": "Nothing needs you now.",
+  "@needsNone": {
+    "description": "Needs you, empty."
+  },
+  "profileProofOfWork": "Proof of work",
+  "@profileProofOfWork": {
+    "description": "Profile section (R1 v4): work that was checked and closed in a Space."
+  },
+  "profileProjectsConfirmed": "Projects, confirmed by teammates",
+  "@profileProjectsConfirmed": {
+    "description": "Profile section (R1 v4)."
+  },
+  "proofStampConfirmed": "CONFIRMED",
+  "@proofStampConfirmed": {
+    "description": "Stamp on a project a teammate confirmed (R1 v4)."
+  },
+  "proofStampWaiting": "WAITING",
+  "@proofStampWaiting": {
+    "description": "Stamp on a project not confirmed yet (R1 v4)."
+  },
+  "proofChooseShown": "Choose what shows",
+  "@proofChooseShown": {
+    "description": "Own profile: opens Work you delivered, to show or hide each item."
+  },
+  "postWritingAuthor": "You · to everyone",
+  "@postWritingAuthor": {
+    "description": "A post being written on Home (H2 2555:35426): who writes it and who sees it. Posts are public to every signed-in person."
+  },
+  "postLangAuto": "Detected: {lang, select, ar{Arabic} other{English}}",
+  "@postLangAuto": {
+    "description": "The language picker while writing a post (L6): the language found from its letters, chosen by default.",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
+  },
+  "postWritingHint": "What happened at work today?",
+  "@postWritingHint": {
+    "description": "The text field of a post being written on Home (H2)."
+  },
+  "postWritingProject": "Project",
+  "@postWritingProject": {
+    "description": "The More menu while writing a post: tag a project from your profile."
+  },
+  "postWritingLang": "Written in {lang, select, ar{Arabic} other{English}}",
+  "@postWritingLang": {
+    "description": "The More menu while writing a post: its language; opens the language picker (L6).",
+    "placeholders": {
+      "lang": {
+        "type": "String"
+      }
+    }
+  },
+  "postWritingPhotosMax": "Up to 4 photos.",
+  "@postWritingPhotosMax": {
+    "description": "Writing a post: a fifth photo was tried (create_post takes four)."
+  },
+  "homeNothingNeedsYou": "Nothing needs you",
+  "@homeNothingNeedsYou": {
+    "description": "H1b header line, after the date, when nothing needs you."
+  },
+  "homeYourSpaces": "YOUR SPACES",
+  "@homeYourSpaces": {
+    "description": "H1b section: every Space once, its latest news."
+  },
+  "createPostToEveryone": "Post to everyone",
+  "@createPostToEveryone": {
+    "description": "Create choice (F1): a public post in the Home feed."
+  },
+  "createPostToEveryoneLine": "In the Home feed, for everyone",
+  "@createPostToEveryoneLine": {
+    "description": "Create choice: under Post to everyone."
+  },
+  "createWorkItem": "Work item in a Space",
+  "@createWorkItem": {
+    "description": "Create choice (F1): write a work item in one of your Spaces."
+  },
+  "createWorkItemLine": "Only the Space's members see it",
+  "@createWorkItemLine": {
+    "description": "Create choice: under Work item in a Space."
+  },
+  "createPickSpace": "Which Space?",
+  "@createPickSpace": {
+    "description": "Create, second step: the Spaces where you can write work items."
+  },
+  "createLastSpace": "Last opened",
+  "@createLastSpace": {
+    "description": "Create, Space list: the Space you opened last, listed first."
+  },
+  "createNoWorkSpaces": "There's no Space yet where you can write work items. Join one with an invite code, or start a new Space.",
+  "@createNoWorkSpaces": {
+    "description": "Create, Space list: none where you can create work items."
   }
 }

@@ -106,9 +106,8 @@ void main() {
       }
     });
 
-    testWidgets('proof card: confirmed and waiting projects [$lang]', (
-      tester,
-    ) async {
+    testWidgets('projects confirmed by teammates: CONFIRMED and WAITING '
+        'stamps (R1 v4) [$lang]', (tester) async {
       await pumpApp(
         tester,
         language: lang,
@@ -121,14 +120,22 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('proof-pr-1')),
-          matching: find.text(l10n.proofConfirmed),
+          matching: find.text(
+            lang == 'ar'
+                ? l10n.proofStampConfirmed
+                : l10n.proofStampConfirmed.toUpperCase(),
+          ),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
           of: find.byKey(const Key('proof-pr-2')),
-          matching: find.text(l10n.proofWaiting),
+          matching: find.text(
+            lang == 'ar'
+                ? l10n.proofStampWaiting
+                : l10n.proofStampWaiting.toUpperCase(),
+          ),
         ),
         findsOneWidget,
       );

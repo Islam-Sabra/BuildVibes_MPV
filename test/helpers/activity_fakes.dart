@@ -8,7 +8,6 @@ class FakeActivityRepository implements ActivityRepository {
     List<ActivityRow>? rows,
     List<NeedsCard>? cards,
     List<SpaceToday>? today,
-    this.day = const HomeDay(),
   }) : rows = rows ?? [],
        cards = cards ?? [],
        todayRows = today ?? [];
@@ -16,7 +15,6 @@ class FakeActivityRepository implements ActivityRepository {
   List<ActivityRow> rows;
   List<NeedsCard> cards;
   List<SpaceToday> todayRows;
-  HomeDay day;
   final calls = <String>[];
 
   /// The day start Home last asked with.
@@ -35,7 +33,6 @@ class FakeActivityRepository implements ActivityRepository {
           kind: r.kind,
           group: r.group,
           createdAt: r.createdAt,
-          seq: r.seq,
           spaceId: r.spaceId,
           spaceName: r.spaceName,
           myPass: r.myPass,
@@ -51,6 +48,9 @@ class FakeActivityRepository implements ActivityRepository {
           read: true,
           usefulNames: r.usefulNames,
           toReply: r.toReply,
+          removalId: r.removalId,
+          targetKind: r.targetKind,
+          result: r.result,
         ),
     ];
   }
@@ -59,13 +59,10 @@ class FakeActivityRepository implements ActivityRepository {
   Future<bool> unread() async => rows.any((r) => !r.read);
 
   @override
-  Future<HomeDay> homeDay(DateTime dayStart) async {
+  Future<List<SpaceToday>> today(DateTime dayStart) async {
     askedFrom = dayStart;
-    return day;
+    return List.of(todayRows);
   }
-
-  @override
-  Future<List<SpaceToday>> today(DateTime dayStart) async => List.of(todayRows);
 
   @override
   Future<List<NeedsCard>> needs() async => List.of(cards);

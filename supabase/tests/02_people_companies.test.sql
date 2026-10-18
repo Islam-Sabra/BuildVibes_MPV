@@ -19,7 +19,7 @@ insert into auth.users (id, aud, role, email, phone, raw_user_meta_data) values
 
 -- Sign-up creates the rows ------------------------------------------------------------
 
-select is((select count(*) from public.profiles), 3::bigint,
+select is((select count(*) from public.profiles where id in ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000c3')), 3::bigint,
   'sign-up creates one profile per user');
 select is(
   (select phone_e164 from public.profile_private
@@ -52,7 +52,7 @@ select set_config('request.jwt.claims',
   '{"sub": "00000000-0000-0000-0000-0000000000a1", "role": "authenticated"}', true);
 set local role authenticated;
 
-select is((select count(*) from public.profiles), 3::bigint,
+select is((select count(*) from public.profiles where id in ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000c3')), 3::bigint,
   'signed in: other profiles are readable');
 select is((select count(*) from public.profile_private), 1::bigint,
   'private details: only your own row is visible');

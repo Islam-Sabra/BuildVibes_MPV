@@ -214,8 +214,11 @@ class SpaceDetail {
     this.about,
     this.projectId,
     this.projectName,
+    this.projectPlace,
+    this.projectLocation,
     this.whoCanInvite = SpaceInviters.admins,
     this.myNotify = SpaceNotify.all,
+    this.siteStartDate,
   });
 
   final String id;
@@ -223,6 +226,11 @@ class SpaceDetail {
   final String? about;
   final String? projectId;
   final String? projectName;
+
+  /// The linked project's place from the market pack, or what was typed
+  /// as its location (Space info's project tag).
+  final LocalizedText? projectPlace;
+  final String? projectLocation;
   final SpacePass myPass;
   final bool iAmAdmin;
   final MemberRights myRights;
@@ -230,6 +238,10 @@ class SpaceDetail {
 
   /// The signed-in person's notifications for this Space (S15k-N).
   final SpaceNotify myNotify;
+
+  /// "On site since", set by a Space admin: the daybook's day 1. Never the
+  /// Space's creation date (rule 3).
+  final DateTime? siteStartDate;
 
   bool get canInvite => myRights.invite;
 }

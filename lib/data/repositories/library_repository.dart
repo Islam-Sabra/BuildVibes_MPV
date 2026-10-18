@@ -36,12 +36,6 @@ abstract class LibraryRepository {
     String? supersedesId,
   });
 
-  /// W2-A / W3 "Attached". A Team file only goes on that Team's items.
-  Future<void> attach(String itemId, String fileId);
-
-  /// W3 "Attached".
-  Future<List<LibraryFile>> itemFiles(String itemId);
-
   /// A short-lived link for previews.
   Future<String> fileUrl(String path);
 
@@ -182,28 +176,6 @@ class SupabaseLibraryRepository implements LibraryRepository {
   );
 
   @override
-  Future<void> attach(String itemId, String fileId) => _guard(
-    () => _client.rpc(
-      'attach_library_file',
-      params: {'p_item': itemId, 'p_file': fileId},
-    ),
-  );
-
-  @override
-  Future<List<LibraryFile>> itemFiles(String itemId) => _guard(() async {
-    final rows = await _client
-        .from('work_item_attachments')
-        .select('file:library_files($_file)')
-        .eq('work_item_id', itemId)
-        .order('created_at');
-    return [
-      for (final r in rows)
-        if (r['file'] case final Map<String, dynamic> f)
-          LibraryFile.fromJson(f),
-    ];
-  });
-
-  @override
   Future<String> fileUrl(String path) => _guard(
     () => _client.storage.from(_bucket).createSignedUrl(path, 60 * 10),
   );
@@ -225,11 +197,6 @@ final libraryFilesProvider = FutureProvider.autoDispose
 final libraryFileProvider = FutureProvider.autoDispose
     .family<LibraryFileDetail?, String>(
       (ref, fileId) => ref.watch(libraryRepositoryProvider).detail(fileId),
-    );
-
-final itemFilesProvider = FutureProvider.autoDispose
-    .family<List<LibraryFile>, String>(
-      (ref, itemId) => ref.watch(libraryRepositoryProvider).itemFiles(itemId),
     );
 
 final fileUrlProvider = FutureProvider.autoDispose.family<String, String>(

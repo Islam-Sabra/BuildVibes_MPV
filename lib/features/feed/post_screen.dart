@@ -5,6 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../shared/widgets/bv_torn_edge.dart';
+import '../../shared/widgets/bv_tap_target.dart';
+import '../../shared/widgets/bv_slip.dart';
+import '../../core/design/daybook_paper_specs.dart';
+import '../../core/design/daybook_days_specs.dart';
+import '../../core/design/around_specs.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/ago.dart';
@@ -28,8 +34,13 @@ import '../spaces/space_errors.dart';
 import 'feed_state.dart';
 import 'post_card.dart';
 
-/// H10v2 (a visitor) and H10c (your own post): the post, its replies one
-/// level deep, and "Add a comment". P6 when it's deleted or blocked.
+/// H10v2 (a visitor) and H10c (your own post): the post as Home's card,
+/// its replies as small slips two levels deep, and the reply bar (review
+/// 50 F19). P6 when it's deleted or blocked.
+/// The reply being answered: its [id], the top-level reply it is filed
+/// under ([top], its own id when it is one), and its author and text.
+typedef _ReplyTarget = ({String id, String top, String name, String body});
+
 class PostScreen extends ConsumerStatefulWidget {
   const PostScreen({super.key, required this.postId});
 
@@ -42,9 +53,15 @@ class PostScreen extends ConsumerStatefulWidget {
 class _PostScreenState extends ConsumerState<PostScreen> {
   final _text = TextEditingController();
 
-  /// H17: the top-level reply this answers, and the person tapped.
-  ({String id, String name, String body})? _replyTo;
+  /// H17: the reply this answers, the top-level reply it is filed under,
+  /// and the person tapped.
+  _ReplyTarget? _replyTo;
   var _sending = false;
+
+  /// The reply being sent, with the id the app chose for it. Sent again
+  /// unchanged (the signal dropped before the answer came), it keeps that
+  /// id, so the server keeps one reply (F19).
+  ({String id, String body, String? replyTo})? _attempt;
 
   @override
   void dispose() {
@@ -57,15 +74,37 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     if (body.isEmpty || _sending) return;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _sending = true);
+    final target = _replyTo;
+    final replyTo = target?.id;
+    final last = _attempt;
+    final attempt = last != null && last.body == body && last.replyTo == replyTo
+        ? last
+        : (id: newUuid(), body: body, replyTo: replyTo);
+    _attempt = attempt;
+    final repo = ref.read(postRepositoryProvider);
+    Future<void> add(String? to) => repo.addReply(
+      id: attempt.id,
+      postId: widget.postId,
+      replyTo: to,
+      body: body,
+    );
     try {
-      await ref
-          .read(postRepositoryProvider)
-          .addReply(
-            id: newUuid(),
-            postId: widget.postId,
-            replyTo: _replyTo?.id,
-            body: body,
-          );
+      try {
+        // The reply answered (review 50 F2): the server files it under its
+        // top-level reply and keeps who was answered.
+        await add(replyTo);
+      } on SpaceException catch (e) {
+        // A server before migration 25 takes answers to top-level replies
+        // only: answer that one instead. Nothing was stored, so the same
+        // id is still free.
+        if (e.failure != SpaceFailure.badInput ||
+            target == null ||
+            target.top == target.id) {
+          rethrow;
+        }
+        await add(target.top);
+      }
+      _attempt = null;
       _text.clear();
       _replyTo = null;
       ref.invalidate(postRepliesProvider(widget.postId));
@@ -95,20 +134,41 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     }
 
     final replies = ref.watch(postRepliesProvider(widget.postId)).value;
+    final all = replies ?? const <PostReply>[];
     final top = [
-      for (final r in replies ?? const <PostReply>[])
+      for (final r in all)
         if (r.replyTo == null) r,
     ];
     List<PostReply> under(String id) => [
-      for (final r in replies ?? const <PostReply>[])
+      for (final r in all)
         if (r.replyTo == id) r,
     ];
     // A reply whose top-level reply is gone still shows, at the top level.
     final known = {for (final r in top) r.id};
     final orphans = [
-      for (final r in replies ?? const <PostReply>[])
+      for (final r in all)
         if (r.replyTo != null && !known.contains(r.replyTo)) r,
     ];
+    final names = {for (final r in all) r.authorId: r.authorName};
+    final byId = {for (final r in all) r.id: r};
+
+    /// "Replying to {name}" under an answer: the person it answers, or,
+    /// before migration 25, the top-level reply's author.
+    String? answered(PostReply r) {
+      if (r.replyTo == null) return null;
+      final person = r.replyToPerson ?? byId[r.replyTo]?.authorId;
+      return person == null ? null : names[person];
+    }
+
+    void replyTo(PostReply r) => setState(
+      () => _replyTo = (
+        id: r.id,
+        // Filed under its top-level reply: itself, or the one it is under.
+        top: known.contains(r.replyTo) ? r.replyTo! : r.id,
+        name: r.authorName,
+        body: r.body,
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(titleSpacing: 0, title: Text(l10n.postTitle)),
@@ -119,6 +179,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
             child: ListView(
               padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
               children: [
+                // The same card as on Home.
                 PostCard(
                   post: p,
                   onChanged: (changed) {
@@ -127,7 +188,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                   },
                   onGone: () => Navigator.of(context).maybePop(),
                 ),
-                const SizedBox(height: BvSpace.s16),
+                const SizedBox(height: BvReplySpec.sectionTop),
                 Text(l10n.postReplies, style: type.titleMd),
                 const SizedBox(height: BvSpace.s12),
                 if (replies == null)
@@ -138,36 +199,32 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                     style: type.bodySm.copyWith(color: BvColors.textSecondary),
                   )
                 else
-                  for (final r in [...top, ...orphans]) ...[
-                    _ReplyView(
-                      reply: r,
-                      onReply: () => setState(
-                        () => _replyTo = (
-                          id: r.id,
-                          name: r.authorName,
-                          body: r.body,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: BvReplySpec.gap,
+                    children: [
+                      for (final r in [...top, ...orphans]) ...[
+                        _ReplyView(
+                          reply: r,
+                          answered: answered(r),
+                          onReply: () => replyTo(r),
                         ),
-                      ),
-                    ),
-                    for (final child in under(r.id))
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          start: BvSpace.s40,
-                        ),
-                        child: _ReplyView(
-                          reply: child,
-                          // One level: the answer goes under the top-level reply,
-                          // named for the person tapped.
-                          onReply: () => setState(
-                            () => _replyTo = (
-                              id: r.id,
-                              name: child.authorName,
-                              body: child.body,
+                        // Two levels on screen; an answer to an answer sits
+                        // here too, with "Replying to" naming the person.
+                        for (final child in under(r.id))
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              start: BvReplySpec.answerIndent,
+                            ),
+                            child: _ReplyView(
+                              reply: child,
+                              answered: answered(child),
+                              onReply: () => replyTo(child),
                             ),
                           ),
-                        ),
-                      ),
-                  ],
+                      ],
+                    ],
+                  ),
               ],
             ),
           ),
@@ -185,10 +242,20 @@ class _PostScreenState extends ConsumerState<PostScreen> {
   }
 }
 
+/// A reply as a small slip: the avatar, the name and time on one line,
+/// "Replying to …" under them for an answer, the text, then Useful and
+/// Reply under it, all starting under the name; ⋯ level with the name.
 class _ReplyView extends ConsumerWidget {
-  const _ReplyView({required this.reply, required this.onReply});
+  const _ReplyView({
+    required this.reply,
+    required this.answered,
+    required this.onReply,
+  });
 
   final PostReply reply;
+
+  /// The name of the person it answers, or null for a top-level reply.
+  final String? answered;
   final VoidCallback onReply;
 
   @override
@@ -268,117 +335,168 @@ class _ReplyView extends ConsumerWidget {
       }
     }
 
-    return Padding(
+    final ago = formatShortAgo(
+      l10n,
+      reply.createdAt.toLocal(),
+      now,
+      Localizations.localeOf(context).toLanguageTag(),
+    );
+    const underName = EdgeInsetsDirectional.only(start: BvReplySpec.indent);
+
+    return BvSlip(
       key: Key('reply-${reply.id}'),
-      padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: BvSpace.s4,
-        children: [
-          Container(
-            padding: const EdgeInsetsDirectional.fromSTEB(
-              BvSpace.s12,
-              BvSpace.s8,
-              BvSpace.s4,
-              BvSpace.s12,
-            ),
-            decoration: const BoxDecoration(
-              color: BvColors.surfaceSubtle,
-              borderRadius: BvRadius.cardAll,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: BvSpace.s4,
-              children: [
-                Row(
+      tear: BvSlipBorder.forId(reply.id).variant,
+      // Your own reply: Delete; someone else's: Report.
+      menu: BvSlipCornerMenu(
+        key: Key('reply-menu-${reply.id}'),
+        label: l10n.postReplyMenu,
+        onTap: menu,
+      ),
+      menuLine: answered == null
+          ? BvHomeSpec.authorAvatar
+          : BvSlipSpec.firstLine,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(
+            end: BvSlipCornerMenu.reserve,
+          ),
+          child: Row(
+            spacing: BvSpace.s8,
+            children: [
+              BvAvatar(
+                name: reply.authorName,
+                size: BvAvatarSize.xsm,
+                tint: BvAvatarTints.forId(reply.authorId),
+              ),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+                    Row(
+                      spacing: BvReplySpec.nameGap,
+                      children: [
+                        Flexible(
+                          child: Text(
                             inOwnDirection(reply.authorName),
-                            style: type.labelMd,
-                          ),
-                          if (reply.authorHeadline != null)
-                            Text(
-                              reply.authorHeadline!,
-                              style: type.bodySm.copyWith(
-                                color: BvColors.textSecondary,
-                              ),
+                            key: Key('reply-name-${reply.id}'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: type.labelSm.copyWith(
+                              color: BvColors.textPrimary,
+                              fontWeight: BvHomeSpec.nameWeight,
                             ),
-                        ],
-                      ),
+                          ),
+                        ),
+                        Text(
+                          ago,
+                          key: Key('reply-time-${reply.id}'),
+                          style: type.metadata.copyWith(
+                            color: BvColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
-                    // Your own reply: Delete; someone else's: Report.
-                    IconButton(
-                      key: Key('reply-menu-${reply.id}'),
-                      tooltip: l10n.postReplyMenu,
-                      icon: const Icon(
-                        BvIcons.more,
-                        color: BvColors.iconSecondary,
+                    if (answered != null)
+                      Text(
+                        l10n.postReplyingTo(inOwnDirection(answered!)),
+                        key: Key('reply-to-${reply.id}'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.metadata.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
                       ),
-                      onPressed: menu,
-                    ),
                   ],
-                ),
-                // The bubble's full width, under the menu too, so the text
-                // sits on its own language's side.
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: BvSpace.s8),
-                  child: Text(
-                    reply.body,
-                    key: Key('reply-body-${reply.id}'),
-                    textDirection: directionOf(reply.body),
-                    style: type.bodyMd,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Row(
-            spacing: BvSpace.s16,
-            children: [
-              const SizedBox(width: BvSpace.s4),
-              Text(
-                formatShortAgo(
-                  l10n,
-                  reply.createdAt.toLocal(),
-                  now,
-                  Localizations.localeOf(context).toLanguageTag(),
-                ),
-                style: type.metadata.copyWith(color: BvColors.textSecondary),
-              ),
-              GestureDetector(
-                key: Key('reply-useful-${reply.id}'),
-                onTap: mine ? null : useful,
-                child: Text(
-                  l10n.postUseful,
-                  style: type.labelSm.copyWith(
-                    color: reply.myUseful
-                        ? BvColors.textAction
-                        : BvColors.textSecondary,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                key: Key('reply-reply-${reply.id}'),
-                onTap: onReply,
-                child: Text(
-                  l10n.postReply,
-                  style: type.labelSm.copyWith(color: BvColors.textSecondary),
                 ),
               ),
             ],
           ),
-        ],
+        ),
+        // Every reply's text is as wide as the others', in its own
+        // language's direction.
+        Padding(
+          padding: underName,
+          child: Text(
+            reply.body,
+            key: Key('reply-body-${reply.id}'),
+            textDirection: directionOf(reply.body),
+            textAlign: TextAlign.start,
+            style: type.bodyMd,
+          ),
+        ),
+        // Each with a 48 touch area, into the gap above and the padding
+        // below.
+        Padding(
+          padding: underName,
+          child: BvTapTarget(
+            outset: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
+            child: SizedBox(
+              height: BvHomeSpec.actionsHeight,
+              child: Row(
+                spacing: BvReplySpec.actionsGap,
+                children: [
+                  _ReplyAction(
+                    key: Key('reply-useful-${reply.id}'),
+                    label: l10n.postUseful,
+                    active: reply.myUseful,
+                    onTap: mine ? null : useful,
+                  ),
+                  _ReplyAction(
+                    key: Key('reply-reply-${reply.id}'),
+                    label: l10n.postReply,
+                    onTap: onReply,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Useful or Reply under a reply's text: the word, in a 48 × 48 touch
+/// area.
+class _ReplyAction extends StatelessWidget {
+  const _ReplyAction({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.active = false,
+  });
+
+  final String label;
+  final VoidCallback? onTap;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return BvTapTarget(
+      child: Semantics(
+        button: true,
+        selected: active,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              label,
+              style: type.labelSm.copyWith(
+                color: active ? BvColors.textAction : BvColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-/// "Add a comment", with H17's "Replying to {name}" above it.
+/// The reply bar, in the Daybook post bar's style: your avatar, the field,
+/// and Send on the end side; H17's "Replying to {name}" above it.
 class _ReplyBox extends ConsumerWidget {
   const _ReplyBox({
     required this.controller,
@@ -390,7 +508,7 @@ class _ReplyBox extends ConsumerWidget {
   });
 
   final TextEditingController controller;
-  final ({String id, String name, String body})? replyTo;
+  final _ReplyTarget? replyTo;
   final bool sending;
   final VoidCallback onChanged;
   final VoidCallback onCancel;
@@ -401,23 +519,24 @@ class _ReplyBox extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final me = ref.watch(myProfileProvider).value;
-    final hasText = controller.text.trim().isNotEmpty;
+    final canSend = controller.text.trim().isNotEmpty && !sending;
     final r = replyTo;
     return DecoratedBox(
       decoration: const BoxDecoration(
-        color: BvColors.surfaceElevated,
+        color: BvColors.surfaceApp,
         border: Border(
-          top: BorderSide(color: BvColors.borderDefault, width: BvStroke.thin),
+          top: BorderSide(
+            color: BvColors.borderSubtle,
+            width: BvPostBarSpec.border,
+          ),
         ),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(
-            BvSpace.gutter,
-            BvSpace.s8,
-            BvSpace.s4,
-            BvSpace.s8,
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvPostBarSpec.paddingHorizontal,
+            vertical: BvPostBarSpec.paddingVertical,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -474,24 +593,26 @@ class _ReplyBox extends ConsumerWidget {
                   ),
                 ),
               Row(
-                spacing: BvSpace.s8,
+                spacing: BvPostBarSpec.gap,
                 children: [
                   BvAvatar(
+                    key: const Key('post-reply-avatar'),
                     name: me == null ? '' : '${me.firstName} ${me.lastName}',
                     size: BvAvatarSize.sm,
+                    tint: me == null ? null : BvAvatarTints.forId(me.id),
                   ),
                   Expanded(
                     child: Container(
                       constraints: const BoxConstraints(
-                        minHeight: BvSize.controlMd,
+                        minHeight: BvPostBarSpec.notepadHeight,
                       ),
                       padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: BvSpace.s16,
+                        horizontal: BvPostBarSpec.notepadPadding,
                       ),
                       alignment: AlignmentDirectional.centerStart,
                       decoration: const BoxDecoration(
                         color: BvColors.surfaceSubtle,
-                        borderRadius: BvRadius.roundAll,
+                        borderRadius: BvPostBarSpec.notepadRadius,
                       ),
                       child: TextField(
                         key: const Key('post-reply-input'),
@@ -525,16 +646,33 @@ class _ReplyBox extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  IconButton(
-                    key: const Key('post-reply-send'),
-                    tooltip: l10n.postSendReply,
-                    icon: Icon(
-                      BvIcons.send,
-                      color: hasText && !sending
-                          ? BvColors.iconAction
-                          : BvColors.iconSecondary,
+                  // Send on the end side, as the post bar's camera.
+                  Semantics(
+                    button: true,
+                    enabled: canSend,
+                    label: l10n.postSendReply,
+                    excludeSemantics: true,
+                    child: Material(
+                      key: const Key('post-reply-send'),
+                      color: canSend
+                          ? BvColors.actionPrimary
+                          : BvColors.surfaceSubtle,
+                      shape: const CircleBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: canSend ? onSend : null,
+                        child: SizedBox.square(
+                          dimension: BvReplySpec.sendSize,
+                          child: Icon(
+                            BvIcons.send,
+                            size: BvReplySpec.sendIcon,
+                            color: canSend
+                                ? BvColors.iconInverse
+                                : BvColors.iconSecondary,
+                          ),
+                        ),
+                      ),
                     ),
-                    onPressed: hasText && !sending ? onSend : null,
                   ),
                 ],
               ),

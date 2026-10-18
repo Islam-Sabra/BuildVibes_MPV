@@ -176,53 +176,11 @@ abstract class AppLocalizations {
   /// **'SELECTED'**
   String get stampSelected;
 
-  /// Section label above the sign-off strip.
-  ///
-  /// In en, this message translates to:
-  /// **'SIGN-OFF'**
-  String get signOffLabel;
-
-  /// Sign-off step.
-  ///
-  /// In en, this message translates to:
-  /// **'RAISED'**
-  String get signOffRaised;
-
-  /// Sign-off step.
-  ///
-  /// In en, this message translates to:
-  /// **'DONE'**
-  String get signOffDone;
-
   /// Sign-off step.
   ///
   /// In en, this message translates to:
   /// **'CHECKED'**
   String get signOffChecked;
-
-  /// Sign-off step not signed yet.
-  ///
-  /// In en, this message translates to:
-  /// **'Waiting'**
-  String get signOffWaiting;
-
-  /// Site tag cell: who raised the item.
-  ///
-  /// In en, this message translates to:
-  /// **'FROM'**
-  String get siteTagFrom;
-
-  /// Site tag cell: owner of the work item.
-  ///
-  /// In en, this message translates to:
-  /// **'OWNER'**
-  String get siteTagOwner;
-
-  /// Site tag cell: due date.
-  ///
-  /// In en, this message translates to:
-  /// **'DUE'**
-  String get siteTagDue;
 
   /// Pass card name.
   ///
@@ -998,12 +956,6 @@ abstract class AppLocalizations {
   /// **'Experience'**
   String get profileTabExperience;
 
-  /// Proof card label. Capitals in English.
-  ///
-  /// In en, this message translates to:
-  /// **'PROOF · WHERE IT\'S CONFIRMED'**
-  String get proofLabel;
-
   /// A CV project confirmed by a teammate.
   ///
   /// In en, this message translates to:
@@ -1099,24 +1051,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See all projects'**
   String get profileSeeAllProjects;
-
-  /// Own profile section.
-  ///
-  /// In en, this message translates to:
-  /// **'Work you delivered'**
-  String get workDeliveredTitle;
-
-  /// Visitor profile section.
-  ///
-  /// In en, this message translates to:
-  /// **'Work delivered'**
-  String get workDeliveredVisitorTitle;
-
-  /// Own profile section.
-  ///
-  /// In en, this message translates to:
-  /// **'You choose what shows. Only items checked and closed in a Space.'**
-  String get workDeliveredBody;
 
   /// Work delivered empty state.
   ///
@@ -1261,12 +1195,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove photo'**
   String get removePhoto;
-
-  /// Field label.
-  ///
-  /// In en, this message translates to:
-  /// **'City or area'**
-  String get placeLabel;
 
   /// Field label.
   ///
@@ -1538,18 +1466,6 @@ abstract class AppLocalizations {
   /// **'This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.'**
   String get newProjectNote;
 
-  /// Validation.
-  ///
-  /// In en, this message translates to:
-  /// **'Write the project name.'**
-  String get projectNameRequired;
-
-  /// Validation.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose the type.'**
-  String get projectTypeRequired;
-
   /// Field placeholder.
   ///
   /// In en, this message translates to:
@@ -1757,7 +1673,7 @@ abstract class AppLocalizations {
   /// H1e card body (work Spaces only in the MVP).
   ///
   /// In en, this message translates to:
-  /// **'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.'**
+  /// **'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, updates and anything waiting for you.'**
   String get spacesEmptyBody;
 
   /// H1e note under the card.
@@ -1871,7 +1787,7 @@ abstract class AppLocalizations {
   /// S5 placeholder. No country facts.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Tower B — Site team'**
+  /// **'e.g. Tower B — Design team'**
   String get spacesNameHint;
 
   /// S5 error.
@@ -2009,7 +1925,7 @@ abstract class AppLocalizations {
   /// S16 explanation.
   ///
   /// In en, this message translates to:
-  /// **'Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.'**
+  /// **'Send the code on WhatsApp or read it out. The Space admin confirms each person before they join.'**
   String get spacesInviteHow;
 
   /// Text shared with the system share sheet.
@@ -2426,12 +2342,6 @@ abstract class AppLocalizations {
   /// **'{names} and others'**
   String listAndOthers(String names);
 
-  /// "Owners: Omar Haddad and you".
-  ///
-  /// In en, this message translates to:
-  /// **'you'**
-  String get youLower;
-
   /// Profile project row: who confirmed (founder decision, 11 Oct).
   ///
   /// In en, this message translates to:
@@ -2444,77 +2354,11 @@ abstract class AppLocalizations {
   /// **'Space info'**
   String get spacesInfoTitle;
 
-  /// S15 row, read-only.
-  ///
-  /// In en, this message translates to:
-  /// **'Access'**
-  String get spacesAccess;
-
-  /// S15 Access row.
-  ///
-  /// In en, this message translates to:
-  /// **'Private work · linked to {project}'**
-  String spacesAccessLinked(String project);
-
-  /// S15 Invite people row.
-  ///
-  /// In en, this message translates to:
-  /// **'Share the invite code'**
-  String get spacesInviteRowSub;
-
-  /// S15 Members row.
-  ///
-  /// In en, this message translates to:
-  /// **'Owners: {names}'**
-  String spacesOwnersLine(String names);
-
   /// S15 row and S15k-I title.
   ///
   /// In en, this message translates to:
   /// **'Who can invite'**
   String get spacesWhoCanInvite;
-
-  /// S15k-I subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Every invite still needs a Space admin to confirm the join.'**
-  String get spacesWhoCanInviteNote;
-
-  /// Who can invite option.
-  ///
-  /// In en, this message translates to:
-  /// **'Space admins'**
-  String get spacesInviteAdmins;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Only admins share the invite code.'**
-  String get spacesInviteAdminsHelp;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Admins and Leads'**
-  String get spacesInviteLeads;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'People with a Lead pass can invite their own crews.'**
-  String get spacesInviteLeadsHelp;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone in the Space'**
-  String get spacesInviteEveryone;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Anyone can share the code. Admins still confirm each join.'**
-  String get spacesInviteEveryoneHelp;
 
   /// S15 row and S15k-N title.
   ///
@@ -2522,47 +2366,11 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get spacesNotifications;
 
-  /// S15k-N subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'For this Space only.'**
-  String get spacesNotificationsNote;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone posts and my Teams'**
-  String get spacesNotifyAll;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Messages in Everyone and in your Teams, plus anything that needs you.'**
-  String get spacesNotifyAllHelp;
-
-  /// Option.
-  ///
-  /// In en, this message translates to:
-  /// **'Needs you only'**
-  String get spacesNotifyNeedsYou;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'Items you own, items to check and people asking to join.'**
-  String get spacesNotifyNeedsYouHelp;
-
   /// Option.
   ///
   /// In en, this message translates to:
   /// **'Off'**
   String get spacesNotifyOff;
-
-  /// Option help.
-  ///
-  /// In en, this message translates to:
-  /// **'No alerts. Needs you still shows on your Home.'**
-  String get spacesNotifyOffHelp;
 
   /// S15 row and S15d title.
   ///
@@ -2575,12 +2383,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Space'**
   String get spacesDeleteSpace;
-
-  /// S15 row.
-  ///
-  /// In en, this message translates to:
-  /// **'Owners only. Removes it for everyone.'**
-  String get spacesDeleteSpaceHelp;
 
   /// Confirm button.
   ///
@@ -2617,12 +2419,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You left {space}.'**
   String spacesLeft(String space);
-
-  /// S15 header action, admins.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get spacesEdit;
 
   /// Edit sheet title.
   ///
@@ -2810,695 +2606,17 @@ abstract class AppLocalizations {
   /// **'Make someone else an admin first, or delete the Space.'**
   String get spacesLastAdmin;
 
-  /// S20 privacy line.
-  ///
-  /// In en, this message translates to:
-  /// **'Members are people the Space admin confirmed. Nothing here is visible outside the Space.'**
-  String get workPrivacyLine;
-
-  /// S20 filter.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get workFilterAll;
-
-  /// S20 filter: items I own or raised.
-  ///
-  /// In en, this message translates to:
-  /// **'Mine'**
-  String get workFilterMine;
-
-  /// S20 filter (glossary: chips مفتوحة).
-  ///
-  /// In en, this message translates to:
-  /// **'Open'**
-  String get workFilterOpen;
-
-  /// S20 filter.
-  ///
-  /// In en, this message translates to:
-  /// **'To check'**
-  String get workFilterToCheck;
-
-  /// S20 filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Checked'**
-  String get workFilterChecked;
-
-  /// S20 section.
-  ///
-  /// In en, this message translates to:
-  /// **'NEEDS YOU'**
-  String get workSectionNeedsYou;
-
-  /// S20 section: open, and done items waiting for someone else.
-  ///
-  /// In en, this message translates to:
-  /// **'OPEN'**
-  String get workSectionOpen;
-
-  /// To check filter: done items others check.
-  ///
-  /// In en, this message translates to:
-  /// **'WAITING FOR A CHECK'**
-  String get workSectionWaitingCheck;
-
-  /// S20 section.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED THIS WEEK'**
-  String get workSectionCheckedWeek;
-
-  /// Checked filter.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED EARLIER'**
-  String get workSectionCheckedEarlier;
-
-  /// Card status.
-  ///
-  /// In en, this message translates to:
-  /// **'OPEN'**
-  String get workStatusOpen;
-
-  /// Card status.
-  ///
-  /// In en, this message translates to:
-  /// **'OPEN · DUE {date}'**
-  String workStatusOpenDue(String date);
-
-  /// Card status, past the due date.
-  ///
-  /// In en, this message translates to:
-  /// **'OPEN · WAS DUE {date}'**
-  String workStatusOverdue(String date);
-
-  /// Card status.
-  ///
-  /// In en, this message translates to:
-  /// **'DONE · YOU CHECK IT'**
-  String get workStatusDoneYouCheck;
-
-  /// Card status.
-  ///
-  /// In en, this message translates to:
-  /// **'DONE · WAITING FOR A CHECK'**
-  String get workStatusDoneWaiting;
-
-  /// Card status.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED · {date}'**
-  String workStatusChecked(String date);
-
-  /// Card people line.
-  ///
-  /// In en, this message translates to:
-  /// **'Owner: you'**
-  String get workOwnerYou;
-
-  /// Card people line.
-  ///
-  /// In en, this message translates to:
-  /// **'Owner: {name}'**
-  String workOwner(String name);
-
-  /// Card people line.
-  ///
-  /// In en, this message translates to:
-  /// **'from you'**
-  String get workFromYou;
-
-  /// Card people line.
-  ///
-  /// In en, this message translates to:
-  /// **'from {name}'**
-  String workFrom(String name);
-
-  /// Card people line, Checked.
-  ///
-  /// In en, this message translates to:
-  /// **'checked by {name}'**
-  String workCheckedByLine(String name);
-
-  /// Card evidence, Checked.
-  ///
-  /// In en, this message translates to:
-  /// **'Checked by {name}'**
-  String workCheckedBy(String name);
-
-  /// Card evidence.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =0{No photo} =1{1 photo} other{{n} photos}}'**
-  String workPhotos(int n);
-
-  /// Card action (glossary).
-  ///
-  /// In en, this message translates to:
-  /// **'Sign as done'**
-  String get workSignAsDone;
-
-  /// Card action.
-  ///
-  /// In en, this message translates to:
-  /// **'Check it'**
-  String get workCheckIt;
-
-  /// S20 button.
-  ///
-  /// In en, this message translates to:
-  /// **'New item'**
-  String get workNewItem;
-
-  /// S20 empty.
-  ///
-  /// In en, this message translates to:
-  /// **'No work items yet'**
-  String get workEmptyTitle;
-
-  /// S20 empty, can create.
-  ///
-  /// In en, this message translates to:
-  /// **'Raise the first one with New item. The owner signs it as done, then it\'s checked.'**
-  String get workEmptyCanCreate;
-
-  /// S20 empty, can't create.
-  ///
-  /// In en, this message translates to:
-  /// **'Items appear here when someone raises one for the team.'**
-  String get workEmptyCannot;
-
-  /// S20 empty Needs you.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing needs you right now.'**
-  String get workNothingNeedsYou;
-
-  /// S20 empty filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing here.'**
-  String get workFilterEmpty;
-
-  /// Card status: the owner left the Space (review 09).
-  ///
-  /// In en, this message translates to:
-  /// **'OWNER LEFT · REASSIGN'**
-  String get workStatusOwnerLeft;
-
-  /// Card action.
-  ///
-  /// In en, this message translates to:
-  /// **'Reassign'**
-  String get workReassign;
-
-  /// W2 title.
-  ///
-  /// In en, this message translates to:
-  /// **'New work item'**
-  String get workNewTitle;
-
-  /// W2 photo tile.
-  ///
-  /// In en, this message translates to:
-  /// **'Take a photo'**
-  String get workTakePhoto;
-
-  /// W2 fallback.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose from gallery'**
-  String get workFromGallery;
-
-  /// W2 photo button.
-  ///
-  /// In en, this message translates to:
-  /// **'Retake'**
-  String get workRetake;
-
-  /// W2 photo tile hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Start with a photo of the spot.'**
-  String get workPhotoFirst;
-
-  /// W2 stamp with the next reference.
-  ///
-  /// In en, this message translates to:
-  /// **'NEW · {ref}'**
-  String workNewStamp(String ref);
-
-  /// W2 stamp when the reference isn't known.
-  ///
-  /// In en, this message translates to:
-  /// **'NEW'**
-  String get workNewStampPlain;
-
-  /// W2 title placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'What needs doing · one line is enough'**
-  String get workTitleHint;
-
-  /// W2 error.
-  ///
-  /// In en, this message translates to:
-  /// **'Write what needs doing.'**
-  String get workTitleRequired;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'OWNER · ONE PERSON'**
-  String get workCellOwner;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'DUE'**
-  String get workCellDue;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'PLACE ON SITE'**
-  String get workCellPlace;
-
-  /// W2 cell.
-  ///
-  /// In en, this message translates to:
-  /// **'TEAM'**
-  String get workCellTeam;
-
-  /// W2 empty cell.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose'**
-  String get workChoose;
-
-  /// W2 error.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose who does it.'**
-  String get workOwnerRequired;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'No due date'**
-  String get workNoDue;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'Today'**
-  String get workToday;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'Tomorrow'**
-  String get workTomorrow;
-
-  /// W2 due option.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick a date'**
-  String get workPickDate;
-
-  /// W2 team option.
-  ///
-  /// In en, this message translates to:
-  /// **'No Team'**
-  String get workNoTeam;
-
-  /// W2 place placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Level 2 · Grid C7'**
-  String get workPlaceHint;
-
-  /// W2 footer.
-  ///
-  /// In en, this message translates to:
-  /// **'{owner} gets it in Needs you. When it\'s marked done, you check it.'**
-  String workNewFooter(String owner);
-
-  /// W2 footer before an owner is chosen.
-  ///
-  /// In en, this message translates to:
-  /// **'The owner gets it in Needs you. When it\'s marked done, you check it.'**
-  String get workNewFooterNoOwner;
-
-  /// W2 button.
-  ///
-  /// In en, this message translates to:
-  /// **'Create item'**
-  String get workCreate;
-
-  /// Outbox card.
-  ///
-  /// In en, this message translates to:
-  /// **'Not sent yet'**
-  String get workNotSent;
-
-  /// Outbox card.
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get workRetry;
-
-  /// Outbox card.
-  ///
-  /// In en, this message translates to:
-  /// **'Saved on this phone. Retry when the signal is back.'**
-  String get workNotSentNote;
-
-  /// Toast after a retry.
-  ///
-  /// In en, this message translates to:
-  /// **'Sent.'**
-  String get workSent;
-
-  /// W3 section (glossary).
-  ///
-  /// In en, this message translates to:
-  /// **'SIGN-OFF'**
-  String get workSignOff;
-
-  /// W3 section (glossary).
-  ///
-  /// In en, this message translates to:
-  /// **'EVIDENCE'**
-  String get workEvidence;
-
-  /// W3 section: photos from when it was raised.
-  ///
-  /// In en, this message translates to:
-  /// **'PHOTOS'**
-  String get workPhotosLabel;
-
-  /// W3 section.
-  ///
-  /// In en, this message translates to:
-  /// **'DISCUSSION'**
-  String get workDiscussion;
-
-  /// W3 field.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a comment'**
-  String get workAddComment;
-
-  /// W3 comment button.
-  ///
-  /// In en, this message translates to:
-  /// **'Send'**
-  String get workSendComment;
-
-  /// W3 empty discussion.
-  ///
-  /// In en, this message translates to:
-  /// **'No comments yet.'**
-  String get workNoComments;
-
-  /// W3b banner.
-  ///
-  /// In en, this message translates to:
-  /// **'Waiting for {name} to check'**
-  String workWaitingCheckBy(String name);
-
-  /// W3b banner.
-  ///
-  /// In en, this message translates to:
-  /// **'It can be accepted or sent back with a reason.'**
-  String get workWaitingCheckBody;
-
-  /// W3c banner.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} marked this done. Check it.'**
-  String workCheckBannerTitle(String name);
-
-  /// W3c banner.
-  ///
-  /// In en, this message translates to:
-  /// **'Look at the photo, then accept it or send it back with a reason.'**
-  String get workCheckBannerBody;
-
-  /// W3 banner for others.
-  ///
-  /// In en, this message translates to:
-  /// **'Done. Waiting for a check.'**
-  String get workDoneWaiting;
-
-  /// W3d banner (review 08 wording).
-  ///
-  /// In en, this message translates to:
-  /// **'Closed. It stays in the Space record.'**
-  String get workClosed;
-
-  /// W3d banner line.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} can show it on their profile as work they delivered.'**
-  String workClosedCanShow(String name);
-
-  /// W3g banner.
-  ///
-  /// In en, this message translates to:
-  /// **'Closed by {name}'**
-  String workClosedBy(String name);
-
-  /// W3g banner line.
-  ///
-  /// In en, this message translates to:
-  /// **'It stays in the Space record.'**
-  String get workClosedStays;
-
-  /// W3 banner after a send-back.
-  ///
-  /// In en, this message translates to:
-  /// **'Sent back: {reason}'**
-  String workSentBackTitle(String reason);
-
-  /// Send back reason.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo missing'**
-  String get workReasonPhotoMissing;
-
-  /// Send back reason.
-  ///
-  /// In en, this message translates to:
-  /// **'Not as asked'**
-  String get workReasonNotAsAsked;
-
-  /// Send back reason.
-  ///
-  /// In en, this message translates to:
-  /// **'Not finished'**
-  String get workReasonNotFinished;
-
-  /// Send back reason.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get workReasonOther;
-
-  /// W3 banner.
-  ///
-  /// In en, this message translates to:
-  /// **'The owner left the Space'**
-  String get workOwnerLeftTitle;
-
-  /// W3 banner.
-  ///
-  /// In en, this message translates to:
-  /// **'Give it to someone else to finish.'**
-  String get workOwnerLeftBody;
-
-  /// W3d tilted stamp.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED · {date} · {name}'**
-  String workCheckedStamp(String date, String name);
-
-  /// Sign-off strip.
-  ///
-  /// In en, this message translates to:
-  /// **'You check it'**
-  String get workYouCheckIt;
-
-  /// W3c button.
-  ///
-  /// In en, this message translates to:
-  /// **'Check and close'**
-  String get workCheckAndClose;
-
-  /// W3c button (glossary).
-  ///
-  /// In en, this message translates to:
-  /// **'Send back'**
-  String get workSendBack;
-
-  /// Reassign sheet title.
-  ///
-  /// In en, this message translates to:
-  /// **'Reassign to'**
-  String get workReassignTitle;
-
-  /// Toast.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} owns it now.'**
-  String workReassigned(String name);
-
   /// W3 when gone or not a member.
   ///
   /// In en, this message translates to:
   /// **'This item isn\'t available.'**
   String get workItemGone;
 
-  /// Sign-off time today.
-  ///
-  /// In en, this message translates to:
-  /// **'Today {time}'**
-  String workTodayAt(String time);
-
-  /// W4 sheet title.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign DONE on {ref}'**
-  String workSignTitle(String ref);
-
-  /// W4 sheet body.
-  ///
-  /// In en, this message translates to:
-  /// **'Your name and the time go on the sign-off. Add a photo or a note so {name} can check it.'**
-  String workSignBody(String name);
-
-  /// W4 photo tile.
-  ///
-  /// In en, this message translates to:
-  /// **'Add photo'**
-  String get workAddPhoto;
-
   /// W4 field.
   ///
   /// In en, this message translates to:
   /// **'Note'**
   String get workNote;
-
-  /// W4 note placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'What was done'**
-  String get workNoteHint;
-
-  /// W4 error.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a photo or a note.'**
-  String get workSignNeedsSomething;
-
-  /// Toast after W4.
-  ///
-  /// In en, this message translates to:
-  /// **'Signed as done. It\'s waiting for a check.'**
-  String get workSigned;
-
-  /// Outbox: a sign-off waiting.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign-off not sent yet'**
-  String get workPendingSignOff;
-
-  /// W5 sheet title.
-  ///
-  /// In en, this message translates to:
-  /// **'Send {ref} back to {name}'**
-  String workSendBackTitle(String ref, String name);
-
-  /// W5 sheet body.
-  ///
-  /// In en, this message translates to:
-  /// **'The tag goes back to Open with your reason written on it, and into {name}\'s Needs you.'**
-  String workSendBackBody(String name);
-
-  /// W5 label.
-  ///
-  /// In en, this message translates to:
-  /// **'Reason'**
-  String get workReason;
-
-  /// W5 field.
-  ///
-  /// In en, this message translates to:
-  /// **'Note for {name}'**
-  String workNoteFor(String name);
-
-  /// W5 button.
-  ///
-  /// In en, this message translates to:
-  /// **'Send back to {name}'**
-  String workSendBackTo(String name);
-
-  /// W5 error.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a reason.'**
-  String get workReasonRequired;
-
-  /// W5 error for Other.
-  ///
-  /// In en, this message translates to:
-  /// **'Say what is wrong.'**
-  String get workOtherNeedsNote;
-
-  /// Toast after W5.
-  ///
-  /// In en, this message translates to:
-  /// **'Sent back to {name}.'**
-  String workSentBack(String name);
-
-  /// Check dialog title.
-  ///
-  /// In en, this message translates to:
-  /// **'Check and close {ref}?'**
-  String workCheckTitle(String ref);
-
-  /// Check dialog body.
-  ///
-  /// In en, this message translates to:
-  /// **'Your name and the time go on the sign-off. It closes and stays in the Space record.'**
-  String get workCheckBody;
-
-  /// Owner switch on a Checked item (review 08 wording).
-  ///
-  /// In en, this message translates to:
-  /// **'Show on my profile'**
-  String get workShowOnProfile;
-
-  /// Switch helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Only the title, one photo, the place and who checked it. Never the Space or the discussion.'**
-  String get workShowOnProfileHelp;
-
-  /// Discussion line for a reassigned event.
-  ///
-  /// In en, this message translates to:
-  /// **'Reassigned from {from} to {to}'**
-  String workReassignedLine(String from, String to);
-
-  /// A person whose account was deleted.
-  ///
-  /// In en, this message translates to:
-  /// **'someone'**
-  String get workSomeone;
 
   /// RE2 title.
   ///
@@ -3583,18 +2701,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown.'**
   String deliveredPrivacy(String name);
-
-  /// RE1 stamp.
-  ///
-  /// In en, this message translates to:
-  /// **'CHECKED · {date}'**
-  String deliveredStamp(String date);
-
-  /// Check dialog confirm button; short so it fits.
-  ///
-  /// In en, this message translates to:
-  /// **'Close it'**
-  String get workCheckConfirm;
 
   /// Own profile: checked items exist but all are hidden.
   ///
@@ -3890,12 +2996,6 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get chatRemoveFile;
 
-  /// Wrong file type.
-  ///
-  /// In en, this message translates to:
-  /// **'Only PDF files and photos.'**
-  String get chatFileNotAllowed;
-
   /// File too large.
   ///
   /// In en, this message translates to:
@@ -4166,90 +3266,6 @@ abstract class AppLocalizations {
   /// **'Share the file'**
   String get previewSendFile;
 
-  /// W2-A title.
-  ///
-  /// In en, this message translates to:
-  /// **'Attach to {ref}'**
-  String workAttachTitle(String ref);
-
-  /// W2-A option.
-  ///
-  /// In en, this message translates to:
-  /// **'From the Space Library'**
-  String get workAttachLibrary;
-
-  /// W2-A option helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Drawings and files already shared in this Space'**
-  String get workAttachLibraryHelp;
-
-  /// W2-A option.
-  ///
-  /// In en, this message translates to:
-  /// **'From your phone'**
-  String get workAttachPhone;
-
-  /// W2-A option helper.
-  ///
-  /// In en, this message translates to:
-  /// **'PDF or image · saved to the Space Library too'**
-  String get workAttachPhoneHelp;
-
-  /// W2-A option.
-  ///
-  /// In en, this message translates to:
-  /// **'Take another photo'**
-  String get workAttachPhoto;
-
-  /// W2-A option helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Adds to the photos on the tag'**
-  String get workAttachPhotoHelp;
-
-  /// W3 section label.
-  ///
-  /// In en, this message translates to:
-  /// **'ATTACHED'**
-  String get workAttached;
-
-  /// W3 attached file line.
-  ///
-  /// In en, this message translates to:
-  /// **'From the Space Library'**
-  String get workAttachedFromLibrary;
-
-  /// W2 / W3 button.
-  ///
-  /// In en, this message translates to:
-  /// **'Attach a drawing or file'**
-  String get workAttach;
-
-  /// Toast.
-  ///
-  /// In en, this message translates to:
-  /// **'Attached.'**
-  String get workAttachedToast;
-
-  /// W3 Discussion label suffix (opens the Team thread).
-  ///
-  /// In en, this message translates to:
-  /// **'ALSO IN THE TEAM CHAT'**
-  String get workAlsoInTeamChat;
-
-  /// Library picker title.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose from the Library'**
-  String get libraryPickTitle;
-
-  /// Library picker helper on a Team item.
-  ///
-  /// In en, this message translates to:
-  /// **'Only files for Everyone and for {team} can go on this item.'**
-  String libraryPickTeamNote(String team);
-
   /// A shared Library file that was removed since (review 14).
   ///
   /// In en, this message translates to:
@@ -4307,7 +3323,7 @@ abstract class AppLocalizations {
   /// Empty feed.
   ///
   /// In en, this message translates to:
-  /// **'No posts yet. Share what happened on site today.'**
+  /// **'No posts yet. Share what happened at work today.'**
   String get feedEmpty;
 
   /// H5.
@@ -4418,12 +3434,6 @@ abstract class AppLocalizations {
   /// **'Post deleted.'**
   String get postDeleted;
 
-  /// Photo tap tooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Open photo'**
-  String get postOpenPhoto;
-
   /// H10 title.
   ///
   /// In en, this message translates to:
@@ -4514,198 +3524,6 @@ abstract class AppLocalizations {
   /// **'Back to Home'**
   String get postBackHome;
 
-  /// P3.
-  ///
-  /// In en, this message translates to:
-  /// **'Posting to your network…'**
-  String get postPosting;
-
-  /// P3b / C14.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t post. Saved as a draft.'**
-  String get postFailed;
-
-  /// P3b.
-  ///
-  /// In en, this message translates to:
-  /// **'Check your connection and try again.'**
-  String get postFailedHint;
-
-  /// P3b secondary action.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard draft'**
-  String get postDiscardDraft;
-
-  /// C1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'POSTING TO'**
-  String get composerPostingTo;
-
-  /// C1 audience.
-  ///
-  /// In en, this message translates to:
-  /// **'Your network'**
-  String get composerYourNetwork;
-
-  /// C1 audience line.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone'**
-  String get composerEveryone;
-
-  /// C1 audience line.
-  ///
-  /// In en, this message translates to:
-  /// **'tagged {project}'**
-  String composerTagged(String project);
-
-  /// C1 placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'What happened on site today?'**
-  String get composerHint;
-
-  /// C1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'START FROM'**
-  String get composerStartFrom;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Progress update'**
-  String get tplProgress;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Done today · Next · Holding us up'**
-  String get tplProgressHelp;
-
-  /// Template lines put in the post.
-  ///
-  /// In en, this message translates to:
-  /// **'Done today:\nNext:\nHolding us up:'**
-  String get tplProgressLines;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Milestone'**
-  String get tplMilestone;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'What · When · Who did it'**
-  String get tplMilestoneHelp;
-
-  /// Template lines.
-  ///
-  /// In en, this message translates to:
-  /// **'What:\nWhen:\nWho did it:'**
-  String get tplMilestoneLines;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Site visit'**
-  String get tplVisit;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Where · What we found · Actions'**
-  String get tplVisitHelp;
-
-  /// Template lines.
-  ///
-  /// In en, this message translates to:
-  /// **'Where:\nWhat we found:\nActions:'**
-  String get tplVisitLines;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Ask the community'**
-  String get tplAsk;
-
-  /// Template.
-  ///
-  /// In en, this message translates to:
-  /// **'Question · Who knows'**
-  String get tplAskHelp;
-
-  /// Template lines.
-  ///
-  /// In en, this message translates to:
-  /// **'Question:\nWho knows:'**
-  String get tplAskLines;
-
-  /// Footer tool.
-  ///
-  /// In en, this message translates to:
-  /// **'Media'**
-  String get composerMedia;
-
-  /// Footer tool.
-  ///
-  /// In en, this message translates to:
-  /// **'Project'**
-  String get composerProject;
-
-  /// Post button.
-  ///
-  /// In en, this message translates to:
-  /// **'Post'**
-  String get composerPost;
-
-  /// Edit post button.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get composerSave;
-
-  /// Footer hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose how to start, or just write'**
-  String get composerChooseHint;
-
-  /// Footer hint when tagged.
-  ///
-  /// In en, this message translates to:
-  /// **'Posting to {project}'**
-  String composerPostingToProject(String project);
-
-  /// Audience line (review 16: replaces the member count).
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone on BuildVibes can see this.'**
-  String get composerAudience;
-
-  /// Audience line with a project.
-  ///
-  /// In en, this message translates to:
-  /// **'Everyone on BuildVibes can see this. It also shows on the project\'s page.'**
-  String get composerAudienceProject;
-
-  /// L5. The language code of the post.
-  ///
-  /// In en, this message translates to:
-  /// **'Written in {lang, select, ar{Arabic} other{English}}'**
-  String composerWrittenIn(String lang);
-
-  /// L5 link.
-  ///
-  /// In en, this message translates to:
-  /// **'Change'**
-  String get composerChange;
-
   /// Language name (each in its own script).
   ///
   /// In en, this message translates to:
@@ -4718,113 +3536,17 @@ abstract class AppLocalizations {
   /// **'العربية'**
   String get langArabic;
 
-  /// L6 option.
-  ///
-  /// In en, this message translates to:
-  /// **'Detected automatically'**
-  String get langAuto;
-
-  /// L6 title.
-  ///
-  /// In en, this message translates to:
-  /// **'Language of this post'**
-  String get composerLangTitle;
-
-  /// L6 line under the title.
-  ///
-  /// In en, this message translates to:
-  /// **'We use this to offer Translate to readers who don\'t read it.'**
-  String get composerLangWhy;
-
-  /// A language's name in the app's language (L6).
-  ///
-  /// In en, this message translates to:
-  /// **'{lang, select, ar{Arabic} other{English}}'**
-  String langName(String lang);
-
-  /// Too many photos.
-  ///
-  /// In en, this message translates to:
-  /// **'Up to 4 photos.'**
-  String get composerPhotosMax;
-
-  /// Tooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove photo'**
-  String get composerRemovePhoto;
-
-  /// C3 title.
-  ///
-  /// In en, this message translates to:
-  /// **'Post to'**
-  String get postToTitle;
-
-  /// C3 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WHO SEES IT'**
-  String get postToWho;
-
-  /// C3 row.
-  ///
-  /// In en, this message translates to:
-  /// **'Followers and Explore · anyone can see'**
-  String get postToNetworkHelp;
-
-  /// C3 note.
-  ///
-  /// In en, this message translates to:
-  /// **'Posts are public and can be tagged to a project. Work for your team goes in the project\'s Space as a work item.'**
-  String get postToNote;
-
-  /// C10 title.
-  ///
-  /// In en, this message translates to:
-  /// **'Link a project'**
-  String get tagTitle;
-
-  /// C10.
-  ///
-  /// In en, this message translates to:
-  /// **'Only projects where you have a confirmed role.'**
-  String get tagHelp;
-
   /// C10 empty.
   ///
   /// In en, this message translates to:
   /// **'Add a project on your profile first'**
   String get tagEmpty;
 
-  /// C10 line.
-  ///
-  /// In en, this message translates to:
-  /// **'Work for your team goes in the project\'s Space as a work item'**
-  String get tagSpaceNote;
-
   /// C10: remove the tag.
   ///
   /// In en, this message translates to:
   /// **'No project'**
   String get tagNone;
-
-  /// C13.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard this post?'**
-  String get discardTitle;
-
-  /// C13.
-  ///
-  /// In en, this message translates to:
-  /// **'Your text, photo and project link will be lost.'**
-  String get discardBody;
-
-  /// C13.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get discardConfirm;
 
   /// Project sheet section.
   ///
@@ -4856,35 +3578,11 @@ abstract class AppLocalizations {
   /// **'{n}h'**
   String timeHoursShort(int n);
 
-  /// C13 cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep editing'**
-  String get discardKeep;
-
-  /// H1b title.
-  ///
-  /// In en, this message translates to:
-  /// **'Your day on site'**
-  String get homeDayTitle;
-
   /// H1b summary, first part (orange).
   ///
   /// In en, this message translates to:
   /// **'{n, plural, =1{1 thing needs you} other{{n} things need you}}'**
   String homeDayNeedsYou(int n);
-
-  /// H1b summary: Spaces with something new today.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 Space active} other{{n} Spaces active}}'**
-  String homeDaySpacesActive(int n);
-
-  /// H1b summary: replies today to your chat messages.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 reply} other{{n} replies}}'**
-  String homeDayReplies(int n);
 
   /// H1b section.
   ///
@@ -4897,30 +3595,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See all'**
   String get homeSeeAll;
-
-  /// H1b section.
-  ///
-  /// In en, this message translates to:
-  /// **'TODAY IN YOUR SPACES'**
-  String get homeTodayInSpaces;
-
-  /// H1b end, when nothing needs you.
-  ///
-  /// In en, this message translates to:
-  /// **'That\'s your day'**
-  String get homeThatsYourDay;
-
-  /// H1b end line.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing else needs you right now'**
-  String get homeNothingElse;
-
-  /// H1b row: the Space is linked to a project.
-  ///
-  /// In en, this message translates to:
-  /// **'Project'**
-  String get homeProject;
 
   /// Home top bar search tooltip.
   ///
@@ -4987,36 +3661,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'due {date}'**
   String needsDue(String date);
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · FOR YOU'**
-  String get needsOverForYou;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · YOU CHECK IT'**
-  String get needsOverCheck;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · SENT BACK'**
-  String get needsOverSentBack;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'WORK ITEM · OWNER LEFT'**
-  String get needsOverOwnerLeft;
-
-  /// A1 overline.
-  ///
-  /// In en, this message translates to:
-  /// **'SPACE · REQUEST TO JOIN'**
-  String get needsOverJoin;
 
   /// Needs-you button.
   ///
@@ -5107,12 +3751,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your posts'**
   String get activityGroupPosts;
-
-  /// A1 group stamp; letters stay Latin.
-  ///
-  /// In en, this message translates to:
-  /// **'REV {letter}'**
-  String activityRev(String letter);
 
   /// A1 row.
   ///
@@ -5425,6 +4063,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open phone settings'**
   String get pushOpenSettings;
+
+  /// F9: the quiet line on Home and in Settings → Notifications when the phone gave no push token.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications aren\'t reaching this phone'**
+  String get pushNotReaching;
+
+  /// F9: the quiet line's action.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix it'**
+  String get pushFixIt;
+
+  /// F9: the steps sheet on Xiaomi, Redmi and POCO phones.
+  ///
+  /// In en, this message translates to:
+  /// **'Let notifications reach this phone'**
+  String get pushFixTitle;
+
+  /// F9 step 1 (the phone's own word: Autostart).
+  ///
+  /// In en, this message translates to:
+  /// **'Autostart: on for BuildVibes.'**
+  String get pushFixAutostart;
+
+  /// F9 step 2 (the phone's own words).
+  ///
+  /// In en, this message translates to:
+  /// **'Battery saver: \"No restrictions\" for BuildVibes.'**
+  String get pushFixBattery;
+
+  /// F9 step 3.
+  ///
+  /// In en, this message translates to:
+  /// **'The same battery setting for Google Play services.'**
+  String get pushFixPlayServices;
+
+  /// F9 step 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Then restart the phone.'**
+  String get pushFixRestart;
+
+  /// F9: opens the phone's page for BuildVibes.
+  ///
+  /// In en, this message translates to:
+  /// **'Open BuildVibes settings'**
+  String get pushFixOpen;
+
+  /// F11: the chip over the Home feed when new posts came in while reading further down.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get feedNew;
+
+  /// F11: the chip over the daybook when new entries came in while reading older days.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get daybookNew;
 
   /// R1 title. kind: post, reply, message, profile.
   ///
@@ -6205,6 +4903,954 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Former member'**
   String get formerMember;
+
+  /// Masthead date line when the Space has an On site since date (D1).
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, day {day} on site'**
+  String daybookDateLine(String date, int day);
+
+  /// Slip header for your own post; the avatar keeps your initials.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get daybookYou;
+
+  /// Slip meta: you own the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'For you'**
+  String get daybookForYou;
+
+  /// Slip meta: who owns the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'For {name}'**
+  String daybookForPerson(String name);
+
+  /// Slip meta: owner, then due ("For Omar Haddad, by Thu 15 Oct").
+  ///
+  /// In en, this message translates to:
+  /// **'{who}, {due}'**
+  String daybookMeta(String who, String due);
+
+  /// Due on a day ("by Thu 15 Oct").
+  ///
+  /// In en, this message translates to:
+  /// **'by {date}'**
+  String daybookDueDate(String date);
+
+  /// Due today, no time. Arabic never says 'before today' (review 44 C2).
+  ///
+  /// In en, this message translates to:
+  /// **'by today'**
+  String get daybookDueToday;
+
+  /// Due tomorrow, no time.
+  ///
+  /// In en, this message translates to:
+  /// **'by tomorrow'**
+  String get daybookDueTomorrow;
+
+  /// Due on a day at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'by {date} {time}'**
+  String daybookDueDateAt(String date, String time);
+
+  /// Due today at a time (AR frame 2547:35262).
+  ///
+  /// In en, this message translates to:
+  /// **'by today {time}'**
+  String daybookDueTodayAt(String time);
+
+  /// Due tomorrow at a time.
+  ///
+  /// In en, this message translates to:
+  /// **'by tomorrow {time}'**
+  String daybookDueTomorrowAt(String time);
+
+  /// A late item's due day (L1).
+  ///
+  /// In en, this message translates to:
+  /// **'was due {date}'**
+  String daybookWasDue(String date);
+
+  /// A late item's due day and time.
+  ///
+  /// In en, this message translates to:
+  /// **'was due {date} {time}'**
+  String daybookWasDueAt(String date, String time);
+
+  /// A timed item that went late today.
+  ///
+  /// In en, this message translates to:
+  /// **'was due today {time}'**
+  String daybookWasDueTodayAt(String time);
+
+  /// Late line on an open item past its due (L1). 0: late today, after its time.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}'**
+  String daybookLate(int n);
+
+  /// Strip under the masthead (L1): items due today for you or by you.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today: {titles}'**
+  String daybookDueTodayStrip(String titles);
+
+  /// Slip chip: checklist points on a work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 point} other{{n} points}}'**
+  String daybookPoints(int n);
+
+  /// Slip history line after the due was edited.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited: due moved from {from} to {to}'**
+  String daybookEditedDue(String from, String to);
+
+  /// A day word in the edited line.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get daybookToday;
+
+  /// A day word in the edited line.
+  ///
+  /// In en, this message translates to:
+  /// **'tomorrow'**
+  String get daybookTomorrow;
+
+  /// Meta line of a cancelled work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by {name} at {time}'**
+  String daybookCancelledBy(String name, String time);
+
+  /// Ink stamp (glossary Done).
+  ///
+  /// In en, this message translates to:
+  /// **'DONE'**
+  String get daybookStampDone;
+
+  /// Ink stamp (glossary Checked).
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKED'**
+  String get daybookStampChecked;
+
+  /// Ink stamp after Send back.
+  ///
+  /// In en, this message translates to:
+  /// **'SENT BACK'**
+  String get daybookStampSentBack;
+
+  /// Ink stamp on a cancelled post.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCELLED'**
+  String get daybookStampCancelled;
+
+  /// Post bar notepad (glossary).
+  ///
+  /// In en, this message translates to:
+  /// **'Work item'**
+  String get daybookWorkItem;
+
+  /// Viewer post bar, after the pass chip (V1).
+  ///
+  /// In en, this message translates to:
+  /// **'Read only'**
+  String get daybookReadOnly;
+
+  /// Month drop-down legend: a day with posts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get daybookMonthPosts;
+
+  /// Month drop-down legend: a day with something due.
+  ///
+  /// In en, this message translates to:
+  /// **'Something due'**
+  String get daybookMonthDue;
+
+  /// Day one card title (DY3).
+  ///
+  /// In en, this message translates to:
+  /// **'The first page of your daybook'**
+  String get daybookFirstTitle;
+
+  /// Day one card body.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything your team posts will hang here, day by day.'**
+  String get daybookFirstBody;
+
+  /// Day one card, main action.
+  ///
+  /// In en, this message translates to:
+  /// **'Post the first work item'**
+  String get daybookFirstPost;
+
+  /// Day one card: opens the invite screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite your team'**
+  String get daybookFirstInvite;
+
+  /// A 12-hour time on the Daybook: the hour (and minutes when not :00) and the part of the day ("2 pm", "8:14 am"). period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
+  String daybookClock12(String time, String period);
+
+  /// The part of the day alone, as the time spine prints it on a second, smaller line under a 12-hour time ("11:58" then "pm"). The same words as daybookClock12.
+  ///
+  /// In en, this message translates to:
+  /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
+  String daybookClockPeriod(String period);
+
+  /// Proof slip header, after the signer's name.
+  ///
+  /// In en, this message translates to:
+  /// **'signed as done'**
+  String get daybookSignedAsDone;
+
+  /// Second line of the large stamp on a proof photo: the signer's short name and the time ("OMAR H · 09:40").
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {time}'**
+  String daybookStampBy(String name, String time);
+
+  /// Hint on a proof waiting for your check.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap the photo to check it'**
+  String get daybookDoubleTapToCheck;
+
+  /// Work item slip: the last time it was given to someone else.
+  ///
+  /// In en, this message translates to:
+  /// **'Given to {to} instead of {from} at {time}'**
+  String daybookGivenTo(String to, String from, String time);
+
+  /// A Library file on a work item slip: its name and revision ("M-201 Rev C").
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {revision}'**
+  String daybookFileChip(String name, String revision);
+
+  /// A post made with no signal: it sends when the signal is back.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to send'**
+  String get daybookWaitingToSend;
+
+  /// Spine label of the card being written.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get daybookNow;
+
+  /// On a card reopened with unsent text: only the author sees it.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get daybookDraft;
+
+  /// Writing card: title placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get daybookWritingTitle;
+
+  /// Writing card: text placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what needs doing'**
+  String get daybookWritingBody;
+
+  /// Writing More menu: choose who does it.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get daybookAssign;
+
+  /// Writing More menu: where on site.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get daybookLocation;
+
+  /// Writing More menu: when it is due.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get daybookDueDateMenu;
+
+  /// Writing card: a due date with a time ("Sun 18 Oct, 14:00").
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {time}'**
+  String daybookDueProperty(String date, String time);
+
+  /// Writing toolbar: camera (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get daybookCamera;
+
+  /// Writing toolbar: attach a photo from the phone (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get daybookAddPhoto;
+
+  /// Writing toolbar: More (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get daybookMore;
+
+  /// Writing toolbar: Post (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get daybookPost;
+
+  /// Writing card: the cover photo's remove button (read out).
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get daybookRemovePhoto;
+
+  /// Give-to picker: search placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Give to…'**
+  String get daybookGiveToSearch;
+
+  /// Give-to picker: under the current owner.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get daybookOwnerNow;
+
+  /// Writing: the place field placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get daybookPlaceHint;
+
+  /// Due time picker: keep the date only.
+  ///
+  /// In en, this message translates to:
+  /// **'No time'**
+  String get daybookNoTime;
+
+  /// Due time picker: its title. Optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Due by a time?'**
+  String get daybookDueTimeHelp;
+
+  /// Writing: the assign picker's search field (the More menu says "Assign"). Review 46.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to…'**
+  String get daybookAssignSearch;
+
+  /// A Draft whose post the server refused (not a missing signal), in red under the card. Tapping reopens writing. Review 46.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Tap to fix'**
+  String get daybookCouldNotSend;
+
+  /// Grey history line on a slip after its author took the due date off.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited: due removed'**
+  String get daybookEditedDueRemoved;
+
+  /// Due date picker: takes the due date (and time) off.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get daybookRemoveDue;
+
+  /// The action pill on the owner's open work item slip (camera icon). Glossary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign as done'**
+  String get daybookSignAsDone;
+
+  /// Read out for the post bar's camera: holding it signs your open work item as done with a photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to prove'**
+  String get daybookHoldToProve;
+
+  /// On the owner's own proof slip while it waits for the check (O3).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} checks it next'**
+  String daybookChecksNext(String name);
+
+  /// On a proof the reader checked (B3).
+  ///
+  /// In en, this message translates to:
+  /// **'You checked it at {time}. It\'s locked now, this is the record.'**
+  String daybookYouChecked(String time);
+
+  /// Long-press menu on someone's proof (B1).
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get daybookCheck;
+
+  /// Long-press menu on someone's proof, and the send-back card's button (B1, B2). Glossary.
+  ///
+  /// In en, this message translates to:
+  /// **'Send back'**
+  String get daybookSendBack;
+
+  /// Long-press menu; also read out for the + a swipe shows (Y1).
+  ///
+  /// In en, this message translates to:
+  /// **'Add update'**
+  String get daybookAddUpdate;
+
+  /// Long-press menu on your own work item (X1).
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get daybookEdit;
+
+  /// Long-press menu on your own work item (X1).
+  ///
+  /// In en, this message translates to:
+  /// **'Give to someone else'**
+  String get daybookGiveTo;
+
+  /// Long-press menu on your own work item (X1), in red.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel work item'**
+  String get daybookCancelItem;
+
+  /// The send-back card's title (B2), with the owner's first name.
+  ///
+  /// In en, this message translates to:
+  /// **'Send back to {name}'**
+  String daybookSendBackTo(String name);
+
+  /// Send-back reason (one choice).
+  ///
+  /// In en, this message translates to:
+  /// **'Photo missing'**
+  String get daybookReasonPhotoMissing;
+
+  /// Send-back reason (one choice).
+  ///
+  /// In en, this message translates to:
+  /// **'Not as asked'**
+  String get daybookReasonNotAsAsked;
+
+  /// Send-back reason (one choice).
+  ///
+  /// In en, this message translates to:
+  /// **'Not finished'**
+  String get daybookReasonNotFinished;
+
+  /// Send-back reason (one choice); it needs a note.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get daybookReasonOther;
+
+  /// Placeholder of a short note: on the send-back card (B2) and with the proof photo (O2).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note (optional)'**
+  String get daybookNoteOptional;
+
+  /// Placeholder of the send-back note once "Something else" is chosen: it needs a note.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what is wrong'**
+  String get daybookNoteNeeded;
+
+  /// The undo bar after a check (B3). Glossary.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get daybookChecked;
+
+  /// The undo bar after cancelling a work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get daybookCancelled;
+
+  /// The undo bar's action: nothing reaches the server.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get daybookUndo;
+
+  /// The one-line field of an update (after a swipe or Add update).
+  ///
+  /// In en, this message translates to:
+  /// **'Write an update'**
+  String get daybookUpdateHint;
+
+  /// The round button under the proof photo (O2): signs the work item as done.
+  ///
+  /// In en, this message translates to:
+  /// **'Send as done'**
+  String get daybookSendAsDone;
+
+  /// Read out for the + tile next to the proof photo (O2).
+  ///
+  /// In en, this message translates to:
+  /// **'Add another photo'**
+  String get daybookAddAnotherPhoto;
+
+  /// The link on the proof screen (F6): sign as done with a note and no photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Without a photo'**
+  String get daybookWithoutPhoto;
+
+  /// Placeholder of the note on the proof screen without a photo (F6): the note is required then.
+  ///
+  /// In en, this message translates to:
+  /// **'What was done?'**
+  String get daybookWhatWasDone;
+
+  /// The undo bar after Send as done (F7); nothing is sent until it closes. Glossary.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed as done'**
+  String get daybookSignedUndo;
+
+  /// Read out for the × on the linked work item at the top of the proof photo: leaves without signing.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get daybookCloseProof;
+
+  /// Read out for the round send button while editing a posted work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get daybookSave;
+
+  /// Meta line of a work item its author cancelled, for that author (X3).
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by you at {time}'**
+  String daybookCancelledByYou(String time);
+
+  /// After the name on a send-back slip: "Islam Ahmed sent it back" (S1).
+  ///
+  /// In en, this message translates to:
+  /// **'sent it back'**
+  String get daybookSentItBack;
+
+  /// On a proof that was sent back; the reason is on the send-back slip (S1).
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back at {time}'**
+  String daybookSentBackAt(String time);
+
+  /// A send-back slip: the reason, then the note (S1).
+  ///
+  /// In en, this message translates to:
+  /// **'{reason}. {note}'**
+  String daybookSentBackText(String reason, String note);
+
+  /// A check the server refused (review 47, answer 5).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check'**
+  String get daybookCouldNotCheck;
+
+  /// A send-back the server refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send back'**
+  String get daybookCouldNotSendBack;
+
+  /// A cancel the server refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t cancel'**
+  String get daybookCouldNotCancel;
+
+  /// Give to someone else, refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t give it to someone else'**
+  String get daybookCouldNotGiveTo;
+
+  /// An update, refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the update'**
+  String get daybookCouldNotUpdate;
+
+  /// What was refused and why: "Couldn't check: this item was cancelled".
+  ///
+  /// In en, this message translates to:
+  /// **'{action}: {reason}'**
+  String daybookRefusedBecause(String action, String reason);
+
+  /// What was refused, when the server gives no reason.
+  ///
+  /// In en, this message translates to:
+  /// **'{action}.'**
+  String daybookRefusedPlain(String action);
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'this item was cancelled'**
+  String get daybookWhyCancelled;
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'it was already checked'**
+  String get daybookWhyChecked;
+
+  /// Why it was refused: someone else changed the item first.
+  ///
+  /// In en, this message translates to:
+  /// **'it changed in the meantime'**
+  String get daybookWhyChanged;
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'it was removed'**
+  String get daybookWhyRemoved;
+
+  /// Why it was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'your pass doesn\'t allow it'**
+  String get daybookWhyNotAllowed;
+
+  /// Read out for the item name at the top of the proof screen: it lists your other open items (review 47, answer 3).
+  ///
+  /// In en, this message translates to:
+  /// **'Prove another work item'**
+  String get daybookSwitchItem;
+
+  /// The x on a refused proof that was reopened.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this proof?'**
+  String get daybookDiscardProofTitle;
+
+  /// Body of the dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'The photos are only on this phone. Deleted, they are gone.'**
+  String get daybookDiscardProofBody;
+
+  /// Keep the refused proof on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get daybookDiscardProofKeep;
+
+  /// Delete the refused proof and its photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get daybookDiscardProofDelete;
+
+  /// Read out for the ⋯ in the Space header (MN1).
+  ///
+  /// In en, this message translates to:
+  /// **'Space menu'**
+  String get spacesMenu;
+
+  /// Space info group: your own pass and notifications (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get spacesInfoYou;
+
+  /// Space info group: the invite code (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get spacesInfoInvite;
+
+  /// Space info group: the Space itself (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get spacesInfoSpace;
+
+  /// Space info row (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Your pass'**
+  String get spacesYourPass;
+
+  /// One of the three notification choices in Space info (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Everything'**
+  String get spacesNotifyChoiceAll;
+
+  /// One of the three notification choices in Space info (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Needs you'**
+  String get spacesNotifyChoiceNeedsYou;
+
+  /// Who can invite, in Space info (SI1): Space admins only.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins'**
+  String get spacesInviteChoiceAdmins;
+
+  /// Who can invite, in Space info (SI1): admins and Lead passes.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get spacesInviteChoiceLeads;
+
+  /// Who can invite, in Space info (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get spacesInviteChoiceEveryone;
+
+  /// Copy the invite code (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get spacesCopy;
+
+  /// After Copy in Space info.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code copied'**
+  String get spacesCodeCopied;
+
+  /// Space info row: who runs the Space (SI1).
+  ///
+  /// In en, this message translates to:
+  /// **'Space admin'**
+  String get spacesAdminRow;
+
+  /// Space info row: the day work started on site, the daybook's day 1 (review 44, answer 2).
+  ///
+  /// In en, this message translates to:
+  /// **'On site since'**
+  String get spacesOnSiteSince;
+
+  /// On site since, when no day is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get spacesOnSiteNotSet;
+
+  /// On site since: pick another day.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another day'**
+  String get spacesOnSiteChange;
+
+  /// On site since: clear it. The daybook then shows only the date.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the day'**
+  String get spacesOnSiteRemove;
+
+  /// Under the On site since sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Work counts \"day 1 on site\" from this day.'**
+  String get spacesOnSiteNote;
+
+  /// Space info row for admins: edit the name and About.
+  ///
+  /// In en, this message translates to:
+  /// **'Name and About'**
+  String get spacesEditNameAbout;
+
+  /// Needs you across all Spaces (2544:35068).
+  ///
+  /// In en, this message translates to:
+  /// **'Needs you'**
+  String get needsTitle;
+
+  /// Needs you row: a proof waiting for your check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it'**
+  String get needsRowCheck;
+
+  /// Needs you row: a work item given to you.
+  ///
+  /// In en, this message translates to:
+  /// **'For you'**
+  String get needsRowForYou;
+
+  /// Needs you row: your proof was sent back.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back'**
+  String get needsRowSentBack;
+
+  /// Needs you row: the owner left the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it to someone'**
+  String get needsRowOwnerLeft;
+
+  /// Needs you row: a join request you can confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Asks to join'**
+  String get needsRowJoin;
+
+  /// Needs you, empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs you now.'**
+  String get needsNone;
+
+  /// Profile section (R1 v4): work that was checked and closed in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of work'**
+  String get profileProofOfWork;
+
+  /// Profile section (R1 v4).
+  ///
+  /// In en, this message translates to:
+  /// **'Projects, confirmed by teammates'**
+  String get profileProjectsConfirmed;
+
+  /// Stamp on a project a teammate confirmed (R1 v4).
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRMED'**
+  String get proofStampConfirmed;
+
+  /// Stamp on a project not confirmed yet (R1 v4).
+  ///
+  /// In en, this message translates to:
+  /// **'WAITING'**
+  String get proofStampWaiting;
+
+  /// Own profile: opens Work you delivered, to show or hide each item.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what shows'**
+  String get proofChooseShown;
+
+  /// A post being written on Home (H2 2555:35426): who writes it and who sees it. Posts are public to every signed-in person.
+  ///
+  /// In en, this message translates to:
+  /// **'You · to everyone'**
+  String get postWritingAuthor;
+
+  /// The language picker while writing a post (L6): the language found from its letters, chosen by default.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected: {lang, select, ar{Arabic} other{English}}'**
+  String postLangAuto(String lang);
+
+  /// The text field of a post being written on Home (H2).
+  ///
+  /// In en, this message translates to:
+  /// **'What happened at work today?'**
+  String get postWritingHint;
+
+  /// The More menu while writing a post: tag a project from your profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get postWritingProject;
+
+  /// The More menu while writing a post: its language; opens the language picker (L6).
+  ///
+  /// In en, this message translates to:
+  /// **'Written in {lang, select, ar{Arabic} other{English}}'**
+  String postWritingLang(String lang);
+
+  /// Writing a post: a fifth photo was tried (create_post takes four).
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 4 photos.'**
+  String get postWritingPhotosMax;
+
+  /// H1b header line, after the date, when nothing needs you.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs you'**
+  String get homeNothingNeedsYou;
+
+  /// H1b section: every Space once, its latest news.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR SPACES'**
+  String get homeYourSpaces;
+
+  /// Create choice (F1): a public post in the Home feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Post to everyone'**
+  String get createPostToEveryone;
+
+  /// Create choice: under Post to everyone.
+  ///
+  /// In en, this message translates to:
+  /// **'In the Home feed, for everyone'**
+  String get createPostToEveryoneLine;
+
+  /// Create choice (F1): write a work item in one of your Spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Work item in a Space'**
+  String get createWorkItem;
+
+  /// Create choice: under Work item in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the Space\'s members see it'**
+  String get createWorkItemLine;
+
+  /// Create, second step: the Spaces where you can write work items.
+  ///
+  /// In en, this message translates to:
+  /// **'Which Space?'**
+  String get createPickSpace;
+
+  /// Create, Space list: the Space you opened last, listed first.
+  ///
+  /// In en, this message translates to:
+  /// **'Last opened'**
+  String get createLastSpace;
+
+  /// Create, Space list: none where you can create work items.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.'**
+  String get createNoWorkSpaces;
 }
 
 class _AppLocalizationsDelegate

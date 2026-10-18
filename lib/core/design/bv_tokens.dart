@@ -33,6 +33,7 @@ abstract final class BvPrimitive {
   static const warningStrong = Color(0xFF946612);
   static const destructive = Color(0xFFC23B3B);
   static const ink48 = Color(0x7A141B33);
+  static const ink38 = Color(0x61141B33);
 }
 
 /// Semantic colours ("Color / Semantic", Light mode).
@@ -83,6 +84,10 @@ abstract final class BvColors {
   // Overlay
   static const overlayScrim = BvPrimitive.ink48;
 
+  /// Behind the Daybook's long-press menus and month drop-down (lighter
+  /// than the sheet scrim).
+  static const overlayDim = BvPrimitive.ink38;
+
   // Brand (wordmark, Lead pass band)
   static const brandInk = BvPrimitive.ink;
   static const brandEnergy = BvPrimitive.energy;
@@ -102,6 +107,25 @@ abstract final class BvProjectColors {
   static const all = [slate, sage, ochre, clay, plum, teal, neutral];
 
   /// Stable colour for an id, so a project keeps its colour everywhere.
+  static Color forId(String id) {
+    var h = 0;
+    for (final c in id.codeUnits) {
+      h = (h * 31 + c) & 0x7fffffff;
+    }
+    return all[h % all.length];
+  }
+}
+
+/// Avatar fills for people without a photo, in the Daybook (Figma Avatar
+/// variants). Stable for a person id, so someone keeps their colour.
+abstract final class BvAvatarTints {
+  static const plain = BvPrimitive.subtle;
+  static const green = Color(0xFFE0F0E3);
+  static const clay = Color(0xFFF2E0D6);
+  static const ochre = Color(0xFFF5E8D1);
+
+  static const all = [plain, green, clay, ochre];
+
   static Color forId(String id) {
     var h = 0;
     for (final c in id.codeUnits) {
@@ -138,6 +162,14 @@ abstract final class BvRadius {
   static const card = 14.0;
   static const sheet = 20.0;
   static const round = 999.0;
+
+  // The Daybook's paper: stamps and pass chips (4), photos (8), the bottom
+  // of a slip (10), toasts and the day-one card (12), the month drop-down (18).
+  static const tiny = 4.0;
+  static const photo = 8.0;
+  static const slip = control;
+  static const toast = 12.0;
+  static const dropdown = 18.0;
 
   static const smallAll = BorderRadius.all(Radius.circular(small));
   static const controlAll = BorderRadius.all(Radius.circular(control));
@@ -198,6 +230,42 @@ abstract final class BvMotion {
 abstract final class BvShadow {
   static const sheet = [
     BoxShadow(color: Color(0x0F141B33), offset: Offset(0, 4), blurRadius: 16),
+  ];
+
+  // The Daybook (Figma "DS · Daybook components").
+  static const slip = [
+    BoxShadow(color: Color(0x1A594026), offset: Offset(0, 2), blurRadius: 3),
+  ];
+  static const slipLifted = [
+    BoxShadow(color: Color(0x4D1A1208), offset: Offset(0, 10), blurRadius: 14),
+  ];
+  // Long-press menu, send-back reasons, give-to.
+  static const popover = [
+    BoxShadow(color: Color(0x401A1208), offset: Offset(0, 8), blurRadius: 24),
+  ];
+  // The More and kind menus while writing.
+  static const menu = [
+    BoxShadow(color: Color(0x2E261A0D), offset: Offset(0, 8), blurRadius: 24),
+  ];
+  static const dropdown = [
+    BoxShadow(color: Color(0x331A1208), offset: Offset(0, 8), blurRadius: 24),
+  ];
+  static const firstPage = [
+    BoxShadow(color: Color(0x1A594026), offset: Offset(0, 2), blurRadius: 6),
+  ];
+  static const proof = [
+    BoxShadow(color: Color(0x14594026), offset: Offset(0, 1), blurRadius: 2),
+  ];
+  // Around the daybook (slice 1e): Space info's slips (SI1), the Space
+  // menu (MN1), Needs you rows (2544:35068).
+  static const infoSlip = [
+    BoxShadow(color: Color(0x12332414), offset: Offset(0, 1), blurRadius: 3),
+  ];
+  static const screenMenu = [
+    BoxShadow(color: Color(0x29000000), offset: Offset(0, 8), blurRadius: 24),
+  ];
+  static const needsRow = [
+    BoxShadow(color: Color(0x14594026), offset: Offset(0, 1), blurRadius: 4),
   ];
 }
 

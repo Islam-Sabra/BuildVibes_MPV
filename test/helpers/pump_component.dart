@@ -1,6 +1,7 @@
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/theme/bv_theme.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -75,3 +76,25 @@ BoxDecoration decorationOf(WidgetTester tester, Finder finder) {
 
 TextStyle textStyle(WidgetTester tester, String text) =>
     tester.widget<Text>(find.text(text)).style!;
+
+/// Points just inside the 48 × 48 touch square centred on [finder]: start,
+/// end, above and below (review 44, C4). Tapping each must reach the
+/// control, though it looks smaller.
+List<Offset> touchSquareEdges(WidgetTester tester, Finder finder) {
+  final centre = tester.getCenter(finder);
+  const reach = BvSize.touchMin / 2 - 1;
+  return [
+    centre.translate(-reach, 0),
+    centre.translate(reach, 0),
+    centre.translate(0, -reach),
+    centre.translate(0, reach),
+  ];
+}
+
+/// Taps each of [points] and lets the gestures settle.
+Future<void> tapEach(WidgetTester tester, List<Offset> points) async {
+  for (final p in points) {
+    await tester.tapAt(p);
+    await tester.pump(kDoubleTapTimeout);
+  }
+}

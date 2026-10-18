@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/around_specs.dart';
 import '../../core/design/bv_icons.dart';
+import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/ago.dart';
@@ -13,9 +15,12 @@ import '../../data/models/space.dart';
 import '../../data/repositories/post_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
-import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_project_tag.dart';
+import '../../shared/widgets/bv_slip.dart';
+import '../../shared/widgets/bv_tap_target.dart';
+import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../data/repositories/safety_repository.dart';
 import '../activity/activity_state.dart';
@@ -23,27 +28,61 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
+import '../work/daybook_entry.dart' show localPhotoProvider;
 import 'feed_state.dart';
+import 'post_draft.dart';
 
-/// How a card shows its project tag: the strip on top (H1 Feed), a chip
-/// under the author (profile, post detail), or nothing (the project's own
-/// sheet).
-enum PostTag { strip, chip, none }
+/// Whether a card shows its project tag: yes (Home, profile, post
+/// detail), or not on the project's own sheet.
+enum PostTag { shown, none }
 
-/// A site update card (H1 v2): the project, the author, the text in its
-/// own language, the photos, who found it useful, then Useful · Reply.
+/// A site update as a Daybook slip (H1 v3 2555:35307): the author and
+/// their line, the text in its own language, the photos, the project tag,
+/// who found it useful (names, never a count), then Useful · Reply.
+/// [ago] adds how long ago it was posted, where no time spine shows it.
+///
+/// [PostCard.waiting] is a post still on this phone (H5): its photos from
+/// the phone, "Waiting to send" and nothing to do on it yet; or, refused
+/// while another post was being written, "Couldn't send. Tap to fix".
 class PostCard extends ConsumerWidget {
   const PostCard({
     super.key,
     required this.post,
-    this.tag = PostTag.strip,
+    this.tag = PostTag.shown,
+    this.ago = true,
     this.onOpen,
     this.onChanged,
     this.onGone,
-  });
+  }) : waiting = false,
+       couldNotSend = false,
+       sent = false;
+
+  const PostCard.waiting({
+    super.key,
+    required this.post,
+    this.couldNotSend = false,
+    this.sent = false,
+    this.onOpen,
+  }) : waiting = true,
+       tag = PostTag.shown,
+       ago = false,
+       onChanged = null,
+       onGone = null;
+
+  /// On the phone, not on the server yet: [post]'s photo paths are the
+  /// phone's own.
+  final bool waiting;
+
+  /// The server refused it: tapping fixes it ([onOpen]).
+  final bool couldNotSend;
+
+  /// It reached the server and the feed hasn't read it yet: no "Waiting to
+  /// send" (F17).
+  final bool sent;
 
   final Post post;
   final PostTag tag;
+  final bool ago;
 
   /// Opens the post (Reply, a tap on the text). Null on the post page.
   final VoidCallback? onOpen;
@@ -62,16 +101,19 @@ class PostCard extends ConsumerWidget {
     final now = ref.watch(clockProvider)();
     final mine = post.authorId == me;
     final project = post.project;
-    final names = ref.watch(usefulNamesProvider(post.id)).value ?? const [];
+    final names = waiting
+        ? const <String>[]
+        : ref.watch(usefulNamesProvider(post.id)).value ?? const [];
 
     final byline = joinMeta([
       [?post.authorHeadline, ?post.authorCompany].join(', '),
-      formatShortAgo(
-        l10n,
-        post.createdAt.toLocal(),
-        now,
-        Localizations.localeOf(context).toLanguageTag(),
-      ),
+      if (ago)
+        formatShortAgo(
+          l10n,
+          post.createdAt.toLocal(),
+          now,
+          Localizations.localeOf(context).toLanguageTag(),
+        ),
       if (post.editedAt != null) l10n.postEdited,
     ]);
 
@@ -87,142 +129,139 @@ class PostCard extends ConsumerWidget {
       }
     }
 
-    return Material(
+    return BvSlip(
       key: Key('post-${post.id}'),
-      color: BvColors.surfaceElevated,
-      clipBehavior: Clip.antiAlias,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BvRadius.cardAll,
-        side: BorderSide(color: BvColors.borderDefault, width: BvStroke.thin),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (project != null && tag == PostTag.strip)
-            _ProjectStrip(project: project),
-          InkWell(
-            onTap: onOpen,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                BvSpace.s16,
-                BvSpace.s12,
-                BvSpace.s4,
-                BvSpace.s12,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: BvSpace.s8,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: BvSpace.s12,
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          key: Key('post-author-${post.id}'),
-                          onTap: () => _openAuthor(context, me),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                inOwnDirection(post.authorName),
-                                style: type.titleMd,
-                              ),
-                              Text(
-                                byline,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: type.bodySm.copyWith(
-                                  color: BvColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        key: Key('post-menu-${post.id}'),
-                        tooltip: l10n.postMenu,
-                        icon: const Icon(
-                          BvIcons.more,
-                          color: BvColors.iconSecondary,
-                        ),
-                        onPressed: () => _menu(context, ref, mine),
-                      ),
-                    ],
-                  ),
-                  if (project != null && tag == PostTag.chip)
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: _ProjectChip(project: project),
-                    ),
-                  if ((post.body ?? '').isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(
-                        end: BvSpace.s12,
-                      ),
-                      child: Text(
-                        post.body!,
-                        // In the language it was written in.
-                        textDirection: post.lang == 'ar'
-                            ? TextDirection.rtl
-                            : TextDirection.ltr,
-                        textAlign: TextAlign.start,
-                        style: type.bodyMd,
-                      ),
-                    ),
-                ],
-              ),
+      tear: BvSlipBorder.forId(post.id).variant,
+      onTap: onOpen,
+      // Level with the name, at the top end corner (review 50 F19); with
+      // no line under the name, level with the name beside the avatar.
+      menu: waiting
+          ? null
+          : BvSlipCornerMenu(
+              key: Key('post-menu-${post.id}'),
+              label: l10n.postMenu,
+              onTap: () => _menu(context, ref, mine),
             ),
-          ),
-          if (post.photos.isNotEmpty) _Photos(photos: post.photos),
-          if (names.isNotEmpty)
-            Padding(
-              key: Key('post-proof-${post.id}'),
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                BvSpace.s16,
-                BvSpace.s8,
-                BvSpace.s16,
-                0,
-              ),
-              child: Text(
-                names.length == 1
-                    ? l10n.postUsefulOne(names.first)
-                    : l10n.postUsefulTwo(names[0], names[1]),
-                style: type.bodySm.copyWith(color: BvColors.textSecondary),
-              ),
-            ),
-          const Divider(
-            height: BvSpace.s16,
-            thickness: BvStroke.thin,
-            color: BvColors.borderDefault,
-          ),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(
-              start: BvSpace.s8,
-              bottom: BvSpace.s4,
+      menuLine: byline.isEmpty ? BvHomeSpec.authorAvatar : BvSlipSpec.firstLine,
+      children: [
+        GestureDetector(
+          key: Key('post-author-${post.id}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _openAuthor(context, me),
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              end: waiting ? 0 : BvSlipCornerMenu.reserve,
             ),
             child: Row(
+              spacing: BvSpace.s8,
               children: [
-                _Action(
-                  key: Key('post-useful-${post.id}'),
-                  icon: BvIcons.useful,
-                  label: l10n.postUseful,
-                  active: post.myUseful,
-                  // Not on your own post.
-                  onTap: mine ? null : useful,
+                BvAvatar(
+                  name: post.authorName,
+                  size: BvAvatarSize.xsm,
+                  tint: BvAvatarTints.forId(post.authorId),
                 ),
-                _Action(
-                  key: Key('post-reply-${post.id}'),
-                  icon: BvIcons.chat,
-                  label: l10n.postReply,
-                  onTap: onOpen,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        inOwnDirection(post.authorName),
+                        key: Key('post-name-${post.id}'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.labelSm.copyWith(
+                          color: BvColors.textPrimary,
+                          fontWeight: BvHomeSpec.nameWeight,
+                        ),
+                      ),
+                      if (byline.isNotEmpty)
+                        Text(
+                          byline,
+                          key: Key('post-byline-${post.id}'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: type.metadata.copyWith(
+                            color: BvColors.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        if ((post.body ?? '').isNotEmpty)
+          Text(
+            post.body!,
+            // In the language it was written in.
+            textDirection: post.lang == 'ar'
+                ? TextDirection.rtl
+                : TextDirection.ltr,
+            textAlign: TextAlign.start,
+            style: type.bodyMd,
+          ),
+        if (post.photos.isNotEmpty)
+          _Photos(photos: post.photos, local: waiting),
+        if (project != null && tag == PostTag.shown)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: BvProjectTag(
+              key: Key('post-project-${project.id}'),
+              projectId: project.id,
+              name: project.name,
+              place: project.place(Localizations.localeOf(context)),
+              onTap: waiting
+                  ? null
+                  : () => context.push('${AppRoutes.projects}/${project.id}'),
+            ),
+          ),
+        if (waiting && !sent)
+          Text(
+            couldNotSend ? l10n.daybookCouldNotSend : l10n.daybookWaitingToSend,
+            key: Key('post-waiting-${post.id}'),
+            style: couldNotSend
+                ? type.labelSm.copyWith(color: BvColors.textDestructive)
+                : type.metadata.copyWith(color: BvColors.textSecondary),
+          ),
+        if (names.isNotEmpty)
+          Text(
+            names.length == 1
+                ? l10n.postUsefulOne(names.first)
+                : l10n.postUsefulTwo(names[0], names[1]),
+            key: Key('post-proof-${post.id}'),
+            style: type.metadata.copyWith(color: BvColors.textSecondary),
+          ),
+        // Useful and Reply, each with a 48 touch area that reaches into
+        // the gap above and the padding below. No share arrow: sharing a
+        // post isn't built.
+        if (!waiting)
+          BvTapTarget(
+            outset: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
+            child: SizedBox(
+              height: BvHomeSpec.actionsHeight,
+              child: Row(
+                spacing: BvHomeSpec.actionsGap,
+                children: [
+                  _Action(
+                    key: Key('post-useful-${post.id}'),
+                    icon: BvIcons.useful,
+                    label: l10n.postUseful,
+                    active: post.myUseful,
+                    // Not on your own post.
+                    onTap: mine ? null : useful,
+                  ),
+                  _Action(
+                    key: Key('post-reply-${post.id}'),
+                    icon: BvIcons.chat,
+                    label: l10n.postReply,
+                    onTap: onOpen,
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -284,10 +323,10 @@ class PostCard extends ConsumerWidget {
     final container = ProviderScope.containerOf(context);
     switch (choice) {
       case _Menu.edit:
-        await context.push(AppRoutes.postEdit(post.id));
-        ref.invalidate(postProvider(post.id));
-        final edited = await ref.read(postProvider(post.id).future);
-        if (edited != null) onChanged?.call(edited);
+        // In place on Home, at Now: one card for writing and editing
+        // (review 48). Saving puts the card back everywhere it shows.
+        ref.read(postWritingProvider.notifier).edit(post);
+        context.go(AppRoutes.home);
       case _Menu.delete:
         final yes = await showBvDialog(
           context: context,
@@ -353,131 +392,38 @@ class PostCard extends ConsumerWidget {
 
 enum _Menu { edit, delete, mute, report }
 
-/// H1: the project tile, its name and place, and its type. Opens PJ1.
-class _ProjectStrip extends StatelessWidget {
-  const _ProjectStrip({required this.project});
-
-  final PostProject project;
-
-  @override
-  Widget build(BuildContext context) {
-    final type = BvType.of(context);
-    final locale = Localizations.localeOf(context);
-    final kind = project.typeName?.of(locale);
-    final place = project.place(locale);
-    return InkWell(
-      key: Key('post-project-${project.id}'),
-      onTap: () => context.push('${AppRoutes.projects}/${project.id}'),
-      child: Container(
-        padding: const EdgeInsetsDirectional.all(BvSpace.s16),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: BvColors.borderDefault,
-              width: BvStroke.thin,
-            ),
-          ),
-        ),
-        child: Row(
-          spacing: BvSpace.s12,
-          children: [
-            BvProjectAvatar(id: project.id, icon: BvIcons.crane),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    inOwnDirection(project.name),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.titleMd,
-                  ),
-                  if (place != null)
-                    Text(
-                      place,
-                      style: type.bodySm.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            // The project type: the MVP has no phase.
-            if (kind != null)
-              BvBadge(
-                label: locale.languageCode == 'ar' ? kind : kind.toUpperCase(),
-                tone: BvBadgeTone.brand,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// R12 / H10: the project as a small chip under the author.
-class _ProjectChip extends StatelessWidget {
-  const _ProjectChip({required this.project});
-
-  final PostProject project;
-
-  @override
-  Widget build(BuildContext context) {
-    final type = BvType.of(context);
-    return InkWell(
-      key: Key('post-project-${project.id}'),
-      borderRadius: BvRadius.smallAll,
-      onTap: () => context.push('${AppRoutes.projects}/${project.id}'),
-      child: Container(
-        padding: const EdgeInsetsDirectional.symmetric(
-          horizontal: BvSpace.s8,
-          vertical: BvSpace.s4,
-        ),
-        decoration: const BoxDecoration(
-          color: BvColors.surfaceSubtle,
-          borderRadius: BvRadius.smallAll,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: BvSpace.s6,
-          children: [
-            const Icon(
-              BvIcons.crane,
-              size: BvSize.iconSm,
-              color: BvColors.iconPrimary,
-            ),
-            Flexible(
-              child: Text(
-                inOwnDirection(project.name),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: type.labelSm,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+/// A post's photo through a short-lived link; null while the link loads.
+/// Screens stand in for it in tests.
+final postPhotoProvider = Provider.autoDispose.family<ImageProvider?, String>((
+  ref,
+  path,
+) {
+  final url = ref.watch(postPhotoUrlProvider(path)).value;
+  return url == null ? null : NetworkImage(url);
+});
 
 /// One photo large; two to four in a grid. A tap opens it full screen.
 class _Photos extends ConsumerWidget {
-  const _Photos({required this.photos});
+  const _Photos({required this.photos, this.local = false});
 
   final List<PostPhoto> photos;
 
+  /// Still on the phone: [PostPhoto.path] is the phone's copy.
+  final bool local;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Widget tile(PostPhoto p, {double? aspect}) {
-      final url = ref.watch(postPhotoUrlProvider(p.path)).value;
+    Widget tile(PostPhoto p) {
+      final photo = local
+          ? ref.watch(localPhotoProvider(p.path))
+          : ref.watch(postPhotoProvider(p.path));
       final image = Stack(
         fit: StackFit.expand,
         children: [
           const ColoredBox(color: BvColors.surfaceSubtle),
-          if (url != null)
-            Image.network(
-              url,
+          if (photo != null)
+            Image(
+              image: photo,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stack) => const SizedBox.shrink(),
             ),
@@ -485,34 +431,34 @@ class _Photos extends ConsumerWidget {
       );
       return GestureDetector(
         key: Key('post-photo-${p.path}'),
-        onTap: url == null ? null : () => _view(context, url),
-        child: aspect == null
-            ? image
-            : AspectRatio(aspectRatio: aspect, child: image),
+        onTap: photo == null ? null : () => _view(context, photo),
+        child: image,
       );
     }
 
     if (photos.length == 1) {
-      final p = photos.single;
-      final aspect = p.width != null && p.height != null && p.height! > 0
-          ? (p.width! / p.height!).clamp(
-              BvPostSpec.photoMinAspect,
-              BvPostSpec.photoMaxAspect,
-            )
-          : BvPostSpec.photoAspect;
-      return tile(p, aspect: aspect);
+      return ClipRRect(
+        borderRadius: BvSlipSpec.photoRadius,
+        child: SizedBox(
+          height: BvSlipSpec.photoHeightProof,
+          child: tile(photos.single),
+        ),
+      );
     }
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: BvPostSpec.photoGap,
-      crossAxisSpacing: BvPostSpec.photoGap,
-      children: [for (final p in photos) tile(p)],
+    return ClipRRect(
+      borderRadius: BvSlipSpec.photoRadius,
+      child: GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: BvPostSpec.photoGap,
+        crossAxisSpacing: BvPostSpec.photoGap,
+        children: [for (final p in photos) tile(p)],
+      ),
     );
   }
 
-  void _view(BuildContext context, String url) => showDialog<void>(
+  void _view(BuildContext context, ImageProvider photo) => showDialog<void>(
     context: context,
     barrierColor: BvColors.brandInk,
     builder: (context) => GestureDetector(
@@ -520,7 +466,9 @@ class _Photos extends ConsumerWidget {
       onTap: () => Navigator.of(context).pop(),
       child: InteractiveViewer(
         maxScale: BvPreviewSpec.maxZoom,
-        child: Center(child: Image.network(url, fit: BoxFit.contain)),
+        child: Center(
+          child: Image(image: photo, fit: BoxFit.contain),
+        ),
       ),
     ),
   );
@@ -544,21 +492,21 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final color = active ? BvColors.textAction : BvColors.textSecondary;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BvRadius.controlAll,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: BvSize.touchMin),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: BvSpace.s8,
-          ),
+    // The look is small; the touch area is 48 × 48 (outside everything
+    // else, so a touch beside the words reaches them).
+    return BvTapTarget(
+      child: Semantics(
+        button: true,
+        selected: active,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            spacing: BvSpace.s6,
+            spacing: BvHomeSpec.actionGap,
             children: [
-              Icon(icon, size: BvSize.iconMd, color: color),
-              Text(label, style: type.labelMd.copyWith(color: color)),
+              Icon(icon, size: BvHomeSpec.actionIcon, color: color),
+              Text(label, style: type.labelSm.copyWith(color: color)),
             ],
           ),
         ),

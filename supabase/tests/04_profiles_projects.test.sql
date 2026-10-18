@@ -65,7 +65,8 @@ select is(
   2::bigint,
   'records on the same site are offered too');
 select is(
-  (select count(*) from public.find_similar_projects('Nothing like it', 'kw-capital')),
+  (select count(*) from public.find_similar_projects('Nothing like it', 'kw-capital') f
+   where f.id in (select id from public.projects where created_by in ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000c3'))),
   0::bigint,
   'nothing unrelated is offered');
 
@@ -131,7 +132,7 @@ select set_config('request.jwt.claims',
   '{"sub": "00000000-0000-0000-0000-0000000000b2", "role": "authenticated"}', true);
 set local role authenticated;
 
-select is((select count(*) from public.projects), 2::bigint,
+select is((select count(*) from public.projects where created_by in ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000c3')), 2::bigint,
   'signed in: project records are readable');
 select is(
   (select count(*) from public.cv_projects

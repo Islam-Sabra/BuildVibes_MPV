@@ -1,10 +1,13 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/data/models/profile.dart';
 import 'package:buildvibes/features/feed/feed_state.dart';
+import 'package:buildvibes/features/feed/post_draft.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_avatar.dart';
 import 'package:buildvibes/shared/widgets/bv_button.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,6 +38,16 @@ GoRouter _router(WidgetTester tester) =>
 
 ProviderContainer _container(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(Navigator).first));
+
+/// Post (or Save) on the writing toolbar is on.
+bool _postOn(WidgetTester tester) =>
+    tester.widget<BvWritingToolbar>(find.byType(BvWritingToolbar)).onPost !=
+    null;
+
+Future<void> _more(WidgetTester tester, AppLocalizations l10n) async {
+  await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
+  await tester.pumpAndSettle();
+}
 
 const _tower = PostProject(
   id: 'pr-1',
@@ -146,11 +159,10 @@ void main() {
       );
     });
 
-    testWidgets('the card: project strip with its type, names, no counts '
+    testWidgets('the card (H1 v3): the project tag, names, no counts '
         '[$lang]', (tester) async {
       await _feed(tester, lang);
       expect(find.byKey(const Key('post-project-pr-1')), findsOneWidget);
-      expect(find.text(lang == 'ar' ? 'تجاري' : 'COMMERCIAL'), findsOneWidget);
       expect(
         find.text(l10n.postUsefulTwo('Mariam Al-Sabah', 'Rakesh Nair')),
         findsOneWidget,
@@ -164,6 +176,84 @@ void main() {
         find.byKey(const Key('post-photo-p-omar2/p1/a.jpg')),
         findsOneWidget,
       );
+    });
+
+    testWidgets('F19: the card: ⋯ level with the name, the name in semibold '
+        'with the headline under it, the text right under, actions with a '
+        '48 touch area [$lang]', (tester) async {
+      final posts = _posts()
+        ..posts.add(
+          Post(
+            id: 'p4',
+            authorId: 'p-lina',
+            authorName: 'Lina Haddad',
+            body: 'Ok.',
+            lang: 'en',
+            createdAt: testNow.subtract(const Duration(hours: 5)),
+          ),
+        )
+        ..home.add('p4');
+      final app = await _feed(tester, lang, posts: posts);
+      Rect at(String key) => tester.getRect(find.byKey(Key(key)));
+      final name = at('post-name-p1');
+      final menu = at('post-menu-p1');
+      expect(menu.center.dy, closeTo(name.center.dy, 1));
+      expect(menu.size, const Size(48, 48));
+      // At the card's top end corner, inside the paper.
+      final card = at('post-p1');
+      expect(
+        lang == 'ar' ? menu.left : card.right - menu.right,
+        closeTo(lang == 'ar' ? card.left : 0, 1),
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('post-name-p1')))
+            .style!
+            .fontWeight,
+        FontWeight.w600,
+      );
+      expect(
+        tester.widget<Text>(find.byKey(const Key('post-byline-p1'))).data,
+        contains('Site Engineer, Al Hamra Contracting'),
+      );
+      // The text directly under the author block: the slip's 10 gap.
+      final byline = at('post-byline-p1');
+      final body = tester.getRect(
+        find.text('First pour on the podium transfer slab is done.'),
+      );
+      expect(body.top - byline.bottom, closeTo(10, 1));
+      // Useful takes a touch 20 above its middle (48 high, centred).
+      await tester.ensureVisible(find.byKey(const Key('post-useful-p1')));
+      await tester.pumpAndSettle();
+      final useful = at('post-useful-p1');
+      await tester.tapAt(useful.center.translate(0, -20));
+      await tester.pumpAndSettle();
+      expect(app.posts.calls, ['useful post p1 true']);
+      await tester.tapAt(useful.center.translate(0, 20));
+      await tester.pumpAndSettle();
+      expect(app.posts.calls.last, 'useful post p1 false');
+
+      // No headline: the name sits centred with the avatar, no empty line,
+      // and ⋯ stays level with it.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('post-p4')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(const Key('post-byline-p4')), findsNothing);
+      final avatar = tester.getRect(
+        find.descendant(
+          of: find.byKey(const Key('post-p4')),
+          matching: find.byType(BvAvatar),
+        ),
+      );
+      final alone = at('post-name-p4');
+      expect(alone.center.dy, closeTo(avatar.center.dy, 1));
+      expect(at('post-menu-p4').center.dy, closeTo(alone.center.dy, 1));
+      // The card hugs a short post: the text, then the actions.
+      final short = at('post-p4');
+      final actions = at('post-useful-p4');
+      expect(short.bottom - actions.bottom, lessThan(20));
     });
 
     testWidgets('Useful: on and off; never on your own post [$lang]', (
@@ -212,7 +302,7 @@ void main() {
       await _feed(tester, lang, posts: FakePostRepository(now: testNow));
       expect(find.text(l10n.feedEmpty), findsOneWidget);
       await _tap(tester, 'feed-create');
-      expect(find.byKey(const Key('composer-text')), findsOneWidget);
+      expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
     });
 
     testWidgets('H5 couldn\'t load, then Try again [$lang]', (tester) async {
@@ -240,119 +330,234 @@ void main() {
       expect(app.prefs.getString('feed_cache'), isNull);
     });
 
-    testWidgets('C1/C2: a template, the audience, the language, Post '
-        '[$lang]', (tester) async {
+    testWidgets('H2: Create writes a post in place at Now [$lang]', (
+      tester,
+    ) async {
       final app = await _feed(tester, lang);
-      _router(tester).push('/posts/new');
+      await tester.tap(find.byKey(const Key('nav-create')));
       await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
+      expect(find.text(l10n.postWritingAuthor), findsOneWidget);
+      expect(find.text(l10n.daybookNow), findsOneWidget);
       // Post waits for text or a photo.
-      expect(
-        tester
-            .widget<BvButton>(find.byKey(const Key('composer-post')))
-            .onPressed,
-        isNull,
-      );
-      await _tap(tester, 'composer-template-progress');
-      expect(
-        tester
-            .widget<TextField>(find.byKey(const Key('composer-text')))
-            .controller!
-            .text,
-        startsWith(l10n.tplProgressLines),
-      );
-      expect(find.byKey(const Key('composer-start-from')), findsNothing);
-      expect(find.text(l10n.composerAudience), findsOneWidget);
+      expect(_postOn(tester), isFalse);
+
       // Arabic letters: the post is written in Arabic.
       await tester.enterText(
-        find.byKey(const Key('composer-text')),
+        find.byKey(const Key('writing-body')),
         'تم صب السقف',
       );
       await tester.pumpAndSettle();
-      expect(find.text(l10n.composerWrittenIn('ar')), findsOneWidget);
-      await _tap(tester, 'composer-lang-change');
-      // L6: what was detected, in the app's language. The line about
-      // Translate waits for Translate (review 28).
-      expect(find.text(l10n.composerLangWhy), findsNothing);
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('composer-lang-auto')),
-          matching: find.text(l10n.langName('ar')),
-        ),
-        findsOneWidget,
-      );
-      await _tap(tester, 'composer-lang-en');
-      expect(find.text(l10n.composerWrittenIn('en')), findsOneWidget);
+      expect(_postOn(tester), isTrue);
+      await _more(tester, l10n);
+      expect(find.text(l10n.postWritingLang('ar')), findsOneWidget);
+      await tester.tap(find.text(l10n.postWritingLang('ar')));
+      await tester.pumpAndSettle();
+      // L6: what was found, chosen by default; one single choice.
+      expect(find.text(l10n.postLangAuto('ar')), findsOneWidget);
+      await tester.tap(find.text(l10n.langEnglish));
+      await tester.pumpAndSettle();
+      await _more(tester, l10n);
+      expect(find.text(l10n.postWritingLang('en')), findsOneWidget);
 
-      // C10: only the confirmed project.
-      await _tap(tester, 'composer-project');
-      expect(find.byKey(const Key('composer-tag-pr-1')), findsOneWidget);
-      expect(find.byKey(const Key('composer-tag-pr-2')), findsNothing);
-      await _tap(tester, 'composer-tag-pr-1');
-      expect(find.text(l10n.composerAudienceProject), findsOneWidget);
-      expect(
-        find.text(l10n.composerPostingToProject('Kuwait City Tower')),
-        findsOneWidget,
-      );
+      // C10: only the confirmed project on the profile.
+      await tester.tap(find.text(l10n.postWritingProject));
+      await tester.pumpAndSettle();
+      expect(find.text('Kuwait City Tower'), findsOneWidget);
+      expect(find.text('Gate 3 car park'), findsNothing);
+      await tester.tap(find.text('Kuwait City Tower'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('post-writing-tag')), findsOneWidget);
 
-      await _tap(tester, 'composer-media');
-      await _tap(tester, 'composer-post');
+      await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
+      await tester.pumpAndSettle();
+      expect(app.cameraAsks, [true]);
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
       expect(app.posts.uploads, hasLength(1));
       expect(app.posts.calls.single, 'create en pr-1 1 تم صب السقف');
-      expect(find.byKey(const Key('composer-text')), findsNothing);
+      expect(find.byKey(const Key('post-writing-card')), findsNothing);
+      // The app chose its id; it is on top of the feed.
+      expect(
+        find.byKey(Key('post-${app.posts.posts.first.id}')),
+        findsOneWidget,
+      );
+      expect(app.prefs.getString('post_draft:user-1'), isNull);
     });
 
-    testWidgets('weak signal: kept as a draft, then Retry [$lang]', (
-      tester,
-    ) async {
+    testWidgets('H2: up to four photos, from the camera or the phone '
+        '[$lang]', (tester) async {
+      final app = await _feed(tester, lang);
+      await tester.tap(find.byKey(const Key('nav-create')));
+      await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 4; i++) {
+        await tester.tap(find.bySemanticsLabel(l10n.daybookAddPhoto));
+        await tester.pumpAndSettle();
+      }
+      expect(app.cameraAsks, [false, false, false, false]);
+      // A photo alone can be posted.
+      expect(_postOn(tester), isTrue);
+      await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
+      await tester.pumpAndSettle();
+      expect(app.cameraAsks, hasLength(4));
+      expect(find.text(l10n.postWritingPhotosMax), findsOneWidget);
+      await tester.tap(find.byKey(const Key('writing-photo-remove-3')).first);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('writing-photo-remove-3')), findsNothing);
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
+      expect(app.posts.calls.single, startsWith('create en - 3'));
+    });
+
+    testWidgets('H4: a draft is kept as soon as anything is entered '
+        '[$lang]', (tester) async {
+      final app = await _feed(tester, lang);
+      await tester.tap(find.byKey(const Key('nav-create')));
+      await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
+      // The photo often comes first (review 46).
+      await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
+      await tester.pumpAndSettle();
+      expect(app.prefs.getString('post_draft:user-1'), contains('kept.png'));
+      await tester.enterText(
+        find.byKey(const Key('writing-body')),
+        'Slab poured',
+      );
+      await tester.pumpAndSettle();
+      // A tap off the card puts it down: it stays as the Draft.
+      await tester.tapAt(const Offset(195, 120));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookDraft), findsOneWidget);
+      expect(find.byKey(const Key('writing-post')), findsNothing);
+      expect(app.posts.calls, isEmpty);
+
+      // The app is closed and opened again: the Draft comes back.
+      _container(tester).invalidate(postDraftProvider);
+      await tester.pumpAndSettle();
+      expect(_container(tester).read(postDraftProvider)?.body, 'Slab poured');
+      await tester.tap(find.byKey(const Key('post-draft')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('writing-post')), findsOneWidget);
+
+      // Emptied, it goes.
+      await tester.enterText(find.byKey(const Key('writing-body')), '');
+      await tester.tap(find.byKey(const Key('writing-photo-remove-0')).first);
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(195, 120));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('post-writing-card')), findsNothing);
+      expect(app.prefs.getString('post_draft:user-1'), isNull);
+    });
+
+    testWidgets('H5: no signal: it waits on the phone, then sends, with the '
+        'sound (F5) [$lang]', (tester) async {
       final posts = _posts()..failNext = 9;
       final app = await _feed(tester, lang, posts: posts);
-      _router(tester).push('/posts/new');
+      await tester.tap(find.byKey(const Key('nav-create')));
+      await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.byKey(const Key('composer-text')),
+        find.byKey(const Key('writing-body')),
+        'Rebar done.',
+      );
+      await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
+      expect(find.text('Rebar done.'), findsOneWidget);
+      // Each account has its own outbox.
+      expect(app.prefs.getString('post_outbox:user-1'), contains('Rebar'));
+      expect(app.prefs.getString('post_outbox'), isNull);
+      expect(app.posts.calls, isEmpty);
+      // F5: no sound while it only waits.
+      expect(app.chimes, isEmpty);
+
+      // The signal is back: photos first, then the post, once.
+      posts.failNext = 0;
+      await _container(tester).read(postOutboxProvider.notifier).flushAll();
+      await tester.pumpAndSettle();
+      expect(app.posts.uploads, hasLength(1));
+      expect(app.posts.calls.single, 'create en - 1 Rebar done.');
+      // F5: the sound and haptic when the server took it.
+      expect(app.chimes, ['haptic', 'sound']);
+      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      expect(app.prefs.getString('post_outbox:user-1'), isNot(contains('R')));
+    });
+
+    testWidgets('H6: refused: back to a Draft, "Couldn\'t send" [$lang]', (
+      tester,
+    ) async {
+      final posts = _posts()..refuseNext = 1;
+      final app = await _feed(tester, lang, posts: posts);
+      await tester.tap(find.byKey(const Key('nav-create')));
+      await tester.pumpAndSettle();
+      // Create's choice (F1): Post to everyone.
+      await tester.tap(find.byKey(const Key('create-post')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('writing-body')),
         'Rebar done.',
       );
       await tester.pumpAndSettle();
-      await _tap(tester, 'composer-post');
-      expect(find.text(l10n.postFailed), findsOneWidget);
-      expect(app.prefs.getString('post_outbox'), contains('Rebar done.'));
-      posts.failNext = 0;
-      final retry = find.byWidgetPredicate(
-        (w) =>
-            w.key is ValueKey<String> &&
-            (w.key! as ValueKey<String>).value.startsWith('feed-retry-'),
-      );
-      await tester.tap(retry);
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
+      // Nothing is lost: the card is back at Now, with the red line.
+      expect(find.text(l10n.daybookCouldNotSend), findsOneWidget);
+      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      expect(app.prefs.getString('post_draft:user-1'), contains('Rebar'));
+      expect(app.prefs.getString('post_outbox:user-1'), isNot(contains('R')));
+      // Tap to fix, then send again.
+      await tester.tap(find.byKey(const Key('post-draft')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(app.posts.calls.single, 'create en - 0 Rebar done.');
-      expect(find.text(l10n.postFailed), findsNothing);
-      expect(app.prefs.getString('post_outbox'), isNot(contains('Rebar')));
+      expect(find.text(l10n.daybookCouldNotSend), findsNothing);
     });
 
-    testWidgets('C13: closing with text asks first [$lang]', (tester) async {
-      await _feed(tester, lang);
-      _router(tester).push('/posts/new');
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('composer-text')), 'Draft');
-      await tester.pumpAndSettle();
-      await _tap(tester, 'composer-close');
-      expect(find.text(l10n.discardTitle), findsOneWidget);
-      await _tap(tester, 'bv-dialog-confirm');
-      expect(find.byKey(const Key('composer-text')), findsNothing);
-    });
-
-    testWidgets('edit: the text and its language only [$lang]', (tester) async {
+    testWidgets('edit: in place at Now, the text and its language only '
+        '[$lang]', (tester) async {
       final app = await _feed(tester, lang);
-      _router(tester).push('/posts/p2/edit');
+      await _tap(tester, 'post-menu-p2');
+      await _tap(tester, 'post-edit');
+      expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('writing-body')))
+            .controller!
+            .text,
+        'Morning walk done.',
+      );
+      // Photos and the tag stay as posted (edit_post).
+      expect(
+        tester.widget<BvWritingToolbar>(find.byType(BvWritingToolbar)).onCamera,
+        isNull,
+      );
+      await _more(tester, l10n);
+      expect(find.text(l10n.postWritingProject), findsNothing);
+      await tester.tapAt(const Offset(195, 120));
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('composer-media')), findsNothing);
       await tester.enterText(
-        find.byKey(const Key('composer-text')),
+        find.byKey(const Key('writing-body')),
         'Walk done, all clear.',
       );
       await tester.pumpAndSettle();
-      await _tap(tester, 'composer-post');
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
       expect(app.posts.calls.single, 'edit p2 en Walk done, all clear.');
+      expect(find.byKey(const Key('post-writing-card')), findsNothing);
+      expect(find.text('Walk done, all clear.'), findsOneWidget);
     });
 
     testWidgets('H10/H17: replies one level deep, and Replying to '
@@ -391,7 +596,15 @@ void main() {
       final r1 = tester.getRect(find.byKey(const Key('reply-r1')));
       final r2 = tester.getRect(find.byKey(const Key('reply-r2')));
       expect(lang == 'ar' ? r2.right < r1.right : r2.left > r1.left, isTrue);
-      // Replying to Mariam answers the top-level reply, named for her.
+      // An answer reads "Replying to" its top-level reply's author, when
+      // the server doesn't name the person (before migration 25).
+      expect(
+        tester.widget<Text>(find.byKey(const Key('reply-to-r2'))).data,
+        l10n.postReplyingTo(inOwnDirection('Faisal Al-Rashidi')),
+      );
+      expect(find.byKey(const Key('reply-to-r1')), findsNothing);
+      // Replying to Mariam answers her reply (review 50 F2): the server
+      // files it under Faisal's.
       await _tap(tester, 'reply-reply-r2');
       expect(find.text(l10n.postReplyingTo('Mariam Al-Sabah')), findsOneWidget);
       // English text stays left to right in Arabic: the quote and the box.
@@ -413,8 +626,127 @@ void main() {
         TextDirection.ltr,
       );
       await _tap(tester, 'post-reply-send');
-      expect(app.posts.calls.single, 'reply p1 r1 Thanks.');
+      expect(app.posts.calls.single, 'reply p1 r2 Thanks.');
       expect(find.byKey(const Key('post-replying')), findsNothing);
+      // Filed under Faisal's, "Replying to Mariam Al-Sabah".
+      final mine = app.posts.repliesByPost['p1']!.last;
+      expect(mine.replyTo, 'r1');
+      expect(
+        tester.widget<Text>(find.byKey(Key('reply-to-${mine.id}'))).data,
+        l10n.postReplyingTo(inOwnDirection('Mariam Al-Sabah')),
+      );
+    });
+
+    testWidgets('F2: before migration 25 an answer to an answer goes to the '
+        'top-level reply [$lang]', (tester) async {
+      final posts = _posts()
+        ..oneLevelReplies = true
+        ..repliesByPost['p1'] = [
+          PostReply(
+            id: 'r1',
+            postId: 'p1',
+            authorId: 'p-faisal',
+            authorName: 'Faisal Al-Rashidi',
+            body: 'Good catch on C7.',
+            createdAt: testNow.subtract(const Duration(hours: 1)),
+          ),
+          PostReply(
+            id: 'r2',
+            postId: 'p1',
+            authorId: 'p-mariam',
+            authorName: 'Mariam Al-Sabah',
+            replyTo: 'r1',
+            body: 'Model updated.',
+            createdAt: testNow.subtract(const Duration(minutes: 30)),
+          ),
+        ];
+      final app = await _feed(tester, lang, posts: posts);
+      _router(tester).push('/posts/p1');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'reply-reply-r2');
+      await tester.enterText(
+        find.byKey(const Key('post-reply-input')),
+        'Thanks.',
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, 'post-reply-send');
+      // Refused for r2, then sent to r1 with the same id: one reply, and
+      // no error.
+      expect(app.posts.calls, ['reply p1 r2 Thanks.', 'reply p1 r1 Thanks.']);
+      expect(app.posts.repliesByPost['p1'], hasLength(3));
+      expect(app.posts.repliesByPost['p1']!.last.replyTo, 'r1');
+      expect(find.byKey(const Key('post-replying')), findsNothing);
+      expect(find.text(l10n.errorGeneric), findsNothing);
+    });
+
+    testWidgets('F19: a reply slip: name and time on one line, the text and '
+        'its actions under the name, the menu level with the name [$lang]', (
+      tester,
+    ) async {
+      final posts = _posts()
+        ..repliesByPost['p1'] = [
+          PostReply(
+            id: 'r1',
+            postId: 'p1',
+            authorId: 'p-faisal',
+            authorName: 'Faisal Al-Rashidi',
+            authorHeadline: 'Site Engineer',
+            body: 'Good catch on C7.',
+            createdAt: testNow.subtract(const Duration(minutes: 4)),
+          ),
+          PostReply(
+            id: 'r2',
+            postId: 'p1',
+            authorId: 'p-mariam',
+            authorName: 'Mariam Al-Sabah',
+            replyTo: 'r1',
+            replyToPerson: 'p-faisal',
+            body: 'Model updated.',
+            createdAt: testNow.subtract(const Duration(minutes: 2)),
+          ),
+        ];
+      await _feed(tester, lang, posts: posts);
+      _router(tester).push('/posts/p1');
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('reply-r2')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      Rect at(String key) => tester.getRect(find.byKey(Key(key)));
+      for (final id in ['r1', 'r2']) {
+        final name = at('reply-name-$id');
+        final time = at('reply-time-$id');
+        final body = at('reply-body-$id');
+        final useful = at('reply-useful-$id');
+        final menu = at('reply-menu-$id');
+        // One line.
+        expect(time.center.dy, closeTo(name.center.dy, 1));
+        // The text and the actions start under the name.
+        if (lang == 'ar') {
+          expect(body.right, closeTo(name.right, 1));
+          expect(useful.right, closeTo(name.right, 1));
+        } else {
+          expect(body.left, closeTo(name.left, 1));
+          expect(useful.left, closeTo(name.left, 1));
+        }
+        expect(useful.top, greaterThan(body.bottom));
+        // ⋯ level with the name, 48 × 48.
+        expect(menu.center.dy, closeTo(name.center.dy, 1));
+        expect(menu.size, const Size(48, 48));
+      }
+      // Under the name, not the headline (replies show who and when).
+      expect(find.text('Site Engineer'), findsNothing);
+      // Every top-level slip as wide as the others; an answer starts under
+      // the name above it.
+      final r1 = at('reply-r1');
+      final r2 = at('reply-r2');
+      expect(r2.width, lessThan(r1.width));
+      if (lang == 'ar') {
+        expect(r2.right, closeTo(at('reply-name-r1').right, 1));
+      } else {
+        expect(r2.left, closeTo(at('reply-name-r1').left, 1));
+      }
     });
 
     testWidgets('H13/H14: delete your own reply only [$lang]', (tester) async {
@@ -501,47 +833,30 @@ void main() {
           ),
         ];
       final app = await _feed(tester, lang, posts: posts);
-      // "3h", not "3h ago".
-      expect(find.textContaining(l10n.timeHoursShort(3)), findsWidgets);
-      expect(find.textContaining(l10n.timeHoursAgo(3)), findsNothing);
+      // On the Feed the time is on the spine (H1 v3), not on the card.
+      expect(find.textContaining(l10n.timeHoursShort(3)), findsNothing);
       _router(tester).push('/posts/p1');
       await tester.pumpAndSettle();
-      // The project strip, as in the Feed; no avatar on the card.
+      // "3h", not "3h ago"; the project tag and the author's face, as in
+      // the Feed.
+      expect(find.textContaining(l10n.timeHoursShort(3)), findsWidgets);
+      expect(find.textContaining(l10n.timeHoursAgo(3)), findsNothing);
       expect(find.byKey(const Key('post-project-pr-1')), findsOneWidget);
       expect(
         find.descendant(
           of: find.byKey(const Key('post-p1')),
           matching: find.byType(BvAvatar),
         ),
-        findsNothing,
+        findsOneWidget,
       );
       await tester.scrollUntilVisible(
         find.byKey(const Key('reply-r1')),
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Site Engineer'), findsOneWidget);
       expect(find.text(l10n.timeMinutesShort(4)), findsOneWidget);
       await _tap(tester, 'reply-useful-r1');
       expect(app.posts.calls.single, 'useful reply r1 true');
-    });
-
-    testWidgets('review 18: the network tile, Discard words, Retry [$lang]', (
-      tester,
-    ) async {
-      final posts = _posts()..failNext = 9;
-      await _feed(tester, lang, posts: posts);
-      _router(tester).push('/posts/new');
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('composer-network-tile')), findsOneWidget);
-      await tester.enterText(find.byKey(const Key('composer-text')), 'Draft');
-      await tester.pumpAndSettle();
-      await _tap(tester, 'composer-close');
-      expect(find.text(l10n.discardBody), findsOneWidget);
-      expect(find.text(l10n.discardKeep), findsOneWidget);
-      await _tap(tester, 'bv-dialog-cancel');
-      await _tap(tester, 'composer-post');
-      expect(find.text(l10n.chatRetry), findsOneWidget);
     });
 
     testWidgets('P6: a post that is gone [$lang]', (tester) async {

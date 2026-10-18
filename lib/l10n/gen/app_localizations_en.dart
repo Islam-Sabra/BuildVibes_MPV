@@ -48,28 +48,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stampSelected => 'SELECTED';
 
   @override
-  String get signOffLabel => 'SIGN-OFF';
-
-  @override
-  String get signOffRaised => 'RAISED';
-
-  @override
-  String get signOffDone => 'DONE';
-
-  @override
   String get signOffChecked => 'CHECKED';
-
-  @override
-  String get signOffWaiting => 'Waiting';
-
-  @override
-  String get siteTagFrom => 'FROM';
-
-  @override
-  String get siteTagOwner => 'OWNER';
-
-  @override
-  String get siteTagDue => 'DUE';
 
   @override
   String get passLead => 'LEAD PASS';
@@ -522,9 +501,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileTabExperience => 'Experience';
 
   @override
-  String get proofLabel => 'PROOF · WHERE IT\'S CONFIRMED';
-
-  @override
   String get proofConfirmed => 'Confirmed';
 
   @override
@@ -574,16 +550,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSeeAllProjects => 'See all projects';
-
-  @override
-  String get workDeliveredTitle => 'Work you delivered';
-
-  @override
-  String get workDeliveredVisitorTitle => 'Work delivered';
-
-  @override
-  String get workDeliveredBody =>
-      'You choose what shows. Only items checked and closed in a Space.';
 
   @override
   String get workDeliveredEmpty => 'Nothing checked yet.';
@@ -665,9 +631,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removePhoto => 'Remove photo';
-
-  @override
-  String get placeLabel => 'City or area';
 
   @override
   String get placeOptional => 'City or area (optional)';
@@ -811,12 +774,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This defines the project and puts it on your CV with your role. Nobody owns a project; anyone who worked on it can add it to their own CV.';
 
   @override
-  String get projectNameRequired => 'Write the project name.';
-
-  @override
-  String get projectTypeRequired => 'Choose the type.';
-
-  @override
   String get projectNameHint => 'e.g. Al Kout Mall Phase 2';
 
   @override
@@ -930,7 +887,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesEmptyBody =>
-      'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, site updates and anything waiting for you.';
+      'A Space is where a project team runs its daily work. Once you join one, your daily report appears here: replies, updates and anything waiting for you.';
 
   @override
   String get spacesEmptyFeedNote =>
@@ -994,7 +951,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesNameLabel => 'Name';
 
   @override
-  String get spacesNameHint => 'e.g. Tower B — Site team';
+  String get spacesNameHint => 'e.g. Tower B — Design team';
 
   @override
   String get spacesNameRequired => 'Write a name with at least 2 letters.';
@@ -1071,7 +1028,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesInviteHow =>
-      'Send the code on WhatsApp or read it out on site. The Space admin confirms each person before they join.';
+      'Send the code on WhatsApp or read it out. The Space admin confirms each person before they join.';
 
   @override
   String spacesShareText(String space, String code) {
@@ -1340,9 +1297,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get youLower => 'you';
-
-  @override
   String proofConfirmedBy(String names) {
     return 'Confirmed by $names';
   }
@@ -1351,83 +1305,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesInfoTitle => 'Space info';
 
   @override
-  String get spacesAccess => 'Access';
-
-  @override
-  String spacesAccessLinked(String project) {
-    return 'Private work · linked to $project';
-  }
-
-  @override
-  String get spacesInviteRowSub => 'Share the invite code';
-
-  @override
-  String spacesOwnersLine(String names) {
-    return 'Owners: $names';
-  }
-
-  @override
   String get spacesWhoCanInvite => 'Who can invite';
-
-  @override
-  String get spacesWhoCanInviteNote =>
-      'Every invite still needs a Space admin to confirm the join.';
-
-  @override
-  String get spacesInviteAdmins => 'Space admins';
-
-  @override
-  String get spacesInviteAdminsHelp => 'Only admins share the invite code.';
-
-  @override
-  String get spacesInviteLeads => 'Admins and Leads';
-
-  @override
-  String get spacesInviteLeadsHelp =>
-      'People with a Lead pass can invite their own crews.';
-
-  @override
-  String get spacesInviteEveryone => 'Everyone in the Space';
-
-  @override
-  String get spacesInviteEveryoneHelp =>
-      'Anyone can share the code. Admins still confirm each join.';
 
   @override
   String get spacesNotifications => 'Notifications';
 
   @override
-  String get spacesNotificationsNote => 'For this Space only.';
-
-  @override
-  String get spacesNotifyAll => 'Everyone posts and my Teams';
-
-  @override
-  String get spacesNotifyAllHelp =>
-      'Messages in Everyone and in your Teams, plus anything that needs you.';
-
-  @override
-  String get spacesNotifyNeedsYou => 'Needs you only';
-
-  @override
-  String get spacesNotifyNeedsYouHelp =>
-      'Items you own, items to check and people asking to join.';
-
-  @override
   String get spacesNotifyOff => 'Off';
-
-  @override
-  String get spacesNotifyOffHelp =>
-      'No alerts. Needs you still shows on your Home.';
 
   @override
   String get spacesTransfer => 'Transfer ownership';
 
   @override
   String get spacesDeleteSpace => 'Delete Space';
-
-  @override
-  String get spacesDeleteSpaceHelp => 'Owners only. Removes it for everyone.';
 
   @override
   String get spacesDeleteButton => 'Delete';
@@ -1452,9 +1342,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String spacesLeft(String space) {
     return 'You left $space.';
   }
-
-  @override
-  String get spacesEdit => 'Edit';
 
   @override
   String get spacesEditTitle => 'Edit Space';
@@ -1586,419 +1473,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Make someone else an admin first, or delete the Space.';
 
   @override
-  String get workPrivacyLine =>
-      'Members are people the Space admin confirmed. Nothing here is visible outside the Space.';
-
-  @override
-  String get workFilterAll => 'All';
-
-  @override
-  String get workFilterMine => 'Mine';
-
-  @override
-  String get workFilterOpen => 'Open';
-
-  @override
-  String get workFilterToCheck => 'To check';
-
-  @override
-  String get workFilterChecked => 'Checked';
-
-  @override
-  String get workSectionNeedsYou => 'NEEDS YOU';
-
-  @override
-  String get workSectionOpen => 'OPEN';
-
-  @override
-  String get workSectionWaitingCheck => 'WAITING FOR A CHECK';
-
-  @override
-  String get workSectionCheckedWeek => 'CHECKED THIS WEEK';
-
-  @override
-  String get workSectionCheckedEarlier => 'CHECKED EARLIER';
-
-  @override
-  String get workStatusOpen => 'OPEN';
-
-  @override
-  String workStatusOpenDue(String date) {
-    return 'OPEN · DUE $date';
-  }
-
-  @override
-  String workStatusOverdue(String date) {
-    return 'OPEN · WAS DUE $date';
-  }
-
-  @override
-  String get workStatusDoneYouCheck => 'DONE · YOU CHECK IT';
-
-  @override
-  String get workStatusDoneWaiting => 'DONE · WAITING FOR A CHECK';
-
-  @override
-  String workStatusChecked(String date) {
-    return 'CHECKED · $date';
-  }
-
-  @override
-  String get workOwnerYou => 'Owner: you';
-
-  @override
-  String workOwner(String name) {
-    return 'Owner: $name';
-  }
-
-  @override
-  String get workFromYou => 'from you';
-
-  @override
-  String workFrom(String name) {
-    return 'from $name';
-  }
-
-  @override
-  String workCheckedByLine(String name) {
-    return 'checked by $name';
-  }
-
-  @override
-  String workCheckedBy(String name) {
-    return 'Checked by $name';
-  }
-
-  @override
-  String workPhotos(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n photos',
-      one: '1 photo',
-      zero: 'No photo',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get workSignAsDone => 'Sign as done';
-
-  @override
-  String get workCheckIt => 'Check it';
-
-  @override
-  String get workNewItem => 'New item';
-
-  @override
-  String get workEmptyTitle => 'No work items yet';
-
-  @override
-  String get workEmptyCanCreate =>
-      'Raise the first one with New item. The owner signs it as done, then it\'s checked.';
-
-  @override
-  String get workEmptyCannot =>
-      'Items appear here when someone raises one for the team.';
-
-  @override
-  String get workNothingNeedsYou => 'Nothing needs you right now.';
-
-  @override
-  String get workFilterEmpty => 'Nothing here.';
-
-  @override
-  String get workStatusOwnerLeft => 'OWNER LEFT · REASSIGN';
-
-  @override
-  String get workReassign => 'Reassign';
-
-  @override
-  String get workNewTitle => 'New work item';
-
-  @override
-  String get workTakePhoto => 'Take a photo';
-
-  @override
-  String get workFromGallery => 'Choose from gallery';
-
-  @override
-  String get workRetake => 'Retake';
-
-  @override
-  String get workPhotoFirst => 'Start with a photo of the spot.';
-
-  @override
-  String workNewStamp(String ref) {
-    return 'NEW · $ref';
-  }
-
-  @override
-  String get workNewStampPlain => 'NEW';
-
-  @override
-  String get workTitleHint => 'What needs doing · one line is enough';
-
-  @override
-  String get workTitleRequired => 'Write what needs doing.';
-
-  @override
-  String get workCellOwner => 'OWNER · ONE PERSON';
-
-  @override
-  String get workCellDue => 'DUE';
-
-  @override
-  String get workCellPlace => 'PLACE ON SITE';
-
-  @override
-  String get workCellTeam => 'TEAM';
-
-  @override
-  String get workChoose => 'Choose';
-
-  @override
-  String get workOwnerRequired => 'Choose who does it.';
-
-  @override
-  String get workNoDue => 'No due date';
-
-  @override
-  String get workToday => 'Today';
-
-  @override
-  String get workTomorrow => 'Tomorrow';
-
-  @override
-  String get workPickDate => 'Pick a date';
-
-  @override
-  String get workNoTeam => 'No Team';
-
-  @override
-  String get workPlaceHint => 'e.g. Level 2 · Grid C7';
-
-  @override
-  String workNewFooter(String owner) {
-    return '$owner gets it in Needs you. When it\'s marked done, you check it.';
-  }
-
-  @override
-  String get workNewFooterNoOwner =>
-      'The owner gets it in Needs you. When it\'s marked done, you check it.';
-
-  @override
-  String get workCreate => 'Create item';
-
-  @override
-  String get workNotSent => 'Not sent yet';
-
-  @override
-  String get workRetry => 'Retry';
-
-  @override
-  String get workNotSentNote =>
-      'Saved on this phone. Retry when the signal is back.';
-
-  @override
-  String get workSent => 'Sent.';
-
-  @override
-  String get workSignOff => 'SIGN-OFF';
-
-  @override
-  String get workEvidence => 'EVIDENCE';
-
-  @override
-  String get workPhotosLabel => 'PHOTOS';
-
-  @override
-  String get workDiscussion => 'DISCUSSION';
-
-  @override
-  String get workAddComment => 'Add a comment';
-
-  @override
-  String get workSendComment => 'Send';
-
-  @override
-  String get workNoComments => 'No comments yet.';
-
-  @override
-  String workWaitingCheckBy(String name) {
-    return 'Waiting for $name to check';
-  }
-
-  @override
-  String get workWaitingCheckBody =>
-      'It can be accepted or sent back with a reason.';
-
-  @override
-  String workCheckBannerTitle(String name) {
-    return '$name marked this done. Check it.';
-  }
-
-  @override
-  String get workCheckBannerBody =>
-      'Look at the photo, then accept it or send it back with a reason.';
-
-  @override
-  String get workDoneWaiting => 'Done. Waiting for a check.';
-
-  @override
-  String get workClosed => 'Closed. It stays in the Space record.';
-
-  @override
-  String workClosedCanShow(String name) {
-    return '$name can show it on their profile as work they delivered.';
-  }
-
-  @override
-  String workClosedBy(String name) {
-    return 'Closed by $name';
-  }
-
-  @override
-  String get workClosedStays => 'It stays in the Space record.';
-
-  @override
-  String workSentBackTitle(String reason) {
-    return 'Sent back: $reason';
-  }
-
-  @override
-  String get workReasonPhotoMissing => 'Photo missing';
-
-  @override
-  String get workReasonNotAsAsked => 'Not as asked';
-
-  @override
-  String get workReasonNotFinished => 'Not finished';
-
-  @override
-  String get workReasonOther => 'Other';
-
-  @override
-  String get workOwnerLeftTitle => 'The owner left the Space';
-
-  @override
-  String get workOwnerLeftBody => 'Give it to someone else to finish.';
-
-  @override
-  String workCheckedStamp(String date, String name) {
-    return 'CHECKED · $date · $name';
-  }
-
-  @override
-  String get workYouCheckIt => 'You check it';
-
-  @override
-  String get workCheckAndClose => 'Check and close';
-
-  @override
-  String get workSendBack => 'Send back';
-
-  @override
-  String get workReassignTitle => 'Reassign to';
-
-  @override
-  String workReassigned(String name) {
-    return '$name owns it now.';
-  }
-
-  @override
   String get workItemGone => 'This item isn\'t available.';
 
   @override
-  String workTodayAt(String time) {
-    return 'Today $time';
-  }
-
-  @override
-  String workSignTitle(String ref) {
-    return 'Sign DONE on $ref';
-  }
-
-  @override
-  String workSignBody(String name) {
-    return 'Your name and the time go on the sign-off. Add a photo or a note so $name can check it.';
-  }
-
-  @override
-  String get workAddPhoto => 'Add photo';
-
-  @override
   String get workNote => 'Note';
-
-  @override
-  String get workNoteHint => 'What was done';
-
-  @override
-  String get workSignNeedsSomething => 'Add a photo or a note.';
-
-  @override
-  String get workSigned => 'Signed as done. It\'s waiting for a check.';
-
-  @override
-  String get workPendingSignOff => 'Sign-off not sent yet';
-
-  @override
-  String workSendBackTitle(String ref, String name) {
-    return 'Send $ref back to $name';
-  }
-
-  @override
-  String workSendBackBody(String name) {
-    return 'The tag goes back to Open with your reason written on it, and into $name\'s Needs you.';
-  }
-
-  @override
-  String get workReason => 'Reason';
-
-  @override
-  String workNoteFor(String name) {
-    return 'Note for $name';
-  }
-
-  @override
-  String workSendBackTo(String name) {
-    return 'Send back to $name';
-  }
-
-  @override
-  String get workReasonRequired => 'Choose a reason.';
-
-  @override
-  String get workOtherNeedsNote => 'Say what is wrong.';
-
-  @override
-  String workSentBack(String name) {
-    return 'Sent back to $name.';
-  }
-
-  @override
-  String workCheckTitle(String ref) {
-    return 'Check and close $ref?';
-  }
-
-  @override
-  String get workCheckBody =>
-      'Your name and the time go on the sign-off. It closes and stays in the Space record.';
-
-  @override
-  String get workShowOnProfile => 'Show on my profile';
-
-  @override
-  String get workShowOnProfileHelp =>
-      'Only the title, one photo, the place and who checked it. Never the Space or the discussion.';
-
-  @override
-  String workReassignedLine(String from, String to) {
-    return 'Reassigned from $from to $to';
-  }
-
-  @override
-  String get workSomeone => 'someone';
 
   @override
   String get deliveredTitle => 'Work you delivered';
@@ -2050,14 +1528,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String deliveredPrivacy(String name) {
     return '$name chose to show this. The discussion, files and the Space stay private. Only the title, photo, place and who checked it are shown.';
   }
-
-  @override
-  String deliveredStamp(String date) {
-    return 'CHECKED · $date';
-  }
-
-  @override
-  String get workCheckConfirm => 'Close it';
 
   @override
   String get deliveredNoneShown =>
@@ -2238,9 +1708,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatRemoveFile => 'Remove';
 
   @override
-  String get chatFileNotAllowed => 'Only PDF files and photos.';
-
-  @override
   String get chatFileTooBig => 'Files up to 25 MB.';
 
   @override
@@ -2395,54 +1862,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previewSendFile => 'Share the file';
 
   @override
-  String workAttachTitle(String ref) {
-    return 'Attach to $ref';
-  }
-
-  @override
-  String get workAttachLibrary => 'From the Space Library';
-
-  @override
-  String get workAttachLibraryHelp =>
-      'Drawings and files already shared in this Space';
-
-  @override
-  String get workAttachPhone => 'From your phone';
-
-  @override
-  String get workAttachPhoneHelp =>
-      'PDF or image · saved to the Space Library too';
-
-  @override
-  String get workAttachPhoto => 'Take another photo';
-
-  @override
-  String get workAttachPhotoHelp => 'Adds to the photos on the tag';
-
-  @override
-  String get workAttached => 'ATTACHED';
-
-  @override
-  String get workAttachedFromLibrary => 'From the Space Library';
-
-  @override
-  String get workAttach => 'Attach a drawing or file';
-
-  @override
-  String get workAttachedToast => 'Attached.';
-
-  @override
-  String get workAlsoInTeamChat => 'ALSO IN THE TEAM CHAT';
-
-  @override
-  String get libraryPickTitle => 'Choose from the Library';
-
-  @override
-  String libraryPickTeamNote(String team) {
-    return 'Only files for Everyone and for $team can go on this item.';
-  }
-
-  @override
   String get chatFileRemoved => 'File removed';
 
   @override
@@ -2473,7 +1892,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get feedEmpty => 'No posts yet. Share what happened on site today.';
+  String get feedEmpty => 'No posts yet. Share what happened at work today.';
 
   @override
   String get feedCouldntLoad => 'Couldn\'t load your Feed';
@@ -2540,9 +1959,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDeleted => 'Post deleted.';
 
   @override
-  String get postOpenPhoto => 'Open photo';
-
-  @override
   String get postTitle => 'Post';
 
   @override
@@ -2592,180 +2008,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postBackHome => 'Back to Home';
 
   @override
-  String get postPosting => 'Posting to your network…';
-
-  @override
-  String get postFailed => 'Couldn\'t post. Saved as a draft.';
-
-  @override
-  String get postFailedHint => 'Check your connection and try again.';
-
-  @override
-  String get postDiscardDraft => 'Discard draft';
-
-  @override
-  String get composerPostingTo => 'POSTING TO';
-
-  @override
-  String get composerYourNetwork => 'Your network';
-
-  @override
-  String get composerEveryone => 'Everyone';
-
-  @override
-  String composerTagged(String project) {
-    return 'tagged $project';
-  }
-
-  @override
-  String get composerHint => 'What happened on site today?';
-
-  @override
-  String get composerStartFrom => 'START FROM';
-
-  @override
-  String get tplProgress => 'Progress update';
-
-  @override
-  String get tplProgressHelp => 'Done today · Next · Holding us up';
-
-  @override
-  String get tplProgressLines => 'Done today:\nNext:\nHolding us up:';
-
-  @override
-  String get tplMilestone => 'Milestone';
-
-  @override
-  String get tplMilestoneHelp => 'What · When · Who did it';
-
-  @override
-  String get tplMilestoneLines => 'What:\nWhen:\nWho did it:';
-
-  @override
-  String get tplVisit => 'Site visit';
-
-  @override
-  String get tplVisitHelp => 'Where · What we found · Actions';
-
-  @override
-  String get tplVisitLines => 'Where:\nWhat we found:\nActions:';
-
-  @override
-  String get tplAsk => 'Ask the community';
-
-  @override
-  String get tplAskHelp => 'Question · Who knows';
-
-  @override
-  String get tplAskLines => 'Question:\nWho knows:';
-
-  @override
-  String get composerMedia => 'Media';
-
-  @override
-  String get composerProject => 'Project';
-
-  @override
-  String get composerPost => 'Post';
-
-  @override
-  String get composerSave => 'Save';
-
-  @override
-  String get composerChooseHint => 'Choose how to start, or just write';
-
-  @override
-  String composerPostingToProject(String project) {
-    return 'Posting to $project';
-  }
-
-  @override
-  String get composerAudience => 'Everyone on BuildVibes can see this.';
-
-  @override
-  String get composerAudienceProject =>
-      'Everyone on BuildVibes can see this. It also shows on the project\'s page.';
-
-  @override
-  String composerWrittenIn(String lang) {
-    String _temp0 = intl.Intl.selectLogic(lang, {
-      'ar': 'Arabic',
-      'other': 'English',
-    });
-    return 'Written in $_temp0';
-  }
-
-  @override
-  String get composerChange => 'Change';
-
-  @override
   String get langEnglish => 'English';
 
   @override
   String get langArabic => 'العربية';
 
   @override
-  String get langAuto => 'Detected automatically';
-
-  @override
-  String get composerLangTitle => 'Language of this post';
-
-  @override
-  String get composerLangWhy =>
-      'We use this to offer Translate to readers who don\'t read it.';
-
-  @override
-  String langName(String lang) {
-    String _temp0 = intl.Intl.selectLogic(lang, {
-      'ar': 'Arabic',
-      'other': 'English',
-    });
-    return '$_temp0';
-  }
-
-  @override
-  String get composerPhotosMax => 'Up to 4 photos.';
-
-  @override
-  String get composerRemovePhoto => 'Remove photo';
-
-  @override
-  String get postToTitle => 'Post to';
-
-  @override
-  String get postToWho => 'WHO SEES IT';
-
-  @override
-  String get postToNetworkHelp => 'Followers and Explore · anyone can see';
-
-  @override
-  String get postToNote =>
-      'Posts are public and can be tagged to a project. Work for your team goes in the project\'s Space as a work item.';
-
-  @override
-  String get tagTitle => 'Link a project';
-
-  @override
-  String get tagHelp => 'Only projects where you have a confirmed role.';
-
-  @override
   String get tagEmpty => 'Add a project on your profile first';
 
   @override
-  String get tagSpaceNote =>
-      'Work for your team goes in the project\'s Space as a work item';
-
-  @override
   String get tagNone => 'No project';
-
-  @override
-  String get discardTitle => 'Discard this post?';
-
-  @override
-  String get discardBody => 'Your text, photo and project link will be lost.';
-
-  @override
-  String get discardConfirm => 'Discard';
 
   @override
   String get projectPosts => 'POSTS';
@@ -2787,12 +2039,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get discardKeep => 'Keep editing';
-
-  @override
-  String get homeDayTitle => 'Your day on site';
-
-  @override
   String homeDayNeedsYou(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2804,44 +2050,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String homeDaySpacesActive(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n Spaces active',
-      one: '1 Space active',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String homeDayReplies(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n replies',
-      one: '1 reply',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get homeNeedsYou => 'NEEDS YOU';
 
   @override
   String get homeSeeAll => 'See all';
-
-  @override
-  String get homeTodayInSpaces => 'TODAY IN YOUR SPACES';
-
-  @override
-  String get homeThatsYourDay => 'That\'s your day';
-
-  @override
-  String get homeNothingElse => 'Nothing else needs you right now';
-
-  @override
-  String get homeProject => 'Project';
 
   @override
   String get homeSearch => 'Search people';
@@ -2893,21 +2105,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String needsDue(String date) {
     return 'due $date';
   }
-
-  @override
-  String get needsOverForYou => 'WORK ITEM · FOR YOU';
-
-  @override
-  String get needsOverCheck => 'WORK ITEM · YOU CHECK IT';
-
-  @override
-  String get needsOverSentBack => 'WORK ITEM · SENT BACK';
-
-  @override
-  String get needsOverOwnerLeft => 'WORK ITEM · OWNER LEFT';
-
-  @override
-  String get needsOverJoin => 'SPACE · REQUEST TO JOIN';
 
   @override
   String get needsOpen => 'Open';
@@ -2979,11 +2176,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activityGroupPosts => 'Your posts';
-
-  @override
-  String activityRev(String letter) {
-    return 'REV $letter';
-  }
 
   @override
   String activityAssigned(String name, String ref) {
@@ -3191,6 +2383,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pushOpenSettings => 'Open phone settings';
+
+  @override
+  String get pushNotReaching => 'Notifications aren\'t reaching this phone';
+
+  @override
+  String get pushFixIt => 'Fix it';
+
+  @override
+  String get pushFixTitle => 'Let notifications reach this phone';
+
+  @override
+  String get pushFixAutostart => 'Autostart: on for BuildVibes.';
+
+  @override
+  String get pushFixBattery =>
+      'Battery saver: \"No restrictions\" for BuildVibes.';
+
+  @override
+  String get pushFixPlayServices =>
+      'The same battery setting for Google Play services.';
+
+  @override
+  String get pushFixRestart => 'Then restart the phone.';
+
+  @override
+  String get pushFixOpen => 'Open BuildVibes settings';
+
+  @override
+  String get feedNew => 'New';
+
+  @override
+  String get daybookNew => 'New';
 
   @override
   String reportTitle(String kind) {
@@ -3684,4 +2908,578 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formerMember => 'Former member';
+
+  @override
+  String daybookDateLine(String date, int day) {
+    return '$date, day $day on site';
+  }
+
+  @override
+  String get daybookYou => 'You';
+
+  @override
+  String get daybookForYou => 'For you';
+
+  @override
+  String daybookForPerson(String name) {
+    return 'For $name';
+  }
+
+  @override
+  String daybookMeta(String who, String due) {
+    return '$who, $due';
+  }
+
+  @override
+  String daybookDueDate(String date) {
+    return 'by $date';
+  }
+
+  @override
+  String get daybookDueToday => 'by today';
+
+  @override
+  String get daybookDueTomorrow => 'by tomorrow';
+
+  @override
+  String daybookDueDateAt(String date, String time) {
+    return 'by $date $time';
+  }
+
+  @override
+  String daybookDueTodayAt(String time) {
+    return 'by today $time';
+  }
+
+  @override
+  String daybookDueTomorrowAt(String time) {
+    return 'by tomorrow $time';
+  }
+
+  @override
+  String daybookWasDue(String date) {
+    return 'was due $date';
+  }
+
+  @override
+  String daybookWasDueAt(String date, String time) {
+    return 'was due $date $time';
+  }
+
+  @override
+  String daybookWasDueTodayAt(String time) {
+    return 'was due today $time';
+  }
+
+  @override
+  String daybookLate(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Late by $n days',
+      one: 'Late by 1 day',
+      zero: 'Late',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookDueTodayStrip(String titles) {
+    return 'Due today: $titles';
+  }
+
+  @override
+  String daybookPoints(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n points',
+      one: '1 point',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookEditedDue(String from, String to) {
+    return 'Edited: due moved from $from to $to';
+  }
+
+  @override
+  String get daybookToday => 'today';
+
+  @override
+  String get daybookTomorrow => 'tomorrow';
+
+  @override
+  String daybookCancelledBy(String name, String time) {
+    return 'Cancelled by $name at $time';
+  }
+
+  @override
+  String get daybookStampDone => 'DONE';
+
+  @override
+  String get daybookStampChecked => 'CHECKED';
+
+  @override
+  String get daybookStampSentBack => 'SENT BACK';
+
+  @override
+  String get daybookStampCancelled => 'CANCELLED';
+
+  @override
+  String get daybookWorkItem => 'Work item';
+
+  @override
+  String get daybookReadOnly => 'Read only';
+
+  @override
+  String get daybookMonthPosts => 'Posts';
+
+  @override
+  String get daybookMonthDue => 'Something due';
+
+  @override
+  String get daybookFirstTitle => 'The first page of your daybook';
+
+  @override
+  String get daybookFirstBody =>
+      'Everything your team posts will hang here, day by day.';
+
+  @override
+  String get daybookFirstPost => 'Post the first work item';
+
+  @override
+  String get daybookFirstInvite => 'Invite your team';
+
+  @override
+  String daybookClock12(String time, String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'morning': 'am',
+      'noon': 'pm',
+      'afternoon': 'pm',
+      'evening': 'pm',
+      'other': 'pm',
+    });
+    return '$time $_temp0';
+  }
+
+  @override
+  String daybookClockPeriod(String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'morning': 'am',
+      'noon': 'pm',
+      'afternoon': 'pm',
+      'evening': 'pm',
+      'other': 'pm',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get daybookSignedAsDone => 'signed as done';
+
+  @override
+  String daybookStampBy(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get daybookDoubleTapToCheck => 'Double-tap the photo to check it';
+
+  @override
+  String daybookGivenTo(String to, String from, String time) {
+    return 'Given to $to instead of $from at $time';
+  }
+
+  @override
+  String daybookFileChip(String name, String revision) {
+    return '$name $revision';
+  }
+
+  @override
+  String get daybookWaitingToSend => 'Waiting to send';
+
+  @override
+  String get daybookNow => 'Now';
+
+  @override
+  String get daybookDraft => 'Draft';
+
+  @override
+  String get daybookWritingTitle => 'Title';
+
+  @override
+  String get daybookWritingBody => 'Write what needs doing';
+
+  @override
+  String get daybookAssign => 'Assign';
+
+  @override
+  String get daybookLocation => 'Location';
+
+  @override
+  String get daybookDueDateMenu => 'Due date';
+
+  @override
+  String daybookDueProperty(String date, String time) {
+    return '$date, $time';
+  }
+
+  @override
+  String get daybookCamera => 'Take a photo';
+
+  @override
+  String get daybookAddPhoto => 'Add a photo';
+
+  @override
+  String get daybookMore => 'More';
+
+  @override
+  String get daybookPost => 'Post';
+
+  @override
+  String get daybookRemovePhoto => 'Remove photo';
+
+  @override
+  String get daybookGiveToSearch => 'Give to…';
+
+  @override
+  String get daybookOwnerNow => 'now';
+
+  @override
+  String get daybookPlaceHint => 'Where';
+
+  @override
+  String get daybookNoTime => 'No time';
+
+  @override
+  String get daybookDueTimeHelp => 'Due by a time?';
+
+  @override
+  String get daybookAssignSearch => 'Assign to…';
+
+  @override
+  String get daybookCouldNotSend => 'Couldn\'t send. Tap to fix';
+
+  @override
+  String get daybookEditedDueRemoved => 'Edited: due removed';
+
+  @override
+  String get daybookRemoveDue => 'Remove';
+
+  @override
+  String get daybookSignAsDone => 'Sign as done';
+
+  @override
+  String get daybookHoldToProve => 'Hold to prove';
+
+  @override
+  String daybookChecksNext(String name) {
+    return '$name checks it next';
+  }
+
+  @override
+  String daybookYouChecked(String time) {
+    return 'You checked it at $time. It\'s locked now, this is the record.';
+  }
+
+  @override
+  String get daybookCheck => 'Check';
+
+  @override
+  String get daybookSendBack => 'Send back';
+
+  @override
+  String get daybookAddUpdate => 'Add update';
+
+  @override
+  String get daybookEdit => 'Edit';
+
+  @override
+  String get daybookGiveTo => 'Give to someone else';
+
+  @override
+  String get daybookCancelItem => 'Cancel work item';
+
+  @override
+  String daybookSendBackTo(String name) {
+    return 'Send back to $name';
+  }
+
+  @override
+  String get daybookReasonPhotoMissing => 'Photo missing';
+
+  @override
+  String get daybookReasonNotAsAsked => 'Not as asked';
+
+  @override
+  String get daybookReasonNotFinished => 'Not finished';
+
+  @override
+  String get daybookReasonOther => 'Something else';
+
+  @override
+  String get daybookNoteOptional => 'Add a note (optional)';
+
+  @override
+  String get daybookNoteNeeded => 'Say what is wrong';
+
+  @override
+  String get daybookChecked => 'Checked';
+
+  @override
+  String get daybookCancelled => 'Cancelled';
+
+  @override
+  String get daybookUndo => 'Undo';
+
+  @override
+  String get daybookUpdateHint => 'Write an update';
+
+  @override
+  String get daybookSendAsDone => 'Send as done';
+
+  @override
+  String get daybookAddAnotherPhoto => 'Add another photo';
+
+  @override
+  String get daybookWithoutPhoto => 'Without a photo';
+
+  @override
+  String get daybookWhatWasDone => 'What was done?';
+
+  @override
+  String get daybookSignedUndo => 'Signed as done';
+
+  @override
+  String get daybookCloseProof => 'Close';
+
+  @override
+  String get daybookSave => 'Save';
+
+  @override
+  String daybookCancelledByYou(String time) {
+    return 'Cancelled by you at $time';
+  }
+
+  @override
+  String get daybookSentItBack => 'sent it back';
+
+  @override
+  String daybookSentBackAt(String time) {
+    return 'Sent back at $time';
+  }
+
+  @override
+  String daybookSentBackText(String reason, String note) {
+    return '$reason. $note';
+  }
+
+  @override
+  String get daybookCouldNotCheck => 'Couldn\'t check';
+
+  @override
+  String get daybookCouldNotSendBack => 'Couldn\'t send back';
+
+  @override
+  String get daybookCouldNotCancel => 'Couldn\'t cancel';
+
+  @override
+  String get daybookCouldNotGiveTo => 'Couldn\'t give it to someone else';
+
+  @override
+  String get daybookCouldNotUpdate => 'Couldn\'t add the update';
+
+  @override
+  String daybookRefusedBecause(String action, String reason) {
+    return '$action: $reason';
+  }
+
+  @override
+  String daybookRefusedPlain(String action) {
+    return '$action.';
+  }
+
+  @override
+  String get daybookWhyCancelled => 'this item was cancelled';
+
+  @override
+  String get daybookWhyChecked => 'it was already checked';
+
+  @override
+  String get daybookWhyChanged => 'it changed in the meantime';
+
+  @override
+  String get daybookWhyRemoved => 'it was removed';
+
+  @override
+  String get daybookWhyNotAllowed => 'your pass doesn\'t allow it';
+
+  @override
+  String get daybookSwitchItem => 'Prove another work item';
+
+  @override
+  String get daybookDiscardProofTitle => 'Delete this proof?';
+
+  @override
+  String get daybookDiscardProofBody =>
+      'The photos are only on this phone. Deleted, they are gone.';
+
+  @override
+  String get daybookDiscardProofKeep => 'Keep';
+
+  @override
+  String get daybookDiscardProofDelete => 'Delete';
+
+  @override
+  String get spacesMenu => 'Space menu';
+
+  @override
+  String get spacesInfoYou => 'You';
+
+  @override
+  String get spacesInfoInvite => 'Invite';
+
+  @override
+  String get spacesInfoSpace => 'Space';
+
+  @override
+  String get spacesYourPass => 'Your pass';
+
+  @override
+  String get spacesNotifyChoiceAll => 'Everything';
+
+  @override
+  String get spacesNotifyChoiceNeedsYou => 'Needs you';
+
+  @override
+  String get spacesInviteChoiceAdmins => 'Admins';
+
+  @override
+  String get spacesInviteChoiceLeads => 'Leads';
+
+  @override
+  String get spacesInviteChoiceEveryone => 'Everyone';
+
+  @override
+  String get spacesCopy => 'Copy';
+
+  @override
+  String get spacesCodeCopied => 'Invite code copied';
+
+  @override
+  String get spacesAdminRow => 'Space admin';
+
+  @override
+  String get spacesOnSiteSince => 'On site since';
+
+  @override
+  String get spacesOnSiteNotSet => 'Not set';
+
+  @override
+  String get spacesOnSiteChange => 'Choose another day';
+
+  @override
+  String get spacesOnSiteRemove => 'Remove the day';
+
+  @override
+  String get spacesOnSiteNote => 'Work counts \"day 1 on site\" from this day.';
+
+  @override
+  String get spacesEditNameAbout => 'Name and About';
+
+  @override
+  String get needsTitle => 'Needs you';
+
+  @override
+  String get needsRowCheck => 'Check it';
+
+  @override
+  String get needsRowForYou => 'For you';
+
+  @override
+  String get needsRowSentBack => 'Sent back';
+
+  @override
+  String get needsRowOwnerLeft => 'Give it to someone';
+
+  @override
+  String get needsRowJoin => 'Asks to join';
+
+  @override
+  String get needsNone => 'Nothing needs you now.';
+
+  @override
+  String get profileProofOfWork => 'Proof of work';
+
+  @override
+  String get profileProjectsConfirmed => 'Projects, confirmed by teammates';
+
+  @override
+  String get proofStampConfirmed => 'CONFIRMED';
+
+  @override
+  String get proofStampWaiting => 'WAITING';
+
+  @override
+  String get proofChooseShown => 'Choose what shows';
+
+  @override
+  String get postWritingAuthor => 'You · to everyone';
+
+  @override
+  String postLangAuto(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return 'Detected: $_temp0';
+  }
+
+  @override
+  String get postWritingHint => 'What happened at work today?';
+
+  @override
+  String get postWritingProject => 'Project';
+
+  @override
+  String postWritingLang(String lang) {
+    String _temp0 = intl.Intl.selectLogic(lang, {
+      'ar': 'Arabic',
+      'other': 'English',
+    });
+    return 'Written in $_temp0';
+  }
+
+  @override
+  String get postWritingPhotosMax => 'Up to 4 photos.';
+
+  @override
+  String get homeNothingNeedsYou => 'Nothing needs you';
+
+  @override
+  String get homeYourSpaces => 'YOUR SPACES';
+
+  @override
+  String get createPostToEveryone => 'Post to everyone';
+
+  @override
+  String get createPostToEveryoneLine => 'In the Home feed, for everyone';
+
+  @override
+  String get createWorkItem => 'Work item in a Space';
+
+  @override
+  String get createWorkItemLine => 'Only the Space\'s members see it';
+
+  @override
+  String get createPickSpace => 'Which Space?';
+
+  @override
+  String get createLastSpace => 'Last opened';
+
+  @override
+  String get createNoWorkSpaces =>
+      'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.';
 }

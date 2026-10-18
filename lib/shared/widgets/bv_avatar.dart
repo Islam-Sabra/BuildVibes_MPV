@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
-enum BvAvatarSize { sm, md, lg, xl }
+/// [note] is an update's face (20, Y2).
+enum BvAvatarSize { xxs, note, xs, xsm, list, sm, md, lg, profile, xl }
 
 /// Spec §9 ("DS · Avatar & Badge"). A person is a circle; a company is a
 /// rounded square. Without a photo it shows initials.
@@ -15,7 +16,12 @@ class BvAvatar extends StatelessWidget {
     this.company = false,
     this.image,
     this.twoLetters = false,
+    this.tint,
   });
+
+  /// The fill behind the initials (Daybook: [BvAvatarTints.forId]).
+  /// Default: surface subtle.
+  final Color? tint;
 
   final String name;
   final BvAvatarSize size;
@@ -27,20 +33,37 @@ class BvAvatar extends StatelessWidget {
   final bool twoLetters;
 
   static double dimension(BvAvatarSize size) => switch (size) {
+    BvAvatarSize.xxs => BvAvatarSpec.xxs,
+    BvAvatarSize.note => BvAvatarSpec.note,
+    BvAvatarSize.xs => BvAvatarSpec.xs,
+    BvAvatarSize.xsm => BvAvatarSpec.xsm,
+    BvAvatarSize.list => BvAvatarSpec.list,
     BvAvatarSize.sm => BvAvatarSpec.sm,
     BvAvatarSize.md => BvAvatarSpec.md,
     BvAvatarSize.lg => BvAvatarSpec.lg,
+    BvAvatarSize.profile => BvAvatarSpec.profile,
     BvAvatarSize.xl => BvAvatarSpec.xl,
   };
 
   static BorderRadius companyRadius(BvAvatarSize size) => switch (size) {
-    BvAvatarSize.sm || BvAvatarSize.md => BvAvatarSpec.companyRadiusSmall,
-    BvAvatarSize.lg || BvAvatarSize.xl => BvAvatarSpec.companyRadiusLarge,
+    BvAvatarSize.xxs ||
+    BvAvatarSize.note ||
+    BvAvatarSize.xs ||
+    BvAvatarSize.xsm ||
+    BvAvatarSize.list ||
+    BvAvatarSize.sm ||
+    BvAvatarSize.md => BvAvatarSpec.companyRadiusSmall,
+    BvAvatarSize.lg ||
+    BvAvatarSize.profile ||
+    BvAvatarSize.xl => BvAvatarSpec.companyRadiusLarge,
   };
 
-  /// Up to two initials: first and last word. Arabic letters are kept
-  /// apart (zero-width non-joiner) so they read as initials, not a word,
-  /// and the prefixes "ال" and "لل" are skipped ("النور للمقاولات" → ن م).
+  /// Latin: the first letters of the first and last word, as typed
+  /// ("Sara Al-Mutairi" → SA). Arabic: one letter, as the AR frames show;
+  /// two read as a word ("سم"). The prefixes "ال" and "لل" are skipped
+  /// ("النور للمقاولات" → ن). Review 44 C1. An Arabic name starting with an
+  /// alef (ا أ إ آ) shows its first two letters ("إس", "أح"): alone at
+  /// avatar size, "إ" reads as "!" (review 46).
   static String initialsOf(String name) {
     final words = name
         .trim()
@@ -51,28 +74,30 @@ class BvAvatar extends StatelessWidget {
     final picked = words.length == 1
         ? [words.first]
         : [words.first, words.last];
-    final runes = [
-      for (final w in picked)
-        _initialRune(_withoutLatinArticle(w).runes.toList()),
-    ];
-    final letters = runes.map(String.fromCharCode);
-    final arabic = runes.any(_isArabic);
-    return arabic
-        ? letters.join(String.fromCharCode(_zeroWidthNonJoiner))
-        : letters.join().toUpperCase();
+    final runes = [for (final w in picked) _initialRune(w.runes.toList())];
+    if (runes.any(_isArabic)) return _arabicInitial(picked.first);
+    return runes.map(String.fromCharCode).join().toUpperCase();
   }
 
-  /// [initialsOf], but a single word gives its first two letters.
+  /// One letter of an Arabic [word], or two when it starts with an alef.
+  static String _arabicInitial(String word) {
+    final runes = word.runes.toList();
+    final first = _initialRune(runes);
+    final at = runes.indexOf(first);
+    final take = _alefs.contains(first) && at + 1 < runes.length ? 2 : 1;
+    return String.fromCharCodes(runes.sublist(at, at + take));
+  }
+
+  /// [initialsOf], but a single Latin word gives its first two letters,
+  /// after an article ("Al-Rashid" → RA).
   static String tileInitialsOf(String name) {
     final words = name.trim().split(RegExp(r'\s+'));
     if (words.length != 1 || words.first.isEmpty) return initialsOf(name);
     var runes = _withoutLatinArticle(words.first).runes.toList();
     final first = _initialRune(runes);
     runes = runes.sublist(runes.indexOf(first));
-    final letters = runes.take(2).map(String.fromCharCode);
-    return runes.any(_isArabic)
-        ? letters.join(String.fromCharCode(_zeroWidthNonJoiner))
-        : letters.join().toUpperCase();
+    if (runes.any(_isArabic)) return _arabicInitial(words.first);
+    return runes.take(2).map(String.fromCharCode).join().toUpperCase();
   }
 
   static int _initialRune(List<int> word) {
@@ -92,25 +117,45 @@ class BvAvatar extends StatelessWidget {
     return article == 'al' || article == 'el' ? word.substring(dash + 1) : word;
   }
 
+  /// The 18 avatar holds one Latin letter; an Arabic name keeps what
+  /// [initialsOf] gives, so an alef name still shows two ("إ" alone reads
+  /// as "!", review 46).
+  static String _smallestInitials(String name) {
+    final initials = initialsOf(name);
+    if (initials.runes.any(_isArabic)) return initials;
+    return initials.characters.take(1).toString();
+  }
+
   static bool _isArabic(int rune) =>
       rune >= _arabicFirst && rune <= _arabicLast;
 
-  // Unicode Arabic block, the letters of the prefixes, and the mark that
-  // stops letters joining.
+  // Unicode Arabic block and the letters of the prefixes.
   static const _arabicFirst = 0x0600;
   static const _arabicLast = 0x06FF;
   static const _alef = 0x0627;
+
+  /// ا أ إ آ.
+  static const _alefs = {_alef, 0x0623, 0x0625, 0x0622};
   static const _lam = 0x0644;
   static const _prefixLength = 2;
-  static const _zeroWidthNonJoiner = 0x200C;
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final d = dimension(size);
     final style = switch (size) {
-      BvAvatarSize.sm => type.labelSm,
-      BvAvatarSize.md => type.labelMd,
+      // 18 holds one letter in the smallest type (12 spills out, a Figma slip).
+      BvAvatarSize.xxs => type.metadata.copyWith(
+        fontSize: BvAvatarSpec.xxsInitials,
+        height: 1,
+      ),
+      BvAvatarSize.note => type.labelSm.copyWith(
+        fontSize: BvAvatarSpec.noteInitials,
+        height: 1,
+      ),
+      BvAvatarSize.xs || BvAvatarSize.list || BvAvatarSize.sm => type.labelSm,
+      BvAvatarSize.xsm => type.labelMd,
+      BvAvatarSize.md || BvAvatarSize.profile => type.labelMd,
       BvAvatarSize.lg => type.titleLg,
       BvAvatarSize.xl => type.headingXl,
     };
@@ -126,7 +171,7 @@ class BvAvatar extends StatelessWidget {
         height: d,
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
-          color: BvColors.surfaceSubtle,
+          color: tint ?? BvColors.surfaceSubtle,
           shape: image == null
               ? shape.copyWith(
                   side: const BorderSide(
@@ -143,7 +188,11 @@ class BvAvatar extends StatelessWidget {
         child: image == null
             ? ExcludeSemantics(
                 child: Text(
-                  twoLetters ? tileInitialsOf(name) : initialsOf(name),
+                  size == BvAvatarSize.xxs
+                      ? _smallestInitials(name)
+                      : twoLetters
+                      ? tileInitialsOf(name)
+                      : initialsOf(name),
                   maxLines: 1,
                   style: style.copyWith(color: BvColors.textPrimary),
                 ),

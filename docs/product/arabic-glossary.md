@@ -14,7 +14,9 @@
 | Owner (of a work item) | المكلّف |
 | Sign as done | وقّع كمنجز |
 | Done | منجز |
-| Checked | تم الفحص |
+| Checked | تم التحقق |
+| Check (the action) | تحقّق |
+| Double-tap the photo to check it | انقر مرتين على الصورة للتحقق |
 | Send back | إرجاع |
 | Lead / Crew / Viewer | مسؤول / فريق تنفيذ / مُطّلع |
 | Pass | تصريح |
@@ -31,3 +33,5 @@
 | Work (tab) | العمل |
 
 "Owner" of a work item is المكلّف, not مسؤول, so that it doesn't clash with the Lead pass.
+
+**18 Oct (founder, review 50 F14):** "Checked" is **تم التحقق**, not تم الفحص: it fits office work (drawings, submittals) as well as site work. Avoid مُراجَع (too close to مُرجَع, Sent back) and مُعتمد (a formal approval; approval codes are out of the MVP).

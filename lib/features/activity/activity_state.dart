@@ -24,12 +24,6 @@ final needsCardsProvider = FutureProvider.autoDispose<List<NeedsCard>>(
   (ref) => ref.watch(activityRepositoryProvider).needs(),
 );
 
-final homeDayProvider = FutureProvider.autoDispose<HomeDay>(
-  (ref) => ref
-      .watch(activityRepositoryProvider)
-      .homeDay(dayStartOf(ref.watch(clockProvider)())),
-);
-
 final todayInSpacesProvider = FutureProvider.autoDispose<List<SpaceToday>>(
   (ref) => ref
       .watch(activityRepositoryProvider)
@@ -40,7 +34,6 @@ final todayInSpacesProvider = FutureProvider.autoDispose<List<SpaceToday>>(
 /// Home and Activity read again.
 void refreshDay(void Function(ProviderOrFamily) invalidate) {
   invalidate(needsCardsProvider);
-  invalidate(homeDayProvider);
   invalidate(todayInSpacesProvider);
   invalidate(unreadActivityProvider);
 }

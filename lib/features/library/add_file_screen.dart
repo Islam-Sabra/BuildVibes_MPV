@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
-import '../../core/routing/app_routes.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/library.dart';
@@ -26,19 +25,10 @@ import 'library_parts.dart';
 /// or photo, its title, who sees it (Everyone or one Team), a revision
 /// label and a note. Pops with the new file's id.
 class AddFileScreen extends ConsumerStatefulWidget {
-  const AddFileScreen({
-    super.key,
-    required this.spaceId,
-    this.supersedesId,
-    this.forTeam,
-  });
+  const AddFileScreen({super.key, required this.spaceId, this.supersedesId});
 
   final String spaceId;
   final String? supersedesId;
-
-  /// Fixes who sees it (a Team id, or [AppRoutes.forEveryone]): a file
-  /// attached to a work item must fit that item.
-  final String? forTeam;
 
   @override
   ConsumerState<AddFileScreen> createState() => _AddFileScreenState();
@@ -51,9 +41,7 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
   PhoneFile? _file;
 
   /// Null is Everyone.
-  late String? _teamId = widget.forTeam == AppRoutes.forEveryone
-      ? null
-      : widget.forTeam;
+  String? _teamId;
   String? _error;
   var _saving = false;
   var _teamFromOlder = false;
@@ -211,7 +199,7 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
             controller: _name,
             maxLength: 120,
           ),
-          if (older == null && widget.forTeam == null && teams.isNotEmpty) ...[
+          if (older == null && teams.isNotEmpty) ...[
             Text(l10n.libraryFor, style: type.labelMd),
             // Everyone or one Team: one single choice (rule 6).
             BvChoiceList<String>(

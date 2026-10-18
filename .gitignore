@@ -43,8 +43,10 @@ ios/Flutter/flutter_export_environment.sh
 ios/Runner/GeneratedPluginRegistrant.*
 **/xcuserdata/
 
-# Emulator screenshots for review (not committed)
-docs/screens/
+# Emulator screenshots for review (not committed), except slice 1's, which
+# the lead checks against Figma (review 43).
+docs/screens/*
+!docs/screens/slice1/
 
 # short-lived Figma download links
 docs/design/_fetch*
@@ -52,3 +54,4 @@ docs/design/_fetch*
 # Firebase app config (push, week 7 part 3): kept off GitHub
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+test_screens/failures/

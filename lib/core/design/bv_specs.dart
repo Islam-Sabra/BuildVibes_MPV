@@ -15,6 +15,13 @@ abstract final class BvStroke {
   static const thin = BvSpace.borderWidth; // 1
   static const medium = 1.5;
   static const thick = 2.0;
+  // The Daybook's inks: writing card (1.25), small stamps (1.6, 1.8),
+  // paper clip (2.2), the large proof stamp (2.5).
+  static const dash = 1.25;
+  static const stampXs = 1.6;
+  static const stampSm = 1.8;
+  static const clip = 2.2;
+  static const stampLg = 2.5;
 }
 
 abstract final class BvButtonSpec {
@@ -103,9 +110,23 @@ abstract final class BvChoiceCardSpec {
 }
 
 abstract final class BvAvatarSpec {
+  // The Daybook's small faces: properties line (18), an update (20), slip
+  // header (24), Home slip (28), the give-to list (30).
+  static const xxs = 18.0;
+  static const note = 20.0;
+  static const xs = 24.0;
+  static const xsm = 28.0;
+  static const list = 30.0;
+  static const xxsInitials = 9.0;
+
+  /// Two letters inside 20 (Figma's 12 spills over the edge).
+  static const noteInitials = 10.0;
   static const sm = BvSize.avatarSm; // 32
   static const md = BvSize.avatarMd; // 40
   static const lg = BvSize.avatarLg; // 56
+
+  /// The profile header in Daybook (R1 v4).
+  static const profile = 64.0;
   static const xl = BvSize.avatarXl; // 88
   static const companyRadiusSmall = BorderRadius.all(Radius.circular(8));
   static const companyRadiusLarge = BvRadius.cardAll; // 14
@@ -145,41 +166,19 @@ abstract final class BvStampSpec {
 
   /// −3° in left-to-right, +3° in right-to-left.
   static const tiltDegrees = 3.0;
-
-  // Large: the proof stamp across a site tag ("CHECKED · 10 OCT · …",
-  // review 10): about 30 high, a 2 px border, bold, −4°.
-  static const largeHeight = 30.0;
-  static const largePaddingHorizontal = BvSpace.s12;
-  static const largeTiltDegrees = 4.0;
 }
 
+/// The site tag's shape (a punched card), which the invite code card keeps.
 abstract final class BvSiteTagSpec {
   static const radius = BorderRadius.all(Radius.circular(16));
   static const border = BvStroke.medium;
   static const holeSize = 12.0;
   static const holeTop = BvSpace.s8;
-  static const headPaddingTop = 14.0;
-  static const headPaddingSide = BvSpace.s16;
-  static const headPaddingBottom = 10.0;
-  static const bodyPaddingSide = BvSpace.s16;
-  static const bodyPaddingBottom = 14.0;
-  static const bodyGap = BvSpace.s8;
-  static const placeIconSize = BvSize.iconSm; // 16
-  static const placeGap = BvSpace.s6;
-  static const cellPaddingVertical = 10.0;
-  static const cellPaddingHorizontal = BvSpace.s12;
-  static const cellGap = BvSpace.s4;
-  static const headGap = BvSpace.s8;
 }
 
 /// RE1 · the label column of the facts table.
 abstract final class BvDeliveredSpec {
   static const labelWidth = 96.0;
-}
-
-/// W4 · Sign DONE sheet.
-abstract final class BvSignDoneSpec {
-  static const thumb = 96.0;
 }
 
 /// A centred dialog for a choice that can't be undone (S15c Leave, S15e
@@ -200,28 +199,6 @@ abstract final class BvCodeTagSpec {
   static const paddingBottom = BvSpace.s16;
   static const gap = BvSpace.s8;
   static const codeLetterSpacing = 4.0;
-}
-
-abstract final class BvSignOffSpec {
-  static const labelGap = BvSpace.s8;
-  static const radius = BorderRadius.all(Radius.circular(12));
-  static const cellPaddingTop = 10.0;
-  static const cellPaddingSide = 10.0;
-  static const cellPaddingBottom = BvSpace.s12;
-  static const cellGap = BvSpace.s6;
-}
-
-abstract final class BvWorkItemCardSpec {
-  static const radius = BvRadius.cardAll; // 14
-  static const headerPaddingVertical = BvSpace.s12;
-  static const paddingHorizontal = BvSpace.s16;
-  static const bodyPaddingVertical = 14.0;
-  static const bodyGap = BvSpace.s4;
-  static const thumbSize = BvSize.avatarMd; // 40
-  static const thumbRadius = BorderRadius.all(Radius.circular(8));
-  static const evidenceGap = BvSpace.s8;
-  static const actionPaddingBottom = 14.0;
-  static const headerGap = BvSpace.s8;
 }
 
 abstract final class BvPassCardSpec {
@@ -363,18 +340,9 @@ abstract final class BvToastSpec {
   static const lift = BvButtonSpec.heightLarge + BvSpace.s16 * 2;
 }
 
-/// Post cards (H1 v2) and the composer (C1, C2).
+/// Post cards on Home (H1 v3).
 abstract final class BvPostSpec {
-  /// One photo: its own shape, kept between these.
-  static const photoAspect = 4 / 3;
-  static const photoMinAspect = 0.8;
-  static const photoMaxAspect = 1.8;
   static const photoGap = BvSpace.s2;
-
-  /// The composer's photo tiles and "Start from" tiles.
-  static const composerPhoto = 80.0;
-  static const templateHeight = 132.0;
-  static const maxPhotos = 4;
 
   /// Shown at most while the first page loads (H4), then the copy kept on
   /// the phone, if any.
@@ -386,11 +354,17 @@ abstract final class BvActivitySpec {
   /// On the Spaces tab label and the Activity tab icon. Never a number.
   static const newDot = BvSpace.s6;
 
-  /// The REV letter marker on each Activity row.
-  static const letterMarker = BvSize.iconLg; // 24
-
   static const needsOnHome = 3;
-  static const todayRows = 5;
+
+  /// F10: a Needs you card and a Your Spaces row are easy to hit.
+  static const cardMinHeight = 64.0;
+  static const cardPadding = BvSpace.s12;
+  static const cardPaddingStart = BvSpace.s16;
+  static const cardGap = BvSpace.s12;
+  static const lineGap = BvSpace.s2;
+
+  /// Home → Spaces: New Space and Enter an invite code above the list.
+  static const actionsGap = BvSpace.s8;
 }
 
 /// Week 7 part 3: Settings → Notifications (S3, S4).
@@ -403,4 +377,34 @@ abstract final class BvPushSpec {
 /// S11 and S14: the message sits in the upper third, as drawn.
 abstract final class BvAccountSpec {
   static const resultAlignment = Alignment(0, -0.45);
+}
+
+/// F9: "Notifications aren't reaching this phone", a quiet line with Fix
+/// it, on Home and in Settings → Notifications. No Figma frame: the Due
+/// today strip's build, in the subtle surface.
+abstract final class BvQuietLineSpec {
+  static const paddingStart = BvSpace.gutter;
+
+  /// Fix it's tap area reaches nearly to the edge.
+  static const paddingEnd = BvSpace.s4;
+  static const gap = BvSpace.s8;
+  static const icon = BvSize.iconSm;
+  static const actionPadding = BvSpace.s12;
+}
+
+/// F11: the "New" chip when new entries arrive while the reader is away
+/// from Now (the Daybook's bottom, the Home feed's top).
+abstract final class BvNewChipSpec {
+  static const height = BvSpace.s32;
+  static const paddingHorizontal = BvSpace.s12;
+  static const gap = BvSpace.s4;
+  static const icon = BvSize.iconSm;
+  static const tapPadding = (BvSize.touchMin - height) / 2;
+
+  /// From the list's edge at Now.
+  static const offset = BvSpace.s12;
+
+  /// Further than this from Now, the reader is up in older entries: new
+  /// ones wait behind the chip instead of moving the page.
+  static const awayFromNow = BvSpace.s64 + BvSpace.s32;
 }

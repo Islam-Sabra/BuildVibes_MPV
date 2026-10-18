@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/ago.dart';
@@ -13,7 +14,7 @@ import '../../data/repositories/activity_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_button.dart';
-import '../../shared/widgets/bv_stamp.dart';
+import '../../shared/widgets/bv_space_tile.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -177,8 +178,8 @@ class _Lists extends StatelessWidget {
   }
 }
 
-/// One group: its title and line, the REV stamp of its latest letter, and
-/// its rows.
+/// One group: its title and line, then its rows. A Space's group starts
+/// with the Space's tile, and its title opens the Space (F13).
 class _Group extends StatelessWidget {
   const _Group({required this.rows});
 
@@ -189,7 +190,7 @@ class _Group extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final first = rows.first;
-    final latest = rows.map((r) => r.seq).reduce((a, b) => a > b ? a : b);
+    final space = first.group == ActivityGroupKind.space ? first.spaceId : null;
     final (title, line) = switch (first.group) {
       ActivityGroupKind.space => (
         inOwnDirection(first.spaceName ?? ''),
@@ -210,36 +211,39 @@ class _Group extends StatelessWidget {
         key: Key('activity-group-${first.groupKey}'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(
-              BvSpace.s16,
-              BvSpace.s12,
-              BvSpace.s12,
-              BvSpace.s8,
-            ),
-            child: Row(
-              spacing: BvSpace.s8,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: type.titleMd),
-                      if (line != null)
-                        Text(
-                          line,
-                          style: type.metadata.copyWith(
-                            color: BvColors.textSecondary,
+          InkWell(
+            key: Key('activity-group-open-${first.groupKey}'),
+            onTap: space == null
+                ? null
+                : () => context.push(AppRoutes.space(space)),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                BvSpace.s16,
+                BvSpace.s12,
+                BvSpace.s12,
+                BvSpace.s8,
+              ),
+              child: Row(
+                spacing: BvSpace.s8,
+                children: [
+                  if (space != null) BvSpaceTile(name: first.spaceName ?? ''),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: type.titleMd),
+                        if (line != null)
+                          Text(
+                            line,
+                            style: type.metadata.copyWith(
+                              color: BvColors.textSecondary,
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                BvStamp(
-                  label: l10n.activityRev(revLetter(latest)),
-                  tone: BvStampTone.ink,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           for (final r in rows) _Row(row: r),
@@ -343,32 +347,30 @@ class _Row extends ConsumerWidget {
       ),
     };
 
-    void open() {
-      final space = row.spaceId;
-      final itemId = row.workItemId;
-      final post = row.postId;
-      final actor = row.actorId;
-      switch (row.kind) {
-        case ActivityKind.joinRequest when space != null:
-          context.push(AppRoutes.space(space), extra: SpaceOpen.people);
-        case ActivityKind.joinConfirmed when space != null:
-          context.push(AppRoutes.space(space));
-        case ActivityKind.roleConfirmed:
-          context.go(AppRoutes.profile);
-        case ActivityKind.contentRemoved || ActivityKind.appealDecided
-            when row.removalId != null:
-          context.push(AppRoutes.removal(row.removalId!));
-        case ActivityKind.follow when actor != null:
-          context.push('${AppRoutes.people}/$actor');
-        case ActivityKind.postReply || ActivityKind.postUseful
-            when post != null:
-          context.push(AppRoutes.post(post));
-        case _ when space != null && itemId != null:
-          context.push(AppRoutes.workItem(space, itemId));
-        case _:
-          break;
-      }
-    }
+    // What the row is about (F13): never a dead end.
+    final space = row.spaceId;
+    final post = row.postId;
+    final actor = row.actorId;
+    final removal = row.removalId;
+    final VoidCallback? open = switch (row.kind) {
+      ActivityKind.joinRequest when space != null => () => context.push(
+        AppRoutes.space(space),
+        extra: SpaceOpen.people,
+      ),
+      ActivityKind.roleConfirmed => () => context.go(AppRoutes.profile),
+      ActivityKind.contentRemoved || ActivityKind.appealDecided
+          when removal != null =>
+        () => context.push(AppRoutes.removal(removal)),
+      ActivityKind.follow when actor != null => () => context.push(
+        '${AppRoutes.people}/$actor',
+      ),
+      ActivityKind.postReply || ActivityKind.postUseful when post != null =>
+        () => context.push(AppRoutes.post(post)),
+      // A work item lives on its Space's daybook (the exact slip comes in
+      // slice 10); a confirmed join opens the Space.
+      _ when space != null => () => context.push(AppRoutes.space(space)),
+      _ => null,
+    };
 
     return InkWell(
       key: Key('activity-row-${row.id}'),
@@ -377,14 +379,29 @@ class _Row extends ConsumerWidget {
         padding: const EdgeInsetsDirectional.fromSTEB(
           BvSpace.s16,
           BvSpace.s8,
-          BvSpace.s16,
+          BvSpace.s12,
           BvSpace.s12,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: BvSpace.s12,
+          spacing: BvSpace.s8,
           children: [
-            _Letter(letter: revLetter(row.seq), read: row.read),
+            // Unread: a small orange dot, as on the Activity tab.
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: BvSpace.s8),
+              child: SizedBox.square(
+                dimension: BvActivitySpec.newDot,
+                child: row.read
+                    ? null
+                    : const DecoratedBox(
+                        key: Key('activity-unread'),
+                        decoration: BoxDecoration(
+                          color: BvColors.iconAction,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+              ),
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,36 +433,13 @@ class _Row extends ConsumerWidget {
               formatShortAgo(l10n, row.createdAt.toLocal(), now, locale),
               style: type.metadata.copyWith(color: BvColors.textSecondary),
             ),
+            if (open != null)
+              const Icon(
+                BvIcons.caretForward,
+                size: BvSize.iconSm,
+                color: BvColors.iconSecondary,
+              ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The row's REV letter: ink-filled while unread, outlined once read.
-class _Letter extends StatelessWidget {
-  const _Letter({required this.letter, required this.read});
-
-  final String letter;
-  final bool read;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: Key(read ? 'letter-read' : 'letter-unread'),
-      width: BvActivitySpec.letterMarker,
-      height: BvActivitySpec.letterMarker,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: read ? Colors.transparent : BvColors.brandInk,
-        shape: BoxShape.circle,
-        border: Border.all(color: BvColors.brandInk, width: BvStroke.thin),
-      ),
-      child: Text(
-        letter,
-        style: BvType.latin.labelSm.copyWith(
-          color: read ? BvColors.brandInk : BvColors.textInverse,
         ),
       ),
     );

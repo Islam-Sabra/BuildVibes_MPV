@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -46,4 +48,20 @@ Future<void> initCrashReports() async {
     );
     return true;
   };
+}
+
+/// F9: a phone that got no push token after all its tries, as one
+/// non-fatal report with no message, no user id and no keys, so the pilot
+/// shows how many phones are affected (Crashlytics counts them by model).
+/// Release builds only, like every crash report.
+void reportNoPushToken() {
+  if (Firebase.apps.isEmpty || !kReleaseMode) return;
+  unawaited(
+    FirebaseCrashlytics.instance.recordError(
+      const ScrubbedError('PushNoToken'),
+      null,
+      fatal: false,
+      printDetails: false,
+    ),
+  );
 }

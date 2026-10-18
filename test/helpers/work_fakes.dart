@@ -4,23 +4,28 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
 
-/// Work items with no network. [needsBySpace] stands in for the server's
-/// needs_you(): tests say what needs the signed-in person.
+/// Work items with no network: the chat cards' items, sign-offs, checks,
+/// send-backs, updates and give-to, recorded in [calls].
 class FakeWorkRepository implements WorkRepository {
   final itemsBySpace = <String, List<WorkItem>>{};
-  final needsBySpace = <String, WorkNeeds>{};
-  final details = <String, WorkItemDetail>{};
-  final created = <NewWorkItem>[];
   final uploads = <String>[];
   final calls = <String>[];
 
   /// The next calls fail as if the signal dropped.
   int failNext = 0;
-  String? nextRefValue = 'KCT-006';
 
-  /// The next creates or sign-offs fail as if the signal dropped (uploads
+  /// The next sign-offs fail as if the signal dropped (uploads
   /// still work).
   int failSendNext = 0;
+
+  /// The server says no to sign-offs, checks and send-backs with this
+  /// (not a lost signal).
+  SpaceException? refuse;
+
+  void _maybeRefuse() {
+    final e = refuse;
+    if (e != null) throw e;
+  }
 
   /// Uploads the server cleaned up: sending them is refused as bad input.
   final cleanedUp = <String>{};
@@ -47,20 +52,10 @@ class FakeWorkRepository implements WorkRepository {
   Future<List<WorkItem>> items(String spaceId) async =>
       List.of(itemsBySpace[spaceId] ?? const []);
 
-  @override
-  Future<WorkNeeds> needs(String spaceId) async =>
-      needsBySpace[spaceId] ?? const WorkNeeds();
-
   /// No network in tests: cards show the photo placeholder.
   @override
   Future<String> photoUrl(String path) async =>
       throw const SpaceException(SpaceFailure.network);
-
-  @override
-  Future<WorkItemDetail?> detail(String itemId) async => details[itemId];
-
-  @override
-  Future<String?> nextRef(String spaceId) async => nextRefValue;
 
   @override
   Future<String> uploadPhoto(String spaceId, String itemId, File file) async {
@@ -68,12 +63,6 @@ class FakeWorkRepository implements WorkRepository {
     final path = '$spaceId/$itemId/photo-${uploads.length + 1}.jpg';
     uploads.add(path);
     return path;
-  }
-
-  @override
-  Future<void> createItem(NewWorkItem item) async {
-    _maybeFailSend(item.photos.map((p) => p.path));
-    created.add(item);
   }
 
   @override
@@ -96,18 +85,27 @@ class FakeWorkRepository implements WorkRepository {
     List<WorkPhoto> photos = const [],
   }) async {
     _maybeFailSend(photos.map((p) => p.path));
+    _maybeRefuse();
     calls.add('done $itemId ${note ?? ''} ${photos.length}');
   }
 
   @override
-  Future<void> checkItem(String itemId) async => calls.add('check $itemId');
+  Future<void> checkItem(String itemId) async {
+    _maybeFail();
+    _maybeRefuse();
+    calls.add('check $itemId');
+  }
 
   @override
   Future<void> sendBack(
     String itemId,
     SendBackReason reason, {
     String? note,
-  }) async => calls.add('back $itemId ${reason.json} ${note ?? ''}');
+  }) async {
+    _maybeFail();
+    _maybeRefuse();
+    calls.add('back $itemId ${reason.json} ${note ?? ''}');
+  }
 
   @override
   Future<void> setShown(String itemId, bool shown) async {

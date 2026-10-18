@@ -332,7 +332,13 @@ void main() {
       await pumpApp(tester, language: lang);
       await _openMySpaces(tester);
       await _tap(tester, 'spaces-create');
-      expect(find.text(l10n.spacesNewTitle), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('create-sheet')),
+          matching: find.text(l10n.spacesNewTitle),
+        ),
+        findsOneWidget,
+      );
       await _tap(tester, 'create-enter-code');
       expect(find.byKey(const Key('code-sheet')), findsOneWidget);
     });
