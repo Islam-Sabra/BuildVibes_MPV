@@ -180,3 +180,9 @@ The founder compared Omar's screens (emulator, Arabic) with what was agreed: tex
   - If the entry is older than the loaded page, load around it (by its cursor), not from Now.
   - If it was deleted, open the Space with a short "This entry was removed".
 - **Test:** an Activity row for an entry three days old opens with that slip on screen and highlighted, in EN and AR.
+
+## F21. The attach button only opens the photo gallery
+- **What happened:** in the writing card, attach (📎) opens the phone's pictures only, while the founder expects attachments (PDF, documents, drawings). The camera button opens the camera, which is correct.
+- **Expected (daybook.md: a work item has "files"):** attach opens a small choice: **Photo from gallery** or **File** (PDF, Office documents, images). A file goes into the Space's Library and is shown on the slip with its name and revision (`attachments` in `daybook_post_json`, review 45).
+- **When:** with **slice 2**, which builds the file post and file upload, not as a slice 1 fix. Slice 1 shows the gallery only. The server side (Library, `space-files`) is already live.
+- **Proof photos stay camera only** (founder's decision, review 47). This choice is for attachments to a post, never for the proof of "Sign as done".
