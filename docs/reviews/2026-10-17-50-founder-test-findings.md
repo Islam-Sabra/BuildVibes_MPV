@@ -229,8 +229,19 @@ Claude Code saw NST-006 on live with no place, due date or time and reported the
 - **In code:** the daybook masthead uses `displayBrand`; `spaces_day_tab.dart` uses `headingXl`; `activity_screen.dart` and `profile_parts.dart` use `headingLg` for titles. Each moves to the rule above. A test fails if a file outside `entry/` and the three exceptions uses `displayBrand`, `headingXl` or `headingLg`.
 - **Check:** the lead compares every built screen with the rule (EN and AR) in the next review, with screenshots.
 
-## Retest results so far (steps 1–6)
+## F28. Home → Spaces: works, four details to fix
+Step 9 on the founder's phone: one compact date line ✓; New Space and Enter an invite code ✓; Needs you cards with the Space name first and Open on the end side ✓; every Space once ✓.
+- **The second button is cut:** "Enter an invite co…". Use **"Join with a code"** (Arabic **"انضم برمز"**), and let both buttons share the width equally with no truncation in EN or AR at the new main size.
+- **Two orange "Open" buttons.** The whole card already opens the item, and only the screen's main action gets the full orange fill (daybook rule 6). Replace "Open" with a quiet **›** on the end side.
+- **The same Space name repeats** on each Needs you card. Group by Space, as review 48 said: the Space name and emblem once, then its items under it as rows (what happened, ref and time, ›).
+- **Wording and missing time:**
+  - "Omar Haddad commented on NST-006" → **"Omar Haddad added an update · NST-006: fix door closer"**, the daybook's word;
+  - a Space with nothing new ("Test site") still shows the time of its last activity, as F10 says;
+  - the Space tile uses the Space's floor-plan emblem, as in the Space header, not a letter.
+
+## Retest results so far (steps 1–9)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
+- **Step 8, no signal:** "Waiting to send", then one slip once the signal returned, with the due date, time and place (F17 ✓; F22 confirmed not a bug).
 - **Undo after "Send as done" (F7):** Undo at 1.2 s sent nothing and brought back the proof screen with the photo. Left alone, the sign-off reached the server after exactly 5 seconds.
 - **Pushes to the emulator:** sent on live with no error. They didn't reach the emulator because its Play services connection had gone stale after the PC changed networks. After switching the emulator's network off and on, the push landed within 6 seconds. Not an app bug.
 
