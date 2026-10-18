@@ -1,6 +1,7 @@
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/bv_specs.dart';
+import 'package:buildvibes/core/l10n/bv_time.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/activity/activity_screen.dart';
@@ -15,6 +16,7 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/features/activity/needs_you_screen.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/shared/widgets/bv_button.dart';
+import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_needs_row.dart';
 import 'package:buildvibes/shared/widgets/bv_space_emblem.dart';
 import 'package:flutter/material.dart';
@@ -118,6 +120,9 @@ ActivityRow _row(
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
+    // When a row happened, in the app's one time format (review 54 A1).
+    String moment(DateTime at) =>
+        BvTime(l10n, lang, use24: false).moment(at, testNow);
 
     testWidgets('H1b (F10): one line, the date and what needs you; no '
         'title and no other counts [$lang]', (tester) async {
@@ -130,21 +135,26 @@ void main() {
       );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
-      final header = tester
-          .widget<RichText>(
-            find
-                .descendant(
-                  of: find.byKey(const Key('home-day-header')),
-                  matching: find.byType(RichText),
-                )
-                .first,
+      final texts = tester
+          .widgetList<RichText>(
+            find.descendant(
+              of: find.byKey(const Key('home-day-header')),
+              matching: find.byType(RichText),
+            ),
           )
-          .text
-          .toPlainText();
-      // Sunday 11 October 2026, Western digits in both languages.
-      expect(header, contains(lang == 'ar' ? 'الأحد' : 'SUNDAY'));
+          .map((r) => r.text.toPlainText())
+          .toList();
+      final header = texts.join(' ');
+      // Sunday 11 October 2026, Western digits in both languages, as Feed
+      // and the daybook write it: no capitals (review 54 A6).
+      expect(header, contains(lang == 'ar' ? 'الأحد' : 'Sunday'));
+      expect(header, isNot(contains('SUNDAY')));
       expect(header, contains('11'));
       expect(header, contains(l10n.homeNothingNeedsYou));
+      expect(
+        tester.widget(find.byKey(const Key('home-day-header'))),
+        isA<BvDaybookMasthead>(),
+      );
       // Today starts at the phone's midnight.
       expect(activity.askedFrom, DateTime(2026, 10, 11));
       expect(find.byKey(const Key('tab-dot-1')), findsNothing);
@@ -225,6 +235,26 @@ void main() {
         ),
         findsOneWidget,
       );
+      // In the action colour, after the bold day and the grey date (A6).
+      Color? colorOf(String text) {
+        Color? found;
+        for (final r in tester.widgetList<RichText>(
+          find.descendant(
+            of: find.byKey(const Key('home-day-header')),
+            matching: find.byType(RichText),
+          ),
+        )) {
+          r.text.visitChildren((span) {
+            if (span is TextSpan && span.text == text) {
+              found = span.style?.color ?? found;
+            }
+            return true;
+          });
+        }
+        return found;
+      }
+
+      expect(colorOf(l10n.homeDayNeedsYou(4)), BvColors.textAction);
       var shown = 0;
       for (final id in ['i1', 'i22', 'i333', 'r1']) {
         if (find.byKey(Key('needs-$id')).evaluate().isNotEmpty) shown++;
@@ -362,11 +392,21 @@ void main() {
         findsNothing,
       );
       expect(
-        find.descendant(of: one, matching: find.text(l10n.rowHoursAgo(2))),
+        find.descendant(
+          of: one,
+          matching: find.text(
+            moment(testNow.subtract(const Duration(hours: 2))),
+          ),
+        ),
         findsOneWidget,
       );
       expect(
-        find.descendant(of: two, matching: find.text(l10n.rowDaysAgo(3))),
+        find.descendant(
+          of: two,
+          matching: find.text(
+            moment(testNow.subtract(const Duration(days: 3))),
+          ),
+        ),
         findsOneWidget,
       );
       // Each Space's tile is its emblem, not a letter.
@@ -383,7 +423,9 @@ void main() {
           .where((t) => t.contains(RegExp('[0-9]')));
       expect(
         digits.where(
-          (t) => t != l10n.rowHoursAgo(2) && t != l10n.rowDaysAgo(3),
+          (t) =>
+              t != moment(testNow.subtract(const Duration(hours: 2))) &&
+              t != moment(testNow.subtract(const Duration(days: 3))),
         ),
         isEmpty,
       );
@@ -425,8 +467,11 @@ void main() {
         find.textContaining('Podium slab poured last night.'),
         findsOneWidget,
       );
-      // The row's time in the frame's form: "3h ago" / "قبل 3 ساعات".
-      expect(find.text(l10n.rowHoursAgo(3)), findsOneWidget);
+      // The row's time in the app's one format.
+      expect(
+        find.text(moment(testNow.subtract(const Duration(hours: 3)))),
+        findsOneWidget,
+      );
       await _tap(tester, 'home-space-space-1');
       expect(find.byType(ThreadScreen), findsOneWidget);
     });
@@ -457,7 +502,10 @@ void main() {
       );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
-      expect(find.text(l10n.rowYesterday), findsOneWidget);
+      expect(
+        find.text(moment(testNow.subtract(const Duration(days: 1)))),
+        findsOneWidget,
+      );
       final line = find.descendant(
         of: find.byKey(const Key('home-space-space-1')),
         matching: find.textContaining('Gate 3'),

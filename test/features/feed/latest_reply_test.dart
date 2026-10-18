@@ -2,12 +2,14 @@
 // replies: the latest reply's line with up to three faces, never a number;
 // a reply to you is bold until you open the post; the line opens the post
 // at that reply. H1 v4 2587:35849, AR 2588:412.
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/feed/feed_state.dart';
 import 'package:buildvibes/features/feed/post_screen.dart';
+import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_avatar.dart';
 import 'package:buildvibes/shared/widgets/bv_latest_reply.dart';
 import 'package:flutter/material.dart';
@@ -182,6 +184,69 @@ void main() {
       expect(bold(), isFalse);
       expect(span('Omar').style!.fontWeight, type.labelMd.fontWeight);
       expect(span('Seen').style!.color, BvColors.textSecondary);
+    });
+  }
+
+  for (final lang in ['en', 'ar']) {
+    testWidgets('review 54 A2: the post page: no reply line on the post; '
+        'each reply at the two sizes with 48-point Useful and Reply; "Write '
+        'a reply"; Useful is the seal-check [$lang]', (tester) async {
+      final l10n = lookupAppLocalizations(Locale(lang));
+      final type = lang == 'ar' ? BvType.arabic : BvType.latin;
+      final posts = _posts();
+      await pumpApp(tester, language: lang, posts: posts);
+      await tester.pumpAndSettle();
+      // The feed card: Useful with the seal-check, never a thumbs-up.
+      Icon iconIn(String key) => tester.widget<Icon>(
+        find.descendant(of: find.byKey(Key(key)), matching: find.byType(Icon)),
+      );
+      expect(iconIn('post-useful-p1').icon, BvIcons.useful);
+      expect(BvIcons.useful.codePoint, 0xe606);
+      expect(find.byKey(const Key('post-latest-reply-p1')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('post-latest-reply-p1')));
+      await tester.pumpAndSettle();
+      final page = find.byType(PostScreen);
+      expect(page, findsOneWidget);
+      // The replies are listed under the post: its card has no reply line.
+      expect(find.byKey(const Key('post-latest-reply-p1')), findsNothing);
+      expect(find.byType(BvLatestReply), findsNothing);
+      expect(iconIn('post-useful-p1').icon, BvIcons.useful);
+      expect(find.text(l10n.postReplies), findsOneWidget);
+      // The field asks for a reply, not a comment.
+      final field = tester.widget<TextField>(
+        find.byKey(const Key('post-reply-input')),
+      );
+      expect(field.decoration!.hintText, l10n.postWriteReply);
+      expect(l10n.postWriteReply, lang == 'ar' ? 'اكتب ردًا' : 'Write a reply');
+
+      TextStyle styleOf(Finder f) => tester
+          .widget<Text>(
+            find.descendant(of: f, matching: find.byType(Text)).first,
+          )
+          .style!;
+      for (final id in ['r1', 'r2']) {
+        await tester.ensureVisible(find.byKey(Key('reply-$id')));
+        await tester.pumpAndSettle();
+        final name = tester.widget<Text>(find.byKey(Key('reply-name-$id')));
+        expect(name.style!.fontSize, type.labelMd.fontSize);
+        expect(name.style!.fontWeight, type.labelMd.fontWeight);
+        final time = tester.widget<Text>(find.byKey(Key('reply-time-$id')));
+        expect(time.style!.fontSize, type.metadata.fontSize);
+        for (final action in ['useful', 'reply']) {
+          final key = find.byKey(Key('reply-$action-$id'));
+          expect(styleOf(key).fontSize, type.labelMd.fontSize);
+          final size = tester.getSize(key);
+          expect(size.width, greaterThanOrEqualTo(48));
+          expect(size.height, greaterThanOrEqualTo(48));
+        }
+      }
+      // A tap at the edge of the 48-point area still counts.
+      final useful = find.byKey(const Key('reply-useful-r1'));
+      final rect = tester.getRect(useful);
+      await tester.tapAt(Offset(rect.center.dx, rect.bottom - 2));
+      await tester.pumpAndSettle();
+      expect(posts.calls, contains('useful reply r1 true'));
     });
   }
 

@@ -124,9 +124,14 @@ void main() {
         find.textContaining(l10n.spacesAsked(l10n.timeHoursAgo(2))),
         findsOneWidget,
       );
-      // Owners, then Members with their pass and Teams.
-      expect(find.text(l10n.spacesOwners), findsOneWidget);
-      expect(find.text(l10n.spacesOwnerTag), findsOneWidget);
+      // The Space admins (the glossary's word, review 54 A4: the section
+      // and the admin's own line), then Members with their pass and Teams.
+      expect(
+        l10n.spacesAdminSection,
+        lang == 'ar' ? 'مدير المساحة' : 'Space admin',
+      );
+      expect(find.text(l10n.spacesAdminSection), findsNWidgets(2));
+      expect(find.text(l10n.spacesAdminTag), findsNWidgets(2));
       expect(find.text(l10n.spacesMembers), findsOneWidget);
       // The list builds lazily: bring Rakesh's row on screen.
       await tester.scrollUntilVisible(

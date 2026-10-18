@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguage => 'App language';
 
   @override
+  String get settingsLanguageRow => 'Language';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -880,9 +883,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesPrivateWork => 'Private work';
 
   @override
-  String get spacesProjectSpaceLine => 'Private work · project Space';
-
-  @override
   String get spacesEmptyTitle => 'Join your first Space';
 
   @override
@@ -1107,10 +1107,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesConfirm => 'Confirm';
 
   @override
-  String get spacesOwners => 'Owners';
+  String get spacesAdminSection => 'Space admin';
 
   @override
-  String get spacesOwnerTag => 'Owner';
+  String get spacesAdminTag => 'Space admin';
 
   @override
   String get spacesMembers => 'Members';
@@ -1968,9 +1968,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postNoReplies => 'No replies yet.';
 
   @override
-  String get postAddComment => 'Add a comment';
-
-  @override
   String get postWriteReply => 'Write a reply';
 
   @override
@@ -2024,19 +2021,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectPostsEmpty => 'No posts tagged with this project yet.';
-
-  @override
-  String get timeNowShort => 'now';
-
-  @override
-  String timeMinutesShort(int n) {
-    return '${n}m';
-  }
-
-  @override
-  String timeHoursShort(int n) {
-    return '${n}h';
-  }
 
   @override
   String homeDayNeedsYou(int n) {
@@ -2275,39 +2259,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ledgerAddProject => 'Add a project you worked on';
-
-  @override
-  String get rowJustNow => 'Just now';
-
-  @override
-  String rowMinutesAgo(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n min ago',
-      one: '1 min ago',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String rowHoursAgo(int n) {
-    return '${n}h ago';
-  }
-
-  @override
-  String get rowYesterday => 'Yesterday';
-
-  @override
-  String rowDaysAgo(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n days ago',
-      one: '1 day ago',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settingsNotifications => 'Notifications';
@@ -2618,62 +2569,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsViewProfile => 'View profile';
 
   @override
-  String get settingsInWords => 'YOUR SETTINGS, IN WORDS';
-
-  @override
-  String get settingsPrivacyLabel => 'PRIVACY';
-
-  @override
-  String get settingsNotificationsLabel => 'NOTIFICATIONS';
-
-  @override
   String get settingsLanguageLabel => 'LANGUAGE';
-
-  @override
-  String wordsBlocked(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n blocked accounts',
-      one: '1 blocked account',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String wordsPrivacy(String what) {
-    return '$what. Work items, chat and the Library stay inside each Space.';
-  }
-
-  @override
-  String wordsNotifications(String followers, String replies, String lockText) {
-    return 'New followers: $followers. Replies: $replies. Message text on the lock screen: $lockText.';
-  }
-
-  @override
-  String get wordsOn => 'on';
-
-  @override
-  String get wordsOff => 'off';
-
-  @override
-  String get wordsShown => 'shown';
-
-  @override
-  String get wordsHidden => 'hidden';
-
-  @override
-  String wordsLanguage(String language, String weekday, String country) {
-    return '$language. The week starts on $weekday, in $country time.';
-  }
-
-  @override
-  String wordsLanguageOnly(String language) {
-    return '$language.';
-  }
-
-  @override
-  String get settingsAccountSection => 'ACCOUNT';
 
   @override
   String get accountSecurity => 'Account and security';
@@ -2686,9 +2582,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageRegion => 'Language and region';
-
-  @override
-  String get supportSection => 'SUPPORT';
 
   @override
   String get helpFeedback => 'Help and feedback';
@@ -3004,7 +2897,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookFirstInvite => 'Invite your team';
 
   @override
-  String daybookClock12(String time, String period) {
+  String daybookStampBy(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String timePeriod(String period) {
     String _temp0 = intl.Intl.selectLogic(period, {
       'morning': 'am',
       'noon': 'pm',
@@ -3012,12 +2910,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'evening': 'pm',
       'other': 'pm',
     });
-    return '$time $_temp0';
+    return '$_temp0';
   }
 
   @override
-  String daybookStampBy(String name, String time) {
-    return '$name · $time';
+  String timeClock12(String time, String period) {
+    return '$time $period';
   }
 
   @override
@@ -3448,6 +3346,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookLineYouUpdate => 'You added an update';
+
+  @override
+  String get daybookLineYouComment => 'You';
+
+  @override
+  String daybookLineComment(String name) {
+    return '$name';
+  }
 
   @override
   String daybookLineGave(String name, String to, String from) {

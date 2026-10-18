@@ -32,7 +32,7 @@ BvSlip _slip({
     BvSlipHeader(
       name: 'Omar Haddad',
       ref: '· KCT-014',
-      time: '10:56',
+      time: (time: '10:56', period: null),
       tint: BvAvatarTints.green,
     ),
     BvSlipTitle('Fix sleeves', cancelled: cancelled),

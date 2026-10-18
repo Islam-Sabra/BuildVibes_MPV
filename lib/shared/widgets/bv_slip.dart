@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_paper_specs.dart';
+import '../../core/l10n/bv_time.dart';
 import 'bv_avatar.dart';
+import 'bv_clock_text.dart';
 import 'bv_paper_clip.dart';
 import 'bv_tap_target.dart';
 import 'bv_torn_edge.dart';
@@ -180,7 +182,7 @@ class BvSlipCornerMenu extends StatelessWidget {
 
 /// §2a, v13 (2581:35658): avatar 24 in the person's tint, the name, the
 /// work item's [ref] ("· KCT-014") and, at the end, the [time] of the
-/// latest activity.
+/// latest activity (two lines in Arabic on a 12-hour phone).
 class BvSlipHeader extends StatelessWidget {
   const BvSlipHeader({
     super.key,
@@ -199,7 +201,9 @@ class BvSlipHeader extends StatelessWidget {
   /// the person's own initials.
   final String? label;
   final String? ref;
-  final String? time;
+
+  /// From [BvTime.parts].
+  final BvClockParts? time;
 
   /// [BvAvatarTints.forId] of the person.
   final Color? tint;
@@ -250,7 +254,7 @@ class BvSlipHeader extends StatelessWidget {
               ),
             ),
           ),
-          if (time != null) Text(time!, maxLines: 1, style: quiet),
+          if (time != null) BvClockText(time!, style: quiet),
         ],
       ),
     );

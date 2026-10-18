@@ -220,6 +220,30 @@ void main() {
       );
     });
 
+    // Review 54 A1: the same daybook on a 12-hour phone: "10:56 am" in
+    // English; in Arabic the part of the day on a small second line under
+    // the time (F15).
+    testWidgets("A1 Islam's daybook, 12-hour times [$lang]", (tester) async {
+      TestWidgetsFlutterBinding
+              .instance
+              .platformDispatcher
+              .alwaysUse24HourFormatTestValue =
+          false;
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'A1-times-12h',
+        lang,
+        _space,
+        overrides: await _overrides(
+          s,
+          posts: s.v13(),
+          me: DaybookSamples.islam,
+          now: _afterSignOff,
+        ),
+      );
+    });
+
     testWidgets("V13 Islam's daybook, scrolled to Wednesday [$lang]", (
       tester,
     ) async {

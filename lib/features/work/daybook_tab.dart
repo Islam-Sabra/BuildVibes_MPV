@@ -1240,7 +1240,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           words.eventPhrase(e, me: me, now: now, trace: true),
           t.card.post.title,
         ),
-        time: words.clock(e.at),
+        time: words.time.clock(e.at),
         onTap: _writing ? _stopWriting : () => unawaited(_openAt(t)),
       );
     }

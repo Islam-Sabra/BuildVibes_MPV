@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
-import '../../core/l10n/ago.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/l10n/bv_time.dart';
 import '../../core/l10n/months.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/activity.dart';
@@ -17,7 +16,7 @@ import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_space_emblem.dart';
-import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
+import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../activity/activity_state.dart';
 import '../activity/needs_card.dart' show needsTitle, openNeeds;
 import '../entry/entry_state.dart';
@@ -25,6 +24,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/code_sheet.dart';
 import '../spaces/my_spaces_view.dart';
+import '../work/daybook_words.dart';
 
 /// Home → Spaces (H1b, review 50 F3, F10 and F28): one line with the date
 /// and what needs you; New Space and Join with a code, sharing the width;
@@ -110,8 +110,9 @@ class SpacesDayTab extends ConsumerWidget {
   }
 }
 
-/// One small line: "SATURDAY 17 OCTOBER · 1 thing needs you" (F10). No
-/// title, no place, and no other counts.
+/// One line, as on Feed and the daybook (review 54 A6): the day in bold,
+/// the date in grey, then "· 2 things need you" in the action colour
+/// (F10). No capitals, no title, no place, and no other counts.
 class _Header extends ConsumerWidget {
   const _Header({required this.needs});
 
@@ -120,44 +121,19 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    final locale = Localizations.localeOf(context);
     final now = ref.watch(clockProvider)();
-    final date = BvWesternDigitsFormatter.normalise(
-      DateFormat('EEEE d MMMM', locale.languageCode).format(now),
-    ).toUpperCase();
-    final muted = type.labelSm.copyWith(color: BvColors.textSecondary);
-    return Text.rich(
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    return BvDaybookMasthead(
       key: const Key('home-day-header'),
-      TextSpan(
-        children: [
-          TextSpan(
-            text: date,
-            style: type.overline.copyWith(color: BvColors.textSecondary),
-          ),
-          TextSpan(text: ' · ', style: muted),
-          if (needs > 0) ...[
-            const WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(end: BvSpace.s6),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: BvColors.iconAction,
-                    shape: BoxShape.circle,
-                  ),
-                  child: SizedBox.square(dimension: BvActivitySpec.newDot),
-                ),
-              ),
-            ),
-            TextSpan(
-              text: l10n.homeDayNeedsYou(needs),
-              style: type.labelSm.copyWith(color: BvColors.textAction),
-            ),
-          ] else
-            TextSpan(text: l10n.homeNothingNeedsYou, style: muted),
-        ],
-      ),
+      weekday: words.weekday(now),
+      date: words.dayMonth(now),
+      padded: false,
+      after: needs > 0 ? l10n.homeDayNeedsYou(needs) : l10n.homeNothingNeedsYou,
+      afterAction: needs > 0,
     );
   }
 }
@@ -326,7 +302,7 @@ class _YourSpaces extends ConsumerWidget {
                 ),
                 if (lastAt(s) case final at?)
                   Text(
-                    formatRowAgo(l10n, at.toLocal(), now),
+                    BvTime.of(context).moment(at, now),
                     key: Key('home-space-time-${s.id}'),
                     style: type.metadata.copyWith(
                       color: BvColors.textSecondary,
@@ -400,7 +376,7 @@ class _NeedsBySpace extends ConsumerWidget {
       final due = c.due;
       final meta = joinMeta([
         if (c.workItemRef != null) ltrRun(c.workItemRef!),
-        formatRowAgo(l10n, c.at.toLocal(), now),
+        BvTime.of(context).moment(c.at, now),
         if (due != null) l10n.needsDue(formatDay(due, locale)),
       ]);
       return InkWell(

@@ -272,7 +272,8 @@ void main() {
       );
       await _tap(tester, 'entry-back');
       expect(find.byType(SpaceScreen), findsOneWidget);
-      expect(find.text(l10n.spacesProjectSpaceLine), findsOneWidget);
+      // The header says "Private work" only, linked or not (review 54 A4).
+      expect(find.text(l10n.spacesPrivateWork), findsOneWidget);
       expect(find.byKey(const Key('space-invite')), findsOneWidget);
     });
 

@@ -7,6 +7,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/l10n/bv_time.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/space.dart';
@@ -265,11 +266,7 @@ String listTime(
   final local = at.toLocal();
   final today = DateUtils.dateOnly(now);
   final day = DateUtils.dateOnly(local);
-  if (day == today) {
-    return BvWesternDigitsFormatter.normalise(
-      DateFormat.Hm(locale).format(local),
-    );
-  }
+  if (day == today) return BvTime.of(context).clock(at);
   if (today.difference(day).inDays == 1) return l10n.chatYesterday;
   return BvWesternDigitsFormatter.normalise(
     DateFormat('d MMM', locale).format(local),

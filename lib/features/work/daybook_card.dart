@@ -195,7 +195,7 @@ class DaybookCardView extends StatelessWidget {
                   ? l10n.daybookYou
                   : null,
               ref: ref == null ? null : l10n.daybookCardRef(ref),
-              time: words.clock(activityAt),
+              time: words.time.parts(activityAt),
               tint: authorId == null
                   ? BvAvatarTints.plain
                   : BvAvatarTints.forId(authorId),
@@ -330,7 +330,7 @@ class DaybookCardView extends StatelessWidget {
       name: personName(l10n, e.byName),
       lead: detail == null ? phrase : l10n.daybookHistoryLead(phrase),
       detail: detail,
-      time: words.clock(e.at),
+      time: words.time.parts(e.at),
       tint: by == null ? BvAvatarTints.plain : BvAvatarTints.forId(by),
     );
   }

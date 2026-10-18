@@ -144,7 +144,7 @@ void main() {
       expect(
         _inCard(
           'post-sleeves',
-          find.text(words.clock(DaybookSamples.sleevesDoneAt)),
+          find.text(words.time.parts(DaybookSamples.sleevesDoneAt).time),
         ),
         findsWidgets,
       );
@@ -264,7 +264,7 @@ void main() {
       // Wednesday: raised at 15:50, an update at 16:07; one trace, 16:07.
       expect(traces, findsOneWidget);
       final trace = tester.widget<BvTraceRow>(traces);
-      expect(trace.time, words.clock(DaybookSamples.sleevesWedUpdateAt));
+      expect(trace.time, words.time.clock(DaybookSamples.sleevesWedUpdateAt));
       expect(
         trace.text,
         l10n.daybookTrace(
@@ -359,8 +359,8 @@ void main() {
       // Monday (raised, then an update: the update) and Tuesday (its
       // latest), never today.
       expect(traces.map((t) => t.time), [
-        words.clock(monday.add(const Duration(hours: 9))),
-        words.clock(tuesday.add(const Duration(hours: 15))),
+        words.time.clock(monday.add(const Duration(hours: 9))),
+        words.time.clock(tuesday.add(const Duration(hours: 15))),
       ]);
       expect(find.byType(BvDayDivider, skipOffstage: false), findsNWidgets(3));
       // Monday's trace: the card opens with its whole history, at Monday.

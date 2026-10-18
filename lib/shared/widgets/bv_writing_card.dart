@@ -443,7 +443,9 @@ class _Properties extends StatelessWidget {
                       image: p.image,
                     ),
                   ),
-                Text(p.label, style: style),
+                // A long one ("الأحد 18 أكتوبر، 2:00 ظهرًا") wraps
+                // within the line instead of running off it.
+                Flexible(child: Text(p.label, style: style)),
               ],
             ),
           ),

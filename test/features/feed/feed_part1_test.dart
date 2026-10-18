@@ -3,6 +3,7 @@ import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/daybook_paper_specs.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
+import 'package:buildvibes/core/l10n/bv_time.dart';
 import 'package:buildvibes/data/models/market.dart';
 import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/data/models/profile.dart';
@@ -881,7 +882,15 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text(l10n.timeMinutesShort(4)), findsOneWidget);
+      // The reply's time in the app's one format (review 54 A1).
+      expect(
+        tester.widget<Text>(find.byKey(const Key('reply-time-r1'))).data,
+        BvTime(
+          l10n,
+          lang,
+          use24: false,
+        ).moment(testNow.subtract(const Duration(minutes: 4)), testNow),
+      );
       await _tap(tester, 'reply-useful-r1');
       expect(app.posts.calls.single, 'useful reply r1 true');
     });

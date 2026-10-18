@@ -23,8 +23,9 @@ import 'pass_words.dart';
 import 'space_errors.dart';
 import 'widgets/space_person_row.dart';
 
-/// S10k · Space People: search, the requests to join (admins only), then
-/// Owners (the Space admins) and Members. Teams come with part 3.
+/// S10k · Space People: search, the requests to join (admins only), the
+/// Teams (each with up to three faces, never a number: rule 3), then the
+/// Space admins and Members.
 class PeopleTab extends ConsumerStatefulWidget {
   const PeopleTab({super.key, required this.space});
 
@@ -182,7 +183,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     );
 
     String? memberLine(SpaceMember m) {
-      if (m.isAdmin) return l10n.spacesOwnerTag;
+      if (m.isAdmin) return l10n.spacesAdminTag;
       return joinMeta([
         l10n.spacesPassLine(passName(l10n, m.pass)),
         for (final t in data.teamsOf(m.person.id)) t.name,
@@ -258,10 +259,17 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                 key: Key('team-row-${teams[i].id}'),
                 leading: const BvRowIcon(BvIcons.team, ink: true),
                 title: teams[i].name,
-                // Team sizes inside a Space are fine (founder, 12 Oct).
-                subtitle: joinMeta([
-                  l10n.spacesTeamMembers(teams[i].memberIds.length),
-                  if (teams[i].memberIds.contains(me)) l10n.spacesInTeam,
+                subtitle: teams[i].memberIds.contains(me)
+                    ? l10n.spacesInTeam
+                    : null,
+                // Who is in it, never how many (review 54 A4).
+                trailing: BvRowTrailing.faces([
+                  for (final m in data.members)
+                    if (teams[i].memberIds.contains(m.person.id))
+                      (
+                        name: m.person.fullName,
+                        tint: BvAvatarTints.forId(m.person.id),
+                      ),
                 ]),
                 onTap: () =>
                     context.push(AppRoutes.spaceTeam(_spaceId, teams[i].id)),
@@ -286,7 +294,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
               ),
           ],
           if (owners.isNotEmpty) ...[
-            section(l10n.spacesOwners),
+            section(l10n.spacesAdminSection),
             for (var i = 0; i < owners.length; i++) ...[
               if (i > 0) const SpaceRowDivider(),
               SpacePersonRow(

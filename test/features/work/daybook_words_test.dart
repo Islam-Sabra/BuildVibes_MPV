@@ -62,7 +62,7 @@ void main() {
       expect(ar.meta(post, me: me, now: _thu), 'لك · قبل الساعة 14:00 اليوم');
       expect(
         _words('en', use24: false).meta(post, me: me, now: _thu),
-        'For you · by today 2 pm',
+        'For you · by today 2:00 pm',
       );
     });
 
@@ -184,7 +184,7 @@ void main() {
     test('by a time today: 12-hour as the AR frame, and 24-hour', () {
       expect(
         meta('ar', due(today, twoPm), _thu, use24: false),
-        'لك · قبل الساعة 2 ظهرًا اليوم',
+        'لك · قبل الساعة 2:00 ظهرًا اليوم',
       );
       expect(
         meta('ar', due(today, twoPm), _thu),
@@ -192,7 +192,7 @@ void main() {
       );
       expect(
         meta('en', due(today, twoPm), _thu, use24: false),
-        'For you · by today 2 pm',
+        'For you · by today 2:00 pm',
       );
       expect(meta('en', due(today, twoPm), _thu), 'For you · by today 14:00');
     });
@@ -205,48 +205,6 @@ void main() {
         meta('ar', due(today, twoPm), DateTime(2026, 10, 15, 15)),
         'لك · كان موعده الساعة 14:00 اليوم',
       );
-    });
-
-    test('the 12-hour clock: the part of the day in words', () {
-      String ar(int h, [int m = 0]) =>
-          _words('ar', use24: false).clock(DateTime(2026, 10, 15, h, m));
-      String en(int h, [int m = 0]) =>
-          _words('en', use24: false).clock(DateTime(2026, 10, 15, h, m));
-      expect(ar(8, 14), '8:14 صباحًا');
-      expect(ar(14), '2 ظهرًا');
-      expect(ar(16, 30), '4:30 عصرًا');
-      expect(ar(20), '8 مساءً');
-      expect(en(0, 5), '12:05 am');
-      expect(en(12), '12 pm');
-    });
-
-    test('review 46: the Arabic part of the day, at every boundary', () {
-      String ar(int h, int m) =>
-          _words('ar', use24: false).clock(DateTime(2026, 10, 15, h, m));
-      // 00:00–11:59 صباحًا
-      expect(ar(0, 0), '12 صباحًا');
-      expect(ar(11, 59), '11:59 صباحًا');
-      // 12:00–14:59 ظهرًا
-      expect(ar(12, 0), '12 ظهرًا');
-      expect(ar(14, 59), '2:59 ظهرًا');
-      // 15:00–17:59 عصرًا
-      expect(ar(15, 0), '3 عصرًا');
-      expect(ar(17, 59), '5:59 عصرًا');
-      // 18:00–23:59 مساءً
-      expect(ar(18, 0), '6 مساءً');
-      expect(ar(23, 59), '11:59 مساءً');
-    });
-
-    test('H1 v4: a post card shows the time today, then the day', () {
-      final now = DateTime(2026, 10, 15, 23, 59);
-      final en = _words('en', use24: false);
-      expect(en.feedTime(DateTime(2026, 10, 15, 13, 44), now), '1:44 pm');
-      expect(
-        _words('ar', use24: false).feedTime(DateTime(2026, 10, 15, 6, 10), now),
-        '6:10 صباحًا',
-      );
-      expect(en.feedTime(DateTime(2026, 10, 14, 23, 58), now), 'Wed');
-      expect(en.feedTime(DateTime(2026, 10, 2, 9), now), '2 Oct');
     });
 
     test("the large stamp's line: the short name in capitals, the time", () {
@@ -379,7 +337,7 @@ void main() {
       );
       expect(
         ar.eventPhrase(rebarAr, me: me, now: _thu),
-        'نُقل الموعد من الخميس إلى اليوم من قِبل سارة المطيري',
+        'سارة المطيري · تعديل الموعد: من الخميس إلى اليوم',
       );
       final timeOnly = ev(
         s,
@@ -406,7 +364,7 @@ void main() {
         en.eventPhrase(removed, me: me, now: _thu),
         'You took the due date off',
       );
-      expect(ar.eventPhrase(removed, me: me, now: _thu), 'أزلت الموعد');
+      expect(ar.eventPhrase(removed, me: me, now: _thu), 'أنت · إزالة الموعد');
     });
 
     test('a trace says what happened; an update is "added an update"', () {
@@ -422,7 +380,7 @@ void main() {
           now: _thu,
           trace: true,
         ),
-        'أضفت تحديثًا',
+        'أنت · تحديث',
       );
       expect(
         en.eventPhrase(
@@ -473,7 +431,7 @@ void main() {
       final done = ev(sAr, DaybookEventKind.done, DaybookSamples.sara);
       expect(
         ar.eventPhrase(done, me: me, now: _thu),
-        'وُقّع كمنجز من قِبل سارة المطيري',
+        'سارة المطيري · توقيع كمنجز',
       );
       expect(
         ar.eventPhrase(
@@ -481,16 +439,95 @@ void main() {
           me: me,
           now: _thu,
         ),
-        'أرجعته',
+        'أنت · إرجاع',
       );
     });
 
-    test('the clock follows the phone, with Western digits', () {
-      final t = DateTime(2026, 10, 15, 8, 14);
-      expect(_words('en').clock(t), '08:14');
-      expect(_words('ar').clock(t), '08:14');
-      expect(_words('en', use24: false).clock(t), '8:14 am');
-      expect(_words('ar', use24: false).clock(t), isNot(contains('٨')));
+    test('review 54 A3: the Arabic history in the ledger form, the name '
+        'first, then the action as a noun (2583:373)', () {
+      final l10n = lookupAppLocalizations(const Locale('ar'));
+      // The bold lead and the rest, as the card's line joins them.
+      // Read by Omar, Islam's lines carry his name; by Islam, "أنت".
+      String line(DaybookEvent e, {String reader = me}) {
+        final phrase = ar.eventPhrase(e, me: reader, now: _thu);
+        final detail = ar.eventDetail(e);
+        return detail == null
+            ? phrase
+            : '${l10n.daybookHistoryLead(phrase)} $detail';
+      }
+
+      String plain(String t) => t.replaceAll(RegExp('[\u2066-\u2069]'), '');
+      expect(
+        plain(
+          line(
+            ev(
+              sAr,
+              DaybookEventKind.done,
+              DaybookSamples.omar,
+              note: 'رُكّبت الست كلها.',
+            ),
+          ),
+        ),
+        'عمر حداد · توقيع كمنجز: رُكّبت الست كلها.',
+      );
+      expect(
+        plain(
+          line(
+            ev(
+              sAr,
+              DaybookEventKind.sentBack,
+              DaybookSamples.islam,
+              reason: SendBackReason.photoMissing,
+            ),
+            reader: DaybookSamples.omar,
+          ),
+        ),
+        'إسلام أحمد · إرجاع: ${l10n.daybookReasonPhotoMissing}',
+      );
+      expect(
+        plain(
+          line(
+            ev(
+              sAr,
+              DaybookEventKind.sentBack,
+              me,
+              reason: SendBackReason.photoMissing,
+            ),
+          ),
+        ),
+        'أنت · إرجاع: ${l10n.daybookReasonPhotoMissing}',
+      );
+      final moved = sAr.rebar().history.firstWhere(
+        (e) => e.kind == DaybookEventKind.edited,
+      );
+      expect(line(moved), 'سارة المطيري · تعديل الموعد: من الخميس إلى اليوم');
+      expect(
+        plain(
+          line(
+            ev(
+              sAr,
+              DaybookEventKind.comment,
+              DaybookSamples.omar,
+              note: 'وصلت الجلب. أركّبها الآن.',
+            ),
+          ),
+        ),
+        'عمر حداد · تحديث: وصلت الجلب. أركّبها الآن.',
+      );
+      expect(
+        line(
+          ev(sAr, DaybookEventKind.checked, DaybookSamples.islam),
+          reader: DaybookSamples.omar,
+        ),
+        'إسلام أحمد · تحقّق',
+      );
+      // No passive "من قِبل" anywhere.
+      for (final kind in DaybookEventKind.values) {
+        expect(
+          ar.eventPhrase(ev(sAr, kind, DaybookSamples.omar), me: me, now: _thu),
+          isNot(contains('قِبل')),
+        );
+      }
     });
   });
 

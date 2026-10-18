@@ -12,6 +12,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/l10n/bv_time.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/library.dart';
@@ -620,9 +621,7 @@ class _EntryView extends ConsumerWidget {
     final type = BvType.of(context);
     final now = ref.watch(clockProvider)();
     final locale = Localizations.localeOf(context).toLanguageTag();
-    String time(DateTime t) => BvWesternDigitsFormatter.normalise(
-      DateFormat.Hm(locale).format(t.toLocal()),
-    );
+    final time = BvTime.of(context).clock;
 
     final day = DateUtils.dateOnly(entry.at.toLocal());
     final newDay =

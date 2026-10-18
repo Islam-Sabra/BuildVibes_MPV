@@ -158,9 +158,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     return Scaffold(
       appBar: BvSpaceHeader(
         name: detail.name,
-        line: detail.projectId == null
-            ? l10n.spacesPrivateWork
-            : l10n.spacesProjectSpaceLine,
+        // As in the v13 frames, linked to a project or not (review 54 A4).
+        line: l10n.spacesPrivateWork,
         backLabel: MaterialLocalizations.of(context).backButtonTooltip,
         moreLabel: l10n.spacesMenu,
         onOpen: _openInfo,

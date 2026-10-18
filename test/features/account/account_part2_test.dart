@@ -2,18 +2,19 @@ import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/l10n/months.dart';
 import 'package:buildvibes/core/routing/app_router.dart';
 import 'package:buildvibes/data/repositories/account_repository.dart';
-import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/features/account/delete_screens.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/spaces/former_member.dart';
 import 'package:buildvibes/features/spaces/transfer_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/features/profile/settings_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/account_fakes.dart';
 import '../../helpers/pump_app.dart';
-import '../../helpers/safety_fakes.dart';
 
 AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
@@ -29,53 +30,74 @@ Future<void> _openSettings(WidgetTester tester) async {
   await _tap(tester, 'profile-settings');
 }
 
-/// The words of a "Your settings, in words" row, without its styling.
-String _words(WidgetTester tester, String key) => tester
-    .widget<RichText>(
-      find
-          .descendant(of: find.byKey(Key(key)), matching: find.byType(RichText))
-          .at(1),
-    )
-    .text
-    .toPlainText();
-
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
 
-    testWidgets('S1: who you are, and your settings in words [$lang]', (
+    testWidgets('S1: who you are, then one list, each entry once (review '
+        '54 A5) [$lang]', (tester) async {
+      await pumpApp(tester, language: lang);
+      await _openSettings(tester);
+      expect(find.text(inOwnDirection('Omar Haddad')), findsOneWidget);
+      expect(find.byKey(const Key('settings-view-profile')), findsOneWidget);
+      // The five entries, in this order, each once.
+      final titles = [
+        l10n.accountSecurity,
+        l10n.settingsNotifications,
+        l10n.privacySafety,
+        l10n.settingsLanguageRow,
+        l10n.aboutLegal,
+      ];
+      final keys = [
+        'row-account',
+        'row-notifications',
+        'row-privacy',
+        'row-language',
+        'row-about',
+      ];
+      for (final (i, t) in titles.indexed) {
+        expect(find.text(t), findsOneWidget, reason: t);
+        expect(
+          find.descendant(of: find.byKey(Key(keys[i])), matching: find.text(t)),
+          findsOneWidget,
+        );
+      }
+      final tops = [
+        for (final k in keys) tester.getTopLeft(find.byKey(Key(k))).dy,
+      ];
+      expect(tops, [...tops]..sort());
+      // No second list in words, and no Language and region row.
+      expect(find.byKey(const Key('words-privacy')), findsNothing);
+      expect(find.byKey(const Key('words-notifications')), findsNothing);
+      expect(find.byKey(const Key('words-language')), findsNothing);
+      expect(find.text(l10n.languageRegion), findsNothing);
+    });
+
+    testWidgets('S1: Components only in a debug build, never in release '
+        '[$lang]', (tester) async {
+      // Tests run in debug: the row shows, from the same switch the release
+      // build reads (kDebugMode is false there).
+      expect(kReleaseMode, isFalse);
+      expect(
+        ProviderContainer().read(devToolsProvider),
+        kDebugMode && !kReleaseMode,
+      );
+      await pumpApp(tester, language: lang);
+      await _openSettings(tester);
+      expect(find.byKey(const Key('row-components')), findsOneWidget);
+    });
+
+    testWidgets('S1: a release build has no Components row [$lang]', (
       tester,
     ) async {
       await pumpApp(
         tester,
         language: lang,
-        safety: FakeSafetyRepository(
-          blocked: const [
-            BlockedPerson(id: 'p-1', firstName: 'Hassan', lastName: 'Ibrahim'),
-            BlockedPerson(id: 'p-2', firstName: 'Ali', lastName: 'Saleh'),
-          ],
-        ),
+        overrides: [devToolsProvider.overrideWithValue(false)],
       );
       await _openSettings(tester);
-      expect(find.text(inOwnDirection('Omar Haddad')), findsOneWidget);
-      expect(find.byKey(const Key('settings-view-profile')), findsOneWidget);
-      expect(
-        _words(tester, 'words-privacy'),
-        l10n.wordsPrivacy(l10n.wordsBlocked(2)),
-      );
-      expect(
-        _words(tester, 'words-notifications'),
-        l10n.wordsNotifications(l10n.wordsOn, l10n.wordsOn, l10n.wordsHidden),
-      );
-      // All from the Kuwait pack: Sunday, Kuwait.
-      expect(
-        _words(tester, 'words-language'),
-        l10n.wordsLanguage(
-          lang == 'ar' ? l10n.languageArabic : l10n.languageEnglish,
-          weekdayName(0, lang),
-          lang == 'ar' ? 'الكويت' : 'Kuwait',
-        ),
-      );
+      expect(find.byKey(const Key('row-components')), findsNothing);
+      expect(find.text(l10n.componentsGallery), findsNothing);
     });
 
     testWidgets('S15: sign out asks first, with code wording [$lang]', (
@@ -97,12 +119,14 @@ void main() {
         '[$lang]', (tester) async {
       final app = await pumpApp(tester, language: lang);
       await _openSettings(tester);
+      // Help and feedback is in the About sheet (review 54 A5).
+      expect(find.byKey(const Key('row-help')), findsNothing);
+      await _tap(tester, 'row-about');
       await _tap(tester, 'row-help');
       expect(
         app.opened.single,
         Uri(scheme: 'mailto', path: 'help@example.com'),
       );
-      await _tap(tester, 'row-about');
       expect(find.byKey(const Key('legal-privacy')), findsNothing);
       await _tap(tester, 'legal-terms');
       expect(

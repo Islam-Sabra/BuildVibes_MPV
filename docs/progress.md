@@ -602,6 +602,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **18 Oct, Part D second half (F28, F30, F32)** (review 53; branch `slice1-v13`): Home to H1 v4 (no spine, full-width cards, the latest reply line with up to three faces, bold for a reply to you until you open the post, no number); Home → Spaces with "Join with a code", Needs you grouped by Space with a quiet ›, the last-activity time on every Space (read from `daybook_cards`, one call per Space; needs migration 26) and the floor-plan emblem; Activity v3, one list by day with a slim "Needs you ›" line. Open: the slim line shows a count ("2 things need you"), as the A1 v3 frame does, against "Needs you ›" in review 53; `activity_rows()` is fixed at 7 days, F32 asks for 30.
 
+- **18 Oct, review 54 A1–A6** (branch `slice1-v13`): one time formatter for the whole app, following the phone's 24-hour setting (a test fails on any other hour-and-minute formatting); the post page without a reply line on the post, replies at the two sizes, "Write a reply", Useful as seal-check; Arabic history lines in the ledger form and "علامة مفيد من …"; People says "Space admin", Teams show faces, the header says "Private work"; Settings is one list; the Home → Spaces date line matches the others.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

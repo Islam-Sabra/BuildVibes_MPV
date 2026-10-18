@@ -183,7 +183,7 @@ class _List extends ConsumerWidget {
         ..add(
           ActivityRowView(
             row: r,
-            time: words.clock(r.createdAt),
+            time: words.time.clock(r.createdAt),
             needsYou: r.workItemId != null && needing.contains(r.workItemId),
           ),
         )

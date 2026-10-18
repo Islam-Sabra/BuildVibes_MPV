@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_paper_specs.dart';
+import '../../core/l10n/bv_time.dart';
 import 'bv_avatar.dart';
+import 'bv_clock_text.dart';
 import 'bv_tap_target.dart';
 
 /// One line of a card's history: who (their face), the bold [lead] ("Omar
@@ -25,7 +27,9 @@ class BvHistoryLine {
   final String name;
   final String lead;
   final String? detail;
-  final String time;
+
+  /// From [BvTime.parts]: two lines in Arabic on a 12-hour phone.
+  final BvClockParts time;
 
   /// [BvAvatarTints.forId] of the person.
   final Color? tint;
@@ -130,7 +134,7 @@ class _Line extends StatelessWidget {
             ),
           ),
         ),
-        Text(
+        BvClockText(
           line.time,
           style: type.metadata.copyWith(color: BvColors.textSecondary),
         ),

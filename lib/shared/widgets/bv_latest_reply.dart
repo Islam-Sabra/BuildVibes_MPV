@@ -2,13 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_icons.dart';
-import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
-import 'bv_avatar.dart';
-
-/// One face before a post's latest reply: the person's name (for the
-/// initials) and their tint ([BvAvatarTints.forId]).
-typedef BvReplyFace = ({String name, Color tint});
+import 'bv_faces.dart';
 
 /// A post card's latest reply (H1 v4 2587:35889, AR 2588:438; review 50
 /// F30): one quiet line on the subtle surface with up to three small faces
@@ -32,18 +27,13 @@ class BvLatestReply extends StatelessWidget {
   final String words;
 
   /// The most recent first; at most three are drawn.
-  final List<BvReplyFace> faces;
+  final List<BvFace> faces;
   final bool unseen;
   final VoidCallback? onTap;
-
-  static const maxFaces = 3;
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
-    final shown = faces.take(maxFaces).toList();
-    const face = BvAvatarSpec.face;
-    const step = face - BvHomeSpec.faceOverlap;
     final line = Container(
       padding: const EdgeInsetsDirectional.only(
         start: BvHomeSpec.replyPaddingStart,
@@ -58,25 +48,8 @@ class BvLatestReply extends StatelessWidget {
       child: Row(
         spacing: BvHomeSpec.replyGap,
         children: [
-          if (shown.isNotEmpty)
-            SizedBox(
-              key: const Key('latest-reply-faces'),
-              width: face + step * (shown.length - 1),
-              height: face,
-              child: Stack(
-                children: [
-                  for (final (i, f) in shown.indexed)
-                    PositionedDirectional(
-                      start: step * i,
-                      child: BvAvatar(
-                        name: f.name,
-                        size: BvAvatarSize.face,
-                        tint: f.tint,
-                      ),
-                    ),
-                ],
-              ),
-            ),
+          if (faces.isNotEmpty)
+            BvFaces(faces, key: const Key('latest-reply-faces')),
           Expanded(
             child: Text.rich(
               TextSpan(

@@ -16,14 +16,14 @@ void main() {
       name: 'Omar Haddad',
       lead: 'Omar Haddad:',
       detail: 'Sleeves arrived.',
-      time: '09:05',
+      time: (time: '09:05', period: null),
       tint: BvAvatarTints.green,
     ),
     BvHistoryLine(
       id: 'b',
       name: 'Islam Ahmed',
       lead: 'You checked it',
-      time: '10:58',
+      time: (time: '10:58', period: null),
     ),
   ];
 

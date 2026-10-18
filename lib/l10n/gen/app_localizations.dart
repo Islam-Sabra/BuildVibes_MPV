@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'App language'**
   String get settingsLanguage;
 
+  /// Settings row: opens Language and region (review 54 A5).
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguageRow;
+
   /// Language name, always written in English.
   ///
   /// In en, this message translates to:
@@ -1658,12 +1664,6 @@ abstract class AppLocalizations {
   /// **'Private work'**
   String get spacesPrivateWork;
 
-  /// Header line of a Space linked to a project.
-  ///
-  /// In en, this message translates to:
-  /// **'Private work · project Space'**
-  String get spacesProjectSpaceLine;
-
   /// H1e card title.
   ///
   /// In en, this message translates to:
@@ -2030,17 +2030,17 @@ abstract class AppLocalizations {
   /// **'Confirm'**
   String get spacesConfirm;
 
-  /// S10k section: the Space admins.
+  /// S10k section: the Space admins (glossary: Space admin).
   ///
   /// In en, this message translates to:
-  /// **'Owners'**
-  String get spacesOwners;
+  /// **'Space admin'**
+  String get spacesAdminSection;
 
-  /// Tag under an admin's name.
+  /// The line under a Space admin's name in People.
   ///
   /// In en, this message translates to:
-  /// **'Owner'**
-  String get spacesOwnerTag;
+  /// **'Space admin'**
+  String get spacesAdminTag;
 
   /// S10k section.
   ///
@@ -3452,12 +3452,6 @@ abstract class AppLocalizations {
   /// **'No replies yet.'**
   String get postNoReplies;
 
-  /// Composer hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a comment'**
-  String get postAddComment;
-
   /// Composer hint when replying.
   ///
   /// In en, this message translates to:
@@ -3559,24 +3553,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No posts tagged with this project yet.'**
   String get projectPostsEmpty;
-
-  /// Short time on cards.
-  ///
-  /// In en, this message translates to:
-  /// **'now'**
-  String get timeNowShort;
-
-  /// Short minutes on cards.
-  ///
-  /// In en, this message translates to:
-  /// **'{n}m'**
-  String timeMinutesShort(int n);
-
-  /// Short hours on cards.
-  ///
-  /// In en, this message translates to:
-  /// **'{n}h'**
-  String timeHoursShort(int n);
 
   /// H1b summary, first part (orange).
   ///
@@ -3889,36 +3865,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a project you worked on'**
   String get ledgerAddProject;
-
-  /// H1b row time, on its own.
-  ///
-  /// In en, this message translates to:
-  /// **'Just now'**
-  String get rowJustNow;
-
-  /// H1b row time.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 min ago} other{{n} min ago}}'**
-  String rowMinutesAgo(int n);
-
-  /// H1b row time, as drawn ("3h ago" / "قبل 3 ساعات").
-  ///
-  /// In en, this message translates to:
-  /// **'{n}h ago'**
-  String rowHoursAgo(int n);
-
-  /// H1b row time.
-  ///
-  /// In en, this message translates to:
-  /// **'Yesterday'**
-  String get rowYesterday;
-
-  /// H1b row time.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 day ago} other{{n} days ago}}'**
-  String rowDaysAgo(int n);
 
   /// Settings row and S3 title.
   ///
@@ -4388,89 +4334,11 @@ abstract class AppLocalizations {
   /// **'View profile'**
   String get settingsViewProfile;
 
-  /// S1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'YOUR SETTINGS, IN WORDS'**
-  String get settingsInWords;
-
-  /// S1 words row label.
-  ///
-  /// In en, this message translates to:
-  /// **'PRIVACY'**
-  String get settingsPrivacyLabel;
-
-  /// S1 words row label.
-  ///
-  /// In en, this message translates to:
-  /// **'NOTIFICATIONS'**
-  String get settingsNotificationsLabel;
-
   /// S1 words row label; S8 section.
   ///
   /// In en, this message translates to:
   /// **'LANGUAGE'**
   String get settingsLanguageLabel;
-
-  /// S1 privacy words: your own count.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 blocked account} other{{n} blocked accounts}}'**
-  String wordsBlocked(int n);
-
-  /// S1 privacy words; {what} is highlighted.
-  ///
-  /// In en, this message translates to:
-  /// **'{what}. Work items, chat and the Library stay inside each Space.'**
-  String wordsPrivacy(String what);
-
-  /// S1 notification words; the three values are highlighted.
-  ///
-  /// In en, this message translates to:
-  /// **'New followers: {followers}. Replies: {replies}. Message text on the lock screen: {lockText}.'**
-  String wordsNotifications(String followers, String replies, String lockText);
-
-  /// S1: a switch that is on.
-  ///
-  /// In en, this message translates to:
-  /// **'on'**
-  String get wordsOn;
-
-  /// S1: a switch that is off.
-  ///
-  /// In en, this message translates to:
-  /// **'off'**
-  String get wordsOff;
-
-  /// S1: message text shown on the lock screen.
-  ///
-  /// In en, this message translates to:
-  /// **'shown'**
-  String get wordsShown;
-
-  /// S1: message text hidden on the lock screen.
-  ///
-  /// In en, this message translates to:
-  /// **'hidden'**
-  String get wordsHidden;
-
-  /// S1 language words, all from the market pack; {language} is highlighted.
-  ///
-  /// In en, this message translates to:
-  /// **'{language}. The week starts on {weekday}, in {country} time.'**
-  String wordsLanguage(String language, String weekday, String country);
-
-  /// S1 language words with no home market.
-  ///
-  /// In en, this message translates to:
-  /// **'{language}.'**
-  String wordsLanguageOnly(String language);
-
-  /// S1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'ACCOUNT'**
-  String get settingsAccountSection;
 
   /// S1 row, S2 title.
   ///
@@ -4495,12 +4363,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language and region'**
   String get languageRegion;
-
-  /// S1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'SUPPORT'**
-  String get supportSection;
 
   /// S1 row: writes to the pack support email.
   ///
@@ -5012,17 +4874,23 @@ abstract class AppLocalizations {
   /// **'Invite your team'**
   String get daybookFirstInvite;
 
-  /// A 12-hour time on the Daybook: the hour (and minutes when not :00) and the part of the day ("2 pm", "8:14 am"). period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening.
-  ///
-  /// In en, this message translates to:
-  /// **'{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
-  String daybookClock12(String time, String period);
-
   /// Second line of the large stamp on a proof photo: the signer's short name and the time ("OMAR H · 09:40").
   ///
   /// In en, this message translates to:
   /// **'{name} · {time}'**
   String daybookStampBy(String name, String time);
+
+  /// The part of the day after a 12-hour time. period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening. English: am or pm. Arabic: the words, on a small second line in the daybook's time column.
+  ///
+  /// In en, this message translates to:
+  /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
+  String timePeriod(String period);
+
+  /// A 12-hour time on one line, everywhere in the app (review 54 A1): the time with its minutes and the part of the day (timePeriod): "2:00 pm", "2:00 ظهرًا".
+  ///
+  /// In en, this message translates to:
+  /// **'{time} {period}'**
+  String timeClock12(String time, String period);
 
   /// Hint on a proof waiting for your check.
   ///
@@ -5797,6 +5665,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You added an update'**
   String get daybookLineYouUpdate;
+
+  /// Daybook history line: your own update, before its words.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get daybookLineYouComment;
+
+  /// Daybook history line: someone's update, before its words ("Omar Haddad: Sleeves arrived."). Arabic in the ledger form, the name then the action (review 54 A3).
+  ///
+  /// In en, this message translates to:
+  /// **'{name}'**
+  String daybookLineComment(String name);
 
   /// Daybook history line or trace: someone gave the work item to another owner.
   ///

@@ -66,7 +66,7 @@ class NeedsYouScreen extends ConsumerWidget {
               ? now.isAfter(c.dueAt!)
               : dayOf(now).isAfter(due),
         ),
-        NeedsKind.youCheck || NeedsKind.sentBack => words.clock(c.at.toLocal()),
+        NeedsKind.youCheck || NeedsKind.sentBack => words.time.clock(c.at),
         _ => null,
       };
       final parts = [?name, ?detail];

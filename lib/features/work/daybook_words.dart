@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:intl/intl.dart';
 
 import '../../core/l10n/bidi.dart';
+import '../../core/l10n/bv_time.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/work_item.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -9,62 +10,26 @@ import '../../shared/widgets/bv_text_field.dart';
 import '../spaces/former_member.dart';
 
 /// The Daybook's words for days and times, in the app language with
-/// Western digits. [use24] follows the phone's own clock setting
-/// (MediaQuery.alwaysUse24HourFormat, review 44 answer 6), one format for
-/// the whole screen.
+/// Western digits. Every time of day in them is [time]'s, the app's one
+/// time format (review 54 A1), which follows the phone's clock setting
+/// ([use24]).
 class DaybookWords {
-  const DaybookWords(this.l10n, this.locale, {required this.use24});
+  DaybookWords(this.l10n, this.locale, {required bool use24})
+    : time = BvTime(l10n, locale, use24: use24);
 
   final AppLocalizations l10n;
   final String locale;
-  final bool use24;
+
+  /// The app's one time format.
+  final BvTime time;
 
   String _f(String pattern, DateTime d) =>
       BvWesternDigitsFormatter.normalise(DateFormat(pattern, locale).format(d));
 
-  /// "08:14"; on a 12-hour phone "8:14 am", "2 pm" ("2 ظهرًا" in Arabic,
-  /// the AR frames' words).
-  String clock(DateTime t) {
-    if (use24) return _clock24(t);
-    final (time, period) = _clock12(t);
-    return l10n.daybookClock12(time, period);
-  }
-
-  String _clock24(DateTime t) => BvWesternDigitsFormatter.normalise(
-    DateFormat.Hm(locale).format(t.toLocal()),
-  );
-
-  /// "11:58" (or "2" on the hour) and the part of the day.
-  (String, String) _clock12(DateTime t) {
-    final local = t.toLocal();
-    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
-    final time = local.minute == 0
-        ? '$hour'
-        : '$hour:${local.minute.toString().padLeft(2, '0')}';
-    final period = local.hour < 12
-        ? 'morning'
-        : local.hour < 15
-        ? 'noon'
-        : local.hour < 18
-        ? 'afternoon'
-        : 'evening';
-    return (time, period);
-  }
+  String _clock(DateTime t) => time.clock(t);
 
   /// "Thursday".
   String weekday(DateTime day) => _f('EEEE', day);
-
-  /// A Home post card's time, at the end of its author line (H1 v4):
-  /// "1:44 pm" today, "Wed" this past week, then "12 Oct".
-  String feedTime(DateTime t, DateTime now) {
-    final day = dayOf(t.toLocal());
-    final today = dayOf(now);
-    if (day == today) return clock(t);
-    if (today.difference(day).inDays < DateTime.daysPerWeek) {
-      return _f('EEE', day);
-    }
-    return _f('d MMM', day);
-  }
 
   /// "15 October".
   String dayMonth(DateTime day) => _f('d MMMM', day);
@@ -78,7 +43,7 @@ class DaybookWords {
   /// The due on the writing card: "Sun 18 Oct", or "Sun 18 Oct, 14:00".
   String dueProperty(DateTime day, DateTime? at) => at == null
       ? shortDate(day)
-      : l10n.daybookDueProperty(shortDate(day), clock(at));
+      : l10n.daybookDueProperty(shortDate(day), _clock(at));
 
   /// The large stamp's second line: "OMAR H · 09:40", "عمر ح · 09:40".
   /// Latin names in capitals, as the stamp prints them.
@@ -87,7 +52,7 @@ class DaybookWords {
     final short = parts.length < 2
         ? parts.first
         : '${parts.first} ${parts.last.characters.first}';
-    return l10n.daybookStampBy(short.toUpperCase(), clock(at));
+    return l10n.daybookStampBy(short.toUpperCase(), _clock(at));
   }
 
   /// A send-back reason, as the card lists it.
@@ -112,7 +77,7 @@ class DaybookWords {
   /// The place and the name keep their own direction.
   String photoLabel({String? place, required DateTime at, String? name}) => [
     if ((place ?? '').isNotEmpty) inOwnDirection(place!),
-    '${_f('d MMM', at)} ${clock(at)}',
+    '${_f('d MMM', at)} ${_clock(at)}',
     if ((name ?? '').isNotEmpty) inOwnDirection(name!),
   ].join(' · ');
 
@@ -150,17 +115,17 @@ class DaybookWords {
     required bool late,
   }) {
     final today = dayOf(now);
-    final time = at == null ? null : clock(at);
+    final clock = at == null ? null : _clock(at);
     final isToday = day == today;
     final isTomorrow = day == today.add(const Duration(days: 1));
     final date = shortDate(day);
     if (late) {
-      if (time == null) return l10n.daybookWasDue(date);
+      if (clock == null) return l10n.daybookWasDue(date);
       return isToday
-          ? l10n.daybookWasDueTodayAt(time)
-          : l10n.daybookWasDueAt(date, time);
+          ? l10n.daybookWasDueTodayAt(clock)
+          : l10n.daybookWasDueAt(date, clock);
     }
-    if (time == null) {
+    if (clock == null) {
       return isToday
           ? l10n.daybookDueToday
           : isTomorrow
@@ -168,10 +133,10 @@ class DaybookWords {
           : l10n.daybookDueDate(date);
     }
     return isToday
-        ? l10n.daybookDueTodayAt(time)
+        ? l10n.daybookDueTodayAt(clock)
         : isTomorrow
-        ? l10n.daybookDueTomorrowAt(time)
-        : l10n.daybookDueDateAt(date, time);
+        ? l10n.daybookDueTomorrowAt(clock)
+        : l10n.daybookDueDateAt(date, clock);
   }
 
   /// "Thu", "today", "tomorrow": a day in an edit's line.
@@ -206,7 +171,8 @@ class DaybookWords {
         you ? l10n.daybookLineYouSentBack : l10n.daybookLineSentBack(name),
       DaybookEventKind.comment when trace =>
         you ? l10n.daybookLineYouUpdate : l10n.daybookLineUpdate(name),
-      DaybookEventKind.comment => you ? l10n.daybookYou : name,
+      DaybookEventKind.comment =>
+        you ? l10n.daybookLineYouComment : l10n.daybookLineComment(name),
       DaybookEventKind.reassigned => _gave(e, you, name),
       DaybookEventKind.edited when due != null && due.removed =>
         you ? l10n.daybookLineYouRemovedDue : l10n.daybookLineRemovedDue(name),
@@ -234,7 +200,7 @@ class DaybookWords {
     if (due.from == null || due.to == null) return null;
     if (due.timeOnly) {
       if (due.fromAt == null || due.toAt == null) return null;
-      return (clock(due.fromAt!), clock(due.toAt!));
+      return (_clock(due.fromAt!), _clock(due.toAt!));
     }
     return (_dayWord(due.from!, now), _dayWord(due.to!, now));
   }

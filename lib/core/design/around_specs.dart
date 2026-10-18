@@ -188,15 +188,8 @@ abstract final class BvHomeSpec {
   static const actionIcon = 18.0;
   static const actionGap = BvSpace.s6;
 
-  /// A reply's author on the post page (review 50 F19): avatar 28, the
-  /// name in semibold.
+  /// A reply's author on the post page (review 50 F19): avatar 28.
   static const authorAvatar = BvAvatarSpec.xsm;
-  static const nameWeight = FontWeight.w600;
-
-  /// A reply's actions' row: with the 10 gap above and the slip's 14
-  /// padding below, each action's touch area is 48 high.
-  static const actionsHeight =
-      BvSize.touchMin - BvSlipSpec.gap - BvSlipSpec.paddingBottom;
 
   // The post card (H1 v4 2587:35875): full width, 16 from each edge, 12
   // apart; 14 inside at the top, 6 at the bottom under the actions' row,

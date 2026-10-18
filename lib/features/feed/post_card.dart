@@ -55,6 +55,7 @@ class PostCard extends ConsumerWidget {
     this.onReplyLine,
     this.onChanged,
     this.onGone,
+    this.replyLine = true,
   }) : waiting = false,
        couldNotSend = false,
        sent = false;
@@ -69,7 +70,8 @@ class PostCard extends ConsumerWidget {
        tag = PostTag.shown,
        onReplyLine = null,
        onChanged = null,
-       onGone = null;
+       onGone = null,
+       replyLine = false;
 
   /// On the phone, not on the server yet: [post]'s photo paths are the
   /// phone's own.
@@ -89,8 +91,12 @@ class PostCard extends ConsumerWidget {
   final VoidCallback? onOpen;
 
   /// The latest reply line was tapped: the post opens at that reply
-  /// ([AppRoutes.post]'s reply), or the post page scrolls to it.
+  /// ([AppRoutes.post]'s reply).
   final ValueChanged<String>? onReplyLine;
+
+  /// The latest reply line shows. Not on the post page, where the replies
+  /// are listed right under the post (review 54 A2).
+  final bool replyLine;
 
   /// The card changed (Useful, edit): the list puts it in place.
   final ValueChanged<Post>? onChanged;
@@ -119,7 +125,7 @@ class PostCard extends ConsumerWidget {
       [?post.authorHeadline, ?post.authorCompany].join(', '),
       if (post.editedAt != null) l10n.postEdited,
     ]);
-    final latest = waiting ? null : post.latestReply;
+    final latest = waiting || !replyLine ? null : post.latestReply;
 
     Future<void> useful() async {
       final on = !post.myUseful;
@@ -190,7 +196,7 @@ class PostCard extends ConsumerWidget {
               ),
             ),
             Text(
-              words.feedTime(post.createdAt, now),
+              words.time.moment(post.createdAt, now),
               key: Key('post-time-${post.id}'),
               style: muted,
             ),

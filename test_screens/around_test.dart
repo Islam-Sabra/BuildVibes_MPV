@@ -249,7 +249,11 @@ void main() {
         'ST1-settings',
         lang,
         (_) => const Pushed(SettingsScreen()),
-        overrides: await _base(me: DaybookSamples.islam),
+        // As a release build shows it: no Components row (review 54 A5).
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          devToolsProvider.overrideWithValue(false),
+        ],
       );
     });
 
@@ -262,6 +266,7 @@ void main() {
         (_) => const Pushed(SettingsScreen()),
         overrides: [
           ...await _base(me: DaybookSamples.islam),
+          devToolsProvider.overrideWithValue(false),
           buildInfoProvider.overrideWith(
             (ref) async => const BuildInfo(
               version: '0.9.0',

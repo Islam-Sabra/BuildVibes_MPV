@@ -32,6 +32,10 @@
   "@settingsLanguage": {
     "description": "Row and sheet title for choosing the app language."
   },
+  "settingsLanguageRow": "Language",
+  "@settingsLanguageRow": {
+    "description": "Settings row: opens Language and region (review 54 A5)."
+  },
   "languageEnglish": "English",
   "@languageEnglish": {
     "description": "Language name, always written in English."
@@ -1198,10 +1202,6 @@
   "@spacesPrivateWork": {
     "description": "A private work Space with no project."
   },
-  "spacesProjectSpaceLine": "Private work · project Space",
-  "@spacesProjectSpaceLine": {
-    "description": "Header line of a Space linked to a project."
-  },
   "spacesEmptyTitle": "Join your first Space",
   "@spacesEmptyTitle": {
     "description": "H1e card title."
@@ -1499,13 +1499,13 @@
   "@spacesConfirm": {
     "description": "Request button."
   },
-  "spacesOwners": "Owners",
-  "@spacesOwners": {
-    "description": "S10k section: the Space admins."
+  "spacesAdminSection": "Space admin",
+  "@spacesAdminSection": {
+    "description": "S10k section: the Space admins (glossary: Space admin)."
   },
-  "spacesOwnerTag": "Owner",
-  "@spacesOwnerTag": {
-    "description": "Tag under an admin's name."
+  "spacesAdminTag": "Space admin",
+  "@spacesAdminTag": {
+    "description": "The line under a Space admin's name in People."
   },
   "spacesMembers": "Members",
   "@spacesMembers": {
@@ -2779,10 +2779,6 @@
   "@postNoReplies": {
     "description": "H10 empty replies."
   },
-  "postAddComment": "Add a comment",
-  "@postAddComment": {
-    "description": "Composer hint."
-  },
   "postWriteReply": "Write a reply",
   "@postWriteReply": {
     "description": "Composer hint when replying."
@@ -2855,28 +2851,6 @@
   },
   "@projectPostsEmpty": {
     "description": "Project sheet, no posts."
-  },
-  "timeNowShort": "now",
-  "@timeNowShort": {
-    "description": "Short time on cards."
-  },
-  "timeMinutesShort": "{n}m",
-  "@timeMinutesShort": {
-    "description": "Short minutes on cards.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "timeHoursShort": "{n}h",
-  "@timeHoursShort": {
-    "description": "Short hours on cards.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
   },
   "homeDayNeedsYou": "{n, plural, =1{1 thing needs you} other{{n} things need you}}",
   "@homeDayNeedsYou": {
@@ -3290,41 +3264,6 @@
   "@ledgerAddProject": {
     "description": "A2 link."
   },
-  "rowJustNow": "Just now",
-  "@rowJustNow": {
-    "description": "H1b row time, on its own."
-  },
-  "rowMinutesAgo": "{n, plural, =1{1 min ago} other{{n} min ago}}",
-  "@rowMinutesAgo": {
-    "description": "H1b row time.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "rowHoursAgo": "{n}h ago",
-  "@rowHoursAgo": {
-    "description": "H1b row time, as drawn (\"3h ago\" / \"قبل 3 ساعات\").",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "rowYesterday": "Yesterday",
-  "@rowYesterday": {
-    "description": "H1b row time."
-  },
-  "rowDaysAgo": "{n, plural, =1{1 day ago} other{{n} days ago}}",
-  "@rowDaysAgo": {
-    "description": "H1b row time.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
   "settingsNotifications": "Notifications",
   "@settingsNotifications": {
     "description": "Settings row and S3 title."
@@ -3700,98 +3639,9 @@
   "@settingsViewProfile": {
     "description": "S1 header link."
   },
-  "settingsInWords": "YOUR SETTINGS, IN WORDS",
-  "@settingsInWords": {
-    "description": "S1 section."
-  },
-  "settingsPrivacyLabel": "PRIVACY",
-  "@settingsPrivacyLabel": {
-    "description": "S1 words row label."
-  },
-  "settingsNotificationsLabel": "NOTIFICATIONS",
-  "@settingsNotificationsLabel": {
-    "description": "S1 words row label."
-  },
   "settingsLanguageLabel": "LANGUAGE",
   "@settingsLanguageLabel": {
     "description": "S1 words row label; S8 section."
-  },
-  "wordsBlocked": "{n, plural, =1{1 blocked account} other{{n} blocked accounts}}",
-  "@wordsBlocked": {
-    "description": "S1 privacy words: your own count.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "wordsPrivacy": "{what}. Work items, chat and the Library stay inside each Space.",
-  "@wordsPrivacy": {
-    "description": "S1 privacy words; {what} is highlighted.",
-    "placeholders": {
-      "what": {
-        "type": "String"
-      }
-    }
-  },
-  "wordsNotifications": "New followers: {followers}. Replies: {replies}. Message text on the lock screen: {lockText}.",
-  "@wordsNotifications": {
-    "description": "S1 notification words; the three values are highlighted.",
-    "placeholders": {
-      "followers": {
-        "type": "String"
-      },
-      "replies": {
-        "type": "String"
-      },
-      "lockText": {
-        "type": "String"
-      }
-    }
-  },
-  "wordsOn": "on",
-  "@wordsOn": {
-    "description": "S1: a switch that is on."
-  },
-  "wordsOff": "off",
-  "@wordsOff": {
-    "description": "S1: a switch that is off."
-  },
-  "wordsShown": "shown",
-  "@wordsShown": {
-    "description": "S1: message text shown on the lock screen."
-  },
-  "wordsHidden": "hidden",
-  "@wordsHidden": {
-    "description": "S1: message text hidden on the lock screen."
-  },
-  "wordsLanguage": "{language}. The week starts on {weekday}, in {country} time.",
-  "@wordsLanguage": {
-    "description": "S1 language words, all from the market pack; {language} is highlighted.",
-    "placeholders": {
-      "language": {
-        "type": "String"
-      },
-      "weekday": {
-        "type": "String"
-      },
-      "country": {
-        "type": "String"
-      }
-    }
-  },
-  "wordsLanguageOnly": "{language}.",
-  "@wordsLanguageOnly": {
-    "description": "S1 language words with no home market.",
-    "placeholders": {
-      "language": {
-        "type": "String"
-      }
-    }
-  },
-  "settingsAccountSection": "ACCOUNT",
-  "@settingsAccountSection": {
-    "description": "S1 section."
   },
   "accountSecurity": "Account and security",
   "@accountSecurity": {
@@ -3808,10 +3658,6 @@
   "languageRegion": "Language and region",
   "@languageRegion": {
     "description": "S1 row, S8 title."
-  },
-  "supportSection": "SUPPORT",
-  "@supportSection": {
-    "description": "S1 section."
   },
   "helpFeedback": "Help and feedback",
   "@helpFeedback": {
@@ -4258,18 +4104,6 @@
   "@daybookFirstInvite": {
     "description": "Day one card: opens the invite screen."
   },
-  "daybookClock12": "{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}",
-  "@daybookClock12": {
-    "description": "A 12-hour time on the Daybook: the hour (and minutes when not :00) and the part of the day (\"2 pm\", \"8:14 am\"). period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening.",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      },
-      "period": {
-        "type": "String"
-      }
-    }
-  },
   "daybookStampBy": "{name} · {time}",
   "@daybookStampBy": {
     "description": "Second line of the large stamp on a proof photo: the signer's short name and the time (\"OMAR H · 09:40\").",
@@ -4278,6 +4112,27 @@
         "type": "String"
       },
       "time": {
+        "type": "String"
+      }
+    }
+  },
+  "timePeriod": "{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}",
+  "@timePeriod": {
+    "description": "The part of the day after a 12-hour time. period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening. English: am or pm. Arabic: the words, on a small second line in the daybook's time column.",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "timeClock12": "{time} {period}",
+  "@timeClock12": {
+    "description": "A 12-hour time on one line, everywhere in the app (review 54 A1): the time with its minutes and the part of the day (timePeriod): \"2:00 pm\", \"2:00 ظهرًا\".",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "period": {
         "type": "String"
       }
     }
@@ -4895,6 +4750,19 @@
   "daybookLineYouUpdate": "You added an update",
   "@daybookLineYouUpdate": {
     "description": "Daybook trace: you added an update to the work item."
+  },
+  "daybookLineYouComment": "You",
+  "@daybookLineYouComment": {
+    "description": "Daybook history line: your own update, before its words."
+  },
+  "daybookLineComment": "{name}",
+  "@daybookLineComment": {
+    "description": "Daybook history line: someone's update, before its words (\"Omar Haddad: Sleeves arrived.\"). Arabic in the ledger form, the name then the action (review 54 A3).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "daybookLineGave": "{name} gave it to {to} instead of {from}",
   "@daybookLineGave": {

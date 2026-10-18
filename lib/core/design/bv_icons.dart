@@ -155,8 +155,11 @@ abstract final class BvIcons {
   static const play = IconData(0xe3d0, fontFamily: _family);
   static const pause = IconData(0xe39e, fontFamily: _family);
 
-  // Phosphor: thumbs-up (Useful on posts and replies, H1)
-  static const useful = IconData(0xe48e, fontFamily: _family);
+  // Phosphor: seal-check (Useful on post cards and the post page, H1 v4
+  // 2587:35849; review 54: "Useful" is not "Like", so no thumbs-up).
+  // PhosphorIconsRegular.sealCheck in phosphor_flutter 2.1.0, the source
+  // of the bundled font.
+  static const useful = IconData(0xe606, fontFamily: _family);
 
   // Phosphor: translate (the post language line, L5)
   static const postLanguage = IconData(0xe4a2, fontFamily: _family);
