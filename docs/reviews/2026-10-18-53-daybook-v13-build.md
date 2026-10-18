@@ -129,7 +129,7 @@ Change the values in `BvType`, so every screen follows. The token names stay.
 - **A build number for each build:**
   - `versionCode` goes up with every build;
   - Settings → About shows the version, the build number and the short commit, so the founder and the lead can see which build is on a phone.
-- **F29, the place lost with no signal:** reproduce and fix first in this part (see review 50).
+- **F29 (withdrawn):** check once that a place set through ⋯ → Location reaches the server, online and from the outbox, and add that to the outbox test.
 - **F28, Home → Spaces:** "Join with a code" instead of the cut "Enter an invite co…"; a quiet › instead of the orange Open buttons; Needs you grouped by Space; "added an update" wording; the last-activity time on every Space; the Space emblem in the tile.
 - **F21** (attach a file) is slice 2. Nothing in this round.
 
