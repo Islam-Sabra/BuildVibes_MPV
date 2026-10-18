@@ -593,6 +593,11 @@ Review 47, server gap 1 (S1 `2530:33826`).
 - The proof it answered keeps its SENT BACK outcome (§19).
 - The events index (`work_item_events_daybook_idx`) and `daybook_month`'s dots include send-backs.
 
+## 21. Fixes from the founder's slice 1 test (migration 25, `20261017220000_test_fixes.sql`, branch `test-fixes-db`, not live)
+Review 51, Part F.
+- **Replies (F2):** `add_reply` accepts a reply to any live reply on the same post (not a deleted one, not across a block). Two levels stay on screen: an answer to an answer is filed under the same top comment (`reply_to`) and keeps the person answered in **`post_replies.reply_to_person`**. The app shows "Replying to {that person}". The `post_reply` notification goes to the person answered and to the post's author (once each, never to yourself). A deleted reply's answers stay under the same comment. Replies made before the migration take the top comment's author as the person answered. A retry with the same id is the same reply.
+- **Push tokens (F9):** `register_push_token` already refreshes a token's `updated_at` on every app start, so `updated_at` is the "last seen" time (no second column). `drop_stale_push_tokens(age default 30 days, at least 7)` deletes tokens not seen for that long; service role only, for the nightly cleanup (scheduled with the other cleanups, with the founder's yes).
+
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
 - Search, the week and daily reports and templates never show a Team's posts to someone outside the Team.
