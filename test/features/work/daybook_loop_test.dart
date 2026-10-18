@@ -1001,6 +1001,8 @@ void main() {
       await tester.tapAt(const Offset(4, 4));
       await tester.pumpAndSettle();
       // A short press: the same menu (until the card's page, slice 5).
+      await tester.ensureVisible(_in('post-sleeves', find.text(s.sleeves)));
+      await tester.pumpAndSettle();
       await tester.tap(_in('post-sleeves', find.text(s.sleeves)));
       await tester.pumpAndSettle();
       expect(_menu(tester), [l10n.daybookAddUpdate]);

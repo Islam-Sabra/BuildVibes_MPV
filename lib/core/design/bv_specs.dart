@@ -35,7 +35,8 @@ abstract final class BvButtonSpec {
 
 abstract final class BvChipSpec {
   static const height = 36.0;
-  static const paddingVertical = BvSpace.s6;
+  // The height holds the line (22 Latin, 26 Arabic) centred.
+  static const paddingVertical = BvSpace.s4;
   static const paddingHorizontal = BvSpace.s12;
   static const gap = BvSpace.s6;
   static const iconSize = BvSize.iconSm; // 16
@@ -137,7 +138,8 @@ abstract final class BvAvatarSpec {
 
 abstract final class BvBadgeSpec {
   static const height = 20.0;
-  static const paddingVertical = BvSpace.s2;
+  // The height holds the small line (16 Latin, 18 Arabic) centred.
+  static const paddingVertical = 1.0;
   static const paddingHorizontal = BvSpace.s8;
   static const radius = BvRadius.smallAll; // 6
   static const iconSize = 12.0;

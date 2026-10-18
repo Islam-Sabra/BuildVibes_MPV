@@ -45,6 +45,8 @@ import 'package:buildvibes/features/profile/profile_screen.dart';
 import 'package:buildvibes/features/settings/notifications_screen.dart';
 import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
+import 'package:buildvibes/features/spaces/space_screen.dart';
+import 'package:buildvibes/features/profile/settings_screen.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
@@ -197,6 +199,51 @@ void main() {
           ...await _base(me: DaybookSamples.islam),
           spaceRepositoryProvider.overrideWithValue(spaces),
         ],
+      );
+    });
+
+    // Review 53 Part C: the People tab and Settings at the two sizes.
+    testWidgets('SP1 the Space: People [$lang]', (tester) async {
+      final spaces = FakeSpaceRepository(now: DaybookSamples.thursday)
+        ..details[DaybookSamples.space] = SpaceDetail(
+          id: DaybookSamples.space,
+          name: s.spaceName,
+          projectId: 'proj-kct',
+          projectName: kct,
+          projectPlace: sharq,
+          myPass: SpacePass.lead,
+          iAmAdmin: true,
+          myRights: const MemberRights(
+            createItems: true,
+            invite: true,
+            markDone: true,
+          ),
+          whoCanInvite: SpaceInviters.adminsAndLeads,
+          myNotify: SpaceNotify.needsYou,
+          siteStartDate: DaybookSamples.siteStart,
+        )
+        ..spacePeople[DaybookSamples.space] = s.people();
+      await shoot(
+        tester,
+        'SP1-space-people',
+        lang,
+        (_) => const Pushed(
+          SpaceScreen(spaceId: DaybookSamples.space, open: SpaceOpen.people),
+        ),
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          spaceRepositoryProvider.overrideWithValue(spaces),
+        ],
+      );
+    });
+
+    testWidgets('ST1 Settings [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'ST1-settings',
+        lang,
+        (_) => const Pushed(SettingsScreen()),
+        overrides: await _base(me: DaybookSamples.islam),
       );
     });
 

@@ -89,9 +89,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Text(
                         l10n.appTitle,
                         textDirection: TextDirection.ltr,
-                        style: BvType.latin.headingLg.copyWith(
+                        // A logo: it keeps its own size (review 53, F30).
+                        style: BvType.latin.headingMd.copyWith(
                           color: BvColors.brandInk,
                           fontSize: BvHomeSpec.wordmarkSize,
+                          height:
+                              BvHomeSpec.wordmarkLineHeight /
+                              BvHomeSpec.wordmarkSize,
                           fontWeight: FontWeight.w800,
                         ),
                       ),

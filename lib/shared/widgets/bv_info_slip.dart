@@ -109,26 +109,38 @@ class BvInfoRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: BvInfoSpec.rowGap,
         children: [
-          Row(
-            spacing: BvInfoSpec.rowGap,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: BvSpace.s2,
-                  children: [
-                    Text(title, style: style),
-                    ?subtitle,
-                  ],
+          LayoutBuilder(
+            builder: (context, box) => Row(
+              spacing: BvInfoSpec.rowGap,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: BvSpace.s2,
+                    children: [
+                      Text(title, style: style),
+                      ?subtitle,
+                    ],
+                  ),
                 ),
-              ),
-              if (value != null)
-                Text(
-                  value!,
-                  style: type.bodyMd.copyWith(color: BvColors.textSecondary),
-                ),
-              ?trailing,
-            ],
+                // A long value (the admins' names) wraps at the end side
+                // rather than pushing the row off the screen.
+                if (value != null)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: box.maxWidth * BvInfoSpec.valueMaxShare,
+                    ),
+                    child: Text(
+                      value!,
+                      textAlign: TextAlign.end,
+                      style: type.bodyMd.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ?trailing,
+              ],
+            ),
           ),
           ?below,
         ],

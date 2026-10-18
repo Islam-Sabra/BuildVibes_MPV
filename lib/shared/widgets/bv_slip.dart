@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../core/design/bv_icons.dart';
@@ -202,27 +204,45 @@ class BvSlipHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
-    return SizedBox(
-      height: BvSlipSpec.headerHeight,
+    // 24 high in Latin; Arabic's main line (26) makes it as tall as the line.
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: BvSlipSpec.headerHeight),
       child: Row(
         spacing: BvSlipSpec.headerGap,
         children: [
           BvAvatar(name: name, size: BvAvatarSize.xs, tint: tint, image: image),
           // The name gives way first; the ref is short.
           Expanded(
-            child: Row(
-              spacing: BvSlipSpec.headerGap,
-              children: [
-                Flexible(
-                  child: Text(
-                    label ?? name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.labelMd.copyWith(color: BvColors.textPrimary),
+            child: LayoutBuilder(
+              builder: (context, box) => Row(
+                spacing: BvSlipSpec.headerGap,
+                children: [
+                  Flexible(
+                    child: Text(
+                      label ?? name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.labelMd.copyWith(color: BvColors.textPrimary),
+                    ),
                   ),
-                ),
-                if (ref != null) Text(ref!, maxLines: 1, style: quiet),
-              ],
+                  // Never wider than the room left, even with large text.
+                  if (ref != null)
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: math.max(
+                          0,
+                          box.maxWidth - BvSlipSpec.headerGap,
+                        ),
+                      ),
+                      child: Text(
+                        ref!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: quiet,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           if (time != null) Text(time!, maxLines: 1, style: quiet),

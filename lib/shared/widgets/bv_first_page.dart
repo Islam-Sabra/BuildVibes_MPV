@@ -93,7 +93,12 @@ class _ActionRow extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: action.onTap,
-        child: Padding(
+        child: Container(
+          // 40 high in both scripts (Arabic's main line is 26); taller only
+          // when the phone's text is larger.
+          constraints: const BoxConstraints(
+            minHeight: BvFirstPageSpec.actionHeight,
+          ),
           padding: const EdgeInsetsDirectional.symmetric(
             horizontal: BvFirstPageSpec.actionPaddingHorizontal,
             vertical: BvFirstPageSpec.actionPaddingVertical,

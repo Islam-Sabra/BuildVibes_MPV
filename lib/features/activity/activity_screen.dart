@@ -483,7 +483,7 @@ class _Empty extends StatelessWidget {
         BvSpace.s32,
       ),
       children: [
-        Text(l10n.activityEmptyTitle, style: type.headingLg),
+        Text(l10n.activityEmptyTitle, style: type.headingMd),
         const SizedBox(height: BvSpace.s8),
         Text(
           l10n.activityEmptyBody,

@@ -75,7 +75,7 @@ class BvDaybookMasthead extends StatelessWidget {
             weekday,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: type.displayBrand,
+            style: type.headingMd,
           ),
           Text(
             date,

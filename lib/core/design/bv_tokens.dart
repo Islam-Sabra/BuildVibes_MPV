@@ -272,7 +272,7 @@ abstract final class BvShadow {
 /// Font families bundled in assets/fonts.
 abstract final class BvFonts {
   static const latin = 'PlusJakartaSans';
-  static const arabic = 'NotoSansArabic';
+  static const arabic = 'Almarai';
 }
 
 /// One text style set per script. Use [BvType.of] to get the right one for
@@ -325,9 +325,10 @@ TextStyle _t(
   double letterSpacing = 0,
 ]) => TextStyle(
   fontFamily: family,
-  // Each script falls back to the other bundled font, so Latin words in
-  // Arabic text (BIM, emails, company names) use Plus Jakarta Sans, and
-  // Arabic in Latin text uses Noto Sans Arabic.
+  // Each script falls back to the other bundled font. Almarai is subset to
+  // the Arabic blocks (plus the space), so Latin words and digits in Arabic
+  // text (BIM, emails, company names, times) use Plus Jakarta Sans, and
+  // Arabic in Latin text uses Almarai.
   fontFamilyFallback: [
     family == BvFonts.arabic ? BvFonts.latin : BvFonts.arabic,
   ],
@@ -343,40 +344,48 @@ abstract final class BvType {
   static const _l = BvFonts.latin;
   static const _a = BvFonts.arabic;
 
+  // Text sizes v2 (review 53 Part C, Figma 2583:76944): two sizes on every
+  // working screen. Main is 15/22 Latin and 16/26 Arabic; small is 12/16
+  // Latin and 13/18 Arabic. displayBrand, headingXl and headingLg are for
+  // the entry screens and three named exceptions only (see
+  // test/core/design/large_type_guard_test.dart).
   static final latin = BvTypeSet(
     displayBrand: _t(_l, FontWeight.w700, 28, 34),
     headingXl: _t(_l, FontWeight.w700, 24, 30),
     headingLg: _t(_l, FontWeight.w700, 20, 26),
-    headingMd: _t(_l, FontWeight.w600, 18, 24),
-    titleLg: _t(_l, FontWeight.w600, 16, 22),
-    titleMd: _t(_l, FontWeight.w600, 15, 20),
-    bodyLg: _t(_l, FontWeight.w400, 16, 24),
-    bodyMd: _t(_l, FontWeight.w400, 14, 20),
-    bodySm: _t(_l, FontWeight.w400, 13, 18),
-    labelLg: _t(_l, FontWeight.w600, 14, 18),
-    labelMd: _t(_l, FontWeight.w500, 13, 16),
+    headingMd: _t(_l, FontWeight.w700, 15, 22),
+    titleLg: _t(_l, FontWeight.w700, 15, 22),
+    titleMd: _t(_l, FontWeight.w600, 15, 22),
+    bodyLg: _t(_l, FontWeight.w400, 15, 22),
+    bodyMd: _t(_l, FontWeight.w400, 15, 22),
+    bodySm: _t(_l, FontWeight.w400, 15, 22),
+    labelLg: _t(_l, FontWeight.w600, 15, 22),
+    labelMd: _t(_l, FontWeight.w500, 15, 22),
     labelSm: _t(_l, FontWeight.w500, 12, 16),
     metadata: _t(_l, FontWeight.w400, 12, 16),
-    button: _t(_l, FontWeight.w600, 14, 18),
-    overline: _t(_l, FontWeight.w700, 11, 16),
+    button: _t(_l, FontWeight.w600, 15, 22),
+    overline: _t(_l, FontWeight.w600, 12, 16),
   );
 
+  // Almarai has Regular and Bold only: semibold and bold roles are Bold,
+  // medium and regular roles are Regular. No tracking, as it breaks the
+  // letter joins.
   static final arabic = BvTypeSet(
     displayBrand: _t(_a, FontWeight.w700, 32, 40, -0.5),
     headingXl: _t(_a, FontWeight.w700, 28, 36, -0.3),
     headingLg: _t(_a, FontWeight.w700, 20, 28),
-    headingMd: _t(_a, FontWeight.w700, 18, 26),
-    titleLg: _t(_a, FontWeight.w600, 18, 26),
-    titleMd: _t(_a, FontWeight.w600, 16, 24),
+    headingMd: _t(_a, FontWeight.w700, 16, 26),
+    titleLg: _t(_a, FontWeight.w700, 16, 26),
+    titleMd: _t(_a, FontWeight.w700, 16, 26),
     bodyLg: _t(_a, FontWeight.w400, 16, 26),
-    bodyMd: _t(_a, FontWeight.w400, 14, 22),
-    bodySm: _t(_a, FontWeight.w400, 13, 20),
-    labelLg: _t(_a, FontWeight.w500, 14, 20, 0.1),
-    labelMd: _t(_a, FontWeight.w500, 13, 18),
-    labelSm: _t(_a, FontWeight.w500, 11, 16, 0.2),
-    metadata: _t(_a, FontWeight.w400, 12, 18),
-    button: _t(_a, FontWeight.w600, 15, 20, 0.2),
-    overline: _t(_a, FontWeight.w500, 11, 16, 0.2),
+    bodyMd: _t(_a, FontWeight.w400, 16, 26),
+    bodySm: _t(_a, FontWeight.w400, 16, 26),
+    labelLg: _t(_a, FontWeight.w700, 16, 26),
+    labelMd: _t(_a, FontWeight.w400, 16, 26),
+    labelSm: _t(_a, FontWeight.w400, 13, 18),
+    metadata: _t(_a, FontWeight.w400, 13, 18),
+    button: _t(_a, FontWeight.w700, 16, 26),
+    overline: _t(_a, FontWeight.w700, 13, 18),
   );
 
   /// The type set for the app language in [context].

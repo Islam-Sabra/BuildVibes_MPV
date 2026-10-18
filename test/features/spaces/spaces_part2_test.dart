@@ -128,6 +128,17 @@ void main() {
       expect(find.text(l10n.spacesOwners), findsOneWidget);
       expect(find.text(l10n.spacesOwnerTag), findsOneWidget);
       expect(find.text(l10n.spacesMembers), findsOneWidget);
+      // The list builds lazily: bring Rakesh's row on screen.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('member-p-rakesh')),
+        200,
+        scrollable: find
+            .ancestor(
+              of: find.text(l10n.spacesMembers),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       expect(
         find.textContaining(l10n.spacesPassLine(l10n.spacesPassCrew)),
         findsOneWidget,

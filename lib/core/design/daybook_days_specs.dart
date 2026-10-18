@@ -131,7 +131,8 @@ abstract final class BvFirstPageSpec {
 
   static const actionRadius = BorderRadius.all(Radius.circular(BvRadius.toast));
   static const actionPaddingHorizontal = 14.0;
-  static const actionPaddingVertical = 11.0;
+  static const actionHeight = 40.0;
+  static const actionPaddingVertical = BvSpace.s6;
   static const actionGap = BvSpace.s8;
   static const actionIcon = 18.0;
 }

@@ -62,7 +62,8 @@ abstract final class BvSlipSpec {
   static const chipRadius = BvRadius.smallAll; // 6
   static const chipPaddingStart = BvSpace.s8;
   static const chipPaddingEnd = 10.0;
-  static const chipPaddingVertical = 5.0;
+  // 26 high holds the small line (16 Latin, 18 Arabic).
+  static const chipPaddingVertical = BvSpace.s4;
   static const chipGap = 5.0;
   static const chipIconSize = 14.0;
 

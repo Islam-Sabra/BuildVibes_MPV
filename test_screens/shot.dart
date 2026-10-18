@@ -48,12 +48,7 @@ Future<void> loadAppFonts() async {
     'PlusJakartaSans-Bold.ttf',
     'PlusJakartaSans-ExtraBold.ttf',
   ]);
-  await family('NotoSansArabic', [
-    'NotoSansArabic-Regular.ttf',
-    'NotoSansArabic-Medium.ttf',
-    'NotoSansArabic-SemiBold.ttf',
-    'NotoSansArabic-Bold.ttf',
-  ]);
+  await family('Almarai', ['Almarai-Regular.ttf', 'Almarai-Bold.ttf']);
   await family('PhosphorRegular', ['Phosphor-Regular.ttf']);
 }
 

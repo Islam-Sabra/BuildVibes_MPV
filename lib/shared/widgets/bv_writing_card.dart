@@ -176,7 +176,7 @@ class BvWritingCard extends StatelessWidget {
                     controller: titleController!,
                     focusNode: titleFocusNode,
                     placeholder: titlePlaceholder,
-                    style: type.headingLg,
+                    style: type.headingMd,
                     autofocus: autofocus,
                     onChanged: onTitleChanged,
                     maxLength: titleMaxLength,

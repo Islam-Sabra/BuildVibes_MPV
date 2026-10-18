@@ -104,7 +104,7 @@ class NeedsYouScreen extends ConsumerWidget {
                 BvNeedsSpec.titlePaddingHorizontal,
                 BvNeedsSpec.titlePaddingBottom,
               ),
-              child: Text(l10n.needsTitle, style: type.displayBrand),
+              child: Text(l10n.needsTitle, style: type.headingMd),
             ),
             Padding(
               padding: const EdgeInsetsDirectional.symmetric(

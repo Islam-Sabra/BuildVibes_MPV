@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -264,7 +265,11 @@ void main() {
       // The Space name, then what happened, then the ref and time.
       expect(tester.getTopLeft(space).dy, lessThan(tester.getTopLeft(what).dy));
       expect(tester.getTopLeft(what).dy, lessThan(tester.getTopLeft(meta).dy));
-      expect(tester.widget<Text>(space).style!.fontWeight, FontWeight.w600);
+      // The semibold role: SemiBold in Latin, Bold in Almarai.
+      expect(
+        tester.widget<Text>(space).style!.fontWeight,
+        (lang == 'ar' ? BvType.arabic : BvType.latin).titleMd.fontWeight,
+      );
       // Open on the end side, level with the text.
       final open = find.byKey(const Key('needs-open-i1'));
       final openX = tester.getCenter(open).dx;

@@ -62,6 +62,8 @@ abstract final class BvInfoSpec {
   static const slipPaddingHorizontal = 14.0;
   static const rowPaddingVertical = BvSpace.s12;
   static const rowGap = 10.0;
+  // A value on the end side takes at most this share of the row.
+  static const valueMaxShare = 0.6;
   static const identityGap = 14.0;
   static const identityPaddingVertical = BvSpace.s4;
   static const nameGap = BvSpace.s4;
@@ -172,6 +174,7 @@ abstract final class BvHomeSpec {
   static const barGap = BvSpace.s2;
   static const barButton = BvSize.controlMd; // 44
   static const wordmarkSize = 22.0;
+  static const wordmarkLineHeight = 28.0;
 
   static const tagRadius = BorderRadius.all(Radius.circular(BvRadius.tiny));
   static const tagPaddingStart = BvSpace.s8;

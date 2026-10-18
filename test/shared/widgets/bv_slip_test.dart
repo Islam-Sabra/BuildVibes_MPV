@@ -181,9 +181,16 @@ void main() {
         isRtl(lang) ? time.left - header.left : header.right - time.right,
         moreOrLessEquals(0, epsilon: 0.5),
       );
+      // 24, or the main line when it is taller (Arabic 26).
+      final line = isRtl(lang)
+          ? BvType.arabic.labelMd.fontSize! * BvType.arabic.labelMd.height!
+          : BvSlipSpec.headerHeight;
       expect(
         tester.getSize(find.byType(BvSlipHeader)).height,
-        BvSlipSpec.headerHeight,
+        closeTo(
+          line > BvSlipSpec.headerHeight ? line : BvSlipSpec.headerHeight,
+          0.01,
+        ),
       );
     });
 
