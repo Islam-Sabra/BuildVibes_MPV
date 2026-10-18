@@ -3,10 +3,14 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 
-/// The prototype's daybook (D1 2518:33001, L1 2539:34633, DY1 2541:34679),
-/// in English or with the AR frames' words (2547:35195), never a fresh
-/// translation. Posts are shown as written, so the Arabic shots use the
-/// Arabic frames' posts.
+/// The prototype's daybook as cards (v13: EN 2581:35611, 2582:35982,
+/// 2582:36114; AR 2583:373), in English or with the AR frames' words,
+/// never a fresh translation. Posts are shown as written, so the Arabic
+/// shots use the Arabic frames' posts.
+///
+/// The sleeves item has a timeline: raised on Wednesday, an update that
+/// afternoon, then on Thursday an update, a sign-off, a send-back and a
+/// second sign-off. [sleevesCard] gives its card as it stood at a time.
 class DaybookSamples {
   const DaybookSamples(this.lang);
 
@@ -29,6 +33,15 @@ class DaybookSamples {
   String get rakeshName => t('Rakesh Nair', 'راكيش ناير');
   String get linaName => t('Lina Khalil', 'لينا خليل');
   String get monaName => t('Mona Adel', 'منى عادل');
+
+  String nameOf(String id) => switch (id) {
+    islam => islamName,
+    sara => saraName,
+    omar => omarName,
+    rakesh => rakeshName,
+    lina => linaName,
+    _ => monaName,
+  };
 
   /// The Space's people (the give-to picker 2540:34840): Leads, Crew in
   /// their Teams, and a Viewer, who can't own a work item.
@@ -103,149 +116,338 @@ class DaybookSamples {
     siteStartDate: siteStart ?? DaybookSamples.siteStart,
   );
 
+  /// A work item as space_post_json gives it.
   DaybookPost item({
     required String id,
     required DateTime at,
     required String title,
     required String authorId,
-    required String authorName,
     required String ownerId,
-    required String ownerName,
+    String? ref,
     DateTime? due,
     DateTime? dueAt,
     String? place,
     int points = 0,
-    DaybookStampKind? stamp,
-    String? status,
-    bool needsMe = false,
+    WorkStatus status = WorkStatus.open,
+    bool cancelled = false,
     String? cover,
-    DaybookDueEdit? edit,
     List<DaybookAttachment> attachments = const [],
-    DaybookGivenTo? givenTo,
   }) => DaybookPost(
     id: id,
     kind: DaybookPost.workItemKind,
     createdAt: at,
     title: title,
+    cancelled: cancelled,
     authorId: authorId,
-    authorName: authorName,
+    authorName: nameOf(authorId),
     place: place,
     dueDate: due,
     dueAt: dueAt,
     item: DaybookItem(
-      status: switch (stamp) {
-        DaybookStampKind.done => WorkStatus.done,
-        DaybookStampKind.checked => WorkStatus.checked,
-        _ => WorkStatus.open,
-      },
+      status: status,
       ownerId: ownerId,
-      ownerName: ownerName,
+      ownerName: nameOf(ownerId),
+      ref: ref,
     ),
-    stamp: stamp == null ? null : DaybookStamp(kind: stamp, at: at),
-    needsMe: needsMe,
     pointsTotal: points,
     coverPath: cover,
-    dueEdit: edit,
     attachments: attachments,
-    givenTo: givenTo,
   );
 
+  /// A history line.
+  DaybookEvent event(
+    String id,
+    DaybookEventKind kind,
+    DateTime at,
+    String byId, {
+    String? note,
+    SendBackReason? reason,
+    List<WorkPhoto> photos = const [],
+    String? toId,
+    String? fromId,
+    DaybookDueEdit? dueEdit,
+  }) => DaybookEvent(
+    id: id,
+    kind: kind,
+    at: at,
+    byId: byId,
+    byName: nameOf(byId),
+    note: note,
+    reason: reason,
+    photos: photos,
+    toName: toId == null ? null : nameOf(toId),
+    fromName: fromId == null ? null : nameOf(fromId),
+    dueEdit: dueEdit,
+  );
+
+  /// [post]'s card: raised by its author when it was made, then
+  /// [events]; its proof is the latest sign-off and what came after it.
+  /// The history is newest first, as the server sends it.
+  DaybookCard card(
+    DaybookPost post, {
+    List<DaybookEvent> events = const [],
+    DaybookNeed? need,
+    bool historyMore = false,
+  }) {
+    final history =
+        [
+          event(
+            '${post.id}-raised',
+            DaybookEventKind.raised,
+            post.createdAt,
+            post.authorId!,
+          ),
+          ...events,
+        ]..sort((a, b) {
+          final t = b.at.compareTo(a.at);
+          return t != 0 ? t : b.id.compareTo(a.id);
+        });
+    final done = history
+        .where((e) => e.kind == DaybookEventKind.done)
+        .firstOrNull;
+    DaybookProof? proof;
+    if (done != null) {
+      final after = history
+          .where(
+            (e) =>
+                e.at.isAfter(done.at) &&
+                (e.kind == DaybookEventKind.checked ||
+                    e.kind == DaybookEventKind.sentBack),
+          )
+          .lastOrNull;
+      proof = DaybookProof(
+        eventId: done.id,
+        at: done.at,
+        byId: done.byId,
+        byName: done.byName,
+        note: done.note,
+        photos: done.photos,
+        outcome: post.cancelled && after == null
+            ? const DaybookOutcome(kind: DaybookOutcomeKind.cancelled)
+            : after == null
+            ? DaybookOutcome(
+                kind: DaybookOutcomeKind.done,
+                at: done.at,
+                byId: done.byId,
+                byName: done.byName,
+              )
+            : DaybookOutcome(
+                kind: after.kind == DaybookEventKind.checked
+                    ? DaybookOutcomeKind.checked
+                    : DaybookOutcomeKind.sentBack,
+                at: after.at,
+                byId: after.byId,
+                byName: after.byName,
+                reason: after.reason,
+                note: after.note,
+              ),
+      );
+    }
+    return DaybookCard(
+      post: post,
+      lastActivityAt: history.first.at,
+      proof: proof,
+      history: history,
+      historyMore: historyMore,
+      need: need,
+    );
+  }
+
+  /// The sleeves' title (also on Needs you and Activity rows).
   String get sleeves => t(
     'Sleeves at grid C7 before the pour',
     'تركيب الجلب عند المحور C7 قبل الصبّ',
   );
   String get levelTwo => t('Level 2, grid C7', 'الدور 2، المحور C7');
 
-  /// DY1: yesterday's checked item.
-  DaybookPost gate() => item(
-    id: 'post-gate',
-    at: DateTime(2026, 10, 14, 16, 20),
-    title: t(
-      'Gate 3 access cleared for the pump truck',
-      'تجهيز مدخل البوابة 3 لشاحنة المضخة',
-    ),
-    authorId: islam,
-    authorName: islamName,
-    ownerId: omar,
-    ownerName: omarName,
-    due: DateTime(2026, 10, 14),
-    place: t('Gate 3', 'البوابة 3'),
-    points: 2,
-    stamp: DaybookStampKind.checked,
+  String get sleevesUpdate =>
+      t('Sleeves arrived. Fixing them now.', 'وصلت الجلب. أركّبها الآن.');
+  String get sleevesWedUpdate => t(
+    'Sleeves are on order, on site tomorrow morning.',
+    'الجلب قيد الطلب، تصل الموقع صباح الغد.',
   );
-
-  /// D1 08:14: Omar signed it. The clip for my check is on his sign-off,
-  /// never on this slip (review 45 M2).
-  DaybookPost sleevesDone() => item(
-    id: 'post-sleeves',
-    at: DateTime(2026, 10, 15, 8, 14),
-    title: sleeves,
-    authorId: islam,
-    authorName: islamName,
-    ownerId: omar,
-    ownerName: omarName,
-    due: DateTime(2026, 10, 15),
-    place: levelTwo,
-    points: 2,
-    stamp: DaybookStampKind.done,
-    attachments: const [
-      DaybookAttachment(name: 'M-201.pdf', revLabel: 'Rev C'),
-    ],
-  );
-
+  String get sleevesFirstNote => t('All six fixed.', 'رُكّبت الست كلها.');
   String get sleevesNote => t(
     'All six fixed and checked with MEP.',
     'رُكّبت الست كلها وراجعتها مع فريق الكهروميكانيك.',
   );
+  String get sentBackNote => t(
+    'One sleeve is 50 mm short. Check M-201.',
+    'حسب المخطط M-201، جلبة واحدة أقصر بـ 50 مم.',
+  );
 
-  /// D1 09:40: Omar's proof, waiting for my check.
-  DaybookSignOff sleevesSignOff({
-    bool needsMe = true,
-    DaybookOutcome outcome = const DaybookOutcome(
-      kind: DaybookOutcomeKind.done,
+  static const proofPhoto = WorkPhoto(path: '$space/post-sleeves/proof.jpg');
+
+  // The sleeves' timeline.
+  static final sleevesRaisedAt = DateTime(2026, 10, 14, 15, 50);
+  static final sleevesWedUpdateAt = DateTime(2026, 10, 14, 16, 7);
+  static final sleevesUpdateAt = DateTime(2026, 10, 15, 9, 5);
+  static final sleevesFirstDoneAt = DateTime(2026, 10, 15, 9, 40);
+  static final sleevesSentBackAt = DateTime(2026, 10, 15, 10, 12);
+  static final sleevesDoneAt = DateTime(2026, 10, 15, 10, 56);
+
+  /// The sleeves card as it stood at [upTo] (by default after the second
+  /// sign-off), as [me] sees it: Islam wrote it and checks it, Omar owns
+  /// it and signs it; a [viewer] gets no clip. [photos] are the sign-offs'.
+  DaybookCard sleevesCard({
+    DateTime? upTo,
+    String me = islam,
+    bool viewer = false,
+    List<WorkPhoto> photos = const [proofPhoto],
+  }) {
+    final until = upTo ?? sleevesDoneAt;
+    final all = [
+      event(
+        'ev-sleeves-c1',
+        DaybookEventKind.comment,
+        sleevesWedUpdateAt,
+        omar,
+        note: sleevesWedUpdate,
+      ),
+      event(
+        'ev-sleeves-c2',
+        DaybookEventKind.comment,
+        sleevesUpdateAt,
+        omar,
+        note: sleevesUpdate,
+      ),
+      event(
+        'ev-sleeves-done1',
+        DaybookEventKind.done,
+        sleevesFirstDoneAt,
+        omar,
+        note: sleevesFirstNote,
+        photos: photos,
+      ),
+      event(
+        'ev-sleeves-back',
+        DaybookEventKind.sentBack,
+        sleevesSentBackAt,
+        islam,
+        reason: SendBackReason.photoMissing,
+      ),
+      event(
+        'ev-sleeves-done2',
+        DaybookEventKind.done,
+        sleevesDoneAt,
+        omar,
+        note: sleevesNote,
+        photos: photos,
+      ),
+    ];
+    final events = [
+      for (final e in all)
+        if (!e.at.isAfter(until)) e,
+    ];
+    final last = events
+        .where(
+          (e) =>
+              e.kind == DaybookEventKind.done ||
+              e.kind == DaybookEventKind.sentBack,
+        )
+        .lastOrNull;
+    final done = last?.kind == DaybookEventKind.done;
+    return card(
+      item(
+        id: 'post-sleeves',
+        at: sleevesRaisedAt,
+        title: sleeves,
+        ref: 'KCT-014',
+        authorId: islam,
+        ownerId: omar,
+        due: DateTime(2026, 10, 15),
+        dueAt: DateTime(2026, 10, 15, 14),
+        place: levelTwo,
+        status: done ? WorkStatus.done : WorkStatus.open,
+      ),
+      events: events,
+      need: viewer
+          ? null
+          : done && me == islam
+          ? DaybookNeed.toCheck
+          : !done && me == omar
+          ? DaybookNeed.toSign
+          : null,
+    );
+  }
+
+  String get rebarTitle =>
+      t('Rebar spacing, level 3 slab', 'تباعد حديد التسليح، بلاطة الدور 3');
+
+  /// 10:05: Sara's item for Islam, due today at 2 pm, moved from Thu.
+  DaybookCard rebar({bool needsMe = true}) {
+    final at = DateTime(2026, 10, 15, 10, 5);
+    return card(
+      item(
+        id: 'post-rebar',
+        at: at,
+        title: rebarTitle,
+        ref: 'KCT-016',
+        authorId: sara,
+        ownerId: islam,
+        due: DateTime(2026, 10, 15),
+        dueAt: DateTime(2026, 10, 15, 14),
+        place: t('Level 3 slab', 'بلاطة الدور 3'),
+      ),
+      events: [
+        event(
+          'ev-rebar-edit',
+          DaybookEventKind.edited,
+          at,
+          sara,
+          dueEdit: DaybookDueEdit(
+            from: DateTime(2026, 10, 22),
+            to: DateTime(2026, 10, 15),
+          ),
+        ),
+      ],
+      need: needsMe ? DaybookNeed.toSign : null,
+    );
+  }
+
+  /// DY1: Wednesday's checked item.
+  DaybookCard gate() => card(
+    item(
+      id: 'post-gate',
+      at: DateTime(2026, 10, 14, 16, 20),
+      title: t(
+        'Gate 3 access cleared for the pump truck',
+        'تجهيز مدخل البوابة 3 لشاحنة المضخة',
+      ),
+      ref: 'KCT-012',
+      authorId: islam,
+      ownerId: omar,
+      due: DateTime(2026, 10, 14),
+      place: t('Gate 3', 'البوابة 3'),
+      points: 2,
+      status: WorkStatus.checked,
     ),
-    List<WorkPhoto> photos = const [
-      WorkPhoto(path: '$space/post-sleeves/proof.jpg'),
+    events: [
+      event(
+        'ev-gate-done',
+        DaybookEventKind.done,
+        DateTime(2026, 10, 14, 17, 5),
+        omar,
+        note: t('Gate clear, cones out.', 'البوابة جاهزة والأقماع في مكانها.'),
+        photos: const [WorkPhoto(path: '$space/post-gate/proof.jpg')],
+      ),
+      event(
+        'ev-gate-checked',
+        DaybookEventKind.checked,
+        DateTime(2026, 10, 14, 17, 30),
+        islam,
+      ),
     ],
-  }) => DaybookSignOff(
-    id: 'event-sleeves-done',
-    at: DateTime(2026, 10, 15, 9, 40),
-    postId: 'post-sleeves',
-    title: sleeves,
-    ref: 'KCT-021',
-    actorId: omar,
-    actorName: omarName,
-    note: sleevesNote,
-    photos: photos,
-    outcome: outcome,
-    needsMe: needsMe,
   );
 
-  /// D1 10:05: Sara's item for me, due today at 2 pm, moved from Thu.
-  DaybookPost rebar({bool needsMe = true}) => item(
-    id: 'post-rebar',
-    at: DateTime(2026, 10, 15, 10, 5),
-    title: t(
-      'Rebar spacing, level 3 slab',
-      'تباعد حديد التسليح، بلاطة الدور 3',
-    ),
-    authorId: sara,
-    authorName: saraName,
-    ownerId: islam,
-    ownerName: islamName,
-    due: DateTime(2026, 10, 15),
-    dueAt: DateTime(2026, 10, 15, 14),
-    needsMe: needsMe,
-    edit: DaybookDueEdit(
-      from: DateTime(2026, 10, 22),
-      to: DateTime(2026, 10, 15),
-    ),
-  );
+  /// Islam's Thursday (v13 2581:35611): the sleeves to check, the rebar to
+  /// sign; Wednesday's update left a trace.
+  List<DaybookCard> v13() => [sleevesCard(), rebar()];
 
-  List<DaybookRecord> d1({bool viewer = false}) => [
+  /// The daybook with Wednesday's checked gate too (DY1).
+  List<DaybookCard> d1({bool viewer = false}) => [
     gate(),
-    sleevesDone(),
-    sleevesSignOff(needsMe: !viewer),
+    sleevesCard(viewer: viewer),
     rebar(needsMe: !viewer),
   ];
 
@@ -258,41 +460,37 @@ class DaybookSamples {
 
   /// A work item written in place, as the server reads it back: by Islam,
   /// at [at].
-  DaybookPost posted(NewWorkItem i, DateTime at) => item(
-    id: i.id,
-    at: at,
-    title: i.title,
-    authorId: islam,
-    authorName: islamName,
-    ownerId: i.ownerId,
-    ownerName:
-        [
-          for (final m in people().members)
-            if (m.person.id == i.ownerId) m.person.fullName,
-        ].firstOrNull ??
-        '',
-    due: i.dueDate,
-    dueAt: i.dueAt,
-    place: i.place,
-    cover: i.photoPaths.firstOrNull,
+  DaybookCard posted(NewWorkItem i, DateTime at) => card(
+    item(
+      id: i.id,
+      at: at,
+      title: i.title,
+      authorId: islam,
+      ownerId: i.ownerId,
+      due: i.dueDate,
+      dueAt: i.dueAt,
+      place: i.place,
+      cover: i.photoPaths.firstOrNull,
+    ),
   );
 
   /// L1, Omar's Friday: the sleeves went late, the cable trays are due.
   static final friday = DateTime(2026, 10, 16, 11, 40);
 
-  List<DaybookPost> l1() => [
-    item(
-      id: 'post-sleeves',
-      at: DateTime(2026, 10, 16, 8, 14),
-      title: sleeves,
-      authorId: islam,
-      authorName: islamName,
-      ownerId: omar,
-      ownerName: omarName,
-      due: DateTime(2026, 10, 15),
-      place: levelTwo,
-      points: 2,
-      needsMe: true,
+  List<DaybookCard> l1() => [
+    card(
+      item(
+        id: 'post-sleeves',
+        at: DateTime(2026, 10, 16, 8, 14),
+        title: sleeves,
+        ref: 'KCT-014',
+        authorId: islam,
+        ownerId: omar,
+        due: DateTime(2026, 10, 15),
+        place: levelTwo,
+        points: 2,
+      ),
+      need: DaybookNeed.toSign,
     ),
     cableTrays(),
   ];
@@ -300,17 +498,18 @@ class DaybookSamples {
   String get cableTraysTitle =>
       t('Cable tray hangers, level 4', 'علّاقات حوامل الكابلات، الدور 4');
 
-  DaybookPost cableTrays() => item(
-    id: 'post-trays',
-    at: DateTime(2026, 10, 16, 11, 20),
-    title: cableTraysTitle,
-    authorId: islam,
-    authorName: islamName,
-    ownerId: omar,
-    ownerName: omarName,
-    due: DateTime(2026, 10, 16),
-    needsMe: true,
-    cover: '$space/posts/post-trays/photo.jpg',
+  DaybookCard cableTrays() => card(
+    item(
+      id: 'post-trays',
+      at: DateTime(2026, 10, 16, 11, 20),
+      title: cableTraysTitle,
+      ref: 'KCT-020',
+      authorId: islam,
+      ownerId: omar,
+      due: DateTime(2026, 10, 16),
+      cover: '$space/posts/post-trays/photo.jpg',
+    ),
+    need: DaybookNeed.toSign,
   );
 
   CalendarWorkItem cableTraysDue() => CalendarWorkItem(
@@ -320,125 +519,58 @@ class DaybookSamples {
     status: WorkStatus.open,
   );
 
-  // The loop (part 1d): Omar's side O1–O3, S1, Y1–Y2; your side B1–B3,
-  // X1–X3.
-
-  /// O1 2529:33382: Omar's Thursday. The sleeves are his to sign (the
-  /// clip on the slip, review 45 M2), the cable trays too.
-  List<DaybookRecord> o1() => [
-    item(
-      id: 'post-sleeves',
-      at: DateTime(2026, 10, 15, 8, 14),
-      title: sleeves,
-      authorId: islam,
-      authorName: islamName,
-      ownerId: omar,
-      ownerName: omarName,
-      due: DateTime(2026, 10, 15),
-      place: levelTwo,
-      points: 2,
-      needsMe: true,
-      attachments: const [
-        DaybookAttachment(name: 'M-201.pdf', revLabel: 'Rev C'),
-      ],
-    ),
+  /// O1: Omar's Thursday morning. The sleeves are his to sign, the cable
+  /// trays too.
+  List<DaybookCard> o1() => [
+    sleevesCard(me: omar, upTo: DateTime(2026, 10, 15, 9, 6)),
     traysForOmar(),
   ];
 
-  /// The cable trays, Islam's, for Omar by Sunday (O1 11:20, X1).
-  DaybookPost traysForOmar({bool needsMe = true, DaybookGivenTo? givenTo}) =>
-      item(
-        id: 'post-trays',
-        at: DateTime(2026, 10, 15, 11, 20),
-        title: cableTraysTitle,
-        authorId: islam,
-        authorName: islamName,
-        ownerId: givenTo == null ? omar : rakesh,
-        ownerName: givenTo == null ? omarName : rakeshName,
-        due: DateTime(2026, 10, 18),
-        needsMe: needsMe,
-        cover: '$space/posts/post-trays/photo.jpg',
-        givenTo: givenTo,
-      );
-
-  String get sentBackNote => t(
-    'One sleeve is 50 mm short. Check M-201.',
-    'حسب المخطط M-201، جلبة واحدة أقصر بـ 50 مم.',
-  );
-
-  /// S1 2530:33826: Islam sent Omar's proof back at 10:12; the sleeves are
-  /// open again, Omar's to sign: his clip is on the send-back (migration
-  /// 24), not on the item.
-  List<DaybookRecord> s1() => [
+  /// The cable trays, Islam's, for Omar by Sunday (11:20, X1); given to
+  /// Rakesh at [givenAt].
+  DaybookCard traysForOmar({bool needsMe = true, DateTime? givenAt}) => card(
     item(
-      id: 'post-sleeves',
-      at: DateTime(2026, 10, 15, 8, 14),
-      title: sleeves,
+      id: 'post-trays',
+      at: DateTime(2026, 10, 15, 11, 20),
+      title: cableTraysTitle,
+      ref: 'KCT-020',
       authorId: islam,
-      authorName: islamName,
-      ownerId: omar,
-      ownerName: omarName,
-      due: DateTime(2026, 10, 15),
-      place: levelTwo,
-      stamp: DaybookStampKind.sentBack,
+      ownerId: givenAt == null ? omar : rakesh,
+      due: DateTime(2026, 10, 18),
+      cover: '$space/posts/post-trays/photo.jpg',
     ),
-    sleevesSignOff(
-      needsMe: false,
-      outcome: DaybookOutcome(
-        kind: DaybookOutcomeKind.sentBack,
-        at: DateTime(2026, 10, 15, 10, 12),
-        byId: islam,
-        byName: islamName,
-        reason: SendBackReason.notAsAsked,
-        note: sentBackNote,
+    events: [
+      if (givenAt != null)
+        event(
+          'ev-trays-given',
+          DaybookEventKind.reassigned,
+          givenAt,
+          islam,
+          fromId: omar,
+          toId: rakesh,
+        ),
+    ],
+    need: needsMe ? DaybookNeed.toSign : null,
+  );
+
+  /// X3: an item Islam cancelled at 12:05.
+  DaybookCard doorHardware() => card(
+    item(
+      id: 'post-door',
+      at: DateTime(2026, 10, 15, 11, 50),
+      title: t('Door hardware for core B?', 'أقفال أبواب النواة B؟'),
+      ref: 'KCT-021',
+      authorId: islam,
+      ownerId: omar,
+      cancelled: true,
+    ),
+    events: [
+      event(
+        'post-door',
+        DaybookEventKind.cancelled,
+        DateTime(2026, 10, 15, 12, 5),
+        islam,
       ),
-    ),
-    sleevesSentBack(),
-  ];
-
-  /// S1's send-back at 10:12, with Omar's clip while it is the latest.
-  DaybookSentBack sleevesSentBack({bool needsMe = true}) => DaybookSentBack(
-    id: 'event-sleeves-back',
-    at: DateTime(2026, 10, 15, 10, 12),
-    postId: 'post-sleeves',
-    title: sleeves,
-    ref: 'KCT-021',
-    actorId: islam,
-    actorName: islamName,
-    reason: SendBackReason.notAsAsked,
-    note: sentBackNote,
-    needsMe: needsMe,
-  );
-
-  /// Y2 2530:34038: Omar's update at 09:05.
-  DaybookUpdate sleevesUpdate() => DaybookUpdate(
-    id: 'event-sleeves-update',
-    at: DateTime(2026, 10, 15, 9, 5),
-    postId: 'post-sleeves',
-    title: sleeves,
-    actorId: omar,
-    actorName: omarName,
-    note: t('Sleeves arrived. Fixing them now.', 'وصلت الجلب. أركّبها الآن.'),
-  );
-
-  /// X3 2530:34263: an item Islam cancelled at 12:05.
-  DaybookPost doorHardware() => DaybookPost(
-    id: 'post-door',
-    kind: DaybookPost.workItemKind,
-    createdAt: DateTime(2026, 10, 15, 12, 5),
-    title: t('Door hardware for core B?', 'أقفال أبواب النواة B؟'),
-    cancelled: true,
-    authorId: islam,
-    authorName: islamName,
-    item: DaybookItem(
-      status: WorkStatus.open,
-      ownerId: omar,
-      ownerName: omarName,
-    ),
-    stamp: DaybookStamp(
-      kind: DaybookStampKind.cancelled,
-      at: DateTime(2026, 10, 15, 12, 5),
-      byName: islamName,
-    ),
+    ],
   );
 }

@@ -2917,11 +2917,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formerMember => 'عضو سابق';
 
   @override
-  String daybookDateLine(String date, int day) {
-    return '$date، اليوم $day في الموقع';
-  }
-
-  @override
   String get daybookYou => 'أنت';
 
   @override
@@ -2934,7 +2929,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookMeta(String who, String due) {
-    return '$who، $due';
+    return '$who · $due';
   }
 
   @override
@@ -3013,20 +3008,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String daybookEditedDue(String from, String to) {
-    return 'عُدّل: نُقل الموعد من $from إلى $to';
-  }
-
-  @override
   String get daybookToday => 'اليوم';
 
   @override
   String get daybookTomorrow => 'غدًا';
-
-  @override
-  String daybookCancelledBy(String name, String time) {
-    return 'أُلغي من قِبل $name الساعة $time';
-  }
 
   @override
   String get daybookStampDone => 'منجز';
@@ -3089,20 +3074,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookSignedAsDone => 'وقّع كمنجز';
-
-  @override
   String daybookStampBy(String name, String time) {
     return '$name · $time';
   }
 
   @override
   String get daybookDoubleTapToCheck => 'انقر مرتين على الصورة للتحقق';
-
-  @override
-  String daybookGivenTo(String to, String from, String time) {
-    return 'أُسند إلى $to بدلًا من $from الساعة $time';
-  }
 
   @override
   String daybookFileChip(String name, String revision) {
@@ -3175,9 +3152,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookCouldNotSend => 'تعذّر الإرسال. انقر للتصحيح';
 
   @override
-  String get daybookEditedDueRemoved => 'عُدّل: أُزيل الموعد';
-
-  @override
   String get daybookRemoveDue => 'إزالة';
 
   @override
@@ -3185,16 +3159,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookHoldToProve => 'اضغط مطوّلًا للإثبات';
-
-  @override
-  String daybookChecksNext(String name) {
-    return 'يتحقّق منه $name بعد ذلك';
-  }
-
-  @override
-  String daybookYouChecked(String time) {
-    return 'تحقّقت منه الساعة $time. صار مقفلًا، وهذا هو السجل.';
-  }
 
   @override
   String get daybookCheck => 'تحقّق';
@@ -3269,19 +3233,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookSave => 'حفظ';
-
-  @override
-  String daybookCancelledByYou(String time) {
-    return 'ألغيته الساعة $time';
-  }
-
-  @override
-  String get daybookSentItBack => 'أرجع البند';
-
-  @override
-  String daybookSentBackAt(String time) {
-    return 'أُرجع الساعة $time';
-  }
 
   @override
   String daybookSentBackText(String reason, String note) {
@@ -3495,4 +3446,109 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get createNoWorkSpaces =>
       'لا توجد بعد مساحة يمكن كتابة بنود العمل فيها. يمكن الانضمام إلى مساحة برمز دعوة، أو إنشاء مساحة جديدة.';
+
+  @override
+  String get daybookShowEarlier => 'عرض الأقدم';
+
+  @override
+  String daybookHistoryLead(String lead) {
+    return '$lead:';
+  }
+
+  @override
+  String daybookCardRef(String ref) {
+    return '· $ref';
+  }
+
+  @override
+  String daybookTrace(String what, String title) {
+    return '$what · $title';
+  }
+
+  @override
+  String get daybookTodayDivider => 'اليوم';
+
+  @override
+  String daybookLineSigned(String name) {
+    return 'وُقّع كمنجز من قِبل $name';
+  }
+
+  @override
+  String get daybookLineYouSigned => 'وقّعته كمنجز';
+
+  @override
+  String daybookLineChecked(String name) {
+    return 'تم التحقق من قِبل $name';
+  }
+
+  @override
+  String get daybookLineYouChecked => 'تحقّقت منه';
+
+  @override
+  String daybookLineSentBack(String name) {
+    return 'أُرجع من قِبل $name';
+  }
+
+  @override
+  String get daybookLineYouSentBack => 'أرجعته';
+
+  @override
+  String daybookLineUpdate(String name) {
+    return 'تحديث من $name';
+  }
+
+  @override
+  String get daybookLineYouUpdate => 'أضفت تحديثًا';
+
+  @override
+  String daybookLineGave(String name, String to, String from) {
+    return 'أُسند من قِبل $name إلى $to بدلًا من $from';
+  }
+
+  @override
+  String daybookLineYouGave(String to, String from) {
+    return 'أسندته إلى $to بدلًا من $from';
+  }
+
+  @override
+  String daybookLineEdited(String name) {
+    return 'عُدّل من قِبل $name';
+  }
+
+  @override
+  String get daybookLineYouEdited => 'عدّلته';
+
+  @override
+  String daybookLineMovedDue(String name, String from, String to) {
+    return 'نُقل الموعد من $from إلى $to من قِبل $name';
+  }
+
+  @override
+  String daybookLineYouMovedDue(String from, String to) {
+    return 'نقلت الموعد من $from إلى $to';
+  }
+
+  @override
+  String daybookLineRemovedDue(String name) {
+    return 'أُزيل الموعد من قِبل $name';
+  }
+
+  @override
+  String get daybookLineYouRemovedDue => 'أزلت الموعد';
+
+  @override
+  String daybookLineCancelled(String name) {
+    return 'أُلغي من قِبل $name';
+  }
+
+  @override
+  String get daybookLineYouCancelled => 'ألغيته';
+
+  @override
+  String daybookLinePosted(String name) {
+    return 'نُشر من قِبل $name';
+  }
+
+  @override
+  String get daybookLineYouPosted => 'نشرته';
 }

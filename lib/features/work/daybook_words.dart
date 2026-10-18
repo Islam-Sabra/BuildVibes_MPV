@@ -132,25 +132,8 @@ class DaybookWords {
     if ((name ?? '').isNotEmpty) inOwnDirection(name!),
   ].join(' · ');
 
-  /// "15 October, day 41 on site": day 1 is [siteStart]; only the date
-  /// without one, or before it.
-  String dateLine(DateTime day, DateTime? siteStart) {
-    final date = dayMonth(day);
-    if (siteStart == null) return date;
-    final start = DateTime(siteStart.year, siteStart.month, siteStart.day);
-    // Calendar days, counted on dates so a change of clock can't shift it.
-    final n =
-        DateTime.utc(
-          day.year,
-          day.month,
-          day.day,
-        ).difference(DateTime.utc(start.year, start.month, start.day)).inDays +
-        1;
-    return n < 1 ? date : l10n.daybookDateLine(date, n);
-  }
-
-  /// "For Omar Haddad, by Thu 15 Oct", "For you, by today 2 pm", "For
-  /// you, was due Thu 15 Oct".
+  /// "For Omar Haddad · by Thu 15 Oct", "For you · by today 2 pm", "For
+  /// you · was due Thu 15 Oct".
   String meta(DaybookPost post, {required String? me, required DateTime now}) {
     final item = post.item;
     final who = item?.ownerId != null && item!.ownerId == me
@@ -207,21 +190,85 @@ class DaybookWords {
         : l10n.daybookDueDateAt(date, time);
   }
 
-  /// "Edited: due moved from Thu to today", "Edited: due removed", or null
-  /// when the last edit didn't touch the due.
-  String? editedDue(DaybookDueEdit? edit, DateTime now) {
-    if (edit != null && edit.removed) return l10n.daybookEditedDueRemoved;
-    if (edit == null || edit.from == null || edit.to == null) return null;
-    if (edit.timeOnly) {
-      if (edit.fromAt == null || edit.toAt == null) return null;
-      return l10n.daybookEditedDue(clock(edit.fromAt!), clock(edit.toAt!));
-    }
+  /// "Thu", "today", "tomorrow": a day in an edit's line.
+  String _dayWord(DateTime day, DateTime now) {
     final today = dayOf(now);
-    String word(DateTime day) => day == today
+    return day == today
         ? l10n.daybookToday
         : day == today.add(const Duration(days: 1))
         ? l10n.daybookTomorrow
         : _f('EEE', day);
-    return l10n.daybookEditedDue(word(edit.from!), word(edit.to!));
+  }
+
+  /// What [e] was, as its history line starts it ("Omar Haddad signed as
+  /// done", "You sent it back", "Sara Al-Mutairi moved the due date from
+  /// Thu to today"), or as a [trace] on an earlier day says it ("Omar
+  /// Haddad added an update"). [me] reads "You".
+  String eventPhrase(
+    DaybookEvent e, {
+    required String? me,
+    required DateTime now,
+    bool trace = false,
+  }) {
+    final you = e.byId != null && e.byId == me;
+    final name = _inLine(personName(l10n, e.byName));
+    final due = e.dueEdit;
+    return switch (e.kind) {
+      DaybookEventKind.done =>
+        you ? l10n.daybookLineYouSigned : l10n.daybookLineSigned(name),
+      DaybookEventKind.checked =>
+        you ? l10n.daybookLineYouChecked : l10n.daybookLineChecked(name),
+      DaybookEventKind.sentBack =>
+        you ? l10n.daybookLineYouSentBack : l10n.daybookLineSentBack(name),
+      DaybookEventKind.comment when trace =>
+        you ? l10n.daybookLineYouUpdate : l10n.daybookLineUpdate(name),
+      DaybookEventKind.comment => you ? l10n.daybookYou : name,
+      DaybookEventKind.reassigned => _gave(e, you, name),
+      DaybookEventKind.edited when due != null && due.removed =>
+        you ? l10n.daybookLineYouRemovedDue : l10n.daybookLineRemovedDue(name),
+      DaybookEventKind.edited when due != null && _moved(due, now) != null =>
+        _movedLine(_moved(due, now)!, you, name),
+      DaybookEventKind.edited =>
+        you ? l10n.daybookLineYouEdited : l10n.daybookLineEdited(name),
+      DaybookEventKind.cancelled =>
+        you ? l10n.daybookLineYouCancelled : l10n.daybookLineCancelled(name),
+      DaybookEventKind.raised || DaybookEventKind.unknown =>
+        you ? l10n.daybookLineYouPosted : l10n.daybookLinePosted(name),
+    };
+  }
+
+  String _gave(DaybookEvent e, bool you, String name) {
+    final to = _inLine(personName(l10n, e.toName));
+    final from = _inLine(personName(l10n, e.fromName));
+    return you
+        ? l10n.daybookLineYouGave(to, from)
+        : l10n.daybookLineGave(name, to, from);
+  }
+
+  /// The due's "from" and "to" words: days, or times on the same day.
+  (String, String)? _moved(DaybookDueEdit due, DateTime now) {
+    if (due.from == null || due.to == null) return null;
+    if (due.timeOnly) {
+      if (due.fromAt == null || due.toAt == null) return null;
+      return (clock(due.fromAt!), clock(due.toAt!));
+    }
+    return (_dayWord(due.from!, now), _dayWord(due.to!, now));
+  }
+
+  String _movedLine((String, String) moved, bool you, String name) => you
+      ? l10n.daybookLineYouMovedDue(moved.$1, moved.$2)
+      : l10n.daybookLineMovedDue(name, moved.$1, moved.$2);
+
+  /// The rest of [e]'s history line, after its phrase: a sign-off's or an
+  /// update's note, a send-back's reason and note, a cancel's note.
+  String? eventDetail(DaybookEvent e) {
+    final note = e.note?.trim() ?? '';
+    return switch (e.kind) {
+      DaybookEventKind.sentBack => sentBackText(e.reason, e.note),
+      DaybookEventKind.done ||
+      DaybookEventKind.comment ||
+      DaybookEventKind.cancelled => note.isEmpty ? null : inOwnDirection(note),
+      _ => null,
+    };
   }
 }

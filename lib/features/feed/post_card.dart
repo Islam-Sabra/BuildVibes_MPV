@@ -28,7 +28,7 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
-import '../work/daybook_entry.dart' show localPhotoProvider;
+import '../work/daybook_photos.dart' show localPhotoProvider;
 import 'feed_state.dart';
 import 'post_draft.dart';
 

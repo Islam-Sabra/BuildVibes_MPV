@@ -1,11 +1,11 @@
-// Slice 1 part 1d: the work item loop on the daybook. Sign as done with
-// the camera (O1–O3), check by double-tap with Undo (B3), the long-press
-// menus (B1, X1), send back with a reason (B2, S1), an update by swiping
-// (Y1, Y2), edit, give to someone else and cancel (X1–X3).
+// Slice 1 part 1d: the work item loop on the daybook, on v13's one card
+// per work item (review 53 Part B). Sign as done with the camera (O1–O3),
+// check by double-tap with Undo (B3), the menu (B1, X1), send back with a
+// reason (B2, S1), an update by swiping (Y1), edit, give to someone else
+// and cancel (X1–X3). What happens is a line in the card's history.
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/core/sound/sent_chime.dart';
 import 'package:buildvibes/data/models/daybook.dart';
@@ -24,12 +24,10 @@ import 'package:buildvibes/shared/widgets/bv_send_back_card.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
 import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
-import 'package:buildvibes/shared/widgets/bv_update_note.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
-import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,7 +50,7 @@ const _undoGone = Duration(seconds: 6);
 Future<TestApp> _open(
   WidgetTester tester,
   String lang, {
-  required List<DaybookRecord> posts,
+  required List<DaybookCard> posts,
   String me = DaybookSamples.islam,
   SpacePass pass = SpacePass.lead,
   FakeWorkRepository? work,
@@ -95,7 +93,7 @@ Finder _signPills(AppLocalizations l10n) => find.byWidgetPredicate(
   (w) => w is BvSlipPill && w.icon != null && w.label == l10n.daybookSignAsDone,
 );
 
-Finder _entry(String id) => find.byKey(Key('daybook-entry-$id'));
+Finder _entry(String id) => find.byKey(Key('daybook-card-$id'));
 
 Finder _in(String id, Finder f) => find.descendant(of: _entry(id), matching: f);
 
@@ -125,14 +123,20 @@ Future<void> _pick(WidgetTester tester, String label) async {
 }
 
 Future<void> _doubleTapProof(WidgetTester tester) async {
-  final photo = _in('event-sleeves-done', find.byKey(const Key('slip-photo')));
+  final photo = _in('post-sleeves', find.byKey(const Key('slip-photo')));
   await tester.ensureVisible(photo);
   await tester.pumpAndSettle();
-  await tester.tap(photo);
+  // Clear of the stamp in the middle of the photo.
+  final at = tester.getTopLeft(photo) + const Offset(20, 20);
+  await tester.tapAt(at);
   await tester.pump(const Duration(milliseconds: 100));
-  await tester.tap(photo);
+  await tester.tapAt(at);
   await tester.pumpAndSettle();
 }
+
+/// A history line of card [id], as its plain text.
+Finder _line(String id, String text) =>
+    _in(id, find.text(text, findRichText: true));
 
 /// F6: the proof screen opens with the camera one tap away.
 Future<void> _takePhoto(WidgetTester tester) async {
@@ -382,14 +386,10 @@ void main() {
       await _open(tester, lang, posts: s.d1(), work: work, daybook: daybook);
       // Meanwhile the author cancelled it.
       daybook.posts[DaybookSamples.space] = [
-        for (final r in s.d1())
-          if (r is DaybookPost && r.id == 'post-sleeves')
-            r.shownAs(
-              stamp: const DaybookStamp(kind: DaybookStampKind.cancelled),
-              cancelled: true,
-            )
-          else
-            r,
+        for (final c in s.d1())
+          c.id == 'post-sleeves'
+              ? c.copyWith(post: c.post.shownAs(cancelled: true))
+              : c,
       ];
       await _doubleTapProof(tester);
       await tester.pump(_undoGone);
@@ -412,7 +412,7 @@ void main() {
       final work = FakeWorkRepository()
         ..refuse = const SpaceException(SpaceFailure.notAllowed);
       await _open(tester, lang, posts: s.d1(), work: work);
-      await _longPress(tester, 'event-sleeves-done');
+      await _longPress(tester, 'post-sleeves');
       await _pick(tester, l10n.daybookSendBack);
       await tester.tap(find.text(l10n.daybookReasonNotFinished));
       await tester.pumpAndSettle();
@@ -465,107 +465,97 @@ void main() {
       expect(work.calls.single, startsWith('done post-sleeves'));
     });
 
-    testWidgets('O3: the owner\'s proof says who checks it next [$lang]', (
-      tester,
-    ) async {
+    testWidgets('O3: the owner\'s signed card: DONE on the photo, nothing '
+        'left for the owner to do [$lang]', (tester) async {
       await _open(
         tester,
         lang,
-        posts: [s.sleevesDone(), s.sleevesSignOff(needsMe: false)],
+        posts: [
+          s.sleevesCard(
+            me: DaybookSamples.omar,
+            upTo: DaybookSamples.sleevesFirstDoneAt,
+          ),
+        ],
         me: DaybookSamples.omar,
         pass: SpacePass.crew,
       );
       expect(
-        _in(
-          'event-sleeves-done',
-          find.text(l10n.daybookChecksNext(s.islamName)),
-        ),
+        _in('post-sleeves', find.text(l10n.daybookStampDone)),
         findsOneWidget,
       );
+      expect(find.byType(BvPaperClip), findsNothing);
       expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(_signPills(l10n), findsNothing);
+      expect(
+        _in(
+          'post-sleeves',
+          find.textContaining(l10n.daybookLineYouSigned, findRichText: true),
+        ),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('S1: sent back: SENT BACK on the proof, "Sent back at '
-        '10:12"; the send-back is its own slip with the reason and note, '
-        'the clip and the only Sign as done [$lang]', (tester) async {
+    testWidgets('S1: sent back: SENT BACK on the photo, the send-back a line '
+        'with its reason, the clip and the only Sign as done on the one '
+        'card [$lang]', (tester) async {
       await _open(
         tester,
         lang,
-        posts: s.s1(),
+        posts: [
+          s.sleevesCard(
+            me: DaybookSamples.omar,
+            upTo: DaybookSamples.sleevesSentBackAt,
+          ),
+        ],
         me: DaybookSamples.omar,
         pass: SpacePass.crew,
       );
       expect(
-        _in('event-sleeves-done', find.text(l10n.daybookStampSentBack)),
+        _in('post-sleeves', find.text(l10n.daybookStampSentBack)),
         findsOneWidget,
       );
       expect(
-        _in(
-          'event-sleeves-done',
-          find.text(
-            l10n.daybookSentBackAt(words.clock(DateTime(2026, 10, 15, 10, 12))),
-          ),
+        _line(
+          'post-sleeves',
+          '${l10n.daybookHistoryLead(l10n.daybookLineSentBack(s.islamName))} '
+              '${words.reason(SendBackReason.photoMissing)}',
         ),
         findsOneWidget,
       );
-      // The reason is no longer on the proof.
-      expect(
-        _in('event-sleeves-done', find.textContaining(s.sentBackNote)),
-        findsNothing,
-      );
-      final back = _entry('event-sleeves-back');
-      expect(back, findsOneWidget);
-      expect(
-        _in('event-sleeves-back', find.text(l10n.daybookSentItBack)),
-        findsOneWidget,
-      );
-      expect(
-        _in(
-          'event-sleeves-back',
-          find.text(
-            l10n.daybookSentBackText(
-              l10n.daybookReasonNotAsAsked,
-              inOwnDirection(s.sentBackNote),
-            ),
-          ),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        _in('event-sleeves-back', find.byType(BvPaperClip)),
-        findsOneWidget,
-      );
-      // Never two Sign as done on one item: not on the item's own slip.
-      expect(_in('post-sleeves', find.byType(BvPaperClip)), findsNothing);
+      expect(find.byType(BvSlip), findsOneWidget);
+      expect(_in('post-sleeves', find.byType(BvPaperClip)), findsOneWidget);
       expect(_signPills(l10n), findsOneWidget);
-      expect(_in('event-sleeves-back', _signPills(l10n)), findsOneWidget);
     });
 
-    testWidgets('S1: Sign as done on the send-back proves the item; signed '
-        'again, the clip moves to the new proof [$lang]', (tester) async {
+    testWidgets('S1: Sign as done after a send-back proves the item; signed '
+        'again, the clip and the pill go [$lang]', (tester) async {
       final work = FakeWorkRepository();
       final daybook = FakeDaybookRepository();
       await _open(
         tester,
         lang,
-        posts: s.s1(),
+        posts: [
+          s.sleevesCard(
+            me: DaybookSamples.omar,
+            upTo: DaybookSamples.sleevesSentBackAt,
+          ),
+        ],
         me: DaybookSamples.omar,
         pass: SpacePass.crew,
         work: work,
         daybook: daybook,
       );
-      await tester.tap(_in('event-sleeves-back', _signPills(l10n)));
+      await tester.tap(_in('post-sleeves', _signPills(l10n)));
       await tester.pumpAndSettle();
       expect(find.byType(ProofCamera), findsOneWidget);
       await _takePhoto(tester);
-      // The server after the second sign-off: the send-back asks nobody.
+      // The server after the second sign-off: Done, for Islam to check.
       daybook.posts[DaybookSamples.space] = [
-        ...s.s1().where((r) => r.id != 'event-sleeves-back'),
-        s.sleevesSentBack(needsMe: false),
+        s.sleevesCard(me: DaybookSamples.omar),
       ];
       await _sendDone(tester);
       expect(work.calls, contains(startsWith('done post-sleeves')));
-      expect(_in('event-sleeves-back', find.byType(BvPaperClip)), findsNothing);
+      expect(_in('post-sleeves', find.byType(BvPaperClip)), findsNothing);
       expect(_signPills(l10n), findsNothing);
     });
 
@@ -618,8 +608,8 @@ void main() {
       await tester.tap(find.byKey(const Key('proof-send')));
       await tester.pumpAndSettle();
       expect(find.byType(ProofCamera), findsNothing);
-      // The proof on the page: the note and DONE, no photo, no frame.
-      const proof = 'sign_done-post-sleeves';
+      // The proof on the card: the note and DONE, no photo, no frame.
+      const proof = 'post-sleeves';
       expect(_entry(proof), findsOneWidget);
       expect(_in(proof, find.text(s.sleevesNote)), findsOneWidget);
       expect(_in(proof, find.text(l10n.daybookStampDone)), findsOneWidget);
@@ -638,13 +628,10 @@ void main() {
       await _open(
         tester,
         lang,
-        posts: [
-          s.sleevesDone(),
-          s.sleevesSignOff(photos: const []),
-        ],
+        posts: [s.sleevesCard(photos: const [])],
         work: work,
       );
-      const proof = 'event-sleeves-done';
+      const proof = 'post-sleeves';
       expect(_in(proof, find.text(s.sleevesNote)), findsOneWidget);
       expect(_in(proof, find.text(l10n.daybookStampDone)), findsOneWidget);
       expect(_in(proof, find.byType(BvSlipPhoto)), findsNothing);
@@ -808,19 +795,20 @@ void main() {
       expect(app.chimes, isEmpty);
     });
 
-    testWidgets('Y1, Y2: swipe a slip to the end side, write an update; it '
-        'hangs as a note quoting the item [$lang]', (tester) async {
+    testWidgets('Y1: swipe a card to the end side, write an update; an '
+        'update is a line in the card\'s history [$lang]', (tester) async {
       final app = await _open(
         tester,
         lang,
-        posts: [...s.o1(), s.sleevesUpdate()],
+        posts: s.o1(),
         me: DaybookSamples.omar,
         pass: SpacePass.crew,
       );
-      final update = _in('event-sleeves-update', find.byType(BvUpdateNote));
-      expect(update, findsOneWidget);
       expect(
-        find.descendant(of: update, matching: find.text(s.sleeves)),
+        _in(
+          'post-sleeves',
+          find.textContaining(s.sleevesUpdate, findRichText: true),
+        ),
         findsOneWidget,
       );
       await tester.ensureVisible(_entry('post-sleeves'));
@@ -851,14 +839,12 @@ void main() {
       final app = await _open(tester, lang, posts: s.d1());
       await _doubleTapProof(tester);
       expect(
-        _in('event-sleeves-done', find.text(l10n.daybookStampChecked)),
+        _in('post-sleeves', find.text(l10n.daybookStampChecked)),
         findsOneWidget,
       );
       expect(
         tester
-            .widget<BvInkStamp>(
-              _in('event-sleeves-done', find.byType(BvInkStamp)),
-            )
+            .widget<BvInkStamp>(_in('post-sleeves', find.byType(BvInkStamp)))
             .land,
         isTrue,
       );
@@ -869,10 +855,10 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(
-        find.text(l10n.daybookYouChecked(words.clock(DaybookSamples.thursday))),
-        findsOneWidget,
-      );
+      // At once, a line in the history, and nothing to do any more.
+      expect(_line('post-sleeves', l10n.daybookLineYouChecked), findsOneWidget);
+      expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(_in('post-sleeves', find.byType(BvPaperClip)), findsNothing);
       // Nothing has reached the server yet.
       expect(app.work.calls, isEmpty);
       await tester.pump(_undoGone);
@@ -890,25 +876,29 @@ void main() {
       await tester.pumpAndSettle();
       expect(app.work.calls, isEmpty);
       expect(
-        _in('event-sleeves-done', find.text(l10n.daybookStampDone)),
+        _in('post-sleeves', find.text(l10n.daybookStampDone)),
         findsOneWidget,
       );
       expect(
-        _in('event-sleeves-done', find.text(l10n.daybookStampChecked)),
+        _in('post-sleeves', find.text(l10n.daybookStampChecked)),
         findsNothing,
       );
+      expect(_line('post-sleeves', l10n.daybookLineYouChecked), findsNothing);
     });
 
-    testWidgets('B1: long-press the proof: the lifted slip and Check, Send '
-        'back, Add update; Check checks [$lang]', (tester) async {
+    testWidgets('B1: long-press the card to check: the lifted card and '
+        'Check, Send back, Add update, Cancel; Check checks [$lang]', (
+      tester,
+    ) async {
       final app = await _open(tester, lang, posts: s.d1());
-      await _longPress(tester, 'event-sleeves-done');
+      await _longPress(tester, 'post-sleeves');
       expect(find.byType(BvDim), findsOneWidget);
       // "Discuss in chat" can't quote the item in the chat yet: hidden.
       expect(_menu(tester), [
         l10n.daybookCheck,
         l10n.daybookSendBack,
         l10n.daybookAddUpdate,
+        l10n.daybookCancelItem,
       ]);
       await _pick(tester, l10n.daybookCheck);
       expect(find.byType(BvUndoBar), findsOneWidget);
@@ -920,7 +910,7 @@ void main() {
     testWidgets('B2: send back with one reason and a note; "Something else" '
         'needs the note [$lang]', (tester) async {
       final app = await _open(tester, lang, posts: s.d1());
-      await _longPress(tester, 'event-sleeves-done');
+      await _longPress(tester, 'post-sleeves');
       await _pick(tester, l10n.daybookSendBack);
       final card = find.byType(BvSendBackCard<SendBackReason>);
       expect(card, findsOneWidget);
@@ -953,8 +943,8 @@ void main() {
       );
     });
 
-    testWidgets('X1: long-press your own open item: Edit, Add update, Give to '
-        'someone else, Cancel work item; someone else\'s: Add update '
+    testWidgets('X1: long-press your own open item: Add update, Edit, Give '
+        'to someone else, Cancel work item; someone else\'s: Add update '
         '[$lang]', (tester) async {
       await _open(
         tester,
@@ -963,8 +953,8 @@ void main() {
       );
       await _longPress(tester, 'post-trays');
       expect(_menu(tester), [
-        l10n.daybookEdit,
         l10n.daybookAddUpdate,
+        l10n.daybookEdit,
         l10n.daybookGiveTo,
         l10n.daybookCancelItem,
       ]);
@@ -985,44 +975,35 @@ void main() {
         me: DaybookSamples.mona,
         pass: SpacePass.viewer,
       );
-      await _longPress(tester, 'event-sleeves-done');
+      await _longPress(tester, 'post-sleeves');
       expect(find.byKey(const Key('slip-menu')), findsNothing);
       expect(find.byKey(const Key('swipe-reveal')), findsNothing);
     });
 
-    testWidgets("F16: Crew on someone else's slips: long-press, or a short "
-        'press, shows Add update on the item, its sign-off and its '
-        'send-back [$lang]', (tester) async {
+    testWidgets("F16: Crew on someone else's card: long-press, or a short "
+        'press, shows Add update [$lang]', (tester) async {
       // Rakesh (Crew) neither wrote nor owns the sleeves item.
       final app = await _open(
         tester,
         lang,
-        posts: s.s1(),
+        posts: [
+          s.sleevesCard(
+            me: DaybookSamples.rakesh,
+            upTo: DaybookSamples.sleevesSentBackAt,
+          ),
+        ],
         me: DaybookSamples.rakesh,
         pass: SpacePass.crew,
       );
-      for (final id in [
-        'post-sleeves',
-        'event-sleeves-done',
-        'event-sleeves-back',
-      ]) {
-        await _longPress(tester, id);
-        expect(_menu(tester), contains(l10n.daybookAddUpdate), reason: id);
-        // Off the menu and the lifted slip: the dim's corner.
-        await tester.tapAt(const Offset(4, 4));
-        await tester.pumpAndSettle();
-        // A short press: the same menu (until the slip's page, slice 5).
-        // On the proof's photo the tap waits out a double-tap (Check).
-        await tester.tap(_in(id, find.byType(BvSlip)).first);
-        await tester.pump(kDoubleTapTimeout);
-        await tester.pumpAndSettle();
-        expect(_menu(tester), contains(l10n.daybookAddUpdate), reason: id);
-        if (id != 'event-sleeves-back') {
-          // Off the menu and the lifted slip: the dim's corner.
-          await tester.tapAt(const Offset(4, 4));
-          await tester.pumpAndSettle();
-        }
-      }
+      await _longPress(tester, 'post-sleeves');
+      expect(_menu(tester), [l10n.daybookAddUpdate]);
+      // Off the menu and the lifted card: the dim's corner.
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pumpAndSettle();
+      // A short press: the same menu (until the card's page, slice 5).
+      await tester.tap(_in('post-sleeves', find.text(s.sleeves)));
+      await tester.pumpAndSettle();
+      expect(_menu(tester), [l10n.daybookAddUpdate]);
       await _pick(tester, l10n.daybookAddUpdate);
       await tester.enterText(find.byKey(const Key('popover-field')), 'Seen');
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -1093,27 +1074,18 @@ void main() {
         findsOneWidget,
       );
       expect(find.text(l10n.daybookCancelled), findsOneWidget);
+      expect(_line('post-trays', l10n.daybookLineYouCancelled), findsOneWidget);
       expect(app.daybook.calls, isEmpty);
       await tester.pump(_undoGone);
       await tester.pumpAndSettle();
       expect(app.daybook.calls.single, 'cancel post-trays');
     });
 
-    testWidgets('X3: a cancelled item of mine: "Cancelled by you" [$lang]', (
+    testWidgets('X3: a cancelled item of mine: "You cancelled it" [$lang]', (
       tester,
     ) async {
       await _open(tester, lang, posts: [s.doorHardware()]);
-      expect(
-        _in(
-          'post-door',
-          find.text(
-            l10n.daybookCancelledByYou(
-              words.clock(DateTime(2026, 10, 15, 12, 5)),
-            ),
-          ),
-        ),
-        findsOneWidget,
-      );
+      expect(_line('post-door', l10n.daybookLineYouCancelled), findsOneWidget);
       await _longPress(tester, 'post-door');
       expect(find.byKey(const Key('slip-menu')), findsNothing);
     });
@@ -1151,8 +1123,7 @@ void main() {
       expect(find.byType(BvWritingCard), findsNothing);
     });
 
-    testWidgets('Edit: the due can be removed: "Edited: due removed" '
-        '[$lang]', (tester) async {
+    testWidgets('Edit: the due can be removed [$lang]', (tester) async {
       final app = await _open(
         tester,
         lang,

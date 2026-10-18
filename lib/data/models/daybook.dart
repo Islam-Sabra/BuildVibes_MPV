@@ -18,43 +18,6 @@ DateTime dayOf(DateTime t) {
   return DateTime(local.year, local.month, local.day);
 }
 
-/// The latest stamp on a slip (space_post_json "stamp").
-enum DaybookStampKind {
-  done,
-  checked,
-  sentBack,
-  cancelled,
-  newVersion;
-
-  static DaybookStampKind? fromJson(Object? value) => switch (value) {
-    'done' => done,
-    'checked' => checked,
-    'sent_back' => sentBack,
-    'cancelled' => cancelled,
-    'new_version' => newVersion,
-    _ => null,
-  };
-}
-
-@immutable
-class DaybookStamp {
-  const DaybookStamp({required this.kind, this.at, this.byName});
-
-  static DaybookStamp? fromJson(Map<String, dynamic>? json) {
-    final kind = DaybookStampKind.fromJson(json?['kind']);
-    if (json == null || kind == null) return null;
-    return DaybookStamp(
-      kind: kind,
-      at: _time(json['at']),
-      byName: json['by_name'] as String?,
-    );
-  }
-
-  final DaybookStampKind kind;
-  final DateTime? at;
-  final String? byName;
-}
-
 /// The work item behind a post (space_post_json "item").
 @immutable
 class DaybookItem {
@@ -82,26 +45,15 @@ class DaybookItem {
   final String? ownerName;
 }
 
-/// A change of due in the latest edit ("Edited: due moved from Thu to
-/// today", or "Edited: due removed" when [to] is null). A time-only change
-/// has the same [from] and [to] days.
+/// A change of due in an edit ("moved the due date from Thu to today", or
+/// "took the due date off" when [to] is null). A time-only change has the
+/// same [from] and [to] days.
 @immutable
 class DaybookDueEdit {
   const DaybookDueEdit({this.from, this.to, this.fromAt, this.toAt});
 
-  final DateTime? from;
-  final DateTime? to;
-  final DateTime? fromAt;
-  final DateTime? toAt;
-
-  /// The edit's `changes.due`, or null when the due didn't change.
-  static DaybookDueEdit? fromEdits(Object? edits) {
-    final list = edits as List?;
-    if (list == null || list.isEmpty) return null;
-    // Newest first.
-    final changes =
-        (list.first as Map<String, dynamic>)['changes']
-            as Map<String, dynamic>?;
+  /// An edit's `changes.due`, or null when the due didn't change.
+  static DaybookDueEdit? fromChanges(Map<String, dynamic>? changes) {
     final due = changes?['due'] as Map<String, dynamic>?;
     if (due == null) return null;
     return DaybookDueEdit(
@@ -112,6 +64,11 @@ class DaybookDueEdit {
     );
   }
 
+  final DateTime? from;
+  final DateTime? to;
+  final DateTime? fromAt;
+  final DateTime? toAt;
+
   bool get timeOnly =>
       from != null && from == to && (fromAt != null || toAt != null);
 
@@ -119,65 +76,7 @@ class DaybookDueEdit {
   bool get removed => from != null && to == null;
 }
 
-/// One entry on a Space's daybook (daybook_page, review 45 M1): a post,
-/// a sign-off or an update, each at its own time. [id] and [at] are the
-/// page's cursor.
-@immutable
-sealed class DaybookRecord {
-  const DaybookRecord();
-
-  /// daybook_page's row: `kind` is 'post', 'sign_off', 'sent_back' or
-  /// 'update'; null for a kind this version doesn't know.
-  static DaybookRecord? fromRow(Map<String, dynamic> row) {
-    final entry = row['entry'] as Map<String, dynamic>?;
-    if (entry == null) return null;
-    return switch (row['kind']) {
-      'post' => DaybookPost.fromJson(entry),
-      'sign_off' => DaybookSignOff.fromJson(entry),
-      'sent_back' => DaybookSentBack.fromJson(entry),
-      'update' => DaybookUpdate.fromJson(entry),
-      _ => null,
-    };
-  }
-
-  String get id;
-  DateTime get at;
-
-  /// The work item a sign-off or update belongs to, or the post itself.
-  String get postId;
-}
-
-/// One daybook_page call: the entries this version draws, and how many
-/// rows the server sent with the cursor of the last one. Paging follows the
-/// rows, so a kind this version doesn't know never ends it early.
-@immutable
-class DaybookPageRows {
-  const DaybookPageRows(
-    this.records, {
-    required this.rows,
-    this.lastAt,
-    this.lastId,
-  });
-
-  /// The rows as daybook_page sends them (`id`, `created_at`, `kind`,
-  /// `entry`), newest first.
-  factory DaybookPageRows.fromRows(List<Map<String, dynamic>> rows) {
-    final last = rows.lastOrNull;
-    return DaybookPageRows(
-      [for (final r in rows) ?DaybookRecord.fromRow(r)],
-      rows: rows.length,
-      lastAt: _time(last?['created_at']),
-      lastId: last?['id'] as String?,
-    );
-  }
-
-  final List<DaybookRecord> records;
-  final int rows;
-  final DateTime? lastAt;
-  final String? lastId;
-}
-
-/// A Library file on a work item's slip ("M-201 Rev C").
+/// A Library file on a work item's card ("M-201 Rev C").
 @immutable
 class DaybookAttachment {
   const DaybookAttachment({required this.name, this.revLabel});
@@ -186,21 +85,9 @@ class DaybookAttachment {
   final String? revLabel;
 }
 
-/// The last time a work item was given to someone else.
+/// A post on a Space's daybook, as space_post_json gives it.
 @immutable
-class DaybookGivenTo {
-  const DaybookGivenTo({required this.at, this.fromName, this.toName});
-
-  final DateTime at;
-
-  /// Null across a block or for a hidden account: "Former member".
-  final String? fromName;
-  final String? toName;
-}
-
-/// One post on a Space's daybook, from daybook_page (space_post_json).
-@immutable
-class DaybookPost extends DaybookRecord {
+class DaybookPost {
   const DaybookPost({
     required this.id,
     required this.kind,
@@ -214,20 +101,15 @@ class DaybookPost extends DaybookRecord {
     this.dueDate,
     this.dueAt,
     this.item,
-    this.stamp,
-    this.needsMe = false,
     this.pointsTotal = 0,
     this.coverPath,
-    this.dueEdit,
     this.attachments = const [],
     this.attachmentsMore = false,
-    this.givenTo,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
     final item = json['item'] as Map<String, dynamic>?;
     final points = json['points'] as Map<String, dynamic>?;
-    final given = json['given_to'] as Map<String, dynamic>?;
     return DaybookPost(
       id: json['id'] as String,
       kind: json['kind'] as String,
@@ -241,11 +123,8 @@ class DaybookPost extends DaybookRecord {
       dueDate: _day(json['due_date']),
       dueAt: _time(json['due_at']),
       item: item == null ? null : DaybookItem.fromJson(item),
-      stamp: DaybookStamp.fromJson(json['stamp'] as Map<String, dynamic>?),
-      needsMe: json['needs_me'] as bool? ?? false,
       pointsTotal: (points?['total'] as num?)?.toInt() ?? 0,
       coverPath: json['cover_path'] as String?,
-      dueEdit: DaybookDueEdit.fromEdits(json['edits']),
       attachments: [
         for (final a in json['attachments'] as List? ?? const [])
           DaybookAttachment(
@@ -254,19 +133,11 @@ class DaybookPost extends DaybookRecord {
           ),
       ],
       attachmentsMore: json['attachments_more'] as bool? ?? false,
-      givenTo: given == null || given['at'] == null
-          ? null
-          : DaybookGivenTo(
-              at: DateTime.parse(given['at'] as String),
-              fromName: given['from_name'] as String?,
-              toName: given['to_name'] as String?,
-            ),
     );
   }
 
   static const workItemKind = 'work_item';
 
-  @override
   final String id;
 
   /// 'work_item', 'checklist', 'announcement', 'activity', 'file' or
@@ -288,67 +159,49 @@ class DaybookPost extends DaybookRecord {
   final DateTime? dueDate;
   final DateTime? dueAt;
   final DaybookItem? item;
-  final DaybookStamp? stamp;
-
-  /// The paper clip: this post needs the signed-in person.
-  final bool needsMe;
 
   /// Checklist points on the work item.
   final int pointsTotal;
 
   /// The first photo of the post, in the Space's files.
   final String? coverPath;
-  final DaybookDueEdit? dueEdit;
 
   /// The work item's first Library files, and whether it has more.
   final List<DaybookAttachment> attachments;
   final bool attachmentsMore;
-  final DaybookGivenTo? givenTo;
-
-  @override
-  DateTime get at => createdAt;
-
-  @override
-  String get postId => id;
 
   bool get isWorkItem => kind == workItemKind;
 
   bool get isOpen => !cancelled && item?.status == WorkStatus.open;
 
-  /// The slip as the phone shows it while something it did waits to be
-  /// sent: signed, checked or cancelled here.
-  DaybookPost shownAs({
-    required DaybookStamp stamp,
-    WorkStatus? status,
-    bool cancelled = false,
-  }) => DaybookPost(
-    id: id,
-    kind: kind,
-    createdAt: createdAt,
-    title: title,
-    body: body,
-    cancelled: cancelled || this.cancelled,
-    authorId: authorId,
-    authorName: authorName,
-    place: place,
-    dueDate: dueDate,
-    dueAt: dueAt,
-    item: item == null
-        ? null
-        : DaybookItem(
-            status: status ?? item!.status,
-            ownerId: item!.ownerId,
-            ownerName: item!.ownerName,
-            ref: item!.ref,
-          ),
-    stamp: stamp,
-    pointsTotal: pointsTotal,
-    coverPath: coverPath,
-    dueEdit: dueEdit,
-    attachments: attachments,
-    attachmentsMore: attachmentsMore,
-    givenTo: givenTo,
-  );
+  /// The post as the phone shows it while something it did waits to be
+  /// sent: checked, signed or cancelled here.
+  DaybookPost shownAs({WorkStatus? status, bool cancelled = false}) =>
+      DaybookPost(
+        id: id,
+        kind: kind,
+        createdAt: createdAt,
+        title: title,
+        body: body,
+        cancelled: cancelled || this.cancelled,
+        authorId: authorId,
+        authorName: authorName,
+        place: place,
+        dueDate: dueDate,
+        dueAt: dueAt,
+        item: item == null
+            ? null
+            : DaybookItem(
+                status: status ?? item!.status,
+                ownerId: item!.ownerId,
+                ownerName: item!.ownerName,
+                ref: item!.ref,
+              ),
+        pointsTotal: pointsTotal,
+        coverPath: coverPath,
+        attachments: attachments,
+        attachmentsMore: attachmentsMore,
+      );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
   /// no time, from the day after its date.
@@ -374,7 +227,7 @@ List<WorkPhoto> _photos(Object? value) => [
       ),
 ];
 
-/// What came after a sign-off (review 45 M1).
+/// What came after the latest sign-off (the card's stamp).
 enum DaybookOutcomeKind {
   done,
   checked,
@@ -412,7 +265,7 @@ class DaybookOutcome {
   final DaybookOutcomeKind kind;
   final DateTime? at;
 
-  /// Who checked it or sent it back.
+  /// Who signed it, checked it, sent it back or cancelled it.
   final String? byId;
   final String? byName;
 
@@ -421,186 +274,251 @@ class DaybookOutcome {
   final String? note;
 }
 
-/// A sign-off on the daybook: the owner's proof at its own time, quoting
-/// the work item.
+/// The latest sign-off on a card (daybook_cards "proof"): its photos or
+/// note, who signed and when, and what came after it.
 @immutable
-class DaybookSignOff extends DaybookRecord {
-  const DaybookSignOff({
-    required this.id,
+class DaybookProof {
+  const DaybookProof({
     required this.at,
-    required this.postId,
-    required this.title,
     required this.outcome,
-    this.ref,
-    this.actorId,
-    this.actorName,
+    this.eventId,
+    this.byId,
+    this.byName,
     this.note,
     this.photos = const [],
-    this.needsMe = false,
   });
 
-  factory DaybookSignOff.fromJson(Map<String, dynamic> json) => DaybookSignOff(
-    id: json['id'] as String,
-    at: DateTime.parse(json['at'] as String),
-    postId: json['post_id'] as String,
-    title: json['title'] as String? ?? '',
-    ref: json['ref'] as String?,
-    actorId: json['actor_id'] as String?,
-    actorName: json['actor_name'] as String?,
-    note: json['note'] as String?,
-    photos: _photos(json['photos']),
-    outcome: DaybookOutcome.fromJson(json['outcome'] as Map<String, dynamic>?),
-    needsMe: json['needs_me'] as bool? ?? false,
-  );
+  factory DaybookProof.fromJson(Map<String, dynamic> json) {
+    final by = json['by'] as Map<String, dynamic>?;
+    return DaybookProof(
+      eventId: json['event_id'] as String?,
+      at: DateTime.parse(json['at'] as String),
+      byId: by?['id'] as String?,
+      byName: by?['name'] as String?,
+      note: json['note'] as String?,
+      photos: _photos(json['photos']),
+      outcome: DaybookOutcome.fromJson(
+        json['outcome'] as Map<String, dynamic>?,
+      ),
+    );
+  }
 
-  @override
-  final String id;
-  @override
+  final String? eventId;
   final DateTime at;
-  @override
-  final String postId;
-
-  /// The work item's title, shown as the quote.
-  final String title;
-  final String? ref;
-  final String? actorId;
+  final String? byId;
 
   /// Null across a block or for a hidden account: "Former member".
-  final String? actorName;
+  final String? byName;
   final String? note;
   final List<WorkPhoto> photos;
   final DaybookOutcome outcome;
 
-  /// The paper clip: the latest sign-off of a Done item, for whoever may
-  /// check it (review 45 M2).
-  final bool needsMe;
-
-  /// The proof as the phone shows it while a check made here waits for its
-  /// undo bar, or for a signal.
-  DaybookSignOff checkedBy({
-    required String? id,
-    required String? name,
-    required DateTime at,
-  }) => DaybookSignOff(
-    id: this.id,
-    at: this.at,
-    postId: postId,
-    title: title,
-    ref: ref,
-    actorId: actorId,
-    actorName: actorName,
+  /// The same proof with another outcome: a check made here, while its
+  /// undo bar shows or it waits for a signal.
+  DaybookProof withOutcome(DaybookOutcome outcome) => DaybookProof(
+    eventId: eventId,
+    at: at,
+    byId: byId,
+    byName: byName,
     note: note,
     photos: photos,
-    outcome: DaybookOutcome(
-      kind: DaybookOutcomeKind.checked,
-      at: at,
-      byId: id,
-      byName: name,
+    outcome: outcome,
+  );
+}
+
+/// One line of a card's history (daybook_cards "history", post_history).
+enum DaybookEventKind {
+  raised,
+  done,
+  checked,
+  sentBack,
+  comment,
+  reassigned,
+  edited,
+  cancelled,
+
+  /// A kind this version doesn't know: kept for paging, never drawn.
+  unknown;
+
+  static DaybookEventKind fromJson(Object? value) => switch (value) {
+    'raised' => raised,
+    'done' => done,
+    'checked' => checked,
+    'sent_back' => sentBack,
+    'comment' => comment,
+    'reassigned' => reassigned,
+    'edited' => edited,
+    'cancelled' => cancelled,
+    _ => unknown,
+  };
+}
+
+/// Something that happened to a post, at its own time.
+@immutable
+class DaybookEvent {
+  const DaybookEvent({
+    required this.id,
+    required this.kind,
+    required this.at,
+    this.byId,
+    this.byName,
+    this.note,
+    this.reason,
+    this.photos = const [],
+    this.fromName,
+    this.toName,
+    this.dueEdit,
+  });
+
+  factory DaybookEvent.fromJson(Map<String, dynamic> json) => DaybookEvent(
+    id: json['id'] as String,
+    kind: DaybookEventKind.fromJson(json['kind']),
+    at: DateTime.parse(json['at'] as String),
+    byId: json['by_id'] as String?,
+    byName: json['by_name'] as String?,
+    note: json['note'] as String?,
+    reason: SendBackReason.fromJson(json['reason']),
+    photos: _photos(json['photos']),
+    fromName: json['from_name'] as String?,
+    toName: json['to_name'] as String?,
+    dueEdit: DaybookDueEdit.fromChanges(
+      json['changes'] as Map<String, dynamic>?,
     ),
   );
-}
 
-/// A send-back on the daybook (migration 24, S1 2530:33826): who sent the
-/// proof back, the reason and the note, at its own time, quoting the work
-/// item. While it is the latest and the item waits to be signed again,
-/// the owner's paper clip and Sign as done sit here ([needsMe]).
-@immutable
-class DaybookSentBack extends DaybookRecord {
-  const DaybookSentBack({
-    required this.id,
-    required this.at,
-    required this.postId,
-    required this.title,
-    this.ref,
-    this.actorId,
-    this.actorName,
-    this.reason,
-    this.note,
-    this.itemStatus = WorkStatus.open,
-    this.cancelled = false,
-    this.needsMe = false,
-  });
-
-  factory DaybookSentBack.fromJson(Map<String, dynamic> json) =>
-      DaybookSentBack(
-        id: json['id'] as String,
-        at: DateTime.parse(json['at'] as String),
-        postId: json['post_id'] as String,
-        title: json['title'] as String? ?? '',
-        ref: json['ref'] as String?,
-        actorId: json['actor_id'] as String?,
-        actorName: json['actor_name'] as String?,
-        reason: SendBackReason.fromJson(json['reason']),
-        note: json['note'] as String?,
-        itemStatus: WorkStatus.fromJson(json['item_status']),
-        cancelled: json['post_status'] == 'cancelled',
-        needsMe: json['needs_me'] as bool? ?? false,
-      );
-
-  @override
   final String id;
-  @override
+  final DaybookEventKind kind;
   final DateTime at;
-  @override
-  final String postId;
-
-  /// The work item's title, shown as the quote.
-  final String title;
-  final String? ref;
-  final String? actorId;
+  final String? byId;
 
   /// Null across a block or for a hidden account: "Former member".
-  final String? actorName;
-  final SendBackReason? reason;
+  final String? byName;
   final String? note;
-  final WorkStatus itemStatus;
 
-  /// The work item was cancelled since.
-  final bool cancelled;
+  /// A send-back's reason.
+  final SendBackReason? reason;
+  final List<WorkPhoto> photos;
 
-  /// The owner's paper clip and Sign as done: the latest send-back of an
-  /// item waiting to be signed again (never two on one item).
-  final bool needsMe;
+  /// A reassignment: who had it, who has it now.
+  final String? fromName;
+  final String? toName;
+
+  /// An edit that moved the due.
+  final DaybookDueEdit? dueEdit;
+
+  /// Drawn as a line on the card; the card's header already says who
+  /// raised it.
+  bool get shown =>
+      kind != DaybookEventKind.raised && kind != DaybookEventKind.unknown;
 }
 
-/// An update on the daybook: a small note quoting its work item.
+/// What a card needs from the reader (daybook_cards "needs_me"): the paper
+/// clip and the card's one action.
+enum DaybookNeed {
+  /// The owner, while it is Open: Sign as done.
+  toSign,
+
+  /// Whoever may check it, while it is Done: double-tap the photo.
+  toCheck,
+
+  /// The author, when the owner can no longer sign: Give to someone else.
+  giveTo,
+
+  /// A checklist point to tick (slice 2).
+  toTick,
+
+  /// A value this version doesn't know: the clip, with no action.
+  unknown;
+
+  static DaybookNeed? fromJson(Object? value) => switch (value) {
+    null => null,
+    'to_sign' => toSign,
+    'to_check' => toCheck,
+    'give_to' => giveTo,
+    'to_tick' => toTick,
+    _ => unknown,
+  };
+}
+
+/// One card on a Space's daybook (daybook_cards): a post with its latest
+/// proof, its history inside, and what it needs from the reader. Cards
+/// come newest activity first; [lastActivityAt] and the post's id are the
+/// page's cursor.
 @immutable
-class DaybookUpdate extends DaybookRecord {
-  const DaybookUpdate({
-    required this.id,
-    required this.at,
-    required this.postId,
-    required this.title,
-    this.actorId,
-    this.actorName,
-    this.note,
-    this.photos = const [],
+class DaybookCard {
+  const DaybookCard({
+    required this.post,
+    required this.lastActivityAt,
+    this.proof,
+    this.history = const [],
+    this.historyMore = false,
+    this.need,
   });
 
-  factory DaybookUpdate.fromJson(Map<String, dynamic> json) => DaybookUpdate(
-    id: json['id'] as String,
-    at: DateTime.parse(json['at'] as String),
-    postId: json['post_id'] as String,
-    title: json['title'] as String? ?? '',
-    actorId: json['actor_id'] as String?,
-    actorName: json['actor_name'] as String?,
-    note: json['note'] as String?,
-    photos: _photos(json['photos']),
+  factory DaybookCard.fromJson(Map<String, dynamic> json) => DaybookCard(
+    post: DaybookPost.fromJson(json),
+    lastActivityAt: DateTime.parse(json['last_activity_at'] as String),
+    proof: json['proof'] == null
+        ? null
+        : DaybookProof.fromJson(json['proof'] as Map<String, dynamic>),
+    history: [
+      for (final e in json['history'] as List? ?? const [])
+        DaybookEvent.fromJson(e as Map<String, dynamic>),
+    ],
+    historyMore: json['history_more'] as bool? ?? false,
+    need: DaybookNeed.fromJson(json['needs_me']),
   );
 
-  @override
-  final String id;
-  @override
-  final DateTime at;
-  @override
-  final String postId;
-  final String title;
-  final String? actorId;
+  final DaybookPost post;
+  final DateTime lastActivityAt;
+  final DaybookProof? proof;
 
-  /// Null across a block or for a hidden account: "Former member".
-  final String? actorName;
-  final String? note;
-  final List<WorkPhoto> photos;
+  /// Newest first, as the server sends it: the first 50, then
+  /// [historyMore].
+  final List<DaybookEvent> history;
+  final bool historyMore;
+
+  /// Null: nothing for the reader (a Viewer always).
+  final DaybookNeed? need;
+
+  String get id => post.id;
+
+  DaybookCard copyWith({
+    DaybookPost? post,
+    DateTime? lastActivityAt,
+    DaybookProof? proof,
+    List<DaybookEvent>? history,
+    bool? historyMore,
+    DaybookNeed? need,
+    bool clearNeed = false,
+  }) => DaybookCard(
+    post: post ?? this.post,
+    lastActivityAt: lastActivityAt ?? this.lastActivityAt,
+    proof: proof ?? this.proof,
+    history: history ?? this.history,
+    historyMore: historyMore ?? this.historyMore,
+    need: clearNeed ? null : need ?? this.need,
+  );
+}
+
+/// One daybook_cards call: the cards, newest activity first, and the
+/// cursor of the last one.
+@immutable
+class DaybookCardsPage {
+  const DaybookCardsPage(this.cards);
+
+  /// The rows as daybook_cards sends them (`id`, `last_activity_at`,
+  /// `card`).
+  factory DaybookCardsPage.fromRows(List<Map<String, dynamic>> rows) =>
+      DaybookCardsPage([
+        for (final r in rows)
+          DaybookCard.fromJson(r['card'] as Map<String, dynamic>),
+      ]);
+
+  final List<DaybookCard> cards;
+
+  DateTime? get lastAt => cards.lastOrNull?.lastActivityAt;
+  String? get lastId => cards.lastOrNull?.id;
 }
 
 /// What the month drop-down marks (daybook_month), in the phone's days.

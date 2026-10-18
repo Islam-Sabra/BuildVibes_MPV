@@ -4100,18 +4100,6 @@
   "@formerMember": {
     "description": "A Space member whose account is hidden or deleted."
   },
-  "daybookDateLine": "{date}, day {day} on site",
-  "@daybookDateLine": {
-    "description": "Masthead date line when the Space has an On site since date (D1).",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      },
-      "day": {
-        "type": "int"
-      }
-    }
-  },
   "daybookYou": "You",
   "@daybookYou": {
     "description": "Slip header for your own post; the avatar keeps your initials."
@@ -4129,7 +4117,7 @@
       }
     }
   },
-  "daybookMeta": "{who}, {due}",
+  "daybookMeta": "{who} · {due}",
   "@daybookMeta": {
     "description": "Slip meta: owner, then due (\"For Omar Haddad, by Thu 15 Oct\").",
     "placeholders": {
@@ -4245,18 +4233,6 @@
       }
     }
   },
-  "daybookEditedDue": "Edited: due moved from {from} to {to}",
-  "@daybookEditedDue": {
-    "description": "Slip history line after the due was edited.",
-    "placeholders": {
-      "from": {
-        "type": "String"
-      },
-      "to": {
-        "type": "String"
-      }
-    }
-  },
   "daybookToday": "today",
   "@daybookToday": {
     "description": "A day word in the edited line."
@@ -4264,18 +4240,6 @@
   "daybookTomorrow": "tomorrow",
   "@daybookTomorrow": {
     "description": "A day word in the edited line."
-  },
-  "daybookCancelledBy": "Cancelled by {name} at {time}",
-  "@daybookCancelledBy": {
-    "description": "Meta line of a cancelled work item.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "time": {
-        "type": "String"
-      }
-    }
   },
   "daybookStampDone": "DONE",
   "@daybookStampDone": {
@@ -4346,10 +4310,6 @@
       }
     }
   },
-  "daybookSignedAsDone": "signed as done",
-  "@daybookSignedAsDone": {
-    "description": "Proof slip header, after the signer's name."
-  },
   "daybookStampBy": "{name} · {time}",
   "@daybookStampBy": {
     "description": "Second line of the large stamp on a proof photo: the signer's short name and the time (\"OMAR H · 09:40\").",
@@ -4365,21 +4325,6 @@
   "daybookDoubleTapToCheck": "Double-tap the photo to check it",
   "@daybookDoubleTapToCheck": {
     "description": "Hint on a proof waiting for your check."
-  },
-  "daybookGivenTo": "Given to {to} instead of {from} at {time}",
-  "@daybookGivenTo": {
-    "description": "Work item slip: the last time it was given to someone else.",
-    "placeholders": {
-      "to": {
-        "type": "String"
-      },
-      "from": {
-        "type": "String"
-      },
-      "time": {
-        "type": "String"
-      }
-    }
   },
   "daybookFileChip": "{name} {revision}",
   "@daybookFileChip": {
@@ -4485,10 +4430,6 @@
   "@daybookCouldNotSend": {
     "description": "A Draft whose post the server refused (not a missing signal), in red under the card. Tapping reopens writing. Review 46."
   },
-  "daybookEditedDueRemoved": "Edited: due removed",
-  "@daybookEditedDueRemoved": {
-    "description": "Grey history line on a slip after its author took the due date off."
-  },
   "daybookRemoveDue": "Remove",
   "@daybookRemoveDue": {
     "description": "Due date picker: takes the due date (and time) off."
@@ -4500,24 +4441,6 @@
   "daybookHoldToProve": "Hold to prove",
   "@daybookHoldToProve": {
     "description": "Read out for the post bar's camera: holding it signs your open work item as done with a photo."
-  },
-  "daybookChecksNext": "{name} checks it next",
-  "@daybookChecksNext": {
-    "description": "On the owner's own proof slip while it waits for the check (O3).",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "daybookYouChecked": "You checked it at {time}. It's locked now, this is the record.",
-  "@daybookYouChecked": {
-    "description": "On a proof the reader checked (B3).",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
   },
   "daybookCheck": "Check",
   "@daybookCheck": {
@@ -4619,28 +4542,6 @@
   "daybookSave": "Save",
   "@daybookSave": {
     "description": "Read out for the round send button while editing a posted work item."
-  },
-  "daybookCancelledByYou": "Cancelled by you at {time}",
-  "@daybookCancelledByYou": {
-    "description": "Meta line of a work item its author cancelled, for that author (X3).",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "daybookSentItBack": "sent it back",
-  "@daybookSentItBack": {
-    "description": "After the name on a send-back slip: \"Islam Ahmed sent it back\" (S1)."
-  },
-  "daybookSentBackAt": "Sent back at {time}",
-  "@daybookSentBackAt": {
-    "description": "On a proof that was sent back; the reason is on the send-back slip (S1).",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
   },
   "daybookSentBackText": "{reason}. {note}",
   "@daybookSentBackText": {
@@ -4928,5 +4829,201 @@
   "createNoWorkSpaces": "There's no Space yet where you can write work items. Join one with an invite code, or start a new Space.",
   "@createNoWorkSpaces": {
     "description": "Create, Space list: none where you can create work items."
+  },
+  "daybookShowEarlier": "Show earlier",
+  "@daybookShowEarlier": {
+    "description": "Daybook card: opens the rest of its history in place."
+  },
+  "daybookHistoryLead": "{lead}:",
+  "@daybookHistoryLead": {
+    "description": "Daybook card history: the bold start of a line before its note (\"Omar Haddad signed as done:\").",
+    "placeholders": {
+      "lead": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookCardRef": "· {ref}",
+  "@daybookCardRef": {
+    "description": "Daybook card header: the work item's reference after the author.",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookTrace": "{what} · {title}",
+  "@daybookTrace": {
+    "description": "Daybook trace on an earlier day: what happened, then the work item's title.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookTodayDivider": "Today",
+  "@daybookTodayDivider": {
+    "description": "Daybook day divider for today."
+  },
+  "daybookLineSigned": "{name} signed as done",
+  "@daybookLineSigned": {
+    "description": "Daybook history line or trace: someone signed the work item as done.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouSigned": "You signed as done",
+  "@daybookLineYouSigned": {
+    "description": "Daybook history line or trace: you signed the work item as done."
+  },
+  "daybookLineChecked": "{name} checked it",
+  "@daybookLineChecked": {
+    "description": "Daybook history line or trace: someone checked the work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouChecked": "You checked it",
+  "@daybookLineYouChecked": {
+    "description": "Daybook history line or trace: you checked the work item."
+  },
+  "daybookLineSentBack": "{name} sent it back",
+  "@daybookLineSentBack": {
+    "description": "Daybook history line or trace: someone sent the proof back.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouSentBack": "You sent it back",
+  "@daybookLineYouSentBack": {
+    "description": "Daybook history line or trace: you sent the proof back."
+  },
+  "daybookLineUpdate": "{name} added an update",
+  "@daybookLineUpdate": {
+    "description": "Daybook trace: someone added an update to the work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouUpdate": "You added an update",
+  "@daybookLineYouUpdate": {
+    "description": "Daybook trace: you added an update to the work item."
+  },
+  "daybookLineGave": "{name} gave it to {to} instead of {from}",
+  "@daybookLineGave": {
+    "description": "Daybook history line or trace: someone gave the work item to another owner.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouGave": "You gave it to {to} instead of {from}",
+  "@daybookLineYouGave": {
+    "description": "Daybook history line or trace: you gave the work item to another owner.",
+    "placeholders": {
+      "to": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineEdited": "{name} edited it",
+  "@daybookLineEdited": {
+    "description": "Daybook history line or trace: someone edited the work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouEdited": "You edited it",
+  "@daybookLineYouEdited": {
+    "description": "Daybook history line or trace: you edited the work item."
+  },
+  "daybookLineMovedDue": "{name} moved the due date from {from} to {to}",
+  "@daybookLineMovedDue": {
+    "description": "Daybook history line or trace: someone moved the due date.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouMovedDue": "You moved the due date from {from} to {to}",
+  "@daybookLineYouMovedDue": {
+    "description": "Daybook history line or trace: you moved the due date.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineRemovedDue": "{name} took the due date off",
+  "@daybookLineRemovedDue": {
+    "description": "Daybook history line or trace: someone removed the due date.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouRemovedDue": "You took the due date off",
+  "@daybookLineYouRemovedDue": {
+    "description": "Daybook history line or trace: you removed the due date."
+  },
+  "daybookLineCancelled": "{name} cancelled it",
+  "@daybookLineCancelled": {
+    "description": "Daybook history line or trace: someone cancelled the work item.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouCancelled": "You cancelled it",
+  "@daybookLineYouCancelled": {
+    "description": "Daybook history line or trace: you cancelled the work item."
+  },
+  "daybookLinePosted": "{name} posted it",
+  "@daybookLinePosted": {
+    "description": "Daybook trace: someone posted the work item that day.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouPosted": "You posted it",
+  "@daybookLineYouPosted": {
+    "description": "Daybook trace: you posted the work item that day."
   }
 }

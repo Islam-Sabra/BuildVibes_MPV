@@ -21,37 +21,48 @@ void main() {
     final en = _words('en');
     final ar = _words('ar');
     const me = DaybookSamples.islam;
+    DaybookPost sleeves(String lang) {
+      final s = DaybookSamples(lang);
+      return s.item(
+        id: 'post-sleeves',
+        at: _thu,
+        title: s.sleeves,
+        authorId: DaybookSamples.islam,
+        ownerId: DaybookSamples.omar,
+        due: DateTime(2026, 10, 15),
+      );
+    }
 
     test('for someone, by a date', () {
-      final post = const DaybookSamples('en').sleevesDone();
+      final post = sleeves('en');
       final past = DateTime(2026, 10, 13, 9);
       expect(
         en.meta(post, me: me, now: past),
-        'For Omar Haddad, by Thu 15 Oct',
+        'For Omar Haddad · by Thu 15 Oct',
       );
-      final arPost = const DaybookSamples('ar').sleevesDone();
+      final arPost = sleeves('ar');
       expect(
         ar.meta(arPost, me: me, now: past),
-        'لعمر حداد، موعده الخميس 15 أكتوبر',
+        'لعمر حداد · موعده الخميس 15 أكتوبر',
       );
     });
 
     test('a name in the other script stays whole', () {
-      final post = const DaybookSamples('en').sleevesDone();
+      final post = sleeves('en');
       final past = DateTime(2026, 10, 13, 9);
       expect(
         ar.meta(post, me: me, now: past),
-        'ل${inOwnDirection('Omar Haddad')}، موعده الخميس 15 أكتوبر',
+        'ل${inOwnDirection('Omar Haddad')} · موعده الخميس 15 أكتوبر',
       );
     });
 
     test('for you, by today at a time: never "before today" in Arabic', () {
-      final post = const DaybookSamples('en').rebar();
-      expect(en.meta(post, me: me, now: _thu), 'For you, by today 14:00');
-      expect(ar.meta(post, me: me, now: _thu), 'لك، قبل الساعة 14:00 اليوم');
+      final post = const DaybookSamples('en').rebar().post;
+      expect(en.meta(post, me: me, now: _thu), 'For you · by today 14:00');
+      expect(ar.meta(post, me: me, now: _thu), 'لك · قبل الساعة 14:00 اليوم');
       expect(
         _words('en', use24: false).meta(post, me: me, now: _thu),
-        'For you, by today 2 pm',
+        'For you · by today 2 pm',
       );
     });
 
@@ -61,36 +72,40 @@ void main() {
             id: 'p',
             at: _thu,
             title: 't',
-            authorId: 'x',
-            authorName: 'X',
+            authorId: DaybookSamples.sara,
             ownerId: me,
-            ownerName: 'I',
             due: day,
             dueAt: at,
           );
       final today = DateTime(2026, 10, 15);
       final tomorrow = DateTime(2026, 10, 16);
       final sunday = DateTime(2026, 10, 18);
-      expect(en.meta(due(today), me: me, now: _thu), 'For you, by today');
-      expect(ar.meta(due(today), me: me, now: _thu), 'لك، خلال اليوم');
-      expect(en.meta(due(tomorrow), me: me, now: _thu), 'For you, by tomorrow');
-      expect(ar.meta(due(tomorrow), me: me, now: _thu), 'لك، غدًا');
+      expect(en.meta(due(today), me: me, now: _thu), 'For you · by today');
+      expect(ar.meta(due(today), me: me, now: _thu), 'لك · خلال اليوم');
+      expect(
+        en.meta(due(tomorrow), me: me, now: _thu),
+        'For you · by tomorrow',
+      );
+      expect(ar.meta(due(tomorrow), me: me, now: _thu), 'لك · غدًا');
       expect(
         en.meta(due(tomorrow, DateTime(2026, 10, 16, 9)), me: me, now: _thu),
-        'For you, by tomorrow 09:00',
+        'For you · by tomorrow 09:00',
       );
       expect(
         ar.meta(due(tomorrow, DateTime(2026, 10, 16, 9)), me: me, now: _thu),
-        'لك، قبل الساعة 09:00 غدًا',
+        'لك · قبل الساعة 09:00 غدًا',
       );
-      expect(en.meta(due(sunday), me: me, now: _thu), 'For you, by Sun 18 Oct');
+      expect(
+        en.meta(due(sunday), me: me, now: _thu),
+        'For you · by Sun 18 Oct',
+      );
       expect(
         ar.meta(due(sunday), me: me, now: _thu),
-        'لك، موعده الأحد 18 أكتوبر',
+        'لك · موعده الأحد 18 أكتوبر',
       );
       expect(
         ar.meta(due(sunday, DateTime(2026, 10, 18, 9)), me: me, now: _thu),
-        'لك، قبل الساعة 09:00 يوم الأحد 18 أكتوبر',
+        'لك · قبل الساعة 09:00 يوم الأحد 18 أكتوبر',
       );
       for (final words in [en, ar]) {
         for (final text in [
@@ -104,17 +119,17 @@ void main() {
 
     test('late: was due, and how late (L1)', () {
       final s = const DaybookSamples('en');
-      final late = s.l1().first;
+      final late = s.l1().first.post;
       final fri = DaybookSamples.friday;
       expect(late.isLate(fri), isTrue);
       expect(late.lateDays(fri), 1);
       expect(
         en.meta(late, me: DaybookSamples.omar, now: fri),
-        'For you, was due Thu 15 Oct',
+        'For you · was due Thu 15 Oct',
       );
       expect(
         ar.meta(late, me: DaybookSamples.omar, now: fri),
-        'لك، كان موعده الخميس 15 أكتوبر',
+        'لك · كان موعده الخميس 15 أكتوبر',
       );
       final l10n = lookupAppLocalizations(const Locale('en'));
       expect(l10n.daybookLate(1), 'Late by 1 day');
@@ -134,10 +149,8 @@ void main() {
           id: 'p',
           at: _thu,
           title: 't',
-          authorId: 'x',
-          authorName: 'X',
+          authorId: DaybookSamples.sara,
           ownerId: me,
-          ownerName: 'I',
           due: day,
           dueAt: at,
         );
@@ -152,42 +165,45 @@ void main() {
     }) => _words(lang, use24: use24).meta(post, me: me, now: now);
 
     test('by today, no time: "خلال اليوم"', () {
-      expect(meta('ar', due(today), _thu), 'لك، خلال اليوم');
-      expect(meta('en', due(today), _thu), 'For you, by today');
+      expect(meta('ar', due(today), _thu), 'لك · خلال اليوم');
+      expect(meta('en', due(today), _thu), 'For you · by today');
     });
 
     test('by tomorrow, no time: "غدًا"', () {
       final tomorrow = DateTime(2026, 10, 16);
-      expect(meta('ar', due(tomorrow), _thu), 'لك، غدًا');
-      expect(meta('en', due(tomorrow), _thu), 'For you, by tomorrow');
+      expect(meta('ar', due(tomorrow), _thu), 'لك · غدًا');
+      expect(meta('en', due(tomorrow), _thu), 'For you · by tomorrow');
     });
 
     test('by a date: "موعده الأربعاء 21 أكتوبر", never "before"', () {
-      expect(meta('ar', due(wednesday), _thu), 'لك، موعده الأربعاء 21 أكتوبر');
-      expect(meta('en', due(wednesday), _thu), 'For you, by Wed 21 Oct');
+      expect(meta('ar', due(wednesday), _thu), 'لك · موعده الأربعاء 21 أكتوبر');
+      expect(meta('en', due(wednesday), _thu), 'For you · by Wed 21 Oct');
       expect(meta('ar', due(wednesday), _thu), isNot(contains('قبل')));
     });
 
     test('by a time today: 12-hour as the AR frame, and 24-hour', () {
       expect(
         meta('ar', due(today, twoPm), _thu, use24: false),
-        'لك، قبل الساعة 2 ظهرًا اليوم',
+        'لك · قبل الساعة 2 ظهرًا اليوم',
       );
-      expect(meta('ar', due(today, twoPm), _thu), 'لك، قبل الساعة 14:00 اليوم');
+      expect(
+        meta('ar', due(today, twoPm), _thu),
+        'لك · قبل الساعة 14:00 اليوم',
+      );
       expect(
         meta('en', due(today, twoPm), _thu, use24: false),
-        'For you, by today 2 pm',
+        'For you · by today 2 pm',
       );
-      expect(meta('en', due(today, twoPm), _thu), 'For you, by today 14:00');
+      expect(meta('en', due(today, twoPm), _thu), 'For you · by today 14:00');
     });
 
     test('late: "كان موعده …"', () {
       final friday = DateTime(2026, 10, 16, 9);
-      expect(meta('ar', due(today), friday), 'لك، كان موعده الخميس 15 أكتوبر');
-      expect(meta('en', due(today), friday), 'For you, was due Thu 15 Oct');
+      expect(meta('ar', due(today), friday), 'لك · كان موعده الخميس 15 أكتوبر');
+      expect(meta('en', due(today), friday), 'For you · was due Thu 15 Oct');
       expect(
         meta('ar', due(today, twoPm), DateTime(2026, 10, 15, 15)),
-        'لك، كان موعده الساعة 14:00 اليوم',
+        'لك · كان موعده الساعة 14:00 اليوم',
       );
     });
 
@@ -309,54 +325,179 @@ void main() {
     });
   });
 
-  group('the masthead and the edited line', () {
-    test('day N on site counts calendar days, day 1 the start', () {
-      final en = _words('en');
+  group('history lines and traces (v13)', () {
+    final en = _words('en');
+    final ar = _words('ar');
+    const s = DaybookSamples('en');
+    const sAr = DaybookSamples('ar');
+    DaybookEvent ev(
+      DaybookSamples s,
+      DaybookEventKind kind,
+      String by, {
+      String? note,
+      SendBackReason? reason,
+      DaybookDueEdit? dueEdit,
+    }) => s.event(
+      'e',
+      kind,
+      _thu,
+      by,
+      note: note,
+      reason: reason,
+      dueEdit: dueEdit,
+      fromId: DaybookSamples.omar,
+      toId: DaybookSamples.rakesh,
+    );
+    const me = DaybookSamples.islam;
+
+    test('each kind, by someone and by you, as the prototype says it', () {
+      String line(DaybookEventKind k, String by) =>
+          en.eventPhrase(ev(s, k, by), me: me, now: _thu);
       expect(
-        en.dateLine(DateTime(2026, 10, 15), DaybookSamples.siteStart),
-        '15 October, day 41 on site',
+        line(DaybookEventKind.done, DaybookSamples.omar),
+        'Omar Haddad signed as done',
       );
+      expect(line(DaybookEventKind.done, me), 'You signed as done');
+      expect(line(DaybookEventKind.sentBack, me), 'You sent it back');
+      expect(line(DaybookEventKind.checked, me), 'You checked it');
       expect(
-        en.dateLine(DateTime(2026, 9, 5), DaybookSamples.siteStart),
-        '5 September, day 1 on site',
+        line(DaybookEventKind.checked, DaybookSamples.sara),
+        'Sara Al-Mutairi checked it',
       );
+      // An update's line is its writer, then the words.
       expect(
-        _words('ar').dateLine(DateTime(2026, 10, 15), DaybookSamples.siteStart),
-        '15 أكتوبر، اليوم 41 في الموقع',
+        line(DaybookEventKind.comment, DaybookSamples.omar),
+        'Omar Haddad',
       );
-      // No start date, or before it: the date only, never a count.
-      expect(en.dateLine(DateTime(2026, 10, 15), null), '15 October');
+      expect(line(DaybookEventKind.comment, me), 'You');
       expect(
-        en.dateLine(DateTime(2026, 9, 4), DaybookSamples.siteStart),
-        '4 September',
+        line(DaybookEventKind.reassigned, me),
+        'You gave it to Rakesh Nair instead of Omar Haddad',
+      );
+      expect(line(DaybookEventKind.cancelled, me), 'You cancelled it');
+      expect(
+        line(DaybookEventKind.edited, DaybookSamples.sara),
+        'Sara Al-Mutairi edited it',
       );
     });
 
-    test('edited: due moved from Thu to today', () {
-      final edit = const DaybookSamples('en').rebar().dueEdit;
-      expect(
-        _words('en').editedDue(edit, _thu),
-        'Edited: due moved from Thu to today',
+    test('the due moved: days, or times on the same day, or taken off', () {
+      final rebar = s.rebar().history.firstWhere(
+        (e) => e.kind == DaybookEventKind.edited,
       );
       expect(
-        _words('ar').editedDue(edit, _thu),
-        'عُدّل: نُقل الموعد من الخميس إلى اليوم',
+        en.eventPhrase(rebar, me: me, now: _thu),
+        'Sara Al-Mutairi moved the due date from Thu to today',
       );
-      final timeOnly = DaybookDueEdit(
-        from: DateTime(2026, 10, 15),
-        to: DateTime(2026, 10, 15),
-        fromAt: DateTime(2026, 10, 15, 14),
-        toAt: DateTime(2026, 10, 15, 16),
+      final rebarAr = sAr.rebar().history.firstWhere(
+        (e) => e.kind == DaybookEventKind.edited,
       );
       expect(
-        _words('en').editedDue(timeOnly, _thu),
-        'Edited: due moved from 14:00 to 16:00',
+        ar.eventPhrase(rebarAr, me: me, now: _thu),
+        'نُقل الموعد من الخميس إلى اليوم من قِبل سارة المطيري',
       );
-      expect(_words('en').editedDue(null, _thu), isNull);
-      // Review 46: a due taken off says so.
-      final removed = DaybookDueEdit(from: DateTime(2026, 10, 15));
-      expect(_words('en').editedDue(removed, _thu), 'Edited: due removed');
-      expect(_words('ar').editedDue(removed, _thu), 'عُدّل: أُزيل الموعد');
+      final timeOnly = ev(
+        s,
+        DaybookEventKind.edited,
+        me,
+        dueEdit: DaybookDueEdit(
+          from: DateTime(2026, 10, 15),
+          to: DateTime(2026, 10, 15),
+          fromAt: DateTime(2026, 10, 15, 14),
+          toAt: DateTime(2026, 10, 15, 16),
+        ),
+      );
+      expect(
+        en.eventPhrase(timeOnly, me: me, now: _thu),
+        'You moved the due date from 14:00 to 16:00',
+      );
+      final removed = ev(
+        s,
+        DaybookEventKind.edited,
+        me,
+        dueEdit: DaybookDueEdit(from: DateTime(2026, 10, 15)),
+      );
+      expect(
+        en.eventPhrase(removed, me: me, now: _thu),
+        'You took the due date off',
+      );
+      expect(ar.eventPhrase(removed, me: me, now: _thu), 'أزلت الموعد');
+    });
+
+    test('a trace says what happened; an update is "added an update"', () {
+      final update = ev(s, DaybookEventKind.comment, DaybookSamples.omar);
+      expect(
+        en.eventPhrase(update, me: me, now: _thu, trace: true),
+        'Omar Haddad added an update',
+      );
+      expect(
+        ar.eventPhrase(
+          ev(sAr, DaybookEventKind.comment, me),
+          me: me,
+          now: _thu,
+          trace: true,
+        ),
+        'أضفت تحديثًا',
+      );
+      expect(
+        en.eventPhrase(
+          ev(s, DaybookEventKind.raised, me),
+          me: me,
+          now: _thu,
+          trace: true,
+        ),
+        'You posted it',
+      );
+    });
+
+    test('the rest of a line: a note, a reason and its note', () {
+      expect(
+        en.eventDetail(
+          ev(s, DaybookEventKind.done, DaybookSamples.omar, note: 'Six.'),
+        ),
+        inOwnDirection('Six.'),
+      );
+      expect(
+        en.eventDetail(
+          ev(
+            s,
+            DaybookEventKind.sentBack,
+            me,
+            reason: SendBackReason.photoMissing,
+          ),
+        ),
+        en.reason(SendBackReason.photoMissing),
+      );
+      expect(
+        en.eventDetail(
+          ev(
+            s,
+            DaybookEventKind.sentBack,
+            me,
+            reason: SendBackReason.notAsAsked,
+            note: 'One is short.',
+          ),
+        ),
+        en.sentBackText(SendBackReason.notAsAsked, 'One is short.'),
+      );
+      expect(en.eventDetail(ev(s, DaybookEventKind.checked, me)), isNull);
+      expect(en.eventDetail(ev(s, DaybookEventKind.done, me)), isNull);
+    });
+
+    test('Arabic names the doer without a gendered verb', () {
+      final done = ev(sAr, DaybookEventKind.done, DaybookSamples.sara);
+      expect(
+        ar.eventPhrase(done, me: me, now: _thu),
+        'وُقّع كمنجز من قِبل سارة المطيري',
+      );
+      expect(
+        ar.eventPhrase(
+          ev(sAr, DaybookEventKind.sentBack, me),
+          me: me,
+          now: _thu,
+        ),
+        'أرجعته',
+      );
     });
 
     test('the clock follows the phone, with Western digits', () {
@@ -369,7 +510,7 @@ void main() {
   });
 
   group('space_post_json', () {
-    test('a work item: stamp, clip, points, cover, the due edit', () {
+    test('a work item: its item, points, cover and due', () {
       final post = DaybookPost.fromJson({
         'id': 'p1',
         'space_id': 's',
@@ -415,17 +556,11 @@ void main() {
       expect(post.dueAt, DateTime.utc(2026, 10, 15, 11));
       expect(post.item!.status, WorkStatus.done);
       expect(post.item!.ownerName, 'Islam Ahmed');
-      expect(post.stamp!.kind, DaybookStampKind.done);
-      expect(post.stamp!.byName, 'Omar Haddad');
-      expect(post.needsMe, isTrue);
       expect(post.pointsTotal, 2);
       expect(post.coverPath, 's/posts/p1/a.jpg');
-      expect(post.dueEdit!.from, DateTime(2026, 10, 22));
-      expect(post.dueEdit!.to, DateTime(2026, 10, 15));
-      expect(post.dueEdit!.timeOnly, isFalse);
     });
 
-    test('a cancelled post, and an edit that left the due alone', () {
+    test('a cancelled post, with no author shown', () {
       final post = DaybookPost.fromJson({
         'id': 'p2',
         'kind': 'work_item',
@@ -442,8 +577,6 @@ void main() {
         ],
       });
       expect(post.cancelled, isTrue);
-      expect(post.stamp!.kind, DaybookStampKind.cancelled);
-      expect(post.dueEdit, isNull);
       expect(post.authorName, isNull);
     });
 

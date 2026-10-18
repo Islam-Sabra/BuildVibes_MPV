@@ -17,7 +17,7 @@ import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import 'daybook_draft.dart';
-import 'daybook_entry.dart' show localPhotoProvider;
+import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_words.dart';
 import 'work_outbox.dart';
 

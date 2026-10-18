@@ -11,7 +11,7 @@ import '../../shared/widgets/bv_needs_row.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
-import '../work/daybook_entry.dart' show daybookPhotoProvider;
+import '../work/daybook_photos.dart' show daybookPhotoProvider;
 import '../work/daybook_words.dart';
 import 'activity_state.dart';
 import 'needs_card.dart' show openNeeds;

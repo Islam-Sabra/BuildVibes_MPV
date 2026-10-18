@@ -23,7 +23,6 @@ class BvFirstPageAction {
 
 /// The day-one card of an empty Daybook (spec §15): a plain sheet of paper
 /// (no torn edge) with a title, a line of help and a few ways to start.
-/// The screen insets it [BvFirstPageSpec.insetStart] from the start.
 class BvFirstPage extends StatelessWidget {
   const BvFirstPage({
     super.key,

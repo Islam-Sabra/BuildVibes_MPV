@@ -45,7 +45,7 @@ import 'package:buildvibes/features/profile/profile_screen.dart';
 import 'package:buildvibes/features/settings/notifications_screen.dart';
 import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
-import 'package:buildvibes/features/work/daybook_entry.dart';
+import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -219,7 +219,7 @@ void main() {
           spaceName: s.spaceName,
           at: DateTime(2026, 10, 15, 8),
           workItemId: 'post-rebar',
-          workItemTitle: s.rebar().title,
+          workItemTitle: s.rebarTitle,
           actorName: s.saraName,
           due: DateTime(2026, 10, 15),
           dueAt: DateTime(2026, 10, 15, 14),
@@ -375,7 +375,7 @@ void main() {
         return painter.width;
       }
 
-      const room = BvSpineSpec.homeTimeColumn - BvSpineSpec.labelToSpine;
+      const room = BvSpineSpec.timeColumn - BvSpineSpec.labelToSpine;
       expect(width('11:58', type.labelSm), lessThanOrEqualTo(room));
       expect(
         width(
@@ -572,7 +572,7 @@ void main() {
         at: DateTime(2026, 10, 15, 8),
         workItemId: 'post-rebar',
         workItemRef: 'KCT-024',
-        workItemTitle: s.rebar().title,
+        workItemTitle: s.rebarTitle,
         actorName: s.saraName,
         due: DateTime(2026, 10, 15),
       ),
@@ -734,7 +734,7 @@ void main() {
           DateTime(2026, 10, 15, 8, 10),
           actor: s.saraName,
           actorId: DaybookSamples.sara,
-          item: s.rebar().title,
+          item: s.rebarTitle,
           ref: 'KCT-024',
         ),
         row(
@@ -975,7 +975,7 @@ void main() {
       ),
       DeliveredWork(
         id: 'w-rebar',
-        title: s.rebar().title,
+        title: s.rebarTitle,
         projectName: kct,
         checkedByName: s.saraName,
         checkedAt: DateTime(2026, 10, 14, 15),

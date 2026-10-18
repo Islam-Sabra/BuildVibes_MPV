@@ -1,6 +1,7 @@
 // Review 51 Part B: the daybook is never stale (F11) and a work item made
-// with no signal is one slip without "Waiting to send" once it is sent
-// (F17).
+// with no signal is one card without "Waiting to send" once it is sent
+// (F17). Review 53 Part B: a card with new activity moves to Now while the
+// reader's place stays.
 import 'dart:convert';
 
 import 'package:buildvibes/data/models/daybook.dart';
@@ -25,7 +26,7 @@ Future<TestApp> _open(
   WidgetTester tester,
   String lang,
   FakeDaybookRepository daybook, {
-  List<DaybookRecord>? posts,
+  List<DaybookCard>? posts,
   List<Duration> retryLater = const [Duration(seconds: 30)],
   Map<String, Object> stored = const {},
 }) async {
@@ -51,30 +52,33 @@ Future<TestApp> _open(
 GoRouter _router(WidgetTester tester) =>
     GoRouter.of(tester.element(find.byType(Navigator).first));
 
-/// Sara gives Omar a work item while Islam has the daybook open.
-DaybookPost _saraPosts(DaybookSamples s, String title, {int minute = 20}) =>
-    s.item(
-      id: 'post-new-$minute',
-      at: DateTime(2026, 10, 15, 10, minute),
-      title: title,
-      authorId: DaybookSamples.sara,
-      authorName: s.saraName,
-      ownerId: DaybookSamples.omar,
-      ownerName: s.omarName,
+/// Sara gives Omar a work item while Islam has the daybook open, after
+/// everything on the page.
+DaybookCard _saraPosts(DaybookSamples s, String title, {int minute = 20}) =>
+    s.card(
+      s.item(
+        id: 'post-new-$minute',
+        at: DateTime(2026, 10, 15, 11, minute),
+        title: title,
+        authorId: DaybookSamples.sara,
+        ownerId: DaybookSamples.omar,
+      ),
     );
 
+/// An older card of [_weeks].
+DaybookCard _older(DaybookSamples s, int d) => s.card(
+  s.item(
+    id: 'post-old-$d',
+    at: DateTime(2026, 10, 15 - d, 9),
+    title: 'Older item $d',
+    authorId: DaybookSamples.islam,
+    ownerId: DaybookSamples.omar,
+  ),
+);
+
 /// Ten days of work items before today, so the page scrolls.
-List<DaybookRecord> _weeks(DaybookSamples s) => [
-  for (var d = 1; d <= 10; d++)
-    s.item(
-      id: 'post-old-$d',
-      at: DateTime(2026, 10, 15 - d, 9),
-      title: 'Older item $d',
-      authorId: DaybookSamples.islam,
-      authorName: s.islamName,
-      ownerId: DaybookSamples.omar,
-      ownerName: s.omarName,
-    ),
+List<DaybookCard> _weeks(DaybookSamples s) => [
+  for (var d = 1; d <= 10; d++) _older(s, d),
   ...s.d1(),
 ];
 
@@ -187,7 +191,7 @@ void main() {
       expect(find.text(fresh), findsOneWidget);
     });
 
-    testWidgets('F11: reading older days, new entries don\'t move the page; '
+    testWidgets('F11: reading older days, new cards don\'t move the page; '
         '"New" takes the reader to Now [$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       await _open(tester, lang, daybook, posts: _weeks(s));
@@ -212,7 +216,85 @@ void main() {
       expect(find.byKey(const Key('daybook-new')), findsNothing);
     });
 
-    testWidgets('F11: at Now, new entries just come in, with no chip '
+    testWidgets('a new event on a card moves it to Now; reading older days, '
+        'the page stays where it was and "New" shows; its old day keeps a '
+        'trace [$lang]', (tester) async {
+      final daybook = FakeDaybookRepository();
+      await _open(tester, lang, daybook, posts: _weeks(s));
+      final view = tester.getRect(find.byKey(const Key('daybook')));
+      List<int> visible() => [
+        for (var d = 2; d <= 10; d++)
+          if (view.overlaps(tester.getRect(find.text('Older item $d')))) d,
+      ];
+      // Back through older days until one of them is on screen.
+      for (var i = 0; i < 20 && visible().isEmpty; i++) {
+        await tester.drag(
+          find.byKey(const Key('daybook')),
+          const Offset(0, 300),
+        );
+        await tester.pumpAndSettle();
+      }
+      final shown = visible();
+      expect(shown, isNotEmpty);
+      // The reader reads one card; one newer than it (nearer Now) gets an
+      // update.
+      final read = shown.last;
+      final moved = read - 1;
+      final before = tester.getTopLeft(find.text('Older item $read'));
+      final card = _older(s, moved);
+      final at = DateTime(2026, 10, 15, 11, 30);
+      daybook.put(
+        DaybookSamples.space,
+        card.copyWith(
+          lastActivityAt: at,
+          history: [
+            s.event(
+              'ev-new',
+              DaybookEventKind.comment,
+              at,
+              DaybookSamples.omar,
+              note: fresh,
+            ),
+            ...card.history,
+          ],
+        ),
+      );
+      await backToTheApp(tester);
+      expect(tester.getTopLeft(find.text('Older item $read')), before);
+      expect(find.byKey(const Key('daybook-new')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('daybook-new')));
+      await tester.pumpAndSettle();
+      // At Now, the newest card, with the update in its history.
+      final cards = find.byKey(Key('daybook-card-${card.id}'));
+      expect(cards, findsOneWidget);
+      expect(
+        find.descendant(
+          of: cards,
+          matching: find.textContaining(fresh, findRichText: true),
+        ),
+        findsOneWidget,
+      );
+      final daybookRect = tester.getRect(find.byKey(const Key('daybook')));
+      expect(tester.getRect(cards).bottom, lessThan(daybookRect.bottom));
+      expect(
+        tester.getRect(cards).bottom,
+        greaterThan(daybookRect.bottom - 300),
+      );
+      // On the day it was posted, a trace.
+      expect(
+        find.byKey(
+          Key(
+            'daybook-trace-${card.id}-'
+            '${DateTime(2026, 10, 15 - moved).toIso8601String()}',
+          ),
+          skipOffstage: false,
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('F11: at Now, new cards just come in, with no chip '
         '[$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       await _open(tester, lang, daybook, posts: _weeks(s));
@@ -222,7 +304,7 @@ void main() {
       expect(find.byKey(const Key('daybook-new')), findsNothing);
     });
 
-    testWidgets('F17: made with no signal, then the signal is back: one slip, '
+    testWidgets('F17: made with no signal, then the signal is back: one card, '
         'without "Waiting to send", within seconds [$lang]', (tester) async {
       final daybook = FakeDaybookRepository()
         ..asPosted = (i) => s.posted(i, DateTime(2026, 10, 15, 10, 30));
@@ -247,7 +329,7 @@ void main() {
     });
 
     testWidgets('F17: sent, but the page couldn\'t read it back yet: the '
-        'label goes at once, still one slip [$lang]', (tester) async {
+        'label goes at once, still one card [$lang]', (tester) async {
       final daybook = FakeDaybookRepository()
         ..asPosted = (i) => s.posted(i, DateTime(2026, 10, 15, 10, 30));
       final app = await _open(tester, lang, daybook);
@@ -271,7 +353,7 @@ void main() {
     });
 
     for (final onServer in [false, true]) {
-      testWidgets('F17: after the app is opened again, one slip without the '
+      testWidgets('F17: after the app is opened again, one card without the '
           'label (${onServer ? 'it had reached the server' : 'sent on '
                     'opening'}) [$lang]', (tester) async {
         final daybook = FakeDaybookRepository()
@@ -284,14 +366,14 @@ void main() {
           // It reached the server, but the answer was lost.
           final item = (jsonDecode(kept) as List).single as Map;
           daybook.posts[DaybookSamples.space]!.add(
-            s.item(
-              id: item['id'] as String,
-              at: DateTime(2026, 10, 15, 10, 30),
-              title: s.cableTraysTitle,
-              authorId: DaybookSamples.islam,
-              authorName: s.islamName,
-              ownerId: DaybookSamples.omar,
-              ownerName: s.omarName,
+            s.card(
+              s.item(
+                id: item['id'] as String,
+                at: DateTime(2026, 10, 15, 10, 30),
+                title: s.cableTraysTitle,
+                authorId: DaybookSamples.islam,
+                ownerId: DaybookSamples.omar,
+              ),
             ),
           );
           // Sent again, the server keeps the one it has.
@@ -311,7 +393,7 @@ void main() {
         expect(again.prefs.getString(_outboxKey), '[]');
         expect(
           daybook.posts[DaybookSamples.space]!.where(
-            (r) => r is DaybookPost && r.title == s.cableTraysTitle,
+            (c) => c.post.title == s.cableTraysTitle,
           ),
           hasLength(1),
         );

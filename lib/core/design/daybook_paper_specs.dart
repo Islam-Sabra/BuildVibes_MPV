@@ -51,9 +51,10 @@ abstract final class BvSlipSpec {
   static const headerHeight = BvAvatarSpec.xs;
   static const headerGap = BvSpace.s8;
 
-  // Place row.
-  static const placeGap = BvSpace.s4;
-  static const placeIconSize = 14.0;
+  // Facts (v13 2581:35668): an icon 14 and a grey line, 4 apart.
+  static const factsGap = BvSpace.s4;
+  static const factGap = BvSpace.s6;
+  static const factIconSize = 14.0;
 
   // Attachment chip.
   static const chipRowGap = BvSpace.s6;
@@ -70,12 +71,14 @@ abstract final class BvSlipSpec {
   static const quoteBarWidth = BvSpace.s2;
   static const quoteBarHeight = BvSpace.s16;
 
-  // Photo. 190 on a proof; a work item cover is 110 or 120.
+  // Photo. 190 on Home's proof; 132 on a daybook card (v13), the latest
+  // proof or the cover.
   static const photoRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
   static const photoHeightProof = 190.0;
-  static const photoHeightCover = 110.0;
-  static const photoStampTop = BvSpace.s16;
-  static const photoStampStart = BvSpace.s64;
+  static const photoHeightCard = 132.0;
+  // The stamp sits near the middle of a card's photo (v13 2581:35678).
+  static const photoStampTop = 44.0;
+  static const photoStampStart = 88.0;
 
   // Pills: the hint and the action ("Sign as done").
   static const hintPaddingHorizontal = 10.0;
@@ -89,6 +92,36 @@ abstract final class BvSlipSpec {
   // Late line (L1 2539:34737): a calendar 14 and the words, in red.
   static const lateGap = BvSpace.s6;
   static const lateIconSize = 14.0;
+}
+
+/// The daybook in v13 (review 53, F25 and F26): one full-width card per
+/// work item, 16 from each edge, 12 apart (2581:35638).
+abstract final class BvCardSpec {
+  static const paddingSide = BvSpace.s16;
+  static const paddingTop = BvSpace.s4;
+  static const paddingBottom = BvSpace.s12;
+  static const gap = BvSpace.s12;
+}
+
+/// A card's history (v13 2581:35681): a thin line on the leading side, then
+/// one line per event with a small face and its time.
+abstract final class BvCardHistorySpec {
+  static const rule = BvStroke.thick; // 2
+  static const paddingStart = 10.0;
+  static const gap = BvSpace.s8;
+  static const lineGap = BvSpace.s8;
+}
+
+/// A trace on an earlier day (v13 2581:35643): one line on the subtle
+/// surface, the face, the words, the time and ›.
+abstract final class BvTraceSpec {
+  static const minHeight = 40.0;
+  static const paddingStart = 10.0;
+  static const paddingEnd = BvSpace.s6;
+  static const paddingVertical = BvSpace.s6;
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.photo));
+  static const gap = BvSpace.s8;
+  static const caret = BvSize.iconSm; // 16
 }
 
 /// The Daybook's ink stamp (spec §3): white fill, ExtraBold capitals,

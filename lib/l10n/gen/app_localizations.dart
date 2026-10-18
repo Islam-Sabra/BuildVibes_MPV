@@ -4904,12 +4904,6 @@ abstract class AppLocalizations {
   /// **'Former member'**
   String get formerMember;
 
-  /// Masthead date line when the Space has an On site since date (D1).
-  ///
-  /// In en, this message translates to:
-  /// **'{date}, day {day} on site'**
-  String daybookDateLine(String date, int day);
-
   /// Slip header for your own post; the avatar keeps your initials.
   ///
   /// In en, this message translates to:
@@ -4931,7 +4925,7 @@ abstract class AppLocalizations {
   /// Slip meta: owner, then due ("For Omar Haddad, by Thu 15 Oct").
   ///
   /// In en, this message translates to:
-  /// **'{who}, {due}'**
+  /// **'{who} · {due}'**
   String daybookMeta(String who, String due);
 
   /// Due on a day ("by Thu 15 Oct").
@@ -5006,12 +5000,6 @@ abstract class AppLocalizations {
   /// **'{n, plural, =1{1 point} other{{n} points}}'**
   String daybookPoints(int n);
 
-  /// Slip history line after the due was edited.
-  ///
-  /// In en, this message translates to:
-  /// **'Edited: due moved from {from} to {to}'**
-  String daybookEditedDue(String from, String to);
-
   /// A day word in the edited line.
   ///
   /// In en, this message translates to:
@@ -5023,12 +5011,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'tomorrow'**
   String get daybookTomorrow;
-
-  /// Meta line of a cancelled work item.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancelled by {name} at {time}'**
-  String daybookCancelledBy(String name, String time);
 
   /// Ink stamp (glossary Done).
   ///
@@ -5114,12 +5096,6 @@ abstract class AppLocalizations {
   /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
   String daybookClockPeriod(String period);
 
-  /// Proof slip header, after the signer's name.
-  ///
-  /// In en, this message translates to:
-  /// **'signed as done'**
-  String get daybookSignedAsDone;
-
   /// Second line of the large stamp on a proof photo: the signer's short name and the time ("OMAR H · 09:40").
   ///
   /// In en, this message translates to:
@@ -5131,12 +5107,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Double-tap the photo to check it'**
   String get daybookDoubleTapToCheck;
-
-  /// Work item slip: the last time it was given to someone else.
-  ///
-  /// In en, this message translates to:
-  /// **'Given to {to} instead of {from} at {time}'**
-  String daybookGivenTo(String to, String from, String time);
 
   /// A Library file on a work item slip: its name and revision ("M-201 Rev C").
   ///
@@ -5270,12 +5240,6 @@ abstract class AppLocalizations {
   /// **'Couldn\'t send. Tap to fix'**
   String get daybookCouldNotSend;
 
-  /// Grey history line on a slip after its author took the due date off.
-  ///
-  /// In en, this message translates to:
-  /// **'Edited: due removed'**
-  String get daybookEditedDueRemoved;
-
   /// Due date picker: takes the due date (and time) off.
   ///
   /// In en, this message translates to:
@@ -5293,18 +5257,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hold to prove'**
   String get daybookHoldToProve;
-
-  /// On the owner's own proof slip while it waits for the check (O3).
-  ///
-  /// In en, this message translates to:
-  /// **'{name} checks it next'**
-  String daybookChecksNext(String name);
-
-  /// On a proof the reader checked (B3).
-  ///
-  /// In en, this message translates to:
-  /// **'You checked it at {time}. It\'s locked now, this is the record.'**
-  String daybookYouChecked(String time);
 
   /// Long-press menu on someone's proof (B1).
   ///
@@ -5449,24 +5401,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get daybookSave;
-
-  /// Meta line of a work item its author cancelled, for that author (X3).
-  ///
-  /// In en, this message translates to:
-  /// **'Cancelled by you at {time}'**
-  String daybookCancelledByYou(String time);
-
-  /// After the name on a send-back slip: "Islam Ahmed sent it back" (S1).
-  ///
-  /// In en, this message translates to:
-  /// **'sent it back'**
-  String get daybookSentItBack;
-
-  /// On a proof that was sent back; the reason is on the send-back slip (S1).
-  ///
-  /// In en, this message translates to:
-  /// **'Sent back at {time}'**
-  String daybookSentBackAt(String time);
 
   /// A send-back slip: the reason, then the note (S1).
   ///
@@ -5851,6 +5785,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.'**
   String get createNoWorkSpaces;
+
+  /// Daybook card: opens the rest of its history in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Show earlier'**
+  String get daybookShowEarlier;
+
+  /// Daybook card history: the bold start of a line before its note ("Omar Haddad signed as done:").
+  ///
+  /// In en, this message translates to:
+  /// **'{lead}:'**
+  String daybookHistoryLead(String lead);
+
+  /// Daybook card header: the work item's reference after the author.
+  ///
+  /// In en, this message translates to:
+  /// **'· {ref}'**
+  String daybookCardRef(String ref);
+
+  /// Daybook trace on an earlier day: what happened, then the work item's title.
+  ///
+  /// In en, this message translates to:
+  /// **'{what} · {title}'**
+  String daybookTrace(String what, String title);
+
+  /// Daybook day divider for today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get daybookTodayDivider;
+
+  /// Daybook history line or trace: someone signed the work item as done.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} signed as done'**
+  String daybookLineSigned(String name);
+
+  /// Daybook history line or trace: you signed the work item as done.
+  ///
+  /// In en, this message translates to:
+  /// **'You signed as done'**
+  String get daybookLineYouSigned;
+
+  /// Daybook history line or trace: someone checked the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} checked it'**
+  String daybookLineChecked(String name);
+
+  /// Daybook history line or trace: you checked the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You checked it'**
+  String get daybookLineYouChecked;
+
+  /// Daybook history line or trace: someone sent the proof back.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent it back'**
+  String daybookLineSentBack(String name);
+
+  /// Daybook history line or trace: you sent the proof back.
+  ///
+  /// In en, this message translates to:
+  /// **'You sent it back'**
+  String get daybookLineYouSentBack;
+
+  /// Daybook trace: someone added an update to the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added an update'**
+  String daybookLineUpdate(String name);
+
+  /// Daybook trace: you added an update to the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You added an update'**
+  String get daybookLineYouUpdate;
+
+  /// Daybook history line or trace: someone gave the work item to another owner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gave it to {to} instead of {from}'**
+  String daybookLineGave(String name, String to, String from);
+
+  /// Daybook history line or trace: you gave the work item to another owner.
+  ///
+  /// In en, this message translates to:
+  /// **'You gave it to {to} instead of {from}'**
+  String daybookLineYouGave(String to, String from);
+
+  /// Daybook history line or trace: someone edited the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} edited it'**
+  String daybookLineEdited(String name);
+
+  /// Daybook history line or trace: you edited the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You edited it'**
+  String get daybookLineYouEdited;
+
+  /// Daybook history line or trace: someone moved the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} moved the due date from {from} to {to}'**
+  String daybookLineMovedDue(String name, String from, String to);
+
+  /// Daybook history line or trace: you moved the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'You moved the due date from {from} to {to}'**
+  String daybookLineYouMovedDue(String from, String to);
+
+  /// Daybook history line or trace: someone removed the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} took the due date off'**
+  String daybookLineRemovedDue(String name);
+
+  /// Daybook history line or trace: you removed the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'You took the due date off'**
+  String get daybookLineYouRemovedDue;
+
+  /// Daybook history line or trace: someone cancelled the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} cancelled it'**
+  String daybookLineCancelled(String name);
+
+  /// Daybook history line or trace: you cancelled the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You cancelled it'**
+  String get daybookLineYouCancelled;
+
+  /// Daybook trace: someone posted the work item that day.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} posted it'**
+  String daybookLinePosted(String name);
+
+  /// Daybook trace: you posted the work item that day.
+  ///
+  /// In en, this message translates to:
+  /// **'You posted it'**
+  String get daybookLineYouPosted;
 }
 
 class _AppLocalizationsDelegate

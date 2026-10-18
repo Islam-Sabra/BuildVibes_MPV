@@ -1,6 +1,6 @@
-// The daybook pages on the rows daybook_page returns, not on the entries
-// this version draws (migration 24 deploy order): a page full of a kind
-// the app doesn't know never ends paging early.
+// The daybook's cards as the phone keeps them (daybook_cards, review 53
+// Part B): paging by (last_activity_at, id), a card with new activity
+// moving to the top, and "Show earlier" past a card's first lines.
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/features/work/daybook_state.dart';
@@ -12,100 +12,167 @@ import '../../helpers/daybook_samples.dart';
 
 void main() {
   const space = DaybookSamples.space;
-  final s = DaybookSamples('en');
+  const s = DaybookSamples('en');
+  final noon = DateTime(2026, 10, 15, 12);
 
-  /// [n] updates, a minute apart, newest at 12:00.
-  List<DaybookRecord> updates(int n, {int from = 0}) => [
-    for (var i = from; i < from + n; i++)
-      DaybookUpdate(
-        id: 'u-${i.toString().padLeft(3, '0')}',
-        at: DateTime(2026, 10, 15, 12).subtract(Duration(minutes: i)),
-        postId: 'post-sleeves',
-        title: s.sleeves,
-      ),
-  ];
+  /// Card [i]: a work item with its last activity [i] minutes before noon
+  /// (or at [at]).
+  DaybookCard numbered(int i, {DateTime? at}) => s.card(
+    s.item(
+      id: 'post-${i.toString().padLeft(3, '0')}',
+      at: at ?? noon.subtract(Duration(minutes: i)),
+      title: 'Item $i',
+      authorId: DaybookSamples.sara,
+      ownerId: DaybookSamples.omar,
+    ),
+  );
 
-  test('a first page of unknown kinds still has older pages; loading them '
-      'reaches the drawn entries', () async {
-    final rows = updates(DaybookPages.pageSize + 5);
-    final fake = FakeDaybookRepository()
-      ..posts[space] = rows
-      ..unknown.addAll([
-        for (final r in rows.take(DaybookPages.pageSize)) r.id,
-      ]);
+  ({ProviderContainer container, FakeDaybookRepository fake}) open(
+    List<DaybookCard> cards,
+  ) {
+    final fake = FakeDaybookRepository()..posts[space] = cards;
     final container = ProviderContainer(
       overrides: [daybookRepositoryProvider.overrideWithValue(fake)],
     );
     addTearDown(container.dispose);
-    final sub = container.listen(daybookPageProvider(space), (_, _) {});
+    final sub = container.listen(daybookCardsProvider(space), (_, _) {});
     addTearDown(sub.close);
+    return (container: container, fake: fake);
+  }
 
-    final first = await container.read(daybookPageProvider(space).future);
-    final pages = container.read(daybookPageProvider(space).notifier);
-    expect(first, isEmpty);
-    expect(pages.hasOlder, isTrue);
+  List<String> ids(ProviderContainer c) => [
+    for (final card in c.read(daybookCardsProvider(space)).value!) card.id,
+  ];
 
-    expect(await pages.loadOlder(), isTrue);
-    expect(container.read(daybookPageProvider(space)).value, hasLength(5));
-    expect(pages.hasOlder, isFalse);
-    // The second page started after the last row sent, drawn or not.
-    expect(
-      fake.pageCalls.last,
-      '$space ${rows[DaybookPages.pageSize - 1].at.toIso8601String()}',
-    );
+  test('pages follow the last card\'s activity and id: cards at the same '
+      'moment are never skipped', () async {
+    // 35 cards, all at noon: only the ids tell them apart.
+    final all = [for (var i = 0; i < 35; i++) numbered(i, at: noon)];
+    final (:container, :fake) = open(all);
+    final first = await container.read(daybookCardsProvider(space).future);
+    final cards = container.read(daybookCardsProvider(space).notifier);
+    expect(first, hasLength(DaybookCards.pageSize));
+    expect(cards.hasOlder, isTrue);
+    expect(await cards.loadOlder(), isTrue);
+    expect(ids(container).toSet(), {for (final c in all) c.id});
+    expect(ids(container), hasLength(35));
+    expect(cards.hasOlder, isFalse);
+    expect(fake.pageCalls.last, '$space ${noon.toIso8601String()}');
   });
 
-  test(
-    'a short page of rows ends paging even when all of them are drawn',
-    () async {
-      final fake = FakeDaybookRepository()..posts[space] = updates(3);
-      final container = ProviderContainer(
-        overrides: [daybookRepositoryProvider.overrideWithValue(fake)],
-      );
-      addTearDown(container.dispose);
-      final sub = container.listen(daybookPageProvider(space), (_, _) {});
-      addTearDown(sub.close);
-      await container.read(daybookPageProvider(space).future);
-      expect(
-        container.read(daybookPageProvider(space).notifier).hasOlder,
-        isFalse,
-      );
-    },
-  );
-
-  test('sent_back rows parse as their own entry, with the owner\'s clip', () {
-    final r = DaybookRecord.fromRow({
-      'id': 'e1',
-      'created_at': '2026-10-15T07:12:00Z',
-      'kind': 'sent_back',
-      'entry': {
-        'id': 'e1',
-        'post_id': 'p1',
-        'ref': 'KCT-021',
-        'title': 'Sleeves',
-        'post_status': 'open',
-        'item_status': 'open',
-        'actor_id': 'u1',
-        'actor_name': 'Islam Ahmed',
-        'reason': 'not_as_asked',
-        'note': 'One sleeve is short.',
-        'at': '2026-10-15T07:12:00Z',
-        'needs_me': true,
-      },
-    });
-    expect(r, isA<DaybookSentBack>());
-    final b = r! as DaybookSentBack;
-    expect(b.postId, 'p1');
-    expect(b.actorName, 'Islam Ahmed');
-    expect(b.note, 'One sleeve is short.');
-    expect(b.needsMe, isTrue);
-    expect(b.cancelled, isFalse);
-    expect(
-      DaybookRecord.fromRow({
-        'kind': 'later_kind',
-        'entry': <String, dynamic>{},
-      }),
-      isNull,
+  test('new activity moves a card to the top, once, without a load', () async {
+    final (:container, :fake) = open([for (var i = 0; i < 5; i++) numbered(i)]);
+    await container.read(daybookCardsProvider(space).future);
+    expect(ids(container).first, 'post-000');
+    // An update on the oldest card, after noon.
+    final moved = numbered(4);
+    fake.put(
+      space,
+      moved.copyWith(
+        lastActivityAt: noon.add(const Duration(minutes: 5)),
+        history: [
+          s.event(
+            'ev-new',
+            DaybookEventKind.comment,
+            noon.add(const Duration(minutes: 5)),
+            DaybookSamples.omar,
+            note: 'On it.',
+          ),
+          ...moved.history,
+        ],
+      ),
     );
+    await container.read(daybookCardsProvider(space).notifier).refresh();
+    expect(ids(container), [
+      'post-004',
+      'post-000',
+      'post-001',
+      'post-002',
+      'post-003',
+    ]);
+  });
+
+  test('a refresh past the first hundred keeps the older pages, and a card '
+      'that moved is not kept twice', () async {
+    final all = [for (var i = 0; i < 130; i++) numbered(i)];
+    final (:container, :fake) = open(all);
+    final cards = container.read(daybookCardsProvider(space).notifier);
+    await container.read(daybookCardsProvider(space).future);
+    while (await cards.loadOlder()) {}
+    expect(ids(container), hasLength(130));
+    // The oldest card has new activity.
+    fake.put(
+      space,
+      numbered(
+        129,
+      ).copyWith(lastActivityAt: noon.add(const Duration(hours: 1))),
+    );
+    await cards.refresh();
+    final now = ids(container);
+    expect(now, hasLength(130));
+    expect(now.first, 'post-129');
+    expect(now.where((id) => id == 'post-129'), hasLength(1));
+  });
+
+  test('Show earlier past the first 50 lines reads post_history from the '
+      'card\'s last line, and keeps them while nothing new happens', () async {
+    final base = s.sleevesCard();
+    final card = base.copyWith(historyMore: true);
+    final older = [
+      for (var i = 0; i < DaybookRepository.historyPage; i++)
+        s.event(
+          'ev-old-$i',
+          DaybookEventKind.comment,
+          DaybookSamples.sleevesRaisedAt.subtract(Duration(minutes: i + 1)),
+          DaybookSamples.omar,
+          note: 'Old $i',
+        ),
+    ];
+    final (:container, :fake) = open([card]);
+    fake.earlier[card.id] = older;
+    await container.read(daybookCardsProvider(space).future);
+    final cards = container.read(daybookCardsProvider(space).notifier);
+
+    await cards.loadEarlier(card.id);
+    var now = container.read(daybookCardsProvider(space)).value!.single;
+    expect(fake.historyCalls, [card.id]);
+    expect(now.history, hasLength(base.history.length + older.length));
+    expect(now.history.last.id, 'ev-old-${older.length - 1}');
+    // A whole page came back: there may be more.
+    expect(now.historyMore, isTrue);
+
+    await cards.refresh();
+    now = container.read(daybookCardsProvider(space)).value!.single;
+    expect(now.history, hasLength(base.history.length + older.length));
+
+    // New activity shifts the first lines: the earlier ones are read again.
+    fake.put(
+      space,
+      card.copyWith(lastActivityAt: noon.add(const Duration(hours: 1))),
+    );
+    await cards.refresh();
+    now = container.read(daybookCardsProvider(space)).value!.single;
+    expect(now.history, hasLength(base.history.length));
+  });
+
+  test('a short post_history page means no more', () async {
+    final card = s.sleevesCard().copyWith(historyMore: true);
+    final (:container, :fake) = open([card]);
+    fake.earlier[card.id] = [
+      s.event(
+        'ev-old',
+        DaybookEventKind.comment,
+        DaybookSamples.sleevesRaisedAt.subtract(const Duration(minutes: 1)),
+        DaybookSamples.omar,
+        note: 'Old',
+      ),
+    ];
+    await container.read(daybookCardsProvider(space).future);
+    await container
+        .read(daybookCardsProvider(space).notifier)
+        .loadEarlier(card.id);
+    final now = container.read(daybookCardsProvider(space)).value!.single;
+    expect(now.history.last.id, 'ev-old');
+    expect(now.historyMore, isFalse);
   });
 }

@@ -386,12 +386,10 @@ class _FeedTabState extends ConsumerState<FeedTab> {
         // H1 v3: the posts on the time spine, newest first; the card at
         // Now above them (H2).
         BvDaybookSpine(
-          home: true,
           children: [
             if (card)
               BvSpineEntry(
                 key: const Key('feed-now'),
-                home: true,
                 time: l10n.daybookNow,
                 dot: BvSpineDot.now,
                 child: PostWritingCard(
@@ -408,7 +406,6 @@ class _FeedTabState extends ConsumerState<FeedTab> {
               ),
             for (final p in waiting)
               BvSpineEntry(
-                home: true,
                 time: words.feedTime(p.madeAt, now).time,
                 period: words.feedTime(p.madeAt, now).period,
                 child: PostCard.waiting(
@@ -426,7 +423,6 @@ class _FeedTabState extends ConsumerState<FeedTab> {
                 _Divider(label: l10n.feedBeyond(market ?? '')),
               BvSpineEntry(
                 key: _keyOf(entries[i].post.id),
-                home: true,
                 time: words.feedTime(entries[i].post.createdAt, now).time,
                 period: words.feedTime(entries[i].post.createdAt, now).period,
                 child: PostCard(

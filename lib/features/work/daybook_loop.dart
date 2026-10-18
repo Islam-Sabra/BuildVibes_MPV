@@ -19,7 +19,7 @@ import '../../shared/widgets/bv_undo_bar.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
-import 'daybook_entry.dart' show DaybookSlip, DaybookSlipActions;
+import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
 import 'daybook_state.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart' show assignablePeople;
@@ -29,11 +29,11 @@ import 'work_outbox.dart';
 /// What the long-press menus offer (B1 2530:33626, X1 2530:34246).
 enum DaybookSlipAction { check, sendBack, update, edit, giveTo, cancel }
 
-/// The work item loop in one Space (slice 1 part 1d): sign as done with
-/// a photo or a note, check by double-tap with Undo, the long-press menus, send
-/// back with a reason, updates, give to someone else, cancel. What the
-/// reader may do comes from the record and the pass; the server decides
-/// again on every call.
+/// The work item loop in one Space (slice 1 part 1d, on v13's cards): sign
+/// as done with a photo or a note, check by double-tap with Undo, the
+/// long-press menu, send back with a reason, updates, give to someone
+/// else, cancel. What the reader may do comes from the card (needs_me) and
+/// the pass; the server decides again on every call.
 class DaybookLoop {
   DaybookLoop(
     this.ref,
@@ -55,95 +55,70 @@ class DaybookLoop {
   String get _spaceId => space.id;
   bool get _viewer => space.myPass == SpacePass.viewer;
 
-  /// The slip's actions for [record], as the reader [me] may use them.
-  /// [posts] are the work items on the page, by id; [signing] the items
-  /// with a sign-off waiting to be sent.
-  DaybookSlip withActions(
+  /// The card's actions, as the reader [me] may use them. [signing] are
+  /// the items with a sign-off waiting on the phone.
+  DaybookCardView withActions(
     BuildContext context,
-    DaybookSlip slip, {
+    DaybookCardView view, {
     required String? me,
-    required Map<String, DaybookPost> posts,
     required Set<String> signing,
   }) {
-    final r = slip.record;
-    if (_viewer || slip.waiting || r is DaybookUpdate) return slip;
-    final menu = _menu(r, me: me, posts: posts);
-    final lifted = slip.copyWith(lifted: true);
-    void press(Rect at) => unawaited(_longPress(context, r, lifted, at, menu));
-    return slip.copyWith(
-      actions: DaybookSlipActions(
-        onLongPress: menu.isEmpty ? null : press,
-        onCheck: r is DaybookSignOff && r.needsMe
-            ? () => unawaited(check(context, r))
+    final card = view.card;
+    final post = card.post;
+    if (_viewer) return view;
+    final menu = _menu(card, me: me);
+    final lifted = view.copyWith(lifted: true);
+    void press(Rect at) =>
+        unawaited(_longPress(context, card, lifted, at, menu));
+    return view.copyWith(
+      actions: DaybookCardActions(
+        onMenu: menu.isEmpty ? null : press,
+        onCheck: card.need == DaybookNeed.toCheck
+            ? () => unawaited(check(context, card))
             : null,
-        // Where the server puts the owner's clip (needs_me): the latest
-        // send-back of an item sent back, else the item's own slip. Never
-        // two on one item.
-        onSignDone: switch (r) {
-          DaybookPost()
-              when r.needsMe &&
-                  r.isOpen &&
-                  r.item?.ownerId == me &&
-                  !signing.contains(r.id) =>
-            () => unawaited(signDone(context, r)),
-          DaybookSentBack()
-              when r.needsMe && !r.cancelled && !signing.contains(r.postId) =>
-            () => unawaited(signDone(context, posts[r.postId] ?? _itemOf(r))),
-          _ => null,
-        },
-        onUpdate: r is DaybookPost && !r.cancelled
-            ? (at) => unawaited(_update(context, r.id, lifted, at))
+        // Where the server puts the owner's clip (needs_me): never two on
+        // one item.
+        onSignDone:
+            card.need == DaybookNeed.toSign &&
+                post.isOpen &&
+                post.item?.ownerId == me &&
+                !signing.contains(post.id)
+            ? () => unawaited(signDone(context, post))
+            : null,
+        onGiveTo: card.need == DaybookNeed.giveTo && post.isOpen
+            ? (at) => unawaited(_giveTo(context, post, lifted, at))
+            : null,
+        onUpdate: !post.cancelled
+            ? (at) => unawaited(_update(context, post.id, lifted, at))
             : null,
       ),
     );
   }
 
-  List<DaybookSlipAction> _menu(
-    DaybookRecord r, {
-    required String? me,
-    required Map<String, DaybookPost> posts,
-  }) {
-    switch (r) {
-      case DaybookSignOff():
-        final live = r.outcome.kind != DaybookOutcomeKind.cancelled;
-        return [
-          if (r.needsMe) ...[
-            DaybookSlipAction.check,
-            DaybookSlipAction.sendBack,
-          ],
-          if (live) DaybookSlipAction.update,
-        ];
-      case DaybookPost():
-        if (r.cancelled) return const [];
-        final mine = r.authorId != null && r.authorId == me;
-        final checked = r.item?.status == WorkStatus.checked;
-        return [
-          if (mine && r.isOpen) DaybookSlipAction.edit,
-          DaybookSlipAction.update,
-          if (mine && r.isOpen) DaybookSlipAction.giveTo,
-          if (mine && !checked) DaybookSlipAction.cancel,
-        ];
-      case DaybookSentBack():
-        return [if (!r.cancelled) DaybookSlipAction.update];
-      case DaybookUpdate():
-        return const [];
-    }
+  /// The menu, in the order of review 53: Check, Send back, Add update,
+  /// Edit, Give to someone else, Cancel, as allowed.
+  List<DaybookSlipAction> _menu(DaybookCard card, {required String? me}) {
+    final post = card.post;
+    if (post.cancelled) return const [];
+    final mine = post.authorId != null && post.authorId == me;
+    final checked = post.item?.status == WorkStatus.checked;
+    return [
+      if (card.need == DaybookNeed.toCheck) ...[
+        DaybookSlipAction.check,
+        DaybookSlipAction.sendBack,
+      ],
+      DaybookSlipAction.update,
+      if (mine && post.isOpen) DaybookSlipAction.edit,
+      if ((mine || card.need == DaybookNeed.giveTo) && post.isOpen)
+        DaybookSlipAction.giveTo,
+      if (mine && !checked) DaybookSlipAction.cancel,
+    ];
   }
-
-  /// The work item a send-back quotes, when its own slip isn't loaded (an
-  /// older page): enough to prove it.
-  static DaybookPost _itemOf(DaybookSentBack b) => DaybookPost(
-    id: b.postId,
-    kind: DaybookPost.workItemKind,
-    createdAt: b.at,
-    title: b.title,
-    item: DaybookItem(status: b.itemStatus, ref: b.ref),
-  );
 
   Future<void> _longPress(
     BuildContext context,
-    DaybookRecord r,
-    DaybookSlip lifted,
+    DaybookCard card,
+    DaybookCardView lifted,
     Rect at,
     List<DaybookSlipAction> menu,
   ) async {
@@ -160,21 +135,20 @@ class DaybookLoop {
       ),
     );
     if (picked == null || !context.mounted) return;
-    switch ((picked, r)) {
-      case (DaybookSlipAction.check, DaybookSignOff s):
-        await check(context, s);
-      case (DaybookSlipAction.sendBack, DaybookSignOff s):
-        await _sendBack(context, s, lifted, at);
-      case (DaybookSlipAction.update, _):
-        await _update(context, r.postId, lifted, at);
-      case (DaybookSlipAction.edit, DaybookPost p):
-        onEdit(p);
-      case (DaybookSlipAction.giveTo, DaybookPost p):
-        await _giveTo(context, p, lifted, at);
-      case (DaybookSlipAction.cancel, DaybookPost p):
-        await cancel(context, p);
-      case _:
-        break;
+    final post = card.post;
+    switch (picked) {
+      case DaybookSlipAction.check:
+        await check(context, card);
+      case DaybookSlipAction.sendBack:
+        await _sendBack(context, card, lifted, at);
+      case DaybookSlipAction.update:
+        await _update(context, post.id, lifted, at);
+      case DaybookSlipAction.edit:
+        onEdit(post);
+      case DaybookSlipAction.giveTo:
+        await _giveTo(context, post, lifted, at);
+      case DaybookSlipAction.cancel:
+        await cancel(context, post);
     }
   }
 
@@ -221,18 +195,19 @@ class DaybookLoop {
   /// Check (B3): the stamp lands with a strong haptic, and "Checked ·
   /// Undo" shows for 5 seconds. Only then is the check sent (review 44,
   /// answer 4); Undo takes it back before anything reaches the server.
-  Future<void> check(BuildContext context, DaybookSignOff s) async {
+  Future<void> check(BuildContext context, DaybookCard card) async {
     final l10n = AppLocalizations.of(context);
     unawaited(HapticFeedback.heavyImpact());
     final outbox = ref.read(workOutboxProvider.notifier);
+    final post = card.post;
     await outbox.hold(
       PendingItem(
         kind: PendingKind.check,
-        id: s.postId,
+        id: post.id,
         spaceId: _spaceId,
-        title: s.title,
-        ownerId: s.actorId ?? '',
-        ownerName: s.actorName ?? '',
+        title: post.title,
+        ownerId: card.proof?.byId ?? post.item?.ownerId ?? '',
+        ownerName: card.proof?.byName ?? post.item?.ownerName ?? '',
         madeAt: ref.read(clockProvider)(),
       ),
       BvUndoBarSpec.duration,
@@ -242,7 +217,7 @@ class DaybookLoop {
       context,
       message: l10n.daybookChecked,
       actionLabel: l10n.daybookUndo,
-      onAction: () => unawaited(outbox.undo(PendingKind.check, s.postId)),
+      onAction: () => unawaited(outbox.undo(PendingKind.check, post.id)),
     );
   }
 
@@ -347,26 +322,30 @@ class DaybookLoop {
   /// Send back with a reason (B2), in place under the lifted proof.
   Future<void> _sendBack(
     BuildContext context,
-    DaybookSignOff s,
-    DaybookSlip lifted,
+    DaybookCard card,
+    DaybookCardView lifted,
     Rect at,
   ) async {
+    final post = card.post;
     final result = await showBvLifted<(SendBackReason, String?)>(
       context,
       anchor: at,
       lifted: lifted,
       popover: (_) => DaybookSendBack(
-        owner: personFirstName(AppLocalizations.of(context), s.actorName),
+        owner: personFirstName(
+          AppLocalizations.of(context),
+          card.proof?.byName ?? post.item?.ownerName,
+        ),
       ),
     );
     if (result == null || !context.mounted) return;
     await _call(
       context,
       RefusedAction.sendBack,
-      s.postId,
+      post.id,
       () => ref
           .read(workRepositoryProvider)
-          .sendBack(s.postId, result.$1, note: result.$2),
+          .sendBack(post.id, result.$1, note: result.$2),
     );
   }
 
@@ -374,7 +353,7 @@ class DaybookLoop {
   Future<void> _update(
     BuildContext context,
     String postId,
-    DaybookSlip lifted,
+    DaybookCardView lifted,
     Rect at,
   ) async {
     final text = await showBvLifted<String>(
@@ -397,7 +376,7 @@ class DaybookLoop {
   Future<void> _giveTo(
     BuildContext context,
     DaybookPost p,
-    DaybookSlip lifted,
+    DaybookCardView lifted,
     Rect at,
   ) async {
     final l10n = AppLocalizations.of(context);
@@ -460,12 +439,12 @@ class DaybookLoop {
     await refresh();
   }
 
-  /// "Couldn't check: this item was cancelled". [records] is the page read
+  /// "Couldn't check: this item was cancelled". [cards] is the page read
   /// again: when the server only says the item changed, it tells how.
   static String refusalText(
     AppLocalizations l10n,
     DaybookRefusal r,
-    List<DaybookRecord> records,
+    List<DaybookCard> cards,
   ) {
     final action = switch (r.action) {
       RefusedAction.check => l10n.daybookCouldNotCheck,
@@ -476,10 +455,7 @@ class DaybookLoop {
     };
     var why = r.why;
     if (why == RefusalWhy.changed) {
-      final post = records
-          .whereType<DaybookPost>()
-          .where((p) => p.id == r.postId)
-          .firstOrNull;
+      final post = cards.where((c) => c.id == r.postId).firstOrNull?.post;
       if (post?.cancelled ?? false) {
         why = RefusalWhy.cancelled;
       } else if (post?.item?.status == WorkStatus.checked) {
@@ -502,7 +478,7 @@ class DaybookLoop {
   Future<void> refresh() async {
     ref.invalidate(mySpacesProvider);
     try {
-      await ref.read(daybookPageProvider(_spaceId).notifier).refresh();
+      await ref.read(daybookCardsProvider(_spaceId).notifier).refresh();
     } on SpaceException {
       // The page catches up on its next read.
     }

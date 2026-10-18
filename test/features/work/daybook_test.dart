@@ -1,9 +1,13 @@
+// The daybook in v13 (review 53 Part B): one full-width card per work
+// item, its history inside, traces on earlier days, the reader's one
+// action from needs_me.
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/spaces/invite_screen.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_card_history.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_spine.dart';
@@ -14,13 +18,13 @@ import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
-import 'package:buildvibes/shared/widgets/bv_update_note.dart';
-import 'package:buildvibes/core/design/daybook_paper_specs.dart';
+import 'package:buildvibes/shared/widgets/bv_trace_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
@@ -30,48 +34,77 @@ AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 DaybookWords _words(String lang) =>
     DaybookWords(_l10n(lang), lang, use24: false);
 
+/// Just after Omar's second sign-off.
+final _now = DateTime(2026, 10, 15, 10, 57);
+
 Future<FakeDaybookRepository> _open(
   WidgetTester tester,
   String lang, {
-  required List<DaybookRecord> posts,
+  required List<DaybookCard> posts,
   DateTime? now,
+  String? me,
   SpacePass pass = SpacePass.lead,
   bool admin = true,
   List<CalendarWorkItem> calendar = const [],
   Map<String, DaybookMonth> months = const {},
+  FakeDaybookRepository? daybook,
 }) async {
   final s = DaybookSamples(lang);
-  final daybook = FakeDaybookRepository()
+  final fake = (daybook ?? FakeDaybookRepository())
     ..posts[DaybookSamples.space] = posts
     ..calendar.addAll(calendar)
     ..months.addAll(months);
   final spaces = FakeSpaceRepository()
-    ..details[DaybookSamples.space] = s.detail(pass: pass, admin: admin);
+    ..details[DaybookSamples.space] = s.detail(pass: pass, admin: admin)
+    ..spacePeople[DaybookSamples.space] = s.people();
   await pumpApp(
     tester,
     language: lang,
     spaces: spaces,
-    daybook: daybook,
-    now: now ?? DaybookSamples.thursday,
+    daybook: fake,
+    now: now ?? _now,
+    auth: FakeAuthRepository(
+      userId: me ?? DaybookSamples.islam,
+      phone: '+96550000001',
+    ),
   );
   GoRouter.of(
     tester.element(find.byType(Navigator).first),
   ).push('/spaces/${DaybookSamples.space}');
   await tester.pumpAndSettle();
-  return daybook;
+  return fake;
 }
 
 BvDaybookMasthead _masthead(WidgetTester tester) =>
     tester.widget<BvDaybookMasthead>(find.byType(BvDaybookMasthead));
 
-DaybookPost _numbered(DaybookSamples s, int i) => s.item(
-  id: 'post-${i.toString().padLeft(3, '0')}',
-  at: DateTime(2026, 9, 1).add(Duration(hours: 6 * i)),
-  title: 'Item $i',
-  authorId: DaybookSamples.sara,
-  authorName: s.saraName,
-  ownerId: DaybookSamples.omar,
-  ownerName: s.omarName,
+Finder _card(String id) => find.byKey(Key('daybook-card-$id'));
+
+Finder _inCard(String id, Finder f) =>
+    find.descendant(of: _card(id), matching: f);
+
+/// The texts of a card's history lines, top to bottom.
+List<String> _lines(WidgetTester tester, String id) {
+  final rich = tester.widgetList<RichText>(
+    find.descendant(
+      of: _inCard(id, find.byType(BvCardHistory)),
+      matching: find.byType(RichText),
+    ),
+  );
+  return [
+    for (final r in rich)
+      if ((r.text as TextSpan).children != null) r.text.toPlainText(),
+  ];
+}
+
+DaybookCard _numbered(DaybookSamples s, int i) => s.card(
+  s.item(
+    id: 'post-${i.toString().padLeft(3, '0')}',
+    at: DateTime(2026, 9, 1).add(Duration(hours: 6 * i)),
+    title: 'Item $i',
+    authorId: DaybookSamples.sara,
+    ownerId: DaybookSamples.omar,
+  ),
 );
 
 void main() {
@@ -80,215 +113,422 @@ void main() {
     final words = _words(lang);
     final s = DaybookSamples(lang);
 
-    testWidgets('D1: today\'s masthead, day 41, slips on the spine [$lang]', (
-      tester,
-    ) async {
-      await _open(tester, lang, posts: s.d1());
-      expect(_masthead(tester).weekday, words.weekday(DaybookSamples.thursday));
-      expect(
-        find.text(
-          l10n.daybookDateLine(words.dayMonth(DateTime(2026, 10, 15)), 41),
-        ),
-        findsOneWidget,
-      );
-      // Newest at the bottom.
-      final sleeves = tester.getTopLeft(find.text(s.sleeves).first).dy;
-      final rebar = tester
-          .getTopLeft(find.byKey(const Key('daybook-entry-post-rebar')))
-          .dy;
-      expect(rebar, greaterThan(sleeves));
-      // On the spine, the part of the day on its own line (F15).
-      final at = words.spineClock(DateTime(2026, 10, 15, 8, 14));
-      expect(find.text(at.time), findsOneWidget);
-      if (at.period != null) expect(find.text(at.period!), findsWidgets);
-      // My own post says "You"; the meta names the owner and the due.
-      expect(find.text(l10n.daybookYou), findsWidgets);
-      expect(
-        find.text(
-          words.meta(
-            s.sleevesDone(),
-            me: DaybookSamples.islam,
-            now: DaybookSamples.thursday,
-          ),
-        ),
-        findsOneWidget,
-      );
-      // DONE on the item, and the large one on Omar's proof.
-      expect(find.text(l10n.daybookStampDone), findsNWidgets(2));
-      expect(find.text(l10n.daybookPoints(2)), findsWidgets);
-      expect(find.text(l10n.daybookFileChip('M-201', 'Rev C')), findsOneWidget);
-      expect(find.text(s.levelTwo), findsOneWidget);
-      // The edit of the due, and the clips on what needs me.
-      expect(
-        find.text(words.editedDue(s.rebar().dueEdit, DaybookSamples.thursday)!),
-        findsOneWidget,
-      );
-      expect(find.byType(BvPaperClip), findsNWidgets(2));
-      expect(find.byType(BvPostBar), findsOneWidget);
-      expect(find.text(l10n.daybookWorkItem), findsOneWidget);
+    testWidgets('the masthead is one line: the day and the date, no count '
+        '[$lang]', (tester) async {
+      await _open(tester, lang, posts: s.v13());
+      final masthead = _masthead(tester);
+      expect(masthead.weekday, words.weekday(_now));
+      expect(masthead.date, words.dayMonth(_now));
+      expect(find.textContaining('41'), findsNothing);
+      // No hour spine: the cards take the width, 16 from each edge.
+      expect(find.byType(BvSpineEntry), findsNothing);
+      expect(find.byType(BvDaybookSpine), findsNothing);
+      final card = tester.getRect(_inCard('post-sleeves', find.byType(BvSlip)));
+      expect(card.left, 16);
+      expect(card.right, 390 - 16.0);
     });
 
-    testWidgets('D1: the proof slip: quote, photo, large stamp, note, hint '
-        '[$lang]', (tester) async {
-      await _open(tester, lang, posts: s.d1());
-      final proof = find.byKey(const Key('daybook-entry-event-sleeves-done'));
-      Finder inProof(Finder f) => find.descendant(of: proof, matching: f);
-      expect(inProof(find.text(s.omarName)), findsOneWidget);
-      expect(inProof(find.text(l10n.daybookSignedAsDone)), findsOneWidget);
-      expect(inProof(find.byType(BvSlipQuote)), findsOneWidget);
-      expect(inProof(find.text(s.sleeves)), findsOneWidget);
-      expect(inProof(find.text(s.sleevesNote)), findsOneWidget);
-      // The large stamp sits on the 190 photo, with Omar's short name.
-      final photo = tester.widget<BvSlipPhoto>(
-        inProof(find.byType(BvSlipPhoto)),
+    testWidgets('one card per work item: header, title, facts, the latest '
+        'proof with its stamp, newest activity at the bottom [$lang]', (
+      tester,
+    ) async {
+      await _open(tester, lang, posts: s.v13());
+      // The sleeves moved past the rebar: its last activity is later.
+      expect(
+        tester.getTopLeft(_card('post-sleeves')).dy,
+        greaterThan(tester.getTopLeft(_card('post-rebar')).dy),
       );
-      expect(photo.height, BvSlipSpec.photoHeightProof);
-      final stamp = photo.stamp! as BvInkStamp;
-      expect(stamp.size, BvInkStampSize.lg);
+      // Header: "You", the ref, the time of the latest activity.
+      expect(_inCard('post-sleeves', find.text(l10n.daybookYou)), findsOne);
+      expect(
+        _inCard('post-sleeves', find.text(l10n.daybookCardRef('KCT-014'))),
+        findsOne,
+      );
+      expect(
+        _inCard(
+          'post-sleeves',
+          find.text(words.clock(DaybookSamples.sleevesDoneAt)),
+        ),
+        findsWidgets,
+      );
+      expect(_inCard('post-sleeves', find.text(s.sleeves)), findsOne);
+      expect(
+        _inCard(
+          'post-sleeves',
+          find.text(
+            words.meta(
+              s.sleevesCard().post,
+              me: DaybookSamples.islam,
+              now: _now,
+            ),
+          ),
+        ),
+        findsOne,
+      );
+      expect(_inCard('post-sleeves', find.text(s.levelTwo)), findsOne);
+      // The latest proof, with its DONE stamp; one photo, one stamp.
+      expect(
+        _inCard('post-sleeves', find.byKey(const Key('slip-photo'))),
+        findsOne,
+      );
+      final stamp = tester.widget<BvInkStamp>(
+        _inCard('post-sleeves', find.byType(BvInkStamp)),
+      );
       expect(stamp.label, l10n.daybookStampDone);
       expect(
         stamp.subline,
-        words.stampLine(s.omarName, DateTime(2026, 10, 15, 9, 40)),
+        words.stampLine(s.omarName, DaybookSamples.sleevesDoneAt),
       );
-      // Mine to check: the hint and the clip.
-      expect(inProof(find.text(l10n.daybookDoubleTapToCheck)), findsOneWidget);
-      expect(inProof(find.byType(BvPaperClip)), findsOneWidget);
-      // The item's own slip has no clip now (review 45 M2).
+      // No separate sign-off, update or send-back entries.
+      expect(find.byType(BvSlip), findsNWidgets(2));
+    });
+
+    testWidgets('the history shows the latest three in order; Show earlier '
+        'opens the rest in place [$lang]', (tester) async {
+      await _open(tester, lang, posts: s.v13());
+      String line(DaybookEvent e) {
+        final phrase = words.eventPhrase(
+          e,
+          me: DaybookSamples.islam,
+          now: _now,
+        );
+        final detail = words.eventDetail(e);
+        return detail == null
+            ? phrase
+            : '${l10n.daybookHistoryLead(phrase)} $detail';
+      }
+
+      final history = s.sleevesCard().history.where((e) => e.shown).toList();
+      // Oldest at the top: the last three of five.
+      expect(_lines(tester, 'post-sleeves'), [
+        for (final e in history.take(3).toList().reversed) line(e),
+      ]);
+      final earlier = _inCard(
+        'post-sleeves',
+        find.byKey(const Key('card-history-earlier')),
+      );
+      expect(earlier, findsOne);
+      await tester.ensureVisible(earlier);
+      await tester.tap(earlier);
+      await tester.pumpAndSettle();
+      expect(_lines(tester, 'post-sleeves'), [
+        for (final e in history.reversed) line(e),
+      ]);
+      // Everything is loaded: no Show earlier left.
+      expect(earlier, findsNothing);
+      // The rebar has one line, nothing earlier.
+      expect(_lines(tester, 'post-rebar'), hasLength(1));
       expect(
-        find.descendant(
-          of: find.byKey(const Key('daybook-entry-post-sleeves')),
-          matching: find.byType(BvPaperClip),
-        ),
+        _inCard('post-rebar', find.byKey(const Key('card-history-earlier'))),
         findsNothing,
       );
     });
 
-    testWidgets('a proof checked, sent back, or of a cancelled item [$lang]', (
+    testWidgets('past the first 50, Show earlier reads post_history [$lang]', (
       tester,
     ) async {
-      final at = DateTime(2026, 10, 15, 10, 12);
-      DaybookSignOff signOff(String id, DaybookOutcome outcome, int minute) =>
-          DaybookSignOff(
-            id: id,
-            at: DateTime(2026, 10, 15, 9, minute),
-            postId: 'post-sleeves',
-            title: s.sleeves,
-            actorId: DaybookSamples.omar,
-            actorName: s.omarName,
-            photos: const [WorkPhoto(path: 'p.jpg')],
-            outcome: outcome,
-          );
+      final card = s.sleevesCard().copyWith(historyMore: true);
+      final fake = FakeDaybookRepository()
+        ..earlier[card.id] = [
+          s.event(
+            'ev-old',
+            DaybookEventKind.comment,
+            DateTime(2026, 10, 14, 9),
+            DaybookSamples.omar,
+            note: 'The oldest line',
+          ),
+        ];
+      await _open(tester, lang, posts: [card], daybook: fake);
+      final earlier = _inCard(
+        'post-sleeves',
+        find.byKey(const Key('card-history-earlier')),
+      );
+      await tester.ensureVisible(earlier);
+      await tester.tap(earlier);
+      await tester.pumpAndSettle();
+      expect(fake.historyCalls, isEmpty);
+      // All five loaded lines show; more are on the server.
+      expect(_lines(tester, 'post-sleeves'), hasLength(5));
+      await tester.ensureVisible(earlier);
+      await tester.tap(earlier);
+      await tester.pumpAndSettle();
+      expect(fake.historyCalls, [card.id]);
+      expect(_lines(tester, 'post-sleeves'), hasLength(6));
+      expect(_lines(tester, 'post-sleeves').first, contains('The oldest line'));
+    });
+
+    testWidgets('each earlier day a card had something happen keeps one '
+        'trace, at that day\'s latest event; it opens the card [$lang]', (
+      tester,
+    ) async {
+      await _open(tester, lang, posts: s.v13());
+      final wednesday = DateTime(2026, 10, 14);
+      final traces = find.byType(BvTraceRow, skipOffstage: false);
+      // Wednesday: raised at 15:50, an update at 16:07; one trace, 16:07.
+      expect(traces, findsOneWidget);
+      final trace = tester.widget<BvTraceRow>(traces);
+      expect(trace.time, words.clock(DaybookSamples.sleevesWedUpdateAt));
+      expect(
+        trace.text,
+        l10n.daybookTrace(
+          words.eventPhrase(
+            s.sleevesCard().history.firstWhere((e) => e.id == 'ev-sleeves-c1'),
+            me: DaybookSamples.islam,
+            now: _now,
+            trace: true,
+          ),
+          s.sleeves,
+        ),
+      );
+      // It sits under Wednesday's divider, above today's.
+      final dividers = tester
+          .widgetList<BvDayDivider>(
+            find.byType(BvDayDivider, skipOffstage: false),
+          )
+          .map((d) => d.label)
+          .toList();
+      expect(dividers, [
+        words.compactDate(wednesday),
+        l10n.daybookTodayDivider,
+      ]);
+
+      await tester.drag(
+        find.byKey(const Key('daybook')),
+        const Offset(0, 2000),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(traces);
+      await tester.pumpAndSettle();
+      // The card, with its history open at Wednesday's update.
+      final update = find.textContaining(
+        s.sleevesWedUpdate,
+        findRichText: true,
+      );
+      expect(_inCard('post-sleeves', update), findsOne);
+      final viewport = tester.getRect(find.byKey(const Key('daybook')));
+      final at = tester.getRect(_inCard('post-sleeves', update));
+      expect(viewport.overlaps(at), isTrue);
+    });
+
+    testWidgets('a trace on each earlier day, each at its own latest '
+        'event; a trace opens the card at that day\'s line [$lang]', (
+      tester,
+    ) async {
+      final monday = DateTime(2026, 10, 12);
+      final tuesday = DateTime(2026, 10, 13);
+      final card = s.card(
+        s.item(
+          id: 'post-trays',
+          at: monday.add(const Duration(hours: 8)),
+          title: s.cableTraysTitle,
+          authorId: DaybookSamples.islam,
+          ownerId: DaybookSamples.omar,
+        ),
+        events: [
+          s.event(
+            'ev-mon',
+            DaybookEventKind.comment,
+            monday.add(const Duration(hours: 9)),
+            DaybookSamples.omar,
+            note: 'Monday words',
+          ),
+          s.event(
+            'ev-tue-1',
+            DaybookEventKind.comment,
+            tuesday.add(const Duration(hours: 7)),
+            DaybookSamples.sara,
+            note: 'Tuesday early',
+          ),
+          s.event(
+            'ev-tue-2',
+            DaybookEventKind.comment,
+            tuesday.add(const Duration(hours: 15)),
+            DaybookSamples.omar,
+            note: 'Tuesday late',
+          ),
+          s.event(
+            'ev-thu',
+            DaybookEventKind.comment,
+            DateTime(2026, 10, 15, 9),
+            DaybookSamples.omar,
+            note: 'Today',
+          ),
+        ],
+      );
+      await _open(tester, lang, posts: [card]);
+      final traces = tester
+          .widgetList<BvTraceRow>(find.byType(BvTraceRow, skipOffstage: false))
+          .toList();
+      // Monday (raised, then an update: the update) and Tuesday (its
+      // latest), never today.
+      expect(traces.map((t) => t.time), [
+        words.clock(monday.add(const Duration(hours: 9))),
+        words.clock(tuesday.add(const Duration(hours: 15))),
+      ]);
+      expect(find.byType(BvDayDivider, skipOffstage: false), findsNWidgets(3));
+      // Monday's trace: the card opens with its whole history, at Monday.
+      final monTrace = find.byKey(
+        Key('daybook-trace-post-trays-${monday.toIso8601String()}'),
+        skipOffstage: false,
+      );
+      await tester.ensureVisible(monTrace);
+      await tester.pumpAndSettle();
+      await tester.tap(monTrace);
+      await tester.pumpAndSettle();
+      final monday9 = _inCard(
+        'post-trays',
+        find.textContaining('Monday words', findRichText: true),
+      );
+      expect(monday9, findsOne);
+      expect(
+        tester
+            .getRect(find.byKey(const Key('daybook')))
+            .overlaps(tester.getRect(monday9)),
+        isTrue,
+      );
+    });
+
+    testWidgets('a card made on an earlier day and with nothing since is '
+        'only on that day; no trace [$lang]', (tester) async {
+      await _open(tester, lang, posts: [s.gate(), s.rebar()]);
+      expect(find.byType(BvTraceRow, skipOffstage: false), findsNothing);
+      expect(find.byType(BvDayDivider, skipOffstage: false), findsNWidgets(2));
+    });
+
+    testWidgets('needs_me gives the reader one action and the clip [$lang]', (
+      tester,
+    ) async {
+      final mine = s.item(
+        id: 'post-mine',
+        at: DateTime(2026, 10, 15, 9),
+        title: 'Mine to sign',
+        authorId: DaybookSamples.sara,
+        ownerId: DaybookSamples.islam,
+      );
+      DaybookPost other(String id, String title) => s.item(
+        id: id,
+        at: DateTime(2026, 10, 15, 9, 30),
+        title: title,
+        authorId: DaybookSamples.islam,
+        ownerId: DaybookSamples.lina,
+      );
       await _open(
         tester,
         lang,
         posts: [
-          s.sleevesDone(),
-          signOff(
-            'e-1',
-            DaybookOutcome(
-              kind: DaybookOutcomeKind.sentBack,
-              at: at,
-              byName: s.islamName,
-            ),
-            0,
-          ),
-          signOff(
-            'e-2',
-            DaybookOutcome(
-              kind: DaybookOutcomeKind.checked,
-              at: at,
-              byName: s.islamName,
-            ),
-            20,
-          ),
-          signOff(
-            'e-3',
-            const DaybookOutcome(kind: DaybookOutcomeKind.cancelled),
-            40,
-          ),
+          s.card(mine, need: DaybookNeed.toSign),
+          s.sleevesCard(),
+          s.card(other('post-give', 'Owner left'), need: DaybookNeed.giveTo),
+          s.card(other('post-tick', 'To tick'), need: DaybookNeed.toTick),
+          s.card(other('post-new', 'A new need'), need: DaybookNeed.unknown),
+          s.card(other('post-none', 'Nothing for me')),
         ],
       );
-      BvInkStamp stampOf(String id) =>
-          tester
-                  .widget<BvSlipPhoto>(
-                    find.descendant(
-                      of: find.byKey(Key('daybook-entry-$id')),
-                      matching: find.byType(BvSlipPhoto),
-                    ),
-                  )
-                  .stamp!
-              as BvInkStamp;
-      expect(stampOf('e-1').label, l10n.daybookStampSentBack);
-      expect(stampOf('e-1').tone, BvInkStampTone.destructive);
-      expect(stampOf('e-2').label, l10n.daybookStampChecked);
-      expect(stampOf('e-2').subline, words.stampLine(s.islamName, at));
-      expect(stampOf('e-3').label, l10n.daybookStampCancelled);
+      Finder clip(String id) => _inCard(id, find.byType(BvPaperClip));
+      expect(_inCard('post-mine', find.text(l10n.daybookSignAsDone)), findsOne);
+      expect(clip('post-mine'), findsOne);
       expect(
-        find.descendant(
-          of: find.byKey(const Key('daybook-entry-e-3')),
-          matching: find.byKey(const Key('slip-cancelled')),
-        ),
-        findsOneWidget,
+        _inCard('post-sleeves', find.text(l10n.daybookDoubleTapToCheck)),
+        findsOne,
       );
+      expect(clip('post-sleeves'), findsOne);
+      expect(_inCard('post-give', find.text(l10n.daybookGiveTo)), findsOne);
+      expect(clip('post-give'), findsOne);
+      // A checklist point (slice 2), or a value this version doesn't know:
+      // the clip, no action.
+      for (final id in ['post-tick', 'post-new']) {
+        expect(clip(id), findsOne);
+        expect(
+          _inCard(id, find.byKey(const Key('slip-pill-action'))),
+          findsNothing,
+        );
+      }
+      expect(clip('post-none'), findsNothing);
+      expect(
+        _inCard('post-none', find.byKey(const Key('slip-pill-action'))),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a note-only proof to check: the note and its stamp, no '
+        'frame and no hint; Check is in the menu [$lang]', (tester) async {
+      await _open(tester, lang, posts: [s.sleevesCard(photos: const [])]);
+      expect(
+        _inCard('post-sleeves', find.byKey(const Key('slip-photo'))),
+        findsNothing,
+      );
+      expect(_inCard('post-sleeves', find.byType(BvSlipNote)), findsOne);
+      expect(_inCard('post-sleeves', find.byType(BvInkStamp)), findsOne);
+      expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(_inCard('post-sleeves', find.byType(BvPaperClip)), findsOne);
+      await tester.longPress(_inCard('post-sleeves', find.byType(BvSlip)));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookCheck), findsOne);
+    });
+
+    testWidgets('checked: CHECKED on the photo, no action [$lang]', (
+      tester,
+    ) async {
+      await _open(tester, lang, posts: [s.gate()]);
+      final stamp = tester.widget<BvInkStamp>(
+        _inCard('post-gate', find.byType(BvInkStamp)),
+      );
+      expect(stamp.label, l10n.daybookStampChecked);
+      expect(stamp.tone, BvInkStampTone.positive);
+      expect(find.byType(BvPaperClip), findsNothing);
+      expect(find.byKey(const Key('slip-pill-action')), findsNothing);
       expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
     });
 
-    testWidgets('an update quotes its item; given to someone else [$lang]', (
+    testWidgets('sent back: SENT BACK on the photo; the owner signs again '
+        '[$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        me: DaybookSamples.omar,
+        pass: SpacePass.crew,
+        admin: false,
+        posts: [
+          s.sleevesCard(
+            me: DaybookSamples.omar,
+            upTo: DaybookSamples.sleevesSentBackAt,
+          ),
+        ],
+      );
+      final stamp = tester.widget<BvInkStamp>(find.byType(BvInkStamp));
+      expect(stamp.label, l10n.daybookStampSentBack);
+      expect(stamp.tone, BvInkStampTone.destructive);
+      expect(find.text(l10n.daybookSignAsDone), findsOne);
+      expect(
+        _lines(tester, 'post-sleeves').last,
+        '${l10n.daybookHistoryLead(l10n.daybookLineSentBack(s.islamName))} '
+        '${words.reason(SendBackReason.photoMissing)}',
+      );
+    });
+
+    testWidgets('cancelled: faded, struck through, CANCELLED, and the line '
+        '[$lang]', (tester) async {
+      await _open(tester, lang, posts: [s.doorHardware()]);
+      expect(find.byKey(const Key('slip-cancelled')), findsOne);
+      expect(
+        tester.widget<BvInkStamp>(find.byType(BvInkStamp)).label,
+        l10n.daybookStampCancelled,
+      );
+      expect(_lines(tester, 'post-door'), [l10n.daybookLineYouCancelled]);
+    });
+
+    testWidgets('given to someone else: a line in the history [$lang]', (
       tester,
     ) async {
       await _open(
         tester,
         lang,
-        posts: [
-          s.item(
-            id: 'post-trays',
-            at: DateTime(2026, 10, 15, 8),
-            title: s.cableTraysTitle,
-            authorId: DaybookSamples.islam,
-            authorName: s.islamName,
-            ownerId: DaybookSamples.rakesh,
-            ownerName: s.rakeshName,
-            givenTo: DaybookGivenTo(
-              at: DateTime(2026, 10, 15, 12, 30),
-              fromName: s.omarName,
-              toName: s.rakeshName,
-            ),
-          ),
-          DaybookUpdate(
-            id: 'e-update',
-            at: DateTime(2026, 10, 15, 13),
-            postId: 'post-trays',
-            title: s.cableTraysTitle,
-            actorId: DaybookSamples.rakesh,
-            actorName: s.rakeshName,
-            note: 'Half done',
-          ),
-        ],
+        posts: [s.traysForOmar(givenAt: DateTime(2026, 10, 15, 12, 30))],
+        now: DateTime(2026, 10, 15, 12, 31),
       );
-      expect(
-        find.text(
-          l10n.daybookGivenTo(
-            s.rakeshName,
-            s.omarName,
-            words.clock(DateTime(2026, 10, 15, 12, 30)),
-          ),
-        ),
-        findsOneWidget,
-      );
-      // Y2: a small note quoting the item, the writer's face and words.
-      final update = find.byKey(const Key('daybook-entry-e-update'));
-      expect(
-        find.descendant(of: update, matching: find.byType(BvUpdateNote)),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: update, matching: find.text(s.cableTraysTitle)),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: update, matching: find.text('Half done')),
-        findsOneWidget,
-      );
+      expect(_lines(tester, 'post-trays'), [
+        l10n.daybookLineYouGave(s.rakeshName, s.omarName),
+      ]);
     });
 
     testWidgets('B1: a newest page with nothing to show loads the older one '
@@ -297,11 +537,14 @@ void main() {
       // before them still shows, with no scrolling.
       final announcements = [
         for (var i = 0; i < 30; i++)
-          DaybookPost(
-            id: 'ann-${i.toString().padLeft(2, '0')}',
-            kind: 'announcement',
-            createdAt: DateTime(2026, 10, 15, 9, i),
-            title: 'Notice $i',
+          DaybookCard(
+            post: DaybookPost(
+              id: 'ann-${i.toString().padLeft(2, '0')}',
+              kind: 'announcement',
+              createdAt: DateTime(2026, 10, 15, 9, i),
+              title: 'Notice $i',
+            ),
+            lastActivityAt: DateTime(2026, 10, 15, 9, i),
           ),
       ];
       final daybook = await _open(
@@ -310,72 +553,21 @@ void main() {
         posts: [s.gate(), ...announcements],
       );
       expect(daybook.pageCalls, hasLength(2));
-      expect(find.byKey(const Key('daybook-entry-post-gate')), findsOneWidget);
+      expect(_card('post-gate'), findsOneWidget);
     });
 
-    testWidgets(
-      'the dots: needs you orange, checked green, else quiet [$lang]',
-      (tester) async {
-        await _open(tester, lang, posts: s.d1());
-        BvSpineDot dot(String id) => tester
-            .widget<BvSpineEntry>(find.byKey(Key('daybook-entry-$id')))
-            .dot;
-        // The clip for my check is on Omar's sign-off, not on the item.
-        expect(dot('post-sleeves'), BvSpineDot.quiet);
-        expect(dot('event-sleeves-done'), BvSpineDot.needsYou);
-        expect(dot('post-rebar'), BvSpineDot.needsYou);
-        await tester.drag(
-          find.byKey(const Key('daybook')),
-          const Offset(0, 600),
-        );
-        await tester.pumpAndSettle();
-        expect(dot('post-gate'), BvSpineDot.checked);
-      },
-    );
-
-    testWidgets('DY1: a divider between days; the masthead follows [$lang]', (
+    testWidgets('DY1: back to yesterday, the masthead follows [$lang]', (
       tester,
     ) async {
       await _open(tester, lang, posts: s.d1());
-      final divider = tester.widget<BvDayDivider>(find.byType(BvDayDivider));
-      expect(divider.weekday, words.weekday(DateTime(2026, 10, 15)));
-      expect(divider.date, words.dayMonth(DateTime(2026, 10, 15)));
-      // Back to yesterday: the masthead names Wednesday, day 40.
-      await tester.drag(find.byKey(const Key('daybook')), const Offset(0, 800));
-      await tester.pumpAndSettle();
-      expect(_masthead(tester).weekday, words.weekday(DateTime(2026, 10, 14)));
-      expect(
-        find.text(
-          l10n.daybookDateLine(words.dayMonth(DateTime(2026, 10, 14)), 40),
-        ),
-        findsOneWidget,
+      await tester.drag(
+        find.byKey(const Key('daybook')),
+        const Offset(0, 3000),
       );
-    });
-
-    testWidgets('no On site since: the date only [$lang]', (tester) async {
-      final daybook = FakeDaybookRepository()
-        ..posts[DaybookSamples.space] = s.d1();
-      final spaces = FakeSpaceRepository()
-        ..details[DaybookSamples.space] = SpaceDetail(
-          id: DaybookSamples.space,
-          name: s.spaceName,
-          myPass: SpacePass.lead,
-          iAmAdmin: true,
-          myRights: const MemberRights(createItems: true),
-        );
-      await pumpApp(
-        tester,
-        language: lang,
-        spaces: spaces,
-        daybook: daybook,
-        now: DaybookSamples.thursday,
-      );
-      GoRouter.of(
-        tester.element(find.byType(Navigator).first),
-      ).push('/spaces/${DaybookSamples.space}');
       await tester.pumpAndSettle();
-      expect(find.text(words.dayMonth(DateTime(2026, 10, 15))), findsWidgets);
-      expect(find.textContaining('41'), findsNothing);
+      final wednesday = DateTime(2026, 10, 14);
+      expect(_masthead(tester).weekday, words.weekday(wednesday));
+      expect(_masthead(tester).date, words.dayMonth(wednesday));
     });
 
     testWidgets('L1: Late by 1 day and the Due today strip [$lang]', (
@@ -385,6 +577,7 @@ void main() {
         tester,
         lang,
         posts: s.l1(),
+        me: DaybookSamples.omar,
         now: DaybookSamples.friday,
         calendar: [
           s.cableTraysDue(),
@@ -417,23 +610,27 @@ void main() {
       );
     });
 
-    testWidgets('V1: a Viewer reads only: no clips, the pass chip [$lang]', (
-      tester,
-    ) async {
+    testWidgets('V1: a Viewer reads only: no clips, no actions, the pass '
+        'chip [$lang]', (tester) async {
       await _open(
         tester,
         lang,
-        // Even if the server said so, a Viewer's slip shows no clip.
-        posts: s.d1(),
+        me: DaybookSamples.mona,
+        // Even if the server said so, a Viewer's card shows no clip.
+        posts: [s.sleevesCard(), s.rebar()],
         pass: SpacePass.viewer,
         admin: false,
       );
       expect(find.byType(BvPaperClip), findsNothing);
       expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(find.text(l10n.daybookSignAsDone), findsNothing);
+      expect(find.byKey(const Key('slip-pill-action')), findsNothing);
       expect(find.byType(BvPassChip), findsOneWidget);
       expect(find.text(l10n.spacesPassViewer), findsOneWidget);
       expect(find.text(l10n.daybookReadOnly), findsOneWidget);
       expect(find.text(l10n.daybookWorkItem), findsNothing);
+      // The history still reads.
+      expect(_lines(tester, 'post-sleeves'), hasLength(3));
     });
 
     testWidgets('DY3: day one: post and invite, no announcement [$lang]', (
@@ -446,8 +643,6 @@ void main() {
         l10n.daybookFirstPost,
         l10n.daybookFirstInvite,
       ]);
-      // The spine is still drawn.
-      expect(find.byKey(const Key('daybook-spine-line')), findsOneWidget);
       await tester.tap(find.text(l10n.daybookFirstInvite));
       await tester.pumpAndSettle();
       expect(find.byType(InviteScreen), findsOneWidget);
@@ -475,17 +670,21 @@ void main() {
         lang,
         posts: [
           s.rebar(),
-          DaybookPost(
-            id: 'post-ann',
-            kind: 'announcement',
-            createdAt: DateTime(2026, 10, 15, 9),
-            title: 'Crane closed today',
+          DaybookCard(
+            post: DaybookPost(
+              id: 'post-ann',
+              kind: 'announcement',
+              createdAt: DateTime(2026, 10, 15, 9),
+              title: 'Crane closed today',
+            ),
+            lastActivityAt: DateTime(2026, 10, 15, 9),
           ),
         ],
       );
       expect(find.text('Crane closed today'), findsNothing);
       expect(find.byType(BvSlip), findsOneWidget);
       expect(find.byType(BvFirstPage), findsNothing);
+      expect(find.byType(BvPostBar), findsOneWidget);
     });
 
     testWidgets(

@@ -19,7 +19,7 @@ import '../../shared/widgets/bv_site_photo.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../entry/widgets/entry_scaffold.dart';
-import '../work/daybook_entry.dart' show daybookPhotoProvider;
+import '../work/daybook_photos.dart' show daybookPhotoProvider;
 import '../spaces/space_errors.dart';
 import 'widgets/profile_parts.dart';
 

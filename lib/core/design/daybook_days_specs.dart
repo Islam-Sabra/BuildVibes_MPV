@@ -8,11 +8,10 @@ import 'package:flutter/widgets.dart';
 import 'bv_specs.dart';
 import 'bv_tokens.dart';
 
-/// The time spine and its entries (spec §5).
+/// Home's time spine and its entries (spec §5, H1 v3).
 abstract final class BvSpineSpec {
-  /// The time column in a Space's Daybook, and on Home.
-  static const timeColumn = 56.0;
-  static const homeTimeColumn = BvSize.touchMin; // 48
+  /// The time column.
+  static const timeColumn = BvSize.touchMin; // 48
 
   /// The spine is centred on the end of the time column.
   static const lineWidth = BvStroke.medium; // 1.5
@@ -42,38 +41,24 @@ abstract final class BvSpineSpec {
   static const entryGap = 22.0;
 }
 
-/// The masthead above the diary (spec §6).
+/// The masthead above the diary (spec §6; v13 2581:35635).
 abstract final class BvMastheadSpec {
+  // The daybook's one line: the day and the date.
+  static const linePaddingHorizontal = BvSpace.s16;
+  static const linePaddingVertical = BvSpace.s8;
+  static const lineGap = BvSpace.s8;
+
+  // Home.
   static const paddingHorizontal = BvSpace.s20;
-  static const paddingTop = 14.0;
-  static const paddingBottom = 10.0;
-  static const gap = BvSpace.s12;
-
-  // Compact, while writing.
-  static const compactPaddingTop = BvSpace.s8;
-  static const compactPaddingBottom = BvSpace.s6;
-
-  // Home: no weather.
   static const homePaddingTop = BvSpace.s12;
   static const homePaddingBottom = BvSpace.s6;
 }
 
-/// The dashed line between days when scrolling back (spec §7).
+/// The line between days (v13 2581:35639): a thin rule on each side of the
+/// day's name.
 abstract final class BvDayDividerSpec {
-  static const paddingHorizontal = BvSpace.s20;
-  static const paddingTop = 10.0;
-  static const paddingBottom = BvSpace.s4;
-  static const rowPaddingTop = 10.0;
-  static const gap = BvSpace.s2;
-  static const rowGap = BvSpace.s12;
-
-  static const lineWidth = BvStroke.medium; // 1.5
-  static const dash = 2.0;
-  static const dashGap = 5.0;
-
-  /// The line starts and ends with a 1 px cap; the first dash is at 6.
-  static const cap = 1.0;
-  static const firstDash = 6.0;
+  static const gap = 10.0;
+  static const lineWidth = BvStroke.thin; // 1
 }
 
 /// The post bar under the diary (spec §8).
@@ -138,9 +123,6 @@ abstract final class BvMonthDropdownSpec {
 
 /// The day-one card in an empty Daybook (spec §15).
 abstract final class BvFirstPageSpec {
-  /// The screen insets the card this far from the start.
-  static const insetStart = 72.0;
-
   static const radius = BorderRadius.all(Radius.circular(BvRadius.toast));
   static const paddingTop = BvSpace.s24;
   static const paddingBottom = 22.0;

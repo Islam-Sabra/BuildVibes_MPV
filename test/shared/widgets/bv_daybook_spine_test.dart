@@ -13,18 +13,12 @@ Future<void> _pump(
   String lang, {
   BvSpineDot dot = BvSpineDot.quiet,
   String time = '08:14',
-  bool home = false,
 }) => pumpComponent(
   tester,
   BvDaybookSpine(
-    home: home,
     children: [
-      BvSpineEntry(time: time, dot: dot, home: home, child: _slip),
-      BvSpineEntry(
-        time: '10:05',
-        home: home,
-        child: const SizedBox(height: 40),
-      ),
+      BvSpineEntry(time: time, dot: dot, child: _slip),
+      const BvSpineEntry(time: '10:05', child: SizedBox(height: 40)),
     ],
   ),
   lang: lang,
@@ -42,29 +36,6 @@ double _fromStart(WidgetTester tester, String lang) {
 
 void main() {
   group('BvDaybookSpine', () {
-    testBoth('a minimum height: the line runs it all, entries at the bottom', (
-      tester,
-      lang,
-    ) async {
-      await pumpComponent(
-        tester,
-        const SingleChildScrollView(
-          child: BvDaybookSpine(
-            minHeight: 600,
-            children: [BvSpineEntry(time: '08:14', child: _slip)],
-          ),
-        ),
-        lang: lang,
-        scroll: false,
-      );
-      final spine = tester.getRect(find.byType(BvDaybookSpine));
-      final line = tester.getRect(find.byKey(const Key('daybook-spine-line')));
-      final slip = tester.getRect(find.byKey(const Key('slip')));
-      expect(spine.height, 600);
-      expect(line.height, 600);
-      expect(spine.bottom - slip.bottom, BvSpineSpec.paddingBottom);
-    });
-
     testBoth('the line sits at the start, the slip to its end', (
       tester,
       lang,
@@ -101,52 +72,40 @@ void main() {
       expect(b.top - a.bottom, BvSpineSpec.entryGap);
     });
 
-    testBoth('Home has a 48 time column', (tester, lang) async {
-      await _pump(tester, lang, home: true);
-      expect(_fromStart(tester, lang), BvSpineSpec.homeTimeColumn);
-    });
-
     testBoth('F15: a 12-hour time puts its part of the day on a smaller '
         'line under it, inside the column', (tester, lang) async {
-      for (final home in [true, false]) {
-        await pumpComponent(
-          tester,
-          BvDaybookSpine(
-            home: home,
-            children: [
-              BvSpineEntry(
-                time: '11:58',
-                period: isRtl(lang) ? 'مساءً' : 'pm',
-                home: home,
-                child: _slip,
-              ),
-            ],
-          ),
-          lang: lang,
-          scroll: false,
-        );
-        final time = tester.getRect(find.byKey(const Key('spine-time')));
-        final period = tester.getRect(find.byKey(const Key('spine-period')));
-        expect(period.top, greaterThanOrEqualTo(time.bottom));
-        double size(Key k) =>
-            tester.widget<Text>(find.byKey(k)).style!.fontSize!;
-        expect(
-          size(const Key('spine-period')),
-          lessThan(size(const Key('spine-time'))),
-        );
-        // Both end at the label's end, and neither is wider than the column
-        // before the spine.
-        final column =
-            (home ? BvSpineSpec.homeTimeColumn : BvSpineSpec.timeColumn) -
-            BvSpineSpec.labelToSpine;
-        final screen = tester.getRect(find.byType(BvDaybookSpine));
-        for (final r in [time, period]) {
-          final fromStart = isRtl(lang)
-              ? screen.right - r.left
-              : r.right - screen.left;
-          expect(fromStart, lessThanOrEqualTo(column + 0.5));
-          expect(r.width, lessThanOrEqualTo(column));
-        }
+      await pumpComponent(
+        tester,
+        BvDaybookSpine(
+          children: [
+            BvSpineEntry(
+              time: '11:58',
+              period: isRtl(lang) ? 'مساءً' : 'pm',
+              child: _slip,
+            ),
+          ],
+        ),
+        lang: lang,
+        scroll: false,
+      );
+      final time = tester.getRect(find.byKey(const Key('spine-time')));
+      final period = tester.getRect(find.byKey(const Key('spine-period')));
+      expect(period.top, greaterThanOrEqualTo(time.bottom));
+      double size(Key k) => tester.widget<Text>(find.byKey(k)).style!.fontSize!;
+      expect(
+        size(const Key('spine-period')),
+        lessThan(size(const Key('spine-time'))),
+      );
+      // Both end at the label's end, and neither is wider than the column
+      // before the spine.
+      const column = BvSpineSpec.timeColumn - BvSpineSpec.labelToSpine;
+      final screen = tester.getRect(find.byType(BvDaybookSpine));
+      for (final r in [time, period]) {
+        final fromStart = isRtl(lang)
+            ? screen.right - r.left
+            : r.right - screen.left;
+        expect(fromStart, lessThanOrEqualTo(column + 0.5));
+        expect(r.width, lessThanOrEqualTo(column));
       }
     });
 
@@ -163,20 +122,9 @@ void main() {
       BvColors.borderDefault,
     );
     expect(
-      const BvSpineDotPainter(BvSpineDot.needsYou).fill,
-      BvColors.actionPrimary,
+      const BvSpineDotPainter(BvSpineDot.quiet).stroke,
+      BvColors.surfaceApp,
     );
-    expect(
-      const BvSpineDotPainter(BvSpineDot.checked).fill,
-      BvColors.textPositive,
-    );
-    for (final dot in [
-      BvSpineDot.quiet,
-      BvSpineDot.needsYou,
-      BvSpineDot.checked,
-    ]) {
-      expect(BvSpineDotPainter(dot).stroke, BvColors.surfaceApp);
-    }
     const now = BvSpineDotPainter(BvSpineDot.now);
     expect(now.fill, BvColors.surfaceApp);
     expect(now.stroke, BvColors.actionPrimary);

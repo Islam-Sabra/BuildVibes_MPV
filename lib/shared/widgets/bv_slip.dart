@@ -10,9 +10,9 @@ import 'bv_torn_edge.dart';
 
 /// Spec §2: the Daybook's paper slip. White paper with a torn top edge and
 /// the slip shadow; its [children] stack with a 10 gap (compose them from
-/// [BvSlipHeader], [BvSlipTitle], [BvSlipMeta], [BvSlipLate], [BvSlipPlace],
+/// [BvSlipHeader], [BvSlipTitle], [BvSlipFacts], [BvSlipLate],
 /// [BvSlipChips], [BvSlipQuote], [BvSlipPhoto], [BvSlipNote], [BvSlipPill],
-/// [BvSlipHistory] and [BvSlipError]).
+/// [BvSlipQuiet] and [BvSlipError]).
 ///
 /// [stamp] (a [BvInkStamp]) sits at the top end corner; [clip] puts the
 /// paper clip there, sticking out above the tear, when the slip needs you.
@@ -171,14 +171,16 @@ class BvSlipCornerMenu extends StatelessWidget {
   );
 }
 
-/// §2a: avatar 24 in the person's tint, the name and an optional action
-/// phrase ("signed as done").
+/// §2a, v13 (2581:35658): avatar 24 in the person's tint, the name, the
+/// work item's [ref] ("· KCT-014") and, at the end, the [time] of the
+/// latest activity.
 class BvSlipHeader extends StatelessWidget {
   const BvSlipHeader({
     super.key,
     required this.name,
     this.label,
-    this.action,
+    this.ref,
+    this.time,
     this.tint,
     this.image,
   });
@@ -189,7 +191,8 @@ class BvSlipHeader extends StatelessWidget {
   /// Shown instead of [name] ("You" on your own posts); the avatar keeps
   /// the person's own initials.
   final String? label;
-  final String? action;
+  final String? ref;
+  final String? time;
 
   /// [BvAvatarTints.forId] of the person.
   final Color? tint;
@@ -198,29 +201,31 @@ class BvSlipHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     return SizedBox(
       height: BvSlipSpec.headerHeight,
       child: Row(
         spacing: BvSlipSpec.headerGap,
         children: [
           BvAvatar(name: name, size: BvAvatarSize.xs, tint: tint, image: image),
-          Flexible(
-            child: Text(
-              label ?? name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: type.labelSm.copyWith(color: BvColors.textPrimary),
+          // The name gives way first; the ref is short.
+          Expanded(
+            child: Row(
+              spacing: BvSlipSpec.headerGap,
+              children: [
+                Flexible(
+                  child: Text(
+                    label ?? name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: type.labelMd.copyWith(color: BvColors.textPrimary),
+                  ),
+                ),
+                if (ref != null) Text(ref!, maxLines: 1, style: quiet),
+              ],
             ),
           ),
-          if (action != null)
-            Flexible(
-              child: Text(
-                action!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: type.metadata.copyWith(color: BvColors.textSecondary),
-              ),
-            ),
+          if (time != null) Text(time!, maxLines: 1, style: quiet),
         ],
       ),
     );
@@ -245,43 +250,49 @@ class BvSlipTitle extends StatelessWidget {
   );
 }
 
-/// §2c: who and when ("For Omar Haddad, by Thu 15 Oct").
-class BvSlipMeta extends StatelessWidget {
-  const BvSlipMeta(this.text, {super.key});
+/// §2c and §2d, v13 (2581:35669): one of the card's facts, a grey line
+/// after its icon ("For Omar Haddad · by today 2 pm", the place).
+class BvSlipFact extends StatelessWidget {
+  const BvSlipFact({super.key, required this.icon, required this.text});
 
+  final IconData icon;
   final String text;
 
   @override
-  Widget build(BuildContext context) => Text(
-    text,
-    style: BvType.of(context).bodySm.copyWith(color: BvColors.textSecondary),
-  );
+  Widget build(BuildContext context) {
+    final style = BvType.of(
+      context,
+    ).bodyMd.copyWith(color: BvColors.textSecondary);
+    // The icon centres on the first line.
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: BvSlipSpec.factGap,
+      children: [
+        SizedBox(
+          height: style.fontSize! * style.height!,
+          child: Icon(
+            icon,
+            size: BvSlipSpec.factIconSize,
+            color: BvColors.iconSecondary,
+          ),
+        ),
+        Expanded(child: Text(text, style: style)),
+      ],
+    );
+  }
 }
 
-/// §2d: the place, after a map pin.
-class BvSlipPlace extends StatelessWidget {
-  const BvSlipPlace(this.text, {super.key});
+/// The card's facts, 4 apart.
+class BvSlipFacts extends StatelessWidget {
+  const BvSlipFacts({super.key, required this.children});
 
-  final String text;
+  final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Row(
-    spacing: BvSlipSpec.placeGap,
-    children: [
-      const Icon(
-        BvIcons.place,
-        size: BvSlipSpec.placeIconSize,
-        color: BvColors.iconPrimary,
-      ),
-      Expanded(
-        child: Text(
-          text,
-          style: BvType.of(
-            context,
-          ).bodySm.copyWith(color: BvColors.textSecondary),
-        ),
-      ),
-    ],
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    spacing: BvSlipSpec.factsGap,
+    children: children,
   );
 }
 
@@ -504,10 +515,9 @@ class BvSlipNote extends StatelessWidget {
   );
 }
 
-/// §2k and §2l: an edit or hand-over record ("Edited: due moved from Thu
-/// to today"), or the locked line after Check.
-class BvSlipHistory extends StatelessWidget {
-  const BvSlipHistory(this.text, {super.key});
+/// A quiet small line on a slip ("Waiting to send").
+class BvSlipQuiet extends StatelessWidget {
+  const BvSlipQuiet(this.text, {super.key});
 
   final String text;
 

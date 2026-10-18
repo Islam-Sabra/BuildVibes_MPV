@@ -5,43 +5,25 @@ import '../../core/design/daybook_days_specs.dart';
 
 /// What the dot on the spine says about its entry (spec §5).
 enum BvSpineDot {
-  /// Nothing for you: someone's post, or your own posted item.
+  /// A post on the feed.
   quiet,
-
-  /// Needs you: the slip has a paper clip.
-  needsYou,
-  checked,
 
   /// The writing card: a hollow ring, and the time label in action colour.
   now,
 }
 
-/// The Daybook's diary column: a thin line at the end of the time column,
-/// with the entries ([BvSpineEntry]) on top of it, 22 apart.
-///
-/// Set [home] for Home's narrower time column (48 instead of 56); the
-/// entries must use the same setting.
-///
-/// With [minHeight] (the page's height) the spine runs the whole page and
-/// the entries sit at its bottom, newest last, as in Figma's diary.
+/// Home's diary column (H1 v3): a thin line at the end of the time column,
+/// with the entries ([BvSpineEntry]) on top of it, 22 apart. The Space's
+/// daybook has no spine since v13 (review 53); Home loses it with H1 v4.
 class BvDaybookSpine extends StatelessWidget {
-  const BvDaybookSpine({
-    super.key,
-    required this.children,
-    this.home = false,
-    this.minHeight,
-  });
+  const BvDaybookSpine({super.key, required this.children});
 
   final List<Widget> children;
-  final bool home;
-  final double? minHeight;
 
   @override
   Widget build(BuildContext context) {
-    final column = home ? BvSpineSpec.homeTimeColumn : BvSpineSpec.timeColumn;
-    final spine = Stack(
-      // A minimum height reaches the entries' column, which then fills it.
-      fit: minHeight == null ? StackFit.loose : StackFit.passthrough,
+    const column = BvSpineSpec.timeColumn;
+    return Stack(
       children: [
         PositionedDirectional(
           start: column - BvSpineSpec.lineWidth / 2,
@@ -68,11 +50,6 @@ class BvDaybookSpine extends StatelessWidget {
         ),
       ],
     );
-    if (minHeight == null) return spine;
-    return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: minHeight!),
-      child: spine,
-    );
   }
 }
 
@@ -89,19 +66,17 @@ class BvSpineEntry extends StatelessWidget {
     required this.child,
     this.period,
     this.dot = BvSpineDot.quiet,
-    this.home = false,
   });
 
   final String time;
   final String? period;
   final Widget child;
   final BvSpineDot dot;
-  final bool home;
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
-    final column = home ? BvSpineSpec.homeTimeColumn : BvSpineSpec.timeColumn;
+    const column = BvSpineSpec.timeColumn;
     final color = dot == BvSpineDot.now
         ? BvColors.textAction
         : BvColors.textSecondary;
@@ -180,8 +155,6 @@ class BvSpineDotPainter extends CustomPainter {
   /// The circle's fill.
   Color get fill => switch (dot) {
     BvSpineDot.quiet => BvColors.borderDefault,
-    BvSpineDot.needsYou => BvColors.actionPrimary,
-    BvSpineDot.checked => BvColors.textPositive,
     BvSpineDot.now => BvColors.surfaceApp,
   };
 

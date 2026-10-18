@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
-import '../../core/design/daybook_days_specs.dart';
+import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/push/push_state.dart';
 import '../../core/routing/app_routes.dart';
@@ -19,39 +19,43 @@ import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
-import '../../shared/widgets/bv_daybook_spine.dart';
 import '../../shared/widgets/bv_due_today_strip.dart';
 import '../../shared/widgets/bv_first_page.dart';
 import '../../shared/widgets/bv_month_dropdown.dart';
 import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_post_bar.dart';
+import '../../shared/widgets/bv_trace_row.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../account/account_parts.dart' show myMarketProvider;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
+import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
+import 'daybook_card.dart';
 import 'daybook_draft.dart';
-import 'daybook_entry.dart';
 import 'daybook_loop.dart';
 import 'daybook_state.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart';
 import 'work_outbox.dart';
 
-/// The Space's Work tab: the daybook (D1). Today's masthead at the top, the
-/// newest entries at the bottom; scrolling up goes back through older days
-/// on the same page, each after a day divider (DY1), and the masthead
-/// names the day at the top. Tapping it drops down the month (DY2). An
-/// empty Space shows its first page (DY3); a Viewer reads only (V1).
+/// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
+/// one line at the top; one card per work item, full width, newest
+/// activity at the bottom ("Now"). A card with new activity moves to Now;
+/// each earlier day it had something happen keeps a one-line trace that
+/// goes back to it. Scrolling up goes back through older days on the same
+/// page, each after a day divider, and the masthead names the day at the
+/// top. Tapping it drops down the month (DY2). An empty Space shows its
+/// first page (DY3); a Viewer reads only (V1).
 ///
 /// The post bar's notepad writes a work item in place at "Now" (E1–E5):
-/// the masthead shrinks to one line and the writing toolbar takes the post
-/// bar's place. A card with anything in it stays as a Draft (E4).
+/// the writing toolbar takes the post bar's place. A card with anything
+/// in it stays as a Draft (E4).
 ///
-/// The loop (part 1d) lives on the slips: Sign as done, double-tap to
-/// check, long-press menus, swipe to add an update ([DaybookLoop]).
+/// The loop lives on the cards: Sign as done, double-tap to check, the
+/// menu on a long-press or a tap, swipe to add an update ([DaybookLoop]).
 class DaybookTab extends ConsumerStatefulWidget {
   const DaybookTab({super.key, required this.space, this.startWriting = false});
 
@@ -65,20 +69,57 @@ class DaybookTab extends ConsumerStatefulWidget {
   ConsumerState<DaybookTab> createState() => _DaybookTabState();
 }
 
+/// A card as the page shows it: with what waits on the phone, at its
+/// latest activity.
+class _Shown {
+  const _Shown({
+    required this.card,
+    required this.at,
+    this.waiting = false,
+    this.unsent,
+    this.refusedProof,
+    this.localPhoto,
+    this.landing = false,
+  });
+
+  final DaybookCard card;
+  final DateTime at;
+  final bool waiting;
+
+  /// A new work item not on the server yet.
+  final PendingItem? unsent;
+
+  /// A sign-off the server refused: a tap reopens its proof.
+  final PendingItem? refusedProof;
+  final String? localPhoto;
+  final bool landing;
+
+  bool get refused => (unsent?.refused ?? false) || refusedProof != null;
+}
+
+/// A trace: on an earlier day, the latest thing that happened to a card
+/// that has moved on.
+typedef _Trace = ({DaybookCard card, DaybookEvent event});
+
 class _DaybookTabState extends ConsumerState<DaybookTab> {
-  /// Older entries load while this much is left to scroll back.
+  /// Older cards load while this much is left to scroll back.
   static const _loadAhead = 600.0;
 
   final _scroll = ScrollController();
   final _mastheadKey = GlobalKey();
   final _viewportKey = GlobalKey();
   final _dayKeys = <DateTime, GlobalKey>{};
+  final _cardKeys = <String, GlobalKey>{};
+  final _lineKeys = <String, GlobalKey>{};
+
+  /// Cards whose whole history is open (Show earlier, or a trace).
+  final _expanded = <String>{};
 
   /// The loaded days, oldest first.
   var _days = <DateTime>[];
 
   /// The day the masthead names once scrolled back: the one at the top of
-  /// the page. Null at rest on the newest posts: today.
+  /// the page. Null at rest on the newest cards: today.
   DateTime? _shownDay;
 
   /// Writing in place: the card is open with the keyboard's toolbar.
@@ -102,7 +143,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   );
   late final AppLifecycleListener _life;
 
-  /// New entries came in at Now while the reader was up in older ones
+  /// New activity came in at Now while the reader was up in older days
   /// (F11): the "New" chip shows until they go to Now.
   var _newBelow = false;
 
@@ -126,9 +167,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     _fromBefore = ref.read(daybookDraftProvider(_spaceId)) != null;
     // What was made with no signal sends when it's back: on opening and
     // on coming back to the app (the outbox also tries by itself). The
-    // page is never stale (F11): it reads the newest entries when it
-    // opens (from a push too), when the app comes back to the front, and
-    // when a push for this Space arrives (build).
+    // page is never stale (F11): it reads the newest cards when it opens
+    // (from a push too), when the app comes back to the front, and when a
+    // push for this Space arrives (build).
     _life = AppLifecycleListener(
       onResume: () {
         _flush();
@@ -142,7 +183,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _flush();
       // Kept from an earlier visit (another page of this Space is open
       // underneath): read again. A first load is already reading.
-      if (mounted && ref.read(daybookPageProvider(_spaceId)).hasValue) {
+      if (mounted && ref.read(daybookCardsProvider(_spaceId)).hasValue) {
         unawaited(_refresh());
       }
     });
@@ -169,44 +210,82 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     unawaited(ref.read(workOutboxProvider.notifier).flush(_spaceId));
   }
 
-  /// Reads the newest entries again, quietly; with no signal the page
-  /// stays as it was.
+  /// Reads the newest cards again, quietly; with no signal the page stays
+  /// as it was.
   Future<void> _refresh() async {
     if (!mounted) return;
     try {
-      await ref.read(daybookPageProvider(_spaceId).notifier).refresh();
+      await ref.read(daybookCardsProvider(_spaceId).notifier).refresh();
     } on SpaceException catch (e) {
       debugPrint('daybook refresh: $e');
     }
   }
 
-  /// The reader is up in older entries, away from Now.
+  /// The reader is up in older days, away from Now.
   bool get _away =>
       _scroll.hasClients && _scroll.offset > BvNewChipSpec.awayFromNow;
 
-  /// New entries at Now while the reader is up in older ones: the page
-  /// stays where it is, and the "New" chip shows. The list runs bottom
-  /// up, so what came in below grows the scroll extent by its height.
-  void _arrivedAtNow(List<DaybookRecord>? before, List<DaybookRecord> now) {
-    if (before == null || before.isEmpty || !_away) return;
-    final known = {for (final r in before) r.id};
-    final pending = {for (final i in ref.read(workOutboxProvider)) i.id};
-    final newest = before.first.at;
-    final fresh = now.any(
-      (r) =>
-          !known.contains(r.id) &&
-          !pending.contains(r.id) &&
-          !r.at.isBefore(newest),
-    );
-    if (!fresh) return;
-    final offset = _scroll.offset;
-    final extent = _scroll.position.maxScrollExtent;
+  /// Cards moved to Now (new activity on the server, or something done
+  /// here) while the reader is up in older days: the page stays where it
+  /// is, held on a card that didn't move, and the "New" chip shows.
+  void _keepPlace(Set<String> moved) {
+    if (moved.isEmpty || !_away) return;
+    final viewport =
+        _viewportKey.currentContext?.findRenderObject() as RenderBox?;
+    if (viewport == null || !viewport.hasSize) return;
+    final top = viewport.localToGlobal(Offset.zero).dy;
+    final bottom = top + viewport.size.height;
+    String? anchor;
+    double? anchorY;
+    for (final e in _cardKeys.entries) {
+      if (moved.contains(e.key)) continue;
+      final box = e.value.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.attached || !box.hasSize) continue;
+      final y = box.localToGlobal(Offset.zero).dy;
+      if (y + box.size.height < top || y > bottom) continue;
+      if (anchorY == null || (y - top).abs() < (anchorY - top).abs()) {
+        anchor = e.key;
+        anchorY = y;
+      }
+    }
     setState(() => _newBelow = true);
+    if (anchor == null) return;
+    final was = anchorY!;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients) return;
-      final grown = _scroll.position.maxScrollExtent - extent;
-      if (grown > 0) _scroll.jumpTo(offset + grown);
+      final box =
+          _cardKeys[anchor]?.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.attached) return;
+      final shift = was - box.localToGlobal(Offset.zero).dy;
+      if (shift == 0) return;
+      final position = _scroll.position;
+      _scroll.jumpTo(
+        (_scroll.offset + shift).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        ),
+      );
     });
+  }
+
+  /// The cards with new activity since [before].
+  static Set<String> _movedOn(
+    List<DaybookCard>? before,
+    List<DaybookCard> now,
+  ) {
+    if (before == null || before.isEmpty) return const {};
+    final was = {for (final c in before) c.id: c.lastActivityAt};
+    final newest = before
+        .map((c) => c.lastActivityAt)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+    return {
+      for (final c in now)
+        if (c.post.isWorkItem &&
+            (was[c.id] == null
+                ? !c.lastActivityAt.isBefore(newest)
+                : c.lastActivityAt.isAfter(was[c.id]!)))
+          c.id,
+    };
   }
 
   void _toNow() {
@@ -230,7 +309,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (!_scroll.hasClients || _scroll.position.extentAfter >= _loadAhead) {
       return;
     }
-    unawaited(ref.read(daybookPageProvider(_spaceId).notifier).loadOlder());
+    unawaited(ref.read(daybookCardsProvider(_spaceId).notifier).loadOlder());
   }
 
   void _updateShownDay() {
@@ -255,12 +334,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Shows [day]: loads older pages until it is reached, then puts the
   /// latest day on or before it at the top.
   Future<void> _jumpTo(DateTime day) async {
-    final provider = daybookPageProvider(_spaceId);
+    final provider = daybookCardsProvider(_spaceId);
     final pages = ref.read(provider.notifier);
     for (;;) {
-      final entries = ref.read(provider).value ?? const <DaybookRecord>[];
-      if (entries.isEmpty ||
-          !dayOf(entries.last.at).isAfter(day) ||
+      final cards = ref.read(provider).value ?? const <DaybookCard>[];
+      if (cards.isEmpty ||
+          !dayOf(cards.last.lastActivityAt).isAfter(day) ||
           !pages.hasOlder ||
           !await pages.loadOlder()) {
         break;
@@ -277,6 +356,45 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // The list runs bottom up: 1 puts the day's top at the page's top.
     await Scrollable.ensureVisible(context, alignment: 1);
     _updateShownDay();
+  }
+
+  /// A trace's ›: the card, with its history open at that event.
+  Future<void> _openAt(_Trace trace) async {
+    setState(() => _expanded.add(trace.card.id));
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    final context =
+        (trace.event.shown ? _lineKeys[trace.event.id] : null)
+            ?.currentContext ??
+        _cardKeys[trace.card.id]?.currentContext;
+    if (context == null || !context.mounted) return;
+    await Scrollable.ensureVisible(
+      context,
+      alignment: 0.5,
+      duration: BvMotion.base,
+      curve: BvMotion.standard,
+    );
+  }
+
+  /// Show earlier: the rest of the loaded lines in place; past them, the
+  /// next ones from the server.
+  void _earlier(DaybookCard card) {
+    final open = _expanded.contains(card.id);
+    final lines = card.history.where((e) => e.shown).length;
+    setState(() => _expanded.add(card.id));
+    if (open || lines <= DaybookCardView.shownLines) {
+      unawaited(_loadEarlier(card.id));
+    }
+  }
+
+  Future<void> _loadEarlier(String postId) async {
+    try {
+      await ref
+          .read(daybookCardsProvider(_spaceId).notifier)
+          .loadEarlier(postId);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+    }
   }
 
   Future<void> _openMonth(DateTime today, DateTime shown) async {
@@ -440,18 +558,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// oldest. A hold of the post bar's camera proves the first; the proof
   /// screen lists them all (review 47, answer 3).
   List<DaybookPost> _toProve(
-    List<DaybookRecord> records,
+    List<DaybookCard> cards,
     String? me,
     Set<String> signing,
   ) {
     final mine = [
-      for (final r in records)
-        if (r is DaybookPost &&
-            r.isWorkItem &&
-            r.isOpen &&
-            r.item?.ownerId == me &&
-            !signing.contains(r.id))
-          r,
+      for (final c in cards)
+        if (c.post.isWorkItem &&
+            c.post.isOpen &&
+            c.post.item?.ownerId == me &&
+            !signing.contains(c.id))
+          c.post,
     ];
     DateTime due(DaybookPost p) =>
         p.dueAt ??
@@ -488,7 +605,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         DaybookLoop.refusalText(
           l10n,
           r,
-          ref.read(daybookPageProvider(_spaceId)).value ?? const [],
+          ref.read(daybookCardsProvider(_spaceId)).value ?? const [],
         ),
       );
     });
@@ -496,12 +613,22 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     ref.listen(pushArrivalProvider, (_, push) {
       if (push?.spaceId == _spaceId) unawaited(_refresh());
     });
-    ref.listen(daybookPageProvider(_spaceId), (was, now) {
+    ref.listen(daybookCardsProvider(_spaceId), (was, now) {
       final value = now.value;
-      if (now.hasValue && value != null) _arrivedAtNow(was?.value, value);
+      if (now.hasValue && value != null) {
+        _keepPlace(_movedOn(was?.value, value));
+      }
+    });
+    // Something done here moves its card to Now at once, too.
+    ref.listen(workOutboxProvider, (was, now) {
+      final known = {for (final i in was ?? const <PendingItem>[]) i.id};
+      _keepPlace({
+        for (final i in now)
+          if (i.spaceId == _spaceId && !known.contains(i.id)) i.id,
+      });
     });
     final canPost = space.myRights.createItems;
-    final page = ref.watch(daybookPageProvider(_spaceId));
+    final page = ref.watch(daybookCardsProvider(_spaceId));
     final due =
         ref.watch(daybookDueTodayProvider(_spaceId)).value ??
         const <CalendarWorkItem>[];
@@ -523,7 +650,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       for (final i in pending)
         if (i.kind == PendingKind.signOff) i.id,
     };
-    final records = page.value ?? const <DaybookRecord>[];
+    final cards = page.value ?? const <DaybookCard>[];
 
     final shown = _shownDay ?? today;
     final waitingPosts = [
@@ -549,6 +676,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         myName: myName,
         now: now,
         card: card,
+        signing: signing,
       ),
       // Pull down to try again.
       AsyncError() => RefreshIndicator(
@@ -560,9 +688,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ),
       _ => const Center(child: CircularProgressIndicator()),
     };
-    _openItems = canPost ? _toProve(records, me, signing) : const [];
+    _openItems = canPost ? _toProve(cards, me, signing) : const [];
     final prove = _openItems.firstOrNull;
     final cardDraft = _editing ? edit : draft;
+    // While writing, the masthead is today's and opens nothing.
+    final day = _writing ? today : shown;
 
     return PopScope(
       canPop: !_writing,
@@ -575,18 +705,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_writing)
-              BvDaybookMasthead.compact(
-                key: _mastheadKey,
-                title: words.compactDate(today),
-              )
-            else
-              BvDaybookMasthead(
-                key: _mastheadKey,
-                weekday: words.weekday(shown),
-                dateLine: words.dateLine(shown, space.siteStartDate),
-                onTap: () => _openMonth(today, shown),
-              ),
+            BvDaybookMasthead(
+              key: _mastheadKey,
+              weekday: words.weekday(day),
+              date: words.dayMonth(day),
+              onTap: _writing ? null : () => _openMonth(today, shown),
+            ),
             if (due.isNotEmpty && !_writing)
               BvDueTodayStrip(
                 l10n.daybookDueTodayStrip(due.map((i) => i.title).join(' · ')),
@@ -701,7 +825,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// A work item still in the outbox, as its slip at the time Post was
+  /// A work item still in the outbox, as its card at the time Post was
   /// tapped.
   DaybookPost _waitingPost(PendingItem i, String? me, DateTime now) =>
       DaybookPost(
@@ -721,23 +845,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ),
       );
 
-  /// A sign-off still in the outbox, as its proof at the time it was sent.
-  DaybookSignOff _waitingSignOff(PendingItem i, String? me, DateTime now) =>
-      DaybookSignOff(
-        id: '${PendingKind.signOff.json}-${i.id}',
-        at: i.madeAt ?? now,
-        postId: i.id,
-        title: i.title,
-        actorId: me,
-        actorName: i.authorName,
-        note: i.note,
-        outcome: const DaybookOutcome(kind: DaybookOutcomeKind.done),
-      );
-
-  /// What the phone did that waits to be sent, shown on its slips: a
-  /// cancel fades it, a check stamps it, a sign-off marks it done.
-  DaybookRecord _asShown(
-    DaybookRecord r,
+  /// [c] with what the phone did that waits to be sent: a cancel fades
+  /// it, a check stamps it CHECKED, a sign-off marks it DONE with its
+  /// photo from the phone; each is a line in its history at once, and the
+  /// card moves to Now.
+  _Shown _asShown(
+    DaybookCard c,
     Map<String, PendingItem> cancels,
     Map<String, PendingItem> checks,
     Map<String, PendingItem> signOffs, {
@@ -745,66 +858,139 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     required String? myName,
     required DateTime now,
   }) {
-    switch (r) {
-      case DaybookPost():
-        final cancel = cancels[r.id];
-        if (cancel != null) {
-          return r.shownAs(
-            stamp: DaybookStamp(
-              kind: DaybookStampKind.cancelled,
-              at: cancel.madeAt ?? now,
-              byName: myName,
-            ),
-            cancelled: true,
-          );
-        }
-        final check = checks[r.id];
-        if (check != null) {
-          return r.shownAs(
-            stamp: DaybookStamp(
-              kind: DaybookStampKind.checked,
-              at: check.madeAt ?? now,
-              byName: myName,
-            ),
-            status: WorkStatus.checked,
-          );
-        }
-        final signOff = signOffs[r.id];
-        if (signOff != null) {
-          return r.shownAs(
-            stamp: DaybookStamp(
-              kind: DaybookStampKind.done,
-              at: signOff.madeAt ?? now,
-              byName: myName,
-            ),
-            status: WorkStatus.done,
-          );
-        }
-        return r;
-      case DaybookSignOff():
-        final check = checks[r.postId];
-        // The check is on the latest proof: the one that needed it.
-        if (check == null || !r.needsMe) return r;
-        return r.checkedBy(id: me, name: myName, at: check.madeAt ?? now);
-      case DaybookSentBack():
-      case DaybookUpdate():
-        return r;
+    final outbox = ref.read(workOutboxProvider.notifier);
+    var card = c;
+    var at = c.lastActivityAt;
+    var waiting = false;
+    var landing = false;
+    String? localPhoto;
+    PendingItem? refusedProof;
+    final lines = <DaybookEvent>[];
+    DateTime made(PendingItem i) => i.madeAt ?? now;
+    void later(DateTime t) {
+      if (t.isAfter(at)) at = t;
     }
+
+    DaybookEvent mine(PendingItem i, DaybookEventKind kind, {String? note}) =>
+        DaybookEvent(
+          id: '${i.kind.json}-${i.id}',
+          kind: kind,
+          at: made(i),
+          byId: me,
+          byName: myName,
+          note: note,
+        );
+
+    final signOff = signOffs[c.id];
+    if (signOff != null && signOff.refused) {
+      // A refused proof isn't done: the card stays as the server has it.
+      refusedProof = signOff;
+      localPhoto = signOff.photos.firstOrNull?.local;
+      later(made(signOff));
+    } else if (signOff != null && c.post.item?.status == WorkStatus.open) {
+      // Until the server has the item as done.
+      card = card.copyWith(
+        post: card.post.shownAs(status: WorkStatus.done),
+        proof: DaybookProof(
+          at: made(signOff),
+          byId: me,
+          byName: myName,
+          note: signOff.note,
+          outcome: DaybookOutcome(
+            kind: DaybookOutcomeKind.done,
+            at: made(signOff),
+            byId: me,
+            byName: myName,
+          ),
+        ),
+        clearNeed: true,
+      );
+      lines.add(mine(signOff, DaybookEventKind.done, note: signOff.note));
+      localPhoto = signOff.photos.firstOrNull?.local;
+      // Sent, it no longer waits, though the page hasn't read it yet
+      // (F17). Under its undo bar, it isn't waiting for a signal (F7).
+      waiting =
+          !signOff.sent && !outbox.isHeld(PendingKind.signOff, signOff.id);
+      later(made(signOff));
+    }
+    final check = checks[c.id];
+    if (check != null) {
+      final proof = card.proof;
+      card = card.copyWith(
+        post: card.post.shownAs(status: WorkStatus.checked),
+        proof: proof?.withOutcome(
+          DaybookOutcome(
+            kind: DaybookOutcomeKind.checked,
+            at: made(check),
+            byId: me,
+            byName: myName,
+          ),
+        ),
+        clearNeed: true,
+      );
+      lines.add(mine(check, DaybookEventKind.checked));
+      landing = outbox.isHeld(PendingKind.check, c.id);
+      later(made(check));
+    }
+    final cancel = cancels[c.id];
+    if (cancel != null) {
+      final proof = card.proof;
+      card = card.copyWith(
+        post: card.post.shownAs(cancelled: true),
+        proof: proof?.withOutcome(
+          DaybookOutcome(
+            kind: DaybookOutcomeKind.cancelled,
+            at: made(cancel),
+            byId: me,
+            byName: myName,
+          ),
+        ),
+        clearNeed: true,
+      );
+      lines.add(mine(cancel, DaybookEventKind.cancelled));
+      later(made(cancel));
+    }
+    if (lines.isNotEmpty) {
+      card = card.copyWith(history: [...lines.reversed, ...card.history]);
+    }
+    return _Shown(
+      card: card,
+      at: at,
+      waiting: waiting,
+      refusedProof: refusedProof,
+      localPhoto: localPhoto,
+      landing: landing,
+    );
+  }
+
+  /// For each card, every earlier day (the phone's) on which something
+  /// happened to it: that day's latest event.
+  static List<(DateTime, _Trace)> _traces(_Shown s) {
+    final cardDay = dayOf(s.at);
+    final seen = <DateTime>{};
+    return [
+      // Newest first: the first of each day is its latest.
+      for (final e in s.card.history)
+        if (e.kind != DaybookEventKind.unknown &&
+            dayOf(e.at).isBefore(cardDay) &&
+            seen.add(dayOf(e.at)))
+          (e.at, (card: s.card, event: e)),
+    ];
   }
 
   Widget _diary(
-    List<DaybookRecord> records,
+    List<DaybookCard> cards,
     List<PendingItem> pending,
     DaybookWords words, {
     required String? me,
     required String? myName,
     required DateTime now,
     required bool card,
+    required Set<String> signing,
   }) {
     final l10n = AppLocalizations.of(context);
     final viewer = widget.space.myPass == SpacePass.viewer;
     final today = dayOf(now);
-    final outbox = ref.read(workOutboxProvider.notifier);
     Map<String, PendingItem> byKind(PendingKind kind) => {
       for (final i in pending)
         if (i.kind == kind) i.id: i,
@@ -812,58 +998,80 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final cancels = byKind(PendingKind.cancel);
     final checks = byKind(PendingKind.check);
     final signOffs = byKind(PendingKind.signOff);
-    // A refused proof isn't done: the item shows as the server has it.
-    final sending = {
-      for (final e in signOffs.entries)
-        if (!e.value.refused) e.key: e.value,
-    };
-    // Work items, and their sign-offs and updates (other kinds of post
-    // come in slice 2), with what still waits for a signal.
-    final shown = [
-      for (final r in records)
-        if (r is! DaybookPost || r.isWorkItem)
+    final onServer = {for (final c in cards) c.id};
+    // Work items (other kinds of post come in slice 2), with what still
+    // waits for a signal.
+    final shown = <_Shown>[
+      for (final c in cards)
+        if (c.post.isWorkItem)
           _asShown(
-            r,
+            c,
             cancels,
             checks,
-            sending,
+            signOffs,
+            me: me,
+            myName: myName,
+            now: now,
+          ),
+      // A new work item not on the server yet: a card at the time Post
+      // was tapped.
+      for (final i in pending)
+        if (i.kind == PendingKind.workItem && !onServer.contains(i.id))
+          _Shown(
+            card: DaybookCard(
+              post: _waitingPost(i, me, now),
+              lastActivityAt: i.madeAt ?? now,
+            ),
+            at: i.madeAt ?? now,
+            waiting: !i.sent,
+            unsent: i,
+            localPhoto: i.photos.firstOrNull?.local,
+          ),
+      // A proof for an item on an older page, not loaded: its own card.
+      for (final i in signOffs.values)
+        if (!onServer.contains(i.id))
+          _asShown(
+            DaybookCard(
+              post: DaybookPost(
+                id: i.id,
+                kind: DaybookPost.workItemKind,
+                createdAt: i.madeAt ?? now,
+                title: i.title,
+                item: DaybookItem(
+                  status: WorkStatus.open,
+                  ownerId: me,
+                  ownerName: myName,
+                ),
+              ),
+              lastActivityAt: i.madeAt ?? now,
+            ),
+            cancels,
+            checks,
+            signOffs,
             me: me,
             myName: myName,
             now: now,
           ),
     ];
-    final posts = {
-      for (final r in shown)
-        if (r is DaybookPost) r.id: r,
-    };
-    final onServer = {for (final r in shown) r.id};
-    final unsent = {
-      for (final i in pending)
-        if (i.kind == PendingKind.workItem && !onServer.contains(i.id)) i.id: i,
-    };
-    // A proof waiting to be sent, until the server has the item as done;
-    // a refused one stays on the phone until it is fixed or deleted.
-    final unsentProofs = {
-      for (final i in signOffs.values)
-        if (i.refused ||
-            records.whereType<DaybookPost>().any(
-              (p) => p.id == i.id && p.item?.status == WorkStatus.open,
-            ))
-          '${PendingKind.signOff.json}-${i.id}': i,
-    };
-    final all =
-        [
-          ...shown,
-          for (final i in unsent.values) _waitingPost(i, me, now),
-          for (final i in unsentProofs.values) _waitingSignOff(i, me, now),
-        ]..sort((a, b) {
-          final t = a.at.compareTo(b.at);
-          return t != 0 ? t : a.id.compareTo(b.id);
-        });
-    // Oldest first, grouped by the phone's own days; the card is today's.
-    final byDay = <DateTime, List<DaybookRecord>>{};
-    for (final r in all) {
-      byDay.putIfAbsent(dayOf(r.at), () => []).add(r);
+    // Oldest first, grouped by the phone's own days; the writing card is
+    // today's. A card is at its latest activity, its traces on the days
+    // before.
+    final byDay = <DateTime, List<(DateTime, String, Object)>>{};
+    for (final s in shown) {
+      byDay.putIfAbsent(dayOf(s.at), () => []).add((s.at, s.card.id, s));
+      for (final (at, t) in _traces(s)) {
+        byDay.putIfAbsent(dayOf(at), () => []).add((
+          at,
+          '${t.card.id}-${t.event.id}',
+          t,
+        ));
+      }
+    }
+    for (final rows in byDay.values) {
+      rows.sort((a, b) {
+        final t = a.$1.compareTo(b.$1);
+        return t != 0 ? t : a.$2.compareTo(b.$2);
+      });
     }
     if (card) byDay.putIfAbsent(today, () => []);
     _days = byDay.keys.toList()..sort();
@@ -873,55 +1081,62 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _loadOlderIfNear();
     });
 
-    Widget entry(DaybookRecord r) {
-      final waitingPost = unsent[r.id];
-      final waitingProof = unsentProofs[r.id];
-      final refused =
-          (waitingPost?.refused ?? false) || (waitingProof?.refused ?? false);
-      final slip = DaybookSlip(
-        record: r,
+    Widget cardOf(_Shown s) {
+      final c = s.card;
+      final unsent = s.unsent;
+      final refusedProof = s.refusedProof;
+      final view = DaybookCardView(
+        card: c,
         words: words,
         me: me,
         now: now,
+        activityAt: s.at,
         viewer: viewer,
-        // Sent, it no longer waits, though the page hasn't read it yet
-        // (F17). Under its undo bar, a proof isn't waiting for a signal
-        // (F7).
-        waiting:
-            (waitingPost != null && !waitingPost.sent) ||
-            (waitingProof != null &&
-                !waitingProof.sent &&
-                !outbox.isHeld(PendingKind.signOff, waitingProof.id)),
-        couldNotSend: refused,
-        localPhoto: (waitingPost ?? waitingProof)?.photos.firstOrNull?.local,
-        landing:
-            r is DaybookSignOff && outbox.isHeld(PendingKind.check, r.postId),
-        checker: r is DaybookSignOff ? posts[r.postId]?.authorName : null,
-        // While writing, a tap on a slip puts the card down, as anywhere
-        // off it; otherwise a short press shows the slip's menu (F16).
+        waiting: s.waiting,
+        couldNotSend: s.refused,
+        localPhoto: s.localPhoto,
+        landing: s.landing,
+        expanded: _expanded.contains(c.id),
+        onEarlier: () => _earlier(c),
+        lineKey: (id) => _lineKeys.putIfAbsent(id, GlobalKey.new),
+        // While writing, a tap on a card puts the card down, as anywhere
+        // off it; a refused one reopens to fix; otherwise a short press
+        // shows the card's menu (F16).
         onTap: _writing
             ? _stopWriting
-            : !refused
-            ? null
-            : waitingPost != null
-            ? () => unawaited(_reopen(waitingPost))
-            : () => unawaited(
-                _loop.reopenProof(
-                  context,
-                  waitingProof!,
-                  post: posts[waitingProof.id],
-                ),
-              ),
+            : unsent != null && unsent.refused
+            ? () => unawaited(_reopen(unsent))
+            : refusedProof != null
+            ? () => unawaited(
+                _loop.reopenProof(context, refusedProof, post: c.post),
+              )
+            : null,
       );
-      return DaybookEntry(
-        words: words,
-        slip: _loop.withActions(
-          context,
-          slip,
-          me: me,
-          posts: posts,
-          signing: signOffs.keys.toSet(),
+      return KeyedSubtree(
+        key: _cardKeys.putIfAbsent(c.id, GlobalKey.new),
+        child: KeyedSubtree(
+          key: Key('daybook-card-${c.id}'),
+          // A post not on the server yet has nothing to do on it.
+          child: unsent != null
+              ? view
+              : _loop.withActions(context, view, me: me, signing: signing),
         ),
+      );
+    }
+
+    Widget traceOf(_Trace t) {
+      final e = t.event;
+      final by = e.byId;
+      return BvTraceRow(
+        key: Key('daybook-trace-${t.card.id}-${dayOf(e.at).toIso8601String()}'),
+        name: personName(l10n, e.byName),
+        tint: by == null ? BvAvatarTints.plain : BvAvatarTints.forId(by),
+        text: l10n.daybookTrace(
+          words.eventPhrase(e, me: me, now: now, trace: true),
+          t.card.post.title,
+        ),
+        time: words.clock(e.at),
+        onTap: _writing ? _stopWriting : () => unawaited(_openAt(t)),
       );
     }
 
@@ -939,43 +1154,56 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             controller: _scroll,
             reverse: true,
             physics: const AlwaysScrollableScrollPhysics(),
-            child: BvDaybookSpine(
-              minHeight: constraints.maxHeight,
-              children: [
-                for (final (i, day) in _days.indexed)
-                  Column(
-                    key: _dayKeys.putIfAbsent(day, GlobalKey.new),
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: BvSpineSpec.entryGap,
-                    children: [
-                      // The first day loaded sits under the masthead.
-                      if (i > 0)
-                        BvDayDivider(
-                          weekday: words.weekday(day),
-                          date: words.dayMonth(day),
-                        ),
-                      for (final r in byDay[day]!) entry(r),
-                      if (card && day == today)
-                        BvSpineEntry(
-                          key: const Key('daybook-now'),
-                          time: l10n.daybookNow,
-                          dot: BvSpineDot.now,
-                          child: DaybookWritingCard(
-                            // An edit's card is its own.
-                            key: ValueKey(_editing),
-                            spaceId: _spaceId,
-                            writing: _writing,
-                            editing: _editing,
-                            words: words,
-                            fromBefore: _fromBefore && !_editing,
-                            onOpen: _startWriting,
-                            onMenu: _setMenu,
-                            onPickDue: _pickDue,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  start: BvCardSpec.paddingSide,
+                  end: BvCardSpec.paddingSide,
+                  top: BvCardSpec.paddingTop,
+                  bottom: BvCardSpec.paddingBottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: BvCardSpec.gap,
+                  children: [
+                    for (final day in _days)
+                      Column(
+                        key: _dayKeys.putIfAbsent(day, GlobalKey.new),
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        spacing: BvCardSpec.gap,
+                        children: [
+                          BvDayDivider(
+                            label: day == today
+                                ? l10n.daybookTodayDivider
+                                : words.compactDate(day),
                           ),
-                        ),
-                    ],
-                  ),
-              ],
+                          for (final (_, _, row) in byDay[day]!)
+                            switch (row) {
+                              _Shown s => cardOf(s),
+                              _ => traceOf(row as _Trace),
+                            },
+                          if (card && day == today)
+                            KeyedSubtree(
+                              key: const Key('daybook-now'),
+                              child: DaybookWritingCard(
+                                // An edit's card is its own.
+                                key: ValueKey(_editing),
+                                spaceId: _spaceId,
+                                writing: _writing,
+                                editing: _editing,
+                                words: words,
+                                fromBefore: _fromBefore && !_editing,
+                                onOpen: _startWriting,
+                                onMenu: _setMenu,
+                                onPickDue: _pickDue,
+                              ),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -984,7 +1212,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   }
 }
 
-/// Day one (DY3): the first page, inset from the start over the spine.
+/// Day one (DY3): the first page, 16 from each edge.
 class _FirstPage extends StatelessWidget {
   const _FirstPage({
     required this.space,
@@ -1003,47 +1231,36 @@ class _FirstPage extends StatelessWidget {
       builder: (context, constraints) => SingleChildScrollView(
         // Pull down to read again (F11).
         physics: const AlwaysScrollableScrollPhysics(),
-        child: BvDaybookSpine(
-          children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: math.max(
-                  0,
-                  constraints.maxHeight -
-                      BvSpineSpec.paddingTop -
-                      BvSpineSpec.paddingBottom,
-                ),
-              ),
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: BvFirstPageSpec.insetStart,
-                  ),
-                  child: BvFirstPage(
-                    key: const Key('daybook-first-page'),
-                    title: l10n.daybookFirstTitle,
-                    body: l10n.daybookFirstBody,
-                    actions: [
-                      if (canPost)
-                        BvFirstPageAction(
-                          icon: BvIcons.confirmed,
-                          label: l10n.daybookFirstPost,
-                          primary: true,
-                          onTap: onPost,
-                        ),
-                      if (space.canInvite)
-                        BvFirstPageAction(
-                          icon: BvIcons.team,
-                          label: l10n.daybookFirstInvite,
-                          onTap: () =>
-                              context.push(AppRoutes.spaceInvite(space.id)),
-                        ),
-                    ],
-                  ),
-                ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: BvCardSpec.paddingSide,
+            ),
+            child: Center(
+              child: BvFirstPage(
+                key: const Key('daybook-first-page'),
+                title: l10n.daybookFirstTitle,
+                body: l10n.daybookFirstBody,
+                actions: [
+                  if (canPost)
+                    BvFirstPageAction(
+                      icon: BvIcons.confirmed,
+                      label: l10n.daybookFirstPost,
+                      primary: true,
+                      onTap: onPost,
+                    ),
+                  if (space.canInvite)
+                    BvFirstPageAction(
+                      icon: BvIcons.team,
+                      label: l10n.daybookFirstInvite,
+                      onTap: () =>
+                          context.push(AppRoutes.spaceInvite(space.id)),
+                    ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

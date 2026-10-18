@@ -2910,11 +2910,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formerMember => 'Former member';
 
   @override
-  String daybookDateLine(String date, int day) {
-    return '$date, day $day on site';
-  }
-
-  @override
   String get daybookYou => 'You';
 
   @override
@@ -2927,7 +2922,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daybookMeta(String who, String due) {
-    return '$who, $due';
+    return '$who · $due';
   }
 
   @override
@@ -3000,20 +2995,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String daybookEditedDue(String from, String to) {
-    return 'Edited: due moved from $from to $to';
-  }
-
-  @override
   String get daybookToday => 'today';
 
   @override
   String get daybookTomorrow => 'tomorrow';
-
-  @override
-  String daybookCancelledBy(String name, String time) {
-    return 'Cancelled by $name at $time';
-  }
 
   @override
   String get daybookStampDone => 'DONE';
@@ -3077,20 +3062,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookSignedAsDone => 'signed as done';
-
-  @override
   String daybookStampBy(String name, String time) {
     return '$name · $time';
   }
 
   @override
   String get daybookDoubleTapToCheck => 'Double-tap the photo to check it';
-
-  @override
-  String daybookGivenTo(String to, String from, String time) {
-    return 'Given to $to instead of $from at $time';
-  }
 
   @override
   String daybookFileChip(String name, String revision) {
@@ -3163,9 +3140,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookCouldNotSend => 'Couldn\'t send. Tap to fix';
 
   @override
-  String get daybookEditedDueRemoved => 'Edited: due removed';
-
-  @override
   String get daybookRemoveDue => 'Remove';
 
   @override
@@ -3173,16 +3147,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookHoldToProve => 'Hold to prove';
-
-  @override
-  String daybookChecksNext(String name) {
-    return '$name checks it next';
-  }
-
-  @override
-  String daybookYouChecked(String time) {
-    return 'You checked it at $time. It\'s locked now, this is the record.';
-  }
 
   @override
   String get daybookCheck => 'Check';
@@ -3257,19 +3221,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookSave => 'Save';
-
-  @override
-  String daybookCancelledByYou(String time) {
-    return 'Cancelled by you at $time';
-  }
-
-  @override
-  String get daybookSentItBack => 'sent it back';
-
-  @override
-  String daybookSentBackAt(String time) {
-    return 'Sent back at $time';
-  }
 
   @override
   String daybookSentBackText(String reason, String note) {
@@ -3482,4 +3433,109 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get createNoWorkSpaces =>
       'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.';
+
+  @override
+  String get daybookShowEarlier => 'Show earlier';
+
+  @override
+  String daybookHistoryLead(String lead) {
+    return '$lead:';
+  }
+
+  @override
+  String daybookCardRef(String ref) {
+    return '· $ref';
+  }
+
+  @override
+  String daybookTrace(String what, String title) {
+    return '$what · $title';
+  }
+
+  @override
+  String get daybookTodayDivider => 'Today';
+
+  @override
+  String daybookLineSigned(String name) {
+    return '$name signed as done';
+  }
+
+  @override
+  String get daybookLineYouSigned => 'You signed as done';
+
+  @override
+  String daybookLineChecked(String name) {
+    return '$name checked it';
+  }
+
+  @override
+  String get daybookLineYouChecked => 'You checked it';
+
+  @override
+  String daybookLineSentBack(String name) {
+    return '$name sent it back';
+  }
+
+  @override
+  String get daybookLineYouSentBack => 'You sent it back';
+
+  @override
+  String daybookLineUpdate(String name) {
+    return '$name added an update';
+  }
+
+  @override
+  String get daybookLineYouUpdate => 'You added an update';
+
+  @override
+  String daybookLineGave(String name, String to, String from) {
+    return '$name gave it to $to instead of $from';
+  }
+
+  @override
+  String daybookLineYouGave(String to, String from) {
+    return 'You gave it to $to instead of $from';
+  }
+
+  @override
+  String daybookLineEdited(String name) {
+    return '$name edited it';
+  }
+
+  @override
+  String get daybookLineYouEdited => 'You edited it';
+
+  @override
+  String daybookLineMovedDue(String name, String from, String to) {
+    return '$name moved the due date from $from to $to';
+  }
+
+  @override
+  String daybookLineYouMovedDue(String from, String to) {
+    return 'You moved the due date from $from to $to';
+  }
+
+  @override
+  String daybookLineRemovedDue(String name) {
+    return '$name took the due date off';
+  }
+
+  @override
+  String get daybookLineYouRemovedDue => 'You took the due date off';
+
+  @override
+  String daybookLineCancelled(String name) {
+    return '$name cancelled it';
+  }
+
+  @override
+  String get daybookLineYouCancelled => 'You cancelled it';
+
+  @override
+  String daybookLinePosted(String name) {
+    return '$name posted it';
+  }
+
+  @override
+  String get daybookLineYouPosted => 'You posted it';
 }
