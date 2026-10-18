@@ -22,8 +22,12 @@ Branches:
 
 Push and report after each part. About 2–3 days.
 
-## Part 0: finish the retest first
-Run steps 8–13 of the retest with the current build (7060c03) before starting below; any new finding goes to review 50. If the founder stops the retest, start anyway.
+## Part 0: finish the retest first (done, 18 Oct)
+The retest is complete; the findings are in review 50. The slice 1 loop works on a real phone, so first:
+1. Merge `slice1-fixes` into `slice1-daybook`, then `slice1-daybook` into `main` (after `test-fixes-db`, which is live). Analyze and tests must be clean on `main`.
+2. Branch `slice1-v13` from `main` and start Part A.
+
+**Order inside Part D:** F30 (replies on the feed card) and F32 (Activity v3) wait for the lead's Figma frames. Do the other items first.
 
 ## Part A: the server (migration 26, `daybook-cards-db`, not live)
 - **`space_posts.last_activity_at`** (not null):

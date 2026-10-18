@@ -273,8 +273,12 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
   - Two text sizes (F27).
 - **Figma:** the lead draws A1 v3 (EN and AR) before the build.
 
-## Retest results so far (steps 1–9)
+## Retest results (steps 1–13, complete 18 Oct)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
+- **Step 11, reply to a reply:** under Omar's reply, "Replying to Omar Haddad" (F2 ✓); the keyboard didn't hide the text on the Xiaomi.
+- **Step 12, Activity:** rows open what they're about; REV and the letters are gone (F13 ✓). Back returns to Activity, as in other apps (founder agreed to keep it).
+- **Step 13, Arabic:** times, تم التحقق and no "site" wording checked by the founder; nothing wrong (F14, F15, F4 ✓).
+- **Verdict:** the slice 1 loop works on a real phone. The open items (F20, F23, F24, F25–F28, F30–F32) are in review 53.
 - **Step 10, a post to everyone:** in Omar's feed without a restart, and pull-to-refresh works on a short feed (F18 ✓).
 - **Step 8, no signal:** "Waiting to send", then one slip once the signal returned. The due date and time reached the server (17:00) and the push reached Omar in 5 seconds. No place was set (F29 withdrawn). "Waiting to send" went away at once, leaving one slip (F17 ✓).
 - **Undo after "Send as done" (F7):** Undo at 1.2 s sent nothing and brought back the proof screen with the photo. Left alone, the sign-off reached the server after exactly 5 seconds.
