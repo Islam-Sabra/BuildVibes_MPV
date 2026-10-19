@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 
 /// A Space's daybook with no network. [posts] are each Space's cards in
@@ -172,6 +173,13 @@ class FakeDaybookRepository implements DaybookRepository {
   Future<List<DaybookPoint>> points(String postId) async =>
       pointsByPost[postId] ?? const [];
 
+  /// Each post's own files (post_files).
+  final filesByPost = <String, List<DaybookPostFile>>{};
+
+  @override
+  Future<List<DaybookPostFile>> postFiles(String postId) async =>
+      filesByPost[postId] ?? const [];
+
   @override
   Future<List<DaybookAckFace>> acks(String postId) async =>
       acksByPost[postId] ?? const [];
@@ -214,4 +222,25 @@ class FakeDaybookRepository implements DaybookRepository {
     _check();
     calls.add('cancel $postId');
   }
+}
+
+/// The Space channel with no network: [push] plays a change by someone
+/// else; [sent] lists the changes this phone told, as `space post`.
+class FakeDaybookLive implements DaybookLive {
+  final _streams = <String, StreamController<String>>{};
+  final sent = <String>[];
+
+  /// Someone else changed [postId] in [spaceId].
+  void push(String spaceId, String postId) => _streams[spaceId]?.add(postId);
+
+  @override
+  Stream<String> changes(String spaceId) {
+    final controller = StreamController<String>();
+    _streams[spaceId] = controller;
+    return controller.stream;
+  }
+
+  @override
+  Future<void> changed(String spaceId, String postId) async =>
+      sent.add('$spaceId $postId');
 }

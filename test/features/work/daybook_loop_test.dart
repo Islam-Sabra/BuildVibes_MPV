@@ -26,6 +26,7 @@ import 'package:buildvibes/shared/widgets/bv_stamp.dart';
 import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:buildvibes/data/models/work_item.dart';
+import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
 import 'package:flutter/material.dart';
@@ -959,7 +960,10 @@ void main() {
         l10n.daybookGiveTo,
         l10n.daybookCancelItem,
       ]);
-      await tester.tap(find.byType(BvDim));
+      // A tap on the dim, clear of the menu, closes it.
+      await tester.tapAt(
+        tester.getTopLeft(find.byType(BvDim)) + const Offset(8, 8),
+      );
       await tester.pumpAndSettle();
       // Sara's item for me.
       await _longPress(tester, 'post-rebar');
@@ -1164,6 +1168,7 @@ void main() {
         ),
         workRepositoryProvider.overrideWithValue(work),
         daybookRepositoryProvider.overrideWithValue(FakeDaybookRepository()),
+        daybookLiveProvider.overrideWithValue(FakeDaybookLive()),
       ],
     );
     final first = open();
@@ -1210,6 +1215,7 @@ void main() {
         ),
         workRepositoryProvider.overrideWithValue(work),
         daybookRepositoryProvider.overrideWithValue(FakeDaybookRepository()),
+        daybookLiveProvider.overrideWithValue(FakeDaybookLive()),
         sentChimeProvider.overrideWithValue(
           SentChime(
             soundOn: () async => true,
@@ -1256,6 +1262,7 @@ void main() {
         ),
         workRepositoryProvider.overrideWithValue(work),
         daybookRepositoryProvider.overrideWithValue(FakeDaybookRepository()),
+        daybookLiveProvider.overrideWithValue(FakeDaybookLive()),
       ],
     );
     addTearDown(c.dispose);

@@ -12,6 +12,7 @@ Future<T?> showBvSheet<T>({
   String? title,
   String? subtitle,
   BvSheetFooter? footer,
+  WidgetBuilder? foot,
   bool useRootNavigator = true,
 }) {
   return showModalBottomSheet<T>(
@@ -32,6 +33,7 @@ Future<T?> showBvSheet<T>({
       title: title,
       subtitle: subtitle,
       footer: footer,
+      foot: foot?.call(context),
       child: builder(context),
     ),
   );
@@ -62,12 +64,16 @@ class BvSheet extends StatelessWidget {
     this.title,
     this.subtitle,
     this.footer,
+    this.foot,
   });
 
   final Widget child;
   final String? title;
   final String? subtitle;
   final BvSheetFooter? footer;
+
+  /// Stays at the foot while the content scrolls (a picker's Done).
+  final Widget? foot;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +136,7 @@ class BvSheet extends StatelessWidget {
                   ],
                 ),
               Flexible(child: SingleChildScrollView(child: child)),
+              ?foot,
               if (footer != null)
                 Row(
                   spacing: BvSheetSpec.footerGap,

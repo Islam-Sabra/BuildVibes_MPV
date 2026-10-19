@@ -43,7 +43,7 @@ void main() {
       final arPost = sleeves('ar');
       expect(
         ar.meta(arPost, me: me, now: past),
-        'لعمر حداد · موعده الخميس 15 أكتوبر',
+        'لـ عمر حداد · موعده الخميس 15 أكتوبر',
       );
     });
 
@@ -52,7 +52,7 @@ void main() {
       final past = DateTime(2026, 10, 13, 9);
       expect(
         ar.meta(post, me: me, now: past),
-        'ل${inOwnDirection('Omar Haddad')} · موعده الخميس 15 أكتوبر',
+        'لـ ${inOwnDirection('Omar Haddad')} · موعده الخميس 15 أكتوبر',
       );
     });
 
@@ -184,7 +184,7 @@ void main() {
     test('by a time today: 12-hour as the AR frame, and 24-hour', () {
       expect(
         meta('ar', due(today, twoPm), _thu, use24: false),
-        'لك · قبل الساعة 2:00 ظهرًا اليوم',
+        'لك · قبل الساعة ${rtlRun('2:00 ظهرًا')} اليوم',
       );
       expect(
         meta('ar', due(today, twoPm), _thu),
@@ -209,9 +209,19 @@ void main() {
 
     test("the large stamp's line: the short name in capitals, the time", () {
       final at = DateTime(2026, 10, 15, 9, 40);
-      expect(_words('en').stampLine('Omar Haddad', at), 'OMAR H · 09:40');
-      expect(_words('ar').stampLine('عمر حداد', at), 'عمر ح · 09:40');
-      expect(_words('en').stampLine('Sara Al-Mutairi', at), 'SARA A · 09:40');
+      // The name in its own direction (F53).
+      expect(
+        _words('en').stampLine('Omar Haddad', at),
+        '${inOwnDirection('OMAR H')} · 09:40',
+      );
+      expect(
+        _words('ar').stampLine('عمر حداد', at),
+        '${inOwnDirection('عمر ح')} · 09:40',
+      );
+      expect(
+        _words('en').stampLine('Sara Al-Mutairi', at),
+        '${inOwnDirection('SARA A')} · 09:40',
+      );
     });
 
     test('the writing card: one line for the day, a due with a time', () {

@@ -1252,12 +1252,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String spacesRightOpened(String right, String name) {
-    return 'فُتحت صلاحية «$right» لـ$name. يظهر التصريح كمخصّص.';
+    return 'فُتحت صلاحية «$right» لـ $name. يظهر التصريح كمخصّص.';
   }
 
   @override
   String spacesRightLocked(String right, String name) {
-    return 'أُقفلت صلاحية «$right» لـ$name.';
+    return 'أُقفلت صلاحية «$right» لـ $name.';
   }
 
   @override
@@ -2768,7 +2768,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookForPerson(String name) {
-    return 'ل$name';
+    return 'لـ $name';
   }
 
   @override
@@ -3412,14 +3412,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindActivityWord => '· مُجدول';
 
   @override
-  String get daybookKindFileWord => '· ملف';
+  String get daybookKindFileWord => '· للاستلام';
 
   @override
   String get daybookToEveryone => '· للجميع';
 
   @override
   String daybookToTeam(String team) {
-    return '· ل$team';
+    return '· لـ $team';
   }
 
   @override
@@ -3490,7 +3490,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookForYouAnd(String names) {
-    return 'لك ول$names';
+    return 'لك ولـ $names';
   }
 
   @override
@@ -3667,9 +3667,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookAttachFileNote => 'ملف PDF، مثل مخطط';
-
-  @override
   String get daybookFileChooseTitle => 'اختر ملفًا';
 
   @override
@@ -3710,4 +3707,21 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get previewModelViewVersions =>
       'الإصدارات الجديدة تأتي من BuildVibes 360';
+
+  @override
+  String get daybookPeopleDone => 'تم';
+
+  @override
+  String daybookDayTime(String day, String time) {
+    return '$day، $time';
+  }
+
+  @override
+  String get daybookKindDocument => 'مستند للاستلام';
+
+  @override
+  String get daybookKindDocumentNote => 'كل شخص يؤكد الاستلام';
+
+  @override
+  String get daybookUnpin => 'إلغاء التثبيت';
 }

@@ -13,6 +13,8 @@ import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../data/repositories/daybook_live.dart';
+import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -34,7 +36,7 @@ import 'proof_camera.dart';
 import 'work_outbox.dart';
 
 /// What the long-press menus offer (B1 2530:33626, X1 2530:34246).
-enum DaybookSlipAction { check, sendBack, update, edit, giveTo, cancel }
+enum DaybookSlipAction { check, sendBack, update, edit, giveTo, unpin, cancel }
 
 /// The work item loop in one Space (slice 1 part 1d, on v13's cards): sign
 /// as done with a photo or a note, check by double-tap with Undo, the
@@ -113,10 +115,7 @@ class DaybookLoop {
     required String? me,
   }) {
     final post = view.card.post;
-    final mine = post.authorId != null && post.authorId == me;
-    final menu = [
-      if (mine && !post.cancelled && !_viewer) DaybookSlipAction.cancel,
-    ];
+    final menu = kindMenu(post, me: me);
     final lifted = view.copyWith(lifted: true);
     final fileId = post.file?.id;
     return view.copyWith(
@@ -137,6 +136,70 @@ class DaybookLoop {
             : () => context.push(AppRoutes.libraryFile(_spaceId, fileId)),
       ),
     );
+  }
+
+  /// The long-press menu of a checklist, an announcement, an activity or a
+  /// file, the same on its card and on the pinned note (F44):
+  /// - its author: Edit and Unpin (an announcement, while pinned), then
+  ///   Cancel;
+  /// - an admin, for an author who has left the Space: Cancel (the server
+  ///   lets only the author edit, so Edit and Unpin aren't offered);
+  /// - everyone else: nothing.
+  List<DaybookSlipAction> kindMenu(DaybookPost post, {required String? me}) {
+    if (post.cancelled || _viewer) return const [];
+    final mine = post.authorId != null && post.authorId == me;
+    final people = ref.read(spacePeopleProvider(_spaceId)).value;
+    final authorId = post.authorId;
+    final gone =
+        people != null && (authorId == null || people.member(authorId) == null);
+    final announcement = post.kind == DaybookPost.announcementKind;
+    return [
+      if (mine && announcement) DaybookSlipAction.edit,
+      if (mine && announcement && post.pinnedUntil != null)
+        DaybookSlipAction.unpin,
+      if (mine || (gone && space.iAmAdmin)) DaybookSlipAction.cancel,
+    ];
+  }
+
+  /// The pinned note's long-press menu (F44), full or folded: [lifted] is
+  /// the note as it stands, raised over the dimmed page.
+  Future<void> pinnedMenu(
+    BuildContext context,
+    DaybookPost post,
+    Widget lifted,
+    Rect at, {
+    required String? me,
+  }) async {
+    final menu = kindMenu(post, me: me);
+    if (menu.isEmpty) return;
+    final picked = await _pick(context, lifted, at, menu, workItem: false);
+    if (picked == null || !context.mounted) return;
+    switch (picked) {
+      case DaybookSlipAction.edit:
+        onEdit(post);
+      case DaybookSlipAction.unpin:
+        await unpin(context, post);
+      case DaybookSlipAction.cancel:
+        await cancel(context, post);
+      default:
+        break;
+    }
+  }
+
+  /// Unpin (F44): the announcement becomes an ordinary card on its day; it
+  /// doesn't move to Now.
+  Future<void> unpin(BuildContext context, DaybookPost post) async {
+    try {
+      await ref
+          .read(daybookRepositoryProvider)
+          .editPost(post.id, const PostEdit.unpin());
+    } on SpaceException catch (e) {
+      if (context.mounted) showSpaceError(context, e);
+      return;
+    }
+    unawaited(ref.read(daybookLiveProvider).changed(_spaceId, post.id));
+    ref.invalidate(daybookExtrasProvider(_spaceId));
+    await refresh();
   }
 
   /// Ticks or unticks [point] on [post]: it shows at once, and the card
@@ -177,14 +240,16 @@ class DaybookLoop {
       at: ref.read(clockProvider)(),
       ack: kind,
     );
-    if (again && on) await _mark(context, mark(on: false));
-    if (!context.mounted) return;
-    await _mark(context, mark(on: on));
+    await _mark(context, mark(on: on), again: again && on);
   }
 
-  Future<void> _mark(BuildContext context, DaybookMark mark) async {
+  Future<void> _mark(
+    BuildContext context,
+    DaybookMark mark, {
+    bool again = false,
+  }) async {
     try {
-      await ref.read(daybookMarksProvider.notifier).send(mark);
+      await ref.read(daybookMarksProvider.notifier).send(mark, again: again);
     } on SpaceException catch (e) {
       if (context.mounted) showSpaceError(context, e);
     }
@@ -218,19 +283,12 @@ class DaybookLoop {
     List<DaybookSlipAction> menu,
     String? localPhoto,
   ) async {
-    final l10n = AppLocalizations.of(context);
-    unawaited(HapticFeedback.mediumImpact());
-    final picked = await showBvLifted<DaybookSlipAction>(
+    final picked = await _pick(
       context,
-      anchor: at,
-      lifted: lifted,
-      popover: (menuContext) => BvSlipMenu<DaybookSlipAction>(
-        key: const Key('slip-menu'),
-        items: [
-          for (final a in menu) _item(l10n, a, workItem: card.post.isWorkItem),
-        ],
-        onSelected: (a) => Navigator.of(menuContext).pop(a),
-      ),
+      lifted,
+      at,
+      menu,
+      workItem: card.post.isWorkItem,
     );
     if (picked == null || !context.mounted) return;
     final post = card.post;
@@ -245,9 +303,34 @@ class DaybookLoop {
         onEdit(post);
       case DaybookSlipAction.giveTo:
         await _giveTo(context, post, lifted, at);
+      case DaybookSlipAction.unpin:
+        await unpin(context, post);
       case DaybookSlipAction.cancel:
         await cancel(context, post);
     }
+  }
+
+  /// [lifted] raised over the dimmed page with [menu] beside it; what was
+  /// picked, or null.
+  Future<DaybookSlipAction?> _pick(
+    BuildContext context,
+    Widget lifted,
+    Rect at,
+    List<DaybookSlipAction> menu, {
+    required bool workItem,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    unawaited(HapticFeedback.mediumImpact());
+    return showBvLifted<DaybookSlipAction>(
+      context,
+      anchor: at,
+      lifted: lifted,
+      popover: (menuContext) => BvSlipMenu<DaybookSlipAction>(
+        key: const Key('slip-menu'),
+        items: [for (final a in menu) _item(l10n, a, workItem: workItem)],
+        onSelected: (a) => Navigator.of(menuContext).pop(a),
+      ),
+    );
   }
 
   static BvSlipMenuItem<DaybookSlipAction> _item(
@@ -282,6 +365,11 @@ class DaybookLoop {
       value: a,
       label: l10n.daybookGiveTo,
       icon: BvIcons.person,
+    ),
+    DaybookSlipAction.unpin => BvSlipMenuItem(
+      value: a,
+      label: l10n.daybookUnpin,
+      icon: BvIcons.pin,
     ),
     DaybookSlipAction.cancel => BvSlipMenuItem(
       value: a,
@@ -536,6 +624,8 @@ class DaybookLoop {
           );
       return;
     }
+    // The Space's other open daybooks read it at once (F47).
+    unawaited(ref.read(daybookLiveProvider).changed(_spaceId, postId));
     await refresh();
   }
 

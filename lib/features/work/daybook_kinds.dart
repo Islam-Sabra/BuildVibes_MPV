@@ -7,11 +7,15 @@ import '../../core/design/daybook_kinds_specs.dart';
 import '../../data/models/daybook.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_ack_pill.dart';
+import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_calendar_leaf.dart';
 import '../../shared/widgets/bv_checklist_point.dart';
 import '../../shared/widgets/bv_faces.dart';
+import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
+import '../../shared/widgets/bv_tap_target.dart';
 import '../spaces/former_member.dart';
 import 'daybook_marks.dart';
 import 'daybook_photos.dart';
@@ -108,30 +112,97 @@ class DaybookChecklistPoints extends ConsumerWidget {
 }
 
 /// A row of faces and a small grey line: who received a file ("Received
-/// by Omar Haddad and Rakesh Nair").
+/// by Omar Haddad and Rakesh Nair"). A tap ([onTap]) lists them with their
+/// times (F48).
 class DaybookFacesLine extends StatelessWidget {
-  const DaybookFacesLine({super.key, required this.faces, this.text});
+  const DaybookFacesLine({
+    super.key,
+    required this.faces,
+    this.text,
+    this.onTap,
+  });
 
   final List<BvFace> faces;
   final String? text;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => Row(
-    spacing: BvAckPillSpec.rowGap,
-    children: [
-      BvFaces(faces, large: true),
-      if (text != null)
-        Expanded(
-          child: Text(
-            text!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: BvType.of(
-              context,
-            ).metadata.copyWith(color: BvColors.textSecondary),
+  Widget build(BuildContext context) {
+    final line = Row(
+      spacing: BvAckPillSpec.rowGap,
+      children: [
+        BvFaces(faces, large: true),
+        if (text != null)
+          Expanded(
+            child: Text(
+              text!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BvType.of(
+                context,
+              ).metadata.copyWith(color: BvColors.textSecondary),
+            ),
           ),
+      ],
+    );
+    if (onTap == null) return line;
+    return BvTapTarget(
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: line,
         ),
-    ],
+      ),
+    );
+  }
+}
+
+/// Who acknowledged a post, each with the time they did (F48: for
+/// document control), newest first, on a small sheet. [title] says what
+/// ("Received", "Got it").
+Future<void> showDaybookAcks(
+  BuildContext context, {
+  required String title,
+  required List<DaybookAckFace> faces,
+  required DateTime now,
+}) {
+  final l10n = AppLocalizations.of(context);
+  final words = DaybookWords(
+    l10n,
+    Localizations.localeOf(context).toLanguageTag(),
+    use24: MediaQuery.alwaysUse24HourFormatOf(context),
+  );
+  final newest = [...faces]..sort((a, b) => b.at.compareTo(a.at));
+  return showBvSheet<void>(
+    context: context,
+    title: title,
+    builder: (context) => Column(
+      key: const Key('acks-sheet'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final f in newest)
+          BvListRow(
+            key: Key('ack-row-${f.profileId}'),
+            title: personName(l10n, f.name),
+            leading: BvAvatar(
+              name: personName(l10n, f.name),
+              size: BvAvatarSize.list,
+              tint: BvAvatarTints.forId(f.profileId),
+            ),
+            // Only the time: the row opens nothing, so no chevron.
+            trailing: BvRowTrailing.badge(
+              Text(
+                words.ackTime(f.at, now),
+                style: BvType.of(
+                  context,
+                ).bodyMd.copyWith(color: BvColors.textSecondary),
+              ),
+            ),
+          ),
+      ],
+    ),
   );
 }
 
@@ -139,6 +210,13 @@ class DaybookFacesLine extends StatelessWidget {
 List<BvFace> facesOf(AppLocalizations l10n, Iterable<DaybookPerson> people) => [
   for (final p in people)
     (name: personName(l10n, p.name), tint: BvAvatarTints.forId(p.id)),
+];
+
+/// Who acknowledged [postId] with [kind], with their times, as the server
+/// lets the reader see.
+List<DaybookAckFace> acksOf(WidgetRef ref, String postId, DaybookAck kind) => [
+  for (final a in ref.watch(postAcksProvider(postId)).value ?? const [])
+    if (a.kind == kind) a,
 ];
 
 /// Who acknowledged [post] with [kind], as the server lets the reader see:
@@ -249,10 +327,21 @@ class DaybookActivityWhat extends StatelessWidget {
             spacing: BvCalendarLeafSpec.linesGap,
             children: [
               BvSlipTitle(post.title, cancelled: post.cancelled),
+              // Cancelled (F46): the time struck through, no countdown.
               Text(
-                words.activityWhen(start, post.endsAt, now),
+                words.activityWhen(
+                  start,
+                  post.endsAt,
+                  now,
+                  cancelled: post.cancelled,
+                ),
                 key: const Key('activity-when'),
-                style: type.bodyMd.copyWith(color: BvColors.textSecondary),
+                style: type.bodyMd.copyWith(
+                  color: BvColors.textSecondary,
+                  decoration: post.cancelled
+                      ? TextDecoration.lineThrough
+                      : null,
+                ),
               ),
               if ((post.place ?? '').isNotEmpty)
                 BvSlipFact(icon: BvIcons.place, text: post.place!),

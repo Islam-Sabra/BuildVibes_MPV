@@ -14,6 +14,7 @@ import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
+import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
@@ -89,6 +90,7 @@ class TestApp {
     required this.shared,
     required this.work,
     required this.daybook,
+    required this.live,
     required this.chat,
     required this.library,
     required this.recorder,
@@ -121,6 +123,9 @@ class TestApp {
   final FakeSpaceRepository spaces;
   final FakeWorkRepository work;
   final FakeDaybookRepository daybook;
+
+  /// The Spaces' live channel (F47).
+  final FakeDaybookLive live;
   final FakeChatRepository chat;
   final FakeLibraryRepository library;
   final FakeVoiceRecorder recorder;
@@ -169,6 +174,7 @@ Future<TestApp> pumpApp(
   FakeSpaceRepository? spaces,
   FakeWorkRepository? work,
   FakeDaybookRepository? daybook,
+  FakeDaybookLive? live,
   FakeChatRepository? chat,
   FakeLibraryRepository? library,
   FakeVoiceRecorder? recorder,
@@ -187,6 +193,9 @@ Future<TestApp> pumpApp(
 
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
+
+  /// How many photos the gallery gives (up to the room left).
+  int galleryPhotos = 2,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -229,6 +238,7 @@ Future<TestApp> pumpApp(
   final shared = <String>[];
   final fakeWork = work ?? FakeWorkRepository();
   final fakeDaybook = daybook ?? FakeDaybookRepository();
+  final fakeLive = live ?? FakeDaybookLive();
   final fakeChat = chat ?? FakeChatRepository(now: testNow);
   final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
@@ -264,6 +274,7 @@ Future<TestApp> pumpApp(
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
         workRepositoryProvider.overrideWithValue(fakeWork),
         daybookRepositoryProvider.overrideWithValue(fakeDaybook),
+        daybookLiveProvider.overrideWithValue(fakeLive),
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
@@ -307,10 +318,13 @@ Future<TestApp> pumpApp(
           cameraAsks.add(camera);
           return XFile(testPhotoPath);
         }),
-        // The gallery gives two photos (K4: up to the room left).
+        // The gallery gives [galleryPhotos] (K4: up to the room left).
         pickPhotosProvider.overrideWithValue(({required max}) async {
           cameraAsks.add(false);
-          return [for (var i = 0; i < 2 && i < max; i++) XFile(testPhotoPath)];
+          return [
+            for (var i = 0; i < galleryPhotos && i < max; i++)
+              XFile(testPhotoPath),
+          ];
         }),
         // A fresh copy each time: a sent item deletes its kept copy.
         keepPhotoProvider.overrideWithValue(
@@ -354,6 +368,7 @@ Future<TestApp> pumpApp(
     shared: shared,
     work: fakeWork,
     daybook: fakeDaybook,
+    live: fakeLive,
     chat: fakeChat,
     library: fakeLibrary,
     recorder: fakeRecorder,

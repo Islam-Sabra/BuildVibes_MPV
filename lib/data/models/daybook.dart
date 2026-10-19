@@ -170,6 +170,41 @@ class DaybookFile {
   bool get isPdf => mime == 'application/pdf';
 }
 
+/// One of a post's own files (post_files), in the order they were added:
+/// a photo in the post's folder ([path]), or a Library file
+/// ([libraryFileId], with its name and revision).
+@immutable
+class DaybookPostFile {
+  const DaybookPostFile({
+    required this.mime,
+    this.path,
+    this.libraryFileId,
+    this.name,
+    this.revLabel,
+  });
+
+  /// A post_files row with `library:library_files(name, rev_label)`.
+  factory DaybookPostFile.fromJson(Map<String, dynamic> json) {
+    final library = json['library'] as Map<String, dynamic>?;
+    return DaybookPostFile(
+      mime: json['mime'] as String? ?? '',
+      path: json['storage_path'] as String?,
+      libraryFileId: json['library_file_id'] as String?,
+      name: library?['name'] as String?,
+      revLabel: library?['rev_label'] as String?,
+    );
+  }
+
+  final String mime;
+  final String? path;
+  final String? libraryFileId;
+  final String? name;
+  final String? revLabel;
+
+  /// A photo of the post's own (not a Library file).
+  bool get isPhoto => path != null && mime.startsWith('image/');
+}
+
 /// One point of a checklist (checklist_points), with who ticked it when.
 @immutable
 class DaybookPoint {
@@ -630,6 +665,7 @@ class DaybookEvent {
     this.dueEdit,
     this.pointId,
     this.point,
+    this.pinOnly = false,
   });
 
   factory DaybookEvent.fromJson(Map<String, dynamic> json) => DaybookEvent(
@@ -648,7 +684,12 @@ class DaybookEvent {
     ),
     pointId: json['point_id'] as String?,
     point: json['point'] as String?,
+    pinOnly: _pinOnly(json['changes']),
   );
+
+  static bool _pinOnly(Object? changes) =>
+      changes is Map && changes.length == 1 && changes.containsKey(_pinKey);
+  static const _pinKey = 'pinned_until';
 
   final String id;
   final DaybookEventKind kind;
@@ -669,6 +710,11 @@ class DaybookEvent {
 
   /// An edit that moved the due.
   final DaybookDueEdit? dueEdit;
+
+  /// An edit that only pinned or unpinned an announcement (F44): it
+  /// doesn't move the card to Now, though the server counts it as
+  /// activity.
+  final bool pinOnly;
 
   /// A tick's point, and its words when it was ticked.
   final String? pointId;

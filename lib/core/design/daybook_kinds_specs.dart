@@ -116,3 +116,16 @@ abstract final class BvWritingPointSpec {
   static const max = 50;
   static const textMax = 300;
 }
+
+/// A post's photos on its card (review 50 F51): the first large, two small
+/// beside it.
+abstract final class BvPhotoStripSpec {
+  static const gap = BvSpace.s4;
+
+  /// The large photo takes two shares of the width, the small ones one.
+  static const largeFlex = 2;
+
+  /// The round mark on a photo still waiting to be sent, and its icon.
+  static const ring = BvSize.iconLg + BvSpace.s8; // 32
+  static const mark = BvSize.iconSm;
+}

@@ -11,6 +11,7 @@ import '../../shared/widgets/bv_card_history.dart';
 import '../../shared/widgets/bv_checklist_point.dart';
 import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_marked_text.dart';
+import '../../shared/widgets/bv_photo_strip.dart';
 import '../../shared/widgets/bv_popover_menu.dart' show bvGlobalRect;
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
@@ -18,6 +19,7 @@ import '../../shared/widgets/bv_swipe_reveal.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../spaces/former_member.dart';
 import 'daybook_kinds.dart';
+import 'daybook_marks.dart' show postFilesProvider;
 import 'daybook_photos.dart';
 import 'daybook_words.dart';
 
@@ -91,6 +93,7 @@ class DaybookCardView extends StatelessWidget {
     this.waiting = false,
     this.couldNotSend = false,
     this.localPhoto,
+    this.waitingPhotos = const [],
     this.actions = const DaybookCardActions(),
     this.landing = false,
     this.lifted = false,
@@ -117,6 +120,10 @@ class DaybookCardView extends StatelessWidget {
   /// or a sign-off (its photos stay on the phone). A tap fixes it.
   final bool couldNotSend;
   final String? localPhoto;
+
+  /// A new post's photos still on the phone, each marked while it waits to
+  /// be uploaded (F51).
+  final List<({String local, bool waiting})> waitingPhotos;
   final DaybookCardActions actions;
 
   /// The CHECKED stamp lands now (a check made here).
@@ -159,6 +166,7 @@ class DaybookCardView extends StatelessWidget {
         waiting: waiting,
         couldNotSend: couldNotSend,
         localPhoto: localPhoto,
+        waitingPhotos: waitingPhotos,
         actions: actions ?? this.actions,
         landing: landing,
         lifted: lifted ?? this.lifted,
@@ -186,8 +194,8 @@ class DaybookCardView extends StatelessWidget {
         BvSlipChip(
           icon: BvIcons.document,
           label: f.revLabel == null
-              ? _fileName(f.name)
-              : l10n.daybookFileChip(_fileName(f.name), f.revLabel!),
+              ? fileName(f.name)
+              : l10n.daybookFileChip(fileName(f.name), f.revLabel!),
         ),
       if (post.pointsTotal > 0)
         BvSlipChip(
@@ -256,8 +264,9 @@ class DaybookCardView extends StatelessWidget {
                 stamp: stamp,
                 onDoubleTap: check,
               )
-            else if (proof == null && post.coverPath != null)
-              _Photo(path: post.coverPath!),
+            else if (proof == null &&
+                (post.coverPath != null || waitingPhotos.isNotEmpty))
+              DaybookCardPhotos(post: post, waiting: waitingPhotos),
             // A proof with only a note (F6): the note, and the stamp
             // pressed under it, with no empty frame.
             if (noteOnly && (proof.note ?? '').isNotEmpty)
@@ -366,7 +375,24 @@ class DaybookCardView extends StatelessWidget {
     final act = lifted || waiting ? null : actions.onAck;
     final action = daybookAckAction(l10n, post, me: me, now: now, onAck: act);
     // Photos added with 📎 or the camera: the first one on the card.
-    final cover = post.coverPath == null ? null : _Photo(path: post.coverPath!);
+    // F51: the post's photos (the first large, two small beside it), and
+    // its Library files as chips (F39).
+    final cover = post.coverPath == null && waitingPhotos.isEmpty
+        ? null
+        : DaybookCardPhotos(post: post, waiting: waitingPhotos);
+    final files = waiting ? null : DaybookCardFiles(post: post);
+    // The head of the card ([head], the photos), with the files under the
+    // last of them: with none, the files take no room (no empty gap).
+    List<Widget> top(Widget head) {
+      Widget withFiles(Widget above) => files == null
+          ? above
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [above, files],
+            );
+      return cover == null ? [withFiles(head)] : [head, withFiles(cover)];
+    }
+
     Widget row(Widget? leading) => Row(
       spacing: BvAckPillSpec.rowGap,
       children: [
@@ -384,8 +410,7 @@ class DaybookCardView extends StatelessWidget {
     switch (post.kind) {
       case DaybookPost.checklistKind:
         return [
-          BvSlipTitle(post.title, cancelled: post.cancelled),
-          ?cover,
+          ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
           BvSlipFacts(
             children: [
@@ -418,8 +443,7 @@ class DaybookCardView extends StatelessWidget {
         ];
       case DaybookPost.activityKind:
         return [
-          DaybookActivityWhat(post: post, words: words, now: now),
-          ?cover,
+          ...top(DaybookActivityWhat(post: post, words: words, now: now)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
           if (post.people.isNotEmpty || action != null)
             row(
@@ -454,6 +478,15 @@ class DaybookCardView extends StatelessWidget {
                 if (by.isEmpty) return const SizedBox.shrink();
                 return DaybookFacesLine(
                   key: const Key('received-by'),
+                  // F48: who, with the time each tapped Received.
+                  onTap: lifted
+                      ? null
+                      : () => showDaybookAcks(
+                          context,
+                          title: l10n.daybookReceived,
+                          faces: acksOf(ref, post.id, DaybookAck.received),
+                          now: now,
+                        ),
                   faces: facesOf(l10n, by),
                   text: l10n.daybookReceivedBy(
                     words.someNames([
@@ -470,8 +503,7 @@ class DaybookCardView extends StatelessWidget {
         // An announcement off its pin (K1's pinned one sits under the
         // masthead): the words, and the author's faces of who got it.
         return [
-          BvSlipTitle(post.title, cancelled: post.cancelled),
-          ?cover,
+          ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
           Consumer(
             builder: (context, ref, _) {
@@ -482,7 +514,20 @@ class DaybookCardView extends StatelessWidget {
                 return const SizedBox.shrink();
               }
               return row(
-                by.isEmpty ? null : BvFaces(facesOf(l10n, by), large: true),
+                by.isEmpty
+                    ? null
+                    : DaybookFacesLine(
+                        key: const Key('got-it-by'),
+                        faces: facesOf(l10n, by),
+                        onTap: lifted
+                            ? null
+                            : () => showDaybookAcks(
+                                context,
+                                title: l10n.daybookGotIt,
+                                faces: acksOf(ref, post.id, DaybookAck.gotIt),
+                                now: now,
+                              ),
+                      ),
               );
             },
           ),
@@ -535,14 +580,13 @@ class DaybookCardView extends StatelessWidget {
   /// The history: the last three lines (or all), oldest at the top, with
   /// Show earlier above them while older ones are left.
   ///
-  /// Review 61 G2: a ticked point already says who ticked it and when, so
-  /// the card leaves out tick lines (a checklist's, or a work item's
-  /// points); un-ticks, edits and the rest stay. Show earlier (the whole
-  /// history) has them all.
+  /// What the card already shows isn't said again as a line ([hiddenLines]);
+  /// Show earlier (the whole history) has every line.
   Widget? _history(AppLocalizations l10n) {
+    final hidden = expanded ? const <String>{} : hiddenLines(card.history);
     final all = [
       for (final e in card.history)
-        if (e.shown && (expanded || e.kind != DaybookEventKind.ticked)) e,
+        if (e.shown && !hidden.contains(e.id)) e,
     ].reversed.toList();
     final cut = !expanded && all.length > shownLines;
     final lines = cut ? all.sublist(all.length - shownLines) : all;
@@ -555,6 +599,51 @@ class DaybookCardView extends StatelessWidget {
       lineKey: lineKey,
     );
   }
+
+  /// The lines a card leaves out of its history (newest first, as the
+  /// server sends it), since the card already says it:
+  /// - ticks: a ticked point shows who ticked it and when (review 61 G2);
+  /// - un-ticks (F42, F43): only the latest, on a point that is unticked
+  ///   now, and not when whoever ticked it took it back within a minute
+  ///   (a correction, not a step of the work);
+  /// - Received and Got it: the faces and "Received by …" say it, with the
+  ///   times one tap away (F48). On my way keeps its lines (K3).
+  static Set<String> hiddenLines(List<DaybookEvent> history) {
+    final hidden = <String>{};
+    final byPoint = <String, List<DaybookEvent>>{};
+    for (final e in history) {
+      switch (e.kind) {
+        case DaybookEventKind.ticked || DaybookEventKind.unticked:
+          byPoint.putIfAbsent(e.pointId ?? e.point ?? e.id, () => []).add(e);
+        case DaybookEventKind.received || DaybookEventKind.gotIt:
+          hidden.add(e.id);
+        default:
+          break;
+      }
+    }
+    for (final lines in byPoint.values) {
+      final latest = lines.first;
+      final tick = lines
+          .skip(1)
+          .where((e) => e.kind == DaybookEventKind.ticked)
+          .firstOrNull;
+      final correction =
+          tick != null &&
+          tick.byId == latest.byId &&
+          latest.at.difference(tick.at) <= correctionWindow;
+      for (final e in lines) {
+        final kept =
+            identical(e, latest) &&
+            e.kind == DaybookEventKind.unticked &&
+            !correction;
+        if (!kept) hidden.add(e.id);
+      }
+    }
+    return hidden;
+  }
+
+  /// An un-tick this soon after one's own tick is a correction (F43).
+  static const correctionWindow = Duration(minutes: 1);
 
   BvHistoryLine _line(AppLocalizations l10n, DaybookEvent e) {
     final phrase = words.eventPhrase(e, me: me, now: now);
@@ -597,7 +686,7 @@ class DaybookCardView extends StatelessWidget {
   }
 
   /// "M-201" from "M-201.pdf": the chip names the drawing, not its format.
-  static String _fileName(String name) {
+  static String fileName(String name) {
     final dot = name.lastIndexOf('.');
     return dot > 0 && name.length - dot <= _extensionMax
         ? name.substring(0, dot)
@@ -637,4 +726,102 @@ class _LocalPhoto extends ConsumerWidget {
     stamp: stamp,
     image: ref.watch(localPhotoProvider(path)),
   );
+}
+
+/// A post's photos on its card (F51): the server's, in order, or a new
+/// post's still on the phone. Before its files are read, the cover alone.
+/// A tap opens them all in a swipeable viewer.
+class DaybookCardPhotos extends ConsumerWidget {
+  const DaybookCardPhotos({
+    super.key,
+    required this.post,
+    this.waiting = const [],
+  });
+
+  final DaybookPost post;
+  final List<({String local, bool waiting})> waiting;
+
+  /// The photos, each with whether it still waits to be sent.
+  List<BvStripPhoto> _photos(WidgetRef ref) {
+    if (waiting.isNotEmpty) {
+      return [
+        for (final p in waiting)
+          (image: ref.watch(localPhotoProvider(p.local)), waiting: p.waiting),
+      ];
+    }
+    final files = ref.watch(postFilesProvider(post.id)).value;
+    final paths = files == null
+        ? [?post.coverPath]
+        : [
+            for (final f in files)
+              if (f.isPhoto) f.path!,
+          ];
+    return [
+      for (final p in paths)
+        (image: ref.watch(daybookPhotoProvider(p)), waiting: false),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final photos = _photos(ref);
+    if (photos.isEmpty) return const SizedBox.shrink();
+    final close = MaterialLocalizations.of(context).closeButtonLabel;
+    return BvPhotoStrip(
+      photos: photos,
+      onOpen: (i) => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          // Watched again here, so a photo still loading shows when it
+          // comes.
+          builder: (_) => Consumer(
+            builder: (context, ref, _) => BvPhotoViewer(
+              images: [for (final p in _photos(ref)) p.image],
+              first: i,
+              closeLabel: close,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The Library files added to a checklist, an announcement or an activity
+/// with 📎 (F39), as chips ("M-201 Rev C").
+class DaybookCardFiles extends ConsumerWidget {
+  const DaybookCardFiles({super.key, required this.post});
+
+  final DaybookPost post;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final files = [
+      for (final f
+          in ref.watch(postFilesProvider(post.id)).value ??
+              const <DaybookPostFile>[])
+        if (f.libraryFileId != null) f,
+    ];
+    if (files.isEmpty) return const SizedBox.shrink();
+    // Under what is above it, a slip's gap apart (it sits in that
+    // widget's own column, so with no files there is no gap).
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
+      child: BvSlipChips(
+        children: [
+          for (final f in files)
+            BvSlipChip(
+              icon: BvIcons.document,
+              label: f.revLabel == null
+                  ? DaybookCardView.fileName(f.name ?? '')
+                  : l10n.daybookFileChip(
+                      DaybookCardView.fileName(f.name ?? ''),
+                      f.revLabel!,
+                    ),
+            ),
+        ],
+      ),
+    );
+  }
 }

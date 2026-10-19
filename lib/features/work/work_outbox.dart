@@ -12,6 +12,7 @@ import '../../core/sound/sent_chime.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
@@ -573,6 +574,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     // "Waiting to send" goes at once (F17); the slip stays until the
     // daybook has the server's entry.
     _retry.reached();
+    // The Space's other open daybooks read it at once (F47).
+    unawaited(ref.read(daybookLiveProvider).changed(item.spaceId, item.id));
     // F5: a post or a sign-off the server took, not a check or a cancel.
     if (item.kind == PendingKind.signOff || item.isNewPost) {
       unawaited(ref.read(sentChimeProvider).play());
@@ -677,7 +680,12 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             pinnedUntil: d.pinnedUntil,
             startsAt: d.startsAt,
             endsAt: d.endsAt,
-            libraryFileId: fileIds.firstOrNull,
+            // A file post shares its file; the other kinds carry theirs as
+            // the post's own files (F39).
+            libraryFileId: d.kind == DaybookKind.file
+                ? fileIds.firstOrNull
+                : null,
+            attachedFileIds: d.kind == DaybookKind.file ? const [] : fileIds,
             people: [for (final p in d.people) p.id],
             points: d.writtenPoints,
             photoPaths: paths,

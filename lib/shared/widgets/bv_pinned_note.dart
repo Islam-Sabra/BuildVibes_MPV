@@ -20,6 +20,7 @@ class BvPinnedNote extends StatelessWidget {
     this.leading,
     this.action,
     this.onTap,
+    this.onLongPress,
   });
 
   final String author;
@@ -36,6 +37,9 @@ class BvPinnedNote extends StatelessWidget {
 
   /// Folds it back to its slim line, when it can fold.
   final VoidCallback? onTap;
+
+  /// The same long-press menu as a card's (review 50 F44).
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -108,10 +112,11 @@ class BvPinnedNote extends StatelessWidget {
         ],
       ),
     );
-    if (onTap == null) return note;
+    if (onTap == null && onLongPress == null) return note;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      onLongPress: onLongPress,
       child: note,
     );
   }
@@ -122,10 +127,18 @@ class BvPinnedNote extends StatelessWidget {
 /// line of its words, and ›, which mirrors in right to left. A tap opens
 /// it in full.
 class BvPinnedLine extends StatelessWidget {
-  const BvPinnedLine({super.key, required this.text, required this.onTap});
+  const BvPinnedLine({
+    super.key,
+    required this.text,
+    this.onTap,
+    this.onLongPress,
+  });
 
   final String text;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  /// The same long-press menu as a card's (review 50 F44).
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +149,7 @@ class BvPinnedLine extends StatelessWidget {
         key: const Key('pinned-line'),
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Container(
           constraints: const BoxConstraints(
             minHeight: BvPinnedSpec.lineMinHeight,

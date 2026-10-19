@@ -48,7 +48,7 @@ Future<DaybookAttach?> showDaybookAttach(
           key: const Key('attach-file'),
           icon: BvIcons.document,
           title: l10n.daybookKindFile,
-          subtitle: l10n.daybookAttachFileNote,
+          subtitle: libraryDocumentLine(),
           onTap: () => Navigator.of(sheet).pop(DaybookAttach.file),
         ),
       ],

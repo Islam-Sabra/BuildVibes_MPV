@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/l10n/bv_time.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
@@ -132,7 +133,7 @@ void main() {
           DaybookPerson(id: 'a', name: 'سارة المطيري'),
           DaybookPerson(id: 'b', name: 'عمر حداد'),
         ], me: null),
-        'لسارة المطيري وعمر حداد',
+        'لـ سارة المطيري وعمر حداد',
       );
     });
   });
@@ -148,7 +149,7 @@ void main() {
       );
       expect(
         _words('ar').activityWhen(start, end, _thu),
-        'غدًا، من 7:00 إلى 8:00 صباحًا',
+        'غدًا، من 7:00 إلى ${rtlRun('8:00 صباحًا')}',
       );
     });
 
@@ -160,7 +161,7 @@ void main() {
       );
       expect(
         _words('ar').activityWhen(start, end, friday),
-        'من 7:00 إلى 8:00 صباحًا · يبدأ بعد 30 دقيقة',
+        'من 7:00 إلى ${rtlRun('8:00 صباحًا')} · يبدأ بعد 30 دقيقة',
       );
       expect(
         _words('en').activityWhen(start, end, DateTime(2026, 10, 16, 7, 10)),

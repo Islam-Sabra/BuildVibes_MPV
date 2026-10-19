@@ -133,8 +133,8 @@ class SupabaseActivityRepository implements ActivityRepository {
                 .inFilter('post_id', itemIds)
                 .like('mime', 'image/%')
                 .not('storage_path', 'is', null)
-                .order('sort')
-                .order('created_at'),
+                .order('sort', ascending: true)
+                .order('created_at', ascending: true),
           );
     final doneIds = [
       for (final e in events)
@@ -147,7 +147,7 @@ class SupabaseActivityRepository implements ActivityRepository {
                 .from('work_item_evidence')
                 .select('event_id, storage_path, created_at')
                 .inFilter('event_id', doneIds)
-                .order('created_at'),
+                .order('created_at', ascending: true),
           );
     final requests = requestIds.isEmpty
         ? const <Map<String, dynamic>>[]

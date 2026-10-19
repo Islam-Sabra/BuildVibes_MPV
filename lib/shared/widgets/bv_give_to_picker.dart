@@ -40,6 +40,7 @@ class BvGiveToPicker extends StatefulWidget {
     this.searchController,
     this.autofocus = false,
     this.chosenIds,
+    this.inSheet = false,
   });
 
   final List<BvGiveToPerson> people;
@@ -52,6 +53,10 @@ class BvGiveToPicker extends StatefulWidget {
   final TextEditingController? searchController;
   final bool autofocus;
   final Set<String>? chosenIds;
+
+  /// On a sheet: as wide as the sheet, with no card of its own; the sheet
+  /// scrolls the list.
+  final bool inSheet;
 
   @override
   State<BvGiveToPicker> createState() => _BvGiveToPickerState();
@@ -101,17 +106,31 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
                 p,
           ];
 
+    final sheet = widget.inSheet;
+    final rows = [
+      for (final p in shown)
+        _Row(
+          person: p,
+          current:
+              widget.chosenIds?.contains(p.id) ?? p.id == widget.currentOwnerId,
+          currentLabel: widget.chosenIds == null ? widget.currentLabel : null,
+          type: type,
+          onTap: () => widget.onPick(p),
+        ),
+    ];
     return Container(
-      width: BvGiveToSpec.width,
+      width: sheet ? null : BvGiveToSpec.width,
       // The top padding sits with the search field, inside its touch area.
       padding: const EdgeInsetsDirectional.only(
         bottom: BvGiveToSpec.paddingBottom,
       ),
-      decoration: const BoxDecoration(
-        color: BvColors.surfaceElevated,
-        borderRadius: BvGiveToSpec.radius,
-        boxShadow: BvShadow.popover,
-      ),
+      decoration: sheet
+          ? null
+          : const BoxDecoration(
+              color: BvColors.surfaceElevated,
+              borderRadius: BvGiveToSpec.radius,
+              boxShadow: BvShadow.popover,
+            ),
       child: Material(
         type: MaterialType.transparency,
         child: Column(
@@ -132,26 +151,17 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
                 autofocus: widget.autofocus,
               ),
             ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                children: [
-                  for (final p in shown)
-                    _Row(
-                      person: p,
-                      current:
-                          widget.chosenIds?.contains(p.id) ??
-                          p.id == widget.currentOwnerId,
-                      currentLabel: widget.chosenIds == null
-                          ? widget.currentLabel
-                          : null,
-                      type: type,
-                      onTap: () => widget.onPick(p),
-                    ),
-                ],
+            // On a sheet, the sheet scrolls the rows.
+            if (sheet)
+              ...rows
+            else
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  children: rows,
+                ),
               ),
-            ),
           ],
         ),
       ),

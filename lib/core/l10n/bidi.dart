@@ -16,6 +16,12 @@ const _pdi = 0x2069;
 String ltrRun(String text) =>
     '${String.fromCharCode(_lri)}$text${String.fromCharCode(_pdi)}';
 
+/// Keeps a right-to-left run in one piece inside any line: an Arabic time
+/// and its part of the day ("10:58 مساءً", review 50 F53), so the period
+/// stays beside the time and never moves next to a Latin name.
+String rtlRun(String text) =>
+    '${String.fromCharCode(_rli)}$text${String.fromCharCode(_pdi)}';
+
 /// Wraps [text] in its own direction (Arabic right to left, Latin left to
 /// right). The shared helper for every value put into a sentence: a name,
 /// a title, a Space, so mixed lines such as "أخصائي BIM · Gulf Build Co."

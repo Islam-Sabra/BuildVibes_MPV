@@ -57,6 +57,10 @@ abstract class DaybookRepository {
   /// A checklist's points, in order, with who ticked each when.
   Future<List<DaybookPoint>> points(String postId);
 
+  /// A post's own photos and files, in the order they were added
+  /// (post_files; the card has only the first photo, F51).
+  Future<List<DaybookPostFile>> postFiles(String postId);
+
   /// Who acknowledged [postId] (post_acks_for): the server shows Received
   /// to everyone who sees the file, and the rest only to the author.
   Future<List<DaybookAckFace>> acks(String postId);
@@ -119,6 +123,7 @@ class NewSpacePost {
     this.people = const [],
     this.points = const [],
     this.photoPaths = const [],
+    this.attachedFileIds = const [],
   });
 
   final String id;
@@ -144,6 +149,9 @@ class NewSpacePost {
 
   /// Uploaded photos, in the post's folder.
   final List<String> photoPaths;
+
+  /// Library files added with 📎 (F39), as the post's own files.
+  final List<String> attachedFileIds;
 
   /// What create_space_post takes.
   Map<String, Object?> toParams() {
@@ -173,6 +181,7 @@ class NewSpacePost {
       ],
       'p_files': [
         for (final path in photoPaths) {'path': path, 'mime': _jpeg},
+        for (final id in attachedFileIds) {'library_file_id': id},
       ],
     };
   }
@@ -180,9 +189,11 @@ class NewSpacePost {
 
 const _jpeg = 'image/jpeg';
 
-/// What an edit changes on a work item (edit_space_post's keys). A field
-/// left out stays as it is. [dueChanged] sends the due day and time
-/// together; a null [dueDate] takes the due off ("Edited: due removed").
+/// What an edit changes on a work item or an announcement
+/// (edit_space_post's keys). A field left out stays as it is.
+/// [dueChanged] sends the due day and time together; a null [dueDate]
+/// takes the due off ("Edited: due removed"). [pinChanged] sends an
+/// announcement's pin; a null [pinnedUntil] unpins it (F44).
 @immutable
 class PostEdit {
   const PostEdit({
@@ -194,7 +205,12 @@ class PostEdit {
     this.dueChanged = false,
     this.dueDate,
     this.dueAt,
+    this.pinChanged = false,
+    this.pinnedUntil,
   });
+
+  /// Unpins an announcement (F44): it stays a card on its day.
+  const PostEdit.unpin() : this(pinChanged: true);
 
   final String? title;
   final String? body;
@@ -204,9 +220,15 @@ class PostEdit {
   final bool dueChanged;
   final DateTime? dueDate;
   final DateTime? dueAt;
+  final bool pinChanged;
+  final DateTime? pinnedUntil;
 
   bool get isEmpty =>
-      title == null && !bodyChanged && !placeChanged && !dueChanged;
+      title == null &&
+      !bodyChanged &&
+      !placeChanged &&
+      !dueChanged &&
+      !pinChanged;
 
   /// The JSON edit_space_post takes; the due day and time are the phone's
   /// own.
@@ -218,6 +240,8 @@ class PostEdit {
       'due': dueDate == null ? null : _date(dueDate!),
       'due_at': dueAt == null ? null : _instant(dueAt!),
     },
+    if (pinChanged)
+      'pinned_until': pinnedUntil == null ? null : _instant(pinnedUntil!),
   };
 }
 
@@ -428,9 +452,25 @@ class SupabaseDaybookRepository implements DaybookRepository {
         .from('checklist_points')
         .select('id, text, ticked_by, ticked_at')
         .eq('post_id', postId)
-        .order('sort')
-        .order('id');
+        // F41: in the order they were written (PostgREST's order is
+        // newest first unless told otherwise).
+        .order('sort', ascending: true)
+        .order('id', ascending: true);
     return [for (final r in rows) DaybookPoint.fromJson(r)];
+  });
+
+  @override
+  Future<List<DaybookPostFile>> postFiles(String postId) => _guard(() async {
+    final rows = await _client
+        .from('post_files')
+        .select(
+          'storage_path, mime, library_file_id, '
+          'library:library_files(name, rev_label)',
+        )
+        .eq('post_id', postId)
+        .order('sort', ascending: true)
+        .order('created_at', ascending: true);
+    return [for (final r in rows) DaybookPostFile.fromJson(r)];
   });
 
   @override

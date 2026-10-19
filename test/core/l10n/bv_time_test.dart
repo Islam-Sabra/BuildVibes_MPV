@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/l10n/bv_time.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/widgets.dart';
@@ -47,19 +48,35 @@ void main() {
       final ar = _time('ar');
       String at(int h, int m) => ar.clock(DateTime(2026, 10, 15, h, m));
       // 00:00–11:59 صباحًا
-      expect(at(0, 0), '12:00 صباحًا');
-      expect(at(11, 59), '11:59 صباحًا');
+      expect(at(0, 0), rtlRun('12:00 صباحًا'));
+      expect(at(11, 59), rtlRun('11:59 صباحًا'));
       // 12:00–14:59 ظهرًا
-      expect(at(12, 0), '12:00 ظهرًا');
-      expect(at(14, 0), '2:00 ظهرًا');
-      expect(at(14, 59), '2:59 ظهرًا');
+      expect(at(12, 0), rtlRun('12:00 ظهرًا'));
+      expect(at(14, 0), rtlRun('2:00 ظهرًا'));
+      expect(at(14, 59), rtlRun('2:59 ظهرًا'));
       // 15:00–17:59 عصرًا
-      expect(at(15, 0), '3:00 عصرًا');
-      expect(at(17, 59), '5:59 عصرًا');
+      expect(at(15, 0), rtlRun('3:00 عصرًا'));
+      expect(at(17, 59), rtlRun('5:59 عصرًا'));
       // 18:00–23:59 مساءً
-      expect(at(18, 0), '6:00 مساءً');
-      expect(at(23, 58), '11:58 مساءً');
+      expect(at(18, 0), rtlRun('6:00 مساءً'));
+      expect(at(23, 58), rtlRun('11:58 مساءً'));
       expect(at(8, 14), isNot(contains('٨')));
+    });
+
+    test('review 50 F53: an Arabic time and its part of the day are one '
+        'unit, kept whole beside a Latin name', () {
+      final ar = _time('ar');
+      final clock = ar.clock(DateTime(2026, 10, 15, 22, 58));
+      expect(clock, rtlRun('10:58 مساءً'));
+      // Opened right to left (RLI) and closed (PDI).
+      expect(clock.codeUnits.first, 0x2067);
+      expect(clock.codeUnits.last, 0x2069);
+      // English and 24-hour need no unit: nothing changes.
+      expect(_time('en').clock(DateTime(2026, 10, 15, 22, 58)), '10:58 pm');
+      expect(
+        _time('ar', use24: true).clock(DateTime(2026, 10, 15, 22, 58)),
+        '22:58',
+      );
     });
 
     test('a two-line slot: Arabic 12-hour puts the period under the time '
@@ -67,9 +84,9 @@ void main() {
       final ar = _time('ar');
       final t = DateTime(2026, 10, 15, 23, 58);
       expect(ar.parts(t), (time: '11:58', period: 'مساءً'));
-      expect(ar.clock(t), '11:58 مساءً');
+      expect(ar.clock(t), rtlRun('11:58 مساءً'));
       expect(ar.clock(t), isNot(endsWith(' م')));
-      expect(ar.clock(DateTime(2026, 10, 15, 9)), '9:00 صباحًا');
+      expect(ar.clock(DateTime(2026, 10, 15, 9)), rtlRun('9:00 صباحًا'));
     });
 
     test('when something happened: the time today, the weekday this past '
@@ -79,7 +96,7 @@ void main() {
       expect(en.moment(DateTime(2026, 10, 15, 13, 44), now), '1:44 pm');
       expect(
         _time('ar').moment(DateTime(2026, 10, 15, 6, 10), now),
-        '6:10 صباحًا',
+        rtlRun('6:10 صباحًا'),
       );
       expect(
         _time('en', use24: true).moment(DateTime(2026, 10, 15, 6, 10), now),

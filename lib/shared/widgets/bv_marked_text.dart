@@ -18,7 +18,7 @@ typedef BvMark = ({String part, TextStyle style});
 
 /// [text] in [base], with each mark's part in the mark's style, found in
 /// order. A part takes the whole run of letters it sits in, so an Arabic
-/// preposition joined to a name ("لعمر حداد", "لك") keeps one shape. A
+/// word joined to a name or a pronoun ("لك", "وعمر") keeps one shape. A
 /// part that isn't in the text is left out.
 List<InlineSpan> bvMarkedSpans(
   String text,

@@ -3414,7 +3414,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookKindActivityWord => '· scheduled';
 
   @override
-  String get daybookKindFileWord => '· file';
+  String get daybookKindFileWord => '· for receipt';
 
   @override
   String get daybookToEveryone => '· to everyone';
@@ -3659,9 +3659,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookAttachFileNote => 'PDF, like a drawing';
-
-  @override
   String get daybookFileChooseTitle => 'Choose a file';
 
   @override
@@ -3702,4 +3699,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get previewModelViewVersions =>
       'New versions come from BuildVibes 360';
+
+  @override
+  String get daybookPeopleDone => 'Done';
+
+  @override
+  String daybookDayTime(String day, String time) {
+    return '$day, $time';
+  }
+
+  @override
+  String get daybookKindDocument => 'Document for receipt';
+
+  @override
+  String get daybookKindDocumentNote => 'Each person confirms they received it';
+
+  @override
+  String get daybookUnpin => 'Unpin';
 }

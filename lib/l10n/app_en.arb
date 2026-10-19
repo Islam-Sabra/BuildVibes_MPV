@@ -4878,7 +4878,7 @@
   "@daybookKindActivityWord": {
     "description": "Daybook card header after the author: the post is a scheduled activity (K2 v13)."
   },
-  "daybookKindFileWord": "· file",
+  "daybookKindFileWord": "· for receipt",
   "@daybookKindFileWord": {
     "description": "Daybook card header after the author: the post is a file (K2 v13)."
   },
@@ -5284,10 +5284,6 @@
       }
     }
   },
-  "daybookAttachFileNote": "PDF, like a drawing",
-  "@daybookAttachFileNote": {
-    "description": "Attach sheet: what a file can be (the server takes PDFs and photos; review 61 G3)."
-  },
   "daybookFileChooseTitle": "Choose a file",
   "@daybookFileChooseTitle": {
     "description": "File chooser sheet title."
@@ -5344,5 +5340,33 @@
   "previewModelViewVersions": "New versions come from BuildVibes 360",
   "@previewModelViewVersions": {
     "description": "Library preview of a model view: instead of Upload a new revision (review 61 G4)."
+  },
+  "daybookPeopleDone": "Done",
+  "@daybookPeopleDone": {
+    "description": "Closes the people sheet, keeping who was chosen (F45)."
+  },
+  "daybookDayTime": "{day}, {time}",
+  "@daybookDayTime": {
+    "description": "A day and a time: when someone tapped Received (F48).",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookKindDocument": "Document for receipt",
+  "@daybookKindDocument": {
+    "description": "The kind menu's name for a file post (review 50 F50): each person confirms they received it. The kind stays `file` on the server."
+  },
+  "daybookKindDocumentNote": "Each person confirms they received it",
+  "@daybookKindDocumentNote": {
+    "description": "The small line under Document for receipt in the kind menu (F50)."
+  },
+  "daybookUnpin": "Unpin",
+  "@daybookUnpin": {
+    "description": "Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day."
   }
 }

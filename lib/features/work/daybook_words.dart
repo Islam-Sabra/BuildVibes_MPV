@@ -54,7 +54,9 @@ class DaybookWords {
     final short = parts.length < 2
         ? parts.first
         : '${parts.first} ${parts.last.characters.first}';
-    return l10n.daybookStampBy(short.toUpperCase(), _clock(at));
+    // The name in its own direction, so the time beside it stays whole
+    // (F53): "ISLAM A · 10:58 مساءً".
+    return l10n.daybookStampBy(inOwnDirection(short.toUpperCase()), _clock(at));
   }
 
   /// A send-back reason, as the card lists it.
@@ -94,9 +96,6 @@ class DaybookWords {
     return due == null ? who : l10n.daybookMeta(who, due);
   }
 
-  /// A name inside a sentence. One in the sentence's own direction stays
-  /// as it is, so the Arabic "ل" joins it ("لعمر حداد"); another is kept
-  /// whole in its own direction.
   /// What stands out on [post]'s facts line (review 50 F34), as [meta]
   /// writes it: who it is for (the name, or "you"), and the due with its
   /// tone: grey, the primary colour today, red when late.
@@ -109,7 +108,7 @@ class DaybookWords {
     final String who;
     if (item?.ownerId != null && item!.ownerId == me) {
       // "you" in "For you": the words around the name in "For {name}" are
-      // taken off ("For " in English; Arabic's "ل" stays joined).
+      // taken off ("For " in English; Arabic's "لك" is one word).
       final around = l10n.daybookForPerson(_slot).split(_slot);
       final you = l10n.daybookForYou;
       who = you.startsWith(around.first) && around.first.isNotEmpty
@@ -133,6 +132,10 @@ class DaybookWords {
   /// A stand-in for a name, to find the words around it in a sentence.
   static const _slot = '';
 
+  /// A name inside a sentence, exactly as its owner typed it (F52: never
+  /// translated). One in the sentence's own direction stays as it is
+  /// ("لـ عمر حداد"); another is kept whole in its own direction ("لـ
+  /// Omar Haddad").
   String _inLine(String name) =>
       Bidi.startsWithRtl(name) == Bidi.isRtlLanguage(locale)
       ? name
@@ -356,8 +359,14 @@ class DaybookWords {
 
   /// When an activity is, as its card says it: "Tomorrow, 7:00 to 8:00
   /// am", "Sat 17 Oct, 7:00 am"; on its day only the time, with "starts
-  /// in 30 min" in its last hour and "on now" until it ends.
-  String activityWhen(DateTime start, DateTime? end, DateTime now) {
+  /// in 30 min" in its last hour and "on now" until it ends. A [cancelled]
+  /// one never counts down (review 50 F46): only its day and time.
+  String activityWhen(
+    DateTime start,
+    DateTime? end,
+    DateTime now, {
+    bool cancelled = false,
+  }) {
     final time = end == null ? _clock(start) : this.time.range(start, end);
     final day = dayOf(start);
     final today = dayOf(now);
@@ -367,6 +376,7 @@ class DaybookWords {
           : shortDate(day);
       return l10n.daybookActivityWhen(word, time);
     }
+    if (cancelled) return time;
     final toStart = start.difference(now);
     if (!toStart.isNegative && toStart <= _soon) {
       return l10n.daybookStartsIn(time, toStart.inMinutes);
@@ -380,6 +390,14 @@ class DaybookWords {
 
   /// "Starts in" shows in the activity's last hour before it starts.
   static const _soon = Duration(hours: 1);
+
+  /// When someone acknowledged, in the list of who did (F48): the time
+  /// today, else the day and the time ("Thu 15 Oct, 22:46").
+  String ackTime(DateTime at, DateTime now) {
+    final day = dayOf(at);
+    if (day == dayOf(now)) return _clock(at);
+    return l10n.daybookDayTime(shortDate(day), _clock(at));
+  }
 
   /// "PDF · 2.4 MB": what a file post's file is.
   String fileFact(DaybookFile file) => [

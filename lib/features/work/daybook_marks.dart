@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
+import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart' show mySpacesProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -24,6 +27,12 @@ final checklistPointsProvider = FutureProvider.autoDispose
       (ref, postId) => ref.watch(daybookRepositoryProvider).points(postId),
     );
 
+/// A post's own photos and files (F51), read when its card shows them.
+final postFilesProvider = FutureProvider.autoDispose
+    .family<List<DaybookPostFile>, String>(
+      (ref, postId) => ref.watch(daybookRepositoryProvider).postFiles(postId),
+    );
+
 /// Who acknowledged a post, as the server lets the reader see
 /// (post_acks_for). Read again with the page ([refreshMarks]).
 final postAcksProvider = FutureProvider.autoDispose
@@ -36,6 +45,7 @@ void refreshMarks(WidgetRef ref, String spaceId) {
   ref
     ..invalidate(checklistPointsProvider)
     ..invalidate(postAcksProvider)
+    ..invalidate(postFilesProvider)
     ..invalidate(daybookExtrasProvider(spaceId));
 }
 
@@ -97,8 +107,11 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
       if (m.key != mark.key) m,
   ];
 
-  /// Sends [mark]. Rethrows a lost signal for the screen to say.
-  Future<void> send(DaybookMark mark) async {
+  /// Sends [mark]. Rethrows a lost signal for the screen to say. [again]
+  /// takes the old acknowledgement back first, so the new one has this
+  /// time (review 61 G1); the card shows it given at once all the same
+  /// (F44: the pinned note folds on the tap).
+  Future<void> send(DaybookMark mark, {bool again = false}) async {
     state = [
       for (final m in state)
         if (m.key != mark.key) m,
@@ -109,6 +122,7 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
       if (mark.isTick) {
         await repo.tickPoint(mark.pointId!, on: mark.on);
       } else {
+        if (again) await repo.ack(mark.postId, mark.ack!, on: false);
         await repo.ack(mark.postId, mark.ack!, on: mark.on);
       }
     } on SpaceException catch (e) {
@@ -127,6 +141,8 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
       await _readAgain(mark);
       return;
     }
+    // The Space's other open daybooks read it at once (F47).
+    unawaited(ref.read(daybookLiveProvider).changed(mark.spaceId, mark.postId));
     await _readAgain(mark);
     _drop(mark);
   }

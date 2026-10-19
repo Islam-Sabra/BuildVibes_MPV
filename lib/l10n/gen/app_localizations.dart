@@ -5765,7 +5765,7 @@ abstract class AppLocalizations {
   /// Daybook card header after the author: the post is a file (K2 v13).
   ///
   /// In en, this message translates to:
-  /// **'· file'**
+  /// **'· for receipt'**
   String get daybookKindFileWord;
 
   /// An announcement is for everyone in the Space (K1 v13).
@@ -6152,12 +6152,6 @@ abstract class AppLocalizations {
   /// **'Up to {n} photos'**
   String daybookAttachPhotosNote(int n);
 
-  /// Attach sheet: what a file can be (the server takes PDFs and photos; review 61 G3).
-  ///
-  /// In en, this message translates to:
-  /// **'PDF, like a drawing'**
-  String get daybookAttachFileNote;
-
   /// File chooser sheet title.
   ///
   /// In en, this message translates to:
@@ -6235,6 +6229,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New versions come from BuildVibes 360'**
   String get previewModelViewVersions;
+
+  /// Closes the people sheet, keeping who was chosen (F45).
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get daybookPeopleDone;
+
+  /// A day and a time: when someone tapped Received (F48).
+  ///
+  /// In en, this message translates to:
+  /// **'{day}, {time}'**
+  String daybookDayTime(String day, String time);
+
+  /// The kind menu's name for a file post (review 50 F50): each person confirms they received it. The kind stays `file` on the server.
+  ///
+  /// In en, this message translates to:
+  /// **'Document for receipt'**
+  String get daybookKindDocument;
+
+  /// The small line under Document for receipt in the kind menu (F50).
+  ///
+  /// In en, this message translates to:
+  /// **'Each person confirms they received it'**
+  String get daybookKindDocumentNote;
+
+  /// Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get daybookUnpin;
 }
 
 class _AppLocalizationsDelegate

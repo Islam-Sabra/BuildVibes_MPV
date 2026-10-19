@@ -17,6 +17,18 @@ import '../spaces/former_member.dart';
 /// The Space bucket's limit (migration 9).
 const maxFileBytes = 25 * 1024 * 1024;
 
+/// The document formats a Space takes, besides photos (review 50 F49).
+/// It mirrors the server's own list: add_library_file and add_post_files
+/// accept `application/pdf` and images (supabase/migrations/
+/// 20261019120000_model_views.sql, 20261015120000_daybook.sql), and the
+/// bucket `space-files` the same types. Add a format here only once the
+/// server takes it; the File row's line lists them ("PDF", "PDF, DWG").
+/// Formats are named as written, in every language.
+const libraryDocumentFormats = ['PDF'];
+
+/// The File row's small line: the formats the server takes.
+String libraryDocumentLine() => libraryDocumentFormats.join(', ');
+
 /// "2.1 MB", "640 KB", with Western digits.
 String fileSize(AppLocalizations l10n, int? bytes) {
   if (bytes == null) return '';

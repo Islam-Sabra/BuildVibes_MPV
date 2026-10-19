@@ -10,10 +10,13 @@ import '../../core/design/daybook_writing_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
+import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_tap_target.dart';
@@ -32,9 +35,9 @@ import 'work_outbox.dart';
 final newPostIdProvider = Provider<String Function()>((ref) => newUuid);
 
 /// What opens over the diary while writing (E2, E3, E6): More, the kind
-/// menu, the assign picker, who a checklist or an activity is for, or the
-/// place field.
-enum DaybookWritingMenu { more, kind, assign, people, place }
+/// menu, the assign picker or the place field. Who a checklist or an
+/// activity is for opens as a sheet ([DaybookPeopleSheet], F45).
+enum DaybookWritingMenu { more, kind, assign, place }
 
 /// A due day and, when chosen, its time: both the phone's own. A null
 /// [day] takes the due off (Remove).
@@ -314,7 +317,8 @@ String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
   DaybookKind.checklist => l10n.daybookKindChecklist,
   DaybookKind.announcement => l10n.daybookKindAnnouncement,
   DaybookKind.activity => l10n.daybookKindActivity,
-  DaybookKind.file => l10n.daybookKindFile,
+  // F50: named for what it does; the kind stays `file` on the server.
+  DaybookKind.file => l10n.daybookKindDocument,
 };
 
 /// The kind menu's icon for [kind] (E6 2535:34374).
@@ -507,6 +511,10 @@ class DaybookWriter {
       dueChanged: d.dueDate != was.dueDate || d.dueAt != was.dueAt,
       dueDate: d.dueDate,
       dueAt: d.dueAt,
+      pinChanged:
+          d.kind == DaybookKind.announcement &&
+          d.pinnedUntil != was.pinnedUntil,
+      pinnedUntil: d.pinnedUntil,
     );
   }
 
@@ -516,6 +524,8 @@ class DaybookWriter {
     final id = draft?.id;
     if (id == null || edit.isEmpty) return;
     await ref.read(daybookRepositoryProvider).editPost(id, edit);
+    // The Space's other open daybooks read it at once (F47).
+    unawaited(ref.read(daybookLiveProvider).changed(spaceId, id));
   }
 }
 
@@ -541,6 +551,7 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
     required this.onPickPin,
     required this.onPickStart,
     required this.onPickFile,
+    required this.onPickPeople,
     this.editing = false,
   });
 
@@ -557,6 +568,7 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
   final VoidCallback onPickPin;
   final VoidCallback onPickStart;
   final VoidCallback onPickFile;
+  final VoidCallback onPickPeople;
 
   @override
   ConsumerState<DaybookWritingCard> createState() => _WritingCardState();
@@ -623,7 +635,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
       label: words.peopleFor([
         for (final p in draft.people) DaybookPerson(id: p.id, name: p.name),
       ], me: ref.watch(authUserIdProvider).value),
-      onTap: tap(() => menu(DaybookWritingMenu.people)),
+      onTap: tap(widget.onPickPeople),
     );
     final place = draft.place == null
         ? null
@@ -759,10 +771,102 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
   }
 }
 
+/// Who a checklist or an activity is for, picked on a sheet (review 50
+/// F45): the Space's people, each chosen one with a check; a pick adds or
+/// takes them out at once, and never closes the sheet.
+class DaybookPeopleSheet extends ConsumerWidget {
+  const DaybookPeopleSheet({
+    super.key,
+    required this.spaceId,
+    required this.me,
+    this.editing = false,
+  });
+
+  final String spaceId;
+  final String? me;
+  final bool editing;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final draft = ref.watch(
+      editing ? daybookEditProvider(spaceId) : daybookDraftProvider(spaceId),
+    );
+    final people = ref.watch(spacePeopleProvider(spaceId)).value;
+    if (people == null) {
+      return const SizedBox.square(
+        dimension: BvSize.touchMin,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final writer = DaybookWriter(ref, spaceId, editing: editing);
+    return BvGiveToPicker(
+      key: const Key('writing-people'),
+      people: draft?.kind == DaybookKind.activity
+          ? attendees(people, me: me)
+          : assignablePeople(people, me: me),
+      currentOwnerId: null,
+      currentLabel: l10n.daybookOwnerNow,
+      chosenIds: {for (final p in draft?.people ?? const []) p.id},
+      searchPlaceholder: l10n.daybookPeopleSearch,
+      inSheet: true,
+      onPick: writer.togglePerson,
+    );
+  }
+}
+
+/// The people sheet's fixed foot (F45): the chosen people's faces, never
+/// a number, and Done.
+class DaybookPeopleDone extends ConsumerWidget {
+  const DaybookPeopleDone({
+    super.key,
+    required this.spaceId,
+    required this.onDone,
+    this.editing = false,
+  });
+
+  final String spaceId;
+  final bool editing;
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final draft = ref.watch(
+      editing ? daybookEditProvider(spaceId) : daybookDraftProvider(spaceId),
+    );
+    return Row(
+      spacing: BvSpace.s12,
+      children: [
+        Expanded(
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: BvFaces([
+              for (final p in draft?.people ?? const <DraftPerson>[])
+                (name: p.name, tint: BvAvatarTints.forId(p.id)),
+            ], large: true),
+          ),
+        ),
+        BvButton(
+          key: const Key('people-done'),
+          label: l10n.daybookPeopleDone,
+          onPressed: onDone,
+        ),
+      ],
+    );
+  }
+}
+
 /// A checklist's points while writing: each an empty box and a line to
 /// type on; the last line ("Add a point") becomes a new point as soon as
-/// it has words, and Enter moves on to the next. A point's × takes it
-/// out. At most 50 (create_space_post).
+/// it has words. Enter moves to the next point (from the last, to the
+/// empty line); Backspace on an empty point takes it out and goes back to
+/// the one before. A point's × takes it out too. At most 50
+/// (create_space_post).
+///
+/// Review 50 F40: each point keeps its key (its id), its controller and its
+/// focus node for the life of the card, and typing in a point never
+/// rebuilds the list, so the keyboard stays up.
 class DaybookPointsEditor extends StatefulWidget {
   const DaybookPointsEditor({
     super.key,
@@ -789,7 +893,11 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
 
   TextEditingController _controller(String id, String text) =>
       _controllers.putIfAbsent(id, () => TextEditingController(text: text));
-  FocusNode _node(String id) => _focus.putIfAbsent(id, FocusNode.new);
+
+  FocusNode _node(String id) => _focus.putIfAbsent(
+    id,
+    () => FocusNode(onKeyEvent: (_, event) => _key(id, event)),
+  );
 
   @override
   void dispose() {
@@ -802,20 +910,45 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
     super.dispose();
   }
 
+  /// Backspace on an empty point: it goes, and the one before has the
+  /// focus.
+  KeyEventResult _key(String id, KeyEvent event) {
+    final at = _points.indexWhere((p) => p.id == id);
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.backspace ||
+        at < 0 ||
+        (_controllers[id]?.text.isNotEmpty ?? true)) {
+      return KeyEventResult.ignored;
+    }
+    final before = at > 0 ? _points[at - 1].id : null;
+    _remove(id);
+    if (before != null) _node(before).requestFocus();
+    return KeyEventResult.handled;
+  }
+
   void _changed(String id, String text) {
     final at = _points.indexWhere((p) => p.id == id);
-    setState(() {
-      if (at < 0) {
-        if (text.trim().isEmpty) return;
-        // The empty line got words: it is a point now, with the same id,
-        // so it keeps its field and focus.
+    if (at >= 0) {
+      // Only the words change: the field has them; no rebuild.
+      _points = [..._points]..[at] = (id: id, text: text);
+    } else {
+      if (text.trim().isEmpty) return;
+      // The empty line got words: it is a point now, under the same id, so
+      // it keeps its field and its focus; a new empty line comes under it.
+      setState(() {
         _points = [..._points, (id: id, text: text)];
         _next = newUuid();
-      } else {
-        _points = [..._points]..[at] = (id: id, text: text);
-      }
-    });
+      });
+    }
     widget.onChanged(_points);
+  }
+
+  /// Enter: the next point, or the empty line after the last one.
+  void _submitted(String id) {
+    final at = _points.indexWhere((p) => p.id == id);
+    if (at < 0) return;
+    final next = at + 1 < _points.length ? _points[at + 1].id : _next;
+    _node(next).requestFocus();
   }
 
   void _remove(String id) {
@@ -825,41 +958,34 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
           if (p.id != id) p,
       ],
     );
-    _controllers.remove(id)?.dispose();
-    _focus.remove(id)?.dispose();
+    // Gone after this frame: the field lets go of them first.
+    final controller = _controllers.remove(id);
+    final node = _focus.remove(id);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller?.dispose();
+      node?.dispose();
+    });
     widget.onChanged(_points);
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final full = _points.length >= BvWritingPointSpec.max;
     return Column(
       key: const Key('writing-points'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (i, p) in _points.indexed)
-          _row(
-            l10n,
-            p.id,
-            p.text,
-            next: i + 1 < _points.length ? _points[i + 1].id : _next,
-          ),
-        if (!full && widget.writing) _row(l10n, _next, '', next: null),
+        for (final p in _points) _row(p.id, p.text, real: true),
+        if (!full && widget.writing) _row(_next, '', real: false),
       ],
     );
   }
 
-  Widget _row(
-    AppLocalizations l10n,
-    String id,
-    String text, {
-    required String? next,
-  }) {
+  Widget _row(String id, String text, {required bool real}) {
+    final l10n = AppLocalizations.of(context);
     final style = BvType.of(context).bodyMd;
-    final real = _points.any((p) => p.id == id);
     return ConstrainedBox(
-      key: Key('writing-point-$id'),
+      key: ValueKey('writing-point-$id'),
       constraints: const BoxConstraints(
         minHeight: BvWritingPointSpec.rowMinHeight,
       ),
@@ -879,7 +1005,7 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
           ),
           Expanded(
             child: TextField(
-              key: Key('writing-point-field-${real ? 'set' : 'new'}'),
+              key: ValueKey('writing-point-field-$id'),
               controller: _controller(id, text),
               focusNode: _node(id),
               enabled: widget.writing,
@@ -888,9 +1014,9 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
               ],
               textInputAction: TextInputAction.next,
               onChanged: (t) => _changed(id, t),
-              onSubmitted: (_) {
-                if (next != null) _node(next).requestFocus();
-              },
+              // Enter moves on here, not to the next field on the screen.
+              onEditingComplete: () {},
+              onSubmitted: (_) => _submitted(id),
               style: style.copyWith(color: BvColors.textPrimary),
               cursorColor: BvColors.actionPrimary,
               decoration: bvBareField(
@@ -899,15 +1025,21 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
               ),
             ),
           ),
-          if (real && widget.writing)
-            BvTapTarget(
+          // Kept in place on the empty line too, so a row never changes
+          // shape as it gets its first letter.
+          Visibility(
+            visible: real && widget.writing,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: BvTapTarget(
               child: Semantics(
                 button: true,
                 label: l10n.daybookRemovePoint,
                 child: GestureDetector(
-                  key: Key('writing-point-remove-$id'),
+                  key: ValueKey('writing-point-remove-$id'),
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => _remove(id),
+                  onTap: real ? () => _remove(id) : null,
                   child: const Icon(
                     BvIcons.close,
                     size: BvSize.iconSm,
@@ -916,6 +1048,7 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -925,8 +1058,8 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
 /// What opens over the diary while writing: the More menu (a kind's own
 /// choices; an edit has no Assign), the kind menu (E6), the assign picker,
 /// who a checklist or an activity is for, or the place field.
-/// [onAssigned] follows a pick in the assign picker, [onPeople] each pick
-/// in the people picker (it stays open to pick several).
+/// [onAssigned] follows a pick in the assign picker; [onPickPeople] opens
+/// the people sheet.
 class DaybookWritingPopover extends ConsumerStatefulWidget {
   const DaybookWritingPopover({
     super.key,
@@ -940,7 +1073,7 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
     required this.onPickFile,
     required this.onClose,
     required this.onAssigned,
-    required this.onPeople,
+    required this.onPickPeople,
     this.editing = false,
   });
 
@@ -955,7 +1088,7 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
   final VoidCallback onPickFile;
   final VoidCallback onClose;
   final VoidCallback onAssigned;
-  final VoidCallback onPeople;
+  final VoidCallback onPickPeople;
 
   @override
   ConsumerState<DaybookWritingPopover> createState() => _PopoverState();
@@ -1049,7 +1182,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
           items: _moreItems(l10n, kind),
           onSelected: (v) => switch (v) {
             _More.assign => widget.onMenu(DaybookWritingMenu.assign),
-            _More.people => widget.onMenu(DaybookWritingMenu.people),
+            _More.people => widget.onPickPeople(),
             _More.location => widget.onMenu(DaybookWritingMenu.place),
             _More.due => widget.onPickDue(),
             _More.pin => widget.onPickPin(),
@@ -1063,7 +1196,14 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
           selected: kind,
           items: [
             for (final k in DaybookKind.values)
-              BvMenuItem(value: k, label: kindName(l10n, k), icon: kindIcon(k)),
+              BvMenuItem(
+                value: k,
+                label: kindName(l10n, k),
+                icon: kindIcon(k),
+                note: k == DaybookKind.file
+                    ? l10n.daybookKindDocumentNote
+                    : null,
+              ),
           ],
           onSelected: (k) async {
             await _writer.setKind(k);
@@ -1076,7 +1216,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
             }
           },
         );
-      case DaybookWritingMenu.assign || DaybookWritingMenu.people:
+      case DaybookWritingMenu.assign:
         final people = ref.watch(spacePeopleProvider(widget.spaceId)).value;
         if (people == null) {
           return const SizedBox.square(
@@ -1084,33 +1224,17 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        if (widget.menu == DaybookWritingMenu.assign) {
-          return BvGiveToPicker(
-            key: const Key('writing-assign'),
-            people: assignablePeople(people, me: widget.me),
-            currentOwnerId: draft?.ownerId,
-            currentLabel: l10n.daybookOwnerNow,
-            // The menu says "Assign" (review 46).
-            searchPlaceholder: l10n.daybookAssignSearch,
-            onPick: (p) async {
-              await _writer.setOwner(p);
-              widget.onAssigned();
-            },
-          );
-        }
-        // Several can be chosen; a tap off the picker closes it.
+        // One owner: the first pick closes it.
         return BvGiveToPicker(
-          key: const Key('writing-people'),
-          people: kind == DaybookKind.activity
-              ? attendees(people, me: widget.me)
-              : assignablePeople(people, me: widget.me),
-          currentOwnerId: null,
+          key: const Key('writing-assign'),
+          people: assignablePeople(people, me: widget.me),
+          currentOwnerId: draft?.ownerId,
           currentLabel: l10n.daybookOwnerNow,
-          chosenIds: {for (final p in draft?.people ?? const []) p.id},
-          searchPlaceholder: l10n.daybookPeopleSearch,
+          // The menu says "Assign" (review 46).
+          searchPlaceholder: l10n.daybookAssignSearch,
           onPick: (p) async {
-            await _writer.togglePerson(p);
-            widget.onPeople();
+            await _writer.setOwner(p);
+            widget.onAssigned();
           },
         );
       case DaybookWritingMenu.place:

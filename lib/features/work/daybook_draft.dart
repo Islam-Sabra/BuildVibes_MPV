@@ -196,9 +196,11 @@ class DaybookPostDraft {
     );
   }
 
-  /// A posted work item, to edit.
+  /// A posted work item or announcement (with its pin, F44), to edit.
   factory DaybookPostDraft.of(DaybookPost post) => DaybookPostDraft(
     id: post.id,
+    kind: DaybookKind.fromJson(post.kind),
+    pinnedUntil: post.pinnedUntil,
     title: post.title,
     body: post.body ?? '',
     ownerId: post.item?.ownerId,

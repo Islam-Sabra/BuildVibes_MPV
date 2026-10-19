@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 import '../../l10n/gen/app_localizations.dart';
+import 'bidi.dart';
 import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
 
 /// A time split for a two-line slot: the [time], and the part of the day
@@ -47,7 +48,11 @@ class BvTime {
   /// [t] on one line.
   String clock(DateTime t) {
     final p = _parts(t);
-    return p.period == null ? p.time : l10n.timeClock12(p.time, p.period!);
+    if (p.period == null) return p.time;
+    final clock = l10n.timeClock12(p.time, p.period!);
+    // In Arabic the time and its part of the day are one unit (F53): next
+    // to a Latin name the period would otherwise sit by the name.
+    return _arabic ? rtlRun(clock) : clock;
   }
 
   /// [t] for a two-line slot: in Arabic 12-hour, the part of the day goes
