@@ -12,6 +12,7 @@ BuildVibes is a mobile-first professional network and site-work app for the whol
   - English: page "PROTOTYPE · Full app v1 · EN".
   - Arabic: page "PROTOTYPE · Core journeys · AR".
   - The prototype is frozen. If the code and the prototype disagree, the prototype wins, unless the founder says otherwise.
+  - **Exception (founder, 18 Oct):** text sizes follow the two-size rule in `BvType` (main 15 / small 12; Arabic 16 / 13, Almarai), even where a frame drawn before 18 Oct shows other sizes. Frames with the old hour spine are redrawn before their slice (review 58).
 - **Product docs:** `docs/product/`. Start with `mvp-plan.md`, `space-project-model.md`, `rules.md` and `arabic-glossary.md`. Component specs (sizes, colours, states) are in `components.md`. The database tables and permission rules are in `data-model.md`.
   - The Space Work design is `docs/product/daybook.md`; every prototype scenario is listed in `docs/product/space-scenarios.md`.
 - **Old app, for reference only:** `D:\Projects\00 AECOX Technology\Build-Vibes` (GitHub `Islam-Sabra/Build-Vibes`). Port proven parts from it; never edit it. See `docs/product/codebase-audit.md`.
