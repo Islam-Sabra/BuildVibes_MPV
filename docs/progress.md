@@ -607,6 +607,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **18 Oct, review 54 A1–A6** (branch `slice1-v13`): one time formatter for the whole app, following the phone's 24-hour setting (a test fails on any other hour-and-minute formatting); the post page without a reply line on the post, replies at the two sizes, "Write a reply", Useful as seal-check; Arabic history lines in the ledger form and "علامة مفيد من …"; People says "Space admin", Teams show faces, the header says "Private work"; Settings is one list; the Home → Spaces date line matches the others.
 
+- **19 Oct, slice 1 closed** (review 50, "Retest of build 298: result"): the build 298 retest passed on the founder's Xiaomi and the emulator. `slice1-v13` merged into main; analyze clean, 1,051 app tests, 156 screenshot checks, 1,782 SQL checks and 9 push function tests pass. Small finding from the retest: the "Due today" strip keeps an item that was signed as done until it is checked or sent back. Next: migration 27 (BuildVibes 360, `model-views-db`), then slice 2 (review 56).
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
