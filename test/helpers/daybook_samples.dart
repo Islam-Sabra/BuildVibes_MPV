@@ -513,6 +513,7 @@ class DaybookSamples {
   );
 
   CalendarWorkItem cableTraysDue() => CalendarWorkItem(
+    postId: 'post-trays',
     spaceId: space,
     title: cableTraysTitle,
     day: DateTime(2026, 10, 16),
@@ -659,7 +660,10 @@ class DaybookSamples {
 
   /// K1's pinned announcement: Sara's, to everyone, until Friday (pinned
   /// to Saturday's midnight).
-  DaybookPost halfDayPost({Set<DaybookAck> myAcks = const {}}) => DaybookPost(
+  DaybookPost halfDayPost({
+    Set<DaybookAck> myAcks = const {},
+    DateTime? editedAt,
+  }) => DaybookPost(
     id: halfDayId,
     kind: DaybookPost.announcementKind,
     createdAt: DateTime(2026, 10, 15, 8),
@@ -668,6 +672,7 @@ class DaybookSamples {
     authorName: saraName,
     pinnedUntil: DateTime(2026, 10, 17),
     myAcks: myAcks,
+    editedAt: editedAt,
   );
 
   String get siteWalk =>

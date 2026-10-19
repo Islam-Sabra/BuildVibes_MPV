@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import 'bv_marked_text.dart';
 import 'bv_paper_clip.dart';
 import 'bv_space_emblem.dart';
 
@@ -50,12 +51,16 @@ class BvNeedsRow extends StatelessWidget {
     required this.title,
     required this.onTap,
     this.meta,
+    this.metaMarks = const [],
     this.photo,
   });
 
   final String label;
   final String title;
   final String? meta;
+
+  /// Parts of [meta] that stand out (F34: the name, the due's tone).
+  final List<BvMark> metaMarks;
 
   /// The proof or the cover; null leaves the row without a photo.
   final ImageProvider? photo;
@@ -107,13 +112,18 @@ class BvNeedsRow extends StatelessWidget {
                       ),
                       Text(title, style: type.labelMd),
                       if (meta != null)
-                        Text(
-                          meta!,
+                        Text.rich(
+                          TextSpan(
+                            children: bvMarkedSpans(
+                              meta!,
+                              type.metadata.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                              metaMarks,
+                            ),
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: type.metadata.copyWith(
-                            color: BvColors.textSecondary,
-                          ),
                         ),
                     ],
                   ),

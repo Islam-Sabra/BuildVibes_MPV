@@ -119,9 +119,13 @@ class FakeLibraryRepository implements LibraryRepository {
       ? throw const SpaceException(SpaceFailure.network)
       : 'https://files.test/$path';
 
+  /// What a download gives for a path (a real photo, say); else the
+  /// start of a PDF.
+  final bytesByPath = <String, Uint8List>{};
+
   @override
   Future<Uint8List> download(String path) async {
     calls.add('download $path');
-    return Uint8List.fromList(const [37, 80, 68, 70]);
+    return bytesByPath[path] ?? Uint8List.fromList(const [37, 80, 68, 70]);
   }
 }

@@ -6,6 +6,7 @@ import '../../core/l10n/bv_time.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/work_item.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_marked_text.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../library/library_parts.dart' show fileSize;
 import '../spaces/former_member.dart';
@@ -96,6 +97,42 @@ class DaybookWords {
   /// A name inside a sentence. One in the sentence's own direction stays
   /// as it is, so the Arabic "ل" joins it ("لعمر حداد"); another is kept
   /// whole in its own direction.
+  /// What stands out on [post]'s facts line (review 50 F34), as [meta]
+  /// writes it: who it is for (the name, or "you"), and the due with its
+  /// tone: grey, the primary colour today, red when late.
+  ({String who, String? due, BvDueTone tone}) metaMarks(
+    DaybookPost post, {
+    required String? me,
+    required DateTime now,
+  }) {
+    final item = post.item;
+    final String who;
+    if (item?.ownerId != null && item!.ownerId == me) {
+      // "you" in "For you": the words around the name in "For {name}" are
+      // taken off ("For " in English; Arabic's "ل" stays joined).
+      final around = l10n.daybookForPerson(_slot).split(_slot);
+      final you = l10n.daybookForYou;
+      who = you.startsWith(around.first) && around.first.isNotEmpty
+          ? you.substring(around.first.length)
+          : you;
+    } else {
+      who = _inLine(personName(l10n, item?.ownerName));
+    }
+    final late = post.isLate(now);
+    return (
+      who: who,
+      due: _due(post, now),
+      tone: late
+          ? BvDueTone.late
+          : post.dueDate == dayOf(now)
+          ? BvDueTone.today
+          : BvDueTone.quiet,
+    );
+  }
+
+  /// A stand-in for a name, to find the words around it in a sentence.
+  static const _slot = '';
+
   String _inLine(String name) =>
       Bidi.startsWithRtl(name) == Bidi.isRtlLanguage(locale)
       ? name

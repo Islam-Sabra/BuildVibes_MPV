@@ -632,7 +632,8 @@ void main() {
       }
 
       expect(nameOf('u').style!.fontWeight, type.headingMd.fontWeight);
-      expect(nameOf('r').style!.fontWeight, type.labelMd.fontWeight);
+      // F34: a read row's name still stands out (Almarai Bold in Arabic).
+      expect(nameOf('r').style!.fontWeight, type.emphasis.fontWeight);
     });
 
     // F13: every row opens what it is about; the whole row is the tap.

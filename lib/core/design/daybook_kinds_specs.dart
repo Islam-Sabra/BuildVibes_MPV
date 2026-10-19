@@ -54,6 +54,15 @@ abstract final class BvPinnedSpec {
   static const headerGap = BvSpace.s8;
   static const pin = BvSize.iconSm; // 16
 
+  /// Folded to one slim line (review 61 G1): the pin, the first line of
+  /// the words, and ›, as a trace is drawn.
+  static const lineMinHeight = 40.0;
+  static const linePaddingStart = BvSpace.s12;
+  static const linePaddingEnd = BvSpace.s8;
+  static const linePaddingVertical = BvSpace.s6;
+  static const lineGap = BvSpace.s8;
+  static const caret = BvSize.iconSm; // 16
+
   /// Under the masthead, 16 from each edge, 8 above the daybook.
   static const outer = EdgeInsetsDirectional.only(
     start: BvSpace.s16,

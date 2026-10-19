@@ -627,6 +627,7 @@ void main() {
       );
       final item = CalendarWorkItem.fromJson({
         'kind': 'work_item',
+        'post_id': 'p',
         'space_id': 's',
         'title': 'Cable tray hangers, level 4',
         'day': '2026-10-16',
@@ -634,6 +635,7 @@ void main() {
         'status': 'open',
       })!;
       expect(item.day, DateTime(2026, 10, 16));
+      expect(item.postId, 'p');
       expect(item.status, WorkStatus.open);
       expect(item.dueAt, isNull);
     });

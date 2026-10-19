@@ -10,6 +10,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_card_history.dart';
 import '../../shared/widgets/bv_checklist_point.dart';
 import '../../shared/widgets/bv_faces.dart';
+import '../../shared/widgets/bv_marked_text.dart';
 import '../../shared/widgets/bv_popover_menu.dart' show bvGlobalRect;
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
@@ -235,6 +236,7 @@ class DaybookCardView extends StatelessWidget {
                 BvSlipFact(
                   icon: BvIcons.person,
                   text: words.meta(post, me: me, now: now),
+                  marks: _factMarks(context),
                 ),
                 if ((post.place ?? '').isNotEmpty)
                   BvSlipFact(icon: BvIcons.place, text: post.place!),
@@ -287,6 +289,18 @@ class DaybookCardView extends StatelessWidget {
         child: paper,
       ),
     );
+  }
+
+  /// F34: who it is for in the emphasis weight and the primary colour; the
+  /// due grey, the primary colour today, red when late.
+  List<BvMark> _factMarks(BuildContext context) {
+    final type = BvType.of(context);
+    final m = words.metaMarks(_post, me: me, now: now);
+    return [
+      (part: m.who, style: type.emphasis.copyWith(color: BvColors.textPrimary)),
+      if (m.due != null)
+        (part: m.due!, style: type.bodyMd.copyWith(color: bvDueColor(m.tone))),
+    ];
   }
 
   /// A checklist, an announcement, an activity or a file post (K1–K3
@@ -520,10 +534,15 @@ class DaybookCardView extends StatelessWidget {
 
   /// The history: the last three lines (or all), oldest at the top, with
   /// Show earlier above them while older ones are left.
+  ///
+  /// Review 61 G2: a ticked point already says who ticked it and when, so
+  /// the card leaves out tick lines (a checklist's, or a work item's
+  /// points); un-ticks, edits and the rest stay. Show earlier (the whole
+  /// history) has them all.
   Widget? _history(AppLocalizations l10n) {
     final all = [
       for (final e in card.history)
-        if (e.shown) e,
+        if (e.shown && (expanded || e.kind != DaybookEventKind.ticked)) e,
     ].reversed.toList();
     final cut = !expanded && all.length > shownLines;
     final lines = cut ? all.sublist(all.length - shownLines) : all;

@@ -763,7 +763,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// couldn't.
   Future<bool> _refreshDaybook(String spaceId) async {
     // A pin or an activity today sits above the page.
-    ref.invalidate(daybookExtrasProvider(spaceId));
+    ref
+      ..invalidate(daybookExtrasProvider(spaceId))
+      ..invalidate(daybookDueTodayProvider(spaceId));
     final page = daybookCardsProvider(spaceId);
     if (!ref.exists(page)) return true;
     try {

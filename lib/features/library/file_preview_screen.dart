@@ -252,9 +252,12 @@ class _Sheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final url = ref.watch(fileUrlProvider(file.path));
     final Widget child;
-    if (url.hasError) {
+    // A photo needs no link: it is drawn from its bytes (review 61 G4).
+    final url = file.isPdf ? ref.watch(fileUrlProvider(file.path)) : null;
+    if (url == null) {
+      child = _PhotoSheet(path: file.path);
+    } else if (url.hasError) {
       child = Center(
         child: Padding(
           padding: const EdgeInsetsDirectional.all(BvSpace.s16),
@@ -263,19 +266,8 @@ class _Sheet extends ConsumerWidget {
       );
     } else if (!url.hasValue) {
       child = const Center(child: CircularProgressIndicator());
-    } else if (file.isPdf) {
-      child = _PdfSheet(path: file.path);
     } else {
-      child = InteractiveViewer(
-        key: const Key('preview-image'),
-        maxScale: BvPreviewSpec.maxZoom,
-        child: Image.network(
-          url.value!,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stack) =>
-              Center(child: EmptyNote(l10n.previewCantShow)),
-        ),
-      );
+      child = _PdfSheet(path: file.path);
     }
     return ClipRRect(
       borderRadius: BvRadius.controlAll,
@@ -287,6 +279,35 @@ class _Sheet extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// A photo or a model view (review 61 G4), drawn from its bytes, read with
+/// the person's own session as the PDF sheet reads a PDF, so the sheet
+/// never waits on a link with nothing shown; a spinner while it loads, and
+/// "can't show" if it can't be read or drawn. Pinch to zoom.
+class _PhotoSheet extends ConsumerWidget {
+  const _PhotoSheet({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final cantShow = Center(child: EmptyNote(l10n.previewCantShow));
+    return switch (ref.watch(fileBytesProvider(path))) {
+      AsyncData(:final value) => InteractiveViewer(
+        key: const Key('preview-image'),
+        maxScale: BvPreviewSpec.maxZoom,
+        child: Image(
+          image: MemoryImage(value),
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stack) => cantShow,
+        ),
+      ),
+      AsyncError() => cantShow,
+      _ => const Center(child: CircularProgressIndicator()),
+    };
   }
 }
 
@@ -448,7 +469,15 @@ class _InfoCard extends StatelessWidget {
                 style: type.bodySm.copyWith(color: BvColors.textSecondary),
               ),
             ),
-          if (canAdd && detail.isCurrent)
+          // A model view's versions come only from BuildVibes 360: the
+          // server refuses an upload (review 59 L2, review 61 G4).
+          if (f.source == LibrarySource.modelView)
+            Text(
+              l10n.previewModelViewVersions,
+              key: const Key('preview-model-view-versions'),
+              style: type.metadata.copyWith(color: BvColors.textSecondary),
+            )
+          else if (canAdd && detail.isCurrent)
             BvButton(
               key: const Key('preview-new-revision'),
               label: l10n.previewNewRevision,

@@ -143,6 +143,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Cards whose whole history is open (Show earlier, or a trace).
   final _expanded = <String>{};
 
+  /// Pinned announcements opened from their slim line (review 61 G1).
+  final _openPinned = <String>{};
+
   /// The card to open at, until the page has it (F20).
   late DaybookTarget? _target = widget.target;
   var _revealing = false;
@@ -323,7 +326,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     }
     // The points, the faces and what sits above the page, after the read
     // (never while the page is being built).
-    if (mounted) refreshMarks(ref, _spaceId);
+    if (mounted) {
+      refreshMarks(ref, _spaceId);
+      ref.invalidate(daybookDueTodayProvider(_spaceId));
+    }
   }
 
   /// The reader is up in older days, away from Now.
@@ -824,7 +830,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     });
     final canPost = space.myRights.createItems;
     final page = ref.watch(daybookCardsProvider(_spaceId));
-    final due =
+    final dueToday =
         ref.watch(daybookDueTodayProvider(_spaceId)).value ??
         const <CalendarWorkItem>[];
     final draft = ref.watch(daybookDraftProvider(_spaceId));
@@ -846,6 +852,21 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         if (i.kind == PendingKind.signOff) i.id,
     };
     final cards = page.value ?? const <DaybookCard>[];
+    // F38: the strip is what the reader still has to do. An item leaves it
+    // once it is signed as done (on the phone or on the page), and comes
+    // back when it is sent back (Open again).
+    final signed = {
+      for (final i in pending)
+        if (i.kind == PendingKind.signOff && !i.refused) i.id,
+    };
+    final onPage = {
+      for (final c in cards)
+        if (c.post.isWorkItem) c.id: c.post,
+    };
+    final due = [
+      for (final i in dueToday)
+        if (!signed.contains(i.postId) && (onPage[i.postId]?.isOpen ?? true)) i,
+    ];
     if (_target != null && page.hasValue && !_revealing) {
       WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_reveal()));
     }
@@ -919,7 +940,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               for (final p in _pinned(cards, now))
                 Padding(
                   padding: BvPinnedSpec.outer,
-                  child: _pinnedNote(p, words, me: me, now: now),
+                  child: _pinnedNote(p, words, cards, me: me, now: now),
                 ),
             Expanded(
               key: _viewportKey,
@@ -1063,16 +1084,58 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// A pinned announcement under the masthead: who wrote it and for whom,
   /// until when, its words, Got it for the reader, and for its author the
   /// faces of who got it.
+  ///
+  /// Review 61 G1: after Got it it folds to one slim line, and its author
+  /// sees the slim line from the start; a tap opens it in full (Got it
+  /// shown as given), a tap on the full one folds it again. Edited since
+  /// the reader's Got it, it opens in full until they give Got it again.
+  /// The time of the Got it is the reader's own history line on the card
+  /// (the server sends it to them); without that line on the page the
+  /// edit can't be compared, and it stays folded.
   Widget _pinnedNote(
     DaybookPost post,
-    DaybookWords words, {
+    DaybookWords words,
+    List<DaybookCard> cards, {
     required String? me,
     required DateTime now,
   }) {
     final l10n = AppLocalizations.of(context);
-    final shown = post.shownAs(
-      myAcks: _acksOf(post, ref.watch(daybookMarksProvider)),
-    );
+    final marks = ref.watch(daybookMarksProvider);
+    var shown = post.shownAs(myAcks: _acksOf(post, marks));
+    final given = shown.myAcks.contains(DaybookAck.gotIt);
+    final givenAt =
+        marks
+            .where(
+              (m) => m.postId == post.id && m.ack == DaybookAck.gotIt && m.on,
+            )
+            .lastOrNull
+            ?.at ??
+        cards
+            .where((c) => c.id == post.id)
+            .firstOrNull
+            ?.history
+            .where((e) => e.kind == DaybookEventKind.gotIt && e.byId == me)
+            .firstOrNull
+            ?.at;
+    final edited = post.editedAt;
+    final editedSince =
+        given && edited != null && givenAt != null && edited.isAfter(givenAt);
+    if (editedSince) {
+      // Got it again: the edit is new to them.
+      shown = shown.shownAs(
+        myAcks: shown.myAcks.difference(const {DaybookAck.gotIt}),
+      );
+    }
+    final folds =
+        (post.authorId != null && post.authorId == me) ||
+        (given && !editedSince);
+    if (folds && !_openPinned.contains(post.id)) {
+      return BvPinnedLine(
+        key: Key('pinned-line-${post.id}'),
+        text: post.title,
+        onTap: () => setState(() => _openPinned.add(post.id)),
+      );
+    }
     final team = post.teamId == null
         ? null
         : ref
@@ -1095,13 +1158,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       title: post.title,
       body: post.body,
       leading: by.isEmpty ? null : BvFaces(facesOf(l10n, by), large: true),
+      onTap: folds ? () => setState(() => _openPinned.remove(post.id)) : null,
       action: daybookAckAction(
         l10n,
         shown,
         me: me,
         now: now,
-        onAck: (kind, {required on}) =>
-            unawaited(_loop.acknowledge(context, shown, kind, on: on)),
+        onAck: (kind, {required on}) {
+          // Given now: it folds.
+          if (on) setState(() => _openPinned.remove(post.id));
+          unawaited(
+            _loop.acknowledge(context, shown, kind, on: on, again: editedSince),
+          );
+        },
       ),
     );
   }

@@ -6152,10 +6152,10 @@ abstract class AppLocalizations {
   /// **'Up to {n} photos'**
   String daybookAttachPhotosNote(int n);
 
-  /// Attach sheet: what a file can be.
+  /// Attach sheet: what a file can be (the server takes PDFs and photos; review 61 G3).
   ///
   /// In en, this message translates to:
-  /// **'PDF, drawings, documents'**
+  /// **'PDF, like a drawing'**
   String get daybookAttachFileNote;
 
   /// File chooser sheet title.
@@ -6229,6 +6229,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel post'**
   String get daybookCancelPost;
+
+  /// Library preview of a model view: instead of Upload a new revision (review 61 G4).
+  ///
+  /// In en, this message translates to:
+  /// **'New versions come from BuildVibes 360'**
+  String get previewModelViewVersions;
 }
 
 class _AppLocalizationsDelegate

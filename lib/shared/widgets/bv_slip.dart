@@ -8,6 +8,7 @@ import '../../core/design/daybook_paper_specs.dart';
 import '../../core/l10n/bv_time.dart';
 import 'bv_avatar.dart';
 import 'bv_clock_text.dart';
+import 'bv_marked_text.dart';
 import 'bv_paper_clip.dart';
 import 'bv_tap_target.dart';
 import 'bv_torn_edge.dart';
@@ -280,12 +281,19 @@ class BvSlipTitle extends StatelessWidget {
 }
 
 /// §2c and §2d, v13 (2581:35669): one of the card's facts, a grey line
-/// after its icon ("For Omar Haddad · by today 2 pm", the place).
+/// after its icon ("For Omar Haddad · by today 2 pm", the place). [marks]
+/// make parts of it stand out (F34: who it is for, the due).
 class BvSlipFact extends StatelessWidget {
-  const BvSlipFact({super.key, required this.icon, required this.text});
+  const BvSlipFact({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.marks = const [],
+  });
 
   final IconData icon;
   final String text;
+  final List<BvMark> marks;
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +313,13 @@ class BvSlipFact extends StatelessWidget {
             color: BvColors.iconSecondary,
           ),
         ),
-        Expanded(child: Text(text, style: style)),
+        Expanded(
+          child: marks.isEmpty
+              ? Text(text, style: style)
+              : Text.rich(
+                  TextSpan(children: bvMarkedSpans(text, style, marks)),
+                ),
+        ),
       ],
     );
   }

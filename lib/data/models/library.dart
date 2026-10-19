@@ -6,8 +6,9 @@ String? _name(Object? row) {
   return name.isEmpty ? null : name;
 }
 
-/// Where a Library file came from: added in the Library, or shared in chat.
-enum LibrarySource { upload, chat }
+/// Where a Library file came from: added in the Library, shared in chat,
+/// or published from BuildVibes 360 (a model view, migration 27).
+enum LibrarySource { upload, chat, modelView }
 
 /// A file in a Space's Library (S13k): a drawing (PDF) or a photo, for the
 /// whole Space or one Team. A new revision supersedes an older one, which
@@ -51,9 +52,11 @@ class LibraryFile {
       revLabel: json['rev_label'] as String?,
       note: json['note'] as String?,
       supersedesId: json['supersedes_id'] as String?,
-      source: json['source'] == 'chat'
-          ? LibrarySource.chat
-          : LibrarySource.upload,
+      source: switch (json['source']) {
+        'chat' => LibrarySource.chat,
+        'model_view' => LibrarySource.modelView,
+        _ => LibrarySource.upload,
+      },
       uploadedById: json['uploaded_by'] as String?,
       uploadedByName: _name(json['uploader']),
     );

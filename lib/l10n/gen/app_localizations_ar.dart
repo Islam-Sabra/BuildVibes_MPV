@@ -3667,7 +3667,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookAttachFileNote => 'PDF ومخططات ومستندات';
+  String get daybookAttachFileNote => 'ملف PDF، مثل مخطط';
 
   @override
   String get daybookFileChooseTitle => 'اختر ملفًا';
@@ -3706,4 +3706,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookCancelPost => 'إلغاء المنشور';
+
+  @override
+  String get previewModelViewVersions =>
+      'الإصدارات الجديدة تأتي من BuildVibes 360';
 }

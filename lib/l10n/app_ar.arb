@@ -1009,7 +1009,7 @@
   "daybookAttachTitle": "أضف إلى هذا المنشور",
   "daybookAttachPhotos": "صورة من المعرض",
   "daybookAttachPhotosNote": "حتى {n} صور",
-  "daybookAttachFileNote": "PDF ومخططات ومستندات",
+  "daybookAttachFileNote": "ملف PDF، مثل مخطط",
   "daybookFileChooseTitle": "اختر ملفًا",
   "daybookFileFromPhone": "من الهاتف",
   "daybookFileFromPhoneNote": "يُضاف إلى المكتبة أيضًا",
@@ -1021,5 +1021,6 @@
   "daybookFilesFull": "حتى 10 صور وملفات في المنشور",
   "daybookRemovePoint": "إزالة النقطة",
   "daybookRemoveFile": "إزالة الملف",
-  "daybookCancelPost": "إلغاء المنشور"
+  "daybookCancelPost": "إلغاء المنشور",
+  "previewModelViewVersions": "الإصدارات الجديدة تأتي من BuildVibes 360"
 }

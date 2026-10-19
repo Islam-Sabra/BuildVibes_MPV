@@ -5284,9 +5284,9 @@
       }
     }
   },
-  "daybookAttachFileNote": "PDF, drawings, documents",
+  "daybookAttachFileNote": "PDF, like a drawing",
   "@daybookAttachFileNote": {
-    "description": "Attach sheet: what a file can be."
+    "description": "Attach sheet: what a file can be (the server takes PDFs and photos; review 61 G3)."
   },
   "daybookFileChooseTitle": "Choose a file",
   "@daybookFileChooseTitle": {
@@ -5340,5 +5340,9 @@
   "daybookCancelPost": "Cancel post",
   "@daybookCancelPost": {
     "description": "Long-press menu: the author cancels a checklist, announcement, activity or file post."
+  },
+  "previewModelViewVersions": "New versions come from BuildVibes 360",
+  "@previewModelViewVersions": {
+    "description": "Library preview of a model view: instead of Upload a new revision (review 61 G4)."
   }
 }

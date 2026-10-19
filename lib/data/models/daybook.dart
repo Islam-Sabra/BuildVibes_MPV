@@ -252,6 +252,7 @@ class DaybookPost {
     this.file,
     this.newVersion = false,
     this.myAcks = const {},
+    this.editedAt,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -300,6 +301,7 @@ class DaybookPost {
         for (final a in json['my_acks'] as List? ?? const [])
           ?DaybookAck.fromJson(a),
       },
+      editedAt: _time(json['edited_at']),
     );
   }
 
@@ -374,6 +376,9 @@ class DaybookPost {
   /// What the reader said on it: their own acknowledgements.
   final Set<DaybookAck> myAcks;
 
+  /// When its author last edited it, if ever.
+  final DateTime? editedAt;
+
   bool get isWorkItem => kind == workItemKind;
   bool get isChecklist => kind == checklistKind;
   bool get isAnnouncement => kind == announcementKind;
@@ -436,6 +441,7 @@ class DaybookPost {
     file: file,
     newVersion: newVersion,
     myAcks: myAcks ?? this.myAcks,
+    editedAt: editedAt,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
@@ -833,6 +839,7 @@ class DaybookMonth {
 @immutable
 class CalendarWorkItem {
   const CalendarWorkItem({
+    required this.postId,
     required this.spaceId,
     required this.title,
     required this.day,
@@ -844,6 +851,7 @@ class CalendarWorkItem {
   static CalendarWorkItem? fromJson(Map<String, dynamic> json) {
     if (json['kind'] != DaybookPost.workItemKind) return null;
     return CalendarWorkItem(
+      postId: json['post_id'] as String,
       spaceId: json['space_id'] as String,
       title: json['title'] as String? ?? '',
       day: _day(json['day'])!,
@@ -852,6 +860,7 @@ class CalendarWorkItem {
     );
   }
 
+  final String postId;
   final String spaceId;
   final String title;
   final DateTime day;

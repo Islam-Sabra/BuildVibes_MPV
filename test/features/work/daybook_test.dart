@@ -580,12 +580,14 @@ void main() {
           s.cableTraysDue(),
           // Another Space's, and one already done: not on this strip.
           CalendarWorkItem(
+            postId: 'post-elsewhere',
             spaceId: 'other',
             title: 'Elsewhere',
             day: DateTime(2026, 10, 16),
             status: WorkStatus.open,
           ),
           CalendarWorkItem(
+            postId: 'post-signed',
             spaceId: DaybookSamples.space,
             title: 'Signed',
             day: DateTime(2026, 10, 16),

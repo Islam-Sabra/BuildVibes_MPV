@@ -19,6 +19,7 @@ class BvPinnedNote extends StatelessWidget {
     this.body,
     this.leading,
     this.action,
+    this.onTap,
   });
 
   final String author;
@@ -33,11 +34,14 @@ class BvPinnedNote extends StatelessWidget {
   final Widget? leading;
   final Widget? action;
 
+  /// Folds it back to its slim line, when it can fold.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
-    return Container(
+    final note = Container(
       key: const Key('pinned-note'),
       width: double.infinity,
       padding: const EdgeInsetsDirectional.symmetric(
@@ -102,6 +106,74 @@ class BvPinnedNote extends StatelessWidget {
               ],
             ),
         ],
+      ),
+    );
+    if (onTap == null) return note;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: note,
+    );
+  }
+}
+
+/// A pinned announcement folded to one slim line under the masthead
+/// (review 61 G1): after Got it, or for its author. The pin, the first
+/// line of its words, and ›, which mirrors in right to left. A tap opens
+/// it in full.
+class BvPinnedLine extends StatelessWidget {
+  const BvPinnedLine({super.key, required this.text, required this.onTap});
+
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        key: const Key('pinned-line'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: BvPinnedSpec.lineMinHeight,
+          ),
+          padding: const EdgeInsetsDirectional.only(
+            start: BvPinnedSpec.linePaddingStart,
+            end: BvPinnedSpec.linePaddingEnd,
+            top: BvPinnedSpec.linePaddingVertical,
+            bottom: BvPinnedSpec.linePaddingVertical,
+          ),
+          decoration: const BoxDecoration(
+            color: BvColors.surfaceBrandSoft,
+            borderRadius: BvPinnedSpec.radius,
+          ),
+          child: Row(
+            spacing: BvPinnedSpec.lineGap,
+            children: [
+              const Icon(
+                BvIcons.pin,
+                size: BvPinnedSpec.pin,
+                color: BvColors.iconAction,
+              ),
+              Expanded(
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.bodyMd.copyWith(color: BvColors.textPrimary),
+                ),
+              ),
+              const Icon(
+                BvIcons.caretForward,
+                size: BvPinnedSpec.caret,
+                color: BvColors.iconSecondary,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -295,6 +295,8 @@ class BvTypeSet {
     required this.metadata,
     required this.button,
     required this.overline,
+    required this.emphasis,
+    required this.emphasisSm,
   });
 
   final TextStyle displayBrand;
@@ -315,6 +317,14 @@ class BvTypeSet {
   /// Small caps-style section label (e.g. "NEEDS YOU"). In Arabic it maps to
   /// label-sm because Arabic has no capitals.
   final TextStyle overline;
+
+  /// The one name in a line that must stand out (review 50 F34: who a
+  /// work item is for): Medium at the main size; in Arabic, Almarai Bold,
+  /// since Almarai has no Medium.
+  final TextStyle emphasis;
+
+  /// [emphasis] at the small size, in a small grey line (Needs you rows).
+  final TextStyle emphasisSm;
 }
 
 TextStyle _t(
@@ -365,6 +375,8 @@ abstract final class BvType {
     metadata: _t(_l, FontWeight.w400, 12, 16),
     button: _t(_l, FontWeight.w600, 15, 22),
     overline: _t(_l, FontWeight.w600, 12, 16),
+    emphasis: _t(_l, FontWeight.w500, 15, 22),
+    emphasisSm: _t(_l, FontWeight.w500, 12, 16),
   );
 
   // Almarai has Regular and Bold only: semibold and bold roles are Bold,
@@ -386,6 +398,8 @@ abstract final class BvType {
     metadata: _t(_a, FontWeight.w400, 13, 18),
     button: _t(_a, FontWeight.w700, 16, 26),
     overline: _t(_a, FontWeight.w700, 13, 18),
+    emphasis: _t(_a, FontWeight.w700, 16, 26),
+    emphasisSm: _t(_a, FontWeight.w700, 13, 18),
   );
 
   /// The type set for the app language in [context].

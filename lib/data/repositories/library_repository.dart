@@ -199,6 +199,12 @@ final libraryFileProvider = FutureProvider.autoDispose
       (ref, fileId) => ref.watch(libraryRepositoryProvider).detail(fileId),
     );
 
+/// A Library photo's bytes, read with the person's own session (as
+/// Download and the PDF sheet are): review 61 G4.
+final fileBytesProvider = FutureProvider.autoDispose.family<Uint8List, String>(
+  (ref, path) => ref.watch(libraryRepositoryProvider).download(path),
+);
+
 final fileUrlProvider = FutureProvider.autoDispose.family<String, String>(
   (ref, path) => ref.watch(libraryRepositoryProvider).fileUrl(path),
 );

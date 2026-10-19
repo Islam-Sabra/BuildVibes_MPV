@@ -159,24 +159,27 @@ class DaybookLoop {
   );
 
   /// Got it, Received, Add to my calendar or On my way, or taking one
-  /// back. Only a Received moves the card (review 60 S1).
+  /// back. Only a Received moves the card (review 60 S1). [again] gives it
+  /// anew, at this time: an announcement edited since its Got it (review 61
+  /// G1), whose old Got it is taken back first.
   Future<void> acknowledge(
     BuildContext context,
     DaybookPost post,
     DaybookAck kind, {
     required bool on,
-  }) {
+    bool again = false,
+  }) async {
     if (on) unawaited(HapticFeedback.lightImpact());
-    return _mark(
-      context,
-      DaybookMark(
-        spaceId: _spaceId,
-        postId: post.id,
-        on: on,
-        at: ref.read(clockProvider)(),
-        ack: kind,
-      ),
+    DaybookMark mark({required bool on}) => DaybookMark(
+      spaceId: _spaceId,
+      postId: post.id,
+      on: on,
+      at: ref.read(clockProvider)(),
+      ack: kind,
     );
+    if (again && on) await _mark(context, mark(on: false));
+    if (!context.mounted) return;
+    await _mark(context, mark(on: on));
   }
 
   Future<void> _mark(BuildContext context, DaybookMark mark) async {
@@ -575,7 +578,9 @@ class DaybookLoop {
   }
 
   Future<void> refresh() async {
-    ref.invalidate(mySpacesProvider);
+    ref
+      ..invalidate(mySpacesProvider)
+      ..invalidate(daybookDueTodayProvider(_spaceId));
     try {
       await ref.read(daybookCardsProvider(_spaceId).notifier).refresh();
     } on SpaceException {
