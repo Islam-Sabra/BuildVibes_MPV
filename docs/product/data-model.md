@@ -603,7 +603,7 @@ Review 51, Part F.
 Review 53, Part A (Daybook v13, F25) and F30 from review 50.
 
 **Last activity.** `space_posts.last_activity_at` (not null) is when the post was made, raised by every new `work_item_events` row (raised, done, checked, sent back, update, given to someone else), every `post_edits` row and a cancel (`cancelled_at`; a cancel writes no event). It only goes up: an older event never lowers it. It is not an edit: `edited_at` and `post_edits` are untouched. Existing posts were back-filled from their latest event, edit or cancel. Index `space_posts_activity_idx (space_id, last_activity_at desc, id desc) where deleted_at is null`.
-- Since migration 28 (§24), ticks, un-ticks, Got it, Received and On my way move a card too. Work items under a target still don't move it.
+- Since migration 28 (§24), ticks, un-ticks and Received move a card too: **a card moves for what everyone who sees it can see** (review 60 S1). Got it, On my way and In my calendar don't, because only the author sees those lines. Work items under a target still don't move it.
 - The functions that write events (`sign_done`, `check_item`, `send_back`, `add_comment`, `reassign_work_item`) now lock the post before the work item, the order cancel, delete and edit already use, so raising the post from an event can't deadlock with a cancel.
 - `work_item_evidence_event_idx (event_id)`: a sign-off's photos are read by their event.
 - **For scale (fine for the pilot):** every event, edit and cancel now rewrites its post row. Because `last_activity_at` is indexed, it is not a HOT update: each index on `space_posts` gets a new entry, the search GIN index (`space_posts_search_trgm`) included.
@@ -682,7 +682,7 @@ Review 56 ("Server: migration 28") and review 54's "Later" list.
 - `got_it`, `on_my_way`, `in_my_calendar`: only the caller's own lines, unless the caller acts for the author (`acts_for_author`: the author, or a Space admin when the author is gone), who sees them all. This is the face rule of `post_acks_for` (§15) applied to the lines. `history_more` and `post_history`'s `more` count only the lines the caller may see.
 - Photos are looked up only for work item events.
 
-**Last activity** also rises on a tick, an un-tick, a Got it, a Received and an On my way (triggers on `post_point_events` and `post_acks` inserts; not In my calendar, not a take-back), so the card moves to Now. The back-fill raised posts to their latest tick and acknowledgement in force. An announcement's pin keeps it under the masthead whatever its last activity (`daybook_extras`, unchanged). Both writers (`tick_point`, `ack`) lock the post first, so the trigger's update of the post never takes a lock out of order. The move can tell a reader that someone acknowledged, never who or how many (accepted: review 56 asks for it).
+**Last activity** also rises on a tick, an un-tick and a Received (triggers on `post_point_events` inserts and on `post_acks` inserts of kind `received`), so the card moves to Now. **A card moves for what everyone who sees it can see** (review 60 S1): Got it, On my way and In my calendar don't move it, because only their own person and the author see those lines; a take-back moves nothing. The back-fill raised posts to their latest tick and Received in force. An announcement's pin keeps it under the masthead whatever its last activity (`daybook_extras`, unchanged). Both writers (`tick_point`, `ack`) lock the post first, so the trigger's update of the post never takes a lock out of order.
 
 **`post_history(post, before, before_id, limit)`** returns `(id, at, event, more)`: `more` is true when there are lines before the last one returned (it reads one line more than the page). Every row carries the same value; an empty page has no rows. The old three columns are unchanged.
 
@@ -703,7 +703,7 @@ Review 56 ("Server: migration 28") and review 54's "Later" list.
 - 20,000 Team posts and 300 Everyone posts: `my_spaces` for a member outside the Team about 2 ms (3,344 ms with a `can_see_space_post` call per post); for the Team's author and for the admin about 2 ms. Each read is one row from an index.
 - About 1,700 Activity rows: `unread_activity` about 0.5 to 1.5 ms, all read or all unread (about 165 ms when it built the whole window).
 
-**Product question for the lead:** anyone can take back a Got it, Received or On my way and give it again, and each new one moves the card to Now. That follows review 56 (each acknowledgement raises the last activity) and is left as it is; the lead may want a repeat by the same person within a short time not to move the card.
+**Taking back and giving again** (review 60): only a Received can move a card that way, which is rare and seen by everyone. Accepted for the pilot.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.

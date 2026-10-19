@@ -26,7 +26,7 @@ Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (ch
   - the latest proof photo, with its stamp (DONE, CHECKED, SENT BACK, CANCELLED);
   - **the history**: one line per event (sign-off with its note, send-back with the reason, check, update, edit, given to someone else), each with a small face and its time, behind a thin line on the leading side. The last three show; **Show earlier** opens the rest;
   - the one action for the viewer: "Sign as done" (owner), the double-tap hint (author, when done), nothing when checked.
-- **The card moves to Now** when something new happens to it, as a chat moves up in WhatsApp. On each earlier day, a thin **trace** keeps what happened that day ("Omar Haddad added an update · Sleeves at grid C7 · 4:07 pm ›"); tapping it scrolls to the card.
+- **The card moves to Now** when something new happens to it, as a chat moves up in WhatsApp. **A card moves for what everyone who sees it can see** (review 60): a sign-off, a check, a send-back, an update, an edit, a tick or a Received moves it; a Got it, an On my way or an In my calendar doesn't, because only the author sees those. On each earlier day, a thin **trace** keeps what happened that day ("Omar Haddad added an update · Sleeves at grid C7 · 4:07 pm ›"); tapping it scrolls to the card.
 - Days are separated by a small day divider ("Wednesday 14 October", "Today").
 - Cards are paper with a torn top edge and a soft shadow. Stamps are tilted ink stamps with name and time: DONE (action colour), CHECKED (positive), SENT BACK (destructive), CANCELLED (grey), NEW VERSION.
 - **Needs you** is a paper clip on the card's top trailing corner.

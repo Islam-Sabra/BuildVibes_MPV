@@ -14,8 +14,9 @@
 --   the post; the other three only the caller's own, unless the caller acts
 --   for the author (acts_for_author: the author, or an admin when the author
 --   is gone).
--- - last_activity_at rises on a tick, an un-tick, a Got it, a Received and an
---   On my way (not In my calendar, not a take-back). Back-filled. The writers
+-- - last_activity_at rises on a tick, an un-tick and a Received: a card moves
+--   for what everyone who sees it can see (review 60 S1). Got it, On my way
+--   and In my calendar don't move it; nor does a take-back. Back-filled. The writers
 --   (tick_point, ack) lock the post first, so the trigger never takes a lock
 --   out of order.
 -- - Clean-up (review 54): my_spaces().last_activity_at (the newest card the
@@ -97,8 +98,9 @@ create index post_acks_post_idx on public.post_acks (post_id, created_at desc, i
 -- Last activity: ticks and acknowledgements
 -- ---------------------------------------------------------------------------
 
--- A tick, an un-tick, a Got it, a Received or an On my way raises its post's
--- last activity (never lowers it). The writers lock the post first.
+-- A tick, an un-tick or a Received raises its post's last activity (never
+-- lowers it): lines everyone who sees the post can see (review 60 S1). The
+-- writers lock the post first.
 create function public.post_activity_on_mark()
 returns trigger
 language plpgsql
@@ -118,11 +120,11 @@ create trigger post_point_events_activity
 
 create trigger post_acks_activity
   after insert on public.post_acks
-  for each row when (new.kind in ('got_it', 'received', 'on_my_way'))
+  for each row when (new.kind = 'received')
   execute function public.post_activity_on_mark();
 
 -- Back-fill: today's ticks are 'ticked' lines at their time (the trigger
--- raises their posts), and acknowledgements in force raise theirs.
+-- raises their posts), and Received acknowledgements in force raise theirs.
 insert into public.post_point_events (post_id, point_id, actor_id, kind, point_text, created_at)
 select c.post_id, c.id, c.ticked_by, 'ticked', c.text, c.ticked_at
 from public.checklist_points c
@@ -132,7 +134,7 @@ update public.space_posts p
 set last_activity_at = a.at
 from (select a.post_id, max(a.created_at) as at
       from public.post_acks a
-      where a.kind in ('got_it', 'received', 'on_my_way')
+      where a.kind = 'received'
       group by a.post_id) a
 where a.post_id = p.id and p.last_activity_at < a.at;
 

@@ -207,8 +207,10 @@ reset role;
 select pg_temp.back('a010', 50);
 select pg_temp.as_user('e3');
 set local role authenticated;
+select set_config('test.before', pg_temp.activity('a010')::text, true);
 select lives_ok($$select public.ack(pg_temp.item('a010'), 'got_it')$$, 'Sara: Got it');
-select is(pg_temp.activity('a010'), now(), 'Got it raises the last activity');
+select is(pg_temp.activity('a010'), current_setting('test.before')::timestamptz,
+  'Got it doesn''t move the card: only the author sees it (review 60 S1)');
 reset role;
 select pg_temp.stamp(40);
 select pg_temp.as_user('e4');
@@ -261,7 +263,8 @@ select public.ack(pg_temp.item('a010'), 'got_it');
 select ok(jsonb_array_length(pg_temp.lines('a010', array['got_it'])) = 1
           and pg_temp.lines('a010', array['got_it']) -> 0 ->> 'id' <> current_setting('test.ack1'),
   'Got it again is a new line');
-select is(pg_temp.activity('a010'), now(), 'and raises the last activity again');
+select is(pg_temp.activity('a010'), now() - interval '5 minutes',
+  'and still doesn''t move the card, so taking back and giving again can''t bump it');
 reset role;
 select pg_temp.stamp(30);
 -- The author leaves: an admin acts for her.
@@ -328,8 +331,10 @@ reset role;
 select pg_temp.stamp(10);
 select pg_temp.as_user('e2');
 set local role authenticated;
+select set_config('test.before', pg_temp.activity('a030')::text, true);
 select lives_ok($$select public.ack(pg_temp.item('a030'), 'on_my_way')$$, 'Rakesh is on his way');
-select is(pg_temp.activity('a030'), now(), 'On my way raises the last activity');
+select is(pg_temp.activity('a030'), current_setting('test.before')::timestamptz,
+  'On my way doesn''t move the card (review 60 S1)');
 select is(pg_temp.lines('a030', array['on_my_way', 'in_my_calendar']) -> 0 ->> 'kind', 'on_my_way',
   'Rakesh sees his own two lines, newest first');
 select is(jsonb_array_length(pg_temp.lines('a030', array['on_my_way', 'in_my_calendar'])), 2,
