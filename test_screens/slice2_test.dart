@@ -4,6 +4,9 @@
 // kind menu E6 (2535:34221), with each kind's writing card (E1–E6 at the
 // two text sizes). Run:
 //   flutter test test_screens/slice2_test.dart --update-goldens
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
@@ -16,6 +19,7 @@ import 'package:buildvibes/data/repositories/work_repository.dart';
 import 'package:buildvibes/features/account/account_parts.dart';
 import 'package:buildvibes/features/chat/chat_state.dart' show keepFileProvider;
 import 'package:buildvibes/features/entry/entry_state.dart';
+import 'package:buildvibes/features/library/file_preview_screen.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
@@ -25,6 +29,8 @@ import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
+import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
+import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -60,6 +66,7 @@ Future<List<Override>> _overrides(
   DaybookExtras extras = const DaybookExtras(),
   Map<String, List<DaybookAckFace>> acks = const {},
   List<LibraryFile> library = const [],
+  Map<String, Uint8List> bytes = const {},
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
@@ -86,7 +93,8 @@ Future<List<Override>> _overrides(
     ),
     libraryRepositoryProvider.overrideWithValue(
       FakeLibraryRepository(now: now)
-        ..filesBySpace[DaybookSamples.space] = library,
+        ..filesBySpace[DaybookSamples.space] = library
+        ..bytesByPath.addAll(bytes),
     ),
     // Every photo, and the drawing's first page, is the prototype's site
     // photo (the only picture the app bundles for shots).
@@ -208,6 +216,109 @@ void main() {
           ],
           extras: DaybookExtras(pinned: [pinned]),
         ),
+        // Review 61 G1: in the app's fonts, the checklist's header sits
+        // fully below the pinned announcement.
+        before: (tester) async {
+          final note = tester.getRect(find.byType(BvPinnedNote));
+          final header = tester.getRect(
+            find.descendant(
+              of: find.byKey(const Key('daybook-card-post-handover')),
+              matching: find.byType(BvSlipHeader),
+            ),
+          );
+          expect(header.top, greaterThanOrEqualTo(note.bottom));
+          expect(header.bottom, lessThanOrEqualTo(shotSize.height));
+        },
+      );
+    });
+
+    testWidgets('K1 the announcement folded after Got it (review 61 G1) '
+        '[$lang]', (tester) async {
+      final pinned = s.halfDayPost(myAcks: const {DaybookAck.gotIt});
+      await shoot(
+        tester,
+        'K1-announcement-folded',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: _k1,
+          posts: [
+            s.handover(),
+            DaybookCard(post: pinned, lastActivityAt: pinned.createdAt),
+          ],
+          extras: DaybookExtras(pinned: [pinned]),
+        ),
+      );
+    });
+
+    testWidgets('F34 the facts line: who it is for, the due today [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F34-facts-line',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: s.v13(),
+        ),
+      );
+    });
+
+    testWidgets('G4 a model view in the Library viewer (review 61) [$lang]', (
+      tester,
+    ) async {
+      final photo = (await tester.runAsync(
+        () => File('assets/dev/site_sample.jpg').readAsBytes(),
+      ))!;
+      const path = '${DaybookSamples.space}/library/mv-supply-air/view.jpg';
+      final view = LibraryFile(
+        id: 'mv-supply-air',
+        spaceId: DaybookSamples.space,
+        name: 'Supply Air',
+        path: path,
+        mime: 'image/jpeg',
+        createdAt: DateTime(2026, 10, 19, 18, 6),
+        bytes: 101376,
+        revLabel: 'V1',
+        source: LibrarySource.modelView,
+        uploadedById: DaybookSamples.islam,
+        uploadedByName: s.islamName,
+      );
+      await shoot(
+        tester,
+        'G4-model-view',
+        lang,
+        (_) => const Pushed(
+          FilePreviewScreen(
+            spaceId: DaybookSamples.space,
+            fileId: 'mv-supply-air',
+          ),
+        ),
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DateTime(2026, 10, 19, 18, 10),
+          posts: const [],
+          library: [view],
+          bytes: {path: photo},
+        ),
+        before: (tester) async {
+          // Draws the picture's bytes for real.
+          await tester.runAsync(
+            () => precacheImage(
+              MemoryImage(photo),
+              tester.element(find.byType(FilePreviewScreen)),
+            ),
+          );
+          await tester.pumpAndSettle();
+        },
       );
     });
 
