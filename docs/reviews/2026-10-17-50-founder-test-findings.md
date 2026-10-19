@@ -330,3 +330,176 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 
 ## Test note: emulators and pushes
 Before testing pushes on an emulator, switch its network off and on, especially after the PC has changed networks. A stale Play services connection looks exactly like F9 ("no push"), but the server log shows the push sent with no error.
+
+# Slice 2 test, build 333 (19 Oct 2026, evening)
+
+- **Step 1, the model view:** "Supply Air" opens with the ductwork picture and V1. The blank viewer is fixed (review 61 G4).
+
+## F39. 📎 does different things depending on the kind
+- **What the founder saw:** on the writing card, with the kind still Work item, 📎 offered a file or a photo (K4). After he switched the kind to Checklist, 📎 went straight to the photo gallery.
+- **Rule:** 📎 opens the **same K4 sheet** on every kind: a photo from the gallery or a file.
+  - If the server takes PDFs on that kind (check `create_space_post`'s `p_files`), allow them.
+  - If not, show the File row in grey with one small line: "A file goes in a File post" / "الملف يُنشر كمنشور ملف". Tapping that row switches the card's kind to File and keeps what was typed.
+  - The sheet is never skipped, so the button always behaves the same way.
+- **Test:** 📎 opens K4 on each of the five kinds, in EN and AR.
+
+## F40. Typing a checklist point closes the keyboard after every letter (blocker)
+- **What the founder saw (Xiaomi, build 333):** in a checklist point, the keyboard closes after each letter, and then "something wrong happens".
+- **Likely cause:** each keystroke rebuilds the point's field. The field gets a new key, controller or focus node every time, so it loses focus.
+  - Each point must keep a stable key (its id) and its own controller and focus node, for the life of the writing card.
+  - Typing must not rebuild the list.
+- **Also check:** the Enter key adds the next point and moves focus to it, and Backspace on an empty point removes it and moves focus back. Both are normal checklist behaviour.
+- **Test:** a widget test types "Ceiling paint" into point 1, letter by letter, and focus stays on that point with the full text kept. Then check it by hand on the emulator, in EN and AR.
+
+- **Step 3, ticks (founder's phone):** a tick shows the check, the name and the time on the point, and the card moves to the bottom of the day (Now). Passed.
+
+## F41. Checklist points show in reverse order (found by Claude Code)
+- **What happened:** "Supply air check" is saved as Duct supports, Fire dampers, Diffusers, but the card shows them in reverse. The server's order is right.
+- **Fix:** the app shows points in the server's order (`sort`), on the card, the writing card and the post page.
+- **Test:** three points come back in the order they were typed, in EN and AR.
+
+## F42 and F43. A point's lines on the card follow its current state
+- **F42 (Claude Code):** on "Cleaning", the card shows "You · unticked: running", but "running" is ticked again. Omar ticked it, un-ticked it and ticked it again, and G2 hides the final tick, so the line on show no longer matches the box.
+- **F43 (founder):** ticking by mistake and un-ticking a moment later leaves an "unticked" line that is only noise.
+- **One rule for the card** (the full history and "Show earlier" still show every line):
+  - **ticked point:** no line, because the point itself shows who ticked it and when;
+  - **un-ticked point:** one "unticked" line, with who and when, **unless** the person who un-ticked it is the one who ticked it, and did so **within 1 minute**. That is a correction, not a step of the work, so nothing shows.
+  - **The server's log is not changed:** every tick and un-tick stays in the record.
+- **Test:**
+  - tick, un-tick, tick again: no line;
+  - tick, then un-tick after 5 minutes: one line;
+  - tick, then the same person un-ticks within 1 minute: no line;
+  - Omar ticks and Islam un-ticks within 1 minute: one line, because it's a different person.
+
+- **Step 4, the announcement:** pinned under the date line on Omar's side, with Got it, and no card covered by it. Passed.
+- **Step 5, Got it:** it folds to one slim line ("📌 Friday is half day ›"), the cards don't move, and the author sees Omar's face. Passed.
+
+## F44. A pinned announcement has no menu, so its author can't edit it
+- **What the founder saw:** long-pressing the pinned announcement does nothing. Tapping it only opens or folds it, and there's no ⋯. The author has no way to edit, unpin or cancel it, so step 6 couldn't be tested.
+- **Fix:** a pinned announcement, full or folded, takes the same **long-press menu** as any card, with the same rights as on the card:
+  - **the author:** Edit, Unpin and Cancel;
+  - **an admin acting for an author who has left:** the same;
+  - **everyone else:** what they get on other cards.
+  
+  Tapping still opens and folds it.
+- **Unpin:** the announcement becomes an ordinary card on its day. Unpinning doesn't move it to Now.
+- **Test:** long-press on the full and on the folded announcement opens the menu, in EN and AR. After an edit, Omar sees it in full again, until he taps Got it (review 61 G1).
+
+## F45. The people picker can't be closed, so the post went out by mistake
+- **What the founder saw (step 7, scheduled activity):** after he picked Omar, the people list stayed open. There was no way to say "that's all", and trying to close it posted the activity before he meant to.
+- **Fix, for every picker where you can choose more than one person** (activity, checklist, "For"):
+  - a fixed **Done** button at the bottom of the sheet ("Done" / "تم"), with the chosen people's faces next to it and no number;
+  - **dragging the sheet down, tapping outside it or pressing Back** also closes it and **keeps** the choice;
+  - choosing a person never closes the sheet by itself, since more can be added;
+  - **while the sheet is open, nothing under it can be tapped,** so the send button can't fire;
+  - pickers where you choose only one person (a work item's owner) still close on the first tap, as now.
+- **Test:** pick one person, then Done; pick two, then drag down. Both come back to the writing card with the right faces and nothing is posted. In EN and AR.
+
+- **Step 7, the scheduled activity:**
+  - On my way shows within 3 hours of the start.
+  - The author sees "Omar Haddad · On my way" and his own line, and the card doesn't move.
+  - Times follow the phone's 24-hour setting ("23:01 to 00:01").
+  
+  Passed, apart from F45 (the picker) and F46.
+
+## F46. A cancelled activity still counts down
+- **What the founder's phone shows:** the activity he posted by mistake (F45) and then cancelled carries the CANCELLED stamp, but still says "starts in 59 min".
+- **Fix:** a cancelled activity shows its date block, its title and the time struck through, with the stamp:
+  - no "starts in";
+  - no Add to my calendar;
+  - no On my way.
+  
+  Its reminder doesn't fire, and it leaves My calendar (check `my_calendar`).
+- **Test:** cancel an activity an hour before it starts. The card shows no countdown and no actions, and nothing fires at the start time.
+
+## F47. A file post and a Received don't appear until the Space is reopened
+- **What the founder saw (step 8):**
+  - after he posted a File from the Library, it didn't appear in the daybook until he went back to Home and opened the Space again;
+  - Omar's Received showed at once on the emulator, but on the founder's phone only after leaving the Space and opening it again.
+- **Rule, as for work items in slice 1** (F18):
+  - **your own post** appears at Now as soon as you send it, the same way a work item's draft card does, for every kind;
+  - **what others do** reaches an open daybook live, within a few seconds, with no reopen and no pull-to-refresh: new posts, ticks and un-ticks, Got it, Received, On my way, In my calendar, edits and cancels.
+- **Likely cause:** the live updates only cover work item events. Listen to the changes behind the other kinds as well (`space_posts`, `checklist_points` / `post_point_events`, `post_acks`, `post_edits`), within the existing visibility rules, and update the card in place. A card moves only by the review 60 rule.
+- **Test:** with two devices, each of these shows on the other device within 5 seconds, with no reopen: a file post, a Received, a tick, a Got it (the author's faces) and an edit.
+
+## F48. A file card says Received twice
+- **What the founder saw:** under the file there is "Received by Omar Haddad" with his face, and below that a history line, "Omar Haddad · Received 22:46". Both say the same thing, as the ticks did before G2.
+- **Rule** (the same as G2 and F42: what the card already shows is not repeated as a line):
+  - **the file card** shows only the summary, "Received by …", with up to three faces and no number;
+  - **tapping the summary** opens a small sheet listing each person and the time they tapped Received, newest first. That's where the time is, for document control;
+  - **Received lines** don't show in the card's history, but they stay in "Show earlier" and on the post page;
+  - **Got it** follows the same pattern for the author (faces, and tapping them gives the list with times).
+  - **On my way keeps its lines** (K3): the time someone set off is the point, and there's no summary line.
+- **Test:** after Received, the file card has one summary line and no Received history line. Tapping the summary lists Omar with 22:46. In EN and AR.
+
+- **Step 9, attach:** 📎 on a work item opens K4. Two gallery photos were chosen, but only one was posted (F51).
+
+## F49. The File row names the format only (founder, supersedes review 61 G3)
+- **The founder's call:** no examples. The File row's small line names only the format the server accepts: **"PDF"** / **"PDF"**.
+- If more formats are accepted later, the line lists them ("PDF, DWG"). The text comes from the same list the server checks, not from a sentence written in the app.
+
+## F50. The "File" kind is renamed for what it does (founder ok, 19 Oct; to look at again after the pilot)
+- **What the founder saw:** with both the File kind and 📎 → File, there are two ways to post a PDF, and the difference isn't clear.
+- **Decision:**
+  - **The kind** in the menu reads **"Document for receipt"** / **"مستند للاستلام"**, with the small line "Each person confirms they received it" / "كل شخص يؤكد الاستلام". The card's kind word changes from "· file" to "· for receipt" / "· للاستلام".
+  - **📎 → File stays** for attaching a PDF to any other post.
+  - "Issue a document" isn't used, because "issue" reads as "problem" to most site workers.
+- **Server:** no change. The kind stays `file`, and only the words change.
+- **Figma:** the lead updates the kind menu (E6) and K2.
+
+## F51. Only one of the chosen gallery photos is posted
+- **What the founder saw:** he chose 2 photos from the gallery, and the post carried only 1.
+- **Fix:**
+  - **every photo chosen** (up to 10) is uploaded and saved on the post, in the order chosen;
+  - **while uploading,** the writing card shows each one as a thumbnail with its own progress;
+  - **if one fails,** it shows "Couldn't send · Try again" on that thumbnail only, and the others still post;
+  - **on the card,** the first photo is shown large with up to two more as small thumbnails beside it. Tapping opens all of them in a swipeable viewer.
+- **Check the server first:** confirm `create_space_post` (`p_files`) receives every path. If it does, the fault is in the app's upload loop.
+- **Test:** choosing 2 and 10 photos posts 2 and 10, in order, on a work item and on a checklist.
+
+- **Step 10:** the owner sees "For **you** · by today 11:55 pm". After a sign-off and a send-back, Omar's card shows the SENT BACK stamp and Sign as done again, and after the check, تم التحقق. The Due today strip (F38) wasn't seen; check it in the next test.
+- **Step 11, 24-hour:** every time switches at once when the founder comes back to the app, with no restart. F37 passed.
+- **Step 12, Arabic (founder's phone):**
+  - the folded pin sits on the right;
+  - the ledger lines read naturally ("أنت · إرجاع: غير مكتمل", "Omar Haddad · توقيع كمنجز", "أنت · تحقّق");
+  - each time has its period on a second line (F15).
+  
+  One problem: F52.
+
+## F52. "لOmar Haddad": the Arabic "for" sticks to a Latin name
+- **What the founder's phone shows:** the facts line reads "لOmar Haddad · قبل الساعة 11:55 مساءً اليوم". The Arabic ل is joined straight onto the Latin name.
+- **Fix:** one pattern for every name, whatever its script: **"لـ" + a space + the name** ("لـ Omar Haddad", "لـ عمر حداد"), and **"لك"** for yourself.
+- **Names are never translated or transliterated** (founder, 19 Oct): a name shows exactly as its owner typed it, in both languages. "Omar Haddad" stays "Omar Haddad" in the Arabic UI, and "عمر حداد" stays "عمر حداد" in the English UI. That also holds for the initials on stamps and faces. The name keeps F34's weight. The same applies in Needs you rows and Activity.
+- **Check every Arabic string** that puts a word such as ل or ب before a name. All of them use the "لـ " form with a space.
+- **Test:** a Latin and an Arabic owner name, both in the Arabic UI, on a card and a Needs you row.
+
+## F53. Arabic stamp: "مساءً" sits next to the name, not the time
+- **What the founder's phone shows:** the تم التحقق stamp reads "مساءً ISLAM A · 10:58". Arabic ordering puts the period at the far end, next to the name.
+- **Fix:** the time and its period are **one unit**, kept together with Unicode isolates (FSI…PDI) or as a single text span, so the stamp reads in Arabic as **"ISLAM A · 10:58 مساءً"**, with the period beside the time.
+  - The same applies wherever a Latin name and a 12-hour Arabic time share a line: stamps, history lines and Activity rows.
+  - In 24-hour mode there is no period, so nothing changes.
+- **Test:** an Arabic stamp in 12-hour mode with a Latin name and with an Arabic name. In both, the period touches the time.
+
+## Slice 2 test on build 333: result (19 Oct, 23:00)
+- **Passed:**
+  - the model view;
+  - ticks;
+  - the pinned announcement and Got it;
+  - the scheduled activity and On my way;
+  - Received (apart from F47 and F48);
+  - the send-back loop;
+  - the 24-hour switch;
+  - Arabic (apart from F52).
+- **The fix round** on `slice2-app`, then one new build:
+  - **blockers:** F40 (typing a point) and F47 (not live);
+  - **then:** F39, F41, F42/F43, F44, F45, F46, F48, F49, F50, F51, F52 and F53.
+- **To test again on the new build:**
+  - step 2 (type a checklist);
+  - step 6 (edit a pinned announcement; F44);
+  - F38 (Due today);
+  - F47 (live updates on two devices);
+  - F51 (several photos).
+- **Lead to-do:**
+  - Figma E6 and K2 with "Document for receipt" (F50);
+  - K1b, the folded announcement;
+  - K1 with "· checklist".
