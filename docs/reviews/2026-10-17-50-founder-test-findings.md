@@ -437,3 +437,12 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 ## F49. The File row names the format only (founder, supersedes review 61 G3)
 - **The founder's call:** no examples. The File row's small line names only the format the server accepts: **"PDF"** / **"PDF"**.
 - If more formats are accepted later, the line lists them ("PDF, DWG"). The text comes from the same list the server checks, not from a sentence written in the app.
+
+## F50. The "File" kind is renamed for what it does (founder ok, 19 Oct; to look at again after the pilot)
+- **What the founder saw:** with both the File kind and 📎 → File, there are two ways to post a PDF, and the difference isn't clear.
+- **Decision:**
+  - **The kind** in the menu reads **"Document for receipt"** / **"مستند للاستلام"**, with the small line "Each person confirms they received it" / "كل شخص يؤكد الاستلام". The card's kind word changes from "· file" to "· for receipt" / "· للاستلام".
+  - **📎 → File stays** for attaching a PDF to any other post.
+  - "Issue a document" isn't used, because "issue" reads as "problem" to most site workers.
+- **Server:** no change. The kind stays `file`, and only the words change.
+- **Figma:** the lead updates the kind menu (E6) and K2.
