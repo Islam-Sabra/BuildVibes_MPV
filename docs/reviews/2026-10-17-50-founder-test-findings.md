@@ -350,3 +350,23 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - Typing must not rebuild the list.
 - **Also check:** the Enter key adds the next point and moves focus to it, and Backspace on an empty point removes it and moves focus back. Both are normal checklist behaviour.
 - **Test:** a widget test types "Ceiling paint" into point 1, letter by letter, and focus stays on that point with the full text kept. Then check it by hand on the emulator, in EN and AR.
+
+- **Step 3, ticks (founder's phone):** a tick shows the check, the name and the time on the point, and the card moves to the bottom of the day (Now). Passed.
+
+## F41. Checklist points show in reverse order (found by Claude Code)
+- **What happened:** "Supply air check" is saved as Duct supports, Fire dampers, Diffusers, but the card shows them in reverse. The server's order is right.
+- **Fix:** the app shows points in the server's order (`sort`), on the card, the writing card and the post page.
+- **Test:** three points come back in the order they were typed, in EN and AR.
+
+## F42 and F43. A point's lines on the card follow its current state
+- **F42 (Claude Code):** on "Cleaning", the card shows "You · unticked: running", but "running" is ticked again. Omar ticked it, un-ticked it and ticked it again, and G2 hides the final tick, so the line on show no longer matches the box.
+- **F43 (founder):** ticking by mistake and un-ticking a moment later leaves an "unticked" line that is only noise.
+- **One rule for the card** (the full history and "Show earlier" still show every line):
+  - **ticked point:** no line, because the point itself shows who ticked it and when;
+  - **un-ticked point:** one "unticked" line, with who and when, **unless** the person who un-ticked it is the one who ticked it, and did so **within 1 minute**. That is a correction, not a step of the work, so nothing shows.
+  - **The server's log is not changed:** every tick and un-tick stays in the record.
+- **Test:**
+  - tick, un-tick, tick again: no line;
+  - tick, then un-tick after 5 minutes: one line;
+  - tick, then the same person un-ticks within 1 minute: no line;
+  - Omar ticks and Islam un-ticks within 1 minute: one line, because it's a different person.
