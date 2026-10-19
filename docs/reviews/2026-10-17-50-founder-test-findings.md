@@ -456,3 +456,42 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **on the card,** the first photo is shown large with up to two more as small thumbnails beside it. Tapping opens all of them in a swipeable viewer.
 - **Check the server first:** confirm `create_space_post` (`p_files`) receives every path. If it does, the fault is in the app's upload loop.
 - **Test:** choosing 2 and 10 photos posts 2 and 10, in order, on a work item and on a checklist.
+
+- **Step 10:** the owner sees "For **you** · by today 11:55 pm". After a sign-off and a send-back, Omar's card shows the SENT BACK stamp and Sign as done again, and after the check, تم التحقق. The Due today strip (F38) wasn't seen; check it in the next test.
+- **Step 11, 24-hour:** every time switches at once when the founder comes back to the app, with no restart. F37 passed.
+- **Step 12, Arabic (founder's phone):**
+  - the folded pin sits on the right;
+  - the ledger lines read naturally ("أنت · إرجاع: غير مكتمل", "Omar Haddad · توقيع كمنجز", "أنت · تحقّق");
+  - each time has its period on a second line (F15).
+  
+  One problem: F52.
+
+## F52. "لOmar Haddad": the Arabic "for" sticks to a Latin name
+- **What the founder's phone shows:** the facts line reads "لOmar Haddad · قبل الساعة 11:55 مساءً اليوم". The Arabic ل is joined straight onto the Latin name.
+- **Fix:** one pattern for every name, whatever its script: **"لـ" + a space + the name** ("لـ Omar Haddad", "لـ عمر حداد"), and **"لك"** for yourself. The name keeps F34's weight. The same applies in Needs you rows and Activity.
+- **Check every Arabic string** that puts a word such as ل or ب before a name. All of them use the "لـ " form with a space.
+- **Test:** a Latin and an Arabic owner name, both in the Arabic UI, on a card and a Needs you row.
+
+## Slice 2 test on build 333: result (19 Oct, 23:00)
+- **Passed:**
+  - the model view;
+  - ticks;
+  - the pinned announcement and Got it;
+  - the scheduled activity and On my way;
+  - Received (apart from F47 and F48);
+  - the send-back loop;
+  - the 24-hour switch;
+  - Arabic (apart from F52).
+- **The fix round** on `slice2-app`, then one new build:
+  - **blockers:** F40 (typing a point) and F47 (not live);
+  - **then:** F39, F41, F42/F43, F44, F45, F46, F48, F49, F50, F51 and F52.
+- **To test again on the new build:**
+  - step 2 (type a checklist);
+  - step 6 (edit a pinned announcement; F44);
+  - F38 (Due today);
+  - F47 (live updates on two devices);
+  - F51 (several photos).
+- **Lead to-do:**
+  - Figma E6 and K2 with "Document for receipt" (F50);
+  - K1b, the folded announcement;
+  - K1 with "· checklist".
