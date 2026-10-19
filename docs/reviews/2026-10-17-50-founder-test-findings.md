@@ -370,3 +370,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - tick, then un-tick after 5 minutes: one line;
   - tick, then the same person un-ticks within 1 minute: no line;
   - Omar ticks and Islam un-ticks within 1 minute: one line, because it's a different person.
+
+- **Step 4, the announcement:** pinned under the date line on Omar's side, with Got it, and no card covered by it. Passed.
+- **Step 5, Got it:** it folds to one slim line ("📌 Friday is half day ›"), the cards don't move, and the author sees Omar's face. Passed.
+
+## F44. A pinned announcement has no menu, so its author can't edit it
+- **What the founder saw:** long-pressing the pinned announcement does nothing. Tapping it only opens or folds it, and there's no ⋯. The author has no way to edit, unpin or cancel it, so step 6 couldn't be tested.
+- **Fix:** a pinned announcement, full or folded, takes the same **long-press menu** as any card, with the same rights as on the card:
+  - **the author:** Edit, Unpin and Cancel;
+  - **an admin acting for an author who has left:** the same;
+  - **everyone else:** what they get on other cards.
+  
+  Tapping still opens and folds it.
+- **Unpin:** the announcement becomes an ordinary card on its day. Unpinning doesn't move it to Now.
+- **Test:** long-press on the full and on the folded announcement opens the menu, in EN and AR. After an edit, Omar sees it in full again, until he taps Got it (review 61 G1).
