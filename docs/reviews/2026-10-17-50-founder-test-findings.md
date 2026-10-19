@@ -330,3 +330,23 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 
 ## Test note: emulators and pushes
 Before testing pushes on an emulator, switch its network off and on, especially after the PC has changed networks. A stale Play services connection looks exactly like F9 ("no push"), but the server log shows the push sent with no error.
+
+# Slice 2 test, build 333 (19 Oct 2026, evening)
+
+- **Step 1, the model view:** "Supply Air" opens with the ductwork picture and V1. The blank viewer is fixed (review 61 G4).
+
+## F39. 📎 does different things depending on the kind
+- **What the founder saw:** on the writing card, with the kind still Work item, 📎 offered a file or a photo (K4). After he switched the kind to Checklist, 📎 went straight to the photo gallery.
+- **Rule:** 📎 opens the **same K4 sheet** on every kind: a photo from the gallery or a file.
+  - If the server takes PDFs on that kind (check `create_space_post`'s `p_files`), allow them.
+  - If not, show the File row in grey with one small line: "A file goes in a File post" / "الملف يُنشر كمنشور ملف". Tapping that row switches the card's kind to File and keeps what was typed.
+  - The sheet is never skipped, so the button always behaves the same way.
+- **Test:** 📎 opens K4 on each of the five kinds, in EN and AR.
+
+## F40. Typing a checklist point closes the keyboard after every letter (blocker)
+- **What the founder saw (Xiaomi, build 333):** in a checklist point, the keyboard closes after each letter, and then "something wrong happens".
+- **Likely cause:** each keystroke rebuilds the point's field. The field gets a new key, controller or focus node every time, so it loses focus.
+  - Each point must keep a stable key (its id) and its own controller and focus node, for the life of the writing card.
+  - Typing must not rebuild the list.
+- **Also check:** the Enter key adds the next point and moves focus to it, and Backspace on an empty point removes it and moves focus back. Both are normal checklist behaviour.
+- **Test:** a widget test types "Ceiling paint" into point 1, letter by letter, and focus stays on that point with the full text kept. Then check it by hand on the emulator, in EN and AR.
