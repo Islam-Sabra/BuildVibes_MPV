@@ -432,7 +432,7 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **On my way keeps its lines** (K3): the time someone set off is the point, and there's no summary line.
 - **Test:** after Received, the file card has one summary line and no Received history line. Tapping the summary lists Omar with 22:46. In EN and AR.
 
-- **Step 9, attach:** 📎 on a work item opens K4, two gallery photos post, and the card shows both. Passed.
+- **Step 9, attach:** 📎 on a work item opens K4. Two gallery photos were chosen, but only one was posted (F51).
 
 ## F49. The File row names the format only (founder, supersedes review 61 G3)
 - **The founder's call:** no examples. The File row's small line names only the format the server accepts: **"PDF"** / **"PDF"**.
@@ -446,3 +446,13 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - "Issue a document" isn't used, because "issue" reads as "problem" to most site workers.
 - **Server:** no change. The kind stays `file`, and only the words change.
 - **Figma:** the lead updates the kind menu (E6) and K2.
+
+## F51. Only one of the chosen gallery photos is posted
+- **What the founder saw:** he chose 2 photos from the gallery, and the post carried only 1.
+- **Fix:**
+  - **every photo chosen** (up to 10) is uploaded and saved on the post, in the order chosen;
+  - **while uploading,** the writing card shows each one as a thumbnail with its own progress;
+  - **if one fails,** it shows "Couldn't send · Try again" on that thumbnail only, and the others still post;
+  - **on the card,** the first photo is shown large with up to two more as small thumbnails beside it. Tapping opens all of them in a swipeable viewer.
+- **Check the server first:** confirm `create_space_post` (`p_files`) receives every path. If it does, the fault is in the app's upload loop.
+- **Test:** choosing 2 and 10 photos posts 2 and 10, in order, on a work item and on a checklist.
