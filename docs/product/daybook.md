@@ -30,6 +30,7 @@ Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (ch
 - Days are separated by a small day divider ("Wednesday 14 October", "Today").
 - Cards are paper with a torn top edge and a soft shadow. Stamps are tilted ink stamps with name and time: DONE (action colour), CHECKED (positive), SENT BACK (destructive), CANCELLED (grey), NEW VERSION.
 - **Needs you** is a paper clip on the card's top trailing corner.
+- **Finished work folds by week (founder, 19 Oct):** when a week ends, its Checked and Cancelled cards fold to one slim line on their day ("✓ NST-009 Fix socket Room 4 · checked by Islam Ahmed"); tap to open. Open, Done and Sent back cards never fold. No setting; display only.
 - Other kinds of post (slice 2) follow the same rule: one card, its history inside.
 
 ## Writing, in place

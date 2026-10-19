@@ -287,6 +287,18 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 - **The founder asked why it's shown.** The ref is the item's short number, so people can name it in a call or a WhatsApp ("is NST-009 done?"), in search, and in the daily and week reports.
 - **Lead's call:** keep it, small and grey, in the header. If the founder prefers, it can move to the end of the card, next to the time.
 
+## F36. Finished work folds by week (founder, 19 Oct)
+- **What the founder asked:** once a phase is done (e.g. the concrete works), its many work items clutter the daybook. He suggested a manual or scheduled "archive".
+- **Decision:** the daybook tidies itself, by week, with no setting.
+  - **This week:** every card shows in full, finished or not.
+  - **When the week ends** (the market pack's week start), each Checked or Cancelled card of that week folds to **one slim line** on its day: "✓ NST-009 Fix socket Room 4 · checked by Islam Ahmed". Tapping it opens the full card (photo, history).
+  - **Open, Done or Sent back items never fold,** wherever they are, so nothing waiting is hidden.
+  - **Phases** use "work items under one" (slice 6): one parent card ("Concrete works, level 3 · 6 of 8 checked") that folds the same way when all its items are checked.
+  - **No archive schedule setting** (rule 7): the weekly fold is the same for everyone. A manual "close a phase" for admins can come after the pilot if teams ask for it.
+  - Folding is display only. Nothing moves or is deleted, and search, reports and profile proof still see everything.
+- **Backups are not a user setting.** The record lives on the server, and backing it up is our job. Before the pilot: confirm daily backups on the Supabase plan and do one restore test (pre-pilot checklist).
+- **When:** the next app round (after slice 1 closes), with F34. The lead draws the folded line first.
+
 ## Retest results (steps 1–13, complete 18 Oct)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
 - **Step 11, reply to a reply:** under Omar's reply, "Replying to Omar Haddad" (F2 ✓); the keyboard didn't hide the text on the Xiaomi.
