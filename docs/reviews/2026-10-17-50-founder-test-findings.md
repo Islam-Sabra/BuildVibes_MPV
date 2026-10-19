@@ -384,3 +384,13 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   Tapping still opens and folds it.
 - **Unpin:** the announcement becomes an ordinary card on its day. Unpinning doesn't move it to Now.
 - **Test:** long-press on the full and on the folded announcement opens the menu, in EN and AR. After an edit, Omar sees it in full again, until he taps Got it (review 61 G1).
+
+## F45. The people picker can't be closed, so the post went out by mistake
+- **What the founder saw (step 7, scheduled activity):** after he picked Omar, the people list stayed open. There was no way to say "that's all", and trying to close it posted the activity before he meant to.
+- **Fix, for every picker where you can choose more than one person** (activity, checklist, "For"):
+  - a fixed **Done** button at the bottom of the sheet ("Done" / "تم"), with the chosen people's faces next to it and no number;
+  - **dragging the sheet down, tapping outside it or pressing Back** also closes it and **keeps** the choice;
+  - choosing a person never closes the sheet by itself, since more can be added;
+  - **while the sheet is open, nothing under it can be tapped,** so the send button can't fire;
+  - pickers where you choose only one person (a work item's owner) still close on the first tap, as now.
+- **Test:** pick one person, then Done; pick two, then drag down. Both come back to the writing card with the right faces and nothing is posted. In EN and AR.
