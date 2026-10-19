@@ -219,7 +219,8 @@ Rules from review 08, changed by migration 18 (review 33 A0, below). The app rea
 
 ## 8. Library (migration 9)
 **Tables:**
-- `library_files`: `id` (chosen by the app), `space_id`, `team_id` (optional), `name`, `storage_path` (`<space>/library/<id>/<file>`, or the chat path for documents shared in chat), `mime` (images or PDF), `bytes`, `rev_label`, `note`, `supersedes_id` (an older revision of the same Space and Team, kept), `source` ('upload' | 'chat'), `source_message_id`, `uploaded_by`, `deleted_at`.
+- `library_files`: `id` (chosen by the app), `space_id`, `team_id` (optional), `name`, `storage_path` (`<space>/library/<id>/<file>`, or the chat path for documents shared in chat), `mime` (images or PDF), `bytes`, `rev_label`, `note`, `supersedes_id` (an older revision of the same Space and Team, kept), `source` ('upload' | 'chat' | 'model_view', the last from BuildVibes 360, §23), `source_message_id`, `uploaded_by`, `deleted_at`.
+- `model_views` (migration 27, §23): the Navisworks details of a Library file of source `model_view`.
 - `work_item_attachments`: a Library file on a work item ("Used in KCT-021").
 
 **Rules:**
@@ -229,12 +230,12 @@ Rules from review 08, changed by migration 18 (review 33 A0, below). The app rea
 - **Removing:** the uploader or an admin, never a file a work item uses.
 - **Attaching to an item:** the item's creator, owner or a member who may check. A Team file only on that Team's items.
 - **Teams:** a Team with chat messages, files or daybook posts (migration 18) can't be deleted; rename it instead.
-- **Storage:** private bucket `space-files` (25 MB; images, PDF, audio). Work item folders take photos only. Files are opened through signed URLs, which the read policy checks.
+- **Storage:** private bucket `space-files` (25 MB; images, PDF, audio). Work item folders take photos only. Files are opened through signed URLs, which the read policy checks. A model view's folder holds two files, `view.jpg` (the Library file's `storage_path`) and `thumb.jpg` (`model_views.thumb_path`); both are in use for the cleanup and readable by whoever can read the file (migration 27).
 - **File type (accepted for the pilot, review 13):** Storage records the type the app sends with the upload (`metadata.mimetype`), limited to the bucket's list. It doesn't look inside the file. The type checks (`upload_mime`, "evidence must be a photo") rest on that declared type.
 - **Cleanup age (migration 11):** `claim_orphan_files` never claims a file younger than one day, whatever age the job asks for, so an upload still going on a weak signal is left alone.
 
 **Functions:**
-- `add_library_file`, `delete_library_file`, `attach_library_file`.
+- `add_library_file`, `delete_library_file`, `attach_library_file`; `publish_model_view` for BuildVibes 360 (§23).
 
 ## 9. Feed (migration 12, `20261012170000_feed.sql`, branch `feed-db`)
 **Tables:**
@@ -635,6 +636,35 @@ One clip per card, so the §20 rule "never two on one item" holds by constructio
 - Never a count. The view still runs as the caller, so `post_replies`' rules apply: no deleted reply, none across a block or from a hidden account, none the caller reported.
 
 **Speed** (local, 10,000 posts and 40,000 events in two Spaces): the cursor is one row comparison, `(last_activity_at, id) < (coalesce(before, 'infinity'), cursor_id(before, before_id))`, so the page read keeps it in the index condition, under a cached (generic) plan too (about 6 ms); a page of 30 cards with their JSON takes about 55 ms, 30 cards with 64 events each about 70 ms, 100 cards about 170 ms; `post_history` about 2 ms.
+
+## 23. Model views from BuildVibes 360 (migration 27, `20261019120000_model_views.sql`, branch `model-views-db`, not live)
+Spec `model-views.md`; review 54 (model views) and review 57 (R1-R7). The Navisworks plugin publishes a saved viewpoint into a Space Library as a **Model view**: a light issue, a title and an automatic version, nothing more. Nothing is posted to Work, Chat or the feed, and nobody is notified (no `notifications` or `push_queue` row, R7).
+
+**`library_files.source`** takes `'model_view'`. The Library row is the model view: `name` (the title), `rev_label` (`V1`, `V2`…), `note`, `supersedes_id`, `storage_path` (`view.jpg`), `mime` `image/jpeg`. Reading, removing, attaching and Library search follow §8 unchanged.
+
+**`model_views`** (one row per model view): `library_file_id` (primary key, cascades with the Library row), `thumb_path` (`<space>/library/<file_id>/thumb.jpg`, a check), `camera` (jsonb object, Navisworks `GetCamera()`), `viewpoint_guid`, `viewpoint_folder`, `model_title`, `model_file` (each ≤ 200), `comments` (`[{author, body}]`, ≤ 20, author ≤ 120, body ≤ 1000, nothing else; a check), `image_width`, `image_height` (1-10000), `navisworks` (the year, ≤ 20), and the chain: `space_id`, `team_id`, `version`.
+- **Chain:** a viewpoint in one Space, in one Team or the whole Space (separate chains). Unique index `(space_id, coalesce(team_id, zero uuid), viewpoint_guid, version)`.
+- **Rules:** read when `can_read_library_file(library_file_id)`; no direct writes (select only for `authenticated`).
+
+**`publish_model_view(p_id, p_space, p_team, p_name, p_note, p_image_path, p_thumb_path, p_bytes, p_camera, p_viewpoint_guid, p_viewpoint_folder, p_model_title, p_model_file, p_comments, p_image_width, p_image_height, p_navisworks)`** returns `(library_file_id, rev_label)`.
+- **Checks (as `add_library_file`):** the `add_files` right; a Team file needs the caller in that Team, or an admin; a new id; `p_image_path` exactly `<space>/library/<p_id>/view.jpg` and `p_thumb_path` exactly `.../thumb.jpg`, both the caller's own uploads with stored type `image/jpeg`; a thumb the cleanup has claimed is refused, like any claimed file.
+- **Retry (M1):** after the permission checks, the chain lock is taken before the id is looked at. If the id is already a Library file, the call returns its `(library_file_id, rev_label)` when it is the caller's own model view, not removed, in the same Space and Team, with the same `view.jpg`, viewpoint and thumb (a retry after a lost reply). Any other existing id is refused with "this id is taken", also when two calls race for one id (never a raw unique-key error).
+- **Limits (R4):** title trimmed, 1-120; note trimmed, ≤ 300, one line, empty is null; `p_camera` is JSON text: valid, an object, ≤ 4 KB ("camera is not valid"); `p_comments` is JSON text in the shape above, empty is `[]` ("comments are not valid"); folder, model title and file trimmed, ≤ 200, empty is null; image sizes 1-10000; bytes ≥ 0; the Navisworks version ≤ 20.
+- **The plugin must trim comments (M2)** to at most 20, each body to 1000 and each author to 120 characters before it sends them; otherwise the server refuses the whole publish ("comments are not valid").
+- **Version (R2, R3):** under `pg_advisory_xact_lock` on the chain, `V<n>` with n = 1 + the earlier model views of the chain, removed ones included, so a number is never reused. It supersedes the newest earlier one not removed (null if none). A second publish at the same moment waits for the first and gets the next version; if the unique index ever catches one, the call fails with SQLSTATE 40001 ("try again").
+- A viewpoint deleted in Navisworks changes nothing here; saved again, it has a new Guid and starts at V1.
+
+**`my_publish_targets()`** returns `(space_id, space_name, team_id, team_name)`: each Space where the caller may add files (`team_id` null: the whole Space), and each of its Teams the caller is in (every Team for an admin). None for an account scheduled for deletion (L1), a deleted Space or a Space the caller left. Ordered by Space name, the whole Space first, then Team name. No counts.
+
+**`my_model_views(p_viewpoint_guids uuid[])`** returns `(library_file_id, viewpoint_guid, title, rev_label, space_id, space_name, team_id, team_name, created_at, is_current, uses)`: the caller's own model views of those viewpoints that they can still read (not removed; a Team's only while in that Team or admin), newest first.
+- `is_current`: no newer version of the chain is left in the Library.
+- `uses` (R5): the work items that use **any** version of the chain and that the caller may see (`can_see_space_post`), each once, the most recent activity first: `{ref, title, status, item_id, at, proof_path}`. `status` is `open`, `sent_back` (open, and the latest of sign-off, check and send-back is a send-back), `done`, `checked` or `cancelled`. `at` is the item's `last_activity_at`. `proof_path` is the latest sign-off's first photo (photos in `created_at, id` order, as the card's proof), or null; the plugin opens it with the person's own session under the usual read rule.
+
+**Files (R1, R6).** `is_referenced_file` also counts `model_views.thumb_path`, so the nightly cleanup and the loose-upload limit leave a published thumb alone (a removed view's too, like its image). `may_read_file` lets whoever can read a model view open its thumb. `may_upload` is unchanged: the uploader may put both files in an unused `<space>/library/<id>/` folder, nobody else may add to it, and nothing more goes in once it is published. There is no storage update policy, so a published image can't be replaced.
+
+**`add_library_file` (L2):** refuses a `p_supersedes` that is a model view ("a model view's versions come only from BuildVibes 360"); otherwise unchanged.
+
+**Not included:** the account export (§13) doesn't list `model_views` rows yet (the Library file is listed).
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.
