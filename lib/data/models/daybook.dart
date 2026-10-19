@@ -12,6 +12,11 @@ DateTime? _day(Object? value) {
   return DateTime(d.year, d.month, d.day);
 }
 
+/// The last day a pin [until] covers: a pin to the phone's midnight ends
+/// the day before.
+DateTime pinnedLastDay(DateTime until) =>
+    until.subtract(const Duration(minutes: 1));
+
 /// The phone's calendar day of [t].
 DateTime dayOf(DateTime t) {
   final local = t.toLocal();
@@ -85,7 +90,140 @@ class DaybookAttachment {
   final String? revLabel;
 }
 
-/// A post on a Space's daybook, as space_post_json gives it.
+/// Someone a checklist or an activity is for (space_post_json "people").
+@immutable
+class DaybookPerson {
+  const DaybookPerson({required this.id, this.name});
+
+  final String id;
+
+  /// Null across a block or for a hidden account: "Former member".
+  final String? name;
+}
+
+/// What someone said on a post (post_acks): Got it on an announcement,
+/// Received on a file, On my way and In my calendar on an activity.
+enum DaybookAck {
+  gotIt('got_it'),
+  received('received'),
+  onMyWay('on_my_way'),
+  inMyCalendar('in_my_calendar');
+
+  const DaybookAck(this.json);
+  final String json;
+
+  static DaybookAck? fromJson(Object? value) =>
+      values.where((a) => a.json == value).firstOrNull;
+}
+
+/// The Library file a file post shares (space_post_json "file").
+@immutable
+class DaybookFile {
+  const DaybookFile({
+    required this.id,
+    required this.name,
+    required this.mime,
+    this.path,
+    this.bytes,
+    this.revLabel,
+    this.note,
+    this.replacesName,
+    this.replacesRev,
+    this.hasNewer = false,
+  });
+
+  factory DaybookFile.fromJson(Map<String, dynamic> json) {
+    final replaces = json['replaces'] as Map<String, dynamic>?;
+    return DaybookFile(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? '',
+      mime: json['mime'] as String? ?? 'application/pdf',
+      path: json['path'] as String?,
+      bytes: (json['bytes'] as num?)?.toInt(),
+      revLabel: json['rev_label'] as String?,
+      note: json['note'] as String?,
+      replacesName: replaces?['name'] as String?,
+      replacesRev: replaces?['rev_label'] as String?,
+      hasNewer: json['has_newer'] as bool? ?? false,
+    );
+  }
+
+  final String id;
+  final String name;
+  final String mime;
+
+  /// In the Space's private files; null while it waits on the phone.
+  final String? path;
+  final int? bytes;
+
+  /// "Rev D", as written on the drawing.
+  final String? revLabel;
+  final String? note;
+
+  /// The older version it replaces, when it does (NEW VERSION).
+  final String? replacesName;
+  final String? replacesRev;
+
+  /// A newer version is in the Library.
+  final bool hasNewer;
+
+  bool get isPdf => mime == 'application/pdf';
+}
+
+/// One point of a checklist (checklist_points), with who ticked it when.
+@immutable
+class DaybookPoint {
+  const DaybookPoint({
+    required this.id,
+    required this.text,
+    this.tickedAt,
+    this.tickedById,
+  });
+
+  /// A checklist_points row.
+  factory DaybookPoint.fromJson(Map<String, dynamic> json) => DaybookPoint(
+    id: json['id'] as String,
+    text: json['text'] as String? ?? '',
+    tickedAt: _time(json['ticked_at']),
+    tickedById: json['ticked_by'] as String?,
+  );
+
+  final String id;
+  final String text;
+  final DateTime? tickedAt;
+
+  /// Null once the account is deleted: "Former member".
+  final String? tickedById;
+
+  bool get ticked => tickedAt != null;
+}
+
+/// Someone who acknowledged a post (post_acks_for): faces and names, never
+/// a number. The server decides who may see whom.
+@immutable
+class DaybookAckFace {
+  const DaybookAckFace({
+    required this.profileId,
+    required this.kind,
+    required this.at,
+    this.name,
+  });
+
+  factory DaybookAckFace.fromJson(Map<String, dynamic> json) => DaybookAckFace(
+    profileId: json['profile_id'] as String,
+    name: json['name'] as String?,
+    kind: DaybookAck.fromJson(json['kind']) ?? DaybookAck.received,
+    at: DateTime.parse(json['at'] as String),
+  );
+
+  final String profileId;
+  final String? name;
+  final DaybookAck kind;
+  final DateTime at;
+}
+
+/// A post on a Space's daybook, as space_post_json gives it: a work item,
+/// a checklist, an announcement, a scheduled activity or a file.
 @immutable
 class DaybookPost {
   const DaybookPost({
@@ -97,19 +235,30 @@ class DaybookPost {
     this.cancelled = false,
     this.authorId,
     this.authorName,
+    this.teamId,
     this.place,
     this.dueDate,
     this.dueAt,
     this.item,
     this.pointsTotal = 0,
+    this.pointsTicked = 0,
     this.coverPath,
     this.attachments = const [],
     this.attachmentsMore = false,
+    this.people = const [],
+    this.pinnedUntil,
+    this.startsAt,
+    this.endsAt,
+    this.file,
+    this.newVersion = false,
+    this.myAcks = const {},
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
     final item = json['item'] as Map<String, dynamic>?;
     final points = json['points'] as Map<String, dynamic>?;
+    final file = json['file'] as Map<String, dynamic>?;
+    final stamp = json['stamp'] as Map<String, dynamic>?;
     return DaybookPost(
       id: json['id'] as String,
       kind: json['kind'] as String,
@@ -119,11 +268,13 @@ class DaybookPost {
       cancelled: json['status'] == 'cancelled',
       authorId: json['author_id'] as String?,
       authorName: json['author_name'] as String?,
+      teamId: json['team_id'] as String?,
       place: json['place'] as String?,
       dueDate: _day(json['due_date']),
       dueAt: _time(json['due_at']),
       item: item == null ? null : DaybookItem.fromJson(item),
       pointsTotal: (points?['total'] as num?)?.toInt() ?? 0,
+      pointsTicked: (points?['ticked'] as num?)?.toInt() ?? 0,
       coverPath: json['cover_path'] as String?,
       attachments: [
         for (final a in json['attachments'] as List? ?? const [])
@@ -133,15 +284,45 @@ class DaybookPost {
           ),
       ],
       attachmentsMore: json['attachments_more'] as bool? ?? false,
+      people: [
+        for (final p in json['people'] as List? ?? const [])
+          DaybookPerson(
+            id: (p as Map<String, dynamic>)['id'] as String,
+            name: p['name'] as String?,
+          ),
+      ],
+      pinnedUntil: _time(json['pinned_until']),
+      startsAt: _time(json['starts_at']),
+      endsAt: _time(json['ends_at']),
+      file: file == null ? null : DaybookFile.fromJson(file),
+      newVersion: stamp?['kind'] == 'new_version',
+      myAcks: {
+        for (final a in json['my_acks'] as List? ?? const [])
+          ?DaybookAck.fromJson(a),
+      },
     );
   }
 
   static const workItemKind = 'work_item';
+  static const checklistKind = 'checklist';
+  static const announcementKind = 'announcement';
+  static const activityKind = 'activity';
+  static const fileKind = 'file';
+
+  /// The kinds the daybook draws; a report (slice 7) or a kind this
+  /// version doesn't know is kept for paging only.
+  static const shownKinds = {
+    workItemKind,
+    checklistKind,
+    announcementKind,
+    activityKind,
+    fileKind,
+  };
 
   final String id;
 
   /// 'work_item', 'checklist', 'announcement', 'activity', 'file' or
-  /// 'report'. Slice 1 shows work items only.
+  /// 'report'.
   final String kind;
   final DateTime createdAt;
   final String title;
@@ -153,6 +334,9 @@ class DaybookPost {
 
   /// Null across a block or for a hidden account: "Former member".
   final String? authorName;
+
+  /// Null: Everyone.
+  final String? teamId;
   final String? place;
 
   /// The due day, and its time when it has one.
@@ -160,8 +344,9 @@ class DaybookPost {
   final DateTime? dueAt;
   final DaybookItem? item;
 
-  /// Checklist points on the work item.
+  /// Checklist points, and how many are ticked ("2 of 5 ticked").
   final int pointsTotal;
+  final int pointsTicked;
 
   /// The first photo of the post, in the Space's files.
   final String? coverPath;
@@ -170,38 +355,88 @@ class DaybookPost {
   final List<DaybookAttachment> attachments;
   final bool attachmentsMore;
 
+  /// Who a checklist or an activity is for.
+  final List<DaybookPerson> people;
+
+  /// An announcement pinned under the masthead until then (only while it
+  /// is).
+  final DateTime? pinnedUntil;
+
+  /// A scheduled activity's start and optional end.
+  final DateTime? startsAt;
+  final DateTime? endsAt;
+
+  /// A file post's Library file; [newVersion] when it replaces an older
+  /// one (the NEW VERSION stamp).
+  final DaybookFile? file;
+  final bool newVersion;
+
+  /// What the reader said on it: their own acknowledgements.
+  final Set<DaybookAck> myAcks;
+
   bool get isWorkItem => kind == workItemKind;
+  bool get isChecklist => kind == checklistKind;
+  bool get isAnnouncement => kind == announcementKind;
+  bool get isActivity => kind == activityKind;
 
   bool get isOpen => !cancelled && item?.status == WorkStatus.open;
 
+  /// Pinned under the masthead at [now].
+  bool pinnedAt(DateTime now) =>
+      isAnnouncement &&
+      !cancelled &&
+      pinnedUntil != null &&
+      pinnedUntil!.isAfter(now);
+
+  /// An activity's end: its own, or an hour after the start (as `ack`
+  /// counts it).
+  DateTime? get activityEnd => endsAt ?? startsAt?.add(activityLength);
+
+  /// An activity with no end time lasts this long.
+  static const activityLength = Duration(hours: 1);
+
   /// The post as the phone shows it while something it did waits to be
-  /// sent: checked, signed or cancelled here.
-  DaybookPost shownAs({WorkStatus? status, bool cancelled = false}) =>
-      DaybookPost(
-        id: id,
-        kind: kind,
-        createdAt: createdAt,
-        title: title,
-        body: body,
-        cancelled: cancelled || this.cancelled,
-        authorId: authorId,
-        authorName: authorName,
-        place: place,
-        dueDate: dueDate,
-        dueAt: dueAt,
-        item: item == null
-            ? null
-            : DaybookItem(
-                status: status ?? item!.status,
-                ownerId: item!.ownerId,
-                ownerName: item!.ownerName,
-                ref: item!.ref,
-              ),
-        pointsTotal: pointsTotal,
-        coverPath: coverPath,
-        attachments: attachments,
-        attachmentsMore: attachmentsMore,
-      );
+  /// sent: checked, signed or cancelled here, a point ticked, or an
+  /// acknowledgement given or taken back.
+  DaybookPost shownAs({
+    WorkStatus? status,
+    bool cancelled = false,
+    int? pointsTicked,
+    Set<DaybookAck>? myAcks,
+  }) => DaybookPost(
+    id: id,
+    kind: kind,
+    createdAt: createdAt,
+    title: title,
+    body: body,
+    cancelled: cancelled || this.cancelled,
+    authorId: authorId,
+    authorName: authorName,
+    teamId: teamId,
+    place: place,
+    dueDate: dueDate,
+    dueAt: dueAt,
+    item: item == null
+        ? null
+        : DaybookItem(
+            status: status ?? item!.status,
+            ownerId: item!.ownerId,
+            ownerName: item!.ownerName,
+            ref: item!.ref,
+          ),
+    pointsTotal: pointsTotal,
+    pointsTicked: pointsTicked ?? this.pointsTicked,
+    coverPath: coverPath,
+    attachments: attachments,
+    attachmentsMore: attachmentsMore,
+    people: people,
+    pinnedUntil: pinnedUntil,
+    startsAt: startsAt,
+    endsAt: endsAt,
+    file: file,
+    newVersion: newVersion,
+    myAcks: myAcks ?? this.myAcks,
+  );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
   /// no time, from the day after its date.
@@ -337,6 +572,19 @@ enum DaybookEventKind {
   edited,
   cancelled,
 
+  /// A checklist point ticked or unticked, with its words then (migration
+  /// 28).
+  ticked,
+  unticked,
+
+  /// Acknowledgements in force (migration 28). The server sends Got it,
+  /// On my way and In my calendar lines only to their own person and to
+  /// whoever acts for the author; Received lines to everyone.
+  gotIt,
+  received,
+  onMyWay,
+  inMyCalendar,
+
   /// A kind this version doesn't know: kept for paging, never drawn.
   unknown;
 
@@ -349,6 +597,12 @@ enum DaybookEventKind {
     'reassigned' => reassigned,
     'edited' => edited,
     'cancelled' => cancelled,
+    'ticked' => ticked,
+    'unticked' => unticked,
+    'got_it' => gotIt,
+    'received' => received,
+    'on_my_way' => onMyWay,
+    'in_my_calendar' => inMyCalendar,
     _ => unknown,
   };
 }
@@ -368,6 +622,8 @@ class DaybookEvent {
     this.fromName,
     this.toName,
     this.dueEdit,
+    this.pointId,
+    this.point,
   });
 
   factory DaybookEvent.fromJson(Map<String, dynamic> json) => DaybookEvent(
@@ -384,6 +640,8 @@ class DaybookEvent {
     dueEdit: DaybookDueEdit.fromChanges(
       json['changes'] as Map<String, dynamic>?,
     ),
+    pointId: json['point_id'] as String?,
+    point: json['point'] as String?,
   );
 
   final String id;
@@ -406,6 +664,10 @@ class DaybookEvent {
   /// An edit that moved the due.
   final DaybookDueEdit? dueEdit;
 
+  /// A tick's point, and its words when it was ticked.
+  final String? pointId;
+  final String? point;
+
   /// Drawn as a line on the card; the card's header already says who
   /// raised it.
   bool get shown =>
@@ -424,7 +686,7 @@ enum DaybookNeed {
   /// The author, when the owner can no longer sign: Give to someone else.
   giveTo,
 
-  /// A checklist point to tick (slice 2).
+  /// A checklist's person, while a point is left to tick.
   toTick,
 
   /// A value this version doesn't know: the clip, with no action.
@@ -519,6 +781,27 @@ class DaybookCardsPage {
 
   DateTime? get lastAt => cards.lastOrNull?.lastActivityAt;
   String? get lastId => cards.lastOrNull?.id;
+}
+
+/// What sits above the daybook (daybook_extras): the announcements pinned
+/// now, and the activities starting on the phone's day.
+@immutable
+class DaybookExtras {
+  const DaybookExtras({this.pinned = const [], this.activities = const []});
+
+  /// The rows as daybook_extras sends them (`id`, `reason`, `post`).
+  factory DaybookExtras.fromRows(List<Map<String, dynamic>> rows) {
+    final pinned = <DaybookPost>[];
+    final activities = <DaybookPost>[];
+    for (final r in rows) {
+      final post = DaybookPost.fromJson(r['post'] as Map<String, dynamic>);
+      (r['reason'] == 'pinned' ? pinned : activities).add(post);
+    }
+    return DaybookExtras(pinned: pinned, activities: activities);
+  }
+
+  final List<DaybookPost> pinned;
+  final List<DaybookPost> activities;
 }
 
 /// What the month drop-down marks (daybook_month), in the phone's days.

@@ -573,4 +573,193 @@ class DaybookSamples {
       ),
     ],
   );
+
+  // Slice 2 (K1–K3 v13, EN 2594:35942, 2594:36161, 2594:77364; AR
+  // 2595:471, 2595:657, 2595:838), in each frame's own words.
+
+  static const handoverId = 'post-handover';
+  static const halfDayId = 'post-half-day';
+  static const siteWalkId = 'post-site-walk';
+  static const m201Id = 'post-m201-d';
+
+  String get handoverTitle =>
+      t('Handover check, level 1 lobby', 'فحص التسليم، ردهة الدور 1');
+
+  /// K1's five points: two ticked (Sara at 10:12, Omar at 10:40).
+  List<DaybookPoint> handoverPoints() {
+    final words = [
+      t('Ceiling paint touch-up', 'ترميم دهان السقف'),
+      t('Door closers adjusted', 'ضبط مغلقات الأبواب'),
+      t('Floor tiles, cracked one replaced', 'بلاط الأرضية: استبدال المكسورة'),
+      t('Light fittings all working', 'كل وحدات الإنارة تعمل'),
+      t('Signage fixed at entrance', 'تثبيت اللافتات عند المدخل'),
+    ];
+    return [
+      for (final (i, w) in words.indexed)
+        DaybookPoint(
+          id: 'pt-$i',
+          text: w,
+          tickedAt: switch (i) {
+            0 => DateTime(2026, 10, 15, 10, 12),
+            1 => DateTime(2026, 10, 15, 10, 40),
+            _ => null,
+          },
+          tickedById: switch (i) {
+            0 => sara,
+            1 => omar,
+            _ => null,
+          },
+        ),
+    ];
+  }
+
+  /// K1's checklist card: Islam's, for Sara and Omar, by Sun 18 Oct, "2 of
+  /// 5 ticked"; [need] the clip for one of its people.
+  DaybookCard handover({DaybookNeed? need}) {
+    final points = handoverPoints();
+    final ticks = [
+      for (final p in points)
+        if (p.ticked)
+          DaybookEvent(
+            id: 'tick-${p.id}',
+            kind: DaybookEventKind.ticked,
+            at: p.tickedAt!,
+            byId: p.tickedById,
+            byName: nameOf(p.tickedById!),
+            pointId: p.id,
+            point: p.text,
+          ),
+    ];
+    return DaybookCard(
+      post: DaybookPost(
+        id: handoverId,
+        kind: DaybookPost.checklistKind,
+        createdAt: DateTime(2026, 10, 15, 9, 30),
+        title: handoverTitle,
+        authorId: islam,
+        authorName: islamName,
+        dueDate: DateTime(2026, 10, 18),
+        people: [
+          DaybookPerson(id: sara, name: saraName),
+          DaybookPerson(id: omar, name: omarName),
+        ],
+        pointsTotal: points.length,
+        pointsTicked: ticks.length,
+      ),
+      lastActivityAt: ticks.last.at,
+      history: ticks.reversed.toList(),
+      need: need,
+    );
+  }
+
+  String get halfDay => t(
+    'Friday is a half day. Work stops at 1 pm.',
+    'الجمعة نصف يوم. يتوقف العمل الساعة 1 ظهرًا.',
+  );
+
+  /// K1's pinned announcement: Sara's, to everyone, until Friday (pinned
+  /// to Saturday's midnight).
+  DaybookPost halfDayPost({Set<DaybookAck> myAcks = const {}}) => DaybookPost(
+    id: halfDayId,
+    kind: DaybookPost.announcementKind,
+    createdAt: DateTime(2026, 10, 15, 8),
+    title: halfDay,
+    authorId: sara,
+    authorName: saraName,
+    pinnedUntil: DateTime(2026, 10, 17),
+    myAcks: myAcks,
+  );
+
+  String get siteWalk =>
+      t('Site walk with the consultant', 'جولة موقع مع الاستشاري');
+
+  /// K2/K3's scheduled activity: Islam's, Friday 16 October 7:00 to 8:00,
+  /// at the gate office, for Omar, Sara and Lina; posted Thursday 7:30.
+  /// [onTheWay] are the On my way lines the author sees on the day.
+  DaybookCard siteWalkCard({
+    Set<DaybookAck> myAcks = const {},
+    List<(String, DateTime)> onTheWay = const [],
+  }) {
+    final lines = [
+      for (final (id, at) in onTheWay)
+        DaybookEvent(
+          id: 'omw-$id',
+          kind: DaybookEventKind.onMyWay,
+          at: at,
+          byId: id,
+          byName: nameOf(id),
+        ),
+    ];
+    final posted = DateTime(2026, 10, 15, 7, 30);
+    return DaybookCard(
+      post: DaybookPost(
+        id: siteWalkId,
+        kind: DaybookPost.activityKind,
+        createdAt: posted,
+        title: siteWalk,
+        authorId: islam,
+        authorName: islamName,
+        place: t('Gate office', 'مكتب البوابة'),
+        startsAt: DateTime(2026, 10, 16, 7),
+        endsAt: DateTime(2026, 10, 16, 8),
+        people: [
+          DaybookPerson(id: omar, name: omarName),
+          DaybookPerson(id: sara, name: saraName),
+          DaybookPerson(id: lina, name: linaName),
+        ],
+        myAcks: myAcks,
+      ),
+      lastActivityAt: posted,
+      history: lines.reversed.toList(),
+    );
+  }
+
+  /// K2's file post: Lina's M-201 Rev D at 11:05, a new version of Rev C,
+  /// received by Omar and Rakesh.
+  DaybookCard m201({Set<DaybookAck> myAcks = const {}}) {
+    final at = DateTime(2026, 10, 15, 11, 5);
+    return DaybookCard(
+      post: DaybookPost(
+        id: m201Id,
+        kind: DaybookPost.fileKind,
+        createdAt: at,
+        title: t('M-201 Ground floor plan', 'M-201 مخطط الدور الأرضي'),
+        body: t(
+          'Door D-104 moved 300 mm east. Please use this one.',
+          'نُقل الباب D-104 مسافة 300 مم شرقًا. يُرجى استخدام هذه النسخة.',
+        ),
+        authorId: lina,
+        authorName: linaName,
+        file: const DaybookFile(
+          id: 'lib-m201-d',
+          name: 'M-201.pdf',
+          mime: 'application/pdf',
+          path: '$space/library/lib-m201-d/M-201.pdf',
+          bytes: 2516582,
+          revLabel: 'Rev D',
+          replacesName: 'M-201.pdf',
+          replacesRev: 'Rev C',
+        ),
+        newVersion: true,
+        myAcks: myAcks,
+      ),
+      lastActivityAt: at,
+    );
+  }
+
+  /// Who received M-201 Rev D (post_acks_for): everyone who sees it may.
+  List<DaybookAckFace> m201Received() => [
+    DaybookAckFace(
+      profileId: omar,
+      name: omarName,
+      kind: DaybookAck.received,
+      at: DateTime(2026, 10, 15, 11, 20),
+    ),
+    DaybookAckFace(
+      profileId: rakesh,
+      name: rakeshName,
+      kind: DaybookAck.received,
+      at: DateTime(2026, 10, 15, 11, 31),
+    ),
+  ];
 }

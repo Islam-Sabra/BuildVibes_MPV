@@ -3404,4 +3404,306 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookLineYouPosted => 'أنت · نشر';
+
+  @override
+  String get daybookKindChecklistWord => '· قائمة تحقق';
+
+  @override
+  String get daybookKindActivityWord => '· مُجدول';
+
+  @override
+  String get daybookKindFileWord => '· ملف';
+
+  @override
+  String get daybookToEveryone => '· للجميع';
+
+  @override
+  String daybookToTeam(String team) {
+    return '· ل$team';
+  }
+
+  @override
+  String daybookTicked(int ticked, int total) {
+    return 'تم تأشير $ticked من $total';
+  }
+
+  @override
+  String get daybookGotIt => 'فهمت';
+
+  @override
+  String get daybookReceived => 'استلمت';
+
+  @override
+  String get daybookOnMyWay => 'في الطريق';
+
+  @override
+  String get daybookAddToCalendar => 'أضف إلى تقويمي';
+
+  @override
+  String get daybookInMyCalendar => 'في تقويمي';
+
+  @override
+  String daybookReceivedBy(String names) {
+    return 'الاستلام: $names';
+  }
+
+  @override
+  String daybookFileTitle(String title, String revision) {
+    return '$title · $revision';
+  }
+
+  @override
+  String get daybookStampNewVersion => 'نسخة جديدة';
+
+  @override
+  String daybookStampReplaces(String revision) {
+    return 'بدل $revision';
+  }
+
+  @override
+  String daybookPinnedUntil(String day) {
+    return 'حتى $day';
+  }
+
+  @override
+  String daybookChecklistBy(String date) {
+    return 'قبل $date';
+  }
+
+  @override
+  String daybookChecklistByAt(String date, String time) {
+    return 'قبل الساعة $time يوم $date';
+  }
+
+  @override
+  String daybookNamesAnd(String list, String last) {
+    return '$list و$last';
+  }
+
+  @override
+  String get daybookNamesComma => '، ';
+
+  @override
+  String daybookNamesOthers(String list) {
+    return '$list وآخرون';
+  }
+
+  @override
+  String daybookForYouAnd(String names) {
+    return 'لك ول$names';
+  }
+
+  @override
+  String get daybookTomorrowStart => 'غدًا';
+
+  @override
+  String daybookActivityWhen(String day, String time) {
+    return '$day، $time';
+  }
+
+  @override
+  String daybookStartsIn(String time, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes دقيقة',
+      many: '$minutes دقيقة',
+      few: '$minutes دقائق',
+      two: 'دقيقتين',
+      one: 'دقيقة',
+      zero: 'أقل من دقيقة',
+    );
+    return '$time · يبدأ بعد $_temp0';
+  }
+
+  @override
+  String daybookOnNow(String time) {
+    return '$time · جارٍ الآن';
+  }
+
+  @override
+  String get daybookPdf => 'PDF';
+
+  @override
+  String get daybookPhoto => 'صورة';
+
+  @override
+  String timeRange(String from, String to) {
+    return 'من $from إلى $to';
+  }
+
+  @override
+  String daybookLineTicked(String name) {
+    return '$name · تأشير';
+  }
+
+  @override
+  String get daybookLineYouTicked => 'أنت · تأشير';
+
+  @override
+  String daybookLineUnticked(String name) {
+    return '$name · إلغاء التأشير';
+  }
+
+  @override
+  String get daybookLineYouUnticked => 'أنت · إلغاء التأشير';
+
+  @override
+  String daybookLineGotIt(String name) {
+    return '$name · فهمت';
+  }
+
+  @override
+  String get daybookLineYouGotIt => 'أنت · فهمت';
+
+  @override
+  String daybookLineReceived(String name) {
+    return '$name · استلام';
+  }
+
+  @override
+  String get daybookLineYouReceived => 'أنت · استلام';
+
+  @override
+  String daybookLineOnMyWay(String name) {
+    return '$name · في الطريق';
+  }
+
+  @override
+  String get daybookLineYouOnMyWay => 'أنت · في الطريق';
+
+  @override
+  String daybookLineInMyCalendar(String name) {
+    return '$name · في التقويم';
+  }
+
+  @override
+  String get daybookLineYouInMyCalendar => 'أنت · في التقويم';
+
+  @override
+  String daybookTraceTicked(String name) {
+    return '$name · تأشير';
+  }
+
+  @override
+  String get daybookTraceYouTicked => 'أنت · تأشير';
+
+  @override
+  String daybookTraceUnticked(String name) {
+    return '$name · إلغاء التأشير';
+  }
+
+  @override
+  String get daybookTraceYouUnticked => 'أنت · إلغاء التأشير';
+
+  @override
+  String get daybookCouldNotTick => 'تعذّر التأشير';
+
+  @override
+  String get daybookCouldNotAck => 'تعذّر الحفظ';
+
+  @override
+  String get daybookKindChecklist => 'قائمة تحقق';
+
+  @override
+  String get daybookKindAnnouncement => 'إعلان';
+
+  @override
+  String get daybookKindActivity => 'نشاط مجدول';
+
+  @override
+  String get daybookKindFile => 'ملف';
+
+  @override
+  String get daybookBodyNote => 'أضف ملاحظة';
+
+  @override
+  String get daybookBodyAnnouncement => 'اكتب الإعلان';
+
+  @override
+  String get daybookBodyActivity => 'عمّ يدور';
+
+  @override
+  String get daybookPointHint => 'أضف نقطة';
+
+  @override
+  String get daybookPeople => 'لمن';
+
+  @override
+  String get daybookPeopleSearch => 'لمن…';
+
+  @override
+  String get daybookPinUntil => 'تثبيت حتى';
+
+  @override
+  String daybookPinnedProperty(String day) {
+    return 'مثبّت حتى $day';
+  }
+
+  @override
+  String get daybookActivityTime => 'الوقت';
+
+  @override
+  String get daybookStartsAtHelp => 'يبدأ الساعة';
+
+  @override
+  String get daybookEndsAtHelp => 'ينتهي الساعة';
+
+  @override
+  String get daybookNoEndTime => 'بدون وقت انتهاء';
+
+  @override
+  String get daybookStartLater => 'اختر وقتًا لم يأتِ بعد';
+
+  @override
+  String get daybookAttachTitle => 'أضف إلى هذا المنشور';
+
+  @override
+  String get daybookAttachPhotos => 'صورة من المعرض';
+
+  @override
+  String daybookAttachPhotosNote(int n) {
+    return 'حتى $n صور';
+  }
+
+  @override
+  String get daybookAttachFileNote => 'PDF ومخططات ومستندات';
+
+  @override
+  String get daybookFileChooseTitle => 'اختر ملفًا';
+
+  @override
+  String get daybookFileFromPhone => 'من الهاتف';
+
+  @override
+  String get daybookFileFromPhoneNote => 'يُضاف إلى المكتبة أيضًا';
+
+  @override
+  String get daybookFileInLibrary => 'في المكتبة';
+
+  @override
+  String get daybookReplacesTitle => 'هل هو نسخة جديدة من ملف؟';
+
+  @override
+  String get daybookReplacesNone => 'لا، ملف جديد';
+
+  @override
+  String daybookReplacesOption(String name) {
+    return 'بدل $name';
+  }
+
+  @override
+  String get daybookReplacesDone => 'تم';
+
+  @override
+  String get daybookFilesFull => 'حتى 10 صور وملفات في المنشور';
+
+  @override
+  String get daybookRemovePoint => 'إزالة النقطة';
+
+  @override
+  String get daybookRemoveFile => 'إزالة الملف';
+
+  @override
+  String get daybookCancelPost => 'إلغاء المنشور';
 }

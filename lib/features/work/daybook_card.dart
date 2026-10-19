@@ -3,16 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../data/models/daybook.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_card_history.dart';
+import '../../shared/widgets/bv_checklist_point.dart';
+import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_popover_menu.dart' show bvGlobalRect;
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_swipe_reveal.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../spaces/former_member.dart';
+import 'daybook_kinds.dart';
 import 'daybook_photos.dart';
 import 'daybook_words.dart';
 
@@ -26,6 +30,9 @@ class DaybookCardActions {
     this.onSignDone,
     this.onGiveTo,
     this.onUpdate,
+    this.onTick,
+    this.onAck,
+    this.onOpenFile,
   });
 
   /// Long-press, or a tap: the lifted card and its menu. Gets the card's
@@ -44,14 +51,30 @@ class DaybookCardActions {
   /// Swipe towards the end side: add an update (Y1), a shortcut to the
   /// menu's Add update. Gets the card's place on screen.
   final ValueChanged<Rect>? onUpdate;
+
+  /// Tick a checklist's point, or untick it (Lead and Crew).
+  final DaybookTick? onTick;
+
+  /// Got it, Received, Add to my calendar or On my way (Viewers too).
+  final DaybookAckTap? onAck;
+
+  /// A file post's preview: the file, full screen.
+  final VoidCallback? onOpenFile;
 }
 
-/// One card on the daybook (v13, review 53 Part B): a work item and what
-/// happened to it. From the top: the header (author, ref, the time of the
-/// latest activity), the title, the facts, the latest proof photo with its
-/// stamp, the history (the last three lines, then [expanded] all), and the
-/// reader's one action. [lifted] draws it over the dim under the menu,
-/// with no gestures.
+/// One card on the daybook (v13, review 53 Part B): a post and what
+/// happened to it. From the top: the header (author, ref or kind, the time
+/// of the latest activity), what the post is, the history (the last three
+/// lines, then [expanded] all), and the reader's one action. [lifted]
+/// draws it over the dim under the menu, with no gestures.
+///
+/// A work item has its title, facts, the latest proof photo with its
+/// stamp, and Sign as done or the double-tap hint. The other kinds (slice
+/// 2, K1–K3 v13): a checklist ticked in place ("2 of 5 ticked"); an
+/// announcement with Got it; a scheduled activity on its calendar leaf
+/// with Add to my calendar, then On my way on the day; a file with its
+/// preview, NEW VERSION when it replaces one, who received it, and
+/// Received.
 ///
 /// A [viewer] gets no paper clip and no action. A card still [waiting] to
 /// be sent says so, and shows its photo from the phone ([localPhoto]).
@@ -74,6 +97,7 @@ class DaybookCardView extends StatelessWidget {
     this.onEarlier,
     this.lineKey,
     this.onTap,
+    this.nameOf,
   });
 
   /// The card as the phone shows it: what waits to be sent is already on
@@ -110,6 +134,9 @@ class DaybookCardView extends StatelessWidget {
   /// A tap on the card, instead of the menu.
   final VoidCallback? onTap;
 
+  /// Who ticked a point, by id.
+  final DaybookNameOf? nameOf;
+
   /// History lines drawn collapsed.
   static const shownLines = 3;
 
@@ -139,12 +166,14 @@ class DaybookCardView extends StatelessWidget {
         // A lifted copy draws over the card itself: its lines have no keys.
         lineKey: (lifted ?? this.lifted) ? null : lineKey,
         onTap: onTap,
+        nameOf: nameOf,
       );
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final post = _post;
+    if (!post.isWorkItem) return _kindCard(context, l10n);
     final proof = card.proof;
     final hasPhoto = localPhoto != null || (proof?.photos.isNotEmpty ?? false);
     final stamp = _stamp(l10n);
@@ -258,6 +287,193 @@ class DaybookCardView extends StatelessWidget {
         child: paper,
       ),
     );
+  }
+
+  /// A checklist, an announcement, an activity or a file post (K1–K3
+  /// v13): the same paper, header and history as a work item's card.
+  Widget _kindCard(BuildContext context, AppLocalizations l10n) {
+    final post = _post;
+    final authorId = post.authorId;
+    final menu = actions.onMenu;
+    final history = _history(l10n);
+    final cancelled = post.cancelled
+        ? BvInkStamp(
+            label: l10n.daybookStampCancelled,
+            size: BvInkStampSize.sm,
+            tone: BvInkStampTone.muted,
+          )
+        : null;
+    return Builder(
+      builder: (context) => BvSlip(
+        key: Key('kind-card-${post.kind}'),
+        tear: BvSlipBorder.forId(post.id).variant,
+        stamp: cancelled,
+        clip: clip,
+        cancelled: post.cancelled,
+        lifted: lifted,
+        onTap: lifted
+            ? null
+            : onTap ??
+                  (menu == null ? null : () => menu(bvGlobalRect(context))),
+        onLongPress: lifted || menu == null
+            ? null
+            : () => menu(bvGlobalRect(context)),
+        children: [
+          BvSlipHeader(
+            name: personName(l10n, post.authorName),
+            label: authorId != null && authorId == me ? l10n.daybookYou : null,
+            ref: _kindWord(l10n),
+            time: words.time.parts(activityAt),
+            tint: authorId == null
+                ? BvAvatarTints.plain
+                : BvAvatarTints.forId(authorId),
+          ),
+          ..._kindBody(context, l10n),
+          ?history,
+          if (couldNotSend)
+            BvSlipError(l10n.daybookCouldNotSend)
+          else if (waiting)
+            BvSlipQuiet(l10n.daybookWaitingToSend),
+        ],
+      ),
+    );
+  }
+
+  /// "· checklist", "· scheduled", "· file", "· to everyone".
+  String _kindWord(AppLocalizations l10n) => switch (_post.kind) {
+    DaybookPost.checklistKind => l10n.daybookKindChecklistWord,
+    DaybookPost.activityKind => l10n.daybookKindActivityWord,
+    DaybookPost.fileKind => l10n.daybookKindFileWord,
+    _ => l10n.daybookToEveryone,
+  };
+
+  List<Widget> _kindBody(BuildContext context, AppLocalizations l10n) {
+    final post = _post;
+    final act = lifted || waiting ? null : actions.onAck;
+    final action = daybookAckAction(l10n, post, me: me, now: now, onAck: act);
+    // Photos added with 📎 or the camera: the first one on the card.
+    final cover = post.coverPath == null ? null : _Photo(path: post.coverPath!);
+    Widget row(Widget? leading) => Row(
+      spacing: BvAckPillSpec.rowGap,
+      children: [
+        ?leading,
+        // The action takes the room left, at the end; a long label ends
+        // with an ellipsis rather than running off the card.
+        Expanded(
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: action,
+          ),
+        ),
+      ],
+    );
+    switch (post.kind) {
+      case DaybookPost.checklistKind:
+        return [
+          BvSlipTitle(post.title, cancelled: post.cancelled),
+          ?cover,
+          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          BvSlipFacts(
+            children: [
+              if (post.people.isNotEmpty)
+                BvSlipFact(
+                  icon: BvIcons.person,
+                  text: words.peopleFor(post.people, me: me),
+                ),
+              if (post.dueDate != null)
+                BvSlipFact(
+                  icon: BvIcons.due,
+                  text: words.checklistDue(post, now),
+                ),
+            ],
+          ),
+          if (post.pointsTotal > 0)
+            BvChecklistProgress(
+              ticked: post.pointsTicked,
+              total: post.pointsTotal,
+              label: l10n.daybookTicked(post.pointsTicked, post.pointsTotal),
+            ),
+          if (!waiting)
+            DaybookChecklistPoints(
+              post: post,
+              words: words,
+              me: me,
+              nameOf: nameOf ?? (_) => null,
+              onTick: lifted || viewer ? null : actions.onTick,
+            ),
+        ];
+      case DaybookPost.activityKind:
+        return [
+          DaybookActivityWhat(post: post, words: words, now: now),
+          ?cover,
+          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          if (post.people.isNotEmpty || action != null)
+            row(
+              post.people.isEmpty
+                  ? null
+                  : BvFaces(facesOf(l10n, post.people), large: true),
+            ),
+        ];
+      case DaybookPost.fileKind:
+        final file = post.file;
+        final rev = file?.revLabel;
+        return [
+          if (file != null)
+            DaybookFilePreview(
+              file: file,
+              newVersion: post.newVersion,
+              onTap: lifted ? null : actions.onOpenFile,
+            ),
+          BvSlipTitle(
+            rev == null || post.title.contains(rev)
+                ? post.title
+                : l10n.daybookFileTitle(post.title, rev),
+            cancelled: post.cancelled,
+          ),
+          if (file != null)
+            BvSlipFact(icon: BvIcons.document, text: words.fileFact(file)),
+          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          if (!waiting)
+            Consumer(
+              builder: (context, ref, _) {
+                final by = acknowledgedBy(ref, post.id, DaybookAck.received);
+                if (by.isEmpty) return const SizedBox.shrink();
+                return DaybookFacesLine(
+                  key: const Key('received-by'),
+                  faces: facesOf(l10n, by),
+                  text: l10n.daybookReceivedBy(
+                    words.someNames([
+                      for (final p in by) personName(l10n, p.name),
+                    ]),
+                  ),
+                );
+              },
+            ),
+          if (action != null)
+            Align(alignment: AlignmentDirectional.centerStart, child: action),
+        ];
+      default:
+        // An announcement off its pin (K1's pinned one sits under the
+        // masthead): the words, and the author's faces of who got it.
+        return [
+          BvSlipTitle(post.title, cancelled: post.cancelled),
+          ?cover,
+          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          Consumer(
+            builder: (context, ref, _) {
+              final by = waiting
+                  ? const <DaybookPerson>[]
+                  : acknowledgedBy(ref, post.id, DaybookAck.gotIt);
+              if (by.isEmpty && action == null) {
+                return const SizedBox.shrink();
+              }
+              return row(
+                by.isEmpty ? null : BvFaces(facesOf(l10n, by), large: true),
+              );
+            },
+          ),
+        ];
+    }
   }
 
   /// The stamp of the latest proof (DONE, CHECKED, SENT BACK, CANCELLED);

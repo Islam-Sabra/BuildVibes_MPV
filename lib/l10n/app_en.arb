@@ -4869,5 +4869,476 @@
   "daybookLineYouPosted": "You posted it",
   "@daybookLineYouPosted": {
     "description": "Daybook trace: you posted the work item that day."
+  },
+  "daybookKindChecklistWord": "· checklist",
+  "@daybookKindChecklistWord": {
+    "description": "Daybook card header after the author: the post is a checklist."
+  },
+  "daybookKindActivityWord": "· scheduled",
+  "@daybookKindActivityWord": {
+    "description": "Daybook card header after the author: the post is a scheduled activity (K2 v13)."
+  },
+  "daybookKindFileWord": "· file",
+  "@daybookKindFileWord": {
+    "description": "Daybook card header after the author: the post is a file (K2 v13)."
+  },
+  "daybookToEveryone": "· to everyone",
+  "@daybookToEveryone": {
+    "description": "An announcement is for everyone in the Space (K1 v13)."
+  },
+  "daybookToTeam": "· to {team}",
+  "@daybookToTeam": {
+    "description": "An announcement is for one Team.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookTicked": "{ticked} of {total} ticked",
+  "@daybookTicked": {
+    "description": "A checklist's progress: its own points, the one count the Daybook shows (rule 3).",
+    "placeholders": {
+      "ticked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookGotIt": "Got it",
+  "@daybookGotIt": {
+    "description": "Button on an announcement: I have read it."
+  },
+  "daybookReceived": "Received",
+  "@daybookReceived": {
+    "description": "Button on a file post: I have the file."
+  },
+  "daybookOnMyWay": "On my way",
+  "@daybookOnMyWay": {
+    "description": "Main button on a scheduled activity on its day."
+  },
+  "daybookAddToCalendar": "Add to my calendar",
+  "@daybookAddToCalendar": {
+    "description": "Button on a scheduled activity."
+  },
+  "daybookInMyCalendar": "In my calendar",
+  "@daybookInMyCalendar": {
+    "description": "A scheduled activity is in my calendar; a tap takes it out."
+  },
+  "daybookReceivedBy": "Received by {names}",
+  "@daybookReceivedBy": {
+    "description": "Who received a file post (K2 v13), names only.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookFileTitle": "{title} · {revision}",
+  "@daybookFileTitle": {
+    "description": "A file post's title with the file's revision.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "revision": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookStampNewVersion": "NEW VERSION",
+  "@daybookStampNewVersion": {
+    "description": "Ink stamp on a file post that replaces an older version."
+  },
+  "daybookStampReplaces": "REPLACES {revision}",
+  "@daybookStampReplaces": {
+    "description": "The NEW VERSION stamp's second line.",
+    "placeholders": {
+      "revision": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPinnedUntil": "Until {day}",
+  "@daybookPinnedUntil": {
+    "description": "How long an announcement stays pinned (K1 v13).",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookChecklistBy": "By {date}",
+  "@daybookChecklistBy": {
+    "description": "A checklist's due date on its card.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookChecklistByAt": "By {date} {time}",
+  "@daybookChecklistByAt": {
+    "description": "A checklist's due date and time on its card.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookNamesAnd": "{list} and {last}",
+  "@daybookNamesAnd": {
+    "description": "Names in a list: the last one joined with and.",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookNamesComma": ", ",
+  "@daybookNamesComma": {
+    "description": "Between names in a list."
+  },
+  "daybookNamesOthers": "{list} and others",
+  "@daybookNamesOthers": {
+    "description": "The first names, then and others (never a number).",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookForYouAnd": "For you and {names}",
+  "@daybookForYouAnd": {
+    "description": "A checklist or activity for the reader and others.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookTomorrowStart": "Tomorrow",
+  "@daybookTomorrowStart": {
+    "description": "An activity starts tomorrow, at the start of its line."
+  },
+  "daybookActivityWhen": "{day}, {time}",
+  "@daybookActivityWhen": {
+    "description": "When an activity is: Tomorrow, 7:00 to 8:00 am.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookStartsIn": "{time} · starts in {minutes} min",
+  "@daybookStartsIn": {
+    "description": "An activity on its day, in its last hour before it starts (K3 v13).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookOnNow": "{time} · on now",
+  "@daybookOnNow": {
+    "description": "An activity that has started and not ended.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPdf": "PDF",
+  "@daybookPdf": {
+    "description": "A file post is a PDF."
+  },
+  "daybookPhoto": "Photo",
+  "@daybookPhoto": {
+    "description": "A file post is a photo."
+  },
+  "timeRange": "{from} to {to}",
+  "@timeRange": {
+    "description": "A time span: 7:00 to 8:00 am.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineTicked": "{name} · ticked",
+  "@daybookLineTicked": {
+    "description": "Daybook history line: someone ticked a checklist point (its words follow).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouTicked": "You · ticked",
+  "@daybookLineYouTicked": {
+    "description": "Daybook history line: you ticked a point."
+  },
+  "daybookLineUnticked": "{name} · unticked",
+  "@daybookLineUnticked": {
+    "description": "Daybook history line: someone unticked a point.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouUnticked": "You · unticked",
+  "@daybookLineYouUnticked": {
+    "description": "Daybook history line: you unticked a point."
+  },
+  "daybookLineGotIt": "{name} · Got it",
+  "@daybookLineGotIt": {
+    "description": "Daybook history line: someone said Got it (only the author sees others).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouGotIt": "You · Got it",
+  "@daybookLineYouGotIt": {
+    "description": "Daybook history line: you said Got it."
+  },
+  "daybookLineReceived": "{name} · Received",
+  "@daybookLineReceived": {
+    "description": "Daybook history line: someone received the file.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouReceived": "You · Received",
+  "@daybookLineYouReceived": {
+    "description": "Daybook history line: you received the file."
+  },
+  "daybookLineOnMyWay": "{name} · On my way",
+  "@daybookLineOnMyWay": {
+    "description": "Daybook history line: someone is on the way (K3 v13).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouOnMyWay": "You · On my way",
+  "@daybookLineYouOnMyWay": {
+    "description": "Daybook history line: you are on the way."
+  },
+  "daybookLineInMyCalendar": "{name} · In my calendar",
+  "@daybookLineInMyCalendar": {
+    "description": "Daybook history line: someone added the activity to their calendar.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineYouInMyCalendar": "You · In my calendar",
+  "@daybookLineYouInMyCalendar": {
+    "description": "Daybook history line: you added the activity to your calendar."
+  },
+  "daybookTraceTicked": "{name} ticked a point",
+  "@daybookTraceTicked": {
+    "description": "Daybook trace on an earlier day: someone ticked a point.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookTraceYouTicked": "You ticked a point",
+  "@daybookTraceYouTicked": {
+    "description": "Daybook trace: you ticked a point."
+  },
+  "daybookTraceUnticked": "{name} unticked a point",
+  "@daybookTraceUnticked": {
+    "description": "Daybook trace: someone unticked a point.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookTraceYouUnticked": "You unticked a point",
+  "@daybookTraceYouUnticked": {
+    "description": "Daybook trace: you unticked a point."
+  },
+  "daybookCouldNotTick": "Couldn't tick",
+  "@daybookCouldNotTick": {
+    "description": "A tick the server refused."
+  },
+  "daybookCouldNotAck": "Couldn't save",
+  "@daybookCouldNotAck": {
+    "description": "A Got it, Received, On my way or calendar add the server refused."
+  },
+  "daybookKindChecklist": "Checklist",
+  "@daybookKindChecklist": {
+    "description": "Kind menu and chip: a checklist."
+  },
+  "daybookKindAnnouncement": "Announcement",
+  "@daybookKindAnnouncement": {
+    "description": "Kind menu and chip: an announcement."
+  },
+  "daybookKindActivity": "Scheduled activity",
+  "@daybookKindActivity": {
+    "description": "Kind menu and chip: a scheduled activity."
+  },
+  "daybookKindFile": "File",
+  "@daybookKindFile": {
+    "description": "Kind menu and chip: a file; also the attach sheet row."
+  },
+  "daybookBodyNote": "Add a note",
+  "@daybookBodyNote": {
+    "description": "Writing card text line: a checklist or file post."
+  },
+  "daybookBodyAnnouncement": "Write the announcement",
+  "@daybookBodyAnnouncement": {
+    "description": "Writing card text line: an announcement."
+  },
+  "daybookBodyActivity": "What it is about",
+  "@daybookBodyActivity": {
+    "description": "Writing card text line: a scheduled activity."
+  },
+  "daybookPointHint": "Add a point",
+  "@daybookPointHint": {
+    "description": "Writing a checklist: the empty point line."
+  },
+  "daybookPeople": "Who it's for",
+  "@daybookPeople": {
+    "description": "More menu: who a checklist or activity is for."
+  },
+  "daybookPeopleSearch": "Who is it for…",
+  "@daybookPeopleSearch": {
+    "description": "People picker search placeholder."
+  },
+  "daybookPinUntil": "Pin until",
+  "@daybookPinUntil": {
+    "description": "More menu: pin an announcement until a day."
+  },
+  "daybookPinnedProperty": "Pinned until {day}",
+  "@daybookPinnedProperty": {
+    "description": "Writing card: the announcement is pinned until a day.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookActivityTime": "Time",
+  "@daybookActivityTime": {
+    "description": "More menu: when a scheduled activity starts and ends."
+  },
+  "daybookStartsAtHelp": "Starts at",
+  "@daybookStartsAtHelp": {
+    "description": "Time picker title: the activity starts."
+  },
+  "daybookEndsAtHelp": "Ends at",
+  "@daybookEndsAtHelp": {
+    "description": "Time picker title: the activity ends."
+  },
+  "daybookNoEndTime": "No end time",
+  "@daybookNoEndTime": {
+    "description": "Time picker: the activity has no end time."
+  },
+  "daybookStartLater": "Choose a time that has not come yet",
+  "@daybookStartLater": {
+    "description": "An activity must start in the future."
+  },
+  "daybookAttachTitle": "Add to this post",
+  "@daybookAttachTitle": {
+    "description": "Attach sheet title (K4 v13)."
+  },
+  "daybookAttachPhotos": "Photo from the gallery",
+  "@daybookAttachPhotos": {
+    "description": "Attach sheet: photos from the phone."
+  },
+  "daybookAttachPhotosNote": "Up to {n} photos",
+  "@daybookAttachPhotosNote": {
+    "description": "Attach sheet: how many photos at most.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookAttachFileNote": "PDF, drawings, documents",
+  "@daybookAttachFileNote": {
+    "description": "Attach sheet: what a file can be."
+  },
+  "daybookFileChooseTitle": "Choose a file",
+  "@daybookFileChooseTitle": {
+    "description": "File chooser sheet title."
+  },
+  "daybookFileFromPhone": "From the phone",
+  "@daybookFileFromPhone": {
+    "description": "File chooser: a PDF or photo on the phone."
+  },
+  "daybookFileFromPhoneNote": "It goes to the Library too",
+  "@daybookFileFromPhoneNote": {
+    "description": "File chooser: a new file also goes to the Library."
+  },
+  "daybookFileInLibrary": "In the Library",
+  "@daybookFileInLibrary": {
+    "description": "File chooser: the Space's Library files."
+  },
+  "daybookReplacesTitle": "Is it a new version of a file?",
+  "@daybookReplacesTitle": {
+    "description": "Sheet title after picking a file on the phone."
+  },
+  "daybookReplacesNone": "No, a new file",
+  "@daybookReplacesNone": {
+    "description": "The picked file replaces nothing."
+  },
+  "daybookReplacesOption": "Replaces {name}",
+  "@daybookReplacesOption": {
+    "description": "The picked file is a new version of this one.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookReplacesDone": "Done",
+  "@daybookReplacesDone": {
+    "description": "Confirms the new-version choice."
+  },
+  "daybookFilesFull": "Up to 10 photos and files on a post",
+  "@daybookFilesFull": {
+    "description": "A post takes at most 10 photos and files."
+  },
+  "daybookRemovePoint": "Remove point",
+  "@daybookRemovePoint": {
+    "description": "Read out for a checklist point's remove button while writing."
+  },
+  "daybookRemoveFile": "Remove file",
+  "@daybookRemoveFile": {
+    "description": "Read out for a file's remove button while writing."
+  },
+  "daybookCancelPost": "Cancel post",
+  "@daybookCancelPost": {
+    "description": "Long-press menu: the author cancels a checklist, announcement, activity or file post."
   }
 }

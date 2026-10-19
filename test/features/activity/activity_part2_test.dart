@@ -354,8 +354,6 @@ void main() {
         'never a Needs you item again [$lang]', (tester) async {
       final activity = FakeActivityRepository(
         cards: [_card(NeedsKind.forYou, 'item-7')],
-        // Space 2 has nothing new today: it still says when (F28).
-        last: {'space-2': testNow.subtract(const Duration(days: 3))},
         today: [
           // Space 1's news is the work item Needs you shows already.
           SpaceToday(
@@ -371,12 +369,19 @@ void main() {
           ),
         ],
       );
-      await pumpApp(
-        tester,
-        language: lang,
-        spaces: _twoSpaces(),
-        activity: activity,
-      );
+      // Space 2 has nothing new today: it still says when (F28), from
+      // my_spaces().last_activity_at.
+      final spaces = _oneSpace()
+        ..spaces.add(
+          SpaceSummary(
+            id: 'space-2',
+            name: 'Khiran villas — Finishing',
+            pass: SpacePass.lead,
+            isAdmin: true,
+            lastActivityAt: testNow.subtract(const Duration(days: 3)),
+          ),
+        );
+      await pumpApp(tester, language: lang, spaces: spaces, activity: activity);
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       final list = find.byKey(const Key('home-your-spaces'));

@@ -21,8 +21,9 @@ import 'needs_card.dart' show openNeeds;
 /// Space's daybook (a join request, its People tab); opening the exact
 /// slip comes with pushes in slice 10.
 ///
-/// Announcements to acknowledge ("Got it?") and new file versions
-/// ("Received?") join the list in slice 2, with their post kinds.
+/// A checklist with points left for you (needs_you's checklist_for_you)
+/// has its paper clip on its daybook card (slice 2); it joins this list
+/// with Needs you across Spaces (slice 10).
 class NeedsYouScreen extends ConsumerWidget {
   const NeedsYouScreen({super.key});
 

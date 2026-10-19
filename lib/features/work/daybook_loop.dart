@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/daybook_loop_specs.dart' show BvFieldSheetSpec;
 import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
 import '../../core/l10n/bidi.dart';
+import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
@@ -23,6 +25,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
+import 'daybook_marks.dart';
 import 'daybook_photos.dart';
 import 'daybook_state.dart';
 import 'daybook_words.dart';
@@ -69,6 +72,7 @@ class DaybookLoop {
   }) {
     final card = view.card;
     final post = card.post;
+    if (!post.isWorkItem) return _kindActions(context, view, me: me);
     if (_viewer) return view;
     final menu = _menu(card, me: me);
     final lifted = view.copyWith(lifted: true);
@@ -97,6 +101,90 @@ class DaybookLoop {
             : null,
       ),
     );
+  }
+
+  /// A checklist, an announcement, an activity or a file: tick a point
+  /// (Lead and Crew), acknowledge (Viewers too), open the file, and for
+  /// the author the menu's Cancel. Updates, checks and sign-offs are work
+  /// items' only.
+  DaybookCardView _kindActions(
+    BuildContext context,
+    DaybookCardView view, {
+    required String? me,
+  }) {
+    final post = view.card.post;
+    final mine = post.authorId != null && post.authorId == me;
+    final menu = [
+      if (mine && !post.cancelled && !_viewer) DaybookSlipAction.cancel,
+    ];
+    final lifted = view.copyWith(lifted: true);
+    final fileId = post.file?.id;
+    return view.copyWith(
+      actions: DaybookCardActions(
+        onMenu: menu.isEmpty
+            ? null
+            : (at) => unawaited(
+                _longPress(context, view.card, lifted, at, menu, null),
+              ),
+        onTick: _viewer
+            ? null
+            : (point, {required on}) =>
+                  unawaited(tick(context, post, point, on: on)),
+        onAck: (kind, {required on}) =>
+            unawaited(acknowledge(context, post, kind, on: on)),
+        onOpenFile: fileId == null
+            ? null
+            : () => context.push(AppRoutes.libraryFile(_spaceId, fileId)),
+      ),
+    );
+  }
+
+  /// Ticks or unticks [point] on [post]: it shows at once, and the card
+  /// moves to Now (everyone who sees it sees the tick).
+  Future<void> tick(
+    BuildContext context,
+    DaybookPost post,
+    DaybookPoint point, {
+    required bool on,
+  }) => _mark(
+    context,
+    DaybookMark(
+      spaceId: _spaceId,
+      postId: post.id,
+      on: on,
+      at: ref.read(clockProvider)(),
+      pointId: point.id,
+      pointText: point.text,
+    ),
+  );
+
+  /// Got it, Received, Add to my calendar or On my way, or taking one
+  /// back. Only a Received moves the card (review 60 S1).
+  Future<void> acknowledge(
+    BuildContext context,
+    DaybookPost post,
+    DaybookAck kind, {
+    required bool on,
+  }) {
+    if (on) unawaited(HapticFeedback.lightImpact());
+    return _mark(
+      context,
+      DaybookMark(
+        spaceId: _spaceId,
+        postId: post.id,
+        on: on,
+        at: ref.read(clockProvider)(),
+        ack: kind,
+      ),
+    );
+  }
+
+  Future<void> _mark(BuildContext context, DaybookMark mark) async {
+    try {
+      await ref.read(daybookMarksProvider.notifier).send(mark);
+    } on SpaceException catch (e) {
+      if (context.mounted) showSpaceError(context, e);
+    }
   }
 
   /// The menu, in the order of review 53: Check, Send back, Add update,
@@ -135,7 +223,9 @@ class DaybookLoop {
       lifted: lifted,
       popover: (menuContext) => BvSlipMenu<DaybookSlipAction>(
         key: const Key('slip-menu'),
-        items: [for (final a in menu) _item(l10n, a)],
+        items: [
+          for (final a in menu) _item(l10n, a, workItem: card.post.isWorkItem),
+        ],
         onSelected: (a) => Navigator.of(menuContext).pop(a),
       ),
     );
@@ -159,8 +249,9 @@ class DaybookLoop {
 
   static BvSlipMenuItem<DaybookSlipAction> _item(
     AppLocalizations l10n,
-    DaybookSlipAction a,
-  ) => switch (a) {
+    DaybookSlipAction a, {
+    required bool workItem,
+  }) => switch (a) {
     DaybookSlipAction.check => BvSlipMenuItem(
       value: a,
       label: l10n.daybookCheck,
@@ -191,7 +282,7 @@ class DaybookLoop {
     ),
     DaybookSlipAction.cancel => BvSlipMenuItem(
       value: a,
-      label: l10n.daybookCancelItem,
+      label: workItem ? l10n.daybookCancelItem : l10n.daybookCancelPost,
       icon: BvIcons.close,
       tone: BvSlipMenuTone.destructive,
     ),
@@ -458,6 +549,8 @@ class DaybookLoop {
       RefusedAction.cancel => l10n.daybookCouldNotCancel,
       RefusedAction.giveTo => l10n.daybookCouldNotGiveTo,
       RefusedAction.update => l10n.daybookCouldNotUpdate,
+      RefusedAction.tick => l10n.daybookCouldNotTick,
+      RefusedAction.ack => l10n.daybookCouldNotAck,
     };
     var why = r.why;
     if (why == RefusalWhy.changed) {

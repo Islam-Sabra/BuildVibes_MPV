@@ -5749,6 +5749,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You posted it'**
   String get daybookLineYouPosted;
+
+  /// Daybook card header after the author: the post is a checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'· checklist'**
+  String get daybookKindChecklistWord;
+
+  /// Daybook card header after the author: the post is a scheduled activity (K2 v13).
+  ///
+  /// In en, this message translates to:
+  /// **'· scheduled'**
+  String get daybookKindActivityWord;
+
+  /// Daybook card header after the author: the post is a file (K2 v13).
+  ///
+  /// In en, this message translates to:
+  /// **'· file'**
+  String get daybookKindFileWord;
+
+  /// An announcement is for everyone in the Space (K1 v13).
+  ///
+  /// In en, this message translates to:
+  /// **'· to everyone'**
+  String get daybookToEveryone;
+
+  /// An announcement is for one Team.
+  ///
+  /// In en, this message translates to:
+  /// **'· to {team}'**
+  String daybookToTeam(String team);
+
+  /// A checklist's progress: its own points, the one count the Daybook shows (rule 3).
+  ///
+  /// In en, this message translates to:
+  /// **'{ticked} of {total} ticked'**
+  String daybookTicked(int ticked, int total);
+
+  /// Button on an announcement: I have read it.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get daybookGotIt;
+
+  /// Button on a file post: I have the file.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get daybookReceived;
+
+  /// Main button on a scheduled activity on its day.
+  ///
+  /// In en, this message translates to:
+  /// **'On my way'**
+  String get daybookOnMyWay;
+
+  /// Button on a scheduled activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my calendar'**
+  String get daybookAddToCalendar;
+
+  /// A scheduled activity is in my calendar; a tap takes it out.
+  ///
+  /// In en, this message translates to:
+  /// **'In my calendar'**
+  String get daybookInMyCalendar;
+
+  /// Who received a file post (K2 v13), names only.
+  ///
+  /// In en, this message translates to:
+  /// **'Received by {names}'**
+  String daybookReceivedBy(String names);
+
+  /// A file post's title with the file's revision.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · {revision}'**
+  String daybookFileTitle(String title, String revision);
+
+  /// Ink stamp on a file post that replaces an older version.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW VERSION'**
+  String get daybookStampNewVersion;
+
+  /// The NEW VERSION stamp's second line.
+  ///
+  /// In en, this message translates to:
+  /// **'REPLACES {revision}'**
+  String daybookStampReplaces(String revision);
+
+  /// How long an announcement stays pinned (K1 v13).
+  ///
+  /// In en, this message translates to:
+  /// **'Until {day}'**
+  String daybookPinnedUntil(String day);
+
+  /// A checklist's due date on its card.
+  ///
+  /// In en, this message translates to:
+  /// **'By {date}'**
+  String daybookChecklistBy(String date);
+
+  /// A checklist's due date and time on its card.
+  ///
+  /// In en, this message translates to:
+  /// **'By {date} {time}'**
+  String daybookChecklistByAt(String date, String time);
+
+  /// Names in a list: the last one joined with and.
+  ///
+  /// In en, this message translates to:
+  /// **'{list} and {last}'**
+  String daybookNamesAnd(String list, String last);
+
+  /// Between names in a list.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get daybookNamesComma;
+
+  /// The first names, then and others (never a number).
+  ///
+  /// In en, this message translates to:
+  /// **'{list} and others'**
+  String daybookNamesOthers(String list);
+
+  /// A checklist or activity for the reader and others.
+  ///
+  /// In en, this message translates to:
+  /// **'For you and {names}'**
+  String daybookForYouAnd(String names);
+
+  /// An activity starts tomorrow, at the start of its line.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get daybookTomorrowStart;
+
+  /// When an activity is: Tomorrow, 7:00 to 8:00 am.
+  ///
+  /// In en, this message translates to:
+  /// **'{day}, {time}'**
+  String daybookActivityWhen(String day, String time);
+
+  /// An activity on its day, in its last hour before it starts (K3 v13).
+  ///
+  /// In en, this message translates to:
+  /// **'{time} · starts in {minutes} min'**
+  String daybookStartsIn(String time, int minutes);
+
+  /// An activity that has started and not ended.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} · on now'**
+  String daybookOnNow(String time);
+
+  /// A file post is a PDF.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get daybookPdf;
+
+  /// A file post is a photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get daybookPhoto;
+
+  /// A time span: 7:00 to 8:00 am.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String timeRange(String from, String to);
+
+  /// Daybook history line: someone ticked a checklist point (its words follow).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · ticked'**
+  String daybookLineTicked(String name);
+
+  /// Daybook history line: you ticked a point.
+  ///
+  /// In en, this message translates to:
+  /// **'You · ticked'**
+  String get daybookLineYouTicked;
+
+  /// Daybook history line: someone unticked a point.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · unticked'**
+  String daybookLineUnticked(String name);
+
+  /// Daybook history line: you unticked a point.
+  ///
+  /// In en, this message translates to:
+  /// **'You · unticked'**
+  String get daybookLineYouUnticked;
+
+  /// Daybook history line: someone said Got it (only the author sees others).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · Got it'**
+  String daybookLineGotIt(String name);
+
+  /// Daybook history line: you said Got it.
+  ///
+  /// In en, this message translates to:
+  /// **'You · Got it'**
+  String get daybookLineYouGotIt;
+
+  /// Daybook history line: someone received the file.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · Received'**
+  String daybookLineReceived(String name);
+
+  /// Daybook history line: you received the file.
+  ///
+  /// In en, this message translates to:
+  /// **'You · Received'**
+  String get daybookLineYouReceived;
+
+  /// Daybook history line: someone is on the way (K3 v13).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · On my way'**
+  String daybookLineOnMyWay(String name);
+
+  /// Daybook history line: you are on the way.
+  ///
+  /// In en, this message translates to:
+  /// **'You · On my way'**
+  String get daybookLineYouOnMyWay;
+
+  /// Daybook history line: someone added the activity to their calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · In my calendar'**
+  String daybookLineInMyCalendar(String name);
+
+  /// Daybook history line: you added the activity to your calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'You · In my calendar'**
+  String get daybookLineYouInMyCalendar;
+
+  /// Daybook trace on an earlier day: someone ticked a point.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ticked a point'**
+  String daybookTraceTicked(String name);
+
+  /// Daybook trace: you ticked a point.
+  ///
+  /// In en, this message translates to:
+  /// **'You ticked a point'**
+  String get daybookTraceYouTicked;
+
+  /// Daybook trace: someone unticked a point.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} unticked a point'**
+  String daybookTraceUnticked(String name);
+
+  /// Daybook trace: you unticked a point.
+  ///
+  /// In en, this message translates to:
+  /// **'You unticked a point'**
+  String get daybookTraceYouUnticked;
+
+  /// A tick the server refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t tick'**
+  String get daybookCouldNotTick;
+
+  /// A Got it, Received, On my way or calendar add the server refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save'**
+  String get daybookCouldNotAck;
+
+  /// Kind menu and chip: a checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get daybookKindChecklist;
+
+  /// Kind menu and chip: an announcement.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get daybookKindAnnouncement;
+
+  /// Kind menu and chip: a scheduled activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled activity'**
+  String get daybookKindActivity;
+
+  /// Kind menu and chip: a file; also the attach sheet row.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get daybookKindFile;
+
+  /// Writing card text line: a checklist or file post.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get daybookBodyNote;
+
+  /// Writing card text line: an announcement.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the announcement'**
+  String get daybookBodyAnnouncement;
+
+  /// Writing card text line: a scheduled activity.
+  ///
+  /// In en, this message translates to:
+  /// **'What it is about'**
+  String get daybookBodyActivity;
+
+  /// Writing a checklist: the empty point line.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a point'**
+  String get daybookPointHint;
+
+  /// More menu: who a checklist or activity is for.
+  ///
+  /// In en, this message translates to:
+  /// **'Who it\'s for'**
+  String get daybookPeople;
+
+  /// People picker search placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is it for…'**
+  String get daybookPeopleSearch;
+
+  /// More menu: pin an announcement until a day.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin until'**
+  String get daybookPinUntil;
+
+  /// Writing card: the announcement is pinned until a day.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned until {day}'**
+  String daybookPinnedProperty(String day);
+
+  /// More menu: when a scheduled activity starts and ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get daybookActivityTime;
+
+  /// Time picker title: the activity starts.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts at'**
+  String get daybookStartsAtHelp;
+
+  /// Time picker title: the activity ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends at'**
+  String get daybookEndsAtHelp;
+
+  /// Time picker: the activity has no end time.
+  ///
+  /// In en, this message translates to:
+  /// **'No end time'**
+  String get daybookNoEndTime;
+
+  /// An activity must start in the future.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a time that has not come yet'**
+  String get daybookStartLater;
+
+  /// Attach sheet title (K4 v13).
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this post'**
+  String get daybookAttachTitle;
+
+  /// Attach sheet: photos from the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo from the gallery'**
+  String get daybookAttachPhotos;
+
+  /// Attach sheet: how many photos at most.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {n} photos'**
+  String daybookAttachPhotosNote(int n);
+
+  /// Attach sheet: what a file can be.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF, drawings, documents'**
+  String get daybookAttachFileNote;
+
+  /// File chooser sheet title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get daybookFileChooseTitle;
+
+  /// File chooser: a PDF or photo on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'From the phone'**
+  String get daybookFileFromPhone;
+
+  /// File chooser: a new file also goes to the Library.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes to the Library too'**
+  String get daybookFileFromPhoneNote;
+
+  /// File chooser: the Space's Library files.
+  ///
+  /// In en, this message translates to:
+  /// **'In the Library'**
+  String get daybookFileInLibrary;
+
+  /// Sheet title after picking a file on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Is it a new version of a file?'**
+  String get daybookReplacesTitle;
+
+  /// The picked file replaces nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No, a new file'**
+  String get daybookReplacesNone;
+
+  /// The picked file is a new version of this one.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces {name}'**
+  String daybookReplacesOption(String name);
+
+  /// Confirms the new-version choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get daybookReplacesDone;
+
+  /// A post takes at most 10 photos and files.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 10 photos and files on a post'**
+  String get daybookFilesFull;
+
+  /// Read out for a checklist point's remove button while writing.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove point'**
+  String get daybookRemovePoint;
+
+  /// Read out for a file's remove button while writing.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove file'**
+  String get daybookRemoveFile;
+
+  /// Long-press menu: the author cancels a checklist, announcement, activity or file post.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel post'**
+  String get daybookCancelPost;
 }
 
 class _AppLocalizationsDelegate

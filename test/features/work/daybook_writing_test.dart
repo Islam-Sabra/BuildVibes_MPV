@@ -130,11 +130,11 @@ void main() {
       );
       expect(masthead.weekday, words.weekday(DateTime(2026, 10, 15)));
       expect(masthead.onTap, isNull);
-      // Work item is the only kind in slice 1: no caret, no menu.
+      // A work item first; the chip opens the kind menu (E6, slice 2).
       expect(find.byKey(const Key('writing-kind-chip')), findsOneWidget);
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
       expect(card.kindLabel, l10n.daybookWorkItem);
-      expect(card.onKindTap, isNull);
+      expect(card.onKindTap, isNotNull);
       // Post is off with no title.
       expect(_toolbar(tester).onPost, isNull);
     });
@@ -280,7 +280,7 @@ void main() {
     testWidgets('E4: a draft survives the app being closed and reopens in '
         'writing mode; only its author sees it [$lang]', (tester) async {
       final draft = jsonEncode(
-        WorkItemDraft(
+        DaybookPostDraft(
           id: 'draft-1',
           title: s.cableTraysTitle,
           body: s.traysBody,
@@ -321,7 +321,9 @@ void main() {
       );
       await app.prefs.setString(
         'daybook_draft:someone-else:${DaybookSamples.space}',
-        jsonEncode(const WorkItemDraft(id: 'x', title: 'Not yours').toJson()),
+        jsonEncode(
+          const DaybookPostDraft(id: 'x', title: 'Not yours').toJson(),
+        ),
       );
       GoRouter.of(
         tester.element(find.byType(Navigator).first),
@@ -415,13 +417,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(BvWritingCard), findsOneWidget);
       expect(find.text(l10n.daybookDraft), findsOneWidget);
-      expect(jsonDecode(app.prefs.getString(_draftKey)!)['photo'], isNotNull);
+      expect(jsonDecode(app.prefs.getString(_draftKey)!)['photos'], isNotEmpty);
     });
 
     testWidgets('review 46: tapping the due while writing offers Remove; '
         'removing takes it off the card [$lang]', (tester) async {
       final draft = jsonEncode(
-        WorkItemDraft(
+        DaybookPostDraft(
           id: 'draft-1',
           title: s.cableTraysTitle,
           dueDate: _sunday,
@@ -492,10 +494,10 @@ void main() {
   }
 
   test('review 46: a draft is kept as soon as anything is entered', () {
-    const empty = WorkItemDraft(id: 'd');
+    const empty = DaybookPostDraft(id: 'd');
     expect(empty.isEmpty, isTrue);
     expect(empty.copyWith(title: ' ').isEmpty, isTrue);
-    expect(empty.copyWith(photo: () => 'p.jpg').isEmpty, isFalse);
+    expect(empty.copyWith(photos: ['p.jpg']).isEmpty, isFalse);
     expect(empty.copyWith(ownerId: 'o').isEmpty, isFalse);
     expect(empty.copyWith(dueDate: () => _sunday).isEmpty, isFalse);
     expect(empty.copyWith(place: () => 'Gate 3').isEmpty, isFalse);

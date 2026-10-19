@@ -10,7 +10,8 @@ final daybookCardsProvider = AsyncNotifierProvider.autoDispose
 
 /// A Space's daybook as loaded so far: one card per post, newest activity
 /// first (daybook_cards, review 53 Part B). Every kind of post is kept
-/// (they page the list); the page shows work items only until slice 2.
+/// (they page the list); the page draws the kinds it knows
+/// ([DaybookPost.shownKinds]).
 class DaybookCards extends AsyncNotifier<List<DaybookCard>> {
   DaybookCards(this.spaceId);
 
@@ -121,7 +122,7 @@ class DaybookCards extends AsyncNotifier<List<DaybookCard>> {
     final newest = await ref
         .read(daybookRepositoryProvider)
         .history(postId, limit: 1);
-    if (!ref.mounted || newest.isEmpty) return false;
+    if (!ref.mounted || newest.lines.isEmpty) return false;
     var pages = 0;
     while (!loaded() && hasOlder && pages < findPagesMax) {
       // Another read is under way (scrolling back): wait for it.
@@ -190,11 +191,10 @@ class DaybookCards extends AsyncNotifier<List<DaybookCard>> {
     final card = state.value?.where((c) => c.id == postId).firstOrNull;
     final last = card?.history.lastOrNull;
     if (card == null || last == null || !card.historyMore) return;
-    final lines = await ref
+    final (:lines, :more) = await ref
         .read(daybookRepositoryProvider)
         .history(postId, before: last.at, beforeId: last.id);
     if (!ref.mounted) return;
-    final more = lines.length >= DaybookRepository.historyPage;
     final kept = _earlier[postId];
     _earlier[postId] = (
       activity: card.lastActivityAt,

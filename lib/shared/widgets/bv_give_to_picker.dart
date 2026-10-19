@@ -26,7 +26,9 @@ class BvGiveToPerson {
 
 /// Give a work item to someone else (2540:34840): a search field and the
 /// Space's people, the current owner marked "now" with a check. Typing
-/// filters by name or Team.
+/// filters by name or Team. With [chosenIds] it picks several (who a
+/// checklist or an activity is for): each chosen person has the check, and
+/// a pick adds or takes them out.
 class BvGiveToPicker extends StatefulWidget {
   const BvGiveToPicker({
     super.key,
@@ -37,6 +39,7 @@ class BvGiveToPicker extends StatefulWidget {
     required this.onPick,
     this.searchController,
     this.autofocus = false,
+    this.chosenIds,
   });
 
   final List<BvGiveToPerson> people;
@@ -48,6 +51,7 @@ class BvGiveToPicker extends StatefulWidget {
   final ValueChanged<BvGiveToPerson> onPick;
   final TextEditingController? searchController;
   final bool autofocus;
+  final Set<String>? chosenIds;
 
   @override
   State<BvGiveToPicker> createState() => _BvGiveToPickerState();
@@ -136,8 +140,12 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
                   for (final p in shown)
                     _Row(
                       person: p,
-                      current: p.id == widget.currentOwnerId,
-                      currentLabel: widget.currentLabel,
+                      current:
+                          widget.chosenIds?.contains(p.id) ??
+                          p.id == widget.currentOwnerId,
+                      currentLabel: widget.chosenIds == null
+                          ? widget.currentLabel
+                          : null,
                       type: type,
                       onTap: () => widget.onPick(p),
                     ),
@@ -223,13 +231,15 @@ class _Row extends StatelessWidget {
 
   final BvGiveToPerson person;
   final bool current;
-  final String currentLabel;
+
+  /// The current owner's sub line; null when several can be chosen.
+  final String? currentLabel;
   final BvTypeSet type;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final sub = current ? currentLabel : person.team;
+    final sub = current ? currentLabel ?? person.team : person.team;
     return Semantics(
       button: true,
       selected: current,

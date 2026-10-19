@@ -530,14 +530,14 @@ void main() {
 
     testWidgets('B1: a newest page with nothing to show loads the older one '
         '[$lang]', (tester) async {
-      // 30 announcements (slice 2) fill the first page; the work item
-      // before them still shows, with no scrolling.
+      // 30 reports (slice 7, not drawn yet) fill the first page; the work
+      // item before them still shows, with no scrolling.
       final announcements = [
         for (var i = 0; i < 30; i++)
           DaybookCard(
             post: DaybookPost(
               id: 'ann-${i.toString().padLeft(2, '0')}',
-              kind: 'announcement',
+              kind: 'report',
               createdAt: DateTime(2026, 10, 15, 9, i),
               title: 'Notice $i',
             ),
@@ -661,7 +661,8 @@ void main() {
       );
     });
 
-    testWidgets('other kinds of post wait for slice 2 [$lang]', (tester) async {
+    testWidgets('slice 2: an announcement off its pin is a card; a report '
+        '(slice 7) waits [$lang]', (tester) async {
       await _open(
         tester,
         lang,
@@ -676,10 +677,20 @@ void main() {
             ),
             lastActivityAt: DateTime(2026, 10, 15, 9),
           ),
+          DaybookCard(
+            post: DaybookPost(
+              id: 'post-report',
+              kind: 'report',
+              createdAt: DateTime(2026, 10, 15, 9, 5),
+              title: 'Daily report',
+            ),
+            lastActivityAt: DateTime(2026, 10, 15, 9, 5),
+          ),
         ],
       );
-      expect(find.text('Crane closed today'), findsNothing);
-      expect(find.byType(BvSlip), findsOneWidget);
+      expect(find.text('Crane closed today'), findsOneWidget);
+      expect(find.text('Daily report'), findsNothing);
+      expect(find.byType(BvSlip), findsNWidgets(2));
       expect(find.byType(BvFirstPage), findsNothing);
       expect(find.byType(BvPostBar), findsOneWidget);
     });

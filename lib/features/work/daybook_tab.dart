@@ -9,6 +9,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
+import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/push/push_state.dart';
@@ -21,10 +22,12 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../../shared/widgets/bv_due_today_strip.dart';
+import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_first_page.dart';
 import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_month_dropdown.dart';
 import '../../shared/widgets/bv_new_chip.dart';
+import '../../shared/widgets/bv_pinned_note.dart';
 import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_trace_row.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
@@ -35,9 +38,12 @@ import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
+import 'daybook_attach.dart';
 import 'daybook_card.dart';
 import 'daybook_draft.dart';
+import 'daybook_kinds.dart';
 import 'daybook_loop.dart';
+import 'daybook_marks.dart';
 import 'daybook_state.dart';
 import 'daybook_target.dart';
 import 'daybook_words.dart';
@@ -45,17 +51,20 @@ import 'daybook_writing.dart';
 import 'work_outbox.dart';
 
 /// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
-/// one line at the top; one card per work item, full width, newest
-/// activity at the bottom ("Now"). A card with new activity moves to Now;
+/// one line at the top, and under it the announcements pinned now (K1
+/// v13); one card per post, full width, newest activity at the bottom
+/// ("Now"). A scheduled activity shows again on its day (K3 v13). A card
+/// with new activity moves to Now;
 /// each earlier day it had something happen keeps a one-line trace that
 /// goes back to it. Scrolling up goes back through older days on the same
 /// page, each after a day divider, and the masthead names the day at the
 /// top. Tapping it drops down the month (DY2). An empty Space shows its
 /// first page (DY3); a Viewer reads only (V1).
 ///
-/// The post bar's notepad writes a work item in place at "Now" (E1–E5):
-/// the writing toolbar takes the post bar's place. A card with anything
-/// in it stays as a Draft (E4).
+/// The post bar's notepad writes a post in place at "Now" (E1–E6): the
+/// kind chip picks what it is, and the writing toolbar takes the post
+/// bar's place, its 📎 adding photos from the gallery or a file (K4). A
+/// card with anything in it stays as a Draft (E4).
 ///
 /// The loop lives on the cards: Sign as done, double-tap to check, the
 /// menu on a long-press or a tap, swipe to add an update ([DaybookLoop]).
@@ -93,10 +102,16 @@ class _Shown {
     this.refusedProof,
     this.localPhoto,
     this.landing = false,
+    this.dayAt,
   });
 
   final DaybookCard card;
   final DateTime at;
+
+  /// Where it sits on the page when that isn't [at]: an activity on its
+  /// day shows at that day's start (K3 v13).
+  final DateTime? dayAt;
+  DateTime get placedAt => dayAt ?? at;
   final bool waiting;
 
   /// A new work item not on the server yet.
@@ -151,7 +166,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   var _editing = false;
   DaybookWritingMenu? _menu;
 
-  /// Post was tapped with nobody to do it: picking someone posts it.
+  /// Post was tapped with nobody to do it, or nobody it is for: picking
+  /// someone posts it.
   var _postOnAssign = false;
 
   /// The card on the page was left from before: it says "Draft".
@@ -305,6 +321,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     } on SpaceException catch (e) {
       debugPrint('daybook refresh: $e');
     }
+    // The points, the faces and what sits above the page, after the read
+    // (never while the page is being built).
+    if (mounted) refreshMarks(ref, _spaceId);
   }
 
   /// The reader is up in older days, away from Now.
@@ -366,7 +385,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         .reduce((a, b) => a.isAfter(b) ? a : b);
     return {
       for (final c in now)
-        if (c.post.isWorkItem &&
+        if (DaybookPost.shownKinds.contains(c.post.kind) &&
             (was[c.id] == null
                 ? !c.lastActivityAt.isBefore(newest)
                 : c.lastActivityAt.isAfter(was[c.id]!)))
@@ -579,7 +598,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   void _setMenu(DaybookWritingMenu? menu) => setState(() {
     _menu = menu;
-    if (menu != DaybookWritingMenu.assign) _postOnAssign = false;
+    if (menu != DaybookWritingMenu.assign &&
+        menu != DaybookWritingMenu.people) {
+      _postOnAssign = false;
+    }
   });
 
   Future<void> _pickDue() async {
@@ -594,19 +616,94 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (picked != null) await _card.setDue(picked);
   }
 
-  /// Post with a title but nobody to do it: the assign picker opens, and
-  /// picking someone posts it (review 46).
-  void _postOrAssign(String? myName) {
-    final draft = _writer.draft;
-    if (draft == null || !draft.titleFits) return;
-    if (draft.ownerId != null) {
-      unawaited(_post(myName));
+  /// An announcement's pin (More → Pin until): the last day, or Remove.
+  Future<void> _pickPin() async {
+    _setMenu(null);
+    final picked = await ref.read(pickPinProvider)(
+      context,
+      now: ref.read(clockProvider)(),
+      until: _card.draft?.pinnedUntil,
+    );
+    if (picked != null) await _card.setPin(picked.until);
+  }
+
+  /// An activity's start and end (More → Time). True when one was set; a
+  /// start that has come already says so.
+  Future<bool> _pickStart() async {
+    _setMenu(null);
+    final draft = _card.draft;
+    final picked = await ref.read(pickStartProvider)(
+      context,
+      now: ref.read(clockProvider)(),
+      start: draft?.startsAt,
+      end: draft?.endsAt,
+    );
+    if (picked == null || !mounted) return false;
+    if (!picked.start.isAfter(ref.read(clockProvider)())) {
+      showSpaceMessage(context, AppLocalizations.of(context).daybookStartLater);
+      return false;
+    }
+    await _card.setStart(picked.start, picked.end);
+    return true;
+  }
+
+  /// A file post's file (K2): one in the Library or one from the phone.
+  Future<void> _pickFile() async {
+    _setMenu(null);
+    final file = await chooseDaybookFile(context, ref, spaceId: _spaceId);
+    if (file != null) await _card.addFile(file);
+  }
+
+  /// 📎 (K4): a work item asks "Add to this post": photos from the gallery
+  /// or a file. A file post chooses its file; the other kinds take photos.
+  Future<void> _attach() async {
+    _setMenu(null);
+    final l10n = AppLocalizations.of(context);
+    final writer = _card;
+    final kind = writer.draft?.kind ?? DaybookKind.workItem;
+    if (kind == DaybookKind.file) return _pickFile();
+    if (writer.room <= 0) {
+      showSpaceMessage(context, l10n.daybookFilesFull);
       return;
     }
-    setState(() {
-      _menu = DaybookWritingMenu.assign;
-      _postOnAssign = true;
-    });
+    final choice = kind == DaybookKind.workItem
+        ? await showDaybookAttach(context, photosLeft: writer.room)
+        : DaybookAttach.photos;
+    if (!mounted) return;
+    switch (choice) {
+      case DaybookAttach.photos:
+        await writer.addPhotos();
+      case DaybookAttach.file:
+        final file = await chooseDaybookFile(context, ref, spaceId: _spaceId);
+        if (file != null) await writer.addFile(file);
+      case null:
+        break;
+    }
+  }
+
+  /// Post. What it still needs opens first: with nobody to do a work
+  /// item, the assign picker (review 46); with nobody a checklist is for,
+  /// the people picker (picking someone posts it); an activity with no
+  /// start, the time pickers.
+  Future<void> _postOrAsk(String? myName) async {
+    final draft = _writer.draft;
+    if (draft == null || !draft.readyToTry) return;
+    switch (draft.missing(ref.read(clockProvider)())) {
+      case DaybookMissing.owner:
+        setState(() {
+          _menu = DaybookWritingMenu.assign;
+          _postOnAssign = true;
+        });
+      case DaybookMissing.people:
+        setState(() {
+          _menu = DaybookWritingMenu.people;
+          _postOnAssign = true;
+        });
+      case DaybookMissing.start:
+        if (await _pickStart()) await _post(myName);
+      case null:
+        await _post(myName);
+    }
   }
 
   void _assigned(String? myName) {
@@ -816,6 +913,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               BvDueTodayStrip(
                 l10n.daybookDueTodayStrip(due.map((i) => i.title).join(' · ')),
               ),
+            // Pinned announcements stay under the masthead while pinned
+            // (K1 v13), whatever their last activity.
+            if (!_writing)
+              for (final p in _pinned(cards, now))
+                Padding(
+                  padding: BvPinnedSpec.outer,
+                  child: _pinnedNote(p, words, me: me, now: now),
+                ),
             Expanded(
               key: _viewportKey,
               child: LayoutBuilder(
@@ -863,8 +968,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                             editing: _editing,
                             onMenu: _setMenu,
                             onPickDue: _pickDue,
+                            onPickPin: () => unawaited(_pickPin()),
+                            onPickStart: () => unawaited(_pickStart()),
+                            onPickFile: () => unawaited(_pickFile()),
                             onClose: () => _setMenu(null),
                             onAssigned: () => _assigned(myName),
+                            // Picked from Post: the first pick posts it.
+                            onPeople: () {
+                              if (_postOnAssign) unawaited(_post(myName));
+                            },
                           ),
                         ),
                       ),
@@ -882,13 +994,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               BvWritingToolbar(
                 cameraLabel: l10n.daybookCamera,
                 // An edit keeps its photos (slice 5 opens a post in place).
-                onCamera: _editing
-                    ? null
-                    : () => _writer.addPhoto(camera: true),
-                attachLabel: l10n.daybookAddPhoto,
-                onAttach: _editing
-                    ? null
-                    : () => _writer.addPhoto(camera: false),
+                onCamera: _editing ? null : () => _writer.addPhoto(),
+                attachLabel: l10n.daybookAttachTitle,
+                onAttach: _editing ? null : () => unawaited(_attach()),
                 moreLabel: l10n.daybookMore,
                 onMore: () => _setMenu(
                   _menu == DaybookWritingMenu.more
@@ -897,11 +1005,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 ),
                 moreActive: _menu == DaybookWritingMenu.more,
                 postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
-                // Post turns on with a title (review 46); with nobody to
-                // do it, it opens the assign picker first.
-                onPost: cardDraft?.titleFits ?? false
-                    ? (_editing ? _save : () => _postOrAssign(myName))
-                    : null,
+                // Post turns on with what the kind can't go without (a
+                // title, a checklist's points, a file; review 46); what it
+                // still needs opens first.
+                onPost: _editing
+                    ? (cardDraft?.titleFits ?? false ? _save : null)
+                    : (cardDraft?.readyToTry ?? false
+                          ? () => unawaited(_postOrAsk(myName))
+                          : null),
               )
             // A Draft on the page takes the post bar's place until it is
             // posted or emptied (E4).
@@ -914,7 +1025,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 // your open work item (O1 → O2).
                 onCamera: () {
                   _startWriting();
-                  unawaited(_writer.addPhoto(camera: true));
+                  unawaited(_writer.addPhoto());
                 },
                 onProve: prove == null
                     ? null
@@ -926,25 +1037,147 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
-  /// A work item still in the outbox, as its card at the time Post was
-  /// tapped.
-  DaybookPost _waitingPost(PendingItem i, String? me, DateTime now) =>
-      DaybookPost(
-        id: i.id,
-        kind: DaybookPost.workItemKind,
-        createdAt: i.madeAt ?? now,
-        title: i.title,
-        authorId: me,
-        authorName: i.authorName,
-        place: i.place,
-        dueDate: i.dueDate,
-        dueAt: i.dueAt,
-        item: DaybookItem(
-          status: WorkStatus.open,
-          ownerId: i.ownerId,
-          ownerName: i.ownerName,
-        ),
-      );
+  /// The announcements pinned now (K1 v13): what daybook_extras says, and
+  /// any pinned card on the page (it may be newer), newest first.
+  List<DaybookPost> _pinned(List<DaybookCard> cards, DateTime now) {
+    final extras = ref.watch(daybookExtrasProvider(_spaceId)).value;
+    final byId = <String, DaybookPost>{
+      for (final p in extras?.pinned ?? const <DaybookPost>[])
+        if (p.pinnedAt(now)) p.id: p,
+      for (final c in cards)
+        if (c.post.pinnedAt(now)) c.id: c.post,
+    };
+    return byId.values.toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  /// [post]'s own acknowledgements with what the phone gave or took back
+  /// that waits for the server.
+  Set<DaybookAck> _acksOf(DaybookPost post, List<DaybookMark> marks) => {
+    for (final a in post.myAcks)
+      if (!marks.any((m) => m.postId == post.id && m.ack == a && !m.on)) a,
+    for (final m in marks)
+      if (m.postId == post.id && m.ack != null && m.on) m.ack!,
+  };
+
+  /// A pinned announcement under the masthead: who wrote it and for whom,
+  /// until when, its words, Got it for the reader, and for its author the
+  /// faces of who got it.
+  Widget _pinnedNote(
+    DaybookPost post,
+    DaybookWords words, {
+    required String? me,
+    required DateTime now,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    final shown = post.shownAs(
+      myAcks: _acksOf(post, ref.watch(daybookMarksProvider)),
+    );
+    final team = post.teamId == null
+        ? null
+        : ref
+              .watch(spacePeopleProvider(_spaceId))
+              .value
+              ?.teams
+              .where((t) => t.id == post.teamId)
+              .firstOrNull
+              ?.name;
+    final by = acknowledgedBy(ref, post.id, DaybookAck.gotIt);
+    return BvPinnedNote(
+      key: Key('pinned-${post.id}'),
+      author: post.authorId != null && post.authorId == me
+          ? l10n.daybookYou
+          : personName(l10n, post.authorName),
+      audience: team == null
+          ? l10n.daybookToEveryone
+          : l10n.daybookToTeam(team),
+      until: l10n.daybookPinnedUntil(words.pinnedDay(post.pinnedUntil!, now)),
+      title: post.title,
+      body: post.body,
+      leading: by.isEmpty ? null : BvFaces(facesOf(l10n, by), large: true),
+      action: daybookAckAction(
+        l10n,
+        shown,
+        me: me,
+        now: now,
+        onAck: (kind, {required on}) =>
+            unawaited(_loop.acknowledge(context, shown, kind, on: on)),
+      ),
+    );
+  }
+
+  /// A post still in the outbox, as its card at the time Post was tapped.
+  DaybookPost _waitingPost(PendingItem i, String? me, DateTime now) {
+    final d = i.draft;
+    if (d != null) return _waitingKind(i, d, me, now);
+    return DaybookPost(
+      id: i.id,
+      kind: DaybookPost.workItemKind,
+      createdAt: i.madeAt ?? now,
+      title: i.title,
+      authorId: me,
+      authorName: i.authorName,
+      place: i.place,
+      dueDate: i.dueDate,
+      dueAt: i.dueAt,
+      item: DaybookItem(
+        status: WorkStatus.open,
+        ownerId: i.ownerId,
+        ownerName: i.ownerName,
+      ),
+    );
+  }
+
+  /// A checklist, an announcement, an activity or a file post in the
+  /// outbox, from the card as it was written.
+  DaybookPost _waitingKind(
+    PendingItem i,
+    DaybookPostDraft d,
+    String? me,
+    DateTime now,
+  ) {
+    final file = i.files.firstOrNull;
+    final title = d.title.trim();
+    return DaybookPost(
+      id: i.id,
+      kind: d.kind.json,
+      createdAt: i.madeAt ?? now,
+      title: title.isEmpty && file != null ? file.name : title,
+      body: d.body.trim().isEmpty ? null : d.body.trim(),
+      authorId: me,
+      authorName: i.authorName,
+      place: d.place,
+      dueDate: d.dueDate,
+      dueAt: d.dueAt,
+      pointsTotal: d.writtenPoints.length,
+      people: [for (final p in d.people) DaybookPerson(id: p.id, name: p.name)],
+      pinnedUntil: d.pinnedUntil,
+      startsAt: d.startsAt,
+      endsAt: d.endsAt,
+      file: file == null
+          ? null
+          : DaybookFile(
+              id: file.libraryId,
+              name: file.name,
+              mime: file.mime,
+              bytes: file.bytes,
+              revLabel: file.revLabel,
+              replacesRev: file.supersedesRev,
+              replacesName: file.supersedesRev,
+            ),
+      newVersion: file?.supersedesId != null,
+    );
+  }
+
+  /// The history line a tick or an acknowledgement writes.
+  static DaybookEventKind _markLine(DaybookMark m) => m.isTick
+      ? (m.on ? DaybookEventKind.ticked : DaybookEventKind.unticked)
+      : switch (m.ack!) {
+          DaybookAck.gotIt => DaybookEventKind.gotIt,
+          DaybookAck.received => DaybookEventKind.received,
+          DaybookAck.onMyWay => DaybookEventKind.onMyWay,
+          DaybookAck.inMyCalendar => DaybookEventKind.inMyCalendar,
+        };
 
   /// [c] with what the phone did that waits to be sent: a cancel fades
   /// it, a check stamps it CHECKED, a sign-off marks it DONE with its
@@ -958,6 +1191,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     required String? me,
     required String? myName,
     required DateTime now,
+    List<DaybookMark> marks = const [],
   }) {
     final outbox = ref.read(workOutboxProvider.notifier);
     var card = c;
@@ -1051,8 +1285,63 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       lines.add(mine(cancel, DaybookEventKind.cancelled));
       later(made(cancel));
     }
-    if (lines.isNotEmpty) {
-      card = card.copyWith(history: [...lines.reversed, ...card.history]);
+    // Ticks and acknowledgements on their way: on the card at once, each a
+    // line; a tick, an un-tick or a Received moves it to Now (review 60
+    // S1), a take-back takes its line off.
+    final onCard = [
+      for (final m in marks)
+        if (m.postId == c.id) m,
+    ];
+    final takenBack = {
+      for (final m in onCard)
+        if (!m.isTick && !m.on) _markLine(m),
+    };
+    if (onCard.isNotEmpty) {
+      var ticked = card.post.pointsTicked;
+      final points = card.post.isChecklist
+          ? ref.watch(checklistPointsProvider(c.id)).value
+          : null;
+      if (points != null) {
+        final byPoint = {
+          for (final m in onCard)
+            if (m.isTick) m.pointId: m,
+        };
+        ticked = [
+          for (final p in points)
+            if (DaybookChecklistPoints.markedPoint(p, byPoint[p.id], me).ticked)
+              p,
+        ].length;
+      }
+      card = card.copyWith(
+        post: card.post.shownAs(
+          myAcks: _acksOf(card.post, onCard),
+          pointsTicked: ticked,
+        ),
+      );
+      for (final m in onCard) {
+        if (m.isTick || m.on) {
+          lines.add(
+            DaybookEvent(
+              id: 'mark-${m.key}',
+              kind: _markLine(m),
+              at: m.at,
+              byId: me,
+              byName: myName,
+              point: m.pointText,
+            ),
+          );
+        }
+        if (m.moves) later(m.at);
+      }
+    }
+    if (lines.isNotEmpty || takenBack.isNotEmpty) {
+      card = card.copyWith(
+        history: [
+          ...lines.reversed,
+          for (final e in card.history)
+            if (!(takenBack.contains(e.kind) && e.byId == me)) e,
+        ],
+      );
     }
     return _Shown(
       card: card,
@@ -1066,8 +1355,37 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   /// For each card, every earlier day (the phone's) on which something
   /// happened to it: that day's latest event.
+  /// An activity starting today, not over, posted on an earlier day: it
+  /// shows again at the start of today (K3 v13), its header still at its
+  /// own last activity.
+  static _Shown _onItsDay(_Shown s, DateTime now) {
+    final post = s.card.post;
+    final start = post.startsAt;
+    final end = post.activityEnd;
+    final today = dayOf(now);
+    if (!post.isActivity ||
+        post.cancelled ||
+        start == null ||
+        end == null ||
+        dayOf(start) != today ||
+        !now.isBefore(end) ||
+        !dayOf(s.at).isBefore(today)) {
+      return s;
+    }
+    return _Shown(
+      card: s.card,
+      at: s.at,
+      waiting: s.waiting,
+      unsent: s.unsent,
+      refusedProof: s.refusedProof,
+      localPhoto: s.localPhoto,
+      landing: s.landing,
+      dayAt: today,
+    );
+  }
+
   static List<(DateTime, _Trace)> _traces(_Shown s) {
-    final cardDay = dayOf(s.at);
+    final cardDay = dayOf(s.placedAt);
     final seen = <DateTime>{};
     return [
       // Newest first: the first of each day is its latest.
@@ -1100,24 +1418,49 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final checks = byKind(PendingKind.check);
     final signOffs = byKind(PendingKind.signOff);
     final onServer = {for (final c in cards) c.id};
-    // Work items (other kinds of post come in slice 2), with what still
-    // waits for a signal.
+    final marks = ref.watch(daybookMarksProvider);
+    final extras = ref.watch(daybookExtrasProvider(_spaceId)).value;
+    final names = ref.watch(spacePeopleProvider(_spaceId)).value;
+    // Every kind the daybook draws, with what still waits for a signal. A
+    // pinned announcement sits under the masthead instead.
     final shown = <_Shown>[
       for (final c in cards)
-        if (c.post.isWorkItem)
-          _asShown(
-            c,
-            cancels,
-            checks,
-            signOffs,
-            me: me,
-            myName: myName,
-            now: now,
+        if (DaybookPost.shownKinds.contains(c.post.kind) &&
+            !c.post.pinnedAt(now))
+          _onItsDay(
+            _asShown(
+              c,
+              cancels,
+              checks,
+              signOffs,
+              me: me,
+              myName: myName,
+              now: now,
+              marks: marks,
+            ),
+            now,
           ),
-      // A new work item not on the server yet: a card at the time Post
-      // was tapped.
+      // An activity starting today that is on an older page: its card
+      // shows again on its day (K3 v13).
+      for (final p in extras?.activities ?? const <DaybookPost>[])
+        if (!onServer.contains(p.id))
+          _onItsDay(
+            _asShown(
+              DaybookCard(post: p, lastActivityAt: p.createdAt),
+              cancels,
+              checks,
+              signOffs,
+              me: me,
+              myName: myName,
+              now: now,
+              marks: marks,
+            ),
+            now,
+          ),
+      // A new post not on the server yet: a card at the time Post was
+      // tapped.
       for (final i in pending)
-        if (i.kind == PendingKind.workItem && !onServer.contains(i.id))
+        if (i.isNewPost && !onServer.contains(i.id))
           _Shown(
             card: DaybookCard(
               post: _waitingPost(i, me, now),
@@ -1159,7 +1502,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // before.
     final byDay = <DateTime, List<(DateTime, String, Object)>>{};
     for (final s in shown) {
-      byDay.putIfAbsent(dayOf(s.at), () => []).add((s.at, s.card.id, s));
+      byDay.putIfAbsent(dayOf(s.placedAt), () => []).add((
+        s.placedAt,
+        s.card.id,
+        s,
+      ));
       for (final (at, t) in _traces(s)) {
         byDay.putIfAbsent(dayOf(at), () => []).add((
           at,
@@ -1200,6 +1547,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         expanded: _expanded.contains(c.id),
         onEarlier: () => _earlier(c),
         lineKey: (id) => _lineKeys.putIfAbsent(id, GlobalKey.new),
+        // Who ticked a point: a member's name, else the card's history's.
+        nameOf: (id) =>
+            names?.member(id)?.person.fullName ??
+            c.history.where((e) => e.byId == id).firstOrNull?.byName,
         // While writing, a tap on a card puts the card down, as anywhere
         // off it; a refused one reopens to fix; otherwise a short press
         // shows the card's menu (F16).
@@ -1313,6 +1664,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                                 onOpen: _startWriting,
                                 onMenu: _setMenu,
                                 onPickDue: _pickDue,
+                                onPickPin: () => unawaited(_pickPin()),
+                                onPickStart: () => unawaited(_pickStart()),
+                                onPickFile: () => unawaited(_pickFile()),
                               ),
                             ),
                         ],

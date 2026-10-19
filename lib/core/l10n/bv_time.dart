@@ -58,6 +58,18 @@ class BvTime {
     return p;
   }
 
+  /// [from] to [to] on one line: "7:00 to 8:00 am", "14:00 to 15:30",
+  /// "11:30 am to 1:00 pm"; the part of the day is said once when both
+  /// share it.
+  String range(DateTime from, DateTime to) {
+    final a = _parts(from);
+    final b = _parts(to);
+    final start = a.period != null && a.period == b.period
+        ? a.time
+        : clock(from);
+    return l10n.timeRange(start, clock(to));
+  }
+
   /// When something happened, at the end of its row (post cards, replies,
   /// Home → Spaces): the time today, the weekday this past week ("Wed"),
   /// then the date ("12 Oct").

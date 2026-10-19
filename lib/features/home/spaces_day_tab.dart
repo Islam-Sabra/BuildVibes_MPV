@@ -50,13 +50,9 @@ class SpacesDayTab extends ConsumerWidget {
     final type = BvType.of(context);
     final needs = ref.watch(needsCardsProvider).value ?? const <NeedsCard>[];
     final today = ref.watch(todayInSpacesProvider).value ?? const [];
-    final last =
-        ref.watch(spaceLastActivityProvider).value ??
-        const <String, DateTime>{};
 
     Future<void> refresh() async {
       refreshDay(ref.invalidate);
-      ref.invalidate(mySpacesProvider);
       await ref.read(needsCardsProvider.future);
     }
 
@@ -98,12 +94,7 @@ class SpacesDayTab extends ConsumerWidget {
           const SizedBox(height: BvSpace.s24),
           overline(l10n.homeYourSpaces),
           const SizedBox(height: BvSpace.s8),
-          _YourSpaces(
-            spaces: spaces.value!,
-            today: today,
-            needs: needs,
-            last: last,
-          ),
+          _YourSpaces(spaces: spaces.value!, today: today, needs: needs),
         ],
       ),
     );
@@ -183,15 +174,11 @@ class _YourSpaces extends ConsumerWidget {
     required this.spaces,
     required this.today,
     required this.needs,
-    required this.last,
   });
 
   final List<SpaceSummary> spaces;
   final List<SpaceToday> today;
   final List<NeedsCard> needs;
-
-  /// Each Space's last daybook activity (spaceLastActivityProvider).
-  final Map<String, DateTime> last;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -206,7 +193,7 @@ class _YourSpaces extends ConsumerWidget {
     // The latest of today's news and the daybook's last activity.
     DateTime? lastAt(SpaceSummary s) {
       final a = news[s.id]?.at;
-      final b = last[s.id];
+      final b = s.lastActivityAt;
       if (a == null || b == null) return a ?? b;
       return a.isAfter(b) ? a : b;
     }

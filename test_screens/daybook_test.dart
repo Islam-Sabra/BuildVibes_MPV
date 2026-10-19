@@ -619,7 +619,7 @@ void main() {
 
     testWidgets('E4 back to a draft [$lang]', (tester) async {
       await warmSamplePhoto(tester);
-      final draft = WorkItemDraft(
+      final draft = DaybookPostDraft(
         id: 'draft-trays',
         title: s.cableTraysTitle,
         body: s.t(

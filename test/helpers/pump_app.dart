@@ -307,6 +307,11 @@ Future<TestApp> pumpApp(
           cameraAsks.add(camera);
           return XFile(testPhotoPath);
         }),
+        // The gallery gives two photos (K4: up to the room left).
+        pickPhotosProvider.overrideWithValue(({required max}) async {
+          cameraAsks.add(false);
+          return [for (var i = 0; i < 2 && i < max; i++) XFile(testPhotoPath)];
+        }),
         // A fresh copy each time: a sent item deletes its kept copy.
         keepPhotoProvider.overrideWithValue(
           (photo) async => File(photo.path)

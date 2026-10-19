@@ -62,6 +62,9 @@ abstract final class BvWritingCardSpec {
 
   /// A post's photos (H2 2555:35428): 110 high, side by side.
   static const postPhotoHeight = 110.0;
+
+  /// Up to four photos share the width; more scroll sideways.
+  static const photosSideBySide = 4;
   static const photoGap = BvSpace.s4;
   static const coverRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
   static const removeSize = 26.0;

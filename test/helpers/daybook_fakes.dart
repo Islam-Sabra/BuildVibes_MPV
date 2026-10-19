@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -40,6 +41,23 @@ class FakeDaybookRepository implements DaybookRepository {
   /// as it was.
   DaybookCard Function(NewWorkItem item)? asPosted;
 
+  /// Posts of the other kinds, as create_space_post got them.
+  final createdPosts = <NewSpacePost>[];
+
+  /// What sits above each Space's daybook (daybook_extras).
+  final extrasBySpace = <String, DaybookExtras>{};
+
+  /// Each checklist's points and each post's faces (post_acks_for).
+  final pointsByPost = <String, List<DaybookPoint>>{};
+  final acksByPost = <String, List<DaybookAckFace>>{};
+
+  /// Ticks, acks and attachments, as `tick <point> <on>`,
+  /// `ack <post> <kind> <on>` and `attach <item> <file>`.
+  final marks = <String>[];
+
+  /// While set, ticks and acks wait for it: what the card shows meanwhile.
+  Completer<void>? holdMarks;
+
   /// [card] replaces the card with its id (new activity), or joins.
   void put(String spaceId, DaybookCard card) => posts[spaceId] = [
     for (final c in posts[spaceId] ?? const <DaybookCard>[])
@@ -79,7 +97,7 @@ class FakeDaybookRepository implements DaybookRepository {
   }
 
   @override
-  Future<List<DaybookEvent>> history(
+  Future<DaybookHistoryPage> history(
     String postId, {
     DateTime? before,
     String? beforeId,
@@ -89,18 +107,21 @@ class FakeDaybookRepository implements DaybookRepository {
     if (failPages) throw const SpaceException(SpaceFailure.network);
     // From the newest: the card's own lines, then the earlier ones; none
     // for a post that is gone (post_history).
+    final List<DaybookEvent> all;
     if (before == null) {
       final card = posts.values
           .expand((cards) => cards)
           .where((c) => c.id == postId)
           .firstOrNull;
-      if (card == null) return const [];
-      return [...card.history, ...?earlier[postId]].take(limit).toList();
+      if (card == null) return (lines: const <DaybookEvent>[], more: false);
+      all = [...card.history, ...?earlier[postId]];
+    } else {
+      all = [
+        for (final e in earlier[postId] ?? const <DaybookEvent>[])
+          if (_before(e.at, e.id, before, beforeId)) e,
+      ];
     }
-    return [
-      for (final e in earlier[postId] ?? const <DaybookEvent>[])
-        if (_before(e.at, e.id, before, beforeId)) e,
-    ].take(limit).toList();
+    return (lines: all.take(limit).toList(), more: all.length > limit);
   }
 
   @override
@@ -141,6 +162,45 @@ class FakeDaybookRepository implements DaybookRepository {
     created.add(item);
     final card = asPosted?.call(item);
     if (card != null) put(item.spaceId, card);
+  }
+
+  @override
+  Future<DaybookExtras> extras(String spaceId, DateTime day) async =>
+      extrasBySpace[spaceId] ?? const DaybookExtras();
+
+  @override
+  Future<List<DaybookPoint>> points(String postId) async =>
+      pointsByPost[postId] ?? const [];
+
+  @override
+  Future<List<DaybookAckFace>> acks(String postId) async =>
+      acksByPost[postId] ?? const [];
+
+  @override
+  Future<void> tickPoint(String pointId, {required bool on}) async {
+    await holdMarks?.future;
+    _check();
+    marks.add('tick $pointId $on');
+  }
+
+  @override
+  Future<void> ack(String postId, DaybookAck kind, {required bool on}) async {
+    await holdMarks?.future;
+    _check();
+    marks.add('ack $postId ${kind.json} $on');
+  }
+
+  @override
+  Future<void> createPost(NewSpacePost post) async {
+    _check();
+    if (createdPosts.any((p) => p.id == post.id)) return;
+    createdPosts.add(post);
+  }
+
+  @override
+  Future<void> attachFile(String itemId, String libraryFileId) async {
+    _check();
+    marks.add('attach $itemId $libraryFileId');
   }
 
   @override

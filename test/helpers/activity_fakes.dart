@@ -8,18 +8,13 @@ class FakeActivityRepository implements ActivityRepository {
     List<ActivityRow>? rows,
     List<NeedsCard>? cards,
     List<SpaceToday>? today,
-    Map<String, DateTime>? last,
-  }) : last = last ?? {},
-       rows = rows ?? [],
+  }) : rows = rows ?? [],
        cards = cards ?? [],
        todayRows = today ?? [];
 
   List<ActivityRow> rows;
   List<NeedsCard> cards;
   List<SpaceToday> todayRows;
-
-  /// Each Space's last daybook activity.
-  Map<String, DateTime> last;
   final calls = <String>[];
 
   /// The day start Home last asked with.
@@ -70,11 +65,6 @@ class FakeActivityRepository implements ActivityRepository {
 
   @override
   Future<List<NeedsCard>> needs() async => List.of(cards);
-
-  @override
-  Future<Map<String, DateTime>> lastActivity(List<String> spaceIds) async => {
-    for (final id in spaceIds) id: ?last[id],
-  };
 
   @override
   Future<void> markSpaceSeen(String spaceId) async =>

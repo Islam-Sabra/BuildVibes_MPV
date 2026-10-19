@@ -43,10 +43,11 @@ ios/Flutter/flutter_export_environment.sh
 ios/Runner/GeneratedPluginRegistrant.*
 **/xcuserdata/
 
-# Emulator screenshots for review (not committed), except slice 1's, which
-# the lead checks against Figma (review 43).
+# Emulator screenshots for review (not committed), except slice 1's and
+# slice 2's, which the lead checks against Figma (review 43).
 docs/screens/*
 !docs/screens/slice1/
+!docs/screens/slice2/
 
 # short-lived Figma download links
 docs/design/_fetch*

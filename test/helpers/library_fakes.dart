@@ -72,6 +72,10 @@ class FakeLibraryRepository implements LibraryRepository {
     String? note,
     String? supersedesId,
   }) async {
+    // As add_library_file: an id is used once.
+    if (_find(id) != null) {
+      throw const SpaceException(SpaceFailure.badInput, 'this id is taken');
+    }
     calls.add(
       'add $name team:${teamId ?? '-'} rev:${revLabel ?? '-'} '
       'supersedes:${supersedesId ?? '-'}',
@@ -96,7 +100,15 @@ class FakeLibraryRepository implements LibraryRepository {
             uploadedByName: 'Omar Haddad',
           ),
         );
+    if (loseAnswer) {
+      loseAnswer = false;
+      throw const SpaceException(SpaceFailure.network);
+    }
   }
+
+  /// The next add reaches the Library but its answer is lost (a weak
+  /// signal): the phone hears no signal.
+  bool loseAnswer = false;
 
   /// False gives links (to play a voice note); true, the default, is no
   /// network: previews show "can't show".
