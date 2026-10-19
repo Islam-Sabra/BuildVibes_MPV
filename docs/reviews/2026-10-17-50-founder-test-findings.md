@@ -307,6 +307,11 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 - **Test:** switch the setting while the app is in the background, come back, and every time shows the new style without a restart.
 - **Priority:** low. It doesn't block closing slice 1; it goes in the next app round with F34–F36.
 
+## F38. "Due today" keeps an item after it is signed as done
+- **What Claude Code saw (retest of build 298):** the Due today strip keeps an item that the owner has signed as done until it is checked or sent back.
+- **Fix:** the strip shows what the person still has to **do**. An item leaves it once it is signed as done, and comes back if it is sent back. For the author, a Done item already appears in Needs you as "to check".
+- **When:** the next app round, with F34–F37.
+
 ## Retest of build 298: result (19 Oct)
 - **Steps 1–5 passed:** the owner sees the item, signs with a photo, the push arrives, the card shows DONE with one new history line at Now, a double-tap checks with Undo, and a send-back plus an update each add one line, with the sheet above the keyboard.
 - **Step 6:** one time style everywhere, in both modes. The style only switches after a restart (F37).
