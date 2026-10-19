@@ -1,12 +1,11 @@
-// The Daybook's day parts (slice 1a): masthead, spine, day divider, post
-// bars, month drop-down and the day-one card. Run:
+// The Daybook's day parts: the one-line masthead and the day divider (v13,
+// review 53 Part B), the post bars, the month drop-down and
+// the day-one card. Run:
 //   flutter test test_screens/ds_days_test.dart --update-goldens
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
-import 'package:buildvibes/core/design/daybook_days_specs.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
-import 'package:buildvibes/shared/widgets/bv_daybook_spine.dart';
 import 'package:buildvibes/shared/widgets/bv_first_page.dart';
 import 'package:buildvibes/shared/widgets/bv_month_dropdown.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
@@ -18,11 +17,8 @@ import 'shot.dart';
 const _text = {
   'en': {
     'weekday': 'Thursday',
-    'dateLine': '15 October, day 41 on site',
-    'weather': 'Sunny, light wind',
-    'now': 'Now',
-    'yesterday': 'Wednesday',
-    'yesterdayDate': '14 October',
+    'date': '15 October',
+    'yesterday': 'Wednesday 14 October',
     'workItem': 'Work item',
     'viewer': 'Viewer',
     'readOnly': 'Read only',
@@ -35,11 +31,8 @@ const _text = {
   },
   'ar': {
     'weekday': 'الخميس',
-    'dateLine': '15 أكتوبر، اليوم 41 في الموقع',
-    'weather': 'مشمس، رياح خفيفة',
-    'now': 'الآن',
-    'yesterday': 'الأربعاء',
-    'yesterdayDate': '14 أكتوبر',
+    'date': '15 أكتوبر',
+    'yesterday': 'الأربعاء 14 أكتوبر',
     'workItem': 'بند عمل',
     'viewer': 'مُطّلع',
     'readOnly': 'للقراءة فقط',
@@ -51,15 +44,6 @@ const _text = {
     'invite': 'ادعُ فريقك',
   },
 };
-
-Widget _slip(double height) => Container(
-  height: height,
-  decoration: const BoxDecoration(
-    color: BvColors.surfaceElevated,
-    borderRadius: BvRadius.controlAll,
-    boxShadow: BvShadow.slip,
-  ),
-);
 
 void main() {
   setUpAll(loadAppFonts);
@@ -80,32 +64,16 @@ void main() {
               const SizedBox(height: BvSpace.s24),
               BvDaybookMasthead(
                 weekday: t['weekday']!,
-                dateLine: t['dateLine']!,
-                temperature: '34°',
-                weather: t['weather'],
+                date: t['date']!,
                 onTap: () {},
               ),
-              BvDaybookSpine(
-                children: [
-                  BvSpineEntry(time: '08:14', child: _slip(72)),
-                  BvSpineEntry(
-                    time: '09:40',
-                    dot: BvSpineDot.needsYou,
-                    child: _slip(96),
-                  ),
-                  BvSpineEntry(
-                    time: '10:05',
-                    dot: BvSpineDot.checked,
-                    child: _slip(72),
-                  ),
-                  BvSpineEntry(
-                    time: t['now']!,
-                    dot: BvSpineDot.now,
-                    child: _slip(56),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: BvSpace.s16,
+                  vertical: BvSpace.s12,
+                ),
+                child: BvDayDivider(label: t['yesterday']!),
               ),
-              BvDayDivider(weekday: t['yesterday']!, date: t['yesterdayDate']!),
               const Spacer(),
               BvPostBar(placeholder: t['workItem']!),
               const SizedBox(height: BvSpace.s24),
@@ -141,9 +109,8 @@ void main() {
               ),
               const Spacer(),
               Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  start: BvFirstPageSpec.insetStart,
-                  end: BvSpace.gutter,
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: BvSpace.s16,
                 ),
                 child: BvFirstPage(
                   title: t['title']!,

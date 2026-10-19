@@ -33,6 +33,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLanguage => 'لغة التطبيق';
 
   @override
+  String get settingsLanguageRow => 'اللغة';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -874,9 +877,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesPrivateWork => 'عمل خاص';
 
   @override
-  String get spacesProjectSpaceLine => 'عمل خاص · مساحة مشروع';
-
-  @override
   String get spacesEmptyTitle => 'انضم إلى أول مساحة لك';
 
   @override
@@ -1111,10 +1111,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesConfirm => 'تأكيد';
 
   @override
-  String get spacesOwners => 'مديرو المساحة';
+  String get spacesAdminSection => 'مدير المساحة';
 
   @override
-  String get spacesOwnerTag => 'مدير المساحة';
+  String get spacesAdminTag => 'مدير المساحة';
 
   @override
   String get spacesMembers => 'الأعضاء';
@@ -1920,12 +1920,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String postUsefulOne(String a) {
-    return 'مفيد لـ$a';
+    return 'علامة مفيد من $a';
   }
 
   @override
   String postUsefulTwo(String a, String b) {
-    return 'مفيد لـ$a و$b';
+    return 'علامة مفيد من $a و$b';
   }
 
   @override
@@ -1970,9 +1970,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postNoReplies => 'لا ردود بعد.';
-
-  @override
-  String get postAddComment => 'أضف تعليقًا';
 
   @override
   String get postWriteReply => 'اكتب ردًا';
@@ -2029,19 +2026,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get projectPostsEmpty => 'لا منشورات مرتبطة بهذا المشروع بعد.';
 
   @override
-  String get timeNowShort => 'الآن';
-
-  @override
-  String timeMinutesShort(int n) {
-    return '$n د';
-  }
-
-  @override
-  String timeHoursShort(int n) {
-    return '$n س';
-  }
-
-  @override
   String homeDayNeedsYou(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2059,6 +2043,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeSeeAll => 'عرض الكل';
+
+  @override
+  String get homeJoinWithCode => 'انضم برمز';
 
   @override
   String get homeSearch => 'ابحث عن أشخاص';
@@ -2112,21 +2099,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get needsOpen => 'فتح';
-
-  @override
-  String get needsCheck => 'تحقّق';
-
-  @override
-  String get needsReview => 'راجع الطلب';
-
-  @override
   String todayItem(String event, String name, String ref, String title) {
     String _temp0 = intl.Intl.selectLogic(event, {
       'done': '$ref منجز بتوقيع $name',
       'checked': 'تحقّق $ref من $name',
       'sent_back': 'إرجاع $ref من $name',
-      'comment': 'تعليق من $name على $ref',
+      'comment': 'تحديث من $name · $ref',
       'reassigned': 'إعادة تكليف $ref من $name',
       'other': 'بند جديد $ref من $name',
     });
@@ -2158,54 +2136,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activitySomeone => 'أحدهم';
 
   @override
-  String activityNeedsHeader(int n) {
-    return 'بانتظارك · $n';
-  }
-
-  @override
-  String get activityChanges => 'تغييرات في سجلك';
-
-  @override
-  String get activityLast7 => 'آخر 7 أيام';
-
-  @override
-  String activitySpaceLine(String pass) {
-    return 'مساحة · تصريحك: $pass';
-  }
-
-  @override
-  String get activityGroupRecord => 'سجلك';
-
-  @override
   String get activityGroupNetwork => 'شبكتك';
-
-  @override
-  String get activityGroupPosts => 'منشوراتك';
-
-  @override
-  String activityAssigned(String name, String ref) {
-    return 'تكليف لك بـ$ref من $name';
-  }
-
-  @override
-  String activityDone(String name, String ref) {
-    return '$ref منجز بتوقيع $name';
-  }
-
-  @override
-  String activityChecked(String name, String ref) {
-    return 'تحقّق $ref من $name';
-  }
-
-  @override
-  String activitySentBack(String name, String ref) {
-    return 'إرجاع $ref من $name';
-  }
-
-  @override
-  String activityComment(String name, String ref) {
-    return 'تعليق من $name على $ref';
-  }
 
   @override
   String activityJoinRequest(String name) {
@@ -2244,37 +2175,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String activityUseful1(String a) {
-    return 'منشورك مفيد لـ$a';
+    return 'علامة مفيد على منشورك من $a';
   }
 
   @override
   String activityUseful2(String a, String b) {
-    return 'منشورك مفيد لـ$a و$b';
+    return 'علامة مفيد على منشورك من $a و$b';
   }
 
   @override
-  String get activityUseful0 => 'منشورك مفيد للآخرين';
+  String get activityUseful0 => 'علامة مفيد على منشورك';
 
   @override
-  String get chipAssigned => 'تكليف';
+  String activityItemDone(String name, String title) {
+    return 'منجز بتوقيع $name: $title';
+  }
 
   @override
-  String get chipDone => 'منجز';
+  String activityItemChecked(String name, String title) {
+    return 'تم الفحص من $name: $title';
+  }
 
   @override
-  String get chipChecked => 'تم التحقق';
+  String activityItemSentBack(String name, String title) {
+    return 'إرجاع من $name: $title';
+  }
 
   @override
-  String get chipSentBack => 'مُرجَع';
+  String activityItemUpdate(String name, String title) {
+    return 'تحديث من $name: $title';
+  }
 
   @override
-  String get chipComment => 'تعليق';
+  String activityRoleConfirmedOn(String name, String project) {
+    return 'تأكيد دورك في $project من $name';
+  }
 
   @override
-  String get chipApproved => 'مقبول';
+  String activityReplyPostText(String name, String text) {
+    return 'ردّ من $name على منشورك: $text';
+  }
 
   @override
-  String get chipConfirmed => 'مؤكَّد';
+  String activityReplyReplyText(String name, String text) {
+    return 'ردّ من $name عليك: $text';
+  }
+
+  @override
+  String get activityWherePost => 'منشورك';
+
+  @override
+  String get activityWhereProfile => 'ملفك';
 
   @override
   String get activityEmptyTitle => 'لا شيء بانتظارك الآن.';
@@ -2311,51 +2262,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ledgerAddProject => 'أضف مشروعًا عملت فيه';
-
-  @override
-  String get rowJustNow => 'الآن';
-
-  @override
-  String rowMinutesAgo(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: 'قبل $n دقيقة',
-      few: 'قبل $n دقائق',
-      two: 'قبل دقيقتين',
-      one: 'قبل دقيقة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String rowHoursAgo(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: 'قبل $n ساعة',
-      few: 'قبل $n ساعات',
-      two: 'قبل ساعتين',
-      one: 'قبل ساعة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get rowYesterday => 'أمس';
-
-  @override
-  String rowDaysAgo(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: 'قبل $n يومًا',
-      few: 'قبل $n أيام',
-      two: 'قبل يومين',
-      one: 'قبل يوم',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settingsNotifications => 'الإشعارات';
@@ -2656,74 +2562,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get chipRemoved => 'محذوف';
-
-  @override
-  String get chipRestored => 'مُستعاد';
-
-  @override
   String get settingsViewProfile => 'عرض الملف';
 
   @override
-  String get settingsInWords => 'ملخّص إعداداتك';
-
-  @override
-  String get settingsPrivacyLabel => 'الخصوصية';
-
-  @override
-  String get settingsNotificationsLabel => 'الإشعارات';
-
-  @override
   String get settingsLanguageLabel => 'اللغة';
-
-  @override
-  String wordsBlocked(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n حساب محظور',
-      many: '$n حسابًا محظورًا',
-      few: '$n حسابات محظورة',
-      two: 'حسابان محظوران',
-      one: 'حساب محظور واحد',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String wordsPrivacy(String what) {
-    return '$what. بنود العمل والمحادثة والمكتبة تبقى داخل كل مساحة.';
-  }
-
-  @override
-  String wordsNotifications(String followers, String replies, String lockText) {
-    return 'إشعارات المتابعين الجدد: $followers. إشعارات الردود: $replies. نص الرسائل على شاشة القفل: $lockText.';
-  }
-
-  @override
-  String get wordsOn => 'مفعّلة';
-
-  @override
-  String get wordsOff => 'متوقفة';
-
-  @override
-  String get wordsShown => 'ظاهر';
-
-  @override
-  String get wordsHidden => 'مخفي';
-
-  @override
-  String wordsLanguage(String language, String weekday, String country) {
-    return '$language. يبدأ الأسبوع يوم $weekday، بتوقيت $country.';
-  }
-
-  @override
-  String wordsLanguageOnly(String language) {
-    return '$language.';
-  }
-
-  @override
-  String get settingsAccountSection => 'الحساب';
 
   @override
   String get accountSecurity => 'الحساب والأمان';
@@ -2738,9 +2580,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageRegion => 'اللغة والمنطقة';
 
   @override
-  String get supportSection => 'الدعم';
-
-  @override
   String get helpFeedback => 'المساعدة والملاحظات';
 
   @override
@@ -2748,6 +2587,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutLegalSub => 'الشروط وسياسة الخصوصية';
+
+  @override
+  String aboutBuild(String version, String build, String commit) {
+    return 'الإصدار $version · البناء $build · $commit';
+  }
 
   @override
   String get legalTerms => 'شروط الاستخدام';
@@ -2917,11 +2761,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formerMember => 'عضو سابق';
 
   @override
-  String daybookDateLine(String date, int day) {
-    return '$date، اليوم $day في الموقع';
-  }
-
-  @override
   String get daybookYou => 'أنت';
 
   @override
@@ -2934,7 +2773,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookMeta(String who, String due) {
-    return '$who، $due';
+    return '$who · $due';
   }
 
   @override
@@ -3013,20 +2852,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String daybookEditedDue(String from, String to) {
-    return 'عُدّل: نُقل الموعد من $from إلى $to';
-  }
-
-  @override
   String get daybookToday => 'اليوم';
 
   @override
   String get daybookTomorrow => 'غدًا';
-
-  @override
-  String daybookCancelledBy(String name, String time) {
-    return 'أُلغي من قِبل $name الساعة $time';
-  }
 
   @override
   String get daybookStampDone => 'منجز';
@@ -3065,19 +2894,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookFirstInvite => 'ادعُ فريقك';
 
   @override
-  String daybookClock12(String time, String period) {
-    String _temp0 = intl.Intl.selectLogic(period, {
-      'morning': 'صباحًا',
-      'noon': 'ظهرًا',
-      'afternoon': 'عصرًا',
-      'evening': 'مساءً',
-      'other': 'مساءً',
-    });
-    return '$time $_temp0';
+  String daybookStampBy(String name, String time) {
+    return '$name · $time';
   }
 
   @override
-  String daybookClockPeriod(String period) {
+  String timePeriod(String period) {
     String _temp0 = intl.Intl.selectLogic(period, {
       'morning': 'صباحًا',
       'noon': 'ظهرًا',
@@ -3089,20 +2911,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookSignedAsDone => 'وقّع كمنجز';
-
-  @override
-  String daybookStampBy(String name, String time) {
-    return '$name · $time';
+  String timeClock12(String time, String period) {
+    return '$time $period';
   }
 
   @override
   String get daybookDoubleTapToCheck => 'انقر مرتين على الصورة للتحقق';
-
-  @override
-  String daybookGivenTo(String to, String from, String time) {
-    return 'أُسند إلى $to بدلًا من $from الساعة $time';
-  }
 
   @override
   String daybookFileChip(String name, String revision) {
@@ -3111,9 +2925,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookWaitingToSend => 'بانتظار الإرسال';
-
-  @override
-  String get daybookNow => 'الآن';
 
   @override
   String get daybookDraft => 'مسودة';
@@ -3175,9 +2986,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookCouldNotSend => 'تعذّر الإرسال. انقر للتصحيح';
 
   @override
-  String get daybookEditedDueRemoved => 'عُدّل: أُزيل الموعد';
-
-  @override
   String get daybookRemoveDue => 'إزالة';
 
   @override
@@ -3185,16 +2993,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookHoldToProve => 'اضغط مطوّلًا للإثبات';
-
-  @override
-  String daybookChecksNext(String name) {
-    return 'يتحقّق منه $name بعد ذلك';
-  }
-
-  @override
-  String daybookYouChecked(String time) {
-    return 'تحقّقت منه الساعة $time. صار مقفلًا، وهذا هو السجل.';
-  }
 
   @override
   String get daybookCheck => 'تحقّق';
@@ -3269,19 +3067,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookSave => 'حفظ';
-
-  @override
-  String daybookCancelledByYou(String time) {
-    return 'ألغيته الساعة $time';
-  }
-
-  @override
-  String get daybookSentItBack => 'أرجع البند';
-
-  @override
-  String daybookSentBackAt(String time) {
-    return 'أُرجع الساعة $time';
-  }
 
   @override
   String daybookSentBackText(String reason, String note) {
@@ -3495,4 +3280,128 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get createNoWorkSpaces =>
       'لا توجد بعد مساحة يمكن كتابة بنود العمل فيها. يمكن الانضمام إلى مساحة برمز دعوة، أو إنشاء مساحة جديدة.';
+
+  @override
+  String get daybookShowEarlier => 'عرض الأقدم';
+
+  @override
+  String daybookHistoryLead(String lead) {
+    return '$lead:';
+  }
+
+  @override
+  String daybookCardRef(String ref) {
+    return '· $ref';
+  }
+
+  @override
+  String get daybookRemoved => 'تمت إزالة هذا';
+
+  @override
+  String daybookQuote(String ref, String title) {
+    return '$ref · $title';
+  }
+
+  @override
+  String get daybookSendUpdate => 'أرسل التحديث';
+
+  @override
+  String daybookTrace(String what, String title) {
+    return '$what · $title';
+  }
+
+  @override
+  String get daybookTodayDivider => 'اليوم';
+
+  @override
+  String daybookLineSigned(String name) {
+    return '$name · توقيع كمنجز';
+  }
+
+  @override
+  String get daybookLineYouSigned => 'أنت · توقيع كمنجز';
+
+  @override
+  String daybookLineChecked(String name) {
+    return '$name · تحقّق';
+  }
+
+  @override
+  String get daybookLineYouChecked => 'أنت · تحقّق';
+
+  @override
+  String daybookLineSentBack(String name) {
+    return '$name · إرجاع';
+  }
+
+  @override
+  String get daybookLineYouSentBack => 'أنت · إرجاع';
+
+  @override
+  String daybookLineUpdate(String name) {
+    return '$name · تحديث';
+  }
+
+  @override
+  String get daybookLineYouUpdate => 'أنت · تحديث';
+
+  @override
+  String get daybookLineYouComment => 'أنت · تحديث';
+
+  @override
+  String daybookLineComment(String name) {
+    return '$name · تحديث';
+  }
+
+  @override
+  String daybookLineGave(String name, String to, String from) {
+    return '$name · إسناد إلى $to بدلًا من $from';
+  }
+
+  @override
+  String daybookLineYouGave(String to, String from) {
+    return 'أنت · إسناد إلى $to بدلًا من $from';
+  }
+
+  @override
+  String daybookLineEdited(String name) {
+    return '$name · تعديل';
+  }
+
+  @override
+  String get daybookLineYouEdited => 'أنت · تعديل';
+
+  @override
+  String daybookLineMovedDue(String name, String from, String to) {
+    return '$name · تعديل الموعد: من $from إلى $to';
+  }
+
+  @override
+  String daybookLineYouMovedDue(String from, String to) {
+    return 'أنت · تعديل الموعد: من $from إلى $to';
+  }
+
+  @override
+  String daybookLineRemovedDue(String name) {
+    return '$name · إزالة الموعد';
+  }
+
+  @override
+  String get daybookLineYouRemovedDue => 'أنت · إزالة الموعد';
+
+  @override
+  String daybookLineCancelled(String name) {
+    return '$name · إلغاء';
+  }
+
+  @override
+  String get daybookLineYouCancelled => 'أنت · إلغاء';
+
+  @override
+  String daybookLinePosted(String name) {
+    return '$name · نشر';
+  }
+
+  @override
+  String get daybookLineYouPosted => 'أنت · نشر';
 }

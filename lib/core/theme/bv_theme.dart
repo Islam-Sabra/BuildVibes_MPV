@@ -40,9 +40,11 @@ abstract final class BvTheme {
     );
 
     final textTheme = TextTheme(
-      displaySmall: type.displayBrand,
-      headlineLarge: type.headingXl,
-      headlineMedium: type.headingLg,
+      // Two sizes on working screens (review 53 Part C): Material's large
+      // slots get the main bold size; the entry screens use BvType directly.
+      displaySmall: type.headingMd,
+      headlineLarge: type.headingMd,
+      headlineMedium: type.headingMd,
       headlineSmall: type.headingMd,
       titleLarge: type.titleLg,
       titleMedium: type.titleMd,
@@ -102,7 +104,7 @@ abstract final class BvTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: type.headingLg,
+        titleTextStyle: type.titleLg,
         iconTheme: const IconThemeData(
           color: BvColors.iconPrimary,
           size: BvSize.iconLg,

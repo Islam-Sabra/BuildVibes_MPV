@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import 'bv_paper_clip.dart';
-import 'bv_space_tile.dart';
+import 'bv_space_emblem.dart';
 
-/// One Space in Needs you (2544:35078): a small tile with its first
-/// letter, its name, then its rows.
+/// One Space in Needs you (2544:35078): its emblem (F28), its name, then
+/// its rows.
 class BvNeedsGroup extends StatelessWidget {
   const BvNeedsGroup({super.key, required this.name, required this.rows});
 
@@ -23,7 +23,7 @@ class BvNeedsGroup extends StatelessWidget {
         Row(
           spacing: BvSpace.s8,
           children: [
-            BvSpaceTile(name: name),
+            const BvSpaceEmblem(height: BvSpaceEmblemSpec.tile),
             Expanded(
               child: Text(
                 name,

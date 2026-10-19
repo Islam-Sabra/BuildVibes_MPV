@@ -5,14 +5,14 @@ import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 
-final daybookPageProvider = AsyncNotifierProvider.autoDispose
-    .family<DaybookPages, List<DaybookRecord>, String>(DaybookPages.new);
+final daybookCardsProvider = AsyncNotifierProvider.autoDispose
+    .family<DaybookCards, List<DaybookCard>, String>(DaybookCards.new);
 
-/// A Space's daybook as loaded so far, newest first: posts, sign-offs and
-/// updates. Every kind of post is kept (they page the list); the page shows
-/// work items only until slice 2.
-class DaybookPages extends AsyncNotifier<List<DaybookRecord>> {
-  DaybookPages(this.spaceId);
+/// A Space's daybook as loaded so far: one card per post, newest activity
+/// first (daybook_cards, review 53 Part B). Every kind of post is kept
+/// (they page the list); the page shows work items only until slice 2.
+class DaybookCards extends AsyncNotifier<List<DaybookCard>> {
+  DaybookCards(this.spaceId);
 
   final String spaceId;
 
@@ -23,33 +23,55 @@ class DaybookPages extends AsyncNotifier<List<DaybookRecord>> {
   /// False once the Space's first post is loaded.
   bool get hasOlder => !_reachedStart;
 
-  /// Where the next older page starts: the last row the server sent,
-  /// drawn or not.
+  /// Where the next older page starts: the last card the server sent.
   DateTime? _cursorAt;
   String? _cursorId;
 
-  void _follow(DaybookPageRows page, int limit) {
-    _reachedStart = page.rows < limit;
+  /// History lines "Show earlier" loaded past a card's first 50, by post,
+  /// with whether there are more still. Kept while the card's activity
+  /// stays as it was.
+  final _earlier =
+      <String, ({DateTime activity, List<DaybookEvent> lines, bool more})>{};
+
+  void _follow(DaybookCardsPage page, int limit) {
+    _reachedStart = page.cards.length < limit;
     if (page.lastAt != null) {
       _cursorAt = page.lastAt;
       _cursorId = page.lastId;
     }
   }
 
+  /// [card] with the lines loaded earlier. New activity shifts its first
+  /// 50, so they are dropped then, and Show earlier reads them again.
+  DaybookCard _withEarlier(DaybookCard card) {
+    final earlier = _earlier[card.id];
+    if (earlier == null) return card;
+    if (earlier.activity != card.lastActivityAt) {
+      _earlier.remove(card.id);
+      return card;
+    }
+    return card.copyWith(
+      history: [...card.history, ...earlier.lines],
+      historyMore: earlier.more,
+    );
+  }
+
   @override
-  Future<List<DaybookRecord>> build() async {
+  Future<List<DaybookCard>> build() async {
     _reachedStart = false;
     _cursorAt = null;
     _cursorId = null;
+    _earlier.clear();
     final page = await ref
         .watch(daybookRepositoryProvider)
-        .page(spaceId, limit: pageSize);
+        .cards(spaceId, limit: pageSize);
     _follow(page, pageSize);
-    return page.records;
+    return page.cards;
   }
 
-  /// Loads the next older page. True when it added entries.
-  Future<bool> loadOlder() async {
+  /// Loads the next older page ([limit] cards, a page by default). True
+  /// when it added cards.
+  Future<bool> loadOlder({int limit = pageSize}) async {
     final current = state.value;
     if (_loadingOlder ||
         _reachedStart ||
@@ -61,51 +83,130 @@ class DaybookPages extends AsyncNotifier<List<DaybookRecord>> {
     try {
       final page = await ref
           .read(daybookRepositoryProvider)
-          .page(
-            spaceId,
-            before: _cursorAt,
-            beforeId: _cursorId,
-            limit: pageSize,
-          );
+          .cards(spaceId, before: _cursorAt, beforeId: _cursorId, limit: limit);
       if (!ref.mounted) return false;
-      _follow(page, pageSize);
-      state = AsyncData([...current, ...page.records]);
-      // Rows of kinds this version doesn't draw still move the cursor.
-      return page.rows > 0;
+      _follow(page, limit);
+      // A card that moved since is already loaded, at its new place.
+      final known = {for (final c in current) c.id};
+      state = AsyncData([
+        ...current,
+        for (final c in page.cards)
+          if (!known.contains(c.id)) c,
+      ]);
+      return page.cards.isNotEmpty;
     } finally {
       _loadingOlder = false;
     }
   }
 
-  /// The most a page reads at once (daybook_page).
+  /// The most a page reads at once (daybook_cards).
   static const _pageMax = 100;
 
+  /// How many pages [find] reads at most before it gives up.
+  static const findPagesMax = 50;
+  static const _waitStep = Duration(milliseconds: 16);
+
+  /// Loads the cards down to [postId]'s (F20: an Activity row, a push or a
+  /// Needs you card opens the daybook at that card). The pages stay
+  /// whole from Now down to it, so the days between are right too. First
+  /// post_history says whether the post can still be seen at all: a
+  /// deleted post, or one the reader may no longer see, has none. Then the
+  /// pages are read, a hundred cards at a time, until the card is in.
+  /// True when it is loaded.
+  Future<bool> find(String postId) async {
+    bool loaded() => state.value?.any((c) => c.id == postId) ?? false;
+    if (state.value == null) await future;
+    if (!ref.mounted) return false;
+    if (loaded()) return true;
+    final newest = await ref
+        .read(daybookRepositoryProvider)
+        .history(postId, limit: 1);
+    if (!ref.mounted || newest.isEmpty) return false;
+    var pages = 0;
+    while (!loaded() && hasOlder && pages < findPagesMax) {
+      // Another read is under way (scrolling back): wait for it.
+      if (_loadingOlder) {
+        await Future<void>.delayed(_waitStep);
+        if (!ref.mounted) return false;
+        continue;
+      }
+      pages++;
+      await loadOlder(limit: _pageMax);
+      if (!ref.mounted) return false;
+    }
+    return loaded();
+  }
+
+  /// Reads "Show earlier" on [postId]'s card until its history holds
+  /// [eventId], or there is nothing older. True when it does.
+  Future<bool> findLine(String postId, String eventId) async {
+    DaybookCard? card() =>
+        state.value?.where((c) => c.id == postId).firstOrNull;
+    bool has() => card()?.history.any((e) => e.id == eventId) ?? false;
+    for (var i = 0; i < findPagesMax && !has(); i++) {
+      if (!(card()?.historyMore ?? false)) break;
+      await loadEarlier(postId);
+      if (!ref.mounted) return false;
+    }
+    return has();
+  }
+
   /// Reads again what is loaded (after something was sent: a post, a
-  /// sign-off, a check, an edit), without showing a load. Older pages
-  /// past the first hundred entries are kept as they were.
+  /// sign-off, a check, an edit), without showing a load. A card with new
+  /// activity comes back at the top; older pages past the first hundred
+  /// cards are kept as they were.
   Future<void> refresh() async {
-    final current = state.value ?? const <DaybookRecord>[];
+    final current = state.value ?? const <DaybookCard>[];
     final limit = current.length.clamp(pageSize, _pageMax);
     final page = await ref
         .read(daybookRepositoryProvider)
-        .page(spaceId, limit: limit);
+        .cards(spaceId, limit: limit);
     if (!ref.mounted) return;
-    if (page.rows < limit) {
+    final fresh = [for (final c in page.cards) _withEarlier(c)];
+    if (page.cards.length < limit) {
       _follow(page, limit);
-      state = AsyncData(page.records);
+      state = AsyncData(fresh);
       return;
     }
     final oldestAt = page.lastAt!;
     final oldestId = page.lastId!;
-    bool older(DaybookRecord r) {
-      final t = r.at.compareTo(oldestAt);
-      return t < 0 || (t == 0 && r.id.compareTo(oldestId) < 0);
+    final read = {for (final c in page.cards) c.id};
+    bool older(DaybookCard c) {
+      final t = c.lastActivityAt.compareTo(oldestAt);
+      return t < 0 || (t == 0 && c.id.compareTo(oldestId) < 0);
     }
 
-    final kept = current.where(older).toList();
+    final kept = [
+      for (final c in current)
+        if (older(c) && !read.contains(c.id)) c,
+    ];
     // The cursor stays where the loaded pages end.
     if (kept.isEmpty) _follow(page, limit);
-    state = AsyncData([...page.records, ...kept]);
+    state = AsyncData([...fresh, ...kept]);
+  }
+
+  /// Show earlier, past the card's loaded lines (post_history).
+  Future<void> loadEarlier(String postId) async {
+    final card = state.value?.where((c) => c.id == postId).firstOrNull;
+    final last = card?.history.lastOrNull;
+    if (card == null || last == null || !card.historyMore) return;
+    final lines = await ref
+        .read(daybookRepositoryProvider)
+        .history(postId, before: last.at, beforeId: last.id);
+    if (!ref.mounted) return;
+    final more = lines.length >= DaybookRepository.historyPage;
+    final kept = _earlier[postId];
+    _earlier[postId] = (
+      activity: card.lastActivityAt,
+      lines: [...?kept?.lines, ...lines],
+      more: more,
+    );
+    state = AsyncData([
+      for (final c in state.value ?? const <DaybookCard>[])
+        c.id == postId
+            ? c.copyWith(history: [...c.history, ...lines], historyMore: more)
+            : c,
+    ]);
   }
 }
 

@@ -3,8 +3,22 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
-/// [note] is an update's face (20, Y2).
-enum BvAvatarSize { xxs, note, xs, xsm, list, sm, md, lg, profile, xl }
+/// [note] is an update's face (20, Y2); [face] one of the faces before a
+/// post's latest reply (22) and [post] a post card's author (36, H1 v4).
+enum BvAvatarSize {
+  xxs,
+  note,
+  face,
+  xs,
+  xsm,
+  list,
+  sm,
+  post,
+  md,
+  lg,
+  profile,
+  xl,
+}
 
 /// Spec §9 ("DS · Avatar & Badge"). A person is a circle; a company is a
 /// rounded square. Without a photo it shows initials.
@@ -35,10 +49,12 @@ class BvAvatar extends StatelessWidget {
   static double dimension(BvAvatarSize size) => switch (size) {
     BvAvatarSize.xxs => BvAvatarSpec.xxs,
     BvAvatarSize.note => BvAvatarSpec.note,
+    BvAvatarSize.face => BvAvatarSpec.face,
     BvAvatarSize.xs => BvAvatarSpec.xs,
     BvAvatarSize.xsm => BvAvatarSpec.xsm,
     BvAvatarSize.list => BvAvatarSpec.list,
     BvAvatarSize.sm => BvAvatarSpec.sm,
+    BvAvatarSize.post => BvAvatarSpec.post,
     BvAvatarSize.md => BvAvatarSpec.md,
     BvAvatarSize.lg => BvAvatarSpec.lg,
     BvAvatarSize.profile => BvAvatarSpec.profile,
@@ -48,10 +64,12 @@ class BvAvatar extends StatelessWidget {
   static BorderRadius companyRadius(BvAvatarSize size) => switch (size) {
     BvAvatarSize.xxs ||
     BvAvatarSize.note ||
+    BvAvatarSize.face ||
     BvAvatarSize.xs ||
     BvAvatarSize.xsm ||
     BvAvatarSize.list ||
     BvAvatarSize.sm ||
+    BvAvatarSize.post ||
     BvAvatarSize.md => BvAvatarSpec.companyRadiusSmall,
     BvAvatarSize.lg ||
     BvAvatarSize.profile ||
@@ -153,8 +171,12 @@ class BvAvatar extends StatelessWidget {
         fontSize: BvAvatarSpec.noteInitials,
         height: 1,
       ),
+      BvAvatarSize.face => type.labelSm.copyWith(
+        fontSize: BvAvatarSpec.faceInitials,
+        height: 1,
+      ),
       BvAvatarSize.xs || BvAvatarSize.list || BvAvatarSize.sm => type.labelSm,
-      BvAvatarSize.xsm => type.labelMd,
+      BvAvatarSize.xsm || BvAvatarSize.post => type.labelMd,
       BvAvatarSize.md || BvAvatarSize.profile => type.labelMd,
       BvAvatarSize.lg => type.titleLg,
       BvAvatarSize.xl => type.headingXl,

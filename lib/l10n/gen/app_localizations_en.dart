@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguage => 'App language';
 
   @override
+  String get settingsLanguageRow => 'Language';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -880,9 +883,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesPrivateWork => 'Private work';
 
   @override
-  String get spacesProjectSpaceLine => 'Private work · project Space';
-
-  @override
   String get spacesEmptyTitle => 'Join your first Space';
 
   @override
@@ -1107,10 +1107,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesConfirm => 'Confirm';
 
   @override
-  String get spacesOwners => 'Owners';
+  String get spacesAdminSection => 'Space admin';
 
   @override
-  String get spacesOwnerTag => 'Owner';
+  String get spacesAdminTag => 'Space admin';
 
   @override
   String get spacesMembers => 'Members';
@@ -1968,9 +1968,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postNoReplies => 'No replies yet.';
 
   @override
-  String get postAddComment => 'Add a comment';
-
-  @override
   String get postWriteReply => 'Write a reply';
 
   @override
@@ -2026,19 +2023,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectPostsEmpty => 'No posts tagged with this project yet.';
 
   @override
-  String get timeNowShort => 'now';
-
-  @override
-  String timeMinutesShort(int n) {
-    return '${n}m';
-  }
-
-  @override
-  String timeHoursShort(int n) {
-    return '${n}h';
-  }
-
-  @override
   String homeDayNeedsYou(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2054,6 +2038,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSeeAll => 'See all';
+
+  @override
+  String get homeJoinWithCode => 'Join with a code';
 
   @override
   String get homeSearch => 'Search people';
@@ -2107,21 +2094,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get needsOpen => 'Open';
-
-  @override
-  String get needsCheck => 'Check';
-
-  @override
-  String get needsReview => 'Review request';
-
-  @override
   String todayItem(String event, String name, String ref, String title) {
     String _temp0 = intl.Intl.selectLogic(event, {
       'done': '$name signed $ref as done',
       'checked': '$name checked $ref',
       'sent_back': '$name sent $ref back',
-      'comment': '$name commented on $ref',
+      'comment': '$name added an update · $ref',
       'reassigned': '$name reassigned $ref',
       'other': '$name raised $ref',
     });
@@ -2153,54 +2131,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activitySomeone => 'Someone';
 
   @override
-  String activityNeedsHeader(int n) {
-    return 'NEEDS YOU · $n';
-  }
-
-  @override
-  String get activityChanges => 'CHANGES TO YOUR RECORD';
-
-  @override
-  String get activityLast7 => 'Last 7 days';
-
-  @override
-  String activitySpaceLine(String pass) {
-    return 'Space · your pass: $pass';
-  }
-
-  @override
-  String get activityGroupRecord => 'Your record';
-
-  @override
   String get activityGroupNetwork => 'Your network';
-
-  @override
-  String get activityGroupPosts => 'Your posts';
-
-  @override
-  String activityAssigned(String name, String ref) {
-    return '$name gave you $ref';
-  }
-
-  @override
-  String activityDone(String name, String ref) {
-    return '$name signed $ref as done';
-  }
-
-  @override
-  String activityChecked(String name, String ref) {
-    return '$name checked $ref';
-  }
-
-  @override
-  String activitySentBack(String name, String ref) {
-    return '$name sent $ref back';
-  }
-
-  @override
-  String activityComment(String name, String ref) {
-    return '$name commented on $ref';
-  }
 
   @override
   String activityJoinRequest(String name) {
@@ -2224,7 +2155,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String activityFollow(String name) {
-    return 'New follower: $name';
+    return '$name started following you';
   }
 
   @override
@@ -2251,25 +2182,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityUseful0 => 'Your post was found useful';
 
   @override
-  String get chipAssigned => 'Assigned';
+  String activityItemDone(String name, String title) {
+    return '$name signed as done: $title';
+  }
 
   @override
-  String get chipDone => 'Done';
+  String activityItemChecked(String name, String title) {
+    return '$name checked: $title';
+  }
 
   @override
-  String get chipChecked => 'Checked';
+  String activityItemSentBack(String name, String title) {
+    return '$name sent back: $title';
+  }
 
   @override
-  String get chipSentBack => 'Sent back';
+  String activityItemUpdate(String name, String title) {
+    return '$name added an update: $title';
+  }
 
   @override
-  String get chipComment => 'Comment';
+  String activityRoleConfirmedOn(String name, String project) {
+    return '$name confirmed your role on $project';
+  }
 
   @override
-  String get chipApproved => 'Approved';
+  String activityReplyPostText(String name, String text) {
+    return '$name replied to your post: $text';
+  }
 
   @override
-  String get chipConfirmed => 'Confirmed';
+  String activityReplyReplyText(String name, String text) {
+    return '$name replied to you: $text';
+  }
+
+  @override
+  String get activityWherePost => 'Your post';
+
+  @override
+  String get activityWhereProfile => 'Your profile';
 
   @override
   String get activityEmptyTitle => 'Nothing needs you right now.';
@@ -2308,39 +2259,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ledgerAddProject => 'Add a project you worked on';
-
-  @override
-  String get rowJustNow => 'Just now';
-
-  @override
-  String rowMinutesAgo(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n min ago',
-      one: '1 min ago',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String rowHoursAgo(int n) {
-    return '${n}h ago';
-  }
-
-  @override
-  String get rowYesterday => 'Yesterday';
-
-  @override
-  String rowDaysAgo(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n days ago',
-      one: '1 day ago',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get settingsNotifications => 'Notifications';
@@ -2648,71 +2566,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chipRemoved => 'Removed';
-
-  @override
-  String get chipRestored => 'Restored';
-
-  @override
   String get settingsViewProfile => 'View profile';
 
   @override
-  String get settingsInWords => 'YOUR SETTINGS, IN WORDS';
-
-  @override
-  String get settingsPrivacyLabel => 'PRIVACY';
-
-  @override
-  String get settingsNotificationsLabel => 'NOTIFICATIONS';
-
-  @override
   String get settingsLanguageLabel => 'LANGUAGE';
-
-  @override
-  String wordsBlocked(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n blocked accounts',
-      one: '1 blocked account',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String wordsPrivacy(String what) {
-    return '$what. Work items, chat and the Library stay inside each Space.';
-  }
-
-  @override
-  String wordsNotifications(String followers, String replies, String lockText) {
-    return 'New followers: $followers. Replies: $replies. Message text on the lock screen: $lockText.';
-  }
-
-  @override
-  String get wordsOn => 'on';
-
-  @override
-  String get wordsOff => 'off';
-
-  @override
-  String get wordsShown => 'shown';
-
-  @override
-  String get wordsHidden => 'hidden';
-
-  @override
-  String wordsLanguage(String language, String weekday, String country) {
-    return '$language. The week starts on $weekday, in $country time.';
-  }
-
-  @override
-  String wordsLanguageOnly(String language) {
-    return '$language.';
-  }
-
-  @override
-  String get settingsAccountSection => 'ACCOUNT';
 
   @override
   String get accountSecurity => 'Account and security';
@@ -2727,9 +2584,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageRegion => 'Language and region';
 
   @override
-  String get supportSection => 'SUPPORT';
-
-  @override
   String get helpFeedback => 'Help and feedback';
 
   @override
@@ -2737,6 +2591,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutLegalSub => 'Terms, privacy policy';
+
+  @override
+  String aboutBuild(String version, String build, String commit) {
+    return 'Version $version · build $build · $commit';
+  }
 
   @override
   String get legalTerms => 'Terms of use';
@@ -2910,11 +2769,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formerMember => 'Former member';
 
   @override
-  String daybookDateLine(String date, int day) {
-    return '$date, day $day on site';
-  }
-
-  @override
   String get daybookYou => 'You';
 
   @override
@@ -2927,7 +2781,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daybookMeta(String who, String due) {
-    return '$who, $due';
+    return '$who · $due';
   }
 
   @override
@@ -3000,20 +2854,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String daybookEditedDue(String from, String to) {
-    return 'Edited: due moved from $from to $to';
-  }
-
-  @override
   String get daybookToday => 'today';
 
   @override
   String get daybookTomorrow => 'tomorrow';
-
-  @override
-  String daybookCancelledBy(String name, String time) {
-    return 'Cancelled by $name at $time';
-  }
 
   @override
   String get daybookStampDone => 'DONE';
@@ -3053,19 +2897,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookFirstInvite => 'Invite your team';
 
   @override
-  String daybookClock12(String time, String period) {
-    String _temp0 = intl.Intl.selectLogic(period, {
-      'morning': 'am',
-      'noon': 'pm',
-      'afternoon': 'pm',
-      'evening': 'pm',
-      'other': 'pm',
-    });
-    return '$time $_temp0';
+  String daybookStampBy(String name, String time) {
+    return '$name · $time';
   }
 
   @override
-  String daybookClockPeriod(String period) {
+  String timePeriod(String period) {
     String _temp0 = intl.Intl.selectLogic(period, {
       'morning': 'am',
       'noon': 'pm',
@@ -3077,20 +2914,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookSignedAsDone => 'signed as done';
-
-  @override
-  String daybookStampBy(String name, String time) {
-    return '$name · $time';
+  String timeClock12(String time, String period) {
+    return '$time $period';
   }
 
   @override
   String get daybookDoubleTapToCheck => 'Double-tap the photo to check it';
-
-  @override
-  String daybookGivenTo(String to, String from, String time) {
-    return 'Given to $to instead of $from at $time';
-  }
 
   @override
   String daybookFileChip(String name, String revision) {
@@ -3099,9 +2928,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookWaitingToSend => 'Waiting to send';
-
-  @override
-  String get daybookNow => 'Now';
 
   @override
   String get daybookDraft => 'Draft';
@@ -3163,9 +2989,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookCouldNotSend => 'Couldn\'t send. Tap to fix';
 
   @override
-  String get daybookEditedDueRemoved => 'Edited: due removed';
-
-  @override
   String get daybookRemoveDue => 'Remove';
 
   @override
@@ -3173,16 +2996,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookHoldToProve => 'Hold to prove';
-
-  @override
-  String daybookChecksNext(String name) {
-    return '$name checks it next';
-  }
-
-  @override
-  String daybookYouChecked(String time) {
-    return 'You checked it at $time. It\'s locked now, this is the record.';
-  }
 
   @override
   String get daybookCheck => 'Check';
@@ -3257,19 +3070,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookSave => 'Save';
-
-  @override
-  String daybookCancelledByYou(String time) {
-    return 'Cancelled by you at $time';
-  }
-
-  @override
-  String get daybookSentItBack => 'sent it back';
-
-  @override
-  String daybookSentBackAt(String time) {
-    return 'Sent back at $time';
-  }
 
   @override
   String daybookSentBackText(String reason, String note) {
@@ -3482,4 +3282,128 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get createNoWorkSpaces =>
       'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.';
+
+  @override
+  String get daybookShowEarlier => 'Show earlier';
+
+  @override
+  String daybookHistoryLead(String lead) {
+    return '$lead:';
+  }
+
+  @override
+  String daybookCardRef(String ref) {
+    return '· $ref';
+  }
+
+  @override
+  String get daybookRemoved => 'This was removed';
+
+  @override
+  String daybookQuote(String ref, String title) {
+    return '$ref · $title';
+  }
+
+  @override
+  String get daybookSendUpdate => 'Send update';
+
+  @override
+  String daybookTrace(String what, String title) {
+    return '$what · $title';
+  }
+
+  @override
+  String get daybookTodayDivider => 'Today';
+
+  @override
+  String daybookLineSigned(String name) {
+    return '$name signed as done';
+  }
+
+  @override
+  String get daybookLineYouSigned => 'You signed as done';
+
+  @override
+  String daybookLineChecked(String name) {
+    return '$name checked it';
+  }
+
+  @override
+  String get daybookLineYouChecked => 'You checked it';
+
+  @override
+  String daybookLineSentBack(String name) {
+    return '$name sent it back';
+  }
+
+  @override
+  String get daybookLineYouSentBack => 'You sent it back';
+
+  @override
+  String daybookLineUpdate(String name) {
+    return '$name added an update';
+  }
+
+  @override
+  String get daybookLineYouUpdate => 'You added an update';
+
+  @override
+  String get daybookLineYouComment => 'You';
+
+  @override
+  String daybookLineComment(String name) {
+    return '$name';
+  }
+
+  @override
+  String daybookLineGave(String name, String to, String from) {
+    return '$name gave it to $to instead of $from';
+  }
+
+  @override
+  String daybookLineYouGave(String to, String from) {
+    return 'You gave it to $to instead of $from';
+  }
+
+  @override
+  String daybookLineEdited(String name) {
+    return '$name edited it';
+  }
+
+  @override
+  String get daybookLineYouEdited => 'You edited it';
+
+  @override
+  String daybookLineMovedDue(String name, String from, String to) {
+    return '$name moved the due date from $from to $to';
+  }
+
+  @override
+  String daybookLineYouMovedDue(String from, String to) {
+    return 'You moved the due date from $from to $to';
+  }
+
+  @override
+  String daybookLineRemovedDue(String name) {
+    return '$name took the due date off';
+  }
+
+  @override
+  String get daybookLineYouRemovedDue => 'You took the due date off';
+
+  @override
+  String daybookLineCancelled(String name) {
+    return '$name cancelled it';
+  }
+
+  @override
+  String get daybookLineYouCancelled => 'You cancelled it';
+
+  @override
+  String daybookLinePosted(String name) {
+    return '$name posted it';
+  }
+
+  @override
+  String get daybookLineYouPosted => 'You posted it';
 }

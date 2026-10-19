@@ -16,6 +16,10 @@ import 'bv_tokens.dart';
 abstract final class BvSpaceEmblemSpec {
   static const width = 72.0;
   static const height = 56.0;
+
+  /// Before a Space's name in lists sorted by Space (Home → Spaces, Needs
+  /// you, Create's Space list; review 50 F28): the emblem, not a letter.
+  static const tile = 28.0;
   static const radius = 10.0;
   static const room = Rect.fromLTRB(15, 13, 57, 43);
   static const roomStroke = BvStroke.thick;
@@ -62,6 +66,8 @@ abstract final class BvInfoSpec {
   static const slipPaddingHorizontal = 14.0;
   static const rowPaddingVertical = BvSpace.s12;
   static const rowGap = 10.0;
+  // A value on the end side takes at most this share of the row.
+  static const valueMaxShare = 0.6;
   static const identityGap = 14.0;
   static const identityPaddingVertical = BvSpace.s4;
   static const nameGap = BvSpace.s4;
@@ -102,7 +108,6 @@ abstract final class BvNeedsSpec {
   static const titlePaddingHorizontal = BvSpace.s20;
   static const groupGap = 18.0;
   static const rowGap = BvSpace.s8;
-  static const spaceTile = 26.0;
   static const rowPadding = BvSpace.s12;
   static const rowRadius = BvRadius.controlAll;
   static const rowGapInside = BvSpace.s12;
@@ -172,6 +177,7 @@ abstract final class BvHomeSpec {
   static const barGap = BvSpace.s2;
   static const barButton = BvSize.controlMd; // 44
   static const wordmarkSize = 22.0;
+  static const wordmarkLineHeight = 28.0;
 
   static const tagRadius = BorderRadius.all(Radius.circular(BvRadius.tiny));
   static const tagPaddingStart = BvSpace.s8;
@@ -179,19 +185,33 @@ abstract final class BvHomeSpec {
   static const tagPaddingVertical = 5.0;
   static const tagGap = BvSpace.s8;
   static const tagDot = 8.0;
-  static const actionsGap = 22.0;
   static const actionIcon = 18.0;
   static const actionGap = BvSpace.s6;
-  static const menuIcon = 18.0;
 
-  /// The card's author (review 50 F19): avatar 28, the name in semibold.
+  /// A reply's author on the post page (review 50 F19): avatar 28.
   static const authorAvatar = BvAvatarSpec.xsm;
-  static const nameWeight = FontWeight.w600;
 
-  /// The actions' row: with the 10 gap above and the slip's 14 padding
-  /// below, each action's touch area is 48 high.
-  static const actionsHeight =
-      BvSize.touchMin - BvSlipSpec.gap - BvSlipSpec.paddingBottom;
+  // The post card (H1 v4 2587:35875): full width, 16 from each edge, 12
+  // apart; 14 inside at the top, 6 at the bottom under the actions' row,
+  // which is 48 high for its touch areas.
+  static const feedPaddingTop = BvSpace.s4;
+  static const cardGap = BvSpace.s12;
+  static const cardPaddingTop = 14.0;
+  static const cardPaddingBottom = BvSpace.s6;
+  static const authorGap = 10.0;
+  static const menuIcon = BvSize.iconMd; // 20
+  static const photoHeight = 170.0;
+  static const cardActionsGap = BvSpace.s20;
+  static const cardActionsHeight = BvSize.touchMin;
+
+  // The latest reply (2587:35889): the faces, "{name}: {words}" and ›.
+  static const replyRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+  static const replyPaddingStart = 10.0;
+  static const replyPaddingEnd = BvSpace.s6;
+  static const replyPaddingVertical = BvSpace.s8;
+  static const replyGap = BvSpace.s8;
+  static const faceOverlap = BvSpace.s6;
+  static const replyCaret = BvSize.iconSm; // 16
 }
 
 /// The post page's replies (review 50 F19): small slips one under the
@@ -199,6 +219,9 @@ abstract final class BvHomeSpec {
 abstract final class BvReplySpec {
   static const sectionTop = BvSpace.s16;
   static const gap = BvSpace.s12;
+
+  /// Opened at a reply (F30): it comes to the upper part of the page.
+  static const scrollAlignment = 0.2;
 
   /// The avatar and its gap: the text and the actions start under the
   /// name.

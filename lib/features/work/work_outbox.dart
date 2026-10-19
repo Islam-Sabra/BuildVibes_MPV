@@ -618,7 +618,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// Reads the Space's daybook again, if it is open. False when it
   /// couldn't.
   Future<bool> _refreshDaybook(String spaceId) async {
-    final page = daybookPageProvider(spaceId);
+    final page = daybookCardsProvider(spaceId);
     if (!ref.exists(page)) return true;
     try {
       await ref.read(page.notifier).refresh();

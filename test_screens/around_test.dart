@@ -36,8 +36,6 @@ import 'package:buildvibes/features/feed/feed_state.dart';
 import 'package:buildvibes/features/feed/post_card.dart';
 import 'package:buildvibes/features/feed/post_draft.dart';
 import 'package:buildvibes/features/feed/post_screen.dart';
-import 'package:buildvibes/core/design/bv_tokens.dart';
-import 'package:buildvibes/core/design/daybook_days_specs.dart';
 import 'package:buildvibes/features/home/home_screen.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/profile/person_profile_screen.dart';
@@ -45,12 +43,16 @@ import 'package:buildvibes/features/profile/profile_screen.dart';
 import 'package:buildvibes/features/settings/notifications_screen.dart';
 import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
-import 'package:buildvibes/features/work/daybook_entry.dart';
+import 'package:buildvibes/features/spaces/space_screen.dart';
+import 'package:buildvibes/features/profile/settings_screen.dart';
+import 'package:buildvibes/core/config/build_info.dart';
+import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -108,6 +110,7 @@ Future<List<Override>> _base({
   List<NeedsCard> needs = const [],
   List<SpaceToday> today = const [],
   List<ActivityRow> rows = const [],
+  Map<String, DateTime> last = const {},
   FakeSpaceRepository? spaces,
   Map<String, Object> phone = const {},
   DateTime? now,
@@ -122,7 +125,12 @@ Future<List<Override>> _base({
     appGateProvider.overrideWithValue(AppGate.ready),
     clockProvider.overrideWithValue(() => now ?? DaybookSamples.thursday),
     activityRepositoryProvider.overrideWithValue(
-      FakeActivityRepository(cards: needs, today: today, rows: rows),
+      FakeActivityRepository(
+        cards: needs,
+        today: today,
+        rows: rows,
+        last: {...last},
+      ),
     ),
     if (spaces != null) spaceRepositoryProvider.overrideWithValue(spaces),
     needsCardsProvider.overrideWith((ref) async => needs),
@@ -200,6 +208,82 @@ void main() {
       );
     });
 
+    // Review 53 Part C: the People tab and Settings at the two sizes.
+    testWidgets('SP1 the Space: People [$lang]', (tester) async {
+      final spaces = FakeSpaceRepository(now: DaybookSamples.thursday)
+        ..details[DaybookSamples.space] = SpaceDetail(
+          id: DaybookSamples.space,
+          name: s.spaceName,
+          projectId: 'proj-kct',
+          projectName: kct,
+          projectPlace: sharq,
+          myPass: SpacePass.lead,
+          iAmAdmin: true,
+          myRights: const MemberRights(
+            createItems: true,
+            invite: true,
+            markDone: true,
+          ),
+          whoCanInvite: SpaceInviters.adminsAndLeads,
+          myNotify: SpaceNotify.needsYou,
+          siteStartDate: DaybookSamples.siteStart,
+        )
+        ..spacePeople[DaybookSamples.space] = s.people();
+      await shoot(
+        tester,
+        'SP1-space-people',
+        lang,
+        (_) => const Pushed(
+          SpaceScreen(spaceId: DaybookSamples.space, open: SpaceOpen.people),
+        ),
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          spaceRepositoryProvider.overrideWithValue(spaces),
+        ],
+      );
+    });
+
+    testWidgets('ST1 Settings [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'ST1-settings',
+        lang,
+        (_) => const Pushed(SettingsScreen()),
+        // As a release build shows it: no Components row (review 54 A5).
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          devToolsProvider.overrideWithValue(false),
+        ],
+      );
+    });
+
+    // Review 53 Part D: which build is on the phone.
+    testWidgets('D About: version, build and commit [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'D-about',
+        lang,
+        (_) => const Pushed(SettingsScreen()),
+        overrides: [
+          ...await _base(me: DaybookSamples.islam),
+          devToolsProvider.overrideWithValue(false),
+          buildInfoProvider.overrideWith(
+            (ref) async => const BuildInfo(
+              version: '0.9.0',
+              build: '295',
+              commit: 'c8b6512',
+            ),
+          ),
+        ],
+        before: (tester) async {
+          await tester.ensureVisible(find.byKey(const Key('row-about')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('row-about')));
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
     testWidgets('NY1 Needs you, across Spaces [$lang]', (tester) async {
       await warmSamplePhoto(tester);
       final needs = [
@@ -219,7 +303,7 @@ void main() {
           spaceName: s.spaceName,
           at: DateTime(2026, 10, 15, 8),
           workItemId: 'post-rebar',
-          workItemTitle: s.rebar().title,
+          workItemTitle: s.rebarTitle,
           actorName: s.saraName,
           due: DateTime(2026, 10, 15),
           dueAt: DateTime(2026, 10, 15, 14),
@@ -289,6 +373,7 @@ void main() {
       Map<String, Object> phone = const {},
       List<NeedsCard> needs = const [],
       List<SpaceToday> today = const [],
+      Map<String, DateTime> last = const {},
       FakeSpaceRepository? spaces,
       FakePostRepository? posts,
       DateTime? now,
@@ -298,6 +383,7 @@ void main() {
         phone: phone,
         needs: needs,
         today: today,
+        last: last,
         spaces: spaces,
         now: now,
       ),
@@ -354,36 +440,151 @@ void main() {
       );
     });
 
-    // Review 50 F19 and F15, against H1 v3 2555:35276 (AR 2564:184): a
-    // short post with no headline (the name centred with the avatar), a
-    // long post and a short one, on a 12-hour phone, so the spine shows
-    // "11:58" with "pm" (مساءً) under it.
-    testWidgets('F19 Home feed cards, 12-hour spine [$lang]', (tester) async {
+    // Review 53 Part D (F30), against H1 v4 2587:35849 (AR 2588:412): full
+    // width cards with their times, the one-line date, the latest reply
+    // with up to three faces; Omar's reply to Islam is bold until he opens
+    // the post. A 12-hour phone, at 2 pm.
+    final h1v4Now = DateTime(2026, 10, 15, 14);
+    FakePostRepository h1v4Posts() {
+      final rakesh = LatestReply(
+        id: 'reply-rakesh',
+        body: t(
+          'Great work, the finish looks clean and level',
+          'عمل رائع، التشطيب نظيف ومستوٍ',
+        ),
+        authorId: DaybookSamples.rakesh,
+        authorName: s.rakeshName,
+        createdAt: DateTime(2026, 10, 15, 9, 12),
+      );
+      final posts = homePosts();
+      final pour = posts.posts.firstWhere((p) => p.id == 'post-pour');
+      posts.posts
+        ..remove(pour)
+        ..insertAll(0, [
+          Post(
+            id: 'post-fire',
+            authorId: DaybookSamples.islam,
+            authorName: s.islamName,
+            authorHeadline: t('BIM Manager', 'مدير BIM'),
+            authorCompany: t('Gulf Build Co.', 'جلف بيلد'),
+            body: t(
+              'Fire stopping on level 4 is finished. Thanks to the MEP team '
+                  'for clearing the shafts early.',
+              'انتهينا من سدّ فتحات الحريق في الدور 4. شكرًا لفريق '
+                  'الكهروميكانيك على تجهيز الفتحات مبكرًا.',
+            ),
+            lang: lang,
+            createdAt: DateTime(2026, 10, 15, 13, 44),
+            latestReply: LatestReply(
+              id: 'reply-omar',
+              body: t('Seen it, thanks Islam', 'اطّلعت عليه، شكرًا إسلام'),
+              authorId: DaybookSamples.omar,
+              authorName: s.omarName,
+              createdAt: DateTime(2026, 10, 15, 13, 46),
+              toMe: true,
+            ),
+            replyFaces: [ReplyFace(id: DaybookSamples.omar, name: s.omarName)],
+          ),
+          Post(
+            id: pour.id,
+            authorId: pour.authorId,
+            authorName: pour.authorName,
+            authorHeadline: pour.authorHeadline,
+            authorCompany: pour.authorCompany,
+            body: pour.body,
+            lang: pour.lang,
+            project: pour.project,
+            createdAt: pour.createdAt,
+            photos: pour.photos,
+            latestReply: rakesh,
+            replyFaces: [
+              ReplyFace(id: DaybookSamples.rakesh, name: s.rakeshName),
+              ReplyFace(id: DaybookSamples.sara, name: s.saraName),
+              ReplyFace(
+                id: 'p-mariam',
+                name: t('Mariam Al-Sabah', 'مريم الصباح'),
+              ),
+            ],
+          ),
+        ]);
+      posts.home.add('post-fire');
+      posts.repliesByPost['post-pour'] = [
+        PostReply(
+          id: 'reply-mariam',
+          postId: 'post-pour',
+          authorId: 'p-mariam',
+          authorName: t('Mariam Al-Sabah', 'مريم الصباح'),
+          body: t('Thanks, team.', 'شكرًا للفريق.'),
+          createdAt: DateTime(2026, 10, 15, 7, 2),
+        ),
+        PostReply(
+          id: 'reply-sara',
+          postId: 'post-pour',
+          authorId: DaybookSamples.sara,
+          authorName: s.saraName,
+          replyTo: 'reply-mariam',
+          replyToPerson: 'p-mariam',
+          body: t(
+            'Cubes go to the lab this afternoon.',
+            'تذهب المكعبات إلى المختبر عصر اليوم.',
+          ),
+          createdAt: DateTime(2026, 10, 15, 8, 30),
+        ),
+        PostReply(
+          id: 'reply-rakesh',
+          postId: 'post-pour',
+          authorId: DaybookSamples.rakesh,
+          authorName: s.rakeshName,
+          body: rakesh.body,
+          createdAt: rakesh.createdAt,
+        ),
+      ];
+      return posts;
+    }
+
+    void twelveHour() =>
+        TestWidgetsFlutterBinding
+                .instance
+                .platformDispatcher
+                .alwaysUse24HourFormatTestValue =
+            false;
+
+    testWidgets('H1 v4 Home: full-width cards, the latest reply [$lang]', (
+      tester,
+    ) async {
+      twelveHour();
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H1v4-home',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(posts: h1v4Posts(), now: h1v4Now),
+      );
+    });
+
+    testWidgets('H1 v4 the post page: the same card, then the replies '
+        '[$lang]', (tester) async {
+      twelveHour();
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H1v4-post-page',
+        lang,
+        (_) => const Pushed(PostScreen(postId: 'post-pour')),
+        overrides: await home(posts: h1v4Posts(), now: h1v4Now),
+      );
+    });
+
+    // Review 50 F19, now on H1 v4 2587:35849 (AR 2588:412): a short post
+    // with no headline (the name centred with the avatar), a long post and
+    // a short one, on a 12-hour phone, each card with its time.
+    testWidgets('F19 Home feed cards, 12-hour times [$lang]', (tester) async {
       TestWidgetsFlutterBinding
               .instance
               .platformDispatcher
               .alwaysUse24HourFormatTestValue =
           false;
-      // The 12-hour time fits the column in the app's fonts: the time on
-      // its line, the part of the day on the smaller one under it.
-      final type = lang == 'ar' ? BvType.arabic : BvType.latin;
-      double width(String text, TextStyle style) {
-        final painter = TextPainter(
-          text: TextSpan(text: text, style: style),
-          textDirection: TextDirection.ltr,
-        )..layout();
-        return painter.width;
-      }
-
-      const room = BvSpineSpec.homeTimeColumn - BvSpineSpec.labelToSpine;
-      expect(width('11:58', type.labelSm), lessThanOrEqualTo(room));
-      expect(
-        width(
-          t('pm', 'مساءً'),
-          type.metadata.copyWith(fontSize: BvSpineSpec.periodSize),
-        ),
-        lessThanOrEqualTo(room),
-      );
       final posts = FakePostRepository(now: DaybookSamples.thursday)
         ..posts.addAll([
           Post(
@@ -502,6 +703,44 @@ void main() {
       );
     });
 
+    // Review 53 Part D (F24): the reply bar rides on the keyboard.
+    testWidgets('D F24 the post page reply bar over the keyboard [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      final posts = homePosts()
+        ..repliesByPost['post-pour'] = [
+          PostReply(
+            id: 'reply-faisal',
+            postId: 'post-pour',
+            authorId: 'p-faisal',
+            authorName: t('Faisal Al-Rashidi', 'فيصل الرشيدي'),
+            body: t(
+              'Great work. Was the slab cured with blankets overnight?',
+              'عمل رائع. هل غُطّيت البلاطة بالبطانيات للمعالجة طوال الليل؟',
+            ),
+            createdAt: DateTime(2026, 10, 15, 7, 2),
+          ),
+        ];
+      await shoot(
+        tester,
+        'D-F24-reply-bar-keyboard',
+        lang,
+        (_) => const Pushed(PostScreen(postId: 'post-pour')),
+        keyboard: true,
+        overrides: await home(posts: posts),
+        before: (tester) async {
+          await tester.tap(find.byKey(const Key('reply-reply-reply-faisal')));
+          await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('post-reply-input')),
+            t('Yes, wet blankets until 6.', 'نعم، بطانيات مبللة حتى السادسة.'),
+          );
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
     // Review 51 Part C (F3, F10, F1, F13). Home → Spaces has no v3 frame
     // of its own: the Needs you rows (2544:35068) and H1's header and tabs
     // (2555:35276, AR 2564:184) set its language.
@@ -572,7 +811,7 @@ void main() {
         at: DateTime(2026, 10, 15, 8),
         workItemId: 'post-rebar',
         workItemRef: 'KCT-024',
-        workItemTitle: s.rebar().title,
+        workItemTitle: s.rebarTitle,
         actorName: s.saraName,
         due: DateTime(2026, 10, 15),
       ),
@@ -624,6 +863,54 @@ void main() {
           spaces: mySpaces(),
         ),
         before: spacesTab,
+      );
+    });
+
+    // Review 53 Part D (F28): Join with a code, uncut in the app's fonts;
+    // Needs you grouped by Space with a quiet ›; "added an update"; every
+    // Space with its last activity (Salmiya: nothing new today, its daybook
+    // last moved on Monday); the Space emblem in the tile.
+    testWidgets('F28 Home → Spaces: four details [$lang]', (tester) async {
+      final update = SpaceToday(
+        spaceId: 'space-khiran',
+        spaceName: khiran,
+        change: SpaceChange.workItem,
+        at: DateTime(2026, 10, 15, 8, 25),
+        workItemId: 'post-door',
+        workItemRef: 'KHV-006',
+        workItemTitle: t('fix door closer', 'إصلاح مغلق الباب'),
+        eventKind: 'comment',
+        actorName: s.omarName,
+      );
+      await shoot(
+        tester,
+        'F28-home-spaces',
+        lang,
+        (context) => _withNav(context, 0, const HomeScreen()),
+        overrides: await home(
+          needs: dayNeeds,
+          today: [dayNews.first, update],
+          last: {'space-salmiya': DateTime(2026, 10, 12, 16)},
+          spaces: mySpaces(),
+        ),
+        before: (tester) async {
+          await spacesTab(tester);
+          // Both buttons share the width and neither label is cut.
+          for (final label in [l10n.homeJoinWithCode, l10n.spacesNewTitle]) {
+            final paragraph = tester.renderObject<RenderParagraph>(
+              find.text(label),
+            );
+            expect(paragraph.didExceedMaxLines, isFalse, reason: label);
+          }
+          expect(
+            tester.getSize(find.byKey(const Key('home-enter-code'))),
+            tester.getSize(find.byKey(const Key('home-new-space'))),
+          );
+          expect(
+            find.byKey(const Key('home-space-time-space-salmiya')),
+            findsOneWidget,
+          );
+        },
       );
     });
 
@@ -683,44 +970,49 @@ void main() {
       );
     });
 
+    ActivityRow row(
+      String id,
+      ActivityKind kind,
+      DateTime at, {
+      bool inSpace = false,
+      String? actor,
+      String? actorId,
+      String? item,
+      String? ref,
+      bool read = true,
+      String? post,
+      String? context,
+      String? project,
+      List<String> useful = const [],
+    }) => ActivityRow(
+      id: id,
+      kind: kind,
+      createdAt: at,
+      spaceId: inSpace ? DaybookSamples.space : null,
+      spaceName: inSpace ? s.spaceName : null,
+      workItemId: item == null ? null : 'post-$id',
+      workItemRef: ref,
+      workItemTitle: item,
+      actorId: actorId,
+      actorName: actor,
+      read: read,
+      postId: post,
+      context: context,
+      projectName: project,
+      usefulNames: useful,
+    );
+
+    // Review 53 Part D (F32): the rows of 1f's C5 in Activity v3's one
+    // list, by day.
     testWidgets('C5 Activity: every row opens what it is about [$lang]', (
       tester,
     ) async {
-      ActivityRow row(
-        String id,
-        ActivityKind kind,
-        ActivityGroupKind group,
-        DateTime at, {
-        String? actor,
-        String? actorId,
-        String? item,
-        String? ref,
-        bool read = true,
-        String? post,
-        String? context,
-      }) => ActivityRow(
-        id: id,
-        kind: kind,
-        group: group,
-        createdAt: at,
-        spaceId: group == ActivityGroupKind.space ? DaybookSamples.space : null,
-        spaceName: group == ActivityGroupKind.space ? s.spaceName : null,
-        myPass: group == ActivityGroupKind.space ? 'lead' : null,
-        workItemId: item == null ? null : 'post-$id',
-        workItemRef: ref,
-        workItemTitle: item,
-        actorId: actorId,
-        actorName: actor,
-        read: read,
-        postId: post,
-        context: context,
-      );
       final rows = [
         row(
           'done',
           ActivityKind.itemDone,
-          ActivityGroupKind.space,
           DateTime(2026, 10, 15, 9, 40),
+          inSpace: true,
           actor: s.omarName,
           actorId: DaybookSamples.omar,
           item: s.sleeves,
@@ -730,17 +1022,16 @@ void main() {
         row(
           'comment',
           ActivityKind.itemComment,
-          ActivityGroupKind.space,
           DateTime(2026, 10, 15, 8, 10),
+          inSpace: true,
           actor: s.saraName,
           actorId: DaybookSamples.sara,
-          item: s.rebar().title,
+          item: s.rebarTitle,
           ref: 'KCT-024',
         ),
         row(
           'follow',
           ActivityKind.follow,
-          ActivityGroupKind.network,
           DateTime(2026, 10, 14, 18),
           actor: s.rakeshName,
           actorId: DaybookSamples.rakesh,
@@ -748,7 +1039,6 @@ void main() {
         row(
           'reply',
           ActivityKind.postReply,
-          ActivityGroupKind.posts,
           DateTime(2026, 10, 14, 16),
           actor: s.linaName,
           actorId: DaybookSamples.lina,
@@ -768,6 +1058,111 @@ void main() {
           me: DaybookSamples.islam,
           needs: dayNeeds.take(1).toList(),
           rows: rows,
+        ),
+      );
+    });
+
+    // Activity v3, against A1 v3 2587:76920 (AR 2589:445): the slim line,
+    // Today and Yesterday, every source mixed, on a 12-hour phone.
+    testWidgets('A1 v3 Activity: one list, newest first, by day [$lang]', (
+      tester,
+    ) async {
+      TestWidgetsFlutterBinding
+              .instance
+              .platformDispatcher
+              .alwaysUse24HourFormatTestValue =
+          false;
+      final kct = t('Kuwait City Tower', 'برج مدينة الكويت');
+      final rows = [
+        row(
+          'reply',
+          ActivityKind.postReply,
+          DateTime(2026, 10, 15, 13, 46),
+          actor: s.omarName,
+          actorId: DaybookSamples.omar,
+          post: 'post-fire',
+          read: false,
+          context: t('Seen it, thanks Islam', 'اطّلعت عليه، شكرًا إسلام'),
+        ),
+        row(
+          'done',
+          ActivityKind.itemDone,
+          DateTime(2026, 10, 15, 10, 56),
+          inSpace: true,
+          actor: s.omarName,
+          actorId: DaybookSamples.omar,
+          item: s.sleeves,
+          ref: 'KCT-021',
+          read: false,
+        ),
+        row(
+          'assigned',
+          ActivityKind.itemAssigned,
+          DateTime(2026, 10, 15, 10, 5),
+          inSpace: true,
+          actor: s.saraName,
+          actorId: DaybookSamples.sara,
+          item: s.rebarTitle,
+          ref: 'KCT-024',
+        ),
+        row(
+          'useful',
+          ActivityKind.postUseful,
+          DateTime(2026, 10, 15, 9, 12),
+          post: 'post-pour',
+          useful: [s.rakeshName],
+          context: t(
+            'First pour on the podium slab is done.',
+            'انتهت أول صبّة لبلاطة البوديوم.',
+          ),
+        ),
+        row(
+          'follow',
+          ActivityKind.follow,
+          DateTime(2026, 10, 14, 20, 40),
+          actor: t('Noura Al-Sabah', 'نورة الصباح'),
+          actorId: 'p-noura',
+        ),
+        row(
+          'role',
+          ActivityKind.roleConfirmed,
+          DateTime(2026, 10, 14, 15, 15),
+          actor: t('Mariam Al-Sabah', 'مريم الصباح'),
+          actorId: 'p-mariam',
+          project: kct,
+        ),
+      ];
+      // The two still need you: the sign-off to check, the item to do.
+      final needs = [
+        NeedsCard(
+          kind: NeedsKind.youCheck,
+          spaceId: DaybookSamples.space,
+          spaceName: s.spaceName,
+          at: DateTime(2026, 10, 15, 10, 56),
+          workItemId: 'post-done',
+          workItemTitle: s.sleeves,
+          actorName: s.omarName,
+        ),
+        NeedsCard(
+          kind: NeedsKind.forYou,
+          spaceId: DaybookSamples.space,
+          spaceName: s.spaceName,
+          at: DateTime(2026, 10, 15, 10, 5),
+          workItemId: 'post-assigned',
+          workItemTitle: s.rebarTitle,
+          actorName: s.saraName,
+        ),
+      ];
+      await shoot(
+        tester,
+        'A1v3-activity',
+        lang,
+        (context) => _withNav(context, 2, const ActivityScreen()),
+        overrides: await _base(
+          me: DaybookSamples.islam,
+          needs: needs,
+          rows: rows,
+          now: DateTime(2026, 10, 15, 14),
         ),
       );
     });
@@ -975,7 +1370,7 @@ void main() {
       ),
       DeliveredWork(
         id: 'w-rebar',
-        title: s.rebar().title,
+        title: s.rebarTitle,
         projectName: kct,
         checkedByName: s.saraName,
         checkedAt: DateTime(2026, 10, 14, 15),

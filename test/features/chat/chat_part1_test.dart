@@ -355,10 +355,15 @@ void main() {
         find.text(l10n.chatTeamPrivacy(inOwnDirection('MEP Team'))),
         findsOneWidget,
       );
-      // Review 13: short messages make small bubbles, yours and theirs.
+      // Review 13: short messages make small bubbles, yours and theirs,
+      // even with the Arabic 12-hour time in words ("10:18 صباحًا",
+      // review 54 A1).
       for (final id in ['s1', 's0']) {
         final bubble = tester.getSize(find.byKey(Key('chat-message-$id')));
-        expect(bubble.width, lessThan(390 * 0.4));
+        expect(
+          bubble.width,
+          lessThan(390 * 0.45 * tester.platformDispatcher.textScaleFactor),
+        );
       }
     });
 

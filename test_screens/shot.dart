@@ -48,12 +48,7 @@ Future<void> loadAppFonts() async {
     'PlusJakartaSans-Bold.ttf',
     'PlusJakartaSans-ExtraBold.ttf',
   ]);
-  await family('NotoSansArabic', [
-    'NotoSansArabic-Regular.ttf',
-    'NotoSansArabic-Medium.ttf',
-    'NotoSansArabic-SemiBold.ttf',
-    'NotoSansArabic-Bold.ttf',
-  ]);
+  await family('Almarai', ['Almarai-Regular.ttf', 'Almarai-Bold.ttf']);
   await family('PhosphorRegular', ['Phosphor-Regular.ttf']);
 }
 
@@ -61,7 +56,9 @@ Future<void> loadAppFonts() async {
 /// `docs/screens/slice1/<name>_<lang>.png`.
 ///
 /// A whole screen gets its providers from [overrides], and [before] puts it
-/// in the state to shoot (a scroll, a tap) once it has settled.
+/// in the state to shoot (a scroll, a tap) once it has settled. With
+/// [keyboard], the phone's keyboard then comes up: a 300-point inset,
+/// drawn as Figma draws it (F24, 2582:77206).
 Future<void> shoot(
   WidgetTester tester,
   String name,
@@ -69,10 +66,13 @@ Future<void> shoot(
   Widget Function(BuildContext context) child, {
   List<Override>? overrides,
   Future<void> Function(WidgetTester tester)? before,
+  bool keyboard = false,
 }) async {
   tester.view.physicalSize = shotSize * shotPixelRatio;
   tester.view.devicePixelRatio = shotPixelRatio;
   addTearDown(tester.view.reset);
+  final keyboardUp = ValueNotifier(false);
+  addTearDown(keyboardUp.dispose);
   final locale = Locale(lang);
   final key = GlobalKey();
   // flutter_test draws shadows solid by default; the paper's soft shadows
@@ -91,6 +91,24 @@ Future<void> shoot(
       ],
       theme: BvTheme.forLocale(locale),
       home: Builder(builder: child),
+      builder: keyboard
+          ? (context, app) => Stack(
+              children: [
+                app!,
+                ValueListenableBuilder(
+                  valueListenable: keyboardUp,
+                  builder: (_, up, _) => up
+                      ? const Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: _Keyboard(),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            )
+          : null,
     );
     await tester.pumpWidget(
       RepaintBoundary(
@@ -102,6 +120,13 @@ Future<void> shoot(
     );
     await tester.pumpAndSettle();
     await before?.call(tester);
+    if (keyboard) {
+      tester.view.viewInsets = const FakeViewPadding(
+        bottom: shotKeyboard * shotPixelRatio,
+      );
+      keyboardUp.value = true;
+      await tester.pumpAndSettle();
+    }
     await expectLater(
       find.byKey(key),
       matchesGoldenFile('../docs/screens/slice1/${name}_$lang.png'),
@@ -138,4 +163,31 @@ class _PushedState extends State<Pushed> {
 
   @override
   Widget build(BuildContext context) => const ColoredBox(color: Colors.white);
+}
+
+/// The keyboard's height in the shots (F24's tests use the same).
+const shotKeyboard = 300.0;
+
+/// A stand-in for the phone's keyboard, as the Figma frame draws it.
+class _Keyboard extends StatelessWidget {
+  const _Keyboard();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+    height: shotKeyboard,
+    child: ColoredBox(
+      color: Color(0xFFD1D4DB),
+      child: Center(
+        child: Text(
+          'Phone keyboard',
+          textDirection: TextDirection.ltr,
+          style: TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 12,
+            color: Color(0xFF6B6578),
+          ),
+        ),
+      ),
+    ),
+  );
 }

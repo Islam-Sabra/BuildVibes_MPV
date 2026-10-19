@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'App language'**
   String get settingsLanguage;
 
+  /// Settings row: opens Language and region (review 54 A5).
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguageRow;
+
   /// Language name, always written in English.
   ///
   /// In en, this message translates to:
@@ -1658,12 +1664,6 @@ abstract class AppLocalizations {
   /// **'Private work'**
   String get spacesPrivateWork;
 
-  /// Header line of a Space linked to a project.
-  ///
-  /// In en, this message translates to:
-  /// **'Private work · project Space'**
-  String get spacesProjectSpaceLine;
-
   /// H1e card title.
   ///
   /// In en, this message translates to:
@@ -2030,17 +2030,17 @@ abstract class AppLocalizations {
   /// **'Confirm'**
   String get spacesConfirm;
 
-  /// S10k section: the Space admins.
+  /// S10k section: the Space admins (glossary: Space admin).
   ///
   /// In en, this message translates to:
-  /// **'Owners'**
-  String get spacesOwners;
+  /// **'Space admin'**
+  String get spacesAdminSection;
 
-  /// Tag under an admin's name.
+  /// The line under a Space admin's name in People.
   ///
   /// In en, this message translates to:
-  /// **'Owner'**
-  String get spacesOwnerTag;
+  /// **'Space admin'**
+  String get spacesAdminTag;
 
   /// S10k section.
   ///
@@ -3452,12 +3452,6 @@ abstract class AppLocalizations {
   /// **'No replies yet.'**
   String get postNoReplies;
 
-  /// Composer hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a comment'**
-  String get postAddComment;
-
   /// Composer hint when replying.
   ///
   /// In en, this message translates to:
@@ -3560,24 +3554,6 @@ abstract class AppLocalizations {
   /// **'No posts tagged with this project yet.'**
   String get projectPostsEmpty;
 
-  /// Short time on cards.
-  ///
-  /// In en, this message translates to:
-  /// **'now'**
-  String get timeNowShort;
-
-  /// Short minutes on cards.
-  ///
-  /// In en, this message translates to:
-  /// **'{n}m'**
-  String timeMinutesShort(int n);
-
-  /// Short hours on cards.
-  ///
-  /// In en, this message translates to:
-  /// **'{n}h'**
-  String timeHoursShort(int n);
-
   /// H1b summary, first part (orange).
   ///
   /// In en, this message translates to:
@@ -3595,6 +3571,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See all'**
   String get homeSeeAll;
+
+  /// Home → Spaces: join a Space with the code an engineer gave you (review 50 F28).
+  ///
+  /// In en, this message translates to:
+  /// **'Join with a code'**
+  String get homeJoinWithCode;
 
   /// Home top bar search tooltip.
   ///
@@ -3662,28 +3644,10 @@ abstract class AppLocalizations {
   /// **'due {date}'**
   String needsDue(String date);
 
-  /// Needs-you button.
-  ///
-  /// In en, this message translates to:
-  /// **'Open'**
-  String get needsOpen;
-
-  /// A1 button for an item to check.
-  ///
-  /// In en, this message translates to:
-  /// **'Check'**
-  String get needsCheck;
-
-  /// A1 button for a join request.
-  ///
-  /// In en, this message translates to:
-  /// **'Review request'**
-  String get needsReview;
-
   /// H1b row: a work item event.
   ///
   /// In en, this message translates to:
-  /// **'{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} commented on {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}'**
+  /// **'{event, select, done{{name} signed {ref} as done} checked{{name} checked {ref}} sent_back{{name} sent {ref} back} comment{{name} added an update · {ref}} reassigned{{name} reassigned {ref}} other{{name} raised {ref}}}: {title}'**
   String todayItem(String event, String name, String ref, String title);
 
   /// H1b row: a Library file.
@@ -3710,77 +3674,11 @@ abstract class AppLocalizations {
   /// **'Someone'**
   String get activitySomeone;
 
-  /// A1 section: your own count.
-  ///
-  /// In en, this message translates to:
-  /// **'NEEDS YOU · {n}'**
-  String activityNeedsHeader(int n);
-
-  /// A1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'CHANGES TO YOUR RECORD'**
-  String get activityChanges;
-
-  /// A1 section line.
-  ///
-  /// In en, this message translates to:
-  /// **'Last 7 days'**
-  String get activityLast7;
-
-  /// A1 group line.
-  ///
-  /// In en, this message translates to:
-  /// **'Space · your pass: {pass}'**
-  String activitySpaceLine(String pass);
-
-  /// A1 group.
-  ///
-  /// In en, this message translates to:
-  /// **'Your record'**
-  String get activityGroupRecord;
-
   /// A1 group.
   ///
   /// In en, this message translates to:
   /// **'Your network'**
   String get activityGroupNetwork;
-
-  /// A1 group.
-  ///
-  /// In en, this message translates to:
-  /// **'Your posts'**
-  String get activityGroupPosts;
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} gave you {ref}'**
-  String activityAssigned(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} signed {ref} as done'**
-  String activityDone(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} checked {ref}'**
-  String activityChecked(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} sent {ref} back'**
-  String activitySentBack(String name, String ref);
-
-  /// A1 row.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} commented on {ref}'**
-  String activityComment(String name, String ref);
 
   /// A1 row.
   ///
@@ -3809,7 +3707,7 @@ abstract class AppLocalizations {
   /// A1 row.
   ///
   /// In en, this message translates to:
-  /// **'New follower: {name}'**
+  /// **'{name} started following you'**
   String activityFollow(String name);
 
   /// A1 row.
@@ -3842,47 +3740,59 @@ abstract class AppLocalizations {
   /// **'Your post was found useful'**
   String get activityUseful0;
 
-  /// A1 status chip.
+  /// A1 v3 row: the owner signed a work item as done.
   ///
   /// In en, this message translates to:
-  /// **'Assigned'**
-  String get chipAssigned;
+  /// **'{name} signed as done: {title}'**
+  String activityItemDone(String name, String title);
 
-  /// A1 status chip (glossary).
+  /// A1 v3 row: the author checked a work item.
   ///
   /// In en, this message translates to:
-  /// **'Done'**
-  String get chipDone;
+  /// **'{name} checked: {title}'**
+  String activityItemChecked(String name, String title);
 
-  /// A1 status chip (glossary).
+  /// A1 v3 row: a work item was sent back to you.
   ///
   /// In en, this message translates to:
-  /// **'Checked'**
-  String get chipChecked;
+  /// **'{name} sent back: {title}'**
+  String activityItemSentBack(String name, String title);
 
-  /// A1 status chip.
+  /// A1 v3 row: someone added an update to a work item (the daybook's word, F28).
   ///
   /// In en, this message translates to:
-  /// **'Sent back'**
-  String get chipSentBack;
+  /// **'{name} added an update: {title}'**
+  String activityItemUpdate(String name, String title);
 
-  /// A1 status chip.
+  /// A1 v3 row: someone confirmed your role on a project.
   ///
   /// In en, this message translates to:
-  /// **'Comment'**
-  String get chipComment;
+  /// **'{name} confirmed your role on {project}'**
+  String activityRoleConfirmedOn(String name, String project);
 
-  /// A1 status chip: a request to join confirmed.
+  /// A1 v3 row: a reply to your post, with the start of the reply.
   ///
   /// In en, this message translates to:
-  /// **'Approved'**
-  String get chipApproved;
+  /// **'{name} replied to your post: {text}'**
+  String activityReplyPostText(String name, String text);
 
-  /// A1 status chip: a role confirmed.
+  /// A1 v3 row: a reply to your reply, with the start of it.
   ///
   /// In en, this message translates to:
-  /// **'Confirmed'**
-  String get chipConfirmed;
+  /// **'{name} replied to you: {text}'**
+  String activityReplyReplyText(String name, String text);
+
+  /// A1 v3 row, the small grey line: it happened on your post.
+  ///
+  /// In en, this message translates to:
+  /// **'Your post'**
+  String get activityWherePost;
+
+  /// A1 v3 row, the small grey line: it happened on your profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile'**
+  String get activityWhereProfile;
 
   /// A2 title.
   ///
@@ -3955,36 +3865,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a project you worked on'**
   String get ledgerAddProject;
-
-  /// H1b row time, on its own.
-  ///
-  /// In en, this message translates to:
-  /// **'Just now'**
-  String get rowJustNow;
-
-  /// H1b row time.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 min ago} other{{n} min ago}}'**
-  String rowMinutesAgo(int n);
-
-  /// H1b row time, as drawn ("3h ago" / "قبل 3 ساعات").
-  ///
-  /// In en, this message translates to:
-  /// **'{n}h ago'**
-  String rowHoursAgo(int n);
-
-  /// H1b row time.
-  ///
-  /// In en, this message translates to:
-  /// **'Yesterday'**
-  String get rowYesterday;
-
-  /// H1b row time.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 day ago} other{{n} days ago}}'**
-  String rowDaysAgo(int n);
 
   /// Settings row and S3 title.
   ///
@@ -4448,107 +4328,17 @@ abstract class AppLocalizations {
   /// **'{result, select, reversed{Your appeal: it\'s back} other{Your appeal: the removal stands}}'**
   String activityAppealResult(String result);
 
-  /// A1 chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Removed'**
-  String get chipRemoved;
-
-  /// A1 chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Restored'**
-  String get chipRestored;
-
   /// S1 header link.
   ///
   /// In en, this message translates to:
   /// **'View profile'**
   String get settingsViewProfile;
 
-  /// S1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'YOUR SETTINGS, IN WORDS'**
-  String get settingsInWords;
-
-  /// S1 words row label.
-  ///
-  /// In en, this message translates to:
-  /// **'PRIVACY'**
-  String get settingsPrivacyLabel;
-
-  /// S1 words row label.
-  ///
-  /// In en, this message translates to:
-  /// **'NOTIFICATIONS'**
-  String get settingsNotificationsLabel;
-
   /// S1 words row label; S8 section.
   ///
   /// In en, this message translates to:
   /// **'LANGUAGE'**
   String get settingsLanguageLabel;
-
-  /// S1 privacy words: your own count.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =1{1 blocked account} other{{n} blocked accounts}}'**
-  String wordsBlocked(int n);
-
-  /// S1 privacy words; {what} is highlighted.
-  ///
-  /// In en, this message translates to:
-  /// **'{what}. Work items, chat and the Library stay inside each Space.'**
-  String wordsPrivacy(String what);
-
-  /// S1 notification words; the three values are highlighted.
-  ///
-  /// In en, this message translates to:
-  /// **'New followers: {followers}. Replies: {replies}. Message text on the lock screen: {lockText}.'**
-  String wordsNotifications(String followers, String replies, String lockText);
-
-  /// S1: a switch that is on.
-  ///
-  /// In en, this message translates to:
-  /// **'on'**
-  String get wordsOn;
-
-  /// S1: a switch that is off.
-  ///
-  /// In en, this message translates to:
-  /// **'off'**
-  String get wordsOff;
-
-  /// S1: message text shown on the lock screen.
-  ///
-  /// In en, this message translates to:
-  /// **'shown'**
-  String get wordsShown;
-
-  /// S1: message text hidden on the lock screen.
-  ///
-  /// In en, this message translates to:
-  /// **'hidden'**
-  String get wordsHidden;
-
-  /// S1 language words, all from the market pack; {language} is highlighted.
-  ///
-  /// In en, this message translates to:
-  /// **'{language}. The week starts on {weekday}, in {country} time.'**
-  String wordsLanguage(String language, String weekday, String country);
-
-  /// S1 language words with no home market.
-  ///
-  /// In en, this message translates to:
-  /// **'{language}.'**
-  String wordsLanguageOnly(String language);
-
-  /// S1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'ACCOUNT'**
-  String get settingsAccountSection;
 
   /// S1 row, S2 title.
   ///
@@ -4574,12 +4364,6 @@ abstract class AppLocalizations {
   /// **'Language and region'**
   String get languageRegion;
 
-  /// S1 section.
-  ///
-  /// In en, this message translates to:
-  /// **'SUPPORT'**
-  String get supportSection;
-
   /// S1 row: writes to the pack support email.
   ///
   /// In en, this message translates to:
@@ -4597,6 +4381,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms, privacy policy'**
   String get aboutLegalSub;
+
+  /// About sheet: which build is on this phone (review 53 Part D). The commit is the short git commit, or 'dev'.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} · build {build} · {commit}'**
+  String aboutBuild(String version, String build, String commit);
 
   /// About sheet row.
   ///
@@ -4904,12 +4694,6 @@ abstract class AppLocalizations {
   /// **'Former member'**
   String get formerMember;
 
-  /// Masthead date line when the Space has an On site since date (D1).
-  ///
-  /// In en, this message translates to:
-  /// **'{date}, day {day} on site'**
-  String daybookDateLine(String date, int day);
-
   /// Slip header for your own post; the avatar keeps your initials.
   ///
   /// In en, this message translates to:
@@ -4931,7 +4715,7 @@ abstract class AppLocalizations {
   /// Slip meta: owner, then due ("For Omar Haddad, by Thu 15 Oct").
   ///
   /// In en, this message translates to:
-  /// **'{who}, {due}'**
+  /// **'{who} · {due}'**
   String daybookMeta(String who, String due);
 
   /// Due on a day ("by Thu 15 Oct").
@@ -5006,12 +4790,6 @@ abstract class AppLocalizations {
   /// **'{n, plural, =1{1 point} other{{n} points}}'**
   String daybookPoints(int n);
 
-  /// Slip history line after the due was edited.
-  ///
-  /// In en, this message translates to:
-  /// **'Edited: due moved from {from} to {to}'**
-  String daybookEditedDue(String from, String to);
-
   /// A day word in the edited line.
   ///
   /// In en, this message translates to:
@@ -5023,12 +4801,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'tomorrow'**
   String get daybookTomorrow;
-
-  /// Meta line of a cancelled work item.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancelled by {name} at {time}'**
-  String daybookCancelledBy(String name, String time);
 
   /// Ink stamp (glossary Done).
   ///
@@ -5102,41 +4874,29 @@ abstract class AppLocalizations {
   /// **'Invite your team'**
   String get daybookFirstInvite;
 
-  /// A 12-hour time on the Daybook: the hour (and minutes when not :00) and the part of the day ("2 pm", "8:14 am"). period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening.
-  ///
-  /// In en, this message translates to:
-  /// **'{time} {period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
-  String daybookClock12(String time, String period);
-
-  /// The part of the day alone, as the time spine prints it on a second, smaller line under a 12-hour time ("11:58" then "pm"). The same words as daybookClock12.
-  ///
-  /// In en, this message translates to:
-  /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
-  String daybookClockPeriod(String period);
-
-  /// Proof slip header, after the signer's name.
-  ///
-  /// In en, this message translates to:
-  /// **'signed as done'**
-  String get daybookSignedAsDone;
-
   /// Second line of the large stamp on a proof photo: the signer's short name and the time ("OMAR H · 09:40").
   ///
   /// In en, this message translates to:
   /// **'{name} · {time}'**
   String daybookStampBy(String name, String time);
 
+  /// The part of the day after a 12-hour time. period is morning (before noon), noon (12 to 3 pm), afternoon (3 to 6 pm) or evening. English: am or pm. Arabic: the words, on a small second line in the daybook's time column.
+  ///
+  /// In en, this message translates to:
+  /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
+  String timePeriod(String period);
+
+  /// A 12-hour time on one line, everywhere in the app (review 54 A1): the time with its minutes and the part of the day (timePeriod): "2:00 pm", "2:00 ظهرًا".
+  ///
+  /// In en, this message translates to:
+  /// **'{time} {period}'**
+  String timeClock12(String time, String period);
+
   /// Hint on a proof waiting for your check.
   ///
   /// In en, this message translates to:
   /// **'Double-tap the photo to check it'**
   String get daybookDoubleTapToCheck;
-
-  /// Work item slip: the last time it was given to someone else.
-  ///
-  /// In en, this message translates to:
-  /// **'Given to {to} instead of {from} at {time}'**
-  String daybookGivenTo(String to, String from, String time);
 
   /// A Library file on a work item slip: its name and revision ("M-201 Rev C").
   ///
@@ -5149,12 +4909,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waiting to send'**
   String get daybookWaitingToSend;
-
-  /// Spine label of the card being written.
-  ///
-  /// In en, this message translates to:
-  /// **'Now'**
-  String get daybookNow;
 
   /// On a card reopened with unsent text: only the author sees it.
   ///
@@ -5270,12 +5024,6 @@ abstract class AppLocalizations {
   /// **'Couldn\'t send. Tap to fix'**
   String get daybookCouldNotSend;
 
-  /// Grey history line on a slip after its author took the due date off.
-  ///
-  /// In en, this message translates to:
-  /// **'Edited: due removed'**
-  String get daybookEditedDueRemoved;
-
   /// Due date picker: takes the due date (and time) off.
   ///
   /// In en, this message translates to:
@@ -5293,18 +5041,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hold to prove'**
   String get daybookHoldToProve;
-
-  /// On the owner's own proof slip while it waits for the check (O3).
-  ///
-  /// In en, this message translates to:
-  /// **'{name} checks it next'**
-  String daybookChecksNext(String name);
-
-  /// On a proof the reader checked (B3).
-  ///
-  /// In en, this message translates to:
-  /// **'You checked it at {time}. It\'s locked now, this is the record.'**
-  String daybookYouChecked(String time);
 
   /// Long-press menu on someone's proof (B1).
   ///
@@ -5449,24 +5185,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get daybookSave;
-
-  /// Meta line of a work item its author cancelled, for that author (X3).
-  ///
-  /// In en, this message translates to:
-  /// **'Cancelled by you at {time}'**
-  String daybookCancelledByYou(String time);
-
-  /// After the name on a send-back slip: "Islam Ahmed sent it back" (S1).
-  ///
-  /// In en, this message translates to:
-  /// **'sent it back'**
-  String get daybookSentItBack;
-
-  /// On a proof that was sent back; the reason is on the send-back slip (S1).
-  ///
-  /// In en, this message translates to:
-  /// **'Sent back at {time}'**
-  String daybookSentBackAt(String time);
 
   /// A send-back slip: the reason, then the note (S1).
   ///
@@ -5851,6 +5569,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'There\'s no Space yet where you can write work items. Join one with an invite code, or start a new Space.'**
   String get createNoWorkSpaces;
+
+  /// Daybook card: opens the rest of its history in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Show earlier'**
+  String get daybookShowEarlier;
+
+  /// Daybook card history: the bold start of a line before its note ("Omar Haddad signed as done:").
+  ///
+  /// In en, this message translates to:
+  /// **'{lead}:'**
+  String daybookHistoryLead(String lead);
+
+  /// Daybook card header: the work item's reference after the author.
+  ///
+  /// In en, this message translates to:
+  /// **'· {ref}'**
+  String daybookCardRef(String ref);
+
+  /// F20: an Activity row, a push or a Needs you card opened a work item that was deleted or can no longer be seen.
+  ///
+  /// In en, this message translates to:
+  /// **'This was removed'**
+  String get daybookRemoved;
+
+  /// F24: the work item quoted in one line on the update and send-back sheets.
+  ///
+  /// In en, this message translates to:
+  /// **'{ref} · {title}'**
+  String daybookQuote(String ref, String title);
+
+  /// F24: the round send button of the Add update sheet, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Send update'**
+  String get daybookSendUpdate;
+
+  /// Daybook trace on an earlier day: what happened, then the work item's title.
+  ///
+  /// In en, this message translates to:
+  /// **'{what} · {title}'**
+  String daybookTrace(String what, String title);
+
+  /// Daybook day divider for today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get daybookTodayDivider;
+
+  /// Daybook history line or trace: someone signed the work item as done.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} signed as done'**
+  String daybookLineSigned(String name);
+
+  /// Daybook history line or trace: you signed the work item as done.
+  ///
+  /// In en, this message translates to:
+  /// **'You signed as done'**
+  String get daybookLineYouSigned;
+
+  /// Daybook history line or trace: someone checked the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} checked it'**
+  String daybookLineChecked(String name);
+
+  /// Daybook history line or trace: you checked the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You checked it'**
+  String get daybookLineYouChecked;
+
+  /// Daybook history line or trace: someone sent the proof back.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent it back'**
+  String daybookLineSentBack(String name);
+
+  /// Daybook history line or trace: you sent the proof back.
+  ///
+  /// In en, this message translates to:
+  /// **'You sent it back'**
+  String get daybookLineYouSentBack;
+
+  /// Daybook trace: someone added an update to the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added an update'**
+  String daybookLineUpdate(String name);
+
+  /// Daybook trace: you added an update to the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You added an update'**
+  String get daybookLineYouUpdate;
+
+  /// Daybook history line: your own update, before its words.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get daybookLineYouComment;
+
+  /// Daybook history line: someone's update, before its words ("Omar Haddad: Sleeves arrived."). Arabic in the ledger form, the name then the action (review 54 A3).
+  ///
+  /// In en, this message translates to:
+  /// **'{name}'**
+  String daybookLineComment(String name);
+
+  /// Daybook history line or trace: someone gave the work item to another owner.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gave it to {to} instead of {from}'**
+  String daybookLineGave(String name, String to, String from);
+
+  /// Daybook history line or trace: you gave the work item to another owner.
+  ///
+  /// In en, this message translates to:
+  /// **'You gave it to {to} instead of {from}'**
+  String daybookLineYouGave(String to, String from);
+
+  /// Daybook history line or trace: someone edited the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} edited it'**
+  String daybookLineEdited(String name);
+
+  /// Daybook history line or trace: you edited the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You edited it'**
+  String get daybookLineYouEdited;
+
+  /// Daybook history line or trace: someone moved the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} moved the due date from {from} to {to}'**
+  String daybookLineMovedDue(String name, String from, String to);
+
+  /// Daybook history line or trace: you moved the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'You moved the due date from {from} to {to}'**
+  String daybookLineYouMovedDue(String from, String to);
+
+  /// Daybook history line or trace: someone removed the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} took the due date off'**
+  String daybookLineRemovedDue(String name);
+
+  /// Daybook history line or trace: you removed the due date.
+  ///
+  /// In en, this message translates to:
+  /// **'You took the due date off'**
+  String get daybookLineYouRemovedDue;
+
+  /// Daybook history line or trace: someone cancelled the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} cancelled it'**
+  String daybookLineCancelled(String name);
+
+  /// Daybook history line or trace: you cancelled the work item.
+  ///
+  /// In en, this message translates to:
+  /// **'You cancelled it'**
+  String get daybookLineYouCancelled;
+
+  /// Daybook trace: someone posted the work item that day.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} posted it'**
+  String daybookLinePosted(String name);
+
+  /// Daybook trace: you posted the work item that day.
+  ///
+  /// In en, this message translates to:
+  /// **'You posted it'**
+  String get daybookLineYouPosted;
 }
 
 class _AppLocalizationsDelegate

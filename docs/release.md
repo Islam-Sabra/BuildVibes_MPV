@@ -10,9 +10,17 @@ Nothing here goes to testers until the lead has reviewed the `release` branch.
 | App id (Android and iOS) | `com.buildvibes.buildvibes` |
 | Name | BuildVibes |
 | Icon | the current icon in the repo (the new logo comes later) |
-| Version | `0.9.0+1` in `pubspec.yaml`: 0.9.0 is the version name, 1 the build number |
+| Version | `0.9.0` in `pubspec.yaml` is the version name. The `+1` there is not used on Android (below). |
 
-**Every build for testers raises the build number by one:** `0.9.0+2`, `0.9.0+3`, and so on. The stores refuse a build number they have already seen.
+## The build number and the commit (review 53 Part D)
+
+- **The build number goes up by itself.** On Android, `versionCode` is the number of commits in git (`git rev-list --count HEAD`), worked out by `android/app/build.gradle.kts` on every build. Nothing is edited by hand, and a plain `flutter build apk` gets it.
+  - Every new commit's build is higher than the one before, so it installs over it. Two builds of the same commit share a number (Android allows reinstalling the same number).
+  - Build testers' APKs from `main` or `release`, whose count only grows. A branch with fewer commits gets a lower number.
+  - With no git (a copy of the source without `.git`), or with a higher `--build-number`, Flutter's number is used.
+  - The stores refuse a build number they have already seen; the commit count never repeats on a growing branch.
+- **The commit is passed at build time:** `--dart-define=BV_COMMIT=$(git rev-parse --short HEAD)`. Without it (a debug build from the IDE), About says "dev".
+- **Settings → About BuildVibes and legal** shows "Version 0.9.0 · build 295 · c8b6512": the version, the build number and the commit, so the founder and the lead can see which build is on a phone.
 
 ## Release settings
 
@@ -23,8 +31,16 @@ Nothing here goes to testers until the lead has reviewed the `release` branch.
 ## Building (Android)
 
 ```
-flutter build apk --release --dart-define-from-file=env/prod.json
+flutter build apk --release --dart-define-from-file=env/prod.json --dart-define=BV_COMMIT=$(git rev-parse --short HEAD)
 ```
+
+A test build for the emulator or the founder's phone, against the dev project:
+
+```
+flutter build apk --debug --dart-define-from-file=env/dev.json --dart-define=BV_COMMIT=$(git rev-parse --short HEAD)
+```
+
+In PowerShell, use `--dart-define=BV_COMMIT=$(git rev-parse --short HEAD)` as it is (PowerShell runs `$(…)` too).
 
 The APK is at `build/app/outputs/flutter-apk/app-release.apk`. For Google Play, build an app bundle (`flutter build appbundle …`) instead.
 

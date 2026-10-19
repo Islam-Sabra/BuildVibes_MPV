@@ -1,4 +1,7 @@
+import 'package:buildvibes/core/design/bv_icons.dart';
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/bv_specs.dart';
+import 'package:buildvibes/core/l10n/bv_time.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/activity/activity_screen.dart';
@@ -11,7 +14,11 @@ import 'package:buildvibes/features/projects/add_project_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/features/activity/needs_you_screen.dart';
+import 'package:buildvibes/features/work/daybook_words.dart';
+import 'package:buildvibes/shared/widgets/bv_button.dart';
+import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_needs_row.dart';
+import 'package:buildvibes/shared/widgets/bv_space_emblem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -81,27 +88,29 @@ NeedsCard _card(NeedsKind kind, String id, {String? actor = 'Sara Ali'}) =>
       actorName: actor,
     );
 
+/// Where a row comes from: a Space, your record, your network, your posts.
+enum _Src { space, record, network, posts }
+
 ActivityRow _row(
   String id,
   ActivityKind kind,
-  ActivityGroupKind group,
+  _Src src,
   int hour, {
   bool read = false,
   String? space = 'space-1',
   List<String> useful = const [],
+  DateTime? at,
 }) => ActivityRow(
   id: id,
   kind: kind,
-  group: group,
-  createdAt: testNow.subtract(Duration(hours: 10 - hour)),
-  spaceId: group == ActivityGroupKind.space ? space : null,
-  spaceName: group == ActivityGroupKind.space ? 'Tower B — Site team' : null,
-  myPass: group == ActivityGroupKind.space ? 'crew' : null,
-  workItemId: group == ActivityGroupKind.space ? 'item-$id' : null,
+  createdAt: at ?? testNow.subtract(Duration(hours: 10 - hour)),
+  spaceId: src == _Src.space ? space : null,
+  spaceName: src == _Src.space ? 'Tower B — Site team' : null,
+  workItemId: src == _Src.space ? 'item-$id' : null,
   workItemRef: 'TB-021',
   workItemTitle: 'Rebar on grid C7',
-  postId: group == ActivityGroupKind.posts ? 'post-1' : null,
-  context: group == ActivityGroupKind.posts ? 'Slab poured.' : null,
+  postId: src == _Src.posts ? 'post-1' : null,
+  context: src == _Src.posts ? 'Slab poured.' : null,
   actorId: 'p-sara',
   actorName: 'Sara Ali',
   read: read,
@@ -111,6 +120,9 @@ ActivityRow _row(
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
+    // When a row happened, in the app's one time format (review 54 A1).
+    String moment(DateTime at) =>
+        BvTime(l10n, lang, use24: false).moment(at, testNow);
 
     testWidgets('H1b (F10): one line, the date and what needs you; no '
         'title and no other counts [$lang]', (tester) async {
@@ -123,21 +135,26 @@ void main() {
       );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
-      final header = tester
-          .widget<RichText>(
-            find
-                .descendant(
-                  of: find.byKey(const Key('home-day-header')),
-                  matching: find.byType(RichText),
-                )
-                .first,
+      final texts = tester
+          .widgetList<RichText>(
+            find.descendant(
+              of: find.byKey(const Key('home-day-header')),
+              matching: find.byType(RichText),
+            ),
           )
-          .text
-          .toPlainText();
-      // Sunday 11 October 2026, Western digits in both languages.
-      expect(header, contains(lang == 'ar' ? 'الأحد' : 'SUNDAY'));
+          .map((r) => r.text.toPlainText())
+          .toList();
+      final header = texts.join(' ');
+      // Sunday 11 October 2026, Western digits in both languages, as Feed
+      // and the daybook write it: no capitals (review 54 A6).
+      expect(header, contains(lang == 'ar' ? 'الأحد' : 'Sunday'));
+      expect(header, isNot(contains('SUNDAY')));
       expect(header, contains('11'));
       expect(header, contains(l10n.homeNothingNeedsYou));
+      expect(
+        tester.widget(find.byKey(const Key('home-day-header'))),
+        isA<BvDaybookMasthead>(),
+      );
       // Today starts at the phone's midnight.
       expect(activity.askedFrom, DateTime(2026, 10, 11));
       expect(find.byKey(const Key('tab-dot-1')), findsNothing);
@@ -148,12 +165,19 @@ void main() {
       );
     });
 
-    testWidgets('H1b (F3): New Space and Enter an invite code above the '
-        'list, one tap each [$lang]', (tester) async {
+    testWidgets('H1b (F3, F28): New Space and Join with a code above the '
+        'list, the same width, one tap each [$lang]', (tester) async {
       await pumpApp(tester, language: lang, spaces: _twoSpaces());
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
       double top(String key) => tester.getTopLeft(find.byKey(Key(key))).dy;
+      expect(
+        tester.getSize(find.byKey(const Key('home-enter-code'))).width,
+        tester.getSize(find.byKey(const Key('home-new-space'))).width,
+      );
+      // In the app's fonts it is never cut: test_screens/around_test.dart.
+      expect(find.text(l10n.homeJoinWithCode), findsOneWidget);
+      expect(find.text(l10n.spacesEnterCode), findsNothing);
       expect(top('home-enter-code'), lessThan(top('home-your-spaces')));
       expect(top('home-new-space'), lessThan(top('home-your-spaces')));
       await _tap(tester, 'home-enter-code');
@@ -211,69 +235,116 @@ void main() {
         ),
         findsOneWidget,
       );
+      // In the action colour, after the bold day and the grey date (A6).
+      Color? colorOf(String text) {
+        Color? found;
+        for (final r in tester.widgetList<RichText>(
+          find.descendant(
+            of: find.byKey(const Key('home-day-header')),
+            matching: find.byType(RichText),
+          ),
+        )) {
+          r.text.visitChildren((span) {
+            if (span is TextSpan && span.text == text) {
+              found = span.style?.color ?? found;
+            }
+            return true;
+          });
+        }
+        return found;
+      }
+
+      expect(colorOf(l10n.homeDayNeedsYou(4)), BvColors.textAction);
       var shown = 0;
       for (final id in ['i1', 'i22', 'i333', 'r1']) {
         if (find.byKey(Key('needs-$id')).evaluate().isNotEmpty) shown++;
       }
       expect(shown, 3);
       // Names and titles keep their own direction (bidi marks), so match
-      // the parts.
+      // the parts. One Space: its name once, over its three rows (F28).
       expect(find.textContaining('Rebar on grid C7'), findsNWidgets(3));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('home-needs')),
+          matching: find.textContaining('Tower B — Site team'),
+        ),
+        findsOneWidget,
+      );
       await _reveal(tester, 'home-needs-all', 'spaces-day');
       await _tap(tester, 'home-needs-all');
       // Needs you, across Spaces (2544:35068).
       expect(find.byType(NeedsYouScreen), findsOneWidget);
       expect(find.byType(BvNeedsRow), findsNWidgets(4));
       expect(find.text(l10n.needsRowJoin), findsOneWidget);
-      // Activity (A1) lists them too, each with the button that fits.
+      // Activity (A1 v3) has one slim line, which opens Home → Spaces.
       GoRouter.of(tester.element(find.byType(Navigator).first)).go('/activity');
       await tester.pumpAndSettle();
       expect(find.byType(ActivityScreen), findsOneWidget);
-      expect(find.text(l10n.activityNeedsHeader(4)), findsOneWidget);
-      expect(find.text(l10n.needsCheck), findsOneWidget);
-      await _reveal(tester, 'needs-open-r1', 'activity');
-      expect(find.text(l10n.needsReview), findsOneWidget);
-      await _tap(tester, 'needs-open-r1');
-      expect(find.byType(SpaceScreen), findsOneWidget);
+      expect(find.text(l10n.homeDayNeedsYou(4)), findsOneWidget);
+      expect(find.byKey(const Key('needs-i1')), findsNothing);
+      await _tap(tester, 'activity-needs-you');
+      expect(find.byKey(const Key('spaces-day')), findsOneWidget);
+      expect(find.byKey(const Key('needs-i1')), findsOneWidget);
     });
 
-    testWidgets('F10: a Needs you card, the Space first, Open on the end '
-        'side level with the text, and the whole card opens it [$lang]', (
-      tester,
-    ) async {
+    testWidgets('F28: Needs you grouped by Space, its emblem and name once, '
+        'rows with a quiet › on the end side; the whole row opens it '
+        '[$lang]', (tester) async {
       final activity = FakeActivityRepository(
-        cards: [_card(NeedsKind.forYou, 'i1')],
+        cards: [
+          _card(NeedsKind.forYou, 'i1'),
+          _card(NeedsKind.youCheck, 'i22'),
+          NeedsCard(
+            kind: NeedsKind.forYou,
+            spaceId: 'space-2',
+            spaceName: 'Khiran villas — Finishing',
+            at: testNow,
+            workItemId: 'k1',
+            workItemTitle: 'Tiles for villa 3',
+          ),
+        ],
       );
       await pumpApp(
         tester,
         language: lang,
-        spaces: _oneSpace(),
+        spaces: _twoSpaces(),
         activity: activity,
       );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
-      final card = find.byKey(const Key('needs-i1'));
+      final one = find.byKey(const Key('home-needs-space-space-1'));
+      final two = find.byKey(const Key('home-needs-space-space-2'));
+      Finder inOne(Finder f) => find.descendant(of: one, matching: f);
+      expect(inOne(find.textContaining('Tower B — Site team')), findsOneWidget);
+      expect(inOne(find.byType(BvSpaceEmblem)), findsOneWidget);
       expect(
-        tester.getSize(card).height,
+        find.descendant(of: two, matching: find.byType(BvSpaceEmblem)),
+        findsOneWidget,
+      );
+      // No orange Open button: a quiet › on the end side of each row.
+      expect(find.byType(BvButton).evaluate().length, 2);
+      final row = find.byKey(const Key('needs-i1'));
+      expect(
+        tester.getSize(row).height,
         greaterThanOrEqualTo(BvActivitySpec.cardMinHeight),
       );
-      Finder inCard(Finder f) => find.descendant(of: card, matching: f);
-      final space = inCard(find.textContaining('Tower B — Site team'));
-      final what = inCard(find.textContaining('Rebar on grid C7'));
-      final meta = inCard(find.textContaining('TB-002'));
-      // The Space name, then what happened, then the ref and time.
-      expect(tester.getTopLeft(space).dy, lessThan(tester.getTopLeft(what).dy));
-      expect(tester.getTopLeft(what).dy, lessThan(tester.getTopLeft(meta).dy));
-      expect(tester.widget<Text>(space).style!.fontWeight, FontWeight.w600);
-      // Open on the end side, level with the text.
-      final open = find.byKey(const Key('needs-open-i1'));
-      final openX = tester.getCenter(open).dx;
+      final caret = find.descendant(
+        of: row,
+        matching: find.byIcon(BvIcons.caretForward),
+      );
+      final what = find.descendant(
+        of: row,
+        matching: find.textContaining('Rebar on grid C7'),
+      );
+      final caretX = tester.getCenter(caret).dx;
       final whatX = tester.getCenter(what).dx;
-      expect(lang == 'ar' ? openX < whatX : openX > whatX, isTrue);
-      final openY = tester.getCenter(open).dy;
-      expect(openY, greaterThan(tester.getTopLeft(space).dy));
-      expect(openY, lessThan(tester.getBottomLeft(meta).dy));
-      // A tap anywhere on the card opens it.
+      expect(lang == 'ar' ? caretX < whatX : caretX > whatX, isTrue);
+      // What happened, then the ref and time.
+      final meta = find.descendant(
+        of: row,
+        matching: find.textContaining('TB-002'),
+      );
+      expect(tester.getTopLeft(what).dy, lessThan(tester.getTopLeft(meta).dy));
       await tester.tap(meta);
       await tester.pumpAndSettle();
       expect(find.byType(SpaceScreen), findsOneWidget);
@@ -283,6 +354,8 @@ void main() {
         'never a Needs you item again [$lang]', (tester) async {
       final activity = FakeActivityRepository(
         cards: [_card(NeedsKind.forYou, 'item-7')],
+        // Space 2 has nothing new today: it still says when (F28).
+        last: {'space-2': testNow.subtract(const Duration(days: 3))},
         today: [
           // Space 1's news is the work item Needs you shows already.
           SpaceToday(
@@ -319,17 +392,43 @@ void main() {
         findsNothing,
       );
       expect(
-        find.descendant(of: one, matching: find.text(l10n.rowHoursAgo(2))),
+        find.descendant(
+          of: one,
+          matching: find.text(
+            moment(testNow.subtract(const Duration(hours: 2))),
+          ),
+        ),
         findsOneWidget,
       );
-      // No counts on a Space: the only digits are that time.
+      expect(
+        find.descendant(
+          of: two,
+          matching: find.text(
+            moment(testNow.subtract(const Duration(days: 3))),
+          ),
+        ),
+        findsOneWidget,
+      );
+      // Each Space's tile is its emblem, not a letter.
+      expect(
+        find.descendant(of: list, matching: find.byType(BvSpaceEmblem)),
+        findsNWidgets(2),
+      );
+      // No counts on a Space: the only digits are the times.
       final digits = tester
           .widgetList<Text>(
             find.descendant(of: list, matching: find.byType(Text)),
           )
           .map((t) => t.data ?? '')
           .where((t) => t.contains(RegExp('[0-9]')));
-      expect(digits.where((t) => t != l10n.rowHoursAgo(2)), isEmpty);
+      expect(
+        digits.where(
+          (t) =>
+              t != moment(testNow.subtract(const Duration(hours: 2))) &&
+              t != moment(testNow.subtract(const Duration(days: 3))),
+        ),
+        isEmpty,
+      );
       expect(
         tester.getSize(two).height,
         greaterThanOrEqualTo(BvActivitySpec.cardMinHeight),
@@ -368,8 +467,11 @@ void main() {
         find.textContaining('Podium slab poured last night.'),
         findsOneWidget,
       );
-      // The row's time in the frame's form: "3h ago" / "قبل 3 ساعات".
-      expect(find.text(l10n.rowHoursAgo(3)), findsOneWidget);
+      // The row's time in the app's one format.
+      expect(
+        find.text(moment(testNow.subtract(const Duration(hours: 3)))),
+        findsOneWidget,
+      );
       await _tap(tester, 'home-space-space-1');
       expect(find.byType(ThreadScreen), findsOneWidget);
     });
@@ -400,7 +502,10 @@ void main() {
       );
       await tester.tap(find.text(l10n.homeSpaces));
       await tester.pumpAndSettle();
-      expect(find.text(l10n.rowYesterday), findsOneWidget);
+      expect(
+        find.text(moment(testNow.subtract(const Duration(days: 1)))),
+        findsOneWidget,
+      );
       final line = find.descendant(
         of: find.byKey(const Key('home-space-space-1')),
         matching: find.textContaining('Gate 3'),
@@ -413,21 +518,30 @@ void main() {
       }
     });
 
-    testWidgets('A1 (F13): groups, no REV letters, unread dots, then read; '
-        'the Activity dot [$lang]', (tester) async {
+    testWidgets('A1 v3 (F32): one list, newest first, by day, every source '
+        'mixed; no groups, no REV letters, no counts; unread dots, then '
+        'read [$lang]', (tester) async {
       final activity = FakeActivityRepository(
+        cards: [_card(NeedsKind.youCheck, 'item-a')],
         rows: [
-          _row('a', ActivityKind.itemDone, ActivityGroupKind.space, 1),
-          _row('b', ActivityKind.itemSentBack, ActivityGroupKind.space, 2),
-          _row('c', ActivityKind.follow, ActivityGroupKind.network, 1),
+          _row('a', ActivityKind.itemDone, _Src.space, 9),
+          _row('c', ActivityKind.follow, _Src.network, 7),
           _row(
             'd',
             ActivityKind.postUseful,
-            ActivityGroupKind.posts,
-            1,
+            _Src.posts,
+            8,
             useful: const ['Sara Ali'],
           ),
-          _row('e', ActivityKind.roleConfirmed, ActivityGroupKind.record, 1),
+          _row('e', ActivityKind.roleConfirmed, _Src.record, 1, read: true),
+          _row(
+            'b',
+            ActivityKind.itemSentBack,
+            _Src.space,
+            0,
+            read: true,
+            at: DateTime(2026, 10, 7, 9),
+          ),
         ],
       );
       final app = await pumpApp(
@@ -438,56 +552,93 @@ void main() {
       );
       expect(find.byKey(const Key('nav-activity-dot')), findsOneWidget);
       await _tap(tester, 'nav-activity');
-      // Nothing needs you: the line, then the changes.
-      expect(find.text(l10n.activityEmptyTitle), findsOneWidget);
-      expect(find.textContaining(l10n.activityChanges), findsOneWidget);
-      // No revision letters and no REV stamp: they read like a drawing's
-      // revision table.
+      // The slim line, never a Needs you block.
+      expect(find.text(l10n.homeDayNeedsYou(1)), findsOneWidget);
+      expect(find.byKey(const Key('needs-item-a')), findsNothing);
+      // No revision letters and no REV stamp.
       expect(find.textContaining('REV'), findsNothing);
       for (final letter in ['A', 'B']) {
         expect(find.text(letter), findsNothing);
       }
-      expect(
-        find.text(l10n.activitySpaceLine(l10n.spacesPassCrew)),
-        findsOneWidget,
-      );
-      // Groups in order: the Space, record, network, posts.
+      // Newest first, whatever the source: a, d, c (yesterday), e, then b
+      // on Wednesday 7 October.
       double top(String key) => tester.getTopLeft(find.byKey(Key(key))).dy;
-      expect(
-        top('activity-group-space:space-1'),
-        lessThan(top('activity-group-record')),
+      expect(top('activity-row-a'), lessThan(top('activity-row-d')));
+      expect(top('activity-row-d'), lessThan(top('activity-row-c')));
+      expect(top('activity-row-c'), lessThan(top('activity-row-e')));
+      expect(find.text(l10n.chatYesterday), findsOneWidget);
+      expect(find.text(l10n.chatToday), findsNothing);
+      await _reveal(tester, 'activity-row-b', 'activity');
+      final words = DaybookWords(l10n, lang, use24: false);
+      final day = find.text(words.compactDate(DateTime(2026, 10, 7)));
+      expect(day, findsOneWidget);
+      expect(tester.getTopLeft(day).dy, lessThan(top('activity-row-b')));
+      expect(top('activity-row-e'), lessThan(tester.getTopLeft(day).dy));
+      // Where it happened, small and grey, under what happened.
+      final where = tester.widget<Text>(
+        find.byKey(const Key('activity-where-b')),
       );
-      expect(
-        top('activity-group-record'),
-        lessThan(top('activity-group-network')),
-      );
+      expect(where.data, contains('Tower B — Site team'));
       // Unread dots as they were; then marked read, and the dot goes.
       expect(find.byKey(const Key('activity-unread')), findsWidgets);
       expect(app.activity.calls, contains('mark-read'));
       expect(find.byKey(const Key('nav-activity-dot')), findsNothing);
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('activity-group-posts')),
-        200,
-        scrollable: find.byType(Scrollable).last,
-      );
+      // A row that still needs you carries the paper clip; no other does.
       expect(
         find.descendant(
-          of: find.byKey(const Key('activity-row-d')),
-          matching: find.textContaining('Sara Ali'),
+          of: find.byKey(const Key('activity-row-a')),
+          matching: find.byKey(const Key('activity-needs-clip')),
         ),
         findsOneWidget,
       );
+      expect(find.byKey(const Key('activity-needs-clip')), findsOneWidget);
+    });
+
+    testWidgets('A1 v3: the name is bold while unread; a read row is quiet '
+        '[$lang]', (tester) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _oneSpace(),
+        activity: FakeActivityRepository(
+          rows: [
+            _row('u', ActivityKind.itemDone, _Src.space, 9),
+            _row('r', ActivityKind.itemDone, _Src.space, 8, read: true),
+          ],
+        ),
+      );
+      await _tap(tester, 'nav-activity');
+      final type = lang == 'ar' ? BvType.arabic : BvType.latin;
+      TextSpan nameOf(String id) {
+        final rich = tester.widget<RichText>(
+          find.descendant(
+            of: find.byKey(Key('activity-text-$id')),
+            matching: find.byType(RichText),
+          ),
+        );
+        final spans = <TextSpan>[];
+        rich.text.visitChildren((s) {
+          if (s is TextSpan && (s.text ?? '').contains('Sara Ali')) {
+            spans.add(s);
+          }
+          return true;
+        });
+        return spans.single;
+      }
+
+      expect(nameOf('u').style!.fontWeight, type.headingMd.fontWeight);
+      expect(nameOf('r').style!.fontWeight, type.labelMd.fontWeight);
     });
 
     // F13: every row opens what it is about; the whole row is the tap.
-    for (final (kind, group, target) in [
-      (ActivityKind.itemChecked, ActivityGroupKind.space, SpaceScreen),
-      (ActivityKind.itemAssigned, ActivityGroupKind.space, SpaceScreen),
-      (ActivityKind.joinRequest, ActivityGroupKind.space, SpaceScreen),
-      (ActivityKind.joinConfirmed, ActivityGroupKind.space, SpaceScreen),
-      (ActivityKind.follow, ActivityGroupKind.network, PersonProfileScreen),
-      (ActivityKind.postReply, ActivityGroupKind.posts, PostScreen),
-      (ActivityKind.roleConfirmed, ActivityGroupKind.record, ProfileScreen),
+    for (final (kind, src, target) in [
+      (ActivityKind.itemChecked, _Src.space, SpaceScreen),
+      (ActivityKind.itemAssigned, _Src.space, SpaceScreen),
+      (ActivityKind.joinRequest, _Src.space, SpaceScreen),
+      (ActivityKind.joinConfirmed, _Src.space, SpaceScreen),
+      (ActivityKind.follow, _Src.network, PersonProfileScreen),
+      (ActivityKind.postReply, _Src.posts, PostScreen),
+      (ActivityKind.roleConfirmed, _Src.record, ProfileScreen),
     ]) {
       testWidgets('A1 (F13): ${kind.json} opens $target [$lang]', (
         tester,
@@ -505,7 +656,7 @@ void main() {
           language: lang,
           spaces: spaces,
           activity: FakeActivityRepository(
-            rows: [_row('x', kind, group, 1, read: true)],
+            rows: [_row('x', kind, src, 1, read: true)],
           ),
         );
         await _tap(tester, 'nav-activity');
@@ -521,17 +672,11 @@ void main() {
         '[$lang]', (tester) async {
       final activity = FakeActivityRepository(
         rows: [
-          _row(
-            'u1',
-            ActivityKind.postUseful,
-            ActivityGroupKind.posts,
-            1,
-            read: true,
-          ),
+          _row('u1', ActivityKind.postUseful, _Src.posts, 1, read: true),
           _row(
             'u2',
             ActivityKind.postUseful,
-            ActivityGroupKind.posts,
+            _Src.posts,
             2,
             read: true,
             useful: const ['Sara Ali', 'Omar Haddad'],
@@ -540,15 +685,22 @@ void main() {
       );
       await pumpApp(tester, language: lang, activity: activity);
       await _tap(tester, 'nav-activity');
-      expect(find.text(l10n.activityUseful0), findsOneWidget);
-      final two = tester.widget<Text>(
-        find.descendant(
-          of: find.byKey(const Key('activity-row-u2')),
-          matching: find.textContaining('Omar Haddad'),
-        ),
+      expect(
+        find.text(l10n.activityUseful0, findRichText: true),
+        findsOneWidget,
       );
-      expect(two.data, contains('Sara Ali'));
-      expect(two.data, isNot(contains(RegExp('[0-9]'))));
+      final two = tester
+          .widget<RichText>(
+            find.descendant(
+              of: find.byKey(const Key('activity-text-u2')),
+              matching: find.byType(RichText),
+            ),
+          )
+          .text
+          .toPlainText();
+      expect(two, contains('Sara Ali'));
+      expect(two, contains('Omar Haddad'));
+      expect(two, isNot(contains(RegExp('[0-9]'))));
       expect(find.byKey(const Key('activity-unread')), findsNothing);
     });
 

@@ -6,14 +6,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
-import '../../shared/widgets/bv_tap_target.dart';
 import '../../shared/widgets/bv_slip.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/around_specs.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
-import '../../core/l10n/ago.dart';
+import '../../core/l10n/bv_time.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/post.dart';
@@ -42,9 +41,13 @@ import 'post_card.dart';
 typedef _ReplyTarget = ({String id, String top, String name, String body});
 
 class PostScreen extends ConsumerStatefulWidget {
-  const PostScreen({super.key, required this.postId});
+  const PostScreen({super.key, required this.postId, this.replyId});
 
   final String postId;
+
+  /// Opened from a card's latest reply line (F30): the page scrolls to
+  /// this reply once the replies are in.
+  final String? replyId;
 
   @override
   ConsumerState<PostScreen> createState() => _PostScreenState();
@@ -52,6 +55,25 @@ class PostScreen extends ConsumerStatefulWidget {
 
 class _PostScreenState extends ConsumerState<PostScreen> {
   final _text = TextEditingController();
+
+  /// Each reply's place on the page, to scroll to one.
+  final _replyKeys = <String, GlobalKey>{};
+  var _scrolled = false;
+
+  GlobalKey _replyKey(String id) => _replyKeys.putIfAbsent(id, GlobalKey.new);
+
+  void _scrollTo(String replyId) {
+    final target = _replyKeys[replyId]?.currentContext;
+    if (target == null) return;
+    unawaited(
+      Scrollable.ensureVisible(
+        target,
+        alignment: BvReplySpec.scrollAlignment,
+        duration: BvMotion.base,
+        curve: BvMotion.standard,
+      ),
+    );
+  }
 
   /// H17: the reply this answers, the top-level reply it is filed under,
   /// and the person tapped.
@@ -134,6 +156,21 @@ class _PostScreenState extends ConsumerState<PostScreen> {
     }
 
     final replies = ref.watch(postRepliesProvider(widget.postId)).value;
+    // Opening the post sees its latest reply: the card's line is no longer
+    // bold (F30).
+    final latest = p.latestReply;
+    if (latest != null && !ref.read(seenRepliesProvider).contains(latest.id)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(seenRepliesProvider.notifier).seen(latest.id);
+      });
+    }
+    final goTo = widget.replyId;
+    if (goTo != null && replies != null && !_scrolled) {
+      _scrolled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollTo(goTo);
+      });
+    }
     final all = replies ?? const <PostReply>[];
     final top = [
       for (final r in all)
@@ -180,8 +217,11 @@ class _PostScreenState extends ConsumerState<PostScreen> {
               padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
               children: [
                 // The same card as on Home.
+                // Its replies are listed under it: no reply line (review
+                // 54 A2).
                 PostCard(
                   post: p,
+                  replyLine: false,
                   onChanged: (changed) {
                     ref.read(feedProvider.notifier).replace(changed);
                     ref.invalidate(postProvider(widget.postId));
@@ -205,6 +245,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                     children: [
                       for (final r in [...top, ...orphans]) ...[
                         _ReplyView(
+                          key: _replyKey(r.id),
                           reply: r,
                           answered: answered(r),
                           onReply: () => replyTo(r),
@@ -217,6 +258,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                               start: BvReplySpec.answerIndent,
                             ),
                             child: _ReplyView(
+                              key: _replyKey(child.id),
                               reply: child,
                               answered: answered(child),
                               onReply: () => replyTo(child),
@@ -247,6 +289,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
 /// Reply under it, all starting under the name; ⋯ level with the name.
 class _ReplyView extends ConsumerWidget {
   const _ReplyView({
+    super.key,
     required this.reply,
     required this.answered,
     required this.onReply,
@@ -335,12 +378,7 @@ class _ReplyView extends ConsumerWidget {
       }
     }
 
-    final ago = formatShortAgo(
-      l10n,
-      reply.createdAt.toLocal(),
-      now,
-      Localizations.localeOf(context).toLanguageTag(),
-    );
+    final when = BvTime.of(context).moment(reply.createdAt, now);
     const underName = EdgeInsetsDirectional.only(start: BvReplySpec.indent);
 
     return BvSlip(
@@ -352,9 +390,15 @@ class _ReplyView extends ConsumerWidget {
         label: l10n.postReplyMenu,
         onTap: menu,
       ),
+      // Level with the name: the avatar's line, or, with "Replying to"
+      // under it, the name's own line at the main size.
       menuLine: answered == null
           ? BvHomeSpec.authorAvatar
-          : BvSlipSpec.firstLine,
+          : type.labelMd.fontSize! * type.labelMd.height!,
+      // Under the actions' 48 row only the card's own 6, as on Home.
+      paddingBottom: mine
+          ? BvSlipSpec.paddingBottom
+          : BvHomeSpec.cardPaddingBottom,
       children: [
         Padding(
           padding: const EdgeInsetsDirectional.only(
@@ -381,14 +425,13 @@ class _ReplyView extends ConsumerWidget {
                             key: Key('reply-name-${reply.id}'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: type.labelSm.copyWith(
+                            style: type.labelMd.copyWith(
                               color: BvColors.textPrimary,
-                              fontWeight: BvHomeSpec.nameWeight,
                             ),
                           ),
                         ),
                         Text(
-                          ago,
+                          when,
                           key: Key('reply-time-${reply.id}'),
                           style: type.metadata.copyWith(
                             color: BvColors.textSecondary,
@@ -424,14 +467,13 @@ class _ReplyView extends ConsumerWidget {
             style: type.bodyMd,
           ),
         ),
-        // Each with a 48 touch area, into the gap above and the padding
-        // below.
-        Padding(
-          padding: underName,
-          child: BvTapTarget(
-            outset: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
+        // Each in its own 48 × 48 touch area. None on your own reply: only
+        // its ⋯ (F31).
+        if (!mine)
+          Padding(
+            padding: underName,
             child: SizedBox(
-              height: BvHomeSpec.actionsHeight,
+              height: BvSize.touchMin,
               child: Row(
                 spacing: BvReplySpec.actionsGap,
                 children: [
@@ -439,7 +481,7 @@ class _ReplyView extends ConsumerWidget {
                     key: Key('reply-useful-${reply.id}'),
                     label: l10n.postUseful,
                     active: reply.myUseful,
-                    onTap: mine ? null : useful,
+                    onTap: useful,
                   ),
                   _ReplyAction(
                     key: Key('reply-reply-${reply.id}'),
@@ -450,14 +492,13 @@ class _ReplyView extends ConsumerWidget {
               ),
             ),
           ),
-        ),
       ],
     );
   }
 }
 
-/// Useful or Reply under a reply's text: the word, in a 48 × 48 touch
-/// area.
+/// Useful or Reply under a reply's text: the word at the main size, in a
+/// 48 × 48 touch area (review 54 A2).
 class _ReplyAction extends StatelessWidget {
   const _ReplyAction({
     super.key,
@@ -473,18 +514,22 @@ class _ReplyAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
-    return BvTapTarget(
-      child: Semantics(
-        button: true,
-        selected: active,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
+    return Semantics(
+      button: true,
+      selected: active,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: BvSize.touchMin,
+            minHeight: BvSize.touchMin,
+          ),
           child: Center(
             widthFactor: 1,
             child: Text(
               label,
-              style: type.labelSm.copyWith(
+              style: type.labelMd.copyWith(
                 color: active ? BvColors.textAction : BvColors.textSecondary,
               ),
             ),
@@ -635,9 +680,7 @@ class _ReplyBox extends ConsumerWidget {
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
-                          hintText: r == null
-                              ? l10n.postAddComment
-                              : l10n.postWriteReply,
+                          hintText: l10n.postWriteReply,
                           hintStyle: type.bodyMd.copyWith(
                             color: BvColors.textSecondary,
                           ),

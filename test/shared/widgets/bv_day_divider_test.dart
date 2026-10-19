@@ -8,27 +8,29 @@ import '../../helpers/pump_component.dart';
 
 void main() {
   group('BvDayDivider', () {
-    testBoth('dashed line above the weekday, date at the end', (
-      tester,
-      lang,
-    ) async {
+    testBoth('the day between two thin rules, in grey', (tester, lang) async {
       await pumpComponent(
         tester,
-        const BvDayDivider(weekday: 'Thursday', date: '15 October'),
+        const BvDayDivider(label: 'Wednesday 14 October'),
         lang: lang,
         scroll: false,
       );
-      final line = tester.getRect(find.byKey(const Key('day-divider-line')));
-      expect(line.height, BvDayDividerSpec.lineWidth);
-      expect(line.width, 390 - 2 * BvDayDividerSpec.paddingHorizontal);
+      final lines = find.byKey(const Key('day-divider-line'));
+      expect(lines, findsNWidgets(2));
+      final label = tester.getRect(find.text('Wednesday 14 October'));
+      final first = tester.getRect(lines.first);
+      final last = tester.getRect(lines.last);
+      expect(first.height, BvDayDividerSpec.lineWidth);
+      // One rule on each side, the same length: the label is centred.
+      expect(first.width, moreOrLessEquals(last.width, epsilon: 0.5));
+      final left = first.left < last.left ? first : last;
+      final right = first.left < last.left ? last : first;
+      expect(left.right, lessThanOrEqualTo(label.left));
+      expect(right.left, greaterThanOrEqualTo(label.right));
       expect(
-        tester.getRect(find.text('Thursday')).top,
-        greaterThan(line.bottom),
+        textStyle(tester, 'Wednesday 14 October').color,
+        BvColors.textSecondary,
       );
-      expect(textStyle(tester, '15 October').color, BvColors.textSecondary);
-      final weekday = tester.getCenter(find.text('Thursday')).dx;
-      final date = tester.getCenter(find.text('15 October')).dx;
-      expect(isRtl(lang) ? weekday > date : weekday < date, isTrue);
     });
   });
 }

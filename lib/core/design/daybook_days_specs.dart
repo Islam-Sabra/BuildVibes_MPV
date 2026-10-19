@@ -1,4 +1,4 @@
-// Measurements of the Daybook's day parts: the time spine, the masthead,
+// Measurements of the Daybook's day parts: the masthead,
 // the day divider, the post bar, the month drop-down and the day-one card.
 // From the Figma frames 2518:33001, 2541:34679, 2541:34813, 2541:35060 and
 // 2542:35109 (slice 1a spec, sections 5 to 8, 14 and 15).
@@ -8,72 +8,24 @@ import 'package:flutter/widgets.dart';
 import 'bv_specs.dart';
 import 'bv_tokens.dart';
 
-/// The time spine and its entries (spec §5).
-abstract final class BvSpineSpec {
-  /// The time column in a Space's Daybook, and on Home.
-  static const timeColumn = 56.0;
-  static const homeTimeColumn = BvSize.touchMin; // 48
-
-  /// The spine is centred on the end of the time column.
-  static const lineWidth = BvStroke.medium; // 1.5
-
-  /// The time label ends this far before the spine's centre.
-  static const labelToSpine = BvSpace.s12;
-  static const labelTop = 14.0;
-
-  /// A 12-hour time's part of the day ("pm", "مساءً"), on its own smaller
-  /// line under the time (review 50 F15).
-  static const periodSize = 10.0;
-  static const periodLine = 12.0;
-
-  /// A 3.5 circle with a 2 px halo (or ring), 9 across in all.
-  static const dotSize = 9.0;
-  static const dotRadius = 3.5;
-  static const dotStroke = BvStroke.thick; // 2
-  static const dotTop = 17.0;
-
-  /// The entry row's own height; the label and dot hang below it.
-  static const rowHeight = BvSize.iconLg; // 24
-  static const slipGap = BvSpace.s8;
-
-  static const paddingTop = BvSpace.s16;
-  static const paddingBottom = 18.0;
-  static const paddingEnd = BvSpace.s16;
-  static const entryGap = 22.0;
-}
-
-/// The masthead above the diary (spec §6).
+/// The masthead above the diary (spec §6; v13 2581:35635).
 abstract final class BvMastheadSpec {
-  static const paddingHorizontal = BvSpace.s20;
-  static const paddingTop = 14.0;
-  static const paddingBottom = 10.0;
-  static const gap = BvSpace.s12;
+  // The daybook's one line: the day and the date.
+  static const linePaddingHorizontal = BvSpace.s16;
+  static const linePaddingVertical = BvSpace.s8;
+  static const lineGap = BvSpace.s8;
 
-  // Compact, while writing.
-  static const compactPaddingTop = BvSpace.s8;
-  static const compactPaddingBottom = BvSpace.s6;
-
-  // Home: no weather.
-  static const homePaddingTop = BvSpace.s12;
-  static const homePaddingBottom = BvSpace.s6;
+  /// F23: the masthead names the day of what is at this line, just under
+  /// the top of the page: a sliver of the day before above it doesn't
+  /// count.
+  static const readingLine = BvSpace.s40;
 }
 
-/// The dashed line between days when scrolling back (spec §7).
+/// The line between days (v13 2581:35639): a thin rule on each side of the
+/// day's name.
 abstract final class BvDayDividerSpec {
-  static const paddingHorizontal = BvSpace.s20;
-  static const paddingTop = 10.0;
-  static const paddingBottom = BvSpace.s4;
-  static const rowPaddingTop = 10.0;
-  static const gap = BvSpace.s2;
-  static const rowGap = BvSpace.s12;
-
-  static const lineWidth = BvStroke.medium; // 1.5
-  static const dash = 2.0;
-  static const dashGap = 5.0;
-
-  /// The line starts and ends with a 1 px cap; the first dash is at 6.
-  static const cap = 1.0;
-  static const firstDash = 6.0;
+  static const gap = 10.0;
+  static const lineWidth = BvStroke.thin; // 1
 }
 
 /// The post bar under the diary (spec §8).
@@ -138,9 +90,6 @@ abstract final class BvMonthDropdownSpec {
 
 /// The day-one card in an empty Daybook (spec §15).
 abstract final class BvFirstPageSpec {
-  /// The screen insets the card this far from the start.
-  static const insetStart = 72.0;
-
   static const radius = BorderRadius.all(Radius.circular(BvRadius.toast));
   static const paddingTop = BvSpace.s24;
   static const paddingBottom = 22.0;
@@ -149,7 +98,8 @@ abstract final class BvFirstPageSpec {
 
   static const actionRadius = BorderRadius.all(Radius.circular(BvRadius.toast));
   static const actionPaddingHorizontal = 14.0;
-  static const actionPaddingVertical = 11.0;
+  static const actionHeight = 40.0;
+  static const actionPaddingVertical = BvSpace.s6;
   static const actionGap = BvSpace.s8;
   static const actionIcon = 18.0;
 }

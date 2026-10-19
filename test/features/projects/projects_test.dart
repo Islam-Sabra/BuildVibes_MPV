@@ -11,7 +11,19 @@ import '../../helpers/pump_app.dart';
 
 AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
+/// Scrolls the screen's list until [f] is built (lazy lists build only what
+/// is near the screen).
+Future<void> _reach(WidgetTester tester, Finder f) async {
+  if (f.evaluate().isNotEmpty) return;
+  await tester.scrollUntilVisible(
+    f,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+}
+
 Future<void> _tap(WidgetTester tester, String key) async {
+  await _reach(tester, find.byKey(Key(key)));
   final f = find.byKey(Key(key)).first;
   await tester.ensureVisible(f);
   await tester.tap(f);
@@ -154,6 +166,7 @@ void main() {
       expect(find.text(l10n.sharedRecordStamp), findsOneWidget);
       expect(find.text('Harbour Tower'), findsOneWidget);
       expect(find.text(l10n.projectNoOwnerNote), findsOneWidget);
+      await _reach(tester, find.text('Layla Haddad'));
       expect(find.text('Layla Haddad'), findsOneWidget);
       expect(find.byKey(const Key('project-add-to-cv')), findsOneWidget);
 

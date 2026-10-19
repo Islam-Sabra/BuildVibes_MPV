@@ -89,8 +89,8 @@ enum BvInkStampTone { action, positive, muted, destructive }
 /// 09:40").
 ///
 /// Latin labels are ExtraBold and tracked; Arabic labels are Bold with no
-/// tracking (tracking breaks the letter joins, and Noto Sans Arabic has no
-/// 800). Pass capitals in Latin; Arabic has none.
+/// tracking (tracking breaks the letter joins, and Almarai is bundled in
+/// Regular and Bold only). Pass capitals in Latin; Arabic has none.
 ///
 /// [land] plays the landing once, as the stamp is put down (Check).
 class BvInkStamp extends StatelessWidget {

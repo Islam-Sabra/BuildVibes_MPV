@@ -17,7 +17,7 @@ import '../../shared/widgets/bv_project_tag.dart';
 import '../../shared/widgets/bv_writing_card.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
-import '../work/daybook_entry.dart' show localPhotoProvider;
+import '../work/daybook_photos.dart' show localPhotoProvider;
 import '../work/work_outbox.dart' show keepPhotoProvider, pickPhotoProvider;
 import 'feed_state.dart';
 import 'post_card.dart' show postPhotoProvider;

@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/build_info.dart';
 import '../../core/design/bv_icons.dart';
-import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
-import '../../core/l10n/months.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../../data/repositories/safety_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_dialog.dart';
@@ -18,12 +16,18 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../account/account_parts.dart';
 import '../entry/entry_state.dart';
-import '../settings/notifications_screen.dart';
 import '../settings/push_host.dart';
 
-/// S1 v2, MVP rows (brief 23 §3): who you are, your settings in words, the
-/// account rows, support and Sign out (S15). In debug builds also the
-/// Components gallery. Guests see language and support only.
+/// The developer rows (the Components gallery): debug builds only, never
+/// in a release or profile build. Tests override it to check both.
+final devToolsProvider = Provider<bool>((ref) => kDebugMode);
+
+/// S1 v2, MVP rows (brief 23 §3, review 54 A5): who you are, then one
+/// list with each entry once (Account and security, Notifications, Privacy
+/// and safety, Language, About BuildVibes and legal) and Sign out (S15).
+/// Help and feedback (the pack's support email) is in the About sheet. In
+/// debug builds only, also the Components gallery ([devToolsProvider]).
+/// Guests see Language and About only.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -34,27 +38,9 @@ class SettingsScreen extends ConsumerWidget {
     final lang = Localizations.localeOf(context).languageCode;
     final guest = ref.watch(appGateProvider) == AppGate.guest;
     final me = ref.watch(myProfileProvider).value;
-    final market = ref.watch(myMarketProvider);
     final languageName = lang == 'ar'
         ? l10n.languageArabic
         : l10n.languageEnglish;
-
-    // The words rows: the real settings, said in a sentence.
-    final languageWords = market == null
-        ? _Words(l10n.wordsLanguageOnly(_m1), [languageName])
-        : _Words(
-            l10n.wordsLanguage(
-              _m1,
-              weekdayName(market.weekStart, lang),
-              market.name.of(Localizations.localeOf(context)),
-            ),
-            [languageName],
-          );
-    final blocked = guest ? null : ref.watch(blockedProvider).value;
-    final push = guest ? null : ref.watch(pushSettingsProvider).value;
-    String onOff(bool on) => on ? l10n.wordsOn : l10n.wordsOff;
-
-    final support = market?.supportEmail;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle), centerTitle: true),
@@ -114,46 +100,8 @@ class SettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-            SettingsHeader(l10n.settingsInWords),
-            _WordsGroup(
-              rows: [
-                if (!guest)
-                  _WordsRow(
-                    key: const Key('words-privacy'),
-                    label: l10n.settingsPrivacyLabel,
-                    words: blocked == null
-                        ? null
-                        : _Words(l10n.wordsPrivacy(_m1), [
-                            blocked.isEmpty
-                                ? l10n.blockedNone
-                                : l10n.wordsBlocked(blocked.length),
-                          ]),
-                    onTap: () => context.push(AppRoutes.profilePrivacy),
-                  ),
-                if (!guest)
-                  _WordsRow(
-                    key: const Key('words-notifications'),
-                    label: l10n.settingsNotificationsLabel,
-                    words: push == null
-                        ? null
-                        : _Words(l10n.wordsNotifications(_m1, _m2, _m3), [
-                            onOff(push.followers),
-                            onOff(push.replies),
-                            push.messageText
-                                ? l10n.wordsShown
-                                : l10n.wordsHidden,
-                          ]),
-                    onTap: () => context.push(AppRoutes.profileNotifications),
-                  ),
-                _WordsRow(
-                  key: const Key('words-language'),
-                  label: l10n.settingsLanguageLabel,
-                  words: languageWords,
-                  onTap: () => context.push(AppRoutes.profileRegion),
-                ),
-              ],
-            ),
-            SettingsHeader(l10n.settingsAccountSection),
+            // One list, each entry once (review 54 A5).
+            const SizedBox(height: BvSpace.s16),
             BvListGroup(
               rows: [
                 if (!guest)
@@ -182,27 +130,10 @@ class SettingsScreen extends ConsumerWidget {
                 BvListRow(
                   key: const Key('row-language'),
                   leading: const BvRowIcon(BvIcons.language),
-                  title: l10n.languageRegion,
+                  title: l10n.settingsLanguageRow,
                   trailing: BvRowTrailing.value(languageName),
                   onTap: () => context.push(AppRoutes.profileRegion),
                 ),
-              ],
-            ),
-            SettingsHeader(l10n.supportSection),
-            BvListGroup(
-              rows: [
-                if (support != null)
-                  BvListRow(
-                    key: const Key('row-help'),
-                    leading: const BvRowIcon(BvIcons.help),
-                    title: l10n.helpFeedback,
-                    subtitle: ltrRun(support),
-                    onTap: () => openLink(
-                      context,
-                      ref,
-                      Uri(scheme: 'mailto', path: support),
-                    ),
-                  ),
                 BvListRow(
                   key: const Key('row-about'),
                   leading: const BvRowIcon(BvIcons.about),
@@ -214,7 +145,7 @@ class SettingsScreen extends ConsumerWidget {
                     builder: (_) => const _LegalSheet(),
                   ),
                 ),
-                if (kDebugMode)
+                if (ref.watch(devToolsProvider))
                   BvListRow(
                     key: const Key('row-components'),
                     leading: const BvRowIcon(BvIcons.settings),
@@ -260,140 +191,6 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-// Stand-ins for the highlighted words; they never reach the screen.
-const _m1 = '\u{E001}';
-const _m2 = '\u{E002}';
-const _m3 = '\u{E003}';
-const _marks = [_m1, _m2, _m3];
-
-/// A sentence from an ARB string with stand-ins, and the words that go in
-/// their place, highlighted.
-class _Words {
-  const _Words(this.text, this.values);
-
-  final String text;
-  final List<String> values;
-
-  List<InlineSpan> spans(TextStyle highlight) {
-    final out = <InlineSpan>[];
-    var rest = text;
-    while (rest.isNotEmpty) {
-      var at = -1;
-      var which = -1;
-      for (var i = 0; i < values.length; i++) {
-        final j = rest.indexOf(_marks[i]);
-        if (j >= 0 && (at < 0 || j < at)) {
-          at = j;
-          which = i;
-        }
-      }
-      if (at < 0) {
-        out.add(TextSpan(text: rest));
-        break;
-      }
-      if (at > 0) out.add(TextSpan(text: rest.substring(0, at)));
-      out.add(TextSpan(text: values[which], style: highlight));
-      rest = rest.substring(at + _marks[which].length);
-    }
-    return out;
-  }
-}
-
-class _WordsGroup extends StatelessWidget {
-  const _WordsGroup({required this.rows});
-
-  final List<_WordsRow> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (var i = 0; i < rows.length; i++) ...[
-          if (i > 0)
-            const ColoredBox(
-              color: BvColors.surfaceElevated,
-              child: Divider(
-                height: BvStroke.thin,
-                thickness: BvStroke.thin,
-                color: BvColors.borderDefault,
-              ),
-            ),
-          rows[i],
-        ],
-      ],
-    );
-  }
-}
-
-/// S1 "Your settings, in words": a label, the sentence, a chevron.
-class _WordsRow extends StatelessWidget {
-  const _WordsRow({
-    super.key,
-    required this.label,
-    required this.words,
-    required this.onTap,
-  });
-
-  final String label;
-
-  /// Null while the settings load.
-  final _Words? words;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final type = BvType.of(context);
-    return Material(
-      color: BvColors.surfaceElevated,
-      child: InkWell(
-        onTap: onTap,
-        splashFactory: NoSplash.splashFactory,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: BvSpace.gutter,
-            vertical: BvSpace.s16,
-          ),
-          child: Row(
-            spacing: BvSpace.s12,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: BvSpace.s4,
-                  children: [
-                    Text(
-                      label,
-                      style: type.overline.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                    Text.rich(
-                      TextSpan(
-                        children:
-                            words?.spans(
-                              type.bodyMd.copyWith(color: BvColors.textAction),
-                            ) ??
-                            const [TextSpan(text: '')],
-                      ),
-                      style: type.bodyMd.copyWith(color: BvColors.textPrimary),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                BvIcons.caretForward,
-                size: BvSize.iconMd,
-                color: BvColors.iconSecondary,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// About BuildVibes and legal: the pack's Terms and Privacy links, or a
 /// note while the pages are being written.
 class _LegalSheet extends ConsumerWidget {
@@ -406,15 +203,67 @@ class _LegalSheet extends ConsumerWidget {
     final market = ref.watch(myMarketProvider);
     final terms = market?.legalLink('terms', locale);
     final privacy = market?.legalLink('privacy', locale);
-    if (terms == null && privacy == null) {
-      return Text(
-        l10n.legalSoon,
-        key: const Key('legal-soon'),
-        style: BvType.of(
-          context,
-        ).bodyMd.copyWith(color: BvColors.textSecondary),
-      );
-    }
+    final build = ref.watch(buildInfoProvider).value;
+    final support = market?.supportEmail;
+    final legal = terms == null && privacy == null
+        ? Text(
+            l10n.legalSoon,
+            key: const Key('legal-soon'),
+            style: BvType.of(
+              context,
+            ).bodyMd.copyWith(color: BvColors.textSecondary),
+          )
+        : _legalLinks(context, ref, l10n, terms, privacy);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvSpace.s16,
+      children: [
+        legal,
+        // Help and feedback: the pack's support email (review 54 A5 keeps
+        // Settings to one list; it moved here from its own section).
+        if (support != null)
+          ClipRRect(
+            borderRadius: BvRadius.cardAll,
+            child: BvListGroup(
+              rows: [
+                BvListRow(
+                  key: const Key('row-help'),
+                  leading: const BvRowIcon(BvIcons.help),
+                  title: l10n.helpFeedback,
+                  subtitle: ltrRun(support),
+                  onTap: () => openLink(
+                    context,
+                    ref,
+                    Uri(scheme: 'mailto', path: support),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        // Which build is on this phone (review 53 Part D).
+        if (build != null)
+          Text(
+            l10n.aboutBuild(
+              ltrRun(build.version),
+              ltrRun(build.build),
+              ltrRun(build.commit),
+            ),
+            key: const Key('about-build'),
+            style: BvType.of(
+              context,
+            ).metadata.copyWith(color: BvColors.textSecondary),
+          ),
+      ],
+    );
+  }
+
+  Widget _legalLinks(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    Uri? terms,
+    Uri? privacy,
+  ) {
     return ClipRRect(
       borderRadius: BvRadius.cardAll,
       child: BvListGroup(

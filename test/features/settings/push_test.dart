@@ -25,9 +25,13 @@ Future<void> _openNotifications(WidgetTester tester) async {
 }
 
 void main() {
-  test("a work item's push opens its Space's daybook (the exact slip is "
-      'slice 10)', () {
-    expect(pushRoute('/spaces/s1/items/i1'), '/spaces/s1');
+  test("F20: a work item's push opens its Space's daybook at its card, and "
+      'at the line when the push names the event', () {
+    expect(pushRoute('/spaces/s1/items/i1'), '/spaces/s1?card=i1');
+    expect(
+      pushRoute('/spaces/s1/items/i1', eventId: 'e1'),
+      '/spaces/s1?card=i1&event=e1',
+    );
     expect(pushRoute('/spaces/s1'), '/spaces/s1');
     expect(pushRoute('/spaces/s1/chat/t1'), '/spaces/s1/chat/t1');
     expect(pushRoute('/posts/p1'), '/posts/p1');

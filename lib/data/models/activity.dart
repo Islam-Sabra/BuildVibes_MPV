@@ -24,33 +24,15 @@ enum ActivityKind {
       values.where((k) => k.json == value).firstOrNull;
 }
 
-/// The Activity groups: one per Space, then Your record, Your network and
-/// Your posts.
-enum ActivityGroupKind {
-  space,
-  record,
-  network,
-  posts;
-
-  static ActivityGroupKind fromJson(Object? value) => switch (value) {
-    'record' => record,
-    'network' => network,
-    'posts' => posts,
-    _ => space,
-  };
-}
-
 /// One row of my_activity(): the last 7 days.
 @immutable
 class ActivityRow {
   const ActivityRow({
     required this.id,
     required this.kind,
-    required this.group,
     required this.createdAt,
     this.spaceId,
     this.spaceName,
-    this.myPass,
     this.workItemId,
     this.workItemRef,
     this.workItemTitle,
@@ -66,16 +48,15 @@ class ActivityRow {
     this.removalId,
     this.targetKind,
     this.result,
+    this.eventId,
   });
 
   factory ActivityRow.fromJson(Map<String, dynamic> j) => ActivityRow(
     id: j['id'] as String,
     kind: ActivityKind.fromJson(j['kind'])!,
-    group: ActivityGroupKind.fromJson(j['group_kind']),
     createdAt: DateTime.parse(j['created_at'] as String),
     spaceId: j['space_id'] as String?,
     spaceName: j['space_name'] as String?,
-    myPass: j['my_pass'] as String?,
     workItemId: j['work_item_id'] as String?,
     workItemRef: j['work_item_ref'] as String?,
     workItemTitle: j['work_item_title'] as String?,
@@ -91,18 +72,17 @@ class ActivityRow {
     ],
     toReply: (j['payload'] as Map?)?['to'] == 'reply',
     removalId: (j['payload'] as Map?)?['removal_id'] as String?,
+    eventId: (j['payload'] as Map?)?['event_id'] as String?,
     targetKind: (j['payload'] as Map?)?['target_kind'] as String?,
     result: (j['payload'] as Map?)?['result'] as String?,
   );
 
   final String id;
   final ActivityKind kind;
-  final ActivityGroupKind group;
   final DateTime createdAt;
 
   final String? spaceId;
   final String? spaceName;
-  final String? myPass;
   final String? workItemId;
   final String? workItemRef;
   final String? workItemTitle;
@@ -128,9 +108,9 @@ class ActivityRow {
   final String? targetKind;
   final String? result;
 
-  /// Groups rows: a Space's id, or the group's name.
-  String get groupKey =>
-      group == ActivityGroupKind.space ? 'space:${spaceId ?? ''}' : group.name;
+  /// The work item event a row is about (its history line), when the
+  /// server says (F20).
+  final String? eventId;
 }
 
 /// Which Space tab a "Today in your Spaces" row opens.

@@ -212,7 +212,6 @@ void main() {
           ActivityRow(
             id: 'n1',
             kind: ActivityKind.contentRemoved,
-            group: ActivityGroupKind.record,
             createdAt: testNow,
             removalId: 'rm-1',
             targetKind: 'post',
@@ -222,8 +221,10 @@ void main() {
       final safety = FakeSafetyRepository(removals: {'rm-1': _removal()});
       await pumpApp(tester, language: lang, activity: activity, safety: safety);
       await _tap(tester, 'nav-activity');
-      expect(find.text(l10n.activityRemoved('post')), findsOneWidget);
-      expect(find.text(l10n.chipRemoved), findsOneWidget);
+      expect(
+        find.text(l10n.activityRemoved('post'), findRichText: true),
+        findsOneWidget,
+      );
       await _tap(tester, 'activity-row-n1');
       expect(find.byType(RemovedScreen), findsOneWidget);
     });

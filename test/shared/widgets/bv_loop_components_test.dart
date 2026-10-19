@@ -1,13 +1,10 @@
-// The loop's components (slice 1 part 1d): the update note (Y2), the
-// swipe that adds one (Y1), the slip's red line, the writing card's
-// "Couldn't send", and the update's small face.
-import 'package:buildvibes/core/design/bv_specs.dart';
+// The loop's components (slice 1 part 1d): the swipe that adds an update
+// (Y1), the slip's red line, the writing card's "Couldn't send", and the
+// small face.
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/daybook_loop_specs.dart';
-import 'package:buildvibes/shared/widgets/bv_avatar.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:buildvibes/shared/widgets/bv_swipe_reveal.dart';
-import 'package:buildvibes/shared/widgets/bv_update_note.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,59 +12,6 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../helpers/pump_component.dart';
 
 void main() {
-  group('BvUpdateNote', () {
-    testBoth('the subtle note: a quote bar and the title, a face and the '
-        'words', (tester, lang) async {
-      await pumpComponent(
-        tester,
-        const BvUpdateNote(
-          key: Key('note'),
-          quote: 'Sleeves at grid C7 before the pour',
-          name: 'Omar Haddad',
-          text: 'Sleeves arrived. Fixing them now.',
-          tint: BvAvatarTints.green,
-        ),
-        lang: lang,
-      );
-      final box = tester.widget<Container>(
-        find
-            .descendant(
-              of: find.byKey(const Key('note')),
-              matching: find.byType(Container),
-            )
-            .first,
-      );
-      final decoration = box.decoration! as BoxDecoration;
-      expect(decoration.color, BvColors.surfaceSubtle);
-      expect(decoration.borderRadius, BvUpdateNoteSpec.radius);
-      expect(
-        tester.getSize(find.byKey(const Key('update-quote-bar'))),
-        const Size(
-          BvUpdateNoteSpec.quoteBarWidth,
-          BvUpdateNoteSpec.quoteBarHeight,
-        ),
-      );
-      expect(
-        tester.getSize(find.byType(BvAvatar)),
-        const Size.square(BvAvatarSpec.note),
-      );
-      expect(
-        textStyle(tester, 'Sleeves arrived. Fixing them now.').color,
-        BvColors.textPrimary,
-      );
-      expect(
-        textStyle(tester, 'Sleeves at grid C7 before the pour').color,
-        BvColors.textSecondary,
-      );
-      // The bar, then the quote, from the start side.
-      final bar = tester.getCenter(find.byKey(const Key('update-quote-bar')));
-      final quote = tester.getCenter(
-        find.text('Sleeves at grid C7 before the pour'),
-      );
-      expect(isRtl(lang) ? bar.dx > quote.dx : bar.dx < quote.dx, isTrue);
-    });
-  });
-
   group('BvSwipeReveal', () {
     Future<void> pumpReveal(
       WidgetTester tester,

@@ -46,7 +46,7 @@ void main() {
         spaceName: s.spaceName,
         at: DateTime(2026, 10, 15, 7),
         workItemId: 'post-rebar',
-        workItemTitle: s.rebar().title,
+        workItemTitle: s.rebarTitle,
         actorName: s.saraName,
         due: DateTime(2026, 10, 15),
       ),

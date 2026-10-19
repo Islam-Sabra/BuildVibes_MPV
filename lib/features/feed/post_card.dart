@@ -7,7 +7,6 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
-import '../../core/l10n/ago.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/post.dart';
@@ -16,6 +15,7 @@ import '../../data/repositories/post_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_latest_reply.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_project_tag.dart';
 import '../../shared/widgets/bv_slip.dart';
@@ -28,7 +28,8 @@ import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
-import '../work/daybook_entry.dart' show localPhotoProvider;
+import '../work/daybook_photos.dart' show localPhotoProvider;
+import '../work/daybook_words.dart';
 import 'feed_state.dart';
 import 'post_draft.dart';
 
@@ -36,10 +37,11 @@ import 'post_draft.dart';
 /// detail), or not on the project's own sheet.
 enum PostTag { shown, none }
 
-/// A site update as a Daybook slip (H1 v3 2555:35307): the author and
-/// their line, the text in its own language, the photos, the project tag,
-/// who found it useful (names, never a count), then Useful · Reply.
-/// [ago] adds how long ago it was posted, where no time spine shows it.
+/// A site update as a full-width Daybook card (H1 v4 2587:35875, AR
+/// 2588:429): the author with their line and the time, the text in its own
+/// language, the photos, the project tag, who found it useful (names,
+/// never a count), the latest reply with up to three faces (F30, never a
+/// count), then Useful · Reply.
 ///
 /// [PostCard.waiting] is a post still on this phone (H5): its photos from
 /// the phone, "Waiting to send" and nothing to do on it yet; or, refused
@@ -49,10 +51,11 @@ class PostCard extends ConsumerWidget {
     super.key,
     required this.post,
     this.tag = PostTag.shown,
-    this.ago = true,
     this.onOpen,
+    this.onReplyLine,
     this.onChanged,
     this.onGone,
+    this.replyLine = true,
   }) : waiting = false,
        couldNotSend = false,
        sent = false;
@@ -65,9 +68,10 @@ class PostCard extends ConsumerWidget {
     this.onOpen,
   }) : waiting = true,
        tag = PostTag.shown,
-       ago = false,
+       onReplyLine = null,
        onChanged = null,
-       onGone = null;
+       onGone = null,
+       replyLine = false;
 
   /// On the phone, not on the server yet: [post]'s photo paths are the
   /// phone's own.
@@ -82,10 +86,17 @@ class PostCard extends ConsumerWidget {
 
   final Post post;
   final PostTag tag;
-  final bool ago;
 
   /// Opens the post (Reply, a tap on the text). Null on the post page.
   final VoidCallback? onOpen;
+
+  /// The latest reply line was tapped: the post opens at that reply
+  /// ([AppRoutes.post]'s reply).
+  final ValueChanged<String>? onReplyLine;
+
+  /// The latest reply line shows. Not on the post page, where the replies
+  /// are listed right under the post (review 54 A2).
+  final bool replyLine;
 
   /// The card changed (Useful, edit): the list puts it in place.
   final ValueChanged<Post>? onChanged;
@@ -104,18 +115,17 @@ class PostCard extends ConsumerWidget {
     final names = waiting
         ? const <String>[]
         : ref.watch(usefulNamesProvider(post.id)).value ?? const [];
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
 
     final byline = joinMeta([
       [?post.authorHeadline, ?post.authorCompany].join(', '),
-      if (ago)
-        formatShortAgo(
-          l10n,
-          post.createdAt.toLocal(),
-          now,
-          Localizations.localeOf(context).toLanguageTag(),
-        ),
       if (post.editedAt != null) l10n.postEdited,
     ]);
+    final latest = waiting || !replyLine ? null : post.latestReply;
 
     Future<void> useful() async {
       final on = !post.myUseful;
@@ -129,67 +139,86 @@ class PostCard extends ConsumerWidget {
       }
     }
 
+    final muted = type.metadata.copyWith(color: BvColors.textSecondary);
     return BvSlip(
       key: Key('post-${post.id}'),
       tear: BvSlipBorder.forId(post.id).variant,
       onTap: onOpen,
-      // Level with the name, at the top end corner (review 50 F19); with
-      // no line under the name, level with the name beside the avatar.
-      menu: waiting
-          ? null
-          : BvSlipCornerMenu(
-              key: Key('post-menu-${post.id}'),
-              label: l10n.postMenu,
-              onTap: () => _menu(context, ref, mine),
-            ),
-      menuLine: byline.isEmpty ? BvHomeSpec.authorAvatar : BvSlipSpec.firstLine,
+      paddingTop: BvHomeSpec.cardPaddingTop,
+      // Under the actions' row only its own 6; with no actions, as at the
+      // top.
+      paddingBottom: waiting
+          ? BvHomeSpec.cardPaddingTop
+          : BvHomeSpec.cardPaddingBottom,
       children: [
-        GestureDetector(
-          key: Key('post-author-${post.id}'),
-          behavior: HitTestBehavior.opaque,
-          onTap: () => _openAuthor(context, me),
-          child: Padding(
-            padding: EdgeInsetsDirectional.only(
-              end: waiting ? 0 : BvSlipCornerMenu.reserve,
-            ),
-            child: Row(
-              spacing: BvSpace.s8,
-              children: [
-                BvAvatar(
-                  name: post.authorName,
-                  size: BvAvatarSize.xsm,
-                  tint: BvAvatarTints.forId(post.authorId),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        inOwnDirection(post.authorName),
-                        key: Key('post-name-${post.id}'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: type.labelSm.copyWith(
-                          color: BvColors.textPrimary,
-                          fontWeight: BvHomeSpec.nameWeight,
-                        ),
-                      ),
-                      if (byline.isNotEmpty)
-                        Text(
-                          byline,
-                          key: Key('post-byline-${post.id}'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: type.metadata.copyWith(
-                            color: BvColors.textSecondary,
+        // H1 v4: the avatar, the name with the headline under it, the time
+        // and ⋯ at the end, level with the name.
+        Row(
+          spacing: BvHomeSpec.authorGap,
+          children: [
+            Expanded(
+              child: GestureDetector(
+                key: Key('post-author-${post.id}'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _openAuthor(context, me),
+                child: Row(
+                  spacing: BvHomeSpec.authorGap,
+                  children: [
+                    BvAvatar(
+                      name: post.authorName,
+                      size: BvAvatarSize.post,
+                      tint: BvAvatarTints.forId(post.authorId),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            inOwnDirection(post.authorName),
+                            key: Key('post-name-${post.id}'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: type.titleMd,
                           ),
-                        ),
-                    ],
+                          if (byline.isNotEmpty)
+                            Text(
+                              byline,
+                              key: Key('post-byline-${post.id}'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: muted,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Text(
+              words.time.moment(post.createdAt, now),
+              key: Key('post-time-${post.id}'),
+              style: muted,
+            ),
+            if (!waiting)
+              BvTapTarget(
+                child: Semantics(
+                  button: true,
+                  label: l10n.postMenu,
+                  excludeSemantics: true,
+                  child: GestureDetector(
+                    key: Key('post-menu-${post.id}'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _menu(context, ref, mine),
+                    child: const Icon(
+                      BvIcons.more,
+                      size: BvHomeSpec.menuIcon,
+                      color: BvColors.iconSecondary,
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+          ],
         ),
         if ((post.body ?? '').isNotEmpty)
           Text(
@@ -222,7 +251,7 @@ class PostCard extends ConsumerWidget {
             key: Key('post-waiting-${post.id}'),
             style: couldNotSend
                 ? type.labelSm.copyWith(color: BvColors.textDestructive)
-                : type.metadata.copyWith(color: BvColors.textSecondary),
+                : muted,
           ),
         if (names.isNotEmpty)
           Text(
@@ -230,35 +259,46 @@ class PostCard extends ConsumerWidget {
                 ? l10n.postUsefulOne(names.first)
                 : l10n.postUsefulTwo(names[0], names[1]),
             key: Key('post-proof-${post.id}'),
-            style: type.metadata.copyWith(color: BvColors.textSecondary),
+            style: muted,
           ),
-        // Useful and Reply, each with a 48 touch area that reaches into
-        // the gap above and the padding below. No share arrow: sharing a
-        // post isn't built.
+        if (latest != null)
+          BvLatestReply(
+            key: Key('post-latest-reply-${post.id}'),
+            name: inOwnDirection(latest.authorName),
+            words: latest.body,
+            faces: [
+              for (final f in post.replyFaces)
+                (name: f.name, tint: BvAvatarTints.forId(f.id)),
+            ],
+            // A reply to you is bold until this post is opened (F30).
+            unseen:
+                latest.toMe &&
+                !ref.watch(seenRepliesProvider).contains(latest.id),
+            onTap: onReplyLine == null ? null : () => onReplyLine!(latest.id),
+          ),
+        // Useful and Reply, each with a 48 touch area. No share arrow:
+        // sharing a post isn't built.
         if (!waiting)
-          BvTapTarget(
-            outset: const EdgeInsetsDirectional.only(top: BvSlipSpec.gap),
-            child: SizedBox(
-              height: BvHomeSpec.actionsHeight,
-              child: Row(
-                spacing: BvHomeSpec.actionsGap,
-                children: [
-                  _Action(
-                    key: Key('post-useful-${post.id}'),
-                    icon: BvIcons.useful,
-                    label: l10n.postUseful,
-                    active: post.myUseful,
-                    // Not on your own post.
-                    onTap: mine ? null : useful,
-                  ),
-                  _Action(
-                    key: Key('post-reply-${post.id}'),
-                    icon: BvIcons.chat,
-                    label: l10n.postReply,
-                    onTap: onOpen,
-                  ),
-                ],
-              ),
+          SizedBox(
+            height: BvHomeSpec.cardActionsHeight,
+            child: Row(
+              spacing: BvHomeSpec.cardActionsGap,
+              children: [
+                _Action(
+                  key: Key('post-useful-${post.id}'),
+                  icon: BvIcons.useful,
+                  label: l10n.postUseful,
+                  active: post.myUseful,
+                  // Not on your own post.
+                  onTap: mine ? null : useful,
+                ),
+                _Action(
+                  key: Key('post-reply-${post.id}'),
+                  icon: BvIcons.chat,
+                  label: l10n.postReply,
+                  onTap: onOpen,
+                ),
+              ],
             ),
           ),
       ],
@@ -440,7 +480,7 @@ class _Photos extends ConsumerWidget {
       return ClipRRect(
         borderRadius: BvSlipSpec.photoRadius,
         child: SizedBox(
-          height: BvSlipSpec.photoHeightProof,
+          height: BvHomeSpec.photoHeight,
           child: tile(photos.single),
         ),
       );
@@ -506,7 +546,7 @@ class _Action extends StatelessWidget {
             spacing: BvHomeSpec.actionGap,
             children: [
               Icon(icon, size: BvHomeSpec.actionIcon, color: color),
-              Text(label, style: type.labelSm.copyWith(color: color)),
+              Text(label, style: type.labelMd.copyWith(color: color)),
             ],
           ),
         ),

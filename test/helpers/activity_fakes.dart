@@ -8,13 +8,18 @@ class FakeActivityRepository implements ActivityRepository {
     List<ActivityRow>? rows,
     List<NeedsCard>? cards,
     List<SpaceToday>? today,
-  }) : rows = rows ?? [],
+    Map<String, DateTime>? last,
+  }) : last = last ?? {},
+       rows = rows ?? [],
        cards = cards ?? [],
        todayRows = today ?? [];
 
   List<ActivityRow> rows;
   List<NeedsCard> cards;
   List<SpaceToday> todayRows;
+
+  /// Each Space's last daybook activity.
+  Map<String, DateTime> last;
   final calls = <String>[];
 
   /// The day start Home last asked with.
@@ -31,11 +36,9 @@ class FakeActivityRepository implements ActivityRepository {
         ActivityRow(
           id: r.id,
           kind: r.kind,
-          group: r.group,
           createdAt: r.createdAt,
           spaceId: r.spaceId,
           spaceName: r.spaceName,
-          myPass: r.myPass,
           workItemId: r.workItemId,
           workItemRef: r.workItemRef,
           workItemTitle: r.workItemTitle,
@@ -51,6 +54,7 @@ class FakeActivityRepository implements ActivityRepository {
           removalId: r.removalId,
           targetKind: r.targetKind,
           result: r.result,
+          eventId: r.eventId,
         ),
     ];
   }
@@ -66,6 +70,11 @@ class FakeActivityRepository implements ActivityRepository {
 
   @override
   Future<List<NeedsCard>> needs() async => List.of(cards);
+
+  @override
+  Future<Map<String, DateTime>> lastActivity(List<String> spaceIds) async => {
+    for (final id in spaceIds) id: ?last[id],
+  };
 
   @override
   Future<void> markSpaceSeen(String spaceId) async =>

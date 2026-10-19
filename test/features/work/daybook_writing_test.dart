@@ -37,7 +37,7 @@ final _twoPm = DateTime(2026, 10, 18, 14);
 Future<TestApp> _open(
   WidgetTester tester,
   String lang, {
-  List<DaybookRecord>? posts,
+  List<DaybookCard>? posts,
   SpacePass pass = SpacePass.lead,
   FakeDaybookRepository? daybook,
   String? draft,
@@ -112,15 +112,24 @@ void main() {
       await _open(tester, lang);
       await _write(tester);
       expect(find.byKey(const Key('daybook-now')), findsOneWidget);
-      expect(find.text(l10n.daybookNow), findsOneWidget);
       expect(find.byType(BvWritingCard), findsOneWidget);
       expect(find.byType(BvWritingToolbar), findsOneWidget);
       expect(find.byType(BvPostBar), findsNothing);
-      // The masthead shrinks to one line.
+      // At Now: under the newest card.
       expect(
-        find.text(words.compactDate(DateTime(2026, 10, 15))),
-        findsOneWidget,
+        tester.getTopLeft(find.byKey(const Key('daybook-now'))).dy,
+        greaterThan(
+          tester
+              .getTopLeft(find.byKey(const Key('daybook-card-post-sleeves')))
+              .dy,
+        ),
       );
+      // The masthead stays on today.
+      final masthead = tester.widget<BvDaybookMasthead>(
+        find.byType(BvDaybookMasthead),
+      );
+      expect(masthead.weekday, words.weekday(DateTime(2026, 10, 15)));
+      expect(masthead.onTap, isNull);
       // Work item is the only kind in slice 1: no caret, no menu.
       expect(find.byKey(const Key('writing-kind-chip')), findsOneWidget);
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
@@ -263,7 +272,7 @@ void main() {
       expect(find.byType(BvPostBar), findsOneWidget);
       expect(app.prefs.getString(_draftKey), isNull);
       // The card became a normal slip at the posting time, sent.
-      expect(find.byKey(Key('daybook-entry-$id')), findsOneWidget);
+      expect(find.byKey(Key('daybook-card-$id')), findsOneWidget);
       expect(find.text(l10n.daybookWaitingToSend), findsNothing);
       expect(_read(tester, workOutboxProvider), isEmpty);
     });
@@ -351,12 +360,24 @@ void main() {
     });
 
     testWidgets('no signal: the slip waits, then sends with the same id when '
-        'the signal is back [$lang]', (tester) async {
+        'the signal is back; a place set through ⋯ → Location goes with it '
+        '(F29) [$lang]', (tester) async {
       final daybook = FakeDaybookRepository()..offline = true;
       final app = await _open(tester, lang, daybook: daybook);
       await _write(tester);
       await _title(tester, s.cableTraysTitle);
       await _assign(tester, s.omarName);
+      // F29: the place, through More → Location.
+      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.daybookLocation));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('popover-field')),
+        s.traysPlace,
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       // On the page at the time Post was tapped, waiting.
@@ -369,12 +390,15 @@ void main() {
       final kept = app.prefs.getString('work_outbox:${DaybookSamples.islam}')!;
       expect(jsonDecode(kept), hasLength(1));
       final waitingId = (jsonDecode(kept) as List).single['id'];
+      // The place waits on the phone with it.
+      expect((jsonDecode(kept) as List).single['place'], s.traysPlace);
 
       // The signal is back: the next try sends it.
       daybook.offline = false;
       await tester.pump(const Duration(seconds: 31));
       await tester.pumpAndSettle();
       expect(daybook.created.single.id, waitingId);
+      expect(daybook.created.single.place, s.traysPlace);
       expect(app.chimes, ['haptic', 'sound']);
       expect(find.text(l10n.daybookWaitingToSend), findsNothing);
       expect(app.prefs.getString('work_outbox:${DaybookSamples.islam}'), '[]');

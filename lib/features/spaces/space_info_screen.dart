@@ -255,7 +255,7 @@ class SpaceInfoScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvInfoSpec.nameGap,
                     children: [
-                      Text(space.name, style: type.headingLg),
+                      Text(space.name, style: type.headingMd),
                       if (space.projectId != null && space.projectName != null)
                         _ProjectTag(
                           color: BvProjectColors.forId(space.projectId!),

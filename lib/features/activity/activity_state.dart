@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 
 import '../../data/models/activity.dart';
 import '../../data/repositories/activity_repository.dart';
+import '../../data/repositories/space_repository.dart' show mySpacesProvider;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 
@@ -30,10 +31,21 @@ final todayInSpacesProvider = FutureProvider.autoDispose<List<SpaceToday>>(
       .today(dayStartOf(ref.watch(clockProvider)())),
 );
 
+/// When each of my Spaces last had activity (F28): every Space on Home →
+/// Spaces shows it, even with nothing new today.
+final spaceLastActivityProvider =
+    FutureProvider.autoDispose<Map<String, DateTime>>((ref) async {
+      final spaces = await ref.watch(mySpacesProvider.future);
+      return ref.watch(activityRepositoryProvider).lastActivity([
+        for (final s in spaces) s.id,
+      ]);
+    });
+
 /// After something changed in a Space (a visit, a sign-off, a decision):
 /// Home and Activity read again.
 void refreshDay(void Function(ProviderOrFamily) invalidate) {
   invalidate(needsCardsProvider);
   invalidate(todayInSpacesProvider);
+  invalidate(spaceLastActivityProvider);
   invalidate(unreadActivityProvider);
 }

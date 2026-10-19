@@ -4,6 +4,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import 'bv_controls.dart';
+import 'bv_faces.dart';
 
 /// What sits at the end of a [BvListRow]: a chevron, a switch, a value
 /// followed by a chevron, a badge, or nothing.
@@ -23,6 +24,15 @@ sealed class BvRowTrailing {
 
   /// A check mark when [selected]; empty space otherwise.
   const factory BvRowTrailing.check({required bool selected}) = _Check;
+
+  /// Up to three small faces, then the chevron: who is in it, never how
+  /// many (a team in People, review 54 A4).
+  const factory BvRowTrailing.faces(List<BvFace> faces) = _Faces;
+}
+
+class _Faces extends BvRowTrailing {
+  const _Faces(this.faces);
+  final List<BvFace> faces;
 }
 
 class _Chevron extends BvRowTrailing {
@@ -157,6 +167,11 @@ class BvListRow extends StatelessWidget {
                   ),
                   _None() => const SizedBox.shrink(),
                   _Badge(:final badge) => badge,
+                  _Faces(:final faces) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: BvSpace.s8,
+                    children: [BvFaces(faces), chevron],
+                  ),
                   _Check(:final selected) => SizedBox.square(
                     dimension: BvListRowSpec.chevronSize,
                     child: selected

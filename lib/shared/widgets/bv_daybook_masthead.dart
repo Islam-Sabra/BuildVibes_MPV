@@ -3,143 +3,81 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
 
-enum _MastheadKind { full, compact, home }
-
-/// The day at the top of the Daybook (spec §6). It sits on the page colour
-/// and is tappable: the screen opens the month drop-down.
+/// The day at the top of the Daybook and of Home's feed (spec §6), on the
+/// page colour: one line (v13 2581:35635, H1 v4 2587:35871), the weekday in
+/// bold and the date in grey ("Thursday 15 October"). No weather, no day
+/// count. With [onTap] the screen opens the month drop-down.
 ///
-/// - Full: the weekday, a date line ("15 October, day 41 on site") and,
-///   when there is weather, the temperature and weather text at the end.
-/// - [BvDaybookMasthead.compact]: one line while writing
-///   ("Thursday 15 October") with the temperature.
-/// - [BvDaybookMasthead.home]: Home's weekday and subline, no weather.
+/// Home → Spaces adds [after] ("· 2 things need you", in the action
+/// colour while [afterAction]), and sits in its list's own padding
+/// ([padded] false; review 54 A6).
 class BvDaybookMasthead extends StatelessWidget {
   const BvDaybookMasthead({
     super.key,
     required this.weekday,
-    required String this.dateLine,
-    this.temperature,
-    this.weather,
+    required this.date,
     this.onTap,
-  }) : _kind = _MastheadKind.full;
+    this.after,
+    this.afterAction = false,
+    this.padded = true,
+  });
 
-  const BvDaybookMasthead.compact({
-    super.key,
-    required String title,
-    this.temperature,
-    this.onTap,
-  }) : weekday = title,
-       dateLine = null,
-       weather = null,
-       _kind = _MastheadKind.compact;
-
-  const BvDaybookMasthead.home({
-    super.key,
-    required this.weekday,
-    required String this.dateLine,
-    this.onTap,
-  }) : temperature = null,
-       weather = null,
-       _kind = _MastheadKind.home;
-
-  /// The weekday ("Thursday"), or the compact one-line title.
+  /// "Thursday".
   final String weekday;
-  final String? dateLine;
 
-  /// "34°". Null hides the weather block.
-  final String? temperature;
-
-  /// "Sunny, light wind", under the temperature (full only).
-  final String? weather;
+  /// "15 October".
+  final String date;
   final VoidCallback? onTap;
-  final _MastheadKind _kind;
+
+  /// After the date, behind a "·".
+  final String? after;
+  final bool afterAction;
+  final bool padded;
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final secondary = BvColors.textSecondary;
-
-    final Widget content;
-    final EdgeInsetsDirectional padding;
-    if (_kind == _MastheadKind.compact) {
-      padding = const EdgeInsetsDirectional.only(
-        start: BvMastheadSpec.paddingHorizontal,
-        end: BvMastheadSpec.paddingHorizontal,
-        top: BvMastheadSpec.compactPaddingTop,
-        bottom: BvMastheadSpec.compactPaddingBottom,
-      );
-      content = Row(
-        spacing: BvMastheadSpec.gap,
-        children: [
-          Expanded(
-            child: Text(
-              weekday,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: type.titleLg,
-            ),
-          ),
-          if (temperature != null) Text(temperature!, style: type.titleLg),
-        ],
-      );
-    } else {
-      padding = EdgeInsetsDirectional.only(
-        start: BvMastheadSpec.paddingHorizontal,
-        end: BvMastheadSpec.paddingHorizontal,
-        top: _kind == _MastheadKind.home
-            ? BvMastheadSpec.homePaddingTop
-            : BvMastheadSpec.paddingTop,
-        bottom: _kind == _MastheadKind.home
-            ? BvMastheadSpec.homePaddingBottom
-            : BvMastheadSpec.paddingBottom,
-      );
-      content = Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        spacing: BvMastheadSpec.gap,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    const padding = EdgeInsetsDirectional.symmetric(
+      horizontal: BvMastheadSpec.linePaddingHorizontal,
+      vertical: BvMastheadSpec.linePaddingVertical,
+    );
+    final content = Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      spacing: BvMastheadSpec.lineGap,
+      children: [
+        Text(weekday, maxLines: 1, style: type.titleLg),
+        Flexible(
+          child: Text.rich(
+            TextSpan(
+              text: date,
               children: [
-                Text(
-                  weekday,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: type.displayBrand,
-                ),
-                Text(
-                  dateLine!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: type.bodySm.copyWith(color: secondary),
-                ),
-              ],
-            ),
-          ),
-          if (temperature != null || weather != null)
-            Column(
-              key: const Key('masthead-weather'),
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (temperature != null)
-                  Text(temperature!, style: type.titleLg),
-                if (weather != null)
-                  Text(
-                    weather!,
-                    style: type.metadata.copyWith(color: secondary),
+                if (after != null) ...[
+                  const TextSpan(text: ' · '),
+                  TextSpan(
+                    text: after,
+                    style: afterAction
+                        ? type.bodyLg.copyWith(color: BvColors.textAction)
+                        : null,
                   ),
+                ],
               ],
             ),
-        ],
-      );
-    }
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: type.bodyLg.copyWith(color: secondary),
+          ),
+        ),
+      ],
+    );
 
     return Semantics(
       button: onTap != null,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Padding(padding: padding, child: content),
+        child: padded ? Padding(padding: padding, child: content) : content,
       ),
     );
   }

@@ -162,7 +162,7 @@ class WorkItemDraft {
 
 /// The card in place: a new work item's ([DaybookDraft]) or an edit's
 /// ([DaybookEdit]).
-abstract class DaybookCard extends Notifier<WorkItemDraft?> {
+abstract class DaybookWritingNotifier extends Notifier<WorkItemDraft?> {
   Future<void> put(WorkItemDraft draft);
 }
 
@@ -175,7 +175,7 @@ final daybookDraftProvider =
       DaybookDraft.new,
     );
 
-class DaybookDraft extends DaybookCard {
+class DaybookDraft extends DaybookWritingNotifier {
   DaybookDraft(this.spaceId);
 
   final String spaceId;
@@ -257,7 +257,7 @@ final daybookEditProvider =
       DaybookEdit.new,
     );
 
-class DaybookEdit extends DaybookCard {
+class DaybookEdit extends DaybookWritingNotifier {
   DaybookEdit(this.spaceId);
 
   final String spaceId;

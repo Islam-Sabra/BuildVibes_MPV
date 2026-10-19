@@ -1,11 +1,15 @@
-// The Daybook's paper (slice 1a): slips, ink stamps and the paper clip,
-// against Figma D1 (2518:33001) and 2519:33049.
+// The Daybook's paper: cards, ink stamps and the paper clip, against
+// Figma D1 (2518:33001), 2519:33049 and v13's cards (2581:35611, review 53
+// Part B): the header with the ref and the time, the facts, the history
+// and the trace.
 
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/daybook_paper_specs.dart';
+import 'package:buildvibes/shared/widgets/bv_card_history.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
+import 'package:buildvibes/shared/widgets/bv_trace_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,10 +24,9 @@ class _S {
   String t(String en, String arabic) => ar ? arabic : en;
 }
 
-// The Space's slip column: 56 time column and 8 gap at the start, 16 at
-// the end, so the slips are 310 wide as in Figma.
-const _sheetPadding = EdgeInsetsDirectional.fromSTEB(64, 24, 16, 16);
-const _gap = 22.0;
+// v13: cards take the full width, 16 from each edge, 12 apart.
+const _sheetPadding = EdgeInsetsDirectional.fromSTEB(16, 24, 16, 16);
+const _gap = 12.0;
 const _stampsPadding = EdgeInsetsDirectional.all(32);
 
 Widget _sheet(
@@ -48,6 +51,8 @@ Widget _workItemSlip(_S s) => BvSlip(
     BvSlipHeader(
       name: s.t('Islam Ahmed', 'إسلام أحمد'),
       label: s.t('You', 'أنت'),
+      ref: '· KCT-014',
+      time: (time: '08:14', period: null),
       tint: BvAvatarTints.plain,
     ),
     BvSlipTitle(
@@ -56,10 +61,13 @@ Widget _workItemSlip(_S s) => BvSlip(
         'تركيب الجلب عند المحور C7 قبل الصبّ',
       ),
     ),
-    BvSlipMeta(
-      s.t('For Omar Haddad, by Thu 15 Oct', 'لعمر حداد، قبل الخميس 15 أكتوبر'),
+    _facts(
+      s.t(
+        'For Omar Haddad · by Thu 15 Oct',
+        'لعمر حداد · موعده الخميس 15 أكتوبر',
+      ),
+      s.t('Level 2, grid C7', 'الدور 2، المحور C7'),
     ),
-    BvSlipPlace(s.t('Level 2, grid C7', 'الدور 2، المحور C7')),
     BvSlipChips(
       children: [
         BvSlipChip(
@@ -72,50 +80,98 @@ Widget _workItemSlip(_S s) => BvSlip(
   ],
 );
 
+Widget _facts(String who, [String? place]) => BvSlipFacts(
+  children: [
+    BvSlipFact(icon: BvIcons.person, text: who),
+    if (place != null) BvSlipFact(icon: BvIcons.place, text: place),
+  ],
+);
+
+BvHistoryLine _line(
+  String id,
+  String name,
+  String lead,
+  String time, {
+  String? detail,
+  Color? tint,
+}) => BvHistoryLine(
+  id: id,
+  name: name,
+  lead: lead,
+  detail: detail,
+  time: (time: time, period: null),
+  tint: tint,
+);
+
 Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
   clip: !checked,
   children: [
     BvSlipHeader(
-      name: s.t('Omar Haddad', 'عمر حداد'),
-      action: s.t('signed as done', 'وقّع كمنجز'),
-      tint: BvAvatarTints.green,
+      name: s.t('Islam Ahmed', 'إسلام أحمد'),
+      label: s.t('You', 'أنت'),
+      ref: '· KCT-014',
+      time: (time: checked ? '10:58' : '10:56', period: null),
+      tint: BvAvatarTints.plain,
     ),
-    BvSlipQuote(
+    BvSlipTitle(
       s.t(
         'Sleeves at grid C7 before the pour',
         'تركيب الجلب عند المحور C7 قبل الصبّ',
       ),
     ),
+    _facts(
+      s.t(
+        'For Omar Haddad · by today 14:00',
+        'لعمر حداد · قبل الساعة 14:00 اليوم',
+      ),
+    ),
     BvSlipPhoto(
-      height: BvSlipSpec.photoHeightProof,
+      height: BvSlipSpec.photoHeightCard,
       image: samplePhoto,
       stamp: checked
           ? BvInkStamp(
               label: s.t('CHECKED', 'تم التحقق'),
               size: BvInkStampSize.lg,
               tone: BvInkStampTone.positive,
-              subline: s.t('ISLAM A · 10:12', 'إسلام أ · 10:12'),
+              subline: s.t('ISLAM A · 10:58', 'إسلام أ · 10:58'),
             )
           : BvInkStamp(
               label: s.t('DONE', 'منجز'),
               size: BvInkStampSize.lg,
-              subline: s.t('OMAR H · 09:40', 'عمر ح · 09:40'),
+              subline: s.t('OMAR H · 10:56', 'عمر ح · 10:56'),
             ),
     ),
-    BvSlipNote(
-      s.t(
-        'All six fixed and checked with MEP.',
-        'رُكّبت الست كلها وراجعتها مع فريق الكهروميكانيك.',
-      ),
-    ),
-    if (checked)
-      BvSlipHistory(
-        s.t(
-          "You checked it at 10:12. It's locked now, this is the record.",
-          'تحقّقت منه الساعة 10:12. أصبح مقفلاً الآن، وهذا هو السجل.',
+    BvCardHistory(
+      earlierLabel: s.t('Show earlier', 'عرض الأقدم'),
+      lines: [
+        _line(
+          'a',
+          s.t('Islam Ahmed', 'إسلام أحمد'),
+          s.t('You sent it back:', 'أرجعته:'),
+          '10:12',
+          detail: s.t('Photo missing', 'الصورة غير موجودة'),
         ),
-      )
-    else
+        _line(
+          'b',
+          s.t('Omar Haddad', 'عمر حداد'),
+          s.t('Omar Haddad signed as done:', 'وُقّع كمنجز من قِبل عمر حداد:'),
+          '10:56',
+          detail: s.t(
+            'All six fixed and checked with MEP.',
+            'رُكّبت الست كلها وراجعتها مع فريق الكهروميكانيك.',
+          ),
+          tint: BvAvatarTints.green,
+        ),
+        if (checked)
+          _line(
+            'c',
+            s.t('Islam Ahmed', 'إسلام أحمد'),
+            s.t('You checked it', 'تحقّقت منه'),
+            '10:58',
+          ),
+      ],
+    ),
+    if (!checked)
       BvSlipPill.hint(
         label: s.t(
           'Double-tap the photo to check it',
@@ -131,17 +187,30 @@ Widget _saraSlip(_S s) => BvSlip(
   children: [
     BvSlipHeader(
       name: s.t('Sara Al-Mutairi', 'سارة المطيري'),
+      ref: '· KCT-016',
+      time: (time: '10:05', period: null),
       tint: BvAvatarTints.clay,
     ),
     BvSlipTitle(
       s.t('Rebar spacing, level 3 slab', 'تباعد حديد التسليح، بلاطة الدور 3'),
     ),
-    BvSlipMeta(s.t('For you, by today 2 pm', 'لك، قبل الساعة 2 ظهرًا اليوم')),
-    BvSlipHistory(
-      s.t(
-        'Edited: due moved from Thu to today',
-        'عُدّل: نُقل الموعد من الخميس إلى اليوم',
-      ),
+    _facts(
+      s.t('For you · by today 2 pm', 'لك · قبل الساعة 2 ظهرًا اليوم'),
+      s.t('Level 3 slab', 'بلاطة الدور 3'),
+    ),
+    BvCardHistory(
+      lines: [
+        _line(
+          'a',
+          s.t('Sara Al-Mutairi', 'سارة المطيري'),
+          s.t(
+            'Sara Al-Mutairi moved the due date from Thu to today',
+            'نُقل الموعد من الخميس إلى اليوم من قِبل سارة المطيري',
+          ),
+          '10:05',
+          tint: BvAvatarTints.clay,
+        ),
+      ],
     ),
   ],
 );
@@ -152,12 +221,14 @@ Widget _omarSlip(_S s) => BvSlip(
   children: [
     BvSlipHeader(
       name: s.t('Sara Al-Mutairi', 'سارة المطيري'),
+      ref: '· KCT-016',
+      time: (time: '10:05', period: null),
       tint: BvAvatarTints.clay,
     ),
     BvSlipTitle(
       s.t('Rebar spacing, level 3 slab', 'تباعد حديد التسليح، بلاطة الدور 3'),
     ),
-    BvSlipMeta(s.t('For you, by today 2 pm', 'لك، قبل الساعة 2 ظهرًا اليوم')),
+    _facts(s.t('For you · by today 2 pm', 'لك · قبل الساعة 2 ظهرًا اليوم')),
     BvSlipPill.action(
       icon: BvIcons.camera,
       label: s.t('Sign as done', 'وقّع كمنجز'),
@@ -184,8 +255,29 @@ Widget _cancelledSlip(_S s) => BvSlip(
       s.t('Clean the level 1 store', 'تنظيف مخزن الدور 1'),
       cancelled: true,
     ),
-    BvSlipMeta(s.t('Cancelled by you at 12:05', 'ألغيته الساعة 12:05')),
+    _facts(s.t('For Omar Haddad', 'لعمر حداد')),
+    BvCardHistory(
+      lines: [
+        _line(
+          'a',
+          s.t('Islam Ahmed', 'إسلام أحمد'),
+          s.t('You cancelled it', 'ألغيته'),
+          '12:05',
+        ),
+      ],
+    ),
   ],
+);
+
+Widget _trace(_S s) => BvTraceRow(
+  name: s.t('Omar Haddad', 'عمر حداد'),
+  tint: BvAvatarTints.green,
+  text: s.t(
+    'Omar Haddad added an update · Sleeves at grid C7 before the pour',
+    'تحديث من عمر حداد · تركيب الجلب عند المحور C7 قبل الصبّ',
+  ),
+  time: '16:07',
+  onTap: () {},
 );
 
 Widget _stamps(_S s) {
@@ -231,7 +323,7 @@ void main() {
         tester,
         'ds-paper',
         lang,
-        (_) => _sheet([_workItemSlip(s), _proofSlip(s), _saraSlip(s)]),
+        (_) => _sheet([_workItemSlip(s), _proofSlip(s)]),
       );
     });
 
@@ -241,11 +333,16 @@ void main() {
         tester,
         'ds-paper-2',
         lang,
-        (_) => _sheet([
-          _proofSlip(s, checked: true),
-          _omarSlip(s),
-          _cancelledSlip(s),
-        ]),
+        (_) => _sheet([_proofSlip(s, checked: true), _saraSlip(s)]),
+      );
+    });
+
+    testWidgets('ds-paper-4 [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'ds-paper-4',
+        lang,
+        (_) => _sheet([_omarSlip(s), _cancelledSlip(s), _trace(s)]),
       );
     });
 

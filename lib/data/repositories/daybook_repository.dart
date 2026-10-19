@@ -10,22 +10,35 @@ import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
 import 'work_repository.dart' show newUuid, spaceFilesBucket;
 
-/// A Space's daybook (migrations 18, 19 and 23): its entries, newest first,
-/// the month's marks and what is due for you; and writing a work item in
-/// place. Failures arrive as [SpaceException].
+/// A Space's daybook (migrations 18, 19, 23 and 26): its cards, newest
+/// activity first, the month's marks and what is due for you; and writing
+/// a work item in place. Failures arrive as [SpaceException].
 ///
 /// Days come from the phone: each call sends the phone's own days and
 /// midnights, so no time zone is typed in SQL.
 abstract class DaybookRepository {
-  /// The entries (posts, sign-offs, updates) before [before] (with
-  /// [beforeId], entries made at the same moment aren't skipped), newest
-  /// first, at most [limit].
-  Future<DaybookPageRows> page(
+  /// The cards (one per post, migration 26) whose last activity is before
+  /// [before] (with [beforeId], cards with the same time aren't skipped),
+  /// newest activity first, at most [limit].
+  Future<DaybookCardsPage> cards(
     String spaceId, {
     DateTime? before,
     String? beforeId,
     int limit = 30,
   });
+
+  /// "Show earlier": the post's history lines before the line at [before]
+  /// and [beforeId], newest first, at most [limit]. With no [before], from
+  /// the newest: none when the post was deleted or can't be seen (F20).
+  Future<List<DaybookEvent>> history(
+    String postId, {
+    DateTime? before,
+    String? beforeId,
+    int limit = historyPage,
+  });
+
+  /// post_history's page, as daybook_cards' first one.
+  static const historyPage = 50;
 
   /// The days of [month] with posts the caller can see, and with something
   /// due that isn't checked.
@@ -154,7 +167,7 @@ class SupabaseDaybookRepository implements DaybookRepository {
       (result as List? ?? const []).cast<Map<String, dynamic>>();
 
   @override
-  Future<DaybookPageRows> page(
+  Future<DaybookCardsPage> cards(
     String spaceId, {
     DateTime? before,
     String? beforeId,
@@ -162,7 +175,7 @@ class SupabaseDaybookRepository implements DaybookRepository {
   }) => _guard(() async {
     final rows = _rows(
       await _client.rpc<List<dynamic>>(
-        'daybook_page',
+        'daybook_cards',
         params: {
           'p_space': spaceId,
           'p_before': before == null ? null : _instant(before),
@@ -171,7 +184,31 @@ class SupabaseDaybookRepository implements DaybookRepository {
         },
       ),
     );
-    return DaybookPageRows.fromRows(rows);
+    return DaybookCardsPage.fromRows(rows);
+  });
+
+  @override
+  Future<List<DaybookEvent>> history(
+    String postId, {
+    DateTime? before,
+    String? beforeId,
+    int limit = DaybookRepository.historyPage,
+  }) => _guard(() async {
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'post_history',
+        params: {
+          'p_post': postId,
+          'p_before': before == null ? null : _instant(before),
+          'p_before_id': beforeId,
+          'p_limit': limit,
+        },
+      ),
+    );
+    return [
+      for (final r in rows)
+        DaybookEvent.fromJson(r['event'] as Map<String, dynamic>),
+    ];
   });
 
   @override

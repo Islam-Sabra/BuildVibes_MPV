@@ -6,6 +6,7 @@ import 'package:buildvibes/features/spaces/space_info_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/spaces/team_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_faces.dart';
 import 'package:buildvibes/shared/widgets/bv_segmented.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -302,15 +303,34 @@ void main() {
       expect(find.byKey(const Key('info-transfer')), findsNothing);
     });
 
-    testWidgets('People shows Teams with their size; New Team [$lang]', (
-      tester,
-    ) async {
+    testWidgets('People shows Teams with their faces, no number; New Team '
+        '[$lang]', (tester) async {
       final spaces = _spaces();
       await pumpApp(tester, language: lang, spaces: spaces);
       _router(tester).push('/spaces/$_space', extra: SpaceOpen.people);
       await tester.pumpAndSettle();
       expect(find.text(l10n.spacesTeams), findsOneWidget);
-      expect(find.textContaining(l10n.spacesTeamMembers(1)), findsOneWidget);
+      // Up to three small faces, never "1 member" (review 54 A4, rule 3).
+      final rows = find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('team-row-'),
+      );
+      expect(rows, findsWidgets);
+      expect(
+        find.descendant(of: rows, matching: find.byType(BvFaces)),
+        findsNWidgets(tester.widgetList(rows).length),
+      );
+      for (final n in [0, 1, 2, 3]) {
+        expect(find.textContaining(l10n.spacesTeamMembers(n)), findsNothing);
+      }
+      final teamDigits = tester
+          .widgetList<Text>(
+            find.descendant(of: rows, matching: find.byType(Text)),
+          )
+          .map((t) => t.data ?? '')
+          .where((t) => t.contains(RegExp('[0-9]')));
+      expect(teamDigits, isEmpty);
 
       await _tap(tester, 'people-new-team');
       expect(find.byType(NewTeamScreen), findsOneWidget);

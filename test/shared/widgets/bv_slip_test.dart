@@ -31,12 +31,20 @@ BvSlip _slip({
   children: [
     BvSlipHeader(
       name: 'Omar Haddad',
-      action: 'signed as done',
+      ref: '· KCT-014',
+      time: (time: '10:56', period: null),
       tint: BvAvatarTints.green,
     ),
     BvSlipTitle('Fix sleeves', cancelled: cancelled),
-    const BvSlipMeta('For Omar Haddad, by Thu 15 Oct'),
-    const BvSlipPlace('Level 2, grid C7'),
+    const BvSlipFacts(
+      children: [
+        BvSlipFact(
+          icon: BvIcons.person,
+          text: 'For Omar Haddad · by Thu 15 Oct',
+        ),
+        BvSlipFact(icon: BvIcons.place, text: 'Level 2, grid C7'),
+      ],
+    ),
   ],
 );
 
@@ -165,18 +173,42 @@ void main() {
       expect(avatar.size, BvAvatarSize.xs);
       expect(avatar.tint, BvAvatarTints.green);
       expect(textStyle(tester, 'Omar Haddad').color, BvColors.textPrimary);
-      expect(textStyle(tester, 'signed as done').color, BvColors.textSecondary);
+      expect(textStyle(tester, '· KCT-014').color, BvColors.textSecondary);
+      // The time of the latest activity at the end of the header.
+      final header = tester.getRect(find.byType(BvSlipHeader));
+      final time = tester.getRect(find.text('10:56'));
+      expect(
+        isRtl(lang) ? time.left - header.left : header.right - time.right,
+        moreOrLessEquals(0, epsilon: 0.5),
+      );
+      // 24, or the main line when it is taller (Arabic 26).
+      final line = isRtl(lang)
+          ? BvType.arabic.labelMd.fontSize! * BvType.arabic.labelMd.height!
+          : BvSlipSpec.headerHeight;
       expect(
         tester.getSize(find.byType(BvSlipHeader)).height,
-        BvSlipSpec.headerHeight,
+        closeTo(
+          line > BvSlipSpec.headerHeight ? line : BvSlipSpec.headerHeight,
+          0.01,
+        ),
       );
     });
 
-    testBoth('place: an ink map pin before the text', (tester, lang) async {
+    testBoth('facts: grey lines, each after its icon', (tester, lang) async {
       await pumpComponent(tester, _slip(), lang: lang);
       final pin = tester.widget<Icon>(find.byIcon(BvIcons.place));
-      expect(pin.size, BvSlipSpec.placeIconSize);
-      expect(pin.color, BvColors.iconPrimary);
+      expect(pin.size, BvSlipSpec.factIconSize);
+      expect(pin.color, BvColors.iconSecondary);
+      expect(
+        textStyle(tester, 'For Omar Haddad · by Thu 15 Oct').color,
+        BvColors.textSecondary,
+      );
+      expect(
+        tester.getTopLeft(find.text('Level 2, grid C7')).dy,
+        greaterThan(
+          tester.getTopLeft(find.text('For Omar Haddad · by Thu 15 Oct')).dy,
+        ),
+      );
       final pinX = tester.getCenter(find.byIcon(BvIcons.place)).dx;
       final textX = tester.getCenter(find.text('Level 2, grid C7')).dx;
       expect(isRtl(lang) ? pinX > textX : pinX < textX, isTrue);
@@ -380,20 +412,20 @@ void main() {
       expect(find.text('IA'), findsOneWidget);
     });
 
-    testBoth('history and note lines', (tester, lang) async {
+    testBoth('note and quiet lines', (tester, lang) async {
       await pumpComponent(
         tester,
         const Column(
           children: [
             BvSlipNote('All six fixed.'),
-            BvSlipHistory('Edited: due moved from Thu to today'),
+            BvSlipQuiet('Waiting to send'),
           ],
         ),
         lang: lang,
       );
       expect(textStyle(tester, 'All six fixed.').color, BvColors.textPrimary);
       expect(
-        textStyle(tester, 'Edited: due moved from Thu to today').color,
+        textStyle(tester, 'Waiting to send').color,
         BvColors.textSecondary,
       );
     });

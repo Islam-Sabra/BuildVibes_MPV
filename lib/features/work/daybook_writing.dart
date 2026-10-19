@@ -16,7 +16,7 @@ import '../../shared/widgets/bv_writing_card.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import 'daybook_draft.dart';
-import 'daybook_entry.dart' show localPhotoProvider;
+import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_words.dart';
 import 'work_outbox.dart';
 
@@ -203,7 +203,7 @@ class DaybookWriter {
   final String spaceId;
   final bool editing;
 
-  DaybookCard get _notifier => editing
+  DaybookWritingNotifier get _notifier => editing
       ? ref.read(daybookEditProvider(spaceId).notifier)
       : ref.read(daybookDraftProvider(spaceId).notifier);
   WorkItemDraft? get draft => editing

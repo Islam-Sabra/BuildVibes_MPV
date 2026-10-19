@@ -5,12 +5,15 @@ import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 
-/// A Space's daybook with no network. [posts] are each Space's entries
-/// (posts, sign-offs, updates) in any order; pages come back newest first,
-/// as daybook_page sends them.
+/// A Space's daybook with no network. [posts] are each Space's cards in
+/// any order; pages come back newest activity first, as daybook_cards
+/// sends them.
 class FakeDaybookRepository implements DaybookRepository {
-  final posts = <String, List<DaybookRecord>>{};
+  final posts = <String, List<DaybookCard>>{};
   final months = <String, DaybookMonth>{};
+
+  /// post_history past each card's own lines, by post, newest first.
+  final earlier = <String, List<DaybookEvent>>{};
 
   /// my_calendar's work items, every Space.
   final calendar = <CalendarWorkItem>[];
@@ -18,6 +21,9 @@ class FakeDaybookRepository implements DaybookRepository {
   /// The months asked for, as "space yyyy-mm".
   final monthCalls = <String>[];
   final pageCalls = <String>[];
+
+  /// "Show earlier" past the first lines: the post ids asked for.
+  final historyCalls = <String>[];
   bool failPages = false;
 
   /// Writing: what was uploaded and created, in order. While [offline],
@@ -32,14 +38,22 @@ class FakeDaybookRepository implements DaybookRepository {
 
   /// How a created work item reads back on the page; null leaves the page
   /// as it was.
-  DaybookPost Function(NewWorkItem item)? asPosted;
+  DaybookCard Function(NewWorkItem item)? asPosted;
 
-  /// Entries of a kind this version doesn't know: the server sends their
-  /// rows, the app draws nothing.
-  final unknown = <String>{};
+  /// [card] replaces the card with its id (new activity), or joins.
+  void put(String spaceId, DaybookCard card) => posts[spaceId] = [
+    for (final c in posts[spaceId] ?? const <DaybookCard>[])
+      if (c.id != card.id) c,
+    card,
+  ];
+
+  static bool _before(DateTime at, String id, DateTime before, String? cursor) {
+    final t = at.compareTo(before);
+    return t < 0 || (t == 0 && cursor != null && id.compareTo(cursor) < 0);
+  }
 
   @override
-  Future<DaybookPageRows> page(
+  Future<DaybookCardsPage> cards(
     String spaceId, {
     DateTime? before,
     String? beforeId,
@@ -47,29 +61,46 @@ class FakeDaybookRepository implements DaybookRepository {
   }) async {
     pageCalls.add('$spaceId ${before?.toIso8601String()}');
     if (failPages) throw const SpaceException(SpaceFailure.network);
-    final all = <DaybookRecord>[...?posts[spaceId]]
+    final all = <DaybookCard>[...?posts[spaceId]]
       ..sort((a, b) {
-        final t = b.at.compareTo(a.at);
+        final t = b.lastActivityAt.compareTo(a.lastActivityAt);
         return t != 0 ? t : b.id.compareTo(a.id);
       });
-    final rows = all
-        .where((p) {
-          if (before == null) return true;
-          final t = p.at.compareTo(before);
-          return t < 0 ||
-              (t == 0 && beforeId != null && p.id.compareTo(beforeId) < 0);
-        })
-        .take(limit)
-        .toList();
-    return DaybookPageRows(
-      [
-        for (final r in rows)
-          if (!unknown.contains(r.id)) r,
-      ],
-      rows: rows.length,
-      lastAt: rows.lastOrNull?.at,
-      lastId: rows.lastOrNull?.id,
+    return DaybookCardsPage(
+      all
+          .where(
+            (c) =>
+                before == null ||
+                _before(c.lastActivityAt, c.id, before, beforeId),
+          )
+          .take(limit)
+          .toList(),
     );
+  }
+
+  @override
+  Future<List<DaybookEvent>> history(
+    String postId, {
+    DateTime? before,
+    String? beforeId,
+    int limit = DaybookRepository.historyPage,
+  }) async {
+    historyCalls.add(postId);
+    if (failPages) throw const SpaceException(SpaceFailure.network);
+    // From the newest: the card's own lines, then the earlier ones; none
+    // for a post that is gone (post_history).
+    if (before == null) {
+      final card = posts.values
+          .expand((cards) => cards)
+          .where((c) => c.id == postId)
+          .firstOrNull;
+      if (card == null) return const [];
+      return [...card.history, ...?earlier[postId]].take(limit).toList();
+    }
+    return [
+      for (final e in earlier[postId] ?? const <DaybookEvent>[])
+        if (_before(e.at, e.id, before, beforeId)) e,
+    ].take(limit).toList();
   }
 
   @override
@@ -108,8 +139,8 @@ class FakeDaybookRepository implements DaybookRepository {
     // The same id again is the same post.
     if (created.any((c) => c.id == item.id)) return;
     created.add(item);
-    final post = asPosted?.call(item);
-    if (post != null) posts[item.spaceId] = [...?posts[item.spaceId], post];
+    final card = asPosted?.call(item);
+    if (card != null) put(item.spaceId, card);
   }
 
   @override

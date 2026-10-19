@@ -35,7 +35,8 @@ abstract final class BvButtonSpec {
 
 abstract final class BvChipSpec {
   static const height = 36.0;
-  static const paddingVertical = BvSpace.s6;
+  // The height holds the line (22 Latin, 26 Arabic) centred.
+  static const paddingVertical = BvSpace.s4;
   static const paddingHorizontal = BvSpace.s12;
   static const gap = BvSpace.s6;
   static const iconSize = BvSize.iconSm; // 16
@@ -121,7 +122,15 @@ abstract final class BvAvatarSpec {
 
   /// Two letters inside 20 (Figma's 12 spills over the edge).
   static const noteInitials = 10.0;
+
+  /// The faces before a post's latest reply (H1 v4 2587:35890), and their
+  /// letters.
+  static const face = 22.0;
+  static const faceInitials = 9.0;
   static const sm = BvSize.avatarSm; // 32
+
+  /// A post card's author (H1 v4 2587:35877).
+  static const post = 36.0;
   static const md = BvSize.avatarMd; // 40
   static const lg = BvSize.avatarLg; // 56
 
@@ -137,7 +146,8 @@ abstract final class BvAvatarSpec {
 
 abstract final class BvBadgeSpec {
   static const height = 20.0;
-  static const paddingVertical = BvSpace.s2;
+  // The height holds the small line (16 Latin, 18 Arabic) centred.
+  static const paddingVertical = 1.0;
   static const paddingHorizontal = BvSpace.s8;
   static const radius = BvRadius.smallAll; // 6
   static const iconSize = 12.0;
@@ -363,8 +373,34 @@ abstract final class BvActivitySpec {
   static const cardGap = BvSpace.s12;
   static const lineGap = BvSpace.s2;
 
-  /// Home → Spaces: New Space and Enter an invite code above the list.
+  /// Home → Spaces: New Space and Join with a code above the list.
   static const actionsGap = BvSpace.s8;
+
+  // Activity v3 (A1 v3 2587:76920): one list, 8 apart, 16 from each edge.
+  static const listGap = BvSpace.s8;
+  static const listPaddingTop = BvSpace.s4;
+
+  /// The slim "Needs you ›" line at the top, on the brand's soft surface.
+  static const needsLineRadius = BorderRadius.all(
+    Radius.circular(BvRadius.toast),
+  );
+  static const needsLinePaddingStart = BvSpace.s12;
+  static const needsLinePaddingEnd = BvSpace.s8;
+  static const needsLinePaddingVertical = BvSpace.s12;
+  static const needsLineGap = 10.0;
+  static const needsLineIcon = 18.0;
+
+  /// A day's name above its rows.
+  static const dayPaddingTop = 10.0;
+  static const dayPaddingBottom = BvSpace.s2;
+
+  /// A row: the face (40), what happened and where, then the time with the
+  /// unread dot and the paper clip under it. At least 64 high.
+  static const rowPaddingVertical = 10.0;
+  static const rowGap = BvSpace.s12;
+  static const rowDot = BvSpace.s8;
+  static const rowClip = BvSize.iconSm; // 16
+  static const rowEndGap = BvSpace.s6;
 }
 
 /// Week 7 part 3: Settings → Notifications (S3, S4).

@@ -80,7 +80,7 @@ class ProfileHeader extends StatelessWidget {
                     Text(
                       profile.fullName,
                       key: const Key('profile-name'),
-                      style: type.headingLg,
+                      style: type.headingMd,
                     ),
                     if (roleLine.isNotEmpty)
                       Text(

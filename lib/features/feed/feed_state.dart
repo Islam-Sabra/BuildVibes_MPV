@@ -507,3 +507,37 @@ class FeedNotifier extends AsyncNotifier<FeedState> {
     );
   }
 }
+
+/// The latest replies to you that you have seen, by opening their post
+/// (review 50 F30): until then the card's reply line is bold. Kept on the
+/// phone, per account, the newest [keep] only.
+final seenRepliesProvider = NotifierProvider<SeenReplies, Set<String>>(
+  SeenReplies.new,
+);
+
+class SeenReplies extends Notifier<Set<String>> {
+  static const keep = 200;
+
+  String? _key;
+
+  @override
+  Set<String> build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final userId = ref.watch(authUserIdProvider).value;
+    _key = userId == null ? null : 'seen_replies:$userId';
+    return {...?(_key == null ? null : prefs.getStringList(_key!))};
+  }
+
+  /// The post was opened: its latest reply has been seen.
+  void seen(String replyId) {
+    if (state.contains(replyId)) return;
+    final ids = [...state, replyId];
+    state = ids.skip(ids.length > keep ? ids.length - keep : 0).toSet();
+    final key = _key;
+    if (key != null) {
+      unawaited(
+        ref.read(sharedPreferencesProvider).setStringList(key, [...state]),
+      );
+    }
+  }
+}

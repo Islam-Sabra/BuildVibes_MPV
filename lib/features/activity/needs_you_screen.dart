@@ -11,7 +11,7 @@ import '../../shared/widgets/bv_needs_row.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
-import '../work/daybook_entry.dart' show daybookPhotoProvider;
+import '../work/daybook_photos.dart' show daybookPhotoProvider;
 import '../work/daybook_words.dart';
 import 'activity_state.dart';
 import 'needs_card.dart' show openNeeds;
@@ -66,7 +66,7 @@ class NeedsYouScreen extends ConsumerWidget {
               ? now.isAfter(c.dueAt!)
               : dayOf(now).isAfter(due),
         ),
-        NeedsKind.youCheck || NeedsKind.sentBack => words.clock(c.at.toLocal()),
+        NeedsKind.youCheck || NeedsKind.sentBack => words.time.clock(c.at),
         _ => null,
       };
       final parts = [?name, ?detail];
@@ -104,7 +104,7 @@ class NeedsYouScreen extends ConsumerWidget {
                 BvNeedsSpec.titlePaddingHorizontal,
                 BvNeedsSpec.titlePaddingBottom,
               ),
-              child: Text(l10n.needsTitle, style: type.displayBrand),
+              child: Text(l10n.needsTitle, style: type.headingMd),
             ),
             Padding(
               padding: const EdgeInsetsDirectional.symmetric(

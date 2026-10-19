@@ -14,10 +14,14 @@ import 'bv_tap_target.dart';
 /// [onMicrophoneHoldStart]. The screen decides when sending is
 /// allowed: [onSend] is null until it is (a reason, and a note for
 /// "Something else").
+///
+/// [BvSendBackCard.inSheet] is the same content on a field sheet (F24):
+/// no box of its own, the sheet's title above it and the item quoted in
+/// one line ([quote]) first.
 class BvSendBackCard<T> extends StatelessWidget {
   const BvSendBackCard({
     super.key,
-    required this.title,
+    required String this.title,
     required this.reasons,
     required this.selected,
     required this.onSelected,
@@ -30,10 +34,30 @@ class BvSendBackCard<T> extends StatelessWidget {
     this.microphoneLabel,
     this.onMicrophoneHoldStart,
     this.onMicrophoneHoldEnd,
-  });
+  }) : quote = null;
 
-  /// "Send back to Omar".
-  final String title;
+  const BvSendBackCard.inSheet({
+    super.key,
+    required Widget this.quote,
+    required this.reasons,
+    required this.selected,
+    required this.onSelected,
+    required this.noteController,
+    required this.notePlaceholder,
+    required this.sendLabel,
+    required this.onSend,
+    this.noteFocusNode,
+    this.onNoteChanged,
+    this.microphoneLabel,
+    this.onMicrophoneHoldStart,
+    this.onMicrophoneHoldEnd,
+  }) : title = null;
+
+  /// "Send back to Omar"; on a sheet, the sheet says it.
+  final String? title;
+
+  /// On a sheet: the item, in one line.
+  final Widget? quote;
   final List<({T value, String label})> reasons;
   final T? selected;
   final ValueChanged<T> onSelected;
@@ -54,6 +78,47 @@ class BvSendBackCard<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
+    final quote = this.quote;
+    final title = this.title;
+    final content = [
+      ?quote,
+      if (title != null)
+        Text(title, style: type.labelMd.copyWith(color: BvColors.textPrimary)),
+      for (final r in reasons)
+        _Reason(
+          label: r.label,
+          selected: r.value == selected,
+          onTap: () => onSelected(r.value),
+        ),
+      _Note(
+        controller: noteController,
+        focusNode: noteFocusNode,
+        placeholder: notePlaceholder,
+        onChanged: onNoteChanged,
+        microphoneLabel: microphoneLabel,
+        onHoldStart: onMicrophoneHoldStart,
+        onHoldEnd: onMicrophoneHoldEnd,
+      ),
+      Padding(
+        padding: const EdgeInsetsDirectional.only(
+          top: BvSendBackSpec.buttonTop,
+        ),
+        child: BvButton(
+          label: sendLabel,
+          onPressed: onSend,
+          size: BvButtonSize.medium,
+          expand: true,
+        ),
+      ),
+    ];
+    if (quote != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSendBackSpec.gap,
+        children: content,
+      );
+    }
     return Container(
       width: BvSendBackSpec.width,
       padding: const EdgeInsetsDirectional.symmetric(
@@ -71,38 +136,7 @@ class BvSendBackCard<T> extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: BvSendBackSpec.gap,
-          children: [
-            Text(
-              title,
-              style: type.labelMd.copyWith(color: BvColors.textPrimary),
-            ),
-            for (final r in reasons)
-              _Reason(
-                label: r.label,
-                selected: r.value == selected,
-                onTap: () => onSelected(r.value),
-              ),
-            _Note(
-              controller: noteController,
-              focusNode: noteFocusNode,
-              placeholder: notePlaceholder,
-              onChanged: onNoteChanged,
-              microphoneLabel: microphoneLabel,
-              onHoldStart: onMicrophoneHoldStart,
-              onHoldEnd: onMicrophoneHoldEnd,
-            ),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(
-                top: BvSendBackSpec.buttonTop,
-              ),
-              child: BvButton(
-                label: sendLabel,
-                onPressed: onSend,
-                size: BvButtonSize.medium,
-                expand: true,
-              ),
-            ),
-          ],
+          children: content,
         ),
       ),
     );

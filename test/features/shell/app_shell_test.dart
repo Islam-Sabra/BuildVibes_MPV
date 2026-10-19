@@ -77,7 +77,7 @@ void main() {
       expect(find.byKey(const Key('post-writing-card')), findsOneWidget);
 
       // Nothing written: putting it down leaves no Draft.
-      await tester.tapAt(const Offset(195, 160));
+      await tester.tapAt(const Offset(195, 700));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('post-writing-card')), findsNothing);
       expect(find.byType(HomeScreen), findsOneWidget);
