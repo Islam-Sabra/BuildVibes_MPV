@@ -38,6 +38,14 @@ Each ticked point already shows who ticked it and when, so the "Sara Al-Mutairi 
 ### G3. The attach sheet promises what the server takes
 "PDF, drawings, documents" → **"PDF, like a drawing"** / **"ملف PDF، مثل مخطط"**. The server takes PDF and photos. That is enough for the pilot, since site teams share drawings and letters as PDF, and other formats can't be previewed on a phone.
 
+### G4. The first real model view (founder, 19 Oct, 18:06)
+The founder published "Supply Air" from Navisworks. The Library viewer on his phone shows "Supply Air · V1 · 99 KB · from Islam Ahmed" and V1 · CURRENT, so the publish worked end to end. Two problems:
+- **The image area is blank white.** Find out which of these it is:
+  - the app doesn't load the image;
+  - the stored `view.jpg` really is blank (a Navisworks render with nothing in view).
+  Download `view.jpg` and `thumb.jpg` from storage, read-only with the founder's session or the service role, and look at them. If the files are fine, fix the viewer. If they are blank, it's the plugin's capture: report it and don't change the app.
+- **"Upload a new revision" shows on a model view.** The server refuses it (review 59, L2), so the button only leads to an error. For `source = model_view`, hide it, and show one small grey line instead: **"New versions come from BuildVibes 360"** / **"الإصدارات الجديدة تأتي من BuildVibes 360"**. The full model view screen (the site tag, the model name, comments, Used in) comes with slice 4.
+
 ### Also in this round (review 50)
 - **F34:** the owner's name stands out on the facts line, in Medium and the primary colour (Almarai Bold in Arabic). The due time is grey, or the primary colour if it's today, or red if it's late. The same goes for Needs you rows and Activity.
 - **F35:** keep the ref as it is.
