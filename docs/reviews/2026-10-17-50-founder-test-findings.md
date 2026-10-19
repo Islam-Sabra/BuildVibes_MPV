@@ -394,3 +394,20 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **while the sheet is open, nothing under it can be tapped,** so the send button can't fire;
   - pickers where you choose only one person (a work item's owner) still close on the first tap, as now.
 - **Test:** pick one person, then Done; pick two, then drag down. Both come back to the writing card with the right faces and nothing is posted. In EN and AR.
+
+- **Step 7, the scheduled activity:**
+  - On my way shows within 3 hours of the start.
+  - The author sees "Omar Haddad · On my way" and his own line, and the card doesn't move.
+  - Times follow the phone's 24-hour setting ("23:01 to 00:01").
+  
+  Passed, apart from F45 (the picker) and F46.
+
+## F46. A cancelled activity still counts down
+- **What the founder's phone shows:** the activity he posted by mistake (F45) and then cancelled carries the CANCELLED stamp, but still says "starts in 59 min".
+- **Fix:** a cancelled activity shows its date block, its title and the time struck through, with the stamp:
+  - no "starts in";
+  - no Add to my calendar;
+  - no On my way.
+  
+  Its reminder doesn't fire, and it leaves My calendar (check `my_calendar`).
+- **Test:** cancel an activity an hour before it starts. The card shows no countdown and no actions, and nothing fires at the start time.
