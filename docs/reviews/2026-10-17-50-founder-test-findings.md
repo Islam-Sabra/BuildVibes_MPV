@@ -277,6 +277,16 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 - **What the founder asked:** Arabic that reads like Facebook. Facebook has no Arabic font of its own; it uses the phone's font. Shown six options side by side (AR page `2590:471`), the founder chose **Almarai** (18 Oct).
 - **Change:** Almarai replaces Noto Sans Arabic, in Regular and Bold, subset to Arabic so Latin and digits stay in Plus Jakarta Sans. Details are in review 53 Part C. `CLAUDE.md` and the Figma `Type/Arabic/*` styles are updated.
 
+# Retest of build 298, 19 Oct 2026
+
+## F34. Who the item is for must stand out
+- **What the founder said:** "For Omar Haddad · by today 5 pm" is all in the same grey as the other facts. Who it's assigned to should be bold.
+- **Fix:** on the card's facts line, **the owner's name is in the medium weight, in the primary colour** ("For **Omar Haddad**", "For **you**"; Arabic: Almarai Bold). The due time stays grey unless it's today (primary colour) or late (red, as now). The same applies in Needs you rows and Activity.
+
+## F35. Why the ref (NST-009) is on the card
+- **The founder asked why it's shown.** The ref is the item's short number, so people can name it in a call or a WhatsApp ("is NST-009 done?"), in search, and in the daily and week reports.
+- **Lead's call:** keep it, small and grey, in the header. If the founder prefers, it can move to the end of the card, next to the time.
+
 ## Retest results (steps 1–13, complete 18 Oct)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
 - **Step 11, reply to a reply:** under Omar's reply, "Replying to Omar Haddad" (F2 ✓); the keyboard didn't hide the text on the Xiaomi.
