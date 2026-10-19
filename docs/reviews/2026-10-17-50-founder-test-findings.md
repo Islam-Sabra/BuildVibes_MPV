@@ -431,3 +431,9 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **Got it** follows the same pattern for the author (faces, and tapping them gives the list with times).
   - **On my way keeps its lines** (K3): the time someone set off is the point, and there's no summary line.
 - **Test:** after Received, the file card has one summary line and no Received history line. Tapping the summary lists Omar with 22:46. In EN and AR.
+
+- **Step 9, attach:** 📎 on a work item opens K4, two gallery photos post, and the card shows both. Passed.
+
+## F49. The File row names the format only (founder, supersedes review 61 G3)
+- **The founder's call:** no examples. The File row's small line names only the format the server accepts: **"PDF"** / **"PDF"**.
+- If more formats are accepted later, the line lists them ("PDF, DWG"). The text comes from the same list the server checks, not from a sentence written in the app.
