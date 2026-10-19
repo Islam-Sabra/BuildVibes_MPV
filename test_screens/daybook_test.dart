@@ -17,6 +17,7 @@ import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
+import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
@@ -93,6 +94,7 @@ Future<List<Override>> _overrides(
     myMarketProvider.overrideWithValue(kuwait),
     clockProvider.overrideWithValue(() => now),
     workRepositoryProvider.overrideWithValue(work ?? FakeWorkRepository()),
+    daybookLiveProvider.overrideWithValue(FakeDaybookLive()),
     daybookRepositoryProvider.overrideWithValue(
       (daybook ?? FakeDaybookRepository())
         ..posts[DaybookSamples.space] = posts

@@ -12,6 +12,7 @@ import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
+import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/space_repository.dart';
@@ -28,7 +29,6 @@ import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +67,7 @@ Future<List<Override>> _overrides(
   Map<String, List<DaybookAckFace>> acks = const {},
   List<LibraryFile> library = const [],
   Map<String, Uint8List> bytes = const {},
+  Map<String, List<DaybookPostFile>> files = const {},
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
@@ -84,12 +85,14 @@ Future<List<Override>> _overrides(
     myMarketProvider.overrideWithValue(kuwait),
     clockProvider.overrideWithValue(() => now),
     workRepositoryProvider.overrideWithValue(FakeWorkRepository()),
+    daybookLiveProvider.overrideWithValue(FakeDaybookLive()),
     daybookRepositoryProvider.overrideWithValue(
       FakeDaybookRepository()
         ..posts[DaybookSamples.space] = posts
         ..extrasBySpace[DaybookSamples.space] = extras
         ..pointsByPost[DaybookSamples.handoverId] = s.handoverPoints()
-        ..acksByPost.addAll(acks),
+        ..acksByPost.addAll(acks)
+        ..filesByPost.addAll(files),
     ),
     libraryRepositoryProvider.overrideWithValue(
       FakeLibraryRepository(now: now)
@@ -172,10 +175,15 @@ Future<void> _more(
   await _tap(tester, find.text(item));
 }
 
-Future<void> _pick(WidgetTester tester, String name) => _tap(
-  tester,
-  find.descendant(of: find.byType(BvGiveToPicker), matching: find.text(name)),
-);
+Future<void> _pick(WidgetTester tester, String name) async {
+  final row = find.descendant(
+    of: find.byKey(const Key('writing-people')),
+    matching: find.text(name),
+  );
+  await tester.ensureVisible(row);
+  await tester.pumpAndSettle();
+  await _tap(tester, row);
+}
 
 void main() {
   setUpAll(loadAppFonts);
@@ -407,6 +415,122 @@ void main() {
       );
     });
 
+    testWidgets('F50 the kind menu: Document for receipt (review 50) '
+        '[$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F50-kind-menu',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: s.v13(),
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _tap(tester, find.byKey(const Key('writing-kind-chip')));
+        },
+      );
+    });
+
+    testWidgets('F45 the people sheet with Done (review 50) [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F45-people-picker-done',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _writeKind(tester, l10n, DaybookKind.checklist);
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.handoverTitle,
+          );
+          await _more(tester, l10n, l10n.daybookPeople);
+          await _pick(tester, s.saraName);
+          await _pick(tester, s.omarName);
+        },
+      );
+    });
+
+    testWidgets('F48 who received the file, with the times (review 50) '
+        '[$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F48-received-sheet',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: _k2,
+          posts: [s.m201()],
+          acks: {DaybookSamples.m201Id: s.m201Received()},
+        ),
+        before: (tester) => _tap(tester, find.byKey(const Key('received-by'))),
+      );
+    });
+
+    testWidgets('F51 a checklist with two photos (review 50) [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      final h = s.handover();
+      const id = DaybookSamples.handoverId;
+      final post = DaybookPost(
+        id: id,
+        kind: DaybookPost.checklistKind,
+        createdAt: h.post.createdAt,
+        title: h.post.title,
+        authorId: h.post.authorId,
+        authorName: h.post.authorName,
+        dueDate: h.post.dueDate,
+        people: h.post.people,
+        pointsTotal: h.post.pointsTotal,
+        pointsTicked: h.post.pointsTicked,
+        coverPath: '${DaybookSamples.space}/posts/$id/0.jpg',
+      );
+      await shoot(
+        tester,
+        'F51-two-photos',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: _k1,
+          posts: [
+            DaybookCard(
+              post: post,
+              lastActivityAt: h.lastActivityAt,
+              history: h.history,
+            ),
+          ],
+          files: {
+            id: [
+              for (var i = 0; i < 2; i++)
+                DaybookPostFile(
+                  mime: 'image/jpeg',
+                  path: '${DaybookSamples.space}/posts/$id/$i.jpg',
+                ),
+            ],
+          },
+        ),
+      );
+    });
+
     testWidgets('W writing a checklist [$lang]', (tester) async {
       await shoot(
         tester,
@@ -427,16 +551,12 @@ void main() {
             s.handoverTitle,
           );
           for (final p in s.handoverPoints().take(3)) {
-            await _type(
-              tester,
-              find.byKey(const Key('writing-point-field-new')),
-              p.text,
-            );
+            await _type(tester, _emptyPoint(), p.text);
           }
           await _more(tester, l10n, l10n.daybookPeople);
           await _pick(tester, s.saraName);
           await _pick(tester, s.omarName);
-          await _away(tester);
+          await _tap(tester, find.byKey(const Key('people-done')));
           await _more(tester, l10n, l10n.daybookDueDateMenu);
         },
       );
@@ -497,7 +617,7 @@ void main() {
           await _more(tester, l10n, l10n.daybookPeople);
           await _pick(tester, s.omarName);
           await _pick(tester, s.saraName);
-          await _away(tester);
+          await _tap(tester, find.byKey(const Key('people-done')));
         },
       );
     });
@@ -592,11 +712,10 @@ void main() {
   });
 }
 
-/// A tap off the open picker, in the page's top corner, closes it.
-Future<void> _away(WidgetTester tester) async {
-  await tester.tapAt(
-    tester.getTopLeft(find.byKey(const Key('writing-menu-away'))) +
-        const Offset(8, 8),
-  );
-  await tester.pumpAndSettle();
-}
+/// The checklist's empty last line ("Add a point").
+Finder _emptyPoint() => find
+    .descendant(
+      of: find.byKey(const Key('writing-points')),
+      matching: find.byType(TextField),
+    )
+    .last;
