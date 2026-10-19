@@ -468,9 +468,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 
 ## F52. "لOmar Haddad": the Arabic "for" sticks to a Latin name
 - **What the founder's phone shows:** the facts line reads "لOmar Haddad · قبل الساعة 11:55 مساءً اليوم". The Arabic ل is joined straight onto the Latin name.
-- **Fix:** one pattern for every name, whatever its script: **"لـ" + a space + the name** ("لـ Omar Haddad", "لـ عمر حداد"), and **"لك"** for yourself. The name keeps F34's weight. The same applies in Needs you rows and Activity.
+- **Fix:** one pattern for every name, whatever its script: **"لـ" + a space + the name** ("لـ Omar Haddad", "لـ عمر حداد"), and **"لك"** for yourself.
+- **Names are never translated or transliterated** (founder, 19 Oct): a name shows exactly as its owner typed it, in both languages. "Omar Haddad" stays "Omar Haddad" in the Arabic UI, and "عمر حداد" stays "عمر حداد" in the English UI. That also holds for the initials on stamps and faces. The name keeps F34's weight. The same applies in Needs you rows and Activity.
 - **Check every Arabic string** that puts a word such as ل or ب before a name. All of them use the "لـ " form with a space.
 - **Test:** a Latin and an Arabic owner name, both in the Arabic UI, on a card and a Needs you row.
+
+## F53. Arabic stamp: "مساءً" sits next to the name, not the time
+- **What the founder's phone shows:** the تم التحقق stamp reads "مساءً ISLAM A · 10:58". Arabic ordering puts the period at the far end, next to the name.
+- **Fix:** the time and its period are **one unit**, kept together with Unicode isolates (FSI…PDI) or as a single text span, so the stamp reads in Arabic as **"ISLAM A · 10:58 مساءً"**, with the period beside the time.
+  - The same applies wherever a Latin name and a 12-hour Arabic time share a line: stamps, history lines and Activity rows.
+  - In 24-hour mode there is no period, so nothing changes.
+- **Test:** an Arabic stamp in 12-hour mode with a Latin name and with an Arabic name. In both, the period touches the time.
 
 ## Slice 2 test on build 333: result (19 Oct, 23:00)
 - **Passed:**
@@ -484,7 +492,7 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - Arabic (apart from F52).
 - **The fix round** on `slice2-app`, then one new build:
   - **blockers:** F40 (typing a point) and F47 (not live);
-  - **then:** F39, F41, F42/F43, F44, F45, F46, F48, F49, F50, F51 and F52.
+  - **then:** F39, F41, F42/F43, F44, F45, F46, F48, F49, F50, F51, F52 and F53.
 - **To test again on the new build:**
   - step 2 (type a checklist);
   - step 6 (edit a pinned announcement; F44);
