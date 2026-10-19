@@ -411,3 +411,13 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   
   Its reminder doesn't fire, and it leaves My calendar (check `my_calendar`).
 - **Test:** cancel an activity an hour before it starts. The card shows no countdown and no actions, and nothing fires at the start time.
+
+## F47. A file post and a Received don't appear until the Space is reopened
+- **What the founder saw (step 8):**
+  - after he posted a File from the Library, it didn't appear in the daybook until he went back to Home and opened the Space again;
+  - Omar's Received showed at once on the emulator, but on the founder's phone only after leaving the Space and opening it again.
+- **Rule, as for work items in slice 1** (F18):
+  - **your own post** appears at Now as soon as you send it, the same way a work item's draft card does, for every kind;
+  - **what others do** reaches an open daybook live, within a few seconds, with no reopen and no pull-to-refresh: new posts, ticks and un-ticks, Got it, Received, On my way, In my calendar, edits and cancels.
+- **Likely cause:** the live updates only cover work item events. Listen to the changes behind the other kinds as well (`space_posts`, `checklist_points` / `post_point_events`, `post_acks`, `post_edits`), within the existing visibility rules, and update the card in place. A card moves only by the review 60 rule.
+- **Test:** with two devices, each of these shows on the other device within 5 seconds, with no reopen: a file post, a Received, a tick, a Got it (the author's faces) and an edit.
