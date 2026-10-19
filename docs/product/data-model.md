@@ -312,7 +312,7 @@ A declined request makes no notification. Useful on a reply makes none.
 **Access:** each person reads only their own rows and visits.
 
 **Functions:**
-- `my_activity(cursor)`: the last 7 days, newest first, 100 at a time (cursor `{at, id}`). Each row has its group, the Space name and your pass, the item's ref and title, the post or reply text (one line), the request's status, the project of a confirmed role, the actor's name, and `seq`, its place in its group (1 = the oldest, letter A). Rows drop out when the post or reply is deleted or you may no longer see the post (a block), you left the Space, you are no longer an admin (requests to join), or you blocked the actor. Useful rows carry `useful_names`.
+- `my_activity(cursor)`: the last 30 days (7 before migration 28), newest first, 100 at a time (cursor `{at, id}`). Each row has its group, the Space name and your pass, the item's ref and title, the post or reply text (one line), the request's status, the project of a confirmed role, the actor's name, and `seq`, its place in its group (1 = the oldest, letter A). Rows drop out when the post or reply is deleted or you may no longer see the post (a block), you left the Space, you are no longer an admin (requests to join), or you blocked the actor. Useful rows carry `useful_names`.
 - `mark_activity_read()`: when Activity opens. `unread_activity()`: yes or no, never a number.
 - `home_day(day_start)`: the H1b header: the needs-you count, Spaces with something new today, and replies today to your chat messages. Each is your own count.
 - `today_in_spaces(day_start)`: one row per Space with something new since your last visit and today, by someone else: a work item event first, then a Library file, then the last chat message (only threads and files you may read). Newest first; the app shows 5.
@@ -328,7 +328,7 @@ A declined request makes no notification. Useful on a reply makes none.
 - Work item kinds (edits and cancels too, since migration 19), the new post kinds (`announcement_new`, `checklist_for_you`, `activity_invited`) and a request to join: by the Space's level (`space_members.notify`): `off` none, `needs_you` and `all` yes.
 - `file_new_version`: only at `all` (migration 19).
 - `activity_starting` (migration 19): always, once per person and start time, from `due_activity_reminders()`; no Activity row. The text names nobody.
-- A push about a daybook post opens its Space for now; the data carries `space_post_id`.
+- A push about a daybook post opens its Space for now; the data carries `space_post_id`. Since migration 28 the data also carries `event_id`, the history line the push is about (§24).
 - A confirmed request and a confirmed role: always. A new follower and a reply: by the S3 switch. Useful: never.
 - A chat message: everyone who may read the thread and set the Space to `all`; never the author, never across a block; at most one per thread per person every 5 minutes. Chat makes no Activity row. Work item cards in chat send nothing (their event already did).
 - A repeat request to join (after cancelling, within a day) merges into the admins' notification, so it sends no new push.
@@ -386,7 +386,7 @@ A declined request makes no notification. Useful on a reply makes none.
 - `purge_account()` locks the profile (a restore can't slip in) and waits while any avatar or post photo remains.
 - Proof stays: `cv_project_confirmations` has an `id` key and `confirmed_by` set null when the confirmer is purged (one row per CV project and confirmer; several purged confirmers may remain). New proof always needs a confirmer who is still there (review 27 R1). A purged reporter's reports stay (`reporter_id` set null).
 
-**Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, daybook posts and edits (migration 18), acknowledgements, ticks and the posts they were for (migration 19), Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
+**Download my data (S10, S11):** `request_my_data()` (asking again returns the open one). The export holds only the person's own data: profile, CV, follows, posts, replies, messages, work items raised and owned, work item notes, daybook posts and edits (migration 18), acknowledgements, ticks and the posts they were for (migration 19), every tick and un-tick (`tick_log`, migration 28), Library files uploaded, blocks, mutes, Useful marks, reports made, join requests and push settings. The founder exports with `export_my_data(id)` and marks it sent with `mark_data_sent(id)` (`supabase/ops/export_my_data.sql`), within 7 days. Service role only.
 
 **Reports:** `prune_reports()` deletes reports decided over 12 months ago (nightly, in the same cron script).
 
@@ -412,7 +412,7 @@ Rules from review 33 (A0, A1 and the 15 Oct clarifications) and `docs/product/da
 | `edit_space_post(post, changes)` | Author only, while they may still post (not lowered to Viewer, posting not switched off; files need the files right), and while editable: a work item while Open (locked after Done, open again after Send back, locked for good after Checked); other kinds while live. Keys: `title`, `body`, `place`, `due`, `add_files`, `remove_files`. Every change goes into `post_edits` and tells the owner (`item_edited`). The owner is changed with Reassign, not by editing. Checklist points come in migration 19 (a ticked point can't be removed or reworded). |
 | `delete_space_post(post)` | Author only, and only while nobody else has added anything: no update, sign-off, check or file by someone else, and no work item under it, whoever made it (migration 19 adds ticks and acknowledgements). A soft delete: the post leaves the daybook, Needs you, Today and Activity, and its files are released for the cleanup. |
 | `cancel_space_post(post, note)` | The author, or a Space admin when the author is gone (left, or their account is waiting to be deleted). Not a Checked item. It locks the post first, then the posts under it, then their work items (the order every writer uses; sign-offs, checks, send-backs, updates and reassignments lock the post first too since migration 26), so a sign-off or check running at the same moment finishes before it. The post stays with a CANCELLED stamp; work items under it that aren't Checked are cancelled with it; each owner is told (`item_cancelled`). Nothing can be signed, checked or added after. |
-| `daybook_page(space, before, limit, before_id)` | The entries the caller may see, newest first (at most 100): posts, sign-offs and updates (migration 23, §19). The next page passes the last entry's time and id, so entries made at the same moment aren't skipped. Each post has: stamp, paper clip (`needs_me`), cover photo, progress of the items under it, last edits. Replaced for v13 builds by `daybook_cards` (§22); kept until no build calls it. |
+| `daybook_page(space, before, limit, before_id)` | The entries the caller may see, newest first (at most 100): posts, sign-offs and updates (migration 23, §19). The next page passes the last entry's time and id, so entries made at the same moment aren't skipped. Each post has: stamp, paper clip (`needs_me`), cover photo, progress of the items under it, last edits. Replaced for v13 builds by `daybook_cards` (§22); dropped in migration 28 (§24). |
 | `post_page(post)` | One post in full: files, record of events, attachments, items under it, parent, all edits. |
 | `needs_you()` | Open items I own; Done items I check (I'm the author, or an admin acting for an author who is gone or owns it); "Owner left" for whoever acts for the author; join requests I can confirm. |
 
@@ -573,7 +573,7 @@ Answers in review 44 (questions 2, 3, 5).
 - `due` rows: the days (`day`) with a live work item that isn't checked, or a live checklist with a point not ticked, the caller can see.
 - A dot per day, never a count. A Team's posts follow `can_see_space_post`.
 
-**The daybook's entries** (review 45 M1–M4; builds before v13 read these, v13 builds read `daybook_cards`, §22). `daybook_page(space, before, limit, before_id)` now returns `(id, created_at, kind, entry)`, newest first, with one cursor (time, id) across all kinds:
+**The daybook's entries** (review 45 M1–M4; builds before v13 read these, v13 builds read `daybook_cards`, §22; `daybook_page` was dropped in migration 28, §24). `daybook_page(space, before, limit, before_id)` now returns `(id, created_at, kind, entry)`, newest first, with one cursor (time, id) across all kinds:
 - `post`: the post's JSON, as before.
 - `sign_off`: a done event, its own entry at its own time. It carries the work item's id, ref and title (shown as the quote), who signed, the note, the photos (path, taken at, place), the time, and its **outcome**: `checked` (by, at) if a check followed it, `sent_back` (reason, note, by, at) if a send-back did, otherwise `cancelled` if the item was cancelled, else `done`. An item sent back and signed again has two sign-offs: the older stamped SENT BACK, the newer DONE or CHECKED.
 - `update`: a comment event: who wrote it, the note, any photos, the time, and the item's title as the quote.
@@ -603,15 +603,15 @@ Review 51, Part F.
 Review 53, Part A (Daybook v13, F25) and F30 from review 50.
 
 **Last activity.** `space_posts.last_activity_at` (not null) is when the post was made, raised by every new `work_item_events` row (raised, done, checked, sent back, update, given to someone else), every `post_edits` row and a cancel (`cancelled_at`; a cancel writes no event). It only goes up: an older event never lowers it. It is not an edit: `edited_at` and `post_edits` are untouched. Existing posts were back-filled from their latest event, edit or cancel. Index `space_posts_activity_idx (space_id, last_activity_at desc, id desc) where deleted_at is null`.
-- Ticks, Got it / Received and work items under a target don't move a card yet (slice 2).
+- Since migration 28 (§24), ticks, un-ticks, Got it, Received and On my way move a card too. Work items under a target still don't move it.
 - The functions that write events (`sign_done`, `check_item`, `send_back`, `add_comment`, `reassign_work_item`) now lock the post before the work item, the order cancel, delete and edit already use, so raising the post from an event can't deadlock with a cancel.
 - `work_item_evidence_event_idx (event_id)`: a sign-off's photos are read by their event.
 - **For scale (fine for the pilot):** every event, edit and cancel now rewrites its post row. Because `last_activity_at` is indexed, it is not a HOT update: each index on `space_posts` gets a new entry, the search GIN index (`space_posts_search_trgm`) included.
 
-**`daybook_cards(space, before, limit, before_id)`** returns `(id, last_activity_at, card)`: one card per post the caller may see (`is_member`, `can_see_space_post`; a deleted post is gone, a cancelled one stays), newest activity first, at most 100 (default 30). The next page passes the last card's `last_activity_at` and `id`, so cards with the same time aren't skipped. It reads the index and stops at the page. A card that gets new activity moves above the cursor; the app shows it at Now (the "New ↓" chip), not on a later page. `card` is the post as `daybook_post_json` gives it, plus:
+**`daybook_cards(space, before, limit, before_id)`** returns `(id, last_activity_at, card)`: one card per post the caller may see (`is_member`, `can_see_space_post`; a deleted post is gone, a cancelled one stays), newest activity first, at most 100 (default 30). The next page passes the last card's `last_activity_at` and `id`, so cards with the same time aren't skipped. It reads the index and stops at the page. A card that gets new activity moves above the cursor; the app shows it at Now (the "New ↓" chip), not on a later page. `card` is the post as `space_post_json(post, false)` gives it (its boolean `needs_me` replaced), plus:
 - `last_activity_at`;
 - `proof`: the latest sign-off, or null: `event_id`, `photos` (path, taken_at, place), `note`, `at`, `by` (id, name), and `outcome` as on a sign-off entry (§19): `done` (by, at: the sign-off), `checked` (by, at), `sent_back` (reason, note, by, at) or `cancelled` (by, at). This is the card's photo and stamp;
-- `history`: the newest 50 lines, newest first, and `history_more`. Each line: `id`, `kind` (`raised`, `done`, `checked`, `sent_back`, `comment`, `reassigned`, `edited`, `cancelled`), `by_id`, `by_name`, `note`, `reason`, `at`; a sign-off's or update's `photos`; a reassignment's `from_id`/`from_name`/`to_id`/`to_name`; an edit's `changes` (as in `post_edits`). A cancel's line has the post's id;
+- `history`: the newest 50 lines, newest first, and `history_more`. Each line: `id`, `kind` (`raised`, `done`, `checked`, `sent_back`, `comment`, `reassigned`, `edited`, `cancelled`), `by_id`, `by_name`, `note`, `reason`, `at`; a sign-off's or update's `photos`; a reassignment's `from_id`/`from_name`/`to_id`/`to_name`; an edit's `changes` (as in `post_edits`). A cancel's line has the post's id. Migration 28 adds `ticked`, `unticked`, `got_it`, `received`, `on_my_way` and `in_my_calendar` lines (§24);
 - `needs_me` (replaces the post JSON's boolean; always present): the paper clip and the card's one action.
 
 | `needs_me` | Who, when |
@@ -626,9 +626,9 @@ One clip per card, so the §20 rule "never two on one item" holds by constructio
 
 **Open policy question for the lead:** a Viewer pass doesn't stop an admin acting for a gone author. A Space admin who holds a Viewer pass gets `to_check` (a Done item) or `give_to` (an Open item whose owner left) on a gone author's work, because `may_check` and `acts_for_author` look at `is_admin`, not the pass. The card follows those rules as they are (a test pins it); changing them is a separate decision. An author lowered to Viewer, while still in the Space, gets null on an Open item whose owner can still sign.
 
-**`post_history(post, before, before_id, limit)`** returns `(id, at, event)`: the same lines, newest first, before the cursor (the last line's `at` and `id`), 50 by default, at most 100. "Show earlier" passes the card's 50th line. Only for a post the caller sees; a deleted post's history goes with it.
+**`post_history(post, before, before_id, limit)`** returns `(id, at, event)` (and `more` since migration 28, §24): the same lines, newest first, before the cursor (the last line's `at` and `id`), 50 by default, at most 100. "Show earlier" passes the card's 50th line. Only for a post the caller sees; a deleted post's history goes with it.
 
-**Kept:** `daybook_page` (§19, §20) until no build calls it, then a later migration drops it; `daybook_month` unchanged.
+**Kept:** `daybook_page` (§19, §20) until no build called it; migration 28 dropped it (§24). `daybook_month` unchanged.
 
 **Replies on the feed card (F30).** `post_cards` (also read by the post page) has two more columns at the end:
 - `latest_reply`: the newest reply the caller may read: `id`, `body` (the first 80 characters), `author_id`, `author_name`, `author_photo`, `created_at`, `to_me` (it answers the caller: a reply to them, or a top comment on their post; never their own). Null with no replies.
@@ -665,6 +665,45 @@ Spec `model-views.md`; review 54 (model views) and review 57 (R1-R7). The Navisw
 **`add_library_file` (L2):** refuses a `p_supersedes` that is a model view ("a model view's versions come only from BuildVibes 360"); otherwise unchanged.
 
 **Not included:** the account export (§13) doesn't list `model_views` rows yet (the Library file is listed).
+
+## 24. Slice 2 on the cards, and review 54's clean-up (migration 28, `20261019180000_slice2_cards.sql`, branch `slice2-db`, not live)
+Review 56 ("Server: migration 28") and review 54's "Later" list.
+
+**Ticks are logged.** `checklist_points` keeps only the latest state, so `post_point_events` keeps the record: `id`, `post_id`, `point_id` (null once the point is removed), `actor_id` (null once the account is deleted: "Former member"), `kind` (`ticked` | `unticked`), `point_text` (the point's words at that moment: an unticked point can be reworded later), `created_at`. Index `(post_id, created_at desc, id desc)`.
+- Written only by `tick_point`, in the same step as the tick or un-tick; a tick of a ticked point, or an un-tick of an unticked one, writes nothing. The ticks already made were back-filled as `ticked` lines at their time.
+- Append-only (`keep_post_point_events`, as `post_edits`): no update or delete, except the cascade of a removed post and the set-null of a removed point or a deleted account.
+- Row-level security on, no policy, no grant to `anon` or `authenticated`: it is read only through the history.
+
+**Acknowledgements are not logged.** `post_acks` gains `id` (unique) and the index `(post_id, created_at desc, id desc)`. A history line is an acknowledgement in force; one taken back leaves the history (it is a toggle, not a step of the work), and re-acknowledging makes a new line at the new time.
+
+**The card's history** (`post_history_rows`, so `daybook_cards`' `history` and `post_history`) gains these lines, each `{id, kind, by_id, by_name, at}`:
+- `ticked`, `unticked`, with `point_id` and `point` (the text then; "Sara Al-Mutairi · ticked: Ceiling paint touch-up"). Everyone who sees the post sees them (the points already show who ticked);
+- `received`: everyone who sees the file post (as `post_acks_for`, review 36 R1);
+- `got_it`, `on_my_way`, `in_my_calendar`: only the caller's own lines, unless the caller acts for the author (`acts_for_author`: the author, or a Space admin when the author is gone), who sees them all. This is the face rule of `post_acks_for` (§15) applied to the lines. `history_more` and `post_history`'s `more` count only the lines the caller may see.
+- Photos are looked up only for work item events.
+
+**Last activity** also rises on a tick, an un-tick, a Got it, a Received and an On my way (triggers on `post_point_events` and `post_acks` inserts; not In my calendar, not a take-back), so the card moves to Now. The back-fill raised posts to their latest tick and acknowledgement in force. An announcement's pin keeps it under the masthead whatever its last activity (`daybook_extras`, unchanged). Both writers (`tick_point`, `ack`) lock the post first, so the trigger's update of the post never takes a lock out of order. The move can tell a reader that someone acknowledged, never who or how many (accepted: review 56 asks for it).
+
+**`post_history(post, before, before_id, limit)`** returns `(id, at, event, more)`: `more` is true when there are lines before the last one returned (it reads one line more than the page). Every row carries the same value; an empty page has no rows. The old three columns are unchanged.
+
+**`my_spaces()`** has a last column, `last_activity_at`: the newest `last_activity_at` among the Space's posts the caller can see, the time on the caller's newest daybook card; null with none. Home → Spaces no longer needs a `daybook_cards` call per Space.
+- It gives the same answer as `can_see_space_post` without calling it on each hidden row. For a Space admin (not a hidden account) it is the newest post. For everyone else it is the newest of four index reads: the newest Everyone post, the newest post of each of the caller's Teams, the caller's own newest Team post (an author who left the Team), and the newest Team work item the caller owns. A Team's activity never shows to the rest of the Space; a test checks the answer against `can_see_space_post` for every member.
+- New partial indexes on `space_posts`: `space_posts_everyone_activity_idx (space_id, last_activity_at desc) where team_id is null`, `space_posts_team_activity_idx (team_id, last_activity_at desc)` and `space_posts_author_team_activity_idx (author_id, space_id, last_activity_at desc)`, the last two `where team_id is not null`; all `where deleted_at is null`. Three more entries for every move of a post (§22's note on scale).
+
+**Activity:** `activity_rows()` covers 30 days (F32). `my_activity(cursor)` is unchanged: newest first, 100 at a time, cursor `{at, id}` of the last row. `unread_activity()` gives the same answer as before over the same 30 days and drop-out rules, but reads only the unread rows (index `notifications_unread_idx (profile_id, created_at desc) where read_at is null`) and stops at the first, instead of building the whole window.
+
+**Push data** carries `event_id`, the id of the history line the push is about: a work item event's id (`payload.event_id`), an edit's id (`payload.edit_id`), or the post's id for a cancel (a cancel's line has the post's id). The push function forwards every key of `push_queue.data`, so it needs no change or deploy. Activity rows still carry the edit's id as `payload.edit_id`.
+
+**Dropped:** `daybook_page` (no build calls it since v13) and its post builder `daybook_post_json`. `daybook_event_json` stays: the card's proof uses it.
+
+**Download my data** gains `tick_log`: the person's ticks and un-ticks (`post`, `kind`, `point`, `created_at`), oldest first. `checklist_ticks` (the ticks standing now) is unchanged.
+
+**Speed** (local, in rolled-back transactions):
+- 10,000 posts in one Space, 3,000 checklists with 20 tick lines each, 7,000 announcements with 30 Got it each: 30 cards about 47 ms, 100 cards about 148 ms (as migration 26); `post_history` of a checklist about 5 ms.
+- 20,000 Team posts and 300 Everyone posts: `my_spaces` for a member outside the Team about 2 ms (3,344 ms with a `can_see_space_post` call per post); for the Team's author and for the admin about 2 ms. Each read is one row from an index.
+- About 1,700 Activity rows: `unread_activity` about 0.5 to 1.5 ms, all read or all unread (about 165 ms when it built the whole window).
+
+**Product question for the lead:** anyone can take back a Got it, Received or On my way and give it again, and each new one moves the card to Now. That follows review 56 (each acknowledgement raises the last activity) and is left as it is; the lead may want a repeat by the same person within a short time not to move the card.
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.

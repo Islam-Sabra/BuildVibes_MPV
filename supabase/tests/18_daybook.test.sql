@@ -150,8 +150,8 @@ select throws_ok($$select pg_temp.raise('a090', 'Under someone else''s', 'e2', p
 
 select pg_temp.as_user('e5');
 select is((select count(*) from public.space_posts), 0::bigint, 'a non-member reads no posts');
-select is((select count(*) from public.daybook_page(pg_temp.sp())), 0::bigint,
-  'and gets no daybook page');
+select is((select count(*) from public.daybook_cards(pg_temp.sp())), 0::bigint,
+  'and gets no daybook cards');
 select is(public.post_page(pg_temp.item('a001')), null, 'and no post page');
 
 -- No chat card on a new event (A0) --------------------------------------------------------------
@@ -318,7 +318,7 @@ select lives_ok($$select public.cancel_space_post(pg_temp.item('a011'), 'Not nee
 select is((select string_agg(status, ',' order by id) from public.space_posts
            where id in (pg_temp.item('a011'), pg_temp.item('a012'))), 'cancelled,cancelled',
   'the work items under it are cancelled with it');
-select is((select daybook.entry -> 'stamp' ->> 'kind' from public.daybook_page(pg_temp.sp()) daybook
+select is((select daybook.card -> 'stamp' ->> 'kind' from public.daybook_cards(pg_temp.sp(), null, 100) daybook
            where daybook.id = pg_temp.item('a011')), 'cancelled',
   'it stays in the daybook with a CANCELLED stamp');
 select pg_temp.as_user('e2');
@@ -334,7 +334,7 @@ select pg_temp.as_user('e3');
 set local role authenticated;
 select throws_ok($$select pg_temp.raise('a010', 'Too deep', 'e2', p_parent => 'a009')$$, '22023', null,
   'one level only');
-select is((select (daybook.entry -> 'children') - 'rows' from public.daybook_page(pg_temp.sp()) daybook
+select is((select (daybook.card -> 'children') - 'rows' from public.daybook_cards(pg_temp.sp(), null, 100) daybook
            where daybook.id = pg_temp.item('a008')), '{"total": 1, "checked": 0}'::jsonb,
   'the parent shows its progress');
 select is(jsonb_array_length(public.post_page(pg_temp.item('a008')) -> 'under'), 1,
@@ -392,7 +392,7 @@ select is((select count(*) from public.work_items where id = pg_temp.item('a005'
 select is((select count(*) from public.work_item_events where work_item_id = pg_temp.item('a005')),
   0::bigint, 'nor its record');
 select pg_temp.as_user('e1');
-select is((select count(*) from public.daybook_page(pg_temp.sp()) d where d.id = pg_temp.item('a005')),
+select is((select count(*) from public.daybook_cards(pg_temp.sp(), null, 100) d where d.id = pg_temp.item('a005')),
   1::bigint, 'a Space admin does');
 select throws_ok($$select public.delete_team(current_setting('test.team')::uuid)$$, 'P0001', null,
   'a Team with posts can''t be deleted (its posts would reach everyone)');
@@ -428,18 +428,19 @@ select throws_ok($$select pg_temp.raise('a004', 'Someone else''s id', 'e2')$$, '
 -- Reading the daybook ---------------------------------------------------------------------------------------
 
 select pg_temp.as_user('e6');
-select is((select (daybook.entry ->> 'needs_me')::boolean from public.daybook_page(pg_temp.sp()) daybook
-           where daybook.id = pg_temp.item('a007')), true,
+select is((select daybook.card ->> 'needs_me' from public.daybook_cards(pg_temp.sp(), null, 100) daybook
+           where daybook.id = pg_temp.item('a007')), 'to_sign',
   'the paper clip: work given to me needs me');
 reset role;
-update public.space_posts set created_at = now() + interval '1 minute' where id = pg_temp.item('a004');
+update public.space_posts set created_at = now() + interval '1 minute', last_activity_at = now() + interval '1 minute'
+where id = pg_temp.item('a004');
 select pg_temp.as_user('e6');
 set local role authenticated;
-select is((select daybook.id from public.daybook_page(pg_temp.sp(), null, 1) daybook),
+select is((select daybook.id from public.daybook_cards(pg_temp.sp(), null, 1) daybook),
   pg_temp.item('a004'), 'newest first');
-with page as (select d.id, d.created_at, row_number() over () as n
-              from public.daybook_page(pg_temp.sp(), null, 3) d)
-select is((select d.id from page c, public.daybook_page(pg_temp.sp(), c.created_at, 1, c.id) d
+with page as (select d.id, d.last_activity_at, row_number() over () as n
+              from public.daybook_cards(pg_temp.sp(), null, 3) d)
+select is((select d.id from page c, public.daybook_cards(pg_temp.sp(), c.last_activity_at, 1, c.id) d
            where c.n = 2),
   (select id from page where n = 3),
   'the next page starts right after the last post, even at the same moment');

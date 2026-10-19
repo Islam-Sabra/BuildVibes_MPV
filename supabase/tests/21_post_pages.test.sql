@@ -121,7 +121,7 @@ select is(public.save_blocks(pg_temp.item('a001'), jsonb_build_array(
   1, 'the author saves a page, with a new photo and a Library file');
 select is(jsonb_array_length(public.post_page(pg_temp.item('a001')) -> 'blocks'), 5,
   'it opens with its blocks');
-select is((select d.entry ->> 'has_page' from public.daybook_page(pg_temp.sp()) d
+select is((select d.card ->> 'has_page' from public.daybook_cards(pg_temp.sp(), null, 100) d
            where d.id = pg_temp.item('a001')), 'true', 'and the slip knows it has a page');
 reset role;
 select is((select count(*) from public.post_edits where post_id = pg_temp.item('a001') and changes ? 'page'),
@@ -279,9 +279,9 @@ select is(public.create_walk(pg_temp.sp(), pg_temp.item('6100'), 'Walk, level 4'
   pg_temp.item('6100'), 'a walk makes one parent');
 select is((select count(*) from public.space_posts where parent_id = pg_temp.item('6100')), 3::bigint,
   'and a work item per photo');
-select is((select d.entry -> 'children' ->> 'total' from public.daybook_page(pg_temp.sp()) d
+select is((select d.card -> 'children' ->> 'total' from public.daybook_cards(pg_temp.sp(), null, 100) d
            where d.id = pg_temp.item('6100')), '3', 'the slip shows them');
-select is((select jsonb_array_length(d.entry -> 'children' -> 'rows') from public.daybook_page(pg_temp.sp()) d
+select is((select jsonb_array_length(d.card -> 'children' -> 'rows') from public.daybook_cards(pg_temp.sp(), null, 100) d
            where d.id = pg_temp.item('6100')), 3, 'with their rows');
 select ok((select bool_and(f.storage_path is not null) from public.space_posts p
            join public.post_files f on f.post_id = p.id where p.parent_id = pg_temp.item('6100')),
@@ -307,7 +307,7 @@ select pg_temp.as_user('e3');
 select public.check_item(pg_temp.item('6101'));
 select public.check_item(pg_temp.item('6102'));
 select public.check_item(pg_temp.item('6103'));
-select is((select d.entry -> 'children' ->> 'checked' from public.daybook_page(pg_temp.sp()) d
+select is((select d.card -> 'children' ->> 'checked' from public.daybook_cards(pg_temp.sp(), null, 100) d
            where d.id = pg_temp.item('6100')), '3', 'its progress is its work items''');
 select is((select status from public.work_items where id = pg_temp.item('6100')), 'open',
   'it takes no stamp of its own');
