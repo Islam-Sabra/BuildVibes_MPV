@@ -57,3 +57,22 @@ The founder published "Supply Air" from Navisworks. The Library viewer on his ph
 1. Fix G1–G3, F34, F37 and F38 on `slice2-app`, then push and send screenshots of K1, the folded announcement and a card with F34, in EN and AR.
 2. Put the build on the founder's phone and the emulator for a short slice 2 test. The build number goes up.
 3. After the founder's ok, merge `slice2-app` into `main` and close slice 2.
+
+## Result (build 333, `slice2-app` 255e989)
+I checked the screenshots for K1, the folded announcement, F34 and G4 in EN and AR.
+- **G1:**
+  - the list starts below the pinned announcement, and the checklist header is fully visible;
+  - after Got it, the folded line shows the pin, one line of the text and ›, mirrored correctly in Arabic.
+  
+  The agent drew it without a frame, and I accept it as built. I'll add it to Figma as K1b.
+- **G2:** the checklist card shows no tick lines.
+- **G3:** the attach line reads "PDF, like a drawing".
+- **G4:**
+  - the viewer shows the image;
+  - "New versions come from BuildVibes 360" replaces the upload button;
+  - the Arabic is mirrored.
+  
+  The blank image was the app's fault, because the stored files have the picture. Proof on the founder's phone: open "Supply Air" first.
+- **F34:** the owner's name and today's due time are in the ink colour, the rest grey, as specified. In Arabic the name is Bold.
+- **Got it after an edit (open point):** accepted for the pilot. The clean fix is for the card to carry `my_ack_at`. That goes in the next migration, with the other clean-ups, and then the app compares it with the last edit.
+- **Verdict:** ready for the founder's phone test. After his ok, merge `slice2-app` into `main` and close slice 2.
