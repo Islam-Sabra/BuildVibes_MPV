@@ -299,6 +299,19 @@ The founder confirms "Room 3" was only typed in the title; ⋯ → Location wasn
 - **Backups are not a user setting.** The record lives on the server, and backing it up is our job. Before the pilot: confirm daily backups on the Supabase plan and do one restore test (pre-pilot checklist).
 - **When:** the next app round (after slice 1 closes), with F34. The lead draws the folded line first.
 
+## F37. Switching the phone to 24-hour needs an app restart
+- **What the founder saw (Xiaomi, build 298):** after switching the phone to 24-hour, the times didn't change. They changed after the app was closed and opened again. Once they changed, all times changed together, so A1 (one formatter) holds.
+- **Likely cause:** one of two.
+  - The app reads the setting once and keeps it (a provider or a cached `DateFormat`). The formatter must read `MediaQuery.alwaysUse24HourFormat` each time it builds.
+  - Or Android doesn't pass the change to Flutter until the app restarts. In that case, read the setting again when the app comes back to the front (`AppLifecycleState.resumed`), through a small platform call (`DateFormat.is24HourFormat`), and rebuild.
+- **Test:** switch the setting while the app is in the background, come back, and every time shows the new style without a restart.
+- **Priority:** low. It doesn't block closing slice 1; it goes in the next app round with F34–F36.
+
+## Retest of build 298: result (19 Oct)
+- **Steps 1–5 passed:** the owner sees the item, signs with a photo, the push arrives, the card shows DONE with one new history line at Now, a double-tap checks with Undo, and a send-back plus an update each add one line, with the sheet above the keyboard.
+- **Step 6:** one time style everywhere, in both modes. The style only switches after a restart (F37).
+- **Verdict:** slice 1 is closed. Merge `slice1-v13` into `main`. F34–F37 go in the next app round.
+
 ## Retest results (steps 1–13, complete 18 Oct)
 - **Passed:** no "Notifications aren't reaching this phone" line; + offers "Post to everyone" or "Work item in a Space ▸"; sign without a photo with the note required (F6); "Sign as done" only opens the proof screen (F7); the send-back slip takes the clip and Sign as done, never twice; long-press menu on a slip (F16).
 - **Step 11, reply to a reply:** under Omar's reply, "Replying to Omar Haddad" (F2 ✓); the keyboard didn't hide the text on the Xiaomi.
