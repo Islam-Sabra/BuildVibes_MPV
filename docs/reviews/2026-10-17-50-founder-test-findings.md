@@ -421,3 +421,13 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **what others do** reaches an open daybook live, within a few seconds, with no reopen and no pull-to-refresh: new posts, ticks and un-ticks, Got it, Received, On my way, In my calendar, edits and cancels.
 - **Likely cause:** the live updates only cover work item events. Listen to the changes behind the other kinds as well (`space_posts`, `checklist_points` / `post_point_events`, `post_acks`, `post_edits`), within the existing visibility rules, and update the card in place. A card moves only by the review 60 rule.
 - **Test:** with two devices, each of these shows on the other device within 5 seconds, with no reopen: a file post, a Received, a tick, a Got it (the author's faces) and an edit.
+
+## F48. A file card says Received twice
+- **What the founder saw:** under the file there is "Received by Omar Haddad" with his face, and below that a history line, "Omar Haddad · Received 22:46". Both say the same thing, as the ticks did before G2.
+- **Rule** (the same as G2 and F42: what the card already shows is not repeated as a line):
+  - **the file card** shows only the summary, "Received by …", with up to three faces and no number;
+  - **tapping the summary** opens a small sheet listing each person and the time they tapped Received, newest first. That's where the time is, for document control;
+  - **Received lines** don't show in the card's history, but they stay in "Show earlier" and on the post page;
+  - **Got it** follows the same pattern for the author (faces, and tapping them gives the list with times).
+  - **On my way keeps its lines** (K3): the time someone set off is the point, and there's no summary line.
+- **Test:** after Received, the file card has one summary line and no Received history line. Tapping the summary lists Omar with 22:46. In EN and AR.
