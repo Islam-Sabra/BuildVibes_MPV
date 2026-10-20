@@ -105,6 +105,7 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
     **For the lead:** the S7-N frame says "Leads and the admin can do this", but `create_team` lets only the Space admin make a Team. The app follows the server and says "The Space admin can do this". If Leads should make Teams, that's a server change.
   - 1,299 app tests pass, apart from the same 10 PDF tests.
   - Later: the test app swaps in a PDF-free preview (`filePreviewProvider`), so those 10 now pass on any machine. **All 1,309 app tests pass.** The Arabic of every new string was checked against the glossary, with four fixes.
+  - **Review 67, the slice 4 plan** (People and Library, no code): six EN frames, no Arabic ones. The Viewer's daybook is already built; People, the Library, a file's page and Search are redrawn or new. Server: a small migration 32 (who received a Library file, NEW VERSION for me, search shows only the version in use). Two calls for the lead: nothing chosen first when letting someone in, and no Add file button in the Library (files come through a file post).
 - **Still to build in slice 3, after the slice 2 retest (both use the daybook's writing card):**
   - DM4–DM5, Put in a Space;
   - S8m, Turn into a work item in Space chat.

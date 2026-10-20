@@ -678,3 +678,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - S7-N, New chat in a Space (a group for the Space admin, or one person). The frame lets Leads make groups too; the server allows only the admin, and the app follows the server (noted for the lead).
   - 1,299 app tests pass, apart from the same 10 PDF tests.
   - Left in slice 3, after the slice 2 retest: Put in a Space (DM4–DM5) and Turn into a work item (S8m).
+- **20 Oct, late night** (cloud): the 10 PDF tests pass on any machine (1,309 pass); the Arabic of the slice 2 and 3 strings checked against the glossary; review 67, the slice 4 plan (People and Library, migration 32 for Library receipts and search, no code yet).
