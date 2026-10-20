@@ -20,7 +20,7 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   - the migration 29 push;
   - turning off public channels later, once the private-channel build is on every test phone.
   
-  Migration 30 still needs its own yes.
+  Migration 30: founder's yes (20 Oct, "Ok" to the recommendation). Push it right after migration 29, once the PC's checks pass.
 
 **Done here (app, Flutter 3.44.9):**
 - Private live channels, `daybook:` and `thread:` (`private: true`), and at most one page read a second per Space (R3).
@@ -68,7 +68,7 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
    - check the Note, the kind menu, the who row, the due colours and the tick feel in EN and AR;
    - re-shoot the screenshots, make a build, and give it to the founder to test.
 5. The "Not done" list above.
-6. Migration 30: `supabase test db`, then push with the founder's yes, listing only `20261021120000_report_notes.sql`.
+6. Migration 30 (founder's yes given): after migration 29 is live and `supabase test db` passes, push it. `supabase db push` must list only `20261021120000_report_notes.sql`, and the read-only check follows.
 7. Turn off public channels on the live project, only after the step 4 build is on every test phone.
 
 **Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.
