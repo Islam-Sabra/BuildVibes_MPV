@@ -129,7 +129,7 @@ void main() {
     final l10n = _l10n(lang);
     final s = DaybookSamples(lang);
 
-    testWidgets('E6: the kind chip opens one single choice of five, the '
+    testWidgets('E6 v14: the kind chip opens one single choice of six, the '
         'one being written checked [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));

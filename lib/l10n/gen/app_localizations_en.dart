@@ -3716,4 +3716,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookUnpin => 'Unpin';
+
+  @override
+  String get daybookKindNote => 'Note';
+
+  @override
+  String get daybookKindNoteNote => 'For information, nobody needs to act';
+
+  @override
+  String get daybookKindNoteWord => '· note';
 }

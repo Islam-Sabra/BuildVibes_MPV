@@ -204,7 +204,11 @@ class SupabaseChatRepository implements ChatRepository {
       onCancel: () => _client.removeChannel(channel),
     );
     channel = _client
-        .channel('thread:$threadId')
+        // Private (review 63 R1): only whoever may use the thread joins.
+        .channel(
+          'thread:$threadId',
+          opts: const RealtimeChannelConfig(private: true),
+        )
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',

@@ -6259,6 +6259,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unpin'**
   String get daybookUnpin;
+
+  /// Kind menu: the plain post, for information (F58).
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get daybookKindNote;
+
+  /// Kind menu: the small line under Note (F58).
+  ///
+  /// In en, this message translates to:
+  /// **'For information, nobody needs to act'**
+  String get daybookKindNoteNote;
+
+  /// Card header after the author's name: a note (K5).
+  ///
+  /// In en, this message translates to:
+  /// **'· note'**
+  String get daybookKindNoteWord;
 }
 
 class _AppLocalizationsDelegate

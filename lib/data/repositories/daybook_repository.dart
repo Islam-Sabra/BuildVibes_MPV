@@ -129,7 +129,7 @@ class NewSpacePost {
   final String id;
   final String spaceId;
 
-  /// 'checklist', 'announcement', 'activity' or 'file'.
+  /// 'note', 'checklist', 'announcement', 'activity' or 'file'.
   final String kind;
 
   /// A file post may leave it empty: the server takes the file's name.

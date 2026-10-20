@@ -186,11 +186,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   );
   late final AppLifecycleListener _life;
 
-  /// What others change in this Space, live (F47), and the short wait that
-  /// gathers a burst of changes into one read.
+  /// What others change in this Space, live (F47), and the wait that
+  /// gathers a burst of changes into one read: at most one a second.
   StreamSubscription<String>? _live;
   Timer? _liveRead;
-  static const _liveGather = Duration(milliseconds: 300);
+  static const _liveGather = Duration(seconds: 1);
 
   /// New activity came in at Now while the reader was up in older days
   /// (F11): the "New" chip shows until they go to Now.
@@ -219,9 +219,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // page is never stale (F11): it reads the newest cards when it opens
     // (from a push too), when the app comes back to the front, and when a
     // push for this Space arrives (build).
+    // At most one read per [_liveGather] however many signals come
+    // (review 63 R3): a busy or noisy Space never hammers the server.
     _live = ref.read(daybookLiveProvider).changes(_spaceId).listen((_) {
-      _liveRead?.cancel();
-      _liveRead = Timer(_liveGather, () => unawaited(_refresh()));
+      _liveRead ??= Timer(_liveGather, () {
+        _liveRead = null;
+        unawaited(_refresh());
+      });
     });
     _life = AppLifecycleListener(
       onResume: () {
@@ -1048,11 +1052,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 attachLabel: l10n.daybookAttachTitle,
                 onAttach: _editing ? null : () => unawaited(_attach()),
                 moreLabel: l10n.daybookMore,
-                onMore: () => _setMenu(
-                  _menu == DaybookWritingMenu.more
-                      ? null
-                      : DaybookWritingMenu.more,
-                ),
+                // A note has nothing more to set (F58).
+                onMore: cardDraft?.kind == DaybookKind.note
+                    ? null
+                    : () => _setMenu(
+                        _menu == DaybookWritingMenu.more
+                            ? null
+                            : DaybookWritingMenu.more,
+                      ),
                 moreActive: _menu == DaybookWritingMenu.more,
                 postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
                 // Post turns on with what the kind can't go without (a
@@ -1118,8 +1125,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// sees the slim line from the start; a tap opens it in full (Got it
   /// shown as given), a tap on the full one folds it again. Edited since
   /// the reader's Got it, it opens in full until they give Got it again.
-  /// The time of the Got it is the reader's own history line on the card
-  /// (the server sends it to them); without that line on the page the
+  /// The time of the Got it is the server's `my_ack_at` (migration 29),
+  /// else the reader's own history line on the card; with neither the
   /// edit can't be compared, and it stays folded.
   Widget _pinnedNote(
     DaybookPost post,
@@ -1139,6 +1146,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             )
             .lastOrNull
             ?.at ??
+        post.myAckAt[DaybookAck.gotIt] ??
         cards
             .where((c) => c.id == post.id)
             .firstOrNull

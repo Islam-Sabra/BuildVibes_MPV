@@ -94,6 +94,26 @@ void main() {
         expect(find.byKey(const Key('received-by')), findsOneWidget);
       });
 
+      testWidgets('review 63 R3: a burst of signals reads the page at most '
+          'once a second', (tester) async {
+        final (:daybook, :live, app: _) = await _open(
+          tester,
+          lang,
+          posts: [s.rebar()],
+        );
+        final before = daybook.pageCalls.length;
+        // Ten signals over two seconds, one every 200 ms.
+        for (var i = 0; i < 10; i++) {
+          live.push(DaybookSamples.space, 'post-rebar');
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pumpAndSettle();
+        // Not one per signal, and never held back while they keep coming.
+        final reads = daybook.pageCalls.length - before;
+        expect(reads, inInclusiveRange(2, 3));
+      });
+
       testWidgets('what I do tells the Space\'s other daybooks', (
         tester,
       ) async {

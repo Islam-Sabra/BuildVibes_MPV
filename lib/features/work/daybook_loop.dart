@@ -138,12 +138,12 @@ class DaybookLoop {
     );
   }
 
-  /// The long-press menu of a checklist, an announcement, an activity or a
-  /// file, the same on its card and on the pinned note (F44):
-  /// - its author: Edit and Unpin (an announcement, while pinned), then
-  ///   Cancel;
-  /// - an admin, for an author who has left the Space: Cancel (the server
-  ///   lets only the author edit, so Edit and Unpin aren't offered);
+  /// The long-press menu of a note, a checklist, an announcement, an
+  /// activity or a file, the same on its card and on the pinned note (F44):
+  /// - its author: Edit (a note or an announcement) and Unpin (an
+  ///   announcement, while pinned), then Cancel;
+  /// - an admin, for an author who has left the Space: Unpin and Cancel,
+  ///   never Edit: the words stay the author's (review 62 N2);
   /// - everyone else: nothing.
   List<DaybookSlipAction> kindMenu(DaybookPost post, {required String? me}) {
     if (post.cancelled || _viewer) return const [];
@@ -153,11 +153,12 @@ class DaybookLoop {
     final gone =
         people != null && (authorId == null || people.member(authorId) == null);
     final announcement = post.kind == DaybookPost.announcementKind;
+    final actsForAuthor = mine || (gone && space.iAmAdmin);
     return [
-      if (mine && announcement) DaybookSlipAction.edit,
-      if (mine && announcement && post.pinnedUntil != null)
+      if (mine && (announcement || post.isNote)) DaybookSlipAction.edit,
+      if (actsForAuthor && announcement && post.pinnedUntil != null)
         DaybookSlipAction.unpin,
-      if (mine || (gone && space.iAmAdmin)) DaybookSlipAction.cancel,
+      if (actsForAuthor) DaybookSlipAction.cancel,
     ];
   }
 

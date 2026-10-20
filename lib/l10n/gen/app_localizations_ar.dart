@@ -3724,4 +3724,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookUnpin => 'إلغاء التثبيت';
+
+  @override
+  String get daybookKindNote => 'ملاحظة';
+
+  @override
+  String get daybookKindNoteNote => 'للعلم، لا يلزم أي إجراء';
+
+  @override
+  String get daybookKindNoteWord => '· ملاحظة';
 }

@@ -1026,5 +1026,8 @@
   "daybookDayTime": "{day}، {time}",
   "daybookKindDocument": "مستند للاستلام",
   "daybookKindDocumentNote": "كل شخص يؤكد الاستلام",
-  "daybookUnpin": "إلغاء التثبيت"
+  "daybookUnpin": "إلغاء التثبيت",
+  "daybookKindNote": "ملاحظة",
+  "daybookKindNoteNote": "للعلم، لا يلزم أي إجراء",
+  "daybookKindNoteWord": "· ملاحظة"
 }

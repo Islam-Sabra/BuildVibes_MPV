@@ -538,9 +538,8 @@ void main() {
         expect(find.byKey(const Key('slip-menu')), findsNothing);
       });
 
-      testWidgets('an admin, for an author who has left: Cancel', (
-        tester,
-      ) async {
+      testWidgets('an admin, for an author who has left: Unpin and Cancel, '
+          'never Edit (review 62 N2)', (tester) async {
         await openPinned(
           tester,
           post: pinned(author: 'p-left'),
@@ -548,7 +547,7 @@ void main() {
         );
         await tester.longPress(find.byType(BvPinnedNote));
         await tester.pumpAndSettle();
-        expect(_menu(tester), [l10n.daybookCancelPost]);
+        expect(_menu(tester), [l10n.daybookUnpin, l10n.daybookCancelPost]);
       });
 
       testWidgets('after an edit Omar sees it in full again, until he taps '

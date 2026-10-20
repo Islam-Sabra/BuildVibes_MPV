@@ -313,6 +313,7 @@ List<BvGiveToPerson> _people(
 
 /// The kind chip's and the kind menu's word for [kind].
 String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
+  DaybookKind.note => l10n.daybookKindNote,
   DaybookKind.workItem => l10n.daybookWorkItem,
   DaybookKind.checklist => l10n.daybookKindChecklist,
   DaybookKind.announcement => l10n.daybookKindAnnouncement,
@@ -321,8 +322,9 @@ String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
   DaybookKind.file => l10n.daybookKindDocument,
 };
 
-/// The kind menu's icon for [kind] (E6 2535:34374).
+/// The kind menu's icon for [kind] (E6 v14 2598:36360).
 IconData kindIcon(DaybookKind kind) => switch (kind) {
+  DaybookKind.note => BvIcons.edit,
   DaybookKind.workItem => BvIcons.confirmed,
   DaybookKind.checklist => BvIcons.workItems,
   DaybookKind.announcement => BvIcons.info,
@@ -612,7 +614,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     DaybookKind.workItem => l10n.daybookWritingBody,
     DaybookKind.announcement => l10n.daybookBodyAnnouncement,
     DaybookKind.activity => l10n.daybookBodyActivity,
-    DaybookKind.checklist || DaybookKind.file => l10n.daybookBodyNote,
+    DaybookKind.note ||
+    DaybookKind.checklist ||
+    DaybookKind.file => l10n.daybookBodyNote,
   };
 
   @override
@@ -1138,6 +1142,8 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
       icon: BvIcons.due,
     );
     return switch (kind) {
+      // A note has nothing to set: its words, photos and files only (F58).
+      DaybookKind.note => const [],
       DaybookKind.workItem => [if (!widget.editing) assign, location, due],
       DaybookKind.checklist => [people, due],
       DaybookKind.announcement => [
@@ -1200,9 +1206,11 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
                 value: k,
                 label: kindName(l10n, k),
                 icon: kindIcon(k),
-                note: k == DaybookKind.file
-                    ? l10n.daybookKindDocumentNote
-                    : null,
+                note: switch (k) {
+                  DaybookKind.note => l10n.daybookKindNoteNote,
+                  DaybookKind.file => l10n.daybookKindDocumentNote,
+                  _ => null,
+                },
               ),
           ],
           onSelected: (k) async {

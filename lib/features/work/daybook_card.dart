@@ -362,8 +362,10 @@ class DaybookCardView extends StatelessWidget {
     );
   }
 
-  /// "· checklist", "· scheduled", "· file", "· to everyone".
+  /// "· note", "· checklist", "· scheduled", "· for receipt", "· to
+  /// everyone".
   String _kindWord(AppLocalizations l10n) => switch (_post.kind) {
+    DaybookPost.noteKind => l10n.daybookKindNoteWord,
     DaybookPost.checklistKind => l10n.daybookKindChecklistWord,
     DaybookPost.activityKind => l10n.daybookKindActivityWord,
     DaybookPost.fileKind => l10n.daybookKindFileWord,
@@ -408,6 +410,13 @@ class DaybookCardView extends StatelessWidget {
       ],
     );
     switch (post.kind) {
+      // A note (K5 v13 2598:36260): the words and the photos, for
+      // information; no faces and no buttons (F58).
+      case DaybookPost.noteKind:
+        return [
+          ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
+          if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+        ];
       case DaybookPost.checklistKind:
         return [
           ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),

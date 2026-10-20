@@ -287,6 +287,7 @@ class DaybookPost {
     this.file,
     this.newVersion = false,
     this.myAcks = const {},
+    this.myAckAt = const {},
     this.editedAt,
   });
 
@@ -336,10 +337,18 @@ class DaybookPost {
         for (final a in json['my_acks'] as List? ?? const [])
           ?DaybookAck.fromJson(a),
       },
+      myAckAt: {
+        for (final e
+            in (json['my_ack_at'] as Map<String, dynamic>? ?? const {}).entries)
+          ?DaybookAck.fromJson(e.key): ?_time(e.value),
+      },
       editedAt: _time(json['edited_at']),
     );
   }
 
+  /// The plain post, for information (F58): words, photos and files, and
+  /// nothing anyone needs to do.
+  static const noteKind = 'note';
   static const workItemKind = 'work_item';
   static const checklistKind = 'checklist';
   static const announcementKind = 'announcement';
@@ -349,6 +358,7 @@ class DaybookPost {
   /// The kinds the daybook draws; a report (slice 7) or a kind this
   /// version doesn't know is kept for paging only.
   static const shownKinds = {
+    noteKind,
     workItemKind,
     checklistKind,
     announcementKind,
@@ -358,8 +368,8 @@ class DaybookPost {
 
   final String id;
 
-  /// 'work_item', 'checklist', 'announcement', 'activity', 'file' or
-  /// 'report'.
+  /// 'note', 'work_item', 'checklist', 'announcement', 'activity', 'file'
+  /// or 'report'.
   final String kind;
   final DateTime createdAt;
   final String title;
@@ -411,9 +421,14 @@ class DaybookPost {
   /// What the reader said on it: their own acknowledgements.
   final Set<DaybookAck> myAcks;
 
+  /// When the reader gave each of them (migration 29, my_ack_at): an
+  /// announcement edited after their Got it opens again (review 61 G1).
+  final Map<DaybookAck, DateTime> myAckAt;
+
   /// When its author last edited it, if ever.
   final DateTime? editedAt;
 
+  bool get isNote => kind == noteKind;
   bool get isWorkItem => kind == workItemKind;
   bool get isChecklist => kind == checklistKind;
   bool get isAnnouncement => kind == announcementKind;
@@ -476,6 +491,7 @@ class DaybookPost {
     file: file,
     newVersion: newVersion,
     myAcks: myAcks ?? this.myAcks,
+    myAckAt: myAckAt,
     editedAt: editedAt,
   );
 

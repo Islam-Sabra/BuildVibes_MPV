@@ -10,8 +10,10 @@ import '../../data/models/daybook.dart';
 import '../entry/entry_state.dart';
 import 'work_outbox.dart';
 
-/// What a card in writing posts (E6, the kind chip's one choice).
+/// What a card in writing posts (E6 v14, the kind chip's one choice), in
+/// the kind menu's order: the Note, the plain post, first (F58).
 enum DaybookKind {
+  note(DaybookPost.noteKind),
   workItem(DaybookPost.workItemKind),
   checklist(DaybookPost.checklistKind),
   announcement(DaybookPost.announcementKind),
