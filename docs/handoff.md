@@ -71,4 +71,12 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
 6. Migration 30 (founder's yes given): after migration 29 is live and `supabase test db` passes, push it. `supabase db push` must list only `20261021120000_report_notes.sql`, and the read-only check follows.
 7. Turn off public channels on the live project, only after the step 4 build is on every test phone.
 
+**Also done in the cloud (evening, after the handoff above):**
+- A Figma check of today's new screens, with two fixes, and screen tests for K5, F56 and F57 (`test_screens/slice2_test.dart`):
+  - the Note shows its words before its photos (K5 v13);
+  - the kind menu is wide enough for its small lines (E6 v14).
+  
+  The committed PNGs were **not** re-shot here: Linux fonts differ slightly, so the PC re-shoots them (`flutter test test_screens --update-goldens`).
+- The slice 3 plan: `docs/reviews/2026-10-20-64-slice3-plan.md`. It has no code, and the build starts only after the founder's slice 2 retest passes. It needs a small migration 31 (a private `dm:` channel).
+
 **Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.

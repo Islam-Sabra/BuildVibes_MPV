@@ -661,3 +661,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Screens not yet checked by eye or on a phone. See `docs/handoff.md`.
 - **20 Oct, night, slice 2 follow-ups, part 2** (cloud; branch `claude/test-tw7wuv`): F56's "To: Everyone ›" on an announcement and a Document for receipt, a single choice of Everyone or one Team (`p_team`; your own Teams, or any for a Space admin); F57's Due today strip with open items from up to 61 days back, oldest first, the earlier day in grey. Waits for its slice: F54 on a work item's points (slice 5) and Notebook to-dos (slice 8), and notes in the daily report (slice 7; migration 30 is ready). 1,269 app tests pass; the same 10 PDF tests need the PC.
 - **20 Oct:** founder's yes for migration 30 (notes in the daily report). It goes live from the PC right after migration 29, as the only file in its push.
+- **20 Oct, night, Figma check and slice 3 plan** (cloud; `claude/test-tw7wuv`):
+  - today's new screens rendered and compared with K5 v13 and E6 v14, with two fixes (the Note's words before its photos; a wide kind menu);
+  - six new screen tests; the PNGs are re-shot on the PC;
+  - review 64, the slice 3 plan: chat and direct messages, migration 31 for a private `dm:` channel, and the build order. The build waits for the slice 2 retest.
