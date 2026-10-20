@@ -3771,7 +3771,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get messagesEmpty => 'لا رسائل بعد. ابدأ واحدة بزر +.';
+  String get messagesEmpty => 'لا رسائل بعد. ابدأ محادثة بزر +.';
 
   @override
   String get messagesNew => 'رسالة جديدة';
@@ -3799,7 +3799,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dmTapToShow => 'انقر للعرض';
+  String get dmTapToShow => 'اضغط للعرض';
 
   @override
   String get dmMute => 'كتم';
@@ -3833,7 +3833,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatNewChat => 'محادثة جديدة';
 
   @override
-  String get chatNewGroup => 'مجموعة جديدة في هذه المساحة';
+  String get chatNewGroup => 'فريق جديد في هذه المساحة';
 
   @override
   String get chatNewGroupNote =>
@@ -3848,7 +3848,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get chatWorkNote => 'يُكلَّف العمل من تبويب العمل. المحادثة للتواصل.';
+  String get chatWorkNote =>
+      'يُكلَّف العمل من تبويب «العمل». المحادثة للتواصل.';
 
   @override
   String chatThreadsDmNote(String space) {
