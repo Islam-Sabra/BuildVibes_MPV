@@ -503,3 +503,26 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - Figma E6 and K2 with "Document for receipt" (F50);
   - K1b, the folded announcement;
   - K1 with "· checklist".
+
+# Retest of build 349 (20 Oct 2026, morning)
+- **Step 2, typing a checklist (F40):** the keyboard stays open and Enter starts the next point. Done in the people picker closes it without posting (F45). Passed.
+- **F47, live updates:** the checklist appears on Omar's side, and Omar's tick reaches the founder's phone, without reopening. Passed.
+- **Step 6, editing a pinned announcement (F44):** long-press gives Edit. After the edit, it opens in full again on Omar's side, with Got it. Passed.
+
+## F54. A tick you can feel and a change you notice (founder ok, 20 Oct)
+- **What the founder asked:** a tick shouldn't be silent. He wants to feel it, and to notice when someone else ticks.
+- **Your own tick:**
+  - the box fills with a short check animation (about 300 ms);
+  - a light haptic (`HapticFeedback.lightImpact`);
+  - the name and time slide in beside the point.
+  
+  An un-tick reverses the animation, with the same haptic.
+- **Someone else's change arriving live** (a tick, Got it on your announcement, Received, On my way, a new line in a history):
+  - the changed point or line glows softly in the action colour for about 2 seconds, then fades;
+  - if the card is out of view, the existing "New ↓" chip appears (F11).
+  
+  No sound inside the app: pushes cover the time when the app is closed.
+- **No 5-second hold on ticks.** A 20-point walk would cost almost 2 minutes, and a mistaken tick is fixed by tapping again (F43). The 5-second Undo stays only on Sign as done and Check, which close the work.
+- **The same feel everywhere a point can be ticked:** a checklist, the points of a work item, and Notebook to-dos.
+- **Reduced motion:** if the phone's "remove animations" setting is on, the change shows at once, with no glow. The haptic stays.
+- **Test:** a widget test for the glow on a live tick, and the animation and haptic on your own tick. By hand on the Xiaomi.
