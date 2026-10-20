@@ -672,3 +672,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - 1,293 app tests and 2,208 SQL checks pass, apart from the same 10 PDF tests.
   - Left in slice 3: voice notes in DMs, Put in a Space, New chat in a Space, Turn into a work item.
 - **20 Oct, night:** founder's yes for migration 31 (the private `dm:` channel). It goes live from the PC after 29 and 30, once the Realtime check passes, before any slice 3 build goes on a phone.
+- **20 Oct, late night** (cloud):
+  - review 66, migration 31 approved, with two more checks (2,210 SQL checks);
+  - voice notes in direct messages;
+  - S7-N, New chat in a Space (a group for the Space admin, or one person). The frame lets Leads make groups too; the server allows only the admin, and the app follows the server (noted for the lead).
+  - 1,299 app tests pass, apart from the same 10 PDF tests.
+  - Left in slice 3, after the slice 2 retest: Put in a Space (DM4–DM5) and Turn into a work item (S8m).

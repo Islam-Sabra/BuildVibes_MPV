@@ -95,10 +95,17 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   - DM6, a request: "Not in your Spaces · Decline · Block", and photos behind Tap to show;
   - Message on a person's profile (R5 v3), and a new conversation whose first message makes the thread (`start_dm`, with the spam guard's pause and warning).
 - Analyze is clean and 1,293 app tests pass, apart from the same 10 PDF tests.
-- **Still to build in slice 3:**
-  - voice notes in direct messages (the mic);
+- **Later the same night:**
+  - Review 66: migration 31 approved, with no high or medium finding. Two checks were added (presence refused, receiving after Decline), and all 2,210 SQL checks pass.
+  - Voice notes in direct messages: hold the mic, slide away to cancel, and play in the bubble.
+  - S7-N, New chat in a Space:
+    - "New group in this Space" (a new Team) for the Space admin only;
+    - "Message one person": the Space's people, then Messages.
+    
+    **For the lead:** the S7-N frame says "Leads and the admin can do this", but `create_team` lets only the Space admin make a Team. The app follows the server and says "The Space admin can do this". If Leads should make Teams, that's a server change.
+  - 1,299 app tests pass, apart from the same 10 PDF tests.
+- **Still to build in slice 3, after the slice 2 retest (both use the daybook's writing card):**
   - DM4–DM5, Put in a Space;
-  - S7-N, New chat in a Space;
   - S8m, Turn into a work item in Space chat.
 - **Migration 31: founder's yes** (20 Oct, night), on these conditions, in order:
   1. after migrations 29 and 30 are live;
