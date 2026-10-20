@@ -526,3 +526,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **The same feel everywhere a point can be ticked:** a checklist, the points of a work item, and Notebook to-dos.
 - **Reduced motion:** if the phone's "remove animations" setting is on, the change shows at once, with no glow. The haptic stays.
 - **Test:** a widget test for the glow on a live tick, and the animation and haptic on your own tick. By hand on the Xiaomi.
+- **F51, photos:** 3 gallery photos are posted, with the first large and two small. Passed.
+
+## F55. A late item says it twice
+- **What the emulator shows:** "For you · was due today 8:06 am" in red, and then a second line, "Late", in red.
+- **Fix:** one line only. The facts line itself turns red and says it: **"For you · late, due 8:06 am"** / **"لك · متأخر، الموعد 8:06 ص"**. For an earlier day: **"late by 1 day"** / **"متأخر يومًا"** (daybook.md). There's no separate "Late" line.
+
+## F56. Choosing who a post is for: one flow for every kind (founder, 20 Oct)
+- **What the founder saw:** on a work item with no owner, Send opened "Who is it for?" and picking Omar **posted at once**. The same happens on every kind that needs people. The founder wants the whole flow revised: choosing a person must never post.
+- **The rule, for every kind:**
+  - **The writing card shows its "who" row from the start**, as a visible line under the title. It's required on a work item ("For: Choose ›" / "لـ: اختر ›"), a checklist ("For") and a scheduled activity ("Who's coming"). An announcement and a Document for receipt show "To: Everyone ›" or a Team, already filled.
+  - **Tapping the row opens the picker.** A single choice (a work item's owner) closes on the tap and returns to the card. A multiple choice closes with Done (F45). **The picker never posts.**
+  - **Send is grey until the title and the required "who" are set.** Tapping grey Send makes the missing row pulse once, with "Choose who it's for" / "اختر لمن", and posts nothing.
+  - **Only the send button posts,** and every post keeps its 5-second Undo where it has one today.
+- **Test:** on each kind, choosing people only fills the row, and the post goes out only on Send. A work item with no owner can't be sent, and the "who" row asks for it.
