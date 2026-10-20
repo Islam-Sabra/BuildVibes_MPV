@@ -131,14 +131,6 @@ void main() {
         ar.meta(late, me: DaybookSamples.omar, now: fri),
         'لك · كان موعده الخميس 15 أكتوبر',
       );
-      final l10n = lookupAppLocalizations(const Locale('en'));
-      expect(l10n.daybookLate(1), 'Late by 1 day');
-      expect(l10n.daybookLate(3), 'Late by 3 days');
-      expect(l10n.daybookLate(0), 'Late');
-      expect(
-        lookupAppLocalizations(const Locale('ar')).daybookLate(1),
-        'متأخر يومًا واحدًا',
-      );
     });
   });
 

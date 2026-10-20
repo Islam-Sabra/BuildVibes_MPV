@@ -595,8 +595,8 @@ void main() {
           ),
         ],
       );
-      expect(find.text(l10n.daybookLate(1)), findsOneWidget);
-      expect(find.byType(BvSlipLate), findsOneWidget);
+      // F57: no "Late" line; a passed due is a reminder on the facts line.
+      expect(find.textContaining('Late'), findsNothing);
       expect(
         find.text(l10n.daybookDueTodayStrip(s.cableTraysTitle)),
         findsOneWidget,

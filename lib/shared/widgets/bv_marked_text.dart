@@ -2,15 +2,16 @@ import 'package:flutter/painting.dart';
 
 import '../../core/design/bv_tokens.dart';
 
-/// How a due time reads (review 50 F34): grey, the primary colour when it
-/// is today, red when it is late.
-enum BvDueTone { quiet, today, late }
+/// How a due time reads (review 50 F34, F57): grey before its day, ink
+/// on it, and the action colour once it has passed. A due is a reminder,
+/// not a record: never red, which is kept for SENT BACK and real failures.
+enum BvDueTone { quiet, today, passed }
 
 /// The colour of a due in [tone].
 Color bvDueColor(BvDueTone tone) => switch (tone) {
   BvDueTone.quiet => BvColors.textSecondary,
   BvDueTone.today => BvColors.textPrimary,
-  BvDueTone.late => BvColors.textDestructive,
+  BvDueTone.passed => BvColors.textAction,
 };
 
 /// A part of a line in its own style ([bvMarkedSpans]).

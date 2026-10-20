@@ -4772,12 +4772,6 @@ abstract class AppLocalizations {
   /// **'was due today {time}'**
   String daybookWasDueTodayAt(String time);
 
-  /// Late line on an open item past its due (L1). 0: late today, after its time.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}'**
-  String daybookLate(int n);
-
   /// Strip under the masthead (L1): items due today for you or by you.
   ///
   /// In en, this message translates to:

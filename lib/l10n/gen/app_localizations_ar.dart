@@ -2818,21 +2818,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String daybookLate(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: 'متأخر $n يوم',
-      many: 'متأخر $n يومًا',
-      few: 'متأخر $n أيام',
-      two: 'متأخر يومين',
-      one: 'متأخر يومًا واحدًا',
-      zero: 'متأخر',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String daybookDueTodayStrip(String titles) {
     return 'مستحق اليوم: $titles';
   }

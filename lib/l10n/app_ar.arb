@@ -779,7 +779,6 @@
   "daybookWasDue": "كان موعده {date}",
   "daybookWasDueAt": "كان موعده الساعة {time} يوم {date}",
   "daybookWasDueTodayAt": "كان موعده الساعة {time} اليوم",
-  "daybookLate": "{n, plural, =0{متأخر} =1{متأخر يومًا واحدًا} =2{متأخر يومين} few{متأخر {n} أيام} many{متأخر {n} يومًا} other{متأخر {n} يوم}}",
   "daybookDueTodayStrip": "مستحق اليوم: {titles}",
   "daybookPoints": "{n, plural, =1{نقطة واحدة} =2{نقطتان} few{{n} نقاط} many{{n} نقطة} other{{n} نقطة}}",
   "daybookToday": "اليوم",

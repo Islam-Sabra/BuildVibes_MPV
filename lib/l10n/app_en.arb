@@ -4021,15 +4021,6 @@
       }
     }
   },
-  "daybookLate": "{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}",
-  "@daybookLate": {
-    "description": "Late line on an open item past its due (L1). 0: late today, after its time.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
   "daybookDueTodayStrip": "Due today: {titles}",
   "@daybookDueTodayStrip": {
     "description": "Strip under the masthead (L1): items due today for you or by you.",

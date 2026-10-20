@@ -98,7 +98,8 @@ class DaybookWords {
 
   /// What stands out on [post]'s facts line (review 50 F34), as [meta]
   /// writes it: who it is for (the name, or "you"), and the due with its
-  /// tone: grey, the primary colour today, red when late.
+  /// tone: grey, ink today, and once passed the action colour for its
+  /// owner and its author only; everyone else sees it grey (F57).
   ({String who, String? due, BvDueTone tone}) metaMarks(
     DaybookPost post, {
     required String? me,
@@ -117,12 +118,15 @@ class DaybookWords {
     } else {
       who = _inLine(personName(l10n, item?.ownerName));
     }
-    final late = post.isLate(now);
+    final mine =
+        (item?.ownerId != null && item!.ownerId == me) ||
+        (post.authorId != null && post.authorId == me);
+    final passed = post.isLate(now);
     return (
       who: who,
       due: _due(post, now),
-      tone: late
-          ? BvDueTone.late
+      tone: passed
+          ? (mine ? BvDueTone.passed : BvDueTone.quiet)
           : post.dueDate == dayOf(now)
           ? BvDueTone.today
           : BvDueTone.quiet,
@@ -141,9 +145,12 @@ class DaybookWords {
       ? name
       : inOwnDirection(name);
 
+  /// The due while the work is still to do (open or sent back); once it
+  /// is signed as done the card says nothing of it (F57).
   String? _due(DaybookPost post, DateTime now) {
     final day = post.dueDate;
     if (day == null) return null;
+    if (post.item != null && post.item!.status != WorkStatus.open) return null;
     return due(day, post.dueAt, now: now, late: post.isLate(now));
   }
 

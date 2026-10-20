@@ -54,8 +54,8 @@ class NeedsYouScreen extends ConsumerWidget {
       NeedsKind.joinRequest => l10n.needsRowJoin,
     };
 
-    // Who and when; F34: the name stands out, and a due is grey, the
-    // primary colour today or red when late.
+    // Who and when; F34: the name stands out, and a due is grey, ink
+    // today, or the action colour once passed (F57).
     ({String? text, List<BvMark> marks}) meta(NeedsCard c) {
       final name = c.actorName == null
           ? null
@@ -89,7 +89,7 @@ class NeedsYouScreen extends ConsumerWidget {
               style: type.metadata.copyWith(
                 color: bvDueColor(
                   late
-                      ? BvDueTone.late
+                      ? BvDueTone.passed
                       : due == dayOf(now)
                       ? BvDueTone.today
                       : BvDueTone.quiet,

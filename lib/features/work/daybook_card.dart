@@ -250,8 +250,6 @@ class DaybookCardView extends StatelessWidget {
                   BvSlipFact(icon: BvIcons.place, text: post.place!),
               ],
             ),
-            if (post.isLate(now))
-              BvSlipLate(l10n.daybookLate(post.lateDays(now))),
             if (chips.isNotEmpty) BvSlipChips(children: chips),
             if (localPhoto != null)
               _LocalPhoto(

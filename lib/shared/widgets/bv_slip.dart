@@ -15,7 +15,7 @@ import 'bv_torn_edge.dart';
 
 /// Spec §2: the Daybook's paper slip. White paper with a torn top edge and
 /// the slip shadow; its [children] stack with a 10 gap (compose them from
-/// [BvSlipHeader], [BvSlipTitle], [BvSlipFacts], [BvSlipLate],
+/// [BvSlipHeader], [BvSlipTitle], [BvSlipFacts],
 /// [BvSlipChips], [BvSlipQuote], [BvSlipPhoto], [BvSlipNote], [BvSlipPill],
 /// [BvSlipQuiet] and [BvSlipError]).
 ///
@@ -336,34 +336,6 @@ class BvSlipFacts extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     spacing: BvSlipSpec.factsGap,
     children: children,
-  );
-}
-
-/// L1: an open item past its due ("Late by 1 day"), a calendar and the
-/// words in red.
-class BvSlipLate extends StatelessWidget {
-  const BvSlipLate(this.text, {super.key});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    spacing: BvSlipSpec.lateGap,
-    children: [
-      const Icon(
-        BvIcons.month,
-        size: BvSlipSpec.lateIconSize,
-        color: BvColors.textDestructive,
-      ),
-      Flexible(
-        child: Text(
-          text,
-          style: BvType.of(
-            context,
-          ).labelSm.copyWith(color: BvColors.textDestructive),
-        ),
-      ),
-    ],
   );
 }
 

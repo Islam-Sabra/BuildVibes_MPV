@@ -81,7 +81,38 @@ void main() {
           me: DaybookSamples.omar,
           now: DateTime(2026, 10, 17, 9),
         );
-        expect(late.tone, BvDueTone.late);
+        // F57: the action colour, never red, for its owner.
+        expect(late.tone, BvDueTone.passed);
+        expect(bvDueColor(late.tone), BvColors.textAction);
+        // Someone else sees a passed due grey.
+        expect(
+          w
+              .metaMarks(
+                trays,
+                me: DaybookSamples.rakesh,
+                now: DateTime(2026, 10, 17, 9),
+              )
+              .tone,
+          BvDueTone.quiet,
+        );
+        // F57: signed as done, the due leaves the card.
+        final signed = trays.shownAs(status: WorkStatus.done);
+        expect(
+          w
+              .metaMarks(
+                signed,
+                me: DaybookSamples.omar,
+                now: DateTime(2026, 10, 17, 9),
+              )
+              .due,
+          isNull,
+        );
+        expect(
+          w.meta(signed, me: DaybookSamples.omar, now: now),
+          isNot(
+            contains(w.metaMarks(trays, me: DaybookSamples.omar, now: now).due),
+          ),
+        );
         final later = w.metaMarks(
           trays,
           me: DaybookSamples.omar,
