@@ -81,4 +81,30 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   The committed PNGs were **not** re-shot here: Linux fonts differ slightly, so the PC re-shoots them (`flutter test test_screens --update-goldens`).
 - The slice 3 plan: `docs/reviews/2026-10-20-64-slice3-plan.md`. It has no code, and the build starts only after the founder's slice 2 retest passes. It needs a small migration 31 (a private `dm:` channel).
 
+**Night of 20 Oct, cloud (after the slice 2 commit `a2e330f`; founder's choice B):**
+- Review 65: an independent review of migration 30, with no high or medium finding. Its three low findings are fixed in migration 30, which is still not live.
+- Migration 31 (`20261021180000_dm_live.sql`, **not live**): a private `dm:<thread>` live channel, receive only, for the thread's two people while neither blocks the other. 12 checks; all 2,208 SQL checks pass on the stand-in.
+- Slice 3, first part, in commits named "Slice 3 …", checked against DM1, DM2 and DM6 in EN and AR:
+  - Messages on Home, beside Search, with a dot (never a number);
+  - DM1, the list: the request on top, Today and Earlier, unread cards, previews, search, and + to find someone;
+  - DM2, a conversation:
+    - the person and what they do, and "Both in <Space>";
+    - day chips, text, photos and PDFs, Reply, and live updates on `dm:`;
+    - DM3, holding a message: Reply, Copy, and Report or Delete;
+    - ⋯: Mute, Report the person, Block;
+  - DM6, a request: "Not in your Spaces · Decline · Block", and photos behind Tap to show;
+  - Message on a person's profile (R5 v3), and a new conversation whose first message makes the thread (`start_dm`, with the spam guard's pause and warning).
+- Analyze is clean and 1,293 app tests pass, apart from the same 10 PDF tests.
+- **Still to build in slice 3:**
+  - voice notes in direct messages (the mic);
+  - DM4–DM5, Put in a Space;
+  - S7-N, New chat in a Space;
+  - S8m, Turn into a work item in Space chat.
+- **Before any slice 3 build goes to a phone:**
+  - push migration 31 with the founder's yes;
+  - check the private `dm:` join against the local Realtime server.
+- **For the PC:**
+  - **Migrations:** push 29, 30 and 31 from the branch **head**. The head has the review 65 fixes to migration 30, and migration 31 is new.
+  - **Slice 2 retest:** build the app from `a2e330f`.
+
 **Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.

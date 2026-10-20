@@ -665,3 +665,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - today's new screens rendered and compared with K5 v13 and E6 v14, with two fixes (the Note's words before its photos; a wide kind menu);
   - six new screen tests; the PNGs are re-shot on the PC;
   - review 64, the slice 3 plan: chat and direct messages, migration 31 for a private `dm:` channel, and the build order. The build waits for the slice 2 retest.
+- **20 Oct, night, slice 3 first part** (cloud; `claude/test-tw7wuv`, after the slice 2 commit `a2e330f`, founder's choice):
+  - review 65 (migration 30 approved, low findings fixed);
+  - migration 31, a private `dm:` channel (not live);
+  - Messages on Home, DM1, DM2 with DM3's actions, DM6, and Message on a profile, all checked against Figma in EN and AR.
+  - 1,293 app tests and 2,208 SQL checks pass, apart from the same 10 PDF tests.
+  - Left in slice 3: voice notes in DMs, Put in a Space, New chat in a Space, Turn into a work item.
