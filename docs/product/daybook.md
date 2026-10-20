@@ -42,6 +42,7 @@ Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (ch
 6. **Kind chip** (one single-choice menu; presets on one post, F58): Note, Work item, Checklist, Announcement, Scheduled activity, Document for receipt.
 
 ## Kinds of posts
+- **Note:** the plain post, for information: a title, words, photos or files. No people, no buttons, no acknowledgement; it never needs anyone. Read, edited and cancelled as an announcement (server, migration 29).
 - **Work item:** one owner, due date, place, files, checklist points. Sign as done with a photo; check or send back.
 - **Checklist:** title, who it is for (one or more), due date, points ticked in place (struck through, with who and when), a thin progress line, "2 of 5 ticked".
 - **Announcement:** pinned under the masthead until a date, to everyone or a Team. **Got it**; the author sees faces, no number.
@@ -75,7 +76,7 @@ Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (ch
 - After Done the author can only Check or Send back; Send back reopens editing. After Checked nobody can edit.
 - Delete only while nobody has added anything; after that, Cancel (stays with a CANCELLED stamp).
 - The owner disagrees by posting an update, never by editing.
-- The Space admin can't rewrite anyone's post; they can reassign or cancel only if the author has left the Space.
+- The Space admin can't rewrite anyone's post; they can reassign or cancel only if the author has left the Space, and then also unpin that author's announcement (review 62 N2).
 
 ## Other Space parts in Daybook style
 - **Walk mode** (camera mode "Photo · Walk"): each shot gets one line (typed or voice) and an owner; Finish posts one item with a work item per photo under it.
