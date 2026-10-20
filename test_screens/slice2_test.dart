@@ -11,6 +11,7 @@ import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
@@ -68,6 +69,7 @@ Future<List<Override>> _overrides(
   List<LibraryFile> library = const [],
   Map<String, Uint8List> bytes = const {},
   Map<String, List<DaybookPostFile>> files = const {},
+  List<CalendarWorkItem> calendar = const [],
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
@@ -92,7 +94,8 @@ Future<List<Override>> _overrides(
         ..extrasBySpace[DaybookSamples.space] = extras
         ..pointsByPost[DaybookSamples.handoverId] = s.handoverPoints()
         ..acksByPost.addAll(acks)
-        ..filesByPost.addAll(files),
+        ..filesByPost.addAll(files)
+        ..calendar.addAll(calendar),
     ),
     libraryRepositoryProvider.overrideWithValue(
       FakeLibraryRepository(now: now)
@@ -685,6 +688,160 @@ void main() {
           ],
         ),
         before: (tester) => _writeKind(tester, l10n, DaybookKind.file),
+      );
+    });
+
+    testWidgets('K5 v13 a note, for information (F58, 2598:36260) [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      const id = 'post-pour-note';
+      final post = DaybookPost(
+        id: id,
+        kind: DaybookPost.noteKind,
+        createdAt: DateTime(2026, 10, 15, 11, 45),
+        title: s.t('Pour finished, level 3 slab', 'انتهى الصب، بلاطة الطابق 3'),
+        body: s.t(
+          'Pump left at 11:40. Curing starts tomorrow, 7 am.',
+          'غادرت المضخة 11:40. تبدأ المعالجة غدًا 7 صباحًا.',
+        ),
+        authorId: DaybookSamples.islam,
+        authorName: s.islamName,
+        coverPath: '${DaybookSamples.space}/posts/$id/0.jpg',
+      );
+      await shoot(
+        tester,
+        'K5-note',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DateTime(2026, 10, 15, 11, 50),
+          posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
+          files: {
+            id: [
+              for (var i = 0; i < 3; i++)
+                DaybookPostFile(
+                  mime: 'image/jpeg',
+                  path: '${DaybookSamples.space}/posts/$id/$i.jpg',
+                ),
+            ],
+          },
+        ),
+      );
+    });
+
+    testWidgets('F56 a work item: the who row from the start [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F56-who-row',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+        },
+      );
+    });
+
+    testWidgets('F56 Post with nobody chosen: the who row asks [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F56-who-asks',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+          await tester.tap(find.byKey(const Key('writing-post')));
+          // Mid-pulse.
+          await tester.pump(const Duration(milliseconds: 400));
+        },
+      );
+    });
+
+    testWidgets('F56 an announcement goes To: Everyone or a Team [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F56-to-menu',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _writeKind(tester, l10n, DaybookKind.announcement);
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.halfDay,
+          );
+          final to = find.byKey(const Key('writing-to'));
+          await tester.ensureVisible(to);
+          await tester.pumpAndSettle();
+          await _tap(
+            tester,
+            find.descendant(of: to, matching: find.byType(Icon)),
+          );
+        },
+      );
+    });
+
+    testWidgets('F57 the Due today strip with an earlier day, and a passed '
+        'due as a reminder [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F57-due-strip',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.friday,
+          me: DaybookSamples.omar,
+          posts: s.l1(),
+          calendar: [
+            s.cableTraysDue(),
+            CalendarWorkItem(
+              postId: 'post-rebar-spacers',
+              spaceId: DaybookSamples.space,
+              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
+              day: DateTime(2026, 10, 14),
+              status: WorkStatus.open,
+            ),
+          ],
+        ),
       );
     });
 

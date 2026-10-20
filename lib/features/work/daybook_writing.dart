@@ -1297,6 +1297,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
       case DaybookWritingMenu.kind:
         return BvPopoverMenu<DaybookKind>.picker(
           key: const Key('writing-kind-menu'),
+          wide: true,
           selected: kind,
           items: [
             for (final k in DaybookKind.values)

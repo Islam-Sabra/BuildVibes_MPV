@@ -408,12 +408,14 @@ class DaybookCardView extends StatelessWidget {
       ],
     );
     switch (post.kind) {
-      // A note (K5 v13 2598:36260): the words and the photos, for
-      // information; no faces and no buttons (F58).
+      // A note (K5 v13 2598:36260): the title, its words, then the
+      // photos, for information; no faces and no buttons (F58).
       case DaybookPost.noteKind:
         return [
-          ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
+          BvSlipTitle(post.title, cancelled: post.cancelled),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?cover,
+          ?files,
         ];
       case DaybookPost.checklistKind:
         return [
