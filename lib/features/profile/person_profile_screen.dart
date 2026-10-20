@@ -15,13 +15,16 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
+import '../../data/models/dm.dart';
+import '../../core/routing/app_routes.dart';
 import '../feed/feed_state.dart';
 import '../safety/report_flow.dart';
 import 'widgets/profile_body.dart';
 import 'widgets/profile_parts.dart';
 
-/// R5 · Someone else's profile, as a visitor sees it: Follow, and only what
-/// they chose to show. "Message" is not in the MVP.
+/// R5 · Someone else's profile, as a visitor sees it (R5 v3 2345:38825):
+/// Follow, Message (their conversation, or a new one), and only what they
+/// chose to show.
 class PersonProfileScreen extends ConsumerStatefulWidget {
   const PersonProfileScreen({super.key, required this.profileId});
 
@@ -172,6 +175,24 @@ class _PersonProfileScreenState extends ConsumerState<PersonProfileScreen> {
                             onPressed: _following == null || _busy
                                 ? null
                                 : _toggleFollow,
+                          ),
+                        ),
+                        Expanded(
+                          child: BvButton(
+                            key: const Key('profile-message'),
+                            label: l10n.profileMessage,
+                            style: BvButtonStyle.secondary,
+                            size: BvButtonSize.medium,
+                            expand: true,
+                            onPressed: () => context.push(
+                              AppRoutes.messagesWith(p.id),
+                              extra: DmPerson(
+                                id: p.id,
+                                name: '${p.firstName} ${p.lastName}'.trim(),
+                                headline: p.headline,
+                                company: p.companyLabel,
+                              ),
+                            ),
                           ),
                         ),
                         _MoreButton(

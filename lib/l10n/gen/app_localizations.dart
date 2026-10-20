@@ -4007,7 +4007,7 @@ abstract class AppLocalizations {
   /// R1 title. kind: post, reply, message, profile.
   ///
   /// In en, this message translates to:
-  /// **'{kind, select, post{Report this post} reply{Report this reply} message{Report this message} other{Report this account}}'**
+  /// **'{kind, select, post{Report this post} reply{Report this reply} message{Report this message} dm_message{Report this message} other{Report this account}}'**
   String reportTitle(String kind);
 
   /// R1 line.
@@ -6313,6 +6313,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{day} {title}'**
   String daybookDueStripEarlier(String day, String title);
+
+  /// Messages (DM1): the screen title, and the Home icon's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messagesTitle;
+
+  /// DM1: the label above the newest request from someone new.
+  ///
+  /// In en, this message translates to:
+  /// **'Message request'**
+  String get messagesRequest;
+
+  /// The list of every request from someone new.
+  ///
+  /// In en, this message translates to:
+  /// **'Message requests'**
+  String get messagesRequests;
+
+  /// DM1: the group of threads with a message today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get messagesToday;
+
+  /// DM1: the group of older threads.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get messagesEarlier;
+
+  /// DM1: the last message, when you sent it.
+  ///
+  /// In en, this message translates to:
+  /// **'You: {text}'**
+  String messagesYou(String text);
+
+  /// DM1: a voice note as the last message.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note · {length}'**
+  String messagesVoice(String length);
+
+  /// DM1 with no threads.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Start one with +.'**
+  String get messagesEmpty;
+
+  /// DM1: the + button's label, and the person picker's title.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get messagesNew;
+
+  /// DM1: the search field's hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search names'**
+  String get messagesSearch;
+
+  /// Read out for a thread's dot (never a number).
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get messagesUnread;
+
+  /// DM2: the first Space both people are in. Never a count.
+  ///
+  /// In en, this message translates to:
+  /// **'Both in {space}'**
+  String dmBothIn(String space);
+
+  /// DM6: a request from someone with no work link to you.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your Spaces'**
+  String get dmNotInSpaces;
+
+  /// DM6: decline a request; the sender isn't told.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get dmDecline;
+
+  /// After Decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined. {name} isn\'t told.'**
+  String dmDeclined(String name);
+
+  /// DM6: a photo or file from someone you haven't answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to show'**
+  String get dmTapToShow;
+
+  /// DM2 ⋯ menu: no pushes from this thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get dmMute;
+
+  /// DM2 ⋯ menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get dmUnmute;
+
+  /// DM2 ⋯ menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Report {name}'**
+  String dmReportPerson(String name);
+
+  /// A new conversation's field hint, before the thread exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the first message'**
+  String get dmFirstMessage;
+
+  /// start_dm paused by the spam guard.
+  ///
+  /// In en, this message translates to:
+  /// **'Many people you wrote to haven\'t answered. You can start new conversations again on {day}.'**
+  String dmPaused(String day);
+
+  /// start_dm's warning, before the pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Many people you wrote to haven\'t answered yet.'**
+  String get dmWarning;
+
+  /// A photo in a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get dmPhoto;
+
+  /// A person's profile (R5 v3): open or start the conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get profileMessage;
 }
 
 class _AppLocalizationsDelegate

@@ -176,6 +176,9 @@ abstract final class BvHomeSpec {
   static const barPaddingVertical = BvSpace.s2;
   static const barGap = BvSpace.s2;
   static const barButton = BvSize.controlMd; // 44
+
+  /// The Messages icon's unread dot, from the button's corner.
+  static const dotInset = BvSpace.s8;
   static const wordmarkSize = 22.0;
   static const wordmarkLineHeight = 28.0;
 

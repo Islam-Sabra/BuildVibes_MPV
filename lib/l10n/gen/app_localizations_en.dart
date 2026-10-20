@@ -2340,6 +2340,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'post': 'Report this post',
       'reply': 'Report this reply',
       'message': 'Report this message',
+      'dm_message': 'Report this message',
       'other': 'Report this account',
     });
     return '$_temp0';
@@ -3738,4 +3739,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String daybookDueStripEarlier(String day, String title) {
     return '$day $title';
   }
+
+  @override
+  String get messagesTitle => 'Messages';
+
+  @override
+  String get messagesRequest => 'Message request';
+
+  @override
+  String get messagesRequests => 'Message requests';
+
+  @override
+  String get messagesToday => 'Today';
+
+  @override
+  String get messagesEarlier => 'Earlier';
+
+  @override
+  String messagesYou(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String messagesVoice(String length) {
+    return 'Voice note · $length';
+  }
+
+  @override
+  String get messagesEmpty => 'No messages yet. Start one with +.';
+
+  @override
+  String get messagesNew => 'New message';
+
+  @override
+  String get messagesSearch => 'Search names';
+
+  @override
+  String get messagesUnread => 'Unread';
+
+  @override
+  String dmBothIn(String space) {
+    return 'Both in $space';
+  }
+
+  @override
+  String get dmNotInSpaces => 'Not in your Spaces';
+
+  @override
+  String get dmDecline => 'Decline';
+
+  @override
+  String dmDeclined(String name) {
+    return 'Declined. $name isn\'t told.';
+  }
+
+  @override
+  String get dmTapToShow => 'Tap to show';
+
+  @override
+  String get dmMute => 'Mute';
+
+  @override
+  String get dmUnmute => 'Unmute';
+
+  @override
+  String dmReportPerson(String name) {
+    return 'Report $name';
+  }
+
+  @override
+  String get dmFirstMessage => 'Write the first message';
+
+  @override
+  String dmPaused(String day) {
+    return 'Many people you wrote to haven\'t answered. You can start new conversations again on $day.';
+  }
+
+  @override
+  String get dmWarning => 'Many people you wrote to haven\'t answered yet.';
+
+  @override
+  String get dmPhoto => 'Photo';
+
+  @override
+  String get profileMessage => 'Message';
 }

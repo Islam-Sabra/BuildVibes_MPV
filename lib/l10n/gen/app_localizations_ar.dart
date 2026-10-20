@@ -2339,6 +2339,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'post': 'الإبلاغ عن هذا المنشور',
       'reply': 'الإبلاغ عن هذا الرد',
       'message': 'الإبلاغ عن هذه الرسالة',
+      'dm_message': 'الإبلاغ عن هذه الرسالة',
       'other': 'الإبلاغ عن هذا الحساب',
     });
     return '$_temp0';
@@ -3743,4 +3744,88 @@ class AppLocalizationsAr extends AppLocalizations {
   String daybookDueStripEarlier(String day, String title) {
     return '$day $title';
   }
+
+  @override
+  String get messagesTitle => 'الرسائل';
+
+  @override
+  String get messagesRequest => 'طلب مراسلة';
+
+  @override
+  String get messagesRequests => 'طلبات المراسلة';
+
+  @override
+  String get messagesToday => 'اليوم';
+
+  @override
+  String get messagesEarlier => 'سابقًا';
+
+  @override
+  String messagesYou(String text) {
+    return 'أنت: $text';
+  }
+
+  @override
+  String messagesVoice(String length) {
+    return 'رسالة صوتية · $length';
+  }
+
+  @override
+  String get messagesEmpty => 'لا رسائل بعد. ابدأ واحدة بزر +.';
+
+  @override
+  String get messagesNew => 'رسالة جديدة';
+
+  @override
+  String get messagesSearch => 'ابحث بالاسم';
+
+  @override
+  String get messagesUnread => 'غير مقروءة';
+
+  @override
+  String dmBothIn(String space) {
+    return 'معًا في $space';
+  }
+
+  @override
+  String get dmNotInSpaces => 'ليس في مساحاتك';
+
+  @override
+  String get dmDecline => 'رفض';
+
+  @override
+  String dmDeclined(String name) {
+    return 'تم الرفض. لن يُبلَّغ $name.';
+  }
+
+  @override
+  String get dmTapToShow => 'انقر للعرض';
+
+  @override
+  String get dmMute => 'كتم';
+
+  @override
+  String get dmUnmute => 'إلغاء الكتم';
+
+  @override
+  String dmReportPerson(String name) {
+    return 'الإبلاغ عن $name';
+  }
+
+  @override
+  String get dmFirstMessage => 'اكتب الرسالة الأولى';
+
+  @override
+  String dmPaused(String day) {
+    return 'كثير ممن راسلتهم لم يردّوا. يمكنك بدء محادثات جديدة مرة أخرى يوم $day.';
+  }
+
+  @override
+  String get dmWarning => 'كثير ممن راسلتهم لم يردّوا بعد.';
+
+  @override
+  String get dmPhoto => 'صورة';
+
+  @override
+  String get profileMessage => 'مراسلة';
 }

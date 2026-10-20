@@ -15,6 +15,7 @@ import 'package:buildvibes/data/repositories/safety_repository.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
+import 'package:buildvibes/data/repositories/dm_repository.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
@@ -42,6 +43,7 @@ import 'account_fakes.dart';
 import 'activity_fakes.dart';
 import 'chat_fakes.dart';
 import 'daybook_fakes.dart';
+import 'dm_fakes.dart';
 import 'fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
@@ -91,6 +93,7 @@ class TestApp {
     required this.work,
     required this.daybook,
     required this.live,
+    required this.dm,
     required this.chat,
     required this.library,
     required this.recorder,
@@ -126,6 +129,7 @@ class TestApp {
 
   /// The Spaces' live channel (F47).
   final FakeDaybookLive live;
+  final FakeDmRepository dm;
   final FakeChatRepository chat;
   final FakeLibraryRepository library;
   final FakeVoiceRecorder recorder;
@@ -175,6 +179,7 @@ Future<TestApp> pumpApp(
   FakeWorkRepository? work,
   FakeDaybookRepository? daybook,
   FakeDaybookLive? live,
+  FakeDmRepository? dm,
   FakeChatRepository? chat,
   FakeLibraryRepository? library,
   FakeVoiceRecorder? recorder,
@@ -239,6 +244,7 @@ Future<TestApp> pumpApp(
   final fakeWork = work ?? FakeWorkRepository();
   final fakeDaybook = daybook ?? FakeDaybookRepository();
   final fakeLive = live ?? FakeDaybookLive();
+  final fakeDm = dm ?? FakeDmRepository();
   final fakeChat = chat ?? FakeChatRepository(now: testNow);
   final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
@@ -275,6 +281,7 @@ Future<TestApp> pumpApp(
         workRepositoryProvider.overrideWithValue(fakeWork),
         daybookRepositoryProvider.overrideWithValue(fakeDaybook),
         daybookLiveProvider.overrideWithValue(fakeLive),
+        dmRepositoryProvider.overrideWithValue(fakeDm),
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
@@ -369,6 +376,7 @@ Future<TestApp> pumpApp(
     work: fakeWork,
     daybook: fakeDaybook,
     live: fakeLive,
+    dm: fakeDm,
     chat: fakeChat,
     library: fakeLibrary,
     recorder: fakeRecorder,

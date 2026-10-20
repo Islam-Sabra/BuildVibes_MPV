@@ -14,11 +14,14 @@ import '../feed/feed_tab.dart';
 import '../feed/post_draft.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../settings/push_fix.dart';
+import '../../core/design/messages_specs.dart';
+import '../../data/repositories/dm_repository.dart';
 import 'spaces_day_tab.dart';
 
-/// Home (H1 v4 2587:35849): the wordmark and Search (people search in
-/// Explore; the notebook and Messages icons come with slices 8 and 3,
-/// review 48), the small Feed and Spaces tabs, and the tab. Spaces, your
+/// Home (H1 v4 2587:35849): the wordmark, Search (people search in
+/// Explore) and Messages, with a dot while something is unread (never a
+/// number; the notebook icon comes with slice 8, review 48), the small
+/// Feed and Spaces tabs, and the tab. Spaces, your
 /// day on site (H1b), gets a dot while something needs you. Guests get no
 /// feed (the guest feed isn't in the MVP).
 class HomeScreen extends ConsumerWidget {
@@ -103,6 +106,33 @@ class HomeScreen extends ConsumerWidget {
                     l10n.homeSearch,
                     () => context.go(AppRoutes.explore),
                   ),
+                  if (!guest)
+                    Stack(
+                      children: [
+                        icon(
+                          'home-messages',
+                          BvIcons.chat,
+                          l10n.messagesTitle,
+                          () => context.push(AppRoutes.messages),
+                        ),
+                        if (ref.watch(dmInboxProvider).value?.anyUnread ??
+                            false)
+                          const PositionedDirectional(
+                            top: BvHomeSpec.dotInset,
+                            end: BvHomeSpec.dotInset,
+                            child: SizedBox.square(
+                              key: Key('home-messages-dot'),
+                              dimension: BvMessagesSpec.dot,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: BvColors.actionPrimary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                 ],
               ),
             ),
