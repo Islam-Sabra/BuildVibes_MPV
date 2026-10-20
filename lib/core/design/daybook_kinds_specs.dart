@@ -22,6 +22,16 @@ abstract final class BvChecklistSpec {
   static const boxBorder = BvStroke.medium;
   static const boxCheck = BvSize.iconSm; // 16
 
+  /// F54: the box fills with its check, and who and when slide in.
+  static const tick = Duration(milliseconds: 300);
+  static const tickSlide = 0.25;
+
+  /// F54: a tick that arrives from someone else glows, then fades (about
+  /// 2 seconds in all).
+  static const glowHold = Duration(milliseconds: 1600);
+  static const glowFade = BvMotion.slow;
+  static const glowRadius = BorderRadius.all(Radius.circular(BvRadius.small));
+
   static const progressHeight = 4.0;
   static const progressRadius = BorderRadius.all(Radius.circular(2));
   static const progressGap = 10.0;
