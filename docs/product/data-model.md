@@ -506,6 +506,7 @@ Rules from review 33 A3 and its clarifications; choices confirmed in review 39. 
 
 **Reports:**
 - A **daily report** is a post of kind `report`, usually from the Daily report template. `daily_report_fill(space, team, from, to)` gives what was checked that day (title, ref, owner, checker, the Done photo) for "Done today", only work all the report's readers may see (an Everyone report never brings in a Team's work). Share as PDF is made on the phone.
+- **Notes in the report (migration 30, review 63):** `daily_report_notes(space, team, from, to)` gives the day's live notes (not cancelled), oldest first, with the same rules as `daily_report_fill`: a member only, one day at a time, only notes all the report's readers may see. Each has its title, author (no name across a block), time and first photo (`photo_path`, never a PDF). The app offers them under "On site", and the writer removes any before posting. An `item_ref` block may point at a note as well as a work item, with the same rule. In the post JSON, every ref carries `kind` and `status` (a note cancelled after the report says `cancelled`). A note's ref has `author_name`, `created_at` and `photo_path` instead of the work item's fields.
 - `week_report(space, today, from, to)` (MR1, up to 7 days; the phone sends its own days and midnights): needs a decision (late, sent back, waiting for a check; never a target), checked this week (with the Done photo and who checked), targets (work items with work items under them still to check, and their progress), coming up (activities and due dates in the next 7 days from now). Each person sees only what they may read; rows with names, never per-person totals (rule 3); at most 30 a section.
 - `share_week_report(id, thread, week_start)`: a chat message of kind `report` with `messages.report_week`; whoever taps it opens the week report with their own rights. The 0.9.0 app shows such a message as an empty bubble.
 
@@ -725,7 +726,7 @@ Review 62 ("The two notes, decided" and "The next migration (29)"), review 61 G1
 - No acknowledgements: `ack` refuses every kind on a note (`22023`). `needs_me` is null. It tells nobody (no Activity, no push).
 - Read, edit, cancel and delete as an announcement: who sees it follows `can_see_space_post` (an Everyone note or a Team note); the author edits `title`, `body` and files while it is live (other keys `22023`); the author cancels, or an admin acting for a gone author (never edits); delete while nobody added anything.
 - On the card: one row; `last_activity_at` is its creation and rises on every edit and the cancel; the history has its edits and cancel. Search finds it (`post_kind` `note`).
-- **Daily report:** `daily_report_fill` lists only checked work items and lists no kinds, so it is unchanged; how a note "goes into the daily report" (F58) is open for the lead (a fill of the day's notes, or an `item_ref` that can point at a note).
+- **Daily report:** `daily_report_fill` is unchanged. Notes come through `daily_report_notes` and an `item_ref` that can point at a note (migration 30, review 63).
 
 ## Tests required for every migration (SQL tests in `supabase/tests/`)
 - A non-member can't select anything from a private Space: Space, messages, items, files.

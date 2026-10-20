@@ -14,9 +14,15 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   - the migration 29 push;
   - turning off public channels later, once the private-channel build is on every test phone.
 - The SQL stand-in for sessions without the Supabase CLI is in `supabase/dev/standin/`.
+- Migration 30 (`20261021120000_report_notes.sql`, **not live**), notes in the daily report:
+  - `daily_report_notes` lists the day's notes for the "On site" suggestions;
+  - a report's `item_ref` can point at a note;
+  - each ref says its kind and status.
+  - 22 new checks; all 2,193 pass on the stand-in.
+  - Founder's yes needed to push; push it after migration 29, or with it.
 
 **Next, on the PC (in order):**
-1. `git fetch`, then merge `origin/claude/test-tw7wuv` into `slice2-live-db`. It carries `slice2-live-db` plus R1, R2 and review 63, so it merges without conflict.
+1. `git fetch`, then merge `origin/claude/test-tw7wuv` into `slice2-live-db`. It carries `slice2-live-db` plus R1, R2, review 63 and migration 30, so it merges without conflict.
 2. Run `supabase test db` (all 2,171 should pass). Then check against the local Realtime server: a private join to a `thread:` channel works for a member and is refused for an outsider, and with public access off a chat message still arrives live.
 3. Push migration 29 to the live database. `supabase db push` must list only `20261020120000_slice2_live.sql`. Do the read-only check after, then merge `slice2-live-db` into `main`.
 4. App, on `slice2-app`:
@@ -26,7 +32,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
    - `my_ack_at`, so an edited announcement opens again;
    - the Note kind and the kind menu with Note first (F58);
    - F54 (tick feel), F56 (one "who" flow; the picker never posts), F57 (no "Late").
-5. Migration 30: `daily_report_fill` gains the day's notes (review 63).
+5. Migration 30 is written (see above). Run `supabase test db`, then push it with the founder's yes, listing only `20261021120000_report_notes.sql` (or both 29 and 30 in one push, if he says yes to both). App: the daily report writer offers `daily_report_notes` under "On site", and the report page shows a note ref (author, time, photo).
 6. Turn off public channels on the live project, only after the step 4 build is on every test phone.
 
 **Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.
