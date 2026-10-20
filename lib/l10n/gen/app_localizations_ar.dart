@@ -3828,4 +3828,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileMessage => 'مراسلة';
+
+  @override
+  String get chatNewChat => 'محادثة جديدة';
+
+  @override
+  String get chatNewGroup => 'مجموعة جديدة في هذه المساحة';
+
+  @override
+  String get chatNewGroupNote =>
+      'اختر اسمًا وأعضاء. يستطيع مدير المساحة فعل ذلك.';
+
+  @override
+  String get chatOnePerson => 'راسل شخصًا واحدًا';
+
+  @override
+  String chatOnePersonNote(String space) {
+    return 'تُفتح في الرسائل، مع علامة «من $space»';
+  }
+
+  @override
+  String get chatWorkNote => 'يُكلَّف العمل من تبويب العمل. المحادثة للتواصل.';
+
+  @override
+  String chatThreadsDmNote(String space) {
+    return 'الرسائل إلى شخص واحد تُفتح في الرسائل، مع علامة «من $space».';
+  }
 }

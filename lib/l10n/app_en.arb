@@ -5541,5 +5541,43 @@
   "profileMessage": "Message",
   "@profileMessage": {
     "description": "A person's profile (R5 v3): open or start the conversation."
+  },
+  "chatNewChat": "New chat",
+  "@chatNewChat": {
+    "description": "S7 v4: the button on a Space's Chat tab, and its sheet's title."
+  },
+  "chatNewGroup": "New group in this Space",
+  "@chatNewGroup": {
+    "description": "S7-N: a new Team."
+  },
+  "chatNewGroupNote": "Pick a name and members. The Space admin can do this.",
+  "@chatNewGroupNote": {
+    "description": "S7-N: under New group."
+  },
+  "chatOnePerson": "Message one person",
+  "@chatOnePerson": {
+    "description": "S7-N: a direct message to someone in this Space."
+  },
+  "chatOnePersonNote": "Opens in Messages, marked “From {space}”",
+  "@chatOnePersonNote": {
+    "description": "S7-N and the threads note: where a message to one person goes.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "chatWorkNote": "Work is given in the Work tab. Chat is for talking.",
+  "@chatWorkNote": {
+    "description": "S7-N: the sheet's last line."
+  },
+  "chatThreadsDmNote": "Messages to one person open in Messages, marked “From {space}”.",
+  "@chatThreadsDmNote": {
+    "description": "S7 v4: under the threads, after who sees which.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
   }
 }

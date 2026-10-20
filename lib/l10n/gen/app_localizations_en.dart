@@ -3823,4 +3823,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileMessage => 'Message';
+
+  @override
+  String get chatNewChat => 'New chat';
+
+  @override
+  String get chatNewGroup => 'New group in this Space';
+
+  @override
+  String get chatNewGroupNote =>
+      'Pick a name and members. The Space admin can do this.';
+
+  @override
+  String get chatOnePerson => 'Message one person';
+
+  @override
+  String chatOnePersonNote(String space) {
+    return 'Opens in Messages, marked “From $space”';
+  }
+
+  @override
+  String get chatWorkNote =>
+      'Work is given in the Work tab. Chat is for talking.';
+
+  @override
+  String chatThreadsDmNote(String space) {
+    return 'Messages to one person open in Messages, marked “From $space”.';
+  }
 }

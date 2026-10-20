@@ -6457,6 +6457,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Message'**
   String get profileMessage;
+
+  /// S7 v4: the button on a Space's Chat tab, and its sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get chatNewChat;
+
+  /// S7-N: a new Team.
+  ///
+  /// In en, this message translates to:
+  /// **'New group in this Space'**
+  String get chatNewGroup;
+
+  /// S7-N: under New group.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a name and members. The Space admin can do this.'**
+  String get chatNewGroupNote;
+
+  /// S7-N: a direct message to someone in this Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Message one person'**
+  String get chatOnePerson;
+
+  /// S7-N and the threads note: where a message to one person goes.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens in Messages, marked “From {space}”'**
+  String chatOnePersonNote(String space);
+
+  /// S7-N: the sheet's last line.
+  ///
+  /// In en, this message translates to:
+  /// **'Work is given in the Work tab. Chat is for talking.'**
+  String get chatWorkNote;
+
+  /// S7 v4: under the threads, after who sees which.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages to one person open in Messages, marked “From {space}”.'**
+  String chatThreadsDmNote(String space);
 }
 
 class _AppLocalizationsDelegate
