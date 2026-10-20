@@ -3730,4 +3730,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookPostAsNote => 'للعلم فقط؟ انشرها كملاحظة';
+
+  @override
+  String daybookToAudience(String audience, String more) {
+    return 'إلى: $audience$more';
+  }
+
+  @override
+  String get daybookEveryone => 'الجميع';
 }

@@ -292,6 +292,47 @@ void main() {
       expect(sent.toParams()['p_people'], isEmpty);
     });
 
+    testWidgets('F56: an announcement goes To: Everyone, or one Team chosen '
+        'from a single choice [$lang]', (tester) async {
+      final (app: _, :daybook) = await _open(tester, lang);
+      await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
+      final to = find.byKey(const Key('writing-to'));
+      expect(
+        find.descendant(
+          of: to,
+          matching: find.text(
+            l10n.daybookToAudience(l10n.daybookEveryone, ' ›'),
+          ),
+        ),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(to);
+      await tester.pumpAndSettle();
+      await _tap(tester, find.descendant(of: to, matching: find.byType(Icon)));
+      final menu = tester.widget<BvPopoverMenu<String>>(
+        find.byKey(const Key('writing-to-menu')),
+      );
+      expect(menu.picker, isTrue);
+      // A Space admin may post to any Team.
+      expect(
+        [for (final i in menu.items) i.label],
+        [l10n.daybookEveryone, for (final t in s.people().teams) t.name],
+      );
+      final mep = s.people().teams.first;
+      await _tap(
+        tester,
+        find.descendant(
+          of: find.byKey(const Key('writing-to-menu')),
+          matching: find.text(mep.name),
+        ),
+      );
+      expect(find.text(l10n.daybookToAudience(mep.name, ' ›')), findsOneWidget);
+      await _post(tester);
+      final sent = daybook.createdPosts.single;
+      expect(sent.teamId, mep.id);
+      expect(sent.toParams()['p_team'], mep.id);
+    });
+
     testWidgets('a scheduled activity: who\'s coming first; then Post with '
         'no start opens the time pickers, and only Post posts [$lang]', (
       tester,
@@ -595,6 +636,31 @@ void main() {
       pinnedLastDay(DateTime(2026, 10, 17)),
       DateTime(2026, 10, 16, 23, 59),
     );
+  });
+
+  test('F56: who may post to which Team: an admin to any, a member to their '
+      'own, and someone in none to Everyone only', () {
+    final people = const DaybookSamples('en').people();
+    expect(
+      audienceTeams(people, me: DaybookSamples.islam, admin: true),
+      people.teams,
+    );
+    expect(
+      [
+        for (final t in audienceTeams(
+          people,
+          me: DaybookSamples.omar,
+          admin: false,
+        ))
+          t.name,
+      ],
+      ['MEP'],
+    );
+    expect(
+      audienceTeams(people, me: DaybookSamples.islam, admin: false),
+      isEmpty,
+    );
+    expect(audienceTeams(null, me: DaybookSamples.omar, admin: true), isEmpty);
   });
 
   test('assignable people are Lead and Crew; an activity is for anyone', () {

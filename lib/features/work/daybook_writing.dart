@@ -38,7 +38,22 @@ final newPostIdProvider = Provider<String Function()>((ref) => newUuid);
 /// What opens over the diary while writing (E2, E3, E6): More, the kind
 /// menu, the assign picker or the place field. Who a checklist or an
 /// activity is for opens as a sheet ([DaybookPeopleSheet], F45).
-enum DaybookWritingMenu { more, kind, assign, place }
+enum DaybookWritingMenu { more, kind, assign, place, audience }
+
+/// The Teams [me] may post to (F56, "To: Everyone ›"): their own, or every
+/// Team for a Space admin (create_space_post's rule).
+List<SpaceTeam> audienceTeams(
+  SpacePeople? people, {
+  required String? me,
+  required bool admin,
+}) {
+  if (people == null || me == null) return const [];
+  return admin ? people.teams : people.teamsOf(me);
+}
+
+/// The kinds that go to an audience rather than to chosen people.
+bool goesToAudience(DaybookKind kind) =>
+    kind == DaybookKind.announcement || kind == DaybookKind.file;
 
 /// A due day and, when chosen, its time: both the phone's own. A null
 /// [day] takes the due off (Remove).
@@ -363,6 +378,13 @@ class DaybookWriter {
   Future<void> setTitle(String text) => _put((d) => d.copyWith(title: text));
   Future<void> setBody(String text) => _put((d) => d.copyWith(body: text));
 
+  /// Who it goes to: a Team, or Everyone (null).
+  Future<void> setTeam(SpaceTeam? team) => _put(
+    (d) => d.copyWith(
+      team: () => team == null ? null : (id: team.id, name: team.name),
+    ),
+  );
+
   Future<void> setOwner(BvGiveToPerson p) =>
       _put((d) => d.copyWith(ownerId: p.id, ownerName: p.name));
 
@@ -672,7 +694,29 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             label: words.dueProperty(draft.dueDate!, draft.dueAt),
             onTap: tap(widget.onPickDue),
           );
+    final me = ref.watch(authUserIdProvider).value;
+    final teams = audienceTeams(
+      ref.watch(spacePeopleProvider(widget.spaceId)).value,
+      me: me,
+      admin:
+          ref.watch(spaceDetailProvider(widget.spaceId)).value?.iAmAdmin ??
+          false,
+    );
     final properties = <BvWritingProperty>[
+      // F56: an announcement and a Document for receipt go to Everyone or
+      // a Team, already filled; a tap chooses (an edit keeps it).
+      if (goesToAudience(kind))
+        BvWritingProperty.icon(
+          key: const Key('writing-to'),
+          icon: BvIcons.team,
+          label: l10n.daybookToAudience(
+            draft.teamName ?? l10n.daybookEveryone,
+            teams.isEmpty || widget.editing ? '' : ' ›',
+          ),
+          onTap: teams.isEmpty || widget.editing
+              ? null
+              : tap(() => menu(DaybookWritingMenu.audience)),
+        ),
       if (kind == DaybookKind.workItem) ...[
         if (draft.ownerId == null && !widget.editing)
           choose(l10n.daybookForChoose, () => menu(DaybookWritingMenu.assign))
@@ -1125,6 +1169,9 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
 
 enum _More { assign, people, location, due, pin, time, file }
 
+/// Everyone, in the To menu (a Team is chosen by its id).
+const _everyone = '';
+
 class _PopoverState extends ConsumerState<DaybookWritingPopover> {
   late final DaybookWriter _writer = DaybookWriter(
     ref,
@@ -1219,6 +1266,32 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
             _More.pin => widget.onPickPin(),
             _More.time => widget.onPickStart(),
             _More.file => widget.onPickFile(),
+          },
+        );
+      case DaybookWritingMenu.audience:
+        final teams = audienceTeams(
+          ref.watch(spacePeopleProvider(widget.spaceId)).value,
+          me: widget.me,
+          admin:
+              ref.watch(spaceDetailProvider(widget.spaceId)).value?.iAmAdmin ??
+              false,
+        );
+        // One choice: Everyone or one Team (rule 6).
+        return BvPopoverMenu<String>.picker(
+          key: const Key('writing-to-menu'),
+          selected: draft?.teamId ?? _everyone,
+          items: [
+            BvMenuItem(
+              value: _everyone,
+              label: l10n.daybookEveryone,
+              icon: BvIcons.people,
+            ),
+            for (final t in teams)
+              BvMenuItem(value: t.id, label: t.name, icon: BvIcons.team),
+          ],
+          onSelected: (id) async {
+            await _writer.setTeam(teams.where((t) => t.id == id).firstOrNull);
+            widget.onClose();
           },
         );
       case DaybookWritingMenu.kind:

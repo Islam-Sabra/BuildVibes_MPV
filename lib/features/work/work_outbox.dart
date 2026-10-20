@@ -689,6 +689,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             people: [for (final p in d.people) p.id],
             points: d.writtenPoints,
             photoPaths: paths,
+            teamId: d.teamId,
           ),
         );
       case PendingKind.signOff:

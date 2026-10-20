@@ -6295,6 +6295,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Just for information? Post as a Note'**
   String get daybookPostAsNote;
+
+  /// Writing card: who an announcement or a Document for receipt goes to (F56). more is ' ›' when it can be changed, else empty.
+  ///
+  /// In en, this message translates to:
+  /// **'To: {audience}{more}'**
+  String daybookToAudience(String audience, String more);
+
+  /// Writing card and its To menu: the whole Space (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get daybookEveryone;
 }
 
 class _AppLocalizationsDelegate

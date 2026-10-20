@@ -3725,4 +3725,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookPostAsNote => 'Just for information? Post as a Note';
+
+  @override
+  String daybookToAudience(String audience, String more) {
+    return 'To: $audience$more';
+  }
+
+  @override
+  String get daybookEveryone => 'Everyone';
 }

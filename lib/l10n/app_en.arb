@@ -5387,5 +5387,21 @@
   "daybookPostAsNote": "Just for information? Post as a Note",
   "@daybookPostAsNote": {
     "description": "Under the owner picker of a work item: turn it into a note (F56, F58)."
+  },
+  "daybookToAudience": "To: {audience}{more}",
+  "@daybookToAudience": {
+    "description": "Writing card: who an announcement or a Document for receipt goes to (F56). more is ' ›' when it can be changed, else empty.",
+    "placeholders": {
+      "audience": {
+        "type": "String"
+      },
+      "more": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookEveryone": "Everyone",
+  "@daybookEveryone": {
+    "description": "Writing card and its To menu: the whole Space (F56)."
   }
 }

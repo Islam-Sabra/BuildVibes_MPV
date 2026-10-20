@@ -124,6 +124,7 @@ class NewSpacePost {
     this.points = const [],
     this.photoPaths = const [],
     this.attachedFileIds = const [],
+    this.teamId,
   });
 
   final String id;
@@ -131,6 +132,9 @@ class NewSpacePost {
 
   /// 'note', 'checklist', 'announcement', 'activity' or 'file'.
   final String kind;
+
+  /// A Team it goes to; null, Everyone (F56).
+  final String? teamId;
 
   /// A file post may leave it empty: the server takes the file's name.
   final String title;
@@ -164,6 +168,7 @@ class NewSpacePost {
       'p_kind': kind,
       'p_title': text(title),
       'p_body': text(body),
+      'p_team': teamId,
       'p_place': activity ? text(place) : null,
       'p_due': checklist && dueDate != null ? _date(dueDate!) : null,
       'p_due_at': checklist && dueAt != null ? _instant(dueAt!) : null,

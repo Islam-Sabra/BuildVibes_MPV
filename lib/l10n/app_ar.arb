@@ -1032,5 +1032,7 @@
   "daybookForChoose": "لـ: اختر ›",
   "daybookComingChoose": "من سيحضر: اختر ›",
   "daybookChooseWho": "اختر لمن",
-  "daybookPostAsNote": "للعلم فقط؟ انشرها كملاحظة"
+  "daybookPostAsNote": "للعلم فقط؟ انشرها كملاحظة",
+  "daybookToAudience": "إلى: {audience}{more}",
+  "daybookEveryone": "الجميع"
 }
