@@ -100,9 +100,12 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   - DM4–DM5, Put in a Space;
   - S7-N, New chat in a Space;
   - S8m, Turn into a work item in Space chat.
-- **Before any slice 3 build goes to a phone:**
-  - push migration 31 with the founder's yes;
-  - check the private `dm:` join against the local Realtime server.
+- **Migration 31: founder's yes** (20 Oct, night), on these conditions, in order:
+  1. after migrations 29 and 30 are live;
+  2. `supabase test db` passes;
+  3. the local Realtime server lets a member join the private `dm:` channel and refuses an outsider;
+  4. then `supabase db push`, listing only `20261021180000_dm_live.sql`, with the read-only check after;
+  5. and before any slice 3 build goes on a phone.
 - **For the PC:**
   - **Migrations:** push 29, 30 and 31 from the branch **head**. The head has the review 65 fixes to migration 30, and migration 31 is new.
   - **Slice 2 retest:** build the app from `a2e330f`.

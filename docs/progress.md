@@ -671,3 +671,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Messages on Home, DM1, DM2 with DM3's actions, DM6, and Message on a profile, all checked against Figma in EN and AR.
   - 1,293 app tests and 2,208 SQL checks pass, apart from the same 10 PDF tests.
   - Left in slice 3: voice notes in DMs, Put in a Space, New chat in a Space, Turn into a work item.
+- **20 Oct, night:** founder's yes for migration 31 (the private `dm:` channel). It goes live from the PC after 29 and 30, once the Realtime check passes, before any slice 3 build goes on a phone.
