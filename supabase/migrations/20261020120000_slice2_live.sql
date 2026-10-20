@@ -7,15 +7,17 @@
 --   daybook_cards). A non-member, someone who left and anon get nothing and
 --   can't send. One topic per Space: the message is only a post id, and
 --   everyone re-reads under the post's own rules, so a Team needs no topic
---   of its own.
+--   of its own. Review 63 R1: a chat thread's channel, 'thread:<thread
+--   id>', may be joined (receive only) by whoever can_use_thread, so chat
+--   stays live once public channels are off.
 -- - N2: an admin acting for an author who is gone (acts_for_author) may
 --   unpin that author's announcement through edit_space_post with exactly
 --   {"pinned_until": null}. Every other edit stays the author's.
 -- - my_ack_at in the post JSON (so daybook_cards, post_page and
 --   daybook_extras): when the caller gave each of their acknowledgements,
---   {"got_it": "<time>"} or {}; my_acks is unchanged. ack given again after
---   an edit takes the new time (review 61 G1); otherwise a second tap still
---   changes nothing.
+--   {"got_it": "<time>"} or {}; my_acks is unchanged. Got it given again
+--   after an edit takes the new time (review 61 G1); Received keeps its
+--   first time (review 63 R2); otherwise a second tap still changes nothing.
 -- - The note kind (review 50 F58): create_space_post takes p_kind 'note', a
 --   title with words, photos or files, and nothing else: no people, points,
 --   pin, times, place, due date or Library file, and no acknowledgement
@@ -52,6 +54,25 @@ as $$
   end;
 $$;
 
+-- Whether the caller may join a chat thread's channel, 'thread:<thread id>'
+-- (review 63 R1): the chat's live updates are Postgres changes on messages,
+-- and with public channels off they need a private channel too. The same
+-- test as reading the thread (can_use_thread: a Team's thread stays in that
+-- Team). Receive only: the chat sends nothing on it.
+create function public.may_use_thread_topic(p_topic text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case
+    when p_topic ~* '^thread:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      then public.can_use_thread(substr(p_topic, 8)::uuid)
+    else false
+  end;
+$$;
+
 -- Realtime Authorization reads these policies as the signed-in person when
 -- they join a private channel (select: may receive) and when they send on
 -- it (insert: may send), with realtime.topic() set to the channel's topic.
@@ -61,7 +82,8 @@ create policy daybook_live_receive on realtime.messages
   for select to authenticated
   using (realtime.messages.extension = 'broadcast'
          and realtime.messages.topic = (select realtime.topic())
-         and (select public.may_use_daybook_topic((select realtime.topic()))));
+         and ((select public.may_use_daybook_topic((select realtime.topic())))
+              or (select public.may_use_thread_topic((select realtime.topic())))));
 create policy daybook_live_send on realtime.messages
   for insert to authenticated
   with check (realtime.messages.extension = 'broadcast'
@@ -690,12 +712,13 @@ begin
       raise exception 'not at this time' using errcode = 'P0001';
     end if;
   end if;
-  -- Given again after an edit (migration 29, review 61 G1): it takes the new
-  -- time, so my_ack_at is later than the edit. Otherwise a second tap
-  -- changes nothing.
+  -- Got it given again after an edit (migration 29, review 61 G1): it takes
+  -- the new time, so my_ack_at is later than the edit. Only Got it (review
+  -- 63 R2): Received keeps its first time, the record of receipt. Otherwise
+  -- a second tap changes nothing.
   insert into public.post_acks as a (post_id, profile_id, kind) values (p_post, v_me, p_kind)
   on conflict (post_id, profile_id, kind) do update set created_at = now()
-  where a.created_at < v_post.edited_at;
+  where a.kind = 'got_it' and a.created_at < v_post.edited_at;
   if v_me is distinct from v_post.author_id then
     insert into public.post_others (post_id) values (p_post) on conflict do nothing;
   end if;
@@ -948,3 +971,5 @@ $function$;
 -- Realtime evaluates the policies as authenticated, so it may run the test.
 revoke execute on function public.may_use_daybook_topic(text) from public, anon;
 grant execute on function public.may_use_daybook_topic(text) to authenticated;
+revoke execute on function public.may_use_thread_topic(text) from public, anon;
+grant execute on function public.may_use_thread_topic(text) to authenticated;

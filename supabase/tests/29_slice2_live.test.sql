@@ -10,7 +10,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(108);
+select plan(121);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000029' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -468,6 +468,88 @@ select throws_ok($$select public.edit_space_post(pg_temp.item('a304'), '{"pinned
 select throws_ok($$select public.edit_space_post(pg_temp.item('a304'), '{"title": "Keys at the office"}')$$,
   '42501', null, 'the acting admin can''t edit a gone author''s note');
 select lives_ok($$select public.cancel_space_post(pg_temp.item('a304'))$$, 'but can cancel it');
+
+-- Review 63 R1: a chat thread's private channel --------------------------------------------------
+
+reset role;
+select set_config('test.thread', (select id from public.threads
+  where space_id = pg_temp.sp() and team_id is null)::text, true);
+select set_config('test.team_thread', (select id from public.threads
+  where team_id = pg_temp.team())::text, true);
+-- One row on each topic, as the database owner (Realtime writes them).
+insert into realtime.messages (topic, extension, event, payload, private)
+values ('thread:' || current_setting('test.thread'), 'broadcast', 'x', '{}', true),
+       ('thread:' || current_setting('test.team_thread'), 'broadcast', 'x', '{}', true);
+create function pg_temp.thread_seen(p_who text, p_setting text) returns bigint language plpgsql as $$
+begin
+  perform pg_temp.on_topic('thread:' || current_setting(p_setting));
+  perform pg_temp.as_user(p_who);
+  set local role authenticated;
+  return pg_temp.seen('thread:' || current_setting(p_setting));
+end;
+$$;
+
+select is(pg_temp.thread_seen('e2', 'test.thread'), 1::bigint,
+  'a member may join the Space''s Everyone thread channel');
+reset role;
+select is(pg_temp.thread_seen('e2', 'test.team_thread'), 0::bigint,
+  'but not a Team thread she isn''t in');
+reset role;
+select is(pg_temp.thread_seen('e9', 'test.team_thread'), 1::bigint, 'the Team''s member may');
+reset role;
+select is(pg_temp.thread_seen('e1', 'test.team_thread'), 1::bigint,
+  'and so may the Space admin, as can_use_thread');
+reset role;
+select is(pg_temp.thread_seen('e5', 'test.thread'), 0::bigint,
+  'a signed-in non-member who knows the thread id gets nothing');
+reset role;
+select is(pg_temp.thread_seen('e7', 'test.thread'), 0::bigint, 'nor does someone who left');
+reset role;
+select pg_temp.on_topic('thread:' || current_setting('test.thread'));
+select set_config('request.jwt.claims', '{"role": "anon"}', true);
+set local role anon;
+select is(pg_temp.seen('thread:' || current_setting('test.thread')), 0::bigint, 'nor anon');
+reset role;
+select pg_temp.on_topic('thread:' || current_setting('test.thread'));
+select pg_temp.as_user('e2');
+set local role authenticated;
+select throws_ok($$select pg_temp.send('thread:' || current_setting('test.thread'))$$, '42501', null,
+  'receive only: nobody sends on a thread''s channel');
+select ok(not public.may_use_thread_topic('thread:not-a-thread')
+          and not public.may_use_thread_topic(null)
+          and not public.may_use_thread_topic('thread:' || gen_random_uuid()),
+  'a topic that isn''t a thread is refused, without an error from the cast');
+reset role;
+select ok(not has_function_privilege('anon', 'public.may_use_thread_topic(text)', 'execute')
+          and has_function_privilege('authenticated', 'public.may_use_thread_topic(text)', 'execute'),
+  'the thread topic test runs for signed-in people only');
+
+-- Review 63 R2: Received keeps its first time -------------------------------------------------
+
+insert into public.library_files (id, space_id, team_id, name, storage_path, mime, bytes,
+                                  rev_label, uploaded_by)
+values (pg_temp.item('f501'), pg_temp.sp(), null, 'Door schedule',
+        pg_temp.sp() || '/library/' || pg_temp.item('f501') || '/d.pdf', 'application/pdf', 1000,
+        'Rev D', pg_temp.uid('e1'));
+select pg_temp.as_user('e1');
+set local role authenticated;
+select lives_ok($$select public.create_space_post(pg_temp.item('a501'), pg_temp.sp(), 'file', null,
+                    p_library_file => pg_temp.item('f501'))$$, 'Omar shares a document for receipt');
+select pg_temp.as_user('e3');
+select public.ack(pg_temp.item('a501'), 'received');
+reset role;
+select pg_temp.stamp_acks('e3', 30);
+update public.space_posts set created_at = now() - interval '40 minutes' where id = pg_temp.item('a501');
+select pg_temp.as_user('e1');
+set local role authenticated;
+select lives_ok($$select public.edit_space_post(pg_temp.item('a501'), '{"title": "Door schedule, Rev D"}')$$,
+  'Omar fixes its title after Sara received it');
+select pg_temp.as_user('e3');
+select public.ack(pg_temp.item('a501'), 'received');
+reset role;
+select is((select created_at < now() - interval '20 minutes' from public.post_acks
+           where post_id = pg_temp.item('a501') and profile_id = pg_temp.uid('e3') and kind = 'received'),
+  true, 'Received again after the edit keeps the first time');
 
 select * from finish();
 rollback;
