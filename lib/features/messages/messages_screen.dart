@@ -200,6 +200,21 @@ class MessageRequestsScreen extends ConsumerWidget {
   }
 }
 
+/// A row's time: today's clock, "Yesterday", a weekday, then a date
+/// (DM1).
+String _when(
+  AppLocalizations l10n,
+  BuildContext context,
+  DateTime at,
+  DateTime now,
+) {
+  final l = at.toLocal();
+  final day = DateTime(l.year, l.month, l.day);
+  final today = DateTime(now.year, now.month, now.day);
+  if (today.difference(day).inDays == 1) return l10n.chatYesterday;
+  return BvTime.of(context).moment(at, now);
+}
+
 /// What the last message says on a row: "You: …", "Voice note · 0:24",
 /// a file's name, "Photo", or "Message deleted".
 String dmPreviewText(AppLocalizations l10n, DmPreview p) {
@@ -267,7 +282,7 @@ class DmListRow extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          BvTime.of(context).moment(row.lastMessageAt, now),
+                          _when(l10n, context, row.lastMessageAt, now),
                           style: type.metadata.copyWith(
                             color: unread
                                 ? BvColors.textAction

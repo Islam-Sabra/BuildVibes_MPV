@@ -26,6 +26,11 @@ abstract final class BvMessagesSpec {
   static const fab = 56.0;
   static const fabMargin = BvSpace.s16;
 
+  /// A photo from someone you haven't answered, covered until tapped
+  /// (DM6 2571:35584).
+  static const hiddenWidth = 220.0;
+  static const hiddenHeight = 150.0;
+
   /// "Both in …" and the request strip under the thread's header.
   static const stripPaddingVertical = BvSpace.s8;
 }

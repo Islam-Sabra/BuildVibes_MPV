@@ -745,7 +745,7 @@ class _EntryView extends ConsumerWidget {
               vertical: BvSpace.s12,
             ),
             child: Text(
-              _dayLabel(l10n, locale, day, DateUtils.dateOnly(now)),
+              chatDayLabel(l10n, locale, day, DateUtils.dateOnly(now)),
               textAlign: TextAlign.center,
               style: type.labelSm.copyWith(color: BvColors.textSecondary),
             ),
@@ -756,19 +756,20 @@ class _EntryView extends ConsumerWidget {
       ],
     );
   }
+}
 
-  static String _dayLabel(
-    AppLocalizations l10n,
-    String locale,
-    DateTime day,
-    DateTime today,
-  ) {
-    if (day == today) return l10n.chatToday;
-    if (today.difference(day).inDays == 1) return l10n.chatYesterday;
-    return BvWesternDigitsFormatter.normalise(
-      DateFormat('EEE d MMM', locale).format(day),
-    );
-  }
+/// A day in a thread: "Today", "Yesterday", or "Wed 14 Oct".
+String chatDayLabel(
+  AppLocalizations l10n,
+  String locale,
+  DateTime day,
+  DateTime today,
+) {
+  if (day == today) return l10n.chatToday;
+  if (today.difference(day).inDays == 1) return l10n.chatYesterday;
+  return BvWesternDigitsFormatter.normalise(
+    DateFormat('EEE d MMM', locale).format(day),
+  );
 }
 
 class ChatBubble extends StatelessWidget {
@@ -784,10 +785,14 @@ class ChatBubble extends StatelessWidget {
     required this.footer,
     required this.onLongPress,
     this.media,
+    this.avatars = true,
   });
 
   final String id;
   final bool mine;
+
+  /// A group thread keeps room for faces; a one-to-one (DM2) doesn't.
+  final bool avatars;
 
   /// Photos or a file, above the text.
   final Widget? media;
@@ -871,11 +876,11 @@ class ChatBubble extends StatelessWidget {
           ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
-          spacing: BvChatSpec.avatarGap,
+          spacing: avatars ? BvChatSpec.avatarGap : 0,
           children: [
             if (avatarName != null)
               BvAvatar(name: avatarName!, size: BvAvatarSize.sm)
-            else
+            else if (avatars)
               const SizedBox(width: BvChatSpec.avatar),
             Flexible(child: bubble),
           ],

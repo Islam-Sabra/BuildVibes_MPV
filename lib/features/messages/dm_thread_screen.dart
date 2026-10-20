@@ -447,10 +447,30 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     ].join(' · ');
     final request = page?.state == DmState.request;
     final messages = page?.messages ?? const <DmMessage>[];
-    // Newest first, as the server sends them; mine on the way at the end.
+    final now = ref.watch(clockProvider)();
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    DateTime dayOf(DateTime t) {
+      final l = t.toLocal();
+      return DateTime(l.year, l.month, l.day);
+    }
+
+    // Newest first, as the server sends them (the list is reversed); mine
+    // on the way at the end, and a day's chip above its first message.
     final entries = <Widget>[
       for (final p in _pending.reversed) _pendingBubble(l10n, type, p),
-      for (final m in messages) _bubble(l10n, type, m),
+      for (var i = 0; i < messages.length; i++) ...[
+        _bubble(l10n, type, messages[i]),
+        if (i == messages.length - 1 ||
+            dayOf(messages[i + 1].createdAt) != dayOf(messages[i].createdAt))
+          _DayChip(
+            chatDayLabel(
+              l10n,
+              locale,
+              dayOf(messages[i].createdAt),
+              DateTime(now.year, now.month, now.day),
+            ),
+          ),
+      ],
     ];
     return Scaffold(
       backgroundColor: BvColors.surfaceApp,
@@ -502,19 +522,31 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // DM2: a pill under the header, never a count.
           if (page?.sharedSpaceName != null)
-            _Strip(
-              key: const Key('dm-both-in'),
-              child: Text(
-                l10n.dmBothIn(inOwnDirection(page!.sharedSpaceName!)),
-                style: type.metadata.copyWith(color: BvColors.textSecondary),
+            Padding(
+              padding: const EdgeInsetsDirectional.symmetric(
+                vertical: BvMessagesSpec.stripPaddingVertical,
+              ),
+              child: Center(
+                child: _Pill(
+                  key: const Key('dm-both-in'),
+                  icon: BvIcons.team,
+                  text: l10n.dmBothIn(inOwnDirection(page!.sharedSpaceName!)),
+                ),
               ),
             ),
           if (request)
             _Strip(
               key: const Key('dm-request-strip'),
               child: Row(
+                spacing: BvSpace.s8,
                 children: [
+                  const Icon(
+                    BvIcons.info,
+                    size: BvSize.iconMd,
+                    color: BvColors.iconSecondary,
+                  ),
                   Expanded(
                     child: Text(
                       l10n.dmNotInSpaces,
@@ -526,6 +558,9 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
                   TextButton(
                     key: const Key('dm-decline'),
                     onPressed: _decline,
+                    style: TextButton.styleFrom(
+                      foregroundColor: BvColors.textSecondary,
+                    ),
                     child: Text(l10n.dmDecline),
                   ),
                   TextButton(
@@ -601,6 +636,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     final hidden = m.tapToShow && !_shown.contains(m.id);
     return ChatBubble(
       id: m.id,
+      avatars: false,
       mine: m.fromMe,
       name: null,
       avatarName: null,
@@ -631,6 +667,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   Widget _pendingBubble(AppLocalizations l10n, BvTypeSet type, _Pending p) =>
       ChatBubble(
         id: p.id,
+        avatars: false,
         mine: true,
         name: null,
         avatarName: null,
@@ -687,23 +724,40 @@ class _TapToShow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // Nothing is loaded until the tap: a covered area, as DM6 draws the
+    // blurred photo, with the pill in its middle.
     return GestureDetector(
       key: const Key('dm-tap-to-show'),
       onTap: onTap,
       child: Container(
-        height: BvSize.controlLg,
+        height: BvMessagesSpec.hiddenHeight,
+        width: BvMessagesSpec.hiddenWidth,
         alignment: Alignment.center,
         decoration: const BoxDecoration(
-          color: BvColors.surfaceSubtle,
+          color: BvColors.overlayDim,
           borderRadius: BvRadius.controlAll,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: BvSpace.s8,
-          children: [
-            const Icon(BvIcons.image, color: BvColors.iconSecondary),
-            Text(l10n.dmTapToShow, style: BvType.of(context).labelSm),
-          ],
+        child: Container(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvSpace.s12,
+            vertical: BvSpace.s6,
+          ),
+          decoration: const BoxDecoration(
+            color: BvColors.surfaceElevated,
+            borderRadius: BvRadius.roundAll,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: BvSpace.s6,
+            children: [
+              const Icon(
+                BvIcons.image,
+                size: BvSize.iconSm,
+                color: BvColors.iconPrimary,
+              ),
+              Text(l10n.dmTapToShow, style: BvType.of(context).labelSm),
+            ],
+          ),
         ),
       ),
     );
@@ -740,26 +794,56 @@ class _DmFiles extends ConsumerWidget {
               },
             )
           else
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: BvSpace.s8,
-              children: [
-                Icon(
-                  f.isVoice ? BvIcons.microphone : BvIcons.document,
-                  size: BvSize.iconMd,
-                  color: BvColors.iconPrimary,
-                ),
-                Flexible(
-                  child: Text(
-                    f.isVoice
-                        ? l10n.messagesVoice(voiceLengthOf(f.durationMs))
-                        : inOwnDirection(f.name ?? l10n.chatFile),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.bodySm,
+            // DM2: a white card, the icon on its tile, the name and size.
+            Container(
+              key: Key('dm-file-${f.path}'),
+              padding: const EdgeInsetsDirectional.all(BvSpace.s12),
+              decoration: const BoxDecoration(
+                color: BvColors.surfaceElevated,
+                borderRadius: BvRadius.controlAll,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: BvSpace.s12,
+                children: [
+                  Container(
+                    width: BvSize.controlMd,
+                    height: BvSize.controlMd,
+                    decoration: const BoxDecoration(
+                      color: BvColors.surfaceSubtle,
+                      borderRadius: BvRadius.smallAll,
+                    ),
+                    child: Icon(
+                      f.isVoice ? BvIcons.microphone : BvIcons.document,
+                      size: BvSize.iconMd,
+                      color: BvColors.iconPrimary,
+                    ),
                   ),
-                ),
-              ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          f.isVoice
+                              ? l10n.messagesVoice(voiceLengthOf(f.durationMs))
+                              : inOwnDirection(f.name ?? l10n.chatFile),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: type.labelSm,
+                        ),
+                        if (f.bytes != null)
+                          Text(
+                            fileSize(l10n, f.bytes),
+                            style: type.metadata.copyWith(
+                              color: BvColors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
       ],
     );
@@ -776,3 +860,70 @@ String voiceLengthOf(int? ms) {
 final dmFileUrlProvider = FutureProvider.autoDispose.family<String, String>(
   (ref, path) => ref.watch(dmRepositoryProvider).fileUrl(path),
 );
+
+/// A small grey pill: "Both in …" (DM2).
+class _Pill extends StatelessWidget {
+  const _Pill({super.key, required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsetsDirectional.symmetric(
+      horizontal: BvSpace.s12,
+      vertical: BvSpace.s4,
+    ),
+    decoration: const BoxDecoration(
+      color: BvColors.surfaceSubtle,
+      borderRadius: BvRadius.roundAll,
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: BvSpace.s6,
+      children: [
+        Icon(icon, size: BvSize.iconSm, color: BvColors.iconSecondary),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: BvType.of(
+              context,
+            ).metadata.copyWith(color: BvColors.textSecondary),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// A day above its first message (DM2): "Tue", "Yesterday", "Today".
+class _DayChip extends StatelessWidget {
+  const _DayChip(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.symmetric(vertical: BvSpace.s8),
+    child: Center(
+      child: Container(
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: BvSpace.s12,
+          vertical: BvSpace.s2,
+        ),
+        decoration: const BoxDecoration(
+          color: BvColors.surfaceSubtle,
+          borderRadius: BvRadius.roundAll,
+        ),
+        child: Text(
+          label,
+          style: BvType.of(
+            context,
+          ).metadata.copyWith(color: BvColors.textSecondary),
+        ),
+      ),
+    ),
+  );
+}
