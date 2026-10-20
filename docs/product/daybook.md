@@ -39,7 +39,7 @@ Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (ch
 3. A slim toolbar sits on the keyboard: camera, attach, more (⋯), and a round send button (grey until there is a title).
 4. **More:** Assign, Location, Due date, Checklist, Template. Choices show as one quiet line under the title. A cover photo has a small ×.
 5. Nothing is posted until send. If the app closes, the card stays in place as a **Draft** (only the author sees it) and reopens in writing mode.
-6. **Kind chip** (one single-choice menu): Work item, Checklist, Announcement, Scheduled activity, File.
+6. **Kind chip** (one single-choice menu; presets on one post, F58): Note, Work item, Checklist, Announcement, Scheduled activity, Document for receipt.
 
 ## Kinds of posts
 - **Work item:** one owner, due date, place, files, checklist points. Sign as done with a photo; check or send back.
@@ -54,7 +54,7 @@ Figma: EN `2581:35611` (Islam), `2582:35982` (Omar, sent back), `2582:36114` (ch
 - **Send back** stays in place: one choice (Photo missing, Not as asked, Not finished, Something else), optional note or voice. The owner sees SENT BACK on the photo, the reason, the paper clip, and "Sign as done" again.
 - **Add update:** long-press (or tap) the card → Add update; a swipe is a shortcut. The update becomes a line in the card's history. The sheet quotes the item in one line and sits right above the keyboard.
 - **Long-press your own work item:** Edit, Add update, Give to someone else, Discuss in chat, Cancel work item.
-- Edited: a grey line ("Edited: due moved from Sun to Mon"). Cancelled: faded, struck-through title, CANCELLED stamp. Reassigned: "Given to Rakesh Nair instead of Omar Haddad at 12:30". Late: "Late by 1 day" in red; a "Due today" strip under the masthead.
+- Edited: a grey line ("Edited: due moved from Sun to Mon"). Cancelled: faded, struck-through title, CANCELLED stamp. Reassigned: "Given to Rakesh Nair instead of Omar Haddad at 12:30". Due (founder, 20 Oct, review 50 F57): a reminder, not a record. No "Late" word; a passed due shows in the action colour to the owner and author only, while open or sent back; once signed as done the due line leaves the card. A "Due today" strip under the masthead lists what is still to do.
 
 ## Opening a post in place (the Notion depth)
 - Tap a slip: its full page rises over the daybook as the same paper sheet.

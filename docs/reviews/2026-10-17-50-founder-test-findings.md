@@ -503,3 +503,71 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - Figma E6 and K2 with "Document for receipt" (F50);
   - K1b, the folded announcement;
   - K1 with "· checklist".
+
+# Retest of build 349 (20 Oct 2026, morning)
+- **Step 2, typing a checklist (F40):** the keyboard stays open and Enter starts the next point. Done in the people picker closes it without posting (F45). Passed.
+- **F47, live updates:** the checklist appears on Omar's side, and Omar's tick reaches the founder's phone, without reopening. Passed.
+- **Step 6, editing a pinned announcement (F44):** long-press gives Edit. After the edit, it opens in full again on Omar's side, with Got it. Passed.
+
+## F54. A tick you can feel and a change you notice (founder ok, 20 Oct)
+- **What the founder asked:** a tick shouldn't be silent. He wants to feel it, and to notice when someone else ticks.
+- **Your own tick:**
+  - the box fills with a short check animation (about 300 ms);
+  - a light haptic (`HapticFeedback.lightImpact`);
+  - the name and time slide in beside the point.
+  
+  An un-tick reverses the animation, with the same haptic.
+- **Someone else's change arriving live** (a tick, Got it on your announcement, Received, On my way, a new line in a history):
+  - the changed point or line glows softly in the action colour for about 2 seconds, then fades;
+  - if the card is out of view, the existing "New ↓" chip appears (F11).
+  
+  No sound inside the app: pushes cover the time when the app is closed.
+- **No 5-second hold on ticks.** A 20-point walk would cost almost 2 minutes, and a mistaken tick is fixed by tapping again (F43). The 5-second Undo stays only on Sign as done and Check, which close the work.
+- **The same feel everywhere a point can be ticked:** a checklist, the points of a work item, and Notebook to-dos.
+- **Reduced motion:** if the phone's "remove animations" setting is on, the change shows at once, with no glow. The haptic stays.
+- **Test:** a widget test for the glow on a live tick, and the animation and haptic on your own tick. By hand on the Xiaomi.
+- **F51, photos:** 3 gallery photos are posted, with the first large and two small. Passed.
+
+## F55. A late item says it twice (superseded by F57)
+- **What the emulator shows:** "For you · was due today 8:06 am" in red, and then a second line, "Late", in red.
+- **Fix:** one line only. The facts line itself turns red and says it: **"For you · late, due 8:06 am"** / **"لك · متأخر، الموعد 8:06 ص"**. For an earlier day: **"late by 1 day"** / **"متأخر يومًا"** (daybook.md). There's no separate "Late" line.
+
+## F56. Choosing who a post is for: one flow for every kind (founder, 20 Oct)
+- **What the founder saw:** on a work item with no owner, Send opened "Who is it for?" and picking Omar **posted at once**. The same happens on every kind that needs people. The founder wants the whole flow revised: choosing a person must never post.
+- **The rule, for every kind:**
+  - **The writing card shows its "who" row from the start**, as a visible line under the title. It's required on a work item ("For: Choose ›" / "لـ: اختر ›"), a checklist ("For") and a scheduled activity ("Who's coming"). An announcement and a Document for receipt show "To: Everyone ›" or a Team, already filled.
+  - **Tapping the row opens the picker.** A single choice (a work item's owner) closes on the tap and returns to the card. A multiple choice closes with Done (F45). **The picker never posts.**
+  - **Send is grey until the title and the required "who" are set.** Tapping grey Send makes the missing row pulse once, with "Choose who it's for" / "اختر لمن", and posts nothing.
+  - **Only the send button posts,** and every post keeps its 5-second Undo where it has one today.
+- **Test:** on each kind, choosing people only fills the row, and the post goes out only on Send. A work item with no owner can't be sent, and the "who" row asks for it.
+
+## F57. A due date is a reminder, not a record (founder, 20 Oct)
+- **The founder's rule:** site work is human work. A due date is there to remind people to finish, not to judge them afterwards. If a thousand items carry "late" in red for ever, red stops meaning anything.
+- **What changes:**
+  - **There is no "Late" word anywhere,** and no separate Late line (this replaces F55 and the "Late by 1 day" line in daybook.md).
+  - **While an item is open or sent back,** its due shows on the facts line as a reminder:
+    - before the time, grey ("by today 14:00");
+    - today, in ink;
+    - once passed, in the **action colour**, not red ("was due 8:06" / "الموعد كان 8:06").
+    
+    Only the owner and the author see the passed-due colour. Everyone else sees it grey.
+  - **Once signed as done, the due line disappears from the card,** and it doesn't come back after Checked. The card and the folded weekly line (F36) show no lateness. Only the post page keeps "Due was 8:06" in grey, for anyone who wants the history.
+  - **Red is kept for SENT BACK and real failures** ("Couldn't send"), so it keeps its weight.
+  - **Due today** (the strip) is "still to do": the owner's open and sent-back items due today or earlier, oldest first. An item leaves it once signed as done (F38). An earlier day's item shows its day in grey ("Mon"), with no "late".
+  - **No lateness in profiles, counts or reports.** Daily and week reports list what is still open, with its due, and never "N late" (rule 3).
+- **Server:** no change. `due_at` stays as it is, and the rule is about display only.
+- **Docs:** daybook.md's "Late …" line is replaced by this rule.
+
+## F58. A Note: the plain post, for information (founder ok, 20 Oct)
+- **The founder's condition:** no SaaS forms. Kinds are **presets on one post**, not separate forms.
+- **So a Note is the base.** It has a title or text and photos or files, with no "who" and no buttons. Every other kind is the same card plus one preset:
+  - **a work item:** + an owner and Sign as done;
+  - **a checklist:** + points to tick;
+  - **an announcement:** + a pin and Got it;
+  - **a scheduled activity:** + a time and On my way;
+  - **a Document for receipt:** + a document and Received.
+- **The kind menu** puts **Note** / **ملاحظة** first, with the small line "For information, nobody needs to act" / "للعلم، لا يلزم أي إجراء". Switching kinds keeps everything typed (F39) and only adds or removes the preset's one line.
+- **On the card:** the author, the time, the text and the photos (as in F51), and its history (edits). No faces, no buttons and no paper clip. It goes into the daily report.
+- **Server:** migration 29 adds `note` to the kinds. `create_space_post` takes it with no people, and the same visibility, edit and cancel rules apply as on an announcement.
+- **The "who" sheet (F56)** on a work item with no owner gets one line: "Just for information? Post as a Note" / "للعلم فقط؟ انشرها كملاحظة".
+- **Figma:** the lead draws the Note card and the kind menu with Note first.
