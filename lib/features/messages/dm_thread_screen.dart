@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+
+import 'package:clock/clock.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +26,7 @@ import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../chat/thread_screen.dart';
+import '../chat/voice.dart';
 import '../library/library_parts.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
@@ -34,12 +38,23 @@ import '../work/work_outbox.dart' show pickPhotoProvider;
 /// A message on its way, shown at once as mine ("Sending…", or "Not sent ·
 /// Retry").
 class _Pending {
-  _Pending({required this.id, required this.body, this.replyTo});
+  _Pending({
+    required this.id,
+    required this.body,
+    this.replyTo,
+    this.files = const [],
+  });
 
   final String id;
   final String body;
   final DmMessage? replyTo;
+
+  /// Photos and PDFs, or one voice note, still on the phone.
+  final List<PhoneFile> files;
   var failed = false;
+
+  PhoneFile? get voice =>
+      files.length == 1 && files.single.isVoice ? files.single : null;
 }
 
 /// A conversation between two people (DM2 2561:35447, AR 2563:170): the
@@ -83,7 +98,17 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   var _loading = true;
   var _failed = false;
 
+  // A voice note being recorded (as in Space chat, S8k): hold the mic,
+  // slide away to cancel, release to send.
+  var _recording = false;
+  var _holding = false;
+  var _cancelling = false;
+  var _elapsed = Duration.zero;
+  Stopwatch? _watch;
+  Timer? _recordTimer;
+
   static const _maxFiles = 10;
+  static const _tick = Duration(milliseconds: 250);
 
   @override
   void initState() {
@@ -95,6 +120,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   @override
   void dispose() {
     _live?.cancel();
+    _recordTimer?.cancel();
     _text.dispose();
     super.dispose();
   }
@@ -149,17 +175,33 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     return personName(l10n, p == null || p.former ? null : p.name);
   }
 
+  /// Sends what the composer holds.
   Future<void> _send() async {
-    final l10n = AppLocalizations.of(context);
     final body = _text.text.trim();
     if (body.isEmpty && _files.isEmpty) return;
-    final pending = _Pending(id: newUuid(), body: body, replyTo: _replyTo);
-    final files = List.of(_files);
+    final pending = _Pending(
+      id: newUuid(),
+      body: body,
+      replyTo: _replyTo,
+      files: List.of(_files),
+    );
     setState(() {
-      _pending.add(pending);
       _text.clear();
       _files.clear();
       _replyTo = null;
+    });
+    await _deliver(pending);
+  }
+
+  /// Shows [pending] at once as mine, then sends it: its files first, then
+  /// the message (the same id again on a retry: never sent twice).
+  Future<void> _deliver(_Pending pending) async {
+    final l10n = AppLocalizations.of(context);
+    final body = pending.body;
+    final files = pending.files;
+    setState(() {
+      pending.failed = false;
+      if (!_pending.contains(pending)) _pending.add(pending);
     });
     try {
       final uploads = [
@@ -211,13 +253,95 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     }
   }
 
-  Future<void> _retry(_Pending p) async {
+  Future<void> _retry(_Pending p) => _deliver(p);
+
+  Future<void> _startRecording() async {
+    final l10n = AppLocalizations.of(context);
+    FocusManager.instance.primaryFocus?.unfocus();
+    final recorder = ref.read(voiceRecorderProvider);
+    _holding = true;
+    // One sound at a time: a playing note pauses.
+    await ref.read(voicePlayerProvider.notifier).pause();
+    if (!await recorder.allowed()) {
+      if (mounted) _toast(l10n.chatMicDenied);
+      return;
+    }
+    if (!_holding || !mounted) return;
+    await recorder.start();
+    if (!_holding || !mounted) {
+      await recorder.cancel();
+      return;
+    }
+    _watch = clock.stopwatch()..start();
     setState(() {
-      _pending.remove(p);
-      _text.text = p.body;
-      _replyTo = p.replyTo;
+      _recording = true;
+      _cancelling = false;
+      _elapsed = Duration.zero;
     });
-    await _send();
+    _recordTimer = Timer.periodic(_tick, (_) {
+      if (!mounted) return;
+      setState(() => _elapsed = _watch!.elapsed);
+      // Two minutes at most: it sends itself.
+      if (_elapsed >= maxVoice) unawaited(_endRecording());
+    });
+  }
+
+  void _slide(Offset offset) {
+    final cancelling = offset.distance > BvChatSpec.slideToCancel;
+    if (cancelling != _cancelling) setState(() => _cancelling = cancelling);
+  }
+
+  /// Release: send it; slid away: throw it away; too short: say so.
+  Future<void> _endRecording() async {
+    _holding = false;
+    _recordTimer?.cancel();
+    if (!_recording) return;
+    final l10n = AppLocalizations.of(context);
+    final recorder = ref.read(voiceRecorderProvider);
+    final measured = _watch?.elapsed ?? _elapsed;
+    final length = measured > maxVoice ? maxVoice : measured;
+    final cancel = _cancelling;
+    setState(() {
+      _recording = false;
+      _cancelling = false;
+    });
+    if (cancel) {
+      await recorder.cancel();
+      return;
+    }
+    final path = await recorder.stop();
+    if (!mounted || path == null) return;
+    if (length < minVoice) {
+      unawaited(_deleteQuietly(path));
+      _toast(l10n.chatVoiceTooShort);
+      return;
+    }
+    final file = File(path);
+    final pending = _Pending(
+      id: newUuid(),
+      body: '',
+      replyTo: _replyTo,
+      // A voice note goes on its own.
+      files: [
+        PhoneFile(
+          local: path,
+          name: path.split(Platform.pathSeparator).last,
+          mime: 'audio/mp4',
+          bytes: file.existsSync() ? file.lengthSync() : null,
+          durationMs: length.inMilliseconds,
+        ),
+      ],
+    );
+    setState(() => _replyTo = null);
+    await _deliver(pending);
+  }
+
+  static Future<void> _deleteQuietly(String path) async {
+    try {
+      await File(path).delete();
+    } on FileSystemException {
+      // Already gone.
+    }
   }
 
   /// Camera, or a photo or a PDF from the phone (DM2's 📎).
@@ -607,15 +731,14 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
               onSend: () => unawaited(_send()),
               onAttach: _files.length < _maxFiles ? _attach : null,
               onRemove: (f) => setState(() => _files.remove(f)),
-              recording: false,
-              cancelling: false,
-              elapsed: Duration.zero,
-              // Voice notes come with the next part of slice 3.
-              canRecord: false,
-              onRecordStart: () {},
-              onRecordSlide: (_) {},
-              onRecordEnd: () {},
-              onRecordTap: () {},
+              recording: _recording,
+              cancelling: _cancelling,
+              elapsed: _elapsed,
+              canRecord: true,
+              onRecordStart: _startRecording,
+              onRecordSlide: _slide,
+              onRecordEnd: _endRecording,
+              onRecordTap: () => _toast(l10n.chatRecord),
             ),
         ],
       ),
@@ -655,6 +778,13 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
           ? null
           : hidden
           ? _TapToShow(onTap: () => setState(() => _shown.add(m.id)))
+          : m.files.length == 1 && m.files.single.isVoice
+          ? VoiceNote(
+              id: m.id,
+              path: m.files.single.path,
+              duration: Duration(milliseconds: m.files.single.durationMs ?? 0),
+              linkOf: (ref, path) => ref.read(dmFileUrlProvider(path).future),
+            )
           : _DmFiles(files: m.files),
       footer: Text(
         BvTime.of(context).clock(m.createdAt),
@@ -673,6 +803,13 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
         avatarName: null,
         text: p.body,
         deleted: false,
+        media: p.voice == null
+            ? null
+            : VoiceNote(
+                id: p.id,
+                local: p.voice!.local,
+                duration: Duration(milliseconds: p.voice!.durationMs ?? 0),
+              ),
         reply: p.replyTo == null ? null : _asReply(l10n, p.replyTo!),
         footer: p.failed
             ? GestureDetector(

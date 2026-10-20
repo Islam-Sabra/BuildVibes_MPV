@@ -3,6 +3,7 @@ import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/people.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -122,6 +123,24 @@ Future<void> _go(WidgetTester tester, String path) async {
   await tester.pumpAndSettle();
 }
 
+/// Holds the mic for [hold], then lets go (after sliding by [slide]).
+Future<void> _record(
+  WidgetTester tester,
+  Duration hold, {
+  Offset slide = Offset.zero,
+}) async {
+  final mic = tester.getCenter(find.byKey(const Key('chat-record')));
+  final gesture = await tester.startGesture(mic);
+  await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+  await tester.pump(hold);
+  if (slide != Offset.zero) {
+    await gesture.moveBy(slide);
+    await tester.pump();
+  }
+  await gesture.up();
+  await tester.pumpAndSettle();
+}
+
 Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.ensureVisible(f.first);
   await tester.tap(f.first);
@@ -202,7 +221,10 @@ void main() {
         find.text('Site Engineer · ${inOwnDirection('Al Hamra Contracting')}'),
         findsOneWidget,
       );
-      expect(find.text(l10n.dmBothIn(inOwnDirection('Kuwait City Tower'))), findsOneWidget);
+      expect(
+        find.text(l10n.dmBothIn(inOwnDirection('Kuwait City Tower'))),
+        findsOneWidget,
+      );
       expect(find.text('At the gate at 7?'), findsOneWidget);
       expect(dm.calls, contains('read t-omar'));
       expect(find.byKey(const Key('dm-request-strip')), findsNothing);
@@ -229,6 +251,49 @@ void main() {
       await tester.pump();
       await _tap(tester, find.byKey(const Key('chat-send')));
       expect(dm.calls, contains('send t-omar Sure reply m1'));
+    });
+
+    testWidgets('voice notes: hold the mic and let go to send; slide away '
+        'to cancel; a received one plays in its bubble [$lang]', (
+      tester,
+    ) async {
+      final page = _omar();
+      final dm = FakeDmRepository()
+        ..pages['t-omar'] = DmThreadPage(
+          threadId: page.threadId,
+          person: page.person,
+          messages: [
+            DmMessage(
+              id: 'v1',
+              fromMe: false,
+              kind: ChatKind.voice,
+              createdAt: DateTime(2026, 10, 15, 10, 40),
+              files: const [
+                DmFile(
+                  path: 'p-omar/v1/a.m4a',
+                  mime: 'audio/mp4',
+                  durationMs: 18000,
+                ),
+              ],
+            ),
+            ...page.messages,
+          ],
+        );
+      await pumpApp(tester, language: lang, dm: dm, now: _now);
+      await _go(tester, '/messages/t-omar');
+      expect(find.byKey(const Key('chat-voice-v1')), findsOneWidget);
+      expect(find.byKey(const Key('chat-record')), findsOneWidget);
+      await _record(tester, const Duration(seconds: 2));
+      expect(dm.calls, contains('send t-omar null files 1'));
+      await _record(
+        tester,
+        const Duration(seconds: 2),
+        slide: const Offset(-200, 0),
+      );
+      expect(
+        dm.calls.where((c) => c.startsWith('send t-omar null')),
+        hasLength(1),
+      );
     });
 
     testWidgets('DM6: a request: Not in your Spaces · Decline · Block, and '
