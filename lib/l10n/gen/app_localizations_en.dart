@@ -3713,4 +3713,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookKindNoteWord => '· note';
+
+  @override
+  String get daybookForChoose => 'For: Choose ›';
+
+  @override
+  String get daybookComingChoose => 'Who\'s coming: Choose ›';
+
+  @override
+  String get daybookChooseWho => 'Choose who it\'s for';
+
+  @override
+  String get daybookPostAsNote => 'Just for information? Post as a Note';
 }

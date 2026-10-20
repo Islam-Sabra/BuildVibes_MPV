@@ -3718,4 +3718,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookKindNoteWord => '· ملاحظة';
+
+  @override
+  String get daybookForChoose => 'لـ: اختر ›';
+
+  @override
+  String get daybookComingChoose => 'من سيحضر: اختر ›';
+
+  @override
+  String get daybookChooseWho => 'اختر لمن';
+
+  @override
+  String get daybookPostAsNote => 'للعلم فقط؟ انشرها كملاحظة';
 }

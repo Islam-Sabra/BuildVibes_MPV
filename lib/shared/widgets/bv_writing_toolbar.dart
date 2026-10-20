@@ -7,7 +7,8 @@ import '../../core/design/daybook_writing_specs.dart';
 
 /// The bar on the keyboard while writing in the Daybook (2527:33399):
 /// camera, attach and More at the start, Post at the end. Post is off
-/// while [onPost] is null (no title yet).
+/// while [onPost] is null (no title yet), and grey but still tappable
+/// while not [postReady] (F56: a tap asks for what is missing).
 class BvWritingToolbar extends StatelessWidget {
   const BvWritingToolbar({
     super.key,
@@ -21,6 +22,7 @@ class BvWritingToolbar extends StatelessWidget {
     required this.onPost,
     this.moreActive = false,
     this.moreKey,
+    this.postReady = true,
   });
 
   // The labels are read out; the buttons show icons only.
@@ -35,6 +37,9 @@ class BvWritingToolbar extends StatelessWidget {
 
   /// The More menu is open.
   final bool moreActive;
+
+  /// Everything the post needs is there: Post in the action colour.
+  final bool postReady;
 
   /// On the More button, so the screen can place the More menu over it.
   final Key? moreKey;
@@ -68,7 +73,7 @@ class BvWritingToolbar extends StatelessWidget {
             active: moreActive,
           ),
           const Spacer(),
-          _Post(label: postLabel, onTap: onPost),
+          _Post(label: postLabel, onTap: onPost, ready: postReady),
         ],
       ),
     );
@@ -125,18 +130,19 @@ class _Tool extends StatelessWidget {
 }
 
 class _Post extends StatelessWidget {
-  const _Post({required this.label, required this.onTap});
+  const _Post({required this.label, required this.onTap, required this.ready});
 
   final String label;
   final VoidCallback? onTap;
+  final bool ready;
 
   @override
   Widget build(BuildContext context) {
-    final enabled = onTap != null;
+    final enabled = onTap != null && ready;
     return Semantics(
       button: true,
       label: label,
-      enabled: enabled,
+      enabled: onTap != null,
       excludeSemantics: true,
       child: GestureDetector(
         key: const Key('writing-post'),

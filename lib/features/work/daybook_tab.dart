@@ -171,9 +171,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   var _editing = false;
   DaybookWritingMenu? _menu;
 
-  /// Post was tapped with nobody to do it, or nobody it is for: picking
-  /// someone posts it.
-  var _postOnAssign = false;
+  /// Post was tapped with nobody to do it, or nobody it is for: each new
+  /// value pulses the card's "who" row (F56). Choosing someone never posts.
+  Object? _askWho;
 
   /// The card on the page was left from before: it says "Draft".
   late bool _fromBefore;
@@ -580,7 +580,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _writing = true;
       _editing = false;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
@@ -594,7 +594,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _writing = true;
       _editing = true;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
@@ -616,13 +616,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _writing = false;
       _editing = false;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
     });
   }
 
   void _setMenu(DaybookWritingMenu? menu) => setState(() {
     _menu = menu;
-    if (menu != DaybookWritingMenu.assign) _postOnAssign = false;
+    if (menu != null) _askWho = null;
   });
 
   /// Who a checklist or an activity is for (F45): a sheet over the page,
@@ -730,31 +730,26 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// item, the assign picker (review 46); with nobody a checklist is for,
   /// the people sheet (then Post again: F45); an activity with no start,
   /// the time pickers.
+  /// Post (F56): only this button posts. With nobody chosen yet, the
+  /// "who" row pulses and asks; with no time, the time pickers open. A
+  /// picker only fills the card, and never posts.
   Future<void> _postOrAsk(String? myName) async {
     final draft = _writer.draft;
     if (draft == null || !draft.readyToTry) return;
     switch (draft.missing(ref.read(clockProvider)())) {
-      case DaybookMissing.owner:
+      case DaybookMissing.owner || DaybookMissing.people:
         setState(() {
-          _menu = DaybookWritingMenu.assign;
-          _postOnAssign = true;
+          _menu = null;
+          _askWho = Object();
         });
-      case DaybookMissing.people:
-        await _pickPeople();
       case DaybookMissing.start:
-        if (await _pickStart()) await _post(myName);
+        await _pickStart();
       case null:
         await _post(myName);
     }
   }
 
-  void _assigned(String? myName) {
-    if (_postOnAssign) {
-      unawaited(_post(myName));
-    } else {
-      _setMenu(null);
-    }
-  }
+  void _assigned() => _setMenu(null);
 
   Future<void> _post(String? myName) async {
     await _writer.post(authorName: myName);
@@ -763,7 +758,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     setState(() {
       _writing = false;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
       _fromBefore = false;
     });
   }
@@ -1029,7 +1024,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                             onPickStart: () => unawaited(_pickStart()),
                             onPickFile: () => unawaited(_pickFile()),
                             onClose: () => _setMenu(null),
-                            onAssigned: () => _assigned(myName),
+                            onAssigned: _assigned,
                             onPickPeople: () => unawaited(_pickPeople()),
                           ),
                         ),
@@ -1070,6 +1065,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                     : (cardDraft?.readyToTry ?? false
                           ? () => unawaited(_postOrAsk(myName))
                           : null),
+                // F56: grey until the "who" is chosen too; a tap asks.
+                postReady:
+                    _editing ||
+                    (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false),
               )
             // A Draft on the page takes the post bar's place until it is
             // posted or emptied (E4).
@@ -1835,6 +1834,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                                 onPickStart: () => unawaited(_pickStart()),
                                 onPickFile: () => unawaited(_pickFile()),
                                 onPickPeople: () => unawaited(_pickPeople()),
+                                askWho: _askWho,
                               ),
                             ),
                         ],

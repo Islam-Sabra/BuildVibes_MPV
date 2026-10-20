@@ -6271,6 +6271,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'· note'**
   String get daybookKindNoteWord;
+
+  /// Writing card: the who row before anyone is chosen, on a work item and a checklist (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'For: Choose ›'**
+  String get daybookForChoose;
+
+  /// Writing card: the who row of a scheduled activity before anyone is chosen (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'Who\'s coming: Choose ›'**
+  String get daybookComingChoose;
+
+  /// Writing card: the who row, pulsing, after Post was tapped with nobody chosen (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who it\'s for'**
+  String get daybookChooseWho;
+
+  /// Under the owner picker of a work item: turn it into a note (F56, F58).
+  ///
+  /// In en, this message translates to:
+  /// **'Just for information? Post as a Note'**
+  String get daybookPostAsNote;
 }
 
 class _AppLocalizationsDelegate

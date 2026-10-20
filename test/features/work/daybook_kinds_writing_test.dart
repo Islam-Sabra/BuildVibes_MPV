@@ -219,8 +219,10 @@ void main() {
         await tester.enterText(_emptyPoint(), p);
         await tester.pumpAndSettle();
       }
-      // Post asks who it is for first.
+      // F56: Post asks on the who row, and the row opens the people.
       await _post(tester);
+      expect(daybook.createdPosts, isEmpty);
+      await _who(tester);
       await _pickPerson(tester, s.saraName);
       await _tap(tester, find.byKey(const Key('people-done')));
       await _post(tester);
@@ -244,7 +246,12 @@ void main() {
       await tester.enterText(_emptyPoint(), points[1].text);
       await tester.pumpAndSettle();
       expect(_toolbar(tester).onPost, isNotNull);
+      expect(_toolbar(tester).postReady, isFalse);
+      // F56: Post asks on the who row; only the row opens the sheet.
       await _post(tester);
+      expect(find.byKey(const Key('writing-people')), findsNothing);
+      expect(find.text(l10n.daybookChooseWho), findsOneWidget);
+      await _who(tester);
       expect(find.byKey(const Key('writing-people')), findsOneWidget);
       await _pickPerson(tester, s.saraName);
       // F45: a pick never closes the sheet, and never posts.
@@ -285,10 +292,19 @@ void main() {
       expect(sent.toParams()['p_people'], isEmpty);
     });
 
-    testWidgets('a scheduled activity: Post with no start opens the time '
-        'pickers, then posts [$lang]', (tester) async {
+    testWidgets('a scheduled activity: who\'s coming first; then Post with '
+        'no start opens the time pickers, and only Post posts [$lang]', (
+      tester,
+    ) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
+      expect(find.text(l10n.daybookComingChoose), findsOneWidget);
+      await _who(tester);
+      await _pickPerson(tester, s.saraName);
+      await _tap(tester, find.byKey(const Key('people-done')));
+      await _post(tester);
+      // The pickers only fill the card (F56).
+      expect(daybook.createdPosts, isEmpty);
       await _post(tester);
       final sent = daybook.createdPosts.single;
       expect(sent.kind, DaybookPost.activityKind);
@@ -363,7 +379,7 @@ void main() {
       await _tap(tester, find.byKey(const Key('replaces-none')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
       // Someone to do it, then Post.
-      await _post(tester);
+      await _who(tester);
       await _tap(
         tester,
         find.descendant(
@@ -371,6 +387,7 @@ void main() {
           matching: find.text(s.omarName),
         ),
       );
+      await _post(tester);
       final item = daybook.created.single;
       expect(item.photoPaths, hasLength(2));
       final added = app.library.filesBySpace[DaybookSamples.space]!.first;
@@ -385,8 +402,10 @@ void main() {
       await _write(tester, l10n, DaybookKind.checklist, s.handoverTitle);
       await tester.enterText(_emptyPoint(), 'Doors');
       await tester.pumpAndSettle();
-      // Post asks who it is for first.
+      // F56: Post asks on the who row, and the row opens the people.
       await _post(tester);
+      expect(daybook.createdPosts, isEmpty);
+      await _who(tester);
       await _pickPerson(tester, s.saraName);
       await _tap(tester, find.byKey(const Key('people-done')));
       await _post(tester);
@@ -532,7 +551,7 @@ void main() {
         await tester.pumpAndSettle();
         await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
         await _tap(tester, find.byKey(const Key('attach-photos')));
-        await _post(tester);
+        await _who(tester);
         await _tap(
           tester,
           find.descendant(
@@ -540,6 +559,7 @@ void main() {
             matching: find.text(s.omarName),
           ),
         );
+        await _post(tester);
         final item = daybook.created.single;
         expect(item.photoPaths, hasLength(count));
         // In the order they were picked, which is the order sent.
@@ -558,7 +578,7 @@ void main() {
         await tester.pumpAndSettle();
         await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
         await _tap(tester, find.byKey(const Key('attach-photos')));
-        await _post(tester);
+        await _who(tester);
         await _pickPerson(tester, s.saraName);
         await _tap(tester, find.byKey(const Key('people-done')));
         await _post(tester);
@@ -593,6 +613,16 @@ void main() {
 }
 
 /// Picks [name] on the people sheet.
+/// Taps the card's "who" row (F56), scrolled into view first.
+Future<void> _who(WidgetTester tester) async {
+  final row = find.byKey(const Key('writing-who'));
+  await tester.ensureVisible(row);
+  await tester.pumpAndSettle();
+  // Its icon: the title's selection handle can sit over the middle.
+  await tester.tap(find.descendant(of: row, matching: find.byType(Icon)));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _pickPerson(WidgetTester tester, String name) async {
   final row = find.descendant(
     of: find.byKey(const Key('writing-people')),

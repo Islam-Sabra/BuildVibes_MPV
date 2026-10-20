@@ -18,6 +18,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
+import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_tap_target.dart';
 import '../../shared/widgets/bv_writing_card.dart';
@@ -555,12 +556,17 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
     required this.onPickFile,
     required this.onPickPeople,
     this.editing = false,
+    this.askWho,
   });
 
   final String spaceId;
   final bool writing;
   final DaybookWords words;
   final bool editing;
+
+  /// Each new value pulses the "who" row: Post was tapped before anyone
+  /// was chosen (F56).
+  final Object? askWho;
 
   /// Left from before (the app closed or the card was put down): "Draft".
   final bool fromBefore;
@@ -634,6 +640,17 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     VoidCallback? tap(VoidCallback f) => writing ? f : null;
     void menu(DaybookWritingMenu m) => writing ? widget.onMenu(m) : null;
     final kind = draft.kind;
+    // F56: the "who" row from the start, as a line to tap; required on a
+    // work item, a checklist and an activity. Choosing only fills it.
+    BvWritingProperty choose(String label, VoidCallback onTap) =>
+        BvWritingProperty.icon(
+          key: const Key('writing-who'),
+          icon: BvIcons.person,
+          label: widget.askWho == null ? label : l10n.daybookChooseWho,
+          empty: true,
+          ask: widget.askWho,
+          onTap: tap(onTap),
+        );
     final people = BvWritingProperty.icon(
       icon: BvIcons.person,
       label: words.peopleFor([
@@ -657,7 +674,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           );
     final properties = <BvWritingProperty>[
       if (kind == DaybookKind.workItem) ...[
-        if (draft.ownerId != null)
+        if (draft.ownerId == null && !widget.editing)
+          choose(l10n.daybookForChoose, () => menu(DaybookWritingMenu.assign))
+        else if (draft.ownerId != null)
           BvWritingProperty.person(
             label: personName(l10n, draft.ownerName),
             tint: BvAvatarTints.forId(draft.ownerId!),
@@ -670,7 +689,10 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         ?place,
       ],
       if (kind == DaybookKind.checklist) ...[
-        if (draft.people.isNotEmpty) people,
+        if (draft.people.isNotEmpty)
+          people
+        else
+          choose(l10n.daybookForChoose, widget.onPickPeople),
         ?due,
       ],
       if (kind == DaybookKind.announcement && draft.pinnedUntil != null)
@@ -689,7 +711,10 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             onTap: tap(widget.onPickStart),
           ),
         ?place,
-        if (draft.people.isNotEmpty) people,
+        if (draft.people.isNotEmpty)
+          people
+        else
+          choose(l10n.daybookComingChoose, widget.onPickPeople),
       ],
       // A work item's files (attached from 📎) and a file post's file.
       for (final f in draft.files)
@@ -1244,6 +1269,18 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
             await _writer.setOwner(p);
             widget.onAssigned();
           },
+          // F56: nobody to own it? Post it as a note instead.
+          footer: widget.editing
+              ? null
+              : BvListRow(
+                  key: const Key('writing-as-note'),
+                  title: l10n.daybookPostAsNote,
+                  leading: const BvRowIcon(BvIcons.edit),
+                  onTap: () async {
+                    await _writer.setKind(DaybookKind.note);
+                    widget.onClose();
+                  },
+                ),
         );
       case DaybookWritingMenu.place:
         return BvPopoverField(

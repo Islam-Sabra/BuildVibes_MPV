@@ -315,6 +315,8 @@ class DaybookPostDraft {
   DaybookMissing? missing(DateTime now) => switch (kind) {
     DaybookKind.workItem when ownerId == null => DaybookMissing.owner,
     DaybookKind.checklist when people.isEmpty => DaybookMissing.people,
+    // F56: who's coming is required, before the time.
+    DaybookKind.activity when people.isEmpty => DaybookMissing.people,
     DaybookKind.activity when startsAt == null || !startsAt!.isAfter(now) =>
       DaybookMissing.start,
     _ => null,

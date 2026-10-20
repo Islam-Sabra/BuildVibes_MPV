@@ -41,6 +41,7 @@ class BvGiveToPicker extends StatefulWidget {
     this.autofocus = false,
     this.chosenIds,
     this.inSheet = false,
+    this.footer,
   });
 
   final List<BvGiveToPerson> people;
@@ -57,6 +58,10 @@ class BvGiveToPicker extends StatefulWidget {
   /// On a sheet: as wide as the sheet, with no card of its own; the sheet
   /// scrolls the list.
   final bool inSheet;
+
+  /// Under the list, always in view: another way out (F56, "Post as a
+  /// Note").
+  final Widget? footer;
 
   @override
   State<BvGiveToPicker> createState() => _BvGiveToPickerState();
@@ -162,6 +167,7 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
                   children: rows,
                 ),
               ),
+            ?widget.footer,
           ],
         ),
       ),

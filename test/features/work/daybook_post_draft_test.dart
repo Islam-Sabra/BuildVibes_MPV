@@ -44,13 +44,16 @@ void main() {
       expect(d.canPost(_now), isTrue);
     });
 
-    test('an activity: a start that has not come yet', () {
-      const d = DaybookPostDraft(
+    test('an activity: who\'s coming (F56), then a start that has not come '
+        'yet', () {
+      const nobody = DaybookPostDraft(
         id: 'd',
         kind: DaybookKind.activity,
         title: 'Site walk',
       );
-      expect(d.readyToTry, isTrue);
+      expect(nobody.readyToTry, isTrue);
+      expect(nobody.missing(_now), DaybookMissing.people);
+      final d = nobody.copyWith(people: const [(id: 'p1', name: 'Sara')]);
       expect(d.missing(_now), DaybookMissing.start);
       final past = d.copyWith(startsAt: () => _now);
       expect(past.missing(_now), DaybookMissing.start);

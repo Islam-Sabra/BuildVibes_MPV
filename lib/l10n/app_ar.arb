@@ -1028,5 +1028,9 @@
   "daybookUnpin": "إلغاء التثبيت",
   "daybookKindNote": "ملاحظة",
   "daybookKindNoteNote": "للعلم، لا يلزم أي إجراء",
-  "daybookKindNoteWord": "· ملاحظة"
+  "daybookKindNoteWord": "· ملاحظة",
+  "daybookForChoose": "لـ: اختر ›",
+  "daybookComingChoose": "من سيحضر: اختر ›",
+  "daybookChooseWho": "اختر لمن",
+  "daybookPostAsNote": "للعلم فقط؟ انشرها كملاحظة"
 }
