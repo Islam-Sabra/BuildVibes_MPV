@@ -22,11 +22,6 @@ abstract class ActivityRepository {
   Future<List<SpaceToday>> today(DateTime dayStart);
   Future<List<NeedsCard>> needs();
   Future<void> markSpaceSeen(String spaceId);
-
-  /// When each Space last had activity on its daybook (F28): its newest
-  /// card's last_activity_at (daybook_cards, migration 26). A Space with
-  /// no card, or a server without migration 26, has none.
-  Future<Map<String, DateTime>> lastActivity(List<String> spaceIds);
 }
 
 class SupabaseActivityRepository implements ActivityRepository {
@@ -77,29 +72,6 @@ class SupabaseActivityRepository implements ActivityRepository {
     );
     return [for (final r in rows) SpaceToday.fromJson(r)];
   });
-
-  /// One card per Space, read as the member: the server's own visibility
-  /// rules apply. my_spaces() has no last-activity time of its own.
-  @override
-  Future<Map<String, DateTime>> lastActivity(List<String> spaceIds) async {
-    Future<(String, DateTime?)> one(String id) async {
-      try {
-        final rows = _rows(
-          await _client.rpc<List<dynamic>>(
-            'daybook_cards',
-            params: {'p_space': id, 'p_limit': 1},
-          ),
-        );
-        final at = rows.firstOrNull?['last_activity_at'] as String?;
-        return (id, at == null ? null : DateTime.parse(at));
-      } on Exception {
-        return (id, null);
-      }
-    }
-
-    final all = await Future.wait(spaceIds.map(one));
-    return {for (final (id, at) in all) id: ?at};
-  }
 
   @override
   Future<void> markSpaceSeen(String spaceId) => _guard(
@@ -161,8 +133,8 @@ class SupabaseActivityRepository implements ActivityRepository {
                 .inFilter('post_id', itemIds)
                 .like('mime', 'image/%')
                 .not('storage_path', 'is', null)
-                .order('sort')
-                .order('created_at'),
+                .order('sort', ascending: true)
+                .order('created_at', ascending: true),
           );
     final doneIds = [
       for (final e in events)
@@ -175,7 +147,7 @@ class SupabaseActivityRepository implements ActivityRepository {
                 .from('work_item_evidence')
                 .select('event_id, storage_path, created_at')
                 .inFilter('event_id', doneIds)
-                .order('created_at'),
+                .order('created_at', ascending: true),
           );
     final requests = requestIds.isEmpty
         ? const <Map<String, dynamic>>[]

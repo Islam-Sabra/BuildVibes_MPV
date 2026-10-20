@@ -50,6 +50,12 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "phoneMakers" -> result.success(listOf(Build.MANUFACTURER, Build.BRAND))
+                    // F37: the phone's 24-hour setting, read again when the
+                    // app comes back to the front (Android doesn't tell
+                    // Flutter about a change until the app restarts).
+                    "is24Hour" -> result.success(
+                        android.text.format.DateFormat.is24HourFormat(this),
+                    )
                     // Settings → About: the installed version and build number
                     // (versionCode, the git commit count; docs/release.md).
                     "buildInfo" -> {

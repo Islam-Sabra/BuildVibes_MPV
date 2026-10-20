@@ -13,11 +13,16 @@ class BvMenuItem<T> {
     required this.value,
     required this.label,
     required this.icon,
+    this.note,
   });
 
   final T value;
   final String label;
   final IconData icon;
+
+  /// A small line under the label, saying what the choice does (review 50
+  /// F50: "Each person confirms they received it").
+  final String? note;
 }
 
 /// The small menus: a leading icon and a label per row. While writing
@@ -100,10 +105,14 @@ class BvPopoverMenu<T> extends StatelessWidget {
       child: InkWell(
         onTap: () => onSelected(item.value),
         child: Container(
-          height: screen
-              ? BvScreenMenuSpec.rowHeight
-              : BvPopoverMenuSpec.rowHeight,
+          constraints: BoxConstraints(
+            minHeight: screen
+                ? BvScreenMenuSpec.rowHeight
+                : BvPopoverMenuSpec.rowHeight,
+          ),
           padding: EdgeInsetsDirectional.only(
+            top: item.note == null ? 0 : BvPopoverMenuSpec.noteRowPadding,
+            bottom: item.note == null ? 0 : BvPopoverMenuSpec.noteRowPadding,
             start: BvPopoverMenuSpec.rowPaddingStart,
             end: screen
                 ? BvScreenMenuSpec.rowPadding
@@ -120,11 +129,24 @@ class BvPopoverMenu<T> extends StatelessWidget {
                 color: isSelected ? BvColors.textAction : BvColors.iconPrimary,
               ),
               Expanded(
-                child: Text(
-                  item.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: type.bodyMd.copyWith(color: colour),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.bodyMd.copyWith(color: colour),
+                    ),
+                    if (item.note case final note?)
+                      Text(
+                        note,
+                        style: type.metadata.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               if (isSelected)

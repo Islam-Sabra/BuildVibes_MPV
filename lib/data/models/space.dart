@@ -33,6 +33,7 @@ class SpaceSummary {
     this.projectTypeId,
     this.pendingRequests = 0,
     int? needsYou,
+    this.lastActivityAt,
   }) : needsYou = needsYou ?? pendingRequests;
 
   factory SpaceSummary.fromJson(Map<String, dynamic> json) => SpaceSummary(
@@ -45,6 +46,9 @@ class SpaceSummary {
     projectTypeId: json['project_type_id'] as String?,
     pendingRequests: (json['pending_requests'] as num?)?.toInt() ?? 0,
     needsYou: (json['needs_you'] as num?)?.toInt(),
+    lastActivityAt: json['last_activity_at'] == null
+        ? null
+        : DateTime.parse(json['last_activity_at'] as String),
   );
 
   final String id;
@@ -61,6 +65,10 @@ class SpaceSummary {
   /// Everything that needs you here (S1 badge): join requests, Open items
   /// you own and Done items you may check. Decided by the server.
   final int needsYou;
+
+  /// The time on the newest daybook card I can see here (F28, migration
+  /// 28); null with none.
+  final DateTime? lastActivityAt;
 }
 
 enum JoinRequestStatus { pending, declined }

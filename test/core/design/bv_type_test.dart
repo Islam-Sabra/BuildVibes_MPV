@@ -33,6 +33,8 @@ void main() {
       expect(_spec(t.labelSm), (12, 16, medium));
       expect(_spec(t.overline), (12, 16, semi));
       expect(_spec(t.metadata), (12, 16, regular));
+      expect(_spec(t.emphasis), (15, 22, medium));
+      expect(_spec(t.emphasisSm), (12, 16, medium));
     });
 
     test('Arabic: main 16/26, small 13/18, Regular and Bold only', () {
@@ -49,6 +51,9 @@ void main() {
       expect(_spec(t.labelSm), (13, 18, regular));
       expect(_spec(t.overline), (13, 18, bold));
       expect(_spec(t.metadata), (13, 18, regular));
+      // F34: the name that stands out is Bold in Almarai.
+      expect(_spec(t.emphasis), (16, 26, bold));
+      expect(_spec(t.emphasisSm), (13, 18, bold));
     });
 
     test('the large three keep their values', () {
@@ -65,7 +70,7 @@ void main() {
     List<TextStyle> all(BvTypeSet t) => [
       t.displayBrand, t.headingXl, t.headingLg, t.headingMd, t.titleLg, //
       t.titleMd, t.bodyLg, t.bodyMd, t.bodySm, t.labelLg, t.labelMd,
-      t.labelSm, t.metadata, t.button, t.overline,
+      t.labelSm, t.metadata, t.button, t.overline, t.emphasis, t.emphasisSm,
     ];
 
     test('Arabic styles are Almarai, falling back to Plus Jakarta Sans', () {

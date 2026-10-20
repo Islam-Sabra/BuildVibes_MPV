@@ -72,6 +72,10 @@ class FakeLibraryRepository implements LibraryRepository {
     String? note,
     String? supersedesId,
   }) async {
+    // As add_library_file: an id is used once.
+    if (_find(id) != null) {
+      throw const SpaceException(SpaceFailure.badInput, 'this id is taken');
+    }
     calls.add(
       'add $name team:${teamId ?? '-'} rev:${revLabel ?? '-'} '
       'supersedes:${supersedesId ?? '-'}',
@@ -96,7 +100,15 @@ class FakeLibraryRepository implements LibraryRepository {
             uploadedByName: 'Omar Haddad',
           ),
         );
+    if (loseAnswer) {
+      loseAnswer = false;
+      throw const SpaceException(SpaceFailure.network);
+    }
   }
+
+  /// The next add reaches the Library but its answer is lost (a weak
+  /// signal): the phone hears no signal.
+  bool loseAnswer = false;
 
   /// False gives links (to play a voice note); true, the default, is no
   /// network: previews show "can't show".
@@ -107,9 +119,13 @@ class FakeLibraryRepository implements LibraryRepository {
       ? throw const SpaceException(SpaceFailure.network)
       : 'https://files.test/$path';
 
+  /// What a download gives for a path (a real photo, say); else the
+  /// start of a PDF.
+  final bytesByPath = <String, Uint8List>{};
+
   @override
   Future<Uint8List> download(String path) async {
     calls.add('download $path');
-    return Uint8List.fromList(const [37, 80, 68, 70]);
+    return bytesByPath[path] ?? Uint8List.fromList(const [37, 80, 68, 70]);
   }
 }

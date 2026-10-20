@@ -118,8 +118,9 @@ void main() {
       'card\'s last line, and keeps them while nothing new happens', () async {
     final base = s.sleevesCard();
     final card = base.copyWith(historyMore: true);
+    // One more than a page: post_history says more are left.
     final older = [
-      for (var i = 0; i < DaybookRepository.historyPage; i++)
+      for (var i = 0; i <= DaybookRepository.historyPage; i++)
         s.event(
           'ev-old-$i',
           DaybookEventKind.comment,
@@ -136,14 +137,15 @@ void main() {
     await cards.loadEarlier(card.id);
     var now = container.read(daybookCardsProvider(space)).value!.single;
     expect(fake.historyCalls, [card.id]);
-    expect(now.history, hasLength(base.history.length + older.length));
-    expect(now.history.last.id, 'ev-old-${older.length - 1}');
-    // A whole page came back: there may be more.
+    const page = DaybookRepository.historyPage;
+    expect(now.history, hasLength(base.history.length + page));
+    expect(now.history.last.id, 'ev-old-${page - 1}');
+    // post_history's more: there are older lines still.
     expect(now.historyMore, isTrue);
 
     await cards.refresh();
     now = container.read(daybookCardsProvider(space)).value!.single;
-    expect(now.history, hasLength(base.history.length + older.length));
+    expect(now.history, hasLength(base.history.length + page));
 
     // New activity shifts the first lines: the earlier ones are read again.
     fake.put(

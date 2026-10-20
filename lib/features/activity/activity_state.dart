@@ -31,21 +31,12 @@ final todayInSpacesProvider = FutureProvider.autoDispose<List<SpaceToday>>(
       .today(dayStartOf(ref.watch(clockProvider)())),
 );
 
-/// When each of my Spaces last had activity (F28): every Space on Home →
-/// Spaces shows it, even with nothing new today.
-final spaceLastActivityProvider =
-    FutureProvider.autoDispose<Map<String, DateTime>>((ref) async {
-      final spaces = await ref.watch(mySpacesProvider.future);
-      return ref.watch(activityRepositoryProvider).lastActivity([
-        for (final s in spaces) s.id,
-      ]);
-    });
-
 /// After something changed in a Space (a visit, a sign-off, a decision):
 /// Home and Activity read again.
 void refreshDay(void Function(ProviderOrFamily) invalidate) {
+  // Each Space's last activity comes with my_spaces() (migration 28).
+  invalidate(mySpacesProvider);
   invalidate(needsCardsProvider);
   invalidate(todayInSpacesProvider);
-  invalidate(spaceLastActivityProvider);
   invalidate(unreadActivityProvider);
 }

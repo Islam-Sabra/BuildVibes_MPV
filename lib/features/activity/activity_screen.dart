@@ -421,7 +421,8 @@ class ActivityRowView extends StatelessWidget {
     final type = BvType.of(context);
     final words = activityWords(l10n, row);
     final unread = !row.read;
-    final nameStyle = (unread ? type.headingMd : type.labelMd).copyWith(
+    // F34: a read row's name still stands out (Almarai Bold in Arabic).
+    final nameStyle = (unread ? type.headingMd : type.emphasis).copyWith(
       color: BvColors.textPrimary,
     );
     final restStyle = type.bodyMd.copyWith(

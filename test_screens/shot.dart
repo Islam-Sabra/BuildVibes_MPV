@@ -1,7 +1,8 @@
 // Screenshots for review at 390 × 844, English and Arabic, rendered with
 // the app's real fonts. Not part of `flutter test`; run:
 //   flutter test test_screens --update-goldens
-// The PNGs land in docs/screens/slice1/ (committed for the lead, review 43).
+// The PNGs land in docs/screens/slice1/ (committed for the lead, review 43),
+// or a later slice's folder ([shoot]'s folder).
 import 'dart:async';
 
 import 'package:buildvibes/core/theme/bv_theme.dart';
@@ -53,7 +54,7 @@ Future<void> loadAppFonts() async {
 }
 
 /// Renders [child] in a 390 × 844 app frame in [lang] and saves
-/// `docs/screens/slice1/<name>_<lang>.png`.
+/// `docs/screens/<folder>/<name>_<lang>.png` (slice1 by default).
 ///
 /// A whole screen gets its providers from [overrides], and [before] puts it
 /// in the state to shoot (a scroll, a tap) once it has settled. With
@@ -67,6 +68,7 @@ Future<void> shoot(
   List<Override>? overrides,
   Future<void> Function(WidgetTester tester)? before,
   bool keyboard = false,
+  String folder = 'slice1',
 }) async {
   tester.view.physicalSize = shotSize * shotPixelRatio;
   tester.view.devicePixelRatio = shotPixelRatio;
@@ -129,7 +131,7 @@ Future<void> shoot(
     }
     await expectLater(
       find.byKey(key),
-      matchesGoldenFile('../docs/screens/slice1/${name}_$lang.png'),
+      matchesGoldenFile('../docs/screens/$folder/${name}_$lang.png'),
     );
   } finally {
     debugDisableShadows = true;

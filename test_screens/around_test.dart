@@ -110,7 +110,6 @@ Future<List<Override>> _base({
   List<NeedsCard> needs = const [],
   List<SpaceToday> today = const [],
   List<ActivityRow> rows = const [],
-  Map<String, DateTime> last = const {},
   FakeSpaceRepository? spaces,
   Map<String, Object> phone = const {},
   DateTime? now,
@@ -125,12 +124,7 @@ Future<List<Override>> _base({
     appGateProvider.overrideWithValue(AppGate.ready),
     clockProvider.overrideWithValue(() => now ?? DaybookSamples.thursday),
     activityRepositoryProvider.overrideWithValue(
-      FakeActivityRepository(
-        cards: needs,
-        today: today,
-        rows: rows,
-        last: {...last},
-      ),
+      FakeActivityRepository(cards: needs, today: today, rows: rows),
     ),
     if (spaces != null) spaceRepositoryProvider.overrideWithValue(spaces),
     needsCardsProvider.overrideWith((ref) async => needs),
@@ -373,7 +367,6 @@ void main() {
       Map<String, Object> phone = const {},
       List<NeedsCard> needs = const [],
       List<SpaceToday> today = const [],
-      Map<String, DateTime> last = const {},
       FakeSpaceRepository? spaces,
       FakePostRepository? posts,
       DateTime? now,
@@ -383,7 +376,6 @@ void main() {
         phone: phone,
         needs: needs,
         today: today,
-        last: last,
         spaces: spaces,
         now: now,
       ),
@@ -746,7 +738,9 @@ void main() {
     // (2555:35276, AR 2564:184) set its language.
     final khiran = t('Khiran villas — Finishing', 'فلل الخيران — التشطيبات');
     final salmiya = t('Salmiya Seafront', 'واجهة السالمية البحرية');
-    FakeSpaceRepository mySpaces() {
+
+    /// [last]: each Space's last activity (my_spaces, migration 28).
+    FakeSpaceRepository mySpaces({Map<String, DateTime> last = const {}}) {
       SpaceDetail detail(String id, String name, SpacePass pass) => SpaceDetail(
         id: id,
         name: name,
@@ -766,18 +760,21 @@ void main() {
             isAdmin: true,
             projectId: 'proj-kct',
             projectName: kct,
+            lastActivityAt: last[DaybookSamples.space],
           ),
           SpaceSummary(
             id: 'space-khiran',
             name: khiran,
             pass: SpacePass.crew,
             isAdmin: false,
+            lastActivityAt: last['space-khiran'],
           ),
           SpaceSummary(
             id: 'space-salmiya',
             name: salmiya,
             pass: SpacePass.viewer,
             isAdmin: false,
+            lastActivityAt: last['space-salmiya'],
           ),
         ])
         ..details[DaybookSamples.space] = s.detail()
@@ -890,8 +887,7 @@ void main() {
         overrides: await home(
           needs: dayNeeds,
           today: [dayNews.first, update],
-          last: {'space-salmiya': DateTime(2026, 10, 12, 16)},
-          spaces: mySpaces(),
+          spaces: mySpaces(last: {'space-salmiya': DateTime(2026, 10, 12, 16)}),
         ),
         before: (tester) async {
           await spacesTab(tester);

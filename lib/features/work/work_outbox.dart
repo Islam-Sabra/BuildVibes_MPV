@@ -9,13 +9,17 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
+import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
+import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../entry/entry_state.dart';
 import 'daybook_draft.dart';
+import 'daybook_marks.dart' show daybookExtrasProvider;
 import 'daybook_state.dart';
 
 /// A photo waiting to be sent: a copy kept on the phone ([local]) and,
@@ -64,6 +68,10 @@ enum PendingKind {
   /// A work item written in place in the Daybook, not on the server yet.
   workItem('daybook_work_item'),
 
+  /// A checklist, an announcement, an activity or a file post written in
+  /// place (slice 2), not on the server yet.
+  post('daybook_post'),
+
   /// A check, held for the undo bar's 5 seconds first (review 44, answer
   /// 4).
   check('check_item'),
@@ -81,9 +89,10 @@ enum PendingKind {
 }
 
 /// Something done on the phone that isn't on the server yet: a sign-off,
-/// a new work item, a check or a cancel. Kept on the phone until it is, so
-/// a weak site signal never loses it or its photos. The app chose the
-/// work item's id, so sending it again is safe.
+/// a new post, a check or a cancel. Kept on the phone until it is, so a
+/// weak site signal never loses it, its photos or its files. The app chose
+/// the post's id (and each new Library file's), so sending it again is
+/// safe.
 @immutable
 class PendingItem {
   const PendingItem({
@@ -103,6 +112,8 @@ class PendingItem {
     this.dueAt,
     this.madeAt,
     this.authorName,
+    this.draft,
+    this.files = const [],
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -125,6 +136,13 @@ class PendingItem {
     dueAt: _time(json['due_at']),
     madeAt: _time(json['made_at']),
     authorName: json['author_name'] as String?,
+    draft: json['draft'] == null
+        ? null
+        : DaybookPostDraft.fromJson(json['draft'] as Map<String, dynamic>),
+    files: [
+      for (final f in json['files'] as List? ?? const [])
+        DraftFile.fromJson(f as Map<String, dynamic>),
+    ],
   );
 
   static DateTime? _time(Object? value) =>
@@ -171,8 +189,16 @@ class PendingItem {
   /// The writer's or signer's own name, for the slip while it waits.
   final String? authorName;
 
+  /// A post of another kind: the card as it was written.
+  final DaybookPostDraft? draft;
+
+  /// Library files that go with a new post: a file post's, or the files
+  /// on a new work item. A new one goes to the Library first.
+  final List<DraftFile> files;
+
   PendingItem copyWith({
     List<PendingPhoto>? photos,
+    List<DraftFile>? files,
     bool? refused,
     bool? sent,
   }) => PendingItem(
@@ -192,7 +218,13 @@ class PendingItem {
     dueAt: dueAt,
     madeAt: madeAt,
     authorName: authorName,
+    draft: draft,
+    files: files ?? this.files,
   );
+
+  /// A new post, of any kind.
+  bool get isNewPost =>
+      kind == PendingKind.workItem || kind == PendingKind.post;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -211,6 +243,8 @@ class PendingItem {
     'due_at': dueAt?.toUtc().toIso8601String(),
     'made_at': madeAt?.toUtc().toIso8601String(),
     'author_name': authorName,
+    'draft': draft?.toJson(),
+    'files': [for (final f in files) f.toJson()],
   };
 
   /// Only the kinds this version knows are read back.
@@ -220,6 +254,34 @@ class PendingItem {
   /// The same thing waiting: a kind of one work item.
   bool same(PendingItem other) => other.id == id && other.kind == kind;
 }
+
+/// Picks up to [max] photos from the gallery (K4), compressed as
+/// [pickPhotoProvider]'s. Empty when the person cancels. A provider so
+/// tests can stand in for the gallery.
+typedef PickPhotos = Future<List<XFile>> Function({required int max});
+
+final pickPhotosProvider = Provider<PickPhotos>((ref) {
+  final picker = ImagePicker();
+  return ({required int max}) async {
+    if (max <= 0) return const [];
+    if (max == 1) {
+      final one = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 80,
+      );
+      return [?one];
+    }
+    final picked = await picker.pickMultiImage(
+      limit: max,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
+    return picked.take(max).toList();
+  };
+});
 
 /// Takes a photo for evidence: the camera, or the gallery as a fallback.
 /// Compressed to about 1600 px on the long side, JPEG quality 80. Null when
@@ -303,8 +365,8 @@ final workOutboxProvider = NotifierProvider<WorkOutbox, List<PendingItem>>(
   WorkOutbox.new,
 );
 
-/// Sign-offs, new work items, checks and cancels waiting to be sent, kept
-/// on the phone between app starts.
+/// Sign-offs, new posts, checks and cancels waiting to be sent, kept on
+/// the phone between app starts.
 /// Each account has its own: on a phone a crew shares, the next person
 /// never sees (or sends) someone else's unsent work.
 class WorkOutbox extends Notifier<List<PendingItem>> {
@@ -463,7 +525,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           }
           // A new name on every try: nothing is ever overwritten.
           final path = await withRetries(
-            () => item.kind == PendingKind.workItem
+            () => item.isNewPost
                 ? daybook.uploadPostPhoto(item.spaceId, item.id, File(p.local))
                 : repo.uploadPhoto(item.spaceId, item.id, File(p.local)),
           );
@@ -473,7 +535,21 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           );
           await _put(current);
         }
-        await withRetries(() => _call(item, photos));
+        // New files go to the Library first, under the ids the app chose.
+        final files = <DraftFile>[];
+        for (final f in current.files) {
+          if (!f.isNew || f.added) {
+            files.add(f);
+            continue;
+          }
+          await withRetries(() => _addToLibrary(item.spaceId, f));
+          files.add(f.inLibrary);
+          current = current.copyWith(
+            files: [...files, ...current.files.skip(files.length)],
+          );
+          await _put(current);
+        }
+        await withRetries(() => _call(current, photos));
         break;
       } on SpaceException catch (e) {
         // Refused photos from an earlier try: upload them again, once.
@@ -498,8 +574,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     // "Waiting to send" goes at once (F17); the slip stays until the
     // daybook has the server's entry.
     _retry.reached();
+    // The Space's other open daybooks read it at once (F47).
+    unawaited(ref.read(daybookLiveProvider).changed(item.spaceId, item.id));
     // F5: a post or a sign-off the server took, not a check or a cancel.
-    if (item.kind == PendingKind.signOff || item.kind == PendingKind.workItem) {
+    if (item.kind == PendingKind.signOff || item.isNewPost) {
       unawaited(ref.read(sentChimeProvider).play());
     }
     await _put(current.copyWith(sent: true));
@@ -517,51 +595,127 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       return true;
     }
     await _drop(item);
-    for (final p in item.photos) {
-      unawaited(_deleteKept(p.local));
-    }
+    _deleteFiles(item);
     return true;
   }
 
-  Future<void> _call(
-    PendingItem item,
-    List<PendingPhoto> photos,
-  ) => switch (item.kind) {
-    PendingKind.workItem =>
-      ref
-          .read(daybookRepositoryProvider)
-          .createWorkItem(
-            NewWorkItem(
-              id: item.id,
-              spaceId: item.spaceId,
-              title: item.title,
-              ownerId: item.ownerId,
-              body: item.body,
-              place: item.place,
-              dueDate: item.dueDate,
-              dueAt: item.dueAt,
-              photoPaths: [for (final p in photos) p.remote!],
-            ),
+  /// The phone's copies of [item]'s photos and new files.
+  void _deleteFiles(PendingItem item) {
+    for (final path in [
+      for (final p in item.photos) p.local,
+      for (final f in item.files) ?f.local,
+    ]) {
+      unawaited(_deleteKept(path));
+    }
+  }
+
+  /// A file picked on the phone into the Library (add_library_file), as a
+  /// new version of an older one when chosen. The server refuses an id it
+  /// has already: then an earlier try got through and only its answer was
+  /// lost, since the id is this phone's own.
+  Future<void> _addToLibrary(String spaceId, DraftFile f) async {
+    final library = ref.read(libraryRepositoryProvider);
+    final path = await library.upload(
+      spaceId,
+      f.libraryId,
+      PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
+    );
+    try {
+      await library.add(
+        id: f.libraryId,
+        spaceId: spaceId,
+        name: f.name,
+        path: path,
+        mime: f.mime,
+        bytes: f.bytes,
+        revLabel: f.revLabel,
+        supersedesId: f.supersedesId,
+      );
+    } on SpaceException catch (e) {
+      if (e.failure != SpaceFailure.badInput ||
+          !(e.message ?? '').contains(_idTaken)) {
+        rethrow;
+      }
+    }
+  }
+
+  static const _idTaken = 'this id is taken';
+
+  Future<void> _call(PendingItem item, List<PendingPhoto> photos) async {
+    final daybook = ref.read(daybookRepositoryProvider);
+    final paths = [for (final p in photos) p.remote!];
+    final fileIds = [for (final f in item.files) f.libraryId];
+    switch (item.kind) {
+      case PendingKind.workItem:
+        await daybook.createWorkItem(
+          NewWorkItem(
+            id: item.id,
+            spaceId: item.spaceId,
+            title: item.title,
+            ownerId: item.ownerId,
+            body: item.body,
+            place: item.place,
+            dueDate: item.dueDate,
+            dueAt: item.dueAt,
+            photoPaths: paths,
+            libraryFileIds: fileIds,
           ),
-    PendingKind.signOff =>
-      ref
-          .read(workRepositoryProvider)
-          .signDone(
-            item.id,
-            note: item.note,
-            photos: [
-              for (final p in photos)
-                WorkPhoto(path: p.remote!, takenAt: p.takenAt, place: p.place),
-            ],
+        );
+        // The same file twice is one attachment (attach_library_file).
+        for (final id in fileIds) {
+          await daybook.attachFile(item.id, id);
+        }
+      case PendingKind.post:
+        final d = item.draft!;
+        await daybook.createPost(
+          NewSpacePost(
+            id: item.id,
+            spaceId: item.spaceId,
+            kind: d.kind.json,
+            title: d.title,
+            body: d.body,
+            place: d.place,
+            dueDate: d.dueDate,
+            dueAt: d.dueAt,
+            pinnedUntil: d.pinnedUntil,
+            startsAt: d.startsAt,
+            endsAt: d.endsAt,
+            // A file post shares its file; the other kinds carry theirs as
+            // the post's own files (F39).
+            libraryFileId: d.kind == DaybookKind.file
+                ? fileIds.firstOrNull
+                : null,
+            attachedFileIds: d.kind == DaybookKind.file ? const [] : fileIds,
+            people: [for (final p in d.people) p.id],
+            points: d.writtenPoints,
+            photoPaths: paths,
           ),
-    PendingKind.check => ref.read(workRepositoryProvider).checkItem(item.id),
-    PendingKind.cancel =>
-      ref.read(daybookRepositoryProvider).cancelPost(item.id),
-  };
+        );
+      case PendingKind.signOff:
+        await ref
+            .read(workRepositoryProvider)
+            .signDone(
+              item.id,
+              note: item.note,
+              photos: [
+                for (final p in photos)
+                  WorkPhoto(
+                    path: p.remote!,
+                    takenAt: p.takenAt,
+                    place: p.place,
+                  ),
+              ],
+            );
+      case PendingKind.check:
+        await ref.read(workRepositoryProvider).checkItem(item.id);
+      case PendingKind.cancel:
+        await daybook.cancelPost(item.id);
+    }
+  }
 
   /// The server said no. Nothing is ever dropped silently (review 47,
   /// answer 5):
-  /// - a new work item goes back to a Draft in place ("Couldn't send. Tap
+  /// - a new post goes back to a Draft in place ("Couldn't send. Tap
   ///   to fix", review 46);
   /// - a sign-off keeps its photos on the phone and shows on its proof
   ///   slip as "Couldn't send. Tap to fix"; tapping reopens the proof;
@@ -569,7 +723,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   ///   short line says why ([refusalsProvider]).
   Future<void> _refused(PendingItem item, SpaceException e) async {
     switch (item.kind) {
-      case PendingKind.workItem:
+      case PendingKind.workItem || PendingKind.post:
         if (await reopenRefused(item)) return;
         // A new card is being written: this one waits, refused, until it
         // is put down.
@@ -597,9 +751,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// A refused sign-off taken off the phone for good: its photos too.
   Future<void> discard(PendingItem item) async {
     await _drop(item);
-    for (final p in item.photos) {
-      unawaited(_deleteKept(p.local));
-    }
+    _deleteFiles(item);
   }
 
   /// A refused sign-off that is being sent again for another work item:
@@ -618,6 +770,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// Reads the Space's daybook again, if it is open. False when it
   /// couldn't.
   Future<bool> _refreshDaybook(String spaceId) async {
+    // A pin or an activity today sits above the page.
+    ref
+      ..invalidate(daybookExtrasProvider(spaceId))
+      ..invalidate(daybookDueTodayProvider(spaceId));
     final page = daybookCardsProvider(spaceId);
     if (!ref.exists(page)) return true;
     try {
@@ -638,7 +794,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 }
 
 /// What the server refused on the daybook (review 47, answer 5).
-enum RefusedAction { check, sendBack, cancel, giveTo, update }
+enum RefusedAction { check, sendBack, cancel, giveTo, update, tick, ack }
 
 /// Why, when the server's message says it.
 enum RefusalWhy {

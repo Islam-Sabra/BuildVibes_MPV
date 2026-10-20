@@ -29,12 +29,16 @@ class BvWritingProperty {
     this.tint,
     this.image,
     this.onTap,
-  }) : icon = null;
+  }) : icon = null,
+       onRemove = null,
+       removeLabel = null;
 
   const BvWritingProperty.icon({
     required this.icon,
     required this.label,
     this.onTap,
+    this.onRemove,
+    this.removeLabel,
   }) : tint = null,
        image = null;
 
@@ -43,6 +47,10 @@ class BvWritingProperty {
   final Color? tint;
   final ImageProvider? image;
   final VoidCallback? onTap;
+
+  /// A small × after the label that takes it off (a file on the post).
+  final VoidCallback? onRemove;
+  final String? removeLabel;
 }
 
 /// Who is writing, at the top of a post being written on Home (H2
@@ -87,6 +95,7 @@ class BvWritingCard extends StatelessWidget {
     this.titleMaxLength,
     this.bodyMaxLength,
     this.errorLine,
+    this.extra,
   });
 
   /// Null for a post: it has no title, only its text.
@@ -117,7 +126,9 @@ class BvWritingCard extends StatelessWidget {
   final BvWritingAuthor? author;
 
   /// The photos, side by side across the card, [photoHeight] high: a work
-  /// item's one cover (128), or a post's one to four (110).
+  /// item's cover (128), or a post's one to four (110). More than four (a
+  /// Daybook post takes up to ten from the gallery, K4) scroll sideways as
+  /// squares.
   final List<Widget> photos;
   final double photoHeight;
 
@@ -137,6 +148,10 @@ class BvWritingCard extends StatelessWidget {
   /// A red line at the foot of the card: the post was refused ("Couldn't
   /// send. Tap to fix", review 46).
   final String? errorLine;
+
+  /// What the kind of post adds under the text: a checklist's points, a
+  /// file post's file.
+  final Widget? extra;
 
   @override
   Widget build(BuildContext context) {
@@ -193,26 +208,37 @@ class BvWritingCard extends StatelessWidget {
                   onChanged: onBodyChanged,
                   maxLength: bodyMaxLength,
                 ),
+                ?extra,
                 if (photos.isNotEmpty)
                   _PhotoRow(
                     removable: onRemovePhoto != null,
                     height: photoHeight,
-                    child: Row(
-                      spacing: BvWritingCardSpec.photoGap,
-                      children: [
-                        for (final (i, photo) in photos.indexed)
-                          Expanded(
-                            child: _Cover(
-                              index: i,
-                              onRemove: onRemovePhoto == null
-                                  ? null
-                                  : () => onRemovePhoto!(i),
-                              removeLabel: removePhotoLabel,
-                              child: photo,
-                            ),
+                    child: photos.length > BvWritingCardSpec.photosSideBySide
+                        ? ListView(
+                            key: const Key('writing-photos-scroll'),
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              for (final (i, photo) in photos.indexed)
+                                Padding(
+                                  padding: EdgeInsetsDirectional.only(
+                                    end: i == photos.length - 1
+                                        ? 0
+                                        : BvWritingCardSpec.photoGap,
+                                  ),
+                                  child: SizedBox.square(
+                                    dimension: photoHeight,
+                                    child: _cover(i, photo),
+                                  ),
+                                ),
+                            ],
+                          )
+                        : Row(
+                            spacing: BvWritingCardSpec.photoGap,
+                            children: [
+                              for (final (i, photo) in photos.indexed)
+                                Expanded(child: _cover(i, photo)),
+                            ],
                           ),
-                      ],
-                    ),
                   ),
                 if (footer != null)
                   Align(
@@ -234,6 +260,13 @@ class BvWritingCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _cover(int i, Widget photo) => _Cover(
+    index: i,
+    onRemove: onRemovePhoto == null ? null : () => onRemovePhoto!(i),
+    removeLabel: removePhotoLabel,
+    child: photo,
+  );
 
   Widget _field({
     required Key key,
@@ -446,12 +479,29 @@ class _Properties extends StatelessWidget {
                 // A long one ("الأحد 18 أكتوبر، 2:00 ظهرًا") wraps
                 // within the line instead of running off it.
                 Flexible(child: Text(p.label, style: style)),
+                if (p.onRemove != null)
+                  Semantics(
+                    button: true,
+                    label: p.removeLabel,
+                    child: GestureDetector(
+                      key: const Key('writing-property-remove'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: p.onRemove,
+                      child: const Icon(
+                        BvIcons.close,
+                        size: BvWritingCardSpec.propertyIcon,
+                        color: BvColors.iconSecondary,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
       ],
     );
-    if (items.every((p) => p.onTap == null)) return line;
+    if (items.every((p) => p.onTap == null && p.onRemove == null)) {
+      return line;
+    }
     return BvTapTarget(
       outset: BvWritingCardSpec.propertyTouchOutset,
       child: line,

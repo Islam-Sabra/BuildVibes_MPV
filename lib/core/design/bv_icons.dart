@@ -248,6 +248,9 @@ abstract final class BvIcons {
   /// calendar-blank: a due date.
   static const due = month;
 
+  /// push-pin: an announcement pinned under the masthead.
+  static const pin = IconData(0xe3e2, fontFamily: _family);
+
   /// bell-slash: notifications aren't reaching this phone (F9).
   static const notificationsOff = IconData(0xe0d4, fontFamily: _family);
 

@@ -62,6 +62,9 @@ abstract final class BvWritingCardSpec {
 
   /// A post's photos (H2 2555:35428): 110 high, side by side.
   static const postPhotoHeight = 110.0;
+
+  /// Up to four photos share the width; more scroll sideways.
+  static const photosSideBySide = 4;
   static const photoGap = BvSpace.s4;
   static const coverRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
   static const removeSize = 26.0;
@@ -110,6 +113,9 @@ abstract final class BvPopoverMenuSpec {
   static const rowGap = BvSpace.s12;
   static const icon = BvSize.iconMd; // 20
   static const check = 18.0;
+
+  /// Above and below a row with a small line under its label (F50).
+  static const noteRowPadding = BvSpace.s8;
 
   // Writing (E2 2524:33369): the More menu, the assign picker and the
   // place field open over the diary, start 80, just above the toolbar.

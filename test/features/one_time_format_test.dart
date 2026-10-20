@@ -2,6 +2,7 @@
 // same on a daybook card's header, its history line, a Home post card, a
 // reply on the post page and an Activity row, in both clock settings and
 // both languages.
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/l10n/bv_time.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/post.dart';
@@ -31,6 +32,10 @@ String _shown(WidgetTester tester, Finder slot) {
   final clock = tester.widget<BvClockText>(slot);
   return [clock.parts.time, ?clock.parts.period].join(' ');
 }
+
+/// [text] without its direction isolates (F53).
+String _plain(String text) =>
+    String.fromCharCodes(text.runes.where((r) => r < 0x2066 || r > 0x2069));
 
 void main() {
   for (final lang in ['en', 'ar']) {
@@ -101,7 +106,7 @@ void main() {
         expect(line, switch ((lang, use24)) {
           (_, true) => '10:56',
           ('en', false) => '10:56 am',
-          _ => '10:56 صباحًا',
+          _ => rtlRun('10:56 صباحًا'),
         });
 
         // A post card on Home.
@@ -146,8 +151,10 @@ void main() {
           of: find.descendant(of: card, matching: find.byType(BvCardHistory)),
           matching: find.byType(BvClockText),
         );
-        expect(_shown(tester, header), line);
-        expect(_shown(tester, history.last), line);
+        // The two-line slot draws the same words, time and part of the day
+        // apart, so with no isolates around them.
+        expect(_shown(tester, header), _plain(line));
+        expect(_shown(tester, history.last), _plain(line));
         final twoLines = lang == 'ar' && !use24;
         expect(
           find.descendant(

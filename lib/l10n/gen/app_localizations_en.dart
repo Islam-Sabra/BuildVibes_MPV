@@ -3406,4 +3406,314 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookLineYouPosted => 'You posted it';
+
+  @override
+  String get daybookKindChecklistWord => '· checklist';
+
+  @override
+  String get daybookKindActivityWord => '· scheduled';
+
+  @override
+  String get daybookKindFileWord => '· for receipt';
+
+  @override
+  String get daybookToEveryone => '· to everyone';
+
+  @override
+  String daybookToTeam(String team) {
+    return '· to $team';
+  }
+
+  @override
+  String daybookTicked(int ticked, int total) {
+    return '$ticked of $total ticked';
+  }
+
+  @override
+  String get daybookGotIt => 'Got it';
+
+  @override
+  String get daybookReceived => 'Received';
+
+  @override
+  String get daybookOnMyWay => 'On my way';
+
+  @override
+  String get daybookAddToCalendar => 'Add to my calendar';
+
+  @override
+  String get daybookInMyCalendar => 'In my calendar';
+
+  @override
+  String daybookReceivedBy(String names) {
+    return 'Received by $names';
+  }
+
+  @override
+  String daybookFileTitle(String title, String revision) {
+    return '$title · $revision';
+  }
+
+  @override
+  String get daybookStampNewVersion => 'NEW VERSION';
+
+  @override
+  String daybookStampReplaces(String revision) {
+    return 'REPLACES $revision';
+  }
+
+  @override
+  String daybookPinnedUntil(String day) {
+    return 'Until $day';
+  }
+
+  @override
+  String daybookChecklistBy(String date) {
+    return 'By $date';
+  }
+
+  @override
+  String daybookChecklistByAt(String date, String time) {
+    return 'By $date $time';
+  }
+
+  @override
+  String daybookNamesAnd(String list, String last) {
+    return '$list and $last';
+  }
+
+  @override
+  String get daybookNamesComma => ', ';
+
+  @override
+  String daybookNamesOthers(String list) {
+    return '$list and others';
+  }
+
+  @override
+  String daybookForYouAnd(String names) {
+    return 'For you and $names';
+  }
+
+  @override
+  String get daybookTomorrowStart => 'Tomorrow';
+
+  @override
+  String daybookActivityWhen(String day, String time) {
+    return '$day, $time';
+  }
+
+  @override
+  String daybookStartsIn(String time, int minutes) {
+    return '$time · starts in $minutes min';
+  }
+
+  @override
+  String daybookOnNow(String time) {
+    return '$time · on now';
+  }
+
+  @override
+  String get daybookPdf => 'PDF';
+
+  @override
+  String get daybookPhoto => 'Photo';
+
+  @override
+  String timeRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String daybookLineTicked(String name) {
+    return '$name · ticked';
+  }
+
+  @override
+  String get daybookLineYouTicked => 'You · ticked';
+
+  @override
+  String daybookLineUnticked(String name) {
+    return '$name · unticked';
+  }
+
+  @override
+  String get daybookLineYouUnticked => 'You · unticked';
+
+  @override
+  String daybookLineGotIt(String name) {
+    return '$name · Got it';
+  }
+
+  @override
+  String get daybookLineYouGotIt => 'You · Got it';
+
+  @override
+  String daybookLineReceived(String name) {
+    return '$name · Received';
+  }
+
+  @override
+  String get daybookLineYouReceived => 'You · Received';
+
+  @override
+  String daybookLineOnMyWay(String name) {
+    return '$name · On my way';
+  }
+
+  @override
+  String get daybookLineYouOnMyWay => 'You · On my way';
+
+  @override
+  String daybookLineInMyCalendar(String name) {
+    return '$name · In my calendar';
+  }
+
+  @override
+  String get daybookLineYouInMyCalendar => 'You · In my calendar';
+
+  @override
+  String daybookTraceTicked(String name) {
+    return '$name ticked a point';
+  }
+
+  @override
+  String get daybookTraceYouTicked => 'You ticked a point';
+
+  @override
+  String daybookTraceUnticked(String name) {
+    return '$name unticked a point';
+  }
+
+  @override
+  String get daybookTraceYouUnticked => 'You unticked a point';
+
+  @override
+  String get daybookCouldNotTick => 'Couldn\'t tick';
+
+  @override
+  String get daybookCouldNotAck => 'Couldn\'t save';
+
+  @override
+  String get daybookKindChecklist => 'Checklist';
+
+  @override
+  String get daybookKindAnnouncement => 'Announcement';
+
+  @override
+  String get daybookKindActivity => 'Scheduled activity';
+
+  @override
+  String get daybookKindFile => 'File';
+
+  @override
+  String get daybookBodyNote => 'Add a note';
+
+  @override
+  String get daybookBodyAnnouncement => 'Write the announcement';
+
+  @override
+  String get daybookBodyActivity => 'What it is about';
+
+  @override
+  String get daybookPointHint => 'Add a point';
+
+  @override
+  String get daybookPeople => 'Who it\'s for';
+
+  @override
+  String get daybookPeopleSearch => 'Who is it for…';
+
+  @override
+  String get daybookPinUntil => 'Pin until';
+
+  @override
+  String daybookPinnedProperty(String day) {
+    return 'Pinned until $day';
+  }
+
+  @override
+  String get daybookActivityTime => 'Time';
+
+  @override
+  String get daybookStartsAtHelp => 'Starts at';
+
+  @override
+  String get daybookEndsAtHelp => 'Ends at';
+
+  @override
+  String get daybookNoEndTime => 'No end time';
+
+  @override
+  String get daybookStartLater => 'Choose a time that has not come yet';
+
+  @override
+  String get daybookAttachTitle => 'Add to this post';
+
+  @override
+  String get daybookAttachPhotos => 'Photo from the gallery';
+
+  @override
+  String daybookAttachPhotosNote(int n) {
+    return 'Up to $n photos';
+  }
+
+  @override
+  String get daybookFileChooseTitle => 'Choose a file';
+
+  @override
+  String get daybookFileFromPhone => 'From the phone';
+
+  @override
+  String get daybookFileFromPhoneNote => 'It goes to the Library too';
+
+  @override
+  String get daybookFileInLibrary => 'In the Library';
+
+  @override
+  String get daybookReplacesTitle => 'Is it a new version of a file?';
+
+  @override
+  String get daybookReplacesNone => 'No, a new file';
+
+  @override
+  String daybookReplacesOption(String name) {
+    return 'Replaces $name';
+  }
+
+  @override
+  String get daybookReplacesDone => 'Done';
+
+  @override
+  String get daybookFilesFull => 'Up to 10 photos and files on a post';
+
+  @override
+  String get daybookRemovePoint => 'Remove point';
+
+  @override
+  String get daybookRemoveFile => 'Remove file';
+
+  @override
+  String get daybookCancelPost => 'Cancel post';
+
+  @override
+  String get previewModelViewVersions =>
+      'New versions come from BuildVibes 360';
+
+  @override
+  String get daybookPeopleDone => 'Done';
+
+  @override
+  String daybookDayTime(String day, String time) {
+    return '$day, $time';
+  }
+
+  @override
+  String get daybookKindDocument => 'Document for receipt';
+
+  @override
+  String get daybookKindDocumentNote => 'Each person confirms they received it';
+
+  @override
+  String get daybookUnpin => 'Unpin';
 }

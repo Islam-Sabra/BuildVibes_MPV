@@ -7,6 +7,7 @@ import '../../core/l10n/bidi.dart';
 import '../../data/models/activity.dart';
 import '../../data/models/daybook.dart' show dayOf;
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_marked_text.dart';
 import '../../shared/widgets/bv_needs_row.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
@@ -21,8 +22,9 @@ import 'needs_card.dart' show openNeeds;
 /// Space's daybook (a join request, its People tab); opening the exact
 /// slip comes with pushes in slice 10.
 ///
-/// Announcements to acknowledge ("Got it?") and new file versions
-/// ("Received?") join the list in slice 2, with their post kinds.
+/// A checklist with points left for you (needs_you's checklist_for_you)
+/// has its paper clip on its daybook card (slice 2); it joins this list
+/// with Needs you across Spaces (slice 10).
 class NeedsYouScreen extends ConsumerWidget {
   const NeedsYouScreen({super.key});
 
@@ -52,25 +54,50 @@ class NeedsYouScreen extends ConsumerWidget {
       NeedsKind.joinRequest => l10n.needsRowJoin,
     };
 
-    String? meta(NeedsCard c) {
+    // Who and when; F34: the name stands out, and a due is grey, the
+    // primary colour today or red when late.
+    ({String? text, List<BvMark> marks}) meta(NeedsCard c) {
       final name = c.actorName == null
           ? null
           : inOwnDirection(personName(l10n, c.actorName));
       final due = c.due;
-      final detail = switch (c.kind) {
-        NeedsKind.forYou || NeedsKind.ownerLeft when due != null => words.due(
-          due,
-          c.dueAt,
-          now: now,
-          late: c.dueAt != null
-              ? now.isAfter(c.dueAt!)
-              : dayOf(now).isAfter(due),
-        ),
-        NeedsKind.youCheck || NeedsKind.sentBack => words.time.clock(c.at),
-        _ => null,
-      };
+      final late =
+          due != null &&
+          (c.dueAt != null ? now.isAfter(c.dueAt!) : dayOf(now).isAfter(due));
+      final dueText =
+          due != null &&
+              (c.kind == NeedsKind.forYou || c.kind == NeedsKind.ownerLeft)
+          ? words.due(due, c.dueAt, now: now, late: late)
+          : null;
+      final detail =
+          dueText ??
+          (c.kind == NeedsKind.youCheck || c.kind == NeedsKind.sentBack
+              ? words.time.clock(c.at)
+              : null);
       final parts = [?name, ?detail];
-      return parts.isEmpty ? null : joinMeta(parts);
+      return (
+        text: parts.isEmpty ? null : joinMeta(parts),
+        marks: [
+          if (name != null)
+            (
+              part: name,
+              style: type.emphasisSm.copyWith(color: BvColors.textPrimary),
+            ),
+          if (dueText != null)
+            (
+              part: dueText,
+              style: type.metadata.copyWith(
+                color: bvDueColor(
+                  late
+                      ? BvDueTone.late
+                      : due == dayOf(now)
+                      ? BvDueTone.today
+                      : BvDueTone.quiet,
+                ),
+              ),
+            ),
+        ],
+      );
     }
 
     Widget row(NeedsCard c) {
@@ -81,7 +108,8 @@ class NeedsYouScreen extends ConsumerWidget {
         title: c.kind == NeedsKind.joinRequest
             ? personName(l10n, c.actorName)
             : c.workItemTitle ?? '',
-        meta: c.kind == NeedsKind.joinRequest ? null : meta(c),
+        meta: c.kind == NeedsKind.joinRequest ? null : meta(c).text,
+        metaMarks: c.kind == NeedsKind.joinRequest ? const [] : meta(c).marks,
         photo: path == null ? null : ref.watch(daybookPhotoProvider(path)),
         onTap: () => openNeeds(context, c),
       );

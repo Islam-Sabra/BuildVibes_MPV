@@ -11,10 +11,12 @@ import '../../core/l10n/bv_time.dart';
 import '../../core/l10n/months.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/activity.dart';
+import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_marked_text.dart';
 import '../../shared/widgets/bv_space_emblem.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../activity/activity_state.dart';
@@ -50,13 +52,9 @@ class SpacesDayTab extends ConsumerWidget {
     final type = BvType.of(context);
     final needs = ref.watch(needsCardsProvider).value ?? const <NeedsCard>[];
     final today = ref.watch(todayInSpacesProvider).value ?? const [];
-    final last =
-        ref.watch(spaceLastActivityProvider).value ??
-        const <String, DateTime>{};
 
     Future<void> refresh() async {
       refreshDay(ref.invalidate);
-      ref.invalidate(mySpacesProvider);
       await ref.read(needsCardsProvider.future);
     }
 
@@ -98,12 +96,7 @@ class SpacesDayTab extends ConsumerWidget {
           const SizedBox(height: BvSpace.s24),
           overline(l10n.homeYourSpaces),
           const SizedBox(height: BvSpace.s8),
-          _YourSpaces(
-            spaces: spaces.value!,
-            today: today,
-            needs: needs,
-            last: last,
-          ),
+          _YourSpaces(spaces: spaces.value!, today: today, needs: needs),
         ],
       ),
     );
@@ -183,15 +176,11 @@ class _YourSpaces extends ConsumerWidget {
     required this.spaces,
     required this.today,
     required this.needs,
-    required this.last,
   });
 
   final List<SpaceSummary> spaces;
   final List<SpaceToday> today;
   final List<NeedsCard> needs;
-
-  /// Each Space's last daybook activity (spaceLastActivityProvider).
-  final Map<String, DateTime> last;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -206,7 +195,7 @@ class _YourSpaces extends ConsumerWidget {
     // The latest of today's news and the daybook's last activity.
     DateTime? lastAt(SpaceSummary s) {
       final a = news[s.id]?.at;
-      final b = last[s.id];
+      final b = s.lastActivityAt;
       if (a == null || b == null) return a ?? b;
       return a.isAfter(b) ? a : b;
     }
@@ -374,11 +363,26 @@ class _NeedsBySpace extends ConsumerWidget {
 
     Widget row(NeedsCard c) {
       final due = c.due;
+      final dueText = due == null
+          ? null
+          : l10n.needsDue(formatDay(due, locale));
       final meta = joinMeta([
         if (c.workItemRef != null) ltrRun(c.workItemRef!),
         BvTime.of(context).moment(c.at, now),
-        if (due != null) l10n.needsDue(formatDay(due, locale)),
+        ?dueText,
       ]);
+      final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+      // F34: the due is the primary colour today and red when late.
+      final late =
+          due != null &&
+          (c.dueAt != null ? now.isAfter(c.dueAt!) : dayOf(now).isAfter(due));
+      final tone = late
+          ? BvDueTone.late
+          : due == dayOf(now)
+          ? BvDueTone.today
+          : BvDueTone.quiet;
+      final title = needsTitle(l10n, c);
+      final name = c.actorName == null ? null : inOwnDirection(c.actorName!);
       return InkWell(
         key: Key('needs-${c.workItemId ?? c.requestId ?? c.spaceId}'),
         onTap: () => openNeeds(context, c),
@@ -401,11 +405,29 @@ class _NeedsBySpace extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvActivitySpec.lineGap,
                     children: [
-                      Text(needsTitle(l10n, c), style: type.bodyMd),
-                      Text(
-                        meta,
-                        style: type.metadata.copyWith(
-                          color: BvColors.textSecondary,
+                      // F34: the name stands out in the sentence.
+                      Text.rich(
+                        TextSpan(
+                          children: bvMarkedSpans(title, type.bodyMd, [
+                            if (name != null)
+                              (
+                                part: name,
+                                style: type.emphasis.copyWith(
+                                  color: BvColors.textPrimary,
+                                ),
+                              ),
+                          ]),
+                        ),
+                      ),
+                      Text.rich(
+                        TextSpan(
+                          children: bvMarkedSpans(meta, quiet, [
+                            if (dueText != null)
+                              (
+                                part: dueText,
+                                style: quiet.copyWith(color: bvDueColor(tone)),
+                              ),
+                          ]),
                         ),
                       ),
                     ],

@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n/locale_controller.dart';
+import 'core/l10n/phone_clock.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/bv_theme.dart';
 import 'l10n/gen/app_localizations.dart';
@@ -31,6 +32,8 @@ class BuildVibesApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: BvTheme.forLocale(locale),
+      // F37: times follow the phone's 24-hour setting without a restart.
+      builder: (context, child) => PhoneClockScope(child: child!),
     );
   }
 }
