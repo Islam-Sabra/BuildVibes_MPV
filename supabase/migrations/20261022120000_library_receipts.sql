@@ -9,12 +9,23 @@
 -- like post_acks_for, open to every reader of the file (review 36 R1).
 -- Someone across a block is left out.
 --
--- A file is "in use" when no version the caller can read replaces it
--- (as has_newer in space_post_json).
+-- A file is "in use" when no version the caller can read replaces it,
+-- looking through deleted versions. Two versions that replace the same
+-- file are both in use; the app offers a new version only from the one in
+-- use, so that stays (review 68 L1).
+--
+-- new_for_me counts a Received on any post of the file, a cancelled one
+-- too: the person already has it (review 68 L3).
 --
 -- No new table.
 
--- True when no version [p_file]'s reader can read replaces it.
+-- Found by the in-use check: the files that replace one.
+create index library_files_supersedes_idx on public.library_files (supersedes_id)
+  where supersedes_id is not null;
+
+-- True when no version the caller can read replaces [p_file]. A deleted
+-- version is see-through: with Rev C <- Rev D <- Rev E and Rev D deleted,
+-- Rev E still replaces Rev C (review 68 M1).
 create function public.library_file_in_force(p_file uuid)
 returns boolean
 language sql
@@ -22,8 +33,18 @@ stable
 security definer
 set search_path = ''
 as $$
+  with recursive gone (id) as (
+    select n.id from public.library_files n
+    where n.supersedes_id = p_file and n.deleted_at is not null
+    union
+    select n.id from public.library_files n
+    join gone g on n.supersedes_id = g.id
+    where n.deleted_at is not null
+  )
   select not exists (select 1 from public.library_files n
-                     where n.supersedes_id = p_file and public.can_read_library_file(n.id));
+                     where (n.supersedes_id = p_file
+                            or n.supersedes_id in (select g.id from gone g))
+                       and public.can_read_library_file(n.id));
 $$;
 
 -- Who received [p_file], oldest first, mine marked. Nothing unless the

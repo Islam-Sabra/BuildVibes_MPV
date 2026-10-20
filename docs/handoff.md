@@ -106,6 +106,7 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   - 1,299 app tests pass, apart from the same 10 PDF tests.
   - Later: the test app swaps in a PDF-free preview (`filePreviewProvider`), so those 10 now pass on any machine. **All 1,309 app tests pass.** The Arabic of every new string was checked against the glossary, with four fixes.
   - **Review 67, the slice 4 plan** (People and Library, no code): six EN frames, no Arabic ones. The Viewer's daybook is already built; People, the Library, a file's page and Search are redrawn or new. Server: a small migration 32 (who received a Library file, NEW VERSION for me, search shows only the version in use). Two calls for the lead: nothing chosen first when letting someone in, and no Add file button in the Library (files come through a file post).
+  - **Migration 32** (not live): `library_overview`, `library_file_receipts`, `library_file_post`, and `search_space` showing only the version in use. Review 68 approved it after two fixes (a deleted middle version, an index). All 2,251 SQL checks pass. **Needs the founder's yes**; push it after 31, as the only file.
 - **Still to build in slice 3, after the slice 2 retest (both use the daybook's writing card):**
   - DM4–DM5, Put in a Space;
   - S8m, Turn into a work item in Space chat.
@@ -116,7 +117,7 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   4. then `supabase db push`, listing only `20261021180000_dm_live.sql`, with the read-only check after;
   5. and before any slice 3 build goes on a phone.
 - **For the PC:**
-  - **Migrations:** push 29, 30 and 31 from the branch **head**. The head has the review 65 fixes to migration 30, and migration 31 is new.
+  - **Migrations:** push 29, 30 and 31 (and 32, once the founder says yes) from the branch **head**. The head has the review 65 fixes to migration 30, and migration 31 is new.
   - **Slice 2 retest:** build the app from `a2e330f`.
 
 **Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.

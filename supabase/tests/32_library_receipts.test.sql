@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(34);
+select plan(41);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000032' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -191,6 +191,61 @@ set local role authenticated;
 select is(public.library_file_post(pg_temp.item('f002')), null, 'no post once it is cancelled and the file deleted');
 select is(pg_temp.files(), array[pg_temp.item('f001')], 'Rev D deleted: Rev C is in use again');
 select is(pg_temp.search_files('door'), array[pg_temp.item('f001')], 'and search finds Rev C');
+
+-- A deleted middle version is see-through: Rev E replaces Rev C through the deleted Rev D.
+reset role;
+select pg_temp.file('f004', 'Door schedule', 'Rev E', 'f002', null);
+set local role authenticated;
+select is(pg_temp.files(), array[pg_temp.item('f004')], 'Rev E in use; Rev C stays replaced');
+select is(pg_temp.search_files('door'), array[pg_temp.item('f004')], 'and search finds only Rev E');
+
+-- Faces: at most 4, newest first; someone who received it twice shows once.
+reset role;
+select pg_temp.file('f005', 'Site plan', 'Rev A', null, null);
+select pg_temp.as_user('e1');
+set local role authenticated;
+select public.create_space_post(pg_temp.item('a005'), pg_temp.sp(), 'file', null,
+                                p_library_file => pg_temp.item('f005'));
+select public.create_space_post(pg_temp.item('a006'), pg_temp.sp(), 'file', 'Site plan again',
+                                p_library_file => pg_temp.item('f005'));
+select public.ack(pg_temp.item('a005'), 'received');
+reset role;
+update public.post_acks set created_at = now() - interval '50 minutes' where created_at = now();
+select pg_temp.as_user('e3');
+set local role authenticated;
+select public.ack(pg_temp.item('a005'), 'received');
+reset role;
+update public.post_acks set created_at = now() - interval '40 minutes' where created_at = now();
+select pg_temp.as_user('e2');
+set local role authenticated;
+select public.ack(pg_temp.item('a005'), 'received');
+reset role;
+update public.post_acks set created_at = now() - interval '30 minutes' where created_at = now();
+select pg_temp.as_user('e4');
+set local role authenticated;
+select public.ack(pg_temp.item('a005'), 'received');
+reset role;
+update public.post_acks set created_at = now() - interval '20 minutes' where created_at = now();
+select pg_temp.as_user('e6');
+set local role authenticated;
+select public.ack(pg_temp.item('a005'), 'received');
+select pg_temp.as_user('e3');
+select public.ack(pg_temp.item('a006'), 'received');
+select is(pg_temp.faces('f005'), array['Tariq Aziz', 'Vera Lane', 'Rakesh Nair', 'Sara Ali'],
+  'four faces, newest first; Sara once, at her first Received');
+select is(pg_temp.receivers('f005'),
+  array['Omar Haddad', 'Sara Ali', 'Rakesh Nair', 'Vera Lane', 'Tariq Aziz'],
+  'the file page lists everyone, oldest first, each once');
+select is(public.library_file_post(pg_temp.item('f005')), pg_temp.item('a006'),
+  'the newest live post is the one to mark Received through');
+
+-- A former member reads nothing.
+reset role;
+update public.space_members set left_at = now() where space_id = pg_temp.sp() and profile_id = pg_temp.uid('e4');
+select pg_temp.as_user('e4');
+set local role authenticated;
+select is(pg_temp.files(), '{}'::uuid[], 'Vera left: no list');
+select is(pg_temp.receivers('f005'), '{}'::text[], 'and no receipts');
 
 select * from finish();
 rollback;
