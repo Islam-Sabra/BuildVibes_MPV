@@ -57,6 +57,8 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   
   The server side of the daily report (migration 30) is ready.
 
+**Slice 2 for the founder's retest is commit `a2e330f`** (the founder's choice, 20 Oct: slice 3 is built in the cloud on the same branch, after it). Build slice 2 from that commit, not from the branch head: `git tag slice2-candidate a2e330f`, then build from the tag. Everything after it on the branch is slice 3 or its server work, in commits named "Slice 3 …" or "Migration 31 …".
+
 **Next, on the PC (in order):**
 1. `git fetch`. Merge `origin/claude/test-tw7wuv` into `slice2-live-db` and into `slice2-app`.
 2. Run `supabase test db`; 2,193 should pass. Then check against the local Realtime server:
