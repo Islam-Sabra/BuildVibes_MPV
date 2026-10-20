@@ -3738,4 +3738,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookEveryone => 'الجميع';
+
+  @override
+  String daybookDueStripEarlier(String day, String title) {
+    return '$day $title';
+  }
 }

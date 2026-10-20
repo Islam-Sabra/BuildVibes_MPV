@@ -609,6 +609,50 @@ void main() {
       );
     });
 
+    testWidgets('F57: the strip keeps what is still to do from earlier days, '
+        'oldest first, the day in grey and never "late" [$lang]', (
+      tester,
+    ) async {
+      final wednesday = DateTime(2026, 10, 14);
+      final rebar = s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2');
+      await _open(
+        tester,
+        lang,
+        posts: s.l1(),
+        me: DaybookSamples.omar,
+        now: DaybookSamples.friday,
+        calendar: [
+          s.cableTraysDue(),
+          CalendarWorkItem(
+            postId: 'post-rebar-spacers',
+            spaceId: DaybookSamples.space,
+            title: rebar,
+            day: wednesday,
+            status: WorkStatus.open,
+          ),
+          // Signed as done on an earlier day: gone from the strip.
+          CalendarWorkItem(
+            postId: 'post-signed-wed',
+            spaceId: DaybookSamples.space,
+            title: 'Signed on Wednesday',
+            day: wednesday,
+            status: WorkStatus.done,
+          ),
+        ],
+      );
+      final day = words.stripDay(wednesday, DaybookSamples.friday)!;
+      final text = l10n.daybookDueTodayStrip(
+        '${l10n.daybookDueStripEarlier(day, rebar)} · ${s.cableTraysTitle}',
+      );
+      expect(find.text(text), findsOneWidget);
+      final strip = tester.widget<BvDueTodayStrip>(
+        find.byType(BvDueTodayStrip),
+      );
+      expect(strip.quiet, [day]);
+      expect(find.textContaining('Late'), findsNothing);
+      expect(find.textContaining('Signed on Wednesday'), findsNothing);
+    });
+
     testWidgets('V1: a Viewer reads only: no clips, no actions, the pass '
         'chip [$lang]', (tester) async {
       await _open(

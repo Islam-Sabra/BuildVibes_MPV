@@ -217,18 +217,19 @@ final daybookMonthProvider = FutureProvider.autoDispose
           ref.watch(daybookRepositoryProvider).month(key.spaceId, key.month),
     );
 
-/// The open work items due later today in this Space that are mine to
-/// sign or written by me (L1's "Due today" strip). Late ones say so on
-/// their slip instead.
+/// What is still to do in this Space (L1's "Due today" strip, F57): the
+/// open work items mine to sign or written by me, due today or on an
+/// earlier day, oldest first. One signed as done leaves it (F38); a
+/// passed due stays as a reminder, never "late".
 final daybookDueTodayProvider = FutureProvider.autoDispose
     .family<List<CalendarWorkItem>, String>((ref, spaceId) async {
       final now = ref.watch(clockProvider)();
-      final items = await ref.watch(daybookRepositoryProvider).dueOn(now);
-      return [
+      final items = await ref.watch(daybookRepositoryProvider).dueUpTo(now);
+      final open = [
         for (final i in items)
-          if (i.spaceId == spaceId &&
-              i.status == WorkStatus.open &&
-              (i.dueAt == null || !now.isAfter(i.dueAt!)))
-            i,
+          if (i.spaceId == spaceId && i.status == WorkStatus.open) i,
       ];
+      DateTime at(CalendarWorkItem i) =>
+          i.dueAt ?? i.day.add(const Duration(days: 1));
+      return open..sort((a, b) => at(a).compareTo(at(b)));
     });

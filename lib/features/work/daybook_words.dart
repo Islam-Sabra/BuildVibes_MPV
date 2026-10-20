@@ -39,6 +39,23 @@ class DaybookWords {
   /// "Thu 15 Oct".
   String shortDate(DateTime day) => _f('EEE d MMM', day);
 
+  /// An earlier day on the Due today strip (F57): "Mon" within the week,
+  /// "Mon 12 Oct" before it; null for today.
+  String? stripDay(DateTime day, DateTime now) {
+    final today = dayOf(now);
+    if (!day.isBefore(today)) return null;
+    return today.difference(day).inDays < 7 ? _f('EEE', day) : shortDate(day);
+  }
+
+  /// One item on the Due today strip: its title, after its day when it
+  /// was due on an earlier day.
+  String stripItem(String title, DateTime day, DateTime now) {
+    final earlier = stripDay(day, now);
+    return earlier == null
+        ? title
+        : l10n.daybookDueStripEarlier(earlier, title);
+  }
+
   /// "Thursday 15 October": the masthead's one line while writing.
   String compactDate(DateTime day) => _f('EEEE d MMMM', day);
 

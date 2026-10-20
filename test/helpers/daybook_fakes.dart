@@ -133,9 +133,11 @@ class FakeDaybookRepository implements DaybookRepository {
   }
 
   @override
-  Future<List<CalendarWorkItem>> dueOn(DateTime day) async => [
+  Future<List<CalendarWorkItem>> dueUpTo(DateTime day) async => [
     for (final i in calendar)
-      if (i.day == DateTime(day.year, day.month, day.day)) i,
+      if (!i.day.isAfter(DateTime(day.year, day.month, day.day)) &&
+          !i.day.isBefore(DateTime(day.year, day.month, day.day - dueBackDays)))
+        i,
   ];
 
   void _check() {

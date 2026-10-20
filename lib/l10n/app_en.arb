@@ -5403,5 +5403,17 @@
   "daybookEveryone": "Everyone",
   "@daybookEveryone": {
     "description": "Writing card and its To menu: the whole Space (F56)."
+  },
+  "daybookDueStripEarlier": "{day} {title}",
+  "@daybookDueStripEarlier": {
+    "description": "Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
   }
 }

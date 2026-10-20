@@ -6307,6 +6307,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Everyone'**
   String get daybookEveryone;
+
+  /// Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {title}'**
+  String daybookDueStripEarlier(String day, String title);
 }
 
 class _AppLocalizationsDelegate

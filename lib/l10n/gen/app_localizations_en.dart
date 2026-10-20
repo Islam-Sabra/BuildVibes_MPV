@@ -3733,4 +3733,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookEveryone => 'Everyone';
+
+  @override
+  String daybookDueStripEarlier(String day, String title) {
+    return '$day $title';
+  }
 }

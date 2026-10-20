@@ -1034,5 +1034,6 @@
   "daybookChooseWho": "اختر لمن",
   "daybookPostAsNote": "للعلم فقط؟ انشرها كملاحظة",
   "daybookToAudience": "إلى: {audience}{more}",
-  "daybookEveryone": "الجميع"
+  "daybookEveryone": "الجميع",
+  "daybookDueStripEarlier": "{day} {title}"
 }

@@ -963,7 +963,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             ),
             if (due.isNotEmpty && !_writing)
               BvDueTodayStrip(
-                l10n.daybookDueTodayStrip(due.map((i) => i.title).join(' · ')),
+                l10n.daybookDueTodayStrip(
+                  due
+                      .map((i) => words.stripItem(i.title, i.day, now))
+                      .join(' · '),
+                ),
+                quiet: [for (final i in due) ?words.stripDay(i.day, now)],
               ),
             // Pinned announcements stay under the masthead while pinned
             // (K1 v13), whatever their last activity.
