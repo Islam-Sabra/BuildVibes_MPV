@@ -42,15 +42,20 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   - a light haptic, the check fills, and who and when slide in;
   - someone else's tick glows, then fades;
   - nothing moves with the phone's animations off.
-- `flutter analyze` is clean, and 1,262 app tests pass.
+- Later the same evening (item 2):
+  - F56: an announcement and a Document for receipt show "To: Everyone ›". A single choice picks Everyone or one Team: your own Teams, or any Team for a Space admin, as the server allows.
+  - F57: the Due today strip keeps open items from up to 61 days back, oldest first. An earlier day shows its day in grey ("Wed"), never "late".
+- `flutter analyze` is clean, and 1,269 app tests pass.
   - 10 tests fail **here only**, and the same 10 fail on the untouched `slice2-app` in this container. Each renders a PDF (pdfx can't run on Linux): K2 file card ×4, F47 live ×4, F48 ×2. Run them on the PC.
 
-**Not done (left for the PC):**
-- The screens haven't been checked by eye in EN and AR at 390×844, or on a phone. Screenshots and goldens weren't re-shot.
-- F54 on a work item's points and Notebook to-dos: only checklist points have it so far.
-- F56's "To: Everyone ›" row on an announcement and a Document for receipt.
-- F57's Due today strip with earlier days, and reports never saying "N late".
-- The app side of migration 30: the daily report offers the day's notes under "On site", and shows a note ref.
+**Not done:**
+- The screens haven't been checked by eye in EN and AR at 390×844, or on a phone. Screenshots and goldens weren't re-shot. (PC)
+- Waits for its slice (nothing to tick or show yet):
+  - F54 on a work item's points (slice 5, opening a post);
+  - F54 on Notebook to-dos (slice 8);
+  - the daily report offering notes under "On site", plus F57's "never N late" in reports (slice 7, templates and daily report).
+  
+  The server side of the daily report (migration 30) is ready.
 
 **Next, on the PC (in order):**
 1. `git fetch`. Merge `origin/claude/test-tw7wuv` into `slice2-live-db` and into `slice2-app`.
