@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(14);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000031' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -83,6 +83,21 @@ select pg_temp.as_user('e2');
 set local role authenticated;
 select public.block(pg_temp.uid('e1'), false);
 select is(pg_temp.seen(pg_temp.topic()), 1::bigint, 'unblocked, it opens again');
+
+-- A presence insert on the topic is refused too: receive only.
+select pg_temp.as_user('e1');
+set local role authenticated;
+select throws_ok($$insert into realtime.messages (topic, extension, event, payload, private)
+                   values (pg_temp.topic(), 'presence', 'x', '{}', true)$$, '42501', null,
+  'presence on a thread''s topic is refused');
+reset role;
+-- Declined: the thread still reads for the one who declined, so the
+-- channel does too (review 66).
+select pg_temp.as_user('e2');
+set local role authenticated;
+select public.decline_dm(pg_temp.id('a001'));
+select is(pg_temp.seen(pg_temp.topic()), 1::bigint,
+  'after Decline, Rakesh still receives, as the thread still reads for him');
 
 select ok(not public.may_use_dm_topic('dm:not-a-thread')
           and not public.may_use_dm_topic(null)
