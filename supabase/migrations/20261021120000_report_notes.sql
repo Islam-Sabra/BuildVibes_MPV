@@ -9,17 +9,20 @@
 --   outside it), a member only, one day at a time. Title, author (no name
 --   across a block, as everywhere in a Space), time and the first photo.
 -- - An item_ref block on a report may point at a note as well as a work
---   item, with the same "this report's readers can see it" rule.
+--   item, with the same "this report's readers can see it" rule. A new
+--   one only at a live note (review 65); one already on the page stays
+--   when the note is cancelled later.
 -- - refs in the post JSON carry each ref's kind and status; a note's ref
 --   has its author's name, time and first photo instead of the work item's
 --   fields. A work item's ref is as before, plus kind and status.
 
 -- The first photo of a post: the same pick as a walk's cover (migration 20).
+-- Invoker: only definer functions call it (review 65).
 create function public.post_cover_path(p_post uuid)
 returns text
 language sql
 stable
-security definer
+security invoker
 set search_path = ''
 as $$
   select f.storage_path from public.post_files f
@@ -230,7 +233,8 @@ begin
                    'strict $.** ? (@.type == "item_ref").post_id') r), '[]'::jsonb)
              and not exists (
            select 1 from public.space_posts c
-           where c.id = v_ref and c.space_id = p_post.space_id and c.kind in ('work_item', 'note')
+           where c.id = v_ref and c.space_id = p_post.space_id
+             and (c.kind = 'work_item' or (c.kind = 'note' and c.status = 'live'))
              and c.deleted_at is null
              and (c.team_id is null or c.team_id is not distinct from p_post.team_id)
              and public.can_see_space_post(c.id))) then

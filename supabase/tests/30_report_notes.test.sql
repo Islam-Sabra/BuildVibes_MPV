@@ -5,7 +5,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(24);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000030' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -149,6 +149,9 @@ select ok(not (public.post_page(pg_temp.item('c100')) -> 'refs' -> pg_temp.item(
 select throws_ok($$select pg_temp.report('c2', null, 'b005')$$, '22023',
   'a work item or note this report''s readers can see',
   'an announcement can''t be a ref');
+select throws_ok($$select pg_temp.report('c5', null, 'b003')$$, '22023',
+  'a work item or note this report''s readers can see',
+  'a new ref can''t point at a cancelled note (review 65)');
 select throws_ok($$select pg_temp.report('c3', null, 'b006')$$, '22023',
   'a work item or note this report''s readers can see',
   'an Everyone report can''t point at a Team''s note');
@@ -163,6 +166,10 @@ select public.cancel_space_post(pg_temp.item('b001'), 'Wrong level');
 select pg_temp.as_user('f3');
 select is(public.post_page(pg_temp.item('c100')) -> 'refs' -> pg_temp.item('b001')::text ->> 'status', 'cancelled',
   'a note cancelled after the report shows as cancelled in it');
+select lives_ok($$select public.save_blocks(pg_temp.item('c100'),
+                    public.post_page(pg_temp.item('c100')) -> 'blocks',
+                    (public.post_page(pg_temp.item('c100')) ->> 'blocks_version')::integer, null)$$,
+  'and the report still saves with it on the page');
 
 reset role;
 select ok(not has_function_privilege('anon', 'public.daily_report_notes(uuid, uuid, timestamptz, timestamptz)', 'execute')
