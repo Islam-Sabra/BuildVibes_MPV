@@ -571,3 +571,11 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Server:** migration 29 adds `note` to the kinds. `create_space_post` takes it with no people, and the same visibility, edit and cancel rules apply as on an announcement.
 - **The "who" sheet (F56)** on a work item with no owner gets one line: "Just for information? Post as a Note" / "للعلم فقط؟ انشرها كملاحظة".
 - **Figma:** the lead draws the Note card and the kind menu with Note first.
+
+## Figma, lead to-do done (20 Oct)
+| Frame | EN | AR |
+|---|---|---|
+| K1 v13: the checklist header reads "· checklist" (AR "قائمة تحقق ·"), and the Arabic facts line reads "لـ سارة المطيري وعمر حداد" (F52) | `2594:35942` (edited) | `2595:471` (edited) |
+| K1b v13: the announcement folded to one line after Got it (review 61 G1) | `2598:36165` | `2599:614` |
+| K5 v13: a Note card, for information, with three photos (F58, F51) | `2598:36260` | `2599:721` |
+| E6 v14: the kind menu as presets, with Note first and "Document for receipt" (F50, F58) | `2598:36360` | `2599:828` |
