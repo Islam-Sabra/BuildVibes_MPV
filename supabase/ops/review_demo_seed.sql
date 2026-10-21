@@ -7,15 +7,19 @@
 -- stops if the Space is already there, and changes nothing else.
 --
 -- What it makes, all through the app's own functions:
--- - two demo teammates, "Omar (demo)" and "Sara (demo)". Their emails end
---   in .invalid, so nobody can sign in as them, and they have no country,
---   company or city, so the app never suggests them to real people;
+-- - the reviewer account marked {"review": true} in app_metadata, and two
+--   demo teammates, "Omar (demo)" and "Sara (demo)", marked {"demo": true}.
+--   Migration 34 keeps these accounts apart from real people: no search,
+--   suggestion, follow, DM or Home post across the line, either way. The
+--   teammates' emails end in .invalid, so nobody can sign in as them, and
+--   they have no country, company or city;
 -- - the Space "Demo — Tower A", the reviewer its admin, Omar Crew, Sara
 --   Lead;
 -- - one work item in each state: done and waiting for the reviewer's
 --   check, checked, sent back with a new date, open for the reviewer;
 -- - a checklist with one point ticked, an announcement, a chat message in
---   Everyone and a direct message to the reviewer.
+--   Everyone, a direct message to the reviewer, and one Home post by Sara
+--   (the reviewer's Home shows only demo accounts' posts).
 --
 -- Not here: a document for receipt needs an uploaded file. Post one from
 -- the reviewer's phone once (Work → + → Document for receipt).
@@ -55,6 +59,12 @@ begin
   end if;
 end;
 $$;
+
+-- The reviewer: kept apart from real people (migration 34). Step 1 of
+-- docs/store/review-sign-in.md sets it too; doing it again is harmless.
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"review": true}'::jsonb
+where id = pg_temp.reviewer();
 
 -- The demo teammates: no password, no way in, no country.
 insert into auth.users (instance_id, id, aud, role, email, raw_user_meta_data,
@@ -128,6 +138,8 @@ select public.post_message('de000000-0000-4000-8000-0000000000d1',
 select public.start_dm('de000000-0000-4000-8000-0000000000e1', pg_temp.reviewer(),
   'de000000-0000-4000-8000-0000000000e2',
   'Hi, the door schedule is in the daybook for you.', '[]'::jsonb);
+select public.create_post('de000000-0000-4000-8000-0000000000f1',
+  'Level 3 slab poured this morning. Curing starts today.', 'en');
 reset role;
 
 select 'demo Space made: ' || pg_temp.space()::text as done;
