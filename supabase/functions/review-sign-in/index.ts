@@ -13,12 +13,19 @@
 //
 // POST {"email", "code"} → 200 {"access_token", "refresh_token"} for the
 // reviewer; 401 for a wrong code, for anyone else and when it is off (the
-// same answer, so the address can't be probed); 429 for 15 minutes after
-// five wrong codes. The session is a normal one, issued through the admin
-// API (a magic link verified on the server).
+// same answer, so the address can't be probed); 429 with Retry-After for 15
+// minutes after five tries without a right code, and after 20 tries in a
+// day. The session is a normal one, issued through the admin API (a magic
+// link verified on the server).
+//
+// The tries are counted in Postgres (migration 34, review 73 B1), with the
+// service role: review_sign_in_try() locks its one row, so tries sent at the
+// same moment queue and at most five are compared; it counts the try before
+// the code is compared. review_sign_in_ok() clears the count after a right
+// code.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { decide, nextLock, readLock, sameEmail, statusOf } from "./check.ts";
+import { decide, gate, readTry, sameEmail, statusOf } from "./check.ts";
 
 const url = Deno.env.get("SUPABASE_URL")!;
 const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
@@ -37,10 +44,14 @@ async function sameSecret(given: string, expected: string): Promise<boolean> {
   return diff === 0;
 }
 
-function answer(status: number, body: Record<string, unknown> = {}): Response {
+function answer(
+  status: number,
+  body: Record<string, unknown> = {},
+  headers: Record<string, string> = {},
+): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...headers },
   });
 }
 
@@ -57,13 +68,10 @@ Deno.serve(async (req) => {
   const reviewEmail = Deno.env.get("REVIEW_EMAIL") ?? "";
   const reviewCode = Deno.env.get("REVIEW_CODE") ?? "";
   const reviewUserId = Deno.env.get("REVIEW_USER_ID") ?? "";
-  const now = new Date();
 
-  // Only the reviewer's tries read or count the lock.
-  const first = decide({
-    email, reviewEmail, reviewCode, lock: readLock(null), now, codeMatches: false,
-  });
-  if (first === "off" || first === "not_reviewer" || reviewUserId === "") {
+  // Only the reviewer's tries are counted.
+  const first = gate({ email, reviewEmail, reviewCode });
+  if (first !== null || reviewUserId === "") {
     console.log(`review sign-in: ${first === "off" ? "off" : "refused"}`);
     return answer(401, { error: "wrong_code" });
   }
@@ -74,24 +82,29 @@ Deno.serve(async (req) => {
     console.log("review sign-in: account not set up");
     return answer(401, { error: "wrong_code" });
   }
-  const lock = readLock(user.app_metadata?.review_lock);
-  const verdict = decide({
-    email, reviewEmail, reviewCode, lock, now,
-    codeMatches: await sameSecret(code.trim(), reviewCode),
-  });
-  const after = nextLock(lock, verdict, now);
-  if (JSON.stringify(after) !== JSON.stringify(lock)) {
-    await admin.auth.admin.updateUserById(reviewUserId, {
-      app_metadata: { ...user.app_metadata, review_lock: after },
-    });
+
+  // Counted before the code is compared (one row, locked in Postgres).
+  const { data: counted, error: tryError } = await admin.rpc("review_sign_in_try");
+  if (tryError) {
+    console.log("review sign-in: counter failed");
+    return answer(500);
   }
+  const tried = readTry(counted);
+  const verdict = decide(
+    tried,
+    tried.allowed && await sameSecret(code.trim(), reviewCode),
+  );
   // Counts only: no email and no code in the logs.
   console.log(`review sign-in: ${verdict}`);
   if (verdict !== "ok") {
-    return answer(statusOf(verdict), {
-      error: verdict === "locked" ? "too_many" : "wrong_code",
-    });
+    return answer(
+      statusOf(verdict),
+      { error: verdict === "locked" ? "too_many" : "wrong_code" },
+      verdict === "locked" ? { "retry-after": String(tried.retryAfter) } : {},
+    );
   }
+  const { error: okError } = await admin.rpc("review_sign_in_ok");
+  if (okError) return answer(500);
 
   // A normal session: a magic link for the account, verified here.
   const { data: link, error: linkError } = await admin.auth.admin.generateLink({

@@ -1,53 +1,55 @@
 // The store reviewer's sign-in (review 69 §6, D4): what to answer, without
-// the network, so it can be tested.
-
-/// Wrong codes before the sign-in locks, and for how long.
-export const maxFails = 5;
-export const lockMinutes = 15;
-
-/// Kept on the reviewer account's app_metadata.review_lock.
-export type Lock = { fails: number; lockedUntil: string | null };
+// the network, so it can be tested. The try counter itself is in Postgres
+// (migration 34, review 73 B1): review_sign_in_try() before the code is
+// compared, review_sign_in_ok() after a right one.
 
 export type Verdict = "off" | "not_reviewer" | "locked" | "wrong" | "ok";
 
-export const noLock: Lock = { fails: 0, lockedUntil: null };
+/// What review_sign_in_try() answered.
+export type Try = { allowed: boolean; retryAfter: number };
+
+/// Seconds to wait when the counter's answer can't be read.
+export const unreadableRetry = 60;
 
 /// The same email whatever its case or spaces.
 export function sameEmail(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
-/// What to answer. [reviewCode] empty (or not 6 digits) switches the
-/// sign-in off between reviews. [codeMatches] is the constant-time
-/// comparison, made by the caller.
-export function decide(input: {
+/// Before any try is counted: [reviewCode] empty (or not 6 digits)
+/// switches the sign-in off between reviews, and another email is never
+/// counted. Null means it is the reviewer, so the try is counted next.
+export function gate(input: {
   email: string;
   reviewEmail: string;
   reviewCode: string;
-  lock: Lock;
-  now: Date;
-  codeMatches: boolean;
-}): Verdict {
+}): "off" | "not_reviewer" | null {
   if (!/^[0-9]{6}$/.test(input.reviewCode) || input.reviewEmail.trim() === "") {
     return "off";
   }
   if (!sameEmail(input.email, input.reviewEmail)) return "not_reviewer";
-  const until = input.lock.lockedUntil ? Date.parse(input.lock.lockedUntil) : NaN;
-  if (!Number.isNaN(until) && until > input.now.getTime()) return "locked";
-  return input.codeMatches ? "ok" : "wrong";
+  return null;
 }
 
-/// The lock after [verdict]: a wrong code counts, the fifth locks for 15
-/// minutes, a right one clears it. Others leave it as it was.
-export function nextLock(lock: Lock, verdict: Verdict, now: Date): Lock {
-  if (verdict === "ok") return noLock;
-  if (verdict !== "wrong") return lock;
-  const fails = lock.fails + 1;
-  if (fails < maxFails) return { fails, lockedUntil: null };
-  return {
-    fails: 0,
-    lockedUntil: new Date(now.getTime() + lockMinutes * 60_000).toISOString(),
-  };
+/// After the try was counted: refused by the lock or the daily cap, or the
+/// result of the constant-time comparison, made by the caller.
+export function decide(tried: Try, codeMatches: boolean): Verdict {
+  if (!tried.allowed) return "locked";
+  return codeMatches ? "ok" : "wrong";
+}
+
+/// review_sign_in_try()'s answer, read safely: anything malformed is
+/// refused, so a broken answer never lets a try through.
+export function readTry(value: unknown): Try {
+  if (typeof value !== "object" || value === null) {
+    return { allowed: false, retryAfter: unreadableRetry };
+  }
+  const v = value as Record<string, unknown>;
+  if (v.allowed === true) return { allowed: true, retryAfter: 0 };
+  const retry = typeof v.retry_after === "number" && v.retry_after > 0
+    ? Math.ceil(v.retry_after)
+    : unreadableRetry;
+  return { allowed: false, retryAfter: retry };
 }
 
 /// The answer's HTTP status. Not the reviewer, off and a wrong code look
@@ -61,13 +63,4 @@ export function statusOf(verdict: Verdict): number {
     default:
       return 401;
   }
-}
-
-/// The lock as stored, or none when it is missing or malformed.
-export function readLock(value: unknown): Lock {
-  if (typeof value !== "object" || value === null) return noLock;
-  const v = value as Record<string, unknown>;
-  const fails = typeof v.fails === "number" && v.fails >= 0 ? Math.floor(v.fails) : 0;
-  const lockedUntil = typeof v.lockedUntil === "string" ? v.lockedUntil : null;
-  return { fails, lockedUntil };
 }
