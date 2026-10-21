@@ -990,11 +990,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               BvDueTodayStrip(
                 key: const Key('to-do-strip'),
                 label: l10n.daybookToDo,
-                items: strip,
+                count: strip.length,
                 // Review 73 A1: every item, each opening its card.
                 onTap: () => showBvToDoSheet(
                   context,
-                  title: l10n.daybookToDoSheet,
+                  title: l10n.daybookToDo,
                   items: strip,
                   onOpen: (n) {
                     if (!mounted) return;

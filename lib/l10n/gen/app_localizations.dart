@@ -4772,17 +4772,11 @@ abstract class AppLocalizations {
   /// **'was due today {time}'**
   String daybookWasDueTodayAt(String time);
 
-  /// The strip under the masthead (L1, review 50 F61): what is still yours to do, today or from earlier days. The titles follow.
-  ///
-  /// In en, this message translates to:
-  /// **'To do:'**
-  String get daybookToDo;
-
-  /// Title of the sheet the To do strip opens (review 73 A1): every item still yours to do, oldest first.
+  /// The one-line strip under the masthead (review 50 F68), followed by ' · ' and the count of your own items still to do, today or from earlier days; also the title of the sheet it opens (review 73 A1), which lists them oldest first.
   ///
   /// In en, this message translates to:
   /// **'To do'**
-  String get daybookToDoSheet;
+  String get daybookToDo;
 
   /// Slip chip: checklist points on a work item.
   ///

@@ -2826,10 +2826,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookToDo => 'To do:';
-
-  @override
-  String get daybookToDoSheet => 'To do';
+  String get daybookToDo => 'To do';
 
   @override
   String daybookPoints(int n) {

@@ -4021,13 +4021,9 @@
       }
     }
   },
-  "daybookToDo": "To do:",
+  "daybookToDo": "To do",
   "@daybookToDo": {
-    "description": "The strip under the masthead (L1, review 50 F61): what is still yours to do, today or from earlier days. The titles follow."
-  },
-  "daybookToDoSheet": "To do",
-  "@daybookToDoSheet": {
-    "description": "Title of the sheet the To do strip opens (review 73 A1): every item still yours to do, oldest first."
+    "description": "The one-line strip under the masthead (review 50 F68), followed by ' · ' and the count of your own items still to do, today or from earlier days; also the title of the sheet it opens (review 73 A1), which lists them oldest first."
   },
   "daybookPoints": "{n, plural, =1{1 point} other{{n} points}}",
   "@daybookPoints": {
