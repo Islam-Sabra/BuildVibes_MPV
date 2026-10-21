@@ -2,6 +2,15 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Lead update: 21 Oct 2026, noon (cloud, the lead's chat)
+- **The build 375 retest so far** (review 50): photo location, step 1 (Due today, run by the lead on the emulator as Omar) and step 2 (the Note) pass. **Steps 3–7 are still to test**, and they go first next time.
+- **Review 72** is the next round: F59–F63 (app) plus migration 33. When the founder says "apply review 72", do it on `slice2-app`.
+- **Migration 33 is written** (the lead, cloud), on branch **`claude/review72-db`** (from `slice2-app`): the send-back date (F62). It has 24 checks, and all 2,275 SQL checks pass on the stand-in. **Not live.**
+  - Merge that branch into `slice2-app` first, then `supabase test db`.
+  - Push live only with the founder's yes, as the only file: `20261023120000_send_back_due.sql`.
+- **The 3D model views are now migration 34** (review 71).
+- **Nobody is working on `claude/review72-db`;** the PC takes it.
+
 ## Last update: 21 Oct 2026, PC session
 
 **Done on the PC:**
