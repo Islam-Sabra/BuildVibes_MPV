@@ -1233,7 +1233,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.properties.map((p) => p.label), [s.omarName]);
+      // An edit keeps the owner: no ›.
+      expect(card.properties.map((p) => p.label), [
+        l10n.daybookForPerson(s.omarName),
+      ]);
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(
