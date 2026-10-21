@@ -736,7 +736,7 @@ Review 62 ("The two notes, decided" and "The next migration (29)"), review 61 G1
 - A blocked user can't read the blocker's profile.
 - The public shown-work view leaks nothing beyond its listed fields.
 
-## 28. A new date on a send-back (migration 33, `20261023120000_send_back_due.sql`, branch `claude/review72-db`, not live)
+## A new date on a send-back (migration 33, `20261023120000_send_back_due.sql`, branch `claude/review72-db`, not live)
 Review 50 F62 and review 72: a due date belongs to whoever must act next.
 - `work_item_events.new_due jsonb`, on a `sent_back` event only:
   - `{"date", "at"}` is the new due;
