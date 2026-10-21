@@ -2,99 +2,63 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## Standing rule (review 74)
-Nothing but the BuildVibes build is installed on the founder's phone without his yes in chat: no test apps, helpers or other packages. The coordinator makes the builds.
+## Cloud update: 22 Oct 2026 — review 50 F68b and F69 (branch `claude/f68b-f69`)
 
-## F60 branch `f60-photo-reencode` (review 74 applied; not merged)
-- Merges after `claude/review72-app` passes the founder's test; then one build for the phone.
-- Every picked photo goes through `cleanPhoto`: drawn again, or, when the phone can't decode a well-formed JPEG, its APP1–APP15 and comments taken out; a file nobody could open is refused with "This photo can't be opened. Choose another."
-- Over 400 ms, the card shows "Preparing…" slots. Each photo logs one line; filter with `adb logcat | findstr BV-PHOTO`: `BV-PHOTO from=<camera|gallery|files|profile> result=<cleaned|notImage|refused> step=<redrawn|stripped|chunks|none|refused|unread> ms=<n> before=<WxH|-> after=<WxH|-> bytes=<in>[><out>]`.
-- If a camera or gallery photo takes over 2 s, the encoder moves to the phone's own JPEG encoder (review 74 H3).
+**Branch:** `claude/f68b-f69`, from `origin/f60-photo-reencode` (afcbec2, the slice 2 build on the phone, which has F68), so the next test build stays slice 2 only.
 
-## Cloud update: 21 Oct 2026, evening — review 72, app part (branch `claude/review72-app`)
+**Done:**
+- **F68b, the To do docket** (Figma EN `2604:36305`, AR `2604:37123`), replacing F68's line:
+  - a card 16 from the edges and 8 above what follows, radius 8, a subtle border; a 48-wide brand-soft stub with the list-checks icon in the action colour, a dashed perforation (3 on, 3 off), the caret grey and mirrored;
+  - line 1: "1 work item for you" / "2 work items for you" / "12 work items for you"; AR «بند عمل واحد لك», «بندا عمل لك», «{n} بنود عمل لك» (3–10), «{n} بند عمل لك» (11+);
+  - line 2, grey: the oldest title, then its due ("· by today") or "· from Sun" / «· منذ الأحد», then ", and 1 more" / «، وبند آخر», ", and {n} more" / «، و{n} بنود أخرى». The title is cut with … first so the rest shows whole; only if even the rest can't fit is the whole line cut;
+  - the whole docket opens the To do sheet (review 73 A1); 0 items, no docket. The count stays my own open and sent-back items due today or earlier (F65).
+- **F69, the picker:** on a new work item, checklist or scheduled activity, I'm listed once, first, as "You" / «أنت» with my face, then a hairline, then everyone else. A search shows You only when my own name matches. Choosing You reads "For you ›" / «لك ›». Give to someone else on an existing item, and the To row, are unchanged.
 
-**Branch:** `claude/review72-app`, made from `origin/slice2-retest` (so the next test build is slice 2 only), with migration 33's two commits cherry-picked from `claude/review72-db` (`f801dbd`, `41e8079` here; `ef90d0c`, `aea1799` there). `claude/review72-db` was not merged: it carries slice 3.
+**Checks:** `flutter analyze` clean; `flutter test` (see progress.md); screenshots EN and AR at 390×844 in `docs/screens/f68b/` (docket with 1, 2 and 12 items, the picker), with Linux fonts.
 
-**Done (review 72 / review 50):**
-- **F59:** at Now the masthead reads "**Today** · Thursday 15 October" (AR «**اليوم** · الخميس 15 أكتوبر»), also while writing and when an older card fills the screen. Today's divider is always there above the writing area, with "Nothing yet today" / «لا شيء بعد اليوم» when the day is empty. Every earlier day keeps its divider at Now. Only when scrolled back does the masthead follow the day at the top (F23); then the "Today ↓" chip shows (the New chip wins when new things came in) and takes you back.
-- **F61:** the strip is "To do:" / «مطلوب منك:». It is now built from its parts, so an earlier day ("Sun") is always grey and the label and titles stay in the action colour (before, the grey depended on finding the day's word in the text).
-- **F62:**
-  - no due on a Done card (already so since F57, kept);
-  - the author's Needs you row: "Omar Haddad · Done 10:21 · waiting for your check" / «منجز 10:21 · بانتظار تحققك», never red;
-  - the send-back sheet has "New date": Today · Tomorrow · Pick a date · No new date (اليوم · غدًا · اختر تاريخًا · بلا موعد جديد), chips, nothing chosen first, and Send back stays off until one is chosen. Pick a date uses the writing card's day and time picker and then shows the day;
-  - it calls `send_back(…, p_due_set: true, p_due, p_due_at)`, both null for No new date;
-  - the card shows the server's new due (or none); the history line ends "· new date Sat 17 Oct" / "· no new date" from `new_due`.
-- **F63:** the kind menu has no description lines (E6 v14).
-- **F60:** photos also lose Make, Model, Artist, CameraOwnerName / OwnerName, BodySerialNumber, LensSerialNumber and the maker notes. Orientation and the time taken stay. Checked on a real JPEG with an image reader.
-- Test app: the PDF-free file preview (from `claude/test-tw7wuv`), so the PDF tests pass here too.
+**For the PC:**
+- Re-shoot the goldens there (Windows fonts). `F61-to-do-strip` and the A1 sheet shot now show the docket, so their PNGs change.
+- Build from `claude/f68b-f69` for the founder's test: F68b (1, 2 and many items, a long title, tap opens the sheet, none when nothing is due) and F69 (You first, choose You, For you on the card, then a Space admin other than you checks it once Done).
+- Then merge `claude/f68b-f69` into `slice2-app` (and `f60-photo-reencode`).
+- Not done here: "a Space admin other than me sees it in Needs you to check" is the server's existing rule (only who may check); nothing changed in SQL.
 
-**Checks:**
-- `flutter analyze`: no issues. `flutter test`: **1,296, all pass**.
-- SQL stand-in on this branch: **2,217 checks, all pass**. Fewer than review 72's 2,275 because this branch has no migrations 31 and 32 (slice 3 and slice 4 server work) and has migration 30 without review 65's later checks. On `slice2-app` it is 2,275.
-- Screenshots for the lead, EN and AR at 390×844, in `docs/screens/review72/` (Linux fonts; the PC re-shoots goldens): F59 masthead at Now with yesterday's cards, F61 To do strip, F62 send-back sheet with the date, F62 a sent-back card with its new date, F63 kind menu.
+**Who has which branch:** this cloud session made `claude/f68b-f69` (done; nobody on it).
 
-**For the lead to decide:**
-- The "+ more ›" at the end of an overflowing To do strip (F61) doesn't exist; the strip stops at two lines with "…". Not built in this round.
-- "No new date" adds "· no new date" to the history line (the review only words the date case).
+## Last update: 21 Oct 2026, evening, PC session
 
-**Order for the PC:**
-1. Migration 33 must be **live before** this build goes on a phone: the new sheet calls `send_back` with `p_due_set`. Push it (founder's yes) as the only file, `20261023120000_send_back_due.sql`, after `supabase test db` on `slice2-app` with `claude/review72-db` merged.
-2. Build from `claude/review72-app` for the founder's test (steps 3–7 of build 375 first, then F59, F61, F62, F63, and F60 with a real phone photo).
-3. After the founder's test, merge `claude/review72-app` into `slice2-app` (and the PC's `slice2-retest` worktree). Re-shoot the goldens there.
-
-**Trial merge into `slice2-app` (cloud, local only, not pushed):** `git merge origin/claude/review72-app` on `origin/slice2-app` (e5e8589) stops on six files. Settled like this, it passes **1,326 app tests, `flutter analyze` clean, and 2,275 SQL checks**:
-- `lib/core/photo_privacy.dart`, `test/core/photo_privacy_test.dart`: take review72-app's (`git checkout --theirs`); it is slice2-app's plus F60.
-- `lib/l10n/app_ar.arb`: keep both sides' new keys (slice 3's `messages*`, `dm*`, `chat*`, and review 72's), and drop `daybookDueStripEarlier` (F61 removed it; `app_en.arb` merges by itself).
-- `lib/l10n/gen/*`: don't merge by hand, run `flutter gen-l10n`.
-- `test/helpers/pump_app.dart`: keep `dmRepositoryProvider.overrideWithValue(fakeDm)` and one `filePreviewProvider` override, and remove the second `daybook_photos.dart` import.
-- `test_screens/slice2_test.dart`: keep both blocks (slice 3's S7/S7-N shots, then review 72's), closing the first with `    });`.
-- `claude/review72-db` then merges with nothing left to do (the same two commits).
-
-**Who has which branch:** this cloud session has `claude/review72-app` (done; nobody else on it). `claude/review72-db` belongs to the PC.
-
-## Lead update: 21 Oct 2026, noon (cloud, the lead's chat)
-- **The build 375 retest so far** (review 50): photo location, step 1 (Due today, run by the lead on the emulator as Omar) and step 2 (the Note) pass. **Steps 3–7 are still to test**, and they go first next time.
-- **Review 72** is the next round: F59–F63 (app) plus migration 33. When the founder says "apply review 72", do it on `slice2-app`.
-- **Migration 33 is written** (the lead, cloud), on branch **`claude/review72-db`** (from `slice2-app`): the send-back date (F62). It has 24 checks, and all 2,275 SQL checks pass on the stand-in. **Not live.**
-  - Merge that branch into `slice2-app` first, then `supabase test db`.
-  - Push live only with the founder's yes, as the only file: `20261023120000_send_back_due.sql`.
-- **The 3D model views are now migration 34** (review 71).
-- **Nobody is working on `claude/review72-db`;** the PC takes it.
-
-## Last update: 21 Oct 2026, PC session
+**Standing rule (review 74):** nothing but the BuildVibes build is installed on the founder's phone without his yes in chat. That includes test apps, helpers and other packages.
 
 **Done on the PC:**
-- `claude/test-tw7wuv` merged into `slice2-live-db` and `slice2-app`; main (reviews 50 and 69, the founder's D1–D6) merged into both. Generated l10n files come from `flutter gen-l10n` and match.
-- Local checks: 2,251 SQL checks in 32 files, `flutter analyze` clean, 1,318 app tests.
-- Local Realtime check (13 of 13): members join the private `daybook:`, `thread:` and `dm:` channels and receive live; outsiders, and a Space member outside a DM, are refused. With public channels off locally, a public join is refused and a chat message still arrives live.
-  - The local Realtime server rewrites its tenant row on every start, so to test "public off" set `_realtime.tenants.private_only` as `supabase_admin` **without** restarting it.
-- **Live: migrations 29, 30, 31 and 32**, one file per push, each with a read-only check. `main` has them.
-- **Public channels on the live project are still ON.** The founder says when to turn them off, once the new build is on every test phone.
-- Review 69's wording fixes in `docs/legal/`, `docs/store/listing-draft.md`, `docs/pilot/quick-guide.md`, and the D3 positioning line in `docs/product/rules.md`.
-- **Slice 2 retest build 375** from branch `slice2-retest` (38a3d37) = `a2e330f` (tag `slice2-candidate`) + the code of 8af5dee (photo location removal). It applied cleanly, and 1,288 tests pass. It is on the emulator (Omar signed in).
-- Screenshots re-shot on the PC (Windows fonts), 211 checks, on `slice2-app` (a4adec7).
+- **Migration 33 (send-back date) is live** (D7). The dry run listed only `20261023120000_send_back_due.sql`, and the read-only check followed: the old 3-argument `send_back` calls still work. `main` has it.
+- Build 394 (F64–F67) passed the founder's test, and the F68 screenshots are approved.
+- **`claude/review72-app`** (4e7b639: review 72, review 73 A1, F64–F68) merged into `slice2-app`, as its handoff's recipe says.
+- **`f60-photo-reencode`** (afcbec2: review 74 H1–H3, fixtures committed, F68 merged in) merged into `slice2-app`.
+  - The DM screen (slice 3) needed the new picker results, and now shows "This photo can't be opened" like Space chat.
+- `slice2-app` is at 3565b0a: analyze clean, 1,354 app tests, 227 screenshot checks (re-shot on the PC), 2,275 SQL checks.
+- **Build 402**, from `f60-photo-reencode` (afcbec2, slice 2 only), is on the founder's phone and the emulator. The phone's logcat was cleared for the timing test.
+- Terms and quick guide: the Help path is Settings → About BuildVibes and legal → Help and feedback (on `main`).
+- **`claude/store-reviewer`** (da98999): review 73 B1–B4, with migration 34 `20261024120000_review_sign_in.sql` (not live), 2,336 SQL checks, 1,326 app tests and 7 Deno tests. It waits for the lead's review. Going live needs the founder's yes, before 13 Dec. 3D is migration 35.
+- `model-views-3d-notes` (review 70, the 3D notes): pushed, not merged, for the lead.
 
-**Waiting:**
-- **The founder's phone:** build 375 isn't on it yet (wireless debugging address needed). Install, then the founder's retest (order below).
-- **Step 6, photo location:** on the founder's phone with location on, take a photo, post it, download it from Storage and check that it has no GPS and keeps its orientation. Needs the phone.
-- **Retest order for the founder:**
-  1. Due today strip (F38/F57);
-  2. the Note;
-  3. the who row;
-  4. no "Late";
-  5. the tick feel;
-  6. an announcement edited after Got it;
-  7. live updates on both devices.
-- **After the retest passes:** the rest of slice 3 (DM4–DM5 Put in a Space, S8m Turn into a work item), then slice 4 (review 67, with review 69 §1). Not before.
-- **Review 69, still to do:**
-  - D4: the store reviewer's Edge Function and demo Space seed, on their own branch, before 13 Dec; going live needs its own yes.
-  - Store listing items outside the listed fixes: the English long description and the header note still say "AECO" (D3 says "construction"); "the place" in "Proof that is yours" could say "typed on the work item"; old lead notes on lines 78 and 115.
+**Next:**
+1. **The founder's photo check on build 402:** 1 camera photo, 3 gallery photos and 1 full-size photo through Files. Are they upright, sharp and normal in colour?
+   - Then read `adb logcat | findstr BV-PHOTO` for the timings, and check the stored files with no "Xiaomi", model or location.
+   - If any camera or gallery photo takes more than 2 s, switch to the phone's own JPEG encoder (review 74 H3).
+2. After that: the rest of slice 3 (DM4–DM5 Put in a Space, S8m Turn into a work item), then slice 4. Not before the founder says so.
+3. For the lead:
+   - F65's exact "owner = me" needs `owner_id` in `my_calendar` (a later migration);
+   - the old fixture `test/fixtures/xiaomi_exif.jpg` stays in `claude/review72-app`'s history (no force push without the founder's yes).
+4. Public channels on the live project are still on, until the founder says to turn them off.
 
 **On the PC, not in git:**
-- The main folder has the lead's uncommitted `docs/reviews/2026-10-20-63-model-views-3d.md` and an edit to `docs/product/model-views.md`. Left untouched. Note that review 63 also names the cloud's `2026-10-20-63-migration29-review.md`, so the 3D review needs another number.
-- The `BuildVibes-slice1` worktree has a stash, "PC agent partial F54-F58, 20 Oct", superseded by the cloud's work. Drop it once the retest passes.
+- `BuildVibes-slice1` has a stash, "PC agent partial F54-F58, 20 Oct", superseded. Drop it once slice 2 is passed.
+- The local database has migration 34 (from `store-reviewer`); `supabase db reset` on `slice2-app` puts it back to 33.
 
 **Who has which branch:**
-- PC: `slice2-app` (slice 2 + slice 3 part 1, worktree `BuildVibes-slice1`) and `slice2-retest` (the retest build, worktree `BuildVibes-phone`).
-- `slice2-live-db` equals main.
-- `claude/test-tw7wuv` is merged; a new cloud session starts its own `claude/...` branch from `slice2-app`.
+- PC:
+  - `slice2-app` (worktree `BuildVibes-slice1`);
+  - `f60-photo-reencode` (worktree `BuildVibes-phone`, the build on the phone);
+  - `store-reviewer` (worktree `BuildVibes-store`);
+  - `slice2-live-db` = main (worktree `BuildVibes-db29`).
+- `claude/review72-app` and `claude/review72-db` are merged and done.
+- Nobody is on `claude/store-reviewer` until the lead reviews it.

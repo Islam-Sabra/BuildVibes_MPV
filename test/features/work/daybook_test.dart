@@ -1,6 +1,8 @@
 // The daybook in v13 (review 53 Part B): one full-width card per work
 // item, its history inside, traces on earlier days, the reader's one
 // action from needs_me.
+import 'package:buildvibes/core/design/daybook_days_specs.dart';
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -602,8 +604,8 @@ void main() {
       );
       // F57: no "Late" line; a passed due is a reminder on the facts line.
       expect(find.textContaining('Late'), findsNothing);
-      // F68: one line with a count; the title is on the sheet only.
-      expect(find.text('${l10n.daybookToDo} · 1'), findsOneWidget);
+      // F68b: the docket names the work and its oldest item.
+      expect(find.text(l10n.daybookDocketTitle(1)), findsOneWidget);
       expect(find.byType(BvDueTodayStrip), findsOneWidget);
       // The strip sits under the masthead, above the diary.
       expect(
@@ -646,7 +648,7 @@ void main() {
         ],
       );
       final day = words.stripDay(wednesday, DaybookSamples.friday)!;
-      expect(find.text('${l10n.daybookToDo} · 2'), findsOneWidget);
+      expect(find.text(l10n.daybookDocketTitle(2)), findsOneWidget);
       expect(find.textContaining('Late'), findsNothing);
       expect(find.textContaining('Signed on Wednesday'), findsNothing);
       await tester.tap(find.byType(BvDueTodayStrip));
@@ -695,8 +697,8 @@ void main() {
         ],
       );
       expect(
-        tester.widget<BvDueTodayStrip>(find.byType(BvDueTodayStrip)).count,
-        1,
+        tester.widget<BvDueTodayStrip>(find.byType(BvDueTodayStrip)).title,
+        l10n.daybookDocketTitle(1),
       );
       expect(find.textContaining(whoRow), findsNothing);
       await tester.tap(find.byType(BvDueTodayStrip));
@@ -751,8 +753,8 @@ void main() {
         (id: 'post-sleeves', title: s.sleeves, day: DateTime(2026, 10, 15)),
         (id: 'post-trays', title: s.cableTraysTitle, day: null),
       ];
-      // F68: the strip is one line with the count, no titles.
-      expect(find.text('${l10n.daybookToDo} · 7'), findsOneWidget);
+      // F68b: the docket shows the oldest title only; the sheet has them all.
+      expect(find.text(l10n.daybookDocketTitle(7)), findsOneWidget);
       expect(
         find.descendant(
           of: find.byType(BvDueTodayStrip),
@@ -764,7 +766,10 @@ void main() {
       // Tapped at its end, away from the words' start.
       await tester.tapAt(
         tester.getRect(find.byType(BvDueTodayStrip)).centerRight -
-            const Offset(4, 0),
+            Offset(
+              BvDueTodaySpec.outer.end + 4,
+              BvDueTodaySpec.outer.bottom / 2,
+            ),
       );
       await tester.pumpAndSettle();
       final sheet = find.byKey(const Key('to-do-sheet'));
@@ -815,8 +820,9 @@ void main() {
       expect(sheet, findsNothing);
     });
 
-    testWidgets('F68: 5 items show "To do · 5" and no titles; a tap opens '
-        'the sheet with the 5 titles, oldest first [$lang]', (tester) async {
+    testWidgets('F68b: 5 items: "5 work items for you", the oldest title '
+        'only; a tap opens the sheet with the 5 titles, oldest first '
+        '[$lang]', (tester) async {
       final friday = DaybookSamples.friday;
       final items = [
         for (var d = 0; d < 4; d++)
@@ -838,9 +844,15 @@ void main() {
         now: friday,
         calendar: items.reversed.toList(),
       );
-      final line = lang == 'ar' ? 'مطلوب منك · 5' : 'To do · 5';
+      final line = lang == 'ar' ? '5 بنود عمل لك' : '5 work items for you';
       expect(find.text(line), findsOneWidget);
-      for (final i in items) {
+      // The oldest (Sun) leads the second line, with "and 4 more".
+      expect(
+        tester.widget<Text>(find.byKey(const Key('to-do-oldest'))).data,
+        startsWith(inOwnDirection(items.first.title)),
+      );
+      expect(find.textContaining(l10n.daybookDocketRest(4)), findsOneWidget);
+      for (final i in items.skip(1)) {
         expect(
           find.descendant(
             of: find.byType(BvDueTodayStrip),

@@ -6373,6 +6373,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This photo can\'t be opened. Choose another.'**
   String get photoCannotOpen;
+
+  /// The To do docket's first line (review 50 F68b): your own open and sent-back items, due today or earlier. Western digits.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 work item for you} other{{n} work items for you}}'**
+  String daybookDocketTitle(int n);
+
+  /// The docket's second line, after the oldest title: due on an earlier day ("from Sun"), grey, never a warning (F57).
+  ///
+  /// In en, this message translates to:
+  /// **'from {day}'**
+  String daybookDocketFrom(String day);
+
+  /// The docket's second line, at its end: how many more items after the oldest one (F68b).
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{} =1{, and 1 more} other{, and {n} more}}'**
+  String daybookDocketRest(int n);
 }
 
 class _AppLocalizationsDelegate

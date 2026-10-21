@@ -3777,4 +3777,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get photoCannotOpen => 'تعذّر فتح هذه الصورة. اختر صورة أخرى.';
+
+  @override
+  String daybookDocketTitle(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n بند عمل لك',
+      few: '$n بنود عمل لك',
+      two: 'بندا عمل لك',
+      one: 'بند عمل واحد لك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookDocketFrom(String day) {
+    return 'منذ $day';
+  }
+
+  @override
+  String daybookDocketRest(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '، و$n بنود أخرى',
+      one: '، وبند آخر',
+      zero: '',
+    );
+    return '$_temp0';
+  }
 }

@@ -5462,5 +5462,32 @@
   "photoCannotOpen": "This photo can't be opened. Choose another.",
   "@photoCannotOpen": {
     "description": "A picked photo nobody could open; it isn't sent, and the others still go (review 74 H1)."
+  },
+  "daybookDocketTitle": "{n, plural, =1{1 work item for you} other{{n} work items for you}}",
+  "@daybookDocketTitle": {
+    "description": "The To do docket's first line (review 50 F68b): your own open and sent-back items, due today or earlier. Western digits.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookDocketFrom": "from {day}",
+  "@daybookDocketFrom": {
+    "description": "The docket's second line, after the oldest title: due on an earlier day (\"from Sun\"), grey, never a warning (F57).",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookDocketRest": "{n, plural, =0{} =1{, and 1 more} other{, and {n} more}}",
+  "@daybookDocketRest": {
+    "description": "The docket's second line, at its end: how many more items after the oldest one (F68b).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

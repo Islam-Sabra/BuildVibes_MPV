@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import 'bv_writing_card.dart' show bvBareField;
@@ -42,6 +43,8 @@ class BvGiveToPicker extends StatefulWidget {
     this.chosenIds,
     this.inSheet = false,
     this.footer,
+    this.meId,
+    this.meLabel,
   });
 
   final List<BvGiveToPerson> people;
@@ -62,6 +65,12 @@ class BvGiveToPicker extends StatefulWidget {
   /// Under the list, always in view: another way out (F56, "Post as a
   /// Note").
   final Widget? footer;
+
+  /// The viewer (review 50 F69): listed once, first, as [meLabel] ("You")
+  /// with their face, then a hairline, then everyone else. A search shows
+  /// them only when their own name matches.
+  final String? meId;
+  final String? meLabel;
 
   @override
   State<BvGiveToPicker> createState() => _BvGiveToPickerState();
@@ -112,16 +121,36 @@ class _BvGiveToPickerState extends State<BvGiveToPicker> {
           ];
 
     final sheet = widget.inSheet;
-    final rows = [
+    _Row row(BvGiveToPerson p, {String? label}) => _Row(
+      key: label == null ? null : const Key('give-to-me'),
+      person: p,
+      label: label,
+      current:
+          widget.chosenIds?.contains(p.id) ?? p.id == widget.currentOwnerId,
+      currentLabel: widget.chosenIds == null ? widget.currentLabel : null,
+      type: type,
+      onTap: () => widget.onPick(p),
+    );
+    final meLabel = widget.meLabel;
+    final me = meLabel == null
+        ? null
+        : shown.where((p) => p.id == widget.meId).firstOrNull;
+    final others = [
       for (final p in shown)
-        _Row(
-          person: p,
-          current:
-              widget.chosenIds?.contains(p.id) ?? p.id == widget.currentOwnerId,
-          currentLabel: widget.chosenIds == null ? widget.currentLabel : null,
-          type: type,
-          onTap: () => widget.onPick(p),
-        ),
+        if (me == null || p.id != me.id) p,
+    ];
+    final rows = [
+      if (me != null) ...[
+        row(me, label: meLabel),
+        if (others.isNotEmpty)
+          const Divider(
+            key: Key('give-to-me-hairline'),
+            height: BvStroke.thin,
+            thickness: BvStroke.thin,
+            color: BvColors.borderSubtle,
+          ),
+      ],
+      for (final p in others) row(p),
     ];
     return Container(
       width: sheet ? null : BvGiveToSpec.width,
@@ -238,7 +267,9 @@ class _Search extends StatelessWidget {
 
 class _Row extends StatelessWidget {
   const _Row({
+    super.key,
     required this.person,
+    this.label,
     required this.current,
     required this.currentLabel,
     required this.type,
@@ -246,6 +277,9 @@ class _Row extends StatelessWidget {
   });
 
   final BvGiveToPerson person;
+
+  /// Shown instead of the name ("You", F69).
+  final String? label;
   final bool current;
 
   /// The current owner's sub line; null when several can be chosen.
@@ -285,7 +319,7 @@ class _Row extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      person.name,
+                      label ?? person.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: type.bodyMd.copyWith(color: BvColors.textPrimary),
