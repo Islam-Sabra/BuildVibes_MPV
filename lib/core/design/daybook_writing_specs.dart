@@ -104,6 +104,9 @@ abstract final class BvWritingToolbarSpec {
 abstract final class BvPopoverMenuSpec {
   static const widthMore = 184.0;
   static const widthPicker = 230.0;
+
+  /// The kind menu, its small lines on one line (E6 v14 2598:36413).
+  static const widthKind = 322.0;
   static const radius = BvRadius.cardAll; // 14
   static const paddingVertical = BvSpace.s6;
   static const rowHeight = 42.0;

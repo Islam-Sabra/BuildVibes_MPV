@@ -200,7 +200,7 @@ class _PushHostState extends ConsumerState<PushHost> {
   }
 
   /// Only the app's own pages: a Space, its item or thread, a post, a
-  /// person, or your profile.
+  /// person, a direct message thread, or your profile.
   void _open(Map<String, String> data) {
     final sent = data['route'];
     if (!mounted || sent == null) return;
@@ -212,6 +212,7 @@ class _PushHostState extends ConsumerState<PushHost> {
       AppRoutes.spaces,
       AppRoutes.posts,
       AppRoutes.people,
+      AppRoutes.messages,
     ].any((p) => route.startsWith('$p/'))) {
       router.push(
         route,

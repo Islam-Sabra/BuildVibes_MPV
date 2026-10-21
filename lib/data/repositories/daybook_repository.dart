@@ -46,9 +46,10 @@ abstract class DaybookRepository {
   /// due that isn't checked.
   Future<DaybookMonth> month(String spaceId, DateTime month);
 
-  /// The work items due on [day] that are mine to sign or written by me,
-  /// in every Space I'm in.
-  Future<List<CalendarWorkItem>> dueOn(DateTime day);
+  /// The work items due on [day] or up to [dueBackDays] before it that
+  /// are mine to sign or written by me, in every Space I'm in (F57: the
+  /// Due today strip keeps what is still to do from earlier days).
+  Future<List<CalendarWorkItem>> dueUpTo(DateTime day);
 
   /// What sits above the daybook on [day] (the phone's): the announcements
   /// pinned now and the activities starting that day.
@@ -101,6 +102,10 @@ abstract class DaybookRepository {
 /// are left.
 typedef DaybookHistoryPage = ({List<DaybookEvent> lines, bool more});
 
+/// How far back the Due today strip looks (my_calendar takes up to 62
+/// days, today included).
+const dueBackDays = 61;
+
 /// A post of another kind written in place, as create_space_post takes
 /// it. Only what fits its [kind] is sent: people, points and the due for
 /// a checklist; the pin for an announcement; the start, end, place and
@@ -124,13 +129,17 @@ class NewSpacePost {
     this.points = const [],
     this.photoPaths = const [],
     this.attachedFileIds = const [],
+    this.teamId,
   });
 
   final String id;
   final String spaceId;
 
-  /// 'checklist', 'announcement', 'activity' or 'file'.
+  /// 'note', 'checklist', 'announcement', 'activity' or 'file'.
   final String kind;
+
+  /// A Team it goes to; null, Everyone (F56).
+  final String? teamId;
 
   /// A file post may leave it empty: the server takes the file's name.
   final String title;
@@ -164,6 +173,7 @@ class NewSpacePost {
       'p_kind': kind,
       'p_title': text(title),
       'p_body': text(body),
+      'p_team': teamId,
       'p_place': activity ? text(place) : null,
       'p_due': checklist && dueDate != null ? _date(dueDate!) : null,
       'p_due_at': checklist && dueAt != null ? _instant(dueAt!) : null,
@@ -379,15 +389,15 @@ class SupabaseDaybookRepository implements DaybookRepository {
       });
 
   @override
-  Future<List<CalendarWorkItem>> dueOn(DateTime day) => _guard(() async {
-    final start = DateTime(day.year, day.month, day.day);
+  Future<List<CalendarWorkItem>> dueUpTo(DateTime day) => _guard(() async {
+    final from = DateTime(day.year, day.month, day.day - dueBackDays);
     final rows = _rows(
       await _client.rpc<List<dynamic>>(
         'my_calendar',
         params: {
-          'p_from_day': _date(start),
-          'p_to_day': _date(start),
-          'p_from': _instant(start),
+          'p_from_day': _date(from),
+          'p_to_day': _date(DateTime(day.year, day.month, day.day)),
+          'p_from': _instant(from),
           'p_to': _instant(DateTime(day.year, day.month, day.day + 1)),
         },
       ),

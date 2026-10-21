@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/activity/activity_screen.dart';
+import '../../data/models/dm.dart';
 import '../../features/activity/needs_you_screen.dart';
+import '../../features/messages/dm_thread_screen.dart';
+import '../../features/messages/messages_screen.dart';
 import '../../features/dev/components_gallery_screen.dart';
 import '../../features/entry/code_screen.dart';
 import '../../features/entry/email_screen.dart';
@@ -80,6 +83,7 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.posts) ||
               under(AppRoutes.spaces) ||
               under(AppRoutes.needs) ||
+              under(AppRoutes.messages) ||
               under(AppRoutes.removals) ||
               under(AppRoutes.profileEdit)
           ? AppRoutes.home
@@ -200,6 +204,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.needs,
         builder: (context, state) => const NeedsYouScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.messages,
+        builder: (context, state) => const MessagesScreen(),
+        routes: [
+          // "requests" and "with" before ":thread".
+          GoRoute(
+            path: 'requests',
+            builder: (context, state) => const MessageRequestsScreen(),
+          ),
+          GoRoute(
+            path: 'with/:profileId',
+            builder: (context, state) => DmThreadScreen.withPerson(
+              profileId: state.pathParameters['profileId']!,
+              person: state.extra as DmPerson?,
+            ),
+          ),
+          GoRoute(
+            path: ':thread',
+            builder: (context, state) =>
+                DmThreadScreen(threadId: state.pathParameters['thread']!),
+          ),
+        ],
       ),
       GoRoute(
         path: '${AppRoutes.removals}/:id',

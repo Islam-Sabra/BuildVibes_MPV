@@ -2339,6 +2339,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'post': 'الإبلاغ عن هذا المنشور',
       'reply': 'الإبلاغ عن هذا الرد',
       'message': 'الإبلاغ عن هذه الرسالة',
+      'dm_message': 'الإبلاغ عن هذه الرسالة',
       'other': 'الإبلاغ عن هذا الحساب',
     });
     return '$_temp0';
@@ -2815,21 +2816,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String daybookWasDueTodayAt(String time) {
     return 'كان موعده الساعة $time اليوم';
-  }
-
-  @override
-  String daybookLate(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: 'متأخر $n يوم',
-      many: 'متأخر $n يومًا',
-      few: 'متأخر $n أيام',
-      two: 'متأخر يومين',
-      one: 'متأخر يومًا واحدًا',
-      zero: 'متأخر',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -3724,4 +3710,149 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookUnpin => 'إلغاء التثبيت';
+
+  @override
+  String get daybookKindNote => 'ملاحظة';
+
+  @override
+  String get daybookKindNoteNote => 'للعلم، لا يلزم أي إجراء';
+
+  @override
+  String get daybookKindNoteWord => '· ملاحظة';
+
+  @override
+  String get daybookForChoose => 'لـ: اختر ›';
+
+  @override
+  String get daybookComingChoose => 'من سيحضر: اختر ›';
+
+  @override
+  String get daybookChooseWho => 'اختر لمن';
+
+  @override
+  String get daybookPostAsNote => 'للعلم فقط؟ انشرها كملاحظة';
+
+  @override
+  String daybookToAudience(String audience, String more) {
+    return 'إلى: $audience$more';
+  }
+
+  @override
+  String get daybookEveryone => 'الجميع';
+
+  @override
+  String daybookDueStripEarlier(String day, String title) {
+    return '$day $title';
+  }
+
+  @override
+  String get messagesTitle => 'الرسائل';
+
+  @override
+  String get messagesRequest => 'طلب مراسلة';
+
+  @override
+  String get messagesRequests => 'طلبات المراسلة';
+
+  @override
+  String get messagesToday => 'اليوم';
+
+  @override
+  String get messagesEarlier => 'سابقًا';
+
+  @override
+  String messagesYou(String text) {
+    return 'أنت: $text';
+  }
+
+  @override
+  String messagesVoice(String length) {
+    return 'رسالة صوتية · $length';
+  }
+
+  @override
+  String get messagesEmpty => 'لا رسائل بعد. ابدأ محادثة بزر +.';
+
+  @override
+  String get messagesNew => 'رسالة جديدة';
+
+  @override
+  String get messagesSearch => 'ابحث بالاسم';
+
+  @override
+  String get messagesUnread => 'غير مقروءة';
+
+  @override
+  String dmBothIn(String space) {
+    return 'معًا في $space';
+  }
+
+  @override
+  String get dmNotInSpaces => 'ليس في مساحاتك';
+
+  @override
+  String get dmDecline => 'رفض';
+
+  @override
+  String dmDeclined(String name) {
+    return 'تم الرفض. لن يُبلَّغ $name.';
+  }
+
+  @override
+  String get dmTapToShow => 'اضغط للعرض';
+
+  @override
+  String get dmMute => 'كتم';
+
+  @override
+  String get dmUnmute => 'إلغاء الكتم';
+
+  @override
+  String dmReportPerson(String name) {
+    return 'الإبلاغ عن $name';
+  }
+
+  @override
+  String get dmFirstMessage => 'اكتب الرسالة الأولى';
+
+  @override
+  String dmPaused(String day) {
+    return 'كثير ممن راسلتهم لم يردّوا. يمكنك بدء محادثات جديدة مرة أخرى يوم $day.';
+  }
+
+  @override
+  String get dmWarning => 'كثير ممن راسلتهم لم يردّوا بعد.';
+
+  @override
+  String get dmPhoto => 'صورة';
+
+  @override
+  String get profileMessage => 'مراسلة';
+
+  @override
+  String get chatNewChat => 'محادثة جديدة';
+
+  @override
+  String get chatNewGroup => 'فريق جديد في هذه المساحة';
+
+  @override
+  String get chatNewGroupNote =>
+      'اختر اسمًا وأعضاء. يستطيع مدير المساحة فعل ذلك.';
+
+  @override
+  String get chatOnePerson => 'راسل شخصًا واحدًا';
+
+  @override
+  String chatOnePersonNote(String space) {
+    return 'تُفتح في الرسائل، مع علامة «من $space»';
+  }
+
+  @override
+  String get chatWorkNote =>
+      'يُكلَّف العمل من تبويب «العمل». المحادثة للتواصل.';
+
+  @override
+  String chatThreadsDmNote(String space) {
+    return 'الرسائل إلى شخص واحد تُفتح في الرسائل، مع علامة «من $space».';
+  }
 }

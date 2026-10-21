@@ -5,6 +5,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import 'bv_avatar.dart';
+import 'bv_highlight.dart';
 import 'bv_tap_target.dart';
 
 /// A field without a box of its own, for text typed on a card, a note or a
@@ -31,7 +32,10 @@ class BvWritingProperty {
     this.onTap,
   }) : icon = null,
        onRemove = null,
-       removeLabel = null;
+       removeLabel = null,
+       key = null,
+       empty = false,
+       ask = null;
 
   const BvWritingProperty.icon({
     required this.icon,
@@ -39,10 +43,23 @@ class BvWritingProperty {
     this.onTap,
     this.onRemove,
     this.removeLabel,
+    this.key,
+    this.empty = false,
+    this.ask,
   }) : tint = null,
        image = null;
 
   final String label;
+
+  /// On the row, for finding it.
+  final Key? key;
+
+  /// Still to choose ("For: Choose ›"): in grey (F56).
+  final bool empty;
+
+  /// Each new value pulses the row once, in the action colour: Post was
+  /// tapped while it was still to choose (F56).
+  final Object? ask;
   final IconData? icon;
   final Color? tint;
   final ImageProvider? image;
@@ -454,47 +471,60 @@ class _Properties extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         for (final p in items)
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: p.onTap,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: BvWritingCardSpec.propertyItemGap,
-              children: [
-                if (p.icon != null)
-                  Icon(
-                    p.icon,
-                    size: BvWritingCardSpec.propertyIcon,
-                    color: BvColors.iconSecondary,
-                  )
-                else
-                  ExcludeSemantics(
-                    child: BvAvatar(
-                      name: p.label,
-                      size: BvAvatarSize.xxs,
-                      tint: p.tint,
-                      image: p.image,
-                    ),
-                  ),
-                // A long one ("الأحد 18 أكتوبر، 2:00 ظهرًا") wraps
-                // within the line instead of running off it.
-                Flexible(child: Text(p.label, style: style)),
-                if (p.onRemove != null)
-                  Semantics(
-                    button: true,
-                    label: p.removeLabel,
-                    child: GestureDetector(
-                      key: const Key('writing-property-remove'),
-                      behavior: HitTestBehavior.opaque,
-                      onTap: p.onRemove,
-                      child: const Icon(
-                        BvIcons.close,
-                        size: BvWritingCardSpec.propertyIcon,
-                        color: BvColors.iconSecondary,
+          _ask(
+            p,
+            GestureDetector(
+              key: p.key,
+              behavior: HitTestBehavior.opaque,
+              onTap: p.onTap,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: BvWritingCardSpec.propertyItemGap,
+                children: [
+                  if (p.icon != null)
+                    Icon(
+                      p.icon,
+                      size: BvWritingCardSpec.propertyIcon,
+                      color: BvColors.iconSecondary,
+                    )
+                  else
+                    ExcludeSemantics(
+                      child: BvAvatar(
+                        name: p.label,
+                        size: BvAvatarSize.xxs,
+                        tint: p.tint,
+                        image: p.image,
                       ),
                     ),
+                  // A long one ("الأحد 18 أكتوبر، 2:00 ظهرًا") wraps
+                  // within the line instead of running off it.
+                  Flexible(
+                    child: Text(
+                      p.label,
+                      style: p.ask != null
+                          ? style.copyWith(color: BvColors.textAction)
+                          : p.empty
+                          ? style.copyWith(color: BvColors.textSecondary)
+                          : style,
+                    ),
                   ),
-              ],
+                  if (p.onRemove != null)
+                    Semantics(
+                      button: true,
+                      label: p.removeLabel,
+                      child: GestureDetector(
+                        key: const Key('writing-property-remove'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: p.onRemove,
+                        child: const Icon(
+                          BvIcons.close,
+                          size: BvWritingCardSpec.propertyIcon,
+                          color: BvColors.iconSecondary,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
       ],
@@ -508,6 +538,10 @@ class _Properties extends StatelessWidget {
     );
   }
 }
+
+/// [child], pulsed once for each new [BvWritingProperty.ask].
+Widget _ask(BvWritingProperty p, Widget child) =>
+    p.ask == null ? child : BvHighlight(flash: p.ask, child: child);
 
 class _Cover extends StatelessWidget {
   const _Cover({

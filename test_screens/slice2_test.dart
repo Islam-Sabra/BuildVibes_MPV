@@ -8,9 +8,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:buildvibes/core/l10n/locale_controller.dart';
+import 'package:buildvibes/data/models/chat.dart';
+import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
+import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/activity_repository.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
@@ -39,6 +42,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test/helpers/activity_fakes.dart';
+import '../test/helpers/chat_fakes.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
@@ -68,6 +72,8 @@ Future<List<Override>> _overrides(
   List<LibraryFile> library = const [],
   Map<String, Uint8List> bytes = const {},
   Map<String, List<DaybookPostFile>> files = const {},
+  List<CalendarWorkItem> calendar = const [],
+  List<ChatThread> threads = const [],
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
@@ -81,6 +87,10 @@ Future<List<Override>> _overrides(
         ..spacePeople[DaybookSamples.space] = s.people(),
     ),
     activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
+    chatRepositoryProvider.overrideWithValue(
+      FakeChatRepository(now: now)
+        ..threadsBySpace[DaybookSamples.space] = threads,
+    ),
     authUserIdProvider.overrideWithValue(AsyncData(me)),
     myMarketProvider.overrideWithValue(kuwait),
     clockProvider.overrideWithValue(() => now),
@@ -92,7 +102,8 @@ Future<List<Override>> _overrides(
         ..extrasBySpace[DaybookSamples.space] = extras
         ..pointsByPost[DaybookSamples.handoverId] = s.handoverPoints()
         ..acksByPost.addAll(acks)
-        ..filesByPost.addAll(files),
+        ..filesByPost.addAll(files)
+        ..calendar.addAll(calendar),
     ),
     libraryRepositoryProvider.overrideWithValue(
       FakeLibraryRepository(now: now)
@@ -686,6 +697,209 @@ void main() {
         ),
         before: (tester) => _writeKind(tester, l10n, DaybookKind.file),
       );
+    });
+
+    testWidgets('K5 v13 a note, for information (F58, 2598:36260) [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      const id = 'post-pour-note';
+      final post = DaybookPost(
+        id: id,
+        kind: DaybookPost.noteKind,
+        createdAt: DateTime(2026, 10, 15, 11, 45),
+        title: s.t('Pour finished, level 3 slab', 'انتهى الصب، بلاطة الطابق 3'),
+        body: s.t(
+          'Pump left at 11:40. Curing starts tomorrow, 7 am.',
+          'غادرت المضخة 11:40. تبدأ المعالجة غدًا 7 صباحًا.',
+        ),
+        authorId: DaybookSamples.islam,
+        authorName: s.islamName,
+        coverPath: '${DaybookSamples.space}/posts/$id/0.jpg',
+      );
+      await shoot(
+        tester,
+        'K5-note',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DateTime(2026, 10, 15, 11, 50),
+          posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
+          files: {
+            id: [
+              for (var i = 0; i < 3; i++)
+                DaybookPostFile(
+                  mime: 'image/jpeg',
+                  path: '${DaybookSamples.space}/posts/$id/$i.jpg',
+                ),
+            ],
+          },
+        ),
+      );
+    });
+
+    testWidgets('F56 a work item: the who row from the start [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F56-who-row',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+        },
+      );
+    });
+
+    testWidgets('F56 Post with nobody chosen: the who row asks [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F56-who-asks',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+          await tester.tap(find.byKey(const Key('writing-post')));
+          // Mid-pulse.
+          await tester.pump(const Duration(milliseconds: 400));
+        },
+      );
+    });
+
+    testWidgets('F56 an announcement goes To: Everyone or a Team [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F56-to-menu',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _writeKind(tester, l10n, DaybookKind.announcement);
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.halfDay,
+          );
+          final to = find.byKey(const Key('writing-to'));
+          await tester.ensureVisible(to);
+          await tester.pumpAndSettle();
+          await _tap(
+            tester,
+            find.descendant(of: to, matching: find.byType(Icon)),
+          );
+        },
+      );
+    });
+
+    testWidgets('F57 the Due today strip with an earlier day, and a passed '
+        'due as a reminder [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F57-due-strip',
+        lang,
+        _space,
+        folder: _folder,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.friday,
+          me: DaybookSamples.omar,
+          posts: s.l1(),
+          calendar: [
+            s.cableTraysDue(),
+            CalendarWorkItem(
+              postId: 'post-rebar-spacers',
+              spaceId: DaybookSamples.space,
+              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
+              day: DateTime(2026, 10, 14),
+              status: WorkStatus.open,
+            ),
+          ],
+        ),
+      );
+    });
+
+    testWidgets('S7 v4 Chat with New chat, and S7-N (slice 3) [$lang]', (
+      tester,
+    ) async {
+      final threads = [
+        ChatThread(
+          id: 'th-everyone',
+          lastKind: ChatKind.text,
+          lastBody: s.t(
+            'Friday site walk is on. Gate office at 9.',
+            'جولة الموقع يوم الجمعة قائمة. مكتب البوابة الساعة 9.',
+          ),
+          lastAuthorId: DaybookSamples.omar,
+          lastAt: DateTime(2026, 10, 15, 10, 20),
+          unread: 2,
+        ),
+        ChatThread(
+          id: 'th-mep',
+          teamId: 't-mep',
+          teamName: s.t('MEP', 'الكهروميكانيك'),
+          lastKind: ChatKind.text,
+          lastBody: s.t(
+            'Photos of the upstand before sealing',
+            'صور القاعدة قبل الإغلاق',
+          ),
+          lastAuthorId: DaybookSamples.rakesh,
+          lastAt: DateTime(2026, 10, 15, 10, 18),
+        ),
+      ];
+      for (final sheet in [false, true]) {
+        await shoot(
+          tester,
+          sheet ? 'S7N-new-chat' : 'S7-chat',
+          lang,
+          _space,
+          folder: 'slice3',
+          overrides: await _overrides(
+            s,
+            now: DaybookSamples.thursday,
+            posts: [s.rebar()],
+            threads: threads,
+          ),
+          before: (tester) async {
+            await _tap(tester, find.byKey(const Key('space-tab-chat')));
+            if (sheet) await _tap(tester, find.byKey(const Key('chat-new')));
+          },
+        );
+      }
     });
 
     // Not a frame: K1 as Sara, one of the checklist's people, with the

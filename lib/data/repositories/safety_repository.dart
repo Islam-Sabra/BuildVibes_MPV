@@ -10,12 +10,16 @@ import 'space_repository.dart';
 
 /// What can be reported (R1).
 enum ReportKind {
-  post,
-  reply,
-  profile,
-  message;
+  post('post'),
+  reply('reply'),
+  profile('profile'),
+  message('message'),
 
-  String get json => name;
+  /// A direct message (migration 22): hidden for the reporter at once.
+  dmMessage('dm_message');
+
+  const ReportKind(this.json);
+  final String json;
 }
 
 /// The six R1 reasons, as drawn.

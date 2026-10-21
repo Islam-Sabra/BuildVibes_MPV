@@ -37,6 +37,14 @@ abstract final class AppRoutes {
   /// Needs you, across all Spaces (2544:35068).
   static const needs = '/needs';
 
+  /// Direct messages (slice 3): the list, the requests, a thread, and a
+  /// new conversation with a person (its thread is made by the first
+  /// message). A push opens `/messages/<thread>`.
+  static const messages = '/messages';
+  static const messagesRequests = '/messages/requests';
+  static String messagesThread(String threadId) => '/messages/$threadId';
+  static String messagesWith(String profileId) => '/messages/with/$profileId';
+
   static String personWork(String profileId, String itemId) =>
       '/people/$profileId/work/$itemId';
   static const projects = '/projects';

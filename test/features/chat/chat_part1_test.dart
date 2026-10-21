@@ -4,6 +4,8 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/features/work/daybook_tab.dart';
+import 'package:buildvibes/features/messages/dm_thread_screen.dart';
+import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -227,11 +229,67 @@ void main() {
       // Review 13: a card says what happened; Everyone has the group icon.
       expect(find.text(l10n.chatLastDone('Rakesh', 'KCT-017')), findsOneWidget);
       expect(find.byKey(const Key('chat-everyone-tile')), findsOneWidget);
-      // Admins see every Team.
-      expect(find.text(l10n.chatThreadsNoteAdmin), findsOneWidget);
+      // Admins see every Team; a message to one person opens in Messages.
+      expect(
+        find.text(
+          '${l10n.chatThreadsNoteAdmin} '
+          '${l10n.chatThreadsDmNote(inOwnDirection('Site team'))}',
+        ),
+        findsOneWidget,
+      );
 
       await _tap(tester, 'chat-thread-$_everyone');
       expect(chat.calls, contains('read $_everyone'));
+    });
+
+    testWidgets('S7-N: New chat: a group (the admin) or one person, who '
+        'opens in Messages [$lang]', (tester) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _spaces(),
+        work: _work(),
+        chat: _chat(),
+      );
+      _router(tester).push('/spaces/$_space');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'space-tab-chat');
+      await _tap(tester, 'chat-new');
+      expect(find.byKey(const Key('chat-new-group')), findsOneWidget);
+      expect(find.text(l10n.chatWorkNote), findsOneWidget);
+      await _tap(tester, 'chat-new-person');
+      // Everyone in the Space but me.
+      final picker = tester.widget<BvGiveToPicker>(
+        find.byKey(const Key('chat-new-person-picker')),
+      );
+      expect([for (final p in picker.people) p.id], [_rakesh.id]);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('chat-new-person-picker')),
+          matching: find.text(_rakesh.fullName),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final dm = tester.widget<DmThreadScreen>(find.byType(DmThreadScreen));
+      expect(dm.profileId, _rakesh.id);
+      expect(dm.person?.name, _rakesh.fullName);
+    });
+
+    testWidgets('S7-N: a member who isn\'t the admin can only message one '
+        'person [$lang]', (tester) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _spaces(admin: false),
+        work: _work(),
+        chat: _chat(),
+      );
+      _router(tester).push('/spaces/$_space');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'space-tab-chat');
+      await _tap(tester, 'chat-new');
+      expect(find.byKey(const Key('chat-new-group')), findsNothing);
+      expect(find.byKey(const Key('chat-new-person')), findsOneWidget);
     });
 
     testWidgets('S8k: messages, a deleted one, and a work item card [$lang]', (

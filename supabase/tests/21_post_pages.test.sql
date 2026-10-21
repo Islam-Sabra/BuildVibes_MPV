@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(146);
+select plan(147);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000020' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -562,6 +562,8 @@ select throws_ok($$select public.create_space_post(pg_temp.item('8003'), pg_temp
 select pg_temp.as_user('e7');
 select ok(public.post_page(pg_temp.item('8001')) -> 'refs' ? pg_temp.item('d101')::text,
   'readers see the work it shows, as they may read it');
+select is(public.post_page(pg_temp.item('8001')) -> 'refs' -> pg_temp.item('d101')::text ->> 'kind',
+  'work_item', 'a work item''s ref says so (migration 30)');
 select pg_temp.as_user('e1');
 select public.create_work_item(pg_temp.sp(), 'Soon gone', pg_temp.uid('e1'), p_id => pg_temp.item('a009'));
 select pg_temp.as_user('e2');

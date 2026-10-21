@@ -5,6 +5,19 @@ import 'package:flutter_test/flutter_test.dart';
 final _now = DateTime(2026, 10, 15, 10, 30);
 
 void main() {
+  test('F56: a Draft keeps the Team it goes to, and Everyone clears it', () {
+    const d = DaybookPostDraft(id: 'd', kind: DaybookKind.announcement);
+    final toMep = d.copyWith(team: () => (id: 't-mep', name: 'MEP'));
+    final back = DaybookPostDraft.fromJson(toMep.toJson());
+    expect(back.teamId, 't-mep');
+    expect(back.teamName, 'MEP');
+    final everyone = back.copyWith(team: () => null);
+    expect(everyone.teamId, isNull);
+    expect(everyone.teamName, isNull);
+    // Other changes leave it as it is.
+    expect(back.copyWith(title: 'Half day').teamId, 't-mep');
+  });
+
   group('what each kind needs before Post sends (create_space_post)', () {
     test('a work item: a title of 2 or more, then someone to do it', () {
       const d = DaybookPostDraft(id: 'd', title: 'A');
@@ -44,13 +57,16 @@ void main() {
       expect(d.canPost(_now), isTrue);
     });
 
-    test('an activity: a start that has not come yet', () {
-      const d = DaybookPostDraft(
+    test('an activity: who\'s coming (F56), then a start that has not come '
+        'yet', () {
+      const nobody = DaybookPostDraft(
         id: 'd',
         kind: DaybookKind.activity,
         title: 'Site walk',
       );
-      expect(d.readyToTry, isTrue);
+      expect(nobody.readyToTry, isTrue);
+      expect(nobody.missing(_now), DaybookMissing.people);
+      final d = nobody.copyWith(people: const [(id: 'p1', name: 'Sara')]);
       expect(d.missing(_now), DaybookMissing.start);
       final past = d.copyWith(startsAt: () => _now);
       expect(past.missing(_now), DaybookMissing.start);

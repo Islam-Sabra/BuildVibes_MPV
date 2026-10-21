@@ -196,7 +196,8 @@ class VoicePlayer extends Notifier<VoiceState> {
 }
 
 /// A voice note in a bubble: play or pause, progress, and its length.
-/// [path] is in the Space; [local] is still on the phone.
+/// [path] is in the Space; [local] is still on the phone. [linkOf] reads
+/// a link from elsewhere (a direct message's file, in `dm-files`).
 class VoiceNote extends ConsumerWidget {
   const VoiceNote({
     super.key,
@@ -204,12 +205,14 @@ class VoiceNote extends ConsumerWidget {
     required this.duration,
     this.path,
     this.local,
+    this.linkOf,
   });
 
   final String id;
   final Duration duration;
   final String? path;
   final String? local;
+  final Future<String> Function(WidgetRef ref, String path)? linkOf;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -232,7 +235,9 @@ class VoiceNote extends ConsumerWidget {
             .toggle(id, local!, isFile: true);
         return;
       }
-      final url = await ref.read(fileUrlProvider(path!).future);
+      final url = linkOf != null
+          ? await linkOf!(ref, path!)
+          : await ref.read(fileUrlProvider(path!).future);
       await ref
           .read(voicePlayerProvider.notifier)
           .toggle(id, url, isFile: false);

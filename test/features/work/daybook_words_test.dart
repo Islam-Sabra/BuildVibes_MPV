@@ -131,15 +131,21 @@ void main() {
         ar.meta(late, me: DaybookSamples.omar, now: fri),
         'لك · كان موعده الخميس 15 أكتوبر',
       );
-      final l10n = lookupAppLocalizations(const Locale('en'));
-      expect(l10n.daybookLate(1), 'Late by 1 day');
-      expect(l10n.daybookLate(3), 'Late by 3 days');
-      expect(l10n.daybookLate(0), 'Late');
-      expect(
-        lookupAppLocalizations(const Locale('ar')).daybookLate(1),
-        'متأخر يومًا واحدًا',
-      );
     });
+  });
+
+  test('F57: an earlier day on the Due today strip', () {
+    final en = DaybookWords(
+      lookupAppLocalizations(const Locale('en')),
+      'en',
+      use24: true,
+    );
+    final fri = DateTime(2026, 10, 16, 9);
+    expect(en.stripDay(DateTime(2026, 10, 16), fri), isNull);
+    expect(en.stripDay(DateTime(2026, 10, 14), fri), 'Wed');
+    expect(en.stripDay(DateTime(2026, 10, 5), fri), 'Mon 5 Oct');
+    expect(en.stripItem('Rebar', DateTime(2026, 10, 14), fri), 'Wed Rebar');
+    expect(en.stripItem('Rebar', DateTime(2026, 10, 16), fri), 'Rebar');
   });
 
   group('review 45 B2: every due pattern, in Arabic and English', () {

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
 import '../../data/models/library.dart';
@@ -256,7 +257,7 @@ class PendingItem {
 }
 
 /// Picks up to [max] photos from the gallery (K4), compressed as
-/// [pickPhotoProvider]'s. Empty when the person cancels. A provider so
+/// [pickPhotoProvider]'s, without the place they were taken. Empty when the person cancels. A provider so
 /// tests can stand in for the gallery.
 typedef PickPhotos = Future<List<XFile>> Function({required int max});
 
@@ -271,6 +272,7 @@ final pickPhotosProvider = Provider<PickPhotos>((ref) {
         maxHeight: 1600,
         imageQuality: 80,
       );
+      if (one != null) await stripPhotoLocation(one.path);
       return [?one];
     }
     final picked = await picker.pickMultiImage(
@@ -279,23 +281,32 @@ final pickPhotosProvider = Provider<PickPhotos>((ref) {
       maxHeight: 1600,
       imageQuality: 80,
     );
-    return picked.take(max).toList();
+    final kept = picked.take(max).toList();
+    for (final p in kept) {
+      await stripPhotoLocation(p.path);
+    }
+    return kept;
   };
 });
 
 /// Takes a photo for evidence: the camera, or the gallery as a fallback.
-/// Compressed to about 1600 px on the long side, JPEG quality 80. Null when
+/// Compressed to about 1600 px on the long side, JPEG quality 80, without
+/// the place it was taken (stripPhotoLocation). Null when
 /// the person cancels. A provider so tests can stand in for the camera.
 typedef PickPhoto = Future<XFile?> Function({required bool camera});
 
 final pickPhotoProvider = Provider<PickPhoto>((ref) {
   final picker = ImagePicker();
-  return ({required bool camera}) => picker.pickImage(
-    source: camera ? ImageSource.camera : ImageSource.gallery,
-    maxWidth: 1600,
-    maxHeight: 1600,
-    imageQuality: 80,
-  );
+  return ({required bool camera}) async {
+    final photo = await picker.pickImage(
+      source: camera ? ImageSource.camera : ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
+    if (photo != null) await stripPhotoLocation(photo.path);
+    return photo;
+  };
 });
 
 /// Copies a picked photo into the app's own folder, so it outlives the
@@ -689,6 +700,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             people: [for (final p in d.people) p.id],
             points: d.writtenPoints,
             photoPaths: paths,
+            teamId: d.teamId,
           ),
         );
       case PendingKind.signOff:

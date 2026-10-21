@@ -139,20 +139,33 @@ void main() {
       expect(_toolbar(tester).onPost, isNull);
     });
 
-    testWidgets('Post turns on with a title of 2 or more; with nobody to do '
-        'it, it opens the picker, and picking someone posts at once '
-        '[$lang]', (tester) async {
+    testWidgets('F56: Post turns on with a title of 2 or more but stays grey '
+        'with nobody to do it; a tap asks on the who row, the picker only '
+        'fills it, and only Post posts [$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _write(tester);
+      // The who row is there from the start.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('writing-who')),
+          matching: find.text(l10n.daybookForChoose),
+        ),
+        findsOneWidget,
+      );
       await _title(tester, 'A');
       expect(_toolbar(tester).onPost, isNull);
       await _title(tester, s.cableTraysTitle);
       expect(_toolbar(tester).onPost, isNotNull);
+      expect(_toolbar(tester).postReady, isFalse);
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(app.daybook.created, isEmpty);
-      // The picker: Lead and Crew only, never the Viewer; me last. It says
-      // "Assign to…" (review 46).
+      expect(find.byType(BvGiveToPicker), findsNothing);
+      expect(find.text(l10n.daybookChooseWho), findsOneWidget);
+      // The row opens the picker: Lead and Crew only, never the Viewer; me
+      // last. It says "Assign to…" (review 46), with the way out to a Note.
+      await tester.tap(find.byKey(const Key('writing-who')));
+      await tester.pumpAndSettle();
       final picker = tester.widget<BvGiveToPicker>(find.byType(BvGiveToPicker));
       expect(picker.searchPlaceholder, l10n.daybookAssignSearch);
       expect(picker.people.map((p) => p.name), [
@@ -163,6 +176,7 @@ void main() {
         s.islamName,
       ]);
       expect(picker.people.first.team, isNotNull);
+      expect(find.text(l10n.daybookPostAsNote), findsOneWidget);
       await tester.tap(
         find.descendant(
           of: find.byType(BvGiveToPicker),
@@ -171,8 +185,30 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(BvGiveToPicker), findsNothing);
+      expect(app.daybook.created, isEmpty);
+      expect(find.byType(BvWritingCard), findsOneWidget);
+      expect(_toolbar(tester).postReady, isTrue);
+      await tester.tap(find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
       expect(app.daybook.created.single.ownerId, DaybookSamples.omar);
       expect(find.byType(BvWritingCard), findsNothing);
+    });
+
+    testWidgets('F56: "Post as a Note" turns a work item with nobody to do it '
+        'into a note [$lang]', (tester) async {
+      await _open(tester, lang);
+      await _write(tester);
+      await _title(tester, s.cableTraysTitle);
+      await tester.tap(find.byKey(const Key('writing-who')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.daybookPostAsNote));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).kindLabel,
+        l10n.daybookKindNote,
+      );
+      expect(find.byKey(const Key('writing-who')), findsNothing);
+      expect(_toolbar(tester).postReady, isTrue);
     });
 
     testWidgets('Assign from More only sets the owner [$lang]', (tester) async {
@@ -435,7 +471,11 @@ void main() {
       await tester.tap(find.text(words.dueProperty(_sunday, null)));
       await tester.pumpAndSettle();
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.properties, isEmpty);
+      // Only the who row is left (F56).
+      expect(
+        [for (final p in card.properties) p.label],
+        [l10n.daybookForChoose],
+      );
       expect(
         _read(tester, daybookDraftProvider(DaybookSamples.space))!.dueDate,
         isNull,

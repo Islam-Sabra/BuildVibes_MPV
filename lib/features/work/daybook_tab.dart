@@ -171,9 +171,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   var _editing = false;
   DaybookWritingMenu? _menu;
 
-  /// Post was tapped with nobody to do it, or nobody it is for: picking
-  /// someone posts it.
-  var _postOnAssign = false;
+  /// Post was tapped with nobody to do it, or nobody it is for: each new
+  /// value pulses the card's "who" row (F56). Choosing someone never posts.
+  Object? _askWho;
 
   /// The card on the page was left from before: it says "Draft".
   late bool _fromBefore;
@@ -186,11 +186,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   );
   late final AppLifecycleListener _life;
 
-  /// What others change in this Space, live (F47), and the short wait that
-  /// gathers a burst of changes into one read.
+  /// What others change in this Space, live (F47), and the wait that
+  /// gathers a burst of changes into one read: at most one a second.
   StreamSubscription<String>? _live;
   Timer? _liveRead;
-  static const _liveGather = Duration(milliseconds: 300);
+  static const _liveGather = Duration(seconds: 1);
 
   /// New activity came in at Now while the reader was up in older days
   /// (F11): the "New" chip shows until they go to Now.
@@ -219,9 +219,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // page is never stale (F11): it reads the newest cards when it opens
     // (from a push too), when the app comes back to the front, and when a
     // push for this Space arrives (build).
+    // At most one read per [_liveGather] however many signals come
+    // (review 63 R3): a busy or noisy Space never hammers the server.
     _live = ref.read(daybookLiveProvider).changes(_spaceId).listen((_) {
-      _liveRead?.cancel();
-      _liveRead = Timer(_liveGather, () => unawaited(_refresh()));
+      _liveRead ??= Timer(_liveGather, () {
+        _liveRead = null;
+        unawaited(_refresh());
+      });
     });
     _life = AppLifecycleListener(
       onResume: () {
@@ -576,7 +580,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _writing = true;
       _editing = false;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
@@ -590,7 +594,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _writing = true;
       _editing = true;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
@@ -612,13 +616,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _writing = false;
       _editing = false;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
     });
   }
 
   void _setMenu(DaybookWritingMenu? menu) => setState(() {
     _menu = menu;
-    if (menu != DaybookWritingMenu.assign) _postOnAssign = false;
+    if (menu != null) _askWho = null;
   });
 
   /// Who a checklist or an activity is for (F45): a sheet over the page,
@@ -726,31 +730,26 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// item, the assign picker (review 46); with nobody a checklist is for,
   /// the people sheet (then Post again: F45); an activity with no start,
   /// the time pickers.
+  /// Post (F56): only this button posts. With nobody chosen yet, the
+  /// "who" row pulses and asks; with no time, the time pickers open. A
+  /// picker only fills the card, and never posts.
   Future<void> _postOrAsk(String? myName) async {
     final draft = _writer.draft;
     if (draft == null || !draft.readyToTry) return;
     switch (draft.missing(ref.read(clockProvider)())) {
-      case DaybookMissing.owner:
+      case DaybookMissing.owner || DaybookMissing.people:
         setState(() {
-          _menu = DaybookWritingMenu.assign;
-          _postOnAssign = true;
+          _menu = null;
+          _askWho = Object();
         });
-      case DaybookMissing.people:
-        await _pickPeople();
       case DaybookMissing.start:
-        if (await _pickStart()) await _post(myName);
+        await _pickStart();
       case null:
         await _post(myName);
     }
   }
 
-  void _assigned(String? myName) {
-    if (_postOnAssign) {
-      unawaited(_post(myName));
-    } else {
-      _setMenu(null);
-    }
-  }
+  void _assigned() => _setMenu(null);
 
   Future<void> _post(String? myName) async {
     await _writer.post(authorName: myName);
@@ -759,7 +758,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     setState(() {
       _writing = false;
       _menu = null;
-      _postOnAssign = false;
+      _askWho = null;
       _fromBefore = false;
     });
   }
@@ -964,7 +963,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             ),
             if (due.isNotEmpty && !_writing)
               BvDueTodayStrip(
-                l10n.daybookDueTodayStrip(due.map((i) => i.title).join(' · ')),
+                l10n.daybookDueTodayStrip(
+                  due
+                      .map((i) => words.stripItem(i.title, i.day, now))
+                      .join(' · '),
+                ),
+                quiet: [for (final i in due) ?words.stripDay(i.day, now)],
               ),
             // Pinned announcements stay under the masthead while pinned
             // (K1 v13), whatever their last activity.
@@ -1025,7 +1029,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                             onPickStart: () => unawaited(_pickStart()),
                             onPickFile: () => unawaited(_pickFile()),
                             onClose: () => _setMenu(null),
-                            onAssigned: () => _assigned(myName),
+                            onAssigned: _assigned,
                             onPickPeople: () => unawaited(_pickPeople()),
                           ),
                         ),
@@ -1048,11 +1052,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 attachLabel: l10n.daybookAttachTitle,
                 onAttach: _editing ? null : () => unawaited(_attach()),
                 moreLabel: l10n.daybookMore,
-                onMore: () => _setMenu(
-                  _menu == DaybookWritingMenu.more
-                      ? null
-                      : DaybookWritingMenu.more,
-                ),
+                // A note has nothing more to set (F58).
+                onMore: cardDraft?.kind == DaybookKind.note
+                    ? null
+                    : () => _setMenu(
+                        _menu == DaybookWritingMenu.more
+                            ? null
+                            : DaybookWritingMenu.more,
+                      ),
                 moreActive: _menu == DaybookWritingMenu.more,
                 postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
                 // Post turns on with what the kind can't go without (a
@@ -1063,6 +1070,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                     : (cardDraft?.readyToTry ?? false
                           ? () => unawaited(_postOrAsk(myName))
                           : null),
+                // F56: grey until the "who" is chosen too; a tap asks.
+                postReady:
+                    _editing ||
+                    (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false),
               )
             // A Draft on the page takes the post bar's place until it is
             // posted or emptied (E4).
@@ -1118,8 +1129,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// sees the slim line from the start; a tap opens it in full (Got it
   /// shown as given), a tap on the full one folds it again. Edited since
   /// the reader's Got it, it opens in full until they give Got it again.
-  /// The time of the Got it is the reader's own history line on the card
-  /// (the server sends it to them); without that line on the page the
+  /// The time of the Got it is the server's `my_ack_at` (migration 29),
+  /// else the reader's own history line on the card; with neither the
   /// edit can't be compared, and it stays folded.
   Widget _pinnedNote(
     DaybookPost post,
@@ -1139,6 +1150,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             )
             .lastOrNull
             ?.at ??
+        post.myAckAt[DaybookAck.gotIt] ??
         cards
             .where((c) => c.id == post.id)
             .firstOrNull
@@ -1827,6 +1839,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                                 onPickStart: () => unawaited(_pickStart()),
                                 onPickFile: () => unawaited(_pickFile()),
                                 onPickPeople: () => unawaited(_pickPeople()),
+                                askWho: _askWho,
                               ),
                             ),
                         ],

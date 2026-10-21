@@ -12,9 +12,10 @@ import '../supabase/supabase_provider.dart';
 /// page again through daybook_cards, under the server's own rules.
 ///
 /// The channel is a Realtime broadcast: it carries only the post's id,
-/// never what changed, so it needs no table in the realtime publication
-/// and no change on the server. Whoever reads the page again sees only
-/// what they may see.
+/// never what changed, so it needs no table in the realtime publication.
+/// Whoever reads the page again sees only what they may see. It is a
+/// private channel (migration 29, review 62 N1): only a member of the
+/// Space may join it or send on it.
 abstract class DaybookLive {
   /// The ids of posts others changed in [spaceId], while listened to.
   Stream<String> changes(String spaceId);
@@ -33,6 +34,7 @@ class SupabaseDaybookLive implements DaybookLive {
   final _open = <String, RealtimeChannel>{};
 
   static String _topic(String spaceId) => 'daybook:$spaceId';
+  static const _private = RealtimeChannelConfig(private: true);
   static const _event = 'changed';
   static const _postKey = 'post_id';
 
@@ -46,7 +48,7 @@ class SupabaseDaybookLive implements DaybookLive {
       },
     );
     _open[spaceId] = _client
-        .channel(_topic(spaceId))
+        .channel(_topic(spaceId), opts: _private)
         .onBroadcast(
           event: _event,
           callback: (payload) {
@@ -63,7 +65,7 @@ class SupabaseDaybookLive implements DaybookLive {
     final open = _open[spaceId];
     // With no daybook of the Space open here, a channel just to send (the
     // REST path); it is let go after.
-    final channel = open ?? _client.channel(_topic(spaceId));
+    final channel = open ?? _client.channel(_topic(spaceId), opts: _private);
     try {
       await channel.sendBroadcastMessage(
         event: _event,

@@ -11,6 +11,7 @@ import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/pump_component.dart';
@@ -62,7 +63,7 @@ void main() {
       expect(text.style!.decoration, TextDecoration.lineThrough);
       expect(text.style!.color, BvColors.textSecondary);
       expect(find.byIcon(BvIcons.check), findsOneWidget);
-      final box = tester.widget<Container>(
+      final box = tester.widget<AnimatedContainer>(
         find.byKey(const Key('checklist-box')),
       );
       expect(
@@ -74,6 +75,118 @@ void main() {
       // Read only without onTap.
       final semantics = tester.getSemantics(find.byType(BvChecklistPoint));
       expect(semantics.flagsCollection.isChecked, isNotNull);
+    });
+
+    testBoth('F54: my tick: a light haptic, the check fills in about 300 ms, '
+        'and nothing glows', (tester, lang) async {
+      final haptics = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'HapticFeedback.vibrate') {
+            haptics.add(call.arguments as String);
+          }
+          return null;
+        },
+      );
+      var ticked = false;
+      await pumpComponent(
+        tester,
+        StatefulBuilder(
+          builder: (context, setState) => BvChecklistPoint(
+            text: 'Floor tiles',
+            tick: ticked
+                ? (
+                    name: 'Islam Ahmed',
+                    tint: null,
+                    time: (time: '09:00', period: null),
+                  )
+                : null,
+            onTap: () => setState(() => ticked = true),
+          ),
+        ),
+        lang: lang,
+      );
+      await tester.tap(find.byType(BvChecklistPoint));
+      await tester.pump();
+      expect(haptics, ['HapticFeedbackType.lightImpact']);
+      await tester.pump(BvChecklistSpec.tick ~/ 2);
+      final half = tester.widget<ScaleTransition>(
+        find.ancestor(
+          of: find.byKey(const Key('checklist-check')),
+          matching: find.byType(ScaleTransition),
+        ),
+      );
+      expect(half.scale.value, inExclusiveRange(0, 1));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('checklist-check')), findsOneWidget);
+      expect(_glow(tester), isNull);
+    });
+
+    testBoth('F54: someone else\'s tick arriving live glows, then fades', (
+      tester,
+      lang,
+    ) async {
+      final ticked = ValueNotifier(false);
+      addTearDown(ticked.dispose);
+      await pumpComponent(
+        tester,
+        ValueListenableBuilder<bool>(
+          valueListenable: ticked,
+          builder: (context, on, _) => BvChecklistPoint(
+            text: 'Floor tiles',
+            tick: on
+                ? (
+                    name: 'Omar Haddad',
+                    tint: null,
+                    time: (time: '09:00', period: null),
+                  )
+                : null,
+            onTap: () {},
+          ),
+        ),
+        lang: lang,
+      );
+      expect(_glow(tester), isNull);
+      ticked.value = true;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(_glow(tester), isNotNull);
+      await tester.pump(BvChecklistSpec.glowHold + BvChecklistSpec.glowFade);
+      await tester.pumpAndSettle();
+      expect(_glow(tester), isNull);
+    });
+
+    testBoth('F54: with the phone\'s animations off, nothing glows', (
+      tester,
+      lang,
+    ) async {
+      final ticked = ValueNotifier(false);
+      addTearDown(ticked.dispose);
+      await pumpComponent(
+        tester,
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: ValueListenableBuilder<bool>(
+            valueListenable: ticked,
+            builder: (context, on, _) => BvChecklistPoint(
+              text: 'Floor tiles',
+              tick: on
+                  ? (
+                      name: 'Omar Haddad',
+                      tint: null,
+                      time: (time: '09:00', period: null),
+                    )
+                  : null,
+            ),
+          ),
+        ),
+        lang: lang,
+      );
+      ticked.value = true;
+      await tester.pump();
+      expect(_glow(tester), isNull);
+      expect(find.byKey(const Key('checklist-check')), findsOneWidget);
     });
 
     testBoth('progress: the share of the points, and its words', (
@@ -335,3 +448,11 @@ void main() {
     expect(find.byKey(const Key('writing-photos-scroll')), findsOneWidget);
   });
 }
+
+/// The glow behind a checklist point, while it shows.
+Color? _glow(WidgetTester tester) =>
+    (tester
+                .widget<DecoratedBox>(find.byKey(const Key('checklist-glow')))
+                .decoration
+            as BoxDecoration)
+        .color;

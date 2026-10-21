@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/photo_privacy.dart';
 import '../../../core/design/bv_icons.dart';
 import '../../../core/design/bv_tokens.dart';
 import '../../../core/routing/app_routes.dart';
@@ -21,14 +22,17 @@ import '../../onboarding/company_sheet.dart';
 import '../../onboarding/role_picker_screen.dart';
 import 'edit_common.dart';
 
-/// Picks a photo; overridden in tests.
+/// Picks a photo, without the place it was taken; overridden in tests.
 final photoPickerProvider = Provider<Future<XFile?> Function()>(
-  (ref) =>
-      () => ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        imageQuality: 85,
-      ),
+  (ref) => () async {
+    final photo = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      imageQuality: 85,
+    );
+    if (photo != null) await stripPhotoLocation(photo.path);
+    return photo;
+  },
 );
 
 /// "Name, photo and headline": name, photo, headline, role, company and

@@ -429,29 +429,5 @@ void main() {
         BvColors.textSecondary,
       );
     });
-
-    testBoth('late: a 14 calendar and the words in red, calendar first', (
-      tester,
-      lang,
-    ) async {
-      await pumpComponent(
-        tester,
-        const BvSlipLate('Late by 1 day'),
-        lang: lang,
-      );
-      final icon = tester.widget<Icon>(find.byIcon(BvIcons.month));
-      expect(icon.size, BvSlipSpec.lateIconSize);
-      expect(icon.color, BvColors.textDestructive);
-      expect(
-        textStyle(tester, 'Late by 1 day').color,
-        BvColors.textDestructive,
-      );
-      final iconBox = tester.getRect(find.byIcon(BvIcons.month));
-      final text = tester.getRect(find.text('Late by 1 day'));
-      final gap = isRtl(lang)
-          ? iconBox.left - text.right
-          : text.left - iconBox.right;
-      expect(gap, BvSlipSpec.lateGap);
-    });
   });
 }

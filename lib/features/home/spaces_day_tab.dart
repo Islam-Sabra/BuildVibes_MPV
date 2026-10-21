@@ -372,12 +372,12 @@ class _NeedsBySpace extends ConsumerWidget {
         ?dueText,
       ]);
       final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
-      // F34: the due is the primary colour today and red when late.
+      // F34, F57: the due is ink today and the action colour once passed.
       final late =
           due != null &&
           (c.dueAt != null ? now.isAfter(c.dueAt!) : dayOf(now).isAfter(due));
       final tone = late
-          ? BvDueTone.late
+          ? BvDueTone.passed
           : due == dayOf(now)
           ? BvDueTone.today
           : BvDueTone.quiet;

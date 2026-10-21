@@ -1,6 +1,6 @@
 # BuildVibes MVP — instructions for Claude
 
-Read this file first in every session. Then read `docs/progress.md` to see where the build stands.
+Read this file first in every session. Then read `docs/handoff.md` (where the last session stopped) and `docs/progress.md` (where the build stands).
 
 ## What this is
 BuildVibes is a mobile-first professional network and site-work app for the whole AECO industry: engineers, BIM staff, site supervisors, foremen, trades, subcontractors, suppliers and labour.
@@ -97,6 +97,13 @@ Don't build out-of-scope features, even partly, without the founder's yes.
 - When the founder says "apply review NN", do every fix in that file, then continue the plan.
 - Icons: Phosphor (regular weight), through `lib/core/design/bv_icons.dart`. Never use Material `Icons.*`. The Phosphor font is bundled in `assets/fonts/` because the `phosphor_flutter` package (2.1.0, the latest) does not compile on Flutter 3.44; see `assets/fonts/SOURCE.md`.
 - After every finished task: `flutter analyze`, `flutter test`, commit, then **`git push`**.
+
+## Working from more than one place
+The founder's PC, cloud sessions and the lead's chat in the Claude project all work on the same GitHub repo. GitHub is the only shared copy.
+- **Start:** `git fetch`, read `docs/handoff.md`, and work only on a branch it doesn't give to another place.
+- **Stop:** commit, push, and rewrite `docs/handoff.md`: what was done, what is next, and who has which branch.
+- **A cloud session** pushes only to its own `claude/...` branch. The PC merges that branch into the work branch next time.
+- **Live changes** (`supabase db push`, function deploys, project settings) happen only from the PC, with the founder's yes.
 
 ## Definition of done for every task
 1. `flutter analyze` shows no issues, and `flutter test` passes.

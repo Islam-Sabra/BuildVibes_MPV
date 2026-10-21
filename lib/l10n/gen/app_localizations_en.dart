@@ -2340,6 +2340,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'post': 'Report this post',
       'reply': 'Report this reply',
       'message': 'Report this message',
+      'dm_message': 'Report this message',
       'other': 'Report this account',
     });
     return '$_temp0';
@@ -2823,18 +2824,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String daybookWasDueTodayAt(String time) {
     return 'was due today $time';
-  }
-
-  @override
-  String daybookLate(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: 'Late by $n days',
-      one: 'Late by 1 day',
-      zero: 'Late',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -3716,4 +3705,149 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookUnpin => 'Unpin';
+
+  @override
+  String get daybookKindNote => 'Note';
+
+  @override
+  String get daybookKindNoteNote => 'For information, nobody needs to act';
+
+  @override
+  String get daybookKindNoteWord => '· note';
+
+  @override
+  String get daybookForChoose => 'For: Choose ›';
+
+  @override
+  String get daybookComingChoose => 'Who\'s coming: Choose ›';
+
+  @override
+  String get daybookChooseWho => 'Choose who it\'s for';
+
+  @override
+  String get daybookPostAsNote => 'Just for information? Post as a Note';
+
+  @override
+  String daybookToAudience(String audience, String more) {
+    return 'To: $audience$more';
+  }
+
+  @override
+  String get daybookEveryone => 'Everyone';
+
+  @override
+  String daybookDueStripEarlier(String day, String title) {
+    return '$day $title';
+  }
+
+  @override
+  String get messagesTitle => 'Messages';
+
+  @override
+  String get messagesRequest => 'Message request';
+
+  @override
+  String get messagesRequests => 'Message requests';
+
+  @override
+  String get messagesToday => 'Today';
+
+  @override
+  String get messagesEarlier => 'Earlier';
+
+  @override
+  String messagesYou(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String messagesVoice(String length) {
+    return 'Voice note · $length';
+  }
+
+  @override
+  String get messagesEmpty => 'No messages yet. Start one with +.';
+
+  @override
+  String get messagesNew => 'New message';
+
+  @override
+  String get messagesSearch => 'Search names';
+
+  @override
+  String get messagesUnread => 'Unread';
+
+  @override
+  String dmBothIn(String space) {
+    return 'Both in $space';
+  }
+
+  @override
+  String get dmNotInSpaces => 'Not in your Spaces';
+
+  @override
+  String get dmDecline => 'Decline';
+
+  @override
+  String dmDeclined(String name) {
+    return 'Declined. $name isn\'t told.';
+  }
+
+  @override
+  String get dmTapToShow => 'Tap to show';
+
+  @override
+  String get dmMute => 'Mute';
+
+  @override
+  String get dmUnmute => 'Unmute';
+
+  @override
+  String dmReportPerson(String name) {
+    return 'Report $name';
+  }
+
+  @override
+  String get dmFirstMessage => 'Write the first message';
+
+  @override
+  String dmPaused(String day) {
+    return 'Many people you wrote to haven\'t answered. You can start new conversations again on $day.';
+  }
+
+  @override
+  String get dmWarning => 'Many people you wrote to haven\'t answered yet.';
+
+  @override
+  String get dmPhoto => 'Photo';
+
+  @override
+  String get profileMessage => 'Message';
+
+  @override
+  String get chatNewChat => 'New chat';
+
+  @override
+  String get chatNewGroup => 'New group in this Space';
+
+  @override
+  String get chatNewGroupNote =>
+      'Pick a name and members. The Space admin can do this.';
+
+  @override
+  String get chatOnePerson => 'Message one person';
+
+  @override
+  String chatOnePersonNote(String space) {
+    return 'Opens in Messages, marked “From $space”';
+  }
+
+  @override
+  String get chatWorkNote =>
+      'Work is given in the Work tab. Chat is for talking.';
+
+  @override
+  String chatThreadsDmNote(String space) {
+    return 'Messages to one person open in Messages, marked “From $space”.';
+  }
 }

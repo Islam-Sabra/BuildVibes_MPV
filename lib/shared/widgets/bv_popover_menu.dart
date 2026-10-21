@@ -37,13 +37,17 @@ class BvPopoverMenu<T> extends StatelessWidget {
     required this.onSelected,
   }) : selected = null,
        picker = false,
-       screen = false;
+       screen = false,
+       wide = false;
 
+  /// [wide]: the kind menu (E6 v14 2598:36413), whose small lines fit on
+  /// one line.
   const BvPopoverMenu.picker({
     super.key,
     required this.items,
     required this.onSelected,
     required this.selected,
+    this.wide = false,
   }) : picker = true,
        screen = false;
 
@@ -53,13 +57,15 @@ class BvPopoverMenu<T> extends StatelessWidget {
     required this.onSelected,
   }) : selected = null,
        picker = false,
-       screen = true;
+       screen = true,
+       wide = false;
 
   final List<BvMenuItem<T>> items;
   final ValueChanged<T> onSelected;
   final T? selected;
   final bool picker;
   final bool screen;
+  final bool wide;
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +73,8 @@ class BvPopoverMenu<T> extends StatelessWidget {
     return Container(
       width: screen
           ? BvScreenMenuSpec.width
+          : wide
+          ? BvPopoverMenuSpec.widthKind
           : picker
           ? BvPopoverMenuSpec.widthPicker
           : BvPopoverMenuSpec.widthMore,

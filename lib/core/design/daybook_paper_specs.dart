@@ -91,8 +91,6 @@ abstract final class BvSlipSpec {
   static const actionIconSize = 18.0;
 
   // Late line (L1 2539:34737): a calendar 14 and the words, in red.
-  static const lateGap = BvSpace.s6;
-  static const lateIconSize = 14.0;
 }
 
 /// The daybook in v13 (review 53, F25 and F26): one full-width card per

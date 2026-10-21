@@ -10,8 +10,10 @@ import '../../data/models/daybook.dart';
 import '../entry/entry_state.dart';
 import 'work_outbox.dart';
 
-/// What a card in writing posts (E6, the kind chip's one choice).
+/// What a card in writing posts (E6 v14, the kind chip's one choice), in
+/// the kind menu's order: the Note, the plain post, first (F58).
 enum DaybookKind {
+  note(DaybookPost.noteKind),
   workItem(DaybookPost.workItemKind),
   checklist(DaybookPost.checklistKind),
   announcement(DaybookPost.announcementKind),
@@ -131,6 +133,8 @@ class DaybookPostDraft {
     this.startsAt,
     this.endsAt,
     this.files = const [],
+    this.teamId,
+    this.teamName,
     this.couldNotSend = false,
   });
 
@@ -171,6 +175,8 @@ class DaybookPostDraft {
           for (final f in json['files'] as List? ?? const [])
             DraftFile.fromJson(f as Map<String, dynamic>),
         ],
+        teamId: json['team_id'] as String?,
+        teamName: json['team_name'] as String?,
         couldNotSend: json['could_not_send'] as bool? ?? false,
       );
 
@@ -262,6 +268,11 @@ class DaybookPostDraft {
   /// A file post's file (the first), or a work item's attached files.
   final List<DraftFile> files;
 
+  /// Who it goes to (F56, "To: Everyone ›"): a Team, with its name so
+  /// the card shows it before the Space's people load; null, Everyone.
+  final String? teamId;
+  final String? teamName;
+
   /// The server refused it when it was posted: "Couldn't send. Tap to fix".
   final bool couldNotSend;
 
@@ -313,6 +324,8 @@ class DaybookPostDraft {
   DaybookMissing? missing(DateTime now) => switch (kind) {
     DaybookKind.workItem when ownerId == null => DaybookMissing.owner,
     DaybookKind.checklist when people.isEmpty => DaybookMissing.people,
+    // F56: who's coming is required, before the time.
+    DaybookKind.activity when people.isEmpty => DaybookMissing.people,
     DaybookKind.activity when startsAt == null || !startsAt!.isAfter(now) =>
       DaybookMissing.start,
     _ => null,
@@ -337,6 +350,7 @@ class DaybookPostDraft {
     DateTime? Function()? startsAt,
     DateTime? Function()? endsAt,
     List<DraftFile>? files,
+    ({String id, String name})? Function()? team,
     bool refused = false,
   }) => DaybookPostDraft(
     id: id,
@@ -355,6 +369,8 @@ class DaybookPostDraft {
     startsAt: startsAt == null ? this.startsAt : startsAt(),
     endsAt: endsAt == null ? this.endsAt : endsAt(),
     files: files ?? this.files,
+    teamId: team == null ? teamId : team()?.id,
+    teamName: team == null ? teamName : team()?.name,
     couldNotSend: refused || couldNotSend,
   );
 
@@ -379,6 +395,8 @@ class DaybookPostDraft {
     'starts_at': startsAt?.toUtc().toIso8601String(),
     'ends_at': endsAt?.toUtc().toIso8601String(),
     'files': [for (final f in files) f.toJson()],
+    'team_id': teamId,
+    'team_name': teamName,
     'could_not_send': couldNotSend,
   };
 }

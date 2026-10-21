@@ -24,6 +24,8 @@ These rules come from the founder's decisions of 8–11 Oct 2026. They apply to 
 
 **Copy** is plain Arabic and English. Avoid jargon such as "ISO 19650" or "BEP" on general screens.
 
+**Positioning (founder, 21 Oct 2026):** never describe BuildVibes as an app for sites or site teams. It is for the whole AECO industry: offices, design, consultants, suppliers and sites alike. Feature words that name a real place stay ("On site since", "the place on site"); taglines, store text, legal pages and onboarding say AECO or the industry, never "site".
+
 ## 2. No misleading numbers
 **Don't show aggregate counts as quality signals:**
 - total results

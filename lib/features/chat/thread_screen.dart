@@ -147,19 +147,19 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
         key: const Key('chat-attach-sheet'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ActionRow(
+          ChatActionRow(
             key: const Key('chat-attach-camera'),
             icon: BvIcons.camera,
             label: l10n.chatAttachCamera,
             onTap: () => Navigator.of(context).pop(_Attach.camera),
           ),
-          _ActionRow(
+          ChatActionRow(
             key: const Key('chat-attach-gallery'),
             icon: BvIcons.image,
             label: l10n.chatAttachGallery,
             onTap: () => Navigator.of(context).pop(_Attach.gallery),
           ),
-          _ActionRow(
+          ChatActionRow(
             key: const Key('chat-attach-pdf'),
             icon: BvIcons.document,
             label: l10n.chatAttachPdf,
@@ -346,27 +346,27 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
         key: const Key('chat-actions'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          _ActionRow(
+          ChatActionRow(
             key: const Key('chat-action-reply'),
             icon: BvIcons.chat,
             label: l10n.chatReply,
             onTap: () => Navigator.of(context).pop(_Action.reply),
           ),
-          _ActionRow(
+          ChatActionRow(
             key: const Key('chat-action-copy'),
             icon: BvIcons.copy,
             label: l10n.chatCopy,
             onTap: () => Navigator.of(context).pop(_Action.copy),
           ),
           if (canReport)
-            _ActionRow(
+            ChatActionRow(
               key: const Key('chat-action-report'),
               icon: BvIcons.report,
               label: l10n.chatReport,
               onTap: () => Navigator.of(context).pop(_Action.report),
             ),
           if (canDelete)
-            _ActionRow(
+            ChatActionRow(
               key: const Key('chat-action-delete'),
               icon: BvIcons.delete,
               label: l10n.chatDelete,
@@ -538,11 +538,11 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
                 : const Center(child: CircularProgressIndicator()),
           ),
           if (_replyTo != null)
-            _ReplyBanner(
+            ChatReplyBanner(
               reply: _replyTo!,
               onCancel: () => setState(() => _replyTo = null),
             ),
-          _Composer(
+          ChatComposer(
             controller: _text,
             files: _files,
             onChanged: () => setState(() {}),
@@ -711,7 +711,7 @@ class _EntryView extends ConsumerWidget {
       } else {
         media = null;
       }
-      body = _Bubble(
+      body = ChatBubble(
         media: media,
         mine: mine,
         name: startsRun && !mine ? personName(l10n, m?.authorName) : null,
@@ -745,7 +745,7 @@ class _EntryView extends ConsumerWidget {
               vertical: BvSpace.s12,
             ),
             child: Text(
-              _dayLabel(l10n, locale, day, DateUtils.dateOnly(now)),
+              chatDayLabel(l10n, locale, day, DateUtils.dateOnly(now)),
               textAlign: TextAlign.center,
               style: type.labelSm.copyWith(color: BvColors.textSecondary),
             ),
@@ -756,23 +756,25 @@ class _EntryView extends ConsumerWidget {
       ],
     );
   }
-
-  static String _dayLabel(
-    AppLocalizations l10n,
-    String locale,
-    DateTime day,
-    DateTime today,
-  ) {
-    if (day == today) return l10n.chatToday;
-    if (today.difference(day).inDays == 1) return l10n.chatYesterday;
-    return BvWesternDigitsFormatter.normalise(
-      DateFormat('EEE d MMM', locale).format(day),
-    );
-  }
 }
 
-class _Bubble extends StatelessWidget {
-  const _Bubble({
+/// A day in a thread: "Today", "Yesterday", or "Wed 14 Oct".
+String chatDayLabel(
+  AppLocalizations l10n,
+  String locale,
+  DateTime day,
+  DateTime today,
+) {
+  if (day == today) return l10n.chatToday;
+  if (today.difference(day).inDays == 1) return l10n.chatYesterday;
+  return BvWesternDigitsFormatter.normalise(
+    DateFormat('EEE d MMM', locale).format(day),
+  );
+}
+
+class ChatBubble extends StatelessWidget {
+  const ChatBubble({
+    super.key,
     required this.id,
     required this.mine,
     required this.name,
@@ -783,10 +785,14 @@ class _Bubble extends StatelessWidget {
     required this.footer,
     required this.onLongPress,
     this.media,
+    this.avatars = true,
   });
 
   final String id;
   final bool mine;
+
+  /// A group thread keeps room for faces; a one-to-one (DM2) doesn't.
+  final bool avatars;
 
   /// Photos or a file, above the text.
   final Widget? media;
@@ -870,11 +876,11 @@ class _Bubble extends StatelessWidget {
           ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
-          spacing: BvChatSpec.avatarGap,
+          spacing: avatars ? BvChatSpec.avatarGap : 0,
           children: [
             if (avatarName != null)
               BvAvatar(name: avatarName!, size: BvAvatarSize.sm)
-            else
+            else if (avatars)
               const SizedBox(width: BvChatSpec.avatar),
             Flexible(child: bubble),
           ],
@@ -1043,8 +1049,12 @@ class _CardEntry extends ConsumerWidget {
   }
 }
 
-class _ReplyBanner extends StatelessWidget {
-  const _ReplyBanner({required this.reply, required this.onCancel});
+class ChatReplyBanner extends StatelessWidget {
+  const ChatReplyBanner({
+    super.key,
+    required this.reply,
+    required this.onCancel,
+  });
 
   final ChatReply reply;
   final VoidCallback onCancel;
@@ -1101,8 +1111,9 @@ class _ReplyBanner extends StatelessWidget {
 
 /// The message box: one pill that grows, with Send inside when there is
 /// text. Photos and voice notes come in parts 2 and 3.
-class _Composer extends StatelessWidget {
-  const _Composer({
+class ChatComposer extends StatelessWidget {
+  const ChatComposer({
+    super.key,
     required this.controller,
     required this.files,
     required this.onChanged,
@@ -1269,8 +1280,8 @@ class _Composer extends StatelessWidget {
   }
 }
 
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({
+class ChatActionRow extends StatelessWidget {
+  const ChatActionRow({
     super.key,
     required this.icon,
     required this.label,

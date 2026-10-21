@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,10 +8,12 @@ import 'package:intl/intl.dart' show DateFormat;
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/messages_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/l10n/bv_time.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
+import '../../data/models/dm.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/chat_repository.dart';
@@ -18,11 +22,14 @@ import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_badge.dart';
+import '../../shared/widgets/bv_give_to_picker.dart';
+import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
+import 'thread_screen.dart' show ChatActionRow;
 
 /// A thread's name: "Everyone" or the Team's.
 String threadName(AppLocalizations l10n, ChatThread t) =>
@@ -60,30 +67,145 @@ class ChatTab extends ConsumerWidget {
             )
           : const Center(child: CircularProgressIndicator());
     }
-    return RefreshIndicator(
-      onRefresh: () => ref.refresh(spaceThreadsProvider(space.id).future),
-      child: ListView(
-        key: const Key('chat-threads'),
-        children: [
-          ColoredBox(
-            color: BvColors.surfaceElevated,
-            child: Column(
-              children: [
-                for (final t in list) _ThreadRow(space: space, thread: t),
-              ],
+    final spaceName = inOwnDirection(space.name);
+    return Stack(
+      children: [
+        RefreshIndicator(
+          onRefresh: () => ref.refresh(spaceThreadsProvider(space.id).future),
+          child: ListView(
+            key: const Key('chat-threads'),
+            padding: const EdgeInsetsDirectional.only(
+              bottom: BvMessagesSpec.fab + 2 * BvMessagesSpec.fabMargin,
+            ),
+            children: [
+              ColoredBox(
+                color: BvColors.surfaceElevated,
+                child: Column(
+                  children: [
+                    for (final t in list) _ThreadRow(space: space, thread: t),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+                child: Text(
+                  '${space.iAmAdmin ? l10n.chatThreadsNoteAdmin : l10n.chatThreadsNote} '
+                  '${l10n.chatThreadsDmNote(spaceName)}',
+                  style: type.bodySm.copyWith(color: BvColors.textSecondary),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // S7 v4 (2480:30957): New chat, at the end over the list.
+        PositionedDirectional(
+          end: BvMessagesSpec.fabMargin,
+          bottom: BvMessagesSpec.fabMargin,
+          child: SizedBox(
+            height: BvMessagesSpec.fab,
+            child: FloatingActionButton.extended(
+              key: const Key('chat-new'),
+              heroTag: null,
+              backgroundColor: BvColors.actionPrimary,
+              foregroundColor: BvColors.actionPrimaryForeground,
+              elevation: 0,
+              shape: const StadiumBorder(),
+              icon: const Icon(BvIcons.add),
+              label: Text(
+                l10n.chatNewChat,
+                style: type.titleMd.copyWith(
+                  color: BvColors.actionPrimaryForeground,
+                ),
+              ),
+              onPressed: () => unawaited(newChat(context, ref, space)),
             ),
           ),
-          Padding(
-            padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-            child: Text(
-              space.iAmAdmin ? l10n.chatThreadsNoteAdmin : l10n.chatThreadsNote,
-              style: type.bodySm.copyWith(color: BvColors.textSecondary),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+}
+
+/// S7-N v4 (2480:31036): a new group (a Team; the Space admin only, as
+/// the server allows) or a message to one person, which opens in
+/// Messages. Work is given in the Work tab.
+Future<void> newChat(
+  BuildContext context,
+  WidgetRef ref,
+  SpaceDetail space,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final spaceName = inOwnDirection(space.name);
+  final choice = await showBvSheet<int>(
+    context: context,
+    title: l10n.chatNewChat,
+    builder: (sheet) => Column(
+      key: const Key('chat-new-sheet'),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (space.iAmAdmin)
+          ChatActionRow(
+            key: const Key('chat-new-group'),
+            icon: BvIcons.team,
+            label: l10n.chatNewGroup,
+            help: l10n.chatNewGroupNote,
+            onTap: () => Navigator.of(sheet).pop(0),
+          ),
+        ChatActionRow(
+          key: const Key('chat-new-person'),
+          icon: BvIcons.person,
+          label: l10n.chatOnePerson,
+          help: l10n.chatOnePersonNote(spaceName),
+          onTap: () => Navigator.of(sheet).pop(1),
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
+          child: Text(
+            l10n.chatWorkNote,
+            style: BvType.of(
+              context,
+            ).metadata.copyWith(color: BvColors.textSecondary),
+          ),
+        ),
+      ],
+    ),
+  );
+  if (!context.mounted || choice == null) return;
+  if (choice == 0) {
+    await context.push(AppRoutes.spaceTeamNew(space.id));
+    return;
+  }
+  // One person of this Space, then their conversation in Messages.
+  final me = ref.read(authUserIdProvider).value;
+  final people = await ref.read(spacePeopleProvider(space.id).future);
+  if (!context.mounted) return;
+  final picked = await showBvSheet<BvGiveToPerson>(
+    context: context,
+    title: l10n.chatOnePerson,
+    builder: (sheet) => BvGiveToPicker(
+      key: const Key('chat-new-person-picker'),
+      inSheet: true,
+      people: [
+        for (final m in people.members)
+          if (m.person.id != me)
+            BvGiveToPerson(
+              id: m.person.id,
+              name: m.person.fullName,
+              team: people.teamsOf(m.person.id).firstOrNull?.name,
+            ),
+      ],
+      currentOwnerId: null,
+      currentLabel: '',
+      searchPlaceholder: l10n.messagesSearch,
+      onPick: (p) => Navigator.of(sheet).pop(p),
+    ),
+  );
+  if (!context.mounted || picked == null) return;
+  await context.push(
+    AppRoutes.messagesWith(picked.id),
+    extra: DmPerson(id: picked.id, name: picked.name),
+  );
 }
 
 class _ThreadRow extends ConsumerWidget {

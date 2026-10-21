@@ -3356,7 +3356,7 @@
   "@daybookNew": {
     "description": "F11: the chip over the daybook when new entries came in while reading older days."
   },
-  "reportTitle": "{kind, select, post{Report this post} reply{Report this reply} message{Report this message} other{Report this account}}",
+  "reportTitle": "{kind, select, post{Report this post} reply{Report this reply} message{Report this message} dm_message{Report this message} other{Report this account}}",
   "@reportTitle": {
     "description": "R1 title. kind: post, reply, message, profile.",
     "placeholders": {
@@ -4018,15 +4018,6 @@
     "placeholders": {
       "time": {
         "type": "String"
-      }
-    }
-  },
-  "daybookLate": "{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}",
-  "@daybookLate": {
-    "description": "Late line on an open item past its due (L1). 0: late today, after its time.",
-    "placeholders": {
-      "n": {
-        "type": "int"
       }
     }
   },
@@ -5368,5 +5359,225 @@
   "daybookUnpin": "Unpin",
   "@daybookUnpin": {
     "description": "Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day."
+  },
+  "daybookKindNote": "Note",
+  "@daybookKindNote": {
+    "description": "Kind menu: the plain post, for information (F58)."
+  },
+  "daybookKindNoteNote": "For information, nobody needs to act",
+  "@daybookKindNoteNote": {
+    "description": "Kind menu: the small line under Note (F58)."
+  },
+  "daybookKindNoteWord": "· note",
+  "@daybookKindNoteWord": {
+    "description": "Card header after the author's name: a note (K5)."
+  },
+  "daybookForChoose": "For: Choose ›",
+  "@daybookForChoose": {
+    "description": "Writing card: the who row before anyone is chosen, on a work item and a checklist (F56)."
+  },
+  "daybookComingChoose": "Who's coming: Choose ›",
+  "@daybookComingChoose": {
+    "description": "Writing card: the who row of a scheduled activity before anyone is chosen (F56)."
+  },
+  "daybookChooseWho": "Choose who it's for",
+  "@daybookChooseWho": {
+    "description": "Writing card: the who row, pulsing, after Post was tapped with nobody chosen (F56)."
+  },
+  "daybookPostAsNote": "Just for information? Post as a Note",
+  "@daybookPostAsNote": {
+    "description": "Under the owner picker of a work item: turn it into a note (F56, F58)."
+  },
+  "daybookToAudience": "To: {audience}{more}",
+  "@daybookToAudience": {
+    "description": "Writing card: who an announcement or a Document for receipt goes to (F56). more is ' ›' when it can be changed, else empty.",
+    "placeholders": {
+      "audience": {
+        "type": "String"
+      },
+      "more": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookEveryone": "Everyone",
+  "@daybookEveryone": {
+    "description": "Writing card and its To menu: the whole Space (F56)."
+  },
+  "daybookDueStripEarlier": "{day} {title}",
+  "@daybookDueStripEarlier": {
+    "description": "Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "messagesTitle": "Messages",
+  "@messagesTitle": {
+    "description": "Messages (DM1): the screen title, and the Home icon's label."
+  },
+  "messagesRequest": "Message request",
+  "@messagesRequest": {
+    "description": "DM1: the label above the newest request from someone new."
+  },
+  "messagesRequests": "Message requests",
+  "@messagesRequests": {
+    "description": "The list of every request from someone new."
+  },
+  "messagesToday": "Today",
+  "@messagesToday": {
+    "description": "DM1: the group of threads with a message today."
+  },
+  "messagesEarlier": "Earlier",
+  "@messagesEarlier": {
+    "description": "DM1: the group of older threads."
+  },
+  "messagesYou": "You: {text}",
+  "@messagesYou": {
+    "description": "DM1: the last message, when you sent it.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "messagesVoice": "Voice note · {length}",
+  "@messagesVoice": {
+    "description": "DM1: a voice note as the last message.",
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "messagesEmpty": "No messages yet. Start one with +.",
+  "@messagesEmpty": {
+    "description": "DM1 with no threads."
+  },
+  "messagesNew": "New message",
+  "@messagesNew": {
+    "description": "DM1: the + button's label, and the person picker's title."
+  },
+  "messagesSearch": "Search names",
+  "@messagesSearch": {
+    "description": "DM1: the search field's hint."
+  },
+  "messagesUnread": "Unread",
+  "@messagesUnread": {
+    "description": "Read out for a thread's dot (never a number)."
+  },
+  "dmBothIn": "Both in {space}",
+  "@dmBothIn": {
+    "description": "DM2: the first Space both people are in. Never a count.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "dmNotInSpaces": "Not in your Spaces",
+  "@dmNotInSpaces": {
+    "description": "DM6: a request from someone with no work link to you."
+  },
+  "dmDecline": "Decline",
+  "@dmDecline": {
+    "description": "DM6: decline a request; the sender isn't told."
+  },
+  "dmDeclined": "Declined. {name} isn't told.",
+  "@dmDeclined": {
+    "description": "After Decline.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dmTapToShow": "Tap to show",
+  "@dmTapToShow": {
+    "description": "DM6: a photo or file from someone you haven't answered."
+  },
+  "dmMute": "Mute",
+  "@dmMute": {
+    "description": "DM2 ⋯ menu: no pushes from this thread."
+  },
+  "dmUnmute": "Unmute",
+  "@dmUnmute": {
+    "description": "DM2 ⋯ menu."
+  },
+  "dmReportPerson": "Report {name}",
+  "@dmReportPerson": {
+    "description": "DM2 ⋯ menu.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dmFirstMessage": "Write the first message",
+  "@dmFirstMessage": {
+    "description": "A new conversation's field hint, before the thread exists."
+  },
+  "dmPaused": "Many people you wrote to haven't answered. You can start new conversations again on {day}.",
+  "@dmPaused": {
+    "description": "start_dm paused by the spam guard.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "dmWarning": "Many people you wrote to haven't answered yet.",
+  "@dmWarning": {
+    "description": "start_dm's warning, before the pause."
+  },
+  "dmPhoto": "Photo",
+  "@dmPhoto": {
+    "description": "A photo in a message."
+  },
+  "profileMessage": "Message",
+  "@profileMessage": {
+    "description": "A person's profile (R5 v3): open or start the conversation."
+  },
+  "chatNewChat": "New chat",
+  "@chatNewChat": {
+    "description": "S7 v4: the button on a Space's Chat tab, and its sheet's title."
+  },
+  "chatNewGroup": "New group in this Space",
+  "@chatNewGroup": {
+    "description": "S7-N: a new Team."
+  },
+  "chatNewGroupNote": "Pick a name and members. The Space admin can do this.",
+  "@chatNewGroupNote": {
+    "description": "S7-N: under New group."
+  },
+  "chatOnePerson": "Message one person",
+  "@chatOnePerson": {
+    "description": "S7-N: a direct message to someone in this Space."
+  },
+  "chatOnePersonNote": "Opens in Messages, marked “From {space}”",
+  "@chatOnePersonNote": {
+    "description": "S7-N and the threads note: where a message to one person goes.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "chatWorkNote": "Work is given in the Work tab. Chat is for talking.",
+  "@chatWorkNote": {
+    "description": "S7-N: the sheet's last line."
+  },
+  "chatThreadsDmNote": "Messages to one person open in Messages, marked “From {space}”.",
+  "@chatThreadsDmNote": {
+    "description": "S7 v4: under the threads, after who sees which.",
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
   }
 }

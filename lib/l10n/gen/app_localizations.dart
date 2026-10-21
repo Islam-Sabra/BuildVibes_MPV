@@ -4007,7 +4007,7 @@ abstract class AppLocalizations {
   /// R1 title. kind: post, reply, message, profile.
   ///
   /// In en, this message translates to:
-  /// **'{kind, select, post{Report this post} reply{Report this reply} message{Report this message} other{Report this account}}'**
+  /// **'{kind, select, post{Report this post} reply{Report this reply} message{Report this message} dm_message{Report this message} other{Report this account}}'**
   String reportTitle(String kind);
 
   /// R1 line.
@@ -4771,12 +4771,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'was due today {time}'**
   String daybookWasDueTodayAt(String time);
-
-  /// Late line on an open item past its due (L1). 0: late today, after its time.
-  ///
-  /// In en, this message translates to:
-  /// **'{n, plural, =0{Late} =1{Late by 1 day} other{Late by {n} days}}'**
-  String daybookLate(int n);
 
   /// Strip under the masthead (L1): items due today for you or by you.
   ///
@@ -6259,6 +6253,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unpin'**
   String get daybookUnpin;
+
+  /// Kind menu: the plain post, for information (F58).
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get daybookKindNote;
+
+  /// Kind menu: the small line under Note (F58).
+  ///
+  /// In en, this message translates to:
+  /// **'For information, nobody needs to act'**
+  String get daybookKindNoteNote;
+
+  /// Card header after the author's name: a note (K5).
+  ///
+  /// In en, this message translates to:
+  /// **'· note'**
+  String get daybookKindNoteWord;
+
+  /// Writing card: the who row before anyone is chosen, on a work item and a checklist (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'For: Choose ›'**
+  String get daybookForChoose;
+
+  /// Writing card: the who row of a scheduled activity before anyone is chosen (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'Who\'s coming: Choose ›'**
+  String get daybookComingChoose;
+
+  /// Writing card: the who row, pulsing, after Post was tapped with nobody chosen (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who it\'s for'**
+  String get daybookChooseWho;
+
+  /// Under the owner picker of a work item: turn it into a note (F56, F58).
+  ///
+  /// In en, this message translates to:
+  /// **'Just for information? Post as a Note'**
+  String get daybookPostAsNote;
+
+  /// Writing card: who an announcement or a Document for receipt goes to (F56). more is ' ›' when it can be changed, else empty.
+  ///
+  /// In en, this message translates to:
+  /// **'To: {audience}{more}'**
+  String daybookToAudience(String audience, String more);
+
+  /// Writing card and its To menu: the whole Space (F56).
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get daybookEveryone;
+
+  /// Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {title}'**
+  String daybookDueStripEarlier(String day, String title);
+
+  /// Messages (DM1): the screen title, and the Home icon's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messagesTitle;
+
+  /// DM1: the label above the newest request from someone new.
+  ///
+  /// In en, this message translates to:
+  /// **'Message request'**
+  String get messagesRequest;
+
+  /// The list of every request from someone new.
+  ///
+  /// In en, this message translates to:
+  /// **'Message requests'**
+  String get messagesRequests;
+
+  /// DM1: the group of threads with a message today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get messagesToday;
+
+  /// DM1: the group of older threads.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get messagesEarlier;
+
+  /// DM1: the last message, when you sent it.
+  ///
+  /// In en, this message translates to:
+  /// **'You: {text}'**
+  String messagesYou(String text);
+
+  /// DM1: a voice note as the last message.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note · {length}'**
+  String messagesVoice(String length);
+
+  /// DM1 with no threads.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Start one with +.'**
+  String get messagesEmpty;
+
+  /// DM1: the + button's label, and the person picker's title.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get messagesNew;
+
+  /// DM1: the search field's hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search names'**
+  String get messagesSearch;
+
+  /// Read out for a thread's dot (never a number).
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get messagesUnread;
+
+  /// DM2: the first Space both people are in. Never a count.
+  ///
+  /// In en, this message translates to:
+  /// **'Both in {space}'**
+  String dmBothIn(String space);
+
+  /// DM6: a request from someone with no work link to you.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your Spaces'**
+  String get dmNotInSpaces;
+
+  /// DM6: decline a request; the sender isn't told.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get dmDecline;
+
+  /// After Decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined. {name} isn\'t told.'**
+  String dmDeclined(String name);
+
+  /// DM6: a photo or file from someone you haven't answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to show'**
+  String get dmTapToShow;
+
+  /// DM2 ⋯ menu: no pushes from this thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get dmMute;
+
+  /// DM2 ⋯ menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get dmUnmute;
+
+  /// DM2 ⋯ menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Report {name}'**
+  String dmReportPerson(String name);
+
+  /// A new conversation's field hint, before the thread exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the first message'**
+  String get dmFirstMessage;
+
+  /// start_dm paused by the spam guard.
+  ///
+  /// In en, this message translates to:
+  /// **'Many people you wrote to haven\'t answered. You can start new conversations again on {day}.'**
+  String dmPaused(String day);
+
+  /// start_dm's warning, before the pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Many people you wrote to haven\'t answered yet.'**
+  String get dmWarning;
+
+  /// A photo in a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get dmPhoto;
+
+  /// A person's profile (R5 v3): open or start the conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get profileMessage;
+
+  /// S7 v4: the button on a Space's Chat tab, and its sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get chatNewChat;
+
+  /// S7-N: a new Team.
+  ///
+  /// In en, this message translates to:
+  /// **'New group in this Space'**
+  String get chatNewGroup;
+
+  /// S7-N: under New group.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a name and members. The Space admin can do this.'**
+  String get chatNewGroupNote;
+
+  /// S7-N: a direct message to someone in this Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Message one person'**
+  String get chatOnePerson;
+
+  /// S7-N and the threads note: where a message to one person goes.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens in Messages, marked “From {space}”'**
+  String chatOnePersonNote(String space);
+
+  /// S7-N: the sheet's last line.
+  ///
+  /// In en, this message translates to:
+  /// **'Work is given in the Work tab. Chat is for talking.'**
+  String get chatWorkNote;
+
+  /// S7 v4: under the threads, after who sees which.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages to one person open in Messages, marked “From {space}”.'**
+  String chatThreadsDmNote(String space);
 }
 
 class _AppLocalizationsDelegate
