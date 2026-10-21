@@ -2,6 +2,33 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — trial merge of slices 3–6 onto `slice2-app` (branch `claude/trial-merge`)
+
+The founder's "ok" (23 Oct): try the merge the PC will do, with the full checks, so the PC knows what to expect. **Nothing in `slice2-app` or `main` was changed.**
+
+**What was merged, in order, onto `origin/slice2-app` (3565b0a):**
+1. `origin/claude/f68b-f69` (F68b docket, F69 You first): conflicts only in `docs/handoff.md` (both sections kept).
+2. `origin/claude/slice6`, which already holds `claude/slice3-rest`, `claude/slice4` and `claude/slice5`: conflicts only in files that both sides add to:
+   - `lib/l10n/app_en.arb`, `app_ar.arb`: the union of both sides' keys (no key had two different values);
+   - `lib/l10n/gen/*`: not merged by hand; `flutter gen-l10n` again after the ARBs;
+   - `docs/handoff.md`, `docs/progress.md`, `.gitignore`: both sides of each hunk kept.
+   - No Dart file conflicted.
+
+**Checks on the merged head (7e91d32):**
+- `flutter analyze`: no issues.
+- `flutter test`: **1,443 pass, 1 fails only in the cloud** (photo_privacy H1, which needs a non-root user; it passes on the PC).
+- SQL stand-in: **2,326 checks pass**, 0 failing files (migrations to 33, plus 36 and 37).
+
+**Recipe for the PC:**
+1. `git fetch`, then `git checkout slice2-app`.
+2. Either fast-forward to the tested result, `git merge --ff-only origin/claude/trial-merge`, or redo the two merges above in the same order with the same rules.
+3. After any ARB conflict: run `flutter gen-l10n`; never edit `lib/l10n/gen/` by hand.
+4. Re-shoot the goldens with Windows fonts (`flutter test --update-goldens test_screens/`). The slice 3–6 and f68b PNGs here have Linux fonts.
+5. `flutter analyze`, `flutter test`, push `slice2-app`.
+6. Migrations 34–37 stay off the live project until the lead checks them and the founder says yes.
+
+**Who has which branch:** this cloud session made `claude/trial-merge` (done; nobody on it). The PC owns `slice2-app` and `main`.
+
 ## Cloud update: 22 Oct 2026 — review 50 F68b and F69 (branch `claude/f68b-f69`)
 
 **Branch:** `claude/f68b-f69`, from `origin/f60-photo-reencode` (afcbec2, the slice 2 build on the phone, which has F68), so the next test build stays slice 2 only.
@@ -23,6 +50,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - Not done here: "a Space admin other than me sees it in Needs you to check" is the server's existing rule (only who may check); nothing changed in SQL.
 
 **Who has which branch:** this cloud session made `claude/f68b-f69` (done; nobody on it).
+
 ## Cloud update: 22 Oct 2026, night — slice 6, walk mode and work items under one (branch `claude/slice6`, from `claude/slice5`)
 
 The founder's "ok" (22 Oct): go with review 77's recommendations and build while he tests. **Review 77** is in `docs/reviews/2026-10-22-77-slice6-plan.md`; the lead hasn't checked it yet. The build follows its three recommendations:
