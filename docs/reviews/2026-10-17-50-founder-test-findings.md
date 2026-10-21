@@ -712,3 +712,9 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - after Omar signed dddd as done again (the lead, note only), it left his strip (F38).
 - **F66:** the writing card read "For Omar Haddad" after Omar was chosen (founder).
 - **Still to test in the next build:** F68 and F60 (review 74).
+- **F68 screenshots approved** (`claude/review72-app` 4e7b639):
+  - one line, "To do · 3" / «مطلوب منك · 3», with no band and no titles;
+  - mirrored, with Western digits;
+  - "was due Thu 15 Oct" is in the action colour, as F57 says.
+  
+  The founder's phone check comes with the next build.
