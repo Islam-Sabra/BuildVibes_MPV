@@ -9,8 +9,8 @@ import '../models/work_item.dart';
 import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
 
-/// A send-back's new due (F62): a day, with a time or not; both null for
-/// "No new date".
+/// A send-back's new due (F62, F64): a day, with a time or not; both null
+/// when no date was chosen.
 typedef SendBackDue = ({DateTime? day, DateTime? at});
 
 String _isoDay(DateTime d) =>
@@ -40,14 +40,14 @@ abstract class WorkRepository {
   Future<void> checkItem(String itemId);
 
   /// [note] is required for [SendBackReason.other].
-  /// [due] is the new date the author chose (F62, migration 33): a day,
-  /// with a time or not, or `(day: null, at: null)` for "No new date".
-  /// Null keeps the due as it was.
+  /// [due] is the new date the author chose (F62, F64, migration 33): a
+  /// day, with a time or not, or `(day: null, at: null)` when none was
+  /// chosen. The old date never carries over.
   Future<void> sendBack(
     String itemId,
     SendBackReason reason, {
     String? note,
-    SendBackDue? due,
+    required SendBackDue due,
   });
 
   /// Show a Checked item on your profile, or hide it.
@@ -171,7 +171,7 @@ class SupabaseWorkRepository implements WorkRepository {
     String itemId,
     SendBackReason reason, {
     String? note,
-    SendBackDue? due,
+    required SendBackDue due,
   }) => _guard(
     () => _client.rpc<void>(
       'send_back',
@@ -179,11 +179,9 @@ class SupabaseWorkRepository implements WorkRepository {
         'p_item': itemId,
         'p_reason': reason.json,
         'p_note': note?.trim(),
-        if (due != null) ...{
-          'p_due_set': true,
-          'p_due': due.day == null ? null : _isoDay(due.day!),
-          'p_due_at': due.at?.toUtc().toIso8601String(),
-        },
+        'p_due_set': true,
+        'p_due': due.day == null ? null : _isoDay(due.day!),
+        'p_due_at': due.at?.toUtc().toIso8601String(),
       },
     ),
   );

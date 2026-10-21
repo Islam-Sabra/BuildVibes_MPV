@@ -3755,9 +3755,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookSendBackPickDate => 'اختر تاريخًا';
 
   @override
-  String get daybookSendBackNoNewDate => 'بلا موعد جديد';
-
-  @override
   String daybookLineNewDate(String date) {
     return 'موعد جديد $date';
   }

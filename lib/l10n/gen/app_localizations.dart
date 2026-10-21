@@ -6338,19 +6338,13 @@ abstract class AppLocalizations {
   /// **'Pick a date'**
   String get daybookSendBackPickDate;
 
-  /// Send-back sheet, new date: none; the old due isn't shown again.
-  ///
-  /// In en, this message translates to:
-  /// **'No new date'**
-  String get daybookSendBackNoNewDate;
-
   /// A send-back line on the card, after the reason (F62): "Photo missing · new date Thu 23 Oct".
   ///
   /// In en, this message translates to:
   /// **'new date {date}'**
   String daybookLineNewDate(String date);
 
-  /// A send-back line on the card, after the reason, when the author chose No new date (F62).
+  /// A send-back line on the card, after the reason, when the author chose no new date (F62, F64).
   ///
   /// In en, this message translates to:
   /// **'no new date'**

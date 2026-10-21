@@ -101,18 +101,14 @@ class FakeWorkRepository implements WorkRepository {
     String itemId,
     SendBackReason reason, {
     String? note,
-    SendBackDue? due,
+    required SendBackDue due,
   }) async {
     _maybeFail();
     _maybeRefuse();
-    final day = due?.day;
+    final day = due.day;
     calls.add(
       'back $itemId ${reason.json} ${note ?? ''}'
-      '${due == null
-          ? ''
-          : day == null
-          ? ' due none'
-          : ' due ${day.year}-${day.month}-${day.day}${due.at == null ? '' : ' at'}'}',
+      '${day == null ? ' due none' : ' due ${day.year}-${day.month}-${day.day}${due.at == null ? '' : ' at'}'}',
     );
   }
 

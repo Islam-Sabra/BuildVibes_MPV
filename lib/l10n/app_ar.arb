@@ -1040,7 +1040,6 @@
   "daybookSendBackToday": "اليوم",
   "daybookSendBackTomorrow": "غدًا",
   "daybookSendBackPickDate": "اختر تاريخًا",
-  "daybookSendBackNoNewDate": "بلا موعد جديد",
   "daybookLineNewDate": "موعد جديد {date}",
   "daybookLineNoNewDate": "بلا موعد جديد",
   "needsDoneWaiting": "منجز {time} · بانتظار تحققك"

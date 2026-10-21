@@ -3750,9 +3750,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookSendBackPickDate => 'Pick a date';
 
   @override
-  String get daybookSendBackNoNewDate => 'No new date';
-
-  @override
   String daybookLineNewDate(String date) {
     return 'new date $date';
   }

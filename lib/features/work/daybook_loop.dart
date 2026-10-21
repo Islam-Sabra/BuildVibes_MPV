@@ -694,8 +694,9 @@ class DaybookSendBack extends ConsumerStatefulWidget {
   ConsumerState<DaybookSendBack> createState() => _DaybookSendBackState();
 }
 
-/// The new date on a send-back (F62), one choice, nothing chosen first.
-enum _NewDue { today, tomorrow, pick, none }
+/// The new date on a send-back (F62, F64): Today, Tomorrow or a picked
+/// day, all optional, nothing chosen first.
+enum _NewDue { today, tomorrow, pick }
 
 class _DaybookSendBackState extends ConsumerState<DaybookSendBack> {
   final _note = TextEditingController();
@@ -711,13 +712,13 @@ class _DaybookSendBackState extends ConsumerState<DaybookSendBack> {
     super.dispose();
   }
 
+  /// A date is optional (F64): the reason is enough.
   bool get _ready =>
       _reason != null &&
-      (_reason != SendBackReason.other || _note.text.trim().isNotEmpty) &&
-      _newDue != null;
+      (_reason != SendBackReason.other || _note.text.trim().isNotEmpty);
 
   /// What the server gets: the chosen day, or none.
-  SendBackDue? get _newDue {
+  SendBackDue get _newDue {
     final today = dayOf(ref.read(clockProvider)());
     return switch (_due) {
       _NewDue.today => (day: today, at: null),
@@ -725,18 +726,30 @@ class _DaybookSendBackState extends ConsumerState<DaybookSendBack> {
         day: DateTime(today.year, today.month, today.day + 1),
         at: null,
       ),
-      _NewDue.pick => _picked,
-      _NewDue.none => (day: null, at: null),
-      null => null,
+      _NewDue.pick => _picked!,
+      null => (day: null, at: null),
     };
+  }
+
+  /// A tap on the chosen chip un-chooses it (F64); a tap on another
+  /// chooses that one.
+  void _tap(_NewDue d) {
+    if (_due == d) {
+      setState(() {
+        _due = null;
+        _picked = null;
+      });
+    } else if (d == _NewDue.pick) {
+      unawaited(_pick());
+    } else {
+      setState(() => _due = d);
+    }
   }
 
   Future<void> _pick() async {
     final picked = await ref.read(pickDueProvider)(
       context,
       now: ref.read(clockProvider)(),
-      day: _picked?.day,
-      at: _picked?.at,
     );
     // Taking the day off isn't a date: keep what was chosen before.
     if (!mounted || picked == null || picked.day == null) return;
@@ -760,9 +773,7 @@ class _DaybookSendBackState extends ConsumerState<DaybookSendBack> {
       label: label,
       icon: icon,
       selected: _due == d,
-      onTap: d == _NewDue.pick
-          ? () => unawaited(_pick())
-          : () => setState(() => _due = d),
+      onTap: () => _tap(d),
     );
     return BvSendBackCard<SendBackReason>.inSheet(
       key: const Key('send-back-card'),
@@ -784,7 +795,6 @@ class _DaybookSendBackState extends ConsumerState<DaybookSendBack> {
               : words.dueProperty(picked!.day!, picked.at),
           icon: BvIcons.due,
         ),
-        choice(_NewDue.none, l10n.daybookSendBackNoNewDate),
       ],
       noteController: _note,
       notePlaceholder: _reason == SendBackReason.other
@@ -797,7 +807,7 @@ class _DaybookSendBackState extends ConsumerState<DaybookSendBack> {
               final note = _note.text.trim();
               Navigator.of(
                 context,
-              ).pop((_reason!, note.isEmpty ? null : note, _newDue!));
+              ).pop((_reason!, note.isEmpty ? null : note, _newDue));
             }
           : null,
     );

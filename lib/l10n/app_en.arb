@@ -5424,10 +5424,6 @@
   "@daybookSendBackPickDate": {
     "description": "Send-back sheet, new date: opens the day picker; then shows the day picked."
   },
-  "daybookSendBackNoNewDate": "No new date",
-  "@daybookSendBackNoNewDate": {
-    "description": "Send-back sheet, new date: none; the old due isn't shown again."
-  },
   "daybookLineNewDate": "new date {date}",
   "@daybookLineNewDate": {
     "description": "A send-back line on the card, after the reason (F62): \"Photo missing · new date Thu 23 Oct\".",
@@ -5439,7 +5435,7 @@
   },
   "daybookLineNoNewDate": "no new date",
   "@daybookLineNoNewDate": {
-    "description": "A send-back line on the card, after the reason, when the author chose No new date (F62)."
+    "description": "A send-back line on the card, after the reason, when the author chose no new date (F62, F64)."
   },
   "needsDoneWaiting": "Done {time} · waiting for your check",
   "@needsDoneWaiting": {
