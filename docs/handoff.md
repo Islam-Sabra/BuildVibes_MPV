@@ -2,6 +2,16 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 22 Oct 2026, night — slice 6 plan drafted (branch `claude/slice6-plan`, from `claude/slice5-plan`)
+
+- **Founder's decision (22 Oct, "ok"):** a tap on a card keeps opening its menu (F16). The page opens from "Open the page ›".
+- **Review 77** (`docs/reviews/2026-10-22-77-slice6-plan.md`): the slice 6 plan (walk mode, work items under one; R1 `2539:34353`, R1b `2539:34396`, N5 `2538:34302`).
+  - It asks the lead three things. The first is whether a walk's work items fold into the target card (migration 37, recommended) or also show as their own cards.
+  - R1b and N5 must be redrawn without the hour spine before the build.
+  - The build waits for the lead's answers.
+- Slices 4 and 5 are on `claude/slice4` and `claude/slice5` (see their handoffs).
+- **Who has which branch:** this cloud session made `claude/slice6-plan` (docs only); done, nobody on it.
+
 ## Cloud update: 22 Oct 2026 — slice 5 plan drafted (branch `claude/slice5-plan`, from main)
 
 - **Founder's decision (22 Oct, "ok"):** Team-only Library files are not in the pilot. A Team file comes in only through that Team's chat; file posts and the Library's "Add a file" are for the whole Space.
