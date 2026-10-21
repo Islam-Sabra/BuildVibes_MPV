@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/photo_privacy.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/chat.dart';
@@ -40,7 +41,8 @@ String fileSize(AppLocalizations l10n, int? bytes) {
   return l10n.fileSizeMb(BvWesternDigitsFormatter.normalise(mb));
 }
 
-/// Picks a PDF or photo on the phone (the Library, chat, W2-A). Null when
+/// Picks a PDF or photo on the phone (the Library, chat, W2-A); a photo
+/// loses the place it was taken (stripPhotoLocation). Null when
 /// the person cancels. A provider so tests can stand in for the picker.
 typedef PickDocument = Future<PhoneFile?> Function({bool pdfOnly});
 
@@ -50,11 +52,14 @@ final pickDocumentProvider = Provider<PickDocument>(
       type: FileType.custom,
       allowedExtensions: pdfOnly
           ? const ['pdf']
-          : const ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic'],
+          // No HEIC: its location can't be taken out on the phone (the
+          // gallery pickers turn HEIC into JPEG).
+          : const ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
     );
     if (f == null || f.path == null) return null;
     final mime = mimeOfName(f.name);
     if (mime == null) return null;
+    if (mime.startsWith('image/')) await stripPhotoLocation(f.path!);
     return PhoneFile(
       local: f.path!,
       name: f.name,
