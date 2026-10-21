@@ -316,6 +316,12 @@ class DaybookPostDraft {
       files.isEmpty &&
       quote == null;
 
+  /// Nothing yet but the message it quotes (review 64): just made from a
+  /// message, not a Draft left from before.
+  bool get onlyQuote =>
+      quote != null &&
+      copyWith(quote: () => null, sourceMessageId: () => null).isEmpty;
+
   /// A title the server takes. A file post's title is optional: the
   /// server takes the file's name.
   bool get titleFits {

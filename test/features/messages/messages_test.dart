@@ -320,6 +320,8 @@ void main() {
         findsOneWidget,
       );
       expect(daybook.created, isEmpty, reason: 'nothing posts by itself');
+      // Just made from the message: a new card, not a Draft from before.
+      expect(find.text(l10n.daybookDraft), findsNothing);
       await tester.enterText(
         find.byKey(const Key('writing-title')),
         s.cableTraysTitle,

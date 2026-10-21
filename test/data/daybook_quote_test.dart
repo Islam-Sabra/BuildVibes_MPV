@@ -50,6 +50,8 @@ void main() {
       sourceMessageId: 'm2',
     );
     expect(draft.isEmpty, isFalse);
+    expect(draft.onlyQuote, isTrue);
+    expect(draft.copyWith(title: 'Clear gate 2').onlyQuote, isFalse);
     final back = DaybookPostDraft.fromJson(draft.toJson());
     expect(back.quote?.text, 'At the gate at 7?');
     expect(back.sourceMessageId, 'm2');

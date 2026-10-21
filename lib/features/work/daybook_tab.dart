@@ -213,7 +213,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
-    _fromBefore = ref.read(daybookDraftProvider(_spaceId)) != null;
+    // A card that only quotes a message just put in this Space (review
+    // 64, DM5) is new, not a Draft from before.
+    final kept = ref.read(daybookDraftProvider(_spaceId));
+    _fromBefore = kept != null && !kept.onlyQuote;
     // What was made with no signal sends when it's back: on opening and
     // on coming back to the app (the outbox also tries by itself). The
     // page is never stale (F11): it reads the newest cards when it opens
