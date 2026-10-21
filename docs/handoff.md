@@ -49,7 +49,7 @@ Built in the cloud while the founder tests slices 3 and 4 (the overlap he approv
 - **Moving a block into or out of a toggle isn't built.** Inside a toggle, text lines can be added and edited.
 - The page's history and its action stay on the card for now.
 
-**Checks:** `flutter analyze` clean; `flutter test`: the page, save-plan, daybook, Spaces, Library and chat tests pass; the full count follows. Screenshots EN and AR at 390×844 in `docs/screens/slice5/` (committed): the card's line, N1 and its end, N2, N3, N4.
+**Checks:** `flutter analyze` clean; `flutter test` **1,425 pass**, 1 fails only in the cloud (photo_privacy H1 needs a non-root user). Screenshots EN and AR at 390×844 in `docs/screens/slice5/` (committed): the card's line, N1 and its end, N2, N3, N4.
 
 **For the PC:**
 - **Merge order:** `claude/f68b-f69`, `claude/slice3-rest`, `claude/slice4`, then `claude/slice5` (each is built on the one before).
