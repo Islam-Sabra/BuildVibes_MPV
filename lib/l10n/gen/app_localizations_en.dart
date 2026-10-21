@@ -3884,4 +3884,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoCannotOpen => 'This photo can\'t be opened. Choose another.';
+
+  @override
+  String daybookDocketTitle(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n work items for you',
+      one: '1 work item for you',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookDocketFrom(String day) {
+    return 'from $day';
+  }
+
+  @override
+  String daybookDocketRest(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: ', and $n more',
+      one: ', and 1 more',
+      zero: '',
+    );
+    return '$_temp0';
+  }
 }

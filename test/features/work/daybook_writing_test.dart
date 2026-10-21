@@ -141,6 +141,56 @@ void main() {
       expect(_toolbar(tester).onPost, isNull);
     });
 
+    testWidgets('F69: the picker lists me once, first, as You, then a '
+        'hairline and the others; a search shows You only for my name; '
+        'choosing You reads For you [$lang]', (tester) async {
+      await _open(tester, lang);
+      await _write(tester);
+      await tester.tap(find.byKey(const Key('writing-who')));
+      await tester.pumpAndSettle();
+      final picker = find.byType(BvGiveToPicker);
+      final me = find.byKey(const Key('give-to-me'));
+      expect(me, findsOneWidget);
+      expect(
+        find.descendant(of: me, matching: find.text(l10n.daybookYou)),
+        findsOneWidget,
+      );
+      // My name isn't listed again.
+      expect(
+        find.descendant(of: picker, matching: find.text(s.islamName)),
+        findsNothing,
+      );
+      final hairline = find.byKey(const Key('give-to-me-hairline'));
+      expect(hairline, findsOneWidget);
+      final omar = find.descendant(of: picker, matching: find.text(s.omarName));
+      expect(
+        tester.getTopLeft(me).dy,
+        lessThan(tester.getTopLeft(hairline).dy),
+      );
+      expect(
+        tester.getTopLeft(hairline).dy,
+        lessThan(tester.getTopLeft(omar).dy),
+      );
+      // A search: You only when my own name matches.
+      final search = find.descendant(
+        of: find.byKey(const Key('give-to-search')),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(search, s.omarName.split(' ').first);
+      await tester.pumpAndSettle();
+      expect(me, findsNothing);
+      await tester.enterText(search, s.islamName.split(' ').first);
+      await tester.pumpAndSettle();
+      expect(me, findsOneWidget);
+      expect(find.byKey(const Key('give-to-me-hairline')), findsNothing);
+      await tester.tap(me);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(l10n.daybookForYouChoose, findRichText: true),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('F56: Post turns on with a title of 2 or more but stays grey '
         'with nobody to do it; a tap asks on the who row, the picker only '
         'fills it, and only Post posts [$lang]', (tester) async {

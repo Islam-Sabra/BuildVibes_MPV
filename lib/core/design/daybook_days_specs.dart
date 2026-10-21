@@ -108,11 +108,30 @@ abstract final class BvFirstPageSpec {
 /// as a folded announcement is drawn (review 61 G1), 20 from the start as
 /// the masthead.
 abstract final class BvDueTodaySpec {
-  static const minHeight = 40.0;
-  static const paddingStart = BvSpace.s20;
-  static const paddingEnd = BvSpace.s16;
-  static const paddingVertical = BvSpace.s6;
-  static const gap = BvSpace.s8;
-  static const icon = BvSize.iconSm; // 16
+  /// The docket (review 50 F68b, 2604:36389): 16 from the screen's edges,
+  /// 8 under it, 62 high.
+  static const outer = EdgeInsetsDirectional.only(
+    start: BvSpace.s16,
+    end: BvSpace.s16,
+    bottom: BvSpace.s8,
+  );
+  static const minHeight = 62.0;
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.photo)); // 8
+
+  /// The stub at the start, the icon in its middle.
+  static const stubWidth = 48.0;
+  static const icon = BvSize.iconMd; // 20
+
+  /// The dashed perforation between the stub and the body.
+  static const dash = 3.0;
+  static const dashGap = 3.0;
+
+  /// The body: two lines, 12 from the perforation.
+  static const bodyPaddingStart = BvSpace.s12;
+  static const bodyPaddingVertical = 10.0;
+  static const lineGap = BvSpace.s2;
+
+  /// The caret's place at the end: 30 wide.
+  static const caretWidth = 30.0;
   static const caret = BvSize.iconSm; // 16
 }

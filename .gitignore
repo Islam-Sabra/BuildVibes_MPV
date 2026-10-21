@@ -51,6 +51,7 @@ docs/screens/*
 !docs/screens/slice2/
 !docs/screens/review72/
 !docs/screens/f60/
+!docs/screens/f68b/
 
 # short-lived Figma download links
 docs/design/_fetch*

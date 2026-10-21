@@ -981,6 +981,72 @@ void main() {
       );
     });
 
+    // Review 50 F68b: the To do docket, with 1, 2 and 12 items.
+    for (final n in [1, 2, 12]) {
+      testWidgets('F68b the To do docket with $n [$lang]', (tester) async {
+        await warmSamplePhoto(tester);
+        final titles = [
+          s.t('Paint Room 3', 'دهان الغرفة 3'),
+          s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
+          for (var i = 0; i < 10; i++)
+            s.t('Snag $i, level 2', 'ملاحظة $i، الدور 2'),
+        ];
+        await shoot(
+          tester,
+          'F68b-docket-$n',
+          lang,
+          _space,
+          folder: 'f68b',
+          overrides: await _overrides(
+            s,
+            now: DaybookSamples.friday,
+            me: DaybookSamples.omar,
+            posts: s.l1(),
+            calendar: [
+              if (n == 1)
+                s.cableTraysDue()
+              else
+                for (var i = 0; i < n; i++)
+                  CalendarWorkItem(
+                    postId: 'post-docket-$i',
+                    spaceId: DaybookSamples.space,
+                    title: titles[i],
+                    // The oldest on Sunday, the rest later.
+                    day: DateTime(2026, 10, 11 + (i == 0 ? 0 : 3)),
+                    status: WorkStatus.open,
+                    needsMe: true,
+                  ),
+            ],
+          ),
+        );
+      });
+    }
+
+    // Review 50 F69: the picker lists me once, first, as You.
+    testWidgets('F69 the picker with You first [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'F69-picker-you-first',
+        lang,
+        _space,
+        folder: 'f68b',
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+          await _tap(tester, find.byKey(const Key('writing-who')));
+        },
+      );
+    });
+
     // Review 73 A1: the whole strip opens every item.
     testWidgets('A1 the To do sheet from a long strip [$lang]', (tester) async {
       await warmSamplePhoto(tester);

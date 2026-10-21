@@ -1076,5 +1076,8 @@
   "daybookLineNoNewDate": "بلا موعد جديد",
   "needsDoneWaiting": "منجز {time} · بانتظار تحققك",
   "photoPreparing": "جارٍ التجهيز…",
-  "photoCannotOpen": "تعذّر فتح هذه الصورة. اختر صورة أخرى."
+  "photoCannotOpen": "تعذّر فتح هذه الصورة. اختر صورة أخرى.",
+  "daybookDocketTitle": "{n, plural, =1{بند عمل واحد لك} =2{بندا عمل لك} few{{n} بنود عمل لك} other{{n} بند عمل لك}}",
+  "daybookDocketFrom": "منذ {day}",
+  "daybookDocketRest": "{n, plural, =0{} =1{، وبند آخر} other{، و{n} بنود أخرى}}"
 }

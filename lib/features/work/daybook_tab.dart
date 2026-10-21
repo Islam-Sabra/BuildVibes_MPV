@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/bidi.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -472,6 +473,22 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       }
     }
     if (shown != _shownDay) setState(() => _shownDay = shown);
+  }
+
+  /// The docket's second line after the oldest title (F68b): its due, or
+  /// the earlier day it was due ("from Sun", grey), then how many more.
+  String _docketRest(
+    List<CalendarWorkItem> due,
+    DaybookWords words,
+    DateTime now,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final first = due.first;
+    final earlier = words.stripDay(first.day, now);
+    final when = earlier == null
+        ? words.due(first.day, first.dueAt, now: now, late: false)
+        : l10n.daybookDocketFrom(earlier);
+    return ' · $when${l10n.daybookDocketRest(due.length - 1)}';
   }
 
   /// The divider of the day the masthead names: the masthead says it.
@@ -989,8 +1006,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             if (due.isNotEmpty && !_writing)
               BvDueTodayStrip(
                 key: const Key('to-do-strip'),
-                label: l10n.daybookToDo,
-                count: strip.length,
+                title: l10n.daybookDocketTitle(due.length),
+                oldest: inOwnDirection(due.first.title),
+                rest: _docketRest(due, words, now),
                 // Review 73 A1: every item, each opening its card.
                 onTap: () => showBvToDoSheet(
                   context,

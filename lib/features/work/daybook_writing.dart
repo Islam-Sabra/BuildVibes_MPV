@@ -924,6 +924,9 @@ class DaybookPeopleSheet extends ConsumerWidget {
       chosenIds: {for (final p in draft?.people ?? const []) p.id},
       searchPlaceholder: l10n.daybookPeopleSearch,
       inSheet: true,
+      // F69: me first, as You.
+      meId: me,
+      meLabel: l10n.daybookYou,
       onPick: writer.togglePerson,
     );
   }
@@ -1371,6 +1374,9 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
           currentLabel: l10n.daybookOwnerNow,
           // The menu says "Assign" (review 46).
           searchPlaceholder: l10n.daybookAssignSearch,
+          // F69: me first, as You.
+          meId: widget.me,
+          meLabel: l10n.daybookYou,
           onPick: (p) async {
             await _writer.setOwner(p);
             widget.onAssigned();
