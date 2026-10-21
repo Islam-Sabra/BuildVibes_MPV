@@ -594,3 +594,15 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - after scrolling back a day, it reads that day and the chip shows;
   - tapping the chip returns to Now and Today;
   - in EN and AR.
+
+- **Photo location (21 Oct):** both photos of the Note "ocfice" are stored with no GPS and no XMP, upright (1205×1600), with the time taken kept. Passed.
+
+## F60. Photos also lose the device's identity
+- **Seen in the check:** the stored photos still carry the phone's make and model ("Xiaomi 22120RN86G").
+- **Fix:** `photo_privacy.dart` also empties:
+  - Make and Model;
+  - the camera's body and lens serial numbers (BodySerialNumber, LensSerialNumber);
+  - OwnerName / CameraOwnerName, and Artist.
+  
+  Orientation and the time taken stay, because the proof needs the time. A serial number can identify one phone across every photo it takes, and proof photos can appear on a profile.
+- **Test:** a JPEG with those tags comes out without them, still upright and with its time.
