@@ -579,3 +579,18 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 | K1b v13: the announcement folded to one line after Got it (review 61 G1) | `2598:36165` | `2599:614` |
 | K5 v13: a Note card, for information, with three photos (F58, F51) | `2598:36260` | `2599:721` |
 | E6 v14: the kind menu as presets, with Note first and "Document for receipt" (F50, F58) | `2598:36360` | `2599:828` |
+
+# Slice 2 retest, build 375 (21 Oct 2026)
+
+## F59. At the bottom (Now) the masthead must say Today (founder, 21 Oct; replaces part of F23)
+- **What the founder saw:** at the bottom of the daybook, a large Note from yesterday filled the top half of the screen, so the masthead said yesterday's date. People will wonder whether that's today, or what the date means.
+- **Rule:**
+  - **At Now** (the bottom, the place you write), the masthead always reads **"Today"** in bold, then the date in grey: "**Today** · Wednesday 21 October" / "**اليوم** · الأربعاء 21 أكتوبر". This holds even when an older card fills the screen.
+  - **There's always a "Today" divider** right above the writing area, even if nothing has been posted yet today, so a card from yesterday sits clearly above it. With nothing posted today, a small grey line sits under the divider: "Nothing yet today" / "لا شيء بعد اليوم".
+  - **Only when you scroll back** (Now out of view) does the masthead follow the day of the content at the top of the screen (F23), with the "Today ↓" chip to jump back. Back at Now, it returns to Today.
+  - The Space header stays as it is (the name and "Private work"). The date has one place, the masthead.
+- **Test:**
+  - at Now with yesterday's card filling the top, the masthead reads Today;
+  - after scrolling back a day, it reads that day and the chip shows;
+  - tapping the chip returns to Now and Today;
+  - in EN and AR.
