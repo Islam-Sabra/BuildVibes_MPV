@@ -22,7 +22,8 @@ import '../../onboarding/company_sheet.dart';
 import '../../onboarding/role_picker_screen.dart';
 import 'edit_common.dart';
 
-/// Picks a photo, without the place it was taken; overridden in tests.
+/// Picks a photo, made safe to leave the phone (cleanPhoto); overridden in
+/// tests.
 final photoPickerProvider = Provider<Future<XFile?> Function()>(
   (ref) => () async {
     final photo = await ImagePicker().pickImage(
@@ -30,7 +31,7 @@ final photoPickerProvider = Provider<Future<XFile?> Function()>(
       maxWidth: 800,
       imageQuality: 85,
     );
-    if (photo != null) await stripPhotoLocation(photo.path);
+    if (photo != null) await cleanPhoto(photo.path);
     return photo;
   },
 );

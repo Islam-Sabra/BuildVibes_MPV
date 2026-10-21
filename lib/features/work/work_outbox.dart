@@ -272,7 +272,7 @@ final pickPhotosProvider = Provider<PickPhotos>((ref) {
         maxHeight: 1600,
         imageQuality: 80,
       );
-      if (one != null) await stripPhotoLocation(one.path);
+      if (one != null) await cleanPhoto(one.path);
       return [?one];
     }
     final picked = await picker.pickMultiImage(
@@ -283,7 +283,7 @@ final pickPhotosProvider = Provider<PickPhotos>((ref) {
     );
     final kept = picked.take(max).toList();
     for (final p in kept) {
-      await stripPhotoLocation(p.path);
+      await cleanPhoto(p.path);
     }
     return kept;
   };
@@ -291,7 +291,7 @@ final pickPhotosProvider = Provider<PickPhotos>((ref) {
 
 /// Takes a photo for evidence: the camera, or the gallery as a fallback.
 /// Compressed to about 1600 px on the long side, JPEG quality 80, without
-/// the place it was taken (stripPhotoLocation). Null when
+/// made safe to leave the phone (cleanPhoto). Null when
 /// the person cancels. A provider so tests can stand in for the camera.
 typedef PickPhoto = Future<XFile?> Function({required bool camera});
 
@@ -304,7 +304,7 @@ final pickPhotoProvider = Provider<PickPhoto>((ref) {
       maxHeight: 1600,
       imageQuality: 80,
     );
-    if (photo != null) await stripPhotoLocation(photo.path);
+    if (photo != null) await cleanPhoto(photo.path);
     return photo;
   };
 });

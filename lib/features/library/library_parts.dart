@@ -42,7 +42,7 @@ String fileSize(AppLocalizations l10n, int? bytes) {
 }
 
 /// Picks a PDF or photo on the phone (the Library, chat, W2-A); a photo
-/// loses the place it was taken (stripPhotoLocation). Null when
+/// is made safe to leave the phone (cleanPhoto). Null when
 /// the person cancels. A provider so tests can stand in for the picker.
 typedef PickDocument = Future<PhoneFile?> Function({bool pdfOnly});
 
@@ -59,7 +59,7 @@ final pickDocumentProvider = Provider<PickDocument>(
     if (f == null || f.path == null) return null;
     final mime = mimeOfName(f.name);
     if (mime == null) return null;
-    if (mime.startsWith('image/')) await stripPhotoLocation(f.path!);
+    if (mime.startsWith('image/')) await cleanPhoto(f.path!);
     return PhoneFile(
       local: f.path!,
       name: f.name,

@@ -1,231 +1,202 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:buildvibes/core/photo_privacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 
-/// A small JPEG as a phone writes it: EXIF with the orientation and a GPS
-/// block (north, 29° 22' 12.34"), XMP repeating the position, then the
-/// picture.
-Uint8List _jpeg({
-  Endian order = Endian.little,
-  bool xmp = true,
-  bool gps = true,
-}) {
-  final tiff = ByteData(92);
-  final le = order == Endian.little;
-  tiff
-    ..setUint8(0, le ? 0x49 : 0x4D)
-    ..setUint8(1, le ? 0x49 : 0x4D)
-    ..setUint16(2, 42, order)
-    ..setUint32(4, 8, order);
-  // IFD0: Orientation 6, and the GPS block at 38.
-  tiff
-    ..setUint16(8, gps ? 2 : 1, order)
-    ..setUint16(10, 0x0112, order)
-    ..setUint16(12, 3, order)
-    ..setUint32(14, 1, order)
-    ..setUint16(18, 6, order);
-  if (gps) {
-    tiff
-      ..setUint16(22, 0x8825, order)
-      ..setUint16(24, 4, order)
-      ..setUint32(26, 1, order)
-      ..setUint32(30, 38, order);
+import '../helpers/photo_bytes.dart';
+
+/// [w]×[h], its left half black and its right half white, as a JPEG.
+Uint8List _picture(int w, int h, {int quality = 90}) {
+  final image = img.Image(width: w, height: h);
+  for (final p in image) {
+    final v = p.x < w ~/ 2 ? 0 : 255;
+    p.setRgb(v, v, v);
   }
-  // The GPS block: LatitudeRef "N", Latitude 3 rationals at 68.
-  tiff
-    ..setUint16(38, 2, order)
-    ..setUint16(40, 0x0001, order)
-    ..setUint16(42, 2, order)
-    ..setUint32(44, 2, order)
-    ..setUint8(48, 0x4E)
-    ..setUint16(52, 0x0002, order)
-    ..setUint16(54, 5, order)
-    ..setUint32(56, 3, order)
-    ..setUint32(60, 68, order);
-  for (final (i, v) in [29, 1, 22, 1, 1234, 100].indexed) {
-    tiff.setUint32(68 + i * 4, v, order);
-  }
-  final exif = [...'Exif'.codeUnits, 0, 0, ...tiff.buffer.asUint8List()];
-  final xmpBody = [
-    ...'http://ns.adobe.com/xap/1.0/'.codeUnits,
-    0,
-    ...'<x:xmpmeta exif:GPSLatitude="29,22.2N"/>'.codeUnits,
-  ];
+  return img.encodeJpg(image, quality: quality);
+}
+
+/// [jpeg] with an EXIF block holding [tiff], right after its start.
+Uint8List _withApp1(Uint8List jpeg, List<int> tiff) {
+  final body = [...'Exif'.codeUnits, 0, 0, ...tiff];
   return Uint8List.fromList([
     0xFF, 0xD8, //
-    0xFF, 0xE1, (exif.length + 2) >> 8, (exif.length + 2) & 0xFF, ...exif,
-    if (xmp) ...[
-      0xFF,
-      0xE1,
-      (xmpBody.length + 2) >> 8,
-      (xmpBody.length + 2) & 0xFF,
-      ...xmpBody,
-    ],
-    0xFF, 0xDB, 0x00, 0x04, 0x01, 0x02, // a table
-    ..._scan,
+    0xFF, 0xE1, (body.length + 2) >> 8, (body.length + 2) & 0xFF, ...body,
+    ...jpeg.sublist(2),
   ]);
 }
 
-/// The picture itself, from the start of scan to the end.
-const _scan = [
-  0xFF,
-  0xDA,
-  0x00,
-  0x04,
-  0x07,
-  0x08,
-  0x11,
-  0x22,
-  0xFF,
-  0x00,
-  0x33,
-  0xFF,
-  0xD9,
-];
+List<int> _ascii0(String s) => [...s.codeUnits, 0];
 
-bool _has(Uint8List b, List<int> part) {
-  for (var i = 0; i + part.length <= b.length; i++) {
-    var all = true;
-    for (var j = 0; j < part.length && all; j++) {
-      all = b[i + j] == part[j];
+/// What a Xiaomi phone writes (big-endian): Make, Model, Software and
+/// Orientation [orientation] in the first block; the times taken, a
+/// SubsecTime and a maker note with a serial in the EXIF block; a GPS
+/// block; a thumbnail block; and past them all a string area no tag
+/// points to, with a second copy of the make, model and software.
+List<int> _phoneTiff({int orientation = 1}) {
+  final t = ByteData(480);
+  void entry(int at, int tag, int type, int count, int value) => t
+    ..setUint16(at, tag)
+    ..setUint16(at + 2, type)
+    ..setUint32(at + 4, count)
+    ..setUint32(at + 8, value);
+  void text(int at, String s) {
+    for (final (k, c) in _ascii0(s).indexed) {
+      t.setUint8(at + k, c);
     }
-    if (all) return true;
   }
-  return false;
+
+  t
+    ..setUint16(0, 0x4D4D)
+    ..setUint16(2, 42)
+    ..setUint32(4, 8);
+  // The first block at 8, then the thumbnail block at 300.
+  t.setUint16(8, 6);
+  entry(10, 0x010F, 2, 7, 200);
+  entry(22, 0x0110, 2, 11, 440);
+  entry(34, 0x0112, 3, 1, orientation << 16);
+  entry(46, 0x0131, 2, 28, 412);
+  entry(58, 0x8769, 4, 1, 90);
+  entry(70, 0x8825, 4, 1, 160);
+  t.setUint32(82, 300);
+  // The EXIF block at 90.
+  t.setUint16(90, 4);
+  entry(92, 0x9003, 2, 20, 210);
+  entry(104, 0x9011, 2, 7, 230);
+  entry(116, 0x9291, 2, 4, 0x31323300);
+  entry(128, 0x927C, 7, 12, 240);
+  t.setUint32(140, 0);
+  // The GPS block at 160: Latitude, 3 rationals at 260.
+  t.setUint16(160, 1);
+  entry(162, 0x0002, 5, 3, 260);
+  t.setUint32(174, 0);
+  text(200, 'Xiaomi');
+  text(210, '2026:10:21 15:21:11');
+  text(230, '+03:00');
+  text(240, 'MAKERSN0042');
+  for (final (k, v) in [29, 1, 22, 1, 1234, 100].indexed) {
+    t.setUint32(260 + k * 4, v);
+  }
+  t.setUint16(300, 1);
+  entry(302, 0x0201, 4, 1, 360);
+  t.setUint32(314, 0);
+  // The string area no tag points to.
+  text(340, '22120RN86G');
+  text(352, 'Xiaomi');
+  text(360, 'SERIAL998877');
+  text(374, 'MediaTek Camera Application');
+  // The values the first block points to.
+  text(412, 'MediaTek Camera Application');
+  text(440, '22120RN86G');
+  return t.buffer.asUint8List();
 }
+
+const _phoneWords = [
+  'Xiaomi',
+  '22120RN86G',
+  'MediaTek Camera Application',
+  'SERIAL998877',
+  'MAKERSN0042',
+];
 
 List<int> _u32(int v, Endian order) {
   final d = ByteData(4)..setUint32(0, v, order);
   return d.buffer.asUint8List();
 }
 
-/// A real JPEG (made with Pillow): orientation 6, the time taken, a GPS
-/// position, and the phone's make, model, owner, artist and serial numbers.
-const _phoneJpeg =
-    '/9j/4AAQSkZJRgABAQAAAQABAAD/4QEcRXhpZgAATU0AKgAAAAgABgEPAAIAAAAHAAAAVgEQAAIA'
-    'AAALAAAAXgESAAMAAAABAAYAAAE7AAIAAAAMAAAAaodpAAQAAAABAAAAdoglAAQAAAABAAAA3gAA'
-    'AABYaWFvbWkAADIyMTIwUk44NkcAAE9tYXIgSGFkZGFkAAAEkAMAAgAAABQAAACspDAAAgAAAAUA'
-    'AADApDEAAgAAAAsAAADGpDUAAgAAAAsAAADSAAAAADIwMjY6MTA6MjEgMDk6MDA6MDAAT21hcgAA'
-    'U04xMjM0NTY3OAAATEVOUzk5ODg3NwAAAAIAAQACAAAAAk4AAAAAAgAFAAAAAwAAAPwAAAAAAAAA'
-    'HQAAAAEAAAAWAAAAAQAAAmkAAAAy/9sAQwANCQoLCggNCwoLDg4NDxMgFRMSEhMnHB4XIC4pMTAu'
-    'KS0sMzpKPjM2RjcsLUBXQUZMTlJTUjI+WmFaUGBKUVJP/9sAQwEODg4TERMmFRUmTzUtNU9PT09P'
-    'T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09P/8AAEQgABgAIAwEi'
-    'AAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQE'
-    'AAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2'
-    'Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Sl'
-    'pqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8B'
-    'AAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUh'
-    'MQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJ'
-    'SlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2'
-    't7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8Ay6KK'
-    'K4T6s//Z';
-
 void main() {
-  group('JPEG', () {
-    for (final order in [Endian.little, Endian.big]) {
-      test(
-        'the position goes, the orientation and the picture stay ($order)',
-        () {
-          final before = _jpeg(order: order);
-          expect(_has(before, [..._u32(29, order), ..._u32(1, order)]), isTrue);
-
-          final after = withoutLocation(before)!;
-          expect(
-            _has(after, [..._u32(29, order), ..._u32(1, order)]),
-            isFalse,
-            reason: 'the latitude is zeroed',
-          );
-          expect(
-            _has(after, [..._u32(1234, order), ..._u32(100, order)]),
-            isFalse,
-          );
-          expect(
-            _has(after, 'GPSLatitude'.codeUnits),
-            isFalse,
-            reason: 'XMP is dropped',
-          );
-          expect(_has(after, 'Exif'.codeUnits), isTrue, reason: 'EXIF stays');
-          // Orientation 6 is still in IFD0.
-          final orientation = [
-            ...(ByteData(2)..setUint16(0, 0x0112, order)).buffer.asUint8List(),
-            ...(ByteData(2)..setUint16(0, 3, order)).buffer.asUint8List(),
-          ];
-          expect(_has(after, orientation), isTrue);
-          expect(after.sublist(after.length - _scan.length), _scan);
-          expect(
-            withoutLocation(after),
-            isNull,
-            reason: 'a second pass changes nothing',
-          );
-        },
-      );
-    }
-
-    test('a photo with no position is left as it is', () {
-      expect(withoutLocation(_jpeg(xmp: false, gps: false)), isNull);
-    });
-
-    test('EXIF it cannot read is dropped whole', () {
-      final b = _jpeg(xmp: false);
-      b[12] = 0x58; // The byte order mark is now nonsense.
-      final after = withoutLocation(b)!;
-      expect(_has(after, 'Exif'.codeUnits), isFalse);
-      expect(after.sublist(after.length - _scan.length), _scan);
-    });
-
-    test('a broken file is left as it is', () {
+  group('F60: a JPEG is drawn again from its pixels', () {
+    testWidgets('nothing of the phone stays: no make, model, software, '
+        'serial, GPS, maker note or thumbnail anywhere in the file, only '
+        'the time taken', (tester) async {
+      final before = _withApp1(_picture(64, 48), _phoneTiff());
+      for (final word in _phoneWords) {
+        expect(hasBytes(before, word.codeUnits), isTrue, reason: word);
+      }
+      final after = (await cleanForTest(tester, before))!;
+      for (final word in _phoneWords) {
+        expect(hasBytes(after, word.codeUnits), isFalse, reason: word);
+      }
       expect(
-        withoutLocation(
-          Uint8List.fromList([0xFF, 0xD8, 0x00, 0x01, 0x02, 0x03]),
-        ),
-        isNull,
+        hasBytes(after, [..._u32(29, Endian.big), ..._u32(1, Endian.big)]),
+        isFalse,
+        reason: 'no latitude',
       );
+      final exif = exifBlocks(after).single;
+      // The first block only says where the EXIF block is.
+      expect(exif.ifd0.keys, [0x8769]);
+      expect(exif.exif, {
+        0x9003: _ascii0('2026:10:21 15:21:11'),
+        0x9011: _ascii0('+03:00'),
+      });
+      expect(exif.next, 0, reason: 'no thumbnail');
+      final picture = img.decodeJpg(after)!;
+      expect((picture.width, picture.height), (64, 48));
+    });
+
+    testWidgets('a sideways photo comes out upright, with no orientation '
+        'tag', (tester) async {
+      // Orientation 6: the camera was turned a quarter clockwise.
+      final before = _withApp1(_picture(40, 20), _phoneTiff(orientation: 6));
+      final after = (await cleanForTest(tester, before))!;
+      final picture = img.decodeJpg(after)!;
+      expect((picture.width, picture.height), (20, 40));
+      // Turned upright, the black left half is now the top.
+      expect(picture.getPixel(10, 5).r, lessThan(60));
+      expect(picture.getPixel(10, 35).r, greaterThan(200));
+      final exif = exifBlocks(after).single;
+      expect(exif.ifd0.containsKey(0x0112), isFalse);
+      expect(exif.exif.containsKey(0x0112), isFalse);
+    });
+
+    testWidgets('a large photo is made 2560 on its longest side', (
+      tester,
+    ) async {
+      final before = _withApp1(_picture(4000, 3000, quality: 50), _phoneTiff());
+      final after = (await cleanForTest(tester, before))!;
+      final picture = img.decodeJpg(after)!;
+      expect((picture.width, picture.height), (photoMaxSide, 1920));
+      // Sideways too: made smaller and turned upright, never squashed.
+      final sideways = _withApp1(
+        _picture(4000, 3000, quality: 50),
+        _phoneTiff(orientation: 6),
+      );
+      final upright = img.decodeJpg((await cleanForTest(tester, sideways))!)!;
+      expect((upright.width, upright.height), (1920, photoMaxSide));
+      expect(upright.getPixel(960, 100).r, lessThan(60));
+      expect(upright.getPixel(960, 2400).r, greaterThan(200));
+    });
+
+    testWidgets('a small photo is never made bigger', (tester) async {
+      final after = (await cleanForTest(tester, _picture(64, 48)))!;
+      final picture = img.decodeJpg(after)!;
+      expect((picture.width, picture.height), (64, 48));
+      expect(exifBlocks(after), isEmpty, reason: 'no time taken, no EXIF');
+    });
+
+    testWidgets('a JPEG that cannot be decoded is left as it is', (
+      tester,
+    ) async {
+      final broken = Uint8List.fromList([0xFF, 0xD8, 0x00, 0x01, 0x02, 0x03]);
+      expect(await cleanForTest(tester, broken), isNull);
+    });
+
+    testWidgets('cleanPhoto rewrites the file, and leaves a missing one '
+        'alone', (tester) async {
+      await tester.runAsync(() async {
+        final dir = await Directory.systemTemp.createTemp('photo_privacy');
+        final file = File('${dir.path}/p.jpg')
+          ..writeAsBytesSync(_withApp1(_picture(64, 48), _phoneTiff()));
+        await cleanPhoto(file.path);
+        expect(hasBytes(file.readAsBytesSync(), 'Xiaomi'.codeUnits), isFalse);
+        await cleanPhoto('${dir.path}/none.jpg');
+        await dir.delete(recursive: true);
+      });
     });
   });
 
-  test('the phone\'s identity goes too; orientation and time stay (F60)', () {
-    final before = base64Decode(_phoneJpeg);
-    for (final word in [
-      'Xiaomi',
-      '22120RN86G',
-      'SN12345678',
-      'LENS998877',
-      'Omar Haddad',
-    ]) {
-      expect(_has(before, word.codeUnits), isTrue, reason: word);
-    }
-    final after = withoutLocation(before)!;
-    for (final word in [
-      'Xiaomi',
-      '22120RN86G',
-      'SN12345678',
-      'LENS998877',
-      'Omar Haddad',
-    ]) {
-      expect(_has(after, word.codeUnits), isFalse, reason: word);
-    }
-    expect(
-      _has(after, '2026:10:21 09:00:00'.codeUnits),
-      isTrue,
-      reason: 'the time taken stays',
-    );
-    // Orientation 6: tag 0x0112, SHORT, count 1, value 6 (Motorola order).
-    expect(
-      _has(after, [0x01, 0x12, 0x00, 0x03, 0, 0, 0, 0x01, 0x00, 0x06]),
-      isTrue,
-    );
-    expect(after.length, before.length, reason: 'only values are emptied');
-    expect(
-      withoutLocation(after),
-      isNull,
-      reason: 'a second pass changes nothing',
-    );
-  });
-
-  test('PNG: the eXIf chunk and XMP go, the rest stays', () {
+  test('PNG: the eXIf chunk and XMP go, the rest stays', () async {
     List<int> chunk(String type, List<int> data) => [
       ..._u32(data.length, Endian.big),
       ...type.codeUnits,
@@ -252,12 +223,12 @@ void main() {
       ]),
       ...iend,
     ]);
-    final after = withoutLocation(png)!;
+    final after = (await cleanPhotoBytes(png))!;
     expect(after, [...png.sublist(0, 8), ...ihdr, ...iend]);
-    expect(withoutLocation(after), isNull);
+    expect(await cleanPhotoBytes(after), isNull);
   });
 
-  test('WebP: EXIF and XMP go, the header says so', () {
+  test('WebP: EXIF and XMP go, the header says so', () async {
     List<int> chunk(String type, List<int> data) => [
       ...type.codeUnits,
       ..._u32(data.length, Endian.little),
@@ -278,7 +249,7 @@ void main() {
       ...'WEBP'.codeUnits,
       ...body,
     ]);
-    final after = withoutLocation(webp)!;
+    final after = (await cleanPhotoBytes(webp))!;
     final kept = [...vp8x, ...image]..[8] = 0x00;
     expect(after.sublist(12), kept);
     expect(
@@ -287,19 +258,10 @@ void main() {
     );
   });
 
-  test('a PDF is left as it is', () {
-    expect(withoutLocation(Uint8List.fromList('%PDF-1.7'.codeUnits)), isNull);
+  test('a PDF is left as it is', () async {
+    expect(
+      await cleanPhotoBytes(Uint8List.fromList('%PDF-1.7'.codeUnits)),
+      isNull,
+    );
   });
-
-  test(
-    'stripPhotoLocation rewrites the file, and leaves a missing one alone',
-    () async {
-      final dir = await Directory.systemTemp.createTemp('photo_privacy');
-      addTearDown(() => dir.delete(recursive: true));
-      final file = File('${dir.path}/p.jpg')..writeAsBytesSync(_jpeg());
-      await stripPhotoLocation(file.path);
-      expect(_has(file.readAsBytesSync(), 'GPSLatitude'.codeUnits), isFalse);
-      await stripPhotoLocation('${dir.path}/none.jpg');
-    },
-  );
 }
