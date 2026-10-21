@@ -62,3 +62,4 @@ ios/Runner/GoogleService-Info.plist
 test_screens/failures/
 !docs/screens/slice4/
 !docs/screens/slice5/
+!docs/screens/slice6/

@@ -2,6 +2,52 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 22 Oct 2026, night — slice 6, walk mode and work items under one (branch `claude/slice6`, from `claude/slice5`)
+
+The founder's "ok" (22 Oct): go with review 77's recommendations and build while he tests. **Review 77** is in `docs/reviews/2026-10-22-77-slice6-plan.md`; the lead hasn't checked it yet. The build follows its three recommendations:
+1. a walk's work items fold into its card (migration 37);
+2. a photo's line is typed with the keyboard's own dictation;
+3. photos come from the phone's camera (`image_picker`).
+
+**Founder's decision (22 Oct, "ok"):** a tap on a card keeps opening its menu (F16).
+
+**Server: migration 37, `20261027120000_target_cards.sql`, not live.**
+- `daybook_cards` leaves out a work item whose parent is a target (`is_target`) that the reader can see. A walk is one card.
+- The card's `children`:
+  - says whether it is a target;
+  - carries up to 30 rows (was 10), each with its ref and `needs_me`, so the owner signs from their row.
+- A work item's activity raises its parent's. The trigger never waits on a parent: `cancel_space_post` locks the parent and then its work items, so it skips a locked parent.
+- `daybook_card(post)`: one card for any post the caller can see, a target's work item included.
+- 26 new checks. Two older checks were changed to the new card (18: the progress object has `target`; 26: the target's work item asks its owner to sign on its row).
+- **2,326 SQL checks pass** on the stand-in (migrations to 33, plus 36 and 37).
+- **For the lead:** an independent check. Then the push with the founder's yes, as the only file, after 34–36.
+
+**App:**
+- **Walk mode (R1).** It starts from **"Walk the site"** in the Space ⋯ menu, for people who may post work.
+  - Name the walk and its place, then for each photo: its line and who does it. The last owner is kept for the next photo.
+  - Thumbnails go back to a photo; a long press takes one out.
+  - Finish posts through the outbox: each photo goes up into its own work item's folder, then one `create_walk`. With no signal it waits ("Waiting to send", its rows from the phone's photos).
+  - ✕ asks before throwing the photos away. At most 30 photos.
+- **The walk's card (R1b), drawn on v13's card:**
+  - "N photos, each one a work item", the photos, and a row per work item. Each row shows its state, its stamp, what it needs of the reader ("Sign as done", "Check") and its owner's face.
+  - Then "N of M checked" with the progress line. "Show all" opens the page when there are more than 10 rows.
+  - A row opens that work item's own card on a sheet, with every action (sign as done, check, send back, updates).
+- **Links:** a link to a walk's work item (Needs you, Activity, a push) opens the walk's card, highlighted, and that work item's card over it.
+- **Fixed on the way:** the empty first page hid a waiting post of any kind but a work item (a checklist, announcement or walk posted into an empty Space with no signal).
+
+**Different from the frames, for the lead:**
+- **The way in:** R1 draws a "Photo · Walk" switch inside the camera. The app uses the phone's own camera, which can't show it, so walk mode starts from the Space menu. The plan's question 3 is what this depends on.
+- **A walk isn't kept if the app is closed mid-walk** (kept on the phone only once Finish is tapped). That comes with slice 10.
+- **R1b and N5 still need redrawing** without the hour spine. Until then the card follows v13's card.
+
+**Checks:** `flutter analyze` clean; `flutter test`: the walk, page and daybook tests pass; the full count follows. Screenshots EN and AR at 390×844 in `docs/screens/slice6/` (committed): the walk's card, naming the walk, a photo with its line and owner.
+
+**For the PC:**
+- Merge order: … `claude/slice5`, then `claude/slice6`.
+- Migrations 36 and 37 go live only after the lead's check and the founder's yes.
+
+**Who has which branch:** this cloud session made `claude/slice6` and `claude/slice6-plan`; done, nobody on them.
+
 ## Cloud update: 22 Oct 2026, evening — slice 5, opening a post in place (branch `claude/slice5`, from `claude/slice4`)
 
 Built in the cloud while the founder tests slices 3 and 4 (the overlap he approved; his "ok" to going ahead, 22 Oct). It follows **review 76** (`docs/reviews/2026-10-22-76-slice5-plan.md`, drafted here, **not yet checked by the lead**). If the lead changes the plan, this branch follows the lead.

@@ -383,8 +383,12 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
                 top: BvSpace.s12,
                 start: BvWalkSpec.padding,
                 end: BvWalkSpec.padding,
+                // "Walk · Level 4 corridor": the place, else the name.
                 child: _chip(
-                  joinMeta([l10n.walkTitle, inOwnDirection(_name.text.trim())]),
+                  joinMeta([
+                    l10n.walkTitle,
+                    inOwnDirection(place.isEmpty ? _name.text.trim() : place),
+                  ]),
                 ),
               ),
               PositionedDirectional(
