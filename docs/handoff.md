@@ -120,4 +120,11 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
   - **Migrations:** push 29 → 30 → 31 → 32 from the branch **head**, one file per push (all four have the founder's yes). The head has the review 65 fixes to migration 30, and migration 31 is new.
   - **Slice 2 retest:** build the app from `a2e330f`.
 
+**Business items (21 Oct, founder's "ok" to the recommendations):**
+- Drafts of the Terms and Privacy policy for a lawyer in Kuwait: `docs/legal/` (English; Arabic after the lawyer). Blanks for the founder: company name and address, support email, minimum age (recommended 18). Questions for the lawyer marked **[Lawyer]**: data hosted in India (Mumbai), who owns a Space's records, work kept as "Former member".
+- Pilot targets, proposed: `docs/product/pilot-targets.md` (80% joined in week 1; 80% active working days; 3 Crew sign off with a photo by week 2; 3 show proof by week 4). The founder approves the numbers.
+- `supabase/ops/pilot_targets.sql`: the founder's read-only report for the pilot Space (tested on the stand-in). `pilot_measures.sql` stays for every Space.
+- The founder's to-dos: the site's permission for photos (pilot agreement), the Apple and Google developer accounts (in November), and who answers reports (founder, 24 hours, as the Terms say).
+- For Claude, next app session: check whether photos keep the camera's location data (EXIF); if they do, strip it before upload.
+
 **Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.

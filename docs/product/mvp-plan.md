@@ -7,7 +7,7 @@
 ## 1. What the MVP must prove
 One real site team runs its daily work in a BuildVibes Space for four weeks, and its members get proof on their profiles from work that was checked and closed.
 
-**Pilot measures** (proposed):
+**Pilot measures** (proposed; numbers in `pilot-targets.md`):
 - Most invited members join in the first week.
 - Work items are created and closed every working day, not only in week 1.
 - A foreman can sign a work item as done, with a photo, without help.

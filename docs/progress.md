@@ -680,3 +680,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Left in slice 3, after the slice 2 retest: Put in a Space (DM4–DM5) and Turn into a work item (S8m).
 - **20 Oct, late night** (cloud): the 10 PDF tests pass on any machine (1,309 pass); the Arabic of the slice 2 and 3 strings checked against the glossary; review 67, the slice 4 plan (People and Library, migration 32 for Library receipts and search, no code yet).
 - **20 Oct, late night** (cloud): migration 32 (not live), who received a Library file, NEW VERSION for me, search shows only the version in use; review 68 approved it after two fixes. 2,251 SQL checks pass. Founder's yes for it to go live from the PC after 31.
+- **21 Oct** (cloud): drafts of the Terms and Privacy policy for the lawyer (`docs/legal/`), proposed pilot targets (`docs/product/pilot-targets.md`) and the founder's read-only report for them (`supabase/ops/pilot_targets.sql`). No app or database change.
