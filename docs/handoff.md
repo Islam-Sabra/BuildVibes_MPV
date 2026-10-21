@@ -125,6 +125,7 @@ The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63
 - Pilot targets, proposed: `docs/product/pilot-targets.md` (80% joined in week 1; 80% active working days; 3 Crew sign off with a photo by week 2; 3 show proof by week 4). The founder approves the numbers.
 - `supabase/ops/pilot_targets.sql`: the founder's read-only report for the pilot Space (tested on the stand-in). `pilot_measures.sql` stays for every Space.
 - The founder's to-dos: the site's permission for photos (pilot agreement), the Apple and Google developer accounts (in November), and who answers reports (founder, 24 hours, as the Terms say).
-- For Claude, next app session: check whether photos keep the camera's location data (EXIF); if they do, strip it before upload.
+- **Photos lose their location before upload (done, 21 Oct):** `lib/core/photo_privacy.dart` empties the EXIF GPS block of a JPEG (orientation and time stay) and drops XMP; PNG and WebP lose EXIF and XMP. It is run on every picker: camera, gallery, Files, profile photo. The Files picker no longer offers HEIC (its location can't be removed on the phone). Checked with a real image reader: GPS gone, the photo opens. **On the PC:** take one photo with location on, post it, download it from Storage and check that it has no GPS.
+- Store listing draft, English and Arabic, with the data-safety answers: `docs/store/listing-draft.md`. The quick guide for the pilot team, English and Arabic: `docs/pilot/quick-guide.md`. Both for the lead to check against the app's words.
 
 **Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.
