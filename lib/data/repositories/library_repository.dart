@@ -36,6 +36,17 @@ abstract class LibraryRepository {
     String? supersedesId,
   });
 
+  /// LV1: per file in use, NEW VERSION for me and up to 4 receivers
+  /// (library_overview), by file id.
+  Future<Map<String, LibraryOverview>> overview(String spaceId);
+
+  /// LV2: who received this version, oldest first (library_file_receipts).
+  Future<List<LibraryReceipt>> receipts(String fileId);
+
+  /// LV2: the post to mark Received through (library_file_post); null when
+  /// no post carries this version (a file from chat).
+  Future<String?> postFor(String fileId);
+
   /// A short-lived link for previews.
   Future<String> fileUrl(String path);
 
@@ -175,6 +186,41 @@ class SupabaseLibraryRepository implements LibraryRepository {
     ),
   );
 
+  List<Map<String, dynamic>> _rows(Object? data) => [
+    for (final r in (data as List? ?? const [])) r as Map<String, dynamic>,
+  ];
+
+  @override
+  Future<Map<String, LibraryOverview>> overview(String spaceId) =>
+      _guard(() async {
+        final rows = _rows(
+          await _client.rpc<List<dynamic>>(
+            'library_overview',
+            params: {'p_space': spaceId},
+          ),
+        );
+        return {
+          for (final r in rows)
+            r['file_id'] as String: LibraryOverview.fromJson(r),
+        };
+      });
+
+  @override
+  Future<List<LibraryReceipt>> receipts(String fileId) => _guard(() async {
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'library_file_receipts',
+        params: {'p_file': fileId},
+      ),
+    );
+    return [for (final r in rows) LibraryReceipt.fromJson(r)];
+  });
+
+  @override
+  Future<String?> postFor(String fileId) => _guard(
+    () => _client.rpc<String?>('library_file_post', params: {'p_file': fileId}),
+  );
+
   @override
   Future<String> fileUrl(String path) => _guard(
     () => _client.storage.from(_bucket).createSignedUrl(path, 60 * 10),
@@ -204,6 +250,24 @@ final libraryFileProvider = FutureProvider.autoDispose
 final fileBytesProvider = FutureProvider.autoDispose.family<Uint8List, String>(
   (ref, path) => ref.watch(libraryRepositoryProvider).download(path),
 );
+
+/// LV1's extras: NEW VERSION and the receivers' faces, by file id.
+final libraryOverviewProvider = FutureProvider.autoDispose
+    .family<Map<String, LibraryOverview>, String>(
+      (ref, spaceId) => ref.watch(libraryRepositoryProvider).overview(spaceId),
+    );
+
+/// LV2: who received this version.
+final libraryReceiptsProvider = FutureProvider.autoDispose
+    .family<List<LibraryReceipt>, String>(
+      (ref, fileId) => ref.watch(libraryRepositoryProvider).receipts(fileId),
+    );
+
+/// LV2: the post its Received pill acts on, or null.
+final libraryFilePostProvider = FutureProvider.autoDispose
+    .family<String?, String>(
+      (ref, fileId) => ref.watch(libraryRepositoryProvider).postFor(fileId),
+    );
 
 final fileUrlProvider = FutureProvider.autoDispose.family<String, String>(
   (ref, path) => ref.watch(libraryRepositoryProvider).fileUrl(path),

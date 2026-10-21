@@ -167,3 +167,54 @@ String? mimeOfName(String name) {
     _ => null,
   };
 }
+
+/// Someone who marked a file Received (library_file_receipts,
+/// library_overview): through any post carrying this version, the first
+/// time they did. Faces and names, never a count (rule 3).
+@immutable
+class LibraryReceipt {
+  const LibraryReceipt({
+    required this.profileId,
+    required this.name,
+    required this.at,
+    this.mine = false,
+  });
+
+  factory LibraryReceipt.fromJson(Map<String, dynamic> json) => LibraryReceipt(
+    profileId: json['profile_id'] as String,
+    name: json['name'] as String? ?? '',
+    at: DateTime.parse(json['at'] as String),
+    mine: json['mine'] as bool? ?? false,
+  );
+
+  final String profileId;
+  final String name;
+  final DateTime at;
+  final bool mine;
+}
+
+/// A file in use in the Library list (LV1, library_overview): whether it
+/// is a new version I haven't received (NEW VERSION), and up to 4 of the
+/// newest who received it.
+@immutable
+class LibraryOverview {
+  const LibraryOverview({
+    required this.fileId,
+    this.newForMe = false,
+    this.received = const [],
+  });
+
+  factory LibraryOverview.fromJson(Map<String, dynamic> json) =>
+      LibraryOverview(
+        fileId: json['file_id'] as String,
+        newForMe: json['new_for_me'] as bool? ?? false,
+        received: [
+          for (final r in (json['received'] as List? ?? const []))
+            LibraryReceipt.fromJson(r as Map<String, dynamic>),
+        ],
+      );
+
+  final String fileId;
+  final bool newForMe;
+  final List<LibraryReceipt> received;
+}
