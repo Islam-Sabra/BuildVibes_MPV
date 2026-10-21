@@ -107,7 +107,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       context,
       key: const Key('space-menu'),
       items: [
-        // Walk the site: for people who may post work (slice 6).
+        // Walk mode: for people who may post work (slice 6).
         if (ref
                 .read(spaceDetailProvider(widget.spaceId))
                 .value

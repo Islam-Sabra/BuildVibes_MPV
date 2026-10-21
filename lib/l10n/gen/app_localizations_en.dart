@@ -3997,7 +3997,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pagePhotoCaption => 'Add a caption';
 
   @override
-  String get walkMenu => 'Walk the site';
+  String get walkMenu => 'Walk mode';
 
   @override
   String get walkTitle => 'Walk';

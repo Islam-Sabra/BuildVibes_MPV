@@ -5779,9 +5779,9 @@
   "@pagePhotoCaption": {
     "description": "N2: a photo block's caption, while the page is edited (up to 300 characters)."
   },
-  "walkMenu": "Walk the site",
+  "walkMenu": "Walk mode",
   "@walkMenu": {
-    "description": "The Space menu: walk mode, one photo and one line per thing to fix (slice 6)."
+    "description": "The Space menu: walk mode, one photo and one line per thing to fix (slice 6). Says no \"site\": BuildVibes is for the whole industry."
   },
   "walkTitle": "Walk",
   "@walkTitle": {

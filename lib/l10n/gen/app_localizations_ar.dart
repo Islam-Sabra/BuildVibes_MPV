@@ -4001,7 +4001,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pagePhotoCaption => 'أضف وصفًا';
 
   @override
-  String get walkMenu => 'جولة في الموقع';
+  String get walkMenu => 'وضع الجولة';
 
   @override
   String get walkTitle => 'جولة';

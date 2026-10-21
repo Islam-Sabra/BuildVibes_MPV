@@ -6752,10 +6752,10 @@ abstract class AppLocalizations {
   /// **'Add a caption'**
   String get pagePhotoCaption;
 
-  /// The Space menu: walk mode, one photo and one line per thing to fix (slice 6).
+  /// The Space menu: walk mode, one photo and one line per thing to fix (slice 6). Says no "site": BuildVibes is for the whole industry.
   ///
   /// In en, this message translates to:
-  /// **'Walk the site'**
+  /// **'Walk mode'**
   String get walkMenu;
 
   /// R1: the walk screen's chip, before the walk's name (Walk · Level 4 corridor).

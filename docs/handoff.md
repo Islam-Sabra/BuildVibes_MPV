@@ -23,7 +23,7 @@ The founder's "ok" (22 Oct): go with review 77's recommendations and build while
 - **For the lead:** an independent check. Then the push with the founder's yes, as the only file, after 34–36.
 
 **App:**
-- **Walk mode (R1).** It starts from **"Walk the site"** in the Space ⋯ menu, for people who may post work.
+- **Walk mode (R1).** It starts from **"Walk mode"** in the Space ⋯ menu, for people who may post work.
   - Name the walk and its place, then for each photo: its line and who does it. The last owner is kept for the next photo.
   - Thumbnails go back to a photo; a long press takes one out.
   - Finish posts through the outbox: each photo goes up into its own work item's folder, then one `create_walk`. With no signal it waits ("Waiting to send", its rows from the phone's photos).
@@ -40,7 +40,7 @@ The founder's "ok" (22 Oct): go with review 77's recommendations and build while
 - **A walk isn't kept if the app is closed mid-walk** (kept on the phone only once Finish is tapped). That comes with slice 10.
 - **R1b and N5 still need redrawing** without the hour spine. Until then the card follows v13's card.
 
-**Checks:** `flutter analyze` clean; `flutter test`: the walk, page and daybook tests pass; the full count follows. Screenshots EN and AR at 390×844 in `docs/screens/slice6/` (committed): the walk's card, naming the walk, a photo with its line and owner.
+**Checks:** `flutter analyze` clean; `flutter test` **1,438 pass**, 1 fails only in the cloud (photo_privacy H1 needs a non-root user). The menu says "Walk mode" / «وضع الجولة», not "Walk the site": BuildVibes is for the whole industry (the F4 words test caught it). Screenshots EN and AR at 390×844 in `docs/screens/slice6/` (committed): the walk's card, naming the walk, a photo with its line and owner.
 
 **For the PC:**
 - Merge order: … `claude/slice5`, then `claude/slice6`.
