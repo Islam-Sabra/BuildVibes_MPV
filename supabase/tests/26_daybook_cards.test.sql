@@ -287,7 +287,13 @@ select public.create_work_item(pg_temp.sp(), 'Level 4 ceilings', pg_temp.uid('e2
 select public.create_work_item(pg_temp.sp(), 'Bay 1', pg_temp.uid('e2'),
                                p_parent => pg_temp.item('c006'), p_id => pg_temp.item('c007'));
 select is(pg_temp.needs(pg_temp.item('c006')), null, 'a target asks nobody to sign');
-select is(pg_temp.needs(pg_temp.item('c007')), 'to_sign', 'the work item under it does');
+-- Migration 37: the work item under a target is a row on its card, and the
+-- row asks its owner to sign.
+select is((select r ->> 'needs_me'
+           from public.daybook_cards(pg_temp.sp(), null, 100) d,
+                jsonb_array_elements(d.card -> 'children' -> 'rows') r
+           where d.id = pg_temp.item('c006') and r ->> 'id' = pg_temp.item('c007')::text),
+  'to_sign', 'the work item under it does, on its row');
 
 -- A checklist with points left for me: 'to_tick'.
 select public.create_space_post(pg_temp.item('c020'), pg_temp.sp(), 'checklist', 'Before the pour',

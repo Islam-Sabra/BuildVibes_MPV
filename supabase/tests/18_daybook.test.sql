@@ -335,8 +335,8 @@ set local role authenticated;
 select throws_ok($$select pg_temp.raise('a010', 'Too deep', 'e2', p_parent => 'a009')$$, '22023', null,
   'one level only');
 select is((select (daybook.card -> 'children') - 'rows' from public.daybook_cards(pg_temp.sp(), null, 100) daybook
-           where daybook.id = pg_temp.item('a008')), '{"total": 1, "checked": 0}'::jsonb,
-  'the parent shows its progress');
+           where daybook.id = pg_temp.item('a008')), '{"total": 1, "checked": 0, "target": false}'::jsonb,
+  'the parent shows its progress (not a target: migration 37)');
 select is(jsonb_array_length(public.post_page(pg_temp.item('a008')) -> 'under'), 1,
   'opening it lists the work item under it');
 
