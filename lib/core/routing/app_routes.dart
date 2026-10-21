@@ -88,8 +88,18 @@ abstract final class AppRoutes {
   static String spaceTeamNew(String id) => '/spaces/$id/teams/new';
   static String spaceTeam(String id, String teamId) =>
       '/spaces/$id/teams/$teamId';
-  static String spaceThread(String id, String threadId) =>
-      '/spaces/$id/chat/$threadId';
+  static String spaceThread(String id, String threadId, {String? message}) =>
+      Uri(
+        path: '/spaces/$id/chat/$threadId',
+        queryParameters: message == null ? null : {threadMessageParam: message},
+      ).toString();
+
+  /// A thread opened at one message (S Search): scrolled to it,
+  /// highlighted.
+  static const threadMessageParam = 'message';
+
+  /// S · Search inside a Space.
+  static String spaceSearch(String id) => '/spaces/$id/search';
 
   /// F1: the file full screen, on the drawing table.
   static String libraryFile(String id, String fileId) =>

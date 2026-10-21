@@ -1101,5 +1101,13 @@
   "libraryOpen": "افتح",
   "libraryAddVersion": "أضف نسخة جديدة",
   "libraryFileMenu": "المزيد لهذا الملف",
-  "libraryOpenFull": "افتح بملء الشاشة"
+  "libraryOpenFull": "افتح بملء الشاشة",
+  "searchMenu": "بحث",
+  "searchHint": "ابحث في هذه المساحة",
+  "searchClear": "امسح",
+  "searchWorkItems": "بنود العمل",
+  "searchFiles": "الملفات",
+  "searchChat": "المحادثة",
+  "searchNothing": "لا شيء عن «{query}»",
+  "searchMessage": "«{text}»"
 }

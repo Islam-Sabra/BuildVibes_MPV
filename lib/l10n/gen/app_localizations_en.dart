@@ -3956,7 +3956,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get libraryAddFile => '+ Add a file';
+  String get libraryAddFile => 'Add a file';
 
   @override
   String get libraryVersions => 'Versions';
@@ -3973,11 +3973,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryOpen => 'Open';
 
   @override
-  String get libraryAddVersion => '+ Add a new version';
+  String get libraryAddVersion => 'Add a new version';
 
   @override
   String get libraryFileMenu => 'More for this file';
 
   @override
   String get libraryOpenFull => 'Open full screen';
+
+  @override
+  String get searchMenu => 'Search';
+
+  @override
+  String get searchHint => 'Search this Space';
+
+  @override
+  String get searchClear => 'Clear';
+
+  @override
+  String get searchWorkItems => 'Work items';
+
+  @override
+  String get searchFiles => 'Files';
+
+  @override
+  String get searchChat => 'Chat';
+
+  @override
+  String searchNothing(String query) {
+    return 'Nothing found for “$query”';
+  }
+
+  @override
+  String searchMessage(String text) {
+    return '“$text”';
+  }
 }

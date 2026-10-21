@@ -3962,7 +3962,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get libraryAddFile => '+ أضف ملفًا';
+  String get libraryAddFile => 'أضف ملفًا';
 
   @override
   String get libraryVersions => 'النسخ';
@@ -3979,11 +3979,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get libraryOpen => 'افتح';
 
   @override
-  String get libraryAddVersion => '+ أضف نسخة جديدة';
+  String get libraryAddVersion => 'أضف نسخة جديدة';
 
   @override
   String get libraryFileMenu => 'المزيد لهذا الملف';
 
   @override
   String get libraryOpenFull => 'افتح بملء الشاشة';
+
+  @override
+  String get searchMenu => 'بحث';
+
+  @override
+  String get searchHint => 'ابحث في هذه المساحة';
+
+  @override
+  String get searchClear => 'امسح';
+
+  @override
+  String get searchWorkItems => 'بنود العمل';
+
+  @override
+  String get searchFiles => 'الملفات';
+
+  @override
+  String get searchChat => 'المحادثة';
+
+  @override
+  String searchNothing(String query) {
+    return 'لا شيء عن «$query»';
+  }
+
+  @override
+  String searchMessage(String text) {
+    return '«$text»';
+  }
 }

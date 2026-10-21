@@ -5770,5 +5770,47 @@
   "libraryOpenFull": "Open full screen",
   "@libraryOpenFull": {
     "description": "LV2: what a screen reader says for the preview, which opens the drawing table."
+  },
+  "searchMenu": "Search",
+  "@searchMenu": {
+    "description": "The Space menu's first item (MN1): opens Search inside the Space."
+  },
+  "searchHint": "Search this Space",
+  "@searchHint": {
+    "description": "S: the field's placeholder. It searches after 2 characters."
+  },
+  "searchClear": "Clear",
+  "@searchClear": {
+    "description": "S: what a screen reader says for the ✕ in the field."
+  },
+  "searchWorkItems": "Work items",
+  "@searchWorkItems": {
+    "description": "S: the group of posts and checklist points."
+  },
+  "searchFiles": "Files",
+  "@searchFiles": {
+    "description": "S: the group of Library files (only the version in use)."
+  },
+  "searchChat": "Chat",
+  "@searchChat": {
+    "description": "S: the group of chat messages."
+  },
+  "searchNothing": "Nothing found for “{query}”",
+  "@searchNothing": {
+    "description": "S: no results. Never a count (rule 3).",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchMessage": "“{text}”",
+  "@searchMessage": {
+    "description": "S: a chat message's words, in quotes.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
   }
 }

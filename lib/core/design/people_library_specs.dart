@@ -62,3 +62,15 @@ abstract final class BvLibrarySpec {
   static const versionPaddingVertical = BvSpace.s12;
   static const sectionTop = BvSpace.s16;
 }
+
+/// S · Search inside the Space (2543:35148).
+abstract final class BvSearchSpec {
+  static const paddingStart = BvSpace.s12;
+  static const paddingEnd = BvSpace.gutter;
+  static const cancelGap = BvSpace.s8;
+  static const groupTop = BvSpace.s16;
+  static const rowPaddingVertical = BvSpace.s12;
+  static const rowGap = BvSpace.s12;
+  static const tile = 36.0;
+  static const tileIcon = BvSize.iconMd;
+}

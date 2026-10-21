@@ -51,6 +51,7 @@ import '../../features/work/daybook_target.dart';
 import '../../features/chat/thread_screen.dart';
 import '../../features/feed/post_screen.dart';
 import '../../features/library/library_file_screen.dart';
+import '../../features/spaces/space_search_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
@@ -287,7 +288,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => ThreadScreen(
               spaceId: state.pathParameters['id']!,
               threadId: state.pathParameters['threadId']!,
+              atMessage:
+                  state.uri.queryParameters[AppRoutes.threadMessageParam],
             ),
+          ),
+          GoRoute(
+            path: 'search',
+            builder: (context, state) =>
+                SpaceSearchScreen(spaceId: state.pathParameters['id']!),
           ),
           // "new" before ":teamId".
           GoRoute(

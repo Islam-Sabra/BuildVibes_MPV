@@ -6662,10 +6662,10 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 older version} other{{count} older versions}}'**
   String libraryOlderVersions(int count);
 
-  /// LV1: the quiet last row for people who may add files; opens the Work tab's writing card as a Document for receipt (review 69 1b).
+  /// LV1: the quiet last row (with a + icon) for people who may add files; opens the Work tab's writing card as a Document for receipt (review 69 1b).
   ///
   /// In en, this message translates to:
-  /// **'+ Add a file'**
+  /// **'Add a file'**
   String get libraryAddFile;
 
   /// LV2: the label above a file's versions.
@@ -6692,10 +6692,10 @@ abstract class AppLocalizations {
   /// **'Open'**
   String get libraryOpen;
 
-  /// LV2: under the versions, for people who may add files; opens the writing card with Replaces set.
+  /// LV2: under the versions (with a + icon), for people who may add files; opens the writing card with Replaces set.
   ///
   /// In en, this message translates to:
-  /// **'+ Add a new version'**
+  /// **'Add a new version'**
   String get libraryAddVersion;
 
   /// LV2: what a screen reader says for the ⋯ button (Share in chat, Download).
@@ -6709,6 +6709,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open full screen'**
   String get libraryOpenFull;
+
+  /// The Space menu's first item (MN1): opens Search inside the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchMenu;
+
+  /// S: the field's placeholder. It searches after 2 characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Search this Space'**
+  String get searchHint;
+
+  /// S: what a screen reader says for the ✕ in the field.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get searchClear;
+
+  /// S: the group of posts and checklist points.
+  ///
+  /// In en, this message translates to:
+  /// **'Work items'**
+  String get searchWorkItems;
+
+  /// S: the group of Library files (only the version in use).
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get searchFiles;
+
+  /// S: the group of chat messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get searchChat;
+
+  /// S: no results. Never a count (rule 3).
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found for “{query}”'**
+  String searchNothing(String query);
+
+  /// S: a chat message's words, in quotes.
+  ///
+  /// In en, this message translates to:
+  /// **'“{text}”'**
+  String searchMessage(String text);
 }
 
 class _AppLocalizationsDelegate

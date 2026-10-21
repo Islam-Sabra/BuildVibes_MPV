@@ -23,6 +23,7 @@ import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_sheet.dart';
@@ -52,10 +53,14 @@ class ThreadScreen extends ConsumerStatefulWidget {
     super.key,
     required this.spaceId,
     required this.threadId,
+    this.atMessage,
   });
 
   final String spaceId;
   final String threadId;
+
+  /// Opened from Search at this message: scrolled to it, highlighted.
+  final String? atMessage;
 
   @override
   ConsumerState<ThreadScreen> createState() => _ThreadScreenState();
@@ -68,6 +73,11 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   late final ChatRepository _repo = ref.read(chatRepositoryProvider);
   ChatReply? _replyTo;
   String? _newest;
+
+  /// [ThreadScreen.atMessage]'s row, and its ring once it is found.
+  final _atKey = GlobalKey();
+  String? _flashAt;
+  var _revealed = false;
 
   /// Photos and a PDF picked for the next message, kept on the phone.
   final _files = <PhoneFile>[];
@@ -349,6 +359,26 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   /// the message quoted in it ("From Rakesh Nair · 10:15"), made from it
   /// (p_source_message). A Team thread's message stays in that Team; the
   /// server checks it too. Nothing is posted until Post.
+  /// Scrolls up the thread until [ThreadScreen.atMessage]'s row is built,
+  /// then brings it to the middle and rings it (S Search).
+  Future<void> _reveal() async {
+    while (mounted && _atKey.currentContext == null && _scroll.hasClients) {
+      final position = _scroll.position;
+      if (position.pixels >= position.maxScrollExtent) break;
+      _scroll.jumpTo(
+        (position.pixels + position.viewportDimension).clamp(
+          0,
+          position.maxScrollExtent,
+        ),
+      );
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    final row = _atKey.currentContext;
+    if (!mounted || row == null || !row.mounted) return;
+    await Scrollable.ensureVisible(row, alignment: 0.5);
+    if (mounted) setState(() => _flashAt = widget.atMessage);
+  }
+
   Future<void> _turnIntoWorkItem(ChatMessage m) async {
     final thread = ref
         .read(spaceThreadsProvider(widget.spaceId))
@@ -510,6 +540,12 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
 
     final name = thread == null ? '' : threadName(l10n, thread);
     final shown = messages.value ?? const <ChatMessage>[];
+    if (!_revealed &&
+        widget.atMessage != null &&
+        shown.any((m) => m.id == widget.atMessage)) {
+      _revealed = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reveal());
+    }
     final sentIds = {for (final m in shown) m.id};
     // Newest first, to match the reversed list.
     final entries = <_Entry>[
@@ -583,19 +619,30 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
                             vertical: BvSpace.s12,
                           ),
                           itemCount: entries.length,
-                          itemBuilder: (context, i) => _EntryView(
-                            spaceId: widget.spaceId,
-                            entry: entries[i],
-                            older: i + 1 < entries.length
-                                ? entries[i + 1]
-                                : null,
-                            newer: i > 0 ? entries[i - 1] : null,
-                            latestCards: latestCards,
-                            me: me,
-                            iAmAdmin: space?.iAmAdmin ?? false,
-                            onActions: _actions,
-                            onRetry: _retry,
-                          ),
+                          itemBuilder: (context, i) {
+                            final view = _EntryView(
+                              spaceId: widget.spaceId,
+                              entry: entries[i],
+                              older: i + 1 < entries.length
+                                  ? entries[i + 1]
+                                  : null,
+                              newer: i > 0 ? entries[i - 1] : null,
+                              latestCards: latestCards,
+                              me: me,
+                              iAmAdmin: space?.iAmAdmin ?? false,
+                              onActions: _actions,
+                              onRetry: _retry,
+                            );
+                            final at = widget.atMessage;
+                            if (at == null || entries[i].message?.id != at) {
+                              return view;
+                            }
+                            return BvHighlight(
+                              key: _atKey,
+                              flash: _flashAt,
+                              child: view,
+                            );
+                          },
                         )
                 : messages.hasError
                 ? Center(child: EmptyNote(l10n.errorGeneric))
