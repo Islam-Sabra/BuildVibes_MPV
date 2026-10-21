@@ -20,7 +20,9 @@ import 'package:buildvibes/features/work/daybook_photos.dart'
     show filePreviewProvider;
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
+import 'package:buildvibes/data/repositories/page_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
+import 'package:buildvibes/data/repositories/search_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/project_repository.dart';
@@ -50,7 +52,9 @@ import 'fakes.dart';
 import 'library_fakes.dart';
 import 'post_fakes.dart';
 import 'push_fakes.dart';
+import 'page_fakes.dart';
 import 'safety_fakes.dart';
+import 'search_fakes.dart';
 import 'voice_fakes.dart';
 import 'profile_fakes.dart';
 import 'space_fakes.dart';
@@ -98,6 +102,8 @@ class TestApp {
     required this.dm,
     required this.chat,
     required this.library,
+    required this.search,
+    required this.postPages,
     required this.recorder,
     required this.posts,
     required this.playback,
@@ -134,6 +140,8 @@ class TestApp {
   final FakeDmRepository dm;
   final FakeChatRepository chat;
   final FakeLibraryRepository library;
+  final FakeSearchRepository search;
+  final FakePageRepository postPages;
   final FakeVoiceRecorder recorder;
   final FakePostRepository posts;
   final FakeVoicePlayback playback;
@@ -184,6 +192,8 @@ Future<TestApp> pumpApp(
   FakeDmRepository? dm,
   FakeChatRepository? chat,
   FakeLibraryRepository? library,
+  FakeSearchRepository? search,
+  FakePageRepository? postPages,
   FakeVoiceRecorder? recorder,
   FakePostRepository? posts,
   FakeActivityRepository? activity,
@@ -256,6 +266,8 @@ Future<TestApp> pumpApp(
   final fakeDm = dm ?? FakeDmRepository();
   final fakeChat = chat ?? FakeChatRepository(now: testNow);
   final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
+  final fakeSearch = search ?? FakeSearchRepository();
+  final fakePages = postPages ?? FakePageRepository();
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
   final fakePosts = posts ?? FakePostRepository(now: testNow);
   final fakePlayback = FakeVoicePlayback();
@@ -302,6 +314,8 @@ Future<TestApp> pumpApp(
         ),
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
+        searchRepositoryProvider.overrideWithValue(fakeSearch),
+        pageRepositoryProvider.overrideWithValue(fakePages),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
         postRepositoryProvider.overrideWithValue(fakePosts),
         activityRepositoryProvider.overrideWithValue(fakeActivity),
@@ -414,6 +428,8 @@ Future<TestApp> pumpApp(
     dm: fakeDm,
     chat: fakeChat,
     library: fakeLibrary,
+    search: fakeSearch,
+    postPages: fakePages,
     recorder: fakeRecorder,
     posts: fakePosts,
     playback: fakePlayback,

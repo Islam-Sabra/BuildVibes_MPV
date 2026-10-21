@@ -258,4 +258,16 @@ abstract final class BvIcons {
   /// above (the Home feed's top). Up and down don't mirror.
   static const newBelow = IconData(0xe03e, fontFamily: _family);
   static const newAbove = IconData(0xe08e, fontFamily: _family);
+
+  // The page's blocks (slice 5, N2–N3).
+  // Phosphor: text-t (a text block)
+  static const textBlock = IconData(0xe48a, fontFamily: _family);
+  // Phosphor: text-h (a heading)
+  static const headingBlock = IconData(0xe6ba, fontFamily: _family);
+  // Phosphor: table
+  static const tableBlock = IconData(0xe476, fontFamily: _family);
+  // Phosphor: dots-six-vertical (⋮⋮, hold to move a block)
+  static const dragHandle = IconData(0xeae2, fontFamily: _family);
+  // Phosphor: square (a point not ticked, while the page is edited)
+  static const checkbox = IconData(0xe45e, fontFamily: _family);
 }

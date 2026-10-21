@@ -7,10 +7,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/library.dart';
 import '../../data/repositories/activity_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../core/design/around_specs.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_space_header.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
@@ -24,7 +24,7 @@ import 'people_tab.dart';
 import 'spaces_state.dart';
 
 /// What the Space menu offers now (MN1).
-enum _SpaceMenu { info }
+enum _SpaceMenu { walk, search, info }
 
 /// How a Space opens: on its People tab, with the invite screen on top
 /// right after it was created (review 06, S5), or on its daybook with the
@@ -59,6 +59,15 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           SpaceOpen.write || null => SpaceScreen.workTab,
         };
 
+  /// The Library asked for a file post (review 69 1b); a tab tap clears
+  /// it, so it opens once.
+  DaybookFileStart? _fileStart;
+
+  void _addFile({LibraryFile? replaces}) => setState(() {
+    _fileStart = DaybookFileStart(replaces: replaces);
+    _tab = SpaceScreen.workTab;
+  });
+
   @override
   void initState() {
     super.initState();
@@ -89,41 +98,45 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     refreshDay(container.invalidate);
   }
 
-  /// The Space menu (MN1 2566:35619): only what works now. Search (slice
-  /// 4), Daily report (slice 7) and Week report (slice 9) join it when
-  /// they are built; nothing says "coming soon" (review 43).
+  /// The Space menu (MN1 2566:35619): only what works now, Search and
+  /// Space info. Daily report (slice 7) and Week report (slice 9) join it
+  /// when they are built; nothing says "coming soon" (review 43).
   Future<void> _openMenu() async {
     final l10n = AppLocalizations.of(context);
-    final picked = await showGeneralDialog<_SpaceMenu>(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: BvColors.overlayScrim,
-      pageBuilder: (menuContext, _, _) => SafeArea(
-        child: Align(
-          alignment: AlignmentDirectional.topEnd,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.only(
-              top: BvScreenMenuSpec.top,
-              end: BvScreenMenuSpec.end,
-            ),
-            child: BvPopoverMenu<_SpaceMenu>.screen(
-              key: const Key('space-menu'),
-              items: [
-                BvMenuItem(
-                  value: _SpaceMenu.info,
-                  label: l10n.spacesInfoTitle,
-                  icon: BvIcons.info,
-                ),
-              ],
-              onSelected: (v) => Navigator.of(menuContext).pop(v),
-            ),
+    final picked = await showBvScreenMenu<_SpaceMenu>(
+      context,
+      key: const Key('space-menu'),
+      items: [
+        // Walk mode: for people who may post work (slice 6).
+        if (ref
+                .read(spaceDetailProvider(widget.spaceId))
+                .value
+                ?.myRights
+                .createItems ??
+            false)
+          BvMenuItem(
+            value: _SpaceMenu.walk,
+            label: l10n.walkMenu,
+            icon: BvIcons.camera,
           ),
+        BvMenuItem(
+          value: _SpaceMenu.search,
+          label: l10n.searchMenu,
+          icon: BvIcons.search,
         ),
-      ),
+        BvMenuItem(
+          value: _SpaceMenu.info,
+          label: l10n.spacesInfoTitle,
+          icon: BvIcons.info,
+        ),
+      ],
     );
     if (!mounted) return;
     switch (picked) {
+      case _SpaceMenu.walk:
+        await context.push(AppRoutes.spaceWalk(widget.spaceId));
+      case _SpaceMenu.search:
+        await context.push(AppRoutes.spaceSearch(widget.spaceId));
       case _SpaceMenu.info:
         await _openInfo();
       case null:
@@ -170,9 +183,13 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           space: detail,
           startWriting: widget.open == SpaceOpen.write,
           target: widget.target,
+          startFile: _fileStart,
         ),
         SpaceScreen.chatTab => ChatTab(space: detail),
-        SpaceScreen.libraryTab => LibraryTab(space: detail),
+        SpaceScreen.libraryTab => LibraryTab(
+          space: detail,
+          onAddFile: _addFile,
+        ),
         SpaceScreen.peopleTab => PeopleTab(space: detail),
         _ => Padding(
           padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
@@ -181,7 +198,10 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       },
       bottomNavigationBar: BvBottomBar(
         selectedIndex: _tab,
-        onSelect: (i) => setState(() => _tab = i),
+        onSelect: (i) => setState(() {
+          _tab = i;
+          _fileStart = null;
+        }),
         items: [
           BvBottomBarItem(
             key: const Key('space-tab-work'),

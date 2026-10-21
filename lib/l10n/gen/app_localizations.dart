@@ -3020,10 +3020,10 @@ abstract class AppLocalizations {
   /// **'{size} KB'**
   String fileSizeKb(String size);
 
-  /// S13k search.
+  /// LV1: the search field on top; it filters the list in the app (names, revisions, notes).
   ///
   /// In en, this message translates to:
-  /// **'Search titles and file names'**
+  /// **'Search files'**
   String get librarySearch;
 
   /// S13k filter.
@@ -6577,6 +6577,522 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n, plural, =0{} =1{, and 1 more} other{, and {n} more}}'**
   String daybookDocketRest(int n);
+
+  /// Over a message quoted in a post (review 64, DM5): who wrote it and when.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name} · {when}'**
+  String daybookQuoteFrom(String name, String when);
+
+  /// Over a quoted message with no time.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String daybookQuoteFromName(String name);
+
+  /// DM3 hold menu and the DM4 sheet's title (review 64): make a work item in a Space from this message, quoted. The message stays in the thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Put in a Space'**
+  String get dmPutInSpace;
+
+  /// DM4 when the person has no Space where their pass lets them post.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re not in a Space where you can add work yet.'**
+  String get dmPutInSpaceNone;
+
+  /// S8m hold menu in Space chat (review 64): the Work tab opens with a work item being written, this message quoted.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn into a work item'**
+  String get chatTurnIntoWorkItem;
+
+  /// P1: the end of a join request's line (Foreman · Gulf Build Co. · wants to join).
+  ///
+  /// In en, this message translates to:
+  /// **'wants to join'**
+  String get peopleWantsToJoin;
+
+  /// P1: the pill on a join request; opens the three passes in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Let in'**
+  String get peopleLetIn;
+
+  /// P2: the grey pill until a pass is chosen (nothing is chosen first, review 69).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a pass'**
+  String get peopleChoosePass;
+
+  /// P2: the pill once a pass is chosen (Let in as Crew).
+  ///
+  /// In en, this message translates to:
+  /// **'Let in as {pass}'**
+  String peopleLetInAs(String pass);
+
+  /// P1: the section of people with a Lead pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get peopleLeads;
+
+  /// P1: the section of people with a Crew pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Crew'**
+  String get peopleCrew;
+
+  /// P1: the section of people with a Viewer pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewers'**
+  String get peopleViewers;
+
+  /// P1: after the role in a member's line for the Space admin (BIM Manager · admin).
+  ///
+  /// In en, this message translates to:
+  /// **'admin'**
+  String get peopleAdmin;
+
+  /// P1: the chip after the Teams, for the Space admin only.
+  ///
+  /// In en, this message translates to:
+  /// **'+ New team'**
+  String get peopleNewTeam;
+
+  /// P1: the row at the bottom; a tap copies the code. The code is Latin, as the server writes it.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite with the code {code}'**
+  String peopleInviteCode(String code);
+
+  /// P2: after Let in; the person's row is highlighted in their section.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is in, as {pass}.'**
+  String peopleLetInDone(String name, String pass);
+
+  /// LV1: how many earlier versions a file has (a fact about the file, not a quality signal, review 67).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 older version} other{{count} older versions}}'**
+  String libraryOlderVersions(int count);
+
+  /// LV1: the quiet last row (with a + icon) for people who may add files; opens the Work tab's writing card as a Document for receipt (review 69 1b).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a file'**
+  String get libraryAddFile;
+
+  /// LV2: the label above a file's versions.
+  ///
+  /// In en, this message translates to:
+  /// **'Versions'**
+  String get libraryVersions;
+
+  /// LV2: the version in use, with an orange dot (Rev D · in use).
+  ///
+  /// In en, this message translates to:
+  /// **'{rev} · in use'**
+  String libraryInUse(String rev);
+
+  /// LV2: a version with no revision written on it.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get libraryVersion;
+
+  /// LV2: opens an older version full screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get libraryOpen;
+
+  /// LV2: under the versions (with a + icon), for people who may add files; opens the writing card with Replaces set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a new version'**
+  String get libraryAddVersion;
+
+  /// LV2: what a screen reader says for the ⋯ button (Share in chat, Download).
+  ///
+  /// In en, this message translates to:
+  /// **'More for this file'**
+  String get libraryFileMenu;
+
+  /// LV2: what a screen reader says for the preview, which opens the drawing table.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full screen'**
+  String get libraryOpenFull;
+
+  /// The Space menu's first item (MN1): opens Search inside the Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchMenu;
+
+  /// S: the field's placeholder. It searches after 2 characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Search this Space'**
+  String get searchHint;
+
+  /// S: what a screen reader says for the ✕ in the field.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get searchClear;
+
+  /// S: the group of posts and checklist points.
+  ///
+  /// In en, this message translates to:
+  /// **'Work items'**
+  String get searchWorkItems;
+
+  /// S: the group of Library files (only the version in use).
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get searchFiles;
+
+  /// S: the group of chat messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get searchChat;
+
+  /// S: no results. Never a count (rule 3).
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found for “{query}”'**
+  String searchNothing(String query);
+
+  /// S: a chat message's words, in quotes.
+  ///
+  /// In en, this message translates to:
+  /// **'“{text}”'**
+  String searchMessage(String text);
+
+  /// Slice 5: the quiet grey line on a card whose page holds more than the card (with a forward caret). No count.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the page'**
+  String get pageOpen;
+
+  /// Slice 5: the author's item in the card's menu, and the page's head while reading.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit page'**
+  String get pageEdit;
+
+  /// N2: ends editing the page and saves it.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pageDone;
+
+  /// N1: what a screen reader says for the ✕.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the page'**
+  String get pageClose;
+
+  /// N1: the label over the work items under this one.
+  ///
+  /// In en, this message translates to:
+  /// **'Work items under this one'**
+  String get pageUnder;
+
+  /// N1: this item's own work items, how many are checked: a fact about this item, not a quality signal.
+  ///
+  /// In en, this message translates to:
+  /// **'{checked} of {total} checked'**
+  String pageUnderChecked(int checked, int total);
+
+  /// N2: the last line of the page while its author edits it.
+  ///
+  /// In en, this message translates to:
+  /// **'Type / to add a block'**
+  String get pageAddBlock;
+
+  /// N3: what a screen reader says for the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get pageMenuTitle;
+
+  /// N3: the block menu; N4: Turn into.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get pageText;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get pageHeading;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get pageChecklist;
+
+  /// N3: the block menu (a line that opens to show more).
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle'**
+  String get pageToggle;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get pageTable;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get pagePhoto;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get pageFile;
+
+  /// N3: the block menu; N4: Turn into.
+  ///
+  /// In en, this message translates to:
+  /// **'Work item under this one'**
+  String get pageItemUnder;
+
+  /// N4: Turn into.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist point'**
+  String get pagePoint;
+
+  /// N4: the title over the choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn into'**
+  String get pageTurnInto;
+
+  /// N4: why a ticked point can't be turned into something else.
+  ///
+  /// In en, this message translates to:
+  /// **'A ticked point stays as it is.'**
+  String get pageTickedStays;
+
+  /// N2: a block's action.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get pageDelete;
+
+  /// N2: after a block is deleted, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Block deleted.'**
+  String get pageDeleted;
+
+  /// N2: what a screen reader says for a block's ⋮⋮ handle (hold to drag).
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get pageMove;
+
+  /// N4: what a screen reader says for a block's menu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this block'**
+  String get pageBlockMenu;
+
+  /// A table's + at the bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a row'**
+  String get pageAddRow;
+
+  /// A table's + at the end side.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a column'**
+  String get pageAddColumn;
+
+  /// A long press on a table cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row'**
+  String get pageDeleteRow;
+
+  /// A long press on a table cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete column'**
+  String get pageDeleteColumn;
+
+  /// N2: the save found a newer page saved by the author's other phone.
+  ///
+  /// In en, this message translates to:
+  /// **'This page changed on another phone. Yours is kept here.'**
+  String get pageStale;
+
+  /// N2: after a newer page: save this phone's copy over it.
+  ///
+  /// In en, this message translates to:
+  /// **'Use mine'**
+  String get pageUseMine;
+
+  /// N2: after a newer page: drop this phone's edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the newer one'**
+  String get pageUseNewer;
+
+  /// N3: no more photos or files on this post.
+  ///
+  /// In en, this message translates to:
+  /// **'A page holds up to 10 photos and files.'**
+  String get pageFull;
+
+  /// N3: the placeholder for a new work item under this one.
+  ///
+  /// In en, this message translates to:
+  /// **'What needs doing'**
+  String get pageItemTitle;
+
+  /// N4: a point too long to be a work item's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorten it to 140 characters to make it a work item.'**
+  String get pageTooLongForItem;
+
+  /// N2: a photo block's caption, while the page is edited (up to 300 characters).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a caption'**
+  String get pagePhotoCaption;
+
+  /// The Space menu: walk mode, one photo and one line per thing to fix (slice 6). Says no "site": BuildVibes is for the whole industry.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk mode'**
+  String get walkMenu;
+
+  /// R1: the walk screen's chip, before the walk's name (Walk · Level 4 corridor).
+  ///
+  /// In en, this message translates to:
+  /// **'Walk'**
+  String get walkTitle;
+
+  /// R1: the walk's name before the first photo (Walk, level 4 corridor).
+  ///
+  /// In en, this message translates to:
+  /// **'Name this walk'**
+  String get walkNameHint;
+
+  /// R1: starts the walk with the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the first photo'**
+  String get walkStart;
+
+  /// R1: the line for the photo just taken (2 to 140 characters). The keyboard's mic types it.
+  ///
+  /// In en, this message translates to:
+  /// **'What needs doing here'**
+  String get walkLineHint;
+
+  /// R1: the owner chip before one is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Who does it'**
+  String get walkOwner;
+
+  /// R1: the shutter's label once this photo has its line and owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Next photo'**
+  String get walkNext;
+
+  /// R1: how many photos so far, beside the shutter.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String walkPhotos(int count);
+
+  /// R1: posts the walk, one work item per photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get walkFinish;
+
+  /// R1: the photo has no line yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what needs doing, then the next photo.'**
+  String get walkNeedsLine;
+
+  /// R1: the photo has no owner yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who does it, then the next photo.'**
+  String get walkNeedsOwner;
+
+  /// R1: the 30th photo was taken.
+  ///
+  /// In en, this message translates to:
+  /// **'A walk holds 30 photos. Finish it, then start another.'**
+  String get walkFull;
+
+  /// R1: ✕ once there is a photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw this walk away?'**
+  String get walkDiscardTitle;
+
+  /// R1: under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'Its photos aren\'t sent.'**
+  String get walkDiscardBody;
+
+  /// R1: keeps the walk.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep walking'**
+  String get walkKeep;
+
+  /// R1: drops the walk and its photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw away'**
+  String get walkDiscard;
+
+  /// R1: a thumbnail's action.
+  ///
+  /// In en, this message translates to:
+  /// **'Take this photo out'**
+  String get walkRemovePhoto;
+
+  /// R1b: under a walk's title: a fact about this post.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo, a work item} other{{count} photos, each one a work item}}'**
+  String walkEachItem(int count);
+
+  /// R1b: more rows than the card shows; opens the page.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get walkShowAll;
 }
 
 class _AppLocalizationsDelegate

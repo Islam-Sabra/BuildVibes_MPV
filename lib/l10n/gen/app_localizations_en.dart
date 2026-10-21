@@ -1724,7 +1724,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get librarySearch => 'Search titles and file names';
+  String get librarySearch => 'Search files';
 
   @override
   String get libraryAll => 'All';
@@ -3912,4 +3912,308 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String daybookQuoteFrom(String name, String when) {
+    return 'From $name · $when';
+  }
+
+  @override
+  String daybookQuoteFromName(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get dmPutInSpace => 'Put in a Space';
+
+  @override
+  String get dmPutInSpaceNone =>
+      'You\'re not in a Space where you can add work yet.';
+
+  @override
+  String get chatTurnIntoWorkItem => 'Turn into a work item';
+
+  @override
+  String get peopleWantsToJoin => 'wants to join';
+
+  @override
+  String get peopleLetIn => 'Let in';
+
+  @override
+  String get peopleChoosePass => 'Choose a pass';
+
+  @override
+  String peopleLetInAs(String pass) {
+    return 'Let in as $pass';
+  }
+
+  @override
+  String get peopleLeads => 'Leads';
+
+  @override
+  String get peopleCrew => 'Crew';
+
+  @override
+  String get peopleViewers => 'Viewers';
+
+  @override
+  String get peopleAdmin => 'admin';
+
+  @override
+  String get peopleNewTeam => '+ New team';
+
+  @override
+  String peopleInviteCode(String code) {
+    return 'Invite with the code $code';
+  }
+
+  @override
+  String peopleLetInDone(String name, String pass) {
+    return '$name is in, as $pass.';
+  }
+
+  @override
+  String libraryOlderVersions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count older versions',
+      one: '1 older version',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryAddFile => 'Add a file';
+
+  @override
+  String get libraryVersions => 'Versions';
+
+  @override
+  String libraryInUse(String rev) {
+    return '$rev · in use';
+  }
+
+  @override
+  String get libraryVersion => 'Version';
+
+  @override
+  String get libraryOpen => 'Open';
+
+  @override
+  String get libraryAddVersion => 'Add a new version';
+
+  @override
+  String get libraryFileMenu => 'More for this file';
+
+  @override
+  String get libraryOpenFull => 'Open full screen';
+
+  @override
+  String get searchMenu => 'Search';
+
+  @override
+  String get searchHint => 'Search this Space';
+
+  @override
+  String get searchClear => 'Clear';
+
+  @override
+  String get searchWorkItems => 'Work items';
+
+  @override
+  String get searchFiles => 'Files';
+
+  @override
+  String get searchChat => 'Chat';
+
+  @override
+  String searchNothing(String query) {
+    return 'Nothing found for “$query”';
+  }
+
+  @override
+  String searchMessage(String text) {
+    return '“$text”';
+  }
+
+  @override
+  String get pageOpen => 'Open the page';
+
+  @override
+  String get pageEdit => 'Edit page';
+
+  @override
+  String get pageDone => 'Done';
+
+  @override
+  String get pageClose => 'Close the page';
+
+  @override
+  String get pageUnder => 'Work items under this one';
+
+  @override
+  String pageUnderChecked(int checked, int total) {
+    return '$checked of $total checked';
+  }
+
+  @override
+  String get pageAddBlock => 'Type / to add a block';
+
+  @override
+  String get pageMenuTitle => 'Add';
+
+  @override
+  String get pageText => 'Text';
+
+  @override
+  String get pageHeading => 'Heading';
+
+  @override
+  String get pageChecklist => 'Checklist';
+
+  @override
+  String get pageToggle => 'Toggle';
+
+  @override
+  String get pageTable => 'Table';
+
+  @override
+  String get pagePhoto => 'Photo';
+
+  @override
+  String get pageFile => 'File';
+
+  @override
+  String get pageItemUnder => 'Work item under this one';
+
+  @override
+  String get pagePoint => 'Checklist point';
+
+  @override
+  String get pageTurnInto => 'Turn into';
+
+  @override
+  String get pageTickedStays => 'A ticked point stays as it is.';
+
+  @override
+  String get pageDelete => 'Delete';
+
+  @override
+  String get pageDeleted => 'Block deleted.';
+
+  @override
+  String get pageMove => 'Move';
+
+  @override
+  String get pageBlockMenu => 'More for this block';
+
+  @override
+  String get pageAddRow => 'Add a row';
+
+  @override
+  String get pageAddColumn => 'Add a column';
+
+  @override
+  String get pageDeleteRow => 'Delete row';
+
+  @override
+  String get pageDeleteColumn => 'Delete column';
+
+  @override
+  String get pageStale =>
+      'This page changed on another phone. Yours is kept here.';
+
+  @override
+  String get pageUseMine => 'Use mine';
+
+  @override
+  String get pageUseNewer => 'Use the newer one';
+
+  @override
+  String get pageFull => 'A page holds up to 10 photos and files.';
+
+  @override
+  String get pageItemTitle => 'What needs doing';
+
+  @override
+  String get pageTooLongForItem =>
+      'Shorten it to 140 characters to make it a work item.';
+
+  @override
+  String get pagePhotoCaption => 'Add a caption';
+
+  @override
+  String get walkMenu => 'Walk mode';
+
+  @override
+  String get walkTitle => 'Walk';
+
+  @override
+  String get walkNameHint => 'Name this walk';
+
+  @override
+  String get walkStart => 'Take the first photo';
+
+  @override
+  String get walkLineHint => 'What needs doing here';
+
+  @override
+  String get walkOwner => 'Who does it';
+
+  @override
+  String get walkNext => 'Next photo';
+
+  @override
+  String walkPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkFinish => 'Finish';
+
+  @override
+  String get walkNeedsLine => 'Write what needs doing, then the next photo.';
+
+  @override
+  String get walkNeedsOwner => 'Choose who does it, then the next photo.';
+
+  @override
+  String get walkFull =>
+      'A walk holds 30 photos. Finish it, then start another.';
+
+  @override
+  String get walkDiscardTitle => 'Throw this walk away?';
+
+  @override
+  String get walkDiscardBody => 'Its photos aren\'t sent.';
+
+  @override
+  String get walkKeep => 'Keep walking';
+
+  @override
+  String get walkDiscard => 'Throw away';
+
+  @override
+  String get walkRemovePhoto => 'Take this photo out';
+
+  @override
+  String walkEachItem(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos, each one a work item',
+      one: '1 photo, a work item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkShowAll => 'Show all';
 }

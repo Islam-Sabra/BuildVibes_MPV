@@ -434,6 +434,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(_menu(tester), [
           l10n.daybookEdit,
+          l10n.pageEdit,
           l10n.daybookUnpin,
           l10n.daybookCancelPost,
         ]);
@@ -448,6 +449,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(_menu(tester), [
           l10n.daybookEdit,
+          l10n.pageEdit,
           l10n.daybookUnpin,
           l10n.daybookCancelPost,
         ]);

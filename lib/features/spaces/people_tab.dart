@@ -1,31 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
-import '../../core/l10n/ago.dart';
+import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_button.dart';
-import '../../shared/widgets/bv_list_row.dart';
-import '../../shared/widgets/bv_search_field.dart';
+import '../../shared/widgets/bv_avatar.dart';
+import '../../shared/widgets/bv_controls.dart';
+import '../../shared/widgets/bv_highlight.dart';
+import '../../shared/widgets/bv_pill_button.dart';
+import '../../shared/widgets/bv_post_bar.dart' show BvPassChip;
+import '../../shared/widgets/bv_tap_target.dart';
 import '../entry/entry_state.dart';
-import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
-import 'confirm_sheet.dart';
-import 'member_pass_screen.dart';
 import 'pass_words.dart';
 import 'space_errors.dart';
-import 'widgets/space_person_row.dart';
 
-/// S10k · Space People: search, the requests to join (admins only), the
-/// Teams (each with up to three faces, never a number: rule 3), then the
-/// Space admins and Members.
+/// P1 · Space People (2542:34824): the requests to join (admins only),
+/// then Leads, Crew and Viewers, each with their pass tag, the Teams as
+/// chips, and Invite with the code for people who may invite. Who is
+/// here, never how many (rule 3).
 class PeopleTab extends ConsumerStatefulWidget {
   const PeopleTab({super.key, required this.space});
 
@@ -36,7 +37,15 @@ class PeopleTab extends ConsumerStatefulWidget {
 }
 
 class _PeopleTabState extends ConsumerState<PeopleTab> {
-  var _query = '';
+  /// The request opened in place (P2), and the pass chosen there: none
+  /// at first (review 69 1a).
+  String? _open;
+  SpacePass? _pass;
+  var _sending = false;
+
+  /// The person just let in: their row is highlighted once.
+  String? _flash;
+  final _flashKey = GlobalKey();
 
   String get _spaceId => widget.space.id;
 
@@ -46,45 +55,47 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
       ..invalidate(mySpacesProvider);
   }
 
-  String _askedLine(SpaceJoinRequest r) {
+  Future<void> _letIn(SpaceJoinRequest r, SpacePass pass) async {
     final l10n = AppLocalizations.of(context);
-    final now = ref.read(clockProvider)();
-    return joinMeta([
-      l10n.spacesAsked(formatAgo(l10n, r.createdAt.toLocal(), now)),
-      r.invitedByName == null
-          ? l10n.spacesViaCode
-          : l10n.spacesViaCodeFrom(inOwnDirection(r.invitedByName!)),
-    ]);
-  }
-
-  Future<void> _confirm(SpaceJoinRequest r) async {
-    final choice = await showConfirmSheet(
-      context,
-      request: r,
-      askedLine: _askedLine(r),
-    );
-    if (!mounted || choice == null) return;
-    switch (choice) {
-      case DeclineRequest():
-        await _decline(r);
-      case ConfirmWithPass(:final pass):
-        final l10n = AppLocalizations.of(context);
-        try {
-          await ref.read(spaceRepositoryProvider).confirmJoin(r.id, pass);
-          _refresh();
-          if (!mounted) return;
-          context.push(
-            AppRoutes.spaceMember(_spaceId, r.person.id),
-            extra: MemberPassOpen(
-              message: l10n.spacesJoinedAs(
-                r.person.fullName,
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _sending = true);
+    try {
+      await ref.read(spaceRepositoryProvider).confirmJoin(r.id, pass);
+      _refresh();
+      await ref.read(spacePeopleProvider(_spaceId).future);
+      if (!mounted) return;
+      setState(() {
+        _open = null;
+        _pass = null;
+        _flash = r.person.id;
+      });
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.peopleLetInDone(
+                inOwnDirection(r.person.fullName),
                 passName(l10n, pass),
               ),
             ),
+          ),
+        );
+      // Into their section: brought into view, then the ring.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final row = _flashKey.currentContext;
+        if (row != null && row.mounted) {
+          Scrollable.ensureVisible(
+            row,
+            alignment: 0.5,
+            duration: BvMotion.base,
           );
-        } on SpaceException catch (e) {
-          if (mounted) _showError(e);
         }
+      });
+    } on SpaceException catch (e) {
+      if (mounted) _showError(e);
+    } finally {
+      if (mounted) setState(() => _sending = false);
     }
   }
 
@@ -94,6 +105,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await repo.declineJoin(r.id);
+      if (_open == r.id) setState(() => _open = null);
       _refresh();
       messenger.showSnackBar(
         SnackBar(
@@ -124,20 +136,33 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     if (e.failure == SpaceFailure.rule) {
       // Another admin answered first.
       showSpaceMessage(context, l10n.spacesAlreadyAnswered);
+      setState(() => _open = null);
       _refresh();
     } else {
       showSpaceError(context, e);
     }
   }
 
+  Future<void> _copyCode(SpaceInvite invite) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    await Clipboard.setData(ClipboardData(text: invite.code));
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.spacesCodeCopied)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final lang = Localizations.localeOf(context).languageCode;
     final me = ref.watch(authUserIdProvider).value;
     final people = ref.watch(spacePeopleProvider(_spaceId));
     final data = people.value;
+    // Who may invite follows Space info; the rest see no code (review 67).
+    final invite = widget.space.canInvite
+        ? ref.watch(spaceInviteProvider(_spaceId)).value
+        : null;
 
     if (data == null) {
       return people.hasError
@@ -148,47 +173,41 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
           : const Center(child: CircularProgressIndicator());
     }
 
-    final q = _query.trim().toLowerCase();
-    bool matches(SpacePerson p) =>
-        q.isEmpty ||
-        p.fullName.toLowerCase().contains(q) ||
-        (p.roleLabel(lang) ?? '').toLowerCase().contains(q) ||
-        (p.companyLabel ?? '').toLowerCase().contains(q);
-
-    final requests = [
-      for (final r in data.requests)
-        if (matches(r.person)) r,
-    ];
-    final owners = [
-      for (final m in data.members)
-        if (m.isAdmin && matches(m.person)) m,
-    ];
-    final members = [
-      for (final m in data.members)
-        if (!m.isAdmin && matches(m.person)) m,
-    ];
-    final teams = data.teams;
-
     Widget section(String label) => Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
         BvSpace.gutter,
-        BvSpace.s16,
+        BvPeopleSpec.sectionTop,
         BvSpace.gutter,
-        BvSpace.s8,
+        BvPeopleSpec.sectionBottom,
       ),
       child: Text(
         label,
-        style: type.labelMd.copyWith(color: BvColors.textSecondary),
+        style: type.bodySm.copyWith(color: BvColors.textSecondary),
       ),
     );
 
-    String? memberLine(SpaceMember m) {
-      if (m.isAdmin) return l10n.spacesAdminTag;
-      return joinMeta([
-        l10n.spacesPassLine(passName(l10n, m.pass)),
-        for (final t in data.teamsOf(m.person.id)) t.name,
-      ]);
+    List<Widget> group(String label, SpacePass pass) {
+      final members = [
+        for (final m in data.members)
+          if (m.pass == pass) m,
+      ];
+      if (members.isEmpty) return const [];
+      return [
+        section(label),
+        for (final m in members)
+          _MemberRow(
+            key: m.person.id == _flash ? _flashKey : null,
+            member: m,
+            isMe: m.person.id == me,
+            flash: m.person.id == _flash ? _flash : null,
+            onTap: () =>
+                context.push(AppRoutes.spaceMember(_spaceId, m.person.id)),
+          ),
+      ];
     }
+
+    final teams = data.teams;
+    final admin = widget.space.iAmAdmin;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -199,137 +218,74 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
         key: const Key('space-people'),
         padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s32),
         children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(
-              BvSpace.gutter,
-              BvSpace.s12,
-              BvSpace.gutter,
-              0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: BvSpace.s12,
-              children: [
-                BvSearchField(
-                  key: const Key('people-search'),
-                  placeholder: l10n.spacesSearchMembers,
-                  onChanged: (v) => setState(() => _query = v),
-                ),
-                if (widget.space.canInvite && q.isEmpty)
-                  BvButton(
-                    key: const Key('space-invite'),
-                    label: l10n.spacesInvitePeople,
-                    icon: BvIcons.people,
-                    style: BvButtonStyle.secondary,
-                    expand: true,
-                    onPressed: () =>
-                        context.push(AppRoutes.spaceInvite(_spaceId)),
-                  ),
-              ],
-            ),
-          ),
-          if (requests.isNotEmpty) ...[
+          for (final r in data.requests)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvSpace.gutter,
-                BvSpace.s16,
+                BvPeopleSpec.requestTop,
                 BvSpace.gutter,
-                BvSpace.s8,
+                0,
               ),
-              child: Text(
-                l10n.spacesRequestsTitle,
-                style: type.overline.copyWith(color: BvColors.textAction),
+              child: _RequestCard(
+                request: r,
+                open: _open == r.id,
+                pass: _open == r.id ? _pass : null,
+                sending: _sending,
+                onDecline: () => _decline(r),
+                onOpen: () => setState(() {
+                  _open = r.id;
+                  _pass = null;
+                }),
+                onPass: (p) => setState(() => _pass = p),
+                onLetIn: (p) => _letIn(r, p),
               ),
             ),
-            for (var i = 0; i < requests.length; i++) ...[
-              if (i > 0) const _Divider(),
-              _RequestCard(
-                request: requests[i],
-                askedLine: _askedLine(requests[i]),
-                onDecline: () => _decline(requests[i]),
-                onConfirm: () => _confirm(requests[i]),
-              ),
-            ],
-          ],
-          if (q.isEmpty && (teams.isNotEmpty || widget.space.iAmAdmin)) ...[
+          ...group(l10n.peopleLeads, SpacePass.lead),
+          ...group(l10n.peopleCrew, SpacePass.crew),
+          ...group(l10n.peopleViewers, SpacePass.viewer),
+          if (teams.isNotEmpty || admin) ...[
             section(l10n.spacesTeams),
-            for (var i = 0; i < teams.length; i++) ...[
-              if (i > 0) const SpaceRowDivider(),
-              BvListRow(
-                key: Key('team-row-${teams[i].id}'),
-                leading: const BvRowIcon(BvIcons.team, ink: true),
-                title: teams[i].name,
-                subtitle: teams[i].memberIds.contains(me)
-                    ? l10n.spacesInTeam
-                    : null,
-                // Who is in it, never how many (review 54 A4).
-                trailing: BvRowTrailing.faces([
-                  for (final m in data.members)
-                    if (teams[i].memberIds.contains(m.person.id))
-                      (
-                        name: m.person.fullName,
-                        tint: BvAvatarTints.forId(m.person.id),
-                      ),
-                ]),
-                onTap: () =>
-                    context.push(AppRoutes.spaceTeam(_spaceId, teams[i].id)),
-              ),
-            ],
-            if (widget.space.iAmAdmin)
-              Padding(
-                padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: BvSpace.s8,
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: BvButton(
-                    key: const Key('people-new-team'),
-                    label: l10n.spacesNewTeam,
-                    style: BvButtonStyle.tertiary,
-                    size: BvButtonSize.medium,
-                    onPressed: () =>
-                        context.push(AppRoutes.spaceTeamNew(_spaceId)),
-                  ),
-                ),
-              ),
-          ],
-          if (owners.isNotEmpty) ...[
-            section(l10n.spacesAdminSection),
-            for (var i = 0; i < owners.length; i++) ...[
-              if (i > 0) const SpaceRowDivider(),
-              SpacePersonRow(
-                key: Key('member-${owners[i].person.id}'),
-                person: owners[i].person,
-                line: memberLine(owners[i]),
-                isMe: owners[i].person.id == me,
-                onTap: () => context.push(
-                  AppRoutes.spaceMember(_spaceId, owners[i].person.id),
-                ),
-              ),
-            ],
-          ],
-          if (members.isNotEmpty) ...[
-            section(l10n.spacesMembers),
-            for (var i = 0; i < members.length; i++) ...[
-              if (i > 0) const SpaceRowDivider(),
-              SpacePersonRow(
-                key: Key('member-${members[i].person.id}'),
-                person: members[i].person,
-                line: memberLine(members[i]),
-                isMe: members[i].person.id == me,
-                onTap: () => context.push(
-                  AppRoutes.spaceMember(_spaceId, members[i].person.id),
-                ),
-              ),
-            ],
-          ],
-          if (q.isNotEmpty &&
-              requests.isEmpty &&
-              owners.isEmpty &&
-              members.isEmpty)
             Padding(
-              padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-              child: EmptyNote(l10n.spacesNoMatch),
+              padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: BvSpace.gutter,
+                vertical: BvSpace.s4,
+              ),
+              child: Wrap(
+                spacing: BvPeopleSpec.chipGap,
+                runSpacing: BvPeopleSpec.chipGap,
+                children: [
+                  for (final t in teams)
+                    _TeamChip(
+                      key: Key('team-chip-${t.id}'),
+                      label: t.name,
+                      onTap: () =>
+                          context.push(AppRoutes.spaceTeam(_spaceId, t.id)),
+                    ),
+                  // The server lets only the Space admin make a Team.
+                  if (admin)
+                    _TeamChip(
+                      key: const Key('people-new-team'),
+                      label: l10n.peopleNewTeam,
+                      outlined: true,
+                      onTap: () =>
+                          context.push(AppRoutes.spaceTeamNew(_spaceId)),
+                    ),
+                ],
+              ),
+            ),
+          ],
+          if (invite != null)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                BvSpace.gutter,
+                BvPeopleSpec.inviteTop,
+                BvSpace.gutter,
+                0,
+              ),
+              child: _InviteRow(
+                code: invite.grouped,
+                onTap: () => _copyCode(invite),
+              ),
             ),
         ],
       ),
@@ -337,35 +293,29 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
   }
 }
 
-/// Between requests on the peach band.
-class _Divider extends StatelessWidget {
-  const _Divider();
-
-  @override
-  Widget build(BuildContext context) => const ColoredBox(
-    color: BvColors.surfaceBrandSoft,
-    child: Divider(
-      height: BvStroke.thin,
-      thickness: BvStroke.thin,
-      color: BvColors.borderDefault,
-    ),
-  );
-}
-
-/// A request on the peach band: name, role · company, when and how they
-/// asked, then Decline and Confirm.
+/// A request to join: quiet and bordered (P1). "Let in" opens the three
+/// passes in place (P2); nothing is chosen first, so the pill says
+/// "Choose a pass" until one is.
 class _RequestCard extends StatelessWidget {
   const _RequestCard({
     required this.request,
-    required this.askedLine,
+    required this.open,
+    required this.pass,
+    required this.sending,
     required this.onDecline,
-    required this.onConfirm,
+    required this.onOpen,
+    required this.onPass,
+    required this.onLetIn,
   });
 
   final SpaceJoinRequest request;
-  final String askedLine;
+  final bool open;
+  final SpacePass? pass;
+  final bool sending;
   final VoidCallback onDecline;
-  final VoidCallback onConfirm;
+  final VoidCallback onOpen;
+  final ValueChanged<SpacePass> onPass;
+  final ValueChanged<SpacePass> onLetIn;
 
   @override
   Widget build(BuildContext context) {
@@ -373,55 +323,353 @@ class _RequestCard extends StatelessWidget {
     final type = BvType.of(context);
     final lang = Localizations.localeOf(context).languageCode;
     final p = request.person;
-    final role = joinMeta([?p.roleLabel(lang), ?p.companyLabel]);
-    return ColoredBox(
+    // A typed company stays plain text (rule 4).
+    final line = joinMeta([
+      ?p.roleLabel(lang),
+      ?p.companyLabel,
+      l10n.peopleWantsToJoin,
+    ]);
+    final chosen = pass;
+
+    return Container(
       key: Key('request-${request.id}'),
-      color: BvColors.surfaceBrandSoft,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(
-          horizontal: BvSpace.gutter,
-          vertical: BvSpace.s16,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: BvSpace.s4,
-          children: [
-            Text(p.fullName, style: type.titleMd),
-            if (role.isNotEmpty)
-              Text(
-                role,
-                style: type.bodySm.copyWith(color: BvColors.textSecondary),
+      padding: const EdgeInsetsDirectional.all(BvPeopleSpec.requestPadding),
+      decoration: BoxDecoration(
+        color: BvColors.surfaceElevated,
+        borderRadius: BvPeopleSpec.requestRadius,
+        border: Border.all(color: BvColors.borderDefault, width: BvStroke.thin),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            spacing: BvPeopleSpec.requestGap,
+            children: [
+              BvAvatar(
+                name: p.fullName,
+                size: BvAvatarSize.list,
+                tint: BvAvatarTints.forId(p.id),
               ),
-            Text(
-              askedLine,
-              style: type.metadata.copyWith(color: BvColors.textSecondary),
-            ),
-            const SizedBox(height: BvSpace.s8),
-            Row(
-              spacing: BvSpace.s12,
-              children: [
-                Expanded(
-                  child: BvButton(
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: BvSpace.s2,
+                  children: [
+                    Text(
+                      p.fullName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.bodyMd,
+                    ),
+                    Text(
+                      line,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.metadata.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Quiet grey words: letting in is the act, declining the
+              // way out.
+              BvTapTarget(
+                child: Semantics(
+                  button: true,
+                  child: GestureDetector(
                     key: Key('request-decline-${request.id}'),
-                    label: l10n.spacesDecline,
-                    style: BvButtonStyle.secondary,
-                    size: BvButtonSize.medium,
-                    expand: true,
-                    onPressed: onDecline,
+                    behavior: HitTestBehavior.opaque,
+                    onTap: sending ? null : onDecline,
+                    child: Text(
+                      l10n.spacesDecline,
+                      style: type.bodySm.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
                   ),
                 ),
-                Expanded(
-                  child: BvButton(
-                    key: Key('request-confirm-${request.id}'),
-                    label: l10n.spacesConfirm,
-                    size: BvButtonSize.medium,
-                    expand: true,
-                    onPressed: onConfirm,
-                  ),
+              ),
+              if (!open)
+                BvPillButton(
+                  key: Key('request-let-in-${request.id}'),
+                  label: l10n.peopleLetIn,
+                  onTap: onOpen,
                 ),
-              ],
+            ],
+          ),
+          if (open) ...[
+            const SizedBox(height: BvPeopleSpec.optionsTop),
+            for (final option in SpacePass.values) ...[
+              if (option != SpacePass.values.first)
+                const SizedBox(height: BvPeopleSpec.optionsGap),
+              _PassOption(
+                key: Key('request-pass-${option.name}'),
+                label: passName(l10n, option),
+                selected: option == chosen,
+                onTap: sending ? null : () => onPass(option),
+              ),
+            ],
+            const SizedBox(height: BvPeopleSpec.optionsTop),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: BvPillButton(
+                key: Key('request-confirm-${request.id}'),
+                label: chosen == null
+                    ? l10n.peopleChoosePass
+                    : l10n.peopleLetInAs(passName(l10n, chosen)),
+                onTap: chosen == null || sending ? null : () => onLetIn(chosen),
+              ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// One of P2's passes: a radio and its name, the chosen one outlined in
+/// orange. One single choice (rule 6).
+class _PassOption extends StatelessWidget {
+  const _PassOption({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Semantics(
+      inMutuallyExclusiveGroup: true,
+      checked: selected,
+      button: true,
+      child: Material(
+        color: BvColors.surfaceElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BvPeopleSpec.optionRadius,
+          side: selected
+              ? const BorderSide(
+                  color: BvColors.borderSelected,
+                  width: BvStroke.medium,
+                )
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BvPeopleSpec.optionRadius,
+          splashFactory: NoSplash.splashFactory,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: BvPeopleSpec.optionHeight,
+            ),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: BvPeopleSpec.optionPadding,
+              ),
+              child: Row(
+                spacing: BvPeopleSpec.optionGap,
+                children: [
+                  ExcludeSemantics(
+                    child: BvRadio(selected: selected, small: true),
+                  ),
+                  Expanded(child: Text(label, style: type.bodyMd)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A member: avatar, name, role (and "admin"), and the pass tag in its
+/// colour on the end side (P1).
+class _MemberRow extends StatelessWidget {
+  const _MemberRow({
+    super.key,
+    required this.member,
+    required this.isMe,
+    required this.flash,
+    required this.onTap,
+  });
+
+  final SpaceMember member;
+  final bool isMe;
+  final Object? flash;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final p = member.person;
+    final line = joinMeta([
+      ?p.roleLabel(lang),
+      if (member.isAdmin) l10n.peopleAdmin,
+    ]);
+    return BvHighlight(
+      flash: flash,
+      child: InkWell(
+        key: Key('member-${p.id}'),
+        onTap: onTap,
+        splashFactory: NoSplash.splashFactory,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvSpace.gutter,
+          ),
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: BvColors.borderDefault,
+                  width: BvStroke.thin,
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.symmetric(
+                vertical: BvPeopleSpec.rowPaddingVertical,
+              ),
+              child: Row(
+                spacing: BvPeopleSpec.rowGap,
+                children: [
+                  BvAvatar(
+                    name: p.fullName,
+                    size: BvAvatarSize.list,
+                    tint: BvAvatarTints.forId(p.id),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: BvSpace.s2,
+                      children: [
+                        Text(
+                          isMe
+                              ? joinMeta([p.fullName, l10n.spacesYouTag])
+                              : p.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: type.bodyMd,
+                        ),
+                        if (line.isNotEmpty)
+                          Text(
+                            line,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: type.metadata.copyWith(
+                              color: BvColors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  BvPassChip(
+                    key: Key('member-pass-${p.id}'),
+                    label: passName(l10n, member.pass),
+                    tone: passTone(member.pass),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A Team as a chip (opens the Team, S11k); "+ New team" is [outlined].
+class _TeamChip extends StatelessWidget {
+  const _TeamChip({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.outlined = false,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool outlined;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    return Material(
+      color: outlined ? BvColors.surfaceElevated : BvColors.surfaceSubtle,
+      shape: RoundedRectangleBorder(
+        borderRadius: BvRadius.roundAll,
+        side: outlined
+            ? const BorderSide(
+                color: BvColors.borderDefault,
+                width: BvStroke.thin,
+              )
+            : BorderSide.none,
+      ),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: SizedBox(
+          height: BvPeopleSpec.chipHeight,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: BvPeopleSpec.chipPadding,
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Text(label, style: type.bodySm),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Invite with the code K7Q 4MD": a tap copies the code (P1).
+class _InviteRow extends StatelessWidget {
+  const _InviteRow({required this.code, required this.onTap});
+
+  final String code;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Material(
+      key: const Key('people-invite-code'),
+      color: BvColors.surfaceElevated,
+      borderRadius: BvRadius.controlAll,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BvRadius.controlAll,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.all(BvPeopleSpec.invitePadding),
+          child: Row(
+            spacing: BvPeopleSpec.inviteGap,
+            children: [
+              const Icon(
+                BvIcons.copy,
+                size: BvPeopleSpec.inviteIcon,
+                color: BvColors.iconPrimary,
+              ),
+              Expanded(
+                child: Text(
+                  // The code is Latin, in every language.
+                  l10n.peopleInviteCode(inOwnDirection(code)),
+                  style: type.bodySm,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

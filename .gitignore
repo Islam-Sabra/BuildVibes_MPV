@@ -44,7 +44,7 @@ ios/Runner/GeneratedPluginRegistrant.*
 **/xcuserdata/
 
 # Emulator screenshots for review (not committed), except slice 1's,
-# slice 2's and review 72's, which the lead checks against Figma (review 43,
+# slice 2's, slice 3's and review 72's, which the lead checks against Figma (review 43,
 # review 73 A1).
 docs/screens/*
 !docs/screens/slice1/
@@ -52,6 +52,7 @@ docs/screens/*
 !docs/screens/review72/
 !docs/screens/f60/
 !docs/screens/f68b/
+!docs/screens/slice3/
 
 # short-lived Figma download links
 docs/design/_fetch*
@@ -60,3 +61,6 @@ docs/design/_fetch*
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 test_screens/failures/
+!docs/screens/slice4/
+!docs/screens/slice5/
+!docs/screens/slice6/

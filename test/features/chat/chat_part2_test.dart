@@ -1,10 +1,10 @@
 import 'package:buildvibes/core/l10n/bidi.dart';
-import 'package:buildvibes/core/design/bv_specs.dart';
+import 'package:buildvibes/core/routing/app_routes.dart';
+import 'package:buildvibes/shared/widgets/bv_highlight.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
-import 'package:buildvibes/features/library/add_file_screen.dart';
 import 'package:buildvibes/features/library/file_preview_screen.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -248,84 +248,35 @@ void main() {
       expect(find.text(l10n.chatFileRemoved), findsOneWidget);
     });
 
-    testWidgets('toasts sit above the bottom actions [$lang]', (tester) async {
-      await _open(tester, lang, '/spaces/$_space');
-      await _tap(tester, 'space-tab-library');
-      await _tap(tester, 'library-add');
-      await _tap(tester, 'add-file-pick');
-      await _tap(tester, 'add-file-upload');
-      // Review 14: "Added to the Library." doesn't cover Add file.
-      final toast = tester.getRect(
-        find
-            .descendant(
-              of: find.byType(SnackBar),
-              matching: find.byType(Material),
-            )
-            .first,
-      );
-      final add = tester.getRect(find.byKey(const Key('library-add')));
-      expect(toast.bottom, lessThanOrEqualTo(add.top));
-      expect(BvToastSpec.lift, greaterThan(0));
-    });
-
-    testWidgets('S13k: current files only, search and Files [$lang]', (
-      tester,
-    ) async {
-      await _open(tester, lang, '/spaces/$_space');
-      await _tap(tester, 'space-tab-library');
-      // The older MEP revision is in the record, not the list.
-      expect(find.byKey(const Key('file-f-mep2')), findsOneWidget);
-      expect(find.byKey(const Key('file-f-mep')), findsNothing);
-      expect(find.textContaining(l10n.libraryFromChat), findsOneWidget);
-      await _tap(tester, 'library-filter-files');
-      expect(find.byKey(const Key('file-f-photo')), findsNothing);
-      await _tap(tester, 'library-filter-all');
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('library-search')),
-          matching: find.byType(TextField),
-        ),
-        'beams',
-      );
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('file-f-st')), findsOneWidget);
-      expect(find.byKey(const Key('file-f-all')), findsNothing);
-      expect(find.byKey(const Key('library-add')), findsOneWidget);
-    });
-
-    testWidgets('S13k: no Add file without the files right [$lang]', (
-      tester,
-    ) async {
-      await _open(tester, lang, '/spaces/$_space', addFiles: false);
-      await _tap(tester, 'space-tab-library');
-      expect(find.byKey(const Key('library-add')), findsNothing);
-    });
-
-    testWidgets('Add file: pick, title from the file, one Team [$lang]', (
-      tester,
-    ) async {
-      final library = _library();
+    testWidgets('chat: opened from Search at a message, it is ringed '
+        '[$lang]', (tester) async {
+      final chat = _chat()
+        ..messagesByThread[_everyone] = [
+          for (var i = 0; i < 40; i++)
+            ChatMessage(
+              id: 'm$i',
+              threadId: _everyone,
+              kind: ChatKind.text,
+              body: 'Message $i',
+              createdAt: testNow.subtract(Duration(minutes: i)),
+              authorId: 'p-sami',
+              authorName: 'Sami Al-Mansour',
+            ),
+        ];
+      // m35 is far up the thread: it scrolls there and rings it.
       await _open(
         tester,
         lang,
-        '/spaces/$_space/library/new',
-        library: library,
+        AppRoutes.spaceThread(_space, _everyone, message: 'm35'),
+        chat: chat,
       );
-      expect(find.byType(AddFileScreen), findsOneWidget);
-      await _tap(tester, 'add-file-upload');
-      expect(find.text(l10n.libraryPickFirst), findsOneWidget);
-      await _tap(tester, 'add-file-pick');
-      expect(find.text('Level 3 plan'), findsOneWidget);
-      await _tap(tester, 'add-file-team-team-mep');
+      expect(find.byType(BvHighlight), findsOneWidget);
       expect(
-        find.text(l10n.libraryTeamOnly(inOwnDirection('MEP Team'))),
+        find.descendant(
+          of: find.byType(BvHighlight),
+          matching: find.text('Message 35'),
+        ),
         findsOneWidget,
-      );
-      await _tap(tester, 'add-file-upload');
-      expect(library.uploads.single, startsWith('$_space/library/'));
-      expect(
-        library.calls.single,
-        'add Level 3 plan.pdf team:team-mep rev:- supersedes:-',
       );
     });
 
@@ -367,39 +318,6 @@ void main() {
       expect(find.text(l10n.previewSaved), findsOneWidget);
       await _tap(tester, 'preview-share-file');
       expect(app.sharedFiles.single, 'Level 3 plan.pdf');
-    });
-
-    testWidgets('F1: a new revision keeps the Team and replaces it [$lang]', (
-      tester,
-    ) async {
-      final library = _library();
-      await _open(
-        tester,
-        lang,
-        '/spaces/$_space/library/f-mep2',
-        library: library,
-      );
-      await _tap(tester, 'preview-new-revision');
-      expect(
-        find.text(l10n.libraryRevisionOf(inOwnDirection('MEP risers.pdf'))),
-        findsOneWidget,
-      );
-      // Who sees it comes from the older file.
-      expect(find.byKey(const Key('add-file-everyone')), findsNothing);
-      await _tap(tester, 'add-file-pick');
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('add-file-rev')),
-          matching: find.byType(TextField),
-        ),
-        'Rev D',
-      );
-      await tester.pumpAndSettle();
-      await _tap(tester, 'add-file-upload');
-      expect(
-        library.calls.single,
-        'add Level 3 plan.pdf team:team-mep rev:Rev D supersedes:f-mep2',
-      );
     });
   }
 

@@ -4,16 +4,20 @@
 //   flutter test test_screens/slice3_test.dart --update-goldens
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
+import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/dm_repository.dart';
+import 'package:buildvibes/data/repositories/space_repository.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/messages/dm_thread_screen.dart';
 import 'package:buildvibes/features/messages/messages_screen.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../test/helpers/dm_fakes.dart';
+import '../test/helpers/space_fakes.dart';
 import 'shot.dart';
 
 const _folder = 'slice3';
@@ -177,10 +181,47 @@ DmThreadPage _omar(String lang, {DmState state = DmState.open}) => DmThreadPage(
   ],
 );
 
-List<Override> _overrides(FakeDmRepository dm) => [
+List<Override> _overrides(FakeDmRepository dm, {String lang = 'en'}) => [
   dmRepositoryProvider.overrideWithValue(dm),
   clockProvider.overrideWithValue(() => _now),
   authUserIdProvider.overrideWithValue(const AsyncData('user-1')),
+  myProfileProvider.overrideWith((ref) async => null),
+  // DM4: the Spaces you're in; you post in two, you only read the third.
+  spaceRepositoryProvider.overrideWithValue(
+    FakeSpaceRepository()
+      ..spaces.addAll([
+        SpaceSummary(
+          id: 's-kct',
+          name: _t(
+            lang,
+            'Kuwait City Tower — Site team',
+            'برج مدينة الكويت — فريق الموقع',
+          ),
+          pass: SpacePass.lead,
+          isAdmin: true,
+        ),
+        SpaceSummary(
+          id: 's-khiran',
+          name: _t(
+            lang,
+            'Khiran villas — Finishing',
+            'فلل الخيران — التشطيبات',
+          ),
+          pass: SpacePass.crew,
+          isAdmin: false,
+        ),
+        SpaceSummary(
+          id: 's-office',
+          name: _t(
+            lang,
+            'Gulf Build Co. — Office',
+            'شركة الخليج للبناء — المكتب',
+          ),
+          pass: SpacePass.viewer,
+          isAdmin: false,
+        ),
+      ]),
+  ),
 ];
 
 void main() {
@@ -219,6 +260,32 @@ void main() {
         overrides: _overrides(FakeDmRepository()..pages['omar'] = _omar(lang)),
       );
     });
+
+    // Review 64: hold a message (DM3), Put in a Space (DM4).
+    for (final sheet in [false, true]) {
+      testWidgets('${sheet ? 'DM4 Put in a Space' : 'DM3 hold a message'} '
+          '[$lang]', (tester) async {
+        await shoot(
+          tester,
+          sheet ? 'DM4-put-in-space' : 'DM3-hold',
+          lang,
+          (_) => const DmThreadScreen(threadId: 'omar'),
+          folder: _folder,
+          overrides: _overrides(
+            FakeDmRepository()..pages['omar'] = _omar(lang),
+            lang: lang,
+          ),
+          before: (tester) async {
+            await tester.longPress(find.byKey(const Key('chat-message-m4')));
+            await tester.pumpAndSettle();
+            if (sheet) {
+              await tester.tap(find.byKey(const Key('dm-action-space')));
+              await tester.pumpAndSettle();
+            }
+          },
+        );
+      });
+    }
 
     testWidgets('DM6 a request from someone new [$lang]', (tester) async {
       final page = _omar(lang, state: DmState.request);

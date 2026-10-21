@@ -4,6 +4,8 @@
 // kind menu E6 (2535:34221), with each kind's writing card (E1–E6 at the
 // two text sizes). Run:
 //   flutter test test_screens/slice2_test.dart --update-goldens
+import 'dart:convert';
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -28,6 +30,7 @@ import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/library/file_preview_screen.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
+import 'package:buildvibes/features/chat/thread_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
@@ -79,10 +82,12 @@ Future<List<Override>> _overrides(
   Map<String, List<DaybookPostFile>> files = const {},
   List<CalendarWorkItem> calendar = const [],
   List<ChatThread> threads = const [],
+  Map<String, List<ChatMessage>> messages = const {},
+  Map<String, Object> saved = const {},
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
-  SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues(saved);
   final prefs = await SharedPreferences.getInstance();
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
@@ -94,7 +99,8 @@ Future<List<Override>> _overrides(
     activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
     chatRepositoryProvider.overrideWithValue(
       FakeChatRepository(now: now)
-        ..threadsBySpace[DaybookSamples.space] = threads,
+        ..threadsBySpace[DaybookSamples.space] = threads
+        ..messagesByThread.addAll(messages),
     ),
     authUserIdProvider.overrideWithValue(AsyncData(me)),
     myMarketProvider.overrideWithValue(kuwait),
@@ -1214,6 +1220,136 @@ void main() {
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 600));
         },
+      );
+    });
+
+    // Review 64 (slice 3): a message quoted in a work item.
+    final rakeshSays = s.t(
+      'Gate 2 is blocked by the crane. Use gate 3.',
+      'البوابة 2 مغلقة بسبب الرافعة. استخدموا البوابة 3.',
+    );
+    DaybookQuote quoteOf() => DaybookQuote(
+      text: rakeshSays,
+      authorName: s.rakeshName,
+      at: DateTime(2026, 10, 15, 10, 15),
+    );
+
+    testWidgets('DM5 the work item being written, quoting the message '
+        '[$lang]', (tester) async {
+      final draft = DaybookPostDraft(id: 'post-dm5', quote: quoteOf());
+      await shoot(
+        tester,
+        'DM5-writing-quote',
+        lang,
+        (_) => const SpaceScreen(
+          spaceId: DaybookSamples.space,
+          open: SpaceOpen.write,
+        ),
+        folder: 'slice3',
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+          saved: {
+            'daybook_draft:${DaybookSamples.islam}:${DaybookSamples.space}':
+                jsonEncode(draft.toJson()),
+          },
+        ),
+        before: (tester) async {
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.t(
+              'Clear gate 2 for the pump truck',
+              'إخلاء البوابة 2 لشاحنة المضخة',
+            ),
+          );
+        },
+      );
+    });
+
+    testWidgets('S8m hold a chat message: Turn into a work item [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'S8m-turn-into-work-item',
+        lang,
+        (_) => const ThreadScreen(
+          spaceId: DaybookSamples.space,
+          threadId: 'th-everyone',
+        ),
+        folder: 'slice3',
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: const [],
+          threads: [
+            ChatThread(
+              id: 'th-everyone',
+              lastKind: ChatKind.text,
+              lastBody: rakeshSays,
+              lastAuthorId: DaybookSamples.rakesh,
+              lastAt: DateTime(2026, 10, 15, 10, 15),
+            ),
+          ],
+          messages: {
+            'th-everyone': [
+              ChatMessage(
+                id: 'msg-gate',
+                threadId: 'th-everyone',
+                kind: ChatKind.text,
+                createdAt: DateTime(2026, 10, 15, 10, 15),
+                authorId: DaybookSamples.rakesh,
+                authorName: s.rakeshName,
+                body: rakeshSays,
+              ),
+            ],
+          },
+        ),
+        before: (tester) async {
+          await tester.longPress(
+            find.byKey(const Key('chat-message-msg-gate')),
+          );
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('S8m the posted card keeps the quote [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'S8m-card-quote',
+        lang,
+        _space,
+        folder: 'slice3',
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [
+            s.card(
+              DaybookPost(
+                id: 'post-gate',
+                kind: DaybookPost.workItemKind,
+                createdAt: DateTime(2026, 10, 15, 10, 20),
+                title: s.t(
+                  'Clear gate 2 for the pump truck',
+                  'إخلاء البوابة 2 لشاحنة المضخة',
+                ),
+                authorId: DaybookSamples.islam,
+                authorName: s.islamName,
+                dueDate: DateTime(2026, 10, 16),
+                item: DaybookItem(
+                  status: WorkStatus.open,
+                  ownerId: DaybookSamples.rakesh,
+                  ownerName: s.rakeshName,
+                  ref: 'KCT-021',
+                ),
+                quote: quoteOf(),
+              ),
+            ),
+          ],
+        ),
       );
     });
 

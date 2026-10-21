@@ -274,7 +274,8 @@ void main() {
       expect(find.byType(SpaceScreen), findsOneWidget);
       // The header says "Private work" only, linked or not (review 54 A4).
       expect(find.text(l10n.spacesPrivateWork), findsOneWidget);
-      expect(find.byKey(const Key('space-invite')), findsOneWidget);
+      // People ends with the invite code (P1).
+      expect(find.byKey(const Key('people-invite-code')), findsOneWidget);
     });
 
     testWidgets('Invite: the code grouped, until, Share, New code [$lang]', (
@@ -316,7 +317,7 @@ void main() {
       },
     );
 
-    testWidgets('no invite right: no Invite people in the Space [$lang]', (
+    testWidgets('no invite right: no invite code in the Space [$lang]', (
       tester,
     ) async {
       final spaces = FakeSpaceRepository()
@@ -324,7 +325,7 @@ void main() {
       await pumpApp(tester, language: lang, spaces: spaces);
       _router(tester).push('/spaces/space-1', extra: SpaceOpen.people);
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('space-invite')), findsNothing);
+      expect(find.byKey(const Key('people-invite-code')), findsNothing);
     });
 
     testWidgets('Create sheet: New Space and Enter an invite code [$lang]', (

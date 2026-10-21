@@ -136,6 +136,8 @@ class DaybookPostDraft {
     this.teamId,
     this.teamName,
     this.couldNotSend = false,
+    this.quote,
+    this.sourceMessageId,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -178,6 +180,8 @@ class DaybookPostDraft {
         teamId: json['team_id'] as String?,
         teamName: json['team_name'] as String?,
         couldNotSend: json['could_not_send'] as bool? ?? false,
+        quote: DaybookQuote.fromJson(json['quote']),
+        sourceMessageId: json['source_message_id'] as String?,
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -199,6 +203,8 @@ class DaybookPostDraft {
       photos: photos,
       files: item.files,
       couldNotSend: true,
+      quote: item.quote,
+      sourceMessageId: item.sourceMessageId,
     );
   }
 
@@ -276,6 +282,12 @@ class DaybookPostDraft {
   /// The server refused it when it was posted: "Couldn't send. Tap to fix".
   final bool couldNotSend;
 
+  /// The message a work item is made from, quoted in it (review 64:
+  /// DM4–DM5, S8m). Only a Space chat message has a [sourceMessageId]; a
+  /// direct message is quoted only, and never leaves its thread.
+  final DaybookQuote? quote;
+  final String? sourceMessageId;
+
   int get _titleMax => kind == DaybookKind.workItem ? titleMax : postTitleMax;
 
   /// What the title box takes.
@@ -301,7 +313,14 @@ class DaybookPostDraft {
       writtenPoints.isEmpty &&
       pinnedUntil == null &&
       startsAt == null &&
-      files.isEmpty;
+      files.isEmpty &&
+      quote == null;
+
+  /// Nothing yet but the message it quotes (review 64): just made from a
+  /// message, not a Draft left from before.
+  bool get onlyQuote =>
+      quote != null &&
+      copyWith(quote: () => null, sourceMessageId: () => null).isEmpty;
 
   /// A title the server takes. A file post's title is optional: the
   /// server takes the file's name.
@@ -351,8 +370,14 @@ class DaybookPostDraft {
     DateTime? Function()? endsAt,
     List<DraftFile>? files,
     ({String id, String name})? Function()? team,
+    DaybookQuote? Function()? quote,
+    String? Function()? sourceMessageId,
     bool refused = false,
   }) => DaybookPostDraft(
+    quote: quote == null ? this.quote : quote(),
+    sourceMessageId: sourceMessageId == null
+        ? this.sourceMessageId
+        : sourceMessageId(),
     id: id,
     kind: kind ?? this.kind,
     title: title ?? this.title,
@@ -398,6 +423,8 @@ class DaybookPostDraft {
     'team_id': teamId,
     'team_name': teamName,
     'could_not_send': couldNotSend,
+    'quote': quote?.toJson(),
+    'source_message_id': sourceMessageId,
   };
 }
 
@@ -441,6 +468,24 @@ class DaybookDraft extends DaybookWritingNotifier {
 
   /// Opens a new card with [id], or keeps the one being written.
   void open(String id) => state ??= DaybookPostDraft(id: id);
+
+  /// A message to make a work item from (review 64: DM4–DM5, S8m): the card
+  /// being written, or a new one with [id], now quoting it. A Space chat
+  /// message also gives its [sourceMessageId] and, from a Team thread, its
+  /// [team] (the server keeps it in that Team). Nothing is posted: only
+  /// Post posts.
+  Future<void> quoteMessage(
+    String id,
+    DaybookQuote quote, {
+    String? sourceMessageId,
+    ({String id, String name})? team,
+  }) => put(
+    (state ?? DaybookPostDraft(id: id)).copyWith(
+      quote: () => quote,
+      sourceMessageId: () => sourceMessageId,
+      team: team == null ? null : () => team,
+    ),
+  );
 
   /// Sets the card and saves it once anything is entered.
   @override

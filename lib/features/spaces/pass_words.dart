@@ -1,6 +1,7 @@
 import '../../data/models/space.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_pass_card.dart';
+import '../../shared/widgets/bv_post_bar.dart' show BvPassTone;
 
 /// "Lead" / "مسؤول".
 String passName(AppLocalizations l10n, SpacePass pass) => switch (pass) {
@@ -34,4 +35,11 @@ String passFor(AppLocalizations l10n, SpacePass pass) => switch (pass) {
   SpacePass.lead => l10n.spacesLeadFor,
   SpacePass.crew => l10n.spacesCrewFor,
   SpacePass.viewer => l10n.spacesViewerFor,
+};
+
+/// A pass tag's colour (P1).
+BvPassTone passTone(SpacePass pass) => switch (pass) {
+  SpacePass.lead => BvPassTone.lead,
+  SpacePass.crew => BvPassTone.crew,
+  SpacePass.viewer => BvPassTone.viewer,
 };

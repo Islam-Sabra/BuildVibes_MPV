@@ -88,15 +88,30 @@ abstract final class AppRoutes {
   static String spaceTeamNew(String id) => '/spaces/$id/teams/new';
   static String spaceTeam(String id, String teamId) =>
       '/spaces/$id/teams/$teamId';
-  static String spaceThread(String id, String threadId) =>
-      '/spaces/$id/chat/$threadId';
+  static String spaceThread(String id, String threadId, {String? message}) =>
+      Uri(
+        path: '/spaces/$id/chat/$threadId',
+        queryParameters: message == null ? null : {threadMessageParam: message},
+      ).toString();
+
+  /// A thread opened at one message (S Search): scrolled to it,
+  /// highlighted.
+  static const threadMessageParam = 'message';
+
+  /// R1 · Walk mode (slice 6).
+  static String spaceWalk(String id) => '/spaces/$id/walk';
+
+  /// S · Search inside a Space.
+  static String spaceSearch(String id) => '/spaces/$id/search';
+
+  /// F1: the file full screen, on the drawing table.
   static String libraryFile(String id, String fileId) =>
       '/spaces/$id/library/$fileId';
 
-  /// Add a file, or a new revision of [supersedes].
-  static String libraryAdd(String id, {String? supersedes}) =>
-      '/spaces/$id/library/new'
-      '${supersedes == null ? '' : '?supersedes=$supersedes'}';
+  /// LV2: a file's page, its versions and who received it. It pops the
+  /// version in use when "Add a new version" is chosen.
+  static String libraryFilePage(String id, String fileId) =>
+      '/spaces/$id/library/$fileId/page';
 
   // Entry (signed out)
   static const loading = '/loading';

@@ -71,6 +71,18 @@ class FakeDaybookRepository implements DaybookRepository {
     return t < 0 || (t == 0 && cursor != null && id.compareTo(cursor) < 0);
   }
 
+  /// Cards the daybook doesn't list (a target's work items), by id.
+  final cardsById = <String, DaybookCard>{};
+
+  @override
+  Future<DaybookCard?> card(String postId) async {
+    if (failPages) throw const SpaceException(SpaceFailure.network);
+    return cardsById[postId] ??
+        [
+          for (final list in posts.values) ...list,
+        ].where((c) => c.id == postId).firstOrNull;
+  }
+
   @override
   Future<DaybookCardsPage> cards(
     String spaceId, {
@@ -155,6 +167,15 @@ class FakeDaybookRepository implements DaybookRepository {
     final path = '$spaceId/posts/$postId/${uploads.length}.jpg';
     uploads.add(path);
     return path;
+  }
+
+  final createdWalks = <NewWalk>[];
+
+  @override
+  Future<void> createWalk(NewWalk walk) async {
+    _check();
+    if (createdWalks.any((w) => w.id == walk.id)) return;
+    createdWalks.add(walk);
   }
 
   @override

@@ -1731,7 +1731,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get librarySearch => 'ابحث في العناوين وأسماء الملفات';
+  String get librarySearch => 'ابحث في الملفات';
 
   @override
   String get libraryAll => 'الكل';
@@ -3919,4 +3919,310 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String daybookQuoteFrom(String name, String when) {
+    return 'من $name · $when';
+  }
+
+  @override
+  String daybookQuoteFromName(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String get dmPutInSpace => 'ضعها في مساحة';
+
+  @override
+  String get dmPutInSpaceNone => 'لست بعد في مساحة يمكنك إضافة عمل فيها.';
+
+  @override
+  String get chatTurnIntoWorkItem => 'حوّلها إلى بند عمل';
+
+  @override
+  String get peopleWantsToJoin => 'يطلب الانضمام';
+
+  @override
+  String get peopleLetIn => 'اقبله';
+
+  @override
+  String get peopleChoosePass => 'اختر التصريح';
+
+  @override
+  String peopleLetInAs(String pass) {
+    return 'اقبله كـ$pass';
+  }
+
+  @override
+  String get peopleLeads => 'المسؤولون';
+
+  @override
+  String get peopleCrew => 'فريق التنفيذ';
+
+  @override
+  String get peopleViewers => 'المُطّلعون';
+
+  @override
+  String get peopleAdmin => 'مدير المساحة';
+
+  @override
+  String get peopleNewTeam => '+ فريق جديد';
+
+  @override
+  String peopleInviteCode(String code) {
+    return 'ادعُ بالرمز $code';
+  }
+
+  @override
+  String peopleLetInDone(String name, String pass) {
+    return '$name في المساحة الآن، بتصريح $pass.';
+  }
+
+  @override
+  String libraryOlderVersions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نسخة أقدم',
+      few: '$count نسخ أقدم',
+      two: 'نسختان أقدم',
+      one: 'نسخة أقدم واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryAddFile => 'أضف ملفًا';
+
+  @override
+  String get libraryVersions => 'النسخ';
+
+  @override
+  String libraryInUse(String rev) {
+    return '$rev · المعتمدة';
+  }
+
+  @override
+  String get libraryVersion => 'نسخة';
+
+  @override
+  String get libraryOpen => 'افتح';
+
+  @override
+  String get libraryAddVersion => 'أضف نسخة جديدة';
+
+  @override
+  String get libraryFileMenu => 'المزيد لهذا الملف';
+
+  @override
+  String get libraryOpenFull => 'افتح بملء الشاشة';
+
+  @override
+  String get searchMenu => 'بحث';
+
+  @override
+  String get searchHint => 'ابحث في هذه المساحة';
+
+  @override
+  String get searchClear => 'امسح';
+
+  @override
+  String get searchWorkItems => 'بنود العمل';
+
+  @override
+  String get searchFiles => 'الملفات';
+
+  @override
+  String get searchChat => 'المحادثة';
+
+  @override
+  String searchNothing(String query) {
+    return 'لا شيء عن «$query»';
+  }
+
+  @override
+  String searchMessage(String text) {
+    return '«$text»';
+  }
+
+  @override
+  String get pageOpen => 'افتح الصفحة';
+
+  @override
+  String get pageEdit => 'تعديل الصفحة';
+
+  @override
+  String get pageDone => 'تم';
+
+  @override
+  String get pageClose => 'أغلق الصفحة';
+
+  @override
+  String get pageUnder => 'بنود العمل تحت هذا البند';
+
+  @override
+  String pageUnderChecked(int checked, int total) {
+    return '$checked من $total تم التحقق منها';
+  }
+
+  @override
+  String get pageAddBlock => 'اكتب / لإضافة جزء';
+
+  @override
+  String get pageMenuTitle => 'أضف';
+
+  @override
+  String get pageText => 'نص';
+
+  @override
+  String get pageHeading => 'عنوان';
+
+  @override
+  String get pageChecklist => 'قائمة تحقق';
+
+  @override
+  String get pageToggle => 'قسم قابل للطي';
+
+  @override
+  String get pageTable => 'جدول';
+
+  @override
+  String get pagePhoto => 'صورة';
+
+  @override
+  String get pageFile => 'ملف';
+
+  @override
+  String get pageItemUnder => 'بند عمل تحت هذا البند';
+
+  @override
+  String get pagePoint => 'نقطة في قائمة التحقق';
+
+  @override
+  String get pageTurnInto => 'حوّلها إلى';
+
+  @override
+  String get pageTickedStays => 'النقطة المؤشَّر عليها تبقى كما هي.';
+
+  @override
+  String get pageDelete => 'احذف';
+
+  @override
+  String get pageDeleted => 'حُذف الجزء.';
+
+  @override
+  String get pageMove => 'انقل';
+
+  @override
+  String get pageBlockMenu => 'المزيد لهذا الجزء';
+
+  @override
+  String get pageAddRow => 'أضف صفًا';
+
+  @override
+  String get pageAddColumn => 'أضف عمودًا';
+
+  @override
+  String get pageDeleteRow => 'احذف الصف';
+
+  @override
+  String get pageDeleteColumn => 'احذف العمود';
+
+  @override
+  String get pageStale => 'تغيّرت هذه الصفحة على هاتف آخر. نسختك محفوظة هنا.';
+
+  @override
+  String get pageUseMine => 'استخدم نسختي';
+
+  @override
+  String get pageUseNewer => 'استخدم الأحدث';
+
+  @override
+  String get pageFull => 'تتسع الصفحة لعشر صور وملفات على الأكثر.';
+
+  @override
+  String get pageItemTitle => 'ما المطلوب';
+
+  @override
+  String get pageTooLongForItem => 'اختصرها إلى 140 حرفًا لتصبح بند عمل.';
+
+  @override
+  String get pagePhotoCaption => 'أضف وصفًا';
+
+  @override
+  String get walkMenu => 'وضع الجولة';
+
+  @override
+  String get walkTitle => 'جولة';
+
+  @override
+  String get walkNameHint => 'سمِّ هذه الجولة';
+
+  @override
+  String get walkStart => 'التقط الصورة الأولى';
+
+  @override
+  String get walkLineHint => 'ما المطلوب هنا';
+
+  @override
+  String get walkOwner => 'من ينفّذه';
+
+  @override
+  String get walkNext => 'الصورة التالية';
+
+  @override
+  String walkPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkFinish => 'إنهاء';
+
+  @override
+  String get walkNeedsLine => 'اكتب ما المطلوب، ثم الصورة التالية.';
+
+  @override
+  String get walkNeedsOwner => 'اختر من ينفّذه، ثم الصورة التالية.';
+
+  @override
+  String get walkFull => 'تتسع الجولة لثلاثين صورة. أنهِها ثم ابدأ أخرى.';
+
+  @override
+  String get walkDiscardTitle => 'تتخلص من هذه الجولة؟';
+
+  @override
+  String get walkDiscardBody => 'لن تُرسل صورها.';
+
+  @override
+  String get walkKeep => 'تابع الجولة';
+
+  @override
+  String get walkDiscard => 'تخلّص منها';
+
+  @override
+  String get walkRemovePhoto => 'احذف هذه الصورة';
+
+  @override
+  String walkEachItem(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة، كلٌّ منها بند عمل',
+      few: '$count صور، كلٌّ منها بند عمل',
+      two: 'صورتان، كلٌّ منهما بند عمل',
+      one: 'صورة واحدة، بند عمل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkShowAll => 'اعرض الكل';
 }

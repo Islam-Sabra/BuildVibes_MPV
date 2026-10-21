@@ -18,6 +18,11 @@ import 'work_repository.dart' show newUuid, spaceFilesBucket;
 /// Days come from the phone: each call sends the phone's own days and
 /// midnights, so no time zone is typed in SQL.
 abstract class DaybookRepository {
+  /// One card, as the daybook draws it (daybook_card, migration 37), for
+  /// any post the reader can see: a target's work item too, which the
+  /// daybook folds into its parent's card. Null when it's gone.
+  Future<DaybookCard?> card(String postId);
+
   /// The cards (one per post, migration 26) whose last activity is before
   /// [before] (with [beforeId], cards with the same time aren't skipped),
   /// newest activity first, at most [limit].
@@ -90,6 +95,11 @@ abstract class DaybookRepository {
   /// is the same post.
   Future<void> createWorkItem(NewWorkItem item);
 
+  /// create_walk (slice 6): the walk's work item, owned by its author, and
+  /// one work item per photo under it, all or nothing. The app chose every
+  /// id, so sending it again is the same walk.
+  Future<void> createWalk(NewWalk walk);
+
   /// edit_space_post: only what changed ([PostEdit]); the author only,
   /// while the work item is Open.
   Future<void> editPost(String postId, PostEdit edit);
@@ -130,6 +140,8 @@ class NewSpacePost {
     this.photoPaths = const [],
     this.attachedFileIds = const [],
     this.teamId,
+    this.quote,
+    this.sourceMessageId,
   });
 
   final String id;
@@ -151,6 +163,10 @@ class NewSpacePost {
   final DateTime? startsAt;
   final DateTime? endsAt;
   final String? libraryFileId;
+
+  /// The message it is made from (review 64), as on a work item.
+  final DaybookQuote? quote;
+  final String? sourceMessageId;
   final List<String> people;
 
   /// Each point with the id the app chose.
@@ -193,6 +209,8 @@ class NewSpacePost {
         for (final path in photoPaths) {'path': path, 'mime': _jpeg},
         for (final id in attachedFileIds) {'library_file_id': id},
       ],
+      'p_quote': ?quote?.toJson(),
+      'p_source_message': ?sourceMessageId,
     };
   }
 }
@@ -257,6 +275,28 @@ class PostEdit {
 
 /// A work item written in place, as create_work_item takes it. The due
 /// date and time are the phone's own (review 44, answer 3).
+/// A walk to post (slice 6): its name and place, and per photo the work
+/// item's id, line, owner and uploaded photo.
+@immutable
+class NewWalk {
+  const NewWalk({
+    required this.id,
+    required this.spaceId,
+    required this.title,
+    required this.items,
+    this.place,
+  });
+
+  /// create_walk takes 1 to 30 photos.
+  static const maxPhotos = 30;
+
+  final String id;
+  final String spaceId;
+  final String title;
+  final String? place;
+  final List<({String id, String line, String ownerId, String photo})> items;
+}
+
 @immutable
 class NewWorkItem {
   const NewWorkItem({
@@ -270,12 +310,19 @@ class NewWorkItem {
     this.dueAt,
     this.photoPaths = const [],
     this.libraryFileIds = const [],
+    this.quote,
+    this.sourceMessageId,
   });
 
   final String id;
   final String spaceId;
   final String title;
   final String ownerId;
+
+  /// The message it is made from (review 64). The server checks the
+  /// caller may read a [sourceMessageId] and keeps a Team's in its Team.
+  final DaybookQuote? quote;
+  final String? sourceMessageId;
   final String? body;
   final String? place;
   final DateTime? dueDate;
@@ -318,6 +365,17 @@ class SupabaseDaybookRepository implements DaybookRepository {
 
   List<Map<String, dynamic>> _rows(Object? result) =>
       (result as List? ?? const []).cast<Map<String, dynamic>>();
+
+  @override
+  Future<DaybookCard?> card(String postId) => _guard(() async {
+    final rows = _rows(
+      await _client.rpc<List<dynamic>>(
+        'daybook_card',
+        params: {'p_post': postId},
+      ),
+    );
+    return DaybookCardsPage.fromRows(rows).cards.firstOrNull;
+  });
 
   @override
   Future<DaybookCardsPage> cards(
@@ -420,6 +478,28 @@ class SupabaseDaybookRepository implements DaybookRepository {
       });
 
   @override
+  Future<void> createWalk(NewWalk walk) => _guard(
+    () => _client.rpc<String>(
+      'create_walk',
+      params: {
+        'p_space': walk.spaceId,
+        'p_parent': walk.id,
+        'p_title': walk.title,
+        'p_place': walk.place,
+        'p_items': [
+          for (final i in walk.items)
+            {
+              'id': i.id,
+              'line': i.line,
+              'owner': i.ownerId,
+              'photo': {'path': i.photo, 'mime': _jpeg},
+            },
+        ],
+      },
+    ),
+  );
+
+  @override
   Future<void> createWorkItem(NewWorkItem item) => _guard(
     () => _client.rpc<String>(
       'create_work_item',
@@ -435,6 +515,8 @@ class SupabaseDaybookRepository implements DaybookRepository {
         'p_files': [
           for (final path in item.photoPaths) {'path': path, 'mime': _jpeg},
         ],
+        'p_quote': ?item.quote?.toJson(),
+        'p_source_message': ?item.sourceMessageId,
       },
     ),
   );

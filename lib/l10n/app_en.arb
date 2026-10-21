@@ -2433,9 +2433,9 @@
       }
     }
   },
-  "librarySearch": "Search titles and file names",
+  "librarySearch": "Search files",
   "@librarySearch": {
-    "description": "S13k search."
+    "description": "LV1: the search field on top; it filters the list in the app (names, revisions, notes)."
   },
   "libraryAll": "All",
   "@libraryAll": {
@@ -5653,5 +5653,421 @@
         "type": "int"
       }
     }
+  },
+  "daybookQuoteFrom": "From {name} · {when}",
+  "@daybookQuoteFrom": {
+    "description": "Over a message quoted in a post (review 64, DM5): who wrote it and when.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookQuoteFromName": "From {name}",
+  "@daybookQuoteFromName": {
+    "description": "Over a quoted message with no time.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dmPutInSpace": "Put in a Space",
+  "@dmPutInSpace": {
+    "description": "DM3 hold menu and the DM4 sheet's title (review 64): make a work item in a Space from this message, quoted. The message stays in the thread."
+  },
+  "dmPutInSpaceNone": "You're not in a Space where you can add work yet.",
+  "@dmPutInSpaceNone": {
+    "description": "DM4 when the person has no Space where their pass lets them post."
+  },
+  "chatTurnIntoWorkItem": "Turn into a work item",
+  "@chatTurnIntoWorkItem": {
+    "description": "S8m hold menu in Space chat (review 64): the Work tab opens with a work item being written, this message quoted."
+  },
+  "peopleWantsToJoin": "wants to join",
+  "@peopleWantsToJoin": {
+    "description": "P1: the end of a join request's line (Foreman · Gulf Build Co. · wants to join)."
+  },
+  "peopleLetIn": "Let in",
+  "@peopleLetIn": {
+    "description": "P1: the pill on a join request; opens the three passes in place."
+  },
+  "peopleChoosePass": "Choose a pass",
+  "@peopleChoosePass": {
+    "description": "P2: the grey pill until a pass is chosen (nothing is chosen first, review 69)."
+  },
+  "peopleLetInAs": "Let in as {pass}",
+  "@peopleLetInAs": {
+    "description": "P2: the pill once a pass is chosen (Let in as Crew).",
+    "placeholders": {
+      "pass": {
+        "type": "String",
+        "example": "Crew"
+      }
+    }
+  },
+  "peopleLeads": "Leads",
+  "@peopleLeads": {
+    "description": "P1: the section of people with a Lead pass."
+  },
+  "peopleCrew": "Crew",
+  "@peopleCrew": {
+    "description": "P1: the section of people with a Crew pass."
+  },
+  "peopleViewers": "Viewers",
+  "@peopleViewers": {
+    "description": "P1: the section of people with a Viewer pass."
+  },
+  "peopleAdmin": "admin",
+  "@peopleAdmin": {
+    "description": "P1: after the role in a member's line for the Space admin (BIM Manager · admin)."
+  },
+  "peopleNewTeam": "+ New team",
+  "@peopleNewTeam": {
+    "description": "P1: the chip after the Teams, for the Space admin only."
+  },
+  "peopleInviteCode": "Invite with the code {code}",
+  "@peopleInviteCode": {
+    "description": "P1: the row at the bottom; a tap copies the code. The code is Latin, as the server writes it.",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "K7Q 4MD"
+      }
+    }
+  },
+  "peopleLetInDone": "{name} is in, as {pass}.",
+  "@peopleLetInDone": {
+    "description": "P2: after Let in; the person's row is highlighted in their section.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pass": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryOlderVersions": "{count, plural, =1{1 older version} other{{count} older versions}}",
+  "@libraryOlderVersions": {
+    "description": "LV1: how many earlier versions a file has (a fact about the file, not a quality signal, review 67).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryAddFile": "Add a file",
+  "@libraryAddFile": {
+    "description": "LV1: the quiet last row (with a + icon) for people who may add files; opens the Work tab's writing card as a Document for receipt (review 69 1b)."
+  },
+  "libraryVersions": "Versions",
+  "@libraryVersions": {
+    "description": "LV2: the label above a file's versions."
+  },
+  "libraryInUse": "{rev} · in use",
+  "@libraryInUse": {
+    "description": "LV2: the version in use, with an orange dot (Rev D · in use).",
+    "placeholders": {
+      "rev": {
+        "type": "String",
+        "example": "Rev D"
+      }
+    }
+  },
+  "libraryVersion": "Version",
+  "@libraryVersion": {
+    "description": "LV2: a version with no revision written on it."
+  },
+  "libraryOpen": "Open",
+  "@libraryOpen": {
+    "description": "LV2: opens an older version full screen."
+  },
+  "libraryAddVersion": "Add a new version",
+  "@libraryAddVersion": {
+    "description": "LV2: under the versions (with a + icon), for people who may add files; opens the writing card with Replaces set."
+  },
+  "libraryFileMenu": "More for this file",
+  "@libraryFileMenu": {
+    "description": "LV2: what a screen reader says for the ⋯ button (Share in chat, Download)."
+  },
+  "libraryOpenFull": "Open full screen",
+  "@libraryOpenFull": {
+    "description": "LV2: what a screen reader says for the preview, which opens the drawing table."
+  },
+  "searchMenu": "Search",
+  "@searchMenu": {
+    "description": "The Space menu's first item (MN1): opens Search inside the Space."
+  },
+  "searchHint": "Search this Space",
+  "@searchHint": {
+    "description": "S: the field's placeholder. It searches after 2 characters."
+  },
+  "searchClear": "Clear",
+  "@searchClear": {
+    "description": "S: what a screen reader says for the ✕ in the field."
+  },
+  "searchWorkItems": "Work items",
+  "@searchWorkItems": {
+    "description": "S: the group of posts and checklist points."
+  },
+  "searchFiles": "Files",
+  "@searchFiles": {
+    "description": "S: the group of Library files (only the version in use)."
+  },
+  "searchChat": "Chat",
+  "@searchChat": {
+    "description": "S: the group of chat messages."
+  },
+  "searchNothing": "Nothing found for “{query}”",
+  "@searchNothing": {
+    "description": "S: no results. Never a count (rule 3).",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchMessage": "“{text}”",
+  "@searchMessage": {
+    "description": "S: a chat message's words, in quotes.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "pageOpen": "Open the page",
+  "@pageOpen": {
+    "description": "Slice 5: the quiet grey line on a card whose page holds more than the card (with a forward caret). No count."
+  },
+  "pageEdit": "Edit page",
+  "@pageEdit": {
+    "description": "Slice 5: the author's item in the card's menu, and the page's head while reading."
+  },
+  "pageDone": "Done",
+  "@pageDone": {
+    "description": "N2: ends editing the page and saves it."
+  },
+  "pageClose": "Close the page",
+  "@pageClose": {
+    "description": "N1: what a screen reader says for the ✕."
+  },
+  "pageUnder": "Work items under this one",
+  "@pageUnder": {
+    "description": "N1: the label over the work items under this one."
+  },
+  "pageUnderChecked": "{checked} of {total} checked",
+  "@pageUnderChecked": {
+    "description": "N1: this item's own work items, how many are checked: a fact about this item, not a quality signal.",
+    "placeholders": {
+      "checked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pageAddBlock": "Type / to add a block",
+  "@pageAddBlock": {
+    "description": "N2: the last line of the page while its author edits it."
+  },
+  "pageMenuTitle": "Add",
+  "@pageMenuTitle": {
+    "description": "N3: what a screen reader says for the block menu."
+  },
+  "pageText": "Text",
+  "@pageText": {
+    "description": "N3: the block menu; N4: Turn into."
+  },
+  "pageHeading": "Heading",
+  "@pageHeading": {
+    "description": "N3: the block menu."
+  },
+  "pageChecklist": "Checklist",
+  "@pageChecklist": {
+    "description": "N3: the block menu."
+  },
+  "pageToggle": "Toggle",
+  "@pageToggle": {
+    "description": "N3: the block menu (a line that opens to show more)."
+  },
+  "pageTable": "Table",
+  "@pageTable": {
+    "description": "N3: the block menu."
+  },
+  "pagePhoto": "Photo",
+  "@pagePhoto": {
+    "description": "N3: the block menu."
+  },
+  "pageFile": "File",
+  "@pageFile": {
+    "description": "N3: the block menu."
+  },
+  "pageItemUnder": "Work item under this one",
+  "@pageItemUnder": {
+    "description": "N3: the block menu; N4: Turn into."
+  },
+  "pagePoint": "Checklist point",
+  "@pagePoint": {
+    "description": "N4: Turn into."
+  },
+  "pageTurnInto": "Turn into",
+  "@pageTurnInto": {
+    "description": "N4: the title over the choices."
+  },
+  "pageTickedStays": "A ticked point stays as it is.",
+  "@pageTickedStays": {
+    "description": "N4: why a ticked point can't be turned into something else."
+  },
+  "pageDelete": "Delete",
+  "@pageDelete": {
+    "description": "N2: a block's action."
+  },
+  "pageDeleted": "Block deleted.",
+  "@pageDeleted": {
+    "description": "N2: after a block is deleted, with Undo."
+  },
+  "pageMove": "Move",
+  "@pageMove": {
+    "description": "N2: what a screen reader says for a block's ⋮⋮ handle (hold to drag)."
+  },
+  "pageBlockMenu": "More for this block",
+  "@pageBlockMenu": {
+    "description": "N4: what a screen reader says for a block's menu."
+  },
+  "pageAddRow": "Add a row",
+  "@pageAddRow": {
+    "description": "A table's + at the bottom."
+  },
+  "pageAddColumn": "Add a column",
+  "@pageAddColumn": {
+    "description": "A table's + at the end side."
+  },
+  "pageDeleteRow": "Delete row",
+  "@pageDeleteRow": {
+    "description": "A long press on a table cell."
+  },
+  "pageDeleteColumn": "Delete column",
+  "@pageDeleteColumn": {
+    "description": "A long press on a table cell."
+  },
+  "pageStale": "This page changed on another phone. Yours is kept here.",
+  "@pageStale": {
+    "description": "N2: the save found a newer page saved by the author's other phone."
+  },
+  "pageUseMine": "Use mine",
+  "@pageUseMine": {
+    "description": "N2: after a newer page: save this phone's copy over it."
+  },
+  "pageUseNewer": "Use the newer one",
+  "@pageUseNewer": {
+    "description": "N2: after a newer page: drop this phone's edit."
+  },
+  "pageFull": "A page holds up to 10 photos and files.",
+  "@pageFull": {
+    "description": "N3: no more photos or files on this post."
+  },
+  "pageItemTitle": "What needs doing",
+  "@pageItemTitle": {
+    "description": "N3: the placeholder for a new work item under this one."
+  },
+  "pageTooLongForItem": "Shorten it to 140 characters to make it a work item.",
+  "@pageTooLongForItem": {
+    "description": "N4: a point too long to be a work item's title."
+  },
+  "pagePhotoCaption": "Add a caption",
+  "@pagePhotoCaption": {
+    "description": "N2: a photo block's caption, while the page is edited (up to 300 characters)."
+  },
+  "walkMenu": "Walk mode",
+  "@walkMenu": {
+    "description": "The Space menu: walk mode, one photo and one line per thing to fix (slice 6). Says no \"site\": BuildVibes is for the whole industry."
+  },
+  "walkTitle": "Walk",
+  "@walkTitle": {
+    "description": "R1: the walk screen's chip, before the walk's name (Walk · Level 4 corridor)."
+  },
+  "walkNameHint": "Name this walk",
+  "@walkNameHint": {
+    "description": "R1: the walk's name before the first photo (Walk, level 4 corridor)."
+  },
+  "walkStart": "Take the first photo",
+  "@walkStart": {
+    "description": "R1: starts the walk with the camera."
+  },
+  "walkLineHint": "What needs doing here",
+  "@walkLineHint": {
+    "description": "R1: the line for the photo just taken (2 to 140 characters). The keyboard's mic types it."
+  },
+  "walkOwner": "Who does it",
+  "@walkOwner": {
+    "description": "R1: the owner chip before one is chosen."
+  },
+  "walkNext": "Next photo",
+  "@walkNext": {
+    "description": "R1: the shutter's label once this photo has its line and owner."
+  },
+  "walkPhotos": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "@walkPhotos": {
+    "description": "R1: how many photos so far, beside the shutter.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "walkFinish": "Finish",
+  "@walkFinish": {
+    "description": "R1: posts the walk, one work item per photo."
+  },
+  "walkNeedsLine": "Write what needs doing, then the next photo.",
+  "@walkNeedsLine": {
+    "description": "R1: the photo has no line yet."
+  },
+  "walkNeedsOwner": "Choose who does it, then the next photo.",
+  "@walkNeedsOwner": {
+    "description": "R1: the photo has no owner yet."
+  },
+  "walkFull": "A walk holds 30 photos. Finish it, then start another.",
+  "@walkFull": {
+    "description": "R1: the 30th photo was taken."
+  },
+  "walkDiscardTitle": "Throw this walk away?",
+  "@walkDiscardTitle": {
+    "description": "R1: ✕ once there is a photo."
+  },
+  "walkDiscardBody": "Its photos aren't sent.",
+  "@walkDiscardBody": {
+    "description": "R1: under the question."
+  },
+  "walkKeep": "Keep walking",
+  "@walkKeep": {
+    "description": "R1: keeps the walk."
+  },
+  "walkDiscard": "Throw away",
+  "@walkDiscard": {
+    "description": "R1: drops the walk and its photos."
+  },
+  "walkRemovePhoto": "Take this photo out",
+  "@walkRemovePhoto": {
+    "description": "R1: a thumbnail's action."
+  },
+  "walkEachItem": "{count, plural, =1{1 photo, a work item} other{{count} photos, each one a work item}}",
+  "@walkEachItem": {
+    "description": "R1b: under a walk's title: a fact about this post.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "walkShowAll": "Show all",
+  "@walkShowAll": {
+    "description": "R1b: more rows than the card shows; opens the page."
   }
 }

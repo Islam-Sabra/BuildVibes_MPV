@@ -13,6 +13,12 @@ class FakeLibraryRepository implements LibraryRepository {
   final filesBySpace = <String, List<LibraryFile>>{};
   final usedIn = <String, List<FileUse>>{};
   final uploads = <String>[];
+
+  /// library_overview's rows, by file id; receipts and the file post, by
+  /// file id.
+  final overviewBySpace = <String, Map<String, LibraryOverview>>{};
+  final receiptsByFile = <String, List<LibraryReceipt>>{};
+  final postByFile = <String, String>{};
   final calls = <String>[];
 
   LibraryFile? _find(String id) {
@@ -113,6 +119,17 @@ class FakeLibraryRepository implements LibraryRepository {
   /// False gives links (to play a voice note); true, the default, is no
   /// network: previews show "can't show".
   bool offline = true;
+
+  @override
+  Future<Map<String, LibraryOverview>> overview(String spaceId) async =>
+      Map.of(overviewBySpace[spaceId] ?? const {});
+
+  @override
+  Future<List<LibraryReceipt>> receipts(String fileId) async =>
+      List.of(receiptsByFile[fileId] ?? const []);
+
+  @override
+  Future<String?> postFor(String fileId) async => postByFile[fileId];
 
   @override
   Future<String> fileUrl(String path) async => offline

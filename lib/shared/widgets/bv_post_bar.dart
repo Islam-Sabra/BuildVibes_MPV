@@ -17,12 +17,14 @@ class BvPostBar extends StatelessWidget {
     this.onProve,
     this.cameraLabel,
   }) : passLabel = null,
-       readOnly = null;
+       readOnly = null,
+       passTone = BvPassTone.viewer;
 
   const BvPostBar.viewer({
     super.key,
     required String this.passLabel,
-    required String this.readOnly,
+    this.readOnly,
+    this.passTone = BvPassTone.viewer,
   }) : placeholder = null,
        onWrite = null,
        onCamera = null,
@@ -42,9 +44,11 @@ class BvPostBar extends StatelessWidget {
   /// What a screen reader says for the camera button.
   final String? cameraLabel;
 
-  /// Viewer form: "Viewer" and "Read only".
+  /// Viewer form: "Viewer" and "Read only". Someone else who may not post
+  /// (a Crew pass with posting locked) sees only their pass (review 67).
   final String? passLabel;
   final String? readOnly;
+  final BvPassTone passTone;
 
   @override
   Widget build(BuildContext context) {
@@ -68,15 +72,18 @@ class BvPostBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: BvPostBarSpec.viewerGap,
             children: [
-              BvPassChip(label: passLabel!),
-              Flexible(
-                child: Text(
-                  readOnly!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: type.metadata.copyWith(color: BvColors.textSecondary),
+              BvPassChip(label: passLabel!, tone: passTone),
+              if (readOnly != null)
+                Flexible(
+                  child: Text(
+                    readOnly!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: type.metadata.copyWith(
+                      color: BvColors.textSecondary,
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -167,24 +174,36 @@ class BvPostBar extends StatelessWidget {
   }
 }
 
-/// A small pass label, like a site pass clipped on (the Viewer post bar):
-/// a thin outline, a dot and the pass name.
+/// A pass tag's colour: Lead orange, Crew green, Viewer grey (P1).
+enum BvPassTone { lead, crew, viewer }
+
+/// A small pass label, like a site pass clipped on: the Viewer post bar
+/// and the People list (P1). One widget for every pass tag.
 class BvPassChip extends StatelessWidget {
-  const BvPassChip({super.key, required this.label});
+  const BvPassChip({
+    super.key,
+    required this.label,
+    this.tone = BvPassTone.viewer,
+  });
 
   final String label;
+  final BvPassTone tone;
+
+  static Color colorOf(BvPassTone tone) => switch (tone) {
+    BvPassTone.lead => BvColors.textAction,
+    BvPassTone.crew => BvColors.textPositive,
+    BvPassTone.viewer => BvColors.textSecondary,
+  };
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
+    final color = colorOf(tone);
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         borderRadius: BvPassChipSpec.radius,
         border: Border.fromBorderSide(
-          BorderSide(
-            color: BvColors.textSecondary,
-            width: BvPassChipSpec.border,
-          ),
+          BorderSide(color: color, width: BvPassChipSpec.border),
         ),
       ),
       child: Padding(
@@ -196,17 +215,11 @@ class BvPassChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: BvPassChipSpec.gap,
           children: [
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                color: BvColors.textSecondary,
-                shape: BoxShape.circle,
-              ),
-              child: SizedBox.square(dimension: BvPassChipSpec.dot),
+            DecoratedBox(
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: const SizedBox.square(dimension: BvPassChipSpec.dot),
             ),
-            Text(
-              label,
-              style: type.labelSm.copyWith(color: BvColors.textSecondary),
-            ),
+            Text(label, style: type.labelSm.copyWith(color: color)),
           ],
         ),
       ),

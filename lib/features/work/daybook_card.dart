@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../shared/widgets/bv_tap_target.dart';
+import '../../core/design/daybook_page_specs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
@@ -7,6 +9,7 @@ import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../data/models/daybook.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_card_history.dart';
 import '../../shared/widgets/bv_checklist_point.dart';
 import '../../shared/widgets/bv_faces.dart';
@@ -21,6 +24,7 @@ import '../spaces/former_member.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
 import 'daybook_photos.dart';
+import 'daybook_target_card.dart' show DaybookTargetRows;
 import 'daybook_words.dart';
 
 /// What a card lets the reader do (the loop). Null callbacks are not
@@ -36,6 +40,8 @@ class DaybookCardActions {
     this.onTick,
     this.onAck,
     this.onOpenFile,
+    this.onOpenPage,
+    this.onOpenChild,
   });
 
   /// Long-press, or a tap: the lifted card and its menu. Gets the card's
@@ -63,6 +69,54 @@ class DaybookCardActions {
 
   /// A file post's preview: the file, full screen.
   final VoidCallback? onOpenFile;
+
+  /// "Open the page ›" (slice 5): the post's page over the daybook
+  /// (everyone who sees the post, Viewers too).
+  final VoidCallback? onOpenPage;
+
+  /// A target's row (slice 6): that work item's own card.
+  final ValueChanged<String>? onOpenChild;
+}
+
+/// The card's quiet grey line, "Open the page ›", when its page holds
+/// more than the card shows. No count of blocks.
+class DaybookOpenPage extends StatelessWidget {
+  const DaybookOpenPage({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final style = BvType.of(
+      context,
+    ).bodySm.copyWith(color: BvColors.textSecondary);
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: BvTapTarget(
+        child: Semantics(
+          button: true,
+          child: GestureDetector(
+            key: const Key('card-open-page'),
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: BvSpace.s2,
+              children: [
+                Text(l10n.pageOpen, style: style),
+                const Icon(
+                  BvIcons.caretForward,
+                  size: BvPageSpec.openCaret,
+                  color: BvColors.iconSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// One card on the daybook (v13, review 53 Part B): a post and what
@@ -239,18 +293,34 @@ class DaybookCardView extends StatelessWidget {
                   : BvAvatarTints.forId(authorId),
             ),
             BvSlipTitle(post.title, cancelled: post.cancelled),
-            BvSlipFacts(
-              children: [
-                BvSlipFact(
-                  icon: BvIcons.person,
-                  text: words.meta(post, me: me, now: now),
-                  marks: _factMarks(context),
-                ),
-                if ((post.place ?? '').isNotEmpty)
-                  BvSlipFact(icon: BvIcons.place, text: post.place!),
-              ],
-            ),
+            // A walk is its rows: its owner is its author, its due theirs.
+            if (!post.isTarget)
+              BvSlipFacts(
+                children: [
+                  BvSlipFact(
+                    icon: BvIcons.person,
+                    text: words.meta(post, me: me, now: now),
+                    marks: _factMarks(context),
+                  ),
+                  if ((post.place ?? '').isNotEmpty)
+                    BvSlipFact(icon: BvIcons.place, text: post.place!),
+                ],
+              )
+            else if ((post.place ?? '').isNotEmpty)
+              BvSlipFacts(
+                children: [BvSlipFact(icon: BvIcons.place, text: post.place!)],
+              ),
+            ?_quote(),
             if (chips.isNotEmpty) BvSlipChips(children: chips),
+            if (post.isTarget)
+              DaybookTargetRows(
+                post: post,
+                waiting: waiting,
+                viewer: viewer,
+                onOpenChild: lifted ? null : actions.onOpenChild,
+                onShowAll: lifted ? null : actions.onOpenPage,
+              ),
+            ?_openPage(),
             if (localPhoto != null)
               _LocalPhoto(
                 path: localPhoto!,
@@ -295,6 +365,24 @@ class DaybookCardView extends StatelessWidget {
         onAction: () => update(bvGlobalRect(context)),
         child: paper,
       ),
+    );
+  }
+
+  /// "Open the page ›" while its page holds blocks.
+  Widget? _openPage() {
+    final open = actions.onOpenPage;
+    if (!_post.hasPage || open == null || lifted) return null;
+    return DaybookOpenPage(onTap: open);
+  }
+
+  /// The message it was made from (review 64), quoted.
+  Widget? _quote() {
+    final quote = _post.quote;
+    if (quote == null) return null;
+    return BvQuoteBlock(
+      key: const Key('card-quote'),
+      from: words.quoteFrom(quote, now),
+      text: quote.text,
     );
   }
 
@@ -350,6 +438,7 @@ class DaybookCardView extends StatelessWidget {
                 : BvAvatarTints.forId(authorId),
           ),
           ..._kindBody(context, l10n),
+          ?_openPage(),
           ?history,
           if (couldNotSend)
             BvSlipError(l10n.daybookCouldNotSend)
@@ -414,6 +503,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           BvSlipTitle(post.title, cancelled: post.cancelled),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           ?cover,
           ?files,
         ];
@@ -421,6 +511,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           BvSlipFacts(
             children: [
               if (post.people.isNotEmpty)
@@ -454,6 +545,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           ...top(DaybookActivityWhat(post: post, words: words, now: now)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           if (post.people.isNotEmpty || action != null)
             row(
               post.people.isEmpty
@@ -480,6 +572,7 @@ class DaybookCardView extends StatelessWidget {
           if (file != null)
             BvSlipFact(icon: BvIcons.document, text: words.fileFact(file)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           if (!waiting)
             Consumer(
               builder: (context, ref, _) {
@@ -514,6 +607,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           Consumer(
             builder: (context, ref, _) {
               final by = waiting
