@@ -2,14 +2,18 @@ import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/people.dart';
+import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_samples.dart';
 import '../../helpers/dm_fakes.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/space_fakes.dart';
 
 AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
@@ -251,6 +255,84 @@ void main() {
       await tester.pump();
       await _tap(tester, find.byKey(const Key('chat-send')));
       expect(dm.calls, contains('send t-omar Sure reply m1'));
+    });
+
+    testWidgets('DM4–DM5: Put in a Space lists only Spaces I post in; the '
+        'Space opens writing a work item quoting the message, and only '
+        'Post posts it [$lang]', (tester) async {
+      final s = DaybookSamples(lang);
+      final dm = FakeDmRepository()..pages['t-omar'] = _omar();
+      final spaces = FakeSpaceRepository()
+        ..spaces.addAll([
+          SpaceSummary(
+            id: DaybookSamples.space,
+            name: s.spaceName,
+            pass: SpacePass.lead,
+            isAdmin: true,
+          ),
+          const SpaceSummary(
+            id: 'space-viewer',
+            name: 'Khiran villas',
+            pass: SpacePass.viewer,
+            isAdmin: false,
+          ),
+        ])
+        ..details[DaybookSamples.space] = s.detail()
+        ..spacePeople[DaybookSamples.space] = s.people();
+      final daybook = FakeDaybookRepository()
+        ..posts[DaybookSamples.space] = const [];
+      await pumpApp(
+        tester,
+        language: lang,
+        dm: dm,
+        spaces: spaces,
+        daybook: daybook,
+        now: _now,
+      );
+      await _go(tester, '/messages/t-omar');
+      await tester.longPress(find.byKey(const Key('chat-message-m1')));
+      await tester.pumpAndSettle();
+      await _tap(tester, find.byKey(const Key('dm-action-space')));
+      final sheet = find.byKey(const Key('dm-put-in-space'));
+      expect(sheet, findsOneWidget);
+      expect(
+        find.descendant(of: sheet, matching: find.text(s.spaceName)),
+        findsOneWidget,
+      );
+      // A Viewer can't post work there.
+      expect(find.text('Khiran villas'), findsNothing);
+      await _tap(tester, find.byKey(Key('dm-space-${DaybookSamples.space}')));
+      // DM5: the daybook, writing, the message quoted.
+      final quote = find.byKey(const Key('writing-quote'));
+      expect(quote, findsOneWidget);
+      expect(
+        find.descendant(
+          of: quote,
+          matching: find.text(inOwnDirection('At the gate at 7?')),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: quote,
+          matching: find.textContaining('Omar Haddad'),
+        ),
+        findsOneWidget,
+      );
+      expect(daybook.created, isEmpty, reason: 'nothing posts by itself');
+      await tester.enterText(
+        find.byKey(const Key('writing-title')),
+        s.cableTraysTitle,
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, find.byKey(const Key('writing-who')));
+      await _tap(tester, find.text(s.omarName).last);
+      await _tap(tester, find.byKey(const Key('writing-post')));
+      await tester.pumpAndSettle();
+      final made = daybook.created.single;
+      expect(made.quote?.text, 'At the gate at 7?');
+      expect(made.quote?.authorName, 'Omar Haddad');
+      expect(made.sourceMessageId, isNull, reason: 'a DM stays in its thread');
     });
 
     testWidgets('voice notes: hold the mic and let go to send; slide away '

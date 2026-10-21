@@ -6559,6 +6559,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This photo can\'t be opened. Choose another.'**
   String get photoCannotOpen;
+
+  /// Over a message quoted in a post (review 64, DM5): who wrote it and when.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name} · {when}'**
+  String daybookQuoteFrom(String name, String when);
+
+  /// Over a quoted message with no time.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String daybookQuoteFromName(String name);
+
+  /// DM3 hold menu and the DM4 sheet's title (review 64): make a work item in a Space from this message, quoted. The message stays in the thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Put in a Space'**
+  String get dmPutInSpace;
+
+  /// DM4 when the person has no Space where their pass lets them post.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re not in a Space where you can add work yet.'**
+  String get dmPutInSpaceNone;
+
+  /// S8m hold menu in Space chat (review 64): the Work tab opens with a work item being written, this message quoted.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn into a work item'**
+  String get chatTurnIntoWorkItem;
 }
 
 class _AppLocalizationsDelegate

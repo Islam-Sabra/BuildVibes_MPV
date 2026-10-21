@@ -5626,5 +5626,38 @@
   "photoCannotOpen": "This photo can't be opened. Choose another.",
   "@photoCannotOpen": {
     "description": "A picked photo nobody could open; it isn't sent, and the others still go (review 74 H1)."
+  },
+  "daybookQuoteFrom": "From {name} · {when}",
+  "@daybookQuoteFrom": {
+    "description": "Over a message quoted in a post (review 64, DM5): who wrote it and when.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookQuoteFromName": "From {name}",
+  "@daybookQuoteFromName": {
+    "description": "Over a quoted message with no time.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dmPutInSpace": "Put in a Space",
+  "@dmPutInSpace": {
+    "description": "DM3 hold menu and the DM4 sheet's title (review 64): make a work item in a Space from this message, quoted. The message stays in the thread."
+  },
+  "dmPutInSpaceNone": "You're not in a Space where you can add work yet.",
+  "@dmPutInSpaceNone": {
+    "description": "DM4 when the person has no Space where their pass lets them post."
+  },
+  "chatTurnIntoWorkItem": "Turn into a work item",
+  "@chatTurnIntoWorkItem": {
+    "description": "S8m hold menu in Space chat (review 64): the Work tab opens with a work item being written, this message quoted."
   }
 }

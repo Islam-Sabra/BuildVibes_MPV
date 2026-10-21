@@ -223,3 +223,19 @@ abstract final class BvUndoBarSpec {
   /// Then the check is locked (daybook.md).
   static const duration = Duration(seconds: 5);
 }
+
+/// A message quoted in a post (DM5 2561:76753, review 64): a soft panel
+/// with an orange bar at its start, "From Omar Haddad · 10:42" small and
+/// grey, then the words.
+abstract final class BvQuoteSpec {
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.photo)); // 8
+  static const bar = 3.0;
+  static const paddingStart = BvSpace.s12;
+  static const paddingEnd = BvSpace.s12;
+  static const paddingVertical = BvSpace.s8;
+  static const lineGap = BvSpace.s2;
+
+  /// The words: four lines while writing, three on the card.
+  static const linesWriting = 4;
+  static const linesCard = 3;
+}

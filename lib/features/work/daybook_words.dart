@@ -39,6 +39,18 @@ class DaybookWords {
   /// "Thu 15 Oct".
   String shortDate(DateTime day) => _f('EEE d MMM', day);
 
+  /// A quoted message's line (review 64): "From Omar Haddad · 10:42", with
+  /// the day when it wasn't today ("· Wed 14 Oct 10:42").
+  String quoteFrom(DaybookQuote quote, DateTime now) {
+    final name = _inLine(personName(l10n, quote.authorName));
+    final at = quote.at;
+    if (at == null) return l10n.daybookQuoteFromName(name);
+    final when = dayOf(at) == dayOf(now)
+        ? _clock(at)
+        : '${shortDate(at)} ${_clock(at)}';
+    return l10n.daybookQuoteFrom(name, when);
+  }
+
   /// An earlier day on the To do strip (F57, F61): "Mon" within the week,
   /// "Mon 12 Oct" before it; null for today.
   String? stripDay(DateTime day, DateTime now) {

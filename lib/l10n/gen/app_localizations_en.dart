@@ -3884,4 +3884,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoCannotOpen => 'This photo can\'t be opened. Choose another.';
+
+  @override
+  String daybookQuoteFrom(String name, String when) {
+    return 'From $name · $when';
+  }
+
+  @override
+  String daybookQuoteFromName(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String get dmPutInSpace => 'Put in a Space';
+
+  @override
+  String get dmPutInSpaceNone =>
+      'You\'re not in a Space where you can add work yet.';
+
+  @override
+  String get chatTurnIntoWorkItem => 'Turn into a work item';
 }

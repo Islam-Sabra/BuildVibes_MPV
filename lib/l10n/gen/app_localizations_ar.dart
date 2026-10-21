@@ -3889,4 +3889,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get photoCannotOpen => 'تعذّر فتح هذه الصورة. اختر صورة أخرى.';
+
+  @override
+  String daybookQuoteFrom(String name, String when) {
+    return 'من $name · $when';
+  }
+
+  @override
+  String daybookQuoteFromName(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String get dmPutInSpace => 'ضعها في مساحة';
+
+  @override
+  String get dmPutInSpaceNone => 'لست بعد في مساحة يمكنك إضافة عمل فيها.';
+
+  @override
+  String get chatTurnIntoWorkItem => 'حوّلها إلى بند عمل';
 }

@@ -7,6 +7,7 @@ import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../data/models/daybook.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_card_history.dart';
 import '../../shared/widgets/bv_checklist_point.dart';
 import '../../shared/widgets/bv_faces.dart';
@@ -250,6 +251,7 @@ class DaybookCardView extends StatelessWidget {
                   BvSlipFact(icon: BvIcons.place, text: post.place!),
               ],
             ),
+            ?_quote(),
             if (chips.isNotEmpty) BvSlipChips(children: chips),
             if (localPhoto != null)
               _LocalPhoto(
@@ -295,6 +297,17 @@ class DaybookCardView extends StatelessWidget {
         onAction: () => update(bvGlobalRect(context)),
         child: paper,
       ),
+    );
+  }
+
+  /// The message it was made from (review 64), quoted.
+  Widget? _quote() {
+    final quote = _post.quote;
+    if (quote == null) return null;
+    return BvQuoteBlock(
+      key: const Key('card-quote'),
+      from: words.quoteFrom(quote, now),
+      text: quote.text,
     );
   }
 
@@ -414,6 +427,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           BvSlipTitle(post.title, cancelled: post.cancelled),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           ?cover,
           ?files,
         ];
@@ -421,6 +435,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           BvSlipFacts(
             children: [
               if (post.people.isNotEmpty)
@@ -454,6 +469,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           ...top(DaybookActivityWhat(post: post, words: words, now: now)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           if (post.people.isNotEmpty || action != null)
             row(
               post.people.isEmpty
@@ -480,6 +496,7 @@ class DaybookCardView extends StatelessWidget {
           if (file != null)
             BvSlipFact(icon: BvIcons.document, text: words.fileFact(file)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           if (!waiting)
             Consumer(
               builder: (context, ref, _) {
@@ -514,6 +531,7 @@ class DaybookCardView extends StatelessWidget {
         return [
           ...top(BvSlipTitle(post.title, cancelled: post.cancelled)),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
+          ?_quote(),
           Consumer(
             builder: (context, ref, _) {
               final by = waiting

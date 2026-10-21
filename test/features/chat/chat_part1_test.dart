@@ -3,11 +3,13 @@ import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_tab.dart';
 import 'package:buildvibes/features/messages/dm_thread_screen.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -460,6 +462,97 @@ void main() {
         chat.calls.where((c) => c == 'read $_everyone').length,
         greaterThan(reads),
       );
+    });
+
+    testWidgets('S8m: Turn into a work item opens the Work tab writing, '
+        'the message quoted, and Post makes it from that message [$lang]', (
+      tester,
+    ) async {
+      final app = await _openThread(tester, lang);
+      await tester.longPress(find.byKey(const Key('chat-message-m2')));
+      await tester.pumpAndSettle();
+      await _tap(tester, 'chat-action-work-item');
+      final quote = find.byKey(const Key('writing-quote'));
+      expect(quote, findsOneWidget);
+      expect(
+        find.descendant(
+          of: quote,
+          matching: find.text(
+            inOwnDirection('Gate 2 is blocked by the crane.'),
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: quote,
+          matching: find.textContaining('Rakesh Nair'),
+        ),
+        findsOneWidget,
+      );
+      expect(app.daybook.created, isEmpty, reason: 'only Post posts');
+      await tester.enterText(
+        find.byKey(const Key('writing-title')),
+        'Clear gate 2 for the pump truck',
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, 'writing-who');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(BvGiveToPicker),
+          matching: find.text('Rakesh Nair'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, 'writing-post');
+      final made = app.daybook.created.single;
+      expect(made.sourceMessageId, 'm2');
+      expect(made.quote?.text, 'Gate 2 is blocked by the crane.');
+      expect(made.quote?.authorName, 'Rakesh Nair');
+    });
+
+    testWidgets('S8m: a Team thread\'s message stays in that Team [$lang]', (
+      tester,
+    ) async {
+      final chat = _chat()
+        ..messagesByThread[_mep] = [
+          _msg(
+            's1',
+            'p-rakesh',
+            'Rakesh Nair',
+            'Sleeves short by 40',
+            _at(10, 18),
+            thread: _mep,
+          ),
+        ];
+      await _openThread(tester, lang, thread: _mep, chat: chat);
+      await tester.longPress(find.byKey(const Key('chat-message-s1')));
+      await tester.pumpAndSettle();
+      await _tap(tester, 'chat-action-work-item');
+      final draft = ProviderScope.containerOf(
+        tester.element(find.byType(DaybookTab)),
+      ).read(daybookDraftProvider(_space));
+      expect(draft?.teamId, 'team-mep');
+      expect(draft?.sourceMessageId, 's1');
+    });
+
+    testWidgets('S8m: someone who can\'t post work here doesn\'t see it '
+        '[$lang]', (tester) async {
+      final spaces = _spaces()
+        ..details[_space] = SpaceDetail(
+          id: _space,
+          name: 'Site team',
+          myPass: SpacePass.viewer,
+          iAmAdmin: false,
+          myRights: const MemberRights(),
+        );
+      await pumpApp(tester, language: lang, spaces: spaces, chat: _chat());
+      _router(tester).push('/spaces/$_space/chat/$_everyone');
+      await tester.pumpAndSettle();
+      await tester.longPress(find.byKey(const Key('chat-message-m2')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('chat-action-work-item')), findsNothing);
+      expect(find.byKey(const Key('chat-action-reply')), findsOneWidget);
     });
 
     testWidgets('reply: the answer quotes the message [$lang]', (tester) async {

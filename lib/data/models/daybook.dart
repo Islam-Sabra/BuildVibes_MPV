@@ -276,6 +276,44 @@ class DaybookAckFace {
 /// A post on a Space's daybook, as space_post_json gives it: a work item,
 /// a checklist, an announcement, a scheduled activity or a file.
 @immutable
+/// A message quoted in a work item (review 64: a direct message put in a
+/// Space, DM4–DM5; a Space chat message turned into a work item, S8m):
+/// who wrote it, its words and when, as space_posts.quote keeps them.
+@immutable
+class DaybookQuote {
+  const DaybookQuote({required this.text, this.authorName, this.at});
+
+  static DaybookQuote? fromJson(Object? value) {
+    if (value is! Map<String, dynamic>) return null;
+    final text = value['text'];
+    if (text is! String || text.trim().isEmpty) return null;
+    return DaybookQuote(
+      text: text,
+      authorName: value['author_name'] as String?,
+      at: _time(value['at']),
+    );
+  }
+
+  /// The server's limit on the words (is_valid_post_quote).
+  static const textMax = 3000;
+  static const authorMax = 120;
+
+  final String text;
+
+  /// Null across a block or for a hidden account: "Former member".
+  final String? authorName;
+  final DateTime? at;
+
+  Map<String, dynamic> toJson() => {
+    'text': text.length > textMax ? text.substring(0, textMax) : text,
+    if (authorName != null)
+      'author_name': authorName!.length > authorMax
+          ? authorName!.substring(0, authorMax)
+          : authorName,
+    if (at != null) 'at': at!.toUtc().toIso8601String(),
+  };
+}
+
 class DaybookPost {
   const DaybookPost({
     required this.id,
@@ -305,6 +343,7 @@ class DaybookPost {
     this.myAcks = const {},
     this.myAckAt = const {},
     this.editedAt,
+    this.quote,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -359,6 +398,7 @@ class DaybookPost {
           ?DaybookAck.fromJson(e.key): ?_time(e.value),
       },
       editedAt: _time(json['edited_at']),
+      quote: DaybookQuote.fromJson(json['quote']),
     );
   }
 
@@ -443,6 +483,9 @@ class DaybookPost {
 
   /// When its author last edited it, if ever.
   final DateTime? editedAt;
+
+  /// The message it was made from, quoted (review 64).
+  final DaybookQuote? quote;
 
   bool get isNote => kind == noteKind;
   bool get isWorkItem => kind == workItemKind;

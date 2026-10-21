@@ -37,6 +37,10 @@ import '../safety/report_flow.dart';
 import '../spaces/space_errors.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
 import 'chat_state.dart';
+import '../../data/models/daybook.dart' show DaybookQuote;
+import '../spaces/space_screen.dart' show SpaceOpen;
+import '../work/daybook_draft.dart' show daybookDraftProvider;
+import '../work/daybook_writing.dart' show newPostIdProvider;
 import 'chat_tab.dart';
 import 'voice.dart';
 import '../spaces/former_member.dart';
@@ -341,12 +345,54 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     }
   }
 
+  /// S8m (review 64): the Work tab opens with a work item being written,
+  /// the message quoted in it ("From Rakesh Nair · 10:15"), made from it
+  /// (p_source_message). A Team thread's message stays in that Team; the
+  /// server checks it too. Nothing is posted until Post.
+  Future<void> _turnIntoWorkItem(ChatMessage m) async {
+    final thread = ref
+        .read(spaceThreadsProvider(widget.spaceId))
+        .value
+        ?.where((t) => t.id == widget.threadId)
+        .firstOrNull;
+    final teamId = thread?.teamId;
+    await ref
+        .read(daybookDraftProvider(widget.spaceId).notifier)
+        .quoteMessage(
+          ref.read(newPostIdProvider)(),
+          DaybookQuote(
+            text: m.body!.trim(),
+            authorName: m.authorName,
+            at: m.createdAt,
+          ),
+          sourceMessageId: m.id,
+          team: teamId == null
+              ? null
+              : (id: teamId, name: thread?.teamName ?? ''),
+        );
+    if (!mounted) return;
+    unawaited(
+      context.push(AppRoutes.space(widget.spaceId), extra: SpaceOpen.write),
+    );
+  }
+
   Future<void> _actions(ChatMessage m, {required bool canDelete}) async {
     final l10n = AppLocalizations.of(context);
     final me = ref.read(authUserIdProvider).value;
     // S8c: someone else's message (not a work item card) can be reported.
     final canReport =
         m.authorId != null && m.authorId != me && m.kind != ChatKind.workItem;
+    // S8m: a message with words, for someone who may post work here.
+    final canTurn =
+        m.kind != ChatKind.workItem &&
+        m.deletedAt == null &&
+        (m.body ?? '').trim().isNotEmpty &&
+        (ref
+                .read(spaceDetailProvider(widget.spaceId))
+                .value
+                ?.myRights
+                .createItems ??
+            false);
     FocusManager.instance.primaryFocus?.unfocus();
     final choice = await showBvSheet<_Action>(
       context: context,
@@ -360,6 +406,14 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
             label: l10n.chatReply,
             onTap: () => Navigator.of(context).pop(_Action.reply),
           ),
+          // S8m: the words become a work item in this Space's daybook.
+          if (canTurn)
+            ChatActionRow(
+              key: const Key('chat-action-work-item'),
+              icon: BvIcons.workItems,
+              label: l10n.chatTurnIntoWorkItem,
+              onTap: () => Navigator.of(context).pop(_Action.workItem),
+            ),
           ChatActionRow(
             key: const Key('chat-action-copy'),
             icon: BvIcons.copy,
@@ -386,6 +440,8 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     );
     if (!mounted || choice == null) return;
     switch (choice) {
+      case _Action.workItem:
+        await _turnIntoWorkItem(m);
       case _Action.reply:
         setState(
           () => _replyTo = ChatReply(
@@ -578,7 +634,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   }
 }
 
-enum _Action { reply, copy, delete, report }
+enum _Action { reply, workItem, copy, delete, report }
 
 enum _Attach { camera, gallery, pdf }
 

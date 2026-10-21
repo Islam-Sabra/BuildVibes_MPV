@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
+import '../../data/models/daybook.dart' show DaybookQuote;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
@@ -115,6 +116,8 @@ class PendingItem {
     this.authorName,
     this.draft,
     this.files = const [],
+    this.quote,
+    this.sourceMessageId,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -144,6 +147,8 @@ class PendingItem {
       for (final f in json['files'] as List? ?? const [])
         DraftFile.fromJson(f as Map<String, dynamic>),
     ],
+    quote: DaybookQuote.fromJson(json['quote']),
+    sourceMessageId: json['source_message_id'] as String?,
   );
 
   static DateTime? _time(Object? value) =>
@@ -197,6 +202,11 @@ class PendingItem {
   /// on a new work item. A new one goes to the Library first.
   final List<DraftFile> files;
 
+  /// A new work item's quoted message, and the Space chat message it was
+  /// made from (review 64).
+  final DaybookQuote? quote;
+  final String? sourceMessageId;
+
   PendingItem copyWith({
     List<PendingPhoto>? photos,
     List<DraftFile>? files,
@@ -221,6 +231,8 @@ class PendingItem {
     authorName: authorName,
     draft: draft,
     files: files ?? this.files,
+    quote: quote,
+    sourceMessageId: sourceMessageId,
   );
 
   /// A new post, of any kind.
@@ -246,6 +258,8 @@ class PendingItem {
     'author_name': authorName,
     'draft': draft?.toJson(),
     'files': [for (final f in files) f.toJson()],
+    'quote': quote?.toJson(),
+    'source_message_id': sourceMessageId,
   };
 
   /// Only the kinds this version knows are read back.
@@ -680,6 +694,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             dueAt: item.dueAt,
             photoPaths: paths,
             libraryFileIds: fileIds,
+            quote: item.quote,
+            sourceMessageId: item.sourceMessageId,
           ),
         );
         // The same file twice is one attachment (attach_library_file).
@@ -711,6 +727,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             points: d.writtenPoints,
             photoPaths: paths,
             teamId: d.teamId,
+            quote: d.quote,
+            sourceMessageId: d.sourceMessageId,
           ),
         );
       case PendingKind.signOff:

@@ -18,6 +18,7 @@ import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
@@ -526,6 +527,8 @@ class DaybookWriter {
               photos: photos,
               files: d.files,
               draft: workItem ? null : d,
+              quote: workItem ? d.quote : null,
+              sourceMessageId: workItem ? d.sourceMessageId : null,
             ),
           ),
     );
@@ -848,7 +851,15 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
               writing: writing,
               onChanged: _writer.setPoints,
             )
-          : null,
+          : draft.quote == null
+          ? null
+          // The message it is made from (review 64, DM5).
+          : BvQuoteBlock(
+              key: const Key('writing-quote'),
+              from: words.quoteFrom(draft.quote!, now),
+              text: draft.quote!.text,
+              maxLines: BvQuoteSpec.linesWriting,
+            ),
       photos: [
         for (final p in draft.photos)
           Image(image: ref.watch(localPhotoProvider(p)), fit: BoxFit.cover),

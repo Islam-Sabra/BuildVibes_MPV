@@ -1076,5 +1076,10 @@
   "daybookLineNoNewDate": "بلا موعد جديد",
   "needsDoneWaiting": "منجز {time} · بانتظار تحققك",
   "photoPreparing": "جارٍ التجهيز…",
-  "photoCannotOpen": "تعذّر فتح هذه الصورة. اختر صورة أخرى."
+  "photoCannotOpen": "تعذّر فتح هذه الصورة. اختر صورة أخرى.",
+  "daybookQuoteFrom": "من {name} · {when}",
+  "daybookQuoteFromName": "من {name}",
+  "dmPutInSpace": "ضعها في مساحة",
+  "dmPutInSpaceNone": "لست بعد في مساحة يمكنك إضافة عمل فيها.",
+  "chatTurnIntoWorkItem": "حوّلها إلى بند عمل"
 }

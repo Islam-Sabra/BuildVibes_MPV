@@ -130,6 +130,8 @@ class NewSpacePost {
     this.photoPaths = const [],
     this.attachedFileIds = const [],
     this.teamId,
+    this.quote,
+    this.sourceMessageId,
   });
 
   final String id;
@@ -151,6 +153,10 @@ class NewSpacePost {
   final DateTime? startsAt;
   final DateTime? endsAt;
   final String? libraryFileId;
+
+  /// The message it is made from (review 64), as on a work item.
+  final DaybookQuote? quote;
+  final String? sourceMessageId;
   final List<String> people;
 
   /// Each point with the id the app chose.
@@ -193,6 +199,8 @@ class NewSpacePost {
         for (final path in photoPaths) {'path': path, 'mime': _jpeg},
         for (final id in attachedFileIds) {'library_file_id': id},
       ],
+      'p_quote': ?quote?.toJson(),
+      'p_source_message': ?sourceMessageId,
     };
   }
 }
@@ -270,12 +278,19 @@ class NewWorkItem {
     this.dueAt,
     this.photoPaths = const [],
     this.libraryFileIds = const [],
+    this.quote,
+    this.sourceMessageId,
   });
 
   final String id;
   final String spaceId;
   final String title;
   final String ownerId;
+
+  /// The message it is made from (review 64). The server checks the
+  /// caller may read a [sourceMessageId] and keeps a Team's in its Team.
+  final DaybookQuote? quote;
+  final String? sourceMessageId;
   final String? body;
   final String? place;
   final DateTime? dueDate;
@@ -435,6 +450,8 @@ class SupabaseDaybookRepository implements DaybookRepository {
         'p_files': [
           for (final path in item.photoPaths) {'path': path, 'mime': _jpeg},
         ],
+        'p_quote': ?item.quote?.toJson(),
+        'p_source_message': ?item.sourceMessageId,
       },
     ),
   );

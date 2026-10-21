@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/around_specs.dart' show BvSpaceEmblemSpec;
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/messages_specs.dart';
@@ -34,6 +35,17 @@ import '../safety/report_flow.dart';
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
+import '../../core/routing/app_routes.dart';
+import '../../data/models/daybook.dart' show DaybookQuote;
+import '../../data/repositories/space_repository.dart' show mySpacesProvider;
+import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_quote_block.dart';
+import '../../shared/widgets/bv_space_emblem.dart';
+import '../entry/entry_state.dart' show myProfileProvider;
+import '../spaces/space_screen.dart' show SpaceOpen;
+import '../work/daybook_draft.dart' show daybookDraftProvider;
+import '../work/daybook_words.dart';
+import '../work/daybook_writing.dart' show newPostIdProvider;
 
 /// A message on its way, shown at once as mine ("Sending…", or "Not sent ·
 /// Retry").
@@ -425,6 +437,14 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
             label: l10n.chatReply,
             onTap: () => Navigator.of(sheet).pop('reply'),
           ),
+          // DM4: the words become a work item in a Space you post in.
+          if ((m.body ?? '').trim().isNotEmpty && !m.deleted)
+            ChatActionRow(
+              key: const Key('dm-action-space'),
+              icon: BvIcons.workItems,
+              label: l10n.dmPutInSpace,
+              onTap: () => Navigator.of(sheet).pop('space'),
+            ),
           if ((m.body ?? '').isNotEmpty)
             ChatActionRow(
               key: const Key('dm-action-copy'),
@@ -453,6 +473,8 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     );
     if (!mounted) return;
     switch (choice) {
+      case 'space':
+        await _putInSpace(m);
       case 'reply':
         setState(() => _replyTo = m);
       case 'copy':
@@ -473,6 +495,83 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
           onReported: () => unawaited(_reload()),
         );
     }
+  }
+
+  /// DM4–DM5 (review 64): pick a Space you can post in; its daybook opens
+  /// with a work item being written, the message quoted in it. The message
+  /// itself never leaves the thread, and nothing is posted until Post.
+  Future<void> _putInSpace(DmMessage m) async {
+    final l10n = AppLocalizations.of(context);
+    final spaces = await ref
+        .read(mySpacesProvider.future)
+        .catchError((Object _) => const <SpaceSummary>[]);
+    if (!mounted) return;
+    final postable = [
+      for (final s in spaces)
+        if (s.pass != SpacePass.viewer) s,
+    ];
+    final me = ref.read(myProfileProvider).value;
+    final author = m.fromMe
+        ? (me == null ? null : '${me.firstName} ${me.lastName}'.trim())
+        : (_person?.former ?? true ? null : _person!.name);
+    final quote = DaybookQuote(
+      text: m.body!.trim(),
+      authorName: author,
+      at: m.createdAt,
+    );
+    final now = ref.read(clockProvider)();
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final picked = await showBvSheet<SpaceSummary>(
+      context: context,
+      title: l10n.dmPutInSpace,
+      builder: (sheet) => Column(
+        key: const Key('dm-put-in-space'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: BvSpace.s12,
+        children: [
+          BvQuoteBlock(
+            from: words.quoteFrom(quote, now),
+            text: quote.text,
+            maxLines: 2,
+          ),
+          if (postable.isEmpty)
+            Text(
+              l10n.dmPutInSpaceNone,
+              style: BvType.of(
+                context,
+              ).bodyMd.copyWith(color: BvColors.textSecondary),
+            )
+          else
+            ClipRRect(
+              borderRadius: BvRadius.cardAll,
+              child: BvListGroup(
+                rows: [
+                  for (final space in postable)
+                    BvListRow(
+                      key: Key('dm-space-${space.id}'),
+                      title: space.name,
+                      leading: const BvSpaceEmblem(
+                        height: BvSpaceEmblemSpec.tile,
+                      ),
+                      onTap: () => Navigator.of(sheet).pop(space),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (picked == null || !mounted) return;
+    await ref
+        .read(daybookDraftProvider(picked.id).notifier)
+        .quoteMessage(ref.read(newPostIdProvider)(), quote);
+    if (!mounted) return;
+    unawaited(context.push(AppRoutes.space(picked.id), extra: SpaceOpen.write));
   }
 
   /// The thread's ⋯ (review 41): Mute or Unmute, Report the person, Block.
