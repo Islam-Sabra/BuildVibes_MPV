@@ -35,7 +35,7 @@ Branch **`claude/review72-db`** (from `slice2-app`): `20261023120000_send_back_d
   - the owner, an outsider, a time without a day, a time on another day, and a date without the choice, all refused;
   - an event can't be rewritten;
   - only a send-back carries a date.
-- **Numbering:** this is **33**, because it was written first. The 3D model views become **34** (review 71 updated).
+- **Numbering:** this is **33**, because it was written first. The 3D model views become **35**, after the store reviewer's migration 34 (reviews 71 and 73 updated).
 - **Before it goes live:** the PC merges `claude/review72-db` into `slice2-app` and runs `supabase test db`. Then, with the founder's yes, the push lists only `20261023120000_send_back_due.sql`, followed by the read-only check.
 
 **App (F62):** the send-back sheet calls `send_back(…, p_due_set: true, p_due: …, p_due_at: …)`, with `p_due` and `p_due_at` both null for "No new date". The card shows the line's new date from `new_due`.

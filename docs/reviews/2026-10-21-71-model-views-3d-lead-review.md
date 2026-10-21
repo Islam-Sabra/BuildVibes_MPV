@@ -3,7 +3,7 @@
 Review 70 (`docs/reviews/2026-10-20-70-model-views-3d.md`, branch `model-views-3d-notes`, commit 8b7b201) is the plan for the founder's decision of 20 Oct: **3D goes into the pilot**, as an optional part of a published model view. The founder rules in it (optional per view, the scope is a section box or a room, the same title and version, Library only, never auto-posted) stand. **The plan is approved with the changes below.**
 
 ## Changes
-1. **Migration number:** 29 is the live slice 2 migration. The 3D server work is **migration 34** (33 is the send-back date, review 72, written first), on `model-views-3d-db`. Wherever review 70 says "migration 29", read 34.
+1. **Migration number:** 29 is the live slice 2 migration. The 3D server work is **migration 35** (33 is the send-back date, live; 34 is the store reviewer's try counter and hidden demo accounts, review 73), on `model-views-3d-db`. Wherever review 70 says "migration 29", read 35.
 2. **Merging the notes branch:** `model-views-3d-notes` was cut from an older `main`. Against today's `main` it also shows old copies of the handoff, the legal drafts and the store listing. **Don't merge the branch.** Cherry-pick only its two files (review 70 and the 3D section of `model-views.md`) onto `main`.
 3. **Order (this fits the plan of 19 Oct, review 56: model views in the app come with the Library screens):**
    1. **A phone spike first, half a day, after the slice 2 retest.** Open the proven 4.8 MB room-size GLB in a WebView with the bundled three.js page on the founder's Xiaomi. Measure:
@@ -12,10 +12,10 @@ Review 70 (`docs/reviews/2026-10-20-70-model-views-3d.md`, branch `model-views-3
       - the memory used.
       
       **Pass:** first frame under 4 s and at least 30 fps while orbiting. If it fails, decide on the tool before anything is built (for example, a lower triangle cap from the plugin).
-   2. **Migration 34** (server), reviewed by the lead, live with the founder's yes, as the only file.
+   2. **Migration 35** (server), reviewed by the lead, live with the founder's yes, as the only file.
    3. **Plugin Part C** on the PC.
    4. **The viewer (Part B) inside slice 4:** the model view's page is the LV2 file page, so the viewer is built with it, not before.
-4. **Migration 34, additions to Part A:**
+4. **Migration 35, additions to Part A:**
    - **`may_upload`:** confirm that `view.glb` beside `view.jpg` and `thumb.jpg` in the unused `<space>/library/<p_id>/` folder needs no change (as review 57 R6). Test it.
    - **Retry (review 59 M1):** a retry with the same id must also match `glb_path`, or it returns a different publish.
    - **The size cap belongs on the bucket too.** `p_glb_bytes ≤ 20 MB` is only what the plugin claims, so also check the real stored size (`storage.objects.metadata->>'size'`, as `upload_mime` reads the mime).
