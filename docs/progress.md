@@ -666,3 +666,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - six new screen tests; the PNGs are re-shot on the PC;
   - review 64, the slice 3 plan: chat and direct messages, migration 31 for a private `dm:` channel, and the build order. The build waits for the slice 2 retest.
 - **21 Oct, evening** (cloud, `claude/review72-app` from `slice2-retest` + migration 33): review 72's app part — F59 Today masthead and divider, F61 To do strip, F62 send-back new date and Needs you wording, F63 plain kind menu, F60 photos lose the phone's identity. 1,296 app tests and 2,217 SQL checks pass on this branch; screenshots in `docs/screens/review72/`. Migration 33 must be live before this build goes on a phone.
+- **22 Oct** (cloud, `claude/f68b-f69` from `f60-photo-reencode`): review 50 F68b the To do docket and F69 You first in the picker; 1,327 app tests pass (photo_privacy H1 fails only as root in the cloud); screenshots in `docs/screens/f68b/`.
