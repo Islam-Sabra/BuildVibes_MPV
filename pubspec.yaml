@@ -59,6 +59,9 @@ dev_dependencies:
   # The end-to-end journey on an emulator (integration_test/, local only).
   integration_test:
     sdk: flutter
+  # A fake server for the auth repository's tests (already a dependency of
+  # supabase_flutter; named here because the tests import it).
+  http: ^1.6.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

@@ -78,9 +78,16 @@ abstract class AuthRepository {
 }
 
 class SupabaseAuthRepository implements AuthRepository {
-  SupabaseAuthRepository(this._client);
+  SupabaseAuthRepository(
+    this._client, {
+    this.reviewEmail = AppConfig.reviewEmail,
+  });
 
   final SupabaseClient _client;
+
+  /// The build's store-reviewer email (review 69 §6); empty in every other
+  /// build. A parameter so tests can set it.
+  final String reviewEmail;
 
   /// Where Google and Apple send people back to the app.
   static const redirectUrl = 'com.buildvibes.buildvibes://login-callback';
@@ -131,24 +138,35 @@ class SupabaseAuthRepository implements AuthRepository {
     sending: true,
   );
 
+  /// The reviewer's code is fixed (the review-sign-in function checks it),
+  /// so no email is sent to that address: the code screen comes straight
+  /// away (review 73 B3).
   @override
   Future<void> sendEmailCode({
     required String email,
     required Map<String, dynamic> signUpData,
-  }) => _guard(
-    () => _auth.signInWithOtp(
-      email: email,
-      shouldCreateUser: true,
-      data: signUpData,
-    ),
-    sending: true,
-  );
+  }) async {
+    if (isReviewerEmail(email, reviewEmail)) return;
+    await _guard(
+      () => _auth.signInWithOtp(
+        email: email,
+        shouldCreateUser: true,
+        data: signUpData,
+      ),
+      sending: true,
+    );
+  }
 
+  /// The same for S13's confirm code: the reviewer types the fixed code,
+  /// and the function's fresh session counts as a recent sign-in.
   @override
-  Future<void> sendConfirmCode(String email) => _guard(
-    () => _auth.signInWithOtp(email: email, shouldCreateUser: false),
-    sending: true,
-  );
+  Future<void> sendConfirmCode(String email) async {
+    if (isReviewerEmail(email, reviewEmail)) return;
+    await _guard(
+      () => _auth.signInWithOtp(email: email, shouldCreateUser: false),
+      sending: true,
+    );
+  }
 
   @override
   Future<void> verifyPhoneCode({
@@ -160,7 +178,7 @@ class SupabaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> verifyEmailCode({required String email, required String code}) =>
-      isReviewerEmail(email, AppConfig.reviewEmail)
+      isReviewerEmail(email, reviewEmail)
       ? _reviewSignIn(email, code)
       : _guard(
           () => _auth.verifyOTP(type: OtpType.email, email: email, token: code),
