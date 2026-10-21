@@ -685,3 +685,21 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **The founder's check:** that Haptic feedback is on in the phone's settings.
 
 - **F60 (founder, 21 Oct):** a photo is posted from the phone; Claude Code checks that the stored file has no make, model or serials.
+
+## F67 passed (build 394, 21 Oct)
+- The founder feels the vibration on tick and on un-tick.
+
+## F68. The To do strip is one light line with a count (founder, 21 Oct; replaces the look in F61)
+- **Seen (build 394):** the strip lists every title with its day on a tinted band: "To do: Sun gffggg · Sun Paint Room 3 · Mon fix socket in room 4 · Tue ggfff · dddd". It's heavy and hard to read.
+- **Fix:**
+  - **One line, the same pattern as the folded announcement (K1b):** the calendar icon, **"To do · 5"** / **«مطلوب منك · 5»**, then ›.
+  - **No tinted band.** Use the page background with a hairline under it. The icon and "To do" are in the action colour, the count is in ink, and › is grey.
+  - **No titles and no days on the strip.** Tapping it opens the To do sheet (A1, review 73), which lists the titles, oldest first, with the earlier days in grey (F57).
+  - **The count is the viewer's own open and sent-back items** due today or earlier (F65). It's a personal list, not a quality signal (rule 3).
+  - **With 0 items the strip is not shown.**
+  - **Arabic:** mirrored, with the chevron pointing left and Western digits.
+- **Test:**
+  - 5 items show "To do · 5", with no titles on the strip;
+  - tapping opens the sheet with the 5 titles;
+  - 0 items: no strip;
+  - EN and AR at 390×844.
