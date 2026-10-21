@@ -11,7 +11,7 @@
 | Your name, photo, country, role or trade, company, headline, experience and projects | Your profile. You choose what it shows. |
 | A mobile number, if you add one | Private: only you can see it. |
 | What you post: work items, checklists, notes, photos, files, voice notes, messages, comments | To show them to the people you shared them with. |
-| When a proof photo was taken, and the place on site you type | The work item's record. The app doesn't ask for your location. **[Check, Claude]** whether photos keep the camera's location data; if they do, the app should remove it before upload. |
+| When a proof photo was taken, and the place you type | The work item's record. The app doesn't ask for your location. **[Check, Claude]** whether photos keep the camera's location data; if they do, the app should remove it before upload. |
 | Your phone's push code, its type and the app's language | To send notifications. |
 | Your private notebook | Only you can see it. |
 | Reports and blocks | To keep people safe. |
@@ -35,7 +35,7 @@ We don't use your phone's contacts. We don't track you across other apps.
 ## 3. How long we keep it
 - While your account is open.
 - **Deleting your account** (Settings → Account): your profile is hidden at once. You can restore it by signing in within **30 days**. After that, your account, profile, public posts, follows, notebook and photos are deleted for good.
-- **Work in a Space stays** in that Space's record, shown as "Former member", because the team needs a whole site record. **[Lawyer]** Please confirm this is acceptable.
+- **Work in a Space stays** in that Space's record, shown as "Former member", because the team needs a whole work record. **[Lawyer]** Please confirm this is acceptable.
 - Backups are kept for **[days]** and then overwritten.
 
 ## 4. Your choices and rights
