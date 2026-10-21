@@ -409,6 +409,19 @@ void main() {
         Key('daybook-divider-${today.toIso8601String()}'),
       );
       expect(tester.widget<Visibility>(divider).visible, isTrue);
+      // Yesterday keeps its divider: the masthead says Today.
+      expect(
+        tester
+            .widget<Visibility>(
+              find.byKey(
+                Key(
+                  'daybook-divider-${DateTime(2026, 10, 14).toIso8601String()}',
+                ),
+              ),
+            )
+            .visible,
+        isTrue,
+      );
       final nothing = find.byKey(const Key('daybook-nothing-today'));
       expect(find.text(l10n.daybookNothingYetToday), findsOneWidget);
       // Yesterday's cards sit above the divider; the line under it.

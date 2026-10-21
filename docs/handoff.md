@@ -2,81 +2,82 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## Last update: 20 Oct 2026, evening, cloud session (branch `claude/test-tw7wuv`)
+## Cloud update: 21 Oct 2026, evening — review 72, app part (branch `claude/review72-app`)
 
-The branch now carries **everything**: `slice2-live-db`, `slice2-app`, review 63, migrations 29 and 30, and the app work below. It merges cleanly into `slice2-app`, `slice2-live-db` and `main`.
+**Branch:** `claude/review72-app`, made from `origin/slice2-retest` (so the next test build is slice 2 only), with migration 33's two commits cherry-picked from `claude/review72-db` (`f801dbd`, `41e8079` here; `ef90d0c`, `aea1799` there). `claude/review72-db` was not merged: it carries slice 3.
 
-**Done here (database):**
-- Review 63 (`docs/reviews/2026-10-20-63-migration29-review.md`): migration 29 approved once R1 and R2 are in.
-- R1 and R2 applied to migration 29 (`20261020120000_slice2_live.sql`, still **not live**):
-  - R1: the chat's `thread:<id>` channel may be joined by whoever `can_use_thread` (receive only);
-  - R2: only Got it takes a new time after an edit, and Received keeps its first time.
-- Migration 30 (`20261021120000_report_notes.sql`, **not live**), notes in the daily report:
-  - `daily_report_notes` lists the day's notes for the "On site" suggestions;
-  - a report's `item_ref` can point at a note;
-  - each ref says its kind and status.
-- 2,193 SQL checks in 30 files pass on the stand-in (`supabase/dev/standin/`).
-- Founder's yes (20 Oct, "I will go with your recommendation") covers two steps:
-  - the migration 29 push;
-  - turning off public channels later, once the private-channel build is on every test phone.
-  
-  Migration 30: founder's yes (20 Oct, "Ok" to the recommendation). Push it right after migration 29, once the PC's checks pass.
+**Done (review 72 / review 50):**
+- **F59:** at Now the masthead reads "**Today** · Thursday 15 October" (AR «**اليوم** · الخميس 15 أكتوبر»), also while writing and when an older card fills the screen. Today's divider is always there above the writing area, with "Nothing yet today" / «لا شيء بعد اليوم» when the day is empty. Every earlier day keeps its divider at Now. Only when scrolled back does the masthead follow the day at the top (F23); then the "Today ↓" chip shows (the New chip wins when new things came in) and takes you back.
+- **F61:** the strip is "To do:" / «مطلوب منك:». It is now built from its parts, so an earlier day ("Sun") is always grey and the label and titles stay in the action colour (before, the grey depended on finding the day's word in the text).
+- **F62:**
+  - no due on a Done card (already so since F57, kept);
+  - the author's Needs you row: "Omar Haddad · Done 10:21 · waiting for your check" / «منجز 10:21 · بانتظار تحققك», never red;
+  - the send-back sheet has "New date": Today · Tomorrow · Pick a date · No new date (اليوم · غدًا · اختر تاريخًا · بلا موعد جديد), chips, nothing chosen first, and Send back stays off until one is chosen. Pick a date uses the writing card's day and time picker and then shows the day;
+  - it calls `send_back(…, p_due_set: true, p_due, p_due_at)`, both null for No new date;
+  - the card shows the server's new due (or none); the history line ends "· new date Sat 17 Oct" / "· no new date" from `new_due`.
+- **F63:** the kind menu has no description lines (E6 v14).
+- **F60:** photos also lose Make, Model, Artist, CameraOwnerName / OwnerName, BodySerialNumber, LensSerialNumber and the maker notes. Orientation and the time taken stay. Checked on a real JPEG with an image reader.
+- Test app: the PDF-free file preview (from `claude/test-tw7wuv`), so the PDF tests pass here too.
 
-**Done here (app, Flutter 3.44.9):**
-- Private live channels, `daybook:` and `thread:` (`private: true`), and at most one page read a second per Space (R3).
-- The Note (F58, K5 v13 2598:36260 and E6 v14 2598:36360):
-  - first in the kind menu, with "For information, nobody needs to act";
-  - posts with nothing more to set;
-  - the card says "· note" and has no buttons;
-  - its author can Edit and Cancel it.
-- Unpin for the admin acting for a gone author, never Edit (N2).
-- `my_ack_at`: an announcement edited after my Got it opens again (G1).
-- F57: no Late line, and a passed due shows in the action colour for its owner and author only; once signed as done the due leaves the card.
-- F56, one who-flow:
-  - the who row shows from the start;
-  - Post stays grey until it is filled, and a tap pulses it with "Choose who it's for";
-  - pickers never post;
-  - "Just for information? Post as a Note" under the owner picker;
-  - a scheduled activity now needs who's coming.
-- F54 on checklist points:
-  - a light haptic, the check fills, and who and when slide in;
-  - someone else's tick glows, then fades;
-  - nothing moves with the phone's animations off.
-- Later the same evening (item 2):
-  - F56: an announcement and a Document for receipt show "To: Everyone ›". A single choice picks Everyone or one Team: your own Teams, or any Team for a Space admin, as the server allows.
-  - F57: the Due today strip keeps open items from up to 61 days back, oldest first. An earlier day shows its day in grey ("Wed"), never "late".
-- `flutter analyze` is clean, and 1,269 app tests pass.
-  - 10 tests fail **here only**, and the same 10 fail on the untouched `slice2-app` in this container. Each renders a PDF (pdfx can't run on Linux): K2 file card ×4, F47 live ×4, F48 ×2. Run them on the PC.
+**Checks:**
+- `flutter analyze`: no issues. `flutter test`: see progress.md for the count.
+- SQL stand-in on this branch: **2,217 checks, all pass**. Fewer than review 72's 2,275 because this branch has no migrations 31 and 32 (slice 3 and slice 4 server work) and has migration 30 without review 65's later checks. On `slice2-app` it is 2,275.
+- Screenshots for the lead, EN and AR at 390×844, in `docs/screens/review72/` (Linux fonts; the PC re-shoots goldens): F59 masthead at Now with yesterday's cards, F61 To do strip, F62 send-back sheet with the date, F62 a sent-back card with its new date, F63 kind menu.
 
-**Not done:**
-- The screens haven't been checked by eye in EN and AR at 390×844, or on a phone. Screenshots and goldens weren't re-shot. (PC)
-- Waits for its slice (nothing to tick or show yet):
-  - F54 on a work item's points (slice 5, opening a post);
-  - F54 on Notebook to-dos (slice 8);
-  - the daily report offering notes under "On site", plus F57's "never N late" in reports (slice 7, templates and daily report).
-  
-  The server side of the daily report (migration 30) is ready.
+**For the lead to decide:**
+- The "+ more ›" at the end of an overflowing To do strip (F61) doesn't exist; the strip stops at two lines with "…". Not built in this round.
+- "No new date" adds "· no new date" to the history line (the review only words the date case).
 
-**Next, on the PC (in order):**
-1. `git fetch`. Merge `origin/claude/test-tw7wuv` into `slice2-live-db` and into `slice2-app`.
-2. Run `supabase test db`; 2,193 should pass. Then check against the local Realtime server:
-   - a private `daybook:` and `thread:` join works for a member and is refused for an outsider;
-   - with public access off, a chat message still arrives live.
-3. Push migration 29 to the live database. `supabase db push` must list only `20261020120000_slice2_live.sql`. Do the read-only check after, then merge `slice2-live-db` into `main`.
-4. On `slice2-app`:
-   - `flutter analyze`, then `flutter test`; the 10 PDF tests should pass on Windows;
-   - check the Note, the kind menu, the who row, the due colours and the tick feel in EN and AR;
-   - re-shoot the screenshots, make a build, and give it to the founder to test.
-5. The "Not done" list above.
-6. Migration 30 (founder's yes given): after migration 29 is live and `supabase test db` passes, push it. `supabase db push` must list only `20261021120000_report_notes.sql`, and the read-only check follows.
-7. Turn off public channels on the live project, only after the step 4 build is on every test phone.
+**Order for the PC:**
+1. Migration 33 must be **live before** this build goes on a phone: the new sheet calls `send_back` with `p_due_set`. Push it (founder's yes) as the only file, `20261023120000_send_back_due.sql`, after `supabase test db` on `slice2-app` with `claude/review72-db` merged.
+2. Build from `claude/review72-app` for the founder's test (steps 3–7 of build 375 first, then F59, F61, F62, F63, and F60 with a real phone photo).
+3. After the founder's test, merge `claude/review72-app` into `slice2-app` (and the PC's `slice2-retest` worktree). Re-shoot the goldens there.
 
-**Also done in the cloud (evening, after the handoff above):**
-- A Figma check of today's new screens, with two fixes, and screen tests for K5, F56 and F57 (`test_screens/slice2_test.dart`):
-  - the Note shows its words before its photos (K5 v13);
-  - the kind menu is wide enough for its small lines (E6 v14).
-  
-  The committed PNGs were **not** re-shot here: Linux fonts differ slightly, so the PC re-shoots them (`flutter test test_screens --update-goldens`).
-- The slice 3 plan: `docs/reviews/2026-10-20-64-slice3-plan.md`. It has no code, and the build starts only after the founder's slice 2 retest passes. It needs a small migration 31 (a private `dm:` channel).
+**Who has which branch:** this cloud session has `claude/review72-app` (done; nobody else on it). `claude/review72-db` belongs to the PC.
 
-**Who has which branch now:** nobody is working on any branch. The PC takes `slice2-live-db` and `slice2-app` tomorrow.
+## Lead update: 21 Oct 2026, noon (cloud, the lead's chat)
+- **The build 375 retest so far** (review 50): photo location, step 1 (Due today, run by the lead on the emulator as Omar) and step 2 (the Note) pass. **Steps 3–7 are still to test**, and they go first next time.
+- **Review 72** is the next round: F59–F63 (app) plus migration 33. When the founder says "apply review 72", do it on `slice2-app`.
+- **Migration 33 is written** (the lead, cloud), on branch **`claude/review72-db`** (from `slice2-app`): the send-back date (F62). It has 24 checks, and all 2,275 SQL checks pass on the stand-in. **Not live.**
+  - Merge that branch into `slice2-app` first, then `supabase test db`.
+  - Push live only with the founder's yes, as the only file: `20261023120000_send_back_due.sql`.
+- **The 3D model views are now migration 34** (review 71).
+- **Nobody is working on `claude/review72-db`;** the PC takes it.
+
+## Last update: 21 Oct 2026, PC session
+
+**Done on the PC:**
+- `claude/test-tw7wuv` merged into `slice2-live-db` and `slice2-app`; main (reviews 50 and 69, the founder's D1–D6) merged into both. Generated l10n files come from `flutter gen-l10n` and match.
+- Local checks: 2,251 SQL checks in 32 files, `flutter analyze` clean, 1,318 app tests.
+- Local Realtime check (13 of 13): members join the private `daybook:`, `thread:` and `dm:` channels and receive live; outsiders, and a Space member outside a DM, are refused. With public channels off locally, a public join is refused and a chat message still arrives live.
+  - The local Realtime server rewrites its tenant row on every start, so to test "public off" set `_realtime.tenants.private_only` as `supabase_admin` **without** restarting it.
+- **Live: migrations 29, 30, 31 and 32**, one file per push, each with a read-only check. `main` has them.
+- **Public channels on the live project are still ON.** The founder says when to turn them off, once the new build is on every test phone.
+- Review 69's wording fixes in `docs/legal/`, `docs/store/listing-draft.md`, `docs/pilot/quick-guide.md`, and the D3 positioning line in `docs/product/rules.md`.
+- **Slice 2 retest build 375** from branch `slice2-retest` (38a3d37) = `a2e330f` (tag `slice2-candidate`) + the code of 8af5dee (photo location removal). It applied cleanly, and 1,288 tests pass. It is on the emulator (Omar signed in).
+- Screenshots re-shot on the PC (Windows fonts), 211 checks, on `slice2-app` (a4adec7).
+
+**Waiting:**
+- **The founder's phone:** build 375 isn't on it yet (wireless debugging address needed). Install, then the founder's retest (order below).
+- **Step 6, photo location:** on the founder's phone with location on, take a photo, post it, download it from Storage and check that it has no GPS and keeps its orientation. Needs the phone.
+- **Retest order for the founder:**
+  1. Due today strip (F38/F57);
+  2. the Note;
+  3. the who row;
+  4. no "Late";
+  5. the tick feel;
+  6. an announcement edited after Got it;
+  7. live updates on both devices.
+- **After the retest passes:** the rest of slice 3 (DM4–DM5 Put in a Space, S8m Turn into a work item), then slice 4 (review 67, with review 69 §1). Not before.
+- **Review 69, still to do:**
+  - D4: the store reviewer's Edge Function and demo Space seed, on their own branch, before 13 Dec; going live needs its own yes.
+  - Store listing items outside the listed fixes: the English long description and the header note still say "AECO" (D3 says "construction"); "the place" in "Proof that is yours" could say "typed on the work item"; old lead notes on lines 78 and 115.
+
+**On the PC, not in git:**
+- The main folder has the lead's uncommitted `docs/reviews/2026-10-20-63-model-views-3d.md` and an edit to `docs/product/model-views.md`. Left untouched. Note that review 63 also names the cloud's `2026-10-20-63-migration29-review.md`, so the 3D review needs another number.
+- The `BuildVibes-slice1` worktree has a stash, "PC agent partial F54-F58, 20 Oct", superseded by the cloud's work. Drop it once the retest passes.
+
+**Who has which branch:**
+- PC: `slice2-app` (slice 2 + slice 3 part 1, worktree `BuildVibes-slice1`) and `slice2-retest` (the retest build, worktree `BuildVibes-phone`).
+- `slice2-live-db` equals main.
+- `claude/test-tw7wuv` is merged; a new cloud session starts its own `claude/...` branch from `slice2-app`.

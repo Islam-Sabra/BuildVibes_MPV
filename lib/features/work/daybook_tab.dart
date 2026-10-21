@@ -475,9 +475,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   }
 
   /// The divider of the day the masthead names: the masthead says it.
-  /// Today's always shows, right above the writing area (F59).
+  /// That is only away from Now: at Now the masthead says Today, so every
+  /// day keeps its divider, and Today's always shows, right above the
+  /// writing area (F59).
   bool _dividerHidden(DateTime day, DateTime today) =>
-      !_writing && day == _shownDay && day != today;
+      !_writing && _wasAway && day == _shownDay && day != today;
 
   /// Shows [day]: loads older pages until it is reached, then puts the
   /// latest day on or before it at the top.

@@ -166,6 +166,7 @@ class DaybookSamples {
     String? toId,
     String? fromId,
     DaybookDueEdit? dueEdit,
+    DaybookNewDue? newDue,
   }) => DaybookEvent(
     id: id,
     kind: kind,
@@ -178,6 +179,7 @@ class DaybookSamples {
     toName: toId == null ? null : nameOf(toId),
     fromName: fromId == null ? null : nameOf(fromId),
     dueEdit: dueEdit,
+    newDue: newDue,
   );
 
   /// [post]'s card: raised by its author when it was made, then
