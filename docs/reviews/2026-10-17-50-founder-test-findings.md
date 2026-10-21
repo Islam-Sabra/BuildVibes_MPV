@@ -718,3 +718,39 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - "was due Thu 15 Oct" is in the action colour, as F57 says.
   
   The founder's phone check comes with the next build.
+
+## F68b. The To do line becomes a work docket (founder, 21 Oct; replaces F68's look)
+- **Seen (build 402):** "To do · 1" is correct, but generic. It says nothing about the work and uses none of the site-paperwork language (rule 1).
+- **Design (lead, Figma):** EN `2604:36305` (PROTOTYPE · Full app v1 · EN), AR `2604:37123` (PROTOTYPE · Core journeys · AR). A small tear-off **docket**, like a site job ticket, under the masthead and above a pinned announcement:
+  - **The card:** surface/elevated, a 1 px border/subtle line, radius 8, 16 px from the screen edges, 8 px below the masthead.
+  - **The stub** at the start: surface/brand-soft, with the list-checks icon in icon/action (20 px). A **dashed perforation** line (border/subtle, 3/3) separates it from the body.
+  - **Body line 1** (main size, Medium; Almarai Bold in Arabic): what it is, with its number.
+    - EN: "1 work item for you", "2 work items for you", "3 work items for you".
+    - AR (ICU plural): «بند عمل واحد لك», «بندا عمل لك», «{n} بنود عمل لك» (3–10), «{n} بند عمل لك» (11+).
+  - **Body line 2** (small size, text/secondary): the oldest item, so the line describes the work itself.
+    - **One item:** its title and due, as the card's facts line: "dddd · by 6:30 pm", or "· from Sun" for an earlier day (grey, F57).
+    - **More than one:** the oldest title, its day, then the rest. EN: "Paint Room 3 · from Sun, and 1 more" / "…, and 2 more". AR: «Paint Room 3 · منذ الأحد، وبند آخر» / «…، و{n} بنود أخرى».
+    - The title is cut with … on one line.
+  - **The chevron** (› in EN, ‹ in AR) is grey. The whole docket opens the To do sheet.
+  - **0 items:** no docket.
+  - **What stays from F68:** the count is my own open and sent-back items, due today or earlier (F65). There's no tinted band.
+- **Masthead:** both frames also show F59 ("Today · Thursday 15 October" / «اليوم · الخميس 15 أكتوبر»).
+- **Test:**
+  - 1, 2 and 12 items in EN and AR, with the plurals right;
+  - a long title cut with …;
+  - tapping opens the sheet;
+  - 0 items: no docket;
+  - 390×844.
+
+## F69. The picker lists me among the others (founder, 21 Oct)
+- **Seen:** on a new post, the "who" picker shows the founder's own name in the list like anyone else's, which reads as a mistake.
+- **Rule (unchanged):** a work item may be for yourself, as a reminder of your own site task. You never check your own work: a Space admin checks it, or a Lead when you are the only admin (data-model §, "Only the author checks").
+- **Fix:**
+  - **I appear once, at the top, as "You" / «أنت»,** with my face, then a hairline, then everyone else in the usual order. My name doesn't appear again in the list.
+  - **When the picker is searched,** "You" shows only if my name matches.
+  - **Chosen:** the row reads "For you" / «لك», as on the card.
+  - This applies to a work item, a checklist and a scheduled activity. The give-to picker on an existing item, and the To/Everyone row, are unchanged.
+- **Test:**
+  - "You" is first and my name isn't listed twice;
+  - choosing "You" gives "For you" on the card and puts the item in my To do;
+  - a Space admin other than me sees it in Needs you to check once it's Done.
