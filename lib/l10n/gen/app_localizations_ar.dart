@@ -2818,10 +2818,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookToDo => 'مطلوب منك:';
-
-  @override
-  String get daybookToDoSheet => 'مطلوب منك';
+  String get daybookToDo => 'مطلوب منك';
 
   @override
   String daybookPoints(int n) {

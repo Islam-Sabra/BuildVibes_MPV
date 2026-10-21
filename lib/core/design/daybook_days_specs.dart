@@ -104,11 +104,15 @@ abstract final class BvFirstPageSpec {
   static const actionIcon = 18.0;
 }
 
-/// The "Due today" strip under the masthead (L1 2539:34715).
+/// The To do strip under the masthead (review 50 F68): one light line,
+/// as a folded announcement is drawn (review 61 G1), 20 from the start as
+/// the masthead.
 abstract final class BvDueTodaySpec {
+  static const minHeight = 40.0;
   static const paddingStart = BvSpace.s20;
   static const paddingEnd = BvSpace.s16;
-  static const paddingVertical = BvSpace.s8;
+  static const paddingVertical = BvSpace.s6;
   static const gap = BvSpace.s8;
   static const icon = BvSize.iconSm; // 16
+  static const caret = BvSize.iconSm; // 16
 }
