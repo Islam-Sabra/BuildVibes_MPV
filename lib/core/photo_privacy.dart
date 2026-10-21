@@ -8,15 +8,12 @@ import 'package:flutter/foundation.dart';
 // Phones write the GPS position into a photo's metadata. A proof photo
 // can end up on a profile, so it must never say where someone works or
 // lives, nor which phone took it (its make, model and serial numbers can
-// tie every photo to one device; review 50 F60). Only the orientation (so
-// the photo isn't turned on its side) and the time it was taken (which
-// the proof needs) stay.
+// tie every photo to one device; review 50 F60). The rest of the metadata
+// stays (the orientation, so the photo isn't turned on its side; the time
+// it was taken, which the proof needs).
 //
-// - JPEG: the EXIF block is written again from nothing, with only
-//   Orientation, DateTimeOriginal and OffsetTimeOriginal. Nothing else of
-//   the old block is kept, not even bytes no tag points to (a Xiaomi
-//   phone leaves a second copy of its make and model there), and no
-//   thumbnail. XMP (which can repeat the position) is dropped.
+// - JPEG: the EXIF GPS block and the device tags are emptied, and XMP
+//   (which can repeat the position) is dropped.
 // - PNG: the eXIf chunk and XMP text are dropped.
 // - WebP: the EXIF and XMP chunks are dropped.
 // - Anything else (PDF, sound) is left as it is. The file picker doesn't
@@ -91,11 +88,15 @@ Uint8List? _jpeg(Uint8List b) {
     if (length < 2 || end > b.length) return null;
     final body = i + 4;
     if (marker == 0xE1 && _ascii(b, body, _exifHeader)) {
-      final old = Uint8List.sublistView(b, i, end);
-      // Unreadable, or nothing worth keeping: no block at all.
-      final fresh = _freshExif(old, 4 + _exifHeader.length);
-      if (fresh == null || !_same(fresh, old)) changed = true;
-      if (fresh != null) out.add(fresh);
+      final segment = Uint8List.fromList(b.sublist(i, end));
+      final tiff = 4 + _exifHeader.length;
+      final wiped = _scrubTiff(segment, tiff);
+      if (wiped == null) {
+        changed = true; // Can't read it: drop the whole block.
+      } else {
+        changed |= wiped;
+        out.add(segment);
+      }
     } else if (marker == 0xE1 &&
         (_ascii(b, body, _xmpHeader) || _ascii(b, body, _xmpExtHeader))) {
       changed = true;
@@ -109,26 +110,21 @@ Uint8List? _jpeg(Uint8List b) {
   return out.toBytes();
 }
 
-bool _same(Uint8List a, Uint8List b) {
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
-}
+/// Tags that tell which phone or person took a photo (review 50 F60):
+/// Make, Model and Artist in the first block.
+const _deviceTags = {0x010F, 0x0110, 0x013B};
 
-const _orientation = 0x0112;
-const _exifPointer = 0x8769;
-const _dateTimeOriginal = 0x9003;
-const _offsetTimeOriginal = 0x9011;
+/// The same in the EXIF block: CameraOwnerName, BodySerialNumber,
+/// LensSerialNumber, the old OwnerName, and the maker's own notes (which
+/// can carry the serial number too).
+const _exifDeviceTags = {0xA430, 0xA431, 0xA435, 0xFDE8, 0x927C};
 
-/// A whole new APP1 segment for the TIFF data at [base] in [s], with only
-/// what the photo needs: Orientation in the first block, and
-/// DateTimeOriginal and OffsetTimeOriginal in an EXIF block (left out
-/// when neither is there). No GPS, no maker note, no thumbnail, and
-/// nothing else of the old block. Null when the data can't be read, or
-/// holds none of the three.
-Uint8List? _freshExif(Uint8List s, int base) {
+/// Takes the place and the phone out of the TIFF data at [base] in [s], in
+/// place. The GPS block is left with no entries and its values zeroed; the
+/// device tags keep their entry with an empty value. Orientation and the
+/// time taken stay. True when something changed, false when there was
+/// nothing to take out, null when the data can't be read.
+bool? _scrubTiff(Uint8List s, int base) {
   if (base + 8 > s.length) return null;
   final Endian order;
   if (s[base] == 0x49 && s[base + 1] == 0x49) {
@@ -143,121 +139,85 @@ Uint8List? _freshExif(Uint8List s, int base) {
   int u32(int at) => view.getUint32(at, order);
   bool fits(int at, int size) => at >= base && at + size <= s.length;
 
-  // Where each entry of the block at [ifd] sits, by tag. Null when the
+  // Zeroes [size] bytes at [at]; true when any wasn't zero already.
+  bool zero(int at, int size) {
+    var any = false;
+    for (var i = at; i < at + size; i++) {
+      any |= s[i] != 0;
+    }
+    if (any) s.fillRange(at, at + size, 0);
+    return any;
+  }
+
+  // Empties the values of [tags] in the block at [ifd]. Null when the
   // block can't be read.
-  Map<int, int>? entries(int ifd) {
+  bool? empty(int ifd, Set<int> tags) {
     if (!fits(ifd, 2)) return null;
     final n = u16(ifd);
     if (!fits(ifd + 2, n * 12)) return null;
-    return {
-      for (var e = 0; e < n; e++) u16(ifd + 2 + e * 12): ifd + 2 + e * 12,
-    };
-  }
-
-  // A time as the camera wrote it ("2026:10:21 15:21:11", "+03:00"):
-  // only digits, colons, signs and spaces, ending in NUL.
-  Uint8List? time(Map<int, int> block, int tag) {
-    final at = block[tag];
-    if (at == null || u16(at + 2) != 2) return null;
-    final count = u32(at + 4);
-    if (count < 2 || count > 32) return null;
-    final value = count <= 4 ? at + 8 : base + u32(at + 8);
-    if (!fits(value, count)) return null;
-    final text = Uint8List.fromList(s.sublist(value, value + count));
-    if (text.last != 0) return null;
-    for (final c in text.take(count - 1)) {
-      final digit = c >= 0x30 && c <= 0x39;
-      if (!digit && c != 0x3A && c != 0x20 && c != 0x2B && c != 0x2D) {
-        return null;
+    var changed = false;
+    for (var e = 0; e < n; e++) {
+      final at = ifd + 2 + e * 12;
+      if (!tags.contains(u16(at))) continue;
+      final size = _typeSize(u16(at + 2)) * u32(at + 4);
+      if (size <= 4) {
+        changed |= zero(at + 8, 4);
+      } else {
+        final value = base + u32(at + 8);
+        if (fits(value, size)) changed |= zero(value, size);
       }
     }
-    return text;
+    return changed;
+  }
+
+  int? pointer(int ifd, int tag) {
+    final n = u16(ifd);
+    for (var e = 0; e < n; e++) {
+      final at = ifd + 2 + e * 12;
+      if (u16(at) == tag) return base + u32(at + 8);
+    }
+    return null;
   }
 
   if (u16(base + 2) != 42) return null;
-  final ifd0 = entries(base + u32(base + 4));
-  if (ifd0 == null) return null;
-  final at = ifd0[_orientation];
-  final orientation = at != null && u16(at + 2) == 3 && u32(at + 4) == 1
-      ? u16(at + 8)
-      : null;
-  final exifAt = ifd0[_exifPointer];
-  final exif = exifAt == null ? null : entries(base + u32(exifAt + 8));
-  final times = <int, Uint8List>{
-    for (final tag in [_dateTimeOriginal, _offsetTimeOriginal])
-      if (exif != null) tag: ?time(exif, tag),
-  };
-  if (orientation == null && times.isEmpty) return null;
-  return _exifSegment(orientation, times);
+  final ifd0 = base + u32(base + 4);
+  final first = empty(ifd0, _deviceTags);
+  if (first == null) return null;
+  var changed = first;
+
+  final exif = pointer(ifd0, 0x8769);
+  if (exif != null) {
+    final inExif = empty(exif, _exifDeviceTags);
+    if (inExif == null) return null;
+    changed |= inExif;
+  }
+
+  final gps = pointer(ifd0, 0x8825);
+  if (gps == null) return changed;
+  if (!fits(gps, 2)) return null;
+  final count = u16(gps);
+  if (count == 0) return changed;
+  if (!fits(gps + 2, count * 12 + 4)) return null;
+  for (var e = 0; e < count; e++) {
+    final at = gps + 2 + e * 12;
+    final size = _typeSize(u16(at + 2)) * u32(at + 4);
+    if (size > 4) {
+      final value = base + u32(at + 8);
+      if (fits(value, size)) s.fillRange(value, value + size, 0);
+    }
+  }
+  // No entries, and no next block.
+  s.fillRange(gps, gps + 2 + count * 12 + 4, 0);
+  return true;
 }
 
-/// "Exif", then a big-endian TIFF: the first block with [orientation] and
-/// where the EXIF block is, then the EXIF block with [times] and their
-/// values. Neither block has a next one: no thumbnail.
-Uint8List _exifSegment(int? orientation, Map<int, Uint8List> times) {
-  final first = [
-    if (orientation != null) _orientation,
-    if (times.isNotEmpty) _exifPointer,
-  ];
-  const ifd0 = 8;
-  final exifIfd = ifd0 + 2 + first.length * 12 + 4;
-  final tags = times.keys.toList()..sort();
-  var size = exifIfd;
-  if (tags.isNotEmpty) {
-    size += 2 + tags.length * 12 + 4;
-    for (final t in tags) {
-      final n = times[t]!.length;
-      if (n > 4) size += n + n % 2;
-    }
-  }
-  final tiff = ByteData(size)
-    ..setUint16(0, 0x4D4D)
-    ..setUint16(2, 42)
-    ..setUint32(4, ifd0)
-    ..setUint16(ifd0, first.length);
-  for (final (e, tag) in first.indexed) {
-    final at = ifd0 + 2 + e * 12;
-    tiff
-      ..setUint16(at, tag)
-      ..setUint32(at + 4, 1);
-    if (tag == _orientation) {
-      tiff
-        ..setUint16(at + 2, 3)
-        ..setUint16(at + 8, orientation!);
-    } else {
-      tiff
-        ..setUint16(at + 2, 4)
-        ..setUint32(at + 8, exifIfd);
-    }
-  }
-  if (tags.isNotEmpty) {
-    tiff.setUint16(exifIfd, tags.length);
-    var value = exifIfd + 2 + tags.length * 12 + 4;
-    for (final (e, tag) in tags.indexed) {
-      final text = times[tag]!;
-      final at = exifIfd + 2 + e * 12;
-      tiff
-        ..setUint16(at, tag)
-        ..setUint16(at + 2, 2)
-        ..setUint32(at + 4, text.length);
-      var to = at + 8;
-      if (text.length > 4) {
-        tiff.setUint32(at + 8, value);
-        to = value;
-        value += text.length + text.length % 2;
-      }
-      for (final (k, c) in text.indexed) {
-        tiff.setUint8(to + k, c);
-      }
-    }
-  }
-  final length = 2 + _exifHeader.length + size;
-  return (BytesBuilder(copy: false)
-        ..add([0xFF, 0xE1, length >> 8, length & 0xFF])
-        ..add(_exifHeader.codeUnits)
-        ..add(tiff.buffer.asUint8List()))
-      .toBytes();
-}
+int _typeSize(int type) => switch (type) {
+  1 || 2 || 6 || 7 => 1,
+  3 || 8 => 2,
+  4 || 9 || 11 => 4,
+  5 || 10 || 12 => 8,
+  _ => 0,
+};
 
 // PNG -------------------------------------------------------------------------
 
