@@ -16,6 +16,8 @@
 --   It never waits for the parent: cancel_space_post locks a parent and
 --   then its work items, so waiting here could deadlock with it (a locked
 --   parent is being cancelled, which moves it to Now itself).
+-- - daybook_card(post): one card as daybook_cards gives it, for any post
+--   the caller can see, a target's work item included.
 -- Everything else is as in 20261021120000_report_notes.sql (space_post_json)
 -- and 20261018120000_daybook_cards.sql (daybook_cards).
 
@@ -364,3 +366,72 @@ begin
     order by pg.last_activity_at desc, pg.id desc;
 end;
 $$;
+
+-- One card, as daybook_cards gives it, for any post the caller can see: a
+-- target's work item too, which the daybook folds into its parent's card.
+-- The app opens it from the parent's row, and from Needs you, Activity and
+-- a push (its parent_id says which card holds it).
+create function public.daybook_card(p_post uuid)
+returns table (id uuid, last_activity_at timestamptz, card jsonb)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+begin
+  if not exists (select 1 from public.space_posts p
+                 where p.id = p_post and public.is_member(p.space_id)) then
+    return;
+  end if;
+  return query
+    select pg.id, pg.last_activity_at,
+           public.space_post_json(pg.post, false)
+           || jsonb_build_object(
+                'last_activity_at', pg.last_activity_at,
+                'proof', case when pf.j is not null then jsonb_strip_nulls(jsonb_build_object(
+                  'event_id', (pf.ev).id,
+                  'photos', pf.j -> 'photos',
+                  'note', (pf.ev).note,
+                  'at', (pf.ev).created_at,
+                  'by', jsonb_build_object('id', (pf.ev).actor_id, 'name', pf.j ->> 'actor_name'),
+                  'outcome', case pf.j -> 'outcome' ->> 'kind'
+                    when 'done' then (pf.j -> 'outcome') || jsonb_build_object(
+                      'by_id', (pf.ev).actor_id, 'by_name', pf.j ->> 'actor_name',
+                      'at', (pf.ev).created_at)
+                    when 'cancelled' then (pf.j -> 'outcome') || jsonb_build_object(
+                      'by_id', (pg.post).cancelled_by,
+                      'by_name', pf.j ->> 'cancelled_by_name',
+                      'at', (pg.post).cancelled_at)
+                    else pf.j -> 'outcome'
+                  end)) end,
+                'history', coalesce(h.list, '[]'::jsonb),
+                'history_more', coalesce(h.more, false),
+                'needs_me', to_jsonb(public.card_needs_me(pg.post)))
+    from (
+      select p.id, p.last_activity_at, p as post
+      from public.space_posts p
+      where p.id = p_post and p.deleted_at is null
+        and public.can_see_space_post(p.id)
+    ) pg
+    left join lateral (
+      select s.ev, public.daybook_event_json(s.ev, pg.post)
+                   || jsonb_build_object('cancelled_by_name',
+                                         public.space_person_name((pg.post).cancelled_by)) as j
+      from (select e as ev from public.work_item_events e
+            where e.work_item_id = pg.id and e.kind = 'done'
+            order by e.created_at desc, e.id desc limit 1) s
+    ) pf on true
+    left join lateral (
+      select jsonb_agg(r.event order by r.at desc, r.id desc) filter (where r.n <= 50) as list,
+             count(*) > 50 as more
+      from (select hr.id, hr.at, hr.event,
+                   row_number() over (order by hr.at desc, hr.id desc) as n
+            from public.post_history_rows(pg.post, null, null, 51) hr) r
+    ) h on true
+    order by pg.last_activity_at desc, pg.id desc;
+end;
+$$;
+
+revoke execute on function public.daybook_card(uuid) from public, anon;
+grant execute on function public.daybook_card(uuid) to authenticated;

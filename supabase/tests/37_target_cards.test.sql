@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(21);
+select plan(26);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000037' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -158,6 +158,26 @@ where id = pg_temp.item('a000');
 update public.space_posts set last_activity_at = now() where id = pg_temp.item('a002');
 select ok((select last_activity_at from public.space_posts where id = pg_temp.item('a000'))
           > now(), 'and never moves it back');
+
+-- One card: a target's work item, from its row --------------------------------------------------
+
+create function pg_temp.one(p_who text, p_item text) returns jsonb language plpgsql as $$
+declare v jsonb;
+begin
+  perform pg_temp.as_user(p_who);
+  execute 'set local role authenticated';
+  select d.card into v from public.daybook_card(pg_temp.item(p_item)) d;
+  execute 'reset role';
+  return v;
+end;
+$$;
+select is(pg_temp.one('e2', 'a002') ->> 'parent_id', pg_temp.item('a000')::text,
+  'one work item''s card, with the walk that holds it');
+select is(pg_temp.one('e2', 'a002') ->> 'needs_me', 'to_sign', 'asking its owner to sign');
+select is(pg_temp.one('e4', 'a002') ->> 'needs_me', null, 'a Viewer reads it, asked nothing');
+select is(pg_temp.one('e5', 'a002'), null, 'someone outside the Space gets nothing');
+select ok(not has_function_privilege('anon', 'public.daybook_card(uuid)', 'execute'),
+  'anon may not run it');
 
 -- The trigger's function is the database's only ---------------------------------------------
 
