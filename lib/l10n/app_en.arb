@@ -5659,5 +5659,69 @@
   "chatTurnIntoWorkItem": "Turn into a work item",
   "@chatTurnIntoWorkItem": {
     "description": "S8m hold menu in Space chat (review 64): the Work tab opens with a work item being written, this message quoted."
+  },
+  "peopleWantsToJoin": "wants to join",
+  "@peopleWantsToJoin": {
+    "description": "P1: the end of a join request's line (Foreman · Gulf Build Co. · wants to join)."
+  },
+  "peopleLetIn": "Let in",
+  "@peopleLetIn": {
+    "description": "P1: the pill on a join request; opens the three passes in place."
+  },
+  "peopleChoosePass": "Choose a pass",
+  "@peopleChoosePass": {
+    "description": "P2: the grey pill until a pass is chosen (nothing is chosen first, review 69)."
+  },
+  "peopleLetInAs": "Let in as {pass}",
+  "@peopleLetInAs": {
+    "description": "P2: the pill once a pass is chosen (Let in as Crew).",
+    "placeholders": {
+      "pass": {
+        "type": "String",
+        "example": "Crew"
+      }
+    }
+  },
+  "peopleLeads": "Leads",
+  "@peopleLeads": {
+    "description": "P1: the section of people with a Lead pass."
+  },
+  "peopleCrew": "Crew",
+  "@peopleCrew": {
+    "description": "P1: the section of people with a Crew pass."
+  },
+  "peopleViewers": "Viewers",
+  "@peopleViewers": {
+    "description": "P1: the section of people with a Viewer pass."
+  },
+  "peopleAdmin": "admin",
+  "@peopleAdmin": {
+    "description": "P1: after the role in a member's line for the Space admin (BIM Manager · admin)."
+  },
+  "peopleNewTeam": "+ New team",
+  "@peopleNewTeam": {
+    "description": "P1: the chip after the Teams, for the Space admin only."
+  },
+  "peopleInviteCode": "Invite with the code {code}",
+  "@peopleInviteCode": {
+    "description": "P1: the row at the bottom; a tap copies the code. The code is Latin, as the server writes it.",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "K7Q 4MD"
+      }
+    }
+  },
+  "peopleLetInDone": "{name} is in, as {pass}.",
+  "@peopleLetInDone": {
+    "description": "P2: after Let in; the person's row is highlighted in their section.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pass": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -5,6 +5,7 @@ import 'package:buildvibes/features/spaces/member_pass_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -107,118 +108,131 @@ void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
 
-    testWidgets('admins see requests: who, when, whose code [$lang]', (
-      tester,
-    ) async {
+    testWidgets('P1: the request, then Leads and Crew with their pass tags '
+        '[$lang]', (tester) async {
       await pumpApp(tester, language: lang, spaces: _spaces());
       await _openPeople(tester);
-      expect(find.text(l10n.spacesRequestsTitle), findsOneWidget);
+      // Quiet: name, then role · company · wants to join; Decline, Let in.
       expect(find.text('Ahmed Saeed'), findsOneWidget);
-      expect(
-        find.textContaining(
-          l10n.spacesViaCodeFrom(inOwnDirection('Omar Haddad')),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining(l10n.spacesAsked(l10n.timeHoursAgo(2))),
-        findsOneWidget,
-      );
-      // The Space admins (the glossary's word, review 54 A4: the section
-      // and the admin's own line), then Members with their pass and Teams.
-      expect(
-        l10n.spacesAdminSection,
-        lang == 'ar' ? 'مدير المساحة' : 'Space admin',
-      );
-      expect(find.text(l10n.spacesAdminSection), findsNWidgets(2));
-      expect(find.text(l10n.spacesAdminTag), findsNWidgets(2));
-      expect(find.text(l10n.spacesMembers), findsOneWidget);
-      // The list builds lazily: bring Rakesh's row on screen.
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('member-p-rakesh')),
-        200,
-        scrollable: find
-            .ancestor(
-              of: find.text(l10n.spacesMembers),
-              matching: find.byType(Scrollable),
-            )
-            .first,
-      );
-      expect(
-        find.textContaining(l10n.spacesPassLine(l10n.spacesPassCrew)),
-        findsOneWidget,
-      );
-      // Rakesh's row names the Team (the Teams section lists it too).
+      expect(find.textContaining(l10n.peopleWantsToJoin), findsOneWidget);
+      expect(find.byKey(const Key('request-let-in-req-1')), findsOneWidget);
+      // No search, no Invite people button (review 67).
+      expect(find.byKey(const Key('people-search')), findsNothing);
+      expect(find.byKey(const Key('space-invite')), findsNothing);
+      // Sections by pass; "admin" in the role line.
+      expect(find.text(l10n.peopleLeads), findsOneWidget);
+      // In English the section and the tag are both "Crew".
+      expect(find.text(l10n.peopleCrew), findsWidgets);
+      expect(find.text(l10n.peopleViewers), findsNothing);
       expect(
         find.descendant(
-          of: find.byKey(const Key('member-p-rakesh')),
-          matching: find.textContaining('MEP Team'),
+          of: find.byKey(const Key('member-user-1')),
+          matching: find.text(joinMeta(['Site Engineer', l10n.peopleAdmin])),
         ),
         findsOneWidget,
       );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('member-pass-p-rakesh')),
+          matching: find.text(l10n.spacesPassCrew),
+        ),
+        findsOneWidget,
+      );
+      // Teams as chips, + New team for the admin.
+      expect(find.byKey(const Key('team-chip-team-mep')), findsOneWidget);
+      expect(find.byKey(const Key('people-new-team')), findsOneWidget);
+      // No member count anywhere (rule 3).
+      expect(find.textContaining(RegExp(r'\b2\b')), findsNothing);
     });
 
-    testWidgets('members see no requests [$lang]', (tester) async {
+    testWidgets('members see no requests and no New team [$lang]', (
+      tester,
+    ) async {
       await pumpApp(tester, language: lang, spaces: _spaces(iAmAdmin: false));
       await _openPeople(tester);
-      expect(find.text(l10n.spacesRequestsTitle), findsNothing);
+      expect(find.byKey(const Key('request-req-1')), findsNothing);
+      expect(find.byKey(const Key('people-new-team')), findsNothing);
+      // May not invite: no code row.
+      expect(find.byKey(const Key('people-invite-code')), findsNothing);
       expect(find.textContaining('Omar Haddad'), findsWidgets);
     });
 
-    testWidgets('search filters the lists [$lang]', (tester) async {
-      await pumpApp(tester, language: lang, spaces: _spaces());
-      await _openPeople(tester);
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('people-search')),
-          matching: find.byType(TextField),
-        ),
-        'rakesh',
+    testWidgets('the invite code row copies the code [$lang]', (tester) async {
+      final copied = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
       );
-      await tester.pumpAndSettle();
-      expect(find.text('Rakesh Nair'), findsOneWidget);
-      expect(find.text('Ahmed Saeed'), findsNothing);
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('people-search')),
-          matching: find.byType(TextField),
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
         ),
-        'nobody here',
       );
-      await tester.pumpAndSettle();
-      expect(find.text(l10n.spacesNoMatch), findsOneWidget);
-    });
-
-    testWidgets('confirm: choose a pass first, then Confirm as Crew [$lang]', (
-      tester,
-    ) async {
       final spaces = _spaces();
       await pumpApp(tester, language: lang, spaces: spaces);
       await _openPeople(tester);
-      await _tap(tester, 'request-confirm-req-1');
-      expect(find.byKey(const Key('confirm-sheet')), findsOneWidget);
-      expect(find.text(l10n.spacesGivePass), findsOneWidget);
+      await _tap(tester, 'people-invite-code');
+      // As the server writes it, without the reading space.
+      expect(copied, ['K7Q4MD']);
+      expect(find.text(l10n.spacesCodeCopied), findsOneWidget);
+    });
 
-      // Nothing is chosen first, so Confirm does nothing yet.
-      await _tap(tester, 'confirm-sheet-confirm');
+    testWidgets('P2: Let in opens the passes in place, nothing chosen; '
+        'Let in as Crew [$lang]', (tester) async {
+      final spaces = _spaces();
+      await pumpApp(tester, language: lang, spaces: spaces);
+      await _openPeople(tester);
+      await _tap(tester, 'request-let-in-req-1');
+      expect(find.byKey(const Key('request-pass-lead')), findsOneWidget);
+      expect(find.byKey(const Key('request-pass-crew')), findsOneWidget);
+      expect(find.byKey(const Key('request-pass-viewer')), findsOneWidget);
+
+      // Nothing is chosen first: the pill is grey and does nothing.
+      expect(find.text(l10n.peopleChoosePass), findsOneWidget);
+      await _tap(tester, 'request-confirm-req-1');
       expect(spaces.calls, isEmpty);
 
-      await _tap(tester, 'confirm-pass-crew');
+      await _tap(tester, 'request-pass-crew');
       expect(
-        find.text(l10n.spacesConfirmAs(l10n.spacesPassCrew)),
+        find.text(l10n.peopleLetInAs(l10n.spacesPassCrew)),
         findsOneWidget,
       );
-      await _tap(tester, 'confirm-sheet-confirm');
+      // One single choice: Viewer replaces Crew.
+      await _tap(tester, 'request-pass-viewer');
+      expect(
+        find.text(l10n.peopleLetInAs(l10n.spacesPassViewer)),
+        findsOneWidget,
+      );
+      await _tap(tester, 'request-pass-crew');
+      await _tap(tester, 'request-confirm-req-1');
       expect(spaces.calls, ['confirm req-1 crew']);
 
-      // The new member's pass opens, with the banner.
-      expect(find.byType(MemberPassScreen), findsOneWidget);
+      // No jump to the pass screen: Ahmed is in Crew, highlighted.
+      expect(find.byType(MemberPassScreen), findsNothing);
+      expect(find.byKey(const Key('request-req-1')), findsNothing);
+      expect(find.byKey(const Key('member-p-ahmed')), findsOneWidget);
       expect(
-        find.text(l10n.spacesJoinedAs('Ahmed Saeed', l10n.spacesPassCrew)),
+        find.descendant(
+          of: find.byKey(const Key('member-pass-p-ahmed')),
+          matching: find.text(l10n.spacesPassCrew),
+        ),
         findsOneWidget,
       );
-      expect(find.text(l10n.passCrew), findsOneWidget);
-      expect(find.textContaining(l10n.spacesConfirmedByYou), findsOneWidget);
+      expect(
+        find.text(
+          l10n.peopleLetInDone(
+            inOwnDirection('Ahmed Saeed'),
+            l10n.spacesPassCrew,
+          ),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('decline: no reason given, and Undo brings it back [$lang]', (

@@ -1091,7 +1091,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             if (!canPost)
               BvPostBar.viewer(
                 passLabel: passName(l10n, space.myPass),
-                readOnly: l10n.daybookReadOnly,
+                passTone: passTone(space.myPass),
+                // "Read only" is a Viewer's; a locked Crew pass is just
+                // the pass (review 67, V1).
+                readOnly: space.myPass == SpacePass.viewer
+                    ? l10n.daybookReadOnly
+                    : null,
               )
             else if (_writing)
               BvWritingToolbar(

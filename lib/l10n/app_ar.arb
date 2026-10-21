@@ -1081,5 +1081,16 @@
   "daybookQuoteFromName": "من {name}",
   "dmPutInSpace": "ضعها في مساحة",
   "dmPutInSpaceNone": "لست بعد في مساحة يمكنك إضافة عمل فيها.",
-  "chatTurnIntoWorkItem": "حوّلها إلى بند عمل"
+  "chatTurnIntoWorkItem": "حوّلها إلى بند عمل",
+  "peopleWantsToJoin": "يطلب الانضمام",
+  "peopleLetIn": "اقبله",
+  "peopleChoosePass": "اختر التصريح",
+  "peopleLetInAs": "اقبله كـ{pass}",
+  "peopleLeads": "المسؤولون",
+  "peopleCrew": "فريق التنفيذ",
+  "peopleViewers": "المُطّلعون",
+  "peopleAdmin": "مدير المساحة",
+  "peopleNewTeam": "+ فريق جديد",
+  "peopleInviteCode": "ادعُ بالرمز {code}",
+  "peopleLetInDone": "{name} في المساحة الآن، بتصريح {pass}."
 }

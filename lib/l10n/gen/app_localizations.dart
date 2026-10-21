@@ -6589,6 +6589,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn into a work item'**
   String get chatTurnIntoWorkItem;
+
+  /// P1: the end of a join request's line (Foreman · Gulf Build Co. · wants to join).
+  ///
+  /// In en, this message translates to:
+  /// **'wants to join'**
+  String get peopleWantsToJoin;
+
+  /// P1: the pill on a join request; opens the three passes in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Let in'**
+  String get peopleLetIn;
+
+  /// P2: the grey pill until a pass is chosen (nothing is chosen first, review 69).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a pass'**
+  String get peopleChoosePass;
+
+  /// P2: the pill once a pass is chosen (Let in as Crew).
+  ///
+  /// In en, this message translates to:
+  /// **'Let in as {pass}'**
+  String peopleLetInAs(String pass);
+
+  /// P1: the section of people with a Lead pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Leads'**
+  String get peopleLeads;
+
+  /// P1: the section of people with a Crew pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Crew'**
+  String get peopleCrew;
+
+  /// P1: the section of people with a Viewer pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewers'**
+  String get peopleViewers;
+
+  /// P1: after the role in a member's line for the Space admin (BIM Manager · admin).
+  ///
+  /// In en, this message translates to:
+  /// **'admin'**
+  String get peopleAdmin;
+
+  /// P1: the chip after the Teams, for the Space admin only.
+  ///
+  /// In en, this message translates to:
+  /// **'+ New team'**
+  String get peopleNewTeam;
+
+  /// P1: the row at the bottom; a tap copies the code. The code is Latin, as the server writes it.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite with the code {code}'**
+  String peopleInviteCode(String code);
+
+  /// P2: after Let in; the person's row is highlighted in their section.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is in, as {pass}.'**
+  String peopleLetInDone(String name, String pass);
 }
 
 class _AppLocalizationsDelegate

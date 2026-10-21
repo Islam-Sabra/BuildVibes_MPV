@@ -3904,4 +3904,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatTurnIntoWorkItem => 'Turn into a work item';
+
+  @override
+  String get peopleWantsToJoin => 'wants to join';
+
+  @override
+  String get peopleLetIn => 'Let in';
+
+  @override
+  String get peopleChoosePass => 'Choose a pass';
+
+  @override
+  String peopleLetInAs(String pass) {
+    return 'Let in as $pass';
+  }
+
+  @override
+  String get peopleLeads => 'Leads';
+
+  @override
+  String get peopleCrew => 'Crew';
+
+  @override
+  String get peopleViewers => 'Viewers';
+
+  @override
+  String get peopleAdmin => 'admin';
+
+  @override
+  String get peopleNewTeam => '+ New team';
+
+  @override
+  String peopleInviteCode(String code) {
+    return 'Invite with the code $code';
+  }
+
+  @override
+  String peopleLetInDone(String name, String pass) {
+    return '$name is in, as $pass.';
+  }
 }

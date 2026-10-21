@@ -6,7 +6,8 @@ import '../../core/design/bv_tokens.dart';
 
 /// The Daybook's small round buttons (R1 v4 2556:35480 "Edit profile",
 /// "Share"): [soft] is brand-soft with orange words, otherwise a thin
-/// outline. The look is 32 high; the touch area is 44.
+/// outline. The look is 32 high; the touch area is 44. With no [onTap]
+/// it is grey and does nothing (P2 "Choose a pass").
 class BvPillButton extends StatelessWidget {
   const BvPillButton({
     super.key,
@@ -16,14 +17,16 @@ class BvPillButton extends StatelessWidget {
   });
 
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool soft;
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
+    final off = onTap == null;
     return Semantics(
       button: true,
+      enabled: !off,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -37,9 +40,13 @@ class BvPillButton extends StatelessWidget {
                 vertical: BvProfileHeadSpec.pillPaddingVertical,
               ),
               decoration: BoxDecoration(
-                color: soft ? BvColors.surfaceBrandSoft : null,
+                color: off
+                    ? BvColors.surfaceSubtle
+                    : soft
+                    ? BvColors.surfaceBrandSoft
+                    : null,
                 borderRadius: BvRadius.roundAll,
-                border: soft
+                border: soft || off
                     ? null
                     : Border.all(
                         color: BvColors.borderDefault,
@@ -49,7 +56,11 @@ class BvPillButton extends StatelessWidget {
               child: Text(
                 label,
                 style: type.labelMd.copyWith(
-                  color: soft ? BvColors.textAction : BvColors.textPrimary,
+                  color: off
+                      ? BvColors.textSecondary
+                      : soft
+                      ? BvColors.textAction
+                      : BvColors.textPrimary,
                 ),
               ),
             ),

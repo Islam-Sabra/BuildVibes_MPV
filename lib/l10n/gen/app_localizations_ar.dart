@@ -3908,4 +3908,43 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatTurnIntoWorkItem => 'حوّلها إلى بند عمل';
+
+  @override
+  String get peopleWantsToJoin => 'يطلب الانضمام';
+
+  @override
+  String get peopleLetIn => 'اقبله';
+
+  @override
+  String get peopleChoosePass => 'اختر التصريح';
+
+  @override
+  String peopleLetInAs(String pass) {
+    return 'اقبله كـ$pass';
+  }
+
+  @override
+  String get peopleLeads => 'المسؤولون';
+
+  @override
+  String get peopleCrew => 'فريق التنفيذ';
+
+  @override
+  String get peopleViewers => 'المُطّلعون';
+
+  @override
+  String get peopleAdmin => 'مدير المساحة';
+
+  @override
+  String get peopleNewTeam => '+ فريق جديد';
+
+  @override
+  String peopleInviteCode(String code) {
+    return 'ادعُ بالرمز $code';
+  }
+
+  @override
+  String peopleLetInDone(String name, String pass) {
+    return '$name في المساحة الآن، بتصريح $pass.';
+  }
 }
