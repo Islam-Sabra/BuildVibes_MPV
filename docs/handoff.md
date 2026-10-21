@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — slice 7 plan, review 78 (branch `claude/slice7-plan`, from `claude/trial-merge`)
+
+The founder's "ok" (23 Oct): draft the slice 7 plan (templates and the daily report), don't build it. **Review 78** is in `docs/reviews/2026-10-23-78-slice7-plan.md`. Docs only; no code changed.
+
+- **The server is almost ready** (migration 20, live): templates, `save_template`, `space_templates` and `daily_report_fill`. Migration 30 (not live) adds the day's notes for "On site". A small migration 38 is optional.
+- **The app builds:**
+  - Template in the writing card;
+  - Save as template;
+  - Space info › Templates;
+  - Daily report from the Space menu, with "Done today" filled from the day's checked work items;
+  - the report card;
+  - Share as PDF, made on the phone with the `pdf` package (a new dependency).
+- **For the lead:**
+  - redraw R2 (`2539:34498`) without the hour spine and weather before 17 Nov (review 58);
+  - answer the five questions: no template frames, who writes the report, one per day, yesterday's report, the typed "On site" numbers.
+
+**Who has which branch:** this cloud session made `claude/slice7-plan` (done; nobody on it).
+
 ## Cloud update: 23 Oct 2026 — trial merge of slices 3–6 onto `slice2-app` (branch `claude/trial-merge`)
 
 The founder's "ok" (23 Oct): try the merge the PC will do, with the full checks, so the PC knows what to expect. **Nothing in `slice2-app` or `main` was changed.**
