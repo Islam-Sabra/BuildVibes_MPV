@@ -1045,6 +1045,7 @@ void main() {
       expect(_menu(tester), [
         l10n.daybookAddUpdate,
         l10n.daybookEdit,
+        l10n.pageEdit,
         l10n.daybookGiveTo,
         l10n.daybookCancelItem,
       ]);

@@ -3895,4 +3895,111 @@ class AppLocalizationsAr extends AppLocalizations {
   String searchMessage(String text) {
     return '«$text»';
   }
+
+  @override
+  String get pageOpen => 'افتح الصفحة';
+
+  @override
+  String get pageEdit => 'تعديل الصفحة';
+
+  @override
+  String get pageDone => 'تم';
+
+  @override
+  String get pageClose => 'أغلق الصفحة';
+
+  @override
+  String get pageUnder => 'بنود العمل تحت هذا البند';
+
+  @override
+  String pageUnderChecked(int checked, int total) {
+    return '$checked من $total تم التحقق منها';
+  }
+
+  @override
+  String get pageAddBlock => 'اكتب / لإضافة جزء';
+
+  @override
+  String get pageMenuTitle => 'أضف';
+
+  @override
+  String get pageText => 'نص';
+
+  @override
+  String get pageHeading => 'عنوان';
+
+  @override
+  String get pageChecklist => 'قائمة تحقق';
+
+  @override
+  String get pageToggle => 'قسم قابل للطي';
+
+  @override
+  String get pageTable => 'جدول';
+
+  @override
+  String get pagePhoto => 'صورة';
+
+  @override
+  String get pageFile => 'ملف';
+
+  @override
+  String get pageItemUnder => 'بند عمل تحت هذا البند';
+
+  @override
+  String get pagePoint => 'نقطة في قائمة التحقق';
+
+  @override
+  String get pageTurnInto => 'حوّلها إلى';
+
+  @override
+  String get pageTickedStays => 'النقطة المؤشَّر عليها تبقى كما هي.';
+
+  @override
+  String get pageDelete => 'احذف';
+
+  @override
+  String get pageDeleted => 'حُذف الجزء.';
+
+  @override
+  String get pageMove => 'انقل';
+
+  @override
+  String get pageBlockMenu => 'المزيد لهذا الجزء';
+
+  @override
+  String get pageAddRow => 'أضف صفًا';
+
+  @override
+  String get pageAddColumn => 'أضف عمودًا';
+
+  @override
+  String get pageDeleteRow => 'احذف الصف';
+
+  @override
+  String get pageDeleteColumn => 'احذف العمود';
+
+  @override
+  String get pageStale => 'تغيّرت هذه الصفحة على هاتف آخر. نسختك محفوظة هنا.';
+
+  @override
+  String get pageUseMine => 'استخدم نسختي';
+
+  @override
+  String get pageUseNewer => 'استخدم الأحدث';
+
+  @override
+  String get pageWaiting => 'بانتظار الإرسال';
+
+  @override
+  String get pageFull => 'تتسع الصفحة لعشر صور وملفات على الأكثر.';
+
+  @override
+  String get pageItemTitle => 'ما المطلوب';
+
+  @override
+  String get pageTooLongForItem => 'اختصرها إلى 140 حرفًا لتصبح بند عمل.';
+
+  @override
+  String get pagePhotoCaption => 'أضف وصفًا';
 }

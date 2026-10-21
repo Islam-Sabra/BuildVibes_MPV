@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../shared/widgets/bv_tap_target.dart';
+import '../../core/design/daybook_page_specs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
@@ -37,6 +39,7 @@ class DaybookCardActions {
     this.onTick,
     this.onAck,
     this.onOpenFile,
+    this.onOpenPage,
   });
 
   /// Long-press, or a tap: the lifted card and its menu. Gets the card's
@@ -64,6 +67,51 @@ class DaybookCardActions {
 
   /// A file post's preview: the file, full screen.
   final VoidCallback? onOpenFile;
+
+  /// "Open the page ›" (slice 5): the post's page over the daybook
+  /// (everyone who sees the post, Viewers too).
+  final VoidCallback? onOpenPage;
+}
+
+/// The card's quiet grey line, "Open the page ›", when its page holds
+/// more than the card shows. No count of blocks.
+class DaybookOpenPage extends StatelessWidget {
+  const DaybookOpenPage({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final style = BvType.of(
+      context,
+    ).bodySm.copyWith(color: BvColors.textSecondary);
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: BvTapTarget(
+        child: Semantics(
+          button: true,
+          child: GestureDetector(
+            key: const Key('card-open-page'),
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: BvSpace.s2,
+              children: [
+                Text(l10n.pageOpen, style: style),
+                const Icon(
+                  BvIcons.caretForward,
+                  size: BvPageSpec.openCaret,
+                  color: BvColors.iconSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// One card on the daybook (v13, review 53 Part B): a post and what
@@ -253,6 +301,7 @@ class DaybookCardView extends StatelessWidget {
             ),
             ?_quote(),
             if (chips.isNotEmpty) BvSlipChips(children: chips),
+            ?_openPage(),
             if (localPhoto != null)
               _LocalPhoto(
                 path: localPhoto!,
@@ -298,6 +347,13 @@ class DaybookCardView extends StatelessWidget {
         child: paper,
       ),
     );
+  }
+
+  /// "Open the page ›" while its page holds blocks.
+  Widget? _openPage() {
+    final open = actions.onOpenPage;
+    if (!_post.hasPage || open == null || lifted) return null;
+    return DaybookOpenPage(onTap: open);
   }
 
   /// The message it was made from (review 64), quoted.
@@ -363,6 +419,7 @@ class DaybookCardView extends StatelessWidget {
                 : BvAvatarTints.forId(authorId),
           ),
           ..._kindBody(context, l10n),
+          ?_openPage(),
           ?history,
           if (couldNotSend)
             BvSlipError(l10n.daybookCouldNotSend)

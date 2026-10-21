@@ -3889,4 +3889,113 @@ class AppLocalizationsEn extends AppLocalizations {
   String searchMessage(String text) {
     return '“$text”';
   }
+
+  @override
+  String get pageOpen => 'Open the page';
+
+  @override
+  String get pageEdit => 'Edit page';
+
+  @override
+  String get pageDone => 'Done';
+
+  @override
+  String get pageClose => 'Close the page';
+
+  @override
+  String get pageUnder => 'Work items under this one';
+
+  @override
+  String pageUnderChecked(int checked, int total) {
+    return '$checked of $total checked';
+  }
+
+  @override
+  String get pageAddBlock => 'Type / to add a block';
+
+  @override
+  String get pageMenuTitle => 'Add';
+
+  @override
+  String get pageText => 'Text';
+
+  @override
+  String get pageHeading => 'Heading';
+
+  @override
+  String get pageChecklist => 'Checklist';
+
+  @override
+  String get pageToggle => 'Toggle';
+
+  @override
+  String get pageTable => 'Table';
+
+  @override
+  String get pagePhoto => 'Photo';
+
+  @override
+  String get pageFile => 'File';
+
+  @override
+  String get pageItemUnder => 'Work item under this one';
+
+  @override
+  String get pagePoint => 'Checklist point';
+
+  @override
+  String get pageTurnInto => 'Turn into';
+
+  @override
+  String get pageTickedStays => 'A ticked point stays as it is.';
+
+  @override
+  String get pageDelete => 'Delete';
+
+  @override
+  String get pageDeleted => 'Block deleted.';
+
+  @override
+  String get pageMove => 'Move';
+
+  @override
+  String get pageBlockMenu => 'More for this block';
+
+  @override
+  String get pageAddRow => 'Add a row';
+
+  @override
+  String get pageAddColumn => 'Add a column';
+
+  @override
+  String get pageDeleteRow => 'Delete row';
+
+  @override
+  String get pageDeleteColumn => 'Delete column';
+
+  @override
+  String get pageStale =>
+      'This page changed on another phone. Yours is kept here.';
+
+  @override
+  String get pageUseMine => 'Use mine';
+
+  @override
+  String get pageUseNewer => 'Use the newer one';
+
+  @override
+  String get pageWaiting => 'Waiting to send';
+
+  @override
+  String get pageFull => 'A page holds up to 10 photos and files.';
+
+  @override
+  String get pageItemTitle => 'What needs doing';
+
+  @override
+  String get pageTooLongForItem =>
+      'Shorten it to 140 characters to make it a work item.';
+
+  @override
+  String get pagePhotoCaption => 'Add a caption';
 }

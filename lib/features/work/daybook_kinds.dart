@@ -44,6 +44,7 @@ class DaybookChecklistPoints extends ConsumerWidget {
     required this.me,
     required this.nameOf,
     this.onTick,
+    this.only,
   });
 
   final DaybookPost post;
@@ -51,6 +52,9 @@ class DaybookChecklistPoints extends ConsumerWidget {
   final String? me;
   final DaybookNameOf nameOf;
   final DaybookTick? onTick;
+
+  /// A page's checklist block (slice 5): these points, in this order.
+  final List<String>? only;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,10 +70,17 @@ class DaybookChecklistPoints extends ConsumerWidget {
       key: Key('checklist-points-${post.id}'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final p in points)
+        for (final p in _shown(points))
           _point(l10n, markedPoint(p, marks[p.id], me), mine: mine),
       ],
     );
+  }
+
+  List<DaybookPoint> _shown(List<DaybookPoint> points) {
+    final ids = only;
+    if (ids == null) return points;
+    final byId = {for (final p in points) p.id: p};
+    return [for (final id in ids) ?byId[id]];
   }
 
   Widget _point(AppLocalizations l10n, DaybookPoint p, {required bool mine}) {

@@ -6547,6 +6547,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'“{text}”'**
   String searchMessage(String text);
+
+  /// Slice 5: the quiet grey line on a card whose page holds more than the card (with a forward caret). No count.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the page'**
+  String get pageOpen;
+
+  /// Slice 5: the author's item in the card's menu, and the page's head while reading.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit page'**
+  String get pageEdit;
+
+  /// N2: ends editing the page and saves it.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get pageDone;
+
+  /// N1: what a screen reader says for the ✕.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the page'**
+  String get pageClose;
+
+  /// N1: the label over the work items under this one.
+  ///
+  /// In en, this message translates to:
+  /// **'Work items under this one'**
+  String get pageUnder;
+
+  /// N1: this item's own work items, how many are checked: a fact about this item, not a quality signal.
+  ///
+  /// In en, this message translates to:
+  /// **'{checked} of {total} checked'**
+  String pageUnderChecked(int checked, int total);
+
+  /// N2: the last line of the page while its author edits it.
+  ///
+  /// In en, this message translates to:
+  /// **'Type / to add a block'**
+  String get pageAddBlock;
+
+  /// N3: what a screen reader says for the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get pageMenuTitle;
+
+  /// N3: the block menu; N4: Turn into.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get pageText;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get pageHeading;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get pageChecklist;
+
+  /// N3: the block menu (a line that opens to show more).
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle'**
+  String get pageToggle;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get pageTable;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get pagePhoto;
+
+  /// N3: the block menu.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get pageFile;
+
+  /// N3: the block menu; N4: Turn into.
+  ///
+  /// In en, this message translates to:
+  /// **'Work item under this one'**
+  String get pageItemUnder;
+
+  /// N4: Turn into.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist point'**
+  String get pagePoint;
+
+  /// N4: the title over the choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn into'**
+  String get pageTurnInto;
+
+  /// N4: why a ticked point can't be turned into something else.
+  ///
+  /// In en, this message translates to:
+  /// **'A ticked point stays as it is.'**
+  String get pageTickedStays;
+
+  /// N2: a block's action.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get pageDelete;
+
+  /// N2: after a block is deleted, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Block deleted.'**
+  String get pageDeleted;
+
+  /// N2: what a screen reader says for a block's ⋮⋮ handle (hold to drag).
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get pageMove;
+
+  /// N4: what a screen reader says for a block's menu.
+  ///
+  /// In en, this message translates to:
+  /// **'More for this block'**
+  String get pageBlockMenu;
+
+  /// A table's + at the bottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a row'**
+  String get pageAddRow;
+
+  /// A table's + at the end side.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a column'**
+  String get pageAddColumn;
+
+  /// A long press on a table cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row'**
+  String get pageDeleteRow;
+
+  /// A long press on a table cell.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete column'**
+  String get pageDeleteColumn;
+
+  /// N2: the save found a newer page saved by the author's other phone.
+  ///
+  /// In en, this message translates to:
+  /// **'This page changed on another phone. Yours is kept here.'**
+  String get pageStale;
+
+  /// N2: after a newer page: save this phone's copy over it.
+  ///
+  /// In en, this message translates to:
+  /// **'Use mine'**
+  String get pageUseMine;
+
+  /// N2: after a newer page: drop this phone's edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the newer one'**
+  String get pageUseNewer;
+
+  /// N2: the page saved on the phone while there is no signal.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to send'**
+  String get pageWaiting;
+
+  /// N3: no more photos or files on this post.
+  ///
+  /// In en, this message translates to:
+  /// **'A page holds up to 10 photos and files.'**
+  String get pageFull;
+
+  /// N3: the placeholder for a new work item under this one.
+  ///
+  /// In en, this message translates to:
+  /// **'What needs doing'**
+  String get pageItemTitle;
+
+  /// N4: a point too long to be a work item's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorten it to 140 characters to make it a work item.'**
+  String get pageTooLongForItem;
+
+  /// N2: a photo block's caption, while the page is edited (up to 300 characters).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a caption'**
+  String get pagePhotoCaption;
 }
 
 class _AppLocalizationsDelegate

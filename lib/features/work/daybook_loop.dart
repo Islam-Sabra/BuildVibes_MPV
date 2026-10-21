@@ -29,6 +29,7 @@ import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
 import 'daybook_marks.dart';
+import 'daybook_page.dart' show mayEditPage, showDaybookPage;
 import 'daybook_photos.dart';
 import 'daybook_state.dart';
 import 'daybook_words.dart';
@@ -37,7 +38,16 @@ import 'proof_camera.dart';
 import 'work_outbox.dart';
 
 /// What the long-press menus offer (B1 2530:33626, X1 2530:34246).
-enum DaybookSlipAction { check, sendBack, update, edit, giveTo, unpin, cancel }
+enum DaybookSlipAction {
+  check,
+  sendBack,
+  update,
+  edit,
+  page,
+  giveTo,
+  unpin,
+  cancel,
+}
 
 /// The work item loop in one Space (slice 1 part 1d, on v13's cards): sign
 /// as done with a photo or a note, check by double-tap with Undo, the
@@ -76,7 +86,12 @@ class DaybookLoop {
     final card = view.card;
     final post = card.post;
     if (!post.isWorkItem) return _kindActions(context, view, me: me);
-    if (_viewer) return view;
+    // A Viewer reads: the page, nothing more.
+    if (_viewer) {
+      return view.copyWith(
+        actions: DaybookCardActions(onOpenPage: _openPage(context, post)),
+      );
+    }
     final menu = _menu(card, me: me);
     final lifted = view.copyWith(lifted: true);
     void press(Rect at) =>
@@ -102,9 +117,24 @@ class DaybookLoop {
         onUpdate: !post.cancelled
             ? (_) => unawaited(_update(context, card, view.localPhoto))
             : null,
+        onOpenPage: _openPage(context, post),
       ),
     );
   }
+
+  /// The post's page over the daybook (slice 5), for whoever sees it.
+  VoidCallback _openPage(
+    BuildContext context,
+    DaybookPost post, {
+    bool edit = false,
+  }) =>
+      () => unawaited(
+        showDaybookPage(context, space: space, post: post, edit: edit),
+      );
+
+  /// Its author may edit its page now (the server decides again).
+  bool _mayEditPage(DaybookPost post, String? me) =>
+      mayEditPage(space, post, me, now: ref.read(clockProvider)());
 
   /// A checklist, an announcement, an activity or a file: tick a point
   /// (Lead and Crew), acknowledge (Viewers too), open the file, and for
@@ -135,6 +165,7 @@ class DaybookLoop {
         onOpenFile: fileId == null
             ? null
             : () => context.push(AppRoutes.libraryFile(_spaceId, fileId)),
+        onOpenPage: _openPage(context, post),
       ),
     );
   }
@@ -157,6 +188,7 @@ class DaybookLoop {
     final actsForAuthor = mine || (gone && space.iAmAdmin);
     return [
       if (mine && (announcement || post.isNote)) DaybookSlipAction.edit,
+      if (mine && _mayEditPage(post, me)) DaybookSlipAction.page,
       if (actsForAuthor && announcement && post.pinnedUntil != null)
         DaybookSlipAction.unpin,
       if (actsForAuthor) DaybookSlipAction.cancel,
@@ -179,6 +211,8 @@ class DaybookLoop {
     switch (picked) {
       case DaybookSlipAction.edit:
         onEdit(post);
+      case DaybookSlipAction.page:
+        _openPage(context, post, edit: true)();
       case DaybookSlipAction.unpin:
         await unpin(context, post);
       case DaybookSlipAction.cancel:
@@ -271,6 +305,7 @@ class DaybookLoop {
       ],
       DaybookSlipAction.update,
       if (mine && post.isOpen) DaybookSlipAction.edit,
+      if (_mayEditPage(post, me)) DaybookSlipAction.page,
       if ((mine || card.need == DaybookNeed.giveTo) && post.isOpen)
         DaybookSlipAction.giveTo,
       if (mine && !checked) DaybookSlipAction.cancel,
@@ -303,6 +338,8 @@ class DaybookLoop {
         await _update(context, card, localPhoto);
       case DaybookSlipAction.edit:
         onEdit(post);
+      case DaybookSlipAction.page:
+        _openPage(context, post, edit: true)();
       case DaybookSlipAction.giveTo:
         await _giveTo(context, post, lifted, at);
       case DaybookSlipAction.unpin:
@@ -362,6 +399,11 @@ class DaybookLoop {
       value: a,
       label: l10n.daybookEdit,
       icon: BvIcons.more,
+    ),
+    DaybookSlipAction.page => BvSlipMenuItem(
+      value: a,
+      label: l10n.pageEdit,
+      icon: BvIcons.edit,
     ),
     DaybookSlipAction.giveTo => BvSlipMenuItem(
       value: a,
