@@ -129,18 +129,10 @@ class DaybookWords {
     required DateTime now,
   }) {
     final item = post.item;
-    final String who;
-    if (item?.ownerId != null && item!.ownerId == me) {
-      // "you" in "For you": the words around the name in "For {name}" are
-      // taken off ("For " in English; Arabic's "لك" is one word).
-      final around = l10n.daybookForPerson(_slot).split(_slot);
-      final you = l10n.daybookForYou;
-      who = you.startsWith(around.first) && around.first.isNotEmpty
-          ? you.substring(around.first.length)
-          : you;
-    } else {
-      who = _inLine(personName(l10n, item?.ownerName));
-    }
+    final who = _whoMark(
+      item?.ownerName,
+      isMe: item?.ownerId != null && item!.ownerId == me,
+    );
     final mine =
         (item?.ownerId != null && item!.ownerId == me) ||
         (post.authorId != null && post.authorId == me);
@@ -154,6 +146,40 @@ class DaybookWords {
           ? BvDueTone.today
           : BvDueTone.quiet,
     );
+  }
+
+  /// The writing card's who row once someone is chosen (F66), as the
+  /// card's facts line says it: "For Islam Ahmed ›", "For you ›", with
+  /// [who] the part that stands out. The › only while a tap changes it.
+  ({String text, String who}) writingFor(
+    String ownerId,
+    String? ownerName, {
+    required String? me,
+    required bool choosable,
+  }) {
+    final isMe = ownerId == me;
+    final name = _inLine(personName(l10n, ownerName));
+    return (
+      text: switch ((isMe, choosable)) {
+        (true, true) => l10n.daybookForYouChoose,
+        (true, false) => l10n.daybookForYou,
+        (false, true) => l10n.daybookForPersonChoose(name),
+        (false, false) => l10n.daybookForPerson(name),
+      },
+      who: _whoMark(ownerName, isMe: isMe),
+    );
+  }
+
+  /// Who stands out in "For {name}": the name, or "you" in "For you", the
+  /// words around the name in "For {name}" taken off ("For " in English;
+  /// Arabic's "لك" is one word).
+  String _whoMark(String? ownerName, {required bool isMe}) {
+    if (!isMe) return _inLine(personName(l10n, ownerName));
+    final around = l10n.daybookForPerson(_slot).split(_slot);
+    final you = l10n.daybookForYou;
+    return you.startsWith(around.first) && around.first.isNotEmpty
+        ? you.substring(around.first.length)
+        : you;
   }
 
   /// A stand-in for a name, to find the words around it in a sentence.

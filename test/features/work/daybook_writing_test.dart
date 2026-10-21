@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
@@ -7,6 +8,7 @@ import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_avatar.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
@@ -218,7 +220,54 @@ void main() {
       await _assign(tester, s.omarName);
       expect(app.daybook.created, isEmpty);
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.properties.single.label, s.omarName);
+      expect(
+        card.properties.single.label,
+        l10n.daybookForPersonChoose(s.omarName),
+      );
+    });
+
+    testWidgets('F66: once chosen, the who row reads "For Omar Haddad ›" as '
+        "the card's facts line, the name standing out; a tap opens the "
+        'picker again [$lang]', (tester) async {
+      await _open(tester, lang);
+      await _write(tester);
+      await _title(tester, s.cableTraysTitle);
+      await _assign(tester, s.omarName);
+      final who = tester
+          .widget<BvWritingCard>(find.byType(BvWritingCard))
+          .properties
+          .single;
+      expect(who.label, l10n.daybookForPersonChoose(s.omarName));
+      expect(who.name, s.omarName);
+      final context = tester.element(find.byType(BvWritingCard));
+      expect(who.marks, [
+        (
+          part: s.omarName,
+          style: BvType.of(
+            context,
+          ).emphasisSm.copyWith(color: BvColors.textPrimary),
+        ),
+      ]);
+      // Drawn as one line: the words grey, the name standing out.
+      final line = tester.widget<RichText>(
+        find
+            .descendant(
+              of: find.byKey(const Key('writing-who')),
+              matching: find.byType(RichText),
+            )
+            .last,
+      );
+      expect(line.text.toPlainText(), l10n.daybookForPersonChoose(s.omarName));
+      // On the face: the title's cursor handle can sit over the row's
+      // middle.
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('writing-who')),
+          matching: find.byType(BvAvatar),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(BvGiveToPicker), findsOneWidget);
     });
 
     testWidgets('E2: More has only what slice 1 does: Assign, Location, Due '
@@ -280,7 +329,7 @@ void main() {
       await tester.pumpAndSettle();
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
       expect(card.properties.map((p) => p.label), [
-        s.omarName,
+        l10n.daybookForPersonChoose(s.omarName),
         words.dueProperty(_sunday, _twoPm),
         s.traysPlace,
       ]);

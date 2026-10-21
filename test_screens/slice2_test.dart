@@ -30,6 +30,7 @@ import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
@@ -1048,6 +1049,42 @@ void main() {
           now: DaybookSamples.thursday,
           posts: [card],
         ),
+      );
+    });
+
+    // Review 50 F66: the who row once a person is chosen.
+    testWidgets('F66 the who row reads For and the name [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F66-who-row-chosen',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          // Omar raises it for Islam, as on the founder's test.
+          me: DaybookSamples.omar,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+          await _tap(tester, find.byKey(const Key('writing-who')));
+          await _tap(
+            tester,
+            find.descendant(
+              of: find.byType(BvGiveToPicker),
+              matching: find.text(s.islamName),
+            ),
+          );
+        },
       );
     });
 

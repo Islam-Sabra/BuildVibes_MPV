@@ -669,6 +669,31 @@ void main() {
       expect(month.dueDays, {DateTime(2026, 10, 16)});
     });
 
+    test("F66: the writing card's who row says it as the card does", () {
+      final en = _words('en');
+      final ar = _words('ar');
+      const me = DaybookSamples.islam;
+      expect(en.writingFor(me, 'Islam Ahmed', me: me, choosable: true), (
+        text: 'For you ›',
+        who: 'you',
+      ));
+      expect(en.writingFor('o', 'Omar Haddad', me: me, choosable: true), (
+        text: 'For Omar Haddad ›',
+        who: 'Omar Haddad',
+      ));
+      expect(en.writingFor('o', 'Omar Haddad', me: me, choosable: false), (
+        text: 'For Omar Haddad',
+        who: 'Omar Haddad',
+      ));
+      // F52: a Latin name kept whole in an Arabic line ("لـ Islam Ahmed ›").
+      final islam = inOwnDirection('Islam Ahmed');
+      expect(ar.writingFor('i', 'Islam Ahmed', me: 'o', choosable: true), (
+        text: 'لـ $islam ›',
+        who: islam,
+      ));
+      expect(ar.writingFor(me, 'x', me: me, choosable: true).text, 'لك ›');
+    });
+
     test('my_calendar: work items only', () {
       expect(
         CalendarWorkItem.fromJson({'kind': 'todo', 'note_id': 'n'}),

@@ -5367,6 +5367,19 @@
   "@daybookForChoose": {
     "description": "Writing card: the who row before anyone is chosen, on a work item and a checklist (F56)."
   },
+  "daybookForPersonChoose": "For {name} ›",
+  "@daybookForPersonChoose": {
+    "description": "Writing card, a work item's who row once someone is chosen (F66); a tap chooses again. As the card's \"For {name}\".",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookForYouChoose": "For you ›",
+  "@daybookForYouChoose": {
+    "description": "Writing card, a work item's who row when you chose yourself (F66); a tap chooses again. As the card's \"For you\"."
+  },
   "daybookComingChoose": "Who's coming: Choose ›",
   "@daybookComingChoose": {
     "description": "Writing card: the who row of a scheduled activity before anyone is chosen (F56)."

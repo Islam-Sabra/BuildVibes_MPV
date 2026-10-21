@@ -3718,6 +3718,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookForChoose => 'لـ: اختر ›';
 
   @override
+  String daybookForPersonChoose(String name) {
+    return 'لـ $name ›';
+  }
+
+  @override
+  String get daybookForYouChoose => 'لك ›';
+
+  @override
   String get daybookComingChoose => 'من سيحضر: اختر ›';
 
   @override

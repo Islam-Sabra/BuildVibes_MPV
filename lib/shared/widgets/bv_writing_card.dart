@@ -6,6 +6,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import 'bv_avatar.dart';
 import 'bv_highlight.dart';
+import 'bv_marked_text.dart';
 import 'bv_tap_target.dart';
 
 /// A field without a box of its own, for text typed on a card, a note or a
@@ -27,13 +28,15 @@ InputDecoration bvBareField({required String hint, required TextStyle style}) =>
 class BvWritingProperty {
   const BvWritingProperty.person({
     required this.label,
+    this.name,
+    this.marks = const [],
     this.tint,
     this.image,
     this.onTap,
+    this.key,
   }) : icon = null,
        onRemove = null,
        removeLabel = null,
-       key = null,
        empty = false,
        ask = null;
 
@@ -47,9 +50,19 @@ class BvWritingProperty {
     this.empty = false,
     this.ask,
   }) : tint = null,
-       image = null;
+       image = null,
+       name = null,
+       marks = const [];
 
   final String label;
+
+  /// The person's name for the avatar, when [label] says more ("For Islam
+  /// Ahmed ›", F66).
+  final String? name;
+
+  /// With marks, [label] reads as a card's facts line (F34): in grey, each
+  /// mark's part standing out.
+  final List<BvMark> marks;
 
   /// On the row, for finding it.
   final Key? key;
@@ -462,9 +475,10 @@ class _Properties extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = BvType.of(
-      context,
-    ).labelSm.copyWith(color: BvColors.textPrimary);
+    final type = BvType.of(context);
+    final style = type.labelSm.copyWith(color: BvColors.textPrimary);
+    // A facts line at the small size: grey, its marks standing out.
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final line = Wrap(
       spacing: BvWritingCardSpec.propertyGap,
       runSpacing: BvWritingCardSpec.propertyRunGap,
@@ -490,7 +504,7 @@ class _Properties extends StatelessWidget {
                   else
                     ExcludeSemantics(
                       child: BvAvatar(
-                        name: p.label,
+                        name: p.name ?? p.label,
                         size: BvAvatarSize.xxs,
                         tint: p.tint,
                         image: p.image,
@@ -499,14 +513,20 @@ class _Properties extends StatelessWidget {
                   // A long one ("الأحد 18 أكتوبر، 2:00 ظهرًا") wraps
                   // within the line instead of running off it.
                   Flexible(
-                    child: Text(
-                      p.label,
-                      style: p.ask != null
-                          ? style.copyWith(color: BvColors.textAction)
-                          : p.empty
-                          ? style.copyWith(color: BvColors.textSecondary)
-                          : style,
-                    ),
+                    child: p.marks.isNotEmpty
+                        ? Text.rich(
+                            TextSpan(
+                              children: bvMarkedSpans(p.label, quiet, p.marks),
+                            ),
+                          )
+                        : Text(
+                            p.label,
+                            style: p.ask != null
+                                ? style.copyWith(color: BvColors.textAction)
+                                : p.empty
+                                ? style.copyWith(color: BvColors.textSecondary)
+                                : style,
+                          ),
                   ),
                   if (p.onRemove != null)
                     Semantics(

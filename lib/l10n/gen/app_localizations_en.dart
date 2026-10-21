@@ -3713,6 +3713,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookForChoose => 'For: Choose ›';
 
   @override
+  String daybookForPersonChoose(String name) {
+    return 'For $name ›';
+  }
+
+  @override
+  String get daybookForYouChoose => 'For you ›';
+
+  @override
   String get daybookComingChoose => 'Who\'s coming: Choose ›';
 
   @override

@@ -6272,6 +6272,18 @@ abstract class AppLocalizations {
   /// **'For: Choose ›'**
   String get daybookForChoose;
 
+  /// Writing card, a work item's who row once someone is chosen (F66); a tap chooses again. As the card's "For {name}".
+  ///
+  /// In en, this message translates to:
+  /// **'For {name} ›'**
+  String daybookForPersonChoose(String name);
+
+  /// Writing card, a work item's who row when you chose yourself (F66); a tap chooses again. As the card's "For you".
+  ///
+  /// In en, this message translates to:
+  /// **'For you ›'**
+  String get daybookForYouChoose;
+
   /// Writing card: the who row of a scheduled activity before anyone is chosen (F56).
   ///
   /// In en, this message translates to:

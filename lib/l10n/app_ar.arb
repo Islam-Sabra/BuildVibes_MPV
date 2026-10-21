@@ -1029,6 +1029,8 @@
   "daybookKindNote": "ملاحظة",
   "daybookKindNoteWord": "· ملاحظة",
   "daybookForChoose": "لـ: اختر ›",
+  "daybookForPersonChoose": "لـ {name} ›",
+  "daybookForYouChoose": "لك ›",
   "daybookComingChoose": "من سيحضر: اختر ›",
   "daybookChooseWho": "اختر لمن",
   "daybookPostAsNote": "للعلم فقط؟ انشرها كملاحظة",
