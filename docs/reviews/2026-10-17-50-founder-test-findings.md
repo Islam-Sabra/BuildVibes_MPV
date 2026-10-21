@@ -703,3 +703,12 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - tapping opens the sheet with the 5 titles;
   - 0 items: no strip;
   - EN and AR at 390×844.
+
+## Build 394 test (21 Oct, 16:40): F64, F65, F66 passed
+- **F64:** Islam sent "dddd" (NST-017) back with no date chip. It went through, and the history reads "Islam Ahmed sent it back: Not finished · no new date". Checked by the lead on the emulator as Omar.
+- **F65:**
+  - Omar's strip lists his own items: gffggg, Paint Room 3, fix socket in room 4, ggfff (sent back to him) and dddd;
+  - Islam's strip on the phone shows neither dddd nor ggfff (founder);
+  - after Omar signed dddd as done again (the lead, note only), it left his strip (F38).
+- **F66:** the writing card read "For Omar Haddad" after Omar was chosen (founder).
+- **Still to test in the next build:** F68 and F60 (review 74).
