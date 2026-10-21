@@ -20,7 +20,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - Test app: the PDF-free file preview (from `claude/test-tw7wuv`), so the PDF tests pass here too.
 
 **Checks:**
-- `flutter analyze`: no issues. `flutter test`: see progress.md for the count.
+- `flutter analyze`: no issues. `flutter test`: **1,296, all pass**.
 - SQL stand-in on this branch: **2,217 checks, all pass**. Fewer than review 72's 2,275 because this branch has no migrations 31 and 32 (slice 3 and slice 4 server work) and has migration 30 without review 65's later checks. On `slice2-app` it is 2,275.
 - Screenshots for the lead, EN and AR at 390×844, in `docs/screens/review72/` (Linux fonts; the PC re-shoots goldens): F59 masthead at Now with yesterday's cards, F61 To do strip, F62 send-back sheet with the date, F62 a sent-back card with its new date, F63 kind menu.
 

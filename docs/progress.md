@@ -665,3 +665,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - today's new screens rendered and compared with K5 v13 and E6 v14, with two fixes (the Note's words before its photos; a wide kind menu);
   - six new screen tests; the PNGs are re-shot on the PC;
   - review 64, the slice 3 plan: chat and direct messages, migration 31 for a private `dm:` channel, and the build order. The build waits for the slice 2 retest.
+- **21 Oct, evening** (cloud, `claude/review72-app` from `slice2-retest` + migration 33): review 72's app part — F59 Today masthead and divider, F61 To do strip, F62 send-back new date and Needs you wording, F63 plain kind menu, F60 photos lose the phone's identity. 1,296 app tests and 2,217 SQL checks pass on this branch; screenshots in `docs/screens/review72/`. Migration 33 must be live before this build goes on a phone.
