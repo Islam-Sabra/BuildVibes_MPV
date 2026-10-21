@@ -674,3 +674,14 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 
 ## Terms draft
 - §10 says "Settings → Help and feedback". In the app it is **Settings → About BuildVibes and legal → Help and feedback**. Fix the path in the Terms draft.
+
+## F67. The tick's vibration isn't felt on the founder's Xiaomi (step 5)
+- **Seen:** ticking a point gives no vibration the founder can feel. (Was the check animation seen? Ask with the next build.)
+- **Likely cause:** `HapticFeedback.lightImpact` becomes Android's VIRTUAL_KEY, which many phones (MIUI among them) play very weakly, or not at all when the phone's touch feedback is off or set low.
+- **Fix:**
+  - use a stronger, explicit tick: `HapticFeedback.mediumImpact`. If that's still not felt on the Xiaomi with touch feedback on, use the platform's tick effect through a small vibration call (`VibrationEffect.EFFECT_TICK`, about 20 ms). It stays one short tick, never a buzz;
+  - the same for check and sign-off, which use the strong haptic (daybook.md).
+- **Test on the Xiaomi:** with Settings → Sound & vibration → Haptic feedback on, one tick is felt every time. With it off, nothing is felt, because the phone's own choice wins.
+- **The founder's check:** that Haptic feedback is on in the phone's settings.
+
+- **F60 (founder, 21 Oct):** a photo is posted from the phone; Claude Code checks that the stored file has no make, model or serials.
