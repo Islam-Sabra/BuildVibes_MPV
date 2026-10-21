@@ -50,7 +50,7 @@ import '../../features/spaces/space_screen.dart';
 import '../../features/work/daybook_target.dart';
 import '../../features/chat/thread_screen.dart';
 import '../../features/feed/post_screen.dart';
-import '../../features/library/add_file_screen.dart';
+import '../../features/library/library_file_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
 import '../../features/spaces/transfer_screen.dart';
@@ -268,12 +268,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) =>
                 TransferScreen(spaceId: state.pathParameters['id']!),
           ),
-          // "new" before ":fileId".
           GoRoute(
-            path: 'library/new',
-            builder: (context, state) => AddFileScreen(
+            path: 'library/:fileId/page',
+            builder: (context, state) => LibraryFileScreen(
               spaceId: state.pathParameters['id']!,
-              supersedesId: state.uri.queryParameters['supersedes'],
+              fileId: state.pathParameters['fileId']!,
             ),
           ),
           GoRoute(

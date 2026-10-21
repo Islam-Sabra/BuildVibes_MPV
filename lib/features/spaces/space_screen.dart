@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/library.dart';
 import '../../data/repositories/activity_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -58,6 +59,15 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           SpaceOpen.people || SpaceOpen.invite => SpaceScreen.peopleTab,
           SpaceOpen.write || null => SpaceScreen.workTab,
         };
+
+  /// The Library asked for a file post (review 69 1b); a tab tap clears
+  /// it, so it opens once.
+  DaybookFileStart? _fileStart;
+
+  void _addFile({LibraryFile? replaces}) => setState(() {
+    _fileStart = DaybookFileStart(replaces: replaces);
+    _tab = SpaceScreen.workTab;
+  });
 
   @override
   void initState() {
@@ -170,9 +180,13 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           space: detail,
           startWriting: widget.open == SpaceOpen.write,
           target: widget.target,
+          startFile: _fileStart,
         ),
         SpaceScreen.chatTab => ChatTab(space: detail),
-        SpaceScreen.libraryTab => LibraryTab(space: detail),
+        SpaceScreen.libraryTab => LibraryTab(
+          space: detail,
+          onAddFile: _addFile,
+        ),
         SpaceScreen.peopleTab => PeopleTab(space: detail),
         _ => Padding(
           padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
@@ -181,7 +195,10 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       },
       bottomNavigationBar: BvBottomBar(
         selectedIndex: _tab,
-        onSelect: (i) => setState(() => _tab = i),
+        onSelect: (i) => setState(() {
+          _tab = i;
+          _fileStart = null;
+        }),
         items: [
           BvBottomBarItem(
             key: const Key('space-tab-work'),

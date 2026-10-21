@@ -6655,6 +6655,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} is in, as {pass}.'**
   String peopleLetInDone(String name, String pass);
+
+  /// LV1: how many earlier versions a file has (a fact about the file, not a quality signal, review 67).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 older version} other{{count} older versions}}'**
+  String libraryOlderVersions(int count);
+
+  /// LV1: the quiet last row for people who may add files; opens the Work tab's writing card as a Document for receipt (review 69 1b).
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add a file'**
+  String get libraryAddFile;
+
+  /// LV2: the label above a file's versions.
+  ///
+  /// In en, this message translates to:
+  /// **'Versions'**
+  String get libraryVersions;
+
+  /// LV2: the version in use, with an orange dot (Rev D · in use).
+  ///
+  /// In en, this message translates to:
+  /// **'{rev} · in use'**
+  String libraryInUse(String rev);
+
+  /// LV2: a version with no revision written on it.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get libraryVersion;
+
+  /// LV2: opens an older version full screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get libraryOpen;
+
+  /// LV2: under the versions, for people who may add files; opens the writing card with Replaces set.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add a new version'**
+  String get libraryAddVersion;
+
+  /// LV2: what a screen reader says for the ⋯ button (Share in chat, Download).
+  ///
+  /// In en, this message translates to:
+  /// **'More for this file'**
+  String get libraryFileMenu;
+
+  /// LV2: what a screen reader says for the preview, which opens the drawing table.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full screen'**
+  String get libraryOpenFull;
 }
 
 class _AppLocalizationsDelegate

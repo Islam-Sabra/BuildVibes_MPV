@@ -3947,4 +3947,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String peopleLetInDone(String name, String pass) {
     return '$name في المساحة الآن، بتصريح $pass.';
   }
+
+  @override
+  String libraryOlderVersions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نسخة أقدم',
+      few: '$count نسخ أقدم',
+      two: 'نسختان أقدم',
+      one: 'نسخة أقدم واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryAddFile => '+ أضف ملفًا';
+
+  @override
+  String get libraryVersions => 'النسخ';
+
+  @override
+  String libraryInUse(String rev) {
+    return '$rev · المعتمدة';
+  }
+
+  @override
+  String get libraryVersion => 'نسخة';
+
+  @override
+  String get libraryOpen => 'افتح';
+
+  @override
+  String get libraryAddVersion => '+ أضف نسخة جديدة';
+
+  @override
+  String get libraryFileMenu => 'المزيد لهذا الملف';
+
+  @override
+  String get libraryOpenFull => 'افتح بملء الشاشة';
 }

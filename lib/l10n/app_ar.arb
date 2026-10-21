@@ -1092,5 +1092,14 @@
   "peopleAdmin": "مدير المساحة",
   "peopleNewTeam": "+ فريق جديد",
   "peopleInviteCode": "ادعُ بالرمز {code}",
-  "peopleLetInDone": "{name} في المساحة الآن، بتصريح {pass}."
+  "peopleLetInDone": "{name} في المساحة الآن، بتصريح {pass}.",
+  "libraryOlderVersions": "{count, plural, =1{نسخة أقدم واحدة} =2{نسختان أقدم} few{{count} نسخ أقدم} other{{count} نسخة أقدم}}",
+  "libraryAddFile": "أضف ملفًا",
+  "libraryVersions": "النسخ",
+  "libraryInUse": "{rev} · المعتمدة",
+  "libraryVersion": "نسخة",
+  "libraryOpen": "افتح",
+  "libraryAddVersion": "أضف نسخة جديدة",
+  "libraryFileMenu": "المزيد لهذا الملف",
+  "libraryOpenFull": "افتح بملء الشاشة"
 }

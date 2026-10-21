@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/photo_privacy.dart';
 import '../../core/design/bv_icons.dart';
@@ -90,6 +91,18 @@ String titleFromFileName(String name) {
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 }
+
+/// "today" or "9 Oct", with Western digits (LV1, LV2).
+String libraryDay(
+  AppLocalizations l10n,
+  String locale,
+  DateTime day,
+  DateTime now,
+) => DateUtils.isSameDay(day, now)
+    ? l10n.daybookToday
+    : BvWesternDigitsFormatter.normalise(
+        DateFormat('d MMM', locale).format(day),
+      );
 
 /// A picked photo from the camera or gallery as a file to upload.
 PhoneFile pickedPhoto(String path) => PhoneFile(

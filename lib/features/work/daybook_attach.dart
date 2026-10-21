@@ -63,51 +63,59 @@ Future<DaybookAttach?> showDaybookAttach(
 ///
 /// Files go to the whole Space's Library (posts are for Everyone in this
 /// slice), so only the Library's Everyone files are offered.
+///
+/// [replaces] (LV2 "Add a new version"): straight to the phone's files,
+/// and the new one replaces it, with no question.
 Future<DraftFile?> chooseDaybookFile(
   BuildContext context,
   WidgetRef ref, {
   required String spaceId,
+  LibraryFile? replaces,
 }) async {
   final l10n = AppLocalizations.of(context);
-  final all = await _libraryFiles(context, ref, spaceId);
+  final all = replaces != null
+      ? const <LibraryFile>[]
+      : await _libraryFiles(context, ref, spaceId);
   if (all == null || !context.mounted) return null;
   final current = _current(all);
-  final picked = await showBvSheet<Object>(
-    context: context,
-    title: l10n.daybookFileChooseTitle,
-    builder: (sheet) => Column(
-      key: const Key('file-chooser'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        BvAttachRow(
-          key: const Key('file-from-phone'),
-          icon: BvIcons.upload,
-          title: l10n.daybookFileFromPhone,
-          subtitle: l10n.daybookFileFromPhoneNote,
-          onTap: () => Navigator.of(sheet).pop(_fromPhone),
-        ),
-        if (current.isNotEmpty)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
-            child: Text(
-              l10n.daybookFileInLibrary,
-              style: BvType.of(
-                sheet,
-              ).overline.copyWith(color: BvColors.textSecondary),
-            ),
+  final picked = replaces != null
+      ? _fromPhone
+      : await showBvSheet<Object>(
+          context: context,
+          title: l10n.daybookFileChooseTitle,
+          builder: (sheet) => Column(
+            key: const Key('file-chooser'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              BvAttachRow(
+                key: const Key('file-from-phone'),
+                icon: BvIcons.upload,
+                title: l10n.daybookFileFromPhone,
+                subtitle: l10n.daybookFileFromPhoneNote,
+                onTap: () => Navigator.of(sheet).pop(_fromPhone),
+              ),
+              if (current.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
+                  child: Text(
+                    l10n.daybookFileInLibrary,
+                    style: BvType.of(
+                      sheet,
+                    ).overline.copyWith(color: BvColors.textSecondary),
+                  ),
+                ),
+              for (final f in current)
+                FileRow(
+                  file: f,
+                  subtitle: [
+                    ?f.revLabel,
+                    fileSize(l10n, f.bytes),
+                  ].where((s) => s.isNotEmpty).join(' · '),
+                  onTap: () => Navigator.of(sheet).pop(f),
+                ),
+            ],
           ),
-        for (final f in current)
-          FileRow(
-            file: f,
-            subtitle: [
-              ?f.revLabel,
-              fileSize(l10n, f.bytes),
-            ].where((s) => s.isNotEmpty).join(' · '),
-            onTap: () => Navigator.of(sheet).pop(f),
-          ),
-      ],
-    ),
-  );
+        );
   if (picked is LibraryFile) {
     return DraftFile(
       libraryId: picked.id,
@@ -130,7 +138,9 @@ Future<DraftFile?> chooseDaybookFile(
   // Kept in the app's folder until it is in the Library.
   final kept = await ref.read(keepFileProvider)(phone.local, phone.extension);
   if (!context.mounted) return null;
-  final older = current.isEmpty
+  final older = replaces != null
+      ? (file: replaces)
+      : current.isEmpty
       ? null
       : await showBvSheet<_Replaces>(
           context: context,

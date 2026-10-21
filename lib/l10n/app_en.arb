@@ -5723,5 +5723,52 @@
         "type": "String"
       }
     }
+  },
+  "libraryOlderVersions": "{count, plural, =1{1 older version} other{{count} older versions}}",
+  "@libraryOlderVersions": {
+    "description": "LV1: how many earlier versions a file has (a fact about the file, not a quality signal, review 67).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryAddFile": "Add a file",
+  "@libraryAddFile": {
+    "description": "LV1: the quiet last row (with a + icon) for people who may add files; opens the Work tab's writing card as a Document for receipt (review 69 1b)."
+  },
+  "libraryVersions": "Versions",
+  "@libraryVersions": {
+    "description": "LV2: the label above a file's versions."
+  },
+  "libraryInUse": "{rev} · in use",
+  "@libraryInUse": {
+    "description": "LV2: the version in use, with an orange dot (Rev D · in use).",
+    "placeholders": {
+      "rev": {
+        "type": "String",
+        "example": "Rev D"
+      }
+    }
+  },
+  "libraryVersion": "Version",
+  "@libraryVersion": {
+    "description": "LV2: a version with no revision written on it."
+  },
+  "libraryOpen": "Open",
+  "@libraryOpen": {
+    "description": "LV2: opens an older version full screen."
+  },
+  "libraryAddVersion": "Add a new version",
+  "@libraryAddVersion": {
+    "description": "LV2: under the versions (with a + icon), for people who may add files; opens the writing card with Replaces set."
+  },
+  "libraryFileMenu": "More for this file",
+  "@libraryFileMenu": {
+    "description": "LV2: what a screen reader says for the ⋯ button (Share in chat, Download)."
+  },
+  "libraryOpenFull": "Open full screen",
+  "@libraryOpenFull": {
+    "description": "LV2: what a screen reader says for the preview, which opens the drawing table."
   }
 }

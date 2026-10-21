@@ -494,3 +494,32 @@ class BvPopoverField extends StatelessWidget {
     );
   }
 }
+
+/// A screen's ⋯ menu (MN1 2566:35619): the popover under the header's
+/// end, over a scrim. The chosen value, or null when closed.
+Future<T?> showBvScreenMenu<T>(
+  BuildContext context, {
+  required Key key,
+  required List<BvMenuItem<T>> items,
+}) => showGeneralDialog<T>(
+  context: context,
+  barrierDismissible: true,
+  barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+  barrierColor: BvColors.overlayScrim,
+  pageBuilder: (menuContext, _, _) => SafeArea(
+    child: Align(
+      alignment: AlignmentDirectional.topEnd,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(
+          top: BvScreenMenuSpec.top,
+          end: BvScreenMenuSpec.end,
+        ),
+        child: BvPopoverMenu<T>.screen(
+          key: key,
+          items: items,
+          onSelected: (v) => Navigator.of(menuContext).pop(v),
+        ),
+      ),
+    ),
+  ),
+);

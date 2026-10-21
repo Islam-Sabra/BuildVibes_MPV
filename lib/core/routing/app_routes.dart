@@ -90,13 +90,15 @@ abstract final class AppRoutes {
       '/spaces/$id/teams/$teamId';
   static String spaceThread(String id, String threadId) =>
       '/spaces/$id/chat/$threadId';
+
+  /// F1: the file full screen, on the drawing table.
   static String libraryFile(String id, String fileId) =>
       '/spaces/$id/library/$fileId';
 
-  /// Add a file, or a new revision of [supersedes].
-  static String libraryAdd(String id, {String? supersedes}) =>
-      '/spaces/$id/library/new'
-      '${supersedes == null ? '' : '?supersedes=$supersedes'}';
+  /// LV2: a file's page, its versions and who received it. It pops the
+  /// version in use when "Add a new version" is chosen.
+  static String libraryFilePage(String id, String fileId) =>
+      '/spaces/$id/library/$fileId/page';
 
   // Entry (signed out)
   static const loading = '/loading';

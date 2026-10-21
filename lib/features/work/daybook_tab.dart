@@ -76,6 +76,7 @@ class DaybookTab extends ConsumerStatefulWidget {
     required this.space,
     this.startWriting = false,
     this.target,
+    this.startFile,
   });
 
   final SpaceDetail space;
@@ -88,6 +89,9 @@ class DaybookTab extends ConsumerStatefulWidget {
   /// Opened from Create's "Work item in a Space" (F1): the card opens at
   /// Now, when the reader may write work items here.
   final bool startWriting;
+
+  /// Opened from the Library: a file post at Now, its chooser open.
+  final DaybookFileStart? startFile;
 
   @override
   ConsumerState<DaybookTab> createState() => _DaybookTabState();
@@ -240,6 +244,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       if (mounted && widget.startWriting && widget.space.myRights.createItems) {
         _startWriting();
       }
+      if (mounted && widget.startFile != null) {
+        unawaited(_startFile(widget.startFile!));
+      }
       _flush();
       // Kept from an earlier visit (another page of this Space is open
       // underneath): read again. A first load is already reading.
@@ -253,6 +260,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void didUpdateWidget(DaybookTab old) {
     super.didUpdateWidget(old);
     if (widget.target != old.target) _target = widget.target;
+    final start = widget.startFile;
+    if (start != null && start != old.startFile) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_startFile(start));
+      });
+    }
   }
 
   /// Opens the page at [_target]'s card (F20), once the first page is in:
@@ -597,6 +610,23 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
     });
+  }
+
+  /// A file post from the Library (review 69 1b): the card at Now as a
+  /// Document for receipt, the file chooser open; for a new version, the
+  /// phone's files at once, replacing [DaybookFileStart.replaces].
+  Future<void> _startFile(DaybookFileStart start) async {
+    if (!widget.space.myRights.createItems) return;
+    _startWriting();
+    await _card.setKind(DaybookKind.file);
+    if (!mounted) return;
+    final file = await chooseDaybookFile(
+      context,
+      ref,
+      spaceId: _spaceId,
+      replaces: start.replaces,
+    );
+    if (file != null) await _card.addFile(file);
   }
 
   /// Edit a posted work item: its card opens at "Now", filled (X1 Edit).

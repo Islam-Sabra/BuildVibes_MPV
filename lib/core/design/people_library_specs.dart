@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 import 'bv_tokens.dart';
 
 /// Slice 4's People (P1 2542:34824, P2 2542:34982).
@@ -34,4 +36,29 @@ abstract final class BvPeopleSpec {
   static const invitePadding = BvSpace.s12;
   static const inviteIcon = BvSize.iconSm;
   static const inviteGap = BvSpace.s12;
+}
+
+/// Slice 4's Library (LV1 2543:34980) and a file's page (LV2 2543:35101).
+abstract final class BvLibrarySpec {
+  /// A row: the thumbnail, the name and its line, the faces at the end.
+  static const rowPaddingVertical = BvSpace.s12;
+  static const rowGap = BvSpace.s12;
+  static const tagTop = BvSpace.s4;
+
+  /// The drawing's thumbnail; older versions show as paper stacked behind.
+  static const thumbWidth = 56.0;
+  static const thumbHeight = 44.0;
+  static const thumbRadius = BorderRadius.all(Radius.circular(BvRadius.tiny));
+  static const stackOffset = 3.0;
+  static const thumbIcon = BvSize.iconMd;
+
+  /// LV2: the preview card, the Received line and the versions.
+  static const previewHeight = 250.0;
+  static const previewRadius = BvRadius.cardAll;
+  static const receivedTop = BvSpace.s16;
+  static const receivedGap = BvSpace.s8;
+  static const versionDot = 8.0;
+  static const versionGap = BvSpace.s16;
+  static const versionPaddingVertical = BvSpace.s12;
+  static const sectionTop = BvSpace.s16;
 }

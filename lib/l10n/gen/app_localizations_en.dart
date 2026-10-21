@@ -3943,4 +3943,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String peopleLetInDone(String name, String pass) {
     return '$name is in, as $pass.';
   }
+
+  @override
+  String libraryOlderVersions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count older versions',
+      one: '1 older version',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryAddFile => '+ Add a file';
+
+  @override
+  String get libraryVersions => 'Versions';
+
+  @override
+  String libraryInUse(String rev) {
+    return '$rev · in use';
+  }
+
+  @override
+  String get libraryVersion => 'Version';
+
+  @override
+  String get libraryOpen => 'Open';
+
+  @override
+  String get libraryAddVersion => '+ Add a new version';
+
+  @override
+  String get libraryFileMenu => 'More for this file';
+
+  @override
+  String get libraryOpenFull => 'Open full screen';
 }
