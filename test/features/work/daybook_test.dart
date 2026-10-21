@@ -588,6 +588,7 @@ void main() {
             title: 'Elsewhere',
             day: DateTime(2026, 10, 16),
             status: WorkStatus.open,
+            needsMe: true,
           ),
           CalendarWorkItem(
             postId: 'post-signed',
@@ -595,6 +596,7 @@ void main() {
             title: 'Signed',
             day: DateTime(2026, 10, 16),
             status: WorkStatus.done,
+            needsMe: false,
           ),
         ],
       );
@@ -632,6 +634,7 @@ void main() {
             title: rebar,
             day: wednesday,
             status: WorkStatus.open,
+            needsMe: true,
           ),
           // Signed as done on an earlier day: gone from the strip.
           CalendarWorkItem(
@@ -640,6 +643,7 @@ void main() {
             title: 'Signed on Wednesday',
             day: wednesday,
             status: WorkStatus.done,
+            needsMe: false,
           ),
         ],
       );
@@ -657,6 +661,49 @@ void main() {
       expect(find.textContaining('Signed on Wednesday'), findsNothing);
     });
 
+    testWidgets("F65: Omar's strip and its sheet never show an item he "
+        'raised for Islam, in any state [$lang]', (tester) async {
+      final whoRow = s.t('Lead test: who row', 'اختبار المسؤول: سطر الشخص');
+      // As my_calendar sends them to Omar: open, sent back (open again)
+      // and Done waiting for his check. A Checked one isn't sent at all.
+      CalendarWorkItem forIslam(String id, WorkStatus status) =>
+          CalendarWorkItem(
+            postId: 'post-who-row-$id',
+            spaceId: DaybookSamples.space,
+            title: '$whoRow $id',
+            day: DateTime(2026, 10, 15),
+            status: status,
+            // Open, it waits on Islam; Done, on Omar's check.
+            needsMe: status == WorkStatus.done,
+          );
+      await _open(
+        tester,
+        lang,
+        posts: s.l1(),
+        me: DaybookSamples.omar,
+        now: DaybookSamples.friday,
+        calendar: [
+          s.cableTraysDue(),
+          forIslam('open', WorkStatus.open),
+          forIslam('sent-back', WorkStatus.open),
+          forIslam('done', WorkStatus.done),
+        ],
+      );
+      final strip = tester.widget<BvDueTodayStrip>(
+        find.byType(BvDueTodayStrip),
+      );
+      expect(strip.items, [(day: null, title: s.cableTraysTitle)]);
+      expect(find.textContaining(whoRow), findsNothing);
+      await tester.tap(find.byType(BvDueTodayStrip));
+      await tester.pumpAndSettle();
+      final sheet = find.byKey(const Key('to-do-sheet'));
+      expect(sheet, findsOneWidget);
+      expect(
+        find.descendant(of: sheet, matching: find.textContaining(whoRow)),
+        findsNothing,
+      );
+    });
+
     testWidgets('Review 73 A1: a long strip, tapped anywhere, opens the To do '
         'sheet with every item oldest first, and a row opens its card '
         '[$lang]', (tester) async {
@@ -672,6 +719,7 @@ void main() {
             ),
             day: DateTime(2026, 10, 10 + d),
             status: WorkStatus.open,
+            needsMe: true,
           ),
       ];
       await _open(
@@ -688,6 +736,7 @@ void main() {
             title: s.sleeves,
             day: DateTime(2026, 10, 15),
             status: WorkStatus.open,
+            needsMe: true,
           ),
           ...earlier.reversed,
         ],

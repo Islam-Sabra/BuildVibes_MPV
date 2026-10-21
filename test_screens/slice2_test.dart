@@ -840,6 +840,7 @@ void main() {
               title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
               day: DateTime(2026, 10, 14),
               status: WorkStatus.open,
+              needsMe: true,
             ),
           ],
         ),
@@ -898,6 +899,7 @@ void main() {
               title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
               day: DateTime(2026, 10, 11),
               status: WorkStatus.open,
+              needsMe: true,
             ),
             CalendarWorkItem(
               postId: 'post-socket',
@@ -905,6 +907,7 @@ void main() {
               title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
               day: DateTime(2026, 10, 12),
               status: WorkStatus.open,
+              needsMe: true,
             ),
             s.cableTraysDue(),
           ],
@@ -933,6 +936,7 @@ void main() {
               title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
               day: DateTime(2026, 10, 11),
               status: WorkStatus.open,
+              needsMe: true,
             ),
             CalendarWorkItem(
               postId: 'post-socket',
@@ -940,6 +944,7 @@ void main() {
               title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
               day: DateTime(2026, 10, 12),
               status: WorkStatus.open,
+              needsMe: true,
             ),
             CalendarWorkItem(
               postId: 'post-firestop',
@@ -950,6 +955,7 @@ void main() {
               ),
               day: DateTime(2026, 10, 14),
               status: WorkStatus.open,
+              needsMe: true,
             ),
             CalendarWorkItem(
               postId: 'post-sleeves',
@@ -957,6 +963,7 @@ void main() {
               title: s.sleeves,
               day: DateTime(2026, 10, 15),
               status: WorkStatus.open,
+              needsMe: true,
             ),
             s.cableTraysDue(),
           ],

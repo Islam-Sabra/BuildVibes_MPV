@@ -682,10 +682,12 @@ void main() {
         'day': '2026-10-16',
         'starts_at': null,
         'status': 'open',
+        'needs_me': true,
       })!;
       expect(item.day, DateTime(2026, 10, 16));
       expect(item.postId, 'p');
       expect(item.status, WorkStatus.open);
+      expect(item.needsMe, isTrue);
       expect(item.dueAt, isNull);
     });
   });

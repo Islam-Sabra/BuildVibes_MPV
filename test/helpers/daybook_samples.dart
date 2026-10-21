@@ -520,6 +520,7 @@ class DaybookSamples {
     title: cableTraysTitle,
     day: DateTime(2026, 10, 16),
     status: WorkStatus.open,
+    needsMe: true,
   );
 
   /// O1: Omar's Thursday morning. The sleeves are his to sign, the cable

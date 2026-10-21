@@ -927,6 +927,7 @@ class CalendarWorkItem {
     required this.title,
     required this.day,
     required this.status,
+    required this.needsMe,
     this.dueAt,
   });
 
@@ -939,6 +940,7 @@ class CalendarWorkItem {
       title: json['title'] as String? ?? '',
       day: _day(json['day'])!,
       status: WorkStatus.fromJson(json['status']),
+      needsMe: json['needs_me'] as bool? ?? false,
       dueAt: _time(json['starts_at']),
     );
   }
@@ -948,5 +950,10 @@ class CalendarWorkItem {
   final String title;
   final DateTime day;
   final WorkStatus status;
+
+  /// It waits on the reader (item_needs_me). On an open item: the reader
+  /// owns it and may sign it, or its owner can no longer sign it and the
+  /// reader gives it on. Never for an item raised for someone who can.
+  final bool needsMe;
   final DateTime? dueAt;
 }
