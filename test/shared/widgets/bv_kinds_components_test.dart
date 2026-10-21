@@ -77,51 +77,65 @@ void main() {
       expect(semantics.flagsCollection.isChecked, isNotNull);
     });
 
-    testBoth('F54: my tick: a light haptic, the check fills in about 300 ms, '
-        'and nothing glows', (tester, lang) async {
-      final haptics = <String>[];
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        (call) async {
-          if (call.method == 'HapticFeedback.vibrate') {
-            haptics.add(call.arguments as String);
-          }
-          return null;
-        },
-      );
-      var ticked = false;
-      await pumpComponent(
-        tester,
-        StatefulBuilder(
-          builder: (context, setState) => BvChecklistPoint(
-            text: 'Floor tiles',
-            tick: ticked
-                ? (
-                    name: 'Islam Ahmed',
-                    tint: null,
-                    time: (time: '09:00', period: null),
-                  )
-                : null,
-            onTap: () => setState(() => ticked = true),
+    testBoth(
+      'F54, F67: my tick: one tick haptic, the check fills in about 300 ms, '
+      'and nothing glows',
+      (tester, lang) async {
+        // F67: the tick goes through bvHaptic; this phone has no effect
+        // of its own, so Flutter's medium impact plays.
+        final haptics = <String>[];
+        const settings = MethodChannel('buildvibes/settings');
+        tester.binding.defaultBinaryMessenger
+          ..setMockMethodCallHandler(settings, (call) async {
+            haptics.add('${call.method} ${call.arguments}');
+            return null;
+          })
+          ..setMockMethodCallHandler(SystemChannels.platform, (call) async {
+            if (call.method == 'HapticFeedback.vibrate') {
+              haptics.add(call.arguments as String);
+            }
+            return null;
+          });
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            settings,
+            null,
           ),
-        ),
-        lang: lang,
-      );
-      await tester.tap(find.byType(BvChecklistPoint));
-      await tester.pump();
-      expect(haptics, ['HapticFeedbackType.lightImpact']);
-      await tester.pump(BvChecklistSpec.tick ~/ 2);
-      final half = tester.widget<ScaleTransition>(
-        find.ancestor(
-          of: find.byKey(const Key('checklist-check')),
-          matching: find.byType(ScaleTransition),
-        ),
-      );
-      expect(half.scale.value, inExclusiveRange(0, 1));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('checklist-check')), findsOneWidget);
-      expect(_glow(tester), isNull);
-    });
+        );
+        var ticked = false;
+        await pumpComponent(
+          tester,
+          StatefulBuilder(
+            builder: (context, setState) => BvChecklistPoint(
+              text: 'Floor tiles',
+              tick: ticked
+                  ? (
+                      name: 'Islam Ahmed',
+                      tint: null,
+                      time: (time: '09:00', period: null),
+                    )
+                  : null,
+              onTap: () => setState(() => ticked = true),
+            ),
+          ),
+          lang: lang,
+        );
+        await tester.tap(find.byType(BvChecklistPoint));
+        await tester.pump();
+        expect(haptics, ['haptic tick', 'HapticFeedbackType.mediumImpact']);
+        await tester.pump(BvChecklistSpec.tick ~/ 2);
+        final half = tester.widget<ScaleTransition>(
+          find.ancestor(
+            of: find.byKey(const Key('checklist-check')),
+            matching: find.byType(ScaleTransition),
+          ),
+        );
+        expect(half.scale.value, inExclusiveRange(0, 1));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('checklist-check')), findsOneWidget);
+        expect(_glow(tester), isNull);
+      },
+    );
 
     testBoth('F54: someone else\'s tick arriving live glows, then fades', (
       tester,

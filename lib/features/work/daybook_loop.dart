@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/daybook_loop_specs.dart' show BvFieldSheetSpec;
 import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
+import '../../core/haptics.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
@@ -385,7 +386,7 @@ class DaybookLoop {
   /// answer 4); Undo takes it back before anything reaches the server.
   Future<void> check(BuildContext context, DaybookCard card) async {
     final l10n = AppLocalizations.of(context);
-    unawaited(HapticFeedback.heavyImpact());
+    unawaited(bvHaptic(BvHaptic.strong));
     final outbox = ref.read(workOutboxProvider.notifier);
     final post = card.post;
     await outbox.hold(
