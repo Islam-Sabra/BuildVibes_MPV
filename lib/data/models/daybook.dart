@@ -345,6 +345,8 @@ class DaybookPost {
     this.editedAt,
     this.quote,
     this.hasPage = false,
+    this.parentId,
+    this.children,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -401,6 +403,8 @@ class DaybookPost {
       editedAt: _time(json['edited_at']),
       quote: DaybookQuote.fromJson(json['quote']),
       hasPage: json['has_page'] as bool? ?? false,
+      parentId: json['parent_id'] as String?,
+      children: DaybookChildren.fromJson(json['children']),
     );
   }
 
@@ -492,6 +496,16 @@ class DaybookPost {
   /// Its page holds blocks (slice 5): the card says "Open the page ›".
   final bool hasPage;
 
+  /// The work item it is under (slice 6), if any.
+  final String? parentId;
+
+  /// The work items under it: a target's card shows them as rows.
+  final DaybookChildren? children;
+
+  /// A walk or meeting notes (is_target): its work items are on its card,
+  /// nobody signs or checks it, its progress is theirs.
+  bool get isTarget => children?.target ?? false;
+
   bool get isNote => kind == noteKind;
   bool get isWorkItem => kind == workItemKind;
   bool get isChecklist => kind == checklistKind;
@@ -559,6 +573,8 @@ class DaybookPost {
     editedAt: editedAt,
     quote: quote,
     hasPage: hasPage,
+    parentId: parentId,
+    children: children,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
@@ -1006,4 +1022,74 @@ class CalendarWorkItem {
   /// reader gives it on. Never for an item raised for someone who can.
   final bool needsMe;
   final DateTime? dueAt;
+}
+
+/// A work item under another, as its parent's card shows it (slice 6).
+@immutable
+class DaybookChild {
+  const DaybookChild({
+    required this.id,
+    required this.title,
+    this.status = WorkStatus.open,
+    this.ref,
+    this.need,
+    this.ownerId,
+    this.ownerName,
+    this.coverPath,
+  });
+
+  factory DaybookChild.fromJson(Map<String, dynamic> json) => DaybookChild(
+    id: json['id'] as String,
+    title: json['title'] as String? ?? '',
+    status: WorkStatus.fromJson(json['item_status']),
+    ref: json['ref'] as String?,
+    need: DaybookNeed.fromJson(json['needs_me']),
+    ownerId: json['owner_id'] as String?,
+    ownerName: json['owner_name'] as String?,
+    coverPath: json['cover_path'] as String?,
+  );
+
+  final String id;
+  final String title;
+  final WorkStatus status;
+  final String? ref;
+
+  /// What it needs of the reader (the paper clip on its row).
+  final DaybookNeed? need;
+  final String? ownerId;
+  final String? ownerName;
+
+  /// Its photo (a walk's).
+  final String? coverPath;
+}
+
+/// The work items under a post (the card's `children`): how many, how many
+/// are checked, and the rows (up to 30). A fact about this post, never a
+/// quality signal.
+@immutable
+class DaybookChildren {
+  const DaybookChildren({
+    required this.total,
+    required this.checked,
+    this.target = false,
+    this.rows = const [],
+  });
+
+  static DaybookChildren? fromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    return DaybookChildren(
+      total: (json['total'] as num?)?.toInt() ?? 0,
+      checked: (json['checked'] as num?)?.toInt() ?? 0,
+      target: json['target'] as bool? ?? false,
+      rows: [
+        for (final r in json['rows'] as List? ?? const [])
+          DaybookChild.fromJson(r as Map<String, dynamic>),
+      ],
+    );
+  }
+
+  final int total;
+  final int checked;
+  final bool target;
+  final List<DaybookChild> rows;
 }

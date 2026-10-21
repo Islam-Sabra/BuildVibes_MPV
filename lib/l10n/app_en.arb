@@ -5778,5 +5778,91 @@
   "pagePhotoCaption": "Add a caption",
   "@pagePhotoCaption": {
     "description": "N2: a photo block's caption, while the page is edited (up to 300 characters)."
+  },
+  "walkMenu": "Walk the site",
+  "@walkMenu": {
+    "description": "The Space menu: walk mode, one photo and one line per thing to fix (slice 6)."
+  },
+  "walkTitle": "Walk",
+  "@walkTitle": {
+    "description": "R1: the walk screen's chip, before the walk's name (Walk · Level 4 corridor)."
+  },
+  "walkNameHint": "Name this walk",
+  "@walkNameHint": {
+    "description": "R1: the walk's name before the first photo (Walk, level 4 corridor)."
+  },
+  "walkStart": "Take the first photo",
+  "@walkStart": {
+    "description": "R1: starts the walk with the camera."
+  },
+  "walkLineHint": "What needs doing here",
+  "@walkLineHint": {
+    "description": "R1: the line for the photo just taken (2 to 140 characters). The keyboard's mic types it."
+  },
+  "walkOwner": "Who does it",
+  "@walkOwner": {
+    "description": "R1: the owner chip before one is chosen."
+  },
+  "walkNext": "Next photo",
+  "@walkNext": {
+    "description": "R1: the shutter's label once this photo has its line and owner."
+  },
+  "walkPhotos": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "@walkPhotos": {
+    "description": "R1: how many photos so far, beside the shutter.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "walkFinish": "Finish",
+  "@walkFinish": {
+    "description": "R1: posts the walk, one work item per photo."
+  },
+  "walkNeedsLine": "Write what needs doing, then the next photo.",
+  "@walkNeedsLine": {
+    "description": "R1: the photo has no line yet."
+  },
+  "walkNeedsOwner": "Choose who does it, then the next photo.",
+  "@walkNeedsOwner": {
+    "description": "R1: the photo has no owner yet."
+  },
+  "walkFull": "A walk holds 30 photos. Finish it, then start another.",
+  "@walkFull": {
+    "description": "R1: the 30th photo was taken."
+  },
+  "walkDiscardTitle": "Throw this walk away?",
+  "@walkDiscardTitle": {
+    "description": "R1: ✕ once there is a photo."
+  },
+  "walkDiscardBody": "Its photos aren't sent.",
+  "@walkDiscardBody": {
+    "description": "R1: under the question."
+  },
+  "walkKeep": "Keep walking",
+  "@walkKeep": {
+    "description": "R1: keeps the walk."
+  },
+  "walkDiscard": "Throw away",
+  "@walkDiscard": {
+    "description": "R1: drops the walk and its photos."
+  },
+  "walkRemovePhoto": "Take this photo out",
+  "@walkRemovePhoto": {
+    "description": "R1: a thumbnail's action."
+  },
+  "walkEachItem": "{count, plural, =1{1 photo, a work item} other{{count} photos, each one a work item}}",
+  "@walkEachItem": {
+    "description": "R1b: under a walk's title: a fact about this post.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "walkShowAll": "Show all",
+  "@walkShowAll": {
+    "description": "R1b: more rows than the card shows; opens the page."
   }
 }

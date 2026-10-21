@@ -98,6 +98,9 @@ abstract final class AppRoutes {
   /// highlighted.
   static const threadMessageParam = 'message';
 
+  /// R1 · Walk mode (slice 6).
+  static String spaceWalk(String id) => '/spaces/$id/walk';
+
   /// S · Search inside a Space.
   static String spaceSearch(String id) => '/spaces/$id/search';
 

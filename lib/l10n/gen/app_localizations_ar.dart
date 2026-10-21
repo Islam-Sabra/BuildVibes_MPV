@@ -3999,4 +3999,81 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pagePhotoCaption => 'أضف وصفًا';
+
+  @override
+  String get walkMenu => 'جولة في الموقع';
+
+  @override
+  String get walkTitle => 'جولة';
+
+  @override
+  String get walkNameHint => 'سمِّ هذه الجولة';
+
+  @override
+  String get walkStart => 'التقط الصورة الأولى';
+
+  @override
+  String get walkLineHint => 'ما المطلوب هنا';
+
+  @override
+  String get walkOwner => 'من ينفّذه';
+
+  @override
+  String get walkNext => 'الصورة التالية';
+
+  @override
+  String walkPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkFinish => 'إنهاء';
+
+  @override
+  String get walkNeedsLine => 'اكتب ما المطلوب، ثم الصورة التالية.';
+
+  @override
+  String get walkNeedsOwner => 'اختر من ينفّذه، ثم الصورة التالية.';
+
+  @override
+  String get walkFull => 'تتسع الجولة لثلاثين صورة. أنهِها ثم ابدأ أخرى.';
+
+  @override
+  String get walkDiscardTitle => 'تتخلص من هذه الجولة؟';
+
+  @override
+  String get walkDiscardBody => 'لن تُرسل صورها.';
+
+  @override
+  String get walkKeep => 'تابع الجولة';
+
+  @override
+  String get walkDiscard => 'تخلّص منها';
+
+  @override
+  String get walkRemovePhoto => 'احذف هذه الصورة';
+
+  @override
+  String walkEachItem(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة، كلٌّ منها بند عمل',
+      few: '$count صور، كلٌّ منها بند عمل',
+      two: 'صورتان، كلٌّ منهما بند عمل',
+      one: 'صورة واحدة، بند عمل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkShowAll => 'اعرض الكل';
 }

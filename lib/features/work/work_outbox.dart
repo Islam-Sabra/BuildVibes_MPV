@@ -62,6 +62,37 @@ class PendingPhoto {
   };
 }
 
+/// One photo's work item in a walk (slice 6): its id, the line for it and
+/// who owns it. Its photo is the walk's photo at the same place.
+@immutable
+class WalkLine {
+  const WalkLine({
+    required this.id,
+    required this.line,
+    required this.ownerId,
+    required this.ownerName,
+  });
+
+  factory WalkLine.fromJson(Map<String, dynamic> json) => WalkLine(
+    id: json['id'] as String,
+    line: json['line'] as String? ?? '',
+    ownerId: json['owner_id'] as String? ?? '',
+    ownerName: json['owner_name'] as String? ?? '',
+  );
+
+  final String id;
+  final String line;
+  final String ownerId;
+  final String ownerName;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'line': line,
+    'owner_id': ownerId,
+    'owner_name': ownerName,
+  };
+}
+
 /// What waits in the outbox.
 enum PendingKind {
   /// The owner's sign-off of a work item, with its proof photos.
@@ -79,7 +110,11 @@ enum PendingKind {
   check('check_item'),
 
   /// Cancelling a work item, held for the undo bar's 5 seconds first.
-  cancel('cancel_post');
+  cancel('cancel_post'),
+
+  /// A walk (slice 6): the walk's work item and one per photo, in one
+  /// create_walk call once every photo is up.
+  walk('daybook_walk');
 
   const PendingKind(this.json);
   final String json;
@@ -118,6 +153,7 @@ class PendingItem {
     this.files = const [],
     this.quote,
     this.sourceMessageId,
+    this.walk = const [],
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -149,6 +185,10 @@ class PendingItem {
     ],
     quote: DaybookQuote.fromJson(json['quote']),
     sourceMessageId: json['source_message_id'] as String?,
+    walk: [
+      for (final w in json['walk'] as List? ?? const [])
+        WalkLine.fromJson(w as Map<String, dynamic>),
+    ],
   );
 
   static DateTime? _time(Object? value) =>
@@ -207,6 +247,9 @@ class PendingItem {
   final DaybookQuote? quote;
   final String? sourceMessageId;
 
+  /// A walk's work items, one per photo in [photos], in order.
+  final List<WalkLine> walk;
+
   PendingItem copyWith({
     List<PendingPhoto>? photos,
     List<DraftFile>? files,
@@ -233,11 +276,18 @@ class PendingItem {
     files: files ?? this.files,
     quote: quote,
     sourceMessageId: sourceMessageId,
+    walk: walk,
   );
 
   /// A new post, of any kind.
   bool get isNewPost =>
-      kind == PendingKind.workItem || kind == PendingKind.post;
+      kind == PendingKind.workItem ||
+      kind == PendingKind.post ||
+      kind == PendingKind.walk;
+
+  /// The post [index]'s photo goes in: a walk's photo is its work item's.
+  String photoPost(int index) =>
+      kind == PendingKind.walk && index < walk.length ? walk[index].id : id;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -260,6 +310,7 @@ class PendingItem {
     'files': [for (final f in files) f.toJson()],
     'quote': quote?.toJson(),
     'source_message_id': sourceMessageId,
+    if (walk.isNotEmpty) 'walk': [for (final w in walk) w.toJson()],
   };
 
   /// Only the kinds this version knows are read back.
@@ -553,7 +604,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     for (;;) {
       try {
         final photos = <PendingPhoto>[];
-        for (final p in current.photos) {
+        for (final (i, p) in current.photos.indexed) {
           if (p.remote != null) {
             photos.add(p);
             continue;
@@ -561,7 +612,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           // A new name on every try: nothing is ever overwritten.
           final path = await withRetries(
             () => item.isNewPost
-                ? daybook.uploadPostPhoto(item.spaceId, item.id, File(p.local))
+                ? daybook.uploadPostPhoto(
+                    item.spaceId,
+                    item.photoPost(i),
+                    File(p.local),
+                  )
                 : repo.uploadPhoto(item.spaceId, item.id, File(p.local)),
           );
           photos.add(p.uploaded(path));
@@ -750,6 +805,19 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         await ref.read(workRepositoryProvider).checkItem(item.id);
       case PendingKind.cancel:
         await daybook.cancelPost(item.id);
+      case PendingKind.walk:
+        await daybook.createWalk(
+          NewWalk(
+            id: item.id,
+            spaceId: item.spaceId,
+            title: item.title,
+            place: item.place,
+            items: [
+              for (final (i, w) in item.walk.indexed)
+                (id: w.id, line: w.line, ownerId: w.ownerId, photo: paths[i]),
+            ],
+          ),
+        );
     }
   }
 
@@ -768,7 +836,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         // A new card is being written: this one waits, refused, until it
         // is put down.
         await _put(item.copyWith(refused: true));
-      case PendingKind.signOff:
+      case PendingKind.signOff || PendingKind.walk:
         await _put(item.copyWith(refused: true));
       case PendingKind.check || PendingKind.cancel:
         await _drop(item);

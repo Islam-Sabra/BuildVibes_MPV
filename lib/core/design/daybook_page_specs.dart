@@ -53,3 +53,34 @@ abstract final class BvPageSpec {
   static const menuWidth = 260.0;
   static const menuTile = 28.0;
 }
+
+/// Slice 6: a walk's card (R1b 2539:34396, on v13's card) and its rows.
+abstract final class BvTargetSpec {
+  static const photoGap = BvSpace.s4;
+  static const photoRadius = BorderRadius.all(Radius.circular(BvRadius.tiny));
+  static const photosShown = 4;
+  static const rowsShown = 10;
+  static const rowGap = BvSpace.s8;
+  static const rowPadding = BvSpace.s12;
+  static const rowRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+  static const statusSize = BvSize.iconMd;
+}
+
+/// Slice 6: walk mode (R1 2539:34353).
+abstract final class BvWalkSpec {
+  static const padding = BvSpace.gutter;
+  static const chipHeight = 36.0;
+  static const lineRadius = BorderRadius.all(Radius.circular(BvRadius.card));
+  static const linePadding = BvSpace.s16;
+  static const thumb = 52.0;
+  static const thumbGap = BvSpace.s8;
+  static const thumbRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+  static const shutter = 68.0;
+  static const barGap = BvSpace.s16;
+
+  /// The photo's label sits on the photo, as on the proof camera.
+  static const labelScrim = 0.6;
+
+  /// The shutter waits until this photo has its line and owner.
+  static const shutterWaiting = 0.4;
+}

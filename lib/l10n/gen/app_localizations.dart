@@ -6751,6 +6751,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a caption'**
   String get pagePhotoCaption;
+
+  /// The Space menu: walk mode, one photo and one line per thing to fix (slice 6).
+  ///
+  /// In en, this message translates to:
+  /// **'Walk the site'**
+  String get walkMenu;
+
+  /// R1: the walk screen's chip, before the walk's name (Walk · Level 4 corridor).
+  ///
+  /// In en, this message translates to:
+  /// **'Walk'**
+  String get walkTitle;
+
+  /// R1: the walk's name before the first photo (Walk, level 4 corridor).
+  ///
+  /// In en, this message translates to:
+  /// **'Name this walk'**
+  String get walkNameHint;
+
+  /// R1: starts the walk with the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the first photo'**
+  String get walkStart;
+
+  /// R1: the line for the photo just taken (2 to 140 characters). The keyboard's mic types it.
+  ///
+  /// In en, this message translates to:
+  /// **'What needs doing here'**
+  String get walkLineHint;
+
+  /// R1: the owner chip before one is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Who does it'**
+  String get walkOwner;
+
+  /// R1: the shutter's label once this photo has its line and owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Next photo'**
+  String get walkNext;
+
+  /// R1: how many photos so far, beside the shutter.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String walkPhotos(int count);
+
+  /// R1: posts the walk, one work item per photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get walkFinish;
+
+  /// R1: the photo has no line yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what needs doing, then the next photo.'**
+  String get walkNeedsLine;
+
+  /// R1: the photo has no owner yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who does it, then the next photo.'**
+  String get walkNeedsOwner;
+
+  /// R1: the 30th photo was taken.
+  ///
+  /// In en, this message translates to:
+  /// **'A walk holds 30 photos. Finish it, then start another.'**
+  String get walkFull;
+
+  /// R1: ✕ once there is a photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw this walk away?'**
+  String get walkDiscardTitle;
+
+  /// R1: under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'Its photos aren\'t sent.'**
+  String get walkDiscardBody;
+
+  /// R1: keeps the walk.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep walking'**
+  String get walkKeep;
+
+  /// R1: drops the walk and its photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw away'**
+  String get walkDiscard;
+
+  /// R1: a thumbnail's action.
+  ///
+  /// In en, this message translates to:
+  /// **'Take this photo out'**
+  String get walkRemovePhoto;
+
+  /// R1b: under a walk's title: a fact about this post.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo, a work item} other{{count} photos, each one a work item}}'**
+  String walkEachItem(int count);
+
+  /// R1b: more rows than the card shows; opens the page.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get walkShowAll;
 }
 
 class _AppLocalizationsDelegate

@@ -24,7 +24,7 @@ import 'people_tab.dart';
 import 'spaces_state.dart';
 
 /// What the Space menu offers now (MN1).
-enum _SpaceMenu { search, info }
+enum _SpaceMenu { walk, search, info }
 
 /// How a Space opens: on its People tab, with the invite screen on top
 /// right after it was created (review 06, S5), or on its daybook with the
@@ -107,6 +107,18 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       context,
       key: const Key('space-menu'),
       items: [
+        // Walk the site: for people who may post work (slice 6).
+        if (ref
+                .read(spaceDetailProvider(widget.spaceId))
+                .value
+                ?.myRights
+                .createItems ??
+            false)
+          BvMenuItem(
+            value: _SpaceMenu.walk,
+            label: l10n.walkMenu,
+            icon: BvIcons.camera,
+          ),
         BvMenuItem(
           value: _SpaceMenu.search,
           label: l10n.searchMenu,
@@ -121,6 +133,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     );
     if (!mounted) return;
     switch (picked) {
+      case _SpaceMenu.walk:
+        await context.push(AppRoutes.spaceWalk(widget.spaceId));
       case _SpaceMenu.search:
         await context.push(AppRoutes.spaceSearch(widget.spaceId));
       case _SpaceMenu.info:

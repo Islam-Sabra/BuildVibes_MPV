@@ -24,6 +24,7 @@ import '../spaces/former_member.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
 import 'daybook_photos.dart';
+import 'daybook_target_card.dart' show DaybookTargetRows;
 import 'daybook_words.dart';
 
 /// What a card lets the reader do (the loop). Null callbacks are not
@@ -40,6 +41,7 @@ class DaybookCardActions {
     this.onAck,
     this.onOpenFile,
     this.onOpenPage,
+    this.onOpenChild,
   });
 
   /// Long-press, or a tap: the lifted card and its menu. Gets the card's
@@ -71,6 +73,9 @@ class DaybookCardActions {
   /// "Open the page ›" (slice 5): the post's page over the daybook
   /// (everyone who sees the post, Viewers too).
   final VoidCallback? onOpenPage;
+
+  /// A target's row (slice 6): that work item's own card.
+  final ValueChanged<String>? onOpenChild;
 }
 
 /// The card's quiet grey line, "Open the page ›", when its page holds
@@ -288,19 +293,33 @@ class DaybookCardView extends StatelessWidget {
                   : BvAvatarTints.forId(authorId),
             ),
             BvSlipTitle(post.title, cancelled: post.cancelled),
-            BvSlipFacts(
-              children: [
-                BvSlipFact(
-                  icon: BvIcons.person,
-                  text: words.meta(post, me: me, now: now),
-                  marks: _factMarks(context),
-                ),
-                if ((post.place ?? '').isNotEmpty)
-                  BvSlipFact(icon: BvIcons.place, text: post.place!),
-              ],
-            ),
+            // A walk is its rows: its owner is its author, its due theirs.
+            if (!post.isTarget)
+              BvSlipFacts(
+                children: [
+                  BvSlipFact(
+                    icon: BvIcons.person,
+                    text: words.meta(post, me: me, now: now),
+                    marks: _factMarks(context),
+                  ),
+                  if ((post.place ?? '').isNotEmpty)
+                    BvSlipFact(icon: BvIcons.place, text: post.place!),
+                ],
+              )
+            else if ((post.place ?? '').isNotEmpty)
+              BvSlipFacts(
+                children: [BvSlipFact(icon: BvIcons.place, text: post.place!)],
+              ),
             ?_quote(),
             if (chips.isNotEmpty) BvSlipChips(children: chips),
+            if (post.isTarget)
+              DaybookTargetRows(
+                post: post,
+                waiting: waiting,
+                viewer: viewer,
+                onOpenChild: lifted ? null : actions.onOpenChild,
+                onShowAll: lifted ? null : actions.onOpenPage,
+              ),
             ?_openPage(),
             if (localPhoto != null)
               _LocalPhoto(

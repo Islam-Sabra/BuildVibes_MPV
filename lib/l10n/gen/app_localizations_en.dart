@@ -3995,4 +3995,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pagePhotoCaption => 'Add a caption';
+
+  @override
+  String get walkMenu => 'Walk the site';
+
+  @override
+  String get walkTitle => 'Walk';
+
+  @override
+  String get walkNameHint => 'Name this walk';
+
+  @override
+  String get walkStart => 'Take the first photo';
+
+  @override
+  String get walkLineHint => 'What needs doing here';
+
+  @override
+  String get walkOwner => 'Who does it';
+
+  @override
+  String get walkNext => 'Next photo';
+
+  @override
+  String walkPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkFinish => 'Finish';
+
+  @override
+  String get walkNeedsLine => 'Write what needs doing, then the next photo.';
+
+  @override
+  String get walkNeedsOwner => 'Choose who does it, then the next photo.';
+
+  @override
+  String get walkFull =>
+      'A walk holds 30 photos. Finish it, then start another.';
+
+  @override
+  String get walkDiscardTitle => 'Throw this walk away?';
+
+  @override
+  String get walkDiscardBody => 'Its photos aren\'t sent.';
+
+  @override
+  String get walkKeep => 'Keep walking';
+
+  @override
+  String get walkDiscard => 'Throw away';
+
+  @override
+  String get walkRemovePhoto => 'Take this photo out';
+
+  @override
+  String walkEachItem(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos, each one a work item',
+      one: '1 photo, a work item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get walkShowAll => 'Show all';
 }

@@ -18,6 +18,8 @@ import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_live.dart';
+import '../../data/repositories/daybook_repository.dart'
+    show daybookRepositoryProvider;
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_day_divider.dart';
@@ -281,9 +283,22 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     try {
       final l10n = AppLocalizations.of(context);
       final pages = ref.read(daybookCardsProvider(_spaceId).notifier);
-      final bool found;
+      var found = false;
+      // A walk's work item is a row on the walk's card (slice 6): the walk
+      // opens, then the work item's own card over it.
+      String? child;
       try {
         found = await pages.find(target.postId);
+        if (!found) {
+          final one = await ref
+              .read(daybookRepositoryProvider)
+              .card(target.postId);
+          final parent = one?.post.parentId;
+          if (parent != null && await pages.find(parent)) {
+            found = true;
+            child = target.postId;
+          }
+        }
       } on SpaceException catch (e) {
         if (mounted) showSpaceError(context, e);
         return;
@@ -291,6 +306,31 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       if (!mounted) return;
       if (!found) {
         showSpaceMessage(context, l10n.daybookRemoved);
+        return;
+      }
+      if (child != null) {
+        final card = ref
+            .read(daybookCardsProvider(_spaceId))
+            .value
+            ?.where(
+              (c) => c.post.children?.rows.any((r) => r.id == child) ?? false,
+            )
+            .firstOrNull;
+        final parentId = card?.id;
+        if (parentId != null) {
+          setState(() => _newBelow = false);
+          await WidgetsBinding.instance.endOfFrame;
+          final at = _cardKeys[parentId]?.currentContext;
+          if (at != null && at.mounted) {
+            await Scrollable.ensureVisible(at, alignment: 0.5);
+          }
+          if (!mounted) return;
+          setState(() {
+            _highlighted = parentId;
+            _flashes++;
+          });
+        }
+        if (mounted) await _loop.openChild(context, child);
         return;
       }
       var line = target.eventId;
@@ -957,9 +997,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     }
 
     final shown = _shownDay ?? today;
+    // Any new post waiting to send keeps the first page away: a work
+    // item, another kind, a walk.
     final waitingPosts = [
       for (final i in pending)
-        if (i.kind == PendingKind.workItem) i,
+        if (i.isNewPost) i,
     ];
     final body = switch (page) {
       AsyncData(:final value)
@@ -1348,6 +1390,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   DaybookPost _waitingPost(PendingItem i, String? me, DateTime now) {
     final d = i.draft;
     if (d != null) return _waitingKind(i, d, me, now);
+    if (i.kind == PendingKind.walk) return _waitingWalk(i, me, now);
     return DaybookPost(
       id: i.id,
       kind: DaybookPost.workItemKind,
@@ -1365,6 +1408,39 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ),
     );
   }
+
+  /// A walk in the outbox: its card, a row per photo, the photos the
+  /// phone's own until they are up.
+  DaybookPost _waitingWalk(PendingItem i, String? me, DateTime now) =>
+      DaybookPost(
+        id: i.id,
+        kind: DaybookPost.workItemKind,
+        createdAt: i.madeAt ?? now,
+        title: i.title,
+        authorId: me,
+        authorName: i.authorName,
+        place: i.place,
+        item: DaybookItem(
+          status: WorkStatus.open,
+          ownerId: me,
+          ownerName: i.authorName,
+        ),
+        children: DaybookChildren(
+          total: i.walk.length,
+          checked: 0,
+          target: true,
+          rows: [
+            for (final (n, w) in i.walk.indexed)
+              DaybookChild(
+                id: w.id,
+                title: w.line,
+                ownerId: w.ownerId,
+                ownerName: w.ownerName,
+                coverPath: n < i.photos.length ? i.photos[n].local : null,
+              ),
+          ],
+        ),
+      );
 
   /// A checklist, an announcement, an activity or a file post in the
   /// outbox, from the card as it was written.

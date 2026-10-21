@@ -31,6 +31,8 @@ import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
 import 'daybook_marks.dart';
 import 'daybook_page.dart' show mayEditPage, showDaybookPage;
 import 'daybook_photos.dart';
+import 'daybook_target_card.dart'
+    show daybookChildCardProvider, showDaybookChild;
 import 'daybook_state.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart' show assignablePeople, pickDueProvider;
@@ -89,7 +91,10 @@ class DaybookLoop {
     // A Viewer reads: the page, nothing more.
     if (_viewer) {
       return view.copyWith(
-        actions: DaybookCardActions(onOpenPage: _openPage(context, post)),
+        actions: DaybookCardActions(
+          onOpenPage: _openPage(context, post),
+          onOpenChild: (id) => unawaited(openChild(context, id)),
+        ),
       );
     }
     final menu = _menu(card, me: me);
@@ -118,9 +123,14 @@ class DaybookLoop {
             ? (_) => unawaited(_update(context, card, view.localPhoto))
             : null,
         onOpenPage: _openPage(context, post),
+        onOpenChild: (id) => unawaited(openChild(context, id)),
       ),
     );
   }
+
+  /// A target's work item, on its own card over the daybook (slice 6).
+  Future<void> openChild(BuildContext context, String id) =>
+      showDaybookChild(context, loop: this, childId: id);
 
   /// The post's page over the daybook (slice 5), for whoever sees it.
   VoidCallback _openPage(
@@ -714,6 +724,7 @@ class DaybookLoop {
 
   Future<void> refresh() async {
     ref
+      ..invalidate(daybookChildCardProvider)
       ..invalidate(mySpacesProvider)
       ..invalidate(daybookDueTodayProvider(_spaceId));
     try {
