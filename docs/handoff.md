@@ -2,6 +2,13 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 21 Oct 2026, night — the store reviewer's sign-in (branch `claude/store-reviewer`, from `main`)
+- **D4 built, not live:** the `review-sign-in` Edge Function, the app's `REVIEW_EMAIL` build setting, and `supabase/ops/review_demo_seed.sql` (the demo Space, tested on the stand-in: each work item state, a checklist, an announcement, chat and a DM; a second run is refused). The steps to go live, each with the founder's yes, are in `docs/store/review-sign-in.md`. It needs migration 33 live first.
+- **Store listing:** review 69's leftovers fixed (the positioning note follows D3; the Arabic "the place typed on the work item"; the reviewer line).
+- **Checks:** 6 Deno tests for the function's rules, `deno check` on the function, 3 app tests; `flutter analyze` clean.
+- **Also:** a trial merge of `claude/review72-app` into `slice2-app` passes; how to settle its six files is in the handoff on `claude/review72-app`.
+- **Who has which branch:** this cloud session made `claude/store-reviewer` and `claude/review72-app`; both are done and nobody is on them. The PC merges them.
+
 ## Lead update: 21 Oct 2026, noon (cloud, the lead's chat)
 - **The build 375 retest so far** (review 50): photo location, step 1 (Due today, run by the lead on the emulator as Omar) and step 2 (the Note) pass. **Steps 3–7 are still to test**, and they go first next time.
 - **Review 72** is the next round: F59–F63 (app) plus migration 33. When the founder says "apply review 72", do it on `slice2-app`.
