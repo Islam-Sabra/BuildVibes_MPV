@@ -11,11 +11,12 @@
 | Your name, photo, country, role or trade, company, headline, experience and projects | Your profile. You choose what it shows. |
 | A mobile number, if you add one | Private: only you can see it. |
 | What you post: work items, checklists, notes, photos, files, voice notes, messages, comments | To show them to the people you shared them with. |
-| When a proof photo was taken, and the place you type | The work item's record. The app doesn't ask for your location. **[Check, Claude]** whether photos keep the camera's location data; if they do, the app should remove it before upload. |
+| When a proof photo was taken, and the place you type | The work item's record. The app doesn't ask for your location. |
 | Your phone's push code, its type and the app's language | To send notifications. |
 | Your private notebook | Only you can see it. |
 | Reports and blocks | To keep people safe. |
 | Basic logs (sign-ins, errors) | To keep the app working and secure. |
+| Photos: the position the camera stored in them | **Not kept.** The app removes it on your phone before a photo is sent. |
 
 We don't use your phone's contacts. We don't track you across other apps.
 
@@ -28,6 +29,7 @@ We don't use your phone's contacts. We don't track you across other apps.
   - Supabase: the database, files and sign-in. Servers in India, Mumbai region.
   - Resend: sends the sign-in code email.
   - Google Firebase and Apple: deliver the notifications.
+  - Google Firebase Crashlytics: crash reports from the app. They carry the type of error and where in the app it happened, never your name, an id or anything you typed.
 - **The law:** when a Kuwaiti court or authority lawfully orders it.
 
 **[Lawyer]** The data is hosted outside Kuwait (India). Please confirm what Kuwait's data-privacy rules (CITRA) require for this, and what we must say here.
