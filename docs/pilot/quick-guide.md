@@ -17,7 +17,7 @@ Home → **Join with a code** → type the code from your Space admin. When the 
 *Picture: the code screen.*
 
 **3. See your work**
-Open the Space. **Needs you** shows what is waiting for you. Each card is one work item, with who it's for and when it's due.
+**Home → Spaces: Needs you** lists what is waiting for you. In the Space, the paper clip marks your cards. Each card is one work item, with who it's for and when it's due.
 *Picture: a daybook with a card for you.*
 
 **4. Finished? Sign as done**
@@ -25,7 +25,7 @@ On your card, tap **Sign as done**, or hold the round camera button. Take the ph
 No signal? It waits and sends by itself.
 *Picture: the camera with the work item's name on top.*
 
-**5. For Leads: check it, or send it back**
+**5. Raised the item? Check it, or send it back**
 Double-tap the photo to **Check** it. Changed your mind? Tap **Undo** within 5 seconds.
 Not right? Hold the card → **Send back** → choose the reason.
 *Picture: the CHECKED stamp.*
@@ -49,16 +49,16 @@ Help: [WhatsApp number] · Settings → Help and feedback
 *صورة: شاشة الرمز.*
 
 **3. شاهد عملك**
-افتح المساحة. **بانتظارك** يعرض ما ينتظرك. كل بطاقة هي بند عمل، فيها المكلّف وموعد التسليم.
-*صورة: الدفتر اليومي وفيه بطاقة لك.*
+**الرئيسية ← المساحات: بانتظارك** فيها ما ينتظرك. وفي المساحة، المشبك يميّز بطاقاتك. كل بطاقة هي بند عمل، فيها المكلّف والموعد.
+*صورة: يومية الفريق وفيها بطاقة لك.*
 
 **4. انتهيت؟ وقّع كمنجز**
 في بطاقتك، اضغط **وقّع كمنجز**، أو اضغط مطولاً على زر الكاميرا الدائري. التقط الصورة. تم الإرسال.
 لا توجد إشارة؟ ينتظر ثم يُرسَل وحده.
 *صورة: الكاميرا وفوقها اسم بند العمل.*
 
-**5. للمسؤولين: تحقّق أو أرجِع**
-اضغط على الصورة مرتين لـ **تحقّق**. غيّرت رأيك؟ اضغط **تراجع** خلال 5 ثوانٍ.
+**5. أنشأت البند؟ تحقّق منه أو أرجِعه**
+انقر مرتين على الصورة **للتحقق**. غيّرت رأيك؟ اضغط **تراجع** خلال 5 ثوانٍ.
 ليس صحيحاً؟ اضغط مطولاً على البطاقة ← **إرجاع** ← اختر السبب.
 *صورة: ختم «تم التحقق».*
 

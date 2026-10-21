@@ -12,7 +12,7 @@ BuildVibes is an app for the whole AECO industry (architecture, engineering, con
 - send direct messages and post in the Home feed.
 
 ## 2. Your account
-- You must be at least **[Age]** years old.
+- You must be at least **18** years old.
 - You sign in with a 6-digit code sent to your email. Keep your email account safe: whoever can read it can sign in as you.
 - Use your real name. One person, one account.
 - You can delete your account at any time in Settings. See the Privacy policy for what happens next.
@@ -20,13 +20,14 @@ BuildVibes is an app for the whole AECO industry (architecture, engineering, con
 ## 3. Spaces
 - A Space belongs to the team that uses it. Its **Space admin** decides who joins, and which pass each person has (Lead, Crew or Viewer).
 - What you write in a Space is seen by its members, or only by the Team you chose. Work items stay in their Space.
+- Who may make a Team, and see a Team's posts, is set by the Space admin.
 - The Space admin can remove members. When you leave a Space, or delete your account, the work you did there stays in the Space's record, shown as "Former member". A team's work record must stay whole.
 - **[Lawyer]** Who owns a Space's records: the company running the work, or each member for their own part? Our proposal: the records belong to the Space (the team's company); each person keeps the right to show their own checked work on their profile.
 
 ## 4. What you post
 - You keep the rights to what you post. You let us store it, show it to the people you shared it with, and make the copies the app needs (for example smaller photos). This permission ends when the content is deleted, except for copies in backups, which are removed on schedule.
 - Only post what you're allowed to. **Photos:** follow your employer's, your client's and the workplace's rules on photography. Where photos aren't allowed, don't post them.
-- Your profile shows a checked work item only if you choose to show it. It shows the title, a photo, the place and who checked it. The discussion, files and Space stay private.
+- Your profile shows a checked work item only if you choose to show it. It shows the title, a photo, the place typed on the work item and who checked it. The discussion, files and Space stay private.
 
 ## 5. Rules for everyone
 Don't:
@@ -43,6 +44,7 @@ A company name you type stays plain text. It links to a company page only when t
 ## 7. The service
 - BuildVibes is free during the pilot. If that changes, we'll tell you in advance, and nothing you already have is taken away without notice.
 - We work to keep BuildVibes running and your data safe, with daily backups. We can't promise it will never stop, and it is not a replacement for the official project records your contract requires.
+  - **[Founder]** "Daily backups" holds only once the live project is on Supabase Pro (D5), before the pilot.
 - **[Lawyer]** The limit on our responsibility, as far as Kuwaiti law allows.
 
 ## 8. Changes and ending
