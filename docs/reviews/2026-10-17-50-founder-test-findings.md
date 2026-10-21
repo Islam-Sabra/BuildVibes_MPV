@@ -578,7 +578,7 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 | K1 v13: the checklist header reads "· checklist" (AR "قائمة تحقق ·"), and the Arabic facts line reads "لـ سارة المطيري وعمر حداد" (F52) | `2594:35942` (edited) | `2595:471` (edited) |
 | K1b v13: the announcement folded to one line after Got it (review 61 G1) | `2598:36165` | `2599:614` |
 | K5 v13: a Note card, for information, with three photos (F58, F51) | `2598:36260` | `2599:721` |
-| E6 v14: the kind menu as presets, with Note first and "Document for receipt" (F50, F58) | `2598:36360` | `2599:828` |
+| E6 v14: the kind menu as presets, with Note first and "Document for receipt" (F50, F58) | `2598:36360` | `2599:833` |
 
 # Slice 2 retest, build 375 (21 Oct 2026)
 
@@ -637,3 +637,10 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - only the author (or `acts_for_author`) may set it, as for an edit.
   - **Tests:** a send-back with and without a new date; the card's due after each; a non-author can't set it.
 - **App:** the sheet's new row; the card hides the due while Done; the Needs you wording for the author.
+
+- **Step 2, the Note:** first in the kind menu, it posts with nothing to choose, and the card says "· note" with no buttons. Passed, apart from F63.
+
+## F63. The kind menu has no description lines (founder, 21 Oct)
+- **The founder's call:** remove "For information, nobody needs to act" under Note. People understand the words.
+- **For consistency, the same goes for "Each person confirms they received it"** under Document for receipt. The menu is six plain rows: icon, word and the check on the chosen one (Figma E6 v14 updated, EN `2598:36360`, AR `2599:833`).
+- **"Just for information? Post as a Note"** under the owner picker (F56) **stays**, because it's an action, not a description.
