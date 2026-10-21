@@ -2,6 +2,12 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 21 Oct 2026 — review 73 part B on `claude/store-reviewer`
+- **Done, not live:** migration 34 (`20261024120000_review_sign_in.sql`): B1 the atomic try counter, B2 demo and reviewer accounts kept apart; the Edge Function uses the counter; B3 no email code to the reviewer address; B4 test and go-live step 10; step 3 "a new 6-digit code for each submission". See `docs/progress.md` (21 Oct) and data-model "The store reviewers' sign-in".
+- **Numbering:** this is 34; review 71's 3D model views become **35**.
+- **Going live:** migration 34 first (its own push, founder's yes), then the steps in `docs/store/review-sign-in.md`.
+- Nobody is on `claude/store-reviewer` now; it merges into main.
+
 ## Cloud update: 21 Oct 2026, night — the store reviewer's sign-in (branch `claude/store-reviewer`, from `main`)
 - **D4 built, not live:** the `review-sign-in` Edge Function, the app's `REVIEW_EMAIL` build setting, and `supabase/ops/review_demo_seed.sql` (the demo Space, tested on the stand-in: each work item state, a checklist, an announcement, chat and a DM; a second run is refused). The steps to go live, each with the founder's yes, are in `docs/store/review-sign-in.md`. It needs migration 33 live first.
 - **Store listing:** review 69's leftovers fixed (the positioning note follows D3; the Arabic "the place typed on the work item"; the reviewer line).

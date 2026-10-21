@@ -753,3 +753,15 @@ Review 50 F62 and review 72: a due date belongs to whoever must act next.
 - `post_history_rows`: a send-back's line carries `new_due`. After `jsonb_strip_nulls`, a missing key means unchanged and `{}` means no new date.
 - The app shows no due while the item is Done and waiting for the check. That's display only, with no server change.
 - **Tests:** `supabase/tests/33_send_back_due.test.sql` (24 checks).
+
+## The store reviewers' sign-in (migration 34, `20261024120000_review_sign_in.sql`, branch `claude/store-reviewer`, not live)
+Review 73 B1 and B2. The 3D model views (review 71) take the number after this one.
+- **The try counter (B1):** `review_sign_in_state`, one row, RLS on, no policies and no grants.
+  - `review_sign_in_try()` → `{"allowed", "retry_after"}` (seconds). It locks the row (`for update`), so tries sent together queue. It refuses while locked and after 20 tries in a UTC day; otherwise it counts the try **before** the code is compared.
+  - Every try counts as a fail until `review_sign_in_ok()` clears it after a right code, so five tries without an ok lock it for 15 minutes. The daily count isn't cleared by ok.
+  - Both functions are for the service role only (the `review-sign-in` Edge Function).
+- **Demo accounts kept apart (B2):** `is_demo_account(id)` is true when `auth.users.raw_app_meta_data` has `demo: true` (the demo teammates) or `review: true` (the reviewer); internal. `demo_apart(other)` is true when exactly one of the signed-in person and `other` is a demo account.
+  - It is added to `profiles_read` (people search and suggestions read profiles directly), `follows_insert_own`, `start_dm`, `posts_read`, `feed_page` (Home) and `posts_tagged` (a project's posts).
+  - Both ways: real people can't find, follow or message demo accounts or see their posts, and the reviewer sees only demo accounts and their posts. Demo accounts work among themselves.
+  - The flags are set by `supabase/ops/review_demo_seed.sql` and step 1 of `docs/store/review-sign-in.md`.
+- **Tests:** `supabase/tests/34_review_sign_in.test.sql` (61 checks). Tries sent at the same moment were checked on the local stack: 10 at once through the function gave five 401s (compared) and five 429s.
