@@ -46,3 +46,28 @@ Uses what exists: when someone in the app makes a work item that uses the model 
 - Snapshot → saved viewpoint in folder "BuildVibes 360" (reminds the person to save the NWF/NWD).
 - Publish → pick Space (and Team), name and note → render JPEG + thumb → upload both → `publish_model_view`. Tags the viewpoint "Published" from `my_model_views`.
 - Export images to the PC stays as a secondary button.
+
+## 3D (founder decision, 20 Oct 2026: in the pilot)
+- A published model view may carry an optional 3D piece of the model: `view.glb` next to `view.jpg` and `thumb.jpg`.
+- Scope chosen by the publisher:
+  - the viewpoint's **section box**; or
+  - a **room** (Revit rooms in the NWD).
+
+  Never the whole model.
+- The room scope reaches into the ceiling void and the slab above (+1.5 m) and adds a 0.3 m margin around.
+- Contents:
+  - only the elements visible in the viewpoint, in their Navisworks colours;
+  - cut exactly at the box faces.
+- GLB format (BuildVibes 360 writer):
+  - metres, Y-up, centred on the box;
+  - 16-bit positions (KHR_mesh_quantization, node scale = half box size);
+  - 16-bit indices in chunks of ≤ 65,535 vertices;
+  - `_FEATURE_ID_0` per vertex = element index;
+  - `extras.buildvibes`:
+    - `elements[i] = [name, category, level]`;
+    - `camera {eye, dir, up, perspective, fov}` in file coordinates;
+    - `scope`, `box_size_m`, `model`, `navisworks`.
+- Limits: the plugin refuses more than 1.5 M triangles ("pick a smaller room or box"). The server caps 20 MB and 2 M triangles.
+- Same title and version as the image; no extra post or Activity.
+- App: a "View in 3D" button with its size, downloaded on tap, cached for offline use; opens at the BIM camera; tap identifies the element. Details: review 70.
+- Measured on NBK (20 Oct): a 10 m room box is 351k triangles and 4.8 MB, exported in about 7 s.
