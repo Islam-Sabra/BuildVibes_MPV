@@ -34,7 +34,7 @@ Built in the cloud while the founder tests slice 3 (the overlap he approved). **
   - The stamp needs the work item's status, which `search_space` doesn't return: the app reads `work_items.status` for the hits under its own rule.
 - **V1:** "Read only" shows only for a Viewer; a Crew pass with posting locked shows just the pass.
 
-**Checks:** `flutter analyze` clean; `flutter test`: the changed areas pass (spaces, library, chat, search); the full count follows. Screenshots EN and AR at 390×844 in `docs/screens/slice4/` (P1, P1 end, P2 nothing chosen, P2 Crew, LV1, LV2, S, V1 locked Crew), Linux fonts; the folder is committed.
+**Checks:** `flutter analyze` clean; `flutter test` **1,387 pass**, 1 fails only in the cloud (photo_privacy H1 needs a non-root user). Screenshots EN and AR at 390×844 in `docs/screens/slice4/` (P1, P1 end, P2 nothing chosen, P2 Crew, LV1, LV2, S, V1 locked Crew), Linux fonts; the folder is committed.
 
 **For the lead** (no AR frames, so check the Arabic screenshots):
 - the pass tags مسؤول / فريق تنفيذ / مُطّلع; «اقبله كـ…»; «نسخة جديدة»; «استلمت».
