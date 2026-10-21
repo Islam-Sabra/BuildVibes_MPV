@@ -53,7 +53,7 @@ One real site team runs its daily work in a BuildVibes Space for four weeks, and
 | 1–14 Nov | Database changes for the new scope, every rule enforced and tested on the server (review 33) |
 | by 1 Nov | Founder enrols in the Apple Developer Program and Google Play Console |
 | 15 Nov – 17 Jan | Build in 10 slices; the founder tests each on the emulator before the next starts: 1 daybook and the work item loop · 2 other kinds of post · 3 chat and direct messages · 4 people and Library · 5 opening a post in place · 6 walk mode and work items under one · 7 templates and daily report · 8 personal notebook and My calendar · 9 management report · 10 no signal and notifications |
-| by 15 Dec | First Play closed test and first TestFlight build; safety line for slices not started |
+| by 15 Dec | First Play closed test and first TestFlight build (no safety line: all ten slices are in the pilot, founder 22 Oct) |
 | 18–24 Jan | Test week with 3–5 real people, then fixes |
 | 25–31 Jan | Freeze: fixes only, backups ready |
 | 1 Feb | Pilot starts |
@@ -90,3 +90,23 @@ Weeks start on Sunday. The live status is in `docs/progress.md`.
 1. **Scope pressure.** If the plan slips, Library preview and voice notes are cut first. Work items are never cut.
 2. **Store review timing in December.** That's why submission is early and the last week is buffer.
 3. **Some foremen and labour may not use email** (decision 04, risk accepted by the founder). Mitigations: most Android phones already have a Google account, so Google sign-in can be switched on; the Space admin can help people join on site; phone sign-in returns after the pilot if email proves to be a barrier.
+
+## Founder's decision, 22 Oct 2026: all ten slices, production-ready
+- **Nothing moves to after the pilot.** All ten daybook slices (review 33 Part B) are in the pilot build, and the pilot runs as real production, not a demo. This replaces the 15 Dec safety line in review 33.
+- **Production-ready means:** the store builds are approved on Google Play and the App Store; the live project is on Supabase Pro with daily backups; the Terms and Privacy pages are published; the test accounts are deleted; public live channels are off; Crashlytics is on in release builds.
+- **Schedule (one slice a week, each tested by the founder within a day of reaching his phone):**
+
+| Week | Slice |
+|---|---|
+| 22–26 Oct | 2 passes; 3's rest (Put in a Space, Turn into a work item) |
+| 27 Oct–2 Nov | 4 People and Library |
+| 3–9 Nov | 5 Opening a post in place |
+| 10–16 Nov | 6 Walk mode and work items under one |
+| 17–23 Nov | 7 Templates and the daily report |
+| 24–30 Nov | 8 My notebook and My calendar |
+| 1–7 Dec | 9 Week report and meeting notes |
+| 8–12 Dec | 10 No signal and notifications; store builds |
+| 13–19 Dec | Store submission (reviewer sign-in live with the founder's yes) |
+| 20 Dec–24 Jan | Store review fixes, full EN and AR pass at 390×844, pilot Space set-up, buffer |
+| 25–31 Jan | Freeze: fixes only, backups checked |
+| 1 Feb | Pilot starts |
