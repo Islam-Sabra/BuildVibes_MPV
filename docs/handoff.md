@@ -2,6 +2,15 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Standing rule (review 74)
+Nothing but the BuildVibes build is installed on the founder's phone without his yes in chat: no test apps, helpers or other packages. The coordinator makes the builds.
+
+## F60 branch `f60-photo-reencode` (review 74 applied; not merged)
+- Merges after `claude/review72-app` passes the founder's test; then one build for the phone.
+- Every picked photo goes through `cleanPhoto`: drawn again, or, when the phone can't decode a well-formed JPEG, its APP1–APP15 and comments taken out; a file nobody could open is refused with "This photo can't be opened. Choose another."
+- Over 400 ms, the card shows "Preparing…" slots. Each photo logs one line; filter with `adb logcat | findstr BV-PHOTO`: `BV-PHOTO from=<camera|gallery|files|profile> result=<cleaned|notImage|refused> step=<redrawn|stripped|chunks|none|refused|unread> ms=<n> before=<WxH|-> after=<WxH|-> bytes=<in>[><out>]`.
+- If a camera or gallery photo takes over 2 s, the encoder moves to the phone's own JPEG encoder (review 74 H3).
+
 ## Cloud update: 21 Oct 2026, evening — review 72, app part (branch `claude/review72-app`)
 
 **Branch:** `claude/review72-app`, made from `origin/slice2-retest` (so the next test build is slice 2 only), with migration 33's two commits cherry-picked from `claude/review72-db` (`f801dbd`, `41e8079` here; `ef90d0c`, `aea1799` there). `claude/review72-db` was not merged: it carries slice 3.

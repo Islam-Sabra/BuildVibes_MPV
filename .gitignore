@@ -50,6 +50,7 @@ docs/screens/*
 !docs/screens/slice1/
 !docs/screens/slice2/
 !docs/screens/review72/
+!docs/screens/f60/
 
 # short-lived Figma download links
 docs/design/_fetch*
