@@ -1,4 +1,6 @@
 import 'package:buildvibes/core/l10n/bidi.dart';
+import 'package:buildvibes/core/routing/app_routes.dart';
+import 'package:buildvibes/shared/widgets/bv_highlight.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -244,6 +246,38 @@ void main() {
       await _open(tester, lang, '/spaces/$_space/chat/$_everyone', chat: chat);
       expect(find.byKey(const Key('chat-file-removed')), findsOneWidget);
       expect(find.text(l10n.chatFileRemoved), findsOneWidget);
+    });
+
+    testWidgets('chat: opened from Search at a message, it is ringed '
+        '[$lang]', (tester) async {
+      final chat = _chat()
+        ..messagesByThread[_everyone] = [
+          for (var i = 0; i < 40; i++)
+            ChatMessage(
+              id: 'm$i',
+              threadId: _everyone,
+              kind: ChatKind.text,
+              body: 'Message $i',
+              createdAt: testNow.subtract(Duration(minutes: i)),
+              authorId: 'p-sami',
+              authorName: 'Sami Al-Mansour',
+            ),
+        ];
+      // m35 is far up the thread: it scrolls there and rings it.
+      await _open(
+        tester,
+        lang,
+        AppRoutes.spaceThread(_space, _everyone, message: 'm35'),
+        chat: chat,
+      );
+      expect(find.byType(BvHighlight), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(BvHighlight),
+          matching: find.text('Message 35'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('F1: current, used in, older revisions [$lang]', (

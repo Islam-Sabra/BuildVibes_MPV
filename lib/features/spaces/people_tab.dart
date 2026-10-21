@@ -616,13 +616,17 @@ class _TeamChip extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         customBorder: const StadiumBorder(),
-        child: Container(
+        child: SizedBox(
           height: BvPeopleSpec.chipHeight,
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: BvPeopleSpec.chipPadding,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: BvPeopleSpec.chipPadding,
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Text(label, style: type.bodySm),
+            ),
           ),
-          alignment: Alignment.center,
-          child: Text(label, style: type.bodySm),
         ),
       ),
     );

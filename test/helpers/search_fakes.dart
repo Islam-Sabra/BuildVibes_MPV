@@ -9,6 +9,10 @@ class FakeSearchRepository implements SearchRepository {
   final queries = <String>[];
   bool offline = false;
 
+  /// Every hit for any query (the screenshots, whose words differ by
+  /// language).
+  bool matchAll = false;
+
   @override
   Future<List<SpaceSearchHit>> search(String spaceId, String query) async {
     final q = query.trim().toLowerCase();
@@ -17,7 +21,9 @@ class FakeSearchRepository implements SearchRepository {
     if (offline) throw const SpaceException(SpaceFailure.network);
     return [
       for (final h in hits)
-        if ('${h.title ?? ''} ${h.snippet ?? ''}'.toLowerCase().contains(q)) h,
+        if (matchAll ||
+            '${h.title ?? ''} ${h.snippet ?? ''}'.toLowerCase().contains(q))
+          h,
     ];
   }
 }

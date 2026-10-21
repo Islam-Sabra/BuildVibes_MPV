@@ -177,8 +177,7 @@ void main() {
       expect(find.byKey(const Key('file-faces-a501-d')), findsOneWidget);
       expect(find.byKey(const Key('file-faces-note')), findsNothing);
       // No chips, no Recent (review 67).
-      expect(find.text(l10n.libraryRecent), findsNothing);
-      expect(find.text(l10n.libraryAll), findsNothing);
+      expect(find.byKey(const Key('library-filter-all')), findsNothing);
 
       await tester.enterText(
         find.descendant(
