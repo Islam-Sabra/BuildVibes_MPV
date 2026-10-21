@@ -1,4 +1,5 @@
 {
   "SUPABASE_URL": "https://vnlkthmdoczlyhxpdkux.supabase.co",
-  "SUPABASE_ANON_KEY": "paste-the-anon-public-key-here (Supabase \u2192 Project Settings \u2192 API keys). Never the service_role / secret key."
+  "SUPABASE_ANON_KEY": "paste-the-anon-public-key-here (Supabase \u2192 Project Settings \u2192 API keys). Never the service_role / secret key.",
+  "REVIEW_EMAIL": "only in the store-review build: the reviewer account's email (the code is a Supabase secret, never here)"
 }

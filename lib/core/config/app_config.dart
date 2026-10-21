@@ -13,6 +13,11 @@ abstract final class AppConfig {
   /// email code only (decision 04). The phone screens stay in the app.
   static const phoneSignIn = bool.fromEnvironment('PHONE_SIGN_IN');
 
+  /// The store reviewers' email (review 69 §6, D4). Its code is checked by
+  /// the review-sign-in function, not sent by email. Empty in every build
+  /// but the one for store review; set "REVIEW_EMAIL" in env/dev.json.
+  static const reviewEmail = String.fromEnvironment('REVIEW_EMAIL');
+
   /// LinkedIn is not in the MVP; the E2 layout keeps room for it.
   static const linkedInSignIn = false;
 

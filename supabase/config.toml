@@ -461,3 +461,8 @@ verify_jwt = false
 # shared secret, not by a signed-in user.
 [functions.account-purge]
 verify_jwt = false
+
+# The store reviewers' sign-in (review 69 §6, D4). Called before sign-in,
+# so no signed-in user; only the reviewer's email and fixed code work.
+[functions.review-sign-in]
+verify_jwt = false

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/config/app_config.dart';
 import '../models/market.dart';
 import '../supabase/supabase_provider.dart';
 
@@ -159,9 +160,33 @@ class SupabaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> verifyEmailCode({required String email, required String code}) =>
-      _guard(
-        () => _auth.verifyOTP(type: OtpType.email, email: email, token: code),
+      isReviewerEmail(email, AppConfig.reviewEmail)
+      ? _reviewSignIn(email, code)
+      : _guard(
+          () => _auth.verifyOTP(type: OtpType.email, email: email, token: code),
+        );
+
+  /// The store reviewer's fixed code (review 69 §6): the review-sign-in
+  /// function checks it and returns a normal session.
+  Future<void> _reviewSignIn(String email, String code) async {
+    final FunctionResponse response;
+    try {
+      response = await _client.functions.invoke(
+        'review-sign-in',
+        body: {'email': email, 'code': code},
       );
+    } on FunctionException catch (e) {
+      throw AuthFailureException(reviewFailure(e.status));
+    } on SocketException {
+      throw const AuthFailureException(AuthFailure.network);
+    }
+    final data = response.data;
+    final refresh = data is Map ? data['refresh_token'] : null;
+    if (refresh is! String) {
+      throw const AuthFailureException(AuthFailure.unknown);
+    }
+    await _guard(() => _auth.setSession(refresh));
+  }
 
   @override
   Future<void> signInWith(SocialProvider provider) => _guard(
@@ -220,6 +245,18 @@ AuthFailure mapAuthError(AuthException e, {bool sending = false}) {
   }
   return sending ? AuthFailure.sendFailed : AuthFailure.unknown;
 }
+
+/// The build's store-reviewer email, when [email] is it (any case).
+bool isReviewerEmail(String email, String reviewEmail) =>
+    reviewEmail.trim().isNotEmpty &&
+    email.trim().toLowerCase() == reviewEmail.trim().toLowerCase();
+
+/// What the review-sign-in function's answer means for the code screen.
+AuthFailure reviewFailure(int status) => switch (status) {
+  401 => AuthFailure.wrongCode,
+  429 => AuthFailure.tooManyRequests,
+  _ => AuthFailure.unknown,
+};
 
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => SupabaseAuthRepository(ref.watch(supabaseClientProvider)),
