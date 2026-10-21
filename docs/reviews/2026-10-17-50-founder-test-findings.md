@@ -606,3 +606,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   
   Orientation and the time taken stay, because the proof needs the time. A serial number can identify one phone across every photo it takes, and proof photos can appear on a profile.
 - **Test:** a JPEG with those tags comes out without them, still upright and with its time.
+
+- **Step 1, Due today (lead on the emulator as Omar, 10:17–10:21):**
+  - the strip listed Sun gffggg · Sun Paint Room 3 · Mon fix socket in room 4 · Tue ggfff, oldest first;
+  - Omar signed ggfff as done: it left the strip at once, and the card dropped its due line and showed DONE (F38 and F57 passed);
+  - the founder sent it back from his phone: it came back into the strip, and the card showed SENT BACK and "was due Tue 20 Oct 8:06 am" in orange, live with no reopening (F47).
+  
+  Passed, apart from F61.
+
+## F61. The strip: its name and its colours
+- **Seen:** the whole strip is orange-red, the day names included, and it's called "Due today" while it lists Sunday's and Monday's items.
+- **Fix:**
+  - **Name:** **"To do"** / **«مطلوب منك»**. It's what is still yours to do, today or from earlier days.
+  - **Colours:** the label and the item titles in the action colour; the day names ("Sun", "Mon") in **grey** (F57: an earlier day is never a warning). Today's items carry no day.
+  - It still lists the oldest first, wraps to at most two lines, and ends with "+ more ›" if it overflows. "More" here is not a number.
