@@ -2,6 +2,13 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 22 Oct 2026 — slice 5 plan drafted (branch `claude/slice5-plan`, from main)
+
+- **Founder's decision (22 Oct, "ok"):** Team-only Library files are not in the pilot. A Team file comes in only through that Team's chat; file posts and the Library's "Add a file" are for the whole Space.
+- **Review 76** (`docs/reviews/2026-10-22-76-slice5-plan.md`): the slice 5 plan (opening a post in place, frames N1–N5 = W1 v13 to v13e), drafted in the cloud for the lead. It proposes migration 36, `turn_point_into_item` (Turn into in one step), and "Open the page ›" on cards. The lead confirms or changes it before the build.
+- Slice 4 is on `claude/slice4` (see its handoff there); merge order on the PC: `claude/f68b-f69`, `claude/slice3-rest`, `claude/slice4`.
+- **Who has which branch:** this cloud session made `claude/slice5-plan` (docs only); done, nobody on it.
+
 ## Last update: 21 Oct 2026, evening, PC session
 
 **Standing rule (review 74):** nothing but the BuildVibes build is installed on the founder's phone without his yes in chat. That includes test apps, helpers and other packages.
