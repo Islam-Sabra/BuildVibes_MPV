@@ -145,3 +145,11 @@ Apple and Google need a working sign-in, and email codes go to an inbox the revi
 ## Lead to-do
 - After D1: change the S7-N frame's line to "The Space admin can do this".
 - When slice 4 is built: check every Arabic screenshot at 390×844 (no AR frames exist).
+
+## Founder's decisions (21 Oct, 09:24: "ok" to all six)
+- **D1:** only the Space admin makes a Team, for the pilot. The lead updates the S7-N frame's line.
+- **D2:** the pilot targets are approved as written. The roster size is written down on day 1.
+- **D3:** both welcome lines stay. In the app and in store text people read, the umbrella word is "construction" / «البناء». "AECO" only in keywords, legal and business documents. **Claude Code:** reword the positioning line in `rules.md` to say this (fix 3 is unblocked).
+- **D4:** yes to one reviewer account with a fixed code (an Edge Function, the email and code as secrets on the live project, a demo Space, switched off between reviews). **Claude Code:** build it on its own branch for the lead's review, before the store submission (13–19 Dec). Its going live needs its own yes.
+- **D5:** the live project moves to Supabase Pro before the pilot (daily backups kept 7 days). Founder to do. Then the Terms may say "daily backups", and the Privacy policy "kept for 7 days".
+- **D6:** the minimum age is **18**. The founder provides the company name and address, the support email, the WhatsApp help number, and the web page for account deletion.
