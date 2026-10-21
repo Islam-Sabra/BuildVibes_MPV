@@ -33,6 +33,14 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 2. Build from `claude/review72-app` for the founder's test (steps 3–7 of build 375 first, then F59, F61, F62, F63, and F60 with a real phone photo).
 3. After the founder's test, merge `claude/review72-app` into `slice2-app` (and the PC's `slice2-retest` worktree). Re-shoot the goldens there.
 
+**Trial merge into `slice2-app` (cloud, local only, not pushed):** `git merge origin/claude/review72-app` on `origin/slice2-app` (e5e8589) stops on six files. Settled like this, it passes **1,326 app tests, `flutter analyze` clean, and 2,275 SQL checks**:
+- `lib/core/photo_privacy.dart`, `test/core/photo_privacy_test.dart`: take review72-app's (`git checkout --theirs`); it is slice2-app's plus F60.
+- `lib/l10n/app_ar.arb`: keep both sides' new keys (slice 3's `messages*`, `dm*`, `chat*`, and review 72's), and drop `daybookDueStripEarlier` (F61 removed it; `app_en.arb` merges by itself).
+- `lib/l10n/gen/*`: don't merge by hand, run `flutter gen-l10n`.
+- `test/helpers/pump_app.dart`: keep `dmRepositoryProvider.overrideWithValue(fakeDm)` and one `filePreviewProvider` override, and remove the second `daybook_photos.dart` import.
+- `test_screens/slice2_test.dart`: keep both blocks (slice 3's S7/S7-N shots, then review 72's), closing the first with `    });`.
+- `claude/review72-db` then merges with nothing left to do (the same two commits).
+
 **Who has which branch:** this cloud session has `claude/review72-app` (done; nobody else on it). `claude/review72-db` belongs to the PC.
 
 ## Lead update: 21 Oct 2026, noon (cloud, the lead's chat)
