@@ -2,6 +2,62 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 22 Oct 2026, evening — slice 5, opening a post in place (branch `claude/slice5`, from `claude/slice4`)
+
+Built in the cloud while the founder tests slices 3 and 4 (the overlap he approved; his "ok" to going ahead, 22 Oct). It follows **review 76** (`docs/reviews/2026-10-22-76-slice5-plan.md`, drafted here, **not yet checked by the lead**). If the lead changes the plan, this branch follows the lead.
+
+**Founder's decision (22 Oct, "ok"):** Team-only Library files are not in the pilot. A Team file comes in only through that Team's chat.
+
+**Server: migration 36, `20261026120000_turn_point_into_item.sql`, not live.**
+- `turn_point_into_item(post, point, item_id, owner, base_version)`: Turn into in one step.
+  - It runs `create_work_item` with `p_parent`, then saves the page with a `child_item` in the point's place, then removes the point. The page is saved first, because `edit_space_post` refuses to remove a point that the page still shows.
+  - The author only, while the item is editable. A ticked point stays.
+  - Idempotent by the item id; a stale page version gives 40001.
+- 25 SQL checks; **2,300 pass** on the stand-in (migrations to 33, plus 36).
+- **For the lead:** an independent check. Then the push, with the founder's yes, as the only file and after 34 and 35.
+
+**App (frames N1–N4 = W1 v13, v13b, v13c, v13d):**
+- **Opening a page:**
+  - A card whose page holds blocks shows **"Open the page ›"** / «افتح الصفحة ›», with no count. Everyone who sees the post can open it, Viewers included.
+  - The page rises over the daybook as torn paper: who and when, the title, the facts, the words, then the blocks.
+  - **Blocks shown:**
+    - text and headings;
+    - toggles, which open in place;
+    - checklist points, ticked in place by Lead and Crew;
+    - tables, which scroll sideways when wider than the page;
+    - photos, full screen on a tap;
+    - files, which open F1;
+    - the work items under this one, with their stamps and owners' faces and "1 of 2 checked".
+  - Points, photos, files and work items that no block shows yet come after the blocks, so a post written before it had a page opens full.
+- **Editing (the author only):** "Edit page" sits in the card's menu (after Edit) and on the page's head.
+  - Words are edited in place.
+  - Each block has ⋮⋮: hold it to drag, or tap it for Turn into and Delete (with Undo).
+  - "/" or + opens the block menu, filtered as you type. It offers Text, Heading, Checklist, Toggle, Table, Photo (camera), File (from the Library or the phone) and Work item under this one. The work item is made at once and its owner is told.
+  - Tables: + row, + column, and a long press on a cell to delete its row or column.
+  - Turn into: text to a checklist point or a work item; a point to text or a work item; a ticked point stays as it is.
+- **Done** saves in the server's order:
+  1. the words and new points (`edit_space_post`);
+  2. the blocks at the version read (`save_blocks`);
+  3. the points no block shows any more, and the points' order.
+  - If the page was saved on another phone, the app asks: Use mine, or Use the newer one.
+  - With no signal, the edit stays open to send again.
+
+**Different from the plan or the frames:**
+- **A tap on a card still opens its menu**, as the founder asked in F16. The page opens from "Open the page ›", and the author edits from "Edit page". daybook.md says "tap a slip to open its page". The lead and the founder decide whether a tap should open the page instead.
+- **"/" and Turn into open as the app's usual sheet**, not as a popover beside the line (N3 and N4). This is the same choice as slice 2's attach sheet.
+- **No page outbox:** an edit made with no signal stays open on the screen. It isn't kept if the app closes; that comes with slice 10 (no signal).
+- **Moving a block into or out of a toggle isn't built.** Inside a toggle, text lines can be added and edited.
+- The page's history and its action stay on the card for now.
+
+**Checks:** `flutter analyze` clean; `flutter test`: the page, save-plan, daybook, Spaces, Library and chat tests pass; the full count follows. Screenshots EN and AR at 390×844 in `docs/screens/slice5/` (committed): the card's line, N1 and its end, N2, N3, N4.
+
+**For the PC:**
+- **Merge order:** `claude/f68b-f69`, `claude/slice3-rest`, `claude/slice4`, then `claude/slice5` (each is built on the one before).
+- **Migration 36** goes live only after the lead's check and the founder's yes. Slice 5 can't be tested on a phone until it is live.
+- Re-shoot the goldens on Windows.
+
+**Who has which branch:** this cloud session made `claude/slice5` and `claude/slice5-plan`; done, nobody on them.
+
 ## Cloud update: 22 Oct 2026, later — slice 4, People and Library (branch `claude/slice4`, from `claude/slice3-rest`)
 
 Built in the cloud while the founder tests slice 3 (the overlap he approved). **No server change:** it uses migration 32 (live) and the functions already there.
