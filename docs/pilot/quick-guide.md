@@ -32,7 +32,7 @@ Not right? Hold the card → **Send back** → choose the reason.
 
 **Also:** chat with the team in **Chat**. Hold a message to reply.
 
-Help: [WhatsApp number] · Settings → Help and feedback
+Help: [WhatsApp number] · Settings → About BuildVibes and legal → Help and feedback
 
 ---
 
@@ -64,7 +64,7 @@ Help: [WhatsApp number] · Settings → Help and feedback
 
 **أيضاً:** تحدّث مع الفريق في **المحادثة**. اضغط مطولاً على رسالة للرد.
 
-المساعدة: [رقم واتساب] · الإعدادات ← المساعدة والملاحظات
+المساعدة: [رقم واتساب] · الإعدادات ← عن BuildVibes والشروط ← المساعدة والملاحظات
 
 ---
 

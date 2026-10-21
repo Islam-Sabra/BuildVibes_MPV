@@ -56,4 +56,4 @@ A company name you type stays plain text. It links to a company page only when t
 - **[Lawyer]** Which text wins if the Arabic and English differ.
 
 ## 10. Contact
-[Company], [address]. Email: [Email]. In the app: Settings → Help and feedback.
+[Company], [address]. Email: [Email]. In the app: Settings → About BuildVibes and legal → Help and feedback.
