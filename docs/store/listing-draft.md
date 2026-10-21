@@ -12,7 +12,7 @@ Rules kept:
 | Field | Limit | English | Arabic |
 |---|---|---|---|
 | App name | 30 | BuildVibes | BuildVibes |
-| Apple subtitle | 30 | Work and proof for AECO | العمل والإثبات لقطاع البناء |
+| Apple subtitle | 30 | Daily work, checked and proven | العمل اليومي، مُتحقَّق ومُثبَت |
 | Google short description | 80 | Your team's daily work, checked and closed, and proof of it on your profile. | عمل فريقك اليومي، يُنجز ويُتحقق منه، وإثباته في ملفك الشخصي. |
 
 The app name stays Latin in Arabic too, as the brand.
@@ -24,7 +24,7 @@ BuildVibes is where the AECO industry works and shows its work: architects, engi
 
 **Run your team's work in a Space**
 - Write a work item in place, give it to someone, and set a date.
-- The owner signs it as done with a photo. A Lead checks it, or sends it back with a reason.
+- The owner signs it as done with a photo. The person who raised it checks it, or sends it back with a reason.
 - Checklists, announcements, scheduled activities and files, in one daybook.
 - Chat with the whole Space or one Team. Photos, files and voice notes.
 - Passes for each person: Lead, Crew or Viewer. The Space admin lets people in.
@@ -52,8 +52,8 @@ BuildVibes هو المكان الذي يعمل فيه قطاع العمارة و
 
 **أدِر عمل فريقك في مساحة**
 - اكتب بند عمل في مكانه، وكلّف به شخصاً، وحدّد موعداً.
-- يوقّع المكلّف كمنجز مع صورة. ويتحقق منه المسؤول، أو يعيده مع السبب.
-- قوائم تحقق، إعلانات، أنشطة مجدولة وملفات، في دفتر يومي واحد.
+- يوقّع المكلّف كمنجز مع صورة. ويتحقق منه من أنشأه، أو يُرجعه مع السبب.
+- قوائم تحقق، إعلانات، أنشطة مجدولة وملفات، في يومية واحدة للفريق.
 - محادثة مع المساحة كلها أو مع فريق. صور وملفات ورسائل صوتية.
 - تصريح لكل شخص: مسؤول أو فريق تنفيذ أو مُطّلع. ومدير المساحة يقبل من ينضم.
 
@@ -65,7 +65,7 @@ BuildVibes هو المكان الذي يعمل فيه قطاع العمارة و
 - العربية والإنجليزية، من اليمين إلى اليسار.
 - يعمل مع الإشارة الضعيفة: ينتظر منشورك ثم يُرسَل.
 - الدخول برمز من 6 أرقام يصل إلى بريدك. بلا كلمة مرور.
-- رسائل مباشرة، وصفحة رئيسية، وسجلات المشاريع.
+- رسائل مباشرة، والأخبار، وسجلات المشاريع.
 - دفتري وتقويمي عبر كل مساحاتك.
 
 **الخصوصية أولاً**
@@ -74,6 +74,8 @@ BuildVibes هو المكان الذي يعمل فيه قطاع العمارة و
 - أبلغ عن أي شخص أو احظره. احذف حسابك من الإعدادات.
 
 مجاني خلال المرحلة التجريبية.
+
+**[Founder]** "Free during the pilot" is for the December submission. Remove it, in both languages, before any public launch.
 
 **[Lead]** Check the Arabic against `arabic-glossary.md` and the app's strings before it is final (e.g. the app's words for "daybook", "My notebook" and "My calendar").
 
@@ -99,15 +101,16 @@ Taken from `docs/legal/privacy-draft-en.md`. Change both together.
 | Files and documents | Yes | Yes | The Library, chat | Yes |
 | Messages in the app | Yes | Yes | Chat and direct messages | Yes |
 | Other content (posts, work items) | Yes | Yes | The app's work | Yes |
-| Device ID (push token) | Yes | Yes | Notifications | Yes (push off) |
-| Crash logs | Yes | **No** | Fix crashes (no id, no text) | No |
+| Device or other IDs: push token | Yes | Yes | Notifications | Yes (push off) |
+| Device or other IDs: Crashlytics install id | Yes | **No** | App function (crash reports) | No |
+| Diagnostics: crash logs | Yes | **No** | App function: fix crashes (install id, phone model, system version; no name, no email, no text) | No |
 | Location | **No** | — | Removed from photos on the phone | — |
 | Contacts, browsing, ads ID, purchases | **No** | — | — | — |
 
 - Shared with third parties: **no**. The service providers that run the app for us don't count as sharing.
 - Used for tracking or ads: **no**.
 - Encrypted in transit: **yes**.
-- The person can delete their data: **yes**, in the app (Settings → Account → Delete account). Also a web link for Google (**[Founder]**: a page on the website that says how).
+- The person can delete their data: **yes**, in the app (Settings → Account and security → Delete account). Google also requires a web page that explains how to delete an account (**[Founder]**: a page on the website, D6).
 
 ## What the founder still needs to provide
 - A support web page and the privacy policy's URL (after the lawyer).
