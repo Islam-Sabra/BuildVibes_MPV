@@ -628,10 +628,10 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **Done, waiting for the check:** **no due on the card.** The author's Needs you row reads "Done 10:21 · waiting for your check" / «منجز 10:21 · بانتظار تحققك», never red.
   - **Sent back:** the send-back sheet adds one single choice (rule 6), with **nothing preselected**: **Today · Tomorrow · Pick a date · No new date** / **اليوم · غدًا · اختر تاريخًا · بلا موعد جديد**.
     - With a date, the card shows the **new** due. The history line reads "Islam Ahmed · Send back: Photo missing · new date Thu 23 Oct" / «إسلام أحمد · إرجاع: الصورة ناقصة · موعد جديد الخميس 23 أكتوبر».
-    - With "No new date", the old due is **not** shown again. The item sits in the owner's **To do** strip (F61) as "sent back", with no date.
+    - With "No new date", the old due is **not** shown again. The item has no due, so it isn't in the To do strip. It's in the owner's Needs you with the paper clip (review 72).
   - **Checked:** no date. No lateness is recorded anywhere (F57).
 - **When things change before Done:** the owner adds an update (it exists), and the author moves the due (edit exists, with its history line). The pilot gets no "ask for more time" button.
-- **Server (in the next migration, with its own review):**
+- **Server: migration 33, `claude/review72-db` (see review 72):**
   - `send_back` takes an optional new due (`p_due_at`, or `p_due` for a date only), set in the same transaction as the event;
   - the event carries the new due, so the history line can show it;
   - only the author (or `acts_for_author`) may set it, as for an edit.
