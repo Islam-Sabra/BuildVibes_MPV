@@ -105,7 +105,7 @@ abstract final class BvPopoverMenuSpec {
   static const widthMore = 184.0;
   static const widthPicker = 230.0;
 
-  /// The kind menu, its small lines on one line (E6 v14 2598:36413).
+  /// The kind menu: six plain rows (E6 v14 2598:36413, review 50 F63).
   static const widthKind = 322.0;
   static const radius = BvRadius.cardAll; // 14
   static const paddingVertical = BvSpace.s6;

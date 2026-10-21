@@ -81,8 +81,8 @@ void main() {
     final s = DaybookSamples(lang);
 
     group('F58 the Note [$lang]', () {
-      testWidgets('E6 v14: Note is first in the kind menu, with its small '
-          'line', (tester) async {
+      testWidgets('E6 v14: Note is first in the kind menu, with no small '
+          'line (F63)', (tester) async {
         await _open(tester, lang);
         await _tap(tester, find.byKey(const Key('post-bar-notepad')));
         await _tap(tester, find.byKey(const Key('writing-kind-chip')));
@@ -91,7 +91,7 @@ void main() {
         );
         expect(menu.items.first.value, DaybookKind.note);
         expect(menu.items.first.label, l10n.daybookKindNote);
-        expect(menu.items.first.note, l10n.daybookKindNoteNote);
+        expect(menu.items.first.note, isNull, reason: 'no description (F63)');
         expect(menu.items.first.icon, kindIcon(DaybookKind.note));
       });
 

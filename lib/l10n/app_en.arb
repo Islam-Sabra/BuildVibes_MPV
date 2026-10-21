@@ -5352,10 +5352,6 @@
   "@daybookKindDocument": {
     "description": "The kind menu's name for a file post (review 50 F50): each person confirms they received it. The kind stays `file` on the server."
   },
-  "daybookKindDocumentNote": "Each person confirms they received it",
-  "@daybookKindDocumentNote": {
-    "description": "The small line under Document for receipt in the kind menu (F50)."
-  },
   "daybookUnpin": "Unpin",
   "@daybookUnpin": {
     "description": "Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day."
@@ -5363,10 +5359,6 @@
   "daybookKindNote": "Note",
   "@daybookKindNote": {
     "description": "Kind menu: the plain post, for information (F58)."
-  },
-  "daybookKindNoteNote": "For information, nobody needs to act",
-  "@daybookKindNoteNote": {
-    "description": "Kind menu: the small line under Note (F58)."
   },
   "daybookKindNoteWord": "· note",
   "@daybookKindNoteWord": {

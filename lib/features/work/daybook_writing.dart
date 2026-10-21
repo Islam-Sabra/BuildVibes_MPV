@@ -1305,11 +1305,6 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
                 value: k,
                 label: kindName(l10n, k),
                 icon: kindIcon(k),
-                note: switch (k) {
-                  DaybookKind.note => l10n.daybookKindNoteNote,
-                  DaybookKind.file => l10n.daybookKindDocumentNote,
-                  _ => null,
-                },
               ),
           ],
           onSelected: (k) async {

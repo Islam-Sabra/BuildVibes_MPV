@@ -3705,16 +3705,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindDocument => 'مستند للاستلام';
 
   @override
-  String get daybookKindDocumentNote => 'كل شخص يؤكد الاستلام';
-
-  @override
   String get daybookUnpin => 'إلغاء التثبيت';
 
   @override
   String get daybookKindNote => 'ملاحظة';
-
-  @override
-  String get daybookKindNoteNote => 'للعلم، لا يلزم أي إجراء';
 
   @override
   String get daybookKindNoteWord => '· ملاحظة';

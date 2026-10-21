@@ -3700,16 +3700,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookKindDocument => 'Document for receipt';
 
   @override
-  String get daybookKindDocumentNote => 'Each person confirms they received it';
-
-  @override
   String get daybookUnpin => 'Unpin';
 
   @override
   String get daybookKindNote => 'Note';
-
-  @override
-  String get daybookKindNoteNote => 'For information, nobody needs to act';
 
   @override
   String get daybookKindNoteWord => '· note';

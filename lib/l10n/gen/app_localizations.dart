@@ -6242,12 +6242,6 @@ abstract class AppLocalizations {
   /// **'Document for receipt'**
   String get daybookKindDocument;
 
-  /// The small line under Document for receipt in the kind menu (F50).
-  ///
-  /// In en, this message translates to:
-  /// **'Each person confirms they received it'**
-  String get daybookKindDocumentNote;
-
   /// Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day.
   ///
   /// In en, this message translates to:
@@ -6259,12 +6253,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note'**
   String get daybookKindNote;
-
-  /// Kind menu: the small line under Note (F58).
-  ///
-  /// In en, this message translates to:
-  /// **'For information, nobody needs to act'**
-  String get daybookKindNoteNote;
 
   /// Card header after the author's name: a note (K5).
   ///
