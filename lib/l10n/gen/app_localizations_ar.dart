@@ -3774,4 +3774,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String needsDoneWaiting(String time) {
     return 'منجز $time · بانتظار تحققك';
   }
+
+  @override
+  String get photoPreparing => 'جارٍ التجهيز…';
+
+  @override
+  String get photoCannotOpen => 'تعذّر فتح هذه الصورة. اختر صورة أخرى.';
 }

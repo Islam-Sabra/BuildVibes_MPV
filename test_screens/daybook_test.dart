@@ -105,7 +105,8 @@ Future<List<Override>> _overrides(
     daybookPhotoProvider.overrideWith((ref, path) => samplePhoto),
     localPhotoProvider.overrideWith((ref, path) => samplePhoto),
     pickPhotoProvider.overrideWithValue(
-      ({required camera}) async => XFile('camera.jpg'),
+      ({required camera, onPreparing}) async =>
+          (photos: [XFile('camera.jpg')], refused: 0),
     ),
     keepPhotoProvider.overrideWithValue((photo) async => 'kept.jpg'),
     pickDueProvider.overrideWithValue(

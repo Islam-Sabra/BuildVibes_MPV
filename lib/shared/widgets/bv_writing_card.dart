@@ -7,6 +7,7 @@ import '../../core/design/daybook_writing_specs.dart';
 import 'bv_avatar.dart';
 import 'bv_highlight.dart';
 import 'bv_marked_text.dart';
+import 'bv_photo_preparing.dart';
 import 'bv_tap_target.dart';
 
 /// A field without a box of its own, for text typed on a card, a note or a
@@ -121,6 +122,8 @@ class BvWritingCard extends StatelessWidget {
     this.photoHeight = BvWritingCardSpec.coverHeight,
     this.onRemovePhoto,
     this.removePhotoLabel,
+    this.preparing = 0,
+    this.preparingLabel = '',
     this.footer,
     this.titleMaxLength,
     this.bodyMaxLength,
@@ -168,6 +171,12 @@ class BvWritingCard extends StatelessWidget {
   /// Read out for each photo's remove button.
   final String? removePhotoLabel;
 
+  /// Photos still being made safe to leave the phone: as many
+  /// "Preparing…" slots ([preparingLabel]) after [photos], with no remove
+  /// button (review 74 H2).
+  final int preparing;
+  final String preparingLabel;
+
   /// Under the photos: a post's project tag.
   final Widget? footer;
 
@@ -186,6 +195,15 @@ class BvWritingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
+    final slots = [
+      for (final (i, photo) in photos.indexed) _cover(i, photo),
+      for (var i = 0; i < preparing; i++)
+        ClipRRect(
+          key: Key('writing-photo-preparing-$i'),
+          borderRadius: BvWritingCardSpec.coverRadius,
+          child: BvPhotoPreparing(label: preparingLabel),
+        ),
+    ];
     return CustomPaint(
       key: const Key('writing-card-outline'),
       foregroundPainter: const _DashedOutline(),
@@ -239,25 +257,25 @@ class BvWritingCard extends StatelessWidget {
                   maxLength: bodyMaxLength,
                 ),
                 ?extra,
-                if (photos.isNotEmpty)
+                if (slots.isNotEmpty)
                   _PhotoRow(
                     removable: onRemovePhoto != null,
                     height: photoHeight,
-                    child: photos.length > BvWritingCardSpec.photosSideBySide
+                    child: slots.length > BvWritingCardSpec.photosSideBySide
                         ? ListView(
                             key: const Key('writing-photos-scroll'),
                             scrollDirection: Axis.horizontal,
                             children: [
-                              for (final (i, photo) in photos.indexed)
+                              for (final (i, slot) in slots.indexed)
                                 Padding(
                                   padding: EdgeInsetsDirectional.only(
-                                    end: i == photos.length - 1
+                                    end: i == slots.length - 1
                                         ? 0
                                         : BvWritingCardSpec.photoGap,
                                   ),
                                   child: SizedBox.square(
                                     dimension: photoHeight,
-                                    child: _cover(i, photo),
+                                    child: slot,
                                   ),
                                 ),
                             ],
@@ -265,8 +283,7 @@ class BvWritingCard extends StatelessWidget {
                         : Row(
                             spacing: BvWritingCardSpec.photoGap,
                             children: [
-                              for (final (i, photo) in photos.indexed)
-                                Expanded(child: _cover(i, photo)),
+                              for (final slot in slots) Expanded(child: slot),
                             ],
                           ),
                   ),

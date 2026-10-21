@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -5,25 +6,39 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
-// Makes a photo safe to leave the phone (review 50 F60).
+// Makes a photo safe to leave the phone (review 50 F60, review 74).
 //
 // Phones write the GPS position, the make, model and serial numbers into
 // a photo. A proof photo can end up on a profile, so it must never say
 // where someone works or lives, nor which phone took it. Only the time it
 // was taken stays, which the proof needs.
 //
-// - JPEG: drawn again from its pixels. It is decoded, turned upright, made
-//   at most [photoMaxSide] on its longest side, and written as a new JPEG
-//   at [photoQuality]. Its only metadata is a new EXIF block with the
-//   time it was taken (DateTimeOriginal, OffsetTimeOriginal), so nothing
-//   of the old file comes along: no GPS, no make or model, no maker note,
-//   no thumbnail, no XMP, not even bytes no tag points to.
+// - JPEG, in three steps (review 74 H1):
+//   1. Drawn again from its pixels: decoded, turned upright, made at most
+//      [photoMaxSide] on its longest side, and written as a new JPEG at
+//      [photoQuality]. Its only metadata is a new EXIF block with the time
+//      it was taken (DateTimeOriginal, OffsetTimeOriginal), so nothing of
+//      the old file comes along: no GPS, no make or model, no maker note,
+//      no thumbnail, no XMP, not even bytes no tag points to.
+//   2. When the phone can't decode it but its markers read up to the
+//      picture, every metadata block is taken out without decoding (APP1
+//      to APP15 and comments: EXIF, XMP, maker notes, ICC, the thumbnail).
+//      APP0 and the picture stay, and it goes.
+//   3. Otherwise nobody could open it: it is refused, never sent.
 // - PNG and WebP stay as they are drawn (a screenshot or a drawing keeps
 //   its sharp lines and its transparency); their EXIF and XMP are dropped.
-// - Anything else (PDF, sound) is left as it is. The file picker doesn't
-//   offer HEIC, and the camera and gallery pickers give JPEG.
+//   One that can't be read is refused.
+// - Anything else (PDF, sound) is not a photo and goes as it is. The file
+//   picker doesn't offer HEIC, and the camera and gallery pickers give
+//   JPEG.
+//
+// Each photo writes one line to the phone's log, and nowhere else, for
+// timing on a real phone (review 74 H3): see [photoLogPrefix].
 
 /// The longest side of a photo that leaves the phone; a smaller one is
 /// never made bigger.
@@ -32,26 +47,216 @@ const photoMaxSide = 2560;
 /// The JPEG quality a photo is written at.
 const photoQuality = 85;
 
-/// Rewrites the photo at [path] as [cleanPhotoBytes] makes it. Leaves the
-/// file as it is when there is nothing to change, or it isn't a photo this
-/// can read.
-Future<void> cleanPhoto(String path) async {
+/// How long cleaning may take before the photo slots say "Preparing…"
+/// (review 74 H2).
+const photoPreparingAfter = Duration(milliseconds: 400);
+
+/// The start of each photo's line in the phone's log (`adb logcat`):
+/// `BV-PHOTO from=gallery result=cleaned step=redrawn ms=812
+/// before=4000x3000 after=2560x1920 bytes=6042657>1336974`.
+const photoLogPrefix = 'BV-PHOTO';
+
+/// What became of a photo on its way out.
+enum PhotoCleaning {
+  /// Made safe: it goes.
+  cleaned,
+
+  /// Not a photo (a PDF): it goes as it is.
+  notImage,
+
+  /// Nobody could open it: it doesn't go.
+  refused,
+}
+
+/// [cleanPhoto]'s answer: what became of the photo, and the file to send
+/// (the same one, or a fresh copy in the app's own folder when it
+/// couldn't be written).
+typedef CleanedPhoto = ({PhotoCleaning result, String path});
+
+/// [cleanPhotoBytes]'s answer. [bytes] is what to write, or null to leave
+/// the file as it is; [step] how it was made safe; [before] and [after]
+/// the picture's sizes when it was drawn again.
+typedef CleanedBytes = ({
+  PhotoCleaning result,
+  Uint8List? bytes,
+  String step,
+  String? before,
+  String? after,
+});
+
+/// The photos picked at once, cleaned side by side: the files to send,
+/// and how many were refused.
+typedef CleanedPhotos = ({List<String> paths, int refused});
+
+/// Cleans every one of [paths] at the same time. When that takes longer
+/// than [photoPreparingAfter], [onPreparing] hears how many are being
+/// prepared, and 0 once they are done. [from] names the picker in the
+/// log.
+Future<CleanedPhotos> cleanPhotos(
+  List<String> paths, {
+  required String from,
+  void Function(int count)? onPreparing,
+}) async {
+  var told = false;
+  final timer = Timer(photoPreparingAfter, () {
+    told = true;
+    onPreparing?.call(paths.length);
+  });
+  final done = await Future.wait([
+    for (final p in paths) cleanPhoto(p, from: from),
+  ]);
+  timer.cancel();
+  if (told) onPreparing?.call(0);
+  return (
+    paths: [
+      for (final c in done)
+        if (c.result != PhotoCleaning.refused) c.path,
+    ],
+    refused: done.where((c) => c.result == PhotoCleaning.refused).length,
+  );
+}
+
+/// Photos a picker gave, made safe to leave the phone (cleanPhotos):
+/// [photos] to send, and how many of those picked nobody could open
+/// (review 74 H1). None when the person cancels.
+typedef PickedPhotos = ({List<XFile> photos, int refused});
+
+/// Cleans [picked] side by side (cleanPhotos); [onPreparing] as there.
+Future<PickedPhotos> cleanPicked(
+  List<XFile> picked, {
+  required String from,
+  void Function(int count)? onPreparing,
+}) async {
+  if (picked.isEmpty) return (photos: const <XFile>[], refused: 0);
+  final clean = await cleanPhotos(
+    [for (final p in picked) p.path],
+    from: from,
+    onPreparing: onPreparing,
+  );
+  return (
+    photos: [for (final p in clean.paths) XFile(p)],
+    refused: clean.refused,
+  );
+}
+
+/// How many photos a card is still preparing, by card: its "Preparing…"
+/// slots (review 74 H2).
+final photosPreparingProvider =
+    NotifierProvider.family<PhotosPreparing, int, String>(PhotosPreparing.new);
+
+class PhotosPreparing extends Notifier<int> {
+  PhotosPreparing(this.card);
+
+  /// Which card (`daybook:<space id>`, `post`).
+  final String card;
+
+  @override
+  int build() => 0;
+
+  void set(int count) => state = count;
+}
+
+/// Makes the photo at [path] safe as [cleanPhotoBytes] does, and writes it
+/// back. When it can't be written there, a fresh copy goes in [spare]
+/// (the app's own folder); the original is never sent. [from] names the
+/// picker in the log.
+Future<CleanedPhoto> cleanPhoto(
+  String path, {
+  required String from,
+  Future<Directory> Function() spare = _spareFolder,
+}) async {
+  final watch = Stopwatch()..start();
+  var size = '0';
+  CleanedPhoto answer;
+  CleanedBytes? clean;
   try {
-    final file = File(path);
-    final clean = await cleanPhotoBytes(await file.readAsBytes());
-    if (clean != null) await file.writeAsBytes(clean, flush: true);
+    final bytes = await File(path).readAsBytes();
+    size = '${bytes.length}';
+    clean = await cleanPhotoBytes(bytes);
+    final out = clean.bytes;
+    answer = (result: clean.result, path: path);
+    if (out != null) {
+      size = '$size>${out.length}';
+      answer = (result: clean.result, path: await _write(path, out, spare));
+    }
   } on FileSystemException catch (e) {
-    debugPrint('photo: $e');
+    debugPrint('$photoLogPrefix $e');
+    answer = (result: PhotoCleaning.refused, path: path);
+  }
+  debugPrint(
+    '$photoLogPrefix from=$from result=${answer.result.name} '
+    'step=${clean?.step ?? 'unread'} ms=${watch.elapsedMilliseconds} '
+    'before=${clean?.before ?? '-'} after=${clean?.after ?? '-'} '
+    'bytes=$size',
+  );
+  return answer;
+}
+
+/// Writes [bytes] at [path], or in a fresh file in [spare] when [path]
+/// can't be written. Throws when neither can.
+Future<String> _write(
+  String path,
+  Uint8List bytes,
+  Future<Directory> Function() spare,
+) async {
+  try {
+    await File(path).writeAsBytes(bytes, flush: true);
+    return path;
+  } on FileSystemException catch (e) {
+    debugPrint('$photoLogPrefix $e');
+    final dot = path.lastIndexOf('.');
+    final ext = dot < 0 ? '' : path.substring(dot);
+    final dir = await spare();
+    final copy = File(
+      '${dir.path}/${DateTime.now().microsecondsSinceEpoch}$ext',
+    );
+    await copy.writeAsBytes(bytes, flush: true);
+    return copy.path;
   }
 }
 
-/// [bytes] made safe to leave the phone, or null when there was nothing
-/// to change (or it isn't a JPEG, PNG or WebP this can read).
-Future<Uint8List?> cleanPhotoBytes(Uint8List bytes) async {
-  if (_isJpeg(bytes)) return _redrawJpeg(bytes);
-  if (_isPng(bytes)) return _png(bytes);
-  if (_isWebp(bytes)) return _webp(bytes);
-  return null;
+Future<Directory> _spareFolder() async => Directory(
+  '${(await getApplicationDocumentsDirectory()).path}/cleaned',
+).create(recursive: true);
+
+/// [bytes] made safe to leave the phone, as the steps above say.
+Future<CleanedBytes> cleanPhotoBytes(Uint8List bytes) async {
+  CleanedBytes cleaned(Uint8List? out, String step) => (
+    result: PhotoCleaning.cleaned,
+    bytes: out,
+    step: step,
+    before: null,
+    after: null,
+  );
+  const refused = (
+    result: PhotoCleaning.refused,
+    bytes: null,
+    step: 'refused',
+    before: null,
+    after: null,
+  );
+  if (_isJpeg(bytes)) {
+    final redrawn = await _redrawJpeg(bytes);
+    if (redrawn != null) return redrawn;
+    final stripped = _stripJpeg(bytes);
+    return stripped == null ? refused : cleaned(stripped, 'stripped');
+  }
+  final Uint8List? kept;
+  if (_isPng(bytes)) {
+    kept = _png(bytes);
+  } else if (_isWebp(bytes)) {
+    kept = _webp(bytes);
+  } else {
+    return (
+      result: PhotoCleaning.notImage,
+      bytes: null,
+      step: 'none',
+      before: null,
+      after: null,
+    );
+  }
+  if (kept == null) return refused;
+  return cleaned(identical(kept, bytes) ? null : kept, 'chunks');
 }
 
 bool _isJpeg(Uint8List b) => b.length > 3 && b[0] == 0xFF && b[1] == 0xD8;
@@ -76,17 +281,19 @@ bool _ascii(Uint8List b, int at, String s) {
 
 // JPEG ------------------------------------------------------------------------
 
-/// Decodes with the phone's own decoder (turned upright by its EXIF
-/// orientation, and made smaller as it decodes), then writes the JPEG in
-/// a background isolate. Null when it can't be decoded.
-Future<Uint8List?> _redrawJpeg(Uint8List bytes) async {
+/// Step 1: decoded with the phone's own decoder (turned upright by its
+/// EXIF orientation, and made smaller as it decodes), then written in a
+/// background isolate. Null when it can't be decoded.
+Future<CleanedBytes?> _redrawJpeg(Uint8List bytes) async {
   final taken = _takenAt(bytes);
   final ByteData pixels;
   final int width;
   final int height;
+  final String before;
   try {
     final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
     final descriptor = await ui.ImageDescriptor.encoded(buffer);
+    before = '${descriptor.width}x${descriptor.height}';
     final scale = min(
       1.0,
       photoMaxSide / max(descriptor.width, descriptor.height),
@@ -106,7 +313,7 @@ Future<Uint8List?> _redrawJpeg(Uint8List bytes) async {
     if (rgba == null) return null;
     pixels = rgba;
   } on Exception catch (e) {
-    debugPrint('photo: $e');
+    debugPrint('$photoLogPrefix $e');
     return null;
   }
   final jpeg = await Isolate.run(
@@ -121,7 +328,48 @@ Future<Uint8List?> _redrawJpeg(Uint8List bytes) async {
       quality: photoQuality,
     ),
   );
-  return taken.isEmpty ? jpeg : _withExif(jpeg, _exifSegment(taken));
+  return (
+    result: PhotoCleaning.cleaned,
+    bytes: taken.isEmpty ? jpeg : _withExif(jpeg, _exifSegment(taken)),
+    step: 'redrawn',
+    before: before,
+    after: '${width}x$height',
+  );
+}
+
+/// Step 2: [b] without APP1 to APP15 and comments, read marker by marker
+/// up to the picture, which is copied as it is. Null when the markers
+/// don't read up to the start of scan.
+Uint8List? _stripJpeg(Uint8List b) {
+  final out = BytesBuilder(copy: false)..add(b.sublist(0, 2));
+  var i = 2;
+  while (i + 4 <= b.length) {
+    if (b[i] != 0xFF) return null;
+    final marker = b[i + 1];
+    // Fill bytes and markers with no length.
+    if (marker == 0xFF) {
+      i++;
+      continue;
+    }
+    if (marker == 0x01 || (marker >= 0xD0 && marker <= 0xD7)) {
+      out.add(b.sublist(i, i + 2));
+      i += 2;
+      continue;
+    }
+    if (marker == 0xD8 || marker == 0xD9) return null;
+    final length = (b[i + 2] << 8) | b[i + 3];
+    final end = i + 2 + length;
+    if (length < 2 || end > b.length) return null;
+    // Start of scan: the picture itself follows, copied as it is.
+    if (marker == 0xDA) {
+      out.add(b.sublist(i));
+      return out.toBytes();
+    }
+    final metadata = (marker >= 0xE1 && marker <= 0xEF) || marker == 0xFE;
+    if (!metadata) out.add(b.sublist(i, end));
+    i = end;
+  }
+  return null;
 }
 
 const _exifHeader = 'Exif\u0000\u0000';
@@ -269,7 +517,10 @@ Uint8List _withExif(Uint8List jpeg, Uint8List exif) {
 
 // PNG -------------------------------------------------------------------------
 
+/// [b] without its eXIf chunk and XMP text; [b] itself when it has
+/// neither, null when its chunks don't read.
 Uint8List? _png(Uint8List b) {
+  if (!_ascii(b, 12, 'IHDR')) return null;
   final view = ByteData.sublistView(b);
   final out = BytesBuilder(copy: false)..add(b.sublist(0, 8));
   var changed = false;
@@ -288,14 +539,17 @@ Uint8List? _png(Uint8List b) {
     }
     i = end;
   }
-  if (!changed) return null;
+  if (!changed) return b;
   out.add(b.sublist(i));
   return out.toBytes();
 }
 
 // WebP ------------------------------------------------------------------------
 
+/// [b] without its EXIF and XMP chunks; [b] itself when it has neither,
+/// null when its chunks don't read.
 Uint8List? _webp(Uint8List b) {
+  if (b.length < 20) return null;
   final view = ByteData.sublistView(b);
   final body = BytesBuilder(copy: false);
   var changed = false;
@@ -313,7 +567,7 @@ Uint8List? _webp(Uint8List b) {
     }
     i = end;
   }
-  if (!changed) return null;
+  if (!changed) return b;
   final chunks = body.toBytes();
   // The extended header says which chunks follow: no EXIF (0x08), no XMP (0x04).
   if (vp8x >= 0 && vp8x + 8 < chunks.length) chunks[vp8x + 8] &= ~0x0C;

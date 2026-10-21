@@ -175,22 +175,141 @@ void main() {
       expect(exifBlocks(after), isEmpty, reason: 'no time taken, no EXIF');
     });
 
-    testWidgets('a JPEG that cannot be decoded is left as it is', (
+    testWidgets('H1: a JPEG the decoder refuses, with well-formed markers, '
+        'goes without APP1 to APP15 or comments; APP0 and the picture stay', (
       tester,
     ) async {
-      final broken = Uint8List.fromList([0xFF, 0xD8, 0x00, 0x01, 0x02, 0x03]);
-      expect(await cleanForTest(tester, broken), isNull);
+      List<int> segment(int marker, List<int> body) => [
+        0xFF,
+        marker,
+        (body.length + 2) >> 8,
+        (body.length + 2) & 0xFF,
+        ...body,
+      ];
+      final exif = [...'Exif'.codeUnits, 0, 0, ..._phoneTiff()];
+      // No frame (SOF): the decoder can't draw it.
+      final scan = [0x01, 0x02, 0x03, 0xFF, 0x00, 0x04, 0xFF, 0xD9];
+      final before = Uint8List.fromList([
+        0xFF, 0xD8, //
+        ...segment(0xE0, [...'JFIF'.codeUnits, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0]),
+        ...segment(0xE1, exif),
+        ...segment(0xE2, [...'ICC_PROFILE'.codeUnits, 0, 1, 1, 9, 9]),
+        ...segment(0xED, 'Photoshop Xiaomi'.codeUnits),
+        ...segment(0xFE, 'Xiaomi 22120RN86G'.codeUnits),
+        ...segment(0xDB, List.filled(65, 1)),
+        ...segment(0xDA, [1, 1, 0, 0, 0x3F, 0]),
+        ...scan,
+      ]);
+      final cleaned = await cleanedForTest(tester, before);
+      expect(cleaned.result, PhotoCleaning.cleaned);
+      expect(cleaned.step, 'stripped');
+      final after = cleaned.bytes!;
+      for (final word in _phoneWords) {
+        expect(hasBytes(after, word.codeUnits), isFalse, reason: word);
+      }
+      // The markers left, in order, up to the picture.
+      final markers = <int>[];
+      var i = 2;
+      while (after[i + 1] != 0xDA) {
+        markers.add(after[i + 1]);
+        i += 2 + ((after[i + 2] << 8) | after[i + 3]);
+      }
+      expect(markers, [0xE0, 0xDB]);
+      expect(after.sublist(after.length - scan.length), scan);
     });
 
-    testWidgets('cleanPhoto rewrites the file, and leaves a missing one '
-        'alone', (tester) async {
+    testWidgets('H1: a broken JPEG, PNG and WebP are each refused', (
+      tester,
+    ) async {
+      for (final broken in [
+        [0xFF, 0xD8, 0x00, 0x01, 0x02, 0x03],
+        // An APP1 longer than the file.
+        [0xFF, 0xD8, 0xFF, 0xE1, 0x40, 0x00, 0x45, 0x78],
+        // A PNG with no header chunk.
+        [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 1],
+        // A WebP whose only chunk runs past the end.
+        [
+          ...'RIFF'.codeUnits, 20, 0, 0, 0, ...'WEBP'.codeUnits, //
+          ...'VP8 '.codeUnits, 99, 0, 0, 0, 1, 2,
+        ],
+      ]) {
+        final cleaned = await cleanedForTest(
+          tester,
+          Uint8List.fromList(broken),
+        );
+        expect(cleaned.result, PhotoCleaning.refused, reason: '$broken');
+        expect(cleaned.bytes, isNull);
+      }
+    });
+
+    testWidgets('cleanPhoto rewrites the file; a missing one is refused', (
+      tester,
+    ) async {
       await tester.runAsync(() async {
         final dir = await Directory.systemTemp.createTemp('photo_privacy');
         final file = File('${dir.path}/p.jpg')
           ..writeAsBytesSync(_withApp1(_picture(64, 48), _phoneTiff()));
-        await cleanPhoto(file.path);
+        final clean = await cleanPhoto(file.path, from: 'test');
+        expect(clean, (result: PhotoCleaning.cleaned, path: file.path));
         expect(hasBytes(file.readAsBytesSync(), 'Xiaomi'.codeUnits), isFalse);
-        await cleanPhoto('${dir.path}/none.jpg');
+        final none = await cleanPhoto('${dir.path}/none.jpg', from: 'test');
+        expect(none.result, PhotoCleaning.refused);
+        await dir.delete(recursive: true);
+      });
+    });
+
+    testWidgets('H1: a photo that cannot be written back goes as a fresh '
+        "copy in the app's folder, never as the original", (tester) async {
+      await tester.runAsync(() async {
+        final dir = await Directory.systemTemp.createTemp('photo_privacy');
+        final spare = await Directory('${dir.path}/spare').create();
+        final original = _withApp1(_picture(64, 48), _phoneTiff());
+        final file = File('${dir.path}/p.jpg')..writeAsBytesSync(original);
+        // Read only.
+        if (Platform.isWindows) {
+          await Process.run('attrib', ['+r', file.path]);
+        } else {
+          await Process.run('chmod', ['444', file.path]);
+        }
+        final clean = await cleanPhoto(
+          file.path,
+          from: 'test',
+          spare: () async => spare,
+        );
+        expect(clean.result, PhotoCleaning.cleaned);
+        expect(clean.path, startsWith(spare.path));
+        expect(clean.path, endsWith('.jpg'));
+        final sent = File(clean.path).readAsBytesSync();
+        expect(hasBytes(sent, 'Xiaomi'.codeUnits), isFalse);
+        expect(file.readAsBytesSync(), original, reason: 'left alone');
+        if (Platform.isWindows) {
+          await Process.run('attrib', ['-r', file.path]);
+        }
+        await dir.delete(recursive: true);
+      });
+    });
+
+    testWidgets('H1, H2: photos picked at once are cleaned side by side; a '
+        'broken one is left out and the others go', (tester) async {
+      await tester.runAsync(() async {
+        final dir = await Directory.systemTemp.createTemp('photo_privacy');
+        final good = [
+          for (var i = 0; i < 2; i++)
+            File('${dir.path}/good$i.jpg')
+              ..writeAsBytesSync(_withApp1(_picture(64, 48), _phoneTiff())),
+        ];
+        final broken = File('${dir.path}/broken.jpg')
+          ..writeAsBytesSync([0xFF, 0xD8, 0x00, 0x01]);
+        final told = <int>[];
+        final clean = await cleanPhotos(
+          [good[0].path, broken.path, good[1].path],
+          from: 'test',
+          onPreparing: told.add,
+        );
+        expect(clean.paths, [good[0].path, good[1].path]);
+        expect(clean.refused, 1);
+        // Told, if it took long enough, how many; then 0.
+        expect(told, anyOf(isEmpty, [3, 0]));
         await dir.delete(recursive: true);
       });
     });
@@ -223,9 +342,11 @@ void main() {
       ]),
       ...iend,
     ]);
-    final after = (await cleanPhotoBytes(png))!;
+    final after = (await cleanPhotoBytes(png)).bytes!;
     expect(after, [...png.sublist(0, 8), ...ihdr, ...iend]);
-    expect(await cleanPhotoBytes(after), isNull);
+    final again = await cleanPhotoBytes(after);
+    expect(again.result, PhotoCleaning.cleaned);
+    expect(again.bytes, isNull, reason: 'nothing left to take out');
   });
 
   test('WebP: EXIF and XMP go, the header says so', () async {
@@ -249,7 +370,7 @@ void main() {
       ...'WEBP'.codeUnits,
       ...body,
     ]);
-    final after = (await cleanPhotoBytes(webp))!;
+    final after = (await cleanPhotoBytes(webp)).bytes!;
     final kept = [...vp8x, ...image]..[8] = 0x00;
     expect(after.sublist(12), kept);
     expect(
@@ -258,10 +379,9 @@ void main() {
     );
   });
 
-  test('a PDF is left as it is', () async {
-    expect(
-      await cleanPhotoBytes(Uint8List.fromList('%PDF-1.7'.codeUnits)),
-      isNull,
-    );
+  test('H1: a PDF is not a photo: it passes unchanged', () async {
+    final pdf = await cleanPhotoBytes(Uint8List.fromList('%PDF-1.7'.codeUnits));
+    expect(pdf.result, PhotoCleaning.notImage);
+    expect(pdf.bytes, isNull);
   });
 }

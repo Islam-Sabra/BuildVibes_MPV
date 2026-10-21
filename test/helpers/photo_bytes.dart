@@ -63,5 +63,11 @@ List<ExifBlock> exifBlocks(Uint8List b) {
 }
 
 /// [bytes] through [cleanPhotoBytes], with the phone's decoder.
-Future<Uint8List?> cleanForTest(WidgetTester tester, Uint8List bytes) =>
-    tester.runAsync<Uint8List?>(() => cleanPhotoBytes(bytes));
+Future<CleanedBytes> cleanedForTest(
+  WidgetTester tester,
+  Uint8List bytes,
+) async => (await tester.runAsync(() => cleanPhotoBytes(bytes)))!;
+
+/// What [cleanedForTest] writes.
+Future<Uint8List?> cleanForTest(WidgetTester tester, Uint8List bytes) async =>
+    (await cleanedForTest(tester, bytes)).bytes;

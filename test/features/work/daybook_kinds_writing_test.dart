@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -49,6 +51,8 @@ Future<_App> _open(
   WidgetTester tester,
   String lang, {
   int galleryPhotos = 2,
+  int galleryRefused = 0,
+  Future<void>? galleryPreparing,
 }) async {
   final s = DaybookSamples(lang);
   final spaces = FakeSpaceRepository()
@@ -66,6 +70,8 @@ Future<_App> _open(
     library: library,
     now: DaybookSamples.thursday,
     galleryPhotos: galleryPhotos,
+    galleryRefused: galleryRefused,
+    galleryPreparing: galleryPreparing,
     overrides: [
       pickStartProvider.overrideWithValue(
         (context, {required now, start, end}) async =>
@@ -394,6 +400,51 @@ void main() {
       final added = app.library.filesBySpace[DaybookSamples.space]!.first;
       expect(daybook.createdPosts.single.libraryFileId, added.id);
       expect(_read(tester, workOutboxProvider), isEmpty);
+    });
+
+    testWidgets('Review 74 H2: photos still being prepared show as '
+        '"Preparing…" slots on the card, which stays usable [$lang]', (
+      tester,
+    ) async {
+      final ready = Completer<void>();
+      await _open(tester, lang, galleryPreparing: ready.future);
+      await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      await tester.tap(find.byKey(const Key('attach-photos')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      for (var i = 0; i < 2; i++) {
+        expect(find.byKey(Key('writing-photo-preparing-$i')), findsOneWidget);
+      }
+      expect(find.text(l10n.photoPreparing), findsNWidgets(2));
+      expect(find.byType(CircularProgressIndicator), findsNWidgets(2));
+      // Still writing meanwhile.
+      await tester.enterText(
+        find.byKey(const Key('writing-title')),
+        s.cableTraysTitle,
+      );
+      await tester.pump();
+      expect(find.text(s.cableTraysTitle), findsOneWidget);
+      ready.complete();
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.photoPreparing), findsNothing);
+      expect(
+        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).photos,
+        hasLength(2),
+      );
+    });
+
+    testWidgets("Review 74 H1: a picked photo nobody could open isn't sent: "
+        'one line, and the others still go [$lang]', (tester) async {
+      await _open(tester, lang, galleryRefused: 1);
+      await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      await _tap(tester, find.byKey(const Key('attach-photos')));
+      expect(find.text(l10n.photoCannotOpen), findsOneWidget);
+      expect(
+        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).photos,
+        hasLength(2),
+      );
     });
 
     testWidgets('K4: 📎 on a work item: photos from the gallery and a file, '

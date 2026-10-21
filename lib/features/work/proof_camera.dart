@@ -12,10 +12,12 @@ import '../../data/models/daybook.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_photo_preparing.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
+import '../spaces/space_errors.dart' show showSpaceMessage;
 import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_words.dart';
@@ -94,10 +96,23 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
     super.dispose();
   }
 
+  /// Photos still being made safe to leave the phone (review 74 H2).
+  var _preparing = 0;
+
   Future<void> _addPhoto() async {
-    final picked = await ref.read(pickPhotoProvider)(camera: true);
-    if (picked == null || !mounted) return;
-    final kept = await ref.read(keepPhotoProvider)(picked);
+    final picked = await ref.read(pickPhotoProvider)(
+      camera: true,
+      onPreparing: (n) {
+        if (mounted) setState(() => _preparing = n);
+      },
+    );
+    if (!mounted) return;
+    if (picked.refused > 0) {
+      showSpaceMessage(context, AppLocalizations.of(context).photoCannotOpen);
+    }
+    final photo = picked.photos.firstOrNull;
+    if (photo == null) return;
+    final kept = await ref.read(keepPhotoProvider)(photo);
     if (!mounted) return;
     setState(
       () => _photos.add(
@@ -292,7 +307,13 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                           ),
                         ),
                       ),
-                    ] else
+                    ] else if (_preparing > 0)
+                      BvPhotoPreparing(
+                        key: const Key('proof-preparing'),
+                        label: l10n.photoPreparing,
+                        inverse: true,
+                      )
+                    else
                       // Camera only (founder, review 47), one tap away.
                       Center(
                         child: _Shutter(
@@ -389,6 +410,8 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                               alignment: AlignmentDirectional.centerStart,
                               child: _Thumbs(
                                 photos: [for (final p in _photos) p.local],
+                                preparing: _preparing,
+                                preparingLabel: l10n.photoPreparing,
                                 addLabel: l10n.daybookAddAnotherPhoto,
                                 onAdd: _addPhoto,
                               ),
@@ -659,11 +682,17 @@ class _Label extends StatelessWidget {
 class _Thumbs extends ConsumerWidget {
   const _Thumbs({
     required this.photos,
+    required this.preparing,
+    required this.preparingLabel,
     required this.addLabel,
     required this.onAdd,
   });
 
   final List<String> photos;
+
+  /// Photos still being prepared: a spinner in their place.
+  final int preparing;
+  final String preparingLabel;
   final String addLabel;
   final VoidCallback onAdd;
 
@@ -691,6 +720,15 @@ class _Thumbs extends ConsumerWidget {
       runSpacing: BvProofCameraSpec.thumbGap,
       children: [
         for (final p in photos) box(image: ref.watch(localPhotoProvider(p))),
+        for (var i = 0; i < preparing; i++)
+          box(
+            child: BvPhotoPreparing(
+              key: Key('proof-preparing-$i'),
+              label: preparingLabel,
+              inverse: true,
+              compact: true,
+            ),
+          ),
         Semantics(
           button: true,
           label: addLabel,

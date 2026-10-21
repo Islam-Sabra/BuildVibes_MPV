@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import '../../core/photo_privacy.dart' show photosPreparingProvider;
 import '../../core/routing/app_routes.dart';
 import '../../data/models/post.dart';
 import '../../data/repositories/post_repository.dart';
@@ -56,13 +57,19 @@ class PostWriter {
   /// Whether another photo fits (create_post takes four).
   bool get roomForPhoto => (draft?.photos.length ?? 0) < PostDraft.photosMax;
 
-  /// A photo from the camera or the phone, kept in the app's folder.
-  Future<void> addPhoto({required bool camera}) async {
-    if (!roomForPhoto) return;
-    final picked = await ref.read(pickPhotoProvider)(camera: camera);
-    if (picked == null) return;
-    final kept = await ref.read(keepPhotoProvider)(picked);
-    await _put((d) => d.copyWith(photos: [...d.photos, kept]));
+  /// A photo from the camera or the phone, kept in the app's folder. How
+  /// many photos nobody could open, and so were left out (review 74 H1).
+  Future<int> addPhoto({required bool camera}) async {
+    if (!roomForPhoto) return 0;
+    final picked = await ref.read(pickPhotoProvider)(
+      camera: camera,
+      onPreparing: ref.read(photosPreparingProvider('post').notifier).set,
+    );
+    for (final p in picked.photos) {
+      final kept = await ref.read(keepPhotoProvider)(p);
+      await _put((d) => d.copyWith(photos: [...d.photos, kept]));
+    }
+    return picked.refused;
   }
 
   Future<void> removePhoto(int index) async {
@@ -199,6 +206,10 @@ class _PostCardState extends ConsumerState<PostWritingCard> {
           for (final p in draft.photos)
             _Photo(image: ref.watch(localPhotoProvider(p))),
       ],
+      preparing: widget.editing
+          ? 0
+          : ref.watch(photosPreparingProvider('post')),
+      preparingLabel: l10n.photoPreparing,
       photoHeight: BvWritingCardSpec.postPhotoHeight,
       onRemovePhoto: writing && !widget.editing ? _writer.removePhoto : null,
       removePhotoLabel: l10n.daybookRemovePhoto,

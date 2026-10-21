@@ -3769,4 +3769,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String needsDoneWaiting(String time) {
     return 'Done $time · waiting for your check';
   }
+
+  @override
+  String get photoPreparing => 'Preparing…';
+
+  @override
+  String get photoCannotOpen => 'This photo can\'t be opened. Choose another.';
 }

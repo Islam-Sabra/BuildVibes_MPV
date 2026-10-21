@@ -245,7 +245,8 @@ void main() {
           phoneSignInProvider.overrideWithValue(true),
           pushMessagingProvider.overrideWithValue(_NoPush()),
           pickPhotoProvider.overrideWithValue(
-            ({required camera}) async => XFile(await _photoCopy()),
+            ({required camera, onPreparing}) async =>
+                (photos: [XFile(await _photoCopy())], refused: 0),
           ),
           keepPhotoProvider.overrideWithValue((photo) async {
             final copy = await _photoCopy();

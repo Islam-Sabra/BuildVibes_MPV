@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/photo_privacy.dart';
 import '../../../core/design/bv_icons.dart';
 import '../../../core/design/bv_tokens.dart';
+import '../../../core/photo_privacy.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../data/models/market.dart';
 import '../../../data/models/people.dart';
@@ -24,15 +24,14 @@ import 'edit_common.dart';
 
 /// Picks a photo, made safe to leave the phone (cleanPhoto); overridden in
 /// tests.
-final photoPickerProvider = Provider<Future<XFile?> Function()>(
+final photoPickerProvider = Provider<Future<PickedPhotos> Function()>(
   (ref) => () async {
     final photo = await ImagePicker().pickImage(
       source: ImageSource.gallery,
       maxWidth: 800,
       imageQuality: 85,
     );
-    if (photo != null) await cleanPhoto(photo.path);
-    return photo;
+    return cleanPicked([?photo], from: 'profile');
   },
 );
 
@@ -89,8 +88,16 @@ class _BasicsScreenState extends ConsumerState<BasicsScreen> {
   Future<void> _pickPhoto() async {
     final me = myId(ref);
     if (me == null) return;
-    final file = await ref.read(photoPickerProvider)();
-    if (file == null || !mounted) return;
+    final picked = await ref.read(photoPickerProvider)();
+    if (!mounted) return;
+    // Review 74 H1: a photo nobody could open doesn't go.
+    if (picked.refused > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).photoCannotOpen)),
+      );
+    }
+    final file = picked.photos.firstOrNull;
+    if (file == null) return;
     setState(() => _photoBusy = true);
     try {
       final bytes = await file.readAsBytes();
