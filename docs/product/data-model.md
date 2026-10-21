@@ -186,7 +186,7 @@ Rules from review 08, changed by migration 18 (review 33 A0, below). The app rea
 **Functions:**
 - `create_work_item(space, title, owner, due, team, place, evidence, id, body, parent, source_message, quote, files)` (the last five since migration 18): needs `can(space, 'create_items')`. The owner is one active member whose pass allows "mark own items done" (never a Viewer). Title 2–140 characters.
 - `sign_done(item, note, evidence)`: the owner, while Open, with a photo or a note.
-- `check_item(item)` and `send_back(item, reason, note)`: while Done, by the author; a Space admin when the author left or owns the item (migration 18). **Never by the item's owner.** "Other" needs a note.
+- `check_item(item)` and `send_back(item, reason, note, due_set, due, due_at)`: while Done, by the author; a Space admin when the author left or owns the item (migration 18). **Never by the item's owner.** "Other" needs a note.
 - `add_comment(item, note)`: the owner, Leads and Crew who can see the item, while it is live (migration 18; before, any active member).
 - `set_shown_work(item, bool)`: the owner of a Checked item.
 - `needs_you()`: open items I own, Done items I may check, join requests I can confirm (kind, Space id, item or request id). `my_spaces()` gains `needs_you` per Space. Since migration 10, `needs_you()` starts from the caller's active memberships, and `my_spaces()` runs it once for all Spaces.
@@ -735,3 +735,19 @@ Review 62 ("The two notes, decided" and "The next migration (29)"), review 61 G1
 - `work_item_events` and `post_edits` can't be updated or deleted.
 - A blocked user can't read the blocker's profile.
 - The public shown-work view leaks nothing beyond its listed fields.
+
+## 28. A new date on a send-back (migration 33, `20261023120000_send_back_due.sql`, branch `claude/review72-db`, not live)
+Review 50 F62 and review 72: a due date belongs to whoever must act next.
+- `work_item_events.new_due jsonb`, on a `sent_back` event only:
+  - `{"date", "at"}` is the new due;
+  - `{"date": null}` means no new date;
+  - null means the send-back didn't choose (builds before this one).
+- `send_back(item, reason, note, due_set default false, due default null, due_at default null)`:
+  - with `due_set`, the post's `due_date` and `due_at` and the work item's `due_date` become the new values (both null for no date), in the same transaction as the event;
+  - a time needs its day and must fit it (`due_at_fits`);
+  - a date without `due_set` is refused;
+  - the three-argument call works as before and leaves the due unchanged.
+- Who: as before, `may_check` (the author, or a Space admin acting for an author who is gone). Never the owner.
+- `post_history_rows`: a send-back's line carries `new_due`. After `jsonb_strip_nulls`, a missing key means unchanged and `{}` means no new date.
+- The app shows no due while the item is Done and waiting for the check. That's display only, with no server change.
+- **Tests:** `supabase/tests/33_send_back_due.test.sql` (24 checks).
