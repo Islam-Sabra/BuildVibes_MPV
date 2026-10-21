@@ -9,6 +9,15 @@ import '../models/work_item.dart';
 import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
 
+/// A send-back's new due (F62): a day, with a time or not; both null for
+/// "No new date".
+typedef SendBackDue = ({DateTime? day, DateTime? at});
+
+String _isoDay(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-'
+    '${d.month.toString().padLeft(2, '0')}-'
+    '${d.day.toString().padLeft(2, '0')}';
+
 /// Work items (migration 7). The app reads; every change is a database
 /// function. Failures arrive as [SpaceException].
 abstract class WorkRepository {
@@ -31,7 +40,15 @@ abstract class WorkRepository {
   Future<void> checkItem(String itemId);
 
   /// [note] is required for [SendBackReason.other].
-  Future<void> sendBack(String itemId, SendBackReason reason, {String? note});
+  /// [due] is the new date the author chose (F62, migration 33): a day,
+  /// with a time or not, or `(day: null, at: null)` for "No new date".
+  /// Null keeps the due as it was.
+  Future<void> sendBack(
+    String itemId,
+    SendBackReason reason, {
+    String? note,
+    SendBackDue? due,
+  });
 
   /// Show a Checked item on your profile, or hide it.
   Future<void> setShown(String itemId, bool shown);
@@ -150,17 +167,26 @@ class SupabaseWorkRepository implements WorkRepository {
       _guard(() => _client.rpc<void>('check_item', params: {'p_item': itemId}));
 
   @override
-  Future<void> sendBack(String itemId, SendBackReason reason, {String? note}) =>
-      _guard(
-        () => _client.rpc<void>(
-          'send_back',
-          params: {
-            'p_item': itemId,
-            'p_reason': reason.json,
-            'p_note': note?.trim(),
-          },
-        ),
-      );
+  Future<void> sendBack(
+    String itemId,
+    SendBackReason reason, {
+    String? note,
+    SendBackDue? due,
+  }) => _guard(
+    () => _client.rpc<void>(
+      'send_back',
+      params: {
+        'p_item': itemId,
+        'p_reason': reason.json,
+        'p_note': note?.trim(),
+        if (due != null) ...{
+          'p_due_set': true,
+          'p_due': due.day == null ? null : _isoDay(due.day!),
+          'p_due_at': due.at?.toUtc().toIso8601String(),
+        },
+      },
+    ),
+  );
 
   @override
   Future<void> setShown(String itemId, bool shown) => _guard(

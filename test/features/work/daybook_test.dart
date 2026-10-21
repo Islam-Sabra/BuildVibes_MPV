@@ -112,12 +112,13 @@ void main() {
     final words = _words(lang);
     final s = DaybookSamples(lang);
 
-    testWidgets('the masthead is one line: the day and the date, no count '
-        '[$lang]', (tester) async {
+    testWidgets('the masthead is one line: Today and the date at Now, no '
+        'count [$lang]', (tester) async {
       await _open(tester, lang, posts: s.v13());
       final masthead = _masthead(tester);
-      expect(masthead.weekday, words.weekday(_now));
-      expect(masthead.date, words.dayMonth(_now));
+      // F59: at Now it always reads Today, then the date.
+      expect(masthead.weekday, l10n.daybookTodayDivider);
+      expect(masthead.date, l10n.daybookMastheadToday(words.compactDate(_now)));
       expect(find.textContaining('41'), findsNothing);
       // No hour spine: the cards take the width, 16 from each edge.
       final card = tester.getRect(_inCard('post-sleeves', find.byType(BvSlip)));

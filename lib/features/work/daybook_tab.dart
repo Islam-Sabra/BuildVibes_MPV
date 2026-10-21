@@ -354,6 +354,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   bool get _away =>
       _scroll.hasClients && _scroll.offset > BvNewChipSpec.awayFromNow;
 
+  /// [_away] as last drawn: the masthead says Today at Now, and the
+  /// "Today ↓" chip shows away from it (F59).
+  bool _wasAway = false;
+
   /// Cards moved to Now (new activity on the server, or something done
   /// here) while the reader is up in older days: the page stays where it
   /// is, held on a card that didn't move, and the "New" chip shows.
@@ -427,6 +431,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   }
 
   void _onScroll() {
+    if (_away != _wasAway) setState(() => _wasAway = _away);
     _updateShownDay();
     _loadOlderIfNear();
     if (_newBelow && !_away) setState(() => _newBelow = false);
@@ -470,7 +475,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   }
 
   /// The divider of the day the masthead names: the masthead says it.
-  bool _dividerHidden(DateTime day) => !_writing && day == _shownDay;
+  /// Today's always shows, right above the writing area (F59).
+  bool _dividerHidden(DateTime day, DateTime today) =>
+      !_writing && day == _shownDay && day != today;
 
   /// Shows [day]: loads older pages until it is reached, then puts the
   /// latest day on or before it at the top.
@@ -941,8 +948,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     _openItems = canPost ? _toProve(cards, me, signing) : const [];
     final prove = _openItems.firstOrNull;
     final cardDraft = _editing ? edit : draft;
-    // While writing, the masthead is today's and opens nothing.
-    final day = _writing ? today : shown;
+    // At Now, and while writing, the masthead reads Today (F59); away from
+    // Now it follows the day at the top of the page (F23).
+    final atToday = _writing || !_wasAway || shown == today;
+    final day = atToday ? today : shown;
 
     return PopScope(
       canPop: !_writing,
@@ -957,8 +966,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           children: [
             BvDaybookMasthead(
               key: _mastheadKey,
-              weekday: words.weekday(day),
-              date: words.dayMonth(day),
+              weekday: atToday ? l10n.daybookTodayDivider : words.weekday(day),
+              date: atToday
+                  ? l10n.daybookMastheadToday(words.compactDate(today))
+                  : words.dayMonth(day),
               onTap: _writing ? null : () => _openMonth(today, shown),
             ),
             if (due.isNotEmpty && !_writing)
@@ -992,6 +1003,20 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                           child: BvNewChip(
                             key: const Key('daybook-new'),
                             label: l10n.daybookNew,
+                            onTap: _toNow,
+                          ),
+                        ),
+                      )
+                    // Up in older days: back to Today (F59).
+                    else if (_wasAway && !_writing)
+                      PositionedDirectional(
+                        start: 0,
+                        end: 0,
+                        bottom: BvNewChipSpec.offset,
+                        child: Center(
+                          child: BvNewChip(
+                            key: const Key('daybook-today'),
+                            label: l10n.daybookTodayDivider,
                             onTap: _toNow,
                           ),
                         ),
@@ -1685,7 +1710,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         return t != 0 ? t : a.$2.compareTo(b.$2);
       });
     }
-    if (card) byDay.putIfAbsent(today, () => []);
+    // Today is always there, with its divider, even before anything is
+    // posted (F59).
+    byDay.putIfAbsent(today, () => []);
     _days = byDay.keys.toList()..sort();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -1805,7 +1832,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                             key: Key(
                               'daybook-divider-${day.toIso8601String()}',
                             ),
-                            visible: !_dividerHidden(day),
+                            visible: !_dividerHidden(day, today),
                             maintainSize: true,
                             maintainAnimation: true,
                             maintainState: true,
@@ -1815,6 +1842,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                                   : words.compactDate(day),
                             ),
                           ),
+                          if (day == today && byDay[day]!.isEmpty)
+                            Text(
+                              l10n.daybookNothingYetToday,
+                              key: const Key('daybook-nothing-today'),
+                              textAlign: TextAlign.center,
+                              style: BvType.of(
+                                context,
+                              ).labelSm.copyWith(color: BvColors.textSecondary),
+                            ),
                           for (final (_, _, row) in byDay[day]!)
                             switch (row) {
                               _Shown s => cardOf(s),

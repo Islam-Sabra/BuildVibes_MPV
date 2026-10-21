@@ -1032,5 +1032,15 @@
   "daybookChooseWho": "اختر لمن",
   "daybookPostAsNote": "للعلم فقط؟ انشرها كملاحظة",
   "daybookToAudience": "إلى: {audience}{more}",
-  "daybookEveryone": "الجميع"
+  "daybookEveryone": "الجميع",
+  "daybookMastheadToday": "· {date}",
+  "daybookNothingYetToday": "لا شيء بعد اليوم",
+  "daybookSendBackNewDate": "موعد جديد",
+  "daybookSendBackToday": "اليوم",
+  "daybookSendBackTomorrow": "غدًا",
+  "daybookSendBackPickDate": "اختر تاريخًا",
+  "daybookSendBackNoNewDate": "بلا موعد جديد",
+  "daybookLineNewDate": "موعد جديد {date}",
+  "daybookLineNoNewDate": "بلا موعد جديد",
+  "needsDoneWaiting": "منجز {time} · بانتظار تحققك"
 }

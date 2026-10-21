@@ -441,6 +441,41 @@ void main() {
       expect(en.eventDetail(ev(s, DaybookEventKind.done, me)), isNull);
     });
 
+    test('F62: a send-back line carries its new date, or says there is '
+        'none', () {
+      DaybookEvent back(Map<String, dynamic>? newDue) => DaybookEvent.fromJson({
+        'id': 'e',
+        'kind': 'sent_back',
+        'at': '2026-10-15T09:00:00Z',
+        'reason': 'photo_missing',
+        'new_due': ?newDue,
+      });
+      final reason = en.reason(SendBackReason.photoMissing);
+      // A build before migration 33: no new date, the line as before.
+      expect(en.eventDetail(back(null)), reason);
+      expect(
+        en.eventDetail(back({'date': '2026-10-23'})),
+        joinMeta([
+          reason,
+          lookupAppLocalizations(
+            const Locale('en'),
+          ).daybookLineNewDate(en.dueProperty(DateTime(2026, 10, 23), null)),
+        ]),
+      );
+      expect(
+        en.eventDetail(back({'date': '2026-10-23'})),
+        contains('Fri 23 Oct'),
+      );
+      // {} after strip_nulls: "No new date".
+      expect(
+        en.eventDetail(back({})),
+        joinMeta([
+          reason,
+          lookupAppLocalizations(const Locale('en')).daybookLineNoNewDate,
+        ]),
+      );
+    });
+
     test('Arabic names the doer without a gendered verb', () {
       final done = ev(sAr, DaybookEventKind.done, DaybookSamples.sara);
       expect(

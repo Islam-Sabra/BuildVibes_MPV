@@ -168,6 +168,11 @@ abstract final class BvSendBackSpec {
   /// full height.
   static const microphoneTouch = BvSize.touchMin;
   static const buttonTop = BvSpace.s8;
+
+  /// The new date (F62): a small label, then one line of chips that wraps.
+  static const dueTop = BvSpace.s8;
+  static const dueLabelGap = BvSpace.s6;
+  static const dueChipGap = BvSpace.s8;
 }
 
 /// The Daybook's small radio mark (send-back reasons).

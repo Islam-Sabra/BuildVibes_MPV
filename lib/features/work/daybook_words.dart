@@ -84,6 +84,21 @@ class DaybookWords {
         : l10n.daybookSentBackText(reason(r), inOwnDirection(text));
   }
 
+  /// A send-back line's detail: the reason and note, then its new date
+  /// when one was chosen (F62): "Photo missing · new date Thu 23 Oct".
+  String _sentBackLine(DaybookEvent e) {
+    final text = sentBackText(e.reason, e.note);
+    final newDue = e.newDue;
+    if (newDue == null) return text;
+    final day = newDue.day;
+    return joinMeta([
+      text,
+      day == null
+          ? l10n.daybookLineNoNewDate
+          : l10n.daybookLineNewDate(dueProperty(day, newDue.at)),
+    ]);
+  }
+
   /// "Level 2, grid C7 · 15 Oct 09:40 · Omar Haddad": the label on a proof
   /// photo (O2).
   /// The place and the name keep their own direction.
@@ -288,7 +303,7 @@ class DaybookWords {
   String? eventDetail(DaybookEvent e) {
     final note = e.note?.trim() ?? '';
     return switch (e.kind) {
-      DaybookEventKind.sentBack => sentBackText(e.reason, e.note),
+      DaybookEventKind.sentBack => _sentBackLine(e),
       DaybookEventKind.done ||
       DaybookEventKind.comment ||
       DaybookEventKind.cancelled => note.isEmpty ? null : inOwnDirection(note),

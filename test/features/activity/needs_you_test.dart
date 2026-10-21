@@ -85,6 +85,12 @@ void main() {
         l10n.needsRowForYou,
         l10n.needsRowForYou,
       ]);
+      // F62: the author's row says when it was signed and that it waits.
+      final waiting = l10n.needsDoneWaiting('§').split('§').last;
+      expect(
+        tester.widget<BvNeedsRow>(find.byType(BvNeedsRow).first).meta,
+        contains(waiting),
+      );
       await tester.tap(find.text(s.sleeves));
       await tester.pumpAndSettle();
       expect(find.byType(SpaceScreen), findsOneWidget);

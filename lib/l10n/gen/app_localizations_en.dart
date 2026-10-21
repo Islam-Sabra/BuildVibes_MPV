@@ -3725,4 +3725,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookEveryone => 'Everyone';
+
+  @override
+  String daybookMastheadToday(String date) {
+    return '· $date';
+  }
+
+  @override
+  String get daybookNothingYetToday => 'Nothing yet today';
+
+  @override
+  String get daybookSendBackNewDate => 'New date';
+
+  @override
+  String get daybookSendBackToday => 'Today';
+
+  @override
+  String get daybookSendBackTomorrow => 'Tomorrow';
+
+  @override
+  String get daybookSendBackPickDate => 'Pick a date';
+
+  @override
+  String get daybookSendBackNoNewDate => 'No new date';
+
+  @override
+  String daybookLineNewDate(String date) {
+    return 'new date $date';
+  }
+
+  @override
+  String get daybookLineNoNewDate => 'no new date';
+
+  @override
+  String needsDoneWaiting(String time) {
+    return 'Done $time · waiting for your check';
+  }
 }

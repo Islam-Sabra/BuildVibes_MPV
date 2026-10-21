@@ -16,6 +16,8 @@ import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
+import 'package:buildvibes/features/work/daybook_photos.dart'
+    show filePreviewProvider;
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
@@ -275,6 +277,15 @@ Future<TestApp> pumpApp(
         workRepositoryProvider.overrideWithValue(fakeWork),
         daybookRepositoryProvider.overrideWithValue(fakeDaybook),
         daybookLiveProvider.overrideWithValue(fakeLive),
+        // A PDF's first page needs the phone's PDF renderer (pdfx), which
+        // a test machine may not have: the card shows its plain look.
+        filePreviewProvider.overrideWith(
+          (ref, file) async => file.mime.startsWith('image/')
+              ? NetworkImage(
+                  await ref.watch(libraryRepositoryProvider).fileUrl(file.path),
+                )
+              : null,
+        ),
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),

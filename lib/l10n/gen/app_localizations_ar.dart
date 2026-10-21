@@ -3730,4 +3730,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookEveryone => 'الجميع';
+
+  @override
+  String daybookMastheadToday(String date) {
+    return '· $date';
+  }
+
+  @override
+  String get daybookNothingYetToday => 'لا شيء بعد اليوم';
+
+  @override
+  String get daybookSendBackNewDate => 'موعد جديد';
+
+  @override
+  String get daybookSendBackToday => 'اليوم';
+
+  @override
+  String get daybookSendBackTomorrow => 'غدًا';
+
+  @override
+  String get daybookSendBackPickDate => 'اختر تاريخًا';
+
+  @override
+  String get daybookSendBackNoNewDate => 'بلا موعد جديد';
+
+  @override
+  String daybookLineNewDate(String date) {
+    return 'موعد جديد $date';
+  }
+
+  @override
+  String get daybookLineNoNewDate => 'بلا موعد جديد';
+
+  @override
+  String needsDoneWaiting(String time) {
+    return 'منجز $time · بانتظار تحققك';
+  }
 }

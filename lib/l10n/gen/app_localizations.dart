@@ -6295,6 +6295,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Everyone'**
   String get daybookEveryone;
+
+  /// The masthead at Now, after the bold word Today (review 50 F59): "Today · Wednesday 21 October".
+  ///
+  /// In en, this message translates to:
+  /// **'· {date}'**
+  String daybookMastheadToday(String date);
+
+  /// Under the Today divider when nothing has been posted today (F59).
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet today'**
+  String get daybookNothingYetToday;
+
+  /// Send-back sheet (review 50 F62): the label over the new date's one choice, nothing chosen first.
+  ///
+  /// In en, this message translates to:
+  /// **'New date'**
+  String get daybookSendBackNewDate;
+
+  /// Send-back sheet, new date: today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get daybookSendBackToday;
+
+  /// Send-back sheet, new date: tomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get daybookSendBackTomorrow;
+
+  /// Send-back sheet, new date: opens the day picker; then shows the day picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get daybookSendBackPickDate;
+
+  /// Send-back sheet, new date: none; the old due isn't shown again.
+  ///
+  /// In en, this message translates to:
+  /// **'No new date'**
+  String get daybookSendBackNoNewDate;
+
+  /// A send-back line on the card, after the reason (F62): "Photo missing · new date Thu 23 Oct".
+  ///
+  /// In en, this message translates to:
+  /// **'new date {date}'**
+  String daybookLineNewDate(String date);
+
+  /// A send-back line on the card, after the reason, when the author chose No new date (F62).
+  ///
+  /// In en, this message translates to:
+  /// **'no new date'**
+  String get daybookLineNoNewDate;
+
+  /// Needs you, the author's row for a work item signed as done (F62): never red, no due.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {time} · waiting for your check'**
+  String needsDoneWaiting(String time);
 }
 
 class _AppLocalizationsDelegate

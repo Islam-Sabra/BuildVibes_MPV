@@ -128,7 +128,7 @@ void main() {
       final masthead = tester.widget<BvDaybookMasthead>(
         find.byType(BvDaybookMasthead),
       );
-      expect(masthead.weekday, words.weekday(DateTime(2026, 10, 15)));
+      expect(masthead.weekday, l10n.daybookTodayDivider);
       expect(masthead.onTap, isNull);
       // A work item first; the chip opens the kind menu (E6, slice 2).
       expect(find.byKey(const Key('writing-kind-chip')), findsOneWidget);

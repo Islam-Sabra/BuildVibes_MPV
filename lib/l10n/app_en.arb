@@ -5390,5 +5390,60 @@
   "daybookEveryone": "Everyone",
   "@daybookEveryone": {
     "description": "Writing card and its To menu: the whole Space (F56)."
+  },
+  "daybookMastheadToday": "· {date}",
+  "@daybookMastheadToday": {
+    "description": "The masthead at Now, after the bold word Today (review 50 F59): \"Today · Wednesday 21 October\".",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookNothingYetToday": "Nothing yet today",
+  "@daybookNothingYetToday": {
+    "description": "Under the Today divider when nothing has been posted today (F59)."
+  },
+  "daybookSendBackNewDate": "New date",
+  "@daybookSendBackNewDate": {
+    "description": "Send-back sheet (review 50 F62): the label over the new date's one choice, nothing chosen first."
+  },
+  "daybookSendBackToday": "Today",
+  "@daybookSendBackToday": {
+    "description": "Send-back sheet, new date: today."
+  },
+  "daybookSendBackTomorrow": "Tomorrow",
+  "@daybookSendBackTomorrow": {
+    "description": "Send-back sheet, new date: tomorrow."
+  },
+  "daybookSendBackPickDate": "Pick a date",
+  "@daybookSendBackPickDate": {
+    "description": "Send-back sheet, new date: opens the day picker; then shows the day picked."
+  },
+  "daybookSendBackNoNewDate": "No new date",
+  "@daybookSendBackNoNewDate": {
+    "description": "Send-back sheet, new date: none; the old due isn't shown again."
+  },
+  "daybookLineNewDate": "new date {date}",
+  "@daybookLineNewDate": {
+    "description": "A send-back line on the card, after the reason (F62): \"Photo missing · new date Thu 23 Oct\".",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineNoNewDate": "no new date",
+  "@daybookLineNoNewDate": {
+    "description": "A send-back line on the card, after the reason, when the author chose No new date (F62)."
+  },
+  "needsDoneWaiting": "Done {time} · waiting for your check",
+  "@needsDoneWaiting": {
+    "description": "Needs you, the author's row for a work item signed as done (F62): never red, no due.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

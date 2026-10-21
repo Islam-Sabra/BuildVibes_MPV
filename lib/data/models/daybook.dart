@@ -81,6 +81,22 @@ class DaybookDueEdit {
   bool get removed => from != null && to == null;
 }
 
+/// A send-back's new due (migration 33, review 50 F62): [day] is null for
+/// "No new date".
+@immutable
+class DaybookNewDue {
+  const DaybookNewDue({this.day, this.at});
+
+  /// A send-back line's `new_due`, or null when no new date was chosen
+  /// (builds before migration 33).
+  static DaybookNewDue? fromJson(Object? value) => value is Map<String, dynamic>
+      ? DaybookNewDue(day: _day(value['date']), at: _time(value['at']))
+      : null;
+
+  final DateTime? day;
+  final DateTime? at;
+}
+
 /// A Library file on a work item's card ("M-201 Rev C").
 @immutable
 class DaybookAttachment {
@@ -679,6 +695,7 @@ class DaybookEvent {
     this.fromName,
     this.toName,
     this.dueEdit,
+    this.newDue,
     this.pointId,
     this.point,
     this.pinOnly = false,
@@ -698,6 +715,7 @@ class DaybookEvent {
     dueEdit: DaybookDueEdit.fromChanges(
       json['changes'] as Map<String, dynamic>?,
     ),
+    newDue: DaybookNewDue.fromJson(json['new_due']),
     pointId: json['point_id'] as String?,
     point: json['point'] as String?,
     pinOnly: _pinOnly(json['changes']),
@@ -726,6 +744,9 @@ class DaybookEvent {
 
   /// An edit that moved the due.
   final DaybookDueEdit? dueEdit;
+
+  /// A send-back's new due, when one was chosen.
+  final DaybookNewDue? newDue;
 
   /// An edit that only pinned or unpinned an announcement (F44): it
   /// doesn't move the card to Now, though the server counts it as

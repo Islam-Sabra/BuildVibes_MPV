@@ -10,6 +10,7 @@ import 'package:buildvibes/shared/widgets/bv_faces.dart';
 import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
+import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -491,7 +492,14 @@ void main() {
         expect(
           tester.getTopLeft(_card(DaybookSamples.siteWalkId)).dy,
           greaterThan(
-            tester.getTopLeft(find.text(l10n.daybookTodayDivider)).dy,
+            tester
+                .getTopLeft(
+                  find.descendant(
+                    of: find.byType(BvDayDivider),
+                    matching: find.text(l10n.daybookTodayDivider),
+                  ),
+                )
+                .dy,
           ),
         );
       });
