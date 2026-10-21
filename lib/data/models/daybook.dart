@@ -344,6 +344,7 @@ class DaybookPost {
     this.myAckAt = const {},
     this.editedAt,
     this.quote,
+    this.hasPage = false,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -399,6 +400,7 @@ class DaybookPost {
       },
       editedAt: _time(json['edited_at']),
       quote: DaybookQuote.fromJson(json['quote']),
+      hasPage: json['has_page'] as bool? ?? false,
     );
   }
 
@@ -487,6 +489,9 @@ class DaybookPost {
   /// The message it was made from, quoted (review 64).
   final DaybookQuote? quote;
 
+  /// Its page holds blocks (slice 5): the card says "Open the page ›".
+  final bool hasPage;
+
   bool get isNote => kind == noteKind;
   bool get isWorkItem => kind == workItemKind;
   bool get isChecklist => kind == checklistKind;
@@ -552,6 +557,8 @@ class DaybookPost {
     myAcks: myAcks ?? this.myAcks,
     myAckAt: myAckAt,
     editedAt: editedAt,
+    quote: quote,
+    hasPage: hasPage,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
