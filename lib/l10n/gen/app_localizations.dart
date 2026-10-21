@@ -4778,6 +4778,12 @@ abstract class AppLocalizations {
   /// **'To do:'**
   String get daybookToDo;
 
+  /// Title of the sheet the To do strip opens (review 73 A1): every item still yours to do, oldest first.
+  ///
+  /// In en, this message translates to:
+  /// **'To do'**
+  String get daybookToDoSheet;
+
   /// Slip chip: checklist points on a work item.
   ///
   /// In en, this message translates to:

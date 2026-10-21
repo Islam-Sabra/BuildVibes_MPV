@@ -907,6 +907,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       for (final i in dueToday)
         if (!signed.contains(i.postId) && (onPage[i.postId]?.isOpen ?? true)) i,
     ];
+    final strip = [
+      for (final i in due) (day: words.stripDay(i.day, now), title: i.title),
+    ];
     if (_target != null && page.hasValue && !_revealing) {
       WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_reveal()));
     }
@@ -976,11 +979,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             ),
             if (due.isNotEmpty && !_writing)
               BvDueTodayStrip(
+                key: const Key('to-do-strip'),
                 label: l10n.daybookToDo,
-                items: [
-                  for (final i in due)
-                    (day: words.stripDay(i.day, now), title: i.title),
-                ],
+                items: strip,
+                // Review 73 A1: every item, each opening its card.
+                onTap: () => showBvToDoSheet(
+                  context,
+                  title: l10n.daybookToDoSheet,
+                  items: strip,
+                  onOpen: (n) {
+                    if (!mounted) return;
+                    setState(() => _target = DaybookTarget(due[n].postId));
+                  },
+                ),
               ),
             // Pinned announcements stay under the masthead while pinned
             // (K1 v13), whatever their last activity.

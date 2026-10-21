@@ -1,6 +1,7 @@
 // The daybook in v13 (review 53 Part B): one full-width card per work
 // item, its history inside, traces on earlier days, the reader's one
 // action from needs_me.
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
@@ -12,6 +13,7 @@ import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_due_today_strip.dart';
 import 'package:buildvibes/shared/widgets/bv_first_page.dart';
+import 'package:buildvibes/shared/widgets/bv_list_row.dart';
 import 'package:buildvibes/shared/widgets/bv_month_dropdown.dart';
 import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
@@ -653,6 +655,110 @@ void main() {
       ]);
       expect(find.textContaining('Late'), findsNothing);
       expect(find.textContaining('Signed on Wednesday'), findsNothing);
+    });
+
+    testWidgets('Review 73 A1: a long strip, tapped anywhere, opens the To do '
+        'sheet with every item oldest first, and a row opens its card '
+        '[$lang]', (tester) async {
+      final friday = DaybookSamples.friday;
+      final earlier = [
+        for (var d = 0; d < 5; d++)
+          CalendarWorkItem(
+            postId: 'post-early-$d',
+            spaceId: DaybookSamples.space,
+            title: s.t(
+              'Firestopping around the riser sleeves, block $d',
+              'سد الحريق حول جلب الصاعد، المبنى $d',
+            ),
+            day: DateTime(2026, 10, 10 + d),
+            status: WorkStatus.open,
+          ),
+      ];
+      await _open(
+        tester,
+        lang,
+        posts: s.l1(),
+        me: DaybookSamples.omar,
+        now: friday,
+        calendar: [
+          s.cableTraysDue(),
+          CalendarWorkItem(
+            postId: 'post-sleeves',
+            spaceId: DaybookSamples.space,
+            title: s.sleeves,
+            day: DateTime(2026, 10, 15),
+            status: WorkStatus.open,
+          ),
+          ...earlier.reversed,
+        ],
+      );
+      final inOrder = [
+        for (final i in earlier) (id: i.postId, title: i.title, day: i.day),
+        (id: 'post-sleeves', title: s.sleeves, day: DateTime(2026, 10, 15)),
+        (id: 'post-trays', title: s.cableTraysTitle, day: null),
+      ];
+      // The strip stops at two lines: the last items can't be read there.
+      final line = tester.widget<Text>(
+        find.descendant(
+          of: find.byType(BvDueTodayStrip),
+          matching: find.byType(Text),
+        ),
+      );
+      expect(line.maxLines, 2);
+      expect(line.overflow, TextOverflow.ellipsis);
+
+      // Tapped at its end, away from the words' start.
+      await tester.tapAt(
+        tester.getRect(find.byType(BvDueTodayStrip)).centerRight -
+            const Offset(4, 0),
+      );
+      await tester.pumpAndSettle();
+      final sheet = find.byKey(const Key('to-do-sheet'));
+      expect(sheet, findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('bv-sheet')),
+          matching: find.text(l10n.daybookToDoSheet),
+        ),
+        findsOneWidget,
+      );
+      // No count, no "+ more".
+      expect(find.textContaining('+'), findsNothing);
+      final rows = tester
+          .widgetList<BvListRow>(
+            find.descendant(of: sheet, matching: find.byType(BvListRow)),
+          )
+          .toList();
+      expect(rows.map((r) => r.title), [for (final i in inOrder) i.title]);
+      expect(rows.map((r) => r.subtitle), [
+        for (final i in inOrder)
+          i.day == null ? null : words.stripDay(i.day!, friday),
+      ]);
+      // An earlier day in grey, as on the strip.
+      final day = words.stripDay(DateTime(2026, 10, 15), friday)!;
+      final dayText = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(const Key('to-do-row-5')),
+          matching: find.text(day),
+        ),
+      );
+      expect(dayText.style?.color, BvColors.textSecondary);
+
+      // A row closes the sheet and opens its card, highlighted.
+      final row = find.byKey(const Key('to-do-row-5'));
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      await tester.tap(row);
+      final ring = find.descendant(
+        of: find.byKey(const Key('daybook-card-post-sleeves')),
+        matching: find.byKey(const Key('bv-highlight-ring')),
+      );
+      for (var i = 0; i < 20 && ring.evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(ring, findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(sheet, findsNothing);
     });
 
     testWidgets('V1: a Viewer reads only: no clips, no actions, the pass '

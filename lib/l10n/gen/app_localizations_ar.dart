@@ -2821,6 +2821,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookToDo => 'مطلوب منك:';
 
   @override
+  String get daybookToDoSheet => 'مطلوب منك';
+
+  @override
   String daybookPoints(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,

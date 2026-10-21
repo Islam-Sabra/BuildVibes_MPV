@@ -912,6 +912,59 @@ void main() {
       );
     });
 
+    // Review 73 A1: the whole strip opens every item.
+    testWidgets('A1 the To do sheet from a long strip [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'A1-to-do-sheet',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.friday,
+          me: DaybookSamples.omar,
+          posts: s.l1(),
+          calendar: [
+            CalendarWorkItem(
+              postId: 'post-rebar-spacers',
+              spaceId: DaybookSamples.space,
+              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
+              day: DateTime(2026, 10, 11),
+              status: WorkStatus.open,
+            ),
+            CalendarWorkItem(
+              postId: 'post-socket',
+              spaceId: DaybookSamples.space,
+              title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
+              day: DateTime(2026, 10, 12),
+              status: WorkStatus.open,
+            ),
+            CalendarWorkItem(
+              postId: 'post-firestop',
+              spaceId: DaybookSamples.space,
+              title: s.t(
+                'Firestopping around the riser sleeves',
+                'سد الحريق حول جلب الصاعد',
+              ),
+              day: DateTime(2026, 10, 14),
+              status: WorkStatus.open,
+            ),
+            CalendarWorkItem(
+              postId: 'post-sleeves',
+              spaceId: DaybookSamples.space,
+              title: s.sleeves,
+              day: DateTime(2026, 10, 15),
+              status: WorkStatus.open,
+            ),
+            s.cableTraysDue(),
+          ],
+        ),
+        before: (tester) => _tap(tester, find.byKey(const Key('to-do-strip'))),
+      );
+    });
+
     testWidgets('F62 the send-back sheet with the new date [$lang]', (
       tester,
     ) async {
