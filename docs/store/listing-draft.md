@@ -1,6 +1,6 @@
 # Store listing — draft (21 Oct 2026)
 
-For the App Store and Google Play submission (13–19 Dec). For the founder and the lead to approve. Positioning (rules.md): the whole AECO industry, never "site".
+For the App Store and Google Play submission (13–19 Dec). For the founder and the lead to approve. Positioning (rules.md, D3): "construction" / «البناء» as the umbrella word in text people read, never "site"; "AECO" only in the keywords.
 
 Rules kept:
 - no numbers as proof (no "10,000 engineers", no ratings, no "most popular"; rule 3);
@@ -59,7 +59,7 @@ BuildVibes هو المكان الذي يعمل فيه قطاع العمارة و
 
 **إثبات يخصك**
 - العمل الذي تم التحقق منه وأُغلق يمكن أن يظهر في ملفك، إذا اخترت ذلك.
-- يظهر العنوان والصورة والمكان ومن تحقق منه فقط. النقاش والملفات والمساحة تبقى خاصة.
+- يظهر العنوان والصورة والمكان المكتوب على بند العمل ومن تحقق منه فقط. النقاش والملفات والمساحة تبقى خاصة.
 
 **مصمم للعمل الحقيقي**
 - العربية والإنجليزية، من اليمين إلى اليسار.
@@ -113,4 +113,4 @@ Taken from `docs/legal/privacy-draft-en.md`. Change both together.
 ## What the founder still needs to provide
 - A support web page and the privacy policy's URL (after the lawyer).
 - Screenshots: 6.7" iPhone and an Android phone, in English and Arabic. Re-shoot them on the PC from the screen tests.
-- A demo account for the store reviewers, with an email code they can use.
+- The store reviewers' sign-in (D4): one reviewer account with a fixed code, through the `review-sign-in` Edge Function (branch `claude/store-reviewer`), in the demo Space. Review notes: "Email: [reviewer address]. Code: [6 digits]. Sign in, then open the Space ‘Demo — Tower A’."
