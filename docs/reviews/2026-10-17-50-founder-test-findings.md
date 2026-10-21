@@ -620,3 +620,20 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **Name:** **"To do"** / **«مطلوب منك»**. It's what is still yours to do, today or from earlier days.
   - **Colours:** the label and the item titles in the action colour; the day names ("Sun", "Mon") in **grey** (F57: an earlier day is never a warning). Today's items carry no day.
   - It still lists the oldest first, wraps to at most two lines, and ends with "+ more ›" if it overflows. "More" here is not a number.
+
+## F62. A due date belongs to whoever must act next (founder ok, 21 Oct)
+- **The founder's point:** once Omar has signed as done, the old due is unfair to him if it's still shown while the item waits for the check. After a send-back, the old due is stale: the real time to finish depends on the site, a delivery, logistics or the design office.
+- **Rule, by stage:**
+  - **Open:** "By Tue 8:06". It turns the action colour once passed, for the owner and the author only (F57).
+  - **Done, waiting for the check:** **no due on the card.** The author's Needs you row reads "Done 10:21 · waiting for your check" / «منجز 10:21 · بانتظار تحققك», never red.
+  - **Sent back:** the send-back sheet adds one single choice (rule 6), with **nothing preselected**: **Today · Tomorrow · Pick a date · No new date** / **اليوم · غدًا · اختر تاريخًا · بلا موعد جديد**.
+    - With a date, the card shows the **new** due. The history line reads "Islam Ahmed · Send back: Photo missing · new date Thu 23 Oct" / «إسلام أحمد · إرجاع: الصورة ناقصة · موعد جديد الخميس 23 أكتوبر».
+    - With "No new date", the old due is **not** shown again. The item sits in the owner's **To do** strip (F61) as "sent back", with no date.
+  - **Checked:** no date. No lateness is recorded anywhere (F57).
+- **When things change before Done:** the owner adds an update (it exists), and the author moves the due (edit exists, with its history line). The pilot gets no "ask for more time" button.
+- **Server (in the next migration, with its own review):**
+  - `send_back` takes an optional new due (`p_due_at`, or `p_due` for a date only), set in the same transaction as the event;
+  - the event carries the new due, so the history line can show it;
+  - only the author (or `acts_for_author`) may set it, as for an edit.
+  - **Tests:** a send-back with and without a new date; the card's due after each; a non-author can't set it.
+- **App:** the sheet's new row; the card hides the due while Done; the Needs you wording for the author.
