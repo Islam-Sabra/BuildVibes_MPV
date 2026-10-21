@@ -598,7 +598,7 @@ void main() {
       // F57: no "Late" line; a passed due is a reminder on the facts line.
       expect(find.textContaining('Late'), findsNothing);
       expect(
-        find.text(l10n.daybookDueTodayStrip(s.cableTraysTitle)),
+        find.text('${l10n.daybookToDo} ${s.cableTraysTitle}'),
         findsOneWidget,
       );
       expect(find.byType(BvDueTodayStrip), findsOneWidget);
@@ -641,14 +641,15 @@ void main() {
         ],
       );
       final day = words.stripDay(wednesday, DaybookSamples.friday)!;
-      final text = l10n.daybookDueTodayStrip(
-        '${l10n.daybookDueStripEarlier(day, rebar)} · ${s.cableTraysTitle}',
-      );
+      final text = '${l10n.daybookToDo} $day $rebar · ${s.cableTraysTitle}';
       expect(find.text(text), findsOneWidget);
       final strip = tester.widget<BvDueTodayStrip>(
         find.byType(BvDueTodayStrip),
       );
-      expect(strip.quiet, [day]);
+      expect(strip.items, [
+        (day: day, title: rebar),
+        (day: null, title: s.cableTraysTitle),
+      ]);
       expect(find.textContaining('Late'), findsNothing);
       expect(find.textContaining('Signed on Wednesday'), findsNothing);
     });

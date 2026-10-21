@@ -2826,9 +2826,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String daybookDueTodayStrip(String titles) {
-    return 'Due today: $titles';
-  }
+  String get daybookToDo => 'To do:';
 
   @override
   String daybookPoints(int n) {
@@ -3727,9 +3725,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookEveryone => 'Everyone';
-
-  @override
-  String daybookDueStripEarlier(String day, String title) {
-    return '$day $title';
-  }
 }

@@ -4021,14 +4021,9 @@
       }
     }
   },
-  "daybookDueTodayStrip": "Due today: {titles}",
-  "@daybookDueTodayStrip": {
-    "description": "Strip under the masthead (L1): items due today for you or by you.",
-    "placeholders": {
-      "titles": {
-        "type": "String"
-      }
-    }
+  "daybookToDo": "To do:",
+  "@daybookToDo": {
+    "description": "The strip under the masthead (L1, review 50 F61): what is still yours to do, today or from earlier days. The titles follow."
   },
   "daybookPoints": "{n, plural, =1{1 point} other{{n} points}}",
   "@daybookPoints": {
@@ -5395,17 +5390,5 @@
   "daybookEveryone": "Everyone",
   "@daybookEveryone": {
     "description": "Writing card and its To menu: the whole Space (F56)."
-  },
-  "daybookDueStripEarlier": "{day} {title}",
-  "@daybookDueStripEarlier": {
-    "description": "Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.",
-    "placeholders": {
-      "day": {
-        "type": "String"
-      },
-      "title": {
-        "type": "String"
-      }
-    }
   }
 }

@@ -4772,11 +4772,11 @@ abstract class AppLocalizations {
   /// **'was due today {time}'**
   String daybookWasDueTodayAt(String time);
 
-  /// Strip under the masthead (L1): items due today for you or by you.
+  /// The strip under the masthead (L1, review 50 F61): what is still yours to do, today or from earlier days. The titles follow.
   ///
   /// In en, this message translates to:
-  /// **'Due today: {titles}'**
-  String daybookDueTodayStrip(String titles);
+  /// **'To do:'**
+  String get daybookToDo;
 
   /// Slip chip: checklist points on a work item.
   ///
@@ -6295,12 +6295,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Everyone'**
   String get daybookEveryone;
-
-  /// Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.
-  ///
-  /// In en, this message translates to:
-  /// **'{day} {title}'**
-  String daybookDueStripEarlier(String day, String title);
 }
 
 class _AppLocalizationsDelegate

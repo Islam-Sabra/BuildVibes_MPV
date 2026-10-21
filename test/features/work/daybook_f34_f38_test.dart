@@ -190,7 +190,7 @@ void main() {
       testWidgets('open: on the strip [$lang]', (tester) async {
         await _open(tester, lang, posts: [s.cableTrays()]);
         expect(
-          find.text(l10n.daybookDueTodayStrip(s.cableTraysTitle)),
+          find.text('${l10n.daybookToDo} ${s.cableTraysTitle}'),
           findsOneWidget,
         );
       });

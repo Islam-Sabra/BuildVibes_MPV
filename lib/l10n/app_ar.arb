@@ -779,7 +779,7 @@
   "daybookWasDue": "كان موعده {date}",
   "daybookWasDueAt": "كان موعده الساعة {time} يوم {date}",
   "daybookWasDueTodayAt": "كان موعده الساعة {time} اليوم",
-  "daybookDueTodayStrip": "مستحق اليوم: {titles}",
+  "daybookToDo": "مطلوب منك:",
   "daybookPoints": "{n, plural, =1{نقطة واحدة} =2{نقطتان} few{{n} نقاط} many{{n} نقطة} other{{n} نقطة}}",
   "daybookToday": "اليوم",
   "daybookTomorrow": "غدًا",
@@ -1032,6 +1032,5 @@
   "daybookChooseWho": "اختر لمن",
   "daybookPostAsNote": "للعلم فقط؟ انشرها كملاحظة",
   "daybookToAudience": "إلى: {audience}{more}",
-  "daybookEveryone": "الجميع",
-  "daybookDueStripEarlier": "{day} {title}"
+  "daybookEveryone": "الجميع"
 }

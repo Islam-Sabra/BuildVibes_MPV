@@ -144,8 +144,6 @@ void main() {
     expect(en.stripDay(DateTime(2026, 10, 16), fri), isNull);
     expect(en.stripDay(DateTime(2026, 10, 14), fri), 'Wed');
     expect(en.stripDay(DateTime(2026, 10, 5), fri), 'Mon 5 Oct');
-    expect(en.stripItem('Rebar', DateTime(2026, 10, 14), fri), 'Wed Rebar');
-    expect(en.stripItem('Rebar', DateTime(2026, 10, 16), fri), 'Rebar');
   });
 
   group('review 45 B2: every due pattern, in Arabic and English', () {

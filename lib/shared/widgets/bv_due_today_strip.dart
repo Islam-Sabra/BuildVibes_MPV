@@ -3,19 +3,29 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_days_specs.dart';
-import 'bv_marked_text.dart';
 
-/// The strip under the Daybook's masthead naming what is due today for you
-/// or by you (L1 2539:34715): brand-soft, a calendar and the words in the
-/// action colour. F57: [quiet] parts (an earlier day, "Mon") are grey.
+/// One item on the To do strip: its title, after its day when it was due
+/// on an earlier day ("Mon"; null for today).
+typedef BvStripItem = ({String? day, String title});
+
+/// The To do strip under the Daybook's masthead (L1 2539:34715; review 50
+/// F61): what is still yours to do, today or from earlier days, oldest
+/// first. Brand-soft, a calendar, the label and the titles in the action
+/// colour; an earlier day in grey (F57: never a warning).
 class BvDueTodayStrip extends StatelessWidget {
-  const BvDueTodayStrip(this.text, {super.key, this.quiet = const []});
+  const BvDueTodayStrip({super.key, required this.label, required this.items});
 
-  /// "Due today: Cable tray hangers, level 4".
-  final String text;
+  /// "To do:".
+  final String label;
+  final List<BvStripItem> items;
 
-  /// The parts of [text] in grey, in order.
-  final List<String> quiet;
+  /// The strip's words as one line: "To do: Mon Rebar · Cable trays".
+  String get text => [
+    label,
+    items
+        .map((i) => i.day == null ? i.title : '${i.day} ${i.title}')
+        .join(' · '),
+  ].join(' ');
 
   @override
   Widget build(BuildContext context) => ColoredBox(
@@ -44,9 +54,17 @@ class BvDueTodayStrip extends StatelessWidget {
                 final grey = style.copyWith(color: BvColors.textSecondary);
                 return Text.rich(
                   TextSpan(
-                    children: bvMarkedSpans(text, style, [
-                      for (final q in quiet) (part: q, style: grey),
-                    ]),
+                    children: [
+                      TextSpan(text: '$label '),
+                      for (final (n, i) in items.indexed) ...[
+                        if (n > 0) const TextSpan(text: ' · '),
+                        if (i.day != null) ...[
+                          TextSpan(text: i.day, style: grey),
+                          const TextSpan(text: ' '),
+                        ],
+                        TextSpan(text: i.title),
+                      ],
+                    ],
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

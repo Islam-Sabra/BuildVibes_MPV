@@ -1301,11 +1301,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
           selected: kind,
           items: [
             for (final k in DaybookKind.values)
-              BvMenuItem(
-                value: k,
-                label: kindName(l10n, k),
-                icon: kindIcon(k),
-              ),
+              BvMenuItem(value: k, label: kindName(l10n, k), icon: kindIcon(k)),
           ],
           onSelected: (k) async {
             await _writer.setKind(k);
