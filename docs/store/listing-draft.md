@@ -20,7 +20,7 @@ The app name stays Latin in Arabic too, as the brand.
 ## Long description
 
 ### English
-BuildVibes is where the AECO industry works and shows its work: architects, engineers, BIM staff, contractors, foremen, trades, suppliers and labour.
+BuildVibes is where the construction industry works and shows its work: architects, engineers, BIM staff, contractors, foremen, trades, suppliers and labour.
 
 **Run your team's work in a Space**
 - Write a work item in place, give it to someone, and set a date.
@@ -31,7 +31,7 @@ BuildVibes is where the AECO industry works and shows its work: architects, engi
 
 **Proof that is yours**
 - Work that was checked and closed can go on your profile, if you choose.
-- Only the title, a photo, the place and who checked it are shown. The discussion, the files and the Space stay private.
+- Only the title, a photo, the place typed on the work item and who checked it are shown. The discussion, the files and the Space stay private.
 
 **Made for real work**
 - Arabic and English, right to left.
@@ -77,8 +77,6 @@ BuildVibes هو المكان الذي يعمل فيه قطاع العمارة و
 
 **[Founder]** "Free during the pilot" is for the December submission. Remove it, in both languages, before any public launch.
 
-**[Lead]** Check the Arabic against `arabic-glossary.md` and the app's strings before it is final (e.g. the app's words for "daybook", "My notebook" and "My calendar").
-
 ## Apple keywords (100 characters, comma separated, no spaces)
 - **EN:** `AECO,construction,engineering,BIM,architect,contractor,foreman,work items,checklist,daily report`
 - **AR:** `بناء,هندسة,مقاولات,مشاريع,BIM,معماري,مقاول,بند عمل,قائمة تحقق,تقرير يومي,إثبات`
@@ -115,4 +113,4 @@ Taken from `docs/legal/privacy-draft-en.md`. Change both together.
 ## What the founder still needs to provide
 - A support web page and the privacy policy's URL (after the lawyer).
 - Screenshots: 6.7" iPhone and an Android phone, in English and Arabic. Re-shoot them on the PC from the screen tests.
-- A demo account for the store reviewers, with an email code they can use. **[Lead]** How do reviewers sign in when there's no password? A reviewer test account with a fixed code, on the live project, needs the founder's yes.
+- A demo account for the store reviewers, with an email code they can use.
