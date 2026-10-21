@@ -5763,10 +5763,6 @@
   "@pageUseNewer": {
     "description": "N2: after a newer page: drop this phone's edit."
   },
-  "pageWaiting": "Waiting to send",
-  "@pageWaiting": {
-    "description": "N2: the page saved on the phone while there is no signal."
-  },
   "pageFull": "A page holds up to 10 photos and files.",
   "@pageFull": {
     "description": "N3: no more photos or files on this post."

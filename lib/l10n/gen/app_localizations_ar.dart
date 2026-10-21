@@ -3989,9 +3989,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pageUseNewer => 'استخدم الأحدث';
 
   @override
-  String get pageWaiting => 'بانتظار الإرسال';
-
-  @override
   String get pageFull => 'تتسع الصفحة لعشر صور وملفات على الأكثر.';
 
   @override

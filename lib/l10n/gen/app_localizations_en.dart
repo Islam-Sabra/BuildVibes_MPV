@@ -3984,9 +3984,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pageUseNewer => 'Use the newer one';
 
   @override
-  String get pageWaiting => 'Waiting to send';
-
-  @override
   String get pageFull => 'A page holds up to 10 photos and files.';
 
   @override

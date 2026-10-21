@@ -1061,6 +1061,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
             child: Semantics(
               button: true,
               label: l10n.pageMove,
+              hint: l10n.pageBlockMenu,
               child: GestureDetector(
                 key: Key('page-handle-${b.id}'),
                 behavior: HitTestBehavior.opaque,

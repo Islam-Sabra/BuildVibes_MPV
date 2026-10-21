@@ -6728,12 +6728,6 @@ abstract class AppLocalizations {
   /// **'Use the newer one'**
   String get pageUseNewer;
 
-  /// N2: the page saved on the phone while there is no signal.
-  ///
-  /// In en, this message translates to:
-  /// **'Waiting to send'**
-  String get pageWaiting;
-
   /// N3: no more photos or files on this post.
   ///
   /// In en, this message translates to:
