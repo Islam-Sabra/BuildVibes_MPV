@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -101,6 +102,27 @@ List<int> _u32(int v, Endian order) {
   return d.buffer.asUint8List();
 }
 
+/// A real JPEG (made with Pillow): orientation 6, the time taken, a GPS
+/// position, and the phone's make, model, owner, artist and serial numbers.
+const _phoneJpeg =
+    '/9j/4AAQSkZJRgABAQAAAQABAAD/4QEcRXhpZgAATU0AKgAAAAgABgEPAAIAAAAHAAAAVgEQAAIA'
+    'AAALAAAAXgESAAMAAAABAAYAAAE7AAIAAAAMAAAAaodpAAQAAAABAAAAdoglAAQAAAABAAAA3gAA'
+    'AABYaWFvbWkAADIyMTIwUk44NkcAAE9tYXIgSGFkZGFkAAAEkAMAAgAAABQAAACspDAAAgAAAAUA'
+    'AADApDEAAgAAAAsAAADGpDUAAgAAAAsAAADSAAAAADIwMjY6MTA6MjEgMDk6MDA6MDAAT21hcgAA'
+    'U04xMjM0NTY3OAAATEVOUzk5ODg3NwAAAAIAAQACAAAAAk4AAAAAAgAFAAAAAwAAAPwAAAAAAAAA'
+    'HQAAAAEAAAAWAAAAAQAAAmkAAAAy/9sAQwANCQoLCggNCwoLDg4NDxMgFRMSEhMnHB4XIC4pMTAu'
+    'KS0sMzpKPjM2RjcsLUBXQUZMTlJTUjI+WmFaUGBKUVJP/9sAQwEODg4TERMmFRUmTzUtNU9PT09P'
+    'T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09P/8AAEQgABgAIAwEi'
+    'AAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQE'
+    'AAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2'
+    'Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Sl'
+    'pqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8B'
+    'AAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUh'
+    'MQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJ'
+    'SlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2'
+    't7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8Ay6KK'
+    'K4T6s//Z';
+
 void main() {
   group('JPEG', () {
     for (final order in [Endian.little, Endian.big]) {
@@ -162,6 +184,45 @@ void main() {
         isNull,
       );
     });
+  });
+
+  test('the phone\'s identity goes too; orientation and time stay (F60)', () {
+    final before = base64Decode(_phoneJpeg);
+    for (final word in [
+      'Xiaomi',
+      '22120RN86G',
+      'SN12345678',
+      'LENS998877',
+      'Omar Haddad',
+    ]) {
+      expect(_has(before, word.codeUnits), isTrue, reason: word);
+    }
+    final after = withoutLocation(before)!;
+    for (final word in [
+      'Xiaomi',
+      '22120RN86G',
+      'SN12345678',
+      'LENS998877',
+      'Omar Haddad',
+    ]) {
+      expect(_has(after, word.codeUnits), isFalse, reason: word);
+    }
+    expect(
+      _has(after, '2026:10:21 09:00:00'.codeUnits),
+      isTrue,
+      reason: 'the time taken stays',
+    );
+    // Orientation 6: tag 0x0112, SHORT, count 1, value 6 (Motorola order).
+    expect(
+      _has(after, [0x01, 0x12, 0x00, 0x03, 0, 0, 0, 0x01, 0x00, 0x06]),
+      isTrue,
+    );
+    expect(after.length, before.length, reason: 'only values are emptied');
+    expect(
+      withoutLocation(after),
+      isNull,
+      reason: 'a second pass changes nothing',
+    );
   });
 
   test('PNG: the eXIf chunk and XMP go, the rest stays', () {

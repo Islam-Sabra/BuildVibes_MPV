@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/daybook_loop_specs.dart' show BvFieldSheetSpec;
 import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
+import '../../core/haptics.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
@@ -31,7 +32,7 @@ import 'daybook_marks.dart';
 import 'daybook_photos.dart';
 import 'daybook_state.dart';
 import 'daybook_words.dart';
-import 'daybook_writing.dart' show assignablePeople;
+import 'daybook_writing.dart' show assignablePeople, pickDueProvider;
 import 'proof_camera.dart';
 import 'work_outbox.dart';
 
@@ -385,7 +386,7 @@ class DaybookLoop {
   /// answer 4); Undo takes it back before anything reaches the server.
   Future<void> check(BuildContext context, DaybookCard card) async {
     final l10n = AppLocalizations.of(context);
-    unawaited(HapticFeedback.heavyImpact());
+    unawaited(bvHaptic(BvHaptic.strong));
     final outbox = ref.read(workOutboxProvider.notifier);
     final post = card.post;
     await outbox.hold(
@@ -516,15 +517,16 @@ class DaybookLoop {
   ) async {
     final post = card.post;
     final l10n = AppLocalizations.of(context);
-    final result = await showBvFieldSheet<(SendBackReason, String?)>(
-      context: context,
-      title: l10n.daybookSendBackTo(
-        personFirstName(l10n, card.proof?.byName ?? post.item?.ownerName),
-      ),
-      builder: (_) => DaybookSendBack(
-        quote: DaybookItemQuote(card: card, localPhoto: localPhoto),
-      ),
-    );
+    final result =
+        await showBvFieldSheet<(SendBackReason, String?, SendBackDue)>(
+          context: context,
+          title: l10n.daybookSendBackTo(
+            personFirstName(l10n, card.proof?.byName ?? post.item?.ownerName),
+          ),
+          builder: (_) => DaybookSendBack(
+            quote: DaybookItemQuote(card: card, localPhoto: localPhoto),
+          ),
+        );
     if (result == null || !context.mounted) return;
     await _call(
       context,
@@ -532,7 +534,7 @@ class DaybookLoop {
       post.id,
       () => ref
           .read(workRepositoryProvider)
-          .sendBack(post.id, result.$1, note: result.$2),
+          .sendBack(post.id, result.$1, note: result.$2, due: result.$3),
     );
   }
 
@@ -683,19 +685,27 @@ class DaybookLoop {
 /// The send-back sheet's state (B2): the item quoted, one reason, an
 /// optional note ("Something else" needs one). Pops with the reason and
 /// the note. No microphone: send_back takes no voice note.
-class DaybookSendBack extends StatefulWidget {
+class DaybookSendBack extends ConsumerStatefulWidget {
   const DaybookSendBack({super.key, required this.quote});
 
   /// The item, in one line.
   final Widget quote;
 
   @override
-  State<DaybookSendBack> createState() => _DaybookSendBackState();
+  ConsumerState<DaybookSendBack> createState() => _DaybookSendBackState();
 }
 
-class _DaybookSendBackState extends State<DaybookSendBack> {
+/// The new date on a send-back (F62, F64): Today, Tomorrow or a picked
+/// day, all optional, nothing chosen first.
+enum _NewDue { today, tomorrow, pick }
+
+class _DaybookSendBackState extends ConsumerState<DaybookSendBack> {
   final _note = TextEditingController();
   SendBackReason? _reason;
+  _NewDue? _due;
+
+  /// The day (and time) picked for [_NewDue.pick].
+  SendBackDue? _picked;
 
   @override
   void dispose() {
@@ -703,9 +713,52 @@ class _DaybookSendBackState extends State<DaybookSendBack> {
     super.dispose();
   }
 
+  /// A date is optional (F64): the reason is enough.
   bool get _ready =>
       _reason != null &&
       (_reason != SendBackReason.other || _note.text.trim().isNotEmpty);
+
+  /// What the server gets: the chosen day, or none.
+  SendBackDue get _newDue {
+    final today = dayOf(ref.read(clockProvider)());
+    return switch (_due) {
+      _NewDue.today => (day: today, at: null),
+      _NewDue.tomorrow => (
+        day: DateTime(today.year, today.month, today.day + 1),
+        at: null,
+      ),
+      _NewDue.pick => _picked!,
+      null => (day: null, at: null),
+    };
+  }
+
+  /// A tap on the chosen chip un-chooses it (F64); a tap on another
+  /// chooses that one.
+  void _tap(_NewDue d) {
+    if (_due == d) {
+      setState(() {
+        _due = null;
+        _picked = null;
+      });
+    } else if (d == _NewDue.pick) {
+      unawaited(_pick());
+    } else {
+      setState(() => _due = d);
+    }
+  }
+
+  Future<void> _pick() async {
+    final picked = await ref.read(pickDueProvider)(
+      context,
+      now: ref.read(clockProvider)(),
+    );
+    // Taking the day off isn't a date: keep what was chosen before.
+    if (!mounted || picked == null || picked.day == null) return;
+    setState(() {
+      _picked = (day: picked.day, at: picked.at);
+      _due = _NewDue.pick;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -714,6 +767,14 @@ class _DaybookSendBackState extends State<DaybookSendBack> {
       l10n,
       Localizations.localeOf(context).toLanguageTag(),
       use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final picked = _picked;
+    BvSendBackDue choice(_NewDue d, String label, {IconData? icon}) => (
+      key: Key('send-back-due-${d.name}'),
+      label: label,
+      icon: icon,
+      selected: _due == d,
+      onTap: () => _tap(d),
     );
     return BvSendBackCard<SendBackReason>.inSheet(
       key: const Key('send-back-card'),
@@ -724,6 +785,18 @@ class _DaybookSendBackState extends State<DaybookSendBack> {
       ],
       selected: _reason,
       onSelected: (r) => setState(() => _reason = r),
+      dueLabel: l10n.daybookSendBackNewDate,
+      dues: [
+        choice(_NewDue.today, l10n.daybookSendBackToday),
+        choice(_NewDue.tomorrow, l10n.daybookSendBackTomorrow),
+        choice(
+          _NewDue.pick,
+          picked?.day == null
+              ? l10n.daybookSendBackPickDate
+              : words.dueProperty(picked!.day!, picked.at),
+          icon: BvIcons.due,
+        ),
+      ],
       noteController: _note,
       notePlaceholder: _reason == SendBackReason.other
           ? l10n.daybookNoteNeeded
@@ -733,7 +806,9 @@ class _DaybookSendBackState extends State<DaybookSendBack> {
       onSend: _ready
           ? () {
               final note = _note.text.trim();
-              Navigator.of(context).pop((_reason!, note.isEmpty ? null : note));
+              Navigator.of(
+                context,
+              ).pop((_reason!, note.isEmpty ? null : note, _newDue));
             }
           : null,
     );

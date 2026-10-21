@@ -7,11 +7,13 @@ import 'package:flutter/foundation.dart';
 //
 // Phones write the GPS position into a photo's metadata. A proof photo
 // can end up on a profile, so it must never say where someone works or
-// lives. The rest of the metadata stays (the orientation, so the photo
-// isn't turned on its side; the time it was taken).
+// lives, nor which phone took it (its make, model and serial numbers can
+// tie every photo to one device; review 50 F60). The rest of the metadata
+// stays (the orientation, so the photo isn't turned on its side; the time
+// it was taken, which the proof needs).
 //
-// - JPEG: the EXIF GPS block is emptied, and XMP (which can repeat the
-//   position) is dropped.
+// - JPEG: the EXIF GPS block and the device tags are emptied, and XMP
+//   (which can repeat the position) is dropped.
 // - PNG: the eXIf chunk and XMP text are dropped.
 // - WebP: the EXIF and XMP chunks are dropped.
 // - Anything else (PDF, sound) is left as it is. The file picker doesn't
@@ -88,7 +90,7 @@ Uint8List? _jpeg(Uint8List b) {
     if (marker == 0xE1 && _ascii(b, body, _exifHeader)) {
       final segment = Uint8List.fromList(b.sublist(i, end));
       final tiff = 4 + _exifHeader.length;
-      final wiped = _wipeGps(segment, tiff);
+      final wiped = _scrubTiff(segment, tiff);
       if (wiped == null) {
         changed = true; // Can't read it: drop the whole block.
       } else {
@@ -108,10 +110,21 @@ Uint8List? _jpeg(Uint8List b) {
   return out.toBytes();
 }
 
-/// Empties the GPS block of the TIFF data at [base] in [s], in place: its
-/// values are zeroed and it is left with no entries. True when there was
-/// one, false when there was none, null when the data can't be read.
-bool? _wipeGps(Uint8List s, int base) {
+/// Tags that tell which phone or person took a photo (review 50 F60):
+/// Make, Model and Artist in the first block.
+const _deviceTags = {0x010F, 0x0110, 0x013B};
+
+/// The same in the EXIF block: CameraOwnerName, BodySerialNumber,
+/// LensSerialNumber, the old OwnerName, and the maker's own notes (which
+/// can carry the serial number too).
+const _exifDeviceTags = {0xA430, 0xA431, 0xA435, 0xFDE8, 0x927C};
+
+/// Takes the place and the phone out of the TIFF data at [base] in [s], in
+/// place. The GPS block is left with no entries and its values zeroed; the
+/// device tags keep their entry with an empty value. Orientation and the
+/// time taken stay. True when something changed, false when there was
+/// nothing to take out, null when the data can't be read.
+bool? _scrubTiff(Uint8List s, int base) {
   if (base + 8 > s.length) return null;
   final Endian order;
   if (s[base] == 0x49 && s[base + 1] == 0x49) {
@@ -126,20 +139,64 @@ bool? _wipeGps(Uint8List s, int base) {
   int u32(int at) => view.getUint32(at, order);
   bool fits(int at, int size) => at >= base && at + size <= s.length;
 
+  // Zeroes [size] bytes at [at]; true when any wasn't zero already.
+  bool zero(int at, int size) {
+    var any = false;
+    for (var i = at; i < at + size; i++) {
+      any |= s[i] != 0;
+    }
+    if (any) s.fillRange(at, at + size, 0);
+    return any;
+  }
+
+  // Empties the values of [tags] in the block at [ifd]. Null when the
+  // block can't be read.
+  bool? empty(int ifd, Set<int> tags) {
+    if (!fits(ifd, 2)) return null;
+    final n = u16(ifd);
+    if (!fits(ifd + 2, n * 12)) return null;
+    var changed = false;
+    for (var e = 0; e < n; e++) {
+      final at = ifd + 2 + e * 12;
+      if (!tags.contains(u16(at))) continue;
+      final size = _typeSize(u16(at + 2)) * u32(at + 4);
+      if (size <= 4) {
+        changed |= zero(at + 8, 4);
+      } else {
+        final value = base + u32(at + 8);
+        if (fits(value, size)) changed |= zero(value, size);
+      }
+    }
+    return changed;
+  }
+
+  int? pointer(int ifd, int tag) {
+    final n = u16(ifd);
+    for (var e = 0; e < n; e++) {
+      final at = ifd + 2 + e * 12;
+      if (u16(at) == tag) return base + u32(at + 8);
+    }
+    return null;
+  }
+
   if (u16(base + 2) != 42) return null;
   final ifd0 = base + u32(base + 4);
-  if (!fits(ifd0, 2)) return null;
-  final entries = u16(ifd0);
-  if (!fits(ifd0 + 2, entries * 12)) return null;
-  int? gps;
-  for (var e = 0; e < entries; e++) {
-    final at = ifd0 + 2 + e * 12;
-    if (u16(at) == 0x8825) gps = base + u32(at + 8);
+  final first = empty(ifd0, _deviceTags);
+  if (first == null) return null;
+  var changed = first;
+
+  final exif = pointer(ifd0, 0x8769);
+  if (exif != null) {
+    final inExif = empty(exif, _exifDeviceTags);
+    if (inExif == null) return null;
+    changed |= inExif;
   }
-  if (gps == null) return false;
+
+  final gps = pointer(ifd0, 0x8825);
+  if (gps == null) return changed;
   if (!fits(gps, 2)) return null;
   final count = u16(gps);
-  if (count == 0) return false;
+  if (count == 0) return changed;
   if (!fits(gps + 2, count * 12 + 4)) return null;
   for (var e = 0; e < count; e++) {
     final at = gps + 2 + e * 12;

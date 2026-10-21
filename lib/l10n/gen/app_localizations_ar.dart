@@ -2819,9 +2819,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String daybookDueTodayStrip(String titles) {
-    return 'مستحق اليوم: $titles';
-  }
+  String get daybookToDo => 'مطلوب منك';
 
   @override
   String daybookPoints(int n) {
@@ -3706,22 +3704,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindDocument => 'مستند للاستلام';
 
   @override
-  String get daybookKindDocumentNote => 'كل شخص يؤكد الاستلام';
-
-  @override
   String get daybookUnpin => 'إلغاء التثبيت';
 
   @override
   String get daybookKindNote => 'ملاحظة';
 
   @override
-  String get daybookKindNoteNote => 'للعلم، لا يلزم أي إجراء';
-
-  @override
   String get daybookKindNoteWord => '· ملاحظة';
 
   @override
   String get daybookForChoose => 'لـ: اختر ›';
+
+  @override
+  String daybookForPersonChoose(String name) {
+    return 'لـ $name ›';
+  }
+
+  @override
+  String get daybookForYouChoose => 'لك ›';
 
   @override
   String get daybookComingChoose => 'من سيحضر: اختر ›';
@@ -3741,8 +3741,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookEveryone => 'الجميع';
 
   @override
-  String daybookDueStripEarlier(String day, String title) {
-    return '$day $title';
+  String daybookMastheadToday(String date) {
+    return '· $date';
+  }
+
+  @override
+  String get daybookNothingYetToday => 'لا شيء بعد اليوم';
+
+  @override
+  String get daybookSendBackNewDate => 'موعد جديد';
+
+  @override
+  String get daybookSendBackToday => 'اليوم';
+
+  @override
+  String get daybookSendBackTomorrow => 'غدًا';
+
+  @override
+  String get daybookSendBackPickDate => 'اختر تاريخًا';
+
+  @override
+  String daybookLineNewDate(String date) {
+    return 'موعد جديد $date';
+  }
+
+  @override
+  String get daybookLineNoNewDate => 'بلا موعد جديد';
+
+  @override
+  String needsDoneWaiting(String time) {
+    return 'منجز $time · بانتظار تحققك';
   }
 
   @override

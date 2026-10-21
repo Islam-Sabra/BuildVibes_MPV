@@ -218,16 +218,19 @@ final daybookMonthProvider = FutureProvider.autoDispose
     );
 
 /// What is still to do in this Space (L1's "Due today" strip, F57): the
-/// open work items mine to sign or written by me, due today or on an
-/// earlier day, oldest first. One signed as done leaves it (F38); a
-/// passed due stays as a reminder, never "late".
+/// open or sent-back work items the reader owns, due today or on an
+/// earlier day, oldest first. One raised for someone else never shows
+/// (F65), and a Done one waiting for my check stays in Needs you. One
+/// signed as done leaves it (F38); a passed due stays as a reminder,
+/// never "late".
 final daybookDueTodayProvider = FutureProvider.autoDispose
     .family<List<CalendarWorkItem>, String>((ref, spaceId) async {
       final now = ref.watch(clockProvider)();
       final items = await ref.watch(daybookRepositoryProvider).dueUpTo(now);
       final open = [
         for (final i in items)
-          if (i.spaceId == spaceId && i.status == WorkStatus.open) i,
+          if (i.spaceId == spaceId && i.status == WorkStatus.open && i.needsMe)
+            i,
       ];
       DateTime at(CalendarWorkItem i) =>
           i.dueAt ?? i.day.add(const Duration(days: 1));

@@ -6,6 +6,9 @@ import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -56,6 +59,9 @@ class MainActivity : FlutterActivity() {
                     "is24Hour" -> result.success(
                         android.text.format.DateFormat.is24HourFormat(this),
                     )
+                    // F67: a tick, or the strong haptic for a check and a
+                    // sign-off, as the phone's own effect.
+                    "haptic" -> result.success(haptic(call.arguments as String))
                     // Settings → About: the installed version and build number
                     // (versionCode, the git commit count; docs/release.md).
                     "buildInfo" -> {
@@ -83,6 +89,35 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    // True when played, false when the phone's Haptic feedback is off (its
+    // choice wins), null when the phone has no such effect (Flutter's
+    // impact plays instead).
+    private fun haptic(kind: String): Boolean? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+        if (Settings.System.getInt(
+                contentResolver,
+                Settings.System.HAPTIC_FEEDBACK_ENABLED,
+                1,
+            ) == 0
+        ) {
+            return false
+        }
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            getSystemService(VibratorManager::class.java).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Vibrator::class.java)
+        }
+        if (vibrator == null || !vibrator.hasVibrator()) return null
+        val effect = if (kind == "strong") {
+            VibrationEffect.EFFECT_HEAVY_CLICK
+        } else {
+            VibrationEffect.EFFECT_TICK
+        }
+        vibrator.vibrate(VibrationEffect.createPredefined(effect))
+        return true
     }
 
     private fun appDetails() = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)

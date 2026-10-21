@@ -317,9 +317,9 @@ void main() {
 
     // F23: the masthead and the dividers.
 
-    testWidgets('F23: two days: scrolled to the older day the masthead names '
-        'it; at Now, today; one divider per day, never the same day twice in '
-        'a row [$lang]', (tester) async {
+    testWidgets('F23, F59: at Now the masthead reads Today; scrolled back it '
+        'names the day at the top, with the Today chip; the chip goes back '
+        '[$lang]', (tester) async {
       DaybookCard on(String id, DateTime at) => s.card(
         s.item(
           id: id,
@@ -350,9 +350,16 @@ void main() {
           )
           .visible;
       final today = DateTime(2026, 10, 15);
-      // At Now: today's cards fill the page.
-      expect(masthead().weekday, words.weekday(today));
+      final todayChip = find.byKey(const Key('daybook-today'));
+      // At Now: Today, then the date.
+      expect(masthead().weekday, l10n.daybookTodayDivider);
+      expect(
+        masthead().date,
+        l10n.daybookMastheadToday(words.compactDate(today)),
+      );
       expect(find.byType(BvDayDivider), findsNWidgets(2));
+      expect(shows(today), isTrue);
+      expect(todayChip, findsNothing);
       // Back to Wednesday.
       await tester.drag(
         find.byKey(const Key('daybook')),
@@ -364,25 +371,68 @@ void main() {
       // Wednesday is in the masthead; its divider doesn't repeat it.
       expect(shows(wednesday), isFalse);
       expect(shows(today), isTrue);
-      // Halfway: the masthead follows the day at the top.
-      final todayDivider = find.byKey(
+      expect(todayChip, findsOneWidget);
+      // The chip goes back to Now and Today.
+      await tester.tap(todayChip);
+      await tester.pumpAndSettle();
+      expect(masthead().weekday, l10n.daybookTodayDivider);
+      expect(todayChip, findsNothing);
+    });
+
+    testWidgets('F59: nothing yet today, yesterday filling the page: the '
+        'masthead still reads Today, above a Today divider and "Nothing yet '
+        'today" [$lang]', (tester) async {
+      await _app(
+        tester,
+        lang,
+        posts: [
+          for (var i = 0; i < 6; i++)
+            s.card(
+              s.item(
+                id: 'post-y$i',
+                at: DateTime(2026, 10, 14, 8 + i),
+                title: 'Item $i',
+                authorId: DaybookSamples.sara,
+                ownerId: DaybookSamples.omar,
+              ),
+            ),
+        ],
+      );
+      _router(tester).push(AppRoutes.space(DaybookSamples.space));
+      await tester.pumpAndSettle();
+      final today = DateTime(2026, 10, 15);
+      final masthead = tester.widget<BvDaybookMasthead>(
+        find.byType(BvDaybookMasthead),
+      );
+      expect(masthead.weekday, l10n.daybookTodayDivider);
+      final divider = find.byKey(
         Key('daybook-divider-${today.toIso8601String()}'),
       );
-      final top = _viewport(tester).top;
-      await tester.drag(
-        find.byKey(const Key('daybook')),
-        Offset(0, top - tester.getTopLeft(todayDivider).dy - 20),
+      expect(tester.widget<Visibility>(divider).visible, isTrue);
+      // Yesterday keeps its divider: the masthead says Today.
+      expect(
+        tester
+            .widget<Visibility>(
+              find.byKey(
+                Key(
+                  'daybook-divider-${DateTime(2026, 10, 14).toIso8601String()}',
+                ),
+              ),
+            )
+            .visible,
+        isTrue,
       );
-      await tester.pumpAndSettle();
-      expect(masthead().weekday, words.weekday(today));
-      expect(shows(today), isFalse);
-      // Back at Now.
-      await tester.drag(
-        find.byKey(const Key('daybook')),
-        const Offset(0, -6000),
+      final nothing = find.byKey(const Key('daybook-nothing-today'));
+      expect(find.text(l10n.daybookNothingYetToday), findsOneWidget);
+      // Yesterday's cards sit above the divider; the line under it.
+      expect(
+        tester.getBottomLeft(_card('post-y5')).dy,
+        lessThan(tester.getTopLeft(divider).dy),
       );
-      await tester.pumpAndSettle();
-      expect(masthead().weekday, words.weekday(today));
+      expect(
+        tester.getTopLeft(nothing).dy,
+        greaterThan(tester.getBottomLeft(divider).dy),
+      );
     });
 
     // F24: the keyboard.
@@ -449,6 +499,9 @@ void main() {
       await menu(tester, 'post-sleeves', l10n.daybookSendBack);
       await tester.tap(find.text(l10n.daybookReasonOther));
       await tester.pumpAndSettle();
+      // With the new date's choice above the note (F62).
+      await tester.tap(find.byKey(const Key('send-back-due-tomorrow')));
+      await tester.pumpAndSettle();
       await keyboardUp(tester);
       final sheet = find.byKey(const Key('send-back-card'));
       aboveKeyboard(
@@ -476,7 +529,8 @@ void main() {
         of: _card('post-sleeves'),
         matching: find.text(l10n.daybookSignAsDone),
       );
-      await tester.ensureVisible(sign.last);
+      // In the middle of the page, clear of the Today chip (F59).
+      await Scrollable.ensureVisible(tester.element(sign.last), alignment: 0.5);
       await tester.pumpAndSettle();
       await tester.tap(sign.last);
       await tester.pumpAndSettle();

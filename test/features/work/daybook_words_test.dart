@@ -144,8 +144,6 @@ void main() {
     expect(en.stripDay(DateTime(2026, 10, 16), fri), isNull);
     expect(en.stripDay(DateTime(2026, 10, 14), fri), 'Wed');
     expect(en.stripDay(DateTime(2026, 10, 5), fri), 'Mon 5 Oct');
-    expect(en.stripItem('Rebar', DateTime(2026, 10, 14), fri), 'Wed Rebar');
-    expect(en.stripItem('Rebar', DateTime(2026, 10, 16), fri), 'Rebar');
   });
 
   group('review 45 B2: every due pattern, in Arabic and English', () {
@@ -443,6 +441,41 @@ void main() {
       expect(en.eventDetail(ev(s, DaybookEventKind.done, me)), isNull);
     });
 
+    test('F62: a send-back line carries its new date, or says there is '
+        'none', () {
+      DaybookEvent back(Map<String, dynamic>? newDue) => DaybookEvent.fromJson({
+        'id': 'e',
+        'kind': 'sent_back',
+        'at': '2026-10-15T09:00:00Z',
+        'reason': 'photo_missing',
+        'new_due': ?newDue,
+      });
+      final reason = en.reason(SendBackReason.photoMissing);
+      // A build before migration 33: no new date, the line as before.
+      expect(en.eventDetail(back(null)), reason);
+      expect(
+        en.eventDetail(back({'date': '2026-10-23'})),
+        joinMeta([
+          reason,
+          lookupAppLocalizations(
+            const Locale('en'),
+          ).daybookLineNewDate(en.dueProperty(DateTime(2026, 10, 23), null)),
+        ]),
+      );
+      expect(
+        en.eventDetail(back({'date': '2026-10-23'})),
+        contains('Fri 23 Oct'),
+      );
+      // {} after strip_nulls: "No new date".
+      expect(
+        en.eventDetail(back({})),
+        joinMeta([
+          reason,
+          lookupAppLocalizations(const Locale('en')).daybookLineNoNewDate,
+        ]),
+      );
+    });
+
     test('Arabic names the doer without a gendered verb', () {
       final done = ev(sAr, DaybookEventKind.done, DaybookSamples.sara);
       expect(
@@ -636,6 +669,31 @@ void main() {
       expect(month.dueDays, {DateTime(2026, 10, 16)});
     });
 
+    test("F66: the writing card's who row says it as the card does", () {
+      final en = _words('en');
+      final ar = _words('ar');
+      const me = DaybookSamples.islam;
+      expect(en.writingFor(me, 'Islam Ahmed', me: me, choosable: true), (
+        text: 'For you ›',
+        who: 'you',
+      ));
+      expect(en.writingFor('o', 'Omar Haddad', me: me, choosable: true), (
+        text: 'For Omar Haddad ›',
+        who: 'Omar Haddad',
+      ));
+      expect(en.writingFor('o', 'Omar Haddad', me: me, choosable: false), (
+        text: 'For Omar Haddad',
+        who: 'Omar Haddad',
+      ));
+      // F52: a Latin name kept whole in an Arabic line ("لـ Islam Ahmed ›").
+      final islam = inOwnDirection('Islam Ahmed');
+      expect(ar.writingFor('i', 'Islam Ahmed', me: 'o', choosable: true), (
+        text: 'لـ $islam ›',
+        who: islam,
+      ));
+      expect(ar.writingFor(me, 'x', me: me, choosable: true).text, 'لك ›');
+    });
+
     test('my_calendar: work items only', () {
       expect(
         CalendarWorkItem.fromJson({'kind': 'todo', 'note_id': 'n'}),
@@ -649,10 +707,12 @@ void main() {
         'day': '2026-10-16',
         'starts_at': null,
         'status': 'open',
+        'needs_me': true,
       })!;
       expect(item.day, DateTime(2026, 10, 16));
       expect(item.postId, 'p');
       expect(item.status, WorkStatus.open);
+      expect(item.needsMe, isTrue);
       expect(item.dueAt, isNull);
     });
   });

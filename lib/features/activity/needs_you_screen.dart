@@ -71,7 +71,11 @@ class NeedsYouScreen extends ConsumerWidget {
           : null;
       final detail =
           dueText ??
-          (c.kind == NeedsKind.youCheck || c.kind == NeedsKind.sentBack
+          // Signed as done: when, and that it waits for you; never a due
+          // (F62).
+          (c.kind == NeedsKind.youCheck
+              ? l10n.needsDoneWaiting(words.time.clock(c.at))
+              : c.kind == NeedsKind.sentBack
               ? words.time.clock(c.at)
               : null);
       final parts = [?name, ?detail];

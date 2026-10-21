@@ -673,6 +673,33 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           ask: widget.askWho,
           onTap: tap(onTap),
         );
+    // F66: "For Islam Ahmed ›", as the card's facts line says it. An edit
+    // keeps the owner: Give to someone else changes it.
+    BvWritingProperty owner(String id) {
+      final choosable = writing && !widget.editing;
+      final line = words.writingFor(
+        id,
+        draft.ownerName,
+        me: ref.watch(authUserIdProvider).value,
+        choosable: choosable,
+      );
+      return BvWritingProperty.person(
+        key: const Key('writing-who'),
+        label: line.text,
+        name: personName(l10n, draft.ownerName),
+        marks: [
+          (
+            part: line.who,
+            style: BvType.of(
+              context,
+            ).emphasisSm.copyWith(color: BvColors.textPrimary),
+          ),
+        ],
+        tint: BvAvatarTints.forId(id),
+        onTap: choosable ? () => menu(DaybookWritingMenu.assign) : null,
+      );
+    }
+
     final people = BvWritingProperty.icon(
       icon: BvIcons.person,
       label: words.peopleFor([
@@ -721,14 +748,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         if (draft.ownerId == null && !widget.editing)
           choose(l10n.daybookForChoose, () => menu(DaybookWritingMenu.assign))
         else if (draft.ownerId != null)
-          BvWritingProperty.person(
-            label: personName(l10n, draft.ownerName),
-            tint: BvAvatarTints.forId(draft.ownerId!),
-            // An edit keeps the owner: Give to someone else changes it.
-            onTap: writing && !widget.editing
-                ? () => menu(DaybookWritingMenu.assign)
-                : null,
-          ),
+          owner(draft.ownerId!),
         ?due,
         ?place,
       ],
@@ -1301,16 +1321,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
           selected: kind,
           items: [
             for (final k in DaybookKind.values)
-              BvMenuItem(
-                value: k,
-                label: kindName(l10n, k),
-                icon: kindIcon(k),
-                note: switch (k) {
-                  DaybookKind.note => l10n.daybookKindNoteNote,
-                  DaybookKind.file => l10n.daybookKindDocumentNote,
-                  _ => null,
-                },
-              ),
+              BvMenuItem(value: k, label: kindName(l10n, k), icon: kindIcon(k)),
           ],
           onSelected: (k) async {
             await _writer.setKind(k);

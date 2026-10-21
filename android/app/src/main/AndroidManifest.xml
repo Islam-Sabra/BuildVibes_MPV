@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Voice notes in Space chat (week 6). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- F67: the tick and the strong haptic as the phone's own effects. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:label="BuildVibes"
         android:name="${applicationName}"

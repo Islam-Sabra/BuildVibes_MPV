@@ -4021,14 +4021,9 @@
       }
     }
   },
-  "daybookDueTodayStrip": "Due today: {titles}",
-  "@daybookDueTodayStrip": {
-    "description": "Strip under the masthead (L1): items due today for you or by you.",
-    "placeholders": {
-      "titles": {
-        "type": "String"
-      }
-    }
+  "daybookToDo": "To do",
+  "@daybookToDo": {
+    "description": "The one-line strip under the masthead (review 50 F68), followed by ' · ' and the count of your own items still to do, today or from earlier days; also the title of the sheet it opens (review 73 A1), which lists them oldest first."
   },
   "daybookPoints": "{n, plural, =1{1 point} other{{n} points}}",
   "@daybookPoints": {
@@ -5352,10 +5347,6 @@
   "@daybookKindDocument": {
     "description": "The kind menu's name for a file post (review 50 F50): each person confirms they received it. The kind stays `file` on the server."
   },
-  "daybookKindDocumentNote": "Each person confirms they received it",
-  "@daybookKindDocumentNote": {
-    "description": "The small line under Document for receipt in the kind menu (F50)."
-  },
   "daybookUnpin": "Unpin",
   "@daybookUnpin": {
     "description": "Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day."
@@ -5364,10 +5355,6 @@
   "@daybookKindNote": {
     "description": "Kind menu: the plain post, for information (F58)."
   },
-  "daybookKindNoteNote": "For information, nobody needs to act",
-  "@daybookKindNoteNote": {
-    "description": "Kind menu: the small line under Note (F58)."
-  },
   "daybookKindNoteWord": "· note",
   "@daybookKindNoteWord": {
     "description": "Card header after the author's name: a note (K5)."
@@ -5375,6 +5362,19 @@
   "daybookForChoose": "For: Choose ›",
   "@daybookForChoose": {
     "description": "Writing card: the who row before anyone is chosen, on a work item and a checklist (F56)."
+  },
+  "daybookForPersonChoose": "For {name} ›",
+  "@daybookForPersonChoose": {
+    "description": "Writing card, a work item's who row once someone is chosen (F66); a tap chooses again. As the card's \"For {name}\".",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookForYouChoose": "For you ›",
+  "@daybookForYouChoose": {
+    "description": "Writing card, a work item's who row when you chose yourself (F66); a tap chooses again. As the card's \"For you\"."
   },
   "daybookComingChoose": "Who's coming: Choose ›",
   "@daybookComingChoose": {
@@ -5404,14 +5404,53 @@
   "@daybookEveryone": {
     "description": "Writing card and its To menu: the whole Space (F56)."
   },
-  "daybookDueStripEarlier": "{day} {title}",
-  "@daybookDueStripEarlier": {
-    "description": "Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.",
+  "daybookMastheadToday": "· {date}",
+  "@daybookMastheadToday": {
+    "description": "The masthead at Now, after the bold word Today (review 50 F59): \"Today · Wednesday 21 October\".",
     "placeholders": {
-      "day": {
+      "date": {
         "type": "String"
-      },
-      "title": {
+      }
+    }
+  },
+  "daybookNothingYetToday": "Nothing yet today",
+  "@daybookNothingYetToday": {
+    "description": "Under the Today divider when nothing has been posted today (F59)."
+  },
+  "daybookSendBackNewDate": "New date",
+  "@daybookSendBackNewDate": {
+    "description": "Send-back sheet (review 50 F62): the label over the new date's one choice, nothing chosen first."
+  },
+  "daybookSendBackToday": "Today",
+  "@daybookSendBackToday": {
+    "description": "Send-back sheet, new date: today."
+  },
+  "daybookSendBackTomorrow": "Tomorrow",
+  "@daybookSendBackTomorrow": {
+    "description": "Send-back sheet, new date: tomorrow."
+  },
+  "daybookSendBackPickDate": "Pick a date",
+  "@daybookSendBackPickDate": {
+    "description": "Send-back sheet, new date: opens the day picker; then shows the day picked."
+  },
+  "daybookLineNewDate": "new date {date}",
+  "@daybookLineNewDate": {
+    "description": "A send-back line on the card, after the reason (F62): \"Photo missing · new date Thu 23 Oct\".",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookLineNoNewDate": "no new date",
+  "@daybookLineNoNewDate": {
+    "description": "A send-back line on the card, after the reason, when the author chose no new date (F62, F64)."
+  },
+  "needsDoneWaiting": "Done {time} · waiting for your check",
+  "@needsDoneWaiting": {
+    "description": "Needs you, the author's row for a work item signed as done (F62): never red, no due.",
+    "placeholders": {
+      "time": {
         "type": "String"
       }
     }

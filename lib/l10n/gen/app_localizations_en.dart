@@ -2827,9 +2827,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String daybookDueTodayStrip(String titles) {
-    return 'Due today: $titles';
-  }
+  String get daybookToDo => 'To do';
 
   @override
   String daybookPoints(int n) {
@@ -3701,22 +3699,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookKindDocument => 'Document for receipt';
 
   @override
-  String get daybookKindDocumentNote => 'Each person confirms they received it';
-
-  @override
   String get daybookUnpin => 'Unpin';
 
   @override
   String get daybookKindNote => 'Note';
 
   @override
-  String get daybookKindNoteNote => 'For information, nobody needs to act';
-
-  @override
   String get daybookKindNoteWord => '· note';
 
   @override
   String get daybookForChoose => 'For: Choose ›';
+
+  @override
+  String daybookForPersonChoose(String name) {
+    return 'For $name ›';
+  }
+
+  @override
+  String get daybookForYouChoose => 'For you ›';
 
   @override
   String get daybookComingChoose => 'Who\'s coming: Choose ›';
@@ -3736,8 +3736,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookEveryone => 'Everyone';
 
   @override
-  String daybookDueStripEarlier(String day, String title) {
-    return '$day $title';
+  String daybookMastheadToday(String date) {
+    return '· $date';
+  }
+
+  @override
+  String get daybookNothingYetToday => 'Nothing yet today';
+
+  @override
+  String get daybookSendBackNewDate => 'New date';
+
+  @override
+  String get daybookSendBackToday => 'Today';
+
+  @override
+  String get daybookSendBackTomorrow => 'Tomorrow';
+
+  @override
+  String get daybookSendBackPickDate => 'Pick a date';
+
+  @override
+  String daybookLineNewDate(String date) {
+    return 'new date $date';
+  }
+
+  @override
+  String get daybookLineNoNewDate => 'no new date';
+
+  @override
+  String needsDoneWaiting(String time) {
+    return 'Done $time · waiting for your check';
   }
 
   @override

@@ -29,6 +29,7 @@ import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/work_repository.dart';
+import 'package:buildvibes/shared/widgets/bv_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -150,6 +151,15 @@ Future<void> _sendDone(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('proof-send')));
   await tester.pumpAndSettle();
   await tester.pump(_undoGone);
+  await tester.pumpAndSettle();
+}
+
+/// Taps one of the send-back sheet's new dates (F62).
+Future<void> _newDue(WidgetTester tester, String name) async {
+  final chip = find.byKey(Key('send-back-due-$name'));
+  await tester.ensureVisible(chip);
+  await tester.pumpAndSettle();
+  await tester.tap(chip);
   await tester.pumpAndSettle();
 }
 
@@ -417,6 +427,7 @@ void main() {
       await _pick(tester, l10n.daybookSendBack);
       await tester.tap(find.text(l10n.daybookReasonNotFinished));
       await tester.pumpAndSettle();
+      await _newDue(tester, 'tomorrow');
       await tester.tap(
         find.descendant(
           of: find.byKey(const Key('send-back-card')),
@@ -641,6 +652,7 @@ void main() {
       await _pick(tester, l10n.daybookSendBack);
       await tester.tap(find.text(l10n.daybookReasonPhotoMissing));
       await tester.pumpAndSettle();
+      // F64: no chip chosen is no new date.
       await tester.tap(
         find.descendant(
           of: find.byKey(const Key('send-back-card')),
@@ -648,7 +660,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(work.calls.single, 'back post-sleeves photo_missing ');
+      expect(work.calls.single, 'back post-sleeves photo_missing  due none');
     });
 
     testWidgets('F7: a tap on Sign as done never signs; Send as done shows '
@@ -936,13 +948,89 @@ void main() {
         s.sentBackNote,
       );
       await tester.pumpAndSettle();
+      // F62: a new date can be chosen too.
+      await _newDue(tester, 'today');
       await tester.tap(send());
       await tester.pumpAndSettle();
       expect(card, findsNothing);
+      final today = dayOf(DaybookSamples.thursday);
       expect(
         app.work.calls.single,
-        'back post-sleeves not_as_asked ${s.sentBackNote}',
+        'back post-sleeves not_as_asked ${s.sentBackNote} due '
+        '${today.year}-${today.month}-${today.day}',
       );
+    });
+
+    testWidgets('F64: the new date is Today, Tomorrow or Pick a date, all '
+        'optional, nothing chosen first; the chosen one tapped again is '
+        'un-chosen [$lang]', (tester) async {
+      final app = await _open(tester, lang, posts: s.d1());
+      await _longPress(tester, 'post-sleeves');
+      await _pick(tester, l10n.daybookSendBack);
+      final card = find.byType(BvSendBackCard<SendBackReason>);
+      for (final word in [
+        l10n.daybookSendBackNewDate,
+        l10n.daybookSendBackToday,
+        l10n.daybookSendBackTomorrow,
+        l10n.daybookSendBackPickDate,
+      ]) {
+        expect(find.descendant(of: card, matching: find.text(word)), findsOne);
+      }
+      // Only the three chips.
+      expect(find.byKey(const Key('send-back-due-none')), findsNothing);
+      Iterable<String> chosen() => tester
+          .widgetList<BvChip>(
+            find.descendant(of: card, matching: find.byType(BvChip)),
+          )
+          .where((c) => c.selected)
+          .map((c) => c.label);
+      expect(chosen(), isEmpty);
+      Finder send() =>
+          find.descendant(of: card, matching: find.text(l10n.daybookSendBack));
+      bool sendEnabled() =>
+          tester.widget<BvSendBackCard<SendBackReason>>(card).onSend != null;
+      expect(sendEnabled(), isFalse);
+      // A reason is enough.
+      await tester.tap(find.text(l10n.daybookReasonNotFinished));
+      await tester.pumpAndSettle();
+      expect(sendEnabled(), isTrue);
+      await _newDue(tester, 'today');
+      await _newDue(tester, 'tomorrow');
+      // One choice: the last one tapped.
+      expect(chosen(), [l10n.daybookSendBackTomorrow]);
+      // Tapped again: none chosen.
+      await _newDue(tester, 'tomorrow');
+      expect(chosen(), isEmpty);
+      await _newDue(tester, 'tomorrow');
+      await tester.tap(send());
+      await tester.pumpAndSettle();
+      final tomorrow = dayOf(
+        DaybookSamples.thursday,
+      ).add(const Duration(days: 1));
+      expect(
+        app.work.calls.single,
+        'back post-sleeves not_finished  due '
+        '${tomorrow.year}-${tomorrow.month}-${tomorrow.day}',
+      );
+    });
+
+    testWidgets('F64: with no chip chosen, the send-back sets no new date '
+        '[$lang]', (tester) async {
+      final app = await _open(tester, lang, posts: s.d1());
+      await _longPress(tester, 'post-sleeves');
+      await _pick(tester, l10n.daybookSendBack);
+      await tester.tap(find.text(l10n.daybookReasonNotFinished));
+      await tester.pumpAndSettle();
+      await _newDue(tester, 'today');
+      await _newDue(tester, 'today');
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('send-back-card')),
+          matching: find.text(l10n.daybookSendBack),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'back post-sleeves not_finished  due none');
     });
 
     testWidgets('X1: long-press your own open item: Add update, Edit, Give '
@@ -1145,7 +1233,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.properties.map((p) => p.label), [s.omarName]);
+      // An edit keeps the owner: no ›.
+      expect(card.properties.map((p) => p.label), [
+        l10n.daybookForPerson(s.omarName),
+      ]);
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(

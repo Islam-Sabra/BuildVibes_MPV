@@ -32,6 +32,7 @@ import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +53,7 @@ import '../test/helpers/work_fakes.dart';
 import 'shot.dart';
 
 const _folder = 'slice2';
+const _review72 = 'review72';
 
 /// K1: Thursday 10:41, after Omar's tick at 10:40.
 final _k1 = DateTime(2026, 10, 15, 10, 41);
@@ -847,6 +849,7 @@ void main() {
               title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
               day: DateTime(2026, 10, 14),
               status: WorkStatus.open,
+              needsMe: true,
             ),
           ],
         ),
@@ -900,6 +903,268 @@ void main() {
           },
         );
       }
+    });
+
+    // Review 72 (F59, F61, F62, F63): for the lead.
+    testWidgets('F59 at Now with yesterday\'s cards on top [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      final wednesday = DateTime(2026, 10, 14);
+      await shoot(
+        tester,
+        'F59-masthead-today',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [
+            for (var i = 0; i < 3; i++)
+              s.card(
+                s.item(
+                  id: 'post-wed-$i',
+                  at: DateTime(2026, 10, 14, 9 + i),
+                  title: [s.rebarTitle, s.sleeves, s.cableTraysTitle][i],
+                  authorId: DaybookSamples.sara,
+                  ownerId: DaybookSamples.omar,
+                  due: wednesday,
+                ),
+              ),
+          ],
+        ),
+      );
+    });
+
+    testWidgets('F61 the To do strip [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F61-to-do-strip',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.friday,
+          me: DaybookSamples.omar,
+          posts: s.l1(),
+          calendar: [
+            CalendarWorkItem(
+              postId: 'post-rebar-spacers',
+              spaceId: DaybookSamples.space,
+              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
+              day: DateTime(2026, 10, 11),
+              status: WorkStatus.open,
+              needsMe: true,
+            ),
+            CalendarWorkItem(
+              postId: 'post-socket',
+              spaceId: DaybookSamples.space,
+              title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
+              day: DateTime(2026, 10, 12),
+              status: WorkStatus.open,
+              needsMe: true,
+            ),
+            s.cableTraysDue(),
+          ],
+        ),
+      );
+    });
+
+    // Review 73 A1: the whole strip opens every item.
+    testWidgets('A1 the To do sheet from a long strip [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'A1-to-do-sheet',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.friday,
+          me: DaybookSamples.omar,
+          posts: s.l1(),
+          calendar: [
+            CalendarWorkItem(
+              postId: 'post-rebar-spacers',
+              spaceId: DaybookSamples.space,
+              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
+              day: DateTime(2026, 10, 11),
+              status: WorkStatus.open,
+              needsMe: true,
+            ),
+            CalendarWorkItem(
+              postId: 'post-socket',
+              spaceId: DaybookSamples.space,
+              title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
+              day: DateTime(2026, 10, 12),
+              status: WorkStatus.open,
+              needsMe: true,
+            ),
+            CalendarWorkItem(
+              postId: 'post-firestop',
+              spaceId: DaybookSamples.space,
+              title: s.t(
+                'Firestopping around the riser sleeves',
+                'سد الحريق حول جلب الصاعد',
+              ),
+              day: DateTime(2026, 10, 14),
+              status: WorkStatus.open,
+              needsMe: true,
+            ),
+            CalendarWorkItem(
+              postId: 'post-sleeves',
+              spaceId: DaybookSamples.space,
+              title: s.sleeves,
+              day: DateTime(2026, 10, 15),
+              status: WorkStatus.open,
+              needsMe: true,
+            ),
+            s.cableTraysDue(),
+          ],
+        ),
+        before: (tester) => _tap(tester, find.byKey(const Key('to-do-strip'))),
+      );
+    });
+
+    testWidgets('F62 the send-back sheet with the new date [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F62-send-back-date',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: s.v13(),
+        ),
+        before: (tester) async {
+          final slip = find.descendant(
+            of: find.byKey(const Key('daybook-card-post-sleeves')),
+            matching: find.byType(BvSlip),
+          );
+          await tester.ensureVisible(slip.first);
+          await tester.pumpAndSettle();
+          await tester.longPress(slip.first);
+          await tester.pumpAndSettle();
+          await _tap(tester, find.text(l10n.daybookSendBack).last);
+          await _tap(tester, find.text(l10n.daybookReasonPhotoMissing));
+          await _tap(tester, find.byKey(const Key('send-back-due-pick')));
+        },
+      );
+    });
+
+    testWidgets('F62 a sent-back card with its new date [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      final sentAt = DateTime(2026, 10, 15, 10, 12);
+      final card = s.card(
+        s.item(
+          id: 'post-sleeves',
+          at: DateTime(2026, 10, 14, 15, 50),
+          title: s.sleeves,
+          ref: 'KCT-014',
+          authorId: DaybookSamples.islam,
+          ownerId: DaybookSamples.omar,
+          due: DateTime(2026, 10, 17),
+          place: s.levelTwo,
+        ),
+        events: [
+          s.event(
+            'ev-back',
+            DaybookEventKind.sentBack,
+            sentAt,
+            DaybookSamples.islam,
+            reason: SendBackReason.photoMissing,
+            newDue: DaybookNewDue(day: DateTime(2026, 10, 17)),
+          ),
+          s.event(
+            'ev-done',
+            DaybookEventKind.done,
+            DateTime(2026, 10, 15, 9, 40),
+            DaybookSamples.omar,
+            note: s.sleevesFirstNote,
+          ),
+        ],
+      );
+      await shoot(
+        tester,
+        'F62-sent-back-new-date',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [card],
+        ),
+      );
+    });
+
+    // Review 50 F66: the who row once a person is chosen.
+    testWidgets('F66 the who row reads For and the name [$lang]', (
+      tester,
+    ) async {
+      await shoot(
+        tester,
+        'F66-who-row-chosen',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          // Omar raises it for Islam, as on the founder's test.
+          me: DaybookSamples.omar,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+          await _tap(tester, find.byKey(const Key('writing-who')));
+          await _tap(
+            tester,
+            find.descendant(
+              of: find.byType(BvGiveToPicker),
+              matching: find.text(s.islamName),
+            ),
+          );
+        },
+      );
+    });
+
+    testWidgets('F63 the kind menu, no description lines [$lang]', (
+      tester,
+    ) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'F63-kind-menu',
+        lang,
+        _space,
+        folder: _review72,
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: s.v13(),
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _tap(tester, find.byKey(const Key('writing-kind-chip')));
+        },
+      );
     });
 
     // Not a frame: K1 as Sara, one of the checklist's people, with the

@@ -5,6 +5,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import 'bv_writing_card.dart' show bvBareField;
 import 'bv_button.dart';
+import 'bv_chip.dart';
 import 'bv_controls.dart';
 import 'bv_tap_target.dart';
 
@@ -14,6 +15,9 @@ import 'bv_tap_target.dart';
 /// [onMicrophoneHoldStart]. The screen decides when sending is
 /// allowed: [onSend] is null until it is (a reason, and a note for
 /// "Something else").
+///
+/// [dues] is the new date (review 50 F62): one choice as a line of chips
+/// under [dueLabel], nothing chosen first.
 ///
 /// [BvSendBackCard.inSheet] is the same content on a field sheet (F24):
 /// no box of its own, the sheet's title above it and the item quoted in
@@ -34,6 +38,8 @@ class BvSendBackCard<T> extends StatelessWidget {
     this.microphoneLabel,
     this.onMicrophoneHoldStart,
     this.onMicrophoneHoldEnd,
+    this.dueLabel,
+    this.dues = const [],
   }) : quote = null;
 
   const BvSendBackCard.inSheet({
@@ -51,6 +57,8 @@ class BvSendBackCard<T> extends StatelessWidget {
     this.microphoneLabel,
     this.onMicrophoneHoldStart,
     this.onMicrophoneHoldEnd,
+    this.dueLabel,
+    this.dues = const [],
   }) : title = null;
 
   /// "Send back to Omar"; on a sheet, the sheet says it.
@@ -75,6 +83,10 @@ class BvSendBackCard<T> extends StatelessWidget {
   final String sendLabel;
   final VoidCallback? onSend;
 
+  /// "New date", above [dues].
+  final String? dueLabel;
+  final List<BvSendBackDue> dues;
+
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
@@ -89,6 +101,35 @@ class BvSendBackCard<T> extends StatelessWidget {
           label: r.label,
           selected: r.value == selected,
           onTap: () => onSelected(r.value),
+        ),
+      if (dues.isNotEmpty)
+        Padding(
+          padding: const EdgeInsetsDirectional.only(top: BvSendBackSpec.dueTop),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: BvSendBackSpec.dueLabelGap,
+            children: [
+              if (dueLabel != null)
+                Text(
+                  dueLabel!,
+                  style: type.labelSm.copyWith(color: BvColors.textSecondary),
+                ),
+              Wrap(
+                spacing: BvSendBackSpec.dueChipGap,
+                runSpacing: BvSendBackSpec.dueChipGap,
+                children: [
+                  for (final d in dues)
+                    BvChip(
+                      key: d.key,
+                      label: d.label,
+                      icon: d.icon,
+                      selected: d.selected,
+                      onTap: d.onTap,
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       _Note(
         controller: noteController,
@@ -142,6 +183,15 @@ class BvSendBackCard<T> extends StatelessWidget {
     );
   }
 }
+
+/// One choice of the new date on [BvSendBackCard].
+typedef BvSendBackDue = ({
+  Key? key,
+  String label,
+  IconData? icon,
+  bool selected,
+  VoidCallback onTap,
+});
 
 class _Reason extends StatelessWidget {
   const _Reason({

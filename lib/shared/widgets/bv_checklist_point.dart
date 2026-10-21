@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_kinds_specs.dart';
+import '../../core/haptics.dart';
 import '../../core/l10n/bv_time.dart';
 import 'bv_avatar.dart';
 import 'bv_clock_text.dart';
@@ -85,7 +85,7 @@ class _BvChecklistPointState extends State<BvChecklistPoint>
   }
 
   void _onTap() {
-    unawaited(HapticFeedback.lightImpact());
+    unawaited(bvHaptic(BvHaptic.tick));
     _tapped = true;
     widget.onTap!();
   }

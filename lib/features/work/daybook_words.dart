@@ -39,21 +39,12 @@ class DaybookWords {
   /// "Thu 15 Oct".
   String shortDate(DateTime day) => _f('EEE d MMM', day);
 
-  /// An earlier day on the Due today strip (F57): "Mon" within the week,
+  /// An earlier day on the To do strip (F57, F61): "Mon" within the week,
   /// "Mon 12 Oct" before it; null for today.
   String? stripDay(DateTime day, DateTime now) {
     final today = dayOf(now);
     if (!day.isBefore(today)) return null;
     return today.difference(day).inDays < 7 ? _f('EEE', day) : shortDate(day);
-  }
-
-  /// One item on the Due today strip: its title, after its day when it
-  /// was due on an earlier day.
-  String stripItem(String title, DateTime day, DateTime now) {
-    final earlier = stripDay(day, now);
-    return earlier == null
-        ? title
-        : l10n.daybookDueStripEarlier(earlier, title);
   }
 
   /// "Thursday 15 October": the masthead's one line while writing.
@@ -93,6 +84,21 @@ class DaybookWords {
         : l10n.daybookSentBackText(reason(r), inOwnDirection(text));
   }
 
+  /// A send-back line's detail: the reason and note, then its new date
+  /// when one was chosen (F62): "Photo missing · new date Thu 23 Oct".
+  String _sentBackLine(DaybookEvent e) {
+    final text = sentBackText(e.reason, e.note);
+    final newDue = e.newDue;
+    if (newDue == null) return text;
+    final day = newDue.day;
+    return joinMeta([
+      text,
+      day == null
+          ? l10n.daybookLineNoNewDate
+          : l10n.daybookLineNewDate(dueProperty(day, newDue.at)),
+    ]);
+  }
+
   /// "Level 2, grid C7 · 15 Oct 09:40 · Omar Haddad": the label on a proof
   /// photo (O2).
   /// The place and the name keep their own direction.
@@ -123,18 +129,10 @@ class DaybookWords {
     required DateTime now,
   }) {
     final item = post.item;
-    final String who;
-    if (item?.ownerId != null && item!.ownerId == me) {
-      // "you" in "For you": the words around the name in "For {name}" are
-      // taken off ("For " in English; Arabic's "لك" is one word).
-      final around = l10n.daybookForPerson(_slot).split(_slot);
-      final you = l10n.daybookForYou;
-      who = you.startsWith(around.first) && around.first.isNotEmpty
-          ? you.substring(around.first.length)
-          : you;
-    } else {
-      who = _inLine(personName(l10n, item?.ownerName));
-    }
+    final who = _whoMark(
+      item?.ownerName,
+      isMe: item?.ownerId != null && item!.ownerId == me,
+    );
     final mine =
         (item?.ownerId != null && item!.ownerId == me) ||
         (post.authorId != null && post.authorId == me);
@@ -148,6 +146,40 @@ class DaybookWords {
           ? BvDueTone.today
           : BvDueTone.quiet,
     );
+  }
+
+  /// The writing card's who row once someone is chosen (F66), as the
+  /// card's facts line says it: "For Islam Ahmed ›", "For you ›", with
+  /// [who] the part that stands out. The › only while a tap changes it.
+  ({String text, String who}) writingFor(
+    String ownerId,
+    String? ownerName, {
+    required String? me,
+    required bool choosable,
+  }) {
+    final isMe = ownerId == me;
+    final name = _inLine(personName(l10n, ownerName));
+    return (
+      text: switch ((isMe, choosable)) {
+        (true, true) => l10n.daybookForYouChoose,
+        (true, false) => l10n.daybookForYou,
+        (false, true) => l10n.daybookForPersonChoose(name),
+        (false, false) => l10n.daybookForPerson(name),
+      },
+      who: _whoMark(ownerName, isMe: isMe),
+    );
+  }
+
+  /// Who stands out in "For {name}": the name, or "you" in "For you", the
+  /// words around the name in "For {name}" taken off ("For " in English;
+  /// Arabic's "لك" is one word).
+  String _whoMark(String? ownerName, {required bool isMe}) {
+    if (!isMe) return _inLine(personName(l10n, ownerName));
+    final around = l10n.daybookForPerson(_slot).split(_slot);
+    final you = l10n.daybookForYou;
+    return you.startsWith(around.first) && around.first.isNotEmpty
+        ? you.substring(around.first.length)
+        : you;
   }
 
   /// A stand-in for a name, to find the words around it in a sentence.
@@ -297,7 +329,7 @@ class DaybookWords {
   String? eventDetail(DaybookEvent e) {
     final note = e.note?.trim() ?? '';
     return switch (e.kind) {
-      DaybookEventKind.sentBack => sentBackText(e.reason, e.note),
+      DaybookEventKind.sentBack => _sentBackLine(e),
       DaybookEventKind.done ||
       DaybookEventKind.comment ||
       DaybookEventKind.cancelled => note.isEmpty ? null : inOwnDirection(note),

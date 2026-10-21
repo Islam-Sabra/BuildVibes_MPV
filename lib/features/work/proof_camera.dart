@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_loop_specs.dart';
 import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
+import '../../core/haptics.dart';
 import '../../data/models/daybook.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -163,7 +163,7 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
     // Another item: the photos upload again into its own folder.
     final moved = refused != null && refused.id != _post.id;
     if (moved) await outbox.forget(refused);
-    unawaited(HapticFeedback.heavyImpact());
+    unawaited(bvHaptic(BvHaptic.strong));
     final item = PendingItem(
       kind: PendingKind.signOff,
       id: _post.id,

@@ -4772,11 +4772,11 @@ abstract class AppLocalizations {
   /// **'was due today {time}'**
   String daybookWasDueTodayAt(String time);
 
-  /// Strip under the masthead (L1): items due today for you or by you.
+  /// The one-line strip under the masthead (review 50 F68), followed by ' · ' and the count of your own items still to do, today or from earlier days; also the title of the sheet it opens (review 73 A1), which lists them oldest first.
   ///
   /// In en, this message translates to:
-  /// **'Due today: {titles}'**
-  String daybookDueTodayStrip(String titles);
+  /// **'To do'**
+  String get daybookToDo;
 
   /// Slip chip: checklist points on a work item.
   ///
@@ -6242,12 +6242,6 @@ abstract class AppLocalizations {
   /// **'Document for receipt'**
   String get daybookKindDocument;
 
-  /// The small line under Document for receipt in the kind menu (F50).
-  ///
-  /// In en, this message translates to:
-  /// **'Each person confirms they received it'**
-  String get daybookKindDocumentNote;
-
   /// Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day.
   ///
   /// In en, this message translates to:
@@ -6260,12 +6254,6 @@ abstract class AppLocalizations {
   /// **'Note'**
   String get daybookKindNote;
 
-  /// Kind menu: the small line under Note (F58).
-  ///
-  /// In en, this message translates to:
-  /// **'For information, nobody needs to act'**
-  String get daybookKindNoteNote;
-
   /// Card header after the author's name: a note (K5).
   ///
   /// In en, this message translates to:
@@ -6277,6 +6265,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For: Choose ›'**
   String get daybookForChoose;
+
+  /// Writing card, a work item's who row once someone is chosen (F66); a tap chooses again. As the card's "For {name}".
+  ///
+  /// In en, this message translates to:
+  /// **'For {name} ›'**
+  String daybookForPersonChoose(String name);
+
+  /// Writing card, a work item's who row when you chose yourself (F66); a tap chooses again. As the card's "For you".
+  ///
+  /// In en, this message translates to:
+  /// **'For you ›'**
+  String get daybookForYouChoose;
 
   /// Writing card: the who row of a scheduled activity before anyone is chosen (F56).
   ///
@@ -6308,11 +6308,59 @@ abstract class AppLocalizations {
   /// **'Everyone'**
   String get daybookEveryone;
 
-  /// Due today strip (F57): an item still to do from an earlier day; the day is grey. No word for late.
+  /// The masthead at Now, after the bold word Today (review 50 F59): "Today · Wednesday 21 October".
   ///
   /// In en, this message translates to:
-  /// **'{day} {title}'**
-  String daybookDueStripEarlier(String day, String title);
+  /// **'· {date}'**
+  String daybookMastheadToday(String date);
+
+  /// Under the Today divider when nothing has been posted today (F59).
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet today'**
+  String get daybookNothingYetToday;
+
+  /// Send-back sheet (review 50 F62): the label over the new date's one choice, nothing chosen first.
+  ///
+  /// In en, this message translates to:
+  /// **'New date'**
+  String get daybookSendBackNewDate;
+
+  /// Send-back sheet, new date: today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get daybookSendBackToday;
+
+  /// Send-back sheet, new date: tomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get daybookSendBackTomorrow;
+
+  /// Send-back sheet, new date: opens the day picker; then shows the day picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get daybookSendBackPickDate;
+
+  /// A send-back line on the card, after the reason (F62): "Photo missing · new date Thu 23 Oct".
+  ///
+  /// In en, this message translates to:
+  /// **'new date {date}'**
+  String daybookLineNewDate(String date);
+
+  /// A send-back line on the card, after the reason, when the author chose no new date (F62, F64).
+  ///
+  /// In en, this message translates to:
+  /// **'no new date'**
+  String get daybookLineNoNewDate;
+
+  /// Needs you, the author's row for a work item signed as done (F62): never red, no due.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {time} · waiting for your check'**
+  String needsDoneWaiting(String time);
 
   /// Messages (DM1): the screen title, and the Home icon's label.
   ///

@@ -562,12 +562,13 @@ void main() {
         ),
         findsOneWidget,
       );
+      // No description lines (F63).
       expect(
-        find.descendant(
-          of: menu,
-          matching: find.text(l10n.daybookKindDocumentNote),
-        ),
-        findsOneWidget,
+        tester
+            .widget<BvPopoverMenu<DaybookKind>>(menu)
+            .items
+            .every((i) => i.note == null),
+        isTrue,
       );
       // The old name is gone from the menu; 📎 → File keeps it.
       expect(
