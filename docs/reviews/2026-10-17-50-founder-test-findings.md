@@ -644,3 +644,33 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **The founder's call:** remove "For information, nobody needs to act" under Note. People understand the words.
 - **For consistency, the same goes for "Each person confirms they received it"** under Document for receipt. The menu is six plain rows: icon, word and the check on the chosen one (Figma E6 v14 updated, EN `2598:36360`, AR `2599:833`).
 - **"Just for information? Post as a Note"** under the owner picker (F56) **stays**, because it's an action, not a description.
+
+# Test of build 386 (`claude/review72-app`, 21 Oct afternoon; the lead on the emulator as Omar, the founder on his phone)
+- **Step 3, the who row:** "For: Choose ›" shows from the start. Tapping grey Post shows "Choose who it's for" and posts nothing. Choosing Islam closes the picker without posting. Only Post posts (NST-016). Passed, apart from F66.
+- **Step 4, no Late:** "was due Tue 20 Oct 8:06 am" in the action colour while open; no due once signed. Passed.
+- **Step 6, an announcement edited after Got it:** opens in full again on Omar's side, with Got it. Passed.
+- **F59:** "**Today** · Wednesday 21 October" at Now. Passed.
+- **F61:** "To do:" with the days in grey. Tapping it opens the To do sheet, oldest first. Passed, apart from F65.
+- **F62:** NST-016, sent back with a new date: the card reads "For Islam Ahmed · by today", and the line "You sent it back: Not finished · new date Wed 21 Oct". Passed, apart from F64.
+- **F63:** the kind menu has six plain rows. Passed.
+- **About:** shows "Version 0.9.0 · build 386 · caee2c0". Help and feedback sits inside About BuildVibes and legal (support@aecox.com).
+- **Still to see:** step 5 (the tick feel on the founder's phone: the haptic, and Omar's tick glowing), and F60 with a real phone photo.
+
+## F64. The new date on Send back: three optional chips (founder, 21 Oct; replaces part of F62)
+- **The founder's call:** no "No new date" chip. The sheet offers **Today · Tomorrow · Pick a date**, and **choosing none means no new date.**
+- **So:** nothing is preselected, and **Send back is enabled as soon as a reason is chosen.** A date is optional. Tapping the chosen chip again un-chooses it.
+- **The call:** with a chip, `send_back(…, p_due_set: true, p_due, p_due_at)`; with no chip, `p_due_set: true` and both null. The old date is still never shown again (F62).
+- **The history line** stays "· new date Thu 23 Oct" or "· no new date" (review 73).
+- Remove the `daybookSendBackNoNewDate` chip string. Keep `daybookLineNoNewDate` for the line.
+
+## F65. The To do strip lists an item raised for someone else
+- **Seen on Omar's side:** the strip ends "· Lead test: who row". That's NST-016, which Omar raised **for Islam** and sent back, so it's Islam's to do, not Omar's.
+- **Fix:** the strip and its sheet list only items **the viewer owns** (`owner_id` = me), open or sent back, due today or earlier (F57). An item I raised for someone else never appears in my strip. A Done item waiting for my check stays in Needs you ("Done 10:21 · waiting for your check"), not in the strip.
+- **Test:** Omar's strip doesn't show an item he raised for Islam, in any state.
+
+## F66. The writing card loses "For" after a person is chosen
+- **Seen:** before choosing, the row reads "For: Choose ›". After choosing, it shows only the face and "Islam Ahmed". The posted card reads "For Islam Ahmed".
+- **Fix:** after choosing, the writing card's row reads "**For** Islam Ahmed ›", or "**لـ** Islam Ahmed ›" in Arabic, matching the card (F34, F52). Tapping it reopens the picker.
+
+## Terms draft
+- §10 says "Settings → Help and feedback". In the app it is **Settings → About BuildVibes and legal → Help and feedback**. Fix the path in the Terms draft.
