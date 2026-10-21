@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
+import '../../core/photo_privacy.dart'
+    show photosPreparingProvider, PhotosPreparing;
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/daybook_live.dart';
@@ -424,23 +427,36 @@ class DaybookWriter {
     return DaybookPostDraft.filesMax - d.photos.length - d.files.length;
   }
 
-  /// A photo from the camera, kept in the app's folder.
-  Future<void> addPhoto() async {
-    if (room <= 0) return;
-    final picked = await ref.read(pickPhotoProvider)(camera: true);
-    if (picked == null) return;
-    final kept = await ref.read(keepPhotoProvider)(picked);
-    await _put((d) => d.copyWith(photos: [...d.photos, kept]));
+  /// The writing card's photos still being prepared.
+  PhotosPreparing get _preparing =>
+      ref.read(photosPreparingProvider('daybook:$spaceId').notifier);
+
+  /// A photo from the camera, kept in the app's folder. How many photos
+  /// nobody could open, and so were left out (review 74 H1).
+  Future<int> addPhoto() async {
+    if (room <= 0) return 0;
+    final picked = await ref.read(pickPhotoProvider)(
+      camera: true,
+      onPreparing: _preparing.set,
+    );
+    await _keep(picked.photos);
+    return picked.refused;
   }
 
-  /// Photos from the gallery (K4: up to 10 on a post).
-  Future<void> addPhotos() async {
+  /// Photos from the gallery (K4: up to 10 on a post), as [addPhoto].
+  Future<int> addPhotos() async {
     final left = room;
-    if (left <= 0) return;
-    final picked = await ref.read(pickPhotosProvider)(max: left);
-    final kept = [
-      for (final p in picked.take(left)) await ref.read(keepPhotoProvider)(p),
-    ];
+    if (left <= 0) return 0;
+    final picked = await ref.read(pickPhotosProvider)(
+      max: left,
+      onPreparing: _preparing.set,
+    );
+    await _keep(picked.photos.take(left));
+    return picked.refused;
+  }
+
+  Future<void> _keep(Iterable<XFile> photos) async {
+    final kept = [for (final p in photos) await ref.read(keepPhotoProvider)(p)];
     if (kept.isEmpty) return;
     await _put((d) => d.copyWith(photos: [...d.photos, ...kept]));
   }
@@ -656,6 +672,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           : daybookDraftProvider(widget.spaceId),
     );
     if (draft == null) return const SizedBox.shrink();
+    final preparing = ref.watch(
+      photosPreparingProvider('daybook:${widget.spaceId}'),
+    );
     final writing = widget.writing;
     final words = widget.words;
     final now = ref.watch(clockProvider)();
@@ -834,7 +853,9 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         for (final p in draft.photos)
           Image(image: ref.watch(localPhotoProvider(p)), fit: BoxFit.cover),
       ],
-      photoHeight: draft.photos.length > 1
+      preparing: preparing,
+      preparingLabel: l10n.photoPreparing,
+      photoHeight: draft.photos.length + preparing > 1
           ? BvWritingCardSpec.postPhotoHeight
           : BvWritingCardSpec.coverHeight,
       onRemovePhoto: writing ? _writer.removePhoto : null,

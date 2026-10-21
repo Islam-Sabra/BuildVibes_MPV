@@ -230,7 +230,7 @@ void main() {
         language: lang,
         overrides: [
           photoPickerProvider.overrideWithValue(
-            () async => XFile.fromData(Uint8List(4)),
+            () async => (photos: [XFile.fromData(Uint8List(4))], refused: 0),
           ),
         ],
       );

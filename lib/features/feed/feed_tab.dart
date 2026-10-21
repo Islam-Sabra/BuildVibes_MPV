@@ -226,7 +226,10 @@ class _FeedTabState extends ConsumerState<FeedTab> {
       );
       return;
     }
-    await _writer.addPhoto(camera: camera);
+    final refused = await _writer.addPhoto(camera: camera);
+    if (refused > 0 && mounted) {
+      showSpaceMessage(context, AppLocalizations.of(context).photoCannotOpen);
+    }
   }
 
   Future<void> _post() async {

@@ -5618,5 +5618,13 @@
         "type": "String"
       }
     }
+  },
+  "photoPreparing": "Preparing…",
+  "@photoPreparing": {
+    "description": "A photo slot while the photo is made safe to leave the phone (review 74 H2), with a small spinner."
+  },
+  "photoCannotOpen": "This photo can't be opened. Choose another.",
+  "@photoCannotOpen": {
+    "description": "A picked photo nobody could open; it isn't sent, and the others still go (review 74 H1)."
   }
 }

@@ -171,19 +171,27 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     );
     if (choice == null || !mounted) return;
     PhoneFile? picked;
+    var refused = false;
     if (choice == _Attach.pdf) {
       if (_files.any((f) => f.isPdf)) {
         _toast(l10n.chatOneDocument);
         return;
       }
-      picked = await ref.read(pickDocumentProvider)(pdfOnly: true);
+      (file: picked, :refused) = await ref.read(pickDocumentProvider)(
+        pdfOnly: true,
+      );
     } else {
-      final photo = await ref.read(pickPhotoProvider)(
+      final photos = await ref.read(pickPhotoProvider)(
         camera: choice == _Attach.camera,
       );
+      final photo = photos.photos.firstOrNull;
       if (photo != null) picked = pickedPhoto(photo.path);
+      refused = photos.refused > 0;
     }
-    if (picked == null || !mounted) return;
+    if (!mounted) return;
+    // Review 74 H1: a photo nobody could open doesn't go.
+    if (refused) _toast(l10n.photoCannotOpen);
+    if (picked == null) return;
     if ((picked.bytes ?? 0) > maxFileBytes) {
       _toast(l10n.chatFileTooBig);
       return;

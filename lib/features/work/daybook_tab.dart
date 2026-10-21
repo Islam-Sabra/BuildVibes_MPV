@@ -709,6 +709,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// (create_space_post's p_files, add_post_files), so the File row is
   /// always there: on a file post it chooses its file; on the others it
   /// adds one, which goes to the Library too.
+  /// Photos being added: a line when any of them nobody could open (review
+  /// 74 H1); the others are on the card.
+  Future<void> _photos(Future<int> adding) async {
+    final refused = await adding;
+    if (refused > 0 && mounted) {
+      showSpaceMessage(context, AppLocalizations.of(context).photoCannotOpen);
+    }
+  }
+
   Future<void> _attach() async {
     _setMenu(null);
     final l10n = AppLocalizations.of(context);
@@ -728,7 +737,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     }
     switch (choice) {
       case DaybookAttach.photos:
-        await writer.addPhotos();
+        await _photos(writer.addPhotos());
       case DaybookAttach.file:
         final file = await chooseDaybookFile(context, ref, spaceId: _spaceId);
         if (file != null) await writer.addFile(file);
@@ -1085,7 +1094,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               BvWritingToolbar(
                 cameraLabel: l10n.daybookCamera,
                 // An edit keeps its photos (slice 5 opens a post in place).
-                onCamera: _editing ? null : () => _writer.addPhoto(),
+                onCamera: _editing
+                    ? null
+                    : () => unawaited(_photos(_writer.addPhoto())),
                 attachLabel: l10n.daybookAttachTitle,
                 onAttach: _editing ? null : () => unawaited(_attach()),
                 moreLabel: l10n.daybookMore,
@@ -1123,7 +1134,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 // your open work item (O1 → O2).
                 onCamera: () {
                   _startWriting();
-                  unawaited(_writer.addPhoto());
+                  unawaited(_photos(_writer.addPhoto()));
                 },
                 onProve: prove == null
                     ? null

@@ -257,14 +257,18 @@ class PendingItem {
 }
 
 /// Picks up to [max] photos from the gallery (K4), compressed as
-/// [pickPhotoProvider]'s, without the place they were taken. Empty when the person cancels. A provider so
+/// [pickPhotoProvider]'s and made safe to leave the phone. A provider so
 /// tests can stand in for the gallery.
-typedef PickPhotos = Future<List<XFile>> Function({required int max});
+typedef PickPhotos =
+    Future<PickedPhotos> Function({
+      required int max,
+      void Function(int count)? onPreparing,
+    });
 
 final pickPhotosProvider = Provider<PickPhotos>((ref) {
   final picker = ImagePicker();
-  return ({required int max}) async {
-    if (max <= 0) return const [];
+  return ({required int max, onPreparing}) async {
+    if (max <= 0) return (photos: const <XFile>[], refused: 0);
     if (max == 1) {
       final one = await picker.pickImage(
         source: ImageSource.gallery,
@@ -272,8 +276,7 @@ final pickPhotosProvider = Provider<PickPhotos>((ref) {
         maxHeight: 1600,
         imageQuality: 80,
       );
-      if (one != null) await stripPhotoLocation(one.path);
-      return [?one];
+      return cleanPicked([?one], from: 'gallery', onPreparing: onPreparing);
     }
     final picked = await picker.pickMultiImage(
       limit: max,
@@ -281,31 +284,38 @@ final pickPhotosProvider = Provider<PickPhotos>((ref) {
       maxHeight: 1600,
       imageQuality: 80,
     );
-    final kept = picked.take(max).toList();
-    for (final p in kept) {
-      await stripPhotoLocation(p.path);
-    }
-    return kept;
+    return cleanPicked(
+      picked.take(max).toList(),
+      from: 'gallery',
+      onPreparing: onPreparing,
+    );
   };
 });
 
 /// Takes a photo for evidence: the camera, or the gallery as a fallback.
-/// Compressed to about 1600 px on the long side, JPEG quality 80, without
-/// the place it was taken (stripPhotoLocation). Null when
-/// the person cancels. A provider so tests can stand in for the camera.
-typedef PickPhoto = Future<XFile?> Function({required bool camera});
+/// Compressed to about 1600 px on the long side, JPEG quality 80, and
+/// made safe to leave the phone (cleanPhoto). A provider so tests can
+/// stand in for the camera.
+typedef PickPhoto =
+    Future<PickedPhotos> Function({
+      required bool camera,
+      void Function(int count)? onPreparing,
+    });
 
 final pickPhotoProvider = Provider<PickPhoto>((ref) {
   final picker = ImagePicker();
-  return ({required bool camera}) async {
+  return ({required bool camera, onPreparing}) async {
     final photo = await picker.pickImage(
       source: camera ? ImageSource.camera : ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
       imageQuality: 80,
     );
-    if (photo != null) await stripPhotoLocation(photo.path);
-    return photo;
+    return cleanPicked(
+      [?photo],
+      from: camera ? 'camera' : 'gallery',
+      onPreparing: onPreparing,
+    );
   };
 });
 

@@ -1074,5 +1074,7 @@
   "daybookSendBackPickDate": "اختر تاريخًا",
   "daybookLineNewDate": "موعد جديد {date}",
   "daybookLineNoNewDate": "بلا موعد جديد",
-  "needsDoneWaiting": "منجز {time} · بانتظار تحققك"
+  "needsDoneWaiting": "منجز {time} · بانتظار تحققك",
+  "photoPreparing": "جارٍ التجهيز…",
+  "photoCannotOpen": "تعذّر فتح هذه الصورة. اختر صورة أخرى."
 }

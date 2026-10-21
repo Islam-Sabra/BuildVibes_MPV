@@ -3883,4 +3883,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String chatThreadsDmNote(String space) {
     return 'الرسائل إلى شخص واحد تُفتح في الرسائل، مع علامة «من $space».';
   }
+
+  @override
+  String get photoPreparing => 'جارٍ التجهيز…';
+
+  @override
+  String get photoCannotOpen => 'تعذّر فتح هذه الصورة. اختر صورة أخرى.';
 }

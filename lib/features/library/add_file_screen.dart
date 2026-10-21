@@ -57,8 +57,14 @@ class _AddFileScreenState extends ConsumerState<AddFileScreen> {
   Future<void> _pick() async {
     FocusManager.instance.primaryFocus?.unfocus();
     final l10n = AppLocalizations.of(context);
-    final picked = await ref.read(pickDocumentProvider)();
-    if (picked == null || !mounted) return;
+    final (file: picked, :refused) = await ref.read(pickDocumentProvider)();
+    if (!mounted) return;
+    // Review 74 H1: a photo nobody could open doesn't go.
+    if (refused) {
+      setState(() => _error = l10n.photoCannotOpen);
+      return;
+    }
+    if (picked == null) return;
     if ((picked.bytes ?? 0) > maxFileBytes) {
       setState(() => _error = l10n.chatFileTooBig);
       return;

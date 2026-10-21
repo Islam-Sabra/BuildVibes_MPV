@@ -118,8 +118,11 @@ Future<DraftFile?> chooseDaybookFile(
     );
   }
   if (picked != _fromPhone || !context.mounted) return null;
-  final phone = await ref.read(pickDocumentProvider)();
-  if (phone == null || !context.mounted) return null;
+  final (file: phone, :refused) = await ref.read(pickDocumentProvider)();
+  if (!context.mounted) return null;
+  // Review 74 H1: a photo nobody could open doesn't go.
+  if (refused) showSpaceMessage(context, l10n.photoCannotOpen);
+  if (phone == null) return null;
   if ((phone.bytes ?? 0) > maxFileBytes) {
     showSpaceMessage(context, l10n.chatFileTooBig);
     return null;

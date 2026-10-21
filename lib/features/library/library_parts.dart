@@ -41,13 +41,18 @@ String fileSize(AppLocalizations l10n, int? bytes) {
   return l10n.fileSizeMb(BvWesternDigitsFormatter.normalise(mb));
 }
 
+/// A file picked on the phone: none when the person cancels; [refused]
+/// when it is a photo nobody could open (review 74 H1).
+typedef PickedDocument = ({PhoneFile? file, bool refused});
+
 /// Picks a PDF or photo on the phone (the Library, chat, W2-A); a photo
-/// loses the place it was taken (stripPhotoLocation). Null when
-/// the person cancels. A provider so tests can stand in for the picker.
-typedef PickDocument = Future<PhoneFile?> Function({bool pdfOnly});
+/// is made safe to leave the phone (cleanPhoto). A provider so tests can
+/// stand in for the picker.
+typedef PickDocument = Future<PickedDocument> Function({bool pdfOnly});
 
 final pickDocumentProvider = Provider<PickDocument>(
   (ref) => ({bool pdfOnly = false}) async {
+    const none = (file: null, refused: false);
     final f = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: pdfOnly
@@ -56,15 +61,21 @@ final pickDocumentProvider = Provider<PickDocument>(
           // gallery pickers turn HEIC into JPEG).
           : const ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
     );
-    if (f == null || f.path == null) return null;
+    if (f == null || f.path == null) return none;
     final mime = mimeOfName(f.name);
-    if (mime == null) return null;
-    if (mime.startsWith('image/')) await stripPhotoLocation(f.path!);
-    return PhoneFile(
-      local: f.path!,
-      name: f.name,
-      mime: mime,
-      bytes: await File(f.path!).length(),
+    if (mime == null) return none;
+    final clean = await cleanPhoto(f.path!, from: 'files');
+    if (clean.result == PhotoCleaning.refused) {
+      return (file: null, refused: true);
+    }
+    return (
+      file: PhoneFile(
+        local: clean.path,
+        name: f.name,
+        mime: mime,
+        bytes: await File(clean.path).length(),
+      ),
+      refused: false,
     );
   },
 );

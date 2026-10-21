@@ -6547,6 +6547,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Messages to one person open in Messages, marked “From {space}”.'**
   String chatThreadsDmNote(String space);
+
+  /// A photo slot while the photo is made safe to leave the phone (review 74 H2), with a small spinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing…'**
+  String get photoPreparing;
+
+  /// A picked photo nobody could open; it isn't sent, and the others still go (review 74 H1).
+  ///
+  /// In en, this message translates to:
+  /// **'This photo can\'t be opened. Choose another.'**
+  String get photoCannotOpen;
 }
 
 class _AppLocalizationsDelegate

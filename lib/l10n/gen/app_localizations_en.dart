@@ -3878,4 +3878,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String chatThreadsDmNote(String space) {
     return 'Messages to one person open in Messages, marked “From $space”.';
   }
+
+  @override
+  String get photoPreparing => 'Preparing…';
+
+  @override
+  String get photoCannotOpen => 'This photo can\'t be opened. Choose another.';
 }

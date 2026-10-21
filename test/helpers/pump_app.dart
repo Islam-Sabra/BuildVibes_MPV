@@ -203,6 +203,13 @@ Future<TestApp> pumpApp(
 
   /// How many photos the gallery gives (up to the room left).
   int galleryPhotos = 2,
+
+  /// How many more it gives that nobody could open (review 74 H1).
+  int galleryRefused = 0,
+
+  /// While this waits, the gallery's photos are still being prepared
+  /// (review 74 H2).
+  Future<void>? galleryPreparing,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -308,14 +315,17 @@ Future<TestApp> pumpApp(
         }),
         voicePlaybackProvider.overrideWithValue(fakePlayback),
         pickDocumentProvider.overrideWithValue(
-          ({bool pdfOnly = false}) async =>
-              pickDocument?.call() ??
-              PhoneFile(
-                local: testPdfPath,
-                name: 'Level 3 plan.pdf',
-                mime: 'application/pdf',
-                bytes: 4800000,
-              ),
+          ({bool pdfOnly = false}) async => (
+            file:
+                pickDocument?.call() ??
+                PhoneFile(
+                  local: testPdfPath,
+                  name: 'Level 3 plan.pdf',
+                  mime: 'application/pdf',
+                  bytes: 4800000,
+                ),
+            refused: false,
+          ),
         ),
         keepFileProvider.overrideWithValue(
           (path, ext) async => File(path)
@@ -332,17 +342,31 @@ Future<TestApp> pumpApp(
           (name, mime, bytes) async => sharedFiles.add(name),
         ),
         // No camera and no waiting between tries in tests.
-        pickPhotoProvider.overrideWithValue(({required camera}) async {
+        pickPhotoProvider.overrideWithValue(({
+          required camera,
+          onPreparing,
+        }) async {
           cameraAsks.add(camera);
-          return XFile(testPhotoPath);
+          return (photos: [XFile(testPhotoPath)], refused: 0);
         }),
         // The gallery gives [galleryPhotos] (K4: up to the room left).
-        pickPhotosProvider.overrideWithValue(({required max}) async {
+        pickPhotosProvider.overrideWithValue(({
+          required max,
+          onPreparing,
+        }) async {
           cameraAsks.add(false);
-          return [
-            for (var i = 0; i < galleryPhotos && i < max; i++)
-              XFile(testPhotoPath),
-          ];
+          if (galleryPreparing != null) {
+            onPreparing?.call(galleryPhotos + galleryRefused);
+            await galleryPreparing;
+            onPreparing?.call(0);
+          }
+          return (
+            photos: [
+              for (var i = 0; i < galleryPhotos && i < max; i++)
+                XFile(testPhotoPath),
+            ],
+            refused: galleryRefused,
+          );
         }),
         // A fresh copy each time: a sent item deletes its kept copy.
         keepPhotoProvider.overrideWithValue(

@@ -384,7 +384,8 @@ void main() {
       marketsProvider.overrideWith((ref) async => const <Market>[]),
       newPostIdProvider.overrideWithValue(() => 'post-clash'),
       pickPhotoProvider.overrideWithValue(
-        ({required camera}) async => XFile('camera.jpg'),
+        ({required camera, onPreparing}) async =>
+            (photos: [XFile('camera.jpg')], refused: 0),
       ),
       keepPhotoProvider.overrideWithValue((photo) async => 'kept.jpg'),
       // Islam's profile: Kuwait City Tower, with a confirmed role.

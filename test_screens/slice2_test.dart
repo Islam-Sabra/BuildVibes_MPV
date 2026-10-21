@@ -10,6 +10,8 @@ import 'dart:typed_data';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
+import 'package:buildvibes/core/photo_privacy.dart'
+    show photosPreparingProvider;
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -35,6 +37,7 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -118,18 +121,23 @@ Future<List<Override>> _overrides(
     localPhotoProvider.overrideWith((ref, path) => samplePhoto),
     filePreviewProvider.overrideWith((ref, file) async => samplePhoto),
     pickPhotoProvider.overrideWithValue(
-      ({required camera}) async => XFile('camera.jpg'),
+      ({required camera, onPreparing}) async =>
+          (photos: [XFile('camera.jpg')], refused: 0),
     ),
     pickPhotosProvider.overrideWithValue(
-      ({required max}) async => [XFile('a.jpg'), XFile('b.jpg')],
+      ({required max, onPreparing}) async =>
+          (photos: [XFile('a.jpg'), XFile('b.jpg')], refused: 0),
     ),
     keepPhotoProvider.overrideWithValue((photo) async => photo.path),
     pickDocumentProvider.overrideWithValue(
-      ({bool pdfOnly = false}) async => const PhoneFile(
-        local: 'M-201.pdf',
-        name: 'M-201.pdf',
-        mime: 'application/pdf',
-        bytes: 2516582,
+      ({bool pdfOnly = false}) async => (
+        file: const PhoneFile(
+          local: 'M-201.pdf',
+          name: 'M-201.pdf',
+          mime: 'application/pdf',
+          bytes: 2516582,
+        ),
+        refused: false,
       ),
     ),
     keepFileProvider.overrideWithValue((path, extension) async => path),
@@ -1106,6 +1114,40 @@ void main() {
           now: DaybookSamples.thursday,
           posts: [card],
         ),
+      );
+    });
+
+    // Review 74 H2: two photos still being prepared on the card.
+    testWidgets('H2 photos being prepared [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'H2-photos-preparing',
+        lang,
+        _space,
+        folder: 'f60',
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: [s.rebar()],
+        ),
+        before: (tester) async {
+          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+          await _type(
+            tester,
+            find.byKey(const Key('writing-title')),
+            s.cableTraysTitle,
+          );
+          ProviderScope.containerOf(tester.element(find.byType(BvWritingCard)))
+              .read(
+                photosPreparingProvider(
+                  'daybook:${DaybookSamples.space}',
+                ).notifier,
+              )
+              .set(2);
+          // The spinners turn: built, then a frame later, never settled.
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 600));
+        },
       );
     });
 
