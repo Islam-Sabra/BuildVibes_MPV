@@ -913,7 +913,8 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **A work item keeps it (founder, 10:01):** NST-019 "gate blocked" shows "From Omar Haddad · 8:38 am" and his words. So only the other kinds lose the quote.
 - **Test:** each kind from a quoted direct message and from a quoted Space chat message shows the quote after posting, in EN and AR.
 
-## F84. My own card's header shows my name, not "You"
+## F84. ~~My own card's header shows my name, not "You"~~ — withdrawn (lead, 11:20)
+- The screenshot was from the emulator, signed in as Omar, so "Islam Ahmed · For you" is right. The emulator shows "You · NST-022" on Omar's own walk.
 - **Seen (NST-019):** "Islam Ahmed · NST-019" on the founder's own work item, while the line under it says "For you".
 - **Fix:** on a card's header, the author is **"You"** / «أنت» when it is the reader, as in K1–K5 (v13). The same applies to history lines ("You signed as done" already does). Other people see the name.
 
@@ -926,7 +927,8 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - The header goes back to its usual end: the time it was posted.
 - **The folded line (K1b)** ends with the same "until Fri" in grey before ›, so the end is visible even when folded.
 
-## F86. The author is asked to tap "Got it" on their own announcement (founder's screenshot, 10:03)
+## F86. ~~The author is asked to tap "Got it" on their own announcement~~ — withdrawn (lead, 11:20)
+- The screenshot was Omar's view on the emulator, and Omar must give Got it. Keep only the server check that `ack(got_it)` from the author is refused.
 - **Seen:** "gate 2 blocked", by Islam Ahmed, shows **Got it** to Islam himself.
 - **Rule (review 61 G1):**
   - the author never gives Got it;
@@ -994,3 +996,18 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - the page shows the quote where the card does: after the facts line and before the words and blocks, with "From Omar Haddad · 8:38 am" and the start-side bar;
   - a tap opens its message (F87).
 - **The history line on the card** reads "Islam Ahmed edited it". For the reader's own edit it is **"You edited the page"** / «عدّلتَ الصفحة» (F84), and for others "Islam Ahmed edited the page", since only the page changed.
+
+## Build 473: slice 6, run by the lead on the emulator as Omar (22 Oct, 11:15–11:19)
+- **Step 19 passed:** Space ⋯ › Walk mode; name "Lead test walk, level 2" and place "Level 2"; the phone's camera opens.
+- **Step 20 passed:**
+  - three photos, each with its line;
+  - the owner Islam was kept for the second photo, then changed to Omar for the third;
+  - the facts line reads "Level 2 · 22 Oct 11:16 am · You".
+- **Step 21 in part:** a tap on a thumbnail goes back to that photo with its line and owner. Taking one out with a long press wasn't tried.
+- **Step 22 passed:** one card, NST-022: "You · NST-022 · 11:18 am", the title, the place, "3 photos, each one a work item", the photos, a row per work item with the owner's face, "Sign as done" on Omar's own row, and "0 of 3 checked".
+- **Step 23 passed** (migration 37 live): the walk's work items show only inside its card. A row opens that work item's own card (NST-025) on a sheet.
+- **Step 24 passed:** Omar signed his row as done without a photo, with a note. The sheet shows DONE · OMAR H · 11:19 am, and the walk's row shows DONE.
+  - Islam's two rows wait for him: **the founder signs one on his phone**, then checks Omar's as the walk's author.
+- **Step 25 passed:** ✕ asks "Throw this walk away? Its photos aren't sent", with Keep walking / Throw away.
+- **Not run:** 21's long press and 26 (airplane mode).
+- **Small:** in the walk's "Who does it" picker, the chosen person's row reads "Islam Ahmed · now". "now" means nothing there, so drop it.
