@@ -1063,3 +1063,9 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - **keep trying** on every resume and when the signal comes back, then every 30 minutes while the app is open, until a token is registered for this install;
   - **if there's still none after a day,** Settings › Notifications shows one quiet line, "This phone isn't getting notifications yet. Restart the phone, then open BuildVibes." / «لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes.»
 - **Test:** with the token call failing, the app tries again on resume and on reconnect, and registers as soon as it works.
+
+## F97. A direct message inside the 5-minute quiet time is never pushed (slice 10)
+- **Seen (Claude Code, 22:08):** the server pushes one DM per conversation every 5 minutes. "Test 2", sent 78 seconds after "Test 1", got no push at all.
+- **Risk on site:** the later message is often the one that matters ("stop the pour").
+- **Fix:** keep the quiet time, but at its end, if newer messages are still unread, send **one** push: "Omar Haddad · 2 new messages" / «عمر حداد · رسالتان جديدتان», which opens the conversation. Never more than one per quiet time.
+- **Test:** 3 messages in 2 minutes give the first push, then one "2 new messages" at 5 minutes if unread, and nothing if they were read.
