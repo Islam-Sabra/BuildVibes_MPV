@@ -433,7 +433,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
         children: [
           ChatActionRow(
             key: const Key('chat-action-reply'),
-            icon: BvIcons.chat,
+            icon: BvIcons.reply,
             label: l10n.chatReply,
             onTap: () => Navigator.of(context).pop(_Action.reply),
           ),

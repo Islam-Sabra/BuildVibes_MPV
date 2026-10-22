@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -560,6 +561,16 @@ void main() {
       await _openThread(tester, lang, chat: chat);
       await tester.longPress(find.byKey(const Key('chat-message-m2')));
       await tester.pumpAndSettle();
+      // Review 79 A6: the same curved arrow as direct messages, mirrored in
+      // Arabic.
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byKey(const Key('chat-action-reply')),
+          matching: find.byType(Icon),
+        ),
+      );
+      expect(icon.icon, BvIcons.reply);
+      expect(icon.icon!.matchTextDirection, isTrue);
       await _tap(tester, 'chat-action-reply');
       expect(
         find.text(l10n.chatReplyingTo(inOwnDirection('Rakesh Nair'))),
