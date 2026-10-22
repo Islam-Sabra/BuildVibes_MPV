@@ -4307,4 +4307,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pageTypeInside => 'اكتب هنا';
+
+  @override
+  String get daybookLineYouEditedPage => 'عدّلتَ الصفحة';
+
+  @override
+  String daybookLineEditedPage(String name) {
+    return '$name · تعديل الصفحة';
+  }
+
+  @override
+  String daybookPinnedUntilAt(String day, String time) {
+    return 'حتى $day · $time';
+  }
+
+  @override
+  String daybookPinnedLineUntil(String day) {
+    return 'حتى $day';
+  }
+
+  @override
+  String get daybookPinAddTime => '+ وقت';
+
+  @override
+  String get daybookPinRemoveTime => 'إزالة الوقت';
+
+  @override
+  String get daybookPinTimeHelp => 'مثبّت حتى أي وقت؟';
+
+  @override
+  String get daybookPinLater => 'اختر وقتًا لاحقًا';
 }

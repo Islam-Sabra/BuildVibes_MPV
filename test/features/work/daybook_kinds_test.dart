@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
@@ -31,6 +32,7 @@ Future<FakeDaybookRepository> _open(
   String me = DaybookSamples.islam,
   SpacePass pass = SpacePass.lead,
   DateTime? now,
+  DateTime Function()? clock,
   DaybookExtras extras = const DaybookExtras(),
   Map<String, List<DaybookAckFace>> acks = const {},
 }) async {
@@ -50,6 +52,7 @@ Future<FakeDaybookRepository> _open(
     spaces: spaces,
     daybook: fake,
     now: now ?? DaybookSamples.thursday,
+    clock: clock,
   );
   GoRouter.of(
     tester.element(find.byType(Navigator).first),
@@ -255,9 +258,20 @@ void main() {
           find.descendant(
             of: note,
             matching: find.text(
-              l10n.daybookPinnedUntil(
-                words.pinnedDay(post.pinnedUntil!, DaybookSamples.thursday),
-              ),
+              words.pinnedUntil(post.pinnedUntil!, DaybookSamples.thursday),
+            ),
+          ),
+          findsOneWidget,
+        );
+        // F85: the end on the facts line, the time posted in the header.
+        if (lang == 'en') {
+          expect(find.text('Until Friday 16 Oct'), findsOneWidget);
+        }
+        expect(
+          find.descendant(
+            of: note,
+            matching: find.text(
+              words.ackTime(post.createdAt, DaybookSamples.thursday),
             ),
           ),
           findsOneWidget,
@@ -350,8 +364,10 @@ void main() {
           // The test font is wider than the app's, so a shorter card than
           // K1's; test_screens/slice2_test.dart checks K1 itself in the
           // app's fonts.
+          // F85 added the facts line to the note; the rebar card without
+          // its Needs you action fits under it in the test font too.
           posts: [
-            s.rebar(),
+            s.rebar(needsMe: false),
             DaybookCard(post: post, lastActivityAt: post.createdAt),
           ],
           extras: DaybookExtras(pinned: [post]),
@@ -363,6 +379,62 @@ void main() {
         );
         expect(header.top, greaterThanOrEqualTo(note.bottom));
         expect(header.bottom, lessThanOrEqualTo(844));
+      });
+
+      testWidgets('F82, F85: pinned until 2 minutes from now: "until today" '
+          'on the folded line, the time on the facts line in ink, and it '
+          'comes down by itself when the time passes', (tester) async {
+        var now = DaybookSamples.thursday;
+        final until = now.add(const Duration(minutes: 2));
+        final post = DaybookPost(
+          id: DaybookSamples.halfDayId,
+          kind: DaybookPost.announcementKind,
+          createdAt: DateTime(2026, 10, 15, 8),
+          title: s.halfDay,
+          authorId: DaybookSamples.sara,
+          authorName: s.saraName,
+          pinnedUntil: until,
+        );
+        // Its author sees it folded from the start (review 61 G1).
+        await _open(
+          tester,
+          lang,
+          me: DaybookSamples.sara,
+          clock: () => now,
+          posts: [
+            s.rebar(),
+            DaybookCard(post: post, lastActivityAt: post.createdAt),
+          ],
+          extras: DaybookExtras(pinned: [post]),
+        );
+        expect(
+          find.descendant(
+            of: find.byType(BvPinnedLine),
+            matching: find.text(
+              l10n.daybookPinnedLineUntil(words.pinnedDay(until, now)),
+            ),
+          ),
+          findsOneWidget,
+        );
+        if (lang == 'en') expect(find.text('until today'), findsOneWidget);
+        await tester.tap(find.byType(BvPinnedLine));
+        await tester.pumpAndSettle();
+        final facts = tester.widget<Text>(
+          find.descendant(
+            of: find.byKey(const Key('pinned-until')),
+            matching: find.byType(Text),
+          ),
+        );
+        expect(facts.data, words.pinnedUntil(until, now));
+        expect(facts.style?.color, BvColors.textPrimary);
+        if (lang == 'en') expect(facts.data, 'Until today · 10:32 am');
+        now = now.add(const Duration(minutes: 3));
+        await tester.pump(const Duration(minutes: 3));
+        await tester.pumpAndSettle();
+        expect(find.byType(BvPinnedLine), findsNothing);
+        expect(find.byType(BvPinnedNote), findsNothing);
+        // An ordinary card on its day.
+        expect(_card(DaybookSamples.halfDayId), findsOneWidget);
       });
 
       testWidgets('its author sees who got it, faces only, and no button', (

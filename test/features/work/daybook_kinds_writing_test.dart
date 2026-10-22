@@ -7,6 +7,7 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/library/library_parts.dart'
     show libraryDocumentLine;
 import 'package:buildvibes/features/work/daybook_draft.dart';
+import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -54,6 +55,8 @@ Future<_App> _open(
   int galleryPhotos = 2,
   int galleryRefused = 0,
   Future<void>? galleryPreparing,
+  DateTime? pinTo,
+  TimeOfDay pinTime = const TimeOfDay(hour: 14, minute: 0),
 }) async {
   final s = DaybookSamples(lang);
   final spaces = FakeSpaceRepository()
@@ -80,7 +83,10 @@ Future<_App> _open(
       ),
       pickPinProvider.overrideWithValue(
         (context, {required now, until}) async =>
-            (until: DateTime(2026, 10, 17)),
+            (until: pinTo ?? DateTime(2026, 10, 17)),
+      ),
+      pickPinTimeProvider.overrideWithValue(
+        (context, {required initial}) async => pinTime,
       ),
     ],
   );
@@ -297,6 +303,69 @@ void main() {
       expect(sent.kind, DaybookPost.announcementKind);
       expect(sent.pinnedUntil, DateTime(2026, 10, 17));
       expect(sent.toParams()['p_people'], isEmpty);
+    });
+
+    testWidgets('F82: + Time pins until a time; ✕ takes the time away, and '
+        'the pin ends with its day again [$lang]', (tester) async {
+      final (app: _, :daybook) = await _open(tester, lang);
+      final words = DaybookWords(l10n, lang, use24: false);
+      final now = DaybookSamples.thursday;
+      await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
+      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      await _tap(tester, find.text(l10n.daybookPinUntil));
+      final pin = find.byKey(const Key('writing-pin'));
+      final noTime = l10n.daybookPinnedProperty(
+        words.pinnedShort(DateTime(2026, 10, 17), now),
+      );
+      expect(
+        find.descendant(of: pin, matching: find.text(noTime)),
+        findsOneWidget,
+      );
+      // No time yet: no ✕, and + Time.
+      expect(find.byKey(const Key('writing-property-remove')), findsNothing);
+      await _tap(tester, find.text(l10n.daybookPinAddTime));
+      final at = DateTime(2026, 10, 16, 14);
+      final withTime = l10n.daybookPinnedProperty(words.pinnedShort(at, now));
+      expect(
+        find.descendant(of: pin, matching: find.text(withTime)),
+        findsOneWidget,
+      );
+      if (lang == 'en') expect(withTime, 'Pinned until Fri 2:00 pm');
+      expect(find.text(l10n.daybookPinAddTime), findsNothing);
+      await _tap(tester, find.bySemanticsLabel(l10n.daybookPinRemoveTime));
+      expect(
+        find.descendant(of: pin, matching: find.text(noTime)),
+        findsOneWidget,
+      );
+      await _tap(tester, find.text(l10n.daybookPinAddTime));
+      await _post(tester);
+      expect(daybook.createdPosts.single.pinnedUntil, at);
+    });
+
+    testWidgets('F82: a time today that has passed is refused before '
+        'sending [$lang]', (tester) async {
+      final (app: _, :daybook) = await _open(
+        tester,
+        lang,
+        // Today (Thursday 10:30): until its end, then 9:00 am.
+        pinTo: DateTime(2026, 10, 16),
+        pinTime: const TimeOfDay(hour: 9, minute: 0),
+      );
+      final words = DaybookWords(l10n, lang, use24: false);
+      await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
+      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      await _tap(tester, find.text(l10n.daybookPinUntil));
+      final today = l10n.daybookPinnedProperty(
+        words.pinnedShort(DateTime(2026, 10, 16), DaybookSamples.thursday),
+      );
+      if (lang == 'en') expect(today, 'Pinned until today');
+      await tester.tap(find.text(l10n.daybookPinAddTime));
+      await tester.pump();
+      expect(find.text(l10n.daybookPinLater), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text(today), findsOneWidget);
+      await _post(tester);
+      expect(daybook.createdPosts.single.pinnedUntil, DateTime(2026, 10, 16));
     });
 
     testWidgets('F56: an announcement goes To: Everyone, or one Team chosen '
@@ -729,6 +798,13 @@ void main() {
       pinnedLastDay(DateTime(2026, 10, 17)),
       DateTime(2026, 10, 16, 23, 59),
     );
+  });
+
+  test('F82: a pin has a time unless it ends at midnight', () {
+    expect(pinHasTime(DateTime(2026, 10, 17)), isFalse);
+    expect(pinHasTime(DateTime(2026, 10, 16, 14)), isTrue);
+    expect(pinToEndOf(DateTime(2026, 10, 16)), DateTime(2026, 10, 17));
+    expect(pinnedLastDay(DateTime(2026, 10, 16, 14)).day, 16);
   });
 
   test('F56: who may post to which Team: an admin to any, a member to their '

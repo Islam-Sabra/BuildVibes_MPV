@@ -133,11 +133,35 @@ Future<({DateTime? until})?> _pickPin(
   );
   if (picked == null) return null;
   final day = picked.day;
-  // Pinned to the end of that day: the phone's next midnight.
+  if (day == null) return (until: null);
+  // F82: a time chosen before stays, on the new day; with none the pin ends
+  // with that day, at the phone's next midnight.
   return (
-    until: day == null ? null : DateTime(day.year, day.month, day.day + 1),
+    until: until != null && pinHasTime(until)
+        ? _on(day, TimeOfDay.fromDateTime(until.toLocal()))
+        : pinToEndOf(day),
   );
 }
+
+/// The time an announcement's pin ends (F82, "+ Time"): the phone's own
+/// 12- or 24-hour picker. Null when cancelled. A provider so tests can
+/// stand in.
+typedef PickPinTime =
+    Future<TimeOfDay?> Function(
+      BuildContext context, {
+      required TimeOfDay initial,
+    });
+
+final pickPinTimeProvider = Provider<PickPinTime>((ref) => _pickPinTime);
+
+Future<TimeOfDay?> _pickPinTime(
+  BuildContext context, {
+  required TimeOfDay initial,
+}) => showTimePicker(
+  context: context,
+  initialTime: initial,
+  helpText: AppLocalizations.of(context).daybookPinTimeHelp,
+);
 
 /// An announcement pins for at most this many days (create_space_post).
 const pinDaysMax = 90;
@@ -603,6 +627,7 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
     required this.onMenu,
     required this.onPickDue,
     required this.onPickPin,
+    required this.onPickPinTime,
     required this.onPickStart,
     required this.onPickFile,
     required this.onPickPeople,
@@ -625,6 +650,9 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
   final ValueChanged<DaybookWritingMenu> onMenu;
   final VoidCallback onPickDue;
   final VoidCallback onPickPin;
+
+  /// "+ Time" on the pin (F82).
+  final VoidCallback onPickPinTime;
   final VoidCallback onPickStart;
   final VoidCallback onPickFile;
   final VoidCallback onPickPeople;
@@ -829,14 +857,33 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           choose(l10n.daybookForChoose, widget.onPickPeople),
         ?due,
       ],
-      if (kind == DaybookKind.announcement && draft.pinnedUntil != null)
+      if (kind == DaybookKind.announcement && draft.pinnedUntil != null) ...[
         BvWritingProperty.icon(
+          key: const Key('writing-pin'),
           icon: BvIcons.pin,
           label: l10n.daybookPinnedProperty(
-            words.pinnedDay(draft.pinnedUntil!, now),
+            words.pinnedShort(draft.pinnedUntil!, now),
           ),
           onTap: tap(widget.onPickPin),
+          // F82: ✕ takes the time away; the pin then ends with its day.
+          onRemove: writing && pinHasTime(draft.pinnedUntil!)
+              ? () => unawaited(
+                  _writer.setPin(
+                    pinToEndOf(dayOf(pinnedLastDay(draft.pinnedUntil!))),
+                  ),
+                )
+              : null,
+          removeLabel: l10n.daybookPinRemoveTime,
         ),
+        if (writing && !pinHasTime(draft.pinnedUntil!))
+          BvWritingProperty.icon(
+            key: const Key('pin-add-time'),
+            icon: BvIcons.due,
+            label: l10n.daybookPinAddTime,
+            empty: true,
+            onTap: tap(widget.onPickPinTime),
+          ),
+      ],
       if (kind == DaybookKind.activity) ...[
         if (draft.startsAt != null)
           BvWritingProperty.icon(

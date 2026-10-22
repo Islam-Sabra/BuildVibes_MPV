@@ -224,9 +224,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     super.initState();
     _scroll.addListener(_onScroll);
     // A card that only quotes a message just put in this Space (review
-    // 64, DM5) is new, not a Draft from before.
+    // 64, DM5) is new, not a Draft from before. F88: any other kept card,
+    // a quoted one too, is the Draft however the Space was reached (back
+    // from Home, another Space, a restart).
     final kept = ref.read(daybookDraftProvider(_spaceId));
-    _fromBefore = kept != null && !kept.onlyQuote;
+    _fromBefore =
+        kept != null &&
+        !kept.isEmpty &&
+        !(widget.startWriting && kept.onlyQuote);
     // What was made with no signal sends when it's back: on opening and
     // on coming back to the app (the outbox also tries by itself). The
     // page is never stale (F11): it reads the newest cards when it opens
@@ -387,6 +392,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   @override
   void dispose() {
+    _unpin?.cancel();
     _liveRead?.cancel();
     unawaited(_live?.cancel());
     _life.dispose();
@@ -773,7 +779,42 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       now: ref.read(clockProvider)(),
       until: _card.draft?.pinnedUntil,
     );
-    if (picked != null) await _card.setPin(picked.until);
+    if (picked == null || !mounted) return;
+    final until = picked.until;
+    // F82: today, a time kept from before may have passed.
+    if (until != null && !until.isAfter(ref.read(clockProvider)())) {
+      showSpaceMessage(context, AppLocalizations.of(context).daybookPinLater);
+      return;
+    }
+    await _card.setPin(until);
+  }
+
+  /// "+ Time" on the pin (F82): the time on its last day it ends; one
+  /// that has passed is refused before sending.
+  Future<void> _pickPinTime() async {
+    final until = _card.draft?.pinnedUntil;
+    if (until == null) return;
+    final day = dayOf(pinnedLastDay(until));
+    final now = ref.read(clockProvider)();
+    final picked = await ref.read(pickPinTimeProvider)(
+      context,
+      initial: TimeOfDay.fromDateTime(
+        pinHasTime(until) ? until.toLocal() : now.add(const Duration(hours: 1)),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    final at = DateTime(
+      day.year,
+      day.month,
+      day.day,
+      picked.hour,
+      picked.minute,
+    );
+    if (!at.isAfter(ref.read(clockProvider)())) {
+      showSpaceMessage(context, AppLocalizations.of(context).daybookPinLater);
+      return;
+    }
+    await _card.setPin(at);
   }
 
   /// An activity's start and end (More → Time). True when one was set; a
@@ -1320,9 +1361,33 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       for (final c in cards)
         if (c.post.pinnedAt(now)) c.id: c.post,
     };
-    return byId.values.toList()
+    final pinned = byId.values.toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    _unpinAt(pinned, now);
+    return pinned;
   }
+
+  /// F82: the first pin to end comes down by itself at its time, with no
+  /// reload (a pin to 2 pm is gone at 2 pm).
+  Timer? _unpin;
+
+  void _unpinAt(List<DaybookPost> pinned, DateTime now) {
+    _unpin?.cancel();
+    _unpin = null;
+    final first = pinned
+        .map((p) => p.pinnedUntil!)
+        .fold<DateTime?>(null, (a, b) => a == null || b.isBefore(a) ? b : a);
+    if (first == null) return;
+    final wait = first.difference(now);
+    // A pin ending days away is read again long before then.
+    if (wait > _unpinFarthest) return;
+    _unpin = Timer(wait + _unpinMargin, () {
+      if (mounted) setState(() {});
+    });
+  }
+
+  static const _unpinFarthest = Duration(days: 1);
+  static const _unpinMargin = Duration(seconds: 1);
 
   /// [post]'s own acknowledgements with what the phone gave or took back
   /// that waits for the server.
@@ -1405,6 +1470,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         (onLongPress) => BvPinnedLine(
           key: Key('pinned-line-${post.id}'),
           text: post.title,
+          // F85: the end shows folded too.
+          until: l10n.daybookPinnedLineUntil(
+            words.pinnedDay(post.pinnedUntil!, now),
+          ),
           onTap: () => setState(() => _openPinned.add(post.id)),
           onLongPress: onLongPress,
         ),
@@ -1430,7 +1499,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         audience: team == null
             ? l10n.daybookToEveryone
             : l10n.daybookToTeam(team),
-        until: l10n.daybookPinnedUntil(words.pinnedDay(post.pinnedUntil!, now)),
+        // F85: the header ends with when it was posted; how long it lasts
+        // is the facts line under the title, in ink on its last day.
+        time: words.ackTime(post.createdAt, now),
+        until: words.pinnedUntil(post.pinnedUntil!, now),
+        untilToday: dayOf(pinnedLastDay(post.pinnedUntil!)) == dayOf(now),
         title: post.title,
         body: post.body,
         // F83: the message it was made from, opening it (F87).
@@ -2149,6 +2222,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                                 onMenu: _setMenu,
                                 onPickDue: _pickDue,
                                 onPickPin: () => unawaited(_pickPin()),
+                                onPickPinTime: () => unawaited(_pickPinTime()),
                                 onPickStart: () => unawaited(_pickStart()),
                                 onPickFile: () => unawaited(_pickFile()),
                                 onPickPeople: () => unawaited(_pickPeople()),

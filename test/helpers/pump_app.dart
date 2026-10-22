@@ -185,6 +185,9 @@ Future<TestApp> pumpApp(
 
   /// The phone's "now" (default [testNow]).
   DateTime? now,
+
+  /// A "now" that moves, in place of [now].
+  DateTime Function()? clock,
   FakeAuthRepository? auth,
   FakeProfileRepository? profiles,
   FakeSpaceRepository? spaces,
@@ -304,7 +307,7 @@ Future<TestApp> pumpApp(
         phoneSignInProvider.overrideWithValue(phoneSignIn),
         profilePageRepositoryProvider.overrideWithValue(pages),
         projectRepositoryProvider.overrideWithValue(projects),
-        clockProvider.overrideWithValue(() => now ?? testNow),
+        clockProvider.overrideWithValue(clock ?? () => now ?? testNow),
         spaceRepositoryProvider.overrideWithValue(fakeSpaces),
         workRepositoryProvider.overrideWithValue(fakeWork),
         daybookRepositoryProvider.overrideWithValue(fakeDaybook),

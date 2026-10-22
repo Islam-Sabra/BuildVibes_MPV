@@ -6194,5 +6194,55 @@
   "pageTypeInside": "Type inside",
   "@pageTypeInside": {
     "description": "F90: the hint of the empty line ready to type at the end of an open toggle."
+  },
+  "daybookLineYouEditedPage": "You edited the page",
+  "@daybookLineYouEditedPage": {
+    "description": "F91/F93: one history line for the reader's own edit session of a post's page."
+  },
+  "daybookLineEditedPage": "{name} edited the page",
+  "@daybookLineEditedPage": {
+    "description": "F91/F93: one history line for someone's edit session of a post's page.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPinnedUntilAt": "Until {day} · {time}",
+  "@daybookPinnedUntilAt": {
+    "description": "A pinned announcement's end with its time, on its facts line (F82, F85): \"Until Friday 23 Oct · 2:00 pm\".",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPinnedLineUntil": "until {day}",
+  "@daybookPinnedLineUntil": {
+    "description": "The end of a pinned announcement at the end of its folded line (F85): \"until Fri\".",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookPinAddTime": "+ Time",
+  "@daybookPinAddTime": {
+    "description": "Adds a time to an announcement's pin on the writing card (F82)."
+  },
+  "daybookPinRemoveTime": "Remove the time",
+  "@daybookPinRemoveTime": {
+    "description": "Takes the time off an announcement's pin; it then ends with its day (F82)."
+  },
+  "daybookPinTimeHelp": "Pinned until what time?",
+  "@daybookPinTimeHelp": {
+    "description": "The time picker's heading for an announcement's pin (F82)."
+  },
+  "daybookPinLater": "Choose a later time",
+  "@daybookPinLater": {
+    "description": "A pin's time that has already passed is refused (F82)."
   }
 }

@@ -4298,4 +4298,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pageTypeInside => 'Type inside';
+
+  @override
+  String get daybookLineYouEditedPage => 'You edited the page';
+
+  @override
+  String daybookLineEditedPage(String name) {
+    return '$name edited the page';
+  }
+
+  @override
+  String daybookPinnedUntilAt(String day, String time) {
+    return 'Until $day · $time';
+  }
+
+  @override
+  String daybookPinnedLineUntil(String day) {
+    return 'until $day';
+  }
+
+  @override
+  String get daybookPinAddTime => '+ Time';
+
+  @override
+  String get daybookPinRemoveTime => 'Remove the time';
+
+  @override
+  String get daybookPinTimeHelp => 'Pinned until what time?';
+
+  @override
+  String get daybookPinLater => 'Choose a later time';
 }

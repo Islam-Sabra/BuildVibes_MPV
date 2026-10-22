@@ -282,6 +282,9 @@ class DaybookWords {
         you ? l10n.daybookLineYouRemovedDue : l10n.daybookLineRemovedDue(name),
       DaybookEventKind.edited when due != null && _moved(due, now) != null =>
         _movedLine(_moved(due, now)!, you, name),
+      // F91: only the page changed.
+      DaybookEventKind.edited when e.pageOnly =>
+        you ? l10n.daybookLineYouEditedPage : l10n.daybookLineEditedPage(name),
       DaybookEventKind.edited =>
         you ? l10n.daybookLineYouEdited : l10n.daybookLineEdited(name),
       DaybookEventKind.cancelled =>
@@ -401,13 +404,36 @@ class DaybookWords {
         : l10n.daybookChecklistByAt(date, _clock(at));
   }
 
-  /// The last day an announcement pinned [until] stays up, as "Until Fri"
-  /// says it: the weekday within the week, else the date.
+  /// The last day an announcement pinned [until] stays up, short, as the
+  /// folded line's "until Fri" says it: "today", the weekday within the
+  /// week, else the date.
   String pinnedDay(DateTime until, DateTime now) {
     final day = dayOf(pinnedLastDay(until));
-    return day.difference(dayOf(now)).inDays < DateTime.daysPerWeek
+    final today = dayOf(now);
+    if (day == today) return l10n.daybookToday;
+    return day.difference(today).inDays < DateTime.daysPerWeek
         ? _f('EEE', day)
         : _f('d MMM', day);
+  }
+
+  /// The writing card's pin (F82): "2:00 pm" today, "Wed 2:00 pm" on
+  /// another day, and with no time only the day ("Wed").
+  String pinnedShort(DateTime until, DateTime now) {
+    if (!pinHasTime(until)) return pinnedDay(until, now);
+    return dayOf(until) == dayOf(now)
+        ? _clock(until)
+        : '${pinnedDay(until, now)} ${_clock(until)}';
+  }
+
+  /// A pinned announcement's facts line (F85): "Until Friday 23 Oct",
+  /// "Until Friday 23 Oct · 2:00 pm", "Until today · 2:00 pm", and on its
+  /// last day without a time "Until today".
+  String pinnedUntil(DateTime until, DateTime now) {
+    final day = dayOf(pinnedLastDay(until));
+    final date = day == dayOf(now) ? l10n.daybookToday : _f('EEEE d MMM', day);
+    return pinHasTime(until)
+        ? l10n.daybookPinnedUntilAt(date, _clock(until))
+        : l10n.daybookPinnedUntil(date);
   }
 
   /// The calendar leaf's three lines: "FRI", "16", "Oct" (Arabic "الجمعة",

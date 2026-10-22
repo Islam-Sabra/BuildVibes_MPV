@@ -6,15 +6,18 @@ import '../../core/design/daybook_kinds_specs.dart';
 
 /// A pinned announcement under the masthead (K1 v13 2594:36070): on the
 /// brand-soft surface, the pin, who wrote it and for whom ("· to
-/// everyone"), until when ("Until Fri"), the words in bold, and a row at
-/// the foot with the author's faces ([leading]) and the reader's one
-/// action ([action], Got it).
+/// everyone") and when, the words in bold, until when on the facts line
+/// under them (review 50 F85: "Until Friday 23 Oct · 2:00 pm", at the main
+/// size), and a row at the foot with the author's faces ([leading]) and
+/// the reader's one action ([action], Got it).
 class BvPinnedNote extends StatelessWidget {
   const BvPinnedNote({
     super.key,
     required this.author,
     required this.audience,
+    required this.time,
     required this.until,
+    this.untilToday = false,
     required this.title,
     this.body,
     this.quote,
@@ -29,8 +32,14 @@ class BvPinnedNote extends StatelessWidget {
   /// "· to everyone", "· to MEP".
   final String audience;
 
-  /// "Until Fri".
+  /// When it was posted, at the header's end ("8:38").
+  final String time;
+
+  /// "Until Friday 23 Oct · 2:00 pm".
   final String until;
+
+  /// Its last day is today: [until] in ink, not grey.
+  final bool untilToday;
   final String title;
   final String? body;
 
@@ -49,6 +58,25 @@ class BvPinnedNote extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = BvType.of(context);
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final facts = Row(
+      key: const Key('pinned-until'),
+      spacing: BvPinnedSpec.headerGap,
+      children: [
+        const Icon(
+          BvIcons.pin,
+          size: BvPinnedSpec.pin,
+          color: BvColors.iconSecondary,
+        ),
+        Expanded(
+          child: Text(
+            until,
+            style: type.bodyMd.copyWith(
+              color: untilToday ? BvColors.textPrimary : BvColors.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
     final note = Container(
       key: const Key('pinned-note'),
       width: double.infinity,
@@ -88,13 +116,14 @@ class BvPinnedNote extends StatelessWidget {
                   style: quiet,
                 ),
               ),
-              Text(until, style: quiet),
+              Text(time, style: quiet),
             ],
           ),
           Text(
             title,
             style: type.titleLg.copyWith(color: BvColors.textPrimary),
           ),
+          facts,
           if ((body ?? '').isNotEmpty)
             Text(
               body!,
@@ -129,17 +158,21 @@ class BvPinnedNote extends StatelessWidget {
 
 /// A pinned announcement folded to one slim line under the masthead
 /// (review 61 G1): after Got it, or for its author. The pin, the first
-/// line of its words, and ›, which mirrors in right to left. A tap opens
-/// it in full.
+/// line of its words, how long it lasts ("until Fri", F85) and ›, which
+/// mirrors in right to left. A tap opens it in full.
 class BvPinnedLine extends StatelessWidget {
   const BvPinnedLine({
     super.key,
     required this.text,
+    this.until,
     this.onTap,
     this.onLongPress,
   });
 
   final String text;
+
+  /// "until Fri", in grey before ›.
+  final String? until;
   final VoidCallback? onTap;
 
   /// The same long-press menu as a card's (review 50 F44).
@@ -185,6 +218,12 @@ class BvPinnedLine extends StatelessWidget {
                   style: type.bodyMd.copyWith(color: BvColors.textPrimary),
                 ),
               ),
+              if (until != null)
+                Text(
+                  until!,
+                  key: const Key('pinned-line-until'),
+                  style: type.metadata.copyWith(color: BvColors.textSecondary),
+                ),
               const Icon(
                 BvIcons.caretForward,
                 size: BvPinnedSpec.caret,

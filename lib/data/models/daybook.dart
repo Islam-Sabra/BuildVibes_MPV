@@ -17,6 +17,16 @@ DateTime? _day(Object? value) {
 DateTime pinnedLastDay(DateTime until) =>
     until.subtract(const Duration(minutes: 1));
 
+/// Whether a pin [until] has a time of its own (F82). Without one it ends
+/// with its day, at the phone's next midnight.
+bool pinHasTime(DateTime until) {
+  final t = until.toLocal();
+  return t.hour != 0 || t.minute != 0;
+}
+
+/// A pin to the end of [day], with no time: the phone's next midnight.
+DateTime pinToEndOf(DateTime day) => DateTime(day.year, day.month, day.day + 1);
+
 /// The phone's calendar day of [t].
 DateTime dayOf(DateTime t) {
   final local = t.toLocal();
@@ -796,6 +806,7 @@ class DaybookEvent {
     this.pointId,
     this.point,
     this.pinOnly = false,
+    this.pageOnly = false,
   });
 
   factory DaybookEvent.fromJson(Map<String, dynamic> json) => DaybookEvent(
@@ -816,11 +827,21 @@ class DaybookEvent {
     pointId: json['point_id'] as String?,
     point: json['point'] as String?,
     pinOnly: _pinOnly(json['changes']),
+    pageOnly: _pageOnly(json['changes']),
   );
+
+  /// Only the page changed (save_blocks: the page, and files it added).
+  static bool _pageOnly(Object? changes) =>
+      changes is Map &&
+      changes.containsKey('page') &&
+      changes.keys.every((k) => k == 'page' || k == 'files');
 
   static bool _pinOnly(Object? changes) =>
       changes is Map && changes.length == 1 && changes.containsKey(_pinKey);
   static const _pinKey = 'pinned_until';
+
+  /// F91, F93: an edit of the page only ("edited the page").
+  final bool pageOnly;
 
   final String id;
   final DaybookEventKind kind;

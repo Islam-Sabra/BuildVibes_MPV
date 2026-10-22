@@ -307,7 +307,8 @@ void main() {
       BvPinnedNote(
         author: 'Sara Al-Mutairi',
         audience: '· to everyone',
-        until: 'Until Fri',
+        time: '8:38',
+        until: 'Until Friday 23 Oct · 2:00 pm',
         title: 'Friday is a half day.',
         leading: const BvFaces([
           (name: 'Omar Haddad', tint: BvAvatarTints.plain),
@@ -316,11 +317,13 @@ void main() {
       ),
       lang: lang,
     );
-    expect(find.byIcon(BvIcons.pin), findsOneWidget);
+    // F85: the pin's mark, and the pin on the facts line.
+    expect(find.byIcon(BvIcons.pin), findsNWidgets(2));
     for (final t in [
       'Sara Al-Mutairi',
       '· to everyone',
-      'Until Fri',
+      '8:38',
+      'Until Friday 23 Oct · 2:00 pm',
       'Friday is a half day.',
       'Got it',
     ]) {

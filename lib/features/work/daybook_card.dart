@@ -788,10 +788,12 @@ class DaybookCardView extends StatelessWidget {
   /// Show earlier (the whole history) has every line.
   Widget? _history(AppLocalizations l10n) {
     final hidden = expanded ? const <String>{} : hiddenLines(card.history);
-    final all = [
-      for (final e in card.history)
-        if (e.shown && !hidden.contains(e.id)) e,
-    ].reversed.toList();
+    final all = foldPageEdits(
+      [
+        for (final e in card.history)
+          if (e.shown && !hidden.contains(e.id)) e,
+      ].reversed.toList(),
+    );
     final cut = !expanded && all.length > shownLines;
     final lines = cut ? all.sublist(all.length - shownLines) : all;
     final earlier = cut || card.historyMore;
@@ -1029,3 +1031,28 @@ class DaybookCardFiles extends ConsumerWidget {
     );
   }
 }
+
+/// F93: one edit session is one line. The same person's page edits within
+/// [pageSession] of each other fold into the latest. [oldestFirst] is the
+/// history oldest first; so is the result. The post page lists every edit.
+List<DaybookEvent> foldPageEdits(List<DaybookEvent> oldestFirst) {
+  final out = <DaybookEvent>[];
+  for (final e in oldestFirst) {
+    final last = out.lastOrNull;
+    if (last != null &&
+        e.kind == DaybookEventKind.edited &&
+        last.kind == DaybookEventKind.edited &&
+        e.pageOnly &&
+        last.pageOnly &&
+        e.byId == last.byId &&
+        e.at.difference(last.at) <= pageSession) {
+      out[out.length - 1] = e;
+    } else {
+      out.add(e);
+    }
+  }
+  return out;
+}
+
+/// How long one page edit session lasts on the card (F93).
+const pageSession = Duration(minutes: 10);

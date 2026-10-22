@@ -211,6 +211,31 @@ void main() {
     expect(_words('ar').pinnedDay(DateTime(2026, 10, 17), _thu), 'الجمعة');
   });
 
+  test('F82, F85: a pin until a time, short and on the facts line', () {
+    final en = _words('en');
+    final ar = _words('ar');
+    final friday2pm = DateTime(2026, 10, 16, 14);
+    final today2pm = DateTime(_thu.year, _thu.month, _thu.day, 14);
+    final endOfToday = DateTime(_thu.year, _thu.month, _thu.day + 1);
+    expect(en.pinnedShort(friday2pm, _thu), 'Fri 2:00 pm');
+    expect(en.pinnedShort(today2pm, _thu), '2:00 pm');
+    expect(en.pinnedShort(DateTime(2026, 10, 17), _thu), 'Fri');
+    expect(en.pinnedDay(endOfToday, _thu), 'today');
+    expect(en.pinnedUntil(DateTime(2026, 10, 17), _thu), 'Until Friday 16 Oct');
+    expect(en.pinnedUntil(friday2pm, _thu), 'Until Friday 16 Oct · 2:00 pm');
+    expect(en.pinnedUntil(today2pm, _thu), 'Until today · 2:00 pm');
+    expect(en.pinnedUntil(endOfToday, _thu), 'Until today');
+    expect(
+      ar.pinnedUntil(DateTime(2026, 10, 17), _thu),
+      'حتى الجمعة 16 أكتوبر',
+    );
+    expect(ar.pinnedUntil(endOfToday, _thu), 'حتى اليوم');
+    expect(
+      ar.pinnedShort(friday2pm, _thu),
+      allOf(startsWith('الجمعة '), contains('2:00')),
+    );
+  });
+
   test('the calendar leaf and the file fact', () {
     final en = _words('en');
     final leaf = en.leaf(DateTime(2026, 10, 16, 7));

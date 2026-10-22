@@ -1188,5 +1188,13 @@
   "daybookReplacedBy": "استُبدلت بـ {version} · {when}",
   "libraryInUseNo": "{version} · المعتمدة",
   "libraryReplacedOn": "استُبدلت {day}، وتبقى في السجل",
-  "pageTypeInside": "اكتب هنا"
+  "pageTypeInside": "اكتب هنا",
+  "daybookLineYouEditedPage": "عدّلتَ الصفحة",
+  "daybookLineEditedPage": "{name} · تعديل الصفحة",
+  "daybookPinnedUntilAt": "حتى {day} · {time}",
+  "daybookPinnedLineUntil": "حتى {day}",
+  "daybookPinAddTime": "+ وقت",
+  "daybookPinRemoveTime": "إزالة الوقت",
+  "daybookPinTimeHelp": "مثبّت حتى أي وقت؟",
+  "daybookPinLater": "اختر وقتًا لاحقًا"
 }

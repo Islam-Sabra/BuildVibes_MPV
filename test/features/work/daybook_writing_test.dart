@@ -416,6 +416,19 @@ void main() {
       expect(_read(tester, workOutboxProvider), isEmpty);
     });
 
+    testWidgets('F88: a kept card made from a quoted message is the Draft '
+        'when the Space is opened again [$lang]', (tester) async {
+      final draft = jsonEncode(
+        DaybookPostDraft(
+          id: 'draft-q',
+          quote: const DaybookQuote(text: 'At the gate at 7?'),
+        ).toJson(),
+      );
+      await _open(tester, lang, draft: draft);
+      expect(find.byType(BvWritingCard), findsOneWidget);
+      expect(find.text(l10n.daybookDraft), findsOneWidget);
+    });
+
     testWidgets('E4: a draft survives the app being closed and reopens in '
         'writing mode; only its author sees it [$lang]', (tester) async {
       final draft = jsonEncode(

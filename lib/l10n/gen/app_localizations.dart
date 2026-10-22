@@ -7231,6 +7231,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type inside'**
   String get pageTypeInside;
+
+  /// F91/F93: one history line for the reader's own edit session of a post's page.
+  ///
+  /// In en, this message translates to:
+  /// **'You edited the page'**
+  String get daybookLineYouEditedPage;
+
+  /// F91/F93: one history line for someone's edit session of a post's page.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} edited the page'**
+  String daybookLineEditedPage(String name);
+
+  /// A pinned announcement's end with its time, on its facts line (F82, F85): "Until Friday 23 Oct · 2:00 pm".
+  ///
+  /// In en, this message translates to:
+  /// **'Until {day} · {time}'**
+  String daybookPinnedUntilAt(String day, String time);
+
+  /// The end of a pinned announcement at the end of its folded line (F85): "until Fri".
+  ///
+  /// In en, this message translates to:
+  /// **'until {day}'**
+  String daybookPinnedLineUntil(String day);
+
+  /// Adds a time to an announcement's pin on the writing card (F82).
+  ///
+  /// In en, this message translates to:
+  /// **'+ Time'**
+  String get daybookPinAddTime;
+
+  /// Takes the time off an announcement's pin; it then ends with its day (F82).
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the time'**
+  String get daybookPinRemoveTime;
+
+  /// The time picker's heading for an announcement's pin (F82).
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned until what time?'**
+  String get daybookPinTimeHelp;
+
+  /// A pin's time that has already passed is refused (F82).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a later time'**
+  String get daybookPinLater;
 }
 
 class _AppLocalizationsDelegate
