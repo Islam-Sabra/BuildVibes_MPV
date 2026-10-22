@@ -14,6 +14,8 @@ The founder's "ok" (23 Oct): draft the slice 7 plan (templates and the daily rep
   - Daily report from the Space menu, with "Done today" filled from the day's checked work items;
   - the report card;
   - Share as PDF, made on the phone with the `pdf` package (a new dependency).
+- **Founder's decisions (23 Oct, "ok"):** Lead and Crew write the daily report; more than one a day is allowed; today's report only. Recorded at the top of review 78.
+- **Next for the founder:** the PC merges `claude/trial-merge` into `slice2-app` (recipe in the trial-merge section below), builds, and the founder tests slices 3–6 on the phone.
 - **For the lead:**
   - redraw R2 (`2539:34498`) without the hour spine and weather before 17 Nov (review 58);
   - answer the five questions: no template frames, who writes the report, one per day, yesterday's report, the typed "On site" numbers.
