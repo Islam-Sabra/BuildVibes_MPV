@@ -2,6 +2,27 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 22 Oct 2026 — review 81 applied in `slice2-app` (also pushed to `claude/review80`)
+
+`slice2-app` is `claude/review80` fast-forwarded in, with review 81 (`docs/reviews/2026-10-22-81-review80-check.md` on main) on top.
+
+**Done:**
+- **R1 (migration 38, edited in place, not live):** `library_files_chain_version_uidx`, a unique index on `(chain_id, version_no)`, replaces the plain index. The numbering trigger now locks the chain's id (`pg_advisory_xact_lock`), not its first file's row, so two versions added at once wait for each other even if that row is ever removed for good; the unique index refuses anything that still slips by. Nothing retries on a unique violation: `add_library_file` doesn't catch it, and `publish_model_view`'s handler only sees one if the lock fails. 2 new checks (`plan(26)`).
+- **R2:** "New version of a file" from the paper clip turns the card into a **File** post (the kind chip says File); the title and words stay. A plain new PDF on a note stays the note's file. Tests: note → paper clip → File from the phone → New version of M-201 V3 → posted as kind file with `library_file_id` set, the new file V4 superseding V3 and V3 "replaced by" it (in the fakes; the fake Library now numbers versions as the trigger does). The server's NEW VERSION and `newer` are proved by migration 38's tests.
+- **R4:** «يحل محل M-201.pdf · V3» on the writing card and the stamp line (`daybookReplacesOption`, `daybookStampReplaces`).
+- **R3:** the rule below; the wrong sentence is gone.
+- **Screenshots:** slice 2's W-file now goes through F71's single choice and the version picker; F73 has a fixed post id, so its torn edge (seeded by the id) is the same every run.
+
+**Rules for going live (review 81 §5):**
+- **Migrations 36 and 37 are live** (22 Oct, the founder's yes).
+- **Migration 38 goes live before a build from this branch is installed on any phone.** The app always sends `p_install` to `register_push_token`; the live function refuses it without 38, and the phone would get no push token.
+- Order, each with the founder's yes: migration 38 → deploy the `push` function → build and install.
+- **Migration 34** (`claude/store-reviewer`, after B5) is renamed to a date after 38: `20261030120000_review_sign_in.sql` (its test file keeps its name). This replaces the earlier 20261028 rule. The 3D model views come after it.
+
+**Checks on the PC:** analyze clean; **1,544 app tests**; **2,364 SQL checks in 36 files** (`db reset --local` + `test db --local`); 9 push function tests; **305 screenshots** pass with `--update-goldens` and twice without; re-shot PNGs committed.
+
+**Not live, nothing deployed, nothing installed.**
+
 ## Cloud update: 22 Oct 2026 — review 80 applied (branch `claude/review80`, from `slice2-app` 586e017)
 
 The founder asked to apply review 80 (`docs/reviews/2026-10-22-80-fix-batch-build473.md` on main) in its order, with each item's full text from review 50 (F70–F95). All of it is done, one commit per group, with tests.
