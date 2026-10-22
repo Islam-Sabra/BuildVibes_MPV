@@ -1170,5 +1170,7 @@
   "peopleSearchHint": "الاسم أو الدور أو الشركة",
   "peopleInYourSpaces": "أشخاص في مساحاتك",
   "peopleSearchNothing": "لا أحد يطابق «{query}»",
-  "peopleSearchStart": "اكتب اسمًا لتجد شخصًا."
+  "peopleSearchStart": "اكتب اسمًا لتجد شخصًا.",
+  "daybookSending": "يُرسل",
+  "daybookSendingBytes": "يُرسل · {sent} من {total} ميغابايت"
 }

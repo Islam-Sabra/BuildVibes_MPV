@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
+import 'package:buildvibes/data/supabase/upload_progress.dart';
 
 /// The Library with no network. Tests fill [filesBySpace] (newest first),
 /// and [usedIn].
@@ -57,8 +59,24 @@ class FakeLibraryRepository implements LibraryRepository {
     );
   }
 
+  /// While set, an upload stops half way (F73) until it completes.
+  Completer<void>? holdUpload;
+
   @override
-  Future<String> upload(String spaceId, String fileId, PhoneFile file) async {
+  Future<String> upload(
+    String spaceId,
+    String fileId,
+    PhoneFile file, {
+    UploadProgress? onProgress,
+  }) async {
+    final total = file.bytes ?? 0;
+    onProgress?.call(0, total);
+    final hold = holdUpload;
+    if (hold != null) {
+      onProgress?.call(total ~/ 3, total);
+      await hold.future;
+    }
+    onProgress?.call(total, total);
     final path =
         '$spaceId/library/$fileId/upload-${uploads.length + 1}.${file.extension}';
     uploads.add(path);

@@ -4231,4 +4231,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get peopleSearchStart => 'Type a name to find someone.';
+
+  @override
+  String get daybookSending => 'Sending';
+
+  @override
+  String daybookSendingBytes(String sent, String total) {
+    return 'Sending · $sent of $total MB';
+  }
 }

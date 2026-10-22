@@ -608,13 +608,16 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// Keeps [item], uploads its photos and sends it, trying again on a weak
   /// signal. True when it reached the server; otherwise it stays here
   /// ("Waiting to send" on the daybook), unless the server refused it.
+  /// While it goes, the daybook says "Sending" (F73).
   Future<bool> send(PendingItem item) async {
     final key = (item.kind, item.id);
     if (!_sending.add(key)) return false;
+    final shown = ref.read(outboxSendingProvider.notifier)..start(item.id);
     try {
       return await _send(item);
     } finally {
       _sending.remove(key);
+      shown.stop(item.id);
     }
   }
 
@@ -675,7 +678,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             files.add(f);
             continue;
           }
-          await withRetries(() => _addToLibrary(item.spaceId, f));
+          await withRetries(() => _addToLibrary(item.spaceId, f, item.id));
           files.add(f.inLibrary);
           current = current.copyWith(
             files: [...files, ...current.files.skip(files.length)],
@@ -749,12 +752,15 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// new version of an older one when chosen. The server refuses an id it
   /// has already: then an earlier try got through and only its answer was
   /// lost, since the id is this phone's own.
-  Future<void> _addToLibrary(String spaceId, DraftFile f) async {
+  Future<void> _addToLibrary(String spaceId, DraftFile f, String itemId) async {
     final library = ref.read(libraryRepositoryProvider);
+    final shown = ref.read(outboxSendingProvider.notifier);
     final path = await library.upload(
       spaceId,
       f.libraryId,
       PhoneFile(local: f.local!, name: f.name, mime: f.mime, bytes: f.bytes),
+      // F73: "Sending · 3.1 of 8.7 MB".
+      onProgress: (sent, total) => shown.progress(itemId, sent, total),
     );
     try {
       await library.add(
@@ -1008,4 +1014,46 @@ class Refusals extends Notifier<DaybookRefusal?> {
   DaybookRefusal? build() => null;
 
   void add(DaybookRefusal r) => state = r;
+}
+
+/// A post on its way (F73): with a signal it says "Sending", and a file's
+/// bytes while it uploads; "Waiting to send" is only for no signal.
+@immutable
+class OutboxSending {
+  const OutboxSending({this.sent, this.total});
+
+  final int? sent;
+  final int? total;
+
+  bool get hasBytes => sent != null && total != null && total! > 0;
+}
+
+final outboxSendingProvider =
+    NotifierProvider<OutboxSendingState, Map<String, OutboxSending>>(
+      OutboxSendingState.new,
+    );
+
+class OutboxSendingState extends Notifier<Map<String, OutboxSending>> {
+  @override
+  Map<String, OutboxSending> build() => const {};
+
+  /// Bytes between two updates of the line (a tenth of a megabyte).
+  static const _step = 100 * 1024;
+
+  void start(String id) {
+    if (!ref.mounted) return;
+    state = {...state, id: const OutboxSending()};
+  }
+
+  void progress(String id, int sent, int total) {
+    if (!ref.mounted || !state.containsKey(id)) return;
+    final last = state[id]?.sent;
+    if (last != null && sent < total && sent - last < _step) return;
+    state = {...state, id: OutboxSending(sent: sent, total: total)};
+  }
+
+  void stop(String id) {
+    if (!ref.mounted || !state.containsKey(id)) return;
+    state = {...state}..remove(id);
+  }
 }

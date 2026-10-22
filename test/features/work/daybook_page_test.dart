@@ -440,10 +440,9 @@ void main() {
         'save $_post v4 [text, toggle, checklist_ref, table, child_item]',
         'edit $_post points',
       ]);
-      expect(
-        app.postPages.pages[_post]!.points.map((p) => p.id),
-        [_photoPoint],
-      );
+      expect(app.postPages.pages[_post]!.points.map((p) => p.id), [
+        _photoPoint,
+      ]);
     });
 
     testWidgets('N4: a point turns into a work item under this one, in one '

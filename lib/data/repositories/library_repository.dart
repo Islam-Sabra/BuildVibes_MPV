@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/library.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
+import '../supabase/upload_progress.dart';
 import 'space_repository.dart';
 import 'work_repository.dart' show newUuid;
 
@@ -21,7 +22,13 @@ abstract class LibraryRepository {
   Future<LibraryFileDetail?> detail(String fileId);
 
   /// Uploads to `<space>/library/<id>/<new uuid>.<ext>`; returns the path.
-  Future<String> upload(String spaceId, String fileId, PhoneFile file);
+  /// [onProgress] hears how many bytes went (F73).
+  Future<String> upload(
+    String spaceId,
+    String fileId,
+    PhoneFile file, {
+    UploadProgress? onProgress,
+  });
 
   Future<void> add({
     required String id,
@@ -143,18 +150,33 @@ class SupabaseLibraryRepository implements LibraryRepository {
   });
 
   @override
-  Future<String> upload(String spaceId, String fileId, PhoneFile file) =>
-      _guard(() async {
-        final path = '$spaceId/library/$fileId/${newUuid()}.${file.extension}';
-        await _client.storage
-            .from(_bucket)
-            .upload(
-              path,
-              File(file.local),
-              fileOptions: FileOptions(contentType: file.mime),
-            );
-        return path;
-      });
+  Future<String> upload(
+    String spaceId,
+    String fileId,
+    PhoneFile file, {
+    UploadProgress? onProgress,
+  }) => _guard(() async {
+    final path = '$spaceId/library/$fileId/${newUuid()}.${file.extension}';
+    if (onProgress != null) {
+      await uploadWithProgress(
+        _client,
+        bucket: _bucket,
+        path: path,
+        file: File(file.local),
+        contentType: file.mime,
+        onProgress: onProgress,
+      );
+    } else {
+      await _client.storage
+          .from(_bucket)
+          .upload(
+            path,
+            File(file.local),
+            fileOptions: FileOptions(contentType: file.mime),
+          );
+    }
+    return path;
+  });
 
   @override
   Future<void> add({

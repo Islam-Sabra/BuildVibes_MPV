@@ -54,6 +54,9 @@ dependencies:
   firebase_messaging: ^16.7.0
   firebase_crashlytics: ^5.4.0
   image: ^4.8.0
+  # F73: a file's upload counts its bytes (already in the lock file).
+  http: ^1.6.0
+  http_parser: ^4.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -7123,6 +7123,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type a name to find someone.'**
   String get peopleSearchStart;
+
+  /// F73: a post on its way to the server, with a signal.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending'**
+  String get daybookSending;
+
+  /// F73: a file uploading, how much of it went (MB, one decimal).
+  ///
+  /// In en, this message translates to:
+  /// **'Sending · {sent} of {total} MB'**
+  String daybookSendingBytes(String sent, String total);
 }
 
 class _AppLocalizationsDelegate

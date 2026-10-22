@@ -409,6 +409,30 @@ void main() {
       expect(_read(tester, workOutboxProvider), isEmpty);
     });
 
+    testWidgets('F73: a large file says how much has gone while it '
+        'uploads, with a line; no signal says Waiting to send [$lang]', (
+      tester,
+    ) async {
+      final (:app, :daybook) = await _open(tester, lang);
+      final hold = Completer<void>();
+      app.library.holdUpload = hold;
+      await _write(tester, l10n, DaybookKind.file, 'M-201 Rev D');
+      await _tap(tester, find.byKey(const Key('file-from-phone')));
+      await _tap(tester, find.byKey(const Key('replaces-none')));
+      await _tap(tester, find.byKey(const Key('replaces-done')));
+      await _post(tester);
+      // 4.8 MB (the test PDF): a third has gone.
+      expect(find.byKey(const Key('card-sending')), findsOneWidget);
+      expect(find.text(l10n.daybookSendingBytes('1.5', '4.6')), findsOneWidget);
+      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      // The signal drops: the try ends, and it waits.
+      daybook.offline = true;
+      hold.complete();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('card-sending')), findsNothing);
+      expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
+    });
+
     testWidgets('Review 74 H2: photos still being prepared show as '
         '"Preparing…" slots on the card, which stays usable [$lang]', (
       tester,

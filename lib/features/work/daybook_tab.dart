@@ -1966,6 +1966,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _loadOlderIfNear();
     });
 
+    final sending = ref.watch(outboxSendingProvider);
     Widget cardOf(_Shown s) {
       final c = s.card;
       final unsent = s.unsent;
@@ -1978,6 +1979,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         activityAt: s.at,
         viewer: viewer,
         waiting: s.waiting,
+        // F73: on its way now (with a signal), not waiting for one.
+        sending: switch (sending[c.id]) {
+          final OutboxSending g => (sent: g.sent, total: g.total),
+          null => null,
+        },
         couldNotSend: s.refused,
         localPhoto: s.localPhoto,
         // A new post's photos from the phone, each until it is uploaded

@@ -32,13 +32,16 @@ const libraryDocumentFormats = ['PDF'];
 String libraryDocumentLine() => libraryDocumentFormats.join(', ');
 
 /// "2.1 MB", "640 KB", with Western digits.
+/// The phone's megabyte, as file sizes are written everywhere.
+const bvMegabyte = 1024 * 1024;
+
 String fileSize(AppLocalizations l10n, int? bytes) {
   if (bytes == null) return '';
   const kb = 1024;
-  if (bytes < kb * kb) {
+  if (bytes < bvMegabyte) {
     return l10n.fileSizeKb('${(bytes / kb).ceil()}');
   }
-  final mb = (bytes / (kb * kb)).toStringAsFixed(1);
+  final mb = (bytes / bvMegabyte).toStringAsFixed(1);
   return l10n.fileSizeMb(BvWesternDigitsFormatter.normalise(mb));
 }
 

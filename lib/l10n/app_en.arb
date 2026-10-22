@@ -6086,5 +6086,21 @@
   "peopleSearchStart": "Type a name to find someone.",
   "@peopleSearchStart": {
     "description": "F78: before typing, when you share no Space with anyone."
+  },
+  "daybookSending": "Sending",
+  "@daybookSending": {
+    "description": "F73: a post on its way to the server, with a signal."
+  },
+  "daybookSendingBytes": "Sending · {sent} of {total} MB",
+  "@daybookSendingBytes": {
+    "description": "F73: a file uploading, how much of it went (MB, one decimal).",
+    "placeholders": {
+      "sent": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
   }
 }

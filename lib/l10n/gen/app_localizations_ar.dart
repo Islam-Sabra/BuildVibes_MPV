@@ -4240,4 +4240,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get peopleSearchStart => 'اكتب اسمًا لتجد شخصًا.';
+
+  @override
+  String get daybookSending => 'يُرسل';
+
+  @override
+  String daybookSendingBytes(String sent, String total) {
+    return 'يُرسل · $sent من $total ميغابايت';
+  }
 }

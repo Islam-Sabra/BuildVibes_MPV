@@ -4,6 +4,7 @@ import '../../core/design/daybook_page_specs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_specs.dart' show BvStroke;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
@@ -20,6 +21,8 @@ import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_swipe_reveal.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
+import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
+import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
@@ -164,6 +167,7 @@ class DaybookCardView extends StatelessWidget {
     required this.activityAt,
     this.viewer = false,
     this.waiting = false,
+    this.sending,
     this.couldNotSend = false,
     this.localPhoto,
     this.waitingPhotos = const [],
@@ -188,6 +192,10 @@ class DaybookCardView extends StatelessWidget {
   final DateTime activityAt;
   final bool viewer;
   final bool waiting;
+
+  /// F73: on its way now, with a file's bytes while it uploads; null while
+  /// it waits for a signal.
+  final ({int? sent, int? total})? sending;
 
   /// The server refused it: a post while another card was being written,
   /// or a sign-off (its photos stay on the phone). A tap fixes it.
@@ -237,6 +245,7 @@ class DaybookCardView extends StatelessWidget {
         activityAt: activityAt,
         viewer: viewer,
         waiting: waiting,
+        sending: sending,
         couldNotSend: couldNotSend,
         localPhoto: localPhoto,
         waitingPhotos: waitingPhotos,
@@ -374,7 +383,7 @@ class DaybookCardView extends StatelessWidget {
             if (couldNotSend)
               BvSlipError(l10n.daybookCouldNotSend)
             else if (waiting)
-              BvSlipQuiet(l10n.daybookWaitingToSend),
+              _waitingLine(context, l10n),
             ?action,
           ],
         );
@@ -396,6 +405,38 @@ class DaybookCardView extends StatelessWidget {
     final open = actions.onOpenPage;
     if (!_post.hasPage || open == null || lifted) return null;
     return DaybookOpenPage(onTap: open);
+  }
+
+  /// F73: "Sending · 3.1 of 8.7 MB" with a thin line while a file goes up,
+  /// "Sending" while the rest goes; "Waiting to send" only with no signal.
+  Widget _waitingLine(BuildContext context, AppLocalizations l10n) {
+    final going = sending;
+    if (going == null) return BvSlipQuiet(l10n.daybookWaitingToSend);
+    final sent = going.sent;
+    final total = going.total;
+    if (sent == null || total == null || total <= 0) {
+      return BvSlipQuiet(l10n.daybookSending);
+    }
+    String mb(int bytes) => BvWesternDigitsFormatter.normalise(
+      (bytes / bvMegabyte).toStringAsFixed(1),
+    );
+    return Column(
+      key: const Key('card-sending'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvSpace.s4,
+      children: [
+        BvSlipQuiet(l10n.daybookSendingBytes(mb(sent), mb(total))),
+        ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(BvRadius.tiny)),
+          child: LinearProgressIndicator(
+            value: (sent / total).clamp(0, 1).toDouble(),
+            minHeight: BvStroke.medium,
+            color: BvColors.actionPrimary,
+            backgroundColor: BvColors.surfaceSubtle,
+          ),
+        ),
+      ],
+    );
   }
 
   /// The message it was made from (review 64), quoted.
@@ -467,7 +508,7 @@ class DaybookCardView extends StatelessWidget {
           if (couldNotSend)
             BvSlipError(l10n.daybookCouldNotSend)
           else if (waiting)
-            BvSlipQuiet(l10n.daybookWaitingToSend),
+            _waitingLine(context, l10n),
         ],
       ),
     );
