@@ -67,7 +67,7 @@ The founder asked to apply review 80 (`docs/reviews/2026-10-22-80-fix-batch-buil
   - F86: `ack(got_it)` from the author is refused;
   - F81 `push_tokens.install_id`, `push_queue.answers`, `finish_push` and `release_push` with answers;
   - `search_space` with `mine`.
-- Its date comes after migration 34's new date.
+- Its date comes after 36 and 37; migration 34 is renamed to a date after it (review 81, above).
 - Tests: `supabase/tests/38_review80_batch.test.sql` (24 checks). Test 19 is now `plan(139)`.
 
 **Checks (cloud):**
@@ -77,11 +77,10 @@ The founder asked to apply review 80 (`docs/reviews/2026-10-22-80-fix-batch-buil
 - `flutter test test_screens/review80_test.dart --update-goldens`: 26 pass.
 
 **Not live, nothing deployed, nothing installed.** The order on the PC, each with the founder's yes after the lead checks:
-1. migrations 34, 36 and 37;
-2. migration 38;
-3. **then** deploy the `push` function. It writes `answers` and reads `install_id`, so it must follow migration 38.
+1. migration 38 (36 and 37 are already live; 34 comes later, see the review 81 section above);
+2. **then** deploy the `push` function. It writes `answers` and reads `install_id`, so it must follow migration 38.
 
-An app built from this branch still works against the live database without 38: `install_id` and `mine` are optional.
+**Rule (review 81 R3):** migration 38 goes live **before** a build from this branch is installed on any phone. The app always sends `p_install` to `register_push_token`, and the live function without that parameter refuses the call, so the phone would get no push token.
 
 **Retest order (review 80):** F81, F78, F92, F94, F83/F87, F73, F79, then B and D.
 
