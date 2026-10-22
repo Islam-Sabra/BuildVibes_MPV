@@ -728,6 +728,12 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
 
     // Newest first, as the server sends them (the list is reversed); mine
     // on the way at the end, and a day's chip above its first message.
+    // F98: the start of the conversation shows who it is with, above the
+    // first message (the list is reversed: last is top).
+    final atStart =
+        page != null &&
+        person != null &&
+        messages.length < BvMessagesSpec.pageSize;
     final entries = <Widget>[
       for (final p in _pending.reversed) _pendingBubble(l10n, type, p),
       for (var i = 0; i < messages.length; i++) ...[
@@ -743,6 +749,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
             ),
           ),
       ],
+      if (atStart) _PersonCard(person: person, name: name, about: about),
     ];
     return Scaffold(
       backgroundColor: BvColors.surfaceApp,
@@ -976,6 +983,85 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
               ),
         onLongPress: null,
       );
+}
+
+/// F98: at the start of a conversation, who it is with: face, name, what
+/// they do · company, and View profile (none for a deleted account). The
+/// Space you share stays in DM2's pill under the header.
+class _PersonCard extends StatelessWidget {
+  const _PersonCard({
+    required this.person,
+    required this.name,
+    required this.about,
+  });
+
+  final DmPerson person;
+  final String name;
+  final String about;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Padding(
+      key: const Key('dm-person-card'),
+      padding: const EdgeInsetsDirectional.only(
+        bottom: BvMessagesSpec.personMarginBottom,
+      ),
+      child: Column(
+        spacing: BvSpace.s8,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: BvColors.surfaceElevated,
+              borderRadius: BvMessagesSpec.requestRadius,
+              border: Border.all(color: BvColors.borderSubtle),
+            ),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.all(
+                BvMessagesSpec.personPadding,
+              ),
+              child: Column(
+                spacing: BvMessagesSpec.personGap,
+                children: [
+                  BvAvatar(
+                    name: name,
+                    size: BvAvatarSize.lg,
+                    tint: BvAvatarTints.forId(person.id),
+                  ),
+                  const SizedBox(height: BvSpace.s4),
+                  Text(
+                    inOwnDirection(name),
+                    textAlign: TextAlign.center,
+                    style: type.titleMd,
+                  ),
+                  if (about.isNotEmpty)
+                    Text(
+                      about,
+                      textAlign: TextAlign.center,
+                      style: type.metadata.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                  if (!person.former)
+                    TextButton(
+                      key: const Key('dm-view-profile'),
+                      onPressed: () =>
+                          context.push('${AppRoutes.people}/${person.id}'),
+                      child: Text(l10n.dmViewProfile),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Text(
+            l10n.dmStartLine,
+            style: type.metadata.copyWith(color: BvColors.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// A thin line under the header: "Both in …", or a request's strip.

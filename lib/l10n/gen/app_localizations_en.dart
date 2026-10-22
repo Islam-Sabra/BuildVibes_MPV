@@ -4689,4 +4689,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pushNotYet =>
       'This phone isn\'t getting notifications yet. Restart the phone, then open BuildVibes.';
+
+  @override
+  String get dmViewProfile => 'View profile';
+
+  @override
+  String get dmStartLine => 'The start of your conversation';
 }

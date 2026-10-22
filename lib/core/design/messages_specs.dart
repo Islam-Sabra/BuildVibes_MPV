@@ -33,4 +33,13 @@ abstract final class BvMessagesSpec {
 
   /// "Both in …" and the request strip under the thread's header.
   static const stripPaddingVertical = BvSpace.s8;
+
+  /// F98: the person card at the start of a conversation.
+  static const personPadding = BvSpace.s16;
+  static const personGap = BvSpace.s4;
+  static const personMarginBottom = BvSpace.s16;
+
+  /// One page of messages (dm_thread_page's p_limit). Fewer: the page
+  /// reaches the start of the conversation.
+  static const pageSize = 50;
 }

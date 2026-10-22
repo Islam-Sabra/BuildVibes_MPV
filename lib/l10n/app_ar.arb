@@ -1296,5 +1296,7 @@
   "activityChecklist": "قائمة تحقق لك من {name}: {title}",
   "activityInvited": "دعوة من {name} إلى نشاط مجدول: {title}",
   "activityFileVersion": "نسخة جديدة من {name}: {title}",
-  "pushNotYet": "لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes."
+  "pushNotYet": "لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes.",
+  "dmViewProfile": "عرض الملف",
+  "dmStartLine": "بداية محادثتكما"
 }

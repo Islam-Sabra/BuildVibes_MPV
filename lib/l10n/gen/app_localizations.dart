@@ -7879,6 +7879,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This phone isn\'t getting notifications yet. Restart the phone, then open BuildVibes.'**
   String get pushNotYet;
+
+  /// F98: the person card at the start of a conversation opens their profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get dmViewProfile;
+
+  /// F98: under the person card at the start of a conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'The start of your conversation'**
+  String get dmStartLine;
 }
 
 class _AppLocalizationsDelegate

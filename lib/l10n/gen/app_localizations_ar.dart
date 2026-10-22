@@ -4700,4 +4700,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get pushNotYet =>
       'لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes.';
+
+  @override
+  String get dmViewProfile => 'عرض الملف';
+
+  @override
+  String get dmStartLine => 'بداية محادثتكما';
 }

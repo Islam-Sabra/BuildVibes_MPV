@@ -6769,5 +6769,13 @@
   "pushNotYet": "This phone isn't getting notifications yet. Restart the phone, then open BuildVibes.",
   "@pushNotYet": {
     "description": "Settings › Notifications (F96): a day without a push token on this phone."
+  },
+  "dmViewProfile": "View profile",
+  "@dmViewProfile": {
+    "description": "F98: the person card at the start of a conversation opens their profile."
+  },
+  "dmStartLine": "The start of your conversation",
+  "@dmStartLine": {
+    "description": "F98: under the person card at the start of a conversation."
   }
 }
