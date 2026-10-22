@@ -2,6 +2,63 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — slice 10, no signal and notifications (branch `claude/slice10`, from `slice2-app` 2a26898)
+
+**Plan:** review 87 (`docs/reviews/2026-10-23-87-slice10-plan.md`), built on its own recommendations. Seven questions wait for the lead, each with a recommendation.
+
+**For the PC:**
+- Merge `claude/slice10` into `slice2-app`.
+- **New packages:** `flutter_local_notifications` 22.3.2 and `timezone` 0.11. Run `flutter pub get`.
+- **Android changes:** core library desugaring in `android/app/build.gradle.kts`, plus `RECEIVE_BOOT_COMPLETED` and the two scheduled-notification receivers in the manifest. Build once to check them.
+- **Migration 39** (`supabase/migrations/20261031120000_slice10_notifications.sql`) and the push function's new text are **not live**. They go live together, after 38 and 34, only with the founder's yes. Until then, a direct message inside the quiet time is still not pushed (as today).
+- Re-shoot `test_screens/` with the PC's fonts. The new shots are in `docs/screens/slice10/` (18 PNGs: 9 screens in English and Arabic, 12-hour).
+
+**Migration 39 (F97):**
+- A direct message inside its conversation's 5-minute quiet time queues one `dm_follow_up` push for the quiet time's end (`not_before`).
+- `claim_push` sends it only if that person's newer messages are still unread, and adds how many (`count`). If they were read in time, the push is closed and nothing is sent.
+- Never two per quiet time, never with the text. Muted, blocked and hidden accounts are handled as today.
+- **Activity needs no change:** migration 28's `activity_rows()` already gives a daybook post's title and `space_post_id`, while the reader may see it. Review 87's draft said otherwise and is corrected.
+- Tests: `supabase/tests/39_slice10_notifications.test.sql` (17). The stand-in runs every file: **2,381 pass**.
+
+**Push function (not deployed):**
+- `dm_follow_up` reads "Message from Omar Haddad" over "2 new messages", in Arabic's four counting forms (رسالة جديدة / رسالتان جديدتان / 3 رسائل جديدة / 11 رسالة جديدة).
+- It opens the conversation and replaces the earlier push (same tag).
+- Daybook-post pushes now open the post at its card (`/spaces/x/items/<post>`), not just the Space.
+- Node tests: 11 pass.
+
+**App:**
+- **No signal (OF `2544:35135`):**
+  - "No signal. Everything you post waits and sends by itself." shows under the daybook masthead after a try fails for want of a signal (outbox, marks, notebook, page editor). It goes as soon as something gets through (`signalProvider`).
+  - **Send back, Give to and an update** go through the outbox. They show on the card at once (SENT BACK, the line) with "Waiting to send", are sent when the signal is back, and a refusal says why as before.
+  - **Ticks and Got it / Received / On my way** stay on the card with "Waiting to send" and are sent again a little later and when the signal is back, instead of being taken back. They are kept while the app is open, not between starts.
+  - **The page editor:** with no signal, Done says "No signal. Your changes stay here. Press Done again when the signal is back." and stays open. Leaving with unsaved changes asks first ("Keep editing" / "Leave"). While editing, the sheet can't be dragged away.
+  - Meeting notes are unchanged (review 86 Q2).
+- **F96:** after the first tries, the push token is asked for again every 30 minutes while the app is open, on every return to the app, and when the signal comes back, until it is registered. After a day without one, Settings › Notifications says "This phone isn't getting notifications yet. Restart the phone, then open BuildVibes." Home keeps F9's line.
+- **Activity:** the six kinds now show, each with the post's title: a change, a cancel, an announcement, a checklist for you, a scheduled-activity invitation, and a new file version. Each opens the post at its card.
+- **Remind me:**
+  - In a note's menu (calendar icon), for a note, a to-do or a checklist, not a voice note. It uses the daybook's day-and-time picker; no time means 9 am; Remove takes it off; a time already gone is refused.
+  - It is saved as `remind_at` (live since migration 21).
+  - This phone shows "Reminder" with the note's words at that time, even with the app closed (inexact, so no exact-alarm permission is needed). A tap opens My notebook.
+  - The slip shows "Reminder · today 4:00 pm" in grey.
+  - Done, deleted or removed: the reminder goes. On every start the phone sets again those still to come. Another account's reminders on a shared phone are taken off.
+- **F98:** a conversation's start shows the person card above the first message: face, name, role · company, and View profile (none for a deleted account), with "The start of your conversation" under it. The Space you share stays in DM2's pill. A request shows the card with its strip.
+
+**For the lead (review 87's questions):** when OF's strip shows; what waits with no signal (page edits stay in the editor); F97's wording; Remind me's place and words; F96's day; the frames not drawn (see the slice 10 shots); the six Activity lines.
+
+**Checks:**
+- `flutter analyze`: no issues.
+- `flutter test`: FULLTEST.
+- New tests:
+  - `test/features/slice10/`: Activity kinds, F96, F98, Remind me.
+  - The no-signal tests in `daybook_loop_test`, `daybook_kinds_test` and `daybook_page_test`.
+  - SQL test 39 and the push function's Node tests.
+
+**Not live, nothing deployed, nothing installed.**
+
+**Who has which branch:**
+- Cloud: `claude/slice10` (this work), from `slice2-app` 2a26898.
+- PC: `slice2-app`.
+
 ## Cloud update: 23 Oct 2026 — review 86 W1 (branch `claude/slice9`)
 
 - **No "late" in the week report (F57):** no LATE stamp and no "late by N days", in English or Arabic. A work item past its due reads "Omar Haddad · was due Tue 13 Oct" / «عمر حداد · كان موعده الثلاثاء 13 أكتوبر», grey, in the action colour only when it waits on the reader (`needs_me`). The strings `weekLateBy` and `weekStampLate` are gone.
