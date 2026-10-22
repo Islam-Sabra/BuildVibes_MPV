@@ -57,6 +57,7 @@ Future<_App> _open(
   Future<void>? galleryPreparing,
   DateTime? pinTo,
   TimeOfDay pinTime = const TimeOfDay(hour: 14, minute: 0),
+  LibraryFile? file,
 }) async {
   final s = DaybookSamples(lang);
   final spaces = FakeSpaceRepository()
@@ -65,7 +66,7 @@ Future<_App> _open(
   final daybook = FakeDaybookRepository()
     ..posts[DaybookSamples.space] = [s.rebar()];
   final library = FakeLibraryRepository(now: DaybookSamples.thursday)
-    ..filesBySpace[DaybookSamples.space] = [_revC];
+    ..filesBySpace[DaybookSamples.space] = [file ?? _revC];
   final app = await pumpApp(
     tester,
     language: lang,
@@ -478,6 +479,63 @@ void main() {
       expect(app.library.calls.single, contains('supersedes:${_revC.id}'));
       final added = app.library.filesBySpace[DaybookSamples.space]!.first;
       expect(daybook.createdPosts.single.libraryFileId, added.id);
+    });
+
+    testWidgets('Review 81 R2: a new version from the paper clip on a note '
+        'turns the card into a File post, keeping what was typed; it goes '
+        'as the post\'s file, V4 replacing V3 [$lang]', (tester) async {
+      final v3 = LibraryFile(
+        id: 'lib-m201-v3',
+        spaceId: DaybookSamples.space,
+        name: 'M-201.pdf',
+        path: '${DaybookSamples.space}/library/lib-m201-v3/M-201.pdf',
+        mime: 'application/pdf',
+        createdAt: DateTime(2026, 10, 10),
+        bytes: 4600000,
+        versionNo: 3,
+      );
+      final (:app, :daybook) = await _open(tester, lang, file: v3);
+      await _write(tester, l10n, DaybookKind.note, s.handoverTitle);
+      await tester.enterText(find.byKey(const Key('writing-body')), 'Rev D');
+      await tester.pumpAndSettle();
+      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      await _tap(tester, find.byKey(const Key('attach-file')));
+      await _tap(tester, find.byKey(const Key('replaces-version')));
+      await _tap(tester, find.byKey(Key('version-${v3.id}')));
+      await _tap(tester, find.byKey(const Key('replaces-done')));
+      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
+      expect(card.kindLabel, l10n.daybookKindDocument);
+      expect(find.text(s.handoverTitle), findsOneWidget);
+      expect(find.text('Rev D'), findsOneWidget);
+      await _post(tester);
+      final added = app.library.filesBySpace[DaybookSamples.space]!.first;
+      expect(added.supersedesId, v3.id);
+      expect(added.versionNo, 4);
+      final sent = daybook.createdPosts.single;
+      expect(sent.kind, DaybookPost.fileKind);
+      expect(sent.libraryFileId, added.id);
+      expect(sent.attachedFileIds, isEmpty);
+      expect(sent.title, s.handoverTitle);
+      // V3's file now says it was replaced by V4.
+      final older = await app.library.detail(v3.id);
+      expect(older!.supersededById, added.id);
+    });
+
+    testWidgets('a plain new PDF on a note stays the note\'s file [$lang]', (
+      tester,
+    ) async {
+      final (app: _, :daybook) = await _open(tester, lang);
+      await _write(tester, l10n, DaybookKind.note, s.handoverTitle);
+      await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      await _tap(tester, find.byKey(const Key('attach-file')));
+      await _tap(tester, find.byKey(const Key('replaces-done')));
+      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
+      expect(card.kindLabel, l10n.daybookKindNote);
+      await _post(tester);
+      final sent = daybook.createdPosts.single;
+      expect(sent.kind, DaybookPost.noteKind);
+      expect(sent.libraryFileId, isNull);
+      expect(sent.attachedFileIds, hasLength(1));
     });
 
     testWidgets('a lost answer from the Library: the next try finds its own '

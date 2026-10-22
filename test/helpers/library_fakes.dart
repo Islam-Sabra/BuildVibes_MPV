@@ -104,6 +104,9 @@ class FakeLibraryRepository implements LibraryRepository {
       'add $name team:${teamId ?? '-'} rev:${revLabel ?? '-'} '
       'supersedes:${supersedesId ?? '-'}',
     );
+    // As library_file_number (F75): the next number in its chain.
+    final older = supersedesId == null ? null : _find(supersedesId);
+    final versionNo = older?.versionNo == null ? null : older!.versionNo! + 1;
     filesBySpace
         .putIfAbsent(spaceId, () => [])
         .insert(
@@ -120,6 +123,7 @@ class FakeLibraryRepository implements LibraryRepository {
             revLabel: revLabel,
             note: note,
             supersedesId: supersedesId,
+            versionNo: versionNo,
             uploadedById: 'user-1',
             uploadedByName: 'Omar Haddad',
           ),

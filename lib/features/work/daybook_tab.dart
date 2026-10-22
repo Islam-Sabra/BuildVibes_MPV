@@ -902,7 +902,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           spaceId: _spaceId,
           source: source,
         );
-        if (file != null) await writer.addFile(file);
+        if (file == null) return;
+        // Review 81 R2: a new version is always a File post, so it asks
+        // people to receive it and the older post says "Replaced by".
+        if (file.supersedesId != null) await writer.setKind(DaybookKind.file);
+        await writer.addFile(file);
     }
   }
 
