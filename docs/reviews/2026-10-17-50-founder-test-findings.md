@@ -852,3 +852,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - the version in use says only "V2 · in use";
   - only older versions say "replaced 22 Oct, kept in the record".
 - **Test:** a chain of 3 shows exactly one "in use".
+
+## F81. A new direct message doesn't appear until the app is closed and opened again (founder, build 473; must before the pilot)
+- **Seen:** Omar's message reached the server (and its push was sent), but Messages on the founder's phone didn't show it until he closed the app and opened it again.
+- **Expected:** a new message shows at once, in the list and in an open conversation (migration 31, DM live).
+- **Fix:** find why the update was missed. The list and the open thread:
+  - listen to the DM changes (Realtime) while the app is open;
+  - read again when the app comes back to the front;
+  - read again when a DM push arrives while the app is open.
+  
+  Any one of these alone would have shown it. Check that the Realtime subscription is made after sign-in, and made again after the phone was locked or offline.
+- **Test:**
+  - the founder's phone on the Messages list, Omar sends: it shows within 2 seconds;
+  - the same with the phone locked for a minute first;
+  - the same with the conversation open.
