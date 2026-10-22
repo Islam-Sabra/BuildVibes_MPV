@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -145,8 +144,8 @@ class WalkSaved extends Notifier<SavedWalk?> {
     final key = _key;
     if (key != null) await ref.read(sharedPreferencesProvider).remove(key);
     if (!photos || walk == null) return;
-    for (final s in walk.shots) {
-      unawaited(DaybookDraft.deleteKept(s.local));
-    }
+    await Future.wait([
+      for (final s in walk.shots) DaybookDraft.deleteKept(s.local),
+    ]);
   }
 }

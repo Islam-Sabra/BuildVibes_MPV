@@ -517,7 +517,13 @@ void main() {
       expect(find.text(l10n.walkDiscardTitle), findsOneWidget);
       expect(_saved(app), isNotNull);
       await _tap(tester, _key('bv-dialog-confirm'));
-      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      // The phone's own file goes too (real file work, outside the test's
+      // clock).
+      await tester.runAsync(() async {
+        for (var i = 0; i < 50 && File(photo).existsSync(); i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+      });
       expect(_saved(app), isNull);
       expect(File(photo).existsSync(), isFalse);
       expect(find.byType(WalkScreen), findsNothing);
