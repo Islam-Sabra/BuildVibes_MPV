@@ -916,3 +916,21 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 ## F84. My own card's header shows my name, not "You"
 - **Seen (NST-019):** "Islam Ahmed · NST-019" on the founder's own work item, while the line under it says "For you".
 - **Fix:** on a card's header, the author is **"You"** / «أنت» when it is the reader, as in K1–K5 (v13). The same applies to history lines ("You signed as done" already does). Other people see the name.
+
+## F85. An announcement's end date is too small to notice (founder, 10:03)
+- **Seen:** "Until Fri" sits in the header in small grey, where the time usually is. How long an announcement lasts is what matters most on it.
+- **Fix: the end moves to the facts line under the title**, at the main size, like a work item's due:
+  - the push-pin icon, then **"Until Friday 23 Oct"** / «حتى الجمعة 23 أكتوبر», with F82's time when there is one: "Until Friday 23 Oct · 2:00 pm";
+  - **today:** "Until today · 2:00 pm" in ink;
+  - **on the last day without a time:** "Until today".
+  - The header goes back to its usual end: the time it was posted.
+- **The folded line (K1b)** ends with the same "until Fri" in grey before ›, so the end is visible even when folded.
+
+## F86. The author is asked to tap "Got it" on their own announcement (founder's screenshot, 10:03)
+- **Seen:** "gate 2 blocked", by Islam Ahmed, shows **Got it** to Islam himself.
+- **Rule (review 61 G1):**
+  - the author never gives Got it;
+  - they see the faces of who did, and their own announcement starts folded for them.
+- **Fix:**
+  - no Got it pill for the author, and none for whoever acts for the author;
+  - the server refuses `ack(got_it)` from the author (check it does; add a test if not).
