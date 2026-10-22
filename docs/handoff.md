@@ -2,6 +2,20 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 23 Oct 2026 — review 79 applied in `slice2-app`
+
+**Done (one commit per item group):**
+- **A1–A6 (Arabic):** «{rev} · الحالية»; no › or ‹ left in any ARB value (`daybookForPersonChoose` and `daybookForYouChoose` are gone, as they matched `daybookForPerson` and `daybookForYou`; `daybookToAudience` lost its `more`); the who and To rows draw the mirrored caret icon (`BvWritingProperty.caret`); the card header's time is one line at its own width (history lines and checklist ticks keep their two-line slot); Library and file names in lists and on the file pages keep their own direction (`BvNameText`); «اقبله كفريق تنفيذ»; Reply in the Space's chat is the curved arrow.
+- **P1:** `walk_saved.dart` keeps the walk in progress (name, place, each photo's file, line, owner) in the app's own storage from the moment the camera first opens. Walk mode calls `retrieveLostData` (Android) and adds the photo only when the kept walk was waiting for it. Opening the Space offers Continue / Throw away (asks first). Posting or throwing away clears it.
+- **P2:** the rule was already in `planPageSave`; tests now prove an empty point is dropped at Done and never sent.
+- **File page:** a refused Received says so on the file page (`DaybookMarks.send(sayHere:)`), not on the Work tab.
+- **C1 (migration 36, edited in place, not live):** `turn_point_into_item(..., p_title text default null)`; 4 new checks; grants for the new signature. The app makes one call with the sheet's title and keeps the item id per point until the server has it.
+- **C2 (migration 37, not live):** the Team-walk test from outside the Team; `plan(33)`.
+
+**Checks on the PC:** analyze clean; **1,481 app tests**; **2,337 SQL checks in 35 files** (`db reset --local` + `test db --local`); **279 screenshots** with and without `--update-goldens`, re-shot PNGs committed.
+
+**Not live, nothing deployed, nothing installed.** Pushes still wait for the founder's yes: 34 (after B5), then 36, then 37.
+
 ## PC update: 22 Oct 2026 — slices 3–6 and the bug fixes in `slice2-app`, build for the founder's test
 
 **Standing rule (review 74):** nothing but the BuildVibes build is installed on the founder's phone without his yes in chat.
