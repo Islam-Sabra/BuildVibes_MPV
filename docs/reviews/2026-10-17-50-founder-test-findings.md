@@ -874,6 +874,15 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 ## Build 473: step 9 passed (founder)
 - Omar's direct message → hold → Put in a Space → posted as an announcement, with his words quoted.
 
+- **Server checked (Claude Code, read-only):** the DM reached the server at 08:38:39, and its push row was sent to FCM at 08:38:41 with no error. The loss is on the phone's side. The founder had the app open.
+- **Fix (app):**
+  - **Messages listens app-wide while signed in**, not only inside an open conversation. The Messages list, the Home messages dot and the tab badge update from the DM Realtime changes, and again on resume and on a push.
+  - **A push that arrives while the app is open** shows a quiet in-app banner, "Omar Haddad: Gate 2 is blocked…", unless that conversation is already on screen. A tap opens it.
+- **Fix (push function):**
+  - record FCM's answer for each token;
+  - delete a token that FCM calls UNREGISTERED or NOT_FOUND.
+  - **Don't delete a person's other tokens when a new one registers**, because a person may use a phone and a tablet. Replace only the token of the same install: the app sends a random install id with its token.
+
 ## F82. An announcement can be pinned until a time, not only a day (founder)
 - **Why:** site events last hours ("Gate 2 closed until 2 pm"), so a pin to the end of the day stays up too long.
 - **Server:** no change. `pinned_until` is already a time (later than now, and at most 90 days ahead).
