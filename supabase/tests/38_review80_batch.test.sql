@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(26);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000038' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -102,6 +102,22 @@ select pg_temp.file('f102', 'f101');
 select pg_temp.file('f103', 'f101');
 select is(array[pg_temp.no('f101'), pg_temp.no('f102'), pg_temp.no('f103')], array[1, 2, 3],
   'two versions added at once get 2 and 3');
+
+-- Review 81 R1: a (chain, number) pair is used once. The trigger always
+-- numbers a new file itself, so it is set aside here to try a duplicate by
+-- hand.
+select ok((select indisunique from pg_index
+           where indexrelid = 'public.library_files_chain_version_uidx'::regclass),
+  'the version number is unique in its chain');
+alter table public.library_files disable trigger library_files_number;
+select throws_ok(
+  $$insert into public.library_files (id, space_id, name, storage_path, mime, bytes,
+                                      supersedes_id, uploaded_by, chain_id, version_no)
+    values (pg_temp.item('f199'), pg_temp.sp(), 'Door schedule',
+            pg_temp.sp() || '/library/' || pg_temp.item('f199') || '/d.pdf', 'application/pdf',
+            1000, pg_temp.item('f103'), pg_temp.uid('e1'), pg_temp.item('f101'), 3)$$,
+  '23505', null, 'a second V3 in the same chain is refused');
+alter table public.library_files enable trigger library_files_number;
 
 select is(pg_temp.no('f201'), null, '(no file f201)');
 select pg_temp.file('f201', null);

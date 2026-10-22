@@ -1,11 +1,11 @@
 -- Migration 38: the fix batch from the build 473 test (review 80 §C).
--- Branch claude/review80. Not live. Dated after migration 34's new date
--- (20261028120000); after 34–37.
+-- Branch claude/review80. Not live. After 36 and 37 (live); migration 34
+-- is dated after this one, 20261030120000 (review 81 §5).
 --
 -- - F75: the app numbers a Library file's versions V1, V2, V3… in the
 --   order they were added. library_files.version_no is set on insert as
---   the chain's highest plus one, under a lock on the chain's first file,
---   and never changes; a removed version's number is never used again.
+--   the chain's highest plus one, under a lock on the chain's id, and
+--   never changes (unique in its chain, review 81 R1); a removed version's number is never used again.
 --   chain_id is the chain's first file. Existing chains are numbered by
 --   created_at. The post JSON's file says its number, the one it replaces,
 --   and (F76) the version in use now when this one isn't.
@@ -45,7 +45,11 @@ from (select id, row_number() over (partition by chain_id order by created_at, i
 where n.id = f.id;
 
 alter table public.library_files alter column version_no set not null;
-create index library_files_chain_idx on public.library_files (chain_id, version_no desc);
+-- Review 81 R1: a number is used once in its chain. The trigger's lock
+-- keeps two versions added at once apart; if anything ever slipped by it,
+-- the second would be refused here, never saved twice.
+create unique index library_files_chain_version_uidx
+  on public.library_files (chain_id, version_no);
 
 create function public.library_file_number()
 returns trigger
@@ -70,7 +74,9 @@ begin
     return new;
   end if;
   -- Two versions added at once wait here, one after the other: 2, then 3.
-  perform 1 from public.library_files where id = v_chain for update;
+  -- The lock is on the chain's id, not on its first file's row, so it
+  -- holds even if that row is ever removed for good (review 81 R1).
+  perform pg_advisory_xact_lock(hashtextextended('library_files.chain:' || v_chain, 0));
   new.chain_id := v_chain;
   new.version_no := coalesce((select max(f.version_no) from public.library_files f
                               where f.chain_id = v_chain), 0) + 1;
