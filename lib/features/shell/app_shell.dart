@@ -12,6 +12,7 @@ import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
 import '../feed/post_draft.dart';
 import '../messages/dm_live.dart';
+import '../notebook/note_reminders.dart';
 import '../settings/push_host.dart';
 import '../work/outbox_host.dart';
 
@@ -33,9 +34,12 @@ class AppShell extends ConsumerWidget {
     return Scaffold(
       // Push while signed in (permission, this phone's token, taps), and
       // what waits on the phone to be sent.
-      // Messages, live app-wide (F81).
+      // Messages, live app-wide (F81). My notebook's reminders on this
+      // phone (slice 10).
       body: OutboxHost(
-        child: PushHost(child: DmLiveHost(child: navigationShell)),
+        child: PushHost(
+          child: DmLiveHost(child: ReminderHost(child: navigationShell)),
+        ),
       ),
       bottomNavigationBar: BvBottomBar(
         selectedIndex: navigationShell.currentIndex,

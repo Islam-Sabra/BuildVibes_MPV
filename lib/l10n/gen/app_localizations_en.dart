@@ -4695,4 +4695,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dmStartLine => 'The start of your conversation';
+
+  @override
+  String get notebookRemindMe => 'Remind me';
+
+  @override
+  String notebookReminderLine(String when) {
+    return 'Reminder · $when';
+  }
+
+  @override
+  String notebookReminderWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookRemindPast => 'Pick a time still to come.';
+
+  @override
+  String get reminderTitle => 'Reminder';
+
+  @override
+  String get reminderChannel => 'Reminders';
+
+  @override
+  String get reminderChannelAbout => 'Reminders you set in My notebook.';
 }

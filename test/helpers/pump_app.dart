@@ -25,6 +25,7 @@ import 'package:buildvibes/data/repositories/people_search_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/search_repository.dart';
 import 'package:buildvibes/data/repositories/template_repository.dart';
+import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
 import 'package:buildvibes/data/repositories/week_report_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
@@ -61,6 +62,7 @@ import 'people_search_fakes.dart';
 import 'safety_fakes.dart';
 import 'search_fakes.dart';
 import 'notebook_fakes.dart';
+import 'reminder_fakes.dart';
 import 'week_report_fakes.dart';
 import 'template_fakes.dart';
 import 'voice_fakes.dart';
@@ -113,6 +115,7 @@ class TestApp {
     required this.search,
     required this.templates,
     required this.notebook,
+    required this.reminders,
     required this.weekReports,
     required this.postPages,
     required this.recorder,
@@ -158,6 +161,9 @@ class TestApp {
 
   /// My notebook and My calendar (slice 8).
   final FakeNotebookRepository notebook;
+
+  /// The phone's reminders for notes (slice 10).
+  final FakePhoneReminders reminders;
 
   /// Meeting notes and the week report (slice 9).
   final FakeWeekReportRepository weekReports;
@@ -218,6 +224,7 @@ Future<TestApp> pumpApp(
   FakeSearchRepository? search,
   FakeTemplateRepository? templates,
   FakeNotebookRepository? notebook,
+  FakePhoneReminders? reminders,
   FakeWeekReportRepository? weekReports,
   FakePeopleSearchRepository? peopleSearch,
   FakePageRepository? postPages,
@@ -300,6 +307,7 @@ Future<TestApp> pumpApp(
   final fakeSearch = search ?? FakeSearchRepository();
   final fakeTemplates = templates ?? FakeTemplateRepository();
   final fakeNotebook = notebook ?? FakeNotebookRepository();
+  final fakeReminders = reminders ?? FakePhoneReminders();
   final fakeWeekReports = weekReports ?? FakeWeekReportRepository();
   final fakePages = postPages ?? FakePageRepository();
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
@@ -351,6 +359,7 @@ Future<TestApp> pumpApp(
         searchRepositoryProvider.overrideWithValue(fakeSearch),
         templateRepositoryProvider.overrideWithValue(fakeTemplates),
         notebookRepositoryProvider.overrideWithValue(fakeNotebook),
+        phoneRemindersProvider.overrideWithValue(fakeReminders),
         weekReportRepositoryProvider.overrideWithValue(fakeWeekReports),
         peopleSearchRepositoryProvider.overrideWithValue(
           peopleSearch ?? FakePeopleSearchRepository(),
@@ -476,6 +485,7 @@ Future<TestApp> pumpApp(
     search: fakeSearch,
     templates: fakeTemplates,
     notebook: fakeNotebook,
+    reminders: fakeReminders,
     weekReports: fakeWeekReports,
     postPages: fakePages,
     recorder: fakeRecorder,

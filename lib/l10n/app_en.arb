@@ -6777,5 +6777,46 @@
   "dmStartLine": "The start of your conversation",
   "@dmStartLine": {
     "description": "F98: under the person card at the start of a conversation."
+  },
+  "notebookRemindMe": "Remind me",
+  "@notebookRemindMe": {
+    "description": "A note's menu (2557:35481): set, change or remove the phone's reminder."
+  },
+  "notebookReminderLine": "Reminder · {when}",
+  "@notebookReminderLine": {
+    "description": "A note's slip: when this phone will remind you.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookReminderWhen": "{day} {time}",
+  "@notebookReminderWhen": {
+    "description": "A reminder's day and time on a note's slip: 'today 4:00 pm'.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookRemindPast": "Pick a time still to come.",
+  "@notebookRemindPast": {
+    "description": "Remind me: the time picked has passed."
+  },
+  "reminderTitle": "Reminder",
+  "@reminderTitle": {
+    "description": "The phone's notification for a note's reminder: its title (the note's words under it)."
+  },
+  "reminderChannel": "Reminders",
+  "@reminderChannel": {
+    "description": "Android's notification channel for My notebook's reminders."
+  },
+  "reminderChannelAbout": "Reminders you set in My notebook.",
+  "@reminderChannelAbout": {
+    "description": "Android's notification channel description for reminders."
   }
 }

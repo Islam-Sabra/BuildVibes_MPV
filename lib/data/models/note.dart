@@ -164,7 +164,8 @@ class Note {
   final DateTime? doneAt;
   final bool pinned;
 
-  /// Kept as the server has it; Remind me comes with slice 10.
+  /// Remind me (slice 10): when this phone reminds its owner, kept on the
+  /// server so a reinstall or a new phone sets it again.
   final DateTime? remindAt;
 
   /// The post it was put in (mark_note_put); the note stays here.
@@ -187,6 +188,7 @@ class Note {
     DateTime? Function()? dueAt,
     DateTime? Function()? doneAt,
     bool? pinned,
+    DateTime? Function()? remindAt,
     String? putInPostId,
     NoteRecording? recording,
     bool? waiting,
@@ -199,7 +201,7 @@ class Note {
     dueAt: dueAt == null ? this.dueAt : dueAt(),
     doneAt: doneAt == null ? this.doneAt : doneAt(),
     pinned: pinned ?? this.pinned,
-    remindAt: remindAt,
+    remindAt: remindAt == null ? this.remindAt : remindAt(),
     putInPostId: putInPostId ?? this.putInPostId,
     recording: recording ?? this.recording,
     waiting: waiting ?? this.waiting,

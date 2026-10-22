@@ -1,0 +1,144 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
+
+/// Remind me (slice 10, review 83 Q2): a note's reminder is the phone's
+/// own notification, set on this phone at the note's time, even with the
+/// app closed. It never goes through the server and never reaches anyone
+/// else. Behind an interface so tests use a fake.
+abstract class PhoneReminders {
+  /// Once, before the first [set]. [onTap] gets the note's id when its
+  /// reminder is tapped while the app runs; [launchedBy] gives it when a
+  /// tap opened the app.
+  Future<void> init({
+    required String channel,
+    required String channelAbout,
+    required void Function(String noteId) onTap,
+  });
+
+  Future<String?> launchedBy();
+
+  /// Sets (or moves) [noteId]'s reminder to [at].
+  Future<void> set(
+    String noteId, {
+    required DateTime at,
+    required String title,
+    required String body,
+  });
+
+  Future<void> cancel(String noteId);
+}
+
+final phoneRemindersProvider = Provider<PhoneReminders>(
+  (ref) => LocalReminders(),
+);
+
+/// A note's reminder id on the phone: a stable 31-bit number from its id
+/// (FNV-1a), the same on every start.
+int reminderId(String noteId) {
+  var h = 0x811c9dc5;
+  for (final c in noteId.codeUnits) {
+    h = ((h ^ c) * 0x01000193) & 0xffffffff;
+  }
+  return h & 0x7fffffff;
+}
+
+class LocalReminders implements PhoneReminders {
+  final _plugin = FlutterLocalNotificationsPlugin();
+  var _channel = '';
+  var _channelAbout = '';
+
+  static const _channelId = 'reminders';
+
+  @override
+  Future<void> init({
+    required String channel,
+    required String channelAbout,
+    required void Function(String noteId) onTap,
+  }) async {
+    _channel = channel;
+    _channelAbout = channelAbout;
+    try {
+      tz_data.initializeTimeZones();
+      await _plugin.initialize(
+        settings: const InitializationSettings(
+          android: AndroidInitializationSettings(
+            '@drawable/ic_stat_buildvibes',
+          ),
+          // Push already asked for notifications.
+          iOS: DarwinInitializationSettings(
+            requestAlertPermission: false,
+            requestBadgePermission: false,
+            requestSoundPermission: false,
+          ),
+        ),
+        onDidReceiveNotificationResponse: (r) {
+          final id = r.payload;
+          if (id != null) onTap(id);
+        },
+      );
+    } on Object catch (e) {
+      // No reminders on this phone; the notes still work.
+      debugPrint('reminders: $e');
+    }
+  }
+
+  @override
+  Future<String?> launchedBy() async {
+    try {
+      final details = await _plugin.getNotificationAppLaunchDetails();
+      if (!(details?.didNotificationLaunchApp ?? false)) return null;
+      return details?.notificationResponse?.payload;
+    } on Object catch (e) {
+      debugPrint('reminders: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<void> set(
+    String noteId, {
+    required DateTime at,
+    required String title,
+    required String body,
+  }) async {
+    try {
+      await _plugin.zonedSchedule(
+        id: reminderId(noteId),
+        // An instant: the phone's clock and zone decide what it shows.
+        scheduledDate: tz.TZDateTime.from(at.toUtc(), tz.UTC),
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId,
+            _channel,
+            channelDescription: _channelAbout,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@drawable/ic_stat_buildvibes',
+          ),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        // Inexact: no exact-alarm permission to ask for; a few minutes
+        // late is fine for a note.
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        title: title,
+        body: body,
+        payload: noteId,
+      );
+    } on Object catch (e) {
+      // A reminder that can't be set never stops the note.
+      debugPrint('reminder: $e');
+    }
+  }
+
+  @override
+  Future<void> cancel(String noteId) async {
+    try {
+      await _plugin.cancel(id: reminderId(noteId));
+    } on Object catch (e) {
+      debugPrint('reminder cancel: $e');
+    }
+  }
+}

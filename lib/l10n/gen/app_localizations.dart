@@ -7891,6 +7891,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The start of your conversation'**
   String get dmStartLine;
+
+  /// A note's menu (2557:35481): set, change or remove the phone's reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me'**
+  String get notebookRemindMe;
+
+  /// A note's slip: when this phone will remind you.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder · {when}'**
+  String notebookReminderLine(String when);
+
+  /// A reminder's day and time on a note's slip: 'today 4:00 pm'.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {time}'**
+  String notebookReminderWhen(String day, String time);
+
+  /// Remind me: the time picked has passed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time still to come.'**
+  String get notebookRemindPast;
+
+  /// The phone's notification for a note's reminder: its title (the note's words under it).
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderTitle;
+
+  /// Android's notification channel for My notebook's reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminderChannel;
+
+  /// Android's notification channel description for reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders you set in My notebook.'**
+  String get reminderChannelAbout;
 }
 
 class _AppLocalizationsDelegate

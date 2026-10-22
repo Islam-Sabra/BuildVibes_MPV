@@ -4706,4 +4706,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dmStartLine => 'بداية محادثتكما';
+
+  @override
+  String get notebookRemindMe => 'ذكّرني';
+
+  @override
+  String notebookReminderLine(String when) {
+    return 'تذكير · $when';
+  }
+
+  @override
+  String notebookReminderWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookRemindPast => 'اختر وقتًا لم يأتِ بعد.';
+
+  @override
+  String get reminderTitle => 'تذكير';
+
+  @override
+  String get reminderChannel => 'التذكيرات';
+
+  @override
+  String get reminderChannelAbout => 'التذكيرات التي تضبطها في دفتري.';
 }
