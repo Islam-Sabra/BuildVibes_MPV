@@ -45,6 +45,7 @@ import '../work/daybook_writing.dart' show newPostIdProvider;
 import 'chat_tab.dart';
 import 'voice.dart';
 import '../spaces/former_member.dart';
+import '../../shared/widgets/bv_name_text.dart';
 
 /// S8k · the Everyone thread, S9k · a Team thread: messages live, replies,
 /// work item cards, and messages kept on the phone after a weak signal.
@@ -1620,12 +1621,7 @@ class _FileChip extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    inOwnDirection(file.name),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.labelMd,
-                  ),
+                  BvNameText(file.name, maxLines: 2, style: type.labelMd),
                   Text(
                     joinMeta([?file.revLabel, fileSize(l10n, file.bytes)]),
                     style: type.metadata.copyWith(
@@ -1686,12 +1682,14 @@ class _PickedChip extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
               // A camera photo's file name means nothing to people.
-              child: Text(
-                file.isPdf ? inOwnDirection(file.name) : l10n.chatPhoto,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: type.bodySm,
-              ),
+              child: file.isPdf
+                  ? BvNameText(file.name, style: type.bodySm)
+                  : Text(
+                      l10n.chatPhoto,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.bodySm,
+                    ),
             ),
           ),
           IconButton(

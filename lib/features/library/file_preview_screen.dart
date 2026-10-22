@@ -23,6 +23,7 @@ import '../spaces/space_errors.dart';
 import 'library_actions.dart';
 import 'library_parts.dart';
 import '../spaces/former_member.dart';
+import '../../shared/widgets/bv_name_text.dart';
 
 /// F1 · Drawing preview, on the dark sheet of a drawing table: the file
 /// (a PDF with pinch-zoom, or a photo), its revision, note, the items that
@@ -88,10 +89,8 @@ class FilePreviewScreen extends ConsumerWidget {
           title: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                inOwnDirection(f.name),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              BvNameText(
+                f.name,
                 style: type.titleMd.copyWith(color: BvColors.textInverse),
               ),
               Text(

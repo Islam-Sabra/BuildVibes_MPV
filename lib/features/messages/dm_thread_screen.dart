@@ -46,6 +46,7 @@ import '../spaces/space_screen.dart' show SpaceOpen;
 import '../work/daybook_draft.dart' show daybookDraftProvider;
 import '../work/daybook_words.dart';
 import '../work/daybook_writing.dart' show newPostIdProvider;
+import '../../shared/widgets/bv_name_text.dart';
 
 /// A message on its way, shown at once as mine ("Sending…", or "Not sent ·
 /// Retry").
@@ -1069,14 +1070,18 @@ class _DmFiles extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          f.isVoice
-                              ? l10n.messagesVoice(voiceLengthOf(f.durationMs))
-                              : inOwnDirection(f.name ?? l10n.chatFile),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: type.labelSm,
-                        ),
+                        if (f.isVoice)
+                          Text(
+                            l10n.messagesVoice(voiceLengthOf(f.durationMs)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: type.labelSm,
+                          )
+                        else
+                          BvNameText(
+                            f.name ?? l10n.chatFile,
+                            style: type.labelSm,
+                          ),
                         if (f.bytes != null)
                           Text(
                             fileSize(l10n, f.bytes),

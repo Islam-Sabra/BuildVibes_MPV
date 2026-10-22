@@ -20,6 +20,7 @@ import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../work/daybook_photos.dart' show filePreviewProvider;
 import 'library_parts.dart';
+import '../../shared/widgets/bv_name_text.dart';
 
 /// Only the version in use of each file; older ones open from it (LV2).
 List<LibraryFile> currentFiles(List<LibraryFile> all) {
@@ -240,12 +241,7 @@ class LibraryFileRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvSpace.s2,
                     children: [
-                      Text(
-                        inOwnDirection(file.name),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: type.bodyMd,
-                      ),
+                      BvNameText(file.name, style: type.bodyMd),
                       Text(
                         line,
                         maxLines: 1,

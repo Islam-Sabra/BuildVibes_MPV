@@ -28,6 +28,7 @@ import '../work/daybook_photos.dart' show filePreviewProvider;
 import '../work/daybook_words.dart';
 import 'library_actions.dart';
 import 'library_parts.dart';
+import '../../shared/widgets/bv_name_text.dart';
 
 enum _FileMenu { share, download }
 
@@ -150,11 +151,7 @@ class LibraryFileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          inOwnDirection(f.name),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: BvNameText(f.name),
         actions: [
           IconButton(
             key: const Key('file-more'),
