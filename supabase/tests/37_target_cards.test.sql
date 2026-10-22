@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(33);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000037' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -194,6 +194,31 @@ select is(pg_temp.one('e4', 'a002') ->> 'needs_me', null, 'a Viewer reads it, as
 select is(pg_temp.one('e5', 'a002'), null, 'someone outside the Space gets nothing');
 select ok(not has_function_privilege('anon', 'public.daybook_card(uuid)', 'execute'),
   'anon may not run it');
+
+-- A Team walk seen from outside the Team (review 79 C2) ----------------------------------------
+-- d00: Omar's walk in the MEP Team (Rakesh is in it, Sara isn't), with d01
+-- for Rakesh and d02 for Sara. Sara can't see the walk, so the work item
+-- given to her comes back as a card of its own.
+
+select pg_temp.upload('e1', pg_temp.post_path('d00' || n, n || '.jpg')) from generate_series(1, 2) n;
+select pg_temp.as_user('e1');
+set local role authenticated;
+select set_config('test.team',
+  public.create_team(pg_temp.sp(), 'MEP', array[pg_temp.uid('e2')])::text, true);
+select public.create_walk(pg_temp.sp(), pg_temp.item('d000'), 'Walk, MEP risers',
+                          pg_temp.walk('d0', array['e2', 'e3']), 'Risers',
+                          current_setting('test.team')::uuid);
+reset role;
+
+select ok(not (pg_temp.item('d000') = any (pg_temp.ids('e3'))),
+  'Sara, outside the Team, doesn''t see the Team''s walk');
+select ok(pg_temp.item('d002') = any (pg_temp.ids('e3')),
+  'so the work item given to her comes back as its own card');
+select ok(not (pg_temp.ids('e3') && array[pg_temp.item('d001')]),
+  'and never Rakesh''s');
+select ok(pg_temp.item('d000') = any (pg_temp.ids('e2'))
+          and not (pg_temp.ids('e2') && array[pg_temp.item('d001'), pg_temp.item('d002')]),
+  'Rakesh, in the Team, sees the walk with its work items folded into it');
 
 -- The trigger's function is the database's only ---------------------------------------------
 
