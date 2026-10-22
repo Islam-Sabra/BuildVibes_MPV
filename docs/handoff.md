@@ -2,6 +2,44 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — review 84 N1 and N2, then slice 9 (branches `claude/slice8`, then `claude/slice9` from it)
+
+**Review 84 (on `claude/slice8`, pushed):**
+- **N1:** Home's way into My notebook is Phosphor's **notebook** glyph, not list-checks (the work item's). The empty notebook and Save to my notebook use it too.
+- **N2:** a card just made from a note opens new, not as "Draft", as a card made from a message (F88). Left unsent, it is the Draft when the Space opens again.
+- Tests for both; `docs/screens/slice8/` re-shot (H1 and Put in a Space). Review 84 is copied from `main`.
+
+**Slice 9 plan:** review 85 (`docs/reviews/2026-10-23-85-slice9-plan.md`), built on its own recommendations. Six questions wait for the lead, each with a recommendation. **No migration:** `create_from_message`, `week_report` and `share_week_report` (migrations 20 and 23, live) cover it.
+
+**For the PC:** merge `claude/slice7`, `claude/slice8`, then `claude/slice9` into `slice2-app`. No new package. Re-shoot `test_screens/` with the PC's fonts. The new shots are in `docs/screens/slice9/` (22 PNGs, 11 screens in English and Arabic, 12-hour).
+
+**Meeting notes (R3 `2540:34503`):**
+- "Turn lines into work items" on holding a Space chat text message of two lines or more, for someone who may post work. S8m's "Turn into a work item" stays.
+- The screen: the thread's header and the message as R3's card. The first line is the title (the meeting's own work item, a target); every other line has a tick box. List marks ("- ", "• ", "1.") and blank lines go; a long line is cut at a word; at most 30.
+- Ticking a line opens the owner picker at once (you first; a Team thread's lines only for that Team). The face shows at the line's end and a tap changes it. No answer, no tick.
+- **Post N work items** sends one `create_from_message` under ids chosen when the screen opened, so trying again is the same batch. No signal: the screen stays with its ticks and owners, "No signal. Try again." (question 2).
+- After posting: back in the chat, "3 work items posted" with **Open** (the meeting's card in the daybook).
+
+**The week report (MN1 `2566:35619`, MR1 `2566:35515`):**
+- "Week report" in the Space menu for every member, in MN1's order: Walk, Search, Week report, Daily report, Space info.
+- The week from the market pack's first day; ‹ and ›, › off on this week. One `week_report` read per week.
+- Needs a decision (title, "Omar Haddad · late by 2 days" in red, "Rakesh Nair · Photo missing", "signed as done Thu 2:10 pm", the LATE / SENT BACK / DONE stamp, the paper clip when a row needs me); Checked this week (upright proof cards: the Done photo with CHECKED, the title, the day and checker); Targets ("2 of 4 checked · by Sun 18 Oct" with the green line); Coming up (calendar leaf, time and place, or a work item's due and owner) on this week only (question 4). An empty section is left out; an empty week says "Nothing to report this week." The foot line: "Made from the daybook. Everyone sees only what they may read."
+- A tap on any row opens its card in the daybook.
+- **Share in chat:** the Space's threads, Everyone first; `share_week_report` with the week's first day. In the chat, the message is a card "Week report · 11 – 17 October" with Open, which opens that week with the reader's own rights. The chat now reads `report_week`.
+
+**For the lead (review 85's questions):** where meeting notes start; no outbox for them; the frames not drawn (owner picker, thread list, the chat card, the empty week; see the slice 9 shots); Coming up on this week only; every member opens the report; the stamps.
+
+**Checks:**
+- `flutter analyze`: no issues.
+- `flutter test`: **TESTCOUNT**
+- New tests: `test/features/spaces/meeting_report_test.dart` (2 model tests and 9 × EN and AR), and two more for review 84 in `test/features/notebook/notebook_test.dart`.
+
+**Not live, nothing deployed, nothing installed.**
+
+**Who has which branch:**
+- Cloud: `claude/slice9` (this work), on top of `claude/slice8` (review 84 applied), on top of `claude/slice7`.
+- PC: `slice2-app`, as in the review 81 update below.
+
 ## Cloud update: 23 Oct 2026 — slice 8, My notebook and My calendar (branch `claude/slice8`, from `claude/slice7` 37e1cf2)
 
 **Plan:** review 83 (`docs/reviews/2026-10-23-83-slice8-plan.md`), drafted like reviews 76–78 and built on its own recommendations. Six questions wait for the lead, each with a recommendation. **No migration:** everything uses migration 21 (live 16 Oct).

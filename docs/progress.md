@@ -734,3 +734,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Save to my notebook on a held direct message or Space chat message.
   - My calendar (CAL1): the market's week, swipe, dots, rows by day with the Space's colour, labels, the paper clip; a tap opens the card.
   - Checks: analyze clean; 1,622 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Screenshots EN and AR in `docs/screens/slice8/`.
+- **23 Oct** (cloud, `claude/slice8`): review 84 N1 (Home's notebook glyph) and N2 (a card from a note isn't Draft until left unsent), with tests; slice 8 re-shot.
+- **23 Oct** (cloud, `claude/slice9` from `claude/slice8`): review 85, the slice 9 plan, and slice 9 built on its recommendations; no migration (migrations 20 and 23).
+  - Meeting notes (R3): from a held chat message of two lines or more; tick a line and choose who does it; one `create_from_message` under the phone's ids; Open after posting.
+  - The week report (MR1): from the Space menu for every member; the market's week with ‹ ›; Needs a decision with stamps and the clip, Checked this week, Targets, Coming up (this week); a row opens its card.
+  - Share in chat: the thread list, `share_week_report`; the report's card in the chat opens that week.
+  - Checks: analyze clean; TESTCOUNT Screenshots EN and AR in `docs/screens/slice9/`.
