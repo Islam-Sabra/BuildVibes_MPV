@@ -4655,4 +4655,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String weekReportCard(String range) {
     return 'Week report · $range';
   }
+
+  @override
+  String activityItemEdited(String name, String title) {
+    return '$name made a change to $title';
+  }
+
+  @override
+  String activityItemCancelled(String name, String title) {
+    return '$name cancelled $title';
+  }
+
+  @override
+  String activityAnnouncement(String name, String title) {
+    return '$name posted an announcement: $title';
+  }
+
+  @override
+  String activityChecklist(String name, String title) {
+    return '$name gave you a checklist: $title';
+  }
+
+  @override
+  String activityInvited(String name, String title) {
+    return '$name added you to a scheduled activity: $title';
+  }
+
+  @override
+  String activityFileVersion(String name, String title) {
+    return '$name shared a new version of $title';
+  }
+
+  @override
+  String get pushNotYet =>
+      'This phone isn\'t getting notifications yet. Restart the phone, then open BuildVibes.';
 }

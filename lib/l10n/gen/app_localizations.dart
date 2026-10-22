@@ -7837,6 +7837,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week report · {range}'**
   String weekReportCard(String range);
+
+  /// Activity: someone changed a post that is for you (item_edited).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} made a change to {title}'**
+  String activityItemEdited(String name, String title);
+
+  /// Activity: someone cancelled a post that was for you (item_cancelled).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} cancelled {title}'**
+  String activityItemCancelled(String name, String title);
+
+  /// Activity: a new announcement in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} posted an announcement: {title}'**
+  String activityAnnouncement(String name, String title);
+
+  /// Activity: a checklist given to you.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gave you a checklist: {title}'**
+  String activityChecklist(String name, String title);
+
+  /// Activity: you were added to a scheduled activity.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added you to a scheduled activity: {title}'**
+  String activityInvited(String name, String title);
+
+  /// Activity: a new version of a file you received.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} shared a new version of {title}'**
+  String activityFileVersion(String name, String title);
+
+  /// Settings › Notifications (F96): a day without a push token on this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone isn\'t getting notifications yet. Restart the phone, then open BuildVibes.'**
+  String get pushNotYet;
 }
 
 class _AppLocalizationsDelegate

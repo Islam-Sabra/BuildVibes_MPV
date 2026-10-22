@@ -4666,4 +4666,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String weekReportCard(String range) {
     return 'تقرير الأسبوع · $range';
   }
+
+  @override
+  String activityItemEdited(String name, String title) {
+    return 'تعديل من $name على $title';
+  }
+
+  @override
+  String activityItemCancelled(String name, String title) {
+    return 'إلغاء من $name: $title';
+  }
+
+  @override
+  String activityAnnouncement(String name, String title) {
+    return 'إعلان من $name: $title';
+  }
+
+  @override
+  String activityChecklist(String name, String title) {
+    return 'قائمة تحقق لك من $name: $title';
+  }
+
+  @override
+  String activityInvited(String name, String title) {
+    return 'دعوة من $name إلى نشاط مجدول: $title';
+  }
+
+  @override
+  String activityFileVersion(String name, String title) {
+    return 'نسخة جديدة من $name: $title';
+  }
+
+  @override
+  String get pushNotYet =>
+      'لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes.';
 }

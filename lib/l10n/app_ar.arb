@@ -1289,5 +1289,12 @@
   "weekFoot": "من يومية الفريق. يرى كل شخص ما يحق له فقط.",
   "weekEmpty": "لا شيء في تقرير هذا الأسبوع.",
   "weekCouldntLoad": "تعذّر تحميل تقرير الأسبوع",
-  "weekReportCard": "تقرير الأسبوع · {range}"
+  "weekReportCard": "تقرير الأسبوع · {range}",
+  "activityItemEdited": "تعديل من {name} على {title}",
+  "activityItemCancelled": "إلغاء من {name}: {title}",
+  "activityAnnouncement": "إعلان من {name}: {title}",
+  "activityChecklist": "قائمة تحقق لك من {name}: {title}",
+  "activityInvited": "دعوة من {name} إلى نشاط مجدول: {title}",
+  "activityFileVersion": "نسخة جديدة من {name}: {title}",
+  "pushNotYet": "لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes."
 }

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../core/network/signal_state.dart';
 import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
@@ -746,6 +747,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         }
         if (e.failure == SpaceFailure.network) {
           await _put(current);
+          ref.read(signalProvider.notifier).lost();
           _retry.later(ref.read(outboxRetryLaterProvider));
         } else {
           await _refused(current, e);
@@ -757,6 +759,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     // "Waiting to send" goes at once (F17); the slip stays until the
     // daybook has the server's entry.
     _retry.reached();
+    ref.read(signalProvider.notifier).back();
     // The Space's other open daybooks read it at once (F47).
     unawaited(ref.read(daybookLiveProvider).changed(item.spaceId, item.id));
     // F5: a post or a sign-off the server took, not a check or a cancel.
@@ -792,6 +795,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       _retry.later(ref.read(outboxRetryLaterProvider));
       return true;
     }
+    ref.read(signalProvider.notifier).back();
     await _drop(item);
     _deleteFiles(item);
     return true;

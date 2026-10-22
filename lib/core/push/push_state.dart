@@ -60,3 +60,9 @@ final pushTokenRetryDelaysProvider = Provider<List<Duration>>(
     Duration(seconds: 60),
   ],
 );
+
+/// F96: how often the phone asks again for its push token while the app is
+/// open, after the first tries failed.
+final pushKeepTryingProvider = Provider<Duration>(
+  (ref) => const Duration(minutes: 30),
+);

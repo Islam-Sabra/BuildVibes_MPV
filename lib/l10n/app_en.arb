@@ -6693,5 +6693,81 @@
         "type": "String"
       }
     }
+  },
+  "activityItemEdited": "{name} made a change to {title}",
+  "@activityItemEdited": {
+    "description": "Activity: someone changed a post that is for you (item_edited).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityItemCancelled": "{name} cancelled {title}",
+  "@activityItemCancelled": {
+    "description": "Activity: someone cancelled a post that was for you (item_cancelled).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityAnnouncement": "{name} posted an announcement: {title}",
+  "@activityAnnouncement": {
+    "description": "Activity: a new announcement in a Space.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityChecklist": "{name} gave you a checklist: {title}",
+  "@activityChecklist": {
+    "description": "Activity: a checklist given to you.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityInvited": "{name} added you to a scheduled activity: {title}",
+  "@activityInvited": {
+    "description": "Activity: you were added to a scheduled activity.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityFileVersion": "{name} shared a new version of {title}",
+  "@activityFileVersion": {
+    "description": "Activity: a new version of a file you received.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pushNotYet": "This phone isn't getting notifications yet. Restart the phone, then open BuildVibes.",
+  "@pushNotYet": {
+    "description": "Settings › Notifications (F96): a day without a push token on this phone."
   }
 }

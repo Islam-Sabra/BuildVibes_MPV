@@ -90,6 +90,9 @@ class FakePushRepository implements PushRepository {
   final calls = <String>[];
   PushSettings saved = const PushSettings();
 
+  /// The next register fails for want of a signal.
+  var failNext = false;
+
   @override
   Future<void> register(
     String token,
@@ -97,6 +100,10 @@ class FakePushRepository implements PushRepository {
     String locale, {
     String? installId,
   }) async {
+    if (failNext) {
+      failNext = false;
+      throw Exception('SocketException: no signal');
+    }
     calls.add('register $token $platform $locale');
     installIds.add(installId);
   }
