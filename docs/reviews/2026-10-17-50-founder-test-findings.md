@@ -934,3 +934,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Fix:**
   - no Got it pill for the author, and none for whoever acts for the author;
   - the server refuses `ack(got_it)` from the author (check it does; add a test if not).
+
+## Build 473: step 10 (founder, 10:56)
+- **Passed in part:** Space chat → hold → Turn into a work item. The work item shows the message as a quote.
+
+## F87. Tapping a work item's quote doesn't open its chat message
+- **Seen:** on a work item made from a Space chat message, tapping the quote does nothing.
+- **Rule (S8m):** the quote links back. A tap opens the Space's Chat at that message, scrolled to it and highlighted for a moment, reading back through older messages if needed (as search does since the pre-test fixes).
+- **Edge cases:**
+  - a message that was deleted shows the quote without a link (pre-test fix);
+  - a quote from a **direct message** opens that conversation only for its two people. For anyone else, the quote isn't tappable.
+- **Test:**
+  - a quote from today and one from last week both open their message;
+  - a deleted message's quote does nothing;
+  - Arabic.
