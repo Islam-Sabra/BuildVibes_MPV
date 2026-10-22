@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +14,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_attach_row.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_choice_card.dart';
+import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../library/library_parts.dart';
@@ -157,7 +160,13 @@ Future<DraftFile?> chooseDaybookFile(
     bytes: phone.bytes,
     local: kept,
     supersedesId: replaced?.id,
-    supersedesRev: replaced?.revLabel ?? replaced?.name,
+    // "Replaces A-501 · V2" (F71, F75).
+    supersedesRev: replaced == null
+        ? null
+        : [
+            replaced.name,
+            versionLabel(l10n, replaced),
+          ].where((t) => t.isNotEmpty).join(' · '),
   );
 }
 
@@ -189,8 +198,15 @@ List<LibraryFile> _current(List<LibraryFile> all) {
 /// file.
 typedef _Replaces = ({LibraryFile? file});
 
-/// One single choice (rule 6): a new file, or a new version of one of the
-/// Library's files.
+/// A version's label (F75): "V2", else its revision.
+String versionLabel(AppLocalizations l10n, LibraryFile f) => f.versionNo == null
+    ? (f.revLabel ?? '')
+    : l10n.libraryVersionNo(f.versionNo!);
+
+/// F71 (rule 6): one single choice, "New file" (chosen first) or "New
+/// version of a file", which opens the Library's files in use, newest
+/// first, with Search files on top; the choice then reads "Replaces A-501 ·
+/// V2" with ✕ to undo.
 class _ReplacesChoice extends StatefulWidget {
   const _ReplacesChoice({required this.files});
 
@@ -201,44 +217,137 @@ class _ReplacesChoice extends StatefulWidget {
 }
 
 class _ReplacesChoiceState extends State<_ReplacesChoice> {
-  var _chosen = '';
+  static const _newFile = '';
+  static const _newVersion = 'version';
+  LibraryFile? _picked;
+
+  Future<void> _pick() async {
+    final f = await showBvSheet<LibraryFile>(
+      context: context,
+      title: AppLocalizations.of(context).daybookPickVersionTitle,
+      builder: (_) => _VersionPicker(files: widget.files),
+    );
+    if (mounted && f != null) setState(() => _picked = f);
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    String name(LibraryFile f) => inOwnDirection(
-      f.revLabel == null ? f.name : l10n.daybookFileChip(f.name, f.revLabel!),
-    );
+    final picked = _picked;
     return Column(
       key: const Key('replaces-choice'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: BvSpace.s16,
       children: [
         BvChoiceList<String>(
-          value: _chosen,
+          value: picked == null ? _newFile : _newVersion,
           options: [
             BvChoiceOption(
               key: const Key('replaces-none'),
-              value: '',
-              title: l10n.daybookReplacesNone,
+              value: _newFile,
+              title: l10n.daybookNewFile,
             ),
-            for (final f in widget.files)
-              BvChoiceOption(
-                key: Key('replaces-${f.id}'),
-                value: f.id,
-                title: l10n.daybookReplacesOption(name(f)),
-              ),
+            BvChoiceOption(
+              key: const Key('replaces-version'),
+              value: _newVersion,
+              title: l10n.daybookNewVersion,
+            ),
           ],
-          onChanged: (v) => setState(() => _chosen = v),
+          onChanged: (v) {
+            if (v == _newFile) {
+              setState(() => _picked = null);
+            } else {
+              unawaited(_pick());
+            }
+          },
         ),
+        if (picked != null)
+          Row(
+            key: const Key('replaces-picked'),
+            children: [
+              const Icon(
+                BvIcons.document,
+                size: BvSize.iconMd,
+                color: BvColors.iconSecondary,
+              ),
+              const SizedBox(width: BvSpace.s8),
+              Expanded(
+                child: Text(
+                  l10n.daybookReplacesOption(
+                    joinMeta([
+                      inOwnDirection(picked.name),
+                      versionLabel(l10n, picked),
+                    ]),
+                  ),
+                  style: BvType.of(context).bodyMd,
+                ),
+              ),
+              IconButton(
+                key: const Key('replaces-clear'),
+                tooltip: l10n.daybookNotNewVersion,
+                icon: const Icon(BvIcons.close, size: BvSize.iconMd),
+                onPressed: () => setState(() => _picked = null),
+              ),
+            ],
+          ),
         BvButton(
           key: const Key('replaces-done'),
           label: l10n.daybookReplacesDone,
           expand: true,
-          onPressed: () => Navigator.of(context).pop<_Replaces>((
-            file: widget.files.where((f) => f.id == _chosen).firstOrNull,
-          )),
+          onPressed: () => Navigator.of(context).pop<_Replaces>((file: picked)),
         ),
+      ],
+    );
+  }
+}
+
+/// F71: the Library's files in use, newest first, found by a few letters.
+class _VersionPicker extends StatefulWidget {
+  const _VersionPicker({required this.files});
+
+  final List<LibraryFile> files;
+
+  @override
+  State<_VersionPicker> createState() => _VersionPickerState();
+}
+
+class _VersionPickerState extends State<_VersionPicker> {
+  var _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final q = _query.trim().toLowerCase();
+    final files = [
+      for (final f in [
+        ...widget.files,
+      ]..sort((a, b) => b.createdAt.compareTo(a.createdAt)))
+        if (q.isEmpty ||
+            f.name.toLowerCase().contains(q) ||
+            (f.revLabel ?? '').toLowerCase().contains(q))
+          f,
+    ];
+    return Column(
+      key: const Key('version-picker'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvSpace.s8,
+      children: [
+        BvSearchField(
+          key: const Key('version-search'),
+          placeholder: l10n.librarySearch,
+          onChanged: (v) => setState(() => _query = v),
+        ),
+        for (final f in files)
+          FileRow(
+            key: Key('version-${f.id}'),
+            file: f,
+            subtitle: joinMeta([
+              versionLabel(l10n, f),
+              ?f.revLabel,
+              fileSize(l10n, f.bytes),
+            ]),
+            onTap: () => Navigator.of(context).pop(f),
+          ),
       ],
     );
   }

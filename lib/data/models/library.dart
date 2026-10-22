@@ -31,6 +31,8 @@ class LibraryFile {
     this.source = LibrarySource.upload,
     this.uploadedById,
     this.uploadedByName,
+    this.versionNo,
+    this.chainId,
   });
 
   /// A row of library_files with `team:teams(name)` and
@@ -59,6 +61,8 @@ class LibraryFile {
       },
       uploadedById: json['uploaded_by'] as String?,
       uploadedByName: _name(json['uploader']),
+      versionNo: (json['version_no'] as num?)?.toInt(),
+      chainId: json['chain_id'] as String?,
     );
   }
 
@@ -82,6 +86,11 @@ class LibraryFile {
   final LibrarySource source;
   final String? uploadedById;
   final String? uploadedByName;
+
+  /// F75: the app's number for this version (V1, V2…), never changed; and
+  /// the chain's first file, the same for every version of a file.
+  final int? versionNo;
+  final String? chainId;
 
   bool get isPdf => mime == 'application/pdf';
   bool get isImage => mime.startsWith('image/');

@@ -4251,4 +4251,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get peoplePassRow => 'التصريح';
+
+  @override
+  String get daybookNewFile => 'ملف جديد';
+
+  @override
+  String get daybookNewVersion => 'نسخة جديدة من ملف';
+
+  @override
+  String get daybookPickVersionTitle => 'نسخة جديدة من أي ملف؟';
+
+  @override
+  String libraryVersionNo(int version) {
+    return 'V$version';
+  }
+
+  @override
+  String get daybookNotNewVersion => 'ليست نسخة جديدة';
 }

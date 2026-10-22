@@ -1173,5 +1173,10 @@
   "peopleSearchStart": "اكتب اسمًا لتجد شخصًا.",
   "daybookSending": "يُرسل",
   "daybookSendingBytes": "يُرسل · {sent} من {total} ميغابايت",
-  "peoplePassRow": "التصريح"
+  "peoplePassRow": "التصريح",
+  "daybookNewFile": "ملف جديد",
+  "daybookNewVersion": "نسخة جديدة من ملف",
+  "daybookPickVersionTitle": "نسخة جديدة من أي ملف؟",
+  "libraryVersionNo": "V{version}",
+  "daybookNotNewVersion": "ليست نسخة جديدة"
 }

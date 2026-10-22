@@ -303,9 +303,13 @@ void main() {
       expect(find.byKey(const Key('replaces-choice')), findsNothing);
       final file = _draft(tester)!.files.single;
       expect(file.supersedesId, 'a501-d');
-      expect(file.supersedesRev, 'Rev D');
+      // "Replaces A-501 · Rev D" (F71; no number in this fake Library).
+      expect(file.supersedesRev, endsWith('Rev D'));
       expect(
-        find.textContaining(l10n.daybookReplacesOption('Rev D')),
+        find.descendant(
+          of: find.byKey(Key('writing-replaces-${file.libraryId}')),
+          matching: find.textContaining('Rev D'),
+        ),
         findsOneWidget,
       );
       // Never added without its post (review 69 1b).

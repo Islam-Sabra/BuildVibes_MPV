@@ -7141,6 +7141,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pass'**
   String get peoplePassRow;
+
+  /// F71: one of the single choice for a file from the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'New file'**
+  String get daybookNewFile;
+
+  /// F71: the other choice; opens a searchable list of the Library's files.
+  ///
+  /// In en, this message translates to:
+  /// **'New version of a file'**
+  String get daybookNewVersion;
+
+  /// F71: the title of the file picker for a new version.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version of which file?'**
+  String get daybookPickVersionTitle;
+
+  /// F75: a version's number given by the app (V1, V2…); kept in Latin like a ref.
+  ///
+  /// In en, this message translates to:
+  /// **'V{version}'**
+  String libraryVersionNo(int version);
+
+  /// F71: the ✕ on 'Replaces …' (screen readers).
+  ///
+  /// In en, this message translates to:
+  /// **'Not a new version'**
+  String get daybookNotNewVersion;
 }
 
 class _AppLocalizationsDelegate

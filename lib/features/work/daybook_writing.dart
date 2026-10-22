@@ -483,6 +483,15 @@ class DaybookWriter {
     }
   }
 
+  /// F71: the file goes as a new file, not a new version.
+  Future<void> notReplacing(DraftFile file) => _put(
+    (d) => d.copyWith(
+      files: [
+        for (final f in d.files) f.libraryId == file.libraryId ? f.asNew : f,
+      ],
+    ),
+  );
+
   Future<void> removeFile(DraftFile file) async {
     await _put(
       (d) => d.copyWith(
@@ -843,8 +852,6 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             f.revLabel == null
                 ? f.name
                 : l10n.daybookFileChip(f.name, f.revLabel!),
-            if (f.supersedesRev != null)
-              l10n.daybookReplacesOption(f.supersedesRev!),
             if (f.bytes != null) fileSize(l10n, f.bytes),
           ].join(' · '),
           // A file post's file is changed by choosing another; a work
@@ -855,6 +862,18 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
               : null,
           removeLabel: l10n.daybookRemoveFile,
         ),
+      // F71: "Replaces A-501 · V2", with ✕ to make it a new file.
+      for (final f in draft.files)
+        if (f.supersedesRev != null && f.local != null)
+          BvWritingProperty.icon(
+            key: Key('writing-replaces-${f.libraryId}'),
+            icon: BvIcons.newAbove,
+            label: l10n.daybookReplacesOption(f.supersedesRev!),
+            onRemove: writing && f.local != null
+                ? () => unawaited(_writer.notReplacing(f))
+                : null,
+            removeLabel: l10n.daybookNotNewVersion,
+          ),
     ];
     final card = BvWritingCard(
       key: const Key('daybook-writing-card'),

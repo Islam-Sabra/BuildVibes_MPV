@@ -4242,4 +4242,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get peoplePassRow => 'Pass';
+
+  @override
+  String get daybookNewFile => 'New file';
+
+  @override
+  String get daybookNewVersion => 'New version of a file';
+
+  @override
+  String get daybookPickVersionTitle => 'A new version of which file?';
+
+  @override
+  String libraryVersionNo(int version) {
+    return 'V$version';
+  }
+
+  @override
+  String get daybookNotNewVersion => 'Not a new version';
 }

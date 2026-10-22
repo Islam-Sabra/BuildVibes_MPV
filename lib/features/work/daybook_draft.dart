@@ -83,6 +83,17 @@ class DraftFile {
 
   bool get isNew => local != null;
 
+  /// The same file as a new one, not a new version (F71's ✕).
+  DraftFile get asNew => DraftFile(
+    libraryId: libraryId,
+    name: name,
+    mime: mime,
+    bytes: bytes,
+    local: local,
+    revLabel: revLabel,
+    added: added,
+  );
+
   DraftFile get inLibrary => DraftFile(
     libraryId: libraryId,
     name: name,

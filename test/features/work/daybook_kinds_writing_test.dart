@@ -386,8 +386,27 @@ void main() {
       await _write(tester, l10n, DaybookKind.file, 'M-201 Rev D');
       await _tap(tester, find.byKey(const Key('file-from-phone')));
       expect(find.byKey(const Key('replaces-choice')), findsOneWidget);
-      await _tap(tester, find.byKey(Key('replaces-${_revC.id}')));
+      // F71: New file chosen first; New version opens the files, searchable.
+      await _tap(tester, find.byKey(const Key('replaces-version')));
+      expect(find.byKey(const Key('version-picker')), findsOneWidget);
+      await tester.enterText(
+        find.descendant(
+          of: find.byKey(const Key('version-search')),
+          matching: find.byType(TextField),
+        ),
+        'm-2',
+      );
+      await tester.pumpAndSettle();
+      await _tap(tester, find.byKey(Key('version-${_revC.id}')));
+      expect(find.byKey(const Key('replaces-picked')), findsOneWidget);
       await _tap(tester, find.byKey(const Key('replaces-done')));
+      // The card: "Replaces M-201.pdf · Rev C", with ✕.
+      expect(
+        find.byWidgetPredicate(
+          (w) => '${w.key}'.contains('writing-replaces-'),
+        ),
+        findsOneWidget,
+      );
       await _post(tester);
       expect(app.library.calls.single, contains('supersedes:${_revC.id}'));
       final added = app.library.filesBySpace[DaybookSamples.space]!.first;
