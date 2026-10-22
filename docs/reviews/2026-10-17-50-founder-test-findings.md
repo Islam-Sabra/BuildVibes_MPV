@@ -1055,3 +1055,11 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 ## Small (lead)
 - **Search results** show the reader's own name ("Omar Haddad · today"). Use "You" there too.
 - **The walk's "Who does it" picker** shows "now" under the chosen person. Drop it (also noted above).
+
+## F96. The phone can't get a push token for a while: the app keeps trying (Claude Code, build 529)
+- **Seen:** on the founder's Xiaomi, on a phone hotspot, Google Play services answered "FCM Registration failed!" four times in 22 seconds (21:40), so the new install id never reached the server. The same happened on 17 Oct, and a restart fixed it then.
+- **Why it matters for the pilot:** site phones often live on hotspots and weak signal. Today the app gives up after its four tries until the next start, so a phone can go a whole day without pushes and nobody notices.
+- **Fix:**
+  - **keep trying** on every resume and when the signal comes back, then every 30 minutes while the app is open, until a token is registered for this install;
+  - **if there's still none after a day,** Settings › Notifications shows one quiet line, "This phone isn't getting notifications yet. Restart the phone, then open BuildVibes." / «لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes.»
+- **Test:** with the token call failing, the app tries again on resume and on reconnect, and registers as soon as it works.
