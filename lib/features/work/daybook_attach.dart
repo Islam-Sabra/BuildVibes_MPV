@@ -21,16 +21,21 @@ import '../library/library_parts.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_draft.dart';
 
-/// What the attach sheet chose (K4 v13).
-enum DaybookAttach { photos, file }
+/// What the attach sheet chose (K4 v13, F72).
+enum DaybookAttach { camera, photos, files, library }
 
-/// 📎 in the writing toolbar (F21, K4 v13 2594:77576): "Add to this post",
-/// a photo from the gallery (up to [photosLeft]) or a file (a PDF or a
-/// photo, which also goes to the Library). Proof photos for Sign as done
-/// stay camera only: this is for the post itself.
+/// Where a post's file comes from (F72).
+enum DaybookFileSource { phone, library }
+
+/// 📎 in the writing toolbar (F21, K4 v13 2594:77576, F72): the one way to
+/// add to a post: a photo from the camera or the gallery (up to
+/// [photosLeft]), a file from the phone (a PDF or a photo, which also goes
+/// to the Library), or one already in the Library. Proof photos for Sign as
+/// done stay camera only: this is for the post itself.
 Future<DaybookAttach?> showDaybookAttach(
   BuildContext context, {
   required int photosLeft,
+  bool photos = true,
 }) {
   final l10n = AppLocalizations.of(context);
   return showBvSheet<DaybookAttach>(
@@ -40,19 +45,35 @@ Future<DaybookAttach?> showDaybookAttach(
       key: const Key('attach-sheet'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        BvAttachRow(
-          key: const Key('attach-photos'),
-          icon: BvIcons.image,
-          title: l10n.daybookAttachPhotos,
-          subtitle: l10n.daybookAttachPhotosNote(photosLeft),
-          onTap: () => Navigator.of(sheet).pop(DaybookAttach.photos),
-        ),
+        if (photos) ...[
+          BvAttachRow(
+            key: const Key('attach-camera'),
+            icon: BvIcons.camera,
+            title: l10n.daybookCamera,
+            subtitle: l10n.daybookAttachCameraNote,
+            onTap: () => Navigator.of(sheet).pop(DaybookAttach.camera),
+          ),
+          BvAttachRow(
+            key: const Key('attach-photos'),
+            icon: BvIcons.image,
+            title: l10n.daybookAttachPhotos,
+            subtitle: l10n.daybookAttachPhotosNote(photosLeft),
+            onTap: () => Navigator.of(sheet).pop(DaybookAttach.photos),
+          ),
+        ],
         BvAttachRow(
           key: const Key('attach-file'),
-          icon: BvIcons.document,
-          title: l10n.daybookKindFile,
+          icon: BvIcons.upload,
+          title: l10n.daybookAttachFiles,
           subtitle: libraryDocumentLine(),
-          onTap: () => Navigator.of(sheet).pop(DaybookAttach.file),
+          onTap: () => Navigator.of(sheet).pop(DaybookAttach.files),
+        ),
+        BvAttachRow(
+          key: const Key('attach-library'),
+          icon: BvIcons.library,
+          title: l10n.daybookAttachLibrary,
+          subtitle: l10n.daybookAttachLibraryNote,
+          onTap: () => Navigator.of(sheet).pop(DaybookAttach.library),
         ),
       ],
     ),
@@ -74,6 +95,7 @@ Future<DraftFile?> chooseDaybookFile(
   WidgetRef ref, {
   required String spaceId,
   LibraryFile? replaces,
+  DaybookFileSource? source,
 }) async {
   final l10n = AppLocalizations.of(context);
   final all = replaces != null
@@ -81,7 +103,8 @@ Future<DraftFile?> chooseDaybookFile(
       : await _libraryFiles(context, ref, spaceId);
   if (all == null || !context.mounted) return null;
   final current = _current(all);
-  final picked = replaces != null
+  // F72: the paper clip already said where from.
+  final picked = replaces != null || source == DaybookFileSource.phone
       ? _fromPhone
       : await showBvSheet<Object>(
           context: context,
@@ -90,14 +113,15 @@ Future<DraftFile?> chooseDaybookFile(
             key: const Key('file-chooser'),
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              BvAttachRow(
-                key: const Key('file-from-phone'),
-                icon: BvIcons.upload,
-                title: l10n.daybookFileFromPhone,
-                subtitle: l10n.daybookFileFromPhoneNote,
-                onTap: () => Navigator.of(sheet).pop(_fromPhone),
-              ),
-              if (current.isNotEmpty)
+              if (source != DaybookFileSource.library)
+                BvAttachRow(
+                  key: const Key('file-from-phone'),
+                  icon: BvIcons.upload,
+                  title: l10n.daybookFileFromPhone,
+                  subtitle: l10n.daybookFileFromPhoneNote,
+                  onTap: () => Navigator.of(sheet).pop(_fromPhone),
+                ),
+              if (current.isNotEmpty && source != DaybookFileSource.library)
                 Padding(
                   padding: const EdgeInsetsDirectional.only(top: BvSpace.s12),
                   child: Text(

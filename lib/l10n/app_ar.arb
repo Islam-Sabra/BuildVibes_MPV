@@ -943,7 +943,7 @@
   "daybookLineYouPosted": "أنت · نشر",
   "daybookKindChecklistWord": "· قائمة تحقق",
   "daybookKindActivityWord": "· مُجدول",
-  "daybookKindFileWord": "· للاستلام",
+  "daybookKindFileWord": "· ملف",
   "daybookToEveryone": "· للجميع",
   "daybookToTeam": "· لـ {team}",
   "daybookTicked": "تم تأشير {ticked} من {total}",
@@ -1023,7 +1023,7 @@
   "previewModelViewVersions": "الإصدارات الجديدة تأتي من BuildVibes 360",
   "daybookPeopleDone": "تم",
   "daybookDayTime": "{day}، {time}",
-  "daybookKindDocument": "مستند للاستلام",
+  "daybookKindDocument": "ملف",
   "daybookUnpin": "إلغاء التثبيت",
   "daybookKindNote": "ملاحظة",
   "daybookKindNoteWord": "· ملاحظة",
@@ -1178,5 +1178,10 @@
   "daybookNewVersion": "نسخة جديدة من ملف",
   "daybookPickVersionTitle": "نسخة جديدة من أي ملف؟",
   "libraryVersionNo": "V{version}",
-  "daybookNotNewVersion": "ليست نسخة جديدة"
+  "daybookNotNewVersion": "ليست نسخة جديدة",
+  "daybookAttachFiles": "ملف من الهاتف",
+  "daybookAttachLibrary": "من المكتبة",
+  "daybookFileToEveryone": "الملف يذهب إلى المساحة كلها. لإرساله إلى شخص واحد استخدم رسالة مباشرة.",
+  "daybookAttachCameraNote": "بكاميرا الهاتف",
+  "daybookAttachLibraryNote": "ملف موجود في هذه المساحة"
 }

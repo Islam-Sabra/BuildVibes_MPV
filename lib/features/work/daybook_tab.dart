@@ -825,20 +825,42 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final choice = await showDaybookAttach(
       context,
       photosLeft: writer.room.clamp(0, DaybookPostDraft.filesMax),
+      // A file post is its file: no photos.
+      photos: kind != DaybookKind.file,
     );
     if (!mounted || choice == null) return;
-    if (choice == DaybookAttach.file && kind == DaybookKind.file) {
-      return _pickFile();
+    final source = switch (choice) {
+      DaybookAttach.files => DaybookFileSource.phone,
+      DaybookAttach.library => DaybookFileSource.library,
+      _ => null,
+    };
+    // A file post's one file: a new one replaces it.
+    if (source != null && kind == DaybookKind.file) {
+      final file = await chooseDaybookFile(
+        context,
+        ref,
+        spaceId: _spaceId,
+        source: source,
+      );
+      if (file != null) await writer.addFile(file);
+      return;
     }
     if (writer.room <= 0) {
       showSpaceMessage(context, l10n.daybookFilesFull);
       return;
     }
     switch (choice) {
+      case DaybookAttach.camera:
+        await _photos(writer.addPhoto());
       case DaybookAttach.photos:
         await _photos(writer.addPhotos());
-      case DaybookAttach.file:
-        final file = await chooseDaybookFile(context, ref, spaceId: _spaceId);
+      case DaybookAttach.files || DaybookAttach.library:
+        final file = await chooseDaybookFile(
+          context,
+          ref,
+          spaceId: _spaceId,
+          source: source,
+        );
         if (file != null) await writer.addFile(file);
     }
   }

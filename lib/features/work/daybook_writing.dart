@@ -30,6 +30,7 @@ import '../library/library_parts.dart' show fileSize;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
+import '../spaces/space_errors.dart' show showSpaceMessage;
 import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_words.dart';
@@ -803,8 +804,13 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           key: const Key('writing-to'),
           icon: BvIcons.team,
           label: l10n.daybookToAudience(draft.teamName ?? l10n.daybookEveryone),
-          caret: teams.isNotEmpty && !widget.editing,
-          onTap: teams.isEmpty || widget.editing
+          // F72: a file goes to the whole Space (Team-only files aren't in
+          // the pilot), so its To isn't a choice.
+          caret:
+              teams.isNotEmpty && !widget.editing && kind != DaybookKind.file,
+          onTap: kind == DaybookKind.file && !widget.editing
+              ? () => showSpaceMessage(context, l10n.daybookFileToEveryone)
+              : teams.isEmpty || widget.editing
               ? null
               : tap(() => menu(DaybookWritingMenu.audience)),
         ),
@@ -1326,13 +1332,8 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
         location,
         people,
       ],
-      DaybookKind.file => [
-        BvMenuItem(
-          value: _More.file,
-          label: l10n.daybookKindFile,
-          icon: BvIcons.document,
-        ),
-      ],
+      // F72: one way to add a file, the paper clip.
+      DaybookKind.file => const [],
     };
   }
 

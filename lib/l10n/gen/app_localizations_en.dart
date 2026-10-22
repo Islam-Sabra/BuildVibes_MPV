@@ -3401,7 +3401,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookKindActivityWord => '· scheduled';
 
   @override
-  String get daybookKindFileWord => '· for receipt';
+  String get daybookKindFileWord => '· file';
 
   @override
   String get daybookToEveryone => '· to everyone';
@@ -3696,7 +3696,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookKindDocument => 'Document for receipt';
+  String get daybookKindDocument => 'File';
 
   @override
   String get daybookUnpin => 'Unpin';
@@ -4259,4 +4259,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookNotNewVersion => 'Not a new version';
+
+  @override
+  String get daybookAttachFiles => 'File from the phone';
+
+  @override
+  String get daybookAttachLibrary => 'From the Library';
+
+  @override
+  String get daybookFileToEveryone =>
+      'A file goes to the whole Space. To send it to one person, use a direct message.';
+
+  @override
+  String get daybookAttachCameraNote => 'With the phone\'s camera';
+
+  @override
+  String get daybookAttachLibraryNote => 'A file already in this Space';
 }

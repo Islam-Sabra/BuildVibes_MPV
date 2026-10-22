@@ -5756,10 +5756,10 @@ abstract class AppLocalizations {
   /// **'· scheduled'**
   String get daybookKindActivityWord;
 
-  /// Daybook card header after the author: the post is a file (K2 v13).
+  /// A file post's kind word in its card header (F74).
   ///
   /// In en, this message translates to:
-  /// **'· for receipt'**
+  /// **'· file'**
   String get daybookKindFileWord;
 
   /// An announcement is for everyone in the Space (K1 v13).
@@ -6236,10 +6236,10 @@ abstract class AppLocalizations {
   /// **'{day}, {time}'**
   String daybookDayTime(String day, String time);
 
-  /// The kind menu's name for a file post (review 50 F50): each person confirms they received it. The kind stays `file` on the server.
+  /// The kind menu's name for a file post (F74: "File"; the request to confirm stays on the card as the Received pill).
   ///
   /// In en, this message translates to:
-  /// **'Document for receipt'**
+  /// **'File'**
   String get daybookKindDocument;
 
   /// Long-press menu on a pinned announcement (F44): it becomes an ordinary card on its day.
@@ -7171,6 +7171,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not a new version'**
   String get daybookNotNewVersion;
+
+  /// F72: the paper clip's row for a PDF or photo from the phone's files (it goes to the Library too).
+  ///
+  /// In en, this message translates to:
+  /// **'File from the phone'**
+  String get daybookAttachFiles;
+
+  /// F72: the paper clip's row for a file already in the Space's Library.
+  ///
+  /// In en, this message translates to:
+  /// **'From the Library'**
+  String get daybookAttachLibrary;
+
+  /// F72: why To: Everyone can't be changed on a file post.
+  ///
+  /// In en, this message translates to:
+  /// **'A file goes to the whole Space. To send it to one person, use a direct message.'**
+  String get daybookFileToEveryone;
+
+  /// F72: under Take a photo on the paper clip's sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'With the phone\'s camera'**
+  String get daybookAttachCameraNote;
+
+  /// F72: under From the Library on the paper clip's sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'A file already in this Space'**
+  String get daybookAttachLibraryNote;
 }
 
 class _AppLocalizationsDelegate

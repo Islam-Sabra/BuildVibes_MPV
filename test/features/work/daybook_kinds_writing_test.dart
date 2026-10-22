@@ -516,8 +516,8 @@ void main() {
         hasLength(2),
       );
       await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
+      // F72: the phone's files straight away.
       await _tap(tester, find.byKey(const Key('attach-file')));
-      await _tap(tester, find.byKey(const Key('file-from-phone')));
       await _tap(tester, find.byKey(const Key('replaces-none')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
       // Someone to do it, then Post.
@@ -613,7 +613,8 @@ void main() {
     final s = DaybookSamples(lang);
 
     for (final kind in DaybookKind.values) {
-      testWidgets('F39: 📎 opens "Add to this post" on a ${kind.json} '
+      testWidgets('F39, F72: 📎 is the one way to add: Camera, Photos, a '
+          'file from the phone and From the Library on a ${kind.json} '
           '[$lang]', (tester) async {
         await _open(tester, lang);
         await _write(
@@ -628,10 +629,13 @@ void main() {
         }
         await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
         expect(find.byKey(const Key('attach-sheet')), findsOneWidget);
-        expect(find.byKey(const Key('attach-photos')), findsOneWidget);
+        // A file post is its file: no photos there.
+        final photos = kind == DaybookKind.file ? findsNothing : findsOneWidget;
+        expect(find.byKey(const Key('attach-camera')), photos);
+        expect(find.byKey(const Key('attach-photos')), photos);
         expect(find.byKey(const Key('attach-file')), findsOneWidget);
-        // F49: the File row says only what the server takes; F50: it keeps
-        // its name "File".
+        expect(find.byKey(const Key('attach-library')), findsOneWidget);
+        // F49: the phone's row says only what the server takes.
         expect(
           find.descendant(
             of: find.byKey(const Key('attach-file')),
@@ -640,29 +644,20 @@ void main() {
           findsOneWidget,
         );
         expect(libraryDocumentLine(), 'PDF');
-        expect(
-          find.descendant(
-            of: find.byKey(const Key('attach-file')),
-            matching: find.text(l10n.daybookKindFile),
-          ),
-          findsOneWidget,
-        );
       });
     }
 
-    testWidgets('F50: the File kind reads "Document for receipt", with its '
-        'small line [$lang]', (tester) async {
+    testWidgets('F74: the kind menu says File, with no small line; the '
+        '⋯ menu adds no file (F72) [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
       await _tap(tester, find.byKey(const Key('writing-kind-chip')));
       final menu = find.byKey(const Key('writing-kind-menu'));
       expect(
-        find.descendant(
-          of: menu,
-          matching: find.text(l10n.daybookKindDocument),
-        ),
+        find.descendant(of: menu, matching: find.text(l10n.daybookKindDocument)),
         findsOneWidget,
       );
+      expect(l10n.daybookKindDocument, lang == 'en' ? 'File' : 'ملف');
       // No description lines (F63).
       expect(
         tester
@@ -670,11 +665,6 @@ void main() {
             .items
             .every((i) => i.note == null),
         isTrue,
-      );
-      // The old name is gone from the menu; 📎 → File keeps it.
-      expect(
-        find.descendant(of: menu, matching: find.text(l10n.daybookKindFile)),
-        findsNothing,
       );
     });
 

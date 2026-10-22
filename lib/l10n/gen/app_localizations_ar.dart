@@ -3396,7 +3396,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindActivityWord => '· مُجدول';
 
   @override
-  String get daybookKindFileWord => '· للاستلام';
+  String get daybookKindFileWord => '· ملف';
 
   @override
   String get daybookToEveryone => '· للجميع';
@@ -3701,7 +3701,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookKindDocument => 'مستند للاستلام';
+  String get daybookKindDocument => 'ملف';
 
   @override
   String get daybookUnpin => 'إلغاء التثبيت';
@@ -4268,4 +4268,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookNotNewVersion => 'ليست نسخة جديدة';
+
+  @override
+  String get daybookAttachFiles => 'ملف من الهاتف';
+
+  @override
+  String get daybookAttachLibrary => 'من المكتبة';
+
+  @override
+  String get daybookFileToEveryone =>
+      'الملف يذهب إلى المساحة كلها. لإرساله إلى شخص واحد استخدم رسالة مباشرة.';
+
+  @override
+  String get daybookAttachCameraNote => 'بكاميرا الهاتف';
+
+  @override
+  String get daybookAttachLibraryNote => 'ملف موجود في هذه المساحة';
 }

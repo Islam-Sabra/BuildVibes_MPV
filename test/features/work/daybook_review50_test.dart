@@ -319,7 +319,7 @@ void main() {
         );
         expect(
           l10n.daybookKindFileWord,
-          lang == 'en' ? '· for receipt' : '· للاستلام',
+          lang == 'en' ? '· file' : '· ملف',
         );
         final lines = _lines(tester, DaybookSamples.m201Id);
         expect(lines, isNot(contains('rcv-${DaybookSamples.omar}')));

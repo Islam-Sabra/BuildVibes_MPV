@@ -4864,9 +4864,9 @@
   "@daybookKindActivityWord": {
     "description": "Daybook card header after the author: the post is a scheduled activity (K2 v13)."
   },
-  "daybookKindFileWord": "· for receipt",
+  "daybookKindFileWord": "· file",
   "@daybookKindFileWord": {
-    "description": "Daybook card header after the author: the post is a file (K2 v13)."
+    "description": "A file post's kind word in its card header (F74)."
   },
   "daybookToEveryone": "· to everyone",
   "@daybookToEveryone": {
@@ -5343,9 +5343,9 @@
       }
     }
   },
-  "daybookKindDocument": "Document for receipt",
+  "daybookKindDocument": "File",
   "@daybookKindDocument": {
-    "description": "The kind menu's name for a file post (review 50 F50): each person confirms they received it. The kind stays `file` on the server."
+    "description": "The kind menu's name for a file post (F74: \"File\"; the request to confirm stays on the card as the Received pill)."
   },
   "daybookUnpin": "Unpin",
   "@daybookUnpin": {
@@ -6131,5 +6131,25 @@
   "daybookNotNewVersion": "Not a new version",
   "@daybookNotNewVersion": {
     "description": "F71: the ✕ on 'Replaces …' (screen readers)."
+  },
+  "daybookAttachFiles": "File from the phone",
+  "@daybookAttachFiles": {
+    "description": "F72: the paper clip's row for a PDF or photo from the phone's files (it goes to the Library too)."
+  },
+  "daybookAttachLibrary": "From the Library",
+  "@daybookAttachLibrary": {
+    "description": "F72: the paper clip's row for a file already in the Space's Library."
+  },
+  "daybookFileToEveryone": "A file goes to the whole Space. To send it to one person, use a direct message.",
+  "@daybookFileToEveryone": {
+    "description": "F72: why To: Everyone can't be changed on a file post."
+  },
+  "daybookAttachCameraNote": "With the phone's camera",
+  "@daybookAttachCameraNote": {
+    "description": "F72: under Take a photo on the paper clip's sheet."
+  },
+  "daybookAttachLibraryNote": "A file already in this Space",
+  "@daybookAttachLibraryNote": {
+    "description": "F72: under From the Library on the paper clip's sheet."
   }
 }
