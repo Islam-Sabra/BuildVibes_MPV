@@ -733,4 +733,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Put in a Space: the Space's writing card from the note; `mark_note_put` once the post is taken.
   - Save to my notebook on a held direct message or Space chat message.
   - My calendar (CAL1): the market's week, swipe, dots, rows by day with the Space's colour, labels, the paper clip; a tap opens the card.
-  - Checks: analyze clean; TESTCOUNT Screenshots EN and AR in `docs/screens/slice8/`.
+  - Checks: analyze clean; 1,622 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Screenshots EN and AR in `docs/screens/slice8/`.
