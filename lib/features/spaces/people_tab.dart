@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,8 +17,10 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_controls.dart';
 import '../../shared/widgets/bv_highlight.dart';
+import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_pill_button.dart';
 import '../../shared/widgets/bv_post_bar.dart' show BvPassChip;
+import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_tap_target.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
@@ -134,6 +138,103 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     }
   }
 
+  /// F79: a person, on a short sheet: their face, name, role and company
+  /// and their pass; View profile and Message for everyone; Pass and Remove
+  /// from Space only for a Space admin. For yourself, View profile only.
+  Future<void> _openPerson(SpaceMember m, {required bool isMe}) async {
+    final l10n = AppLocalizations.of(context);
+    final router = GoRouter.of(context);
+    final admin = widget.space.iAmAdmin && !isMe;
+    final picked = await showBvSheet<_PersonAction>(
+      context: context,
+      builder: (sheet) => Column(
+        key: Key('person-sheet-${m.person.id}'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PersonHead(member: m),
+          const SizedBox(height: BvSpace.s8),
+          BvListRow(
+            key: const Key('person-profile'),
+            leading: const BvRowIcon(BvIcons.profile),
+            title: l10n.settingsViewProfile,
+            onTap: () => Navigator.of(sheet).pop(_PersonAction.profile),
+          ),
+          if (!isMe)
+            BvListRow(
+              key: const Key('person-message'),
+              leading: const BvRowIcon(BvIcons.chat),
+              title: l10n.profileMessage,
+              onTap: () => Navigator.of(sheet).pop(_PersonAction.message),
+            ),
+          if (admin) ...[
+            BvListRow(
+              key: const Key('person-pass'),
+              leading: const BvRowIcon(BvIcons.pass),
+              title: l10n.peoplePassRow,
+              subtitle: passName(l10n, m.pass),
+              onTap: () => Navigator.of(sheet).pop(_PersonAction.pass),
+            ),
+            BvListRow(
+              key: const Key('person-remove'),
+              leading: const BvRowIcon(BvIcons.delete, destructive: true),
+              title: l10n.spacesRemove,
+              destructive: true,
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheet).pop(_PersonAction.remove),
+            ),
+          ],
+        ],
+      ),
+    );
+    if (!mounted) return;
+    switch (picked) {
+      case _PersonAction.profile:
+        await router.push(AppRoutes.person(m.person.id));
+      case _PersonAction.message:
+        await router.push(AppRoutes.messagesWith(m.person.id));
+      case _PersonAction.pass:
+        await router.push(AppRoutes.spaceMember(_spaceId, m.person.id));
+        if (mounted) _refresh();
+      case _PersonAction.remove:
+        await _remove(m);
+      case null:
+        break;
+    }
+  }
+
+  Future<void> _remove(SpaceMember member) async {
+    final l10n = AppLocalizations.of(context);
+    final name = inOwnDirection(member.person.fullName);
+    final yes = await showBvSheet<bool>(
+      context: context,
+      title: l10n.spacesRemoveTitle(name),
+      footer: BvSheetFooter(
+        cancelLabel: l10n.commonCancel,
+        confirmLabel: l10n.spacesRemove,
+        onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
+      ),
+      builder: (sheetContext) => Text(
+        l10n.spacesRemoveBody,
+        style: BvType.of(
+          sheetContext,
+        ).bodyMd.copyWith(color: BvColors.textSecondary),
+      ),
+    );
+    if (yes != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(spaceRepositoryProvider)
+          .removeMember(_spaceId, member.person.id);
+      if (!mounted) return;
+      _refresh();
+      messenger.showSnackBar(SnackBar(content: Text(l10n.spacesRemoved(name))));
+    } on SpaceException catch (e) {
+      if (mounted) _showError(e);
+    }
+  }
+
   void _showError(SpaceException e) {
     final l10n = AppLocalizations.of(context);
     if (e.failure == SpaceFailure.rule) {
@@ -203,8 +304,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
             member: m,
             isMe: m.person.id == me,
             flash: m.person.id == _flash ? _flash : null,
-            onTap: () =>
-                context.push(AppRoutes.spaceMember(_spaceId, m.person.id)),
+            onTap: () => unawaited(_openPerson(m, isMe: m.person.id == me)),
           ),
       ];
     }
@@ -675,6 +775,60 @@ class _InviteRow extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+enum _PersonAction { profile, message, pass, remove }
+
+/// F79: the top of a person's sheet: face, name, role · company, pass.
+class _PersonHead extends StatelessWidget {
+  const _PersonHead({required this.member});
+
+  final SpaceMember member;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final p = member.person;
+    // A typed company stays plain text (rule 4).
+    final line = joinMeta([?p.roleLabel(lang), ?p.companyLabel]);
+    return Row(
+      spacing: BvPeopleSpec.rowGap,
+      children: [
+        BvAvatar(
+          name: p.fullName,
+          size: BvAvatarSize.list,
+          tint: BvAvatarTints.forId(p.id),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: BvSpace.s2,
+            children: [
+              Text(
+                inOwnDirection(p.fullName),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: type.emphasis,
+              ),
+              if (line.isNotEmpty)
+                Text(
+                  line,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.bodySm.copyWith(color: BvColors.textSecondary),
+                ),
+            ],
+          ),
+        ),
+        BvPassChip(
+          label: passName(l10n, member.pass),
+          tone: passTone(member.pass),
+        ),
+      ],
     );
   }
 }

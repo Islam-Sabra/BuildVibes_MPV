@@ -6102,5 +6102,9 @@
         "type": "String"
       }
     }
+  },
+  "peoplePassRow": "Pass",
+  "@peoplePassRow": {
+    "description": "F79: the Space admin's row on a person's sheet that changes their pass (Lead / Crew / Viewer)."
   }
 }

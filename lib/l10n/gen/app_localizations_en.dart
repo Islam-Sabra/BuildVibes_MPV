@@ -4239,4 +4239,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String daybookSendingBytes(String sent, String total) {
     return 'Sending · $sent of $total MB';
   }
+
+  @override
+  String get peoplePassRow => 'Pass';
 }

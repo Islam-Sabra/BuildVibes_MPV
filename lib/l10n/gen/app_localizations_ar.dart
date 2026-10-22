@@ -4248,4 +4248,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String daybookSendingBytes(String sent, String total) {
     return 'يُرسل · $sent من $total ميغابايت';
   }
+
+  @override
+  String get peoplePassRow => 'التصريح';
 }

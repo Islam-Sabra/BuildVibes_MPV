@@ -259,34 +259,37 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
                 style: type.bodySm.copyWith(color: BvColors.textSecondary),
               ),
             ],
-            const SizedBox(height: BvSpace.s16),
-            _Overline(l10n.spacesChangePass),
-            Wrap(
-              spacing: BvSpace.s8,
-              runSpacing: BvSpace.s8,
-              children: [
-                for (final p in SpacePass.values)
-                  BvChip(
-                    key: Key('pass-chip-${p.name}'),
-                    label: passName(l10n, p),
-                    selected: p == member.pass,
-                    // A new pass starts from its preset (no custom rights).
-                    onTap: !editable || p == member.pass
-                        ? null
-                        : () => _change(
-                            (repo) => repo.setMemberPass(
-                              widget.spaceId,
-                              widget.profileId,
-                              p,
+            // F79: only a Space admin changes a pass; nobody else sees it.
+            if (editable) ...[
+              const SizedBox(height: BvSpace.s16),
+              _Overline(l10n.spacesChangePass),
+              Wrap(
+                spacing: BvSpace.s8,
+                runSpacing: BvSpace.s8,
+                children: [
+                  for (final p in SpacePass.values)
+                    BvChip(
+                      key: Key('pass-chip-${p.name}'),
+                      label: passName(l10n, p),
+                      selected: p == member.pass,
+                      // A new pass starts from its preset (no custom rights).
+                      onTap: !editable || p == member.pass
+                          ? null
+                          : () => _change(
+                              (repo) => repo.setMemberPass(
+                                widget.spaceId,
+                                widget.profileId,
+                                p,
+                              ),
+                              done: l10n.spacesPassChanged(
+                                name,
+                                passName(l10n, p),
+                              ),
                             ),
-                            done: l10n.spacesPassChanged(
-                              name,
-                              passName(l10n, p),
-                            ),
-                          ),
-                  ),
-              ],
-            ),
+                    ),
+                ],
+              ),
+            ],
             if (people.teams.isNotEmpty) ...[
               const SizedBox(height: BvSpace.s16),
               _Overline(l10n.spacesTeamsLabel),

@@ -7135,6 +7135,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sending · {sent} of {total} MB'**
   String daybookSendingBytes(String sent, String total);
+
+  /// F79: the Space admin's row on a person's sheet that changes their pass (Lead / Crew / Viewer).
+  ///
+  /// In en, this message translates to:
+  /// **'Pass'**
+  String get peoplePassRow;
 }
 
 class _AppLocalizationsDelegate

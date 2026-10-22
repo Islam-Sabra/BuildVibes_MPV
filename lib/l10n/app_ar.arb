@@ -1172,5 +1172,6 @@
   "peopleSearchNothing": "لا أحد يطابق «{query}»",
   "peopleSearchStart": "اكتب اسمًا لتجد شخصًا.",
   "daybookSending": "يُرسل",
-  "daybookSendingBytes": "يُرسل · {sent} من {total} ميغابايت"
+  "daybookSendingBytes": "يُرسل · {sent} من {total} ميغابايت",
+  "peoplePassRow": "التصريح"
 }
