@@ -271,8 +271,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     final day = picked.day;
     final at = day == null
         ? null
-        : picked.at ??
-              DateTime(day.year, day.month, day.day, _morningHour);
+        : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
     if (at != null && !at.isAfter(now)) {
       _toast(l10n.notebookRemindPast);
       return;

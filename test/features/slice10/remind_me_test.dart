@@ -112,14 +112,20 @@ void main() {
       final app = await _open(tester, lang, notes: [s.todo()]);
       await _menu(tester, 'note-sleeves');
       await _tap(tester, _key('note-remind'));
-      expect(app.reminders.onPhone['note-sleeves']!.at, DateTime(2026, 10, 16, 9));
+      expect(
+        app.reminders.onPhone['note-sleeves']!.at,
+        DateTime(2026, 10, 16, 9),
+      );
       expect(find.textContaining(l10n.daybookTomorrow), findsWidgets);
 
       _picked = (day: DateTime(2026, 10, 15), at: DateTime(2026, 10, 15, 8));
       await _menu(tester, 'note-sleeves');
       await _tap(tester, _key('note-remind'));
       expect(find.text(l10n.notebookRemindPast), findsOneWidget);
-      expect(app.reminders.onPhone['note-sleeves']!.at, DateTime(2026, 10, 16, 9));
+      expect(
+        app.reminders.onPhone['note-sleeves']!.at,
+        DateTime(2026, 10, 16, 9),
+      );
     });
 
     testWidgets('Remove takes the reminder off the phone and the slip '

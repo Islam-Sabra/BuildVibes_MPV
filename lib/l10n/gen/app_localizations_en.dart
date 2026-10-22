@@ -4720,4 +4720,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderChannelAbout => 'Reminders you set in My notebook.';
+
+  @override
+  String get noSignalStrip =>
+      'No signal. Everything you post waits and sends by itself.';
+
+  @override
+  String get pageNoSignal =>
+      'No signal. Your changes stay here. Press Done again when the signal is back.';
+
+  @override
+  String get pageLeaveTitle => 'Leave without saving?';
+
+  @override
+  String get pageLeaveBody => 'Your changes to this page aren\'t saved yet.';
+
+  @override
+  String get pageLeaveStay => 'Keep editing';
+
+  @override
+  String get pageLeaveGo => 'Leave';
 }

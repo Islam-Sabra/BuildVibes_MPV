@@ -1305,5 +1305,11 @@
   "notebookRemindPast": "اختر وقتًا لم يأتِ بعد.",
   "reminderTitle": "تذكير",
   "reminderChannel": "التذكيرات",
-  "reminderChannelAbout": "التذكيرات التي تضبطها في دفتري."
+  "reminderChannelAbout": "التذكيرات التي تضبطها في دفتري.",
+  "noSignalStrip": "لا توجد إشارة. كل ما تنشره ينتظر ويُرسل وحده.",
+  "pageNoSignal": "لا توجد إشارة. تبقى تعديلاتك هنا. اضغط تم مرة أخرى عند عودة الإشارة.",
+  "pageLeaveTitle": "المغادرة دون حفظ؟",
+  "pageLeaveBody": "تعديلاتك على هذه الصفحة لم تُحفظ بعد.",
+  "pageLeaveStay": "تابع التعديل",
+  "pageLeaveGo": "غادر"
 }

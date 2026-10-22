@@ -7933,6 +7933,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders you set in My notebook.'**
   String get reminderChannelAbout;
+
+  /// OF (2544:35135): under the daybook's masthead while the phone can't reach the server.
+  ///
+  /// In en, this message translates to:
+  /// **'No signal. Everything you post waits and sends by itself.'**
+  String get noSignalStrip;
+
+  /// The page editor (slice 10): Done failed for want of a signal; the editor stays open.
+  ///
+  /// In en, this message translates to:
+  /// **'No signal. Your changes stay here. Press Done again when the signal is back.'**
+  String get pageNoSignal;
+
+  /// The page editor: leaving with changes not saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave without saving?'**
+  String get pageLeaveTitle;
+
+  /// The page editor: leaving with changes not saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes to this page aren\'t saved yet.'**
+  String get pageLeaveBody;
+
+  /// The page editor: stay and keep the changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get pageLeaveStay;
+
+  /// The page editor: leave and lose the changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get pageLeaveGo;
 }
 
 class _AppLocalizationsDelegate

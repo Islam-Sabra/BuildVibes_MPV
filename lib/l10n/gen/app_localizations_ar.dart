@@ -4731,4 +4731,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reminderChannelAbout => 'التذكيرات التي تضبطها في دفتري.';
+
+  @override
+  String get noSignalStrip => 'لا توجد إشارة. كل ما تنشره ينتظر ويُرسل وحده.';
+
+  @override
+  String get pageNoSignal =>
+      'لا توجد إشارة. تبقى تعديلاتك هنا. اضغط تم مرة أخرى عند عودة الإشارة.';
+
+  @override
+  String get pageLeaveTitle => 'المغادرة دون حفظ؟';
+
+  @override
+  String get pageLeaveBody => 'تعديلاتك على هذه الصفحة لم تُحفظ بعد.';
+
+  @override
+  String get pageLeaveStay => 'تابع التعديل';
+
+  @override
+  String get pageLeaveGo => 'غادر';
 }

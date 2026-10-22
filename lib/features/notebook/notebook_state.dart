@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../core/network/signal_state.dart';
 import '../../data/models/note.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/notebook_repository.dart';
@@ -209,9 +210,13 @@ class Notebook extends AsyncNotifier<List<Note>> {
           final kept = await _call(change);
           if (!kept) refused = true;
         } on SpaceException catch (e) {
-          if (e.failure == SpaceFailure.network) return;
+          if (e.failure == SpaceFailure.network) {
+            ref.read(signalProvider.notifier).lost();
+            return;
+          }
           refused = true;
         }
+        ref.read(signalProvider.notifier).back();
         _waiting = _waiting.skip(1).toList();
         await _store();
         _sent(change);

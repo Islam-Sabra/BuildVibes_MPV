@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/network/signal_state.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/daybook_live.dart';
@@ -61,6 +62,8 @@ class DaybookMark {
     this.pointId,
     this.pointText,
     this.ack,
+    this.waiting = false,
+    this.again = false,
   });
 
   final String spaceId;
@@ -76,6 +79,25 @@ class DaybookMark {
 
   /// An acknowledgement's kind.
   final DaybookAck? ack;
+
+  /// No signal took it (slice 10): it stays on the card, "Waiting to
+  /// send", and goes when the signal is back.
+  final bool waiting;
+
+  /// The old acknowledgement is taken back first (review 61 G1).
+  final bool again;
+
+  DaybookMark waitingNow() => DaybookMark(
+    spaceId: spaceId,
+    postId: postId,
+    on: on,
+    at: at,
+    pointId: pointId,
+    pointText: pointText,
+    ack: ack,
+    waiting: true,
+    again: again,
+  );
 
   bool get isTick => pointId != null;
 
@@ -95,33 +117,59 @@ final daybookMarksProvider = NotifierProvider<DaybookMarks, List<DaybookMark>>(
 
 /// Ticks and acknowledgements on their way to the server. Each shows on
 /// its card at once; once the server has it the page reads again and the
-/// mark goes. A refusal says why ([refusalsProvider]); no signal says so.
-/// Neither keeps it: a tick isn't worth a queue, and the card shows
-/// what the server has.
+/// mark goes. A refusal says why ([refusalsProvider]) and takes it back.
+/// With no signal it stays, "Waiting to send" (slice 10), and is sent
+/// again a little later and when the signal is back; a newer tap of the
+/// same thing replaces it. Kept while the app is open, not between starts.
 class DaybookMarks extends Notifier<List<DaybookMark>> {
+  late final _retry = OutboxRetry(_again);
+
   @override
-  List<DaybookMark> build() => const [];
+  List<DaybookMark> build() {
+    ref.onDispose(() => _retry.cancel());
+    ref.listen(signalProvider, (was, has) {
+      if (was == false && has) unawaited(_again());
+    });
+    return const [];
+  }
+
+  /// Every mark that waits for a signal, once more.
+  Future<void> _again() async {
+    for (final m in state.where((m) => m.waiting).toList()) {
+      await send(m, again: m.again);
+    }
+  }
 
   void _drop(DaybookMark mark) => state = [
     for (final m in state)
       if (m.key != mark.key) m,
   ];
 
-  /// Sends [mark]. Rethrows a lost signal for the screen to say. [again]
-  /// takes the old acknowledgement back first, so the new one has this
-  /// time (review 61 G1); the card shows it given at once all the same
-  /// (F44: the pinned note folds on the tap). [sayHere]: a refusal is
-  /// rethrown too, for the screen that sent it to say where the person
-  /// is (the file page, review 79), and the daybook isn't told.
+  /// Sends [mark]. With no signal it waits (above). [again] takes the old
+  /// acknowledgement back first, so the new one has this time (review 61
+  /// G1); the card shows it given at once all the same (F44: the pinned
+  /// note folds on the tap). [sayHere]: a refusal is rethrown, for the
+  /// screen that sent it to say where the person is (the file page,
+  /// review 79), and the daybook isn't told.
   Future<void> send(
     DaybookMark mark, {
     bool again = false,
     bool sayHere = false,
   }) async {
+    final sent = DaybookMark(
+      spaceId: mark.spaceId,
+      postId: mark.postId,
+      on: mark.on,
+      at: mark.at,
+      pointId: mark.pointId,
+      pointText: mark.pointText,
+      ack: mark.ack,
+      again: again,
+    );
     state = [
       for (final m in state)
         if (m.key != mark.key) m,
-      mark,
+      sent,
     ];
     final repo = ref.read(daybookRepositoryProvider);
     try {
@@ -132,8 +180,18 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
         await repo.ack(mark.postId, mark.ack!, on: mark.on);
       }
     } on SpaceException catch (e) {
+      if (e.failure == SpaceFailure.network) {
+        // Unless a newer tap of the same thing came meanwhile.
+        if (state.any((m) => identical(m, sent))) {
+          state = [
+            for (final m in state) identical(m, sent) ? sent.waitingNow() : m,
+          ];
+        }
+        ref.read(signalProvider.notifier).lost();
+        _retry.later(ref.read(outboxRetryLaterProvider));
+        return;
+      }
       _drop(mark);
-      if (e.failure == SpaceFailure.network) rethrow;
       if (sayHere) {
         await _readAgain(mark);
         rethrow;
@@ -151,10 +209,16 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
       await _readAgain(mark);
       return;
     }
+    _retry.reached();
+    ref.read(signalProvider.notifier).back();
     // The Space's other open daybooks read it at once (F47).
     unawaited(ref.read(daybookLiveProvider).changed(mark.spaceId, mark.postId));
     await _readAgain(mark);
-    _drop(mark);
+    // Unless a newer tap of the same thing waits.
+    state = [
+      for (final m in state)
+        if (!identical(m, sent)) m,
+    ];
   }
 
   /// The card's points, faces and place, as the server has them now.

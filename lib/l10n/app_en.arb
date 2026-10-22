@@ -6818,5 +6818,29 @@
   "reminderChannelAbout": "Reminders you set in My notebook.",
   "@reminderChannelAbout": {
     "description": "Android's notification channel description for reminders."
+  },
+  "noSignalStrip": "No signal. Everything you post waits and sends by itself.",
+  "@noSignalStrip": {
+    "description": "OF (2544:35135): under the daybook's masthead while the phone can't reach the server."
+  },
+  "pageNoSignal": "No signal. Your changes stay here. Press Done again when the signal is back.",
+  "@pageNoSignal": {
+    "description": "The page editor (slice 10): Done failed for want of a signal; the editor stays open."
+  },
+  "pageLeaveTitle": "Leave without saving?",
+  "@pageLeaveTitle": {
+    "description": "The page editor: leaving with changes not saved."
+  },
+  "pageLeaveBody": "Your changes to this page aren't saved yet.",
+  "@pageLeaveBody": {
+    "description": "The page editor: leaving with changes not saved."
+  },
+  "pageLeaveStay": "Keep editing",
+  "@pageLeaveStay": {
+    "description": "The page editor: stay and keep the changes."
+  },
+  "pageLeaveGo": "Leave",
+  "@pageLeaveGo": {
+    "description": "The page editor: leave and lose the changes."
   }
 }

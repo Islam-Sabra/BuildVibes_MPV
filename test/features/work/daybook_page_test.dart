@@ -721,6 +721,58 @@ void main() {
       expect(_key('page-editor'), findsNothing);
     });
 
+    testWidgets('slice 10: no signal: Done says the changes stay here; the '
+        'next Done sends them [$lang]', (tester) async {
+      final pages = FakePageRepository();
+      final app = await _open(tester, lang, pages: pages);
+      await _edit(tester, l10n);
+      await _type(tester, 'page-field-t:$_text', 'Check every sleeve.');
+      pages.offline = true;
+      await _tap(tester, _key('page-done'));
+      expect(find.text(l10n.pageNoSignal), findsOneWidget);
+      expect(_key('page-editor'), findsOneWidget);
+      pages.offline = false;
+      await tester.pump(const Duration(seconds: 5));
+      await _tap(tester, _key('page-done'));
+      expect(app.postPages.calls, hasLength(1));
+    });
+
+    testWidgets('slice 10: leaving with changes asks first; Keep editing '
+        'keeps them, Leave closes [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      await _type(tester, 'page-field-t:$_text', 'Check every sleeve.');
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.pageLeaveTitle), findsOneWidget);
+      await _tap(tester, find.text(l10n.pageLeaveStay));
+      expect(_key('page-editor'), findsOneWidget);
+      expect(find.text('Check every sleeve.'), findsOneWidget);
+      // Dragged down, the sheet stays while editing.
+      await tester.drag(
+        find.text(l10n.pageDone),
+        const Offset(0, 500),
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+      expect(_key('page-editor'), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await _tap(tester, find.text(l10n.pageLeaveGo));
+      expect(_key('daybook-page'), findsNothing);
+      expect(app.postPages.calls, isEmpty);
+    });
+
+    testWidgets('slice 10: with nothing changed, leaving asks nothing '
+        '[$lang]', (tester) async {
+      await _open(tester, lang);
+      await _edit(tester, l10n);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.pageLeaveTitle), findsNothing);
+      expect(_key('daybook-page'), findsNothing);
+    });
+
     testWidgets('a Viewer opens the page and reads it [$lang]', (tester) async {
       await _open(
         tester,

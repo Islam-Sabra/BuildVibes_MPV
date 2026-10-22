@@ -1157,6 +1157,130 @@ void main() {
       );
     });
 
+    testWidgets('slice 10: a send-back with no signal waits on the card, '
+        'SENT BACK at once, and goes when the signal is back; OF says so '
+        'meanwhile [$lang]', (tester) async {
+      final work = FakeWorkRepository()..failNext = 3;
+      await _open(tester, lang, posts: s.d1(), work: work);
+      expect(find.byKey(const Key('no-signal')), findsNothing);
+      await _longPress(tester, 'post-sleeves');
+      await _pick(tester, l10n.daybookSendBack);
+      await tester.tap(find.text(l10n.daybookReasonNotFinished));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('send-back-card')),
+          matching: find.text(l10n.daybookSendBack),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(work.calls, isEmpty);
+      expect(find.byKey(const Key('no-signal')), findsOneWidget);
+      expect(find.text(l10n.noSignalStrip), findsOneWidget);
+      expect(
+        _in('post-sleeves', find.text(l10n.daybookWaitingToSend)),
+        findsOneWidget,
+      );
+      expect(
+        _in('post-sleeves', find.text(l10n.daybookStampSentBack)),
+        findsOneWidget,
+      );
+      // The next try, while the daybook is open.
+      await tester.pump(const Duration(seconds: 31));
+      await tester.pumpAndSettle();
+      expect(work.calls.single, startsWith('back post-sleeves not_finished'));
+      expect(find.byKey(const Key('no-signal')), findsNothing);
+      expect(
+        _in('post-sleeves', find.text(l10n.daybookWaitingToSend)),
+        findsNothing,
+      );
+    });
+
+    testWidgets('slice 10: give to and an update with no signal wait, each '
+        'a line, and go [$lang]', (tester) async {
+      final work = FakeWorkRepository()..failNext = 3;
+      final app = await _open(
+        tester,
+        lang,
+        posts: [s.traysForOmar(needsMe: false)],
+        work: work,
+      );
+      await _longPress(tester, 'post-trays');
+      await _pick(tester, l10n.daybookGiveTo);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('give-to')),
+          matching: find.text(s.rakeshName),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(work.calls, isEmpty);
+      expect(
+        _in('post-trays', find.text(l10n.daybookWaitingToSend)),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 31));
+      await tester.pumpAndSettle();
+      expect(work.calls, ['reassign post-trays ${DaybookSamples.rakesh}']);
+
+      work.failNext = 3;
+      await _longPress(tester, 'post-trays');
+      await _pick(tester, l10n.daybookAddUpdate);
+      await tester.enterText(find.byKey(const Key('bv-send-field')), 'Seen');
+      await tester.pump();
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+      await tester.pumpAndSettle();
+      expect(work.calls, hasLength(1));
+      expect(
+        _in('post-trays', find.textContaining('Seen', findRichText: true)),
+        findsWidgets,
+      );
+      expect(
+        _in('post-trays', find.text(l10n.daybookWaitingToSend)),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 31));
+      await tester.pumpAndSettle();
+      expect(app.work.calls.last, 'comment post-trays Seen');
+    });
+
+    testWidgets('slice 10: a refused give-to waiting for a signal says why '
+        'and leaves [$lang]', (tester) async {
+      final work = FakeWorkRepository()..failNext = 3;
+      await _open(
+        tester,
+        lang,
+        posts: [s.traysForOmar(needsMe: false)],
+        work: work,
+      );
+      await _longPress(tester, 'post-trays');
+      await _pick(tester, l10n.daybookGiveTo);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('give-to')),
+          matching: find.text(s.rakeshName),
+        ),
+      );
+      await tester.pumpAndSettle();
+      work.refuse = const SpaceException(SpaceFailure.notAllowed);
+      work.reassignRefused = true;
+      await tester.pump(const Duration(seconds: 31));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          l10n.daybookRefusedBecause(
+            l10n.daybookCouldNotGiveTo,
+            l10n.daybookWhyNotAllowed,
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        _in('post-trays', find.text(l10n.daybookWaitingToSend)),
+        findsNothing,
+      );
+    });
+
     testWidgets('X3: cancel: CANCELLED at once, "Cancelled · Undo", sent '
         'when the bar goes [$lang]', (tester) async {
       final app = await _open(

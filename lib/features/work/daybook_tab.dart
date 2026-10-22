@@ -14,6 +14,7 @@ import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/push/push_state.dart';
+import '../../core/network/signal_state.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
@@ -28,6 +29,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../../shared/widgets/bv_due_today_strip.dart';
+import '../../shared/widgets/bv_no_signal_strip.dart';
 import '../../shared/widgets/bv_first_page.dart';
 import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_month_dropdown.dart';
@@ -118,6 +120,7 @@ class _Shown {
     required this.card,
     required this.at,
     this.waiting = false,
+    this.changeWaiting = false,
     this.unsent,
     this.refusedProof,
     this.localPhoto,
@@ -133,6 +136,9 @@ class _Shown {
   final DateTime? dayAt;
   DateTime get placedAt => dayAt ?? at;
   final bool waiting;
+
+  /// A change on its way waits for a signal (slice 10).
+  final bool changeWaiting;
 
   /// A new work item not on the server yet.
   final PendingItem? unsent;
@@ -1287,6 +1293,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   : words.dayMonth(day),
               onTap: _writing ? null : () => _openMonth(today, shown),
             ),
+            // OF: the last try to reach the server failed for want of a
+            // signal; it goes as soon as something gets through.
+            if (!ref.watch(signalProvider))
+              BvNoSignalStrip(
+                key: const Key('no-signal'),
+                text: l10n.noSignalStrip,
+              ),
             if (due.isNotEmpty && !_writing)
               BvDueTodayStrip(
                 key: const Key('to-do-strip'),
@@ -1813,11 +1826,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     required String? myName,
     required DateTime now,
     List<DaybookMark> marks = const [],
+    List<PendingItem> changes = const [],
   }) {
     final outbox = ref.read(workOutboxProvider.notifier);
     var card = c;
     var at = _placedOnServer(c);
     var waiting = false;
+    var changing = false;
     var landing = false;
     String? localPhoto;
     PendingItem? refusedProof;
@@ -1930,6 +1945,59 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       lines.add(mine(cancel, DaybookEventKind.cancelled));
       later(made(cancel));
     }
+    // Send back, give to and an update on their way (slice 10): each a
+    // line on the card at once, "Waiting to send" until the server has it.
+    for (final i in changes) {
+      if (i.cardId != c.id) continue;
+      switch (i.kind) {
+        case PendingKind.sendBack:
+          final proof = card.proof;
+          final reason = SendBackReason.fromJson(i.body);
+          card = card.copyWith(
+            post: card.post.shownAs(status: WorkStatus.open),
+            proof: proof?.withOutcome(
+              DaybookOutcome(
+                kind: DaybookOutcomeKind.sentBack,
+                at: made(i),
+                byId: me,
+                byName: myName,
+                reason: reason,
+                note: i.note,
+              ),
+            ),
+            clearNeed: true,
+          );
+          lines.add(
+            DaybookEvent(
+              id: '${i.kind.json}-${i.id}',
+              kind: DaybookEventKind.sentBack,
+              at: made(i),
+              byId: me,
+              byName: myName,
+              note: i.note,
+              reason: reason,
+            ),
+          );
+        case PendingKind.giveTo:
+          lines.add(
+            DaybookEvent(
+              id: '${i.kind.json}-${i.id}',
+              kind: DaybookEventKind.reassigned,
+              at: made(i),
+              byId: me,
+              byName: myName,
+              fromName: c.post.item?.ownerName,
+              toName: i.ownerName,
+            ),
+          );
+        case PendingKind.update:
+          lines.add(mine(i, DaybookEventKind.comment, note: i.body));
+        default:
+          continue;
+      }
+      if (!i.sent) changing = true;
+      later(made(i));
+    }
     // Ticks and acknowledgements on their way: on the card at once, each a
     // line; a tick, an un-tick or a Received moves it to Now (review 60
     // S1), a take-back takes its line off.
@@ -1978,6 +2046,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         }
         if (m.moves) later(m.at);
       }
+      // No signal took one (slice 10): it waits on the card.
+      if (onCard.any((m) => m.waiting)) changing = true;
     }
     if (lines.isNotEmpty || takenBack.isNotEmpty) {
       card = card.copyWith(
@@ -1992,6 +2062,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       card: card,
       at: at,
       waiting: waiting,
+      changeWaiting: changing,
       refusedProof: refusedProof,
       localPhoto: localPhoto,
       landing: landing,
@@ -2021,6 +2092,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       card: s.card,
       at: s.at,
       waiting: s.waiting,
+      changeWaiting: s.changeWaiting,
       unsent: s.unsent,
       refusedProof: s.refusedProof,
       localPhoto: s.localPhoto,
@@ -2062,6 +2134,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final cancels = byKind(PendingKind.cancel);
     final checks = byKind(PendingKind.check);
     final signOffs = byKind(PendingKind.signOff);
+    final changes = [
+      for (final i in pending)
+        if (i.isChange) i,
+    ];
     final onServer = {for (final c in cards) c.id};
     // A target's work items are rows on its card, not cards of their own.
     final folded = {
@@ -2088,6 +2164,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               myName: myName,
               now: now,
               marks: marks,
+              changes: changes,
             ),
             now,
           ),
@@ -2194,6 +2271,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         activityAt: s.at,
         viewer: viewer,
         waiting: s.waiting,
+        changeWaiting: s.changeWaiting,
         // F73: on its way now (with a signal), not waiting for one.
         sending: switch (sending[c.id]) {
           final OutboxSending g => (sent: g.sent, total: g.total),
