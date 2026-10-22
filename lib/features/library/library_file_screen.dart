@@ -52,17 +52,25 @@ class LibraryFileScreen extends ConsumerWidget {
   final String spaceId;
   final String fileId;
 
-  Future<void> _menu(BuildContext context, WidgetRef ref, LibraryFile f) async {
+  Future<void> _menu(
+    BuildContext context,
+    WidgetRef ref,
+    LibraryFile f, {
+    required bool canShare,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final picked = await showBvScreenMenu<_FileMenu>(
       context,
       key: const Key('file-menu'),
       items: [
-        BvMenuItem(
-          value: _FileMenu.share,
-          label: l10n.previewShare,
-          icon: BvIcons.chat,
-        ),
+        // The server shares a file in chat only for people who may add
+        // files (share_library_file).
+        if (canShare)
+          BvMenuItem(
+            value: _FileMenu.share,
+            label: l10n.previewShare,
+            icon: BvIcons.chat,
+          ),
         BvMenuItem(
           value: _FileMenu.download,
           label: l10n.previewDownload,
@@ -152,7 +160,8 @@ class LibraryFileScreen extends ConsumerWidget {
             key: const Key('file-more'),
             tooltip: l10n.libraryFileMenu,
             icon: const Icon(BvIcons.more),
-            onPressed: () => _menu(context, ref, f),
+            onPressed: () =>
+                _menu(context, ref, f, canShare: rights?.addFiles ?? false),
           ),
         ],
       ),

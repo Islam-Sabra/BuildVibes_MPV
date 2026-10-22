@@ -38,8 +38,10 @@ begin
 end;
 $$;
 
+-- "of status" too: a cancel moves last_activity_at only in a BEFORE
+-- trigger, which a column list on last_activity_at alone never sees.
 create trigger space_posts_activity_to_parent
-  after update of last_activity_at on public.space_posts
+  after update of last_activity_at, status on public.space_posts
   for each row
   when (new.parent_id is not null and new.last_activity_at > old.last_activity_at)
   execute function public.post_activity_to_parent();
@@ -342,7 +344,9 @@ begin
         and (p.last_activity_at, p.id) < (coalesce(p_before, 'infinity'), public.cursor_id(p_before, p_before_id))
         and public.can_see_space_post(p.id)
         -- A target's work items are on its card (migration 37).
-        and not (p.parent_id is not null and p.kind = 'work_item'
+        -- A cancelled one keeps its own card, with its CANCELLED stamp,
+        -- as every cancelled post does; the target's rows are live ones.
+        and not (p.parent_id is not null and p.kind = 'work_item' and p.status = 'live'
                  and public.is_target(p.parent_id)
                  and public.can_see_space_post(p.parent_id))
       order by p.last_activity_at desc, p.id desc

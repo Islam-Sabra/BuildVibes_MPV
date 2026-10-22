@@ -12,6 +12,7 @@ import '../../core/routing/app_routes.dart';
 import '../../core/share.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
+import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -56,6 +57,10 @@ class FilePreviewScreen extends ConsumerWidget {
       );
     }
     final f = d.file;
+    // share_library_file needs add_files.
+    final canShare =
+        ref.watch(spaceDetailProvider(spaceId)).value?.myRights.addFiles ??
+        false;
     final locale = Localizations.localeOf(context).toLanguageTag();
     String day(DateTime t) => BvWesternDigitsFormatter.normalise(
       DateFormat('d MMM', locale).format(t.toLocal()),
@@ -123,16 +128,17 @@ class FilePreviewScreen extends ConsumerWidget {
             Row(
               spacing: BvSpace.s12,
               children: [
-                Expanded(
-                  child: BvButton(
-                    key: const Key('preview-share'),
-                    label: l10n.previewShare,
-                    style: BvButtonStyle.secondary,
-                    expand: true,
-                    onPressed: () =>
-                        shareLibraryFileInChat(context, ref, spaceId, f),
+                if (canShare)
+                  Expanded(
+                    child: BvButton(
+                      key: const Key('preview-share'),
+                      label: l10n.previewShare,
+                      style: BvButtonStyle.secondary,
+                      expand: true,
+                      onPressed: () =>
+                          shareLibraryFileInChat(context, ref, spaceId, f),
+                    ),
                   ),
-                ),
                 Expanded(
                   child: BvButton(
                     key: const Key('preview-download'),

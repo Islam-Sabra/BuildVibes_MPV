@@ -623,3 +623,10 @@ class SupabaseDaybookRepository implements DaybookRepository {
 final daybookRepositoryProvider = Provider<DaybookRepository>(
   (ref) => SupabaseDaybookRepository(ref.watch(supabaseClientProvider)),
 );
+
+/// One card by id (daybook_card): a target's work item, opened from its
+/// row.
+final daybookChildCardProvider = FutureProvider.autoDispose
+    .family<DaybookCard?, String>(
+      (ref, id) => ref.watch(daybookRepositoryProvider).card(id),
+    );

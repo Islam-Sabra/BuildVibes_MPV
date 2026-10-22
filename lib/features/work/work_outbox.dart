@@ -642,8 +642,11 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         await withRetries(() => _call(current, photos));
         break;
       } on SpaceException catch (e) {
-        // Refused photos from an earlier try: upload them again, once.
-        if (reused && e.failure == SpaceFailure.badInput) {
+        // Refused photos from an earlier try: upload them again, once. A
+        // cleaned-up upload reads as not allowed (is_my_upload).
+        if (reused &&
+            (e.failure == SpaceFailure.badInput ||
+                e.failure == SpaceFailure.notAllowed)) {
           reused = false;
           current = current.copyWith(
             photos: [for (final p in current.photos) p.notUploaded],
@@ -881,7 +884,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     // A pin or an activity today sits above the page.
     ref
       ..invalidate(daybookExtrasProvider(spaceId))
-      ..invalidate(daybookDueTodayProvider(spaceId));
+      ..invalidate(daybookDueTodayProvider(spaceId))
+      // A walk's work item, open on its own sheet.
+      ..invalidate(daybookChildCardProvider);
     final page = daybookCardsProvider(spaceId);
     if (!ref.exists(page)) return true;
     try {

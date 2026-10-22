@@ -136,7 +136,10 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       case _SpaceMenu.walk:
         await context.push(AppRoutes.spaceWalk(widget.spaceId));
       case _SpaceMenu.search:
-        await context.push(AppRoutes.spaceSearch(widget.spaceId));
+        final replaces = await context.push<LibraryFile>(
+          AppRoutes.spaceSearch(widget.spaceId),
+        );
+        if (replaces != null && mounted) _addFile(replaces: replaces);
       case _SpaceMenu.info:
         await _openInfo();
       case null:

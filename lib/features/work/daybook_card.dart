@@ -315,7 +315,9 @@ class DaybookCardView extends StatelessWidget {
             if (post.isTarget)
               DaybookTargetRows(
                 post: post,
-                waiting: waiting,
+                // Still the phone's walk (sent or not, until the page
+                // reads it back): its photos are the phone's own.
+                waiting: waiting || waitingPhotos.isNotEmpty,
                 viewer: viewer,
                 onOpenChild: lifted ? null : actions.onOpenChild,
                 onShowAll: lifted ? null : actions.onOpenPage,
@@ -332,7 +334,9 @@ class DaybookCardView extends StatelessWidget {
                 stamp: stamp,
                 onDoubleTap: check,
               )
+            // A target's photos are on its rows' strip, not here.
             else if (proof == null &&
+                !post.isTarget &&
                 (post.coverPath != null || waitingPhotos.isNotEmpty))
               DaybookCardPhotos(post: post, waiting: waitingPhotos),
             // A proof with only a note (F6): the note, and the stamp

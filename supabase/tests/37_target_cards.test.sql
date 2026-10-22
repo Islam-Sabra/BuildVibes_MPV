@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(26);
+select plan(29);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000037' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -158,6 +158,22 @@ where id = pg_temp.item('a000');
 update public.space_posts set last_activity_at = now() where id = pg_temp.item('a002');
 select ok((select last_activity_at from public.space_posts where id = pg_temp.item('a000'))
           > now(), 'and never moves it back');
+
+-- A cancelled row ------------------------------------------------------------------------------
+
+update public.space_posts set last_activity_at = now() - interval '2 days'
+where id in (pg_temp.item('c000'), pg_temp.item('c012'));
+select pg_temp.as_user('e1');
+set local role authenticated;
+select public.cancel_space_post(pg_temp.item('c012'), 'Not needed');
+reset role;
+select ok((select last_activity_at from public.space_posts where id = pg_temp.item('c000'))
+          > now() - interval '1 hour',
+  'cancelling a row moves the walk to Now');
+select ok(pg_temp.item('c012') = any (pg_temp.ids('e3')),
+  'a cancelled row keeps its own card, with its stamp');
+select is(jsonb_array_length(pg_temp.card('e3', 'c000') -> 'children' -> 'rows'), 11,
+  'and leaves the walk''s rows');
 
 -- One card: a target's work item, from its row --------------------------------------------------
 

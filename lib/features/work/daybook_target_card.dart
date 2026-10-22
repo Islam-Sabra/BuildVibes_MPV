@@ -22,6 +22,7 @@ import 'daybook_card.dart';
 import 'daybook_loop.dart';
 import 'daybook_photos.dart';
 import 'daybook_words.dart';
+import 'work_outbox.dart';
 
 /// A target's work items (a walk's photos) on its card (R1b, slice 6): the
 /// photos in a row, a row per work item, and "N of M checked". The target
@@ -233,12 +234,6 @@ class DaybookChildRow extends StatelessWidget {
   }
 }
 
-/// A target's work item, read as its own card (daybook_card).
-final daybookChildCardProvider = FutureProvider.autoDispose
-    .family<DaybookCard?, String>(
-      (ref, id) => ref.watch(daybookRepositoryProvider).card(id),
-    );
-
 /// A work item under a target, opened from its row (or Needs you,
 /// Activity, a push): its own card on a sheet, with everything the card
 /// offers there (sign as done, check, send back, updates).
@@ -270,7 +265,26 @@ class _ChildSheet extends ConsumerWidget {
     final card = ref.watch(daybookChildCardProvider(childId));
     final me = ref.watch(authUserIdProvider).value;
     final now = ref.watch(clockProvider)();
-    final c = card.value;
+    // What this phone did and hasn't sent yet shows at once, so the same
+    // action isn't offered twice.
+    final pending = [
+      for (final i in ref.watch(workOutboxProvider))
+        if (i.id == childId && !i.refused) i.kind,
+    ];
+    var c = card.value;
+    if (c != null && pending.contains(PendingKind.check)) {
+      c = c.copyWith(
+        post: c.post.shownAs(status: WorkStatus.checked),
+        clearNeed: true,
+      );
+    } else if (c != null &&
+        pending.contains(PendingKind.signOff) &&
+        c.post.isOpen) {
+      c = c.copyWith(
+        post: c.post.shownAs(status: WorkStatus.done),
+        clearNeed: true,
+      );
+    }
     final Widget body;
     if (c == null) {
       body = Padding(
@@ -296,7 +310,12 @@ class _ChildSheet extends ConsumerWidget {
       );
       body = Padding(
         padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-        child: loop.withActions(context, view, me: me, signing: const {}),
+        child: loop.withActions(
+          context,
+          view,
+          me: me,
+          signing: {if (pending.contains(PendingKind.signOff)) childId},
+        ),
       );
     }
     // Its own messenger: Undo shows on the sheet.

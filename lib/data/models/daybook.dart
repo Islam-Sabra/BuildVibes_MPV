@@ -536,6 +536,7 @@ class DaybookPost {
     bool cancelled = false,
     int? pointsTicked,
     Set<DaybookAck>? myAcks,
+    DaybookChildren? children,
   }) => DaybookPost(
     id: id,
     kind: kind,
@@ -574,7 +575,7 @@ class DaybookPost {
     quote: quote,
     hasPage: hasPage,
     parentId: parentId,
-    children: children,
+    children: children ?? this.children,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
@@ -1061,6 +1062,18 @@ class DaybookChild {
 
   /// Its photo (a walk's).
   final String? coverPath;
+
+  /// As the phone shows it while a sign-off or check waits to be sent:
+  /// that state, asking nothing more of the reader.
+  DaybookChild shownAs(WorkStatus status) => DaybookChild(
+    id: id,
+    title: title,
+    status: status,
+    ref: ref,
+    ownerId: ownerId,
+    ownerName: ownerName,
+    coverPath: coverPath,
+  );
 }
 
 /// The work items under a post (the card's `children`): how many, how many
@@ -1092,4 +1105,12 @@ class DaybookChildren {
   final int checked;
   final bool target;
   final List<DaybookChild> rows;
+
+  /// The same, with [rows] as the phone shows them.
+  DaybookChildren withRows(List<DaybookChild> rows) => DaybookChildren(
+    total: total,
+    checked: checked,
+    target: target,
+    rows: rows,
+  );
 }

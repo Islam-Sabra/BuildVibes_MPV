@@ -92,22 +92,27 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
       return;
     }
     setState(() => _taking = true);
-    final picked = await ref.read(pickPhotoProvider)(camera: true);
-    if (!mounted) return;
-    if (picked.refused > 0) showSpaceMessage(context, l10n.photoCannotOpen);
-    final photo = picked.photos.firstOrNull;
-    if (photo == null) {
-      setState(() => _taking = false);
-      return;
+    String? kept;
+    try {
+      final picked = await ref.read(pickPhotoProvider)(camera: true);
+      if (!mounted) return;
+      if (picked.refused > 0) showSpaceMessage(context, l10n.photoCannotOpen);
+      final photo = picked.photos.firstOrNull;
+      if (photo != null) kept = await ref.read(keepPhotoProvider)(photo);
+    } on Exception {
+      // No camera permission, or the photo couldn't be kept: say so, and
+      // the shutter works again.
+      if (mounted) showSpaceMessage(context, l10n.photoCannotOpen);
+    } finally {
+      if (mounted) setState(() => _taking = false);
     }
-    final kept = await ref.read(keepPhotoProvider)(photo);
-    if (!mounted) return;
+    if (!mounted || kept == null) return;
+    final local = kept;
     setState(() {
-      _taking = false;
       // The last owner stays for the next photo.
       _shots.add(
         _Shot(
-          local: kept,
+          local: local,
           at: ref.read(clockProvider)(),
           owner: _shots.lastOrNull?.owner,
         ),

@@ -306,5 +306,53 @@ void main() {
       expect(find.text('Handrail loose'), findsOneWidget);
       expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
     });
+    testWidgets('a refused walk: Try again sends it as it was, and Throw '
+        'away asks first [$lang]', (tester) async {
+      final daybook = FakeDaybookRepository()..refuseWalk = true;
+      await _open(tester, lang, withWalk: false, daybook: daybook);
+      await _menu(tester, l10n.walkMenu);
+      await tester.enterText(_key('walk-name'), 'Walk, stairs');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('walk-start'));
+      await tester.enterText(_key('walk-line-0'), 'Handrail loose');
+      await tester.pumpAndSettle();
+      await _owner(tester, s.omarName);
+      await _tap(tester, _key('walk-finish'));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookCouldNotSend), findsOneWidget);
+      expect(daybook.createdWalks, isEmpty);
+
+      // Never a one-item Draft: its own choice.
+      await _tap(tester, find.text('Walk, stairs'));
+      expect(_key('walk-refused-menu'), findsOneWidget);
+      daybook.refuseWalk = false;
+      await _tap(tester, find.text(l10n.commonRetry));
+      final walk = daybook.createdWalks.single;
+      expect(walk.title, 'Walk, stairs');
+      expect(walk.items.single.line, 'Handrail loose');
+      expect(walk.items.single.ownerId, DaybookSamples.omar);
+    });
+
+    testWidgets('a refused walk thrown away leaves the daybook [$lang]', (
+      tester,
+    ) async {
+      final daybook = FakeDaybookRepository()..refuseWalk = true;
+      await _open(tester, lang, withWalk: false, daybook: daybook);
+      await _menu(tester, l10n.walkMenu);
+      await tester.enterText(_key('walk-name'), 'Walk, stairs');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('walk-start'));
+      await tester.enterText(_key('walk-line-0'), 'Handrail loose');
+      await tester.pumpAndSettle();
+      await _owner(tester, s.omarName);
+      await _tap(tester, _key('walk-finish'));
+      await tester.pumpAndSettle();
+      await _tap(tester, find.text('Walk, stairs'));
+      await _tap(tester, find.text(l10n.walkDiscard));
+      expect(find.text(l10n.walkDiscardTitle), findsOneWidget);
+      await _tap(tester, _key('bv-dialog-confirm'));
+      expect(find.text('Walk, stairs'), findsNothing);
+      expect(daybook.createdWalks, isEmpty);
+    });
   }
 }

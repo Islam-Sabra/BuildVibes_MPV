@@ -31,8 +31,7 @@ import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
 import 'daybook_marks.dart';
 import 'daybook_page.dart' show mayEditPage, showDaybookPage;
 import 'daybook_photos.dart';
-import 'daybook_target_card.dart'
-    show daybookChildCardProvider, showDaybookChild;
+import 'daybook_target_card.dart' show showDaybookChild;
 import 'daybook_state.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart' show assignablePeople, pickDueProvider;

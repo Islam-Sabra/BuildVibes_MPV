@@ -31,7 +31,9 @@ import '../../shared/widgets/bv_highlight.dart';
 import '../../shared/widgets/bv_month_dropdown.dart';
 import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_pinned_note.dart';
-import '../../shared/widgets/bv_popover_menu.dart' show bvGlobalRect;
+import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_popover_menu.dart'
+    show BvMenuItem, bvGlobalRect, showBvScreenMenu;
 import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_trace_row.dart';
@@ -289,16 +291,22 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       // opens, then the work item's own card over it.
       String? child;
       try {
-        found = await pages.find(target.postId);
-        if (!found) {
+        // Its own card first: a walk's work item is never a card of its
+        // own, so looking for it would read the daybook back 50 pages.
+        String? parent;
+        try {
           final one = await ref
               .read(daybookRepositoryProvider)
               .card(target.postId);
-          final parent = one?.post.parentId;
-          if (parent != null && await pages.find(parent)) {
-            found = true;
-            child = target.postId;
-          }
+          parent = one?.post.parentId;
+        } on SpaceException {
+          // Not reachable now: look for it on the pages as before.
+        }
+        if (parent != null && await pages.find(parent)) {
+          found = true;
+          child = target.postId;
+        } else {
+          found = await pages.find(target.postId);
         }
       } on SpaceException catch (e) {
         if (mounted) showSpaceError(context, e);
@@ -894,6 +902,38 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     _startWriting();
   }
 
+  /// A refused walk (create_walk is all or nothing, e.g. an owner left
+  /// while the phone had no signal): send it again as it is, or throw it
+  /// away with its photos. It never becomes one work item's Draft.
+  Future<void> _fixWalk(PendingItem item) async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showBvScreenMenu<bool>(
+      context,
+      key: const Key('walk-refused-menu'),
+      items: [
+        BvMenuItem(value: true, label: l10n.commonRetry, icon: BvIcons.send),
+        BvMenuItem(value: false, label: l10n.walkDiscard, icon: BvIcons.delete),
+      ],
+    );
+    if (!mounted || picked == null) return;
+    final outbox = ref.read(workOutboxProvider.notifier);
+    if (picked) {
+      await outbox.send(item);
+    } else {
+      final away = await showBvDialog(
+        context: context,
+        title: l10n.walkDiscardTitle,
+        body: l10n.walkDiscardBody,
+        cancelLabel: l10n.walkKeep,
+        confirmLabel: l10n.walkDiscard,
+        destructive: true,
+      );
+      if (!away) return;
+      await outbox.discard(item);
+    }
+    if (mounted) await _loop.refresh();
+  }
+
   /// The reader's open work items, due first (late first), else the
   /// oldest. A hold of the post bar's camera proves the first; the proof
   /// screen lists them all (review 47, answer 3).
@@ -904,7 +944,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   ) {
     final mine = [
       for (final c in cards)
+        // A target (a walk) is done when its work items are checked;
+        // it is never signed itself.
         if (c.post.isWorkItem &&
+            !c.post.isTarget &&
             c.post.isOpen &&
             c.post.item?.ownerId == me &&
             !signing.contains(c.id))
@@ -1613,6 +1656,30 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       landing = outbox.isHeld(PendingKind.check, c.id);
       later(made(check));
     }
+    // A target's rows: a sign-off or check made here shows on its row
+    // until the server has it.
+    final kids = card.post.children;
+    if (kids != null &&
+        kids.rows.any(
+          (r) =>
+              checks.containsKey(r.id) ||
+              (signOffs[r.id] != null && !signOffs[r.id]!.refused),
+        )) {
+      card = card.copyWith(
+        post: card.post.shownAs(
+          children: kids.withRows([
+            for (final r in kids.rows)
+              checks.containsKey(r.id)
+                  ? r.shownAs(WorkStatus.checked)
+                  : signOffs[r.id] != null &&
+                        !signOffs[r.id]!.refused &&
+                        r.status == WorkStatus.open
+                  ? r.shownAs(WorkStatus.done)
+                  : r,
+          ]),
+        ),
+      );
+    }
     final cancel = cancels[c.id];
     if (cancel != null) {
       final proof = card.proof;
@@ -1764,6 +1831,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final checks = byKind(PendingKind.check);
     final signOffs = byKind(PendingKind.signOff);
     final onServer = {for (final c in cards) c.id};
+    // A target's work items are rows on its card, not cards of their own.
+    final folded = {
+      for (final c in cards)
+        for (final r in c.post.children?.rows ?? const <DaybookChild>[])
+          if (c.post.isTarget) r.id,
+    };
     final marks = ref.watch(daybookMarksProvider);
     final extras = ref.watch(daybookExtrasProvider(_spaceId)).value;
     final names = ref.watch(spacePeopleProvider(_spaceId)).value;
@@ -1818,7 +1891,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           ),
       // A proof for an item on an older page, not loaded: its own card.
       for (final i in signOffs.values)
-        if (!onServer.contains(i.id))
+        if (!onServer.contains(i.id) && !folded.contains(i.id))
           _asShown(
             DaybookCard(
               post: DaybookPost(
@@ -1910,7 +1983,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         onTap: _writing
             ? _stopWriting
             : unsent != null && unsent.refused
-            ? () => unawaited(_reopen(unsent))
+            ? () => unawaited(
+                unsent.kind == PendingKind.walk
+                    ? _fixWalk(unsent)
+                    : _reopen(unsent),
+              )
             : refusedProof != null
             ? () => unawaited(
                 _loop.reopenProof(context, refusedProof, post: c.post),

@@ -10,6 +10,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/people_library_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/library.dart';
 import '../../data/models/space_search.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/search_repository.dart';
@@ -54,7 +55,13 @@ class _SpaceSearchScreenState extends ConsumerState<SpaceSearchScreen> {
 
   void _changed(String text) {
     _wait?.cancel();
-    final q = text.trim();
+    // The server refuses more than maxLength; a long paste searches its
+    // start.
+    final q = text
+        .trim()
+        .characters
+        .take(SearchRepository.maxLength)
+        .toString();
     if (q.length < SearchRepository.minLength) {
       setState(() => _query = '');
       return;
@@ -72,13 +79,18 @@ class _SpaceSearchScreenState extends ConsumerState<SpaceSearchScreen> {
     setState(() => _query = '');
   }
 
-  void _open(SpaceSearchHit h) {
+  Future<void> _open(SpaceSearchHit h) async {
     final space = widget.spaceId;
     switch (h.kind) {
       case SpaceSearchKind.post || SpaceSearchKind.point:
         context.push(AppRoutes.spaceCard(space, h.postId!));
       case SpaceSearchKind.file:
-        context.push(AppRoutes.libraryFilePage(space, h.id));
+        // "Add a new version" hands the file back; the Space opens the
+        // writing card replacing it, as from the Library.
+        final replaces = await context.push<LibraryFile>(
+          AppRoutes.libraryFilePage(space, h.id),
+        );
+        if (replaces != null && mounted) context.pop(replaces);
       case SpaceSearchKind.message:
         context.push(AppRoutes.spaceThread(space, h.threadId!, message: h.id));
     }

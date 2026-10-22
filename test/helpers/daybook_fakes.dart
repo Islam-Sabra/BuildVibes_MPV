@@ -171,9 +171,13 @@ class FakeDaybookRepository implements DaybookRepository {
 
   final createdWalks = <NewWalk>[];
 
+  /// The server says no to a walk only (an owner left the Space).
+  bool refuseWalk = false;
+
   @override
   Future<void> createWalk(NewWalk walk) async {
     _check();
+    if (refuseWalk) throw const SpaceException(SpaceFailure.notAllowed);
     if (createdWalks.any((w) => w.id == walk.id)) return;
     createdWalks.add(walk);
   }
