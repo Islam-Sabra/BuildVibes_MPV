@@ -870,3 +870,23 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - the founder's phone on the Messages list, Omar sends: it shows within 2 seconds;
   - the same with the phone locked for a minute first;
   - the same with the conversation open.
+
+## Build 473: step 9 passed (founder)
+- Omar's direct message → hold → Put in a Space → posted as an announcement, with his words quoted.
+
+## F82. An announcement can be pinned until a time, not only a day (founder)
+- **Why:** site events last hours ("Gate 2 closed until 2 pm"), so a pin to the end of the day stays up too long.
+- **Server:** no change. `pinned_until` is already a time (later than now, and at most 90 days ahead).
+- **The writing card's "Pinned until" row:**
+  - **the day:** the usual single choice, Today / Tomorrow / Pick a date;
+  - then an optional **"+ Time"** / «+ وقت», which opens the time picker (12- or 24-hour as the phone's setting, F37). ✕ takes the time away.
+  - **With no time, the pin ends at the end of that day,** in the Space's market time zone, as now.
+- **Shown:**
+  - "Until 2:00 pm" / «حتى 2:00 مساءً» when it is today;
+  - "Until Wed 2:00 pm" / «حتى الأربعاء 2:00 مساءً» on another day;
+  - with no time, "Until Wed" as now.
+- **When the time passes,** the announcement unpins by itself (`pinned_until > now()` already does this). It becomes an ordinary card on its day.
+- **Test:**
+  - a pin until 2 minutes from now unpins after 2 minutes, with no reload;
+  - a time earlier than now today is refused on the card before sending ("Choose a later time");
+  - Arabic.
