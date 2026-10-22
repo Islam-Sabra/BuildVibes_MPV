@@ -727,4 +727,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - S1: a time is one line everywhere, its part of the day beside it after a no-break space; no two-line Arabic slot.
   - S2: "Hand over Space admin" in place of "Transfer ownership".
   - «يحل محل M-201.pdf · V3» in the version picker.
-  - Checks: analyze clean; app tests counted in the next commit. Screenshots in `docs/screens/review82/`.
+  - Checks: analyze clean; 1,585 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Screenshots in `docs/screens/review82/`.

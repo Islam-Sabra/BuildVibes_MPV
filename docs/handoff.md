@@ -24,7 +24,7 @@ On top of slice 7, as asked:
 
 **Checks:**
 - `flutter analyze`: no issues.
-- `flutter test`: the full run is being counted; see the next commit.
+- `flutter test`: **1,585 pass**; 1 fails, photo_privacy H1, which fails only when run as root in the cloud.
 
 **Not live, nothing deployed, nothing installed.**
 
