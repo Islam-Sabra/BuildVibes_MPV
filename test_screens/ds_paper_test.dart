@@ -52,7 +52,7 @@ Widget _workItemSlip(_S s) => BvSlip(
       name: s.t('Islam Ahmed', 'إسلام أحمد'),
       label: s.t('You', 'أنت'),
       ref: '· KCT-014',
-      time: (time: '08:14', period: null),
+      time: '08:14',
       tint: BvAvatarTints.plain,
     ),
     BvSlipTitle(
@@ -110,7 +110,7 @@ Widget _proofSlip(_S s, {bool checked = false}) => BvSlip(
       name: s.t('Islam Ahmed', 'إسلام أحمد'),
       label: s.t('You', 'أنت'),
       ref: '· KCT-014',
-      time: (time: checked ? '10:58' : '10:56', period: null),
+      time: checked ? '10:58' : '10:56',
       tint: BvAvatarTints.plain,
     ),
     BvSlipTitle(
@@ -188,7 +188,7 @@ Widget _saraSlip(_S s) => BvSlip(
     BvSlipHeader(
       name: s.t('Sara Al-Mutairi', 'سارة المطيري'),
       ref: '· KCT-016',
-      time: (time: '10:05', period: null),
+      time: '10:05',
       tint: BvAvatarTints.clay,
     ),
     BvSlipTitle(
@@ -222,7 +222,7 @@ Widget _omarSlip(_S s) => BvSlip(
     BvSlipHeader(
       name: s.t('Sara Al-Mutairi', 'سارة المطيري'),
       ref: '· KCT-016',
-      time: (time: '10:05', period: null),
+      time: '10:05',
       tint: BvAvatarTints.clay,
     ),
     BvSlipTitle(

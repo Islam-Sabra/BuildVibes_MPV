@@ -9,7 +9,6 @@ import 'package:buildvibes/data/models/post.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_card_history.dart';
 import 'package:buildvibes/shared/widgets/bv_clock_text.dart';
-import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -137,15 +136,25 @@ void main() {
           findsOneWidget,
         );
 
-        // The daybook card's header and its last history line: the same
-        // words; in Arabic on a 12-hour phone, the part of the day on a
-        // second line (F15).
+        // The daybook card's header: the one line, beside each other and
+        // never wrapped (F53, review 79 A3). Its last history line: the
+        // same words; in Arabic on a 12-hour phone, the part of the day on
+        // a second line (F15).
         router.go('/spaces/${DaybookSamples.space}');
         await tester.pumpAndSettle();
         final card = find.byKey(const Key('daybook-card-post-sleeves'));
         final header = find.descendant(
-          of: find.descendant(of: card, matching: find.byType(BvSlipHeader)),
-          matching: find.byType(BvClockText),
+          of: card,
+          matching: find.byKey(const Key('slip-header-time')),
+        );
+        final shown = tester.widget<Text>(header);
+        expect(shown.data, line);
+        expect(shown.maxLines, 1);
+        expect(shown.softWrap, isFalse);
+        final style = shown.style!;
+        expect(
+          tester.getSize(header).height,
+          lessThanOrEqualTo(style.fontSize! * style.height! + 1),
         );
         final history = find.descendant(
           of: find.descendant(of: card, matching: find.byType(BvCardHistory)),
@@ -153,35 +162,14 @@ void main() {
         );
         // The two-line slot draws the same words, time and part of the day
         // apart, so with no isolates around them.
-        expect(_shown(tester, header), _plain(line));
         expect(_shown(tester, history.last), _plain(line));
-        final twoLines = lang == 'ar' && !use24;
         expect(
           find.descendant(
-            of: header,
+            of: history.last,
             matching: find.byKey(const Key('clock-period')),
           ),
-          twoLines ? findsOneWidget : findsNothing,
+          lang == 'ar' && !use24 ? findsOneWidget : findsNothing,
         );
-        if (twoLines) {
-          expect(
-            tester
-                .getTopLeft(
-                  find.descendant(
-                    of: header,
-                    matching: find.byKey(const Key('clock-period')),
-                  ),
-                )
-                .dy,
-            greaterThan(
-              tester
-                  .getTopLeft(
-                    find.descendant(of: header, matching: find.text('10:56')),
-                  )
-                  .dy,
-            ),
-          );
-        }
       });
     }
   }

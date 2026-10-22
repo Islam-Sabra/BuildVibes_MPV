@@ -21,14 +21,14 @@ typedef BvClockParts = ({String time, String? period});
 /// - 12-hour, Arabic: the time and the part of the day in words, as the AR
 ///   frames write it: "2:00 ظهرًا", "8:14 صباحًا", "4:30 عصرًا",
 ///   "11:58 مساءً".
-///   - On one line (traces, post cards, replies, Activity, Needs you,
-///     Home, Chat, and inside sentences such as a due or a stamp):
-///     "2:00 ظهرًا", the same words, never the short "م" / "ص", so a
-///     reader sees one form everywhere.
-///   - In a two-line slot (the daybook card's header and its history
-///     lines, review 51 F15): "2:00" with "ظهرًا" on a small second line
-///     under it ([parts], drawn by BvClockText), so the time column stays
-///     narrow.
+///   - On one line (the daybook card's header, review 79 A3; traces, post
+///     cards, replies, Activity, Needs you, Home, Chat, and inside
+///     sentences such as a due or a stamp): "2:00 ظهرًا", the same words,
+///     never the short "م" / "ص", so a reader sees one form everywhere.
+///   - In a two-line slot (the card's history lines and a checklist
+///     point's tick, review 51 F15): "2:00" with "ظهرًا" on a small second
+///     line under it ([parts], drawn by BvClockText), so the time column
+///     stays narrow.
 ///   English stays on one line everywhere: "2:00 pm" fits.
 @immutable
 class BvTime {

@@ -7,7 +7,6 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/l10n/bv_time.dart';
 import 'bv_avatar.dart';
-import 'bv_clock_text.dart';
 import 'bv_marked_text.dart';
 import 'bv_paper_clip.dart';
 import 'bv_tap_target.dart';
@@ -183,7 +182,8 @@ class BvSlipCornerMenu extends StatelessWidget {
 
 /// §2a, v13 (2581:35658): avatar 24 in the person's tint, the name, the
 /// work item's [ref] ("· KCT-014") and, at the end, the [time] of the
-/// latest activity (two lines in Arabic on a 12-hour phone).
+/// latest activity on one line: in Arabic on a 12-hour phone the time and
+/// «صباحًا» stay beside each other and never wrap (F53, review 79 A3).
 class BvSlipHeader extends StatelessWidget {
   const BvSlipHeader({
     super.key,
@@ -203,8 +203,8 @@ class BvSlipHeader extends StatelessWidget {
   final String? label;
   final String? ref;
 
-  /// From [BvTime.parts].
-  final BvClockParts? time;
+  /// From [BvTime.clock].
+  final String? time;
 
   /// [BvAvatarTints.forId] of the person.
   final Color? tint;
@@ -255,7 +255,16 @@ class BvSlipHeader extends StatelessWidget {
               ),
             ),
           ),
-          if (time != null) BvClockText(time!, style: quiet),
+          // Its own width, outside the part that gives way: never cut,
+          // never on two lines.
+          if (time != null)
+            Text(
+              time!,
+              key: const Key('slip-header-time'),
+              maxLines: 1,
+              softWrap: false,
+              style: quiet,
+            ),
         ],
       ),
     );

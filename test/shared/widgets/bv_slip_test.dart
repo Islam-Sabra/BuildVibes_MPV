@@ -1,6 +1,7 @@
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/design/daybook_paper_specs.dart';
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/shared/widgets/bv_avatar.dart';
 import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
@@ -32,7 +33,7 @@ BvSlip _slip({
     BvSlipHeader(
       name: 'Omar Haddad',
       ref: '· KCT-014',
-      time: (time: '10:56', period: null),
+      time: '10:56',
       tint: BvAvatarTints.green,
     ),
     BvSlipTitle('Fix sleeves', cancelled: cancelled),
@@ -410,6 +411,38 @@ void main() {
         'Islam Ahmed',
       );
       expect(find.text('IA'), findsOneWidget);
+    });
+
+    testBoth('review 79 A3: a 12-hour time and its part of the day stay on '
+        'one line, beside each other, at full width beside a long name', (
+      tester,
+      lang,
+    ) async {
+      final time = lang == 'ar' ? rtlRun('8:14 صباحًا') : '8:14 am';
+      await pumpComponent(
+        tester,
+        BvSlipHeader(
+          name: 'Mohammed Abdulrahman Al-Mutairi',
+          ref: '· KCT-014 · work item',
+          time: time,
+        ),
+        lang: lang,
+      );
+      final shown = find.byKey(const Key('slip-header-time'));
+      expect(tester.widget<Text>(shown).data, time);
+      final style = tester.widget<Text>(shown).style!;
+      // One line high, and as wide as its own words: never wrapped.
+      expect(
+        tester.getSize(shown).height,
+        lessThanOrEqualTo(style.fontSize! * style.height! + 1),
+      );
+      final painter = TextPainter(
+        text: TextSpan(text: time, style: style),
+        textDirection: Directionality.of(tester.element(shown)),
+        textScaler: MediaQuery.textScalerOf(tester.element(shown)),
+      )..layout();
+      expect(tester.getSize(shown).width, closeTo(painter.width, 1));
+      painter.dispose();
     });
 
     testBoth('note and quiet lines', (tester, lang) async {
