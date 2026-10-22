@@ -1011,3 +1011,47 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Step 25 passed:** ✕ asks "Throw this walk away? Its photos aren't sent", with Keep walking / Throw away.
 - **Not run:** 21's long press and 26 (airplane mode).
 - **Small:** in the walk's "Who does it" picker, the chosen person's row reads "Islam Ahmed · now". "now" means nothing there, so drop it.
+
+## Build 473: more steps run by the lead on the emulator as Omar (22 Oct, 11:21–11:27)
+- **Step 13 passed:** on Omar's own NST-026: Edit page, then "+" and "/" open the block menu; added a heading, a checklist of two points and a table; Done saves; the page head shows **Edit page** for the author.
+- **Step 15 passed:** holding ⋮⋮ drags a block (the heading moved below the checklist); ⋮⋮ › Delete on the table, "Block deleted · Undo", and Undo brings it back.
+- **Step 16 passed in part:** "/" › Work item under this one: a title and an owner (Islam), and it shows on the page as a row. The card becomes a target, with the row, "0 of 1 checked" and no Sign as done. Photo and file on a page weren't tried.
+- **Step 17 failed:** see F92.
+- **Step 26 passed:** in airplane mode a 2-photo walk shows its photos, its rows and "Waiting to send". When the signal is back it sends, and each row asks "Sign as done". See F94 for the order.
+- **Step 7 passed (work items):** Space ⋯ › Search "riser" gives the group "Work items" (two work items and a checklist point), and a result opens its card on a sheet. Files and chat weren't in this Space's results.
+
+## F92. A checklist point can't be turned into a work item
+- **Seen:** in Edit page, a checklist block has one ⋮⋮ for the whole block, and its menu offers only Delete. A long press on a point selects its text. Nothing offers Turn into for one point, so migration 36's function can't be reached.
+- **Fix (N4):**
+  - **each point has its own ⋮⋮** while editing, at the start of its line;
+  - **its menu:** Turn into › Text / Checklist point ✓ / Work item under this one, then Delete;
+  - **a ticked point:** the menu says "A ticked point stays as it is", with no Turn into;
+  - the block's own ⋮⋮ keeps drag and Delete.
+- **Test:** turn the second of two points into a work item for Islam. The point is gone, the work item row takes its place on the page, and the card shows the row.
+
+## F89, more (lead)
+- A new table starts with **one column**, not 2 × 2 as planned (review 76 §5), and "+ Add a column" does nothing. Start at 2 × 2, and make + column work.
+
+## F93. One edit session writes several "edited it" lines
+- **Seen:** NST-026 shows "You edited it" three times (11:23, 11:23, 11:24) after one session: the save, a work item added under it, and Done.
+- **Fix:**
+  - the same person's edits to the same post within 10 minutes are **one history line**, with the latest time;
+  - the words are "You edited the page" / "Omar Haddad edited the page" (F91);
+  - a work item added under it has its own line: "Added a work item under this one: Seal the riser sleeve".
+- **Server or app:** the app can fold the lines on the card. If it does, the post page still lists every edit.
+
+## F94. A walk's rows change order after it is sent
+- **Seen:** taken in the order "loose cable tray", then "missing label"; the waiting card showed them in that order, but once sent, "missing label" came first.
+- **Cause:** `create_walk` inserts every work item in one transaction, so they share one `created_at`. The card orders rows by `created_at, id`, so the order depends on random ids.
+- **Fix (a small migration):**
+  - `create_walk` gives each work item `created_at = now() + n microseconds` in the order of `p_items`, or a `walk_position` it orders by;
+  - existing walks keep the order they have;
+  - test: a 5-photo walk comes back in photo order.
+
+## F95. Walk mode doesn't remember the last place
+- **Seen:** the second walk's "Where" was empty, though the first used "Level 2" a few minutes before.
+- **Fix (review 77 §1):** prefill "Where" with the last place used for a walk in this Space on this phone; the person can change it.
+
+## Small (lead)
+- **Search results** show the reader's own name ("Omar Haddad · today"). Use "You" there too.
+- **The walk's "Who does it" picker** shows "now" under the chosen person. Drop it (also noted above).
