@@ -2,6 +2,61 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — bug review of slices 3–6, fixes and the founder's test list (branch `claude/pre-test`, from `claude/slice7-plan`)
+
+The founder's "ok" (23 Oct): review slices 3–6 for bugs before his phone test, fix what is real, and write the test list. Four read-only reviews ran (one per slice); every finding was checked against the code before it was fixed.
+
+**For the PC:** merge `claude/pre-test` instead of `claude/trial-merge`. It holds the trial merge, review 78 and these fixes. Then follow the recipe in the trial-merge section below. The founder's list is `docs/test/2026-10-23-founder-test-slices-3-6.md`.
+
+**Fixed (with tests):**
+- **Walk mode (slice 6):**
+  - A refused walk was turned into one work item's Draft, losing every line and owner. Now it offers Try again or Throw away (which asks first).
+  - The post bar's camera tried to prove the walk itself; it never does now.
+  - Signing a walk's row made a fake extra card. Now the row shows the pending state, and so does the row's own sheet, which is read again when the daybook refreshes.
+  - A link to a walk's work item read its card first, instead of 50 pages.
+  - A camera error locked the shutter.
+  - A waiting walk showed its photos twice.
+  - Cleaned-up uploads ("not allowed") are now uploaded again once.
+  - **Migration 37 (not live):** cancelling a row moves the walk to Now, and the cancelled row keeps its own CANCELLED card. 3 new checks; **2,329 SQL checks pass**.
+- **People, Library, search (slice 4):**
+  - "Add a new version" did nothing from Search.
+  - Share in chat showed for people the server refuses.
+  - A long search showed a generic error.
+  - Search opened an older chat message at the newest one. The thread now reads back to it.
+  - People: no setState after the tab closed.
+- **Chat and direct messages (slice 3):**
+  - "Put in a Space" could list nothing: it read a self-disposing provider. It also ignored a Lead or Crew whose posting was turned off. It now lists only Spaces where you may post, and the list is never empty by mistake.
+  - A quote on a half-written checklist was hidden. The card now turns into a work item.
+  - A post whose chat message was deleted could never be sent. It comes back without the link, with the quote kept.
+  - A waiting post now shows its quote.
+  - An older quote's day is the phone's local day.
+  - "You" now comes first in the walk's and the page's owner pickers.
+- **Pages (slice 5):**
+  - A Done that went part way sent points again on retry, and the server refused the duplicates every time. The editor now reads the page again first.
+  - Dismissing "This page changed" threw the edit away. Now it keeps the editor open.
+  - The card under the page missed new points.
+  - Deleted photos and files came back. They now leave the post (`remove_files`).
+  - "/" in front of existing words erased the line.
+  - Turning a point into a work item used the point's words, not the words typed in the sheet.
+  - A work item under another offered a work item under it (one level only).
+  - Done with no change saved a page on an older post.
+  - Text too long for a point or a work item could be turned into one.
+  - A FocusNode leaked.
+
+**Checks:** `flutter analyze` clean; `flutter test` **1,457 pass, 1 fails only in the cloud** (photo_privacy H1, root); SQL stand-in 2,329 pass.
+
+**Not fixed (small, or needs a decision), for later:**
+- A walk in progress lives only on the screen: if Android kills the app while the camera is open, the walk is lost. Saving it on the phone is about half a day; worth doing before the pilot.
+- File page:
+  - the Received pill flickers for a moment after a tap;
+  - a refusal there shows on the Work tab, not on the file page;
+  - Received given on an older post of the same file can't be taken back from the newest.
+- When a middle version of a Library file is deleted, the app and the server can disagree on which version is in use (rare: moderation or a deleted post).
+- A phone's on-screen keyboard sends no backspace key, so "backspace on an empty point" (to remove it) may not work. The handle menu's Delete does.
+- A report's work-item lines (`item_ref`) aren't drawn yet (slice 7).
+
+**Who has which branch:** this cloud session made `claude/pre-test` (done; nobody on it).
+
 ## Cloud update: 23 Oct 2026 — slice 7 plan, review 78 (branch `claude/slice7-plan`, from `claude/trial-merge`)
 
 The founder's "ok" (23 Oct): draft the slice 7 plan (templates and the daily report), don't build it. **Review 78** is in `docs/reviews/2026-10-23-78-slice7-plan.md`. Docs only; no code changed.
