@@ -707,4 +707,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - F95: the walk's last place.
   - Small items: Search says You; the walk's picker has no "now".
   - Migration 38 (not live): version numbers, walk order, the author's Got it refused, push install ids and answers, `search_space.mine`.
-  - Checks: analyze clean; app tests counted in the next commit; 2,362 SQL checks in 36 files. Screenshots EN and AR in `docs/screens/review80/`.
+  - Checks: analyze clean; 1,539 app tests pass (1 cloud-only failure, photo_privacy H1 as root); 2,362 SQL checks in 36 files. Screenshots EN and AR in `docs/screens/review80/`.

@@ -72,7 +72,7 @@ The founder asked to apply review 80 (`docs/reviews/2026-10-22-80-fix-batch-buil
 
 **Checks (cloud):**
 - `flutter analyze`: no issues.
-- `flutter test`: the full run is being counted; see the next commit. The push function tests pass (9).
+- `flutter test`: **1,539 pass**; 1 fails, photo_privacy H1, which fails only when run as root in the cloud. The push function tests pass (9).
 - SQL stand-in: **2,362 checks in 36 files pass**, migration 38 included.
 - `flutter test test_screens/review80_test.dart --update-goldens`: 26 pass.
 
