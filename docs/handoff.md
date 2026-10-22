@@ -2,6 +2,12 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 22 Oct 2026 — migrations 36 and 37 live
+
+- **Live:** migrations 36 and 37 (founder's yes, review 79 Result), one file per push from `slice2-app` 586e017, with a read-only check after each. Live is now at `20261027120000`, so the founder's ⏸ steps can run on build 473.
+- **Migration 34** (`claude/store-reviewer`) must be **renamed to a timestamp after 37** (e.g. `20261028120000_review_sign_in.sql`, test file unchanged) when review 75 B5 is added there. Supabase refuses a file older than the last one applied. The 3D model views take the number after it.
+- Nothing else changed on live. Public channels are still on.
+
 ## Last update: 21 Oct 2026, evening, PC session
 
 **Standing rule (review 74):** nothing but the BuildVibes build is installed on the founder's phone without his yes in chat. That includes test apps, helpers and other packages.
