@@ -112,6 +112,28 @@ void main() {
     expect(plan.before, isEmpty);
   });
 
+  test('review 79 P2: an empty point among others is dropped, never sent; '
+      'one whose words were all erased is taken off the post', () {
+    const empty = '00000000-0000-4000-8000-0000000000a9';
+    final plan = planPageSave(
+      _page(),
+      blocks: const [
+        PageChecklist(_list, [_a, empty, _b, _c]),
+      ],
+      points: {_a: 'Sized', empty: '  ', _b: 'Photo', _c: ' '},
+      title: 'Sleeves',
+      body: 'Before the pour.',
+    );
+    expect((plan.blocks.single as PageChecklist).pointIds, [_a, _b]);
+    expect(plan.before, isEmpty);
+    expect(plan.after, {
+      'points': {
+        'remove': [_c],
+        'order': [_a, _b],
+      },
+    });
+  });
+
   test('ids the page made up for what had no block get real ones', () {
     final shown = PostPage(post: _page().post, points: _page().points).shown;
     expect(shown.single.id, isNot(matches(RegExp(r'^[0-9a-f-]{36}$'))));

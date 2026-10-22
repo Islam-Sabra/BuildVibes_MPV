@@ -349,6 +349,38 @@ void main() {
       expect(app.postPages.calls, isEmpty);
     });
 
+    testWidgets('review 79 P2: an empty point left on the page is dropped '
+        'at Done, never sent; the words around it are saved [$lang]', (
+      tester,
+    ) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      // Next on a point makes a new, empty one under it: left empty.
+      await _type(tester, 'page-field-pt:$_sized', 'Sleeves sized');
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pumpAndSettle();
+      final empty = find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('page-field-pt:') &&
+            (w as TextField).controller!.text.isEmpty,
+      );
+      expect(empty, findsOneWidget);
+      await tester.enterText(empty, '   ');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('page-done'));
+      expect(app.postPages.calls, ['edit $_post points']);
+      final page = app.postPages.pages[_post]!;
+      expect(
+        [for (final p in page.points) p.text],
+        ['Sleeves sized', s.t('Photo of each sleeve', 'صورة لكل كم')],
+      );
+      expect(page.blocks.whereType<PageChecklist>().single.pointIds, [
+        _sized,
+        _photoPoint,
+      ]);
+    });
+
     testWidgets('N4: text turns into a checklist point [$lang]', (
       tester,
     ) async {
