@@ -980,3 +980,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - Enter twice to leave it;
   - close and open the toggle, and the three lines are there;
   - the same in Arabic.
+
+## Build 473: step 13 (founder, 11:05)
+- **Passed in part:**
+  - after Done, the card shows "Open the page ›", and the page opens with its table and toggle;
+  - the toggle opens in place.
+  
+  F89 and F90 stand.
+
+## F91. A work item's page doesn't show its quote
+- **Seen:** NST-021 "ddd" shows Omar's quote on its card, but its page goes straight from "For you" to the table.
+- **Fix:**
+  - the page shows the quote where the card does: after the facts line and before the words and blocks, with "From Omar Haddad · 8:38 am" and the start-side bar;
+  - a tap opens its message (F87).
+- **The history line on the card** reads "Islam Ahmed edited it". For the reader's own edit it is **"You edited the page"** / «عدّلتَ الصفحة» (F84), and for others "Islam Ahmed edited the page", since only the page changed.
