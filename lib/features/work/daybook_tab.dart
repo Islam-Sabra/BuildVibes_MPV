@@ -1467,6 +1467,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ownerId: i.ownerId,
         ownerName: i.ownerName,
       ),
+      // The words it quotes show while it waits, as once it is sent.
+      quote: i.quote,
     );
   }
 
@@ -1541,6 +1543,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               replacesName: file.supersedesRev,
             ),
       newVersion: file?.supersedesId != null,
+      quote: d.quote,
     );
   }
 

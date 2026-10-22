@@ -279,6 +279,31 @@ class PendingItem {
     walk: walk,
   );
 
+  /// The same, no longer linked to the chat message it came from (the
+  /// message was deleted or reported before Post); the quote stays.
+  PendingItem withoutSource() => PendingItem(
+    id: id,
+    spaceId: spaceId,
+    title: title,
+    ownerId: ownerId,
+    ownerName: ownerName,
+    kind: kind,
+    photos: photos,
+    refused: refused,
+    sent: sent,
+    note: note,
+    body: body,
+    place: place,
+    dueDate: dueDate,
+    dueAt: dueAt,
+    madeAt: madeAt,
+    authorName: authorName,
+    draft: draft?.copyWith(sourceMessageId: () => null),
+    files: files,
+    quote: quote,
+    walk: walk,
+  );
+
   /// A new post, of any kind.
   bool get isNewPost =>
       kind == PendingKind.workItem ||
@@ -835,10 +860,17 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   Future<void> _refused(PendingItem item, SpaceException e) async {
     switch (item.kind) {
       case PendingKind.workItem || PendingKind.post:
-        if (await reopenRefused(item)) return;
+        // Its chat message is gone: it comes back without the link, so
+        // the next Post can go (the words stay quoted).
+        final back =
+            e.failure == SpaceFailure.notAllowed &&
+                (item.sourceMessageId ?? item.draft?.sourceMessageId) != null
+            ? item.withoutSource()
+            : item;
+        if (await reopenRefused(back)) return;
         // A new card is being written: this one waits, refused, until it
         // is put down.
-        await _put(item.copyWith(refused: true));
+        await _put(back.copyWith(refused: true));
       case PendingKind.signOff || PendingKind.walk:
         await _put(item.copyWith(refused: true));
       case PendingKind.check || PendingKind.cancel:

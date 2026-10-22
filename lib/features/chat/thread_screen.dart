@@ -514,6 +514,28 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     }
   }
 
+  /// Search's message, at most this many pages back.
+  static const _seekPages = 20;
+  var _seeking = false;
+
+  Future<void> _seekOlder() async {
+    final at = widget.atMessage;
+    final notifier = ref.read(threadMessagesProvider(widget.threadId).notifier);
+    for (var n = 0; n < _seekPages && mounted && notifier.hasOlder; n++) {
+      final before = ref
+          .read(threadMessagesProvider(widget.threadId))
+          .value
+          ?.length;
+      await notifier.loadOlder();
+      if (!mounted) return;
+      final now = ref.read(threadMessagesProvider(widget.threadId)).value;
+      if (now?.any((m) => m.id == at) ?? false) return;
+      // Nothing more came (no signal): stop here.
+      if (now?.length == before) break;
+    }
+    if (mounted) setState(() => _revealed = true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -545,6 +567,15 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
         shown.any((m) => m.id == widget.atMessage)) {
       _revealed = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _reveal());
+    }
+    // Older than the newest page (Search): read back to it, a page at a
+    // time, then reveal it as above. Not found, the thread opens as is.
+    else if (!_revealed &&
+        !_seeking &&
+        widget.atMessage != null &&
+        messages.hasValue) {
+      _seeking = true;
+      unawaited(_seekOlder());
     }
     final sentIds = {for (final m in shown) m.id};
     // Newest first, to match the reversed list.

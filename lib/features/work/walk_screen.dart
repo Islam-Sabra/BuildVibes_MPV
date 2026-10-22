@@ -135,6 +135,9 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
         key: const Key('walk-owner-picker'),
         people: assignablePeople(people, me: me),
         currentOwnerId: shot.owner?.id,
+        // You first, as in the writing card (F69).
+        meId: me,
+        meLabel: l10n.daybookYou,
         currentLabel: l10n.daybookOwnerNow,
         searchPlaceholder: l10n.daybookAssignSearch,
         inSheet: true,

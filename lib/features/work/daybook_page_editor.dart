@@ -627,6 +627,9 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
             key: const Key('page-item-owner'),
             people: assignablePeople(people, me: me),
             currentOwnerId: null,
+            // You first, as in the writing card (F69).
+            meId: me,
+            meLabel: l10n.daybookYou,
             currentLabel: l10n.daybookOwnerNow,
             searchPlaceholder: l10n.daybookAssignSearch,
             inSheet: true,

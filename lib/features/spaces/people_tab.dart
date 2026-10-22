@@ -61,6 +61,8 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     setState(() => _sending = true);
     try {
       await ref.read(spaceRepositoryProvider).confirmJoin(r.id, pass);
+      // The admin may have left the tab while it went.
+      if (!mounted) return;
       _refresh();
       await ref.read(spacePeopleProvider(_spaceId).future);
       if (!mounted) return;
@@ -105,6 +107,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await repo.declineJoin(r.id);
+      if (!mounted) return;
       if (_open == r.id) setState(() => _open = null);
       _refresh();
       messenger.showSnackBar(

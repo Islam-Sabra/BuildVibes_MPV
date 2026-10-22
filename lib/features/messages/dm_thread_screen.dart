@@ -28,6 +28,7 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../chat/thread_screen.dart';
 import '../chat/voice.dart';
+import '../create/create_sheet.dart' show workItemSpacesProvider;
 import '../library/library_parts.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
@@ -37,7 +38,6 @@ import '../spaces/space_errors.dart';
 import '../work/work_outbox.dart' show pickPhotoProvider;
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart' show DaybookQuote;
-import '../../data/repositories/space_repository.dart' show mySpacesProvider;
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_space_emblem.dart';
@@ -502,14 +502,15 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   /// itself never leaves the thread, and nothing is posted until Post.
   Future<void> _putInSpace(DmMessage m) async {
     final l10n = AppLocalizations.of(context);
-    final spaces = await ref
-        .read(mySpacesProvider.future)
-        .catchError((Object _) => const <SpaceSummary>[]);
+    // Where the server lets me post work: a Space admin may have turned
+    // posting off for a Lead or Crew member (pass_rights).
+    // Kept alive while it reads (it is autoDispose).
+    final keep = ref.listenManual(workItemSpacesProvider, (_, _) {});
+    final postable = await ref
+        .read(workItemSpacesProvider.future)
+        .catchError((Object _) => const <SpaceSummary>[])
+        .whenComplete(keep.close);
     if (!mounted) return;
-    final postable = [
-      for (final s in spaces)
-        if (s.pass != SpacePass.viewer) s,
-    ];
     final me = ref.read(myProfileProvider).value;
     final author = m.fromMe
         ? (me == null ? null : '${me.firstName} ${me.lastName}'.trim())

@@ -47,7 +47,7 @@ class DaybookWords {
     if (at == null) return l10n.daybookQuoteFromName(name);
     final when = dayOf(at) == dayOf(now)
         ? _clock(at)
-        : '${shortDate(at)} ${_clock(at)}';
+        : '${shortDate(dayOf(at))} ${_clock(at)}';
     return l10n.daybookQuoteFrom(name, when);
   }
 

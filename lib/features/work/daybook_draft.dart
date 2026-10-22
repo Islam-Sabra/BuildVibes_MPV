@@ -480,7 +480,10 @@ class DaybookDraft extends DaybookWritingNotifier {
     String? sourceMessageId,
     ({String id, String name})? team,
   }) => put(
+    // A quote goes on a work item (DM4–DM5, S8m): a card half-written as
+    // another kind turns into one, keeping its words.
     (state ?? DaybookPostDraft(id: id)).copyWith(
+      kind: DaybookKind.workItem,
       quote: () => quote,
       sourceMessageId: () => sourceMessageId,
       team: team == null ? null : () => team,
