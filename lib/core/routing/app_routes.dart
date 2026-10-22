@@ -37,7 +37,7 @@ abstract final class AppRoutes {
   /// Needs you, across all Spaces (2544:35068).
   static const needs = '/needs';
 
-  /// My notebook (slice 8, Home's list-checks icon) and My calendar,
+  /// My notebook (slice 8, Home's notebook icon) and My calendar,
   /// opened from the notebook's header (review 83).
   static const notebook = '/notebook';
   static const calendar = '/notebook/calendar';

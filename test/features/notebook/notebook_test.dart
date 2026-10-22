@@ -1,5 +1,6 @@
 // Slice 8 (review 83): My notebook, Put in a Space, Save to my notebook
 // and My calendar, in English and Arabic.
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/note.dart';
@@ -92,14 +93,20 @@ void main() {
     final l10n = _l10n(lang);
     final n = NotebookSamples(lang);
 
-    testWidgets('Home\'s list-checks opens My notebook: empty, and Only you '
-        'says what it means [$lang]', (tester) async {
+    testWidgets('Home\'s notebook icon opens My notebook: empty, and Only '
+        'you says what it means [$lang]', (tester) async {
       await pumpApp(
         tester,
         language: lang,
         now: NotebookSamples.now,
         notebook: FakeNotebookRepository(),
       );
+      // Review 84 N1: the notebook glyph, never the work item's list-checks.
+      final icon = tester.widget<Icon>(
+        find.descendant(of: _key('home-notebook'), matching: find.byType(Icon)),
+      );
+      expect(icon.icon, BvIcons.notebook);
+      expect(icon.icon, isNot(BvIcons.workItems));
       await _tap(tester, _key('home-notebook'));
       expect(find.text(l10n.notebookTitle), findsOneWidget);
       expect(_key('notebook-empty'), findsOneWidget);
@@ -317,6 +324,8 @@ void main() {
         ),
       );
       expect(title.controller.text, n.sleevesTodo);
+      // Review 84 N2: just made from the note, not a Draft from before.
+      expect(find.text(l10n.daybookDraft), findsNothing);
       expect(daybook.created, isEmpty, reason: 'nothing posts by itself');
       expect(app.notebook.calls.where((c) => c.startsWith('put:')), isEmpty);
       await _tap(tester, _key('writing-who'));
@@ -329,6 +338,29 @@ void main() {
       expect(app.notebook.calls, contains('put:note-sleeves:${made.id}'));
       // The note stays in the notebook.
       expect(app.notebook.kept['note-sleeves'], isNotNull);
+    });
+
+    testWidgets('a card made from a note and left unsent is the Draft when '
+        'the Space opens again [$lang]', (tester) async {
+      final s = DaybookSamples(lang);
+      await _open(
+        tester,
+        lang,
+        notes: [n.todo()],
+        spaces: _spaces(s),
+        daybook: FakeDaybookRepository()
+          ..posts[DaybookSamples.space] = const [],
+      );
+      await tester.longPress(_key('note-note-sleeves'));
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
+      expect(find.text(l10n.daybookDraft), findsNothing);
+      final router = GoRouter.of(tester.element(find.byType(Navigator).first));
+      router.pop();
+      await tester.pumpAndSettle();
+      router.push('/spaces/${DaybookSamples.space}');
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.daybookDraft), findsOneWidget);
     });
 
     testWidgets('a voice note has no words to put in a Space [$lang]', (

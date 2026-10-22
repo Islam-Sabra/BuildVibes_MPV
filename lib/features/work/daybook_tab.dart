@@ -232,14 +232,18 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     super.initState();
     _scroll.addListener(_onScroll);
     // A card that only quotes a message just put in this Space (review
-    // 64, DM5) is new, not a Draft from before. F88: any other kept card,
+    // 64, DM5), or one just made from a note, is new, not a Draft from
+    // before. F88: any other kept card,
     // a quoted one too, is the Draft however the Space was reached (back
     // from Home, another Space, a restart).
     final kept = ref.read(daybookDraftProvider(_spaceId));
+    final fromNote = ref
+        .read(daybookDraftProvider(_spaceId).notifier)
+        .takeFromNote();
     _fromBefore =
         kept != null &&
         !kept.isEmpty &&
-        !(widget.startWriting && kept.onlyQuote);
+        !(widget.startWriting && (kept.onlyQuote || fromNote));
     // What was made with no signal sends when it's back: on opening and
     // on coming back to the app (the outbox also tries by itself). The
     // page is never stale (F11): it reads the newest cards when it opens

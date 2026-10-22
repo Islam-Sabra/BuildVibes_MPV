@@ -569,6 +569,18 @@ class DaybookDraft extends DaybookWritingNotifier {
   final String spaceId;
   String? _key;
 
+  /// The card was just made from a note (review 84 N2): new, not a Draft
+  /// from before, until the person leaves it unsent.
+  bool _fromNote = false;
+
+  /// True once after [fromNote] made a new card; the daybook asks when it
+  /// opens writing.
+  bool takeFromNote() {
+    final made = _fromNote;
+    _fromNote = false;
+    return made;
+  }
+
   @override
   DaybookPostDraft? build() {
     final prefs = ref.watch(sharedPreferencesProvider);
@@ -630,6 +642,7 @@ class DaybookDraft extends DaybookWritingNotifier {
       );
     }
     final fresh = DaybookPostDraft(id: id, noteId: note.id);
+    _fromNote = true;
     if (note.kind == NoteKind.checklist) {
       return put(
         fresh.copyWith(

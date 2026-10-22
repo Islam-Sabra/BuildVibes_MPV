@@ -19,7 +19,7 @@ import '../../data/repositories/dm_repository.dart';
 import 'spaces_day_tab.dart';
 
 /// Home (H1 v4 2587:35849): the wordmark, Search (people search in
-/// Explore), My notebook (list-checks, slice 8) and Messages, with a dot
+/// Explore), My notebook (slice 8; the notebook glyph, review 84 N1) and Messages, with a dot
 /// while something is unread (never a number), the small
 /// Feed and Spaces tabs, and the tab. Spaces, your
 /// day on site (H1b), gets a dot while something needs you. Guests get no
@@ -110,7 +110,7 @@ class HomeScreen extends ConsumerWidget {
                   if (!guest)
                     icon(
                       'home-notebook',
-                      BvIcons.myNotebook,
+                      BvIcons.notebook,
                       l10n.notebookTitle,
                       () => context.push(AppRoutes.notebook),
                     ),

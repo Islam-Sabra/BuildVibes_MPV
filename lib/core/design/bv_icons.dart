@@ -272,10 +272,8 @@ abstract final class BvIcons {
   static const checkbox = IconData(0xe45e, fontFamily: _family);
 
   // Planning (slice 8)
-  // Phosphor: list-checks. Home's way into My notebook (H1), as the
-  // notebook's own post bar shows it.
-  static const myNotebook = workItems;
-  // Phosphor: notebook. The empty notebook (N2), and Save to my notebook
-  // on a held message (list-checks there is Put in a Space).
+  // Phosphor: notebook. My notebook: Home's way in (review 84 N1;
+  // list-checks is the work item), the empty notebook, and Save to my
+  // notebook on a held message.
   static const notebook = IconData(0xe34e, fontFamily: _family);
 }
