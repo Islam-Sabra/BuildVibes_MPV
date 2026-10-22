@@ -819,3 +819,36 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Fix:**
   - "Share in chat" opens the Space's chat with the file **attached in the message box, not sent**, so words can be added before Send (as in WhatsApp);
   - the toast goes.
+
+## F78. There is no way to find a person to message (Claude Code, build 473; must before the pilot)
+- **Seen:**
+  - Messages' **+ (New message)** opens Explore, which says "This part of the app is being built";
+  - Home's **"Search people"** does the same.
+  
+  The only way to message someone new is from their profile, reached through one of their posts. People search is in the MVP.
+- **Fix:**
+  - **+ in Messages** opens **"New message"**: a search field (name, role or company), and before typing, the people you share a Space with, A–Z with their role. Tapping a person opens the conversation (`start_dm` on the first message). Blocked and hidden accounts never show.
+  - **Home's "Search people"** opens the same people search, where a tap opens the profile.
+  - The rest of Explore stays out of the MVP.
+- **Test:**
+  - finding Omar by part of his name;
+  - finding him by his role;
+  - someone you blocked doesn't show;
+  - Arabic, with the names unchanged.
+
+## F79. A person on the Space's People tab opens their pass, not them (Claude Code, build 473)
+- **Seen:**
+  - tapping a person opens the pass screen, with no way to their profile and no Message button;
+  - a Crew member also sees a "CHANGE PASS" section that does nothing.
+- **Fix:** tapping a person opens a short sheet:
+  - their face, name, role and company, and their pass tag;
+  - **View profile** and **Message**, for everyone;
+  - **Pass** (Lead / Crew / Viewer, one choice) and **Remove from the Space**, **only for a Space admin**. Nobody else sees them at all.
+  - For yourself: View profile only.
+
+## F80. A file's version shows both "CURRENT" and "superseded" (Claude Code, build 473)
+- **Seen:** one version card says "CURRENT" and "22 Oct · superseded, kept in the record".
+- **Fix:** with F75 and F76:
+  - the version in use says only "V2 · in use";
+  - only older versions say "replaced 22 Oct, kept in the record".
+- **Test:** a chain of 3 shows exactly one "in use".
