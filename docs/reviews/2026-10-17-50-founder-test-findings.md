@@ -910,4 +910,9 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Fix:**
   - every kind made from a quote (work item, checklist, announcement, scheduled activity, note) **posts the quote and shows it** on its card, as the work item does: "From Omar Haddad · 8:38", then the words, with the start-side bar;
   - **on a folded announcement** (K1b) the quote shows when it is opened.
+- **A work item keeps it (founder, 10:01):** NST-019 "gate blocked" shows "From Omar Haddad · 8:38 am" and his words. So only the other kinds lose the quote.
 - **Test:** each kind from a quoted direct message and from a quoted Space chat message shows the quote after posting, in EN and AR.
+
+## F84. My own card's header shows my name, not "You"
+- **Seen (NST-019):** "Islam Ahmed · NST-019" on the founder's own work item, while the line under it says "For you".
+- **Fix:** on a card's header, the author is **"You"** / «أنت» when it is the reader, as in K1–K5 (v13). The same applies to history lines ("You signed as done" already does). Other people see the name.
