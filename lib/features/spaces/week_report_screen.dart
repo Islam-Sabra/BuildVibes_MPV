@@ -17,7 +17,7 @@ import '../../data/repositories/week_report_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_calendar_leaf.dart';
 import '../../shared/widgets/bv_list_row.dart';
-import '../../shared/widgets/bv_proof_card.dart';
+import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
@@ -550,8 +550,8 @@ class _DecisionLine extends StatelessWidget {
   }
 }
 
-/// A proof card in Checked this week: the Done photo with CHECKED, the
-/// title, the day and who checked.
+/// A proof card in Checked this week (2566:35571): the Done photo with
+/// its CHECKED stamp, the title, and the day and who checked, on paper.
 class _Proof extends ConsumerWidget {
   const _Proof({required this.row, required this.words, required this.onTap});
 
@@ -561,19 +561,92 @@ class _Proof extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final type = BvType.of(context);
     final path = row.photoPath;
-    return BvProofCard(
+    final photo = path == null ? null : ref.watch(daybookPhotoProvider(path));
+    final shape = BvSlipBorder.forId(
+      row.postId,
+      edgeHeight: BvSlipBorder.edgeHeightProof,
+    );
+    return DecoratedBox(
       key: Key('week-proof-${row.postId}'),
-      id: row.postId,
-      title: row.title,
-      stamp: words.l10n.daybookStampChecked,
-      checkerName: row.checkerName,
-      checkedLine: [
-        words.shortWeekday(row.checkedAt),
-        if (row.checkerName != null) inOwnDirection(row.checkerName!),
-      ].join(' · '),
-      photo: path == null ? null : ref.watch(daybookPhotoProvider(path)),
-      onTap: onTap,
+      decoration: ShapeDecoration(
+        color: BvColors.surfaceElevated,
+        shape: shape,
+        shadows: BvShadow.proof,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        shape: shape,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              BvWeekReportSpec.proofPadding,
+              BvWeekReportSpec.proofPaddingTop,
+              BvWeekReportSpec.proofPadding,
+              BvWeekReportSpec.proofPadding,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: BvSpace.s6,
+              children: [
+                SizedBox(
+                  height: BvWeekReportSpec.proofPhoto,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(BvRadius.photo),
+                          ),
+                          child: ColoredBox(
+                            color: BvColors.surfaceSubtle,
+                            child: photo == null
+                                ? null
+                                : Image(
+                                    image: photo,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) =>
+                                        const SizedBox.shrink(),
+                                  ),
+                          ),
+                        ),
+                      ),
+                      PositionedDirectional(
+                        end: BvSpace.s8,
+                        bottom: BvSpace.s8,
+                        child: BvInkStamp(
+                          label: words.l10n.daybookStampChecked,
+                          size: BvInkStampSize.xs,
+                          tone: BvInkStampTone.positive,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  row.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.bodyMd.copyWith(color: BvColors.textPrimary),
+                ),
+                Text(
+                  [
+                    words.shortWeekday(row.checkedAt),
+                    if (row.checkerName != null)
+                      inOwnDirection(row.checkerName!),
+                  ].join(' · '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: type.metadata.copyWith(color: BvColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

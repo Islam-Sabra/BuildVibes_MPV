@@ -34,7 +34,10 @@ abstract final class BvWeekReportSpec {
   /// A proof card in "Checked this week": 158 wide, 10 apart.
   static const proofWidth = 158.0;
   static const proofGap = 10.0;
-  static const proofHeight = 248.0;
+  static const proofHeight = 216.0;
+  static const proofPhoto = 96.0;
+  static const proofPadding = BvSpace.s8;
+  static const proofPaddingTop = 14.0;
 
   /// The target's progress line: 6 high, round.
   static const progress = 6.0;

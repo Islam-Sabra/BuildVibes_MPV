@@ -282,12 +282,17 @@ class _MeetingNotesState extends ConsumerState<MeetingNotesScreen> {
                         ),
                       ),
                     ),
-                    const Spacer(),
-                    BvButton(
-                      key: const Key('meeting-post'),
-                      label: l10n.meetingPost(count),
-                      size: BvButtonSize.medium,
-                      onPressed: count == 0 || _posting ? null : _post,
+                    const SizedBox(width: BvSpace.s8),
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: BvButton(
+                          key: const Key('meeting-post'),
+                          label: l10n.meetingPost(count),
+                          size: BvButtonSize.medium,
+                          onPressed: count == 0 || _posting ? null : _post,
+                        ),
+                      ),
                     ),
                   ],
                 ),
