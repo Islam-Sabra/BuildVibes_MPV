@@ -20,8 +20,8 @@ class FakeNotebookRepository implements NotebookRepository {
   final Set<String> deleted = {};
   bool offline = false;
 
-  /// Each call, in order: 'save:<id>', 'delete:<id>', 'done:<id>:<on>',
-  /// 'pin:<id>:<on>', 'put:<note>:<post>', 'upload:<id>', 'calendar:<from>'.
+  /// Each call, in order: `save:id`, `delete:id`, `done:id:on`,
+  /// `pin:id:on`, `put:note:post`, `upload:id`, `calendar:month-day`.
   final List<String> calls = [];
 
   void _check() {
@@ -41,10 +41,7 @@ class FakeNotebookRepository implements NotebookRepository {
     calls.add('save:${note.id}');
     if (deleted.contains(note.id)) return false;
     final before = kept[note.id];
-    kept[note.id] = note.copyWith(
-      waiting: false,
-      doneAt: () => before?.doneAt,
-    );
+    kept[note.id] = note.copyWith(waiting: false, doneAt: () => before?.doneAt);
     return true;
   }
 
@@ -89,7 +86,8 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
-  Future<String> recordingUrl(String path) async => 'https://example.test/$path';
+  Future<String> recordingUrl(String path) async =>
+      'https://example.test/$path';
 
   @override
   Future<List<CalendarRow>> calendar(DateTime from, DateTime to) async {

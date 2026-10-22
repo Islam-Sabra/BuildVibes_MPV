@@ -41,6 +41,16 @@ class CalendarScreen extends ConsumerStatefulWidget {
   ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
 }
 
+int _byDayThenTime(CalendarRow a, CalendarRow b) {
+  final day = a.day.compareTo(b.day);
+  if (day != 0) return day;
+  final at = a.startsAt;
+  final bt = b.startsAt;
+  if (at == null || bt == null)
+    return (at == null ? 0 : 1) - (bt == null ? 0 : 1);
+  return at.compareTo(bt);
+}
+
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime? _chosen;
 
@@ -88,10 +98,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final week = ref.watch(calendarProvider((from: days.first, to: days.last)));
     final rows = week.value ?? const <CalendarRow>[];
     final busy = {for (final r in rows) r.day};
+    // By day; on a day, all-day rows first (CAL1), then by time. The
+    // server sends them by time, all-day ones last.
     final shown = [
       for (final r in rows)
         if (!r.day.isBefore(chosen)) r,
-    ];
+    ]..sort(_byDayThenTime);
     final byDay = <DateTime, List<CalendarRow>>{};
     for (final r in shown) {
       byDay.putIfAbsent(r.day, () => []).add(r);

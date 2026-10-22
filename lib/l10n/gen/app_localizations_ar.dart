@@ -4542,7 +4542,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calendarTitle => 'تقويمي';
 
   @override
-  String get calendarSubtitle => 'مساحاتك ودفترك، معًا';
+  String get calendarSubtitle => 'مساحاتك ودفترك معاً';
 
   @override
   String get calendarAllDay => 'طوال اليوم';
@@ -4560,7 +4560,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calendarToCheck => 'منجز، بانتظار التحقق';
 
   @override
-  String get calendarScheduled => 'مجدول';
+  String get calendarScheduled => 'موعد';
 
   @override
   String get calendarEmpty => 'لا شيء مخطط هذا الأسبوع';
