@@ -676,7 +676,9 @@ void main() {
         before: (tester) async {
           await _writeKind(tester, l10n, DaybookKind.file);
           await _tap(tester, find.byKey(const Key('file-from-phone')));
-          await _tap(tester, find.byKey(const Key('replaces-lib-m201-c')));
+          // F71: one single choice, then the file it replaces.
+          await _tap(tester, find.byKey(const Key('replaces-version')));
+          await _tap(tester, find.byKey(const Key('version-lib-m201-c')));
           await _tap(tester, find.byKey(const Key('replaces-done')));
           await _type(
             tester,

@@ -82,6 +82,7 @@ Future<TestApp> _space(
   Map<String, Object> stored = const {},
   DateTime? now,
   Object? open,
+  String? postId,
 }) async {
   final s = DaybookSamples(lang);
   final daybook = FakeDaybookRepository()
@@ -112,6 +113,8 @@ Future<TestApp> _space(
         (context, {required initial}) async =>
             const TimeOfDay(hour: 14, minute: 0),
       ),
+      // A new post's torn edge follows its id: the same on every run.
+      if (postId != null) newPostIdProvider.overrideWithValue(() => postId),
     ],
   );
   _router(tester).push('/spaces/${DaybookSamples.space}', extra: open);
@@ -362,7 +365,12 @@ void main() {
     });
 
     testWidgets('F73 a large file sending [$lang]', (tester) async {
-      final app = await _space(tester, lang, files: [_m201]);
+      final app = await _space(
+        tester,
+        lang,
+        files: [_m201],
+        postId: 'post-review80-sending',
+      );
       app.library.holdUpload = Completer<void>();
       await _write(tester, lang, l10n.daybookKindDocument, 'M-201 Rev D');
       await _tap(tester, _key('file-from-phone'));
