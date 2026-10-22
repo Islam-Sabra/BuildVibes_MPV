@@ -33,6 +33,7 @@ class SpaceSearchHit {
     this.title,
     this.snippet,
     this.authorName,
+    this.mine = false,
     this.status,
   });
 
@@ -53,6 +54,7 @@ class SpaceSearchHit {
       title: json['title'] as String?,
       snippet: json['snippet'] as String?,
       authorName: json['author_name'] as String?,
+      mine: json['mine'] as bool? ?? false,
     );
   }
 
@@ -68,6 +70,9 @@ class SpaceSearchHit {
   final String? title;
   final String? snippet;
   final String? authorName;
+
+  /// The reader wrote it: "You", never their own name (review 80).
+  final bool mine;
   final WorkStatus? status;
 
   /// A post or one of its points: the Work items group.
@@ -87,6 +92,7 @@ class SpaceSearchHit {
     title: title,
     snippet: snippet,
     authorName: authorName,
+    mine: mine,
     status: status,
   );
 }

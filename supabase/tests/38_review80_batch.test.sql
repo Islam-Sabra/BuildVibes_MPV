@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(24);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000038' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -196,6 +196,20 @@ select is((select answers -> 0 ->> 'outcome' from public.push_queue where id = :
 select throws_ok(format('select public.finish_push(%s, null, %L::jsonb)', :q_id,
                         '{"not": "a list"}'), '23514', null,
   'answers are a list');
+
+-- Search says which hits the reader wrote ---------------------------------------------------------
+
+select pg_temp.as_user('e2');
+set local role authenticated;
+select is((select bool_and(s.mine) from public.search_space(pg_temp.sp(), 'door schedule') s),
+          false, 'someone else''s post is not mine');
+reset role;
+select pg_temp.as_user('e1');
+set local role authenticated;
+select is((select bool_and(s.mine) from public.search_space(pg_temp.sp(), 'door schedule') s
+           where s.kind = 'post'),
+          true, 'my own post is mine');
+reset role;
 
 select * from finish();
 rollback;

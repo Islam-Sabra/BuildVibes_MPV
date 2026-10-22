@@ -88,6 +88,12 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
         );
       }
       _current = _shots.isEmpty ? 0 : _shots.length - 1;
+    } else {
+      // F95: a new walk starts where the last one in this Space was; the
+      // person can change it.
+      _place.text = ref
+          .read(walkSavedProvider(widget.spaceId).notifier)
+          .lastPlace;
     }
     unawaited(_recoverLost(saved));
   }
@@ -231,7 +237,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
         // You first, as in the writing card (F69).
         meId: me,
         meLabel: l10n.daybookYou,
-        currentLabel: l10n.daybookOwnerNow,
+        // Review 80: no "now" under the one chosen; it is only a choice.
         searchPlaceholder: l10n.daybookAssignSearch,
         inSheet: true,
         onPick: (p) => Navigator.of(sheet).pop(p),
@@ -309,6 +315,9 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
       ],
     );
     unawaited(ref.read(workOutboxProvider.notifier).send(item));
+    await ref
+        .read(walkSavedProvider(widget.spaceId).notifier)
+        .rememberPlace(place);
     // The outbox has it now, photos and all.
     await _forget();
     if (!mounted) return;

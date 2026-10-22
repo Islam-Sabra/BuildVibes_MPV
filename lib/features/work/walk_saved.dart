@@ -112,11 +112,15 @@ class WalkSaved extends Notifier<SavedWalk?> {
   final String spaceId;
   String? _key;
 
+  /// F95: where the last walk sent from this phone in this Space was.
+  String? _placeKey;
+
   @override
   SavedWalk? build() {
     final prefs = ref.watch(sharedPreferencesProvider);
     final userId = ref.watch(authUserIdProvider).value;
     _key = userId == null ? null : 'walk_in_progress:$userId:$spaceId';
+    _placeKey = userId == null ? null : 'walk_last_place:$userId:$spaceId';
     final raw = _key == null ? null : prefs.getString(_key!);
     if (raw == null) return null;
     try {
@@ -124,6 +128,20 @@ class WalkSaved extends Notifier<SavedWalk?> {
     } on FormatException {
       return null;
     }
+  }
+
+  /// The place the last walk in this Space used (F95), or ''.
+  String get lastPlace {
+    final key = _placeKey;
+    if (key == null) return '';
+    return ref.read(sharedPreferencesProvider).getString(key) ?? '';
+  }
+
+  /// Remembers [place] for the next walk in this Space (F95).
+  Future<void> rememberPlace(String place) async {
+    final key = _placeKey;
+    if (key == null || place.isEmpty) return;
+    await ref.read(sharedPreferencesProvider).setString(key, place);
   }
 
   /// Keeps [walk] on the phone, as it is now.

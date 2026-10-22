@@ -35,7 +35,7 @@ class BvGiveToPicker extends StatefulWidget {
     super.key,
     required this.people,
     required this.currentOwnerId,
-    required this.currentLabel,
+    this.currentLabel,
     required this.searchPlaceholder,
     required this.onPick,
     this.searchController,
@@ -50,8 +50,9 @@ class BvGiveToPicker extends StatefulWidget {
   final List<BvGiveToPerson> people;
   final String? currentOwnerId;
 
-  /// The current owner's sub line ("now").
-  final String currentLabel;
+  /// The current owner's sub line ("now"); none on a walk's photo, where
+  /// the owner is only chosen (review 80).
+  final String? currentLabel;
   final String searchPlaceholder;
   final ValueChanged<BvGiveToPerson> onPick;
   final TextEditingController? searchController;

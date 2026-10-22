@@ -72,5 +72,10 @@ void main() {
     expect(SpaceSearchHit.fromJson(row('message'))!.threadId, 'thread-1');
     expect(SpaceSearchHit.fromJson(row('file'))!.isWork, isFalse);
     expect(SpaceSearchHit.fromJson(row('model')), isNull);
+    // Review 80: the reader's own hit (an older server sends no mine).
+    expect(post.mine, isFalse);
+    final mine = SpaceSearchHit.fromJson({...row('message'), 'mine': true})!;
+    expect(mine.mine, isTrue);
+    expect(mine.withStatus(null).mine, isTrue);
   });
 }

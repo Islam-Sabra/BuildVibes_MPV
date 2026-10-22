@@ -74,7 +74,8 @@ FakeSearchRepository _search() => FakeSearchRepository()
       id: 'msg-1',
       threadId: 'thread-1',
       snippet: 'Sleeves arrive tomorrow morning',
-      authorName: 'Omar Haddad',
+      authorName: 'Islam Ahmed',
+      mine: true,
       createdAt: testNow,
     ),
   ]);
@@ -136,6 +137,27 @@ void main() {
         find.descendant(
           of: find.byKey(const Key('search-point-point-1')),
           matching: find.textContaining('Walk, level 4'),
+        ),
+        findsOneWidget,
+      );
+
+      // The reader's own message says You, never their name.
+      final mine = find.byKey(const Key('search-message-msg-1'));
+      expect(
+        find.descendant(of: mine, matching: find.textContaining('Islam Ahmed')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: mine,
+          matching: find.textContaining(l10n.daybookYou),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('search-post-post-c7')),
+          matching: find.textContaining('Omar Haddad'),
         ),
         findsOneWidget,
       );

@@ -271,7 +271,9 @@ class _HitRow extends ConsumerWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final now = ref.watch(clockProvider)();
     final day = libraryDay(l10n, locale, hit.createdAt.toLocal(), now);
-    final who = inOwnDirection(personName(l10n, hit.authorName));
+    final who = hit.mine
+        ? l10n.daybookYou
+        : inOwnDirection(personName(l10n, hit.authorName));
     final snippet = (hit.snippet ?? '').trim();
     final title = (hit.title ?? '').trim();
 

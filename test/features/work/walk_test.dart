@@ -210,10 +210,30 @@ void main() {
       );
       await tester.enterText(_key('walk-line-1'), 'Tray not earthed');
       await tester.pumpAndSettle();
-      await _owner(tester, s.saraName);
+      // Review 80: the picker has no "now" under the one chosen.
+      await _tap(tester, _key('walk-owner'));
+      expect(find.text(l10n.daybookOwnerNow), findsNothing);
+      await _tap(
+        tester,
+        find.descendant(
+          of: _key('walk-owner-picker'),
+          matching: find.text(s.saraName),
+        ),
+      );
       await _tap(tester, _key('walk-finish'));
       await tester.pumpAndSettle();
       expect(find.byType(WalkScreen), findsNothing);
+
+      // F95: the next walk in this Space starts where this one was.
+      await _menu(tester, l10n.walkMenu);
+      expect(
+        tester.widget<TextField>(_key('walk-place')).controller?.text,
+        'Level 4 corridor',
+      );
+      expect(
+        tester.widget<TextField>(_key('walk-name')).controller?.text,
+        isEmpty,
+      );
 
       final walk = daybook.createdWalks.single;
       expect(walk.title, 'Walk, level 4');
