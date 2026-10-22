@@ -419,10 +419,14 @@ void main() {
           matching: find.text(s.omarName),
         ),
       );
+      // One call, with the sheet's words as the title (review 79 C1).
       expect(app.postPages.calls.single, startsWith('turn $_sized into '));
       expect(
         app.postPages.calls.single,
-        endsWith('for ${DaybookSamples.omar}'),
+        endsWith(
+          'for ${DaybookSamples.omar}: '
+          '${s.t('Sleeves sized as the drawing', 'الأكمام بمقاس المخطط')}',
+        ),
       );
       // The editor shows the page as the server has it now.
       expect(_key('page-point-$_sized'), findsNothing);
@@ -430,6 +434,63 @@ void main() {
         find.text(s.t('Sleeves sized as the drawing', 'الأكمام بمقاس المخطط')),
         findsOneWidget,
       );
+    });
+
+    testWidgets("review 79 C1: the sheet's own words are the title, in one "
+        'call; the point is never edited on the way [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      await _tap(tester, _key('page-point-menu-$_sized'));
+      await _tap(tester, _key('page-turn-item'));
+      await tester.enterText(_key('page-item-title'), 'Size the sleeves at C7');
+      await tester.pumpAndSettle();
+      await _tap(
+        tester,
+        find.descendant(
+          of: _key('page-item-owner'),
+          matching: find.text(s.omarName),
+        ),
+      );
+      expect(app.postPages.calls, hasLength(1));
+      expect(
+        app.postPages.calls.single,
+        endsWith('for ${DaybookSamples.omar}: Size the sleeves at C7'),
+      );
+      expect(
+        app.postPages.pages[_post]!.under.map((u) => u.title),
+        contains('Size the sleeves at C7'),
+      );
+    });
+
+    testWidgets('review 79 C1: a retry after a lost answer is the same work '
+        'item, not a second one [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      app.postPages.loseTurnAnswerOnce = true;
+      await _edit(tester, l10n);
+      Future<void> turn() async {
+        await _tap(tester, _key('page-point-menu-$_sized'));
+        await _tap(tester, _key('page-turn-item'));
+        await _tap(
+          tester,
+          find.descendant(
+            of: _key('page-item-owner'),
+            matching: find.text(s.omarName),
+          ),
+        );
+      }
+
+      await turn();
+      // The answer was lost: the point is still on the editor.
+      expect(_key('page-point-$_sized'), findsOneWidget);
+      final first = app.postPages.calls.single;
+      final id = RegExp(r'into (\S+) for').firstMatch(first)!.group(1)!;
+      await turn();
+      expect(app.postPages.calls, [first, 'turn again $id']);
+      expect(
+        app.postPages.pages[_post]!.under.where((u) => u.id == id),
+        hasLength(1),
+      );
+      expect(_key('page-point-$_sized'), findsNothing);
     });
 
     testWidgets('N2: a block is deleted, and Undo puts it back [$lang]', (

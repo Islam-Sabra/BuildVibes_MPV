@@ -753,3 +753,16 @@ Review 50 F62 and review 72: a due date belongs to whoever must act next.
 - `post_history_rows`: a send-back's line carries `new_due`. After `jsonb_strip_nulls`, a missing key means unchanged and `{}` means no new date.
 - The app shows no due while the item is Done and waiting for the check. That's display only, with no server change.
 - **Tests:** `supabase/tests/33_send_back_due.test.sql` (24 checks).
+
+## Turn a point into a work item (migration 36, `20261026120000_turn_point_into_item.sql`, not live)
+Review 76 (slice 5), with review 79 C1.
+- `turn_point_into_item(post, point, item_id, owner, base_version, title default null)`: on a work item's page, its author turns a checklist point into a work item under this one, in one transaction.
+  - Who: the author (`acts_for_author`), while they may post and the item is Open; a top-level work item only.
+  - The point must be this post's and not ticked (a ticked point is a record).
+  - **The title:** `title` is the words on the sheet. With a title, it is trimmed and checked for 2–140 characters, and used. Without one, the point's own words are used, under the same check. The app sends the sheet's title in the one call; it no longer saves the words onto the point first.
+  - The new work item takes the post's Team and `owner` (`create_work_item`'s rules), and its owner is told as for any work item.
+  - The page is saved first (the point's block gives way to a `child_item` block; the checklist block goes when it was its last point; a page with no blocks keeps none), then the point goes through `edit_space_post`.
+  - Idempotent by `item_id`: a retry after a lost answer returns the page's version and changes nothing. The app keeps the id from the first try, so a retry is the same item.
+  - A stale `base_version` is refused with `40001`.
+  - Returns the page's new `blocks_version`.
+- **Tests:** `supabase/tests/36_turn_point_into_item.test.sql` (29 checks).

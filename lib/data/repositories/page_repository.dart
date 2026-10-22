@@ -47,12 +47,14 @@ abstract class PageRepository {
   });
 
   /// turn_point_into_item: [pointId] becomes the work item [itemId] for
-  /// [ownerId], in one step. The page's new version.
+  /// [ownerId], titled [title] (the sheet's words, review 79 C1), in one
+  /// step. The page's new version.
   Future<int> turnPointIntoItem({
     required String postId,
     required String pointId,
     required String itemId,
     required String ownerId,
+    required String title,
     required int baseVersion,
   });
 }
@@ -147,6 +149,7 @@ class SupabasePageRepository implements PageRepository {
     required String pointId,
     required String itemId,
     required String ownerId,
+    required String title,
     required int baseVersion,
   }) => _guard(
     () => _client.rpc<int>(
@@ -157,6 +160,7 @@ class SupabasePageRepository implements PageRepository {
         'p_item_id': itemId,
         'p_owner': ownerId,
         'p_base_version': baseVersion,
+        'p_title': title,
       },
     ),
   );

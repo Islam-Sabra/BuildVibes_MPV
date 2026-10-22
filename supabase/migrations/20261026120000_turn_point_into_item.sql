@@ -10,8 +10,10 @@
 -- - the author (acts_for_author), while they may post and the item is
 --   editable (Open); a top-level work item only;
 -- - the point is this post's and not ticked (a ticked point is a record);
--- - the new work item takes the point's words as its title (2 to 140
---   characters), the post's Team and [p_owner] (create_work_item's rules:
+-- - the new work item takes [p_title], the words on the sheet (review 79
+--   C1), or with none the point's own words, as its title (2 to 140
+--   characters after trimming), the post's Team and [p_owner]
+--   (create_work_item's rules:
 --   someone who can sign it as done), and its owner is told as for any work
 --   item;
 -- - on the page (saved before the point goes, as edit_space_post wants),
@@ -25,7 +27,8 @@
 -- Returns the page's new blocks_version.
 
 create function public.turn_point_into_item(p_post uuid, p_point uuid, p_item_id uuid,
-                                            p_owner uuid, p_base_version integer)
+                                            p_owner uuid, p_base_version integer,
+                                            p_title text default null)
 returns integer
 language plpgsql
 security definer
@@ -81,7 +84,8 @@ begin
   if v_point.ticked_at is not null then
     raise exception 'a ticked point stays as it is' using errcode = 'P0001';
   end if;
-  v_title := trim(v_point.text);
+  -- The sheet's words when it gives them; else the point's own.
+  v_title := trim(coalesce(p_title, v_point.text));
   if length(v_title) not between 2 and 140 then
     raise exception 'a work item''s title is 2 to 140 characters' using errcode = '22023';
   end if;
@@ -129,7 +133,7 @@ begin
 end;
 $$;
 
-revoke execute on function public.turn_point_into_item(uuid, uuid, uuid, uuid, integer)
+revoke execute on function public.turn_point_into_item(uuid, uuid, uuid, uuid, integer, text)
   from public, anon;
-grant execute on function public.turn_point_into_item(uuid, uuid, uuid, uuid, integer)
+grant execute on function public.turn_point_into_item(uuid, uuid, uuid, uuid, integer, text)
   to authenticated;

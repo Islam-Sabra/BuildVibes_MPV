@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(25);
+select plan(29);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000036' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -176,6 +176,22 @@ select is(public.turn_point_into_item(pg_temp.id('a001'), pg_temp.id('d002'),
 reset role;
 select is((select count(*)::int from public.space_posts where parent_id = pg_temp.id('a001')), 1,
   'and makes nothing more');
+
+-- The sheet's own words (review 79 C1): checked as a title, then used.
+select pg_temp.as_user('e1');
+set local role authenticated;
+select throws_ok($$select public.turn_point_into_item(pg_temp.id('a001'), pg_temp.id('d003'),
+                     pg_temp.id('c011'), pg_temp.uid('e2'), 2, ' a ')$$,
+  '22023', null, 'a title of 1 character from the sheet is refused');
+select throws_ok($$select public.turn_point_into_item(pg_temp.id('a001'), pg_temp.id('d003'),
+                     pg_temp.id('c011'), pg_temp.uid('e2'), 2, repeat('a', 141))$$,
+  '22023', null, 'a title of 141 characters is refused');
+select is(public.turn_point_into_item(pg_temp.id('a001'), pg_temp.id('d003'),
+            pg_temp.id('c012'), pg_temp.uid('e2'), 2, '  Seal the gap at C7  '), 3,
+  'turned with the sheet''s title, though the point''s own words are too short');
+reset role;
+select is((select title from public.space_posts where id = pg_temp.id('c012')), 'Seal the gap at C7',
+  'the work item takes the sheet''s title, trimmed');
 
 -- A post with points and no page keeps no page.
 select pg_temp.as_user('e1');

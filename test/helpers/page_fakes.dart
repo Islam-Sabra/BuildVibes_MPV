@@ -20,6 +20,9 @@ class FakePageRepository implements PageRepository {
   /// fails, what went before it stays.
   bool failSaveOnce = false;
 
+  /// The next turn goes through, but its answer is lost on the way back.
+  bool loseTurnAnswerOnce = false;
+
   void _check() {
     if (offline) throw const SpaceException(SpaceFailure.network);
   }
@@ -157,15 +160,36 @@ class FakePageRepository implements PageRepository {
     required String pointId,
     required String itemId,
     required String ownerId,
+    required String title,
     required int baseVersion,
   }) async {
     _check();
     final p = pages[postId]!;
-    if (p.under.any((u) => u.id == itemId)) return p.version;
+    if (p.under.any((u) => u.id == itemId)) {
+      calls.add('turn again $itemId');
+      return p.version;
+    }
     if (baseVersion != p.version) throw const PageStaleException();
     final point = p.points.firstWhere((x) => x.id == pointId);
     if (point.ticked) throw const SpaceException(SpaceFailure.rule);
-    calls.add('turn $pointId into $itemId for $ownerId');
+    final version = _turn(postId, pointId, itemId, ownerId, title);
+    if (loseTurnAnswerOnce) {
+      loseTurnAnswerOnce = false;
+      throw const SpaceException(SpaceFailure.network);
+    }
+    return version;
+  }
+
+  int _turn(
+    String postId,
+    String pointId,
+    String itemId,
+    String ownerId,
+    String title,
+  ) {
+    final p = pages[postId]!;
+    final point = p.points.firstWhere((x) => x.id == pointId);
+    calls.add('turn $pointId into $itemId for $ownerId: $title');
     final blocks = <PageBlock>[];
     var placed = false;
     final child = PageChildItem('child-$itemId', itemId);
@@ -197,7 +221,7 @@ class FakePageRepository implements PageRepository {
         ...p.under,
         PageUnder(
           id: itemId,
-          title: point.text,
+          title: title.trim().isEmpty ? point.text : title.trim(),
           ownerId: ownerId,
           ownerName: ownerId,
         ),

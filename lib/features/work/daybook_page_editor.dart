@@ -44,6 +44,10 @@ enum PageTurn { text, point, item }
 /// A block's menu on its ⋮⋮ (N4): Turn into, and Delete.
 enum _BlockAction { text, point, item, delete }
 
+/// How a save went: it stays open ([failed]), there was nothing to send,
+/// or it was sent.
+enum _Saved { failed, nothing, sent }
+
 /// The blocks a page's author may add here: points only on a work item
 /// or a checklist, a work item under this one only on a top-level work
 /// item.
@@ -282,6 +286,10 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   final _addFiles = <Map<String, Object?>>[];
   var _saving = false;
 
+  /// The work item each point is turning into, by point (review 79 C1):
+  /// kept from the first try until the server has it.
+  final _turning = <String, String>{};
+
   DaybookPost get _post => _page.post;
   String get _spaceId => widget.space.id;
 
@@ -347,8 +355,10 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
 
   /// Done (N2): saves; false when it stays open (no signal, or a newer
   /// page to choose from).
-  Future<bool> save() async {
-    if (_saving) return false;
+  Future<bool> save() async => await _save() != _Saved.failed;
+
+  Future<_Saved> _save() async {
+    if (_saving) return _Saved.failed;
     final plan = planPageSave(
       _page,
       blocks: _collect(),
@@ -369,7 +379,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         plan.after.isEmpty &&
         _addFiles.isEmpty &&
         !_blocksChanged(plan.blocks);
-    if (unchanged) return true;
+    if (unchanged) return _Saved.nothing;
     setState(() => _saving = true);
     try {
       if (plan.before.isNotEmpty) await repo.edit(_post.id, plan.before);
@@ -383,9 +393,9 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       }
       if (plan.after.isNotEmpty) await repo.edit(_post.id, plan.after);
     } on PageStaleException {
-      if (!mounted) return false;
+      if (!mounted) return _Saved.failed;
       setState(() => _saving = false);
-      return _newer();
+      return await _newer() ? _Saved.sent : _Saved.failed;
     } on SpaceException catch (e) {
       if (mounted) {
         setState(() => _saving = false);
@@ -394,12 +404,12 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       // Some steps may have gone: start the next Done from what the
       // server has, so nothing is sent twice.
       await _catchUp();
-      return false;
+      return _Saved.failed;
     }
     _addFiles.clear();
     _changed();
     if (mounted) setState(() => _saving = false);
-    return true;
+    return _Saved.sent;
   }
 
   /// Whether [blocks] differ from the page as it opened. A post with no
@@ -699,47 +709,18 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     final me = ref.read(authUserIdProvider).value;
     final people = await ref.read(spacePeopleProvider(_spaceId).future);
     if (!mounted) return null;
-    final words = TextEditingController(text: text);
-    final result = await showBvSheet<({String title, BvGiveToPerson owner})>(
+    return showBvSheet<({String title, BvGiveToPerson owner})>(
       context: context,
       title: l10n.pageItemUnder,
-      builder: (sheet) => Column(
+      builder: (sheet) => _ItemSheet(
         key: const Key('page-item-sheet'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.symmetric(
-              horizontal: BvSpace.gutter,
-            ),
-            child: TextField(
-              key: const Key('page-item-title'),
-              controller: words,
-              autofocus: text.isEmpty,
-              maxLength: PageChecklist.itemTitleMax,
-              decoration: InputDecoration(hintText: l10n.pageItemTitle),
-            ),
-          ),
-          BvGiveToPicker(
-            key: const Key('page-item-owner'),
-            people: assignablePeople(people, me: me),
-            currentOwnerId: null,
-            // You first, as in the writing card (F69).
-            meId: me,
-            meLabel: l10n.daybookYou,
-            currentLabel: l10n.daybookOwnerNow,
-            searchPlaceholder: l10n.daybookAssignSearch,
-            inSheet: true,
-            onPick: (p) {
-              final t = words.text.trim();
-              if (t.length < 2) return;
-              Navigator.of(sheet).pop((title: t, owner: p));
-            },
-          ),
-        ],
+        text: text,
+        people: assignablePeople(people, me: me),
+        me: me,
+        onPick: (title, owner) =>
+            Navigator.of(sheet).pop((title: title, owner: owner)),
       ),
     );
-    words.dispose();
-    return result;
   }
 
   // A block's menu ------------------------------------------------------------
@@ -898,34 +879,46 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       }
       return;
     }
-    // On the server: what's written so far is saved first, then the point
-    // turns in one step (turn_point_into_item).
+    // On the server: the point turns in one step (turn_point_into_item),
+    // with the sheet's words as the title (review 79 C1).
     final asked = await _askItem(text);
     if (asked == null || !mounted) return;
-    // The server turns the point's own words: what was typed in the sheet
-    // is saved as the point first.
-    _points[pointId] = asked.title;
-    _fields['pt:$pointId']?.text = asked.title;
-    if (!await save()) return;
-    final PostPage? fresh;
-    try {
-      fresh = await ref.read(pageRepositoryProvider).page(_post.id);
-    } on SpaceException catch (e) {
-      if (mounted) showSpaceError(context, e);
-      return;
+    // The point keeps the server's words: the sheet's go with the turn,
+    // so the point is never edited on the way.
+    final words = _page.points.firstWhere((p) => p.id == pointId).text;
+    _points[pointId] = words;
+    _fields['pt:$pointId']?.text = words;
+    // Anything else written so far is saved first; with nothing else, the
+    // turn is the one call.
+    switch (await _save()) {
+      case _Saved.failed:
+        return;
+      case _Saved.nothing:
+        break;
+      case _Saved.sent:
+        final PostPage? fresh;
+        try {
+          fresh = await ref.read(pageRepositoryProvider).page(_post.id);
+        } on SpaceException catch (e) {
+          if (mounted) showSpaceError(context, e);
+          return;
+        }
+        if (fresh == null || !mounted) return;
+        // Saved: the next Done starts from here.
+        setState(() => _page = fresh!);
     }
-    if (fresh == null || !mounted) return;
-    // Saved: the next Done starts from here.
-    setState(() => _page = fresh!);
+    // The same item on a retry after a lost answer, never a second one.
+    final itemId = _turning.putIfAbsent(pointId, newUuid);
     try {
       await ref
           .read(pageRepositoryProvider)
           .turnPointIntoItem(
             postId: _post.id,
             pointId: pointId,
-            itemId: newUuid(),
+            itemId: itemId,
             ownerId: asked.owner.id,
-            baseVersion: fresh.version,
+            title: asked.title,
+            baseVersion: _page.version,
           );
     } on PageStaleException {
       if (mounted) showSpaceMessage(context, l10n.pageStale);
@@ -942,6 +935,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       return;
     }
     if (turned == null || !mounted) return;
+    _turning.remove(pointId);
     _changed();
     setState(() => _reload(turned!));
   }
@@ -1488,6 +1482,74 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
                 label: Text(l10n.pageAddColumn),
               ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// The sheet for a work item under this one: its words and who does it.
+/// It owns its words' controller, so the words outlive the sheet's
+/// closing slide.
+class _ItemSheet extends StatefulWidget {
+  const _ItemSheet({
+    super.key,
+    required this.text,
+    required this.people,
+    required this.me,
+    required this.onPick,
+  });
+
+  final String text;
+  final List<BvGiveToPerson> people;
+  final String? me;
+  final void Function(String title, BvGiveToPerson owner) onPick;
+
+  @override
+  State<_ItemSheet> createState() => _ItemSheetState();
+}
+
+class _ItemSheetState extends State<_ItemSheet> {
+  late final _words = TextEditingController(text: widget.text);
+
+  @override
+  void dispose() {
+    _words.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvSpace.gutter,
+          ),
+          child: TextField(
+            key: const Key('page-item-title'),
+            controller: _words,
+            autofocus: widget.text.isEmpty,
+            maxLength: PageChecklist.itemTitleMax,
+            decoration: InputDecoration(hintText: l10n.pageItemTitle),
+          ),
+        ),
+        BvGiveToPicker(
+          key: const Key('page-item-owner'),
+          people: widget.people,
+          currentOwnerId: null,
+          // You first, as in the writing card (F69).
+          meId: widget.me,
+          meLabel: l10n.daybookYou,
+          currentLabel: l10n.daybookOwnerNow,
+          searchPlaceholder: l10n.daybookAssignSearch,
+          inSheet: true,
+          onPick: (p) {
+            final t = _words.text.trim();
+            if (t.length >= 2) widget.onPick(t, p);
+          },
         ),
       ],
     );
