@@ -1069,3 +1069,17 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Risk on site:** the later message is often the one that matters ("stop the pour").
 - **Fix:** keep the quiet time, but at its end, if newer messages are still unread, send **one** push: "Omar Haddad · 2 new messages" / «عمر حداد · رسالتان جديدتان», which opens the conversation. Never more than one per quiet time.
 - **Test:** 3 messages in 2 minutes give the first push, then one "2 new messages" at 5 minutes if unread, and nothing if they were read.
+
+## Build 529 test (22 Oct, evening): F81 passed in part
+- **Closed app:** "Test 3" (22:27) reached the phone as **one** notification with sound, and a tap opened the conversation. The 13 Oct token answers on another device, not this phone.
+- **The screen not waking** for a notification is the Xiaomi's own setting ("Wake screen when notifications arrive"). No change.
+- **Still to check:** the banner while the app is open.
+
+## F98. A new conversation starts with who you're talking to (founder, "ok")
+- **Seen:** in a new conversation the first message sits at the bottom, with the whole screen empty above it.
+- **Fix (as WhatsApp does):**
+  - messages stay anchored above the typing box;
+  - the empty top of a conversation's beginning holds a small **person card**: face, name, role · company, the Spaces you share ("Both in NBKCH SITE TEAM"), and **View profile** / «عرض الملف»;
+  - the card is the first thing in the conversation, so it scrolls away as messages come and is there when scrolling back to the start;
+  - a request (someone who shares no Space) shows the same card, with the request's Accept / Block under it.
+- **Test:** a new conversation shows the card at the top and the first message near the typing box; with 30 messages the card is reached by scrolling up; EN and AR.
