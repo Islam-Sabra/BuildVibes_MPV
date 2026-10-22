@@ -948,3 +948,12 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - a quote from today and one from last week both open their message;
   - a deleted message's quote does nothing;
   - Arabic.
+
+## Build 473: steps 11 and 12 (founder, 11:00)
+- **Step 11:** the draft and its quote are kept (see F88).
+- **Step 12:** "Waiting to send" shows in airplane mode. Whether it sent once after the signal came back is still to confirm.
+
+## F88. A kept draft loses its "Draft" label after leaving the Space
+- **Seen:** leaving the writing card, the card shows as **Draft** (E4). After going to Home and back into the Space, the draft is still there with its words and quote, but the **"Draft" word is gone**, so it looks like a card being written now.
+- **Fix:** a writing card that holds an unsent draft **always** shows E4's "Draft" label, however it was reached: back from Home, from another Space, after the app was closed, or after a restart. The label goes when the person types again, as now.
+- **Test:** make a draft → Home → back to the Space: "Draft" shows. The same after closing the app fully.
