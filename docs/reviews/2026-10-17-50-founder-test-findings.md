@@ -862,6 +862,10 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - read again when a DM push arrives while the app is open.
   
   Any one of these alone would have shown it. Check that the Realtime subscription is made after sign-in, and made again after the phone was locked or offline.
+- **No push arrived either (founder).** The update may have changed the phone's push token. Check, read-only:
+  - the `push_queue` row for Omar's message (sent, failed, or no token);
+  - that the app registers its token again on every start after sign-in;
+  - that BuildVibes may show notifications on the Xiaomi (MIUI's notification and Autostart settings).
 - **Test:**
   - the founder's phone on the Messages list, Omar sends: it shows within 2 seconds;
   - the same with the phone locked for a minute first;
