@@ -1,8 +1,10 @@
--- Migration 34: the store reviewers' sign-in, made safe (review 73 B1, B2).
--- Not live.
+-- Migration 34: the store reviewers' sign-in, made safe (review 73 B1, B2;
+-- review 75 B5). Not live.
 --
--- Numbered 34, the next free number after migration 33 (the send-back
--- date). Review 71's 3D model views take the number after this one.
+-- Numbered 34, but dated 20261030120000, after migration 38
+-- (20261029120000): 36, 37 and 38 went live first, and Supabase refuses a
+-- file dated before the last one applied (reviews 79 and 81). The 3D model
+-- views come after this one.
 --
 -- B1. The try counter lives in Postgres, changed atomically. Before, the
 -- review-sign-in Edge Function read, changed and wrote back a counter in
@@ -343,3 +345,125 @@ as $function$
   order by p.created_at desc, p.id desc
   limit 20;
 $function$;
+
+-- ---------------------------------------------------------------------------
+-- B5 (review 75): shared records a demo account makes stay among demo
+-- accounts
+-- ---------------------------------------------------------------------------
+-- A store reviewer clicks through everything. A project record or a company
+-- the reviewer makes would otherwise be seen by every real person: in
+-- project search and "Is it already here?" (find_similar_projects reads
+-- projects as the caller, so the policy covers it), when tagging, and as
+-- the company a typed name turns into (rule 4), signed-out readers too.
+-- - projects.is_demo and companies.is_demo: set on insert from the creator
+--   (is_demo_account), never changed afterwards.
+-- - projects_read, companies_read: a demo record only for demo accounts.
+--   Signed out is a real person.
+-- - Links (demo_link_guard): nobody signed in points a Space, a CV entry, a
+--   post's tag, a profile or an experience at a record on the other side of
+--   the line, even knowing its id.
+-- Functions that read projects or companies with the definer's rights and
+-- were checked: activity_rows, my_spaces, today_in_spaces,
+-- space_ref_prefix, my_delivered_work, dm_person (a Space's own project's
+-- name, or the caller's own work: never a way to find a record);
+-- posts_tagged and shown_project (a project page, which the read policy
+-- now closes for a demo project); create_project and register_company
+-- (they make the record, whose flag the trigger sets).
+
+alter table public.projects add column is_demo boolean not null default false;
+alter table public.companies add column is_demo boolean not null default false;
+
+-- Records made before this migration (before the flag's trigger, which
+-- keeps it from changing): from their creator.
+update public.projects p set is_demo = true where public.is_demo_account(p.created_by);
+update public.companies c set is_demo = true where public.is_demo_account(c.created_by);
+
+create function public.demo_record_flag()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    new.is_demo := public.is_demo_account(new.created_by);
+  else
+    new.is_demo := old.is_demo;
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function public.demo_record_flag() from public, anon, authenticated;
+
+create trigger projects_demo_flag before insert or update on public.projects
+  for each row execute function public.demo_record_flag();
+create trigger companies_demo_flag before insert or update on public.companies
+  for each row execute function public.demo_record_flag();
+
+-- Whether the signed-in person is a demo account (false when signed out).
+create function public.viewer_is_demo()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select public.is_demo_account(auth.uid());
+$$;
+revoke execute on function public.viewer_is_demo() from public;
+grant execute on function public.viewer_is_demo() to anon, authenticated;
+
+alter policy projects_read on public.projects
+  using (not is_demo or public.viewer_is_demo());
+alter policy companies_read on public.companies
+  using (not is_demo or public.viewer_is_demo());
+
+-- Links: nobody signed in can point their own rows at a record on the
+-- other side of the line, even with its id: a Space's project (create_space,
+-- set_space_project), a CV entry, a post's tag, a profile's or an
+-- experience's company. Rows written by the service role (the seed, the
+-- back office) and rows that keep their link are not checked.
+create function public.demo_link_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_id uuid;
+  v_demo boolean;
+begin
+  if auth.uid() is null then
+    return new;
+  end if;
+  if tg_argv[0] = 'project' then
+    v_id := new.project_id;
+    if tg_op = 'UPDATE' and v_id is not distinct from old.project_id then
+      return new;
+    end if;
+    select pr.is_demo into v_demo from public.projects pr where pr.id = v_id;
+  else
+    v_id := new.company_id;
+    if tg_op = 'UPDATE' and v_id is not distinct from old.company_id then
+      return new;
+    end if;
+    select c.is_demo into v_demo from public.companies c where c.id = v_id;
+  end if;
+  if v_id is not null and v_demo is distinct from public.viewer_is_demo() then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+revoke execute on function public.demo_link_guard() from public, anon, authenticated;
+
+create trigger spaces_demo_link before insert or update of project_id on public.spaces
+  for each row execute function public.demo_link_guard('project');
+create trigger cv_projects_demo_link before insert or update of project_id on public.cv_projects
+  for each row execute function public.demo_link_guard('project');
+create trigger posts_demo_link before insert or update of project_id on public.posts
+  for each row execute function public.demo_link_guard('project');
+create trigger profiles_demo_link before insert or update of company_id on public.profiles
+  for each row execute function public.demo_link_guard('company');
+create trigger experience_demo_link before insert or update of company_id on public.experience
+  for each row execute function public.demo_link_guard('company');

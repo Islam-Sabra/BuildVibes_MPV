@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(61);
+select plan(80);
 
 -- ---------------------------------------------------------------------------
 -- B1: who reaches the counter
@@ -274,6 +274,89 @@ set local role authenticated;
 select is((select string_agg(right(t.post_id::text, 4), ',' order by t.post_id)
            from public.posts_tagged(current_setting('test.project')::uuid) t), 'a012',
   'a project''s posts leave out demo accounts'' posts');
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- B5 (review 75): projects and companies a demo account makes stay among
+-- demo accounts
+-- ---------------------------------------------------------------------------
+
+select pg_temp.as_user('e4');
+set local role authenticated;
+select set_config('test.demo_project',
+  public.create_project('Demo tower B5', 'commercial', 'kw', 'kw-capital')::text, true);
+select set_config('test.demo_company',
+  public.register_company('Demo Co B5', 'contractor', 'kw')::text, true);
+reset role;
+select pg_temp.as_user('e1');
+set local role authenticated;
+select set_config('test.real_company',
+  public.register_company('Real Co B5', 'contractor', 'kw')::text, true);
+reset role;
+
+select ok((select is_demo from public.projects where id = current_setting('test.demo_project')::uuid),
+  'a project the reviewer makes is a demo record');
+select ok((select is_demo from public.companies where id = current_setting('test.demo_company')::uuid),
+  'so is a company the reviewer registers');
+select ok(not (select is_demo from public.projects where id = current_setting('test.project')::uuid)
+          and not (select is_demo from public.companies where id = current_setting('test.real_company')::uuid),
+  'a real person''s project and company are not');
+update public.projects set is_demo = false where id = current_setting('test.demo_project')::uuid;
+select ok((select is_demo from public.projects where id = current_setting('test.demo_project')::uuid),
+  'the flag never changes after insert');
+
+-- A real person.
+select pg_temp.as_user('e1');
+set local role authenticated;
+select is((select count(*)::int from public.projects where id = current_setting('test.demo_project')::uuid), 0,
+  'a real person can''t read the reviewer''s project');
+select is((select count(*)::int from public.find_similar_projects('Demo tower B5') f
+           where f.id = current_setting('test.demo_project')::uuid), 0,
+  'nor find it in "Is it already here?"');
+select is((select count(*)::int from public.companies where id = current_setting('test.demo_company')::uuid), 0,
+  'nor read the reviewer''s company');
+select is((select count(*)::int from public.projects where id = current_setting('test.project')::uuid), 1,
+  'real projects as before');
+select throws_ok(format($$select public.create_space('B5 real site', null, %L)$$,
+                        current_setting('test.demo_project')), '42501', null,
+  'a real Space can''t link the demo project, even by its id');
+select throws_ok(format($$insert into public.cv_projects (project_id, role_title) values (%L, 'Engineer')$$,
+                        current_setting('test.demo_project')), '42501', null,
+  'nor a real CV entry');
+select throws_ok(format($$update public.profiles set company_id = %L, company_name_text = null where id = %L$$,
+                        current_setting('test.demo_company'), pg_temp.uid('e1')), '42501', null,
+  'nor a real profile''s company');
+select lives_ok(format($$update public.profiles set company_id = %L, company_name_text = null where id = %L$$,
+                       current_setting('test.real_company'), pg_temp.uid('e1')),
+  'a real company still links');
+reset role;
+
+-- Signed out.
+set local role anon;
+select is((select count(*)::int from public.companies where id = current_setting('test.demo_company')::uuid), 0,
+  'signed out, the demo company is hidden');
+select is((select count(*)::int from public.companies where id = current_setting('test.real_company')::uuid), 1,
+  'and a real company shows as before');
+reset role;
+
+-- The demo side.
+select pg_temp.as_user('e3');
+set local role authenticated;
+select is((select count(*)::int from public.projects where id = current_setting('test.demo_project')::uuid), 1,
+  'a demo teammate reads the reviewer''s project');
+select is((select count(*)::int from public.companies where id = current_setting('test.demo_company')::uuid), 1,
+  'and its company');
+reset role;
+select pg_temp.as_user('e4');
+set local role authenticated;
+select is((select count(*)::int from public.projects where id = current_setting('test.project')::uuid), 1,
+  'the reviewer still reads a real project');
+select lives_ok(format($$select public.create_space('B5 demo site', null, %L)$$,
+                       current_setting('test.demo_project')),
+  'and links its own demo project to a Space');
+select throws_ok(format($$select public.create_space('B5 demo site 2', null, %L)$$,
+                        current_setting('test.project')), '42501', null,
+  'but not a real project');
 reset role;
 
 select * from finish();

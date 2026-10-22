@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Lead update: 22 Oct 2026, evening — review 75 B5 on migration 34 (branch `claude/store-reviewer-b5`, from `claude/store-reviewer`)
+
+The founder's "ok" (22 Oct): the lead wrote B5 in the cloud. **Nothing is live.**
+
+- **Migration 34 is renamed** to `20261030120000_review_sign_in.sql`, after migration 38 (reviews 79 and 81). Its test keeps its name.
+- **B5:**
+  - `projects.is_demo` and `companies.is_demo`, set from the creator and never changed;
+  - `projects_read` and `companies_read` show a demo record only to demo accounts, and signed out counts as real;
+  - `demo_link_guard` on spaces, cv_projects, posts (project), profiles and experience (company);
+  - the definer functions that read projects or companies are listed in the migration's header.
+- **Tests:** 19 new checks in `34_review_sign_in.test.sql` (80 in all). On the stand-in, with `slice2-app`'s migrations to 38 and then this 34, **all 2,444 SQL checks pass**.
+- **Docs:**
+  - `docs/store/review-sign-in.md`: the new date, B5, and step 11, "try again later" (unlock the counter);
+  - `data-model.md`: the B5 lines.
+- **For the PC:** merge `claude/store-reviewer-b5` (it holds all of `claude/store-reviewer`) into `slice2-app` when the store work is needed. Live, with the founder's yes and as one file: `20261030120000_review_sign_in.sql`. Then the `review-sign-in` function, the secrets and the seed, as the steps say.
+
+**Who has which branch:** the lead made `claude/store-reviewer-b5` (done; nobody on it). `claude/store-reviewer` is superseded by it.
+
 ## PC update: 21 Oct 2026 — review 73 part B on `claude/store-reviewer`
 - **Done, not live:** migration 34 (`20261024120000_review_sign_in.sql`): B1 the atomic try counter, B2 demo and reviewer accounts kept apart; the Edge Function uses the counter; B3 no email code to the reviewer address; B4 test and go-live step 10; step 3 "a new 6-digit code for each submission". See `docs/progress.md` (21 Oct) and data-model "The store reviewers' sign-in".
 - **Numbering:** this is 34; review 71's 3D model views become **35**.
