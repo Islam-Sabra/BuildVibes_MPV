@@ -754,3 +754,68 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - "You" is first and my name isn't listed twice;
   - choosing "You" gives "For you" on the card and puts the item in my To do;
   - a Space admin other than me sees it in Needs you to check once it's Done.
+
+## Build 473 test, slices 3–6 (22 Oct)
+- **Step 8 passed** (Claude Code, on the emulator as Omar). As a Viewer, Omar sees "Viewer · Read only" with no writing card and no camera, only Search and Space info in ⋯, and no "Add a file" in the Library.
+
+## F70. The Library's empty line has no side margin
+- "No files yet. Drawings and photos shared in this Space appear here." touches the screen's edge. **Fix:** 16 px on both sides, as on every screen.
+
+## F71. "Is it a new version of a file?" lists every file (founder)
+- **Seen:** after picking a file, the card lists every Library file it might replace. With 100 files the list is endless.
+- **Fix (rule 6):**
+  - one single choice, **"New file"** / **"New version of a file"** («ملف جديد» / «نسخة جديدة من ملف»), with "New file" chosen at first;
+  - "New version of a file" opens a sheet with **Search files** at the top and the Library's files in use, newest first, so you type a few letters and pick one;
+  - the card then reads "Replaces A-501 · V2" with ✕ to undo.
+
+## F72. Two ways to add a file on the writing card (founder)
+- **Seen:** the paper clip and the ⋯ row both add files, one from the phone and one from the Library, and it's not clear which is which.
+- **Fix:**
+  - **One way in.** The paper clip opens one sheet with Camera, Photos, Files on the phone and **From the Library**;
+  - the ⋯ row no longer adds files.
+- **"To: Everyone" can't be changed on a file:** this is right, because Team-only and person-only files are not in the pilot (founder, 22 Oct). So the row must not look tappable:
+  - "To: Everyone" with no ›;
+  - its sheet, if opened, says "A file goes to the whole Space. To send it to one person, use a direct message."
+
+## F73. A large file while it uploads looks like "no signal" (founder)
+- **Seen:** an 8.7 MB PDF showed the same line as having no signal while it was uploading.
+- **Fix:**
+  - **While it sends with a signal:** "Sending · 3.1 of 8.7 MB" / «يُرسل · 3.1 من 8.7 ميغابايت», with a thin progress line on the card;
+  - **only with no signal:** "Waiting to send".
+- **Test:**
+  - a 9 MB file shows Sending with a growing number;
+  - airplane mode shows Waiting to send.
+
+## F74. "· for receipt" on a file post's header isn't understood (founder)
+- **Fix:**
+  - the header says **"· file"** / «· ملف»;
+  - the kind menu's "Document for receipt" becomes **"File"** / «ملف»;
+  - the request to confirm stays on the card: the **Received** pill, and "Received by …" with faces.
+
+## F75. Versions are numbered by the app; the revision is the document's own (founder)
+- **Seen:** the versions list shows "Version in use" and "Version · Islam Ahmed · today", with no number.
+- **Rule:**
+  - **The app gives every version a number, V1, V2, V3…**, in the order they were added. Nobody can type or change it, and a number is never reused, even after a version is removed (as model views do, migration 27 R3).
+  - **The revision ("Rev C") is optional**, typed from the document itself, and shown after the number when given.
+- **Shown:**
+  - "**V2** · Rev B · in use", then "Islam Ahmed · today";
+  - older ones: "**V1** · Rev A", then "Islam Ahmed · 14 Oct" · Open;
+  - the card's stamp: "NEW VERSION · V2" and "Replaces V1".
+- **Server:** a small migration.
+  - `library_files.version_no`: set on insert as the chain's highest number plus one, under the same lock as the chain, never updated;
+  - existing chains are numbered by `created_at`;
+  - tests: the numbers, a removed middle version doesn't renumber, and two versions added at once get 2 and 3.
+
+## F76. A new version makes a second post: the first one must say so (founder)
+- **Rule:** each version is its own post, because each asks people to receive it.
+- **The older post:**
+  - shows one grey line, "Replaced by V2 · today ›" / «استُبدلت بـ V2 · اليوم ›», which opens the new post;
+  - its Received pill goes, since nobody should confirm an old version;
+  - its file chip reads "V1" in grey.
+- **The Library** shows only the version in use (F75), with the others under Versions.
+
+## F77. "Share in chat" should open the chat with the file ready (founder)
+- **Seen:** sharing showed "Shared to Everyone" and stayed on the file page, so no message could go with the file.
+- **Fix:**
+  - "Share in chat" opens the Space's chat with the file **attached in the message box, not sent**, so words can be added before Send (as in WhatsApp);
+  - the toast goes.
