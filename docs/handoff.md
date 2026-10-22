@@ -2,6 +2,93 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 22 Oct 2026 — review 80 applied (branch `claude/review80`, from `slice2-app` 586e017)
+
+The founder asked to apply review 80 (`docs/reviews/2026-10-22-80-fix-batch-build473.md` on main) in its order, with each item's full text from review 50 (F70–F95). All of it is done, one commit per group, with tests.
+
+**For the PC:** merge `claude/review80` into `slice2-app`, then re-shoot the screenshots there with `--update-goldens` (the pinned note changed, so slice 2's K1 shots differ; this branch did not touch the older folders). The new shots are in `docs/screens/review80/` (36 PNGs, 18 screens in English and Arabic, made with the cloud's fonts; `test_screens/review80_test.dart`).
+
+**A. What the founder tests first:**
+- **F81, live direct messages:**
+  - `DmLiveHost` (in the app shell) follows the inbox app-wide: the Messages list, the Home dot and the tab badge;
+  - it reads again on resume and on a DM push;
+  - a quiet banner shows for a DM push while the app is open, unless that conversation is on screen;
+  - the push function records FCM's answer for each token on the queue row and deletes UNREGISTERED and NOT_FOUND tokens (NOT_FOUND only if another phone in the same send succeeded);
+  - `register_push_token(..., p_install_id)` replaces only the same install's old token.
+- **F78:** New message (Messages' +) and Home's Search people, by name, role or company; the people you share a Space with first, A–Z; blocked and hidden accounts never show.
+- **F92:** each checklist point on the page has its own ⋮⋮, with Turn into and Delete (Undo).
+- **F94:** server only (migration 38).
+- **F83, F87, F91:**
+  - every kind made from a quote keeps it and shows it, the pinned announcement and the checklist's writing card included;
+  - a tap on a Space-chat quote opens that message;
+  - a DM quote has no link, by design: the DM isn't in the Space.
+- **F73:** "Sending · 1.5 of 4.6 MB" with a thin line while a file uploads; "Waiting to send" only with no signal.
+- **F79:** a person on the People tab opens a sheet:
+  - View profile and Message for everyone;
+  - Pass and Remove from Space for the Space admin only;
+  - for yourself, View profile only.
+
+**B. The Library and files:**
+- **F70:** the empty Library keeps its margins.
+- **F71:** a file from the phone is one single choice: New file, or New version of a file (search the files in use; ✕ undoes it).
+- **F72:** the paper clip is the one way to add: Camera, Photos, File from the phone, From the Library.
+- **F74:** the post's header says "· file"; the kind is "File".
+- **F75, F76, F80:**
+  - V1, V2, V3 numbering (server);
+  - NEW VERSION · V2 with REPLACES V1;
+  - the older post says "Replaced by V2 · today ›" and asks nobody for Received;
+  - one version is in use.
+- **F77:** Share in chat puts the file in the message box, ready to send with words.
+
+**D. The page, the writing card and announcements:**
+- **F89:** a table shows its column lines (2 × 2 to start, + column up to 8).
+- **F90:** inside a toggle, Enter starts a new line, and Enter on the empty last line leaves it; there's no "+ Add text".
+- **F93:** one history line per edit session on the card ("You edited the page"): the same person's page-only edits within 10 minutes fold into the latest. The post page still lists every edit.
+  - **Not built:** a separate "Added a work item under this one" line. The server's history has no such event yet; that needs a server change, for slice 7 or the next batch.
+- **F88:** a kept card always shows "Draft", a quoted one too. A card just made from a message is still new.
+- **F82, an announcement pinned until a time:**
+  - after the day, "+ Time" on the writing card opens the phone's 12- or 24-hour picker;
+  - ✕ takes the time away, and the pin then ends with its day, as before;
+  - a time that has passed is refused before sending ("Choose a later time");
+  - the pinned note comes down by itself at its time, with no reload.
+- **F85:**
+  - the pinned note's facts line, under the title and at the main size, reads "Until Friday 16 Oct · 2:00 pm", "Until today · 2:00 pm" (in ink) or "Until today";
+  - the header ends with the time it was posted;
+  - the folded line ends with "until Fri".
+- **F95:** a new walk's "Where" starts at the last walk's place in this Space, on this phone.
+- **Small items:**
+  - Search shows "You" for your own hits; the server now says which hits are yours (`search_space`'s new column `mine`);
+  - the walk's owner picker has no "now".
+
+**C. Migration 38: `20261029120000_review80_batch.sql`. Not live.**
+- What it holds:
+  - F75 `library_files.chain_id` and `version_no`;
+  - F94 walk order;
+  - F86: `ack(got_it)` from the author is refused;
+  - F81 `push_tokens.install_id`, `push_queue.answers`, `finish_push` and `release_push` with answers;
+  - `search_space` with `mine`.
+- Its date comes after migration 34's new date.
+- Tests: `supabase/tests/38_review80_batch.test.sql` (24 checks). Test 19 is now `plan(139)`.
+
+**Checks (cloud):**
+- `flutter analyze`: no issues.
+- `flutter test`: the full run is being counted; see the next commit. The push function tests pass (9).
+- SQL stand-in: **2,362 checks in 36 files pass**, migration 38 included.
+- `flutter test test_screens/review80_test.dart --update-goldens`: 26 pass.
+
+**Not live, nothing deployed, nothing installed.** The order on the PC, each with the founder's yes after the lead checks:
+1. migrations 34, 36 and 37;
+2. migration 38;
+3. **then** deploy the `push` function. It writes `answers` and reads `install_id`, so it must follow migration 38.
+
+An app built from this branch still works against the live database without 38: `install_id` and `mine` are optional.
+
+**Retest order (review 80):** F81, F78, F92, F94, F83/F87, F73, F79, then B and D.
+
+**Who has which branch:**
+- Cloud: `claude/review80` (this work; nobody else on it).
+- PC: as in the 23 Oct PC update below.
+
 ## PC update: 23 Oct 2026 — review 79 applied in `slice2-app`
 
 **Done (one commit per item group):**

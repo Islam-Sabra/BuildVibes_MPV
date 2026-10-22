@@ -692,3 +692,19 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **23 Oct** (cloud, `claude/trial-merge` from `slice2-app`): trial merge of `claude/f68b-f69` and `claude/slice6` (slices 3–6); conflicts only in the ARBs (unioned, gen-l10n), handoff, progress, .gitignore. 1,443 app tests and 2,326 SQL checks pass (photo_privacy H1 fails only as root in the cloud). Review 78, the slice 7 plan (templates and the daily report), with the founder's answers to questions 2–4.
 - **23 Oct** (cloud, `claude/pre-test`): a bug review of slices 3–6 before the founder's phone test (four reviews, each finding checked). About 30 fixes across walk mode, pages, Put in a Space, quotes, Search and the Library, with tests; migration 37 changed (a cancelled row, 3 checks; 2,329 SQL checks pass). The founder's test list: `docs/test/2026-10-23-founder-test-slices-3-6.md`.
 - **23 Oct** (PC, `slice2-app`): review 79 applied. Arabic: «{rev} · الحالية»; no › or ‹ in any ARB value (the who and To rows draw the mirrored caret icon); a card header's 12-hour time on one line beside «صباحًا»; a Latin file name cut at its own end (`BvNameText`); «اقبله كفريق تنفيذ»; one Reply arrow in chat and messages. P1: a walk in progress is kept on the phone from the first photo, `retrieveLostData` on Android, Continue / Throw away on opening the Space. P2: tests that an empty point is dropped at Done. A refused Received shows on the file page. C1: migration 36 takes `p_title` (edited in place, not live); the app turns a point in one call and keeps the item id for a retry. C2: migration 37's Team-walk test. 1,481 app tests, 2,337 SQL checks in 35 files, 279 screenshots pass.
+- **23 Oct** (cloud, `claude/review80` from `slice2-app`): review 80 applied, the fix batch from the build 473 test (review 50, F70–F95).
+  - F81: direct messages live app-wide, with a quiet banner; push answers kept per token; tokens per install.
+  - F78: New message and Search people.
+  - F92: each point gets its own ⋮⋮.
+  - F83, F87, F91: a quote on every kind, opening its chat message.
+  - F73: "Sending · 1.5 of 4.6 MB".
+  - F79: the person sheet.
+  - F70–F77, F80: the Library and files (one-choice New file / New version, the paper clip as the one way to add, V1/V2 numbers, "Replaced by V2", Share in chat into the message box).
+  - F89, F90: table lines; Enter inside a toggle.
+  - F93: one history line per page edit session.
+  - F88: a kept card always shows Draft.
+  - F82, F85: a pin until an optional time, shown on the facts line and on the folded line; it comes down by itself.
+  - F95: the walk's last place.
+  - Small items: Search says You; the walk's picker has no "now".
+  - Migration 38 (not live): version numbers, walk order, the author's Got it refused, push install ids and answers, `search_space.mine`.
+  - Checks: analyze clean; app tests counted in the next commit; 2,362 SQL checks in 36 files. Screenshots EN and AR in `docs/screens/review80/`.
