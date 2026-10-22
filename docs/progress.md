@@ -746,4 +746,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Notifications: F96 keeps trying for the push token, with Settings' line after a day; F97's one follow-up push per quiet time (migration 39 and the push function); daybook-post pushes and Activity rows open the post's card; Activity's six daybook-post kinds.
   - Remind me on notebook notes with the phone's own notifications (`flutter_local_notifications`, `timezone`; Android desugaring and receivers).
   - F98: the person card at the start of a conversation.
-  - Checks: analyze clean; FULLTEST. Stand-in: 2,381 SQL checks pass. Screenshots EN and AR in `docs/screens/slice10/`.
+  - Checks: analyze clean; 1,704 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Stand-in: 2,381 SQL checks pass. Screenshots EN and AR in `docs/screens/slice10/`.

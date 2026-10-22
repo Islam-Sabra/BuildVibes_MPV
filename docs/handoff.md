@@ -47,7 +47,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 
 **Checks:**
 - `flutter analyze`: no issues.
-- `flutter test`: FULLTEST.
+- `flutter test`: **1,704 pass**; 1 fails, photo_privacy H1, which fails only when run as root in the cloud.
 - New tests:
   - `test/features/slice10/`: Activity kinds, F96, F98, Remind me.
   - The no-signal tests in `daybook_loop_test`, `daybook_kinds_test` and `daybook_page_test`.
