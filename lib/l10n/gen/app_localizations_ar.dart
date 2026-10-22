@@ -4337,4 +4337,126 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookPinLater => 'اختر وقتًا لاحقًا';
+
+  @override
+  String get daybookKindReport => 'تقرير يومي';
+
+  @override
+  String get daybookKindReportWord => '· تقرير يومي';
+
+  @override
+  String get dailyReportMenu => 'تقرير يومي';
+
+  @override
+  String get dailyReportOnSite => 'في الموقع';
+
+  @override
+  String get dailyReportDoneToday => 'أنجز اليوم';
+
+  @override
+  String get dailyReportProblems => 'المشكلات';
+
+  @override
+  String get dailyReportOnSiteHint => 'من كان في الموقع، وماذا وصل';
+
+  @override
+  String get dailyReportProblemsHint => 'ما الذي أخّر العمل';
+
+  @override
+  String get dailyReportNothingChecked => 'لم يُتحقق من شيء اليوم بعد';
+
+  @override
+  String get dailyReportTakeOut => 'أخرجه من التقرير';
+
+  @override
+  String get dailyReportNotes => 'ملاحظات اليوم';
+
+  @override
+  String get dailyReportAddNote => 'أضف';
+
+  @override
+  String get dailyReportSharePdf => 'شارك كملف PDF';
+
+  @override
+  String get dailyReportMakingPdf => 'جارٍ تجهيز ملف PDF…';
+
+  @override
+  String get dailyReportPdfFailed => 'تعذّر تجهيز ملف PDF. حاول مرة أخرى.';
+
+  @override
+  String dailyReportPdfBy(String name, String time) {
+    return 'بواسطة $name · $time';
+  }
+
+  @override
+  String dailyReportPdfChecked(String time, String name) {
+    return 'تم التحقق $time بواسطة $name';
+  }
+
+  @override
+  String dailyReportPdfFile(String day) {
+    return 'تقرير يومي $day';
+  }
+
+  @override
+  String get dailyReportTodayOnly =>
+      'التقرير اليومي لليوم فقط. أُزيلت مسودة الأمس.';
+
+  @override
+  String get templateMenu => 'قالب';
+
+  @override
+  String get templatePickTitle => 'ابدأ من قالب';
+
+  @override
+  String get templateSpaceOwn => 'قوالب هذه المساحة';
+
+  @override
+  String templateFrom(String name) {
+    return 'من: $name';
+  }
+
+  @override
+  String get templateDrop => 'بدون قالب';
+
+  @override
+  String get templateSave => 'احفظ كقالب';
+
+  @override
+  String get templateNameTitle => 'سمِّ هذا القالب';
+
+  @override
+  String get templateNameHint => 'اسم القالب';
+
+  @override
+  String get templateSaved => 'حُفظ كقالب';
+
+  @override
+  String templateFull(int count) {
+    return 'لهذه المساحة $count قالبًا، وهو الحد. احذف واحدًا من معلومات المساحة › القوالب لتحفظ غيره.';
+  }
+
+  @override
+  String get templateOpenList => 'افتح القوالب';
+
+  @override
+  String get templatesTitle => 'القوالب';
+
+  @override
+  String get templatesNoneOwn =>
+      'لا قوالب محفوظة في هذه المساحة بعد. يحفظ المسؤول قالبًا من قائمة أي منشور.';
+
+  @override
+  String get templateDelete => 'احذف القالب';
+
+  @override
+  String templateDeleteAsk(String name) {
+    return 'حذف «$name»؟ تبقى المنشورات التي صُنعت منه كما هي.';
+  }
+
+  @override
+  String get templateDeleted => 'حُذف القالب';
+
+  @override
+  String get templateBuiltinDailyReport => 'تقرير يومي';
 }

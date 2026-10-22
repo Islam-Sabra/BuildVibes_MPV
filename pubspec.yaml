@@ -57,6 +57,7 @@ dependencies:
   # F73: a file's upload counts its bytes (already in the lock file).
   http: ^1.6.0
   http_parser: ^4.1.2
+  pdf: ^3.13.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

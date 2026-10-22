@@ -154,6 +154,9 @@ class PendingItem {
     this.quote,
     this.sourceMessageId,
     this.walk = const [],
+    this.templateId,
+    this.blocks,
+    this.points = const [],
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -188,6 +191,15 @@ class PendingItem {
     walk: [
       for (final w in json['walk'] as List? ?? const [])
         WalkLine.fromJson(w as Map<String, dynamic>),
+    ],
+    templateId: json['template_id'] as String?,
+    blocks: (json['blocks'] as List?)?.cast<Map<String, dynamic>>(),
+    points: [
+      for (final p in json['points'] as List? ?? const [])
+        (
+          id: (p as Map<String, dynamic>)['id'] as String,
+          text: p['text'] as String? ?? '',
+        ),
     ],
   );
 
@@ -250,6 +262,12 @@ class PendingItem {
   /// A walk's work items, one per photo in [photos], in order.
   final List<WalkLine> walk;
 
+  /// A new work item's template (slice 7), its page and the points that
+  /// came with it. Other kinds keep theirs on [draft].
+  final String? templateId;
+  final List<Map<String, dynamic>>? blocks;
+  final List<DraftPoint> points;
+
   PendingItem copyWith({
     List<PendingPhoto>? photos,
     List<DraftFile>? files,
@@ -277,6 +295,9 @@ class PendingItem {
     quote: quote,
     sourceMessageId: sourceMessageId,
     walk: walk,
+    templateId: templateId,
+    blocks: blocks,
+    points: points,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -302,6 +323,9 @@ class PendingItem {
     files: files,
     quote: quote,
     walk: walk,
+    templateId: templateId,
+    blocks: blocks,
+    points: points,
   );
 
   /// A new post, of any kind.
@@ -336,6 +360,12 @@ class PendingItem {
     'quote': quote?.toJson(),
     'source_message_id': sourceMessageId,
     if (walk.isNotEmpty) 'walk': [for (final w in walk) w.toJson()],
+    'template_id': ?templateId,
+    'blocks': ?blocks,
+    if (points.isNotEmpty)
+      'points': [
+        for (final p in points) {'id': p.id, 'text': p.text},
+      ],
   };
 
   /// Only the kinds this version knows are read back.
@@ -803,6 +833,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             libraryFileIds: fileIds,
             quote: item.quote,
             sourceMessageId: item.sourceMessageId,
+            templateId: item.templateId,
+            blocks: item.blocks,
+            points: item.points,
           ),
         );
         // The same file twice is one attachment (attach_library_file).
@@ -836,6 +869,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             teamId: d.teamId,
             quote: d.quote,
             sourceMessageId: d.sourceMessageId,
+            templateId: d.templateId,
+            blocks: d.blocks.isEmpty ? null : d.blocks,
           ),
         );
       case PendingKind.signOff:

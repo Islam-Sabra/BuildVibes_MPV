@@ -7279,6 +7279,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a later time'**
   String get daybookPinLater;
+
+  /// The daily report as a kind of post (slice 7, R2).
+  ///
+  /// In en, this message translates to:
+  /// **'Daily report'**
+  String get daybookKindReport;
+
+  /// A daily report's header after its author (R2).
+  ///
+  /// In en, this message translates to:
+  /// **'· daily report'**
+  String get daybookKindReportWord;
+
+  /// Space menu: write today's daily report (Lead and Crew).
+  ///
+  /// In en, this message translates to:
+  /// **'Daily report'**
+  String get dailyReportMenu;
+
+  /// The daily report's first heading (R2).
+  ///
+  /// In en, this message translates to:
+  /// **'On site'**
+  String get dailyReportOnSite;
+
+  /// The daily report's second heading: work checked today (R2).
+  ///
+  /// In en, this message translates to:
+  /// **'Done today'**
+  String get dailyReportDoneToday;
+
+  /// The daily report's third heading (R2).
+  ///
+  /// In en, this message translates to:
+  /// **'Problems'**
+  String get dailyReportProblems;
+
+  /// Hint under On site while writing the daily report. Typed words only; the app never counts people (review 79 Q5).
+  ///
+  /// In en, this message translates to:
+  /// **'Who was on site, and what came in'**
+  String get dailyReportOnSiteHint;
+
+  /// Hint under Problems while writing the daily report.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything that held work up'**
+  String get dailyReportProblemsHint;
+
+  /// Done today, when no work item was checked today.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing checked yet today'**
+  String get dailyReportNothingChecked;
+
+  /// The ✕ on a Done today line while writing (review 78).
+  ///
+  /// In en, this message translates to:
+  /// **'Take it out of the report'**
+  String get dailyReportTakeOut;
+
+  /// While writing the daily report: the day's notes, each with Add, for On site.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s notes'**
+  String get dailyReportNotes;
+
+  /// Adds one of the day's notes to On site.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get dailyReportAddNote;
+
+  /// The pill at the end of a daily report's card (R2).
+  ///
+  /// In en, this message translates to:
+  /// **'Share as PDF'**
+  String get dailyReportSharePdf;
+
+  /// While the daily report's PDF is made on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the PDF…'**
+  String get dailyReportMakingPdf;
+
+  /// The daily report's PDF could not be made.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t make the PDF. Try again.'**
+  String get dailyReportPdfFailed;
+
+  /// The PDF's line under the day: the author and when it was posted.
+  ///
+  /// In en, this message translates to:
+  /// **'By {name} · {time}'**
+  String dailyReportPdfBy(String name, String time);
+
+  /// In the PDF, under a Done today line: when and by whom it was checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {time} by {name}'**
+  String dailyReportPdfChecked(String time, String name);
+
+  /// The shared PDF's file name, before .pdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily report {day}'**
+  String dailyReportPdfFile(String day);
+
+  /// Opening the daily report after midnight with yesterday's draft: it is not kept (founder, question 4).
+  ///
+  /// In en, this message translates to:
+  /// **'A daily report is for today. Yesterday\'s draft was put away.'**
+  String get dailyReportTodayOnly;
+
+  /// The writing card's More menu: start from a template (slice 7).
+  ///
+  /// In en, this message translates to:
+  /// **'Template'**
+  String get templateMenu;
+
+  /// The template picker's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from a template'**
+  String get templatePickTitle;
+
+  /// The template list's heading over the Space's own, after the built-ins (review 79 §1).
+  ///
+  /// In en, this message translates to:
+  /// **'This Space\'s templates'**
+  String get templateSpaceOwn;
+
+  /// The writing card's grey line once a template filled it (review 79 §1).
+  ///
+  /// In en, this message translates to:
+  /// **'From: {name}'**
+  String templateFrom(String name);
+
+  /// The ✕ on the From line: drops the template, keeps what was written.
+  ///
+  /// In en, this message translates to:
+  /// **'Not from a template'**
+  String get templateDrop;
+
+  /// A post's menu (Lead or Space admin): save its words as a template.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template'**
+  String get templateSave;
+
+  /// Save as template: the sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Name this template'**
+  String get templateNameTitle;
+
+  /// Save as template: the name field's hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name'**
+  String get templateNameHint;
+
+  /// After Save as template.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as a template'**
+  String get templateSaved;
+
+  /// Save as template refused at the Space's limit (review 78).
+  ///
+  /// In en, this message translates to:
+  /// **'This Space has its {count} templates. Delete one in Space info › Templates to save another.'**
+  String templateFull(int count);
+
+  /// With templateFull: opens Space info › Templates.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Templates'**
+  String get templateOpenList;
+
+  /// Space info › Templates (Lead or Space admin).
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get templatesTitle;
+
+  /// Space info › Templates with none of the Space's own.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates saved in this Space yet. A Lead saves one from a post\'s menu.'**
+  String get templatesNoneOwn;
+
+  /// Space info › Templates: delete one of the Space's own.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete template'**
+  String get templateDelete;
+
+  /// Asks before deleting a template.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”? Posts made from it stay as they are.'**
+  String templateDeleteAsk(String name);
+
+  /// After a template is deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Template deleted'**
+  String get templateDeleted;
+
+  /// The built-in Daily report template's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily report'**
+  String get templateBuiltinDailyReport;
 }
 
 class _AppLocalizationsDelegate

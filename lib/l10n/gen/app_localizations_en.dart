@@ -4328,4 +4328,126 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookPinLater => 'Choose a later time';
+
+  @override
+  String get daybookKindReport => 'Daily report';
+
+  @override
+  String get daybookKindReportWord => '· daily report';
+
+  @override
+  String get dailyReportMenu => 'Daily report';
+
+  @override
+  String get dailyReportOnSite => 'On site';
+
+  @override
+  String get dailyReportDoneToday => 'Done today';
+
+  @override
+  String get dailyReportProblems => 'Problems';
+
+  @override
+  String get dailyReportOnSiteHint => 'Who was on site, and what came in';
+
+  @override
+  String get dailyReportProblemsHint => 'Anything that held work up';
+
+  @override
+  String get dailyReportNothingChecked => 'Nothing checked yet today';
+
+  @override
+  String get dailyReportTakeOut => 'Take it out of the report';
+
+  @override
+  String get dailyReportNotes => 'Today\'s notes';
+
+  @override
+  String get dailyReportAddNote => 'Add';
+
+  @override
+  String get dailyReportSharePdf => 'Share as PDF';
+
+  @override
+  String get dailyReportMakingPdf => 'Making the PDF…';
+
+  @override
+  String get dailyReportPdfFailed => 'Couldn\'t make the PDF. Try again.';
+
+  @override
+  String dailyReportPdfBy(String name, String time) {
+    return 'By $name · $time';
+  }
+
+  @override
+  String dailyReportPdfChecked(String time, String name) {
+    return 'Checked $time by $name';
+  }
+
+  @override
+  String dailyReportPdfFile(String day) {
+    return 'Daily report $day';
+  }
+
+  @override
+  String get dailyReportTodayOnly =>
+      'A daily report is for today. Yesterday\'s draft was put away.';
+
+  @override
+  String get templateMenu => 'Template';
+
+  @override
+  String get templatePickTitle => 'Start from a template';
+
+  @override
+  String get templateSpaceOwn => 'This Space\'s templates';
+
+  @override
+  String templateFrom(String name) {
+    return 'From: $name';
+  }
+
+  @override
+  String get templateDrop => 'Not from a template';
+
+  @override
+  String get templateSave => 'Save as template';
+
+  @override
+  String get templateNameTitle => 'Name this template';
+
+  @override
+  String get templateNameHint => 'Template name';
+
+  @override
+  String get templateSaved => 'Saved as a template';
+
+  @override
+  String templateFull(int count) {
+    return 'This Space has its $count templates. Delete one in Space info › Templates to save another.';
+  }
+
+  @override
+  String get templateOpenList => 'Open Templates';
+
+  @override
+  String get templatesTitle => 'Templates';
+
+  @override
+  String get templatesNoneOwn =>
+      'No templates saved in this Space yet. A Lead saves one from a post\'s menu.';
+
+  @override
+  String get templateDelete => 'Delete template';
+
+  @override
+  String templateDeleteAsk(String name) {
+    return 'Delete “$name”? Posts made from it stay as they are.';
+  }
+
+  @override
+  String get templateDeleted => 'Template deleted';
+
+  @override
+  String get templateBuiltinDailyReport => 'Daily report';
 }

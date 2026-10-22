@@ -434,6 +434,9 @@ enum SpaceFailure {
 
   /// 23505: a Team with that name already exists.
   duplicate,
+
+  /// 54000: a Space has all it may hold (50 templates).
+  limit,
   network,
   unknown,
 }

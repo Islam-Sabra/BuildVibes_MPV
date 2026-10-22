@@ -142,12 +142,14 @@ class NewSpacePost {
     this.teamId,
     this.quote,
     this.sourceMessageId,
+    this.templateId,
+    this.blocks,
   });
 
   final String id;
   final String spaceId;
 
-  /// 'note', 'checklist', 'announcement', 'activity' or 'file'.
+  /// 'note', 'checklist', 'announcement', 'activity', 'file' or 'report'.
   final String kind;
 
   /// A Team it goes to; null, Everyone (F56).
@@ -177,6 +179,11 @@ class NewSpacePost {
 
   /// Library files added with 📎 (F39), as the post's own files.
   final List<String> attachedFileIds;
+
+  /// The template it started from (slice 7), and its page as written:
+  /// headings in words, never keys.
+  final String? templateId;
+  final List<Map<String, dynamic>>? blocks;
 
   /// What create_space_post takes.
   Map<String, Object?> toParams() {
@@ -211,6 +218,8 @@ class NewSpacePost {
       ],
       'p_quote': ?quote?.toJson(),
       'p_source_message': ?sourceMessageId,
+      'p_template': ?templateId,
+      'p_blocks': ?blocks,
     };
   }
 }
@@ -312,12 +321,21 @@ class NewWorkItem {
     this.libraryFileIds = const [],
     this.quote,
     this.sourceMessageId,
+    this.templateId,
+    this.blocks,
+    this.points = const [],
   });
 
   final String id;
   final String spaceId;
   final String title;
   final String ownerId;
+
+  /// The template it started from (slice 7), its page, and the points
+  /// that came with it (each with the id the app chose).
+  final String? templateId;
+  final List<Map<String, dynamic>>? blocks;
+  final List<({String id, String text})> points;
 
   /// The message it is made from (review 64). The server checks the
   /// caller may read a [sourceMessageId] and keeps a Team's in its Team.
@@ -517,6 +535,12 @@ class SupabaseDaybookRepository implements DaybookRepository {
         ],
         'p_quote': ?item.quote?.toJson(),
         'p_source_message': ?item.sourceMessageId,
+        'p_template': ?item.templateId,
+        'p_blocks': ?item.blocks,
+        if (item.points.isNotEmpty)
+          'p_points': [
+            for (final p in item.points) {'id': p.id, 'text': p.text.trim()},
+          ],
       },
     ),
   );

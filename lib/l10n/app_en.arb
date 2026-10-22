@@ -6244,5 +6244,185 @@
   "daybookPinLater": "Choose a later time",
   "@daybookPinLater": {
     "description": "A pin's time that has already passed is refused (F82)."
+  },
+  "daybookKindReport": "Daily report",
+  "@daybookKindReport": {
+    "description": "The daily report as a kind of post (slice 7, R2)."
+  },
+  "daybookKindReportWord": "· daily report",
+  "@daybookKindReportWord": {
+    "description": "A daily report's header after its author (R2)."
+  },
+  "dailyReportMenu": "Daily report",
+  "@dailyReportMenu": {
+    "description": "Space menu: write today's daily report (Lead and Crew)."
+  },
+  "dailyReportOnSite": "On site",
+  "@dailyReportOnSite": {
+    "description": "The daily report's first heading (R2)."
+  },
+  "dailyReportDoneToday": "Done today",
+  "@dailyReportDoneToday": {
+    "description": "The daily report's second heading: work checked today (R2)."
+  },
+  "dailyReportProblems": "Problems",
+  "@dailyReportProblems": {
+    "description": "The daily report's third heading (R2)."
+  },
+  "dailyReportOnSiteHint": "Who was on site, and what came in",
+  "@dailyReportOnSiteHint": {
+    "description": "Hint under On site while writing the daily report. Typed words only; the app never counts people (review 79 Q5)."
+  },
+  "dailyReportProblemsHint": "Anything that held work up",
+  "@dailyReportProblemsHint": {
+    "description": "Hint under Problems while writing the daily report."
+  },
+  "dailyReportNothingChecked": "Nothing checked yet today",
+  "@dailyReportNothingChecked": {
+    "description": "Done today, when no work item was checked today."
+  },
+  "dailyReportTakeOut": "Take it out of the report",
+  "@dailyReportTakeOut": {
+    "description": "The ✕ on a Done today line while writing (review 78)."
+  },
+  "dailyReportNotes": "Today's notes",
+  "@dailyReportNotes": {
+    "description": "While writing the daily report: the day's notes, each with Add, for On site."
+  },
+  "dailyReportAddNote": "Add",
+  "@dailyReportAddNote": {
+    "description": "Adds one of the day's notes to On site."
+  },
+  "dailyReportSharePdf": "Share as PDF",
+  "@dailyReportSharePdf": {
+    "description": "The pill at the end of a daily report's card (R2)."
+  },
+  "dailyReportMakingPdf": "Making the PDF…",
+  "@dailyReportMakingPdf": {
+    "description": "While the daily report's PDF is made on the phone."
+  },
+  "dailyReportPdfFailed": "Couldn't make the PDF. Try again.",
+  "@dailyReportPdfFailed": {
+    "description": "The daily report's PDF could not be made."
+  },
+  "dailyReportPdfBy": "By {name} · {time}",
+  "@dailyReportPdfBy": {
+    "description": "The PDF's line under the day: the author and when it was posted.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyReportPdfChecked": "Checked {time} by {name}",
+  "@dailyReportPdfChecked": {
+    "description": "In the PDF, under a Done today line: when and by whom it was checked.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyReportPdfFile": "Daily report {day}",
+  "@dailyReportPdfFile": {
+    "description": "The shared PDF's file name, before .pdf.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyReportTodayOnly": "A daily report is for today. Yesterday's draft was put away.",
+  "@dailyReportTodayOnly": {
+    "description": "Opening the daily report after midnight with yesterday's draft: it is not kept (founder, question 4)."
+  },
+  "templateMenu": "Template",
+  "@templateMenu": {
+    "description": "The writing card's More menu: start from a template (slice 7)."
+  },
+  "templatePickTitle": "Start from a template",
+  "@templatePickTitle": {
+    "description": "The template picker's title."
+  },
+  "templateSpaceOwn": "This Space's templates",
+  "@templateSpaceOwn": {
+    "description": "The template list's heading over the Space's own, after the built-ins (review 79 §1)."
+  },
+  "templateFrom": "From: {name}",
+  "@templateFrom": {
+    "description": "The writing card's grey line once a template filled it (review 79 §1).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "templateDrop": "Not from a template",
+  "@templateDrop": {
+    "description": "The ✕ on the From line: drops the template, keeps what was written."
+  },
+  "templateSave": "Save as template",
+  "@templateSave": {
+    "description": "A post's menu (Lead or Space admin): save its words as a template."
+  },
+  "templateNameTitle": "Name this template",
+  "@templateNameTitle": {
+    "description": "Save as template: the sheet's title."
+  },
+  "templateNameHint": "Template name",
+  "@templateNameHint": {
+    "description": "Save as template: the name field's hint."
+  },
+  "templateSaved": "Saved as a template",
+  "@templateSaved": {
+    "description": "After Save as template."
+  },
+  "templateFull": "This Space has its {count} templates. Delete one in Space info › Templates to save another.",
+  "@templateFull": {
+    "description": "Save as template refused at the Space's limit (review 78).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "templateOpenList": "Open Templates",
+  "@templateOpenList": {
+    "description": "With templateFull: opens Space info › Templates."
+  },
+  "templatesTitle": "Templates",
+  "@templatesTitle": {
+    "description": "Space info › Templates (Lead or Space admin)."
+  },
+  "templatesNoneOwn": "No templates saved in this Space yet. A Lead saves one from a post's menu.",
+  "@templatesNoneOwn": {
+    "description": "Space info › Templates with none of the Space's own."
+  },
+  "templateDelete": "Delete template",
+  "@templateDelete": {
+    "description": "Space info › Templates: delete one of the Space's own."
+  },
+  "templateDeleteAsk": "Delete “{name}”? Posts made from it stay as they are.",
+  "@templateDeleteAsk": {
+    "description": "Asks before deleting a template.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "templateDeleted": "Template deleted",
+  "@templateDeleted": {
+    "description": "After a template is deleted."
+  },
+  "templateBuiltinDailyReport": "Daily report",
+  "@templateBuiltinDailyReport": {
+    "description": "The built-in Daily report template's name."
   }
 }

@@ -11,6 +11,7 @@ String spaceErrorText(AppLocalizations l10n, SpaceException e) =>
       SpaceFailure.rule ||
       SpaceFailure.badInput ||
       SpaceFailure.duplicate ||
+      SpaceFailure.limit ||
       SpaceFailure.unknown => l10n.errorGeneric,
     };
 

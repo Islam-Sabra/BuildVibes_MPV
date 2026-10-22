@@ -557,6 +557,7 @@ SpaceFailure spaceFailureFor(String? code) => switch (code) {
   'P0001' => SpaceFailure.rule,
   '22023' || '23514' || '22001' => SpaceFailure.badInput,
   '23505' => SpaceFailure.duplicate,
+  '54000' => SpaceFailure.limit,
   _ => SpaceFailure.unknown,
 };
 

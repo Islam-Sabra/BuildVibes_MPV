@@ -365,6 +365,7 @@ String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
   DaybookKind.activity => l10n.daybookKindActivity,
   // F50: named for what it does; the kind stays `file` on the server.
   DaybookKind.file => l10n.daybookKindDocument,
+  DaybookKind.report => l10n.daybookKindReport,
 };
 
 /// The kind menu's icon for [kind] (E6 v14 2598:36360).
@@ -375,6 +376,7 @@ IconData kindIcon(DaybookKind kind) => switch (kind) {
   DaybookKind.announcement => BvIcons.info,
   DaybookKind.activity => BvIcons.due,
   DaybookKind.file => BvIcons.document,
+  DaybookKind.report => BvIcons.clipboard,
 };
 
 /// Writing in one Space: the card's changes, its photos and files, the
@@ -701,7 +703,8 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     DaybookKind.activity => l10n.daybookBodyActivity,
     DaybookKind.note ||
     DaybookKind.checklist ||
-    DaybookKind.file => l10n.daybookBodyNote,
+    DaybookKind.file ||
+    DaybookKind.report => l10n.daybookBodyNote,
   };
 
   /// Under the words: a checklist's points, and the message it is made
@@ -1381,6 +1384,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
       ],
       // F72: one way to add a file, the paper clip.
       DaybookKind.file => const [],
+      DaybookKind.report => const [],
     };
   }
 

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
 import '../../data/models/daybook.dart';
+import '../../data/models/template.dart';
 import '../entry/entry_state.dart';
 import 'work_outbox.dart';
 
@@ -18,7 +19,11 @@ enum DaybookKind {
   checklist(DaybookPost.checklistKind),
   announcement(DaybookPost.announcementKind),
   activity(DaybookPost.activityKind),
-  file(DaybookPost.fileKind);
+  file(DaybookPost.fileKind),
+
+  /// A daily report (slice 7): started from the Space menu, never from the
+  /// kind menu.
+  report(DaybookPost.reportKind);
 
   const DaybookKind(this.json);
   final String json;
@@ -149,6 +154,15 @@ class DaybookPostDraft {
     this.couldNotSend = false,
     this.quote,
     this.sourceMessageId,
+    this.templateId,
+    this.templateName,
+    this.blocks = const [],
+    this.reportDay,
+    this.onSite = '',
+    this.problems = '',
+    this.refs = const [],
+    this.notes = const [],
+    this.refsOut = const [],
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -193,6 +207,24 @@ class DaybookPostDraft {
         couldNotSend: json['could_not_send'] as bool? ?? false,
         quote: DaybookQuote.fromJson(json['quote']),
         sourceMessageId: json['source_message_id'] as String?,
+        templateId: json['template_id'] as String?,
+        templateName: json['template_name'] as String?,
+        blocks: [
+          for (final b in json['blocks'] as List? ?? const [])
+            b as Map<String, dynamic>,
+        ],
+        reportDay: _day(json['report_day']),
+        onSite: json['on_site'] as String? ?? '',
+        problems: json['problems'] as String? ?? '',
+        refs: [
+          for (final r in json['refs'] as List? ?? const [])
+            ReportRef.fromJson(r as Map<String, dynamic>),
+        ],
+        notes: [
+          for (final r in json['notes'] as List? ?? const [])
+            ReportRef.fromJson(r as Map<String, dynamic>),
+        ],
+        refsOut: [for (final r in json['refs_out'] as List? ?? const []) '$r'],
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -299,6 +331,30 @@ class DaybookPostDraft {
   final DaybookQuote? quote;
   final String? sourceMessageId;
 
+  /// The template it started from (slice 7), named on the card as "From:
+  /// Concrete pour check"; [blocks] its page, as the template keeps it.
+  final String? templateId;
+  final String? templateName;
+  final List<Map<String, dynamic>> blocks;
+
+  /// A daily report (slice 7): its day (today only), what was on site,
+  /// the work checked today ([refs], from daily_report_fill), the day's
+  /// notes added under On site, the work items taken out of it (so a new
+  /// fill leaves them out), and the problems.
+  final DateTime? reportDay;
+  final String onSite;
+  final String problems;
+  final List<ReportRef> refs;
+  final List<ReportRef> notes;
+  final List<String> refsOut;
+
+  /// The Done today lines that go: the day's checked work, less what was
+  /// taken out.
+  List<ReportRef> get refsIn => [
+    for (final r in refs)
+      if (!refsOut.contains(r.postId)) r,
+  ];
+
   int get _titleMax => kind == DaybookKind.workItem ? titleMax : postTitleMax;
 
   /// What the title box takes.
@@ -313,19 +369,27 @@ class DaybookPostDraft {
   /// Nothing entered at all: no draft (the card just closes). A photo, an
   /// owner, a date or a place alone is kept (review 46: the photo often
   /// comes first).
-  bool get isEmpty =>
-      title.trim().isEmpty &&
-      body.trim().isEmpty &&
-      ownerId == null &&
-      place == null &&
-      dueDate == null &&
-      photos.isEmpty &&
-      people.isEmpty &&
-      writtenPoints.isEmpty &&
-      pinnedUntil == null &&
-      startsAt == null &&
-      files.isEmpty &&
-      quote == null;
+  bool get isEmpty => kind == DaybookKind.report
+      // A report's day and its checked work fill themselves: it is kept
+      // once something is written or added.
+      ? onSite.trim().isEmpty &&
+            problems.trim().isEmpty &&
+            notes.isEmpty &&
+            photos.isEmpty &&
+            files.isEmpty &&
+            refsOut.isEmpty
+      : title.trim().isEmpty &&
+            body.trim().isEmpty &&
+            ownerId == null &&
+            place == null &&
+            dueDate == null &&
+            photos.isEmpty &&
+            people.isEmpty &&
+            writtenPoints.isEmpty &&
+            pinnedUntil == null &&
+            startsAt == null &&
+            files.isEmpty &&
+            quote == null;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
   /// message, not a Draft left from before.
@@ -383,8 +447,28 @@ class DaybookPostDraft {
     ({String id, String name})? Function()? team,
     DaybookQuote? Function()? quote,
     String? Function()? sourceMessageId,
+    ({String id, String name, List<Map<String, dynamic>> blocks})? Function()?
+    template,
+    DateTime? Function()? reportDay,
+    String? onSite,
+    String? problems,
+    List<ReportRef>? refs,
+    List<ReportRef>? notes,
+    List<String>? refsOut,
+    List<Map<String, dynamic>>? blocks,
     bool refused = false,
   }) => DaybookPostDraft(
+    templateId: template == null ? templateId : template()?.id,
+    templateName: template == null ? templateName : template()?.name,
+    blocks:
+        blocks ??
+        (template == null ? this.blocks : template()?.blocks ?? this.blocks),
+    reportDay: reportDay == null ? this.reportDay : reportDay(),
+    onSite: onSite ?? this.onSite,
+    problems: problems ?? this.problems,
+    refs: refs ?? this.refs,
+    notes: notes ?? this.notes,
+    refsOut: refsOut ?? this.refsOut,
     quote: quote == null ? this.quote : quote(),
     sourceMessageId: sourceMessageId == null
         ? this.sourceMessageId
@@ -436,6 +520,15 @@ class DaybookPostDraft {
     'could_not_send': couldNotSend,
     'quote': quote?.toJson(),
     'source_message_id': sourceMessageId,
+    'template_id': templateId,
+    'template_name': templateName,
+    'blocks': blocks,
+    'report_day': reportDay?.toIso8601String(),
+    'on_site': onSite,
+    'problems': problems,
+    'refs': [for (final r in refs) r.toJson()],
+    'notes': [for (final r in notes) r.toJson()],
+    'refs_out': refsOut,
   };
 }
 

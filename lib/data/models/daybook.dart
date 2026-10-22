@@ -381,6 +381,8 @@ class DaybookPost {
     this.hasPage = false,
     this.parentId,
     this.children,
+    this.blocks = const [],
+    this.refs = const {},
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -440,6 +442,18 @@ class DaybookPost {
       hasPage: json['has_page'] as bool? ?? false,
       parentId: json['parent_id'] as String?,
       children: DaybookChildren.fromJson(json['children']),
+      // A report draws its page on its card (R2); other kinds open it.
+      blocks: json['kind'] == reportKind
+          ? [
+              for (final b in json['blocks'] as List? ?? const [])
+                Map<String, dynamic>.unmodifiable(b as Map<String, dynamic>),
+            ]
+          : const [],
+      refs: {
+        for (final e
+            in (json['refs'] as Map<String, dynamic>? ?? const {}).entries)
+          e.key: DaybookRef.fromJson(e.value as Map<String, dynamic>),
+      },
     );
   }
 
@@ -452,8 +466,11 @@ class DaybookPost {
   static const activityKind = 'activity';
   static const fileKind = 'file';
 
-  /// The kinds the daybook draws; a report (slice 7) or a kind this
-  /// version doesn't know is kept for paging only.
+  /// A daily report (slice 7, R2).
+  static const reportKind = 'report';
+
+  /// The kinds the daybook draws; a kind this version doesn't know is
+  /// kept for paging only.
   static const shownKinds = {
     noteKind,
     workItemKind,
@@ -461,6 +478,7 @@ class DaybookPost {
     announcementKind,
     activityKind,
     fileKind,
+    reportKind,
   };
 
   final String id;
@@ -541,6 +559,15 @@ class DaybookPost {
   /// The work items under it: a target's card shows them as rows.
   final DaybookChildren? children;
 
+  /// A report's page, as the server keeps it (only a report's is read).
+  final List<Map<String, dynamic>> blocks;
+
+  /// A report's work items and notes, by id, as this reader may see them;
+  /// one the reader can't see isn't here, and isn't shown (review 78).
+  final Map<String, DaybookRef> refs;
+
+  bool get isReport => kind == reportKind;
+
   /// A walk or meeting notes (is_target): its work items are on its card,
   /// nobody signs or checks it, its progress is theirs.
   bool get isTarget => children?.target ?? false;
@@ -616,6 +643,8 @@ class DaybookPost {
     hasPage: hasPage,
     parentId: parentId,
     children: children ?? this.children,
+    blocks: blocks,
+    refs: refs,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
@@ -1164,4 +1193,62 @@ class DaybookChildren {
     target: target,
     rows: rows,
   );
+}
+
+/// A work item or a note on a daily report (`refs`, migrations 20 and 30),
+/// as the reader may see it.
+@immutable
+class DaybookRef {
+  const DaybookRef({
+    required this.title,
+    this.isNote = false,
+    this.cancelled = false,
+    this.ref,
+    this.itemStatus,
+    this.ownerName,
+    this.checkedAt,
+    this.checkerName,
+    this.authorName,
+    this.createdAt,
+    this.photoPath,
+  });
+
+  factory DaybookRef.fromJson(Map<String, dynamic> json) {
+    final note = json['kind'] == DaybookPost.noteKind;
+    return DaybookRef(
+      title: json['title'] as String? ?? '',
+      isNote: note,
+      cancelled: json['status'] == 'cancelled',
+      ref: json['ref'] as String?,
+      itemStatus: json['item_status'] == null
+          ? null
+          : WorkStatus.fromJson(json['item_status']),
+      ownerName: json['owner_name'] as String?,
+      checkedAt: _time(json['checked_at']),
+      checkerName: json['checker_name'] as String?,
+      authorName: json['author_name'] as String?,
+      createdAt: _time(json['created_at']),
+      photoPath: (note ? json['photo_path'] : json['done_photo_path'])
+          as String?,
+    );
+  }
+
+  final String title;
+  final bool isNote;
+  final bool cancelled;
+  final String? ref;
+  final WorkStatus? itemStatus;
+  final String? ownerName;
+  final DateTime? checkedAt;
+  final String? checkerName;
+
+  /// A note's author and when it was posted.
+  final String? authorName;
+  final DateTime? createdAt;
+
+  /// The work item's Done photo, or the note's first photo.
+  final String? photoPath;
+
+  /// The time on its line: when it was checked, or the note posted.
+  DateTime? get at => isNote ? createdAt : checkedAt;
 }
