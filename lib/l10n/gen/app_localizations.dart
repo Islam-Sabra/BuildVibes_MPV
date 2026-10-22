@@ -7501,6 +7501,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post or put away the card you\'re writing first.'**
   String get dailyReportDraftFirst;
+
+  /// My notebook's header and Home's list-checks icon (NB1).
+  ///
+  /// In en, this message translates to:
+  /// **'My notebook'**
+  String get notebookTitle;
+
+  /// The pill in My notebook's header: nobody else sees it.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you'**
+  String get notebookOnlyYou;
+
+  /// What the Only you pill says when tapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you can see your notebook. Nothing here goes to a Space until you put it there.'**
+  String get notebookOnlyYouBody;
+
+  /// The notebook's post bar, and the plain kind of note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get notebookNote;
+
+  /// A to-do note: its kind, and its label in My calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'To-do'**
+  String get notebookTodo;
+
+  /// A voice note's kind on its slip.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get notebookVoice;
+
+  /// A note's first line: its kind and the time it was written.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} · {time}'**
+  String notebookSlipHead(String kind, String time);
+
+  /// The empty notebook (N2).
+  ///
+  /// In en, this message translates to:
+  /// **'Your private working area'**
+  String get notebookEmptyTitle;
+
+  /// The empty notebook's words (N2).
+  ///
+  /// In en, this message translates to:
+  /// **'Keep notes, checklists and to-dos for your work. Only you can see them.'**
+  String get notebookEmptyBody;
+
+  /// The words box when writing a note.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a note'**
+  String get notebookWriteHint;
+
+  /// A checklist note's title box.
+  ///
+  /// In en, this message translates to:
+  /// **'What is the checklist for?'**
+  String get notebookChecklistHint;
+
+  /// A to-do note's words box.
+  ///
+  /// In en, this message translates to:
+  /// **'What to do'**
+  String get notebookTodoHint;
+
+  /// A new point on a checklist note.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a point'**
+  String get notebookPointHint;
+
+  /// A to-do's day and time, while writing it.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get notebookWhen;
+
+  /// A to-do with no time yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Any time'**
+  String get notebookNoTime;
+
+  /// A note's menu: it shows above the others.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to the top'**
+  String get notebookPinTop;
+
+  /// Delete asks first (N7).
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this note?'**
+  String get notebookDeleteTitle;
+
+  /// Delete asks first (N7).
+  ///
+  /// In en, this message translates to:
+  /// **'It goes from your notebook. A post you put in a Space stays there.'**
+  String get notebookDeleteBody;
+
+  /// A note's quiet line once it was put in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Went into a Space'**
+  String get notebookPut;
+
+  /// After Save to my notebook on a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to your notebook'**
+  String get notebookSaved;
+
+  /// Holding a message: keep its words as a note.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to my notebook'**
+  String get notebookSaveMessage;
+
+  /// Put in a Space with no Space to post in.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re not yet in a Space where you can add work.'**
+  String get notebookPutNone;
+
+  /// A recording shorter than a second.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold longer to record'**
+  String get notebookTooShort;
+
+  /// My calendar's header (CAL1).
+  ///
+  /// In en, this message translates to:
+  /// **'My calendar'**
+  String get calendarTitle;
+
+  /// Under the month in My calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Spaces and your notebook, together'**
+  String get calendarSubtitle;
+
+  /// A row with a day but no time.
+  ///
+  /// In en, this message translates to:
+  /// **'All day'**
+  String get calendarAllDay;
+
+  /// A work item waiting on me.
+  ///
+  /// In en, this message translates to:
+  /// **'Due for you'**
+  String get calendarDueForYou;
+
+  /// A work item or checklist due today.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get calendarDueToday;
+
+  /// A work item or checklist due on another day.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get calendarDue;
+
+  /// A work item I wrote, signed as done, waiting for my check.
+  ///
+  /// In en, this message translates to:
+  /// **'Done, to check'**
+  String get calendarToCheck;
+
+  /// A scheduled activity's row.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get calendarScheduled;
+
+  /// An empty week in My calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned this week'**
+  String get calendarEmpty;
+
+  /// An empty week in My calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Work items, checklists and activities from your Spaces, and your to-dos, show here.'**
+  String get calendarEmptyBody;
+
+  /// Swipe or tap: the week before.
+  ///
+  /// In en, this message translates to:
+  /// **'Week before'**
+  String get calendarWeekBefore;
+
+  /// Swipe or tap: the week after.
+  ///
+  /// In en, this message translates to:
+  /// **'Week after'**
+  String get calendarWeekAfter;
+
+  /// My notebook couldn't be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your notebook'**
+  String get notebookCouldntLoad;
+
+  /// My calendar couldn't be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load your calendar'**
+  String get calendarCouldntLoad;
 }
 
 class _AppLocalizationsDelegate

@@ -16,6 +16,8 @@ class BvPostBar extends StatelessWidget {
     this.onCamera,
     this.onProve,
     this.cameraLabel,
+    this.field,
+    this.end,
   }) : passLabel = null,
        readOnly = null,
        passTone = BvPassTone.viewer;
@@ -29,7 +31,9 @@ class BvPostBar extends StatelessWidget {
        onWrite = null,
        onCamera = null,
        onProve = null,
-       cameraLabel = null;
+       cameraLabel = null,
+       field = null,
+       end = null;
 
   /// "Work item".
   final String? placeholder;
@@ -43,6 +47,12 @@ class BvPostBar extends StatelessWidget {
 
   /// What a screen reader says for the camera button.
   final String? cameraLabel;
+
+  /// In place of the notepad (My notebook's recording bar, slice 8).
+  final Widget? field;
+
+  /// In place of the camera (My notebook's mic, slice 8).
+  final Widget? end;
 
   /// Viewer form: "Viewer" and "Read only". Someone else who may not post
   /// (a Crew pass with posting locked) sees only their pass (review 67).
@@ -105,68 +115,71 @@ class BvPostBar extends StatelessWidget {
           children: [
             // The 44 notepad's touch area reaches 48 into the bar's padding.
             Expanded(
-              child: BvTapTarget(
-                child: Material(
-                  key: const Key('post-bar-notepad'),
-                  color: BvColors.surfaceSubtle,
-                  borderRadius: BvPostBarSpec.notepadRadius,
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: onWrite,
-                    child: SizedBox(
-                      height: BvPostBarSpec.notepadHeight,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.symmetric(
-                          horizontal: BvPostBarSpec.notepadPadding,
-                        ),
-                        child: Row(
-                          spacing: BvPostBarSpec.notepadGap,
-                          children: [
-                            const Icon(
-                              BvIcons.workItems,
-                              size: BvPostBarSpec.notepadIcon,
-                              color: BvColors.iconPrimary,
+              child:
+                  field ??
+                  BvTapTarget(
+                    child: Material(
+                      key: const Key('post-bar-notepad'),
+                      color: BvColors.surfaceSubtle,
+                      borderRadius: BvPostBarSpec.notepadRadius,
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: onWrite,
+                        child: SizedBox(
+                          height: BvPostBarSpec.notepadHeight,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.symmetric(
+                              horizontal: BvPostBarSpec.notepadPadding,
                             ),
-                            Expanded(
-                              child: Text(
-                                placeholder!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: type.bodyMd.copyWith(
-                                  color: BvColors.textSecondary,
+                            child: Row(
+                              spacing: BvPostBarSpec.notepadGap,
+                              children: [
+                                const Icon(
+                                  BvIcons.workItems,
+                                  size: BvPostBarSpec.notepadIcon,
+                                  color: BvColors.iconPrimary,
                                 ),
-                              ),
+                                Expanded(
+                                  child: Text(
+                                    placeholder!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: type.bodyMd.copyWith(
+                                      color: BvColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+            ),
+            end ??
+                Semantics(
+                  button: true,
+                  label: cameraLabel,
+                  child: Material(
+                    key: const Key('post-bar-camera'),
+                    color: BvColors.actionPrimary,
+                    shape: const CircleBorder(),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: onCamera,
+                      onLongPress: onProve,
+                      child: const SizedBox.square(
+                        dimension: BvPostBarSpec.cameraSize,
+                        child: Icon(
+                          BvIcons.camera,
+                          size: BvPostBarSpec.cameraIcon,
+                          color: BvColors.iconInverse,
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            Semantics(
-              button: true,
-              label: cameraLabel,
-              child: Material(
-                key: const Key('post-bar-camera'),
-                color: BvColors.actionPrimary,
-                shape: const CircleBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: onCamera,
-                  onLongPress: onProve,
-                  child: const SizedBox.square(
-                    dimension: BvPostBarSpec.cameraSize,
-                    child: Icon(
-                      BvIcons.camera,
-                      size: BvPostBarSpec.cameraIcon,
-                      color: BvColors.iconInverse,
-                    ),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

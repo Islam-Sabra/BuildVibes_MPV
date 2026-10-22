@@ -270,4 +270,11 @@ abstract final class BvIcons {
   static const dragHandle = IconData(0xeae2, fontFamily: _family);
   // Phosphor: square (a point not ticked, while the page is edited)
   static const checkbox = IconData(0xe45e, fontFamily: _family);
+
+  // Planning (slice 8)
+  // Phosphor: list-checks. Home's way into My notebook (H1), as the
+  // notebook's own post bar shows it.
+  static const myNotebook = workItems;
+  // Phosphor: notebook. The empty notebook (N2).
+  static const notebook = IconData(0xe34e, fontFamily: _family);
 }

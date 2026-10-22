@@ -4454,4 +4454,122 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dailyReportDraftFirst =>
       'Post or put away the card you\'re writing first.';
+
+  @override
+  String get notebookTitle => 'My notebook';
+
+  @override
+  String get notebookOnlyYou => 'Only you';
+
+  @override
+  String get notebookOnlyYouBody =>
+      'Only you can see your notebook. Nothing here goes to a Space until you put it there.';
+
+  @override
+  String get notebookNote => 'Note';
+
+  @override
+  String get notebookTodo => 'To-do';
+
+  @override
+  String get notebookVoice => 'Voice note';
+
+  @override
+  String notebookSlipHead(String kind, String time) {
+    return '$kind · $time';
+  }
+
+  @override
+  String get notebookEmptyTitle => 'Your private working area';
+
+  @override
+  String get notebookEmptyBody =>
+      'Keep notes, checklists and to-dos for your work. Only you can see them.';
+
+  @override
+  String get notebookWriteHint => 'Write a note';
+
+  @override
+  String get notebookChecklistHint => 'What is the checklist for?';
+
+  @override
+  String get notebookTodoHint => 'What to do';
+
+  @override
+  String get notebookPointHint => 'Add a point';
+
+  @override
+  String get notebookWhen => 'When';
+
+  @override
+  String get notebookNoTime => 'Any time';
+
+  @override
+  String get notebookPinTop => 'Pin to the top';
+
+  @override
+  String get notebookDeleteTitle => 'Delete this note?';
+
+  @override
+  String get notebookDeleteBody =>
+      'It goes from your notebook. A post you put in a Space stays there.';
+
+  @override
+  String get notebookPut => 'Went into a Space';
+
+  @override
+  String get notebookSaved => 'Saved to your notebook';
+
+  @override
+  String get notebookSaveMessage => 'Save to my notebook';
+
+  @override
+  String get notebookPutNone =>
+      'You\'re not yet in a Space where you can add work.';
+
+  @override
+  String get notebookTooShort => 'Hold longer to record';
+
+  @override
+  String get calendarTitle => 'My calendar';
+
+  @override
+  String get calendarSubtitle => 'Your Spaces and your notebook, together';
+
+  @override
+  String get calendarAllDay => 'All day';
+
+  @override
+  String get calendarDueForYou => 'Due for you';
+
+  @override
+  String get calendarDueToday => 'Due today';
+
+  @override
+  String get calendarDue => 'Due';
+
+  @override
+  String get calendarToCheck => 'Done, to check';
+
+  @override
+  String get calendarScheduled => 'Scheduled';
+
+  @override
+  String get calendarEmpty => 'Nothing planned this week';
+
+  @override
+  String get calendarEmptyBody =>
+      'Work items, checklists and activities from your Spaces, and your to-dos, show here.';
+
+  @override
+  String get calendarWeekBefore => 'Week before';
+
+  @override
+  String get calendarWeekAfter => 'Week after';
+
+  @override
+  String get notebookCouldntLoad => 'Couldn\'t load your notebook';
+
+  @override
+  String get calendarCouldntLoad => 'Couldn\'t load your calendar';
 }

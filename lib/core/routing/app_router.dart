@@ -7,6 +7,8 @@ import '../../data/models/dm.dart';
 import '../../data/models/library.dart';
 import '../../features/activity/needs_you_screen.dart';
 import '../../features/messages/dm_thread_screen.dart';
+import '../../features/notebook/calendar_screen.dart';
+import '../../features/notebook/notebook_screen.dart';
 import '../../features/messages/messages_screen.dart';
 import '../../features/messages/people_search_screen.dart';
 import '../../features/dev/components_gallery_screen.dart';
@@ -88,6 +90,7 @@ String? redirectForGate(AppGate gate, String location) {
               under(AppRoutes.posts) ||
               under(AppRoutes.spaces) ||
               under(AppRoutes.needs) ||
+              under(AppRoutes.notebook) ||
               under(AppRoutes.messages) ||
               under(AppRoutes.removals) ||
               under(AppRoutes.profileEdit)
@@ -215,6 +218,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.needs,
         builder: (context, state) => const NeedsYouScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notebook,
+        builder: (context, state) => const NotebookScreen(),
+        routes: [
+          GoRoute(
+            path: 'calendar',
+            builder: (context, state) => const CalendarScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.messages,

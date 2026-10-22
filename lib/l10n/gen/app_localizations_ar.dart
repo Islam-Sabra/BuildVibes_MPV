@@ -4463,4 +4463,121 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dailyReportDraftFirst =>
       'انشر البطاقة التي تكتبها أو ضعها جانبًا أولًا.';
+
+  @override
+  String get notebookTitle => 'دفتري';
+
+  @override
+  String get notebookOnlyYou => 'أنت فقط';
+
+  @override
+  String get notebookOnlyYouBody =>
+      'لا يرى دفترك أحد غيرك. لا يذهب شيء منه إلى مساحة حتى تضعه فيها.';
+
+  @override
+  String get notebookNote => 'ملاحظة';
+
+  @override
+  String get notebookTodo => 'مهمة';
+
+  @override
+  String get notebookVoice => 'ملاحظة صوتية';
+
+  @override
+  String notebookSlipHead(String kind, String time) {
+    return '$kind · $time';
+  }
+
+  @override
+  String get notebookEmptyTitle => 'مكان عملك الخاص';
+
+  @override
+  String get notebookEmptyBody =>
+      'احتفظ بملاحظاتك وقوائم التحقق والمهام لعملك. لا يراها أحد غيرك.';
+
+  @override
+  String get notebookWriteHint => 'اكتب ملاحظة';
+
+  @override
+  String get notebookChecklistHint => 'لماذا قائمة التحقق هذه؟';
+
+  @override
+  String get notebookTodoHint => 'ما المطلوب';
+
+  @override
+  String get notebookPointHint => 'أضف نقطة';
+
+  @override
+  String get notebookWhen => 'متى';
+
+  @override
+  String get notebookNoTime => 'أي وقت';
+
+  @override
+  String get notebookPinTop => 'ثبّت في الأعلى';
+
+  @override
+  String get notebookDeleteTitle => 'حذف هذه الملاحظة؟';
+
+  @override
+  String get notebookDeleteBody =>
+      'ستُحذف من دفترك. ما وضعته في مساحة يبقى فيها.';
+
+  @override
+  String get notebookPut => 'وُضعت في مساحة';
+
+  @override
+  String get notebookSaved => 'حُفظت في دفترك';
+
+  @override
+  String get notebookSaveMessage => 'احفظ في دفتري';
+
+  @override
+  String get notebookPutNone => 'لست بعد في مساحة يمكنك إضافة عمل فيها.';
+
+  @override
+  String get notebookTooShort => 'اضغط مدة أطول للتسجيل';
+
+  @override
+  String get calendarTitle => 'تقويمي';
+
+  @override
+  String get calendarSubtitle => 'مساحاتك ودفترك، معًا';
+
+  @override
+  String get calendarAllDay => 'طوال اليوم';
+
+  @override
+  String get calendarDueForYou => 'مستحق عليك';
+
+  @override
+  String get calendarDueToday => 'مستحق اليوم';
+
+  @override
+  String get calendarDue => 'مستحق';
+
+  @override
+  String get calendarToCheck => 'منجز، بانتظار التحقق';
+
+  @override
+  String get calendarScheduled => 'مجدول';
+
+  @override
+  String get calendarEmpty => 'لا شيء مخطط هذا الأسبوع';
+
+  @override
+  String get calendarEmptyBody =>
+      'تظهر هنا بنود العمل وقوائم التحقق والأنشطة من مساحاتك، ومهامك.';
+
+  @override
+  String get calendarWeekBefore => 'الأسبوع السابق';
+
+  @override
+  String get calendarWeekAfter => 'الأسبوع التالي';
+
+  @override
+  String get notebookCouldntLoad => 'تعذّر تحميل دفترك';
+
+  @override
+  String get calendarCouldntLoad => 'تعذّر تحميل تقويمك';
 }

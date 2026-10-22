@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
 import '../../data/models/daybook.dart';
+import '../../data/models/note.dart';
+import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../data/models/template.dart';
 import '../entry/entry_state.dart';
 import 'work_outbox.dart';
@@ -163,6 +165,7 @@ class DaybookPostDraft {
     this.refs = const [],
     this.notes = const [],
     this.refsOut = const [],
+    this.noteId,
   });
 
   factory DaybookPostDraft.fromJson(Map<String, dynamic> json) =>
@@ -225,6 +228,7 @@ class DaybookPostDraft {
             ReportRef.fromJson(r as Map<String, dynamic>),
         ],
         refsOut: [for (final r in json['refs_out'] as List? ?? const []) '$r'],
+        noteId: json['note_id'] as String?,
       );
 
   /// A post the server refused, back as the Draft it was (review 46).
@@ -248,6 +252,7 @@ class DaybookPostDraft {
       couldNotSend: true,
       quote: item.quote,
       sourceMessageId: item.sourceMessageId,
+      noteId: item.noteId,
     );
   }
 
@@ -348,6 +353,10 @@ class DaybookPostDraft {
   final List<ReportRef> notes;
   final List<String> refsOut;
 
+  /// The note in My notebook it was put in from (slice 8): marked once
+  /// the server takes the post (mark_note_put). The note stays private.
+  final String? noteId;
+
   /// The Done today lines that go: the day's checked work, less what was
   /// taken out.
   List<ReportRef> get refsIn => [
@@ -389,7 +398,8 @@ class DaybookPostDraft {
             pinnedUntil == null &&
             startsAt == null &&
             files.isEmpty &&
-            quote == null;
+            quote == null &&
+            noteId == null;
 
   /// Nothing yet but the message it quotes (review 64): just made from a
   /// message, not a Draft left from before.
@@ -456,8 +466,10 @@ class DaybookPostDraft {
     List<ReportRef>? notes,
     List<String>? refsOut,
     List<Map<String, dynamic>>? blocks,
+    String? Function()? noteId,
     bool refused = false,
   }) => DaybookPostDraft(
+    noteId: noteId == null ? this.noteId : noteId(),
     templateId: template == null ? templateId : template()?.id,
     templateName: template == null ? templateName : template()?.name,
     blocks:
@@ -529,6 +541,7 @@ class DaybookPostDraft {
     'refs': [for (final r in refs) r.toJson()],
     'notes': [for (final r in notes) r.toJson()],
     'refs_out': refsOut,
+    'note_id': noteId,
   };
 }
 
@@ -593,6 +606,73 @@ class DaybookDraft extends DaybookWritingNotifier {
       team: team == null ? null : () => team,
     ),
   );
+
+  /// Put in a Space from My notebook (slice 8, review 83): a note or a
+  /// to-do becomes a work item, its first line the title and the rest its
+  /// words (a to-do's time its due); a checklist a checklist with its
+  /// points. A card already half-written keeps its words; the note's are
+  /// added under them.
+  Future<void> fromNote(String id, Note note) {
+    final current = state;
+    if (current != null && !current.isEmpty) {
+      final words = [
+        note.body.trim(),
+        for (final p in note.points) p.text,
+      ].where((w) => w.isNotEmpty).join('\n');
+      return put(
+        current.copyWith(
+          body: [
+            current.body.trim(),
+            words,
+          ].where((w) => w.isNotEmpty).join('\n\n'),
+          noteId: () => note.id,
+        ),
+      );
+    }
+    final fresh = DaybookPostDraft(id: id, noteId: note.id);
+    if (note.kind == NoteKind.checklist) {
+      return put(
+        fresh.copyWith(
+          kind: DaybookKind.checklist,
+          title: _cut(note.body.trim(), DaybookPostDraft.postTitleMax).$1,
+          points: [
+            for (final p in note.points.take(Note.pointsMax))
+              (id: newUuid(), text: p.text),
+          ],
+        ),
+      );
+    }
+    final (title, rest) = _split(note.body.trim());
+    final due = note.kind == NoteKind.todo ? note.dueAt : null;
+    return put(
+      fresh.copyWith(
+        title: title,
+        body: rest,
+        dueDate: () =>
+            due == null ? null : DateTime(due.year, due.month, due.day),
+        dueAt: () => due,
+      ),
+    );
+  }
+
+  /// A work item's title from a note: its first line, cut at a word when
+  /// it is longer than a title; what's left goes in the words.
+  static (String, String) _split(String text) {
+    final newline = text.indexOf('\n');
+    final first = newline < 0 ? text : text.substring(0, newline).trim();
+    final rest = newline < 0 ? '' : text.substring(newline + 1).trim();
+    final (title, cut) = _cut(first, DaybookPostDraft.titleMax);
+    if (!cut) return (title, rest);
+    return (title, text);
+  }
+
+  /// [text] at most [max] long, cut at a space when it can be; true when
+  /// it was cut.
+  static (String, bool) _cut(String text, int max) {
+    if (text.length <= max) return (text, false);
+    final space = text.lastIndexOf(' ', max);
+    return (text.substring(0, space > 0 ? space : max).trim(), true);
+  }
 
   /// Sets the card and saves it once anything is entered.
   @override

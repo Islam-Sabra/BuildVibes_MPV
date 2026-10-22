@@ -25,6 +25,7 @@ import 'package:buildvibes/data/repositories/people_search_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/search_repository.dart';
 import 'package:buildvibes/data/repositories/template_repository.dart';
+import 'package:buildvibes/data/repositories/notebook_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
 import 'package:buildvibes/data/repositories/profile_page_repository.dart';
 import 'package:buildvibes/data/repositories/project_repository.dart';
@@ -58,6 +59,7 @@ import 'page_fakes.dart';
 import 'people_search_fakes.dart';
 import 'safety_fakes.dart';
 import 'search_fakes.dart';
+import 'notebook_fakes.dart';
 import 'template_fakes.dart';
 import 'voice_fakes.dart';
 import 'profile_fakes.dart';
@@ -108,6 +110,7 @@ class TestApp {
     required this.library,
     required this.search,
     required this.templates,
+    required this.notebook,
     required this.postPages,
     required this.recorder,
     required this.posts,
@@ -149,6 +152,9 @@ class TestApp {
 
   /// Templates and the daily report's fill (slice 7).
   final FakeTemplateRepository templates;
+
+  /// My notebook and My calendar (slice 8).
+  final FakeNotebookRepository notebook;
   final FakePageRepository postPages;
   final FakeVoiceRecorder recorder;
   final FakePostRepository posts;
@@ -205,6 +211,7 @@ Future<TestApp> pumpApp(
   FakeLibraryRepository? library,
   FakeSearchRepository? search,
   FakeTemplateRepository? templates,
+  FakeNotebookRepository? notebook,
   FakePeopleSearchRepository? peopleSearch,
   FakePageRepository? postPages,
   FakeVoiceRecorder? recorder,
@@ -285,6 +292,7 @@ Future<TestApp> pumpApp(
   final fakeLibrary = library ?? FakeLibraryRepository(now: testNow);
   final fakeSearch = search ?? FakeSearchRepository();
   final fakeTemplates = templates ?? FakeTemplateRepository();
+  final fakeNotebook = notebook ?? FakeNotebookRepository();
   final fakePages = postPages ?? FakePageRepository();
   final fakeRecorder = recorder ?? FakeVoiceRecorder();
   final fakePosts = posts ?? FakePostRepository(now: testNow);
@@ -334,6 +342,7 @@ Future<TestApp> pumpApp(
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         searchRepositoryProvider.overrideWithValue(fakeSearch),
         templateRepositoryProvider.overrideWithValue(fakeTemplates),
+        notebookRepositoryProvider.overrideWithValue(fakeNotebook),
         peopleSearchRepositoryProvider.overrideWithValue(
           peopleSearch ?? FakePeopleSearchRepository(),
         ),
@@ -457,6 +466,7 @@ Future<TestApp> pumpApp(
     library: fakeLibrary,
     search: fakeSearch,
     templates: fakeTemplates,
+    notebook: fakeNotebook,
     postPages: fakePages,
     recorder: fakeRecorder,
     posts: fakePosts,

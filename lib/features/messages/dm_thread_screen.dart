@@ -48,6 +48,7 @@ import '../work/daybook_draft.dart' show daybookDraftProvider;
 import '../work/daybook_words.dart';
 import '../work/daybook_writing.dart' show newPostIdProvider;
 import '../../shared/widgets/bv_name_text.dart';
+import '../notebook/notebook_state.dart';
 
 /// A message on its way, shown at once as mine ("Sending…", or "Not sent ·
 /// Retry").
@@ -461,6 +462,14 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
               label: l10n.dmPutInSpace,
               onTap: () => Navigator.of(sheet).pop('space'),
             ),
+          // Slice 8: its words as a note in My notebook, private.
+          if ((m.body ?? '').trim().isNotEmpty && !m.deleted)
+            ChatActionRow(
+              key: const Key('dm-action-notebook'),
+              icon: BvIcons.myNotebook,
+              label: l10n.notebookSaveMessage,
+              onTap: () => Navigator.of(sheet).pop('notebook'),
+            ),
           if ((m.body ?? '').isNotEmpty)
             ChatActionRow(
               key: const Key('dm-action-copy'),
@@ -491,6 +500,15 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     switch (choice) {
       case 'space':
         await _putInSpace(m);
+      case 'notebook':
+        await ref
+            .read(notebookProvider.notifier)
+            .keep(
+              ref.read(newPostIdProvider)(),
+              m.body!,
+              ref.read(clockProvider)(),
+            );
+        if (mounted) _toast(l10n.notebookSaved);
       case 'reply':
         setState(() => _replyTo = m);
       case 'copy':

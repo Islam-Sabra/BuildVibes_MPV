@@ -649,6 +649,7 @@ class DaybookWriter {
               quote: workItem ? d.quote : null,
               sourceMessageId: workItem ? d.sourceMessageId : null,
               templateId: workItem ? d.templateId : null,
+              noteId: workItem ? d.noteId : null,
               blocks: workItem && d.blocks.isNotEmpty ? d.blocks : null,
               points: workItem
                   ? [

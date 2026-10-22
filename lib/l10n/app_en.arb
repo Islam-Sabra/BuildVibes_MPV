@@ -6428,5 +6428,161 @@
   "dailyReportDraftFirst": "Post or put away the card you're writing first.",
   "@dailyReportDraftFirst": {
     "description": "Daily report while another kind of post is being written: that card opens instead."
+  },
+  "notebookTitle": "My notebook",
+  "@notebookTitle": {
+    "description": "My notebook's header and Home's list-checks icon (NB1)."
+  },
+  "notebookOnlyYou": "Only you",
+  "@notebookOnlyYou": {
+    "description": "The pill in My notebook's header: nobody else sees it."
+  },
+  "notebookOnlyYouBody": "Only you can see your notebook. Nothing here goes to a Space until you put it there.",
+  "@notebookOnlyYouBody": {
+    "description": "What the Only you pill says when tapped."
+  },
+  "notebookNote": "Note",
+  "@notebookNote": {
+    "description": "The notebook's post bar, and the plain kind of note."
+  },
+  "notebookTodo": "To-do",
+  "@notebookTodo": {
+    "description": "A to-do note: its kind, and its label in My calendar."
+  },
+  "notebookVoice": "Voice note",
+  "@notebookVoice": {
+    "description": "A voice note's kind on its slip."
+  },
+  "notebookSlipHead": "{kind} · {time}",
+  "@notebookSlipHead": {
+    "description": "A note's first line: its kind and the time it was written.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookEmptyTitle": "Your private working area",
+  "@notebookEmptyTitle": {
+    "description": "The empty notebook (N2)."
+  },
+  "notebookEmptyBody": "Keep notes, checklists and to-dos for your work. Only you can see them.",
+  "@notebookEmptyBody": {
+    "description": "The empty notebook's words (N2)."
+  },
+  "notebookWriteHint": "Write a note",
+  "@notebookWriteHint": {
+    "description": "The words box when writing a note."
+  },
+  "notebookChecklistHint": "What is the checklist for?",
+  "@notebookChecklistHint": {
+    "description": "A checklist note's title box."
+  },
+  "notebookTodoHint": "What to do",
+  "@notebookTodoHint": {
+    "description": "A to-do note's words box."
+  },
+  "notebookPointHint": "Add a point",
+  "@notebookPointHint": {
+    "description": "A new point on a checklist note."
+  },
+  "notebookWhen": "When",
+  "@notebookWhen": {
+    "description": "A to-do's day and time, while writing it."
+  },
+  "notebookNoTime": "Any time",
+  "@notebookNoTime": {
+    "description": "A to-do with no time yet."
+  },
+  "notebookPinTop": "Pin to the top",
+  "@notebookPinTop": {
+    "description": "A note's menu: it shows above the others."
+  },
+  "notebookDeleteTitle": "Delete this note?",
+  "@notebookDeleteTitle": {
+    "description": "Delete asks first (N7)."
+  },
+  "notebookDeleteBody": "It goes from your notebook. A post you put in a Space stays there.",
+  "@notebookDeleteBody": {
+    "description": "Delete asks first (N7)."
+  },
+  "notebookPut": "Went into a Space",
+  "@notebookPut": {
+    "description": "A note's quiet line once it was put in a Space."
+  },
+  "notebookSaved": "Saved to your notebook",
+  "@notebookSaved": {
+    "description": "After Save to my notebook on a message."
+  },
+  "notebookSaveMessage": "Save to my notebook",
+  "@notebookSaveMessage": {
+    "description": "Holding a message: keep its words as a note."
+  },
+  "notebookPutNone": "You're not yet in a Space where you can add work.",
+  "@notebookPutNone": {
+    "description": "Put in a Space with no Space to post in."
+  },
+  "notebookTooShort": "Hold longer to record",
+  "@notebookTooShort": {
+    "description": "A recording shorter than a second."
+  },
+  "calendarTitle": "My calendar",
+  "@calendarTitle": {
+    "description": "My calendar's header (CAL1)."
+  },
+  "calendarSubtitle": "Your Spaces and your notebook, together",
+  "@calendarSubtitle": {
+    "description": "Under the month in My calendar."
+  },
+  "calendarAllDay": "All day",
+  "@calendarAllDay": {
+    "description": "A row with a day but no time."
+  },
+  "calendarDueForYou": "Due for you",
+  "@calendarDueForYou": {
+    "description": "A work item waiting on me."
+  },
+  "calendarDueToday": "Due today",
+  "@calendarDueToday": {
+    "description": "A work item or checklist due today."
+  },
+  "calendarDue": "Due",
+  "@calendarDue": {
+    "description": "A work item or checklist due on another day."
+  },
+  "calendarToCheck": "Done, to check",
+  "@calendarToCheck": {
+    "description": "A work item I wrote, signed as done, waiting for my check."
+  },
+  "calendarScheduled": "Scheduled",
+  "@calendarScheduled": {
+    "description": "A scheduled activity's row."
+  },
+  "calendarEmpty": "Nothing planned this week",
+  "@calendarEmpty": {
+    "description": "An empty week in My calendar."
+  },
+  "calendarEmptyBody": "Work items, checklists and activities from your Spaces, and your to-dos, show here.",
+  "@calendarEmptyBody": {
+    "description": "An empty week in My calendar."
+  },
+  "calendarWeekBefore": "Week before",
+  "@calendarWeekBefore": {
+    "description": "Swipe or tap: the week before."
+  },
+  "calendarWeekAfter": "Week after",
+  "@calendarWeekAfter": {
+    "description": "Swipe or tap: the week after."
+  },
+  "notebookCouldntLoad": "Couldn't load your notebook",
+  "@notebookCouldntLoad": {
+    "description": "My notebook couldn't be read."
+  },
+  "calendarCouldntLoad": "Couldn't load your calendar",
+  "@calendarCouldntLoad": {
+    "description": "My calendar couldn't be read."
   }
 }

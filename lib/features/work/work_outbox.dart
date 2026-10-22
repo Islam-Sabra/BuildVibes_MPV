@@ -17,9 +17,11 @@ import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/library_repository.dart';
+import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../entry/entry_state.dart';
+import '../notebook/notebook_state.dart';
 import 'daybook_draft.dart';
 import 'daybook_marks.dart' show daybookExtrasProvider;
 import 'daybook_state.dart';
@@ -157,6 +159,7 @@ class PendingItem {
     this.templateId,
     this.blocks,
     this.points = const [],
+    this.noteId,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -201,6 +204,7 @@ class PendingItem {
           text: p['text'] as String? ?? '',
         ),
     ],
+    noteId: json['note_id'] as String?,
   );
 
   static DateTime? _time(Object? value) =>
@@ -268,6 +272,13 @@ class PendingItem {
   final List<Map<String, dynamic>>? blocks;
   final List<DraftPoint> points;
 
+  /// A new work item's note in My notebook (slice 8); other kinds keep
+  /// theirs on [draft]. Marked once the server takes the post.
+  final String? noteId;
+
+  /// The note this new post was put in from, of any kind.
+  String? get fromNote => noteId ?? draft?.noteId;
+
   PendingItem copyWith({
     List<PendingPhoto>? photos,
     List<DraftFile>? files,
@@ -298,6 +309,7 @@ class PendingItem {
     templateId: templateId,
     blocks: blocks,
     points: points,
+    noteId: noteId,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -326,6 +338,7 @@ class PendingItem {
     templateId: templateId,
     blocks: blocks,
     points: points,
+    noteId: noteId,
   );
 
   /// A new post, of any kind.
@@ -366,6 +379,7 @@ class PendingItem {
       'points': [
         for (final p in points) {'id': p.id, 'text': p.text},
       ],
+    'note_id': ?noteId,
   };
 
   /// Only the kinds this version knows are read back.
@@ -751,7 +765,22 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     }
     await _put(current.copyWith(sent: true));
     ref.invalidate(mySpacesProvider);
+    // Put in from My notebook (slice 8): the note says so, and stays.
+    if (current.fromNote case final note? when item.isNewPost) {
+      unawaited(_markNotePut(note, item.id));
+    }
     return _settle(current);
+  }
+
+  /// mark_note_put once the server has the post. A miss only leaves the
+  /// note without its "Went into a Space" line.
+  Future<void> _markNotePut(String noteId, String postId) async {
+    try {
+      await ref.read(notebookRepositoryProvider).markPut(noteId, postId);
+    } on SpaceException {
+      return;
+    }
+    if (ref.exists(notebookProvider)) ref.invalidate(notebookProvider);
   }
 
   /// A sent [item] leaves the phone once the daybook has read the server's

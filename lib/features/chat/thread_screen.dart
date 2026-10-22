@@ -43,6 +43,7 @@ import '../spaces/space_screen.dart' show SpaceOpen;
 import '../work/daybook_draft.dart' show daybookDraftProvider;
 import '../work/daybook_writing.dart' show newPostIdProvider;
 import 'chat_tab.dart';
+import '../notebook/notebook_state.dart';
 import 'voice.dart';
 import '../spaces/former_member.dart';
 import '../../shared/widgets/bv_name_text.dart';
@@ -471,6 +472,14 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
               label: l10n.chatTurnIntoWorkItem,
               onTap: () => Navigator.of(context).pop(_Action.workItem),
             ),
+          // Slice 8: its words as a note in My notebook, private.
+          if ((m.body ?? '').trim().isNotEmpty)
+            ChatActionRow(
+              key: const Key('chat-action-notebook'),
+              icon: BvIcons.myNotebook,
+              label: l10n.notebookSaveMessage,
+              onTap: () => Navigator.of(context).pop(_Action.notebook),
+            ),
           ChatActionRow(
             key: const Key('chat-action-copy'),
             icon: BvIcons.copy,
@@ -520,6 +529,15 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
       case _Action.copy:
         await Clipboard.setData(ClipboardData(text: m.body ?? ''));
         if (mounted) _toast(l10n.chatCopied);
+      case _Action.notebook:
+        await ref
+            .read(notebookProvider.notifier)
+            .keep(
+              ref.read(newPostIdProvider)(),
+              m.body!,
+              ref.read(clockProvider)(),
+            );
+        if (mounted) _toast(l10n.notebookSaved);
       case _Action.delete:
         final yes = await showBvDialog(
           context: context,
@@ -746,7 +764,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   }
 }
 
-enum _Action { reply, workItem, copy, delete, report }
+enum _Action { reply, workItem, copy, delete, report, notebook }
 
 enum _Attach { camera, gallery, pdf }
 

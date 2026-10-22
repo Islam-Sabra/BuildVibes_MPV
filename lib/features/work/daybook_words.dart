@@ -39,6 +39,19 @@ class DaybookWords {
   /// "Thu 15 Oct".
   String shortDate(DateTime day) => _f('EEE d MMM', day);
 
+  /// "Thu": a day in My calendar's week strip.
+  String shortWeekday(DateTime day) => _f('EEE', day);
+
+  /// "15": a day's number in My calendar's week strip.
+  String dayNumber(DateTime day) => _f('d', day);
+
+  /// "Friday 16": a day's divider in My calendar.
+  String weekdayDay(DateTime day) => _f('EEEE d', day);
+
+  /// "October", and its year: My calendar's masthead.
+  String month(DateTime day) => _f('MMMM', day);
+  String year(DateTime day) => _f('y', day);
+
   /// A quoted message's line (review 64): "From Omar Haddad · 10:42", with
   /// the day when it wasn't today ("· Wed 14 Oct 10:42").
   String quoteFrom(DaybookQuote quote, DateTime now) {
