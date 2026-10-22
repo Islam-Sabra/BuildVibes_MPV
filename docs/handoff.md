@@ -2,6 +2,47 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 22 Oct 2026 — slices 3–6 and the bug fixes in `slice2-app`, build for the founder's test
+
+**Standing rule (review 74):** nothing but the BuildVibes build is installed on the founder's phone without his yes in chat.
+
+**Merged:**
+- `origin/slice2-app` was still at 3565b0a, so `slice2-app` fast-forwarded to `origin/claude/pre-test` (55266de), with no conflicts. That brings:
+  - the trial merge (F68b, F69, slices 3–6);
+  - review 78 (the slice 7 plan);
+  - the slice 3–6 bug fixes.
+- Screenshots re-shot on the PC (Windows fonts) for slice 3–6, f68b and the slice 1, 2 and review 72 shots they touch, and committed.
+
+**Checks on the PC:**
+- `flutter analyze`: no issues.
+- `flutter test`: **1,458 pass** (photo_privacy H1 passes here; it only fails as root in the cloud).
+- `flutter test test_screens/`: 279 pass, with and without `--update-goldens`.
+- `supabase db reset` + `supabase test db`: **2,329 checks in 35 files pass** (migrations to 33, plus 36 and 37).
+
+**The build:**
+- A **release** APK, not a debug one. The phone's app is signed with the upload key, and a debug build (debug key) can't be installed over it without uninstalling, which would sign the founder out and clear his drafts.
+- Same code, with `--dart-define-from-file=env/dev.json`; it reads "build 473" in About.
+- It is on the emulator. **The phone wasn't reachable** (wireless debugging address changed): install it once the founder sends the new address.
+
+**The founder's test:** `docs/test/2026-10-23-founder-test-slices-3-6.md`. Steps marked ⏸ wait for migrations 36 and 37.
+
+**Not live, nothing deployed:** migrations 34–37 stay off the live project until the lead checks them and the founder says yes. Public channels on the live project are still on.
+
+**Still open (from the cloud's bug review):**
+- a walk in progress is lost if Android kills the app;
+- the file page's small issues;
+- the middle-version case;
+- backspace on an empty point;
+- report `item_ref` lines (slice 7).
+
+**Who has which branch:**
+- PC:
+  - `slice2-app` (worktree `BuildVibes-slice1`, the build on test);
+  - `f60-photo-reencode` (worktree `BuildVibes-phone`, merged);
+  - `store-reviewer` (worktree `BuildVibes-store`, waits for the lead);
+  - `slice2-live-db` = main (worktree `BuildVibes-db29`).
+- The `claude/...` branches merged here (`pre-test`, `slice7-plan`, `trial-merge`, `f68b-f69`, `slice6` and before) are done; nobody is on them.
+
 ## Cloud update: 23 Oct 2026 — bug review of slices 3–6, fixes and the founder's test list (branch `claude/pre-test`, from `claude/slice7-plan`)
 
 The founder's "ok" (23 Oct): review slices 3–6 for bugs before his phone test, fix what is real, and write the test list. Four read-only reviews ran (one per slice); every finding was checked against the code before it was fixed.
