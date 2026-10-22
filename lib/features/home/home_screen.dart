@@ -104,7 +104,8 @@ class HomeScreen extends ConsumerWidget {
                     'home-search',
                     BvIcons.search,
                     l10n.homeSearch,
-                    () => context.go(AppRoutes.explore),
+                    // F78: people search; a tap opens the profile.
+                    () => context.push(AppRoutes.peopleSearch),
                   ),
                   if (!guest)
                     Stack(

@@ -144,8 +144,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           foregroundColor: BvColors.actionPrimaryForeground,
           elevation: 0,
           shape: const CircleBorder(),
-          // Someone new: find them, then Message on their profile.
-          onPressed: () => context.go(AppRoutes.explore),
+          // Someone new (F78): find them by name, role or company.
+          onPressed: () => context.push(AppRoutes.messagesNew),
           child: const Icon(BvIcons.add, size: BvSize.iconLg),
         ),
       ),

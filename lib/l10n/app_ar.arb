@@ -1166,5 +1166,9 @@
   "walkShowAll": "اعرض الكل",
   "walkInProgress": "لديك جولة لم تكتمل",
   "walkContinue": "متابعة الجولة",
-  "walkThrowAway": "التخلّص منها"
+  "walkThrowAway": "التخلّص منها",
+  "peopleSearchHint": "الاسم أو الدور أو الشركة",
+  "peopleInYourSpaces": "أشخاص في مساحاتك",
+  "peopleSearchNothing": "لا أحد يطابق «{query}»",
+  "peopleSearchStart": "اكتب اسمًا لتجد شخصًا."
 }

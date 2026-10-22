@@ -45,6 +45,13 @@ abstract final class AppRoutes {
   static String messagesThread(String threadId) => '/messages/$threadId';
   static String messagesWith(String profileId) => '/messages/with/$profileId';
 
+  /// F78: "New message", a people search; a tap writes to the person.
+  static const messagesNew = '/messages/new';
+
+  /// F78: Home's "Search people"; a tap opens the profile.
+  static const peopleSearch = '/people/search';
+  static String person(String profileId) => '/people/$profileId';
+
   static String personWork(String profileId, String itemId) =>
       '/people/$profileId/work/$itemId';
   static const projects = '/projects';

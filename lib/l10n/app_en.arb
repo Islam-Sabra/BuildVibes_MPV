@@ -6065,5 +6065,26 @@
   "walkThrowAway": "Throw away",
   "@walkThrowAway": {
     "description": "The walk in progress: drops it and its photos, after asking (review 79 P1)."
+  },
+  "peopleSearchHint": "Name, role or company",
+  "@peopleSearchHint": {
+    "description": "F78: the people search field's hint."
+  },
+  "peopleInYourSpaces": "People in your Spaces",
+  "@peopleInYourSpaces": {
+    "description": "F78: before typing, the people you share a Space with."
+  },
+  "peopleSearchNothing": "Nobody found for “{query}”",
+  "@peopleSearchNothing": {
+    "description": "F78: a people search with no result.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleSearchStart": "Type a name to find someone.",
+  "@peopleSearchStart": {
+    "description": "F78: before typing, when you share no Space with anyone."
   }
 }

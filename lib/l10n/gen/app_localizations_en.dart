@@ -4217,4 +4217,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walkThrowAway => 'Throw away';
+
+  @override
+  String get peopleSearchHint => 'Name, role or company';
+
+  @override
+  String get peopleInYourSpaces => 'People in your Spaces';
+
+  @override
+  String peopleSearchNothing(String query) {
+    return 'Nobody found for “$query”';
+  }
+
+  @override
+  String get peopleSearchStart => 'Type a name to find someone.';
 }

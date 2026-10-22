@@ -21,6 +21,7 @@ import 'package:buildvibes/features/work/daybook_photos.dart'
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
 import 'package:buildvibes/data/repositories/library_repository.dart';
 import 'package:buildvibes/data/repositories/page_repository.dart';
+import 'package:buildvibes/data/repositories/people_search_repository.dart';
 import 'package:buildvibes/data/repositories/post_repository.dart';
 import 'package:buildvibes/data/repositories/search_repository.dart';
 import 'package:buildvibes/data/repositories/market_repository.dart';
@@ -53,6 +54,7 @@ import 'library_fakes.dart';
 import 'post_fakes.dart';
 import 'push_fakes.dart';
 import 'page_fakes.dart';
+import 'people_search_fakes.dart';
 import 'safety_fakes.dart';
 import 'search_fakes.dart';
 import 'voice_fakes.dart';
@@ -193,6 +195,7 @@ Future<TestApp> pumpApp(
   FakeChatRepository? chat,
   FakeLibraryRepository? library,
   FakeSearchRepository? search,
+  FakePeopleSearchRepository? peopleSearch,
   FakePageRepository? postPages,
   FakeVoiceRecorder? recorder,
   FakePostRepository? posts,
@@ -319,6 +322,9 @@ Future<TestApp> pumpApp(
         chatRepositoryProvider.overrideWithValue(fakeChat),
         libraryRepositoryProvider.overrideWithValue(fakeLibrary),
         searchRepositoryProvider.overrideWithValue(fakeSearch),
+        peopleSearchRepositoryProvider.overrideWithValue(
+          peopleSearch ?? FakePeopleSearchRepository(),
+        ),
         pageRepositoryProvider.overrideWithValue(fakePages),
         voiceRecorderProvider.overrideWithValue(fakeRecorder),
         postRepositoryProvider.overrideWithValue(fakePosts),

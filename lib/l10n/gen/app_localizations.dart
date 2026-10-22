@@ -7099,6 +7099,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Throw away'**
   String get walkThrowAway;
+
+  /// F78: the people search field's hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, role or company'**
+  String get peopleSearchHint;
+
+  /// F78: before typing, the people you share a Space with.
+  ///
+  /// In en, this message translates to:
+  /// **'People in your Spaces'**
+  String get peopleInYourSpaces;
+
+  /// F78: a people search with no result.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody found for “{query}”'**
+  String peopleSearchNothing(String query);
+
+  /// F78: before typing, when you share no Space with anyone.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name to find someone.'**
+  String get peopleSearchStart;
 }
 
 class _AppLocalizationsDelegate

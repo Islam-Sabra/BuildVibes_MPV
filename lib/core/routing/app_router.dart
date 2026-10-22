@@ -7,6 +7,7 @@ import '../../data/models/dm.dart';
 import '../../features/activity/needs_you_screen.dart';
 import '../../features/messages/dm_thread_screen.dart';
 import '../../features/messages/messages_screen.dart';
+import '../../features/messages/people_search_screen.dart';
 import '../../features/dev/components_gallery_screen.dart';
 import '../../features/entry/code_screen.dart';
 import '../../features/entry/email_screen.dart';
@@ -163,6 +164,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.onboardingPeople,
         builder: (context, state) => const PeopleScreen(),
       ),
+      // Before ":id" (F78).
+      GoRoute(
+        path: AppRoutes.peopleSearch,
+        builder: (context, state) =>
+            const PeopleSearchScreen(purpose: PeopleSearchFor.profile),
+      ),
       GoRoute(
         path: '${AppRoutes.people}/:id',
         builder: (context, state) =>
@@ -211,7 +218,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.messages,
         builder: (context, state) => const MessagesScreen(),
         routes: [
-          // "requests" and "with" before ":thread".
+          // "requests", "new" and "with" before ":thread".
+          GoRoute(
+            path: 'new',
+            builder: (context, state) =>
+                const PeopleSearchScreen(purpose: PeopleSearchFor.message),
+          ),
           GoRoute(
             path: 'requests',
             builder: (context, state) => const MessageRequestsScreen(),

@@ -4226,4 +4226,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get walkThrowAway => 'التخلّص منها';
+
+  @override
+  String get peopleSearchHint => 'الاسم أو الدور أو الشركة';
+
+  @override
+  String get peopleInYourSpaces => 'أشخاص في مساحاتك';
+
+  @override
+  String peopleSearchNothing(String query) {
+    return 'لا أحد يطابق «$query»';
+  }
+
+  @override
+  String get peopleSearchStart => 'اكتب اسمًا لتجد شخصًا.';
 }
