@@ -739,4 +739,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Meeting notes (R3): from a held chat message of two lines or more; tick a line and choose who does it; one `create_from_message` under the phone's ids; Open after posting.
   - The week report (MR1): from the Space menu for every member; the market's week with ‹ ›; Needs a decision with stamps and the clip, Checked this week, Targets, Coming up (this week); a row opens its card.
   - Share in chat: the thread list, `share_week_report`; the report's card in the chat opens that week.
-  - Checks: analyze clean; TESTCOUNT Screenshots EN and AR in `docs/screens/slice9/`.
+  - Checks: analyze clean; 1,644 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Screenshots EN and AR in `docs/screens/slice9/`.

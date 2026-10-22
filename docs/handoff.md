@@ -31,7 +31,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 
 **Checks:**
 - `flutter analyze`: no issues.
-- `flutter test`: **TESTCOUNT**
+- `flutter test`: **1,644 pass**; 1 fails, photo_privacy H1, which fails only when run as root in the cloud.
 - New tests: `test/features/spaces/meeting_report_test.dart` (2 model tests and 9 × EN and AR), and two more for review 84 in `test/features/notebook/notebook_test.dart`.
 
 **Not live, nothing deployed, nothing installed.**
