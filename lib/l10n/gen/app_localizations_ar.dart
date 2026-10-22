@@ -3441,7 +3441,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookStampReplaces(String revision) {
-    return 'بدل $revision';
+    return 'يحل محل $revision';
   }
 
   @override
@@ -3670,7 +3670,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daybookReplacesOption(String name) {
-    return 'بدل $name';
+    return 'يحل محل $name';
   }
 
   @override
