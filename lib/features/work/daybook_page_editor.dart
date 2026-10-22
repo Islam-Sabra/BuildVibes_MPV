@@ -822,6 +822,47 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       );
   }
 
+  /// One point out of its checklist (F92), with Undo; an empty checklist
+  /// goes. A saved point leaves the post when the page is saved.
+  void _deletePoint(int index, String pointId) {
+    final l10n = AppLocalizations.of(context);
+    _blocks = _collect();
+    final before = [..._blocks];
+    final text = _points[pointId];
+    final list = _blocks[index] as PageChecklist;
+    final ids = [
+      for (final x in list.pointIds)
+        if (x != pointId) x,
+    ];
+    setState(() {
+      _points.remove(pointId);
+      _fields.remove('pt:$pointId')?.dispose();
+      if (ids.isEmpty) {
+        _blocks.removeAt(index);
+      } else {
+        _blocks[index] = PageChecklist(list.id, ids);
+      }
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.pageDeleted),
+          action: SnackBarAction(
+            key: const Key('page-undo'),
+            label: l10n.spacesUndo,
+            onPressed: () {
+              if (!mounted) return;
+              setState(() {
+                _blocks = before;
+                if (text != null) _points[pointId] = text;
+              });
+            },
+          ),
+        ),
+      );
+  }
+
   /// A point's menu (N4): Text, Work item under this one; a ticked point
   /// stays as it is.
   Future<void> _pointMenu(int index, String pointId) async {
@@ -831,7 +872,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       showSpaceMessage(context, l10n.pageTickedStays);
       return;
     }
-    final picked = await showBvSheet<PageTurn>(
+    final picked = await showBvSheet<Object>(
       context: context,
       title: l10n.pageTurnInto,
       builder: (sheet) => Column(
@@ -857,9 +898,22 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
               trailing: const BvRowTrailing.none(),
               onTap: () => Navigator.of(sheet).pop(PageTurn.item),
             ),
+          // F92: one point goes, the rest of its checklist stays.
+          BvListRow(
+            key: const Key('page-point-delete'),
+            leading: const BvRowIcon(BvIcons.delete, destructive: true),
+            title: l10n.pageDelete,
+            destructive: true,
+            trailing: const BvRowTrailing.none(),
+            onTap: () => Navigator.of(sheet).pop(_BlockAction.delete),
+          ),
         ],
       ),
     );
+    if (picked == _BlockAction.delete && mounted) {
+      _deletePoint(index, pointId);
+      return;
+    }
     if (picked == null || picked == PageTurn.point || !mounted) return;
     _blocks = _collect();
     final text = (_points[pointId] ?? '').trim();
@@ -1394,6 +1448,20 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       key: Key('page-point-$id'),
       spacing: BvSpace.s8,
       children: [
+        // F92 (N4): each point's own ⋮⋮: Turn into, and Delete.
+        GestureDetector(
+          key: Key('page-point-handle-$id'),
+          onTap: () => unawaited(_pointMenu(index, id)),
+          child: Semantics(
+            button: true,
+            label: l10n.pageBlockMenu,
+            child: const Icon(
+              BvIcons.dragHandle,
+              size: BvPageSpec.handleIcon,
+              color: BvColors.iconSecondary,
+            ),
+          ),
+        ),
         GestureDetector(
           key: Key('page-point-menu-$id'),
           onTap: () => unawaited(_pointMenu(index, id)),

@@ -405,6 +405,47 @@ void main() {
       expect(_key('page-point-menu'), findsNothing);
     });
 
+    testWidgets('F92: each point has its own ⋮⋮: Turn into and Delete; a '
+        'ticked point stays as it is [$lang]', (tester) async {
+      await _open(tester, lang);
+      await _edit(tester, l10n);
+      expect(_key('page-point-handle-$_sized'), findsOneWidget);
+      expect(_key('page-point-handle-$_photoPoint'), findsOneWidget);
+      await _tap(tester, _key('page-point-handle-$_sized'));
+      expect(_key('page-point-menu'), findsOneWidget);
+      expect(_key('page-turn-text'), findsOneWidget);
+      expect(_key('page-turn-item'), findsOneWidget);
+      expect(_key('page-point-delete'), findsOneWidget);
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('page-point-handle-$_photoPoint'));
+      expect(_key('page-point-menu'), findsNothing);
+      expect(find.text(l10n.pageTickedStays), findsOneWidget);
+    });
+
+    testWidgets('F92: Delete takes one point out; Undo puts it back; Done '
+        'removes it from the post after the page [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      await _tap(tester, _key('page-point-handle-$_sized'));
+      await _tap(tester, _key('page-point-delete'));
+      expect(_key('page-point-$_sized'), findsNothing);
+      expect(_key('page-point-$_photoPoint'), findsOneWidget);
+      await _tap(tester, _key('page-undo'));
+      expect(_key('page-point-$_sized'), findsOneWidget);
+      await _tap(tester, _key('page-point-handle-$_sized'));
+      await _tap(tester, _key('page-point-delete'));
+      await _tap(tester, _key('page-done'));
+      expect(app.postPages.calls, [
+        'save $_post v4 [text, toggle, checklist_ref, table, child_item]',
+        'edit $_post points',
+      ]);
+      expect(
+        app.postPages.pages[_post]!.points.map((p) => p.id),
+        [_photoPoint],
+      );
+    });
+
     testWidgets('N4: a point turns into a work item under this one, in one '
         'step [$lang]', (tester) async {
       final app = await _open(tester, lang);
