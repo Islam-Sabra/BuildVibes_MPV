@@ -3708,18 +3708,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookKindNoteWord => '· note';
 
   @override
-  String get daybookForChoose => 'For: Choose ›';
+  String get daybookForChoose => 'For: Choose';
 
   @override
-  String daybookForPersonChoose(String name) {
-    return 'For $name ›';
-  }
-
-  @override
-  String get daybookForYouChoose => 'For you ›';
-
-  @override
-  String get daybookComingChoose => 'Who\'s coming: Choose ›';
+  String get daybookComingChoose => 'Who\'s coming: Choose';
 
   @override
   String get daybookChooseWho => 'Choose who it\'s for';
@@ -3728,8 +3720,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookPostAsNote => 'Just for information? Post as a Note';
 
   @override
-  String daybookToAudience(String audience, String more) {
-    return 'To: $audience$more';
+  String daybookToAudience(String audience) {
+    return 'To: $audience';
   }
 
   @override

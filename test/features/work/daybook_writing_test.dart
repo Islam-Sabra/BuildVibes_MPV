@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -185,10 +186,7 @@ void main() {
       expect(find.byKey(const Key('give-to-me-hairline')), findsNothing);
       await tester.tap(me);
       await tester.pumpAndSettle();
-      expect(
-        find.text(l10n.daybookForYouChoose, findRichText: true),
-        findsOneWidget,
-      );
+      expect(find.text(l10n.daybookForYou, findRichText: true), findsOneWidget);
     });
 
     testWidgets('F56: Post turns on with a title of 2 or more but stays grey '
@@ -270,13 +268,11 @@ void main() {
       await _assign(tester, s.omarName);
       expect(app.daybook.created, isEmpty);
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(
-        card.properties.single.label,
-        l10n.daybookForPersonChoose(s.omarName),
-      );
+      expect(card.properties.single.label, l10n.daybookForPerson(s.omarName));
     });
 
-    testWidgets('F66: once chosen, the who row reads "For Omar Haddad ›" as '
+    testWidgets('F66: once chosen, the who row reads "For Omar Haddad" and a '
+        'mirrored caret icon as '
         "the card's facts line, the name standing out; a tap opens the "
         'picker again [$lang]', (tester) async {
       await _open(tester, lang);
@@ -287,8 +283,9 @@ void main() {
           .widget<BvWritingCard>(find.byType(BvWritingCard))
           .properties
           .single;
-      expect(who.label, l10n.daybookForPersonChoose(s.omarName));
+      expect(who.label, l10n.daybookForPerson(s.omarName));
       expect(who.name, s.omarName);
+      expect(who.caret, isTrue);
       final context = tester.element(find.byType(BvWritingCard));
       expect(who.marks, [
         (
@@ -298,16 +295,23 @@ void main() {
           ).emphasisSm.copyWith(color: BvColors.textPrimary),
         ),
       ]);
-      // Drawn as one line: the words grey, the name standing out.
-      final line = tester.widget<RichText>(
-        find
-            .descendant(
-              of: find.byKey(const Key('writing-who')),
-              matching: find.byType(RichText),
-            )
-            .last,
+      // Drawn as one line: the words grey, the name standing out; then the
+      // caret icon, the last thing on the row.
+      final drawn = find.descendant(
+        of: find.byKey(const Key('writing-who')),
+        matching: find.byType(RichText),
       );
-      expect(line.text.toPlainText(), l10n.daybookForPersonChoose(s.omarName));
+      final line = tester.widget<RichText>(
+        drawn.at(drawn.evaluate().length - 2),
+      );
+      expect(line.text.toPlainText(), l10n.daybookForPerson(s.omarName));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('writing-who')),
+          matching: find.byIcon(BvIcons.caretForward),
+        ),
+        findsOneWidget,
+      );
       // On the face: the title's cursor handle can sit over the row's
       // middle.
       await tester.tap(
@@ -379,7 +383,7 @@ void main() {
       await tester.pumpAndSettle();
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
       expect(card.properties.map((p) => p.label), [
-        l10n.daybookForPersonChoose(s.omarName),
+        l10n.daybookForPerson(s.omarName),
         words.dueProperty(_sunday, _twoPm),
         s.traysPlace,
       ]);

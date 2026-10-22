@@ -5359,26 +5359,13 @@
   "@daybookKindNoteWord": {
     "description": "Card header after the author's name: a note (K5)."
   },
-  "daybookForChoose": "For: Choose ›",
+  "daybookForChoose": "For: Choose",
   "@daybookForChoose": {
-    "description": "Writing card: the who row before anyone is chosen, on a work item and a checklist (F56)."
+    "description": "Writing card: the who row before anyone is chosen, on a work item and a checklist (F56). The row's caret is an icon, never a character (review 79 A2)."
   },
-  "daybookForPersonChoose": "For {name} ›",
-  "@daybookForPersonChoose": {
-    "description": "Writing card, a work item's who row once someone is chosen (F66); a tap chooses again. As the card's \"For {name}\".",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "daybookForYouChoose": "For you ›",
-  "@daybookForYouChoose": {
-    "description": "Writing card, a work item's who row when you chose yourself (F66); a tap chooses again. As the card's \"For you\"."
-  },
-  "daybookComingChoose": "Who's coming: Choose ›",
+  "daybookComingChoose": "Who's coming: Choose",
   "@daybookComingChoose": {
-    "description": "Writing card: the who row of a scheduled activity before anyone is chosen (F56)."
+    "description": "Writing card: the who row of a scheduled activity before anyone is chosen (F56). The row's caret is an icon (review 79 A2)."
   },
   "daybookChooseWho": "Choose who it's for",
   "@daybookChooseWho": {
@@ -5388,14 +5375,11 @@
   "@daybookPostAsNote": {
     "description": "Under the owner picker of a work item: turn it into a note (F56, F58)."
   },
-  "daybookToAudience": "To: {audience}{more}",
+  "daybookToAudience": "To: {audience}",
   "@daybookToAudience": {
-    "description": "Writing card: who an announcement or a Document for receipt goes to (F56). more is ' ›' when it can be changed, else empty.",
+    "description": "Writing card: who an announcement or a Document for receipt goes to (F56). A caret icon follows when it can be changed (review 79 A2).",
     "placeholders": {
       "audience": {
-        "type": "String"
-      },
-      "more": {
         "type": "String"
       }
     }

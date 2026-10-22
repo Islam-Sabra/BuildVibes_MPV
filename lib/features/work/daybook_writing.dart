@@ -44,7 +44,7 @@ final newPostIdProvider = Provider<String Function()>((ref) => newUuid);
 /// activity is for opens as a sheet ([DaybookPeopleSheet], F45).
 enum DaybookWritingMenu { more, kind, assign, place, audience }
 
-/// The Teams [me] may post to (F56, "To: Everyone ›"): their own, or every
+/// The Teams [me] may post to (F56, "To: Everyone"): their own, or every
 /// Team for a Space admin (create_space_post's rule).
 List<SpaceTeam> audienceTeams(
   SpacePeople? people, {
@@ -693,9 +693,11 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           label: widget.askWho == null ? label : l10n.daybookChooseWho,
           empty: true,
           ask: widget.askWho,
+          caret: widget.askWho == null,
           onTap: tap(onTap),
         );
-    // F66: "For Islam Ahmed ›", as the card's facts line says it. An edit
+    // F66: "For Islam Ahmed", and a caret while a tap chooses again, as the
+    // card's facts line says it. An edit
     // keeps the owner: Give to someone else changes it.
     BvWritingProperty owner(String id) {
       final choosable = writing && !widget.editing;
@@ -703,7 +705,6 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         id,
         draft.ownerName,
         me: ref.watch(authUserIdProvider).value,
-        choosable: choosable,
       );
       return BvWritingProperty.person(
         key: const Key('writing-who'),
@@ -718,6 +719,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           ),
         ],
         tint: BvAvatarTints.forId(id),
+        caret: choosable,
         onTap: choosable ? () => menu(DaybookWritingMenu.assign) : null,
       );
     }
@@ -758,10 +760,8 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
         BvWritingProperty.icon(
           key: const Key('writing-to'),
           icon: BvIcons.team,
-          label: l10n.daybookToAudience(
-            draft.teamName ?? l10n.daybookEveryone,
-            teams.isEmpty || widget.editing ? '' : ' ›',
-          ),
+          label: l10n.daybookToAudience(draft.teamName ?? l10n.daybookEveryone),
+          caret: teams.isNotEmpty && !widget.editing,
           onTap: teams.isEmpty || widget.editing
               ? null
               : tap(() => menu(DaybookWritingMenu.audience)),

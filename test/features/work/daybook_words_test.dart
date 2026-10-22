@@ -673,25 +673,22 @@ void main() {
       final en = _words('en');
       final ar = _words('ar');
       const me = DaybookSamples.islam;
-      expect(en.writingFor(me, 'Islam Ahmed', me: me, choosable: true), (
-        text: 'For you ›',
+      // Review 79 A2: no › in the words; the row's caret is an icon.
+      expect(en.writingFor(me, 'Islam Ahmed', me: me), (
+        text: 'For you',
         who: 'you',
       ));
-      expect(en.writingFor('o', 'Omar Haddad', me: me, choosable: true), (
-        text: 'For Omar Haddad ›',
-        who: 'Omar Haddad',
-      ));
-      expect(en.writingFor('o', 'Omar Haddad', me: me, choosable: false), (
+      expect(en.writingFor('o', 'Omar Haddad', me: me), (
         text: 'For Omar Haddad',
         who: 'Omar Haddad',
       ));
-      // F52: a Latin name kept whole in an Arabic line ("لـ Islam Ahmed ›").
+      // F52: a Latin name kept whole in an Arabic line ("لـ Islam Ahmed").
       final islam = inOwnDirection('Islam Ahmed');
-      expect(ar.writingFor('i', 'Islam Ahmed', me: 'o', choosable: true), (
-        text: 'لـ $islam ›',
+      expect(ar.writingFor('i', 'Islam Ahmed', me: 'o'), (
+        text: 'لـ $islam',
         who: islam,
       ));
-      expect(ar.writingFor(me, 'x', me: me, choosable: true).text, 'لك ›');
+      expect(ar.writingFor(me, 'x', me: me).text, 'لك');
     });
 
     test('my_calendar: work items only', () {

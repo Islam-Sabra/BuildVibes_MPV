@@ -161,23 +161,18 @@ class DaybookWords {
   }
 
   /// The writing card's who row once someone is chosen (F66), as the
-  /// card's facts line says it: "For Islam Ahmed ›", "For you ›", with
-  /// [who] the part that stands out. The › only while a tap changes it.
+  /// card's facts line says it: "For Islam Ahmed", "For you", with [who]
+  /// the part that stands out. The row's caret is an icon (review 79 A2).
   ({String text, String who}) writingFor(
     String ownerId,
     String? ownerName, {
     required String? me,
-    required bool choosable,
   }) {
     final isMe = ownerId == me;
-    final name = _inLine(personName(l10n, ownerName));
     return (
-      text: switch ((isMe, choosable)) {
-        (true, true) => l10n.daybookForYouChoose,
-        (true, false) => l10n.daybookForYou,
-        (false, true) => l10n.daybookForPersonChoose(name),
-        (false, false) => l10n.daybookForPerson(name),
-      },
+      text: isMe
+          ? l10n.daybookForYou
+          : l10n.daybookForPerson(_inLine(personName(l10n, ownerName))),
       who: _whoMark(ownerName, isMe: isMe),
     );
   }

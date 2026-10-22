@@ -3713,18 +3713,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindNoteWord => '· ملاحظة';
 
   @override
-  String get daybookForChoose => 'لـ: اختر ›';
+  String get daybookForChoose => 'لـ: اختر';
 
   @override
-  String daybookForPersonChoose(String name) {
-    return 'لـ $name ›';
-  }
-
-  @override
-  String get daybookForYouChoose => 'لك ›';
-
-  @override
-  String get daybookComingChoose => 'من سيحضر: اختر ›';
+  String get daybookComingChoose => 'من سيحضر: اختر';
 
   @override
   String get daybookChooseWho => 'اختر لمن';
@@ -3733,8 +3725,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookPostAsNote => 'للعلم فقط؟ انشرها كملاحظة';
 
   @override
-  String daybookToAudience(String audience, String more) {
-    return 'إلى: $audience$more';
+  String daybookToAudience(String audience) {
+    return 'إلى: $audience';
   }
 
   @override
@@ -3950,7 +3942,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String peopleLetInAs(String pass) {
-    return 'اقبله كـ$pass';
+    return 'اقبله ك$pass';
   }
 
   @override
@@ -3999,7 +3991,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String libraryInUse(String rev) {
-    return '$rev · المعتمدة';
+    return '$rev · الحالية';
   }
 
   @override

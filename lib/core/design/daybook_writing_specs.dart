@@ -48,6 +48,10 @@ abstract final class BvWritingCardSpec {
   static const propertyItemGap = 5.0;
   static const propertyIcon = 15.0;
 
+  /// The caret after a row a tap chooses again ("For: Choose", review 79
+  /// A2).
+  static const propertyCaret = 12.0;
+
   /// One line of properties, as laid out.
   static const propertyHeight = 18.0;
 

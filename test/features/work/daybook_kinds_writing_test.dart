@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -306,15 +307,21 @@ void main() {
       expect(
         find.descendant(
           of: to,
-          matching: find.text(
-            l10n.daybookToAudience(l10n.daybookEveryone, ' ›'),
-          ),
+          matching: find.text(l10n.daybookToAudience(l10n.daybookEveryone)),
         ),
+        findsOneWidget,
+      );
+      // Review 79 A2: the caret is the mirrored icon, never a character.
+      expect(
+        find.descendant(of: to, matching: find.byIcon(BvIcons.caretForward)),
         findsOneWidget,
       );
       await tester.ensureVisible(to);
       await tester.pumpAndSettle();
-      await _tap(tester, find.descendant(of: to, matching: find.byType(Icon)));
+      await _tap(
+        tester,
+        find.descendant(of: to, matching: find.byIcon(BvIcons.team)),
+      );
       final menu = tester.widget<BvPopoverMenu<String>>(
         find.byKey(const Key('writing-to-menu')),
       );
@@ -332,7 +339,7 @@ void main() {
           matching: find.text(mep.name),
         ),
       );
-      expect(find.text(l10n.daybookToAudience(mep.name, ' ›')), findsOneWidget);
+      expect(find.text(l10n.daybookToAudience(mep.name)), findsOneWidget);
       await _post(tester);
       final sent = daybook.createdPosts.single;
       expect(sent.teamId, mep.id);
@@ -737,7 +744,7 @@ Future<void> _who(WidgetTester tester) async {
   await tester.ensureVisible(row);
   await tester.pumpAndSettle();
   // Its icon: the title's selection handle can sit over the middle.
-  await tester.tap(find.descendant(of: row, matching: find.byType(Icon)));
+  await tester.tap(find.descendant(of: row, matching: find.byType(Icon)).first);
   await tester.pumpAndSettle();
 }
 

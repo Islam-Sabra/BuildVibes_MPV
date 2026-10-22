@@ -6260,28 +6260,16 @@ abstract class AppLocalizations {
   /// **'· note'**
   String get daybookKindNoteWord;
 
-  /// Writing card: the who row before anyone is chosen, on a work item and a checklist (F56).
+  /// Writing card: the who row before anyone is chosen, on a work item and a checklist (F56). The row's caret is an icon, never a character (review 79 A2).
   ///
   /// In en, this message translates to:
-  /// **'For: Choose ›'**
+  /// **'For: Choose'**
   String get daybookForChoose;
 
-  /// Writing card, a work item's who row once someone is chosen (F66); a tap chooses again. As the card's "For {name}".
+  /// Writing card: the who row of a scheduled activity before anyone is chosen (F56). The row's caret is an icon (review 79 A2).
   ///
   /// In en, this message translates to:
-  /// **'For {name} ›'**
-  String daybookForPersonChoose(String name);
-
-  /// Writing card, a work item's who row when you chose yourself (F66); a tap chooses again. As the card's "For you".
-  ///
-  /// In en, this message translates to:
-  /// **'For you ›'**
-  String get daybookForYouChoose;
-
-  /// Writing card: the who row of a scheduled activity before anyone is chosen (F56).
-  ///
-  /// In en, this message translates to:
-  /// **'Who\'s coming: Choose ›'**
+  /// **'Who\'s coming: Choose'**
   String get daybookComingChoose;
 
   /// Writing card: the who row, pulsing, after Post was tapped with nobody chosen (F56).
@@ -6296,11 +6284,11 @@ abstract class AppLocalizations {
   /// **'Just for information? Post as a Note'**
   String get daybookPostAsNote;
 
-  /// Writing card: who an announcement or a Document for receipt goes to (F56). more is ' ›' when it can be changed, else empty.
+  /// Writing card: who an announcement or a Document for receipt goes to (F56). A caret icon follows when it can be changed (review 79 A2).
   ///
   /// In en, this message translates to:
-  /// **'To: {audience}{more}'**
-  String daybookToAudience(String audience, String more);
+  /// **'To: {audience}'**
+  String daybookToAudience(String audience);
 
   /// Writing card and its To menu: the whole Space (F56).
   ///

@@ -34,6 +34,7 @@ class BvWritingProperty {
     this.tint,
     this.image,
     this.onTap,
+    this.caret = false,
     this.key,
   }) : icon = null,
        onRemove = null,
@@ -47,6 +48,7 @@ class BvWritingProperty {
     this.onTap,
     this.onRemove,
     this.removeLabel,
+    this.caret = false,
     this.key,
     this.empty = false,
     this.ask,
@@ -58,7 +60,7 @@ class BvWritingProperty {
   final String label;
 
   /// The person's name for the avatar, when [label] says more ("For Islam
-  /// Ahmed ›", F66).
+  /// Ahmed", F66).
   final String? name;
 
   /// With marks, [label] reads as a card's facts line (F34): in grey, each
@@ -68,7 +70,7 @@ class BvWritingProperty {
   /// On the row, for finding it.
   final Key? key;
 
-  /// Still to choose ("For: Choose ›"): in grey (F56).
+  /// Still to choose ("For: Choose"): in grey (F56).
   final bool empty;
 
   /// Each new value pulses the row once, in the action colour: Post was
@@ -78,6 +80,11 @@ class BvWritingProperty {
   final Color? tint;
   final ImageProvider? image;
   final VoidCallback? onTap;
+
+  /// A small caret after the label: a tap chooses again (F56, F66). The
+  /// icon mirrors in right to left; a string never carries one (review 79
+  /// A2).
+  final bool caret;
 
   /// A small × after the label that takes it off (a file on the post).
   final VoidCallback? onRemove;
@@ -545,6 +552,12 @@ class _Properties extends StatelessWidget {
                                 : style,
                           ),
                   ),
+                  if (p.caret)
+                    const Icon(
+                      BvIcons.caretForward,
+                      size: BvWritingCardSpec.propertyCaret,
+                      color: BvColors.iconSecondary,
+                    ),
                   if (p.onRemove != null)
                     Semantics(
                       button: true,
