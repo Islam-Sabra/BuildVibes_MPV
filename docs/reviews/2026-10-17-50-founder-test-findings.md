@@ -957,3 +957,26 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Seen:** leaving the writing card, the card shows as **Draft** (E4). After going to Home and back into the Space, the draft is still there with its words and quote, but the **"Draft" word is gone**, so it looks like a card being written now.
 - **Fix:** a writing card that holds an unsent draft **always** shows E4's "Draft" label, however it was reached: back from Home, from another Space, after the app was closed, or after a restart. The label goes when the person types again, as now.
 - **Test:** make a draft → Home → back to the Space: "Draft" shows. The same after closing the app fully.
+
+## Build 473: steps 12 and 13 (founder, 11:04)
+- **Step 12 passed:** with the signal back, the waiting work item was sent, once.
+- **Step 13 in part:** headings, text and tables can be added, and + row works. See F89 and F90.
+
+## F89. A table's "+ column" does nothing
+- **Seen:** on a page table, + row adds a row, but + column adds nothing.
+- **Fix:** + column adds an empty cell to the end of every row, up to 8 columns (`validate_blocks`). The table then scrolls sideways when it is wider than the page. At 8, the + column button goes.
+- **Test:** 2×2 → + column → 2×3, saved and read back; at 8 columns no + column; Arabic, where the new column comes on the left.
+
+## F90. Writing inside a toggle feels like a form, not writing (founder)
+- **Seen:** inside an open toggle, each line is followed by its own "+ Add text" button, like the table's + row. It works, but it's not how people write.
+- **Fix: write inside a toggle as on the page itself:**
+  - an open toggle shows its lines, then one empty line ready to type, with a grey hint, "Type inside" / «اكتب هنا»;
+  - **Enter** at the end of a line starts a new line inside the toggle;
+  - **Enter on an empty last line** leaves the toggle and starts a line after it;
+  - **"/"** on an empty line inside offers what a toggle may hold: text, heading, table, photo, file (`validate_blocks`);
+  - there's no "+ Add text" button.
+- **Test:**
+  - write three lines in a toggle with Enter;
+  - Enter twice to leave it;
+  - close and open the toggle, and the three lines are there;
+  - the same in Arabic.
