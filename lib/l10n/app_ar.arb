@@ -1163,5 +1163,8 @@
   "walkDiscard": "تخلّص منها",
   "walkRemovePhoto": "احذف هذه الصورة",
   "walkEachItem": "{count, plural, =1{صورة واحدة، بند عمل} =2{صورتان، كلٌّ منهما بند عمل} few{{count} صور، كلٌّ منها بند عمل} other{{count} صورة، كلٌّ منها بند عمل}}",
-  "walkShowAll": "اعرض الكل"
+  "walkShowAll": "اعرض الكل",
+  "walkInProgress": "لديك جولة لم تكتمل",
+  "walkContinue": "متابعة الجولة",
+  "walkThrowAway": "التخلّص منها"
 }

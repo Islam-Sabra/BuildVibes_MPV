@@ -208,6 +208,10 @@ Future<TestApp> pumpApp(
   /// signal.
   List<Duration> retryLater = const [Duration(seconds: 30)],
 
+  /// The photo Android kept from a camera it closed with the app (review
+  /// 79 P1): given once, as `retrieveLostData` does.
+  String? lostPhoto,
+
   /// What the phone's file picker returns (default: a PDF drawing).
   PhoneFile? Function()? pickDocument,
 
@@ -381,6 +385,11 @@ Future<TestApp> pumpApp(
             ],
             refused: galleryRefused,
           );
+        }),
+        lostPhotoProvider.overrideWithValue(() async {
+          final path = lostPhoto;
+          lostPhoto = null;
+          return path == null ? null : XFile(path);
         }),
         // A fresh copy each time: a sent item deletes its kept copy.
         keepPhotoProvider.overrideWithValue(

@@ -4217,4 +4217,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get walkShowAll => 'اعرض الكل';
+
+  @override
+  String get walkInProgress => 'لديك جولة لم تكتمل';
+
+  @override
+  String get walkContinue => 'متابعة الجولة';
+
+  @override
+  String get walkThrowAway => 'التخلّص منها';
 }

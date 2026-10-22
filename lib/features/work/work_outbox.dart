@@ -409,6 +409,24 @@ final pickPhotoProvider = Provider<PickPhoto>((ref) {
   };
 });
 
+/// The photo the camera took just before Android closed the app behind
+/// it (review 79 P1), made safe to leave the phone, or null. Only Android
+/// keeps one; a provider so tests can stand in for it.
+typedef LostPhoto = Future<XFile?> Function();
+
+final lostPhotoProvider = Provider<LostPhoto>(
+  (ref) => () async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return null;
+    }
+    final lost = await ImagePicker().retrieveLostData();
+    if (lost.isEmpty) return null;
+    final files = lost.files ?? [?lost.file];
+    final clean = await cleanPicked(files.take(1).toList(), from: 'camera');
+    return clean.photos.firstOrNull;
+  },
+);
+
 /// Copies a picked photo into the app's own folder, so it outlives the
 /// camera's cache until it is sent. Returns the kept file's path.
 typedef KeepPhoto = Future<String> Function(XFile photo);

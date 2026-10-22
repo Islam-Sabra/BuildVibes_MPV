@@ -1,8 +1,12 @@
 // Slice 6 (review 77): walk mode (R1), a walk's card with a row per work
 // item (R1b), and a row's own card.
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
+import 'package:buildvibes/features/work/walk_saved.dart';
 import 'package:buildvibes/features/work/walk_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -90,6 +94,8 @@ Future<TestApp> _open(
   bool withWalk = true,
   String path = '/spaces/${DaybookSamples.space}',
   FakeDaybookRepository? daybook,
+  Map<String, Object> stored = const {},
+  String? lostPhoto,
 }) async {
   final s = DaybookSamples(lang);
   final fake = daybook ?? FakeDaybookRepository();
@@ -110,6 +116,8 @@ Future<TestApp> _open(
       ..spacePeople[DaybookSamples.space] = s.people(),
     daybook: fake,
     now: DaybookSamples.thursday,
+    stored: stored,
+    lostPhoto: lostPhoto,
   );
   GoRouter.of(tester.element(find.byType(Navigator).first)).push(path);
   await tester.pumpAndSettle();
@@ -117,6 +125,22 @@ Future<TestApp> _open(
 }
 
 Finder _key(String k) => find.byKey(Key(k));
+
+/// Where the phone keeps Islam's walk in progress in the sample Space.
+const _savedKey =
+    'walk_in_progress:${DaybookSamples.islam}:${DaybookSamples.space}';
+
+SavedWalk? _saved(TestApp app) {
+  final raw = app.prefs.getString(_savedKey);
+  return raw == null
+      ? null
+      : SavedWalk.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+}
+
+/// A copy of the sample photo, as the app's folder keeps one.
+String _keptCopy() => File(
+  testPhotoPath,
+).copySync('${Directory.systemTemp.createTempSync('bv_walk').path}/1.png').path;
 
 Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.ensureVisible(f.first);
@@ -353,6 +377,151 @@ void main() {
       await _tap(tester, _key('bv-dialog-confirm'));
       expect(find.text('Walk, stairs'), findsNothing);
       expect(daybook.createdWalks, isEmpty);
+    });
+
+    testWidgets('P1: the walk is kept on the phone from the first photo: '
+        'name, place, each photo, line and owner; Finish clears it '
+        '[$lang]', (tester) async {
+      final daybook = FakeDaybookRepository();
+      final app = await _open(tester, lang, withWalk: false, daybook: daybook);
+      await _menu(tester, l10n.walkMenu);
+      await tester.enterText(_key('walk-name'), 'Walk, level 4');
+      await tester.enterText(_key('walk-place'), 'Level 4 corridor');
+      await tester.pumpAndSettle();
+      expect(_saved(app), isNull);
+      await _tap(tester, _key('walk-start'));
+      await tester.enterText(_key('walk-line-0'), 'Hanger missing');
+      await tester.pumpAndSettle();
+      await _owner(tester, s.omarName);
+      final saved = _saved(app)!;
+      expect(saved.name, 'Walk, level 4');
+      expect(saved.place, 'Level 4 corridor');
+      expect(saved.camera, isFalse);
+      final shot = saved.shots.single;
+      expect(File(shot.local).existsSync(), isTrue);
+      expect(shot.line, 'Hanger missing');
+      expect(shot.ownerId, DaybookSamples.omar);
+      expect(shot.ownerName, s.omarName);
+
+      await _tap(tester, _key('walk-finish'));
+      await tester.pumpAndSettle();
+      expect(daybook.createdWalks.single.items.single.line, 'Hanger missing');
+      expect(_saved(app), isNull);
+    });
+
+    testWidgets('P1: after Android closed the app with the camera open, the '
+        'Space offers the walk; Continue brings it back with the photo the '
+        'camera took [$lang]', (tester) async {
+      final daybook = FakeDaybookRepository();
+      final walk = SavedWalk(
+        name: 'Walk, level 4',
+        place: 'Level 4 corridor',
+        shots: [
+          SavedShot(
+            local: _keptCopy(),
+            at: DaybookSamples.thursday,
+            line: 'Hanger missing',
+            ownerId: DaybookSamples.omar,
+            ownerName: s.omarName,
+          ),
+        ],
+        camera: true,
+      );
+      final app = await _open(
+        tester,
+        lang,
+        withWalk: false,
+        daybook: daybook,
+        stored: {_savedKey: jsonEncode(walk.toJson())},
+        lostPhoto: testPhotoPath,
+      );
+      expect(find.text(l10n.walkInProgress), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _key('bv-dialog'),
+          matching: find.textContaining('Walk, level 4'),
+        ),
+        findsOneWidget,
+      );
+      await _tap(tester, find.text(l10n.walkContinue));
+      expect(find.byType(WalkScreen), findsOneWidget);
+      // The lost photo is the second one, the owner staying for it.
+      expect(_key('walk-thumb-1'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _key('walk-owner'),
+          matching: find.text(s.omarName),
+        ),
+        findsOneWidget,
+      );
+      final saved = _saved(app)!;
+      expect(saved.camera, isFalse);
+      expect(saved.shots, hasLength(2));
+      expect(saved.shots.first.line, 'Hanger missing');
+
+      await tester.enterText(_key('walk-line-1'), 'Tray not earthed');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('walk-finish'));
+      await tester.pumpAndSettle();
+      final sent = daybook.createdWalks.single;
+      expect(sent.title, 'Walk, level 4');
+      expect(sent.place, 'Level 4 corridor');
+      expect(
+        [for (final i in sent.items) i.line],
+        ['Hanger missing', 'Tray not earthed'],
+      );
+      expect(_saved(app), isNull);
+    });
+
+    testWidgets("P1: a lost photo is only a walk's when the walk was "
+        'waiting for it [$lang]', (tester) async {
+      final walk = SavedWalk(
+        name: 'Walk, roof',
+        shots: [
+          SavedShot(
+            local: _keptCopy(),
+            at: DaybookSamples.thursday,
+            line: 'Drain blocked',
+          ),
+        ],
+      );
+      final app = await _open(
+        tester,
+        lang,
+        withWalk: false,
+        stored: {_savedKey: jsonEncode(walk.toJson())},
+        lostPhoto: testPhotoPath,
+      );
+      await _tap(tester, find.text(l10n.walkContinue));
+      expect(_key('walk-thumb-0'), findsOneWidget);
+      expect(_key('walk-thumb-1'), findsNothing);
+      expect(_saved(app)!.shots, hasLength(1));
+    });
+
+    testWidgets('P1: Throw away asks first, then the walk and its photos are '
+        'gone [$lang]', (tester) async {
+      final photo = _keptCopy();
+      final walk = SavedWalk(
+        name: 'Walk, roof',
+        shots: [
+          SavedShot(local: photo, at: DaybookSamples.thursday, line: 'Drain'),
+        ],
+      );
+      final app = await _open(
+        tester,
+        lang,
+        withWalk: false,
+        stored: {_savedKey: jsonEncode(walk.toJson())},
+      );
+      await _tap(tester, find.text(l10n.walkThrowAway));
+      expect(find.text(l10n.walkDiscardTitle), findsOneWidget);
+      expect(_saved(app), isNotNull);
+      await _tap(tester, _key('bv-dialog-confirm'));
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      expect(_saved(app), isNull);
+      expect(File(photo).existsSync(), isFalse);
+      expect(find.byType(WalkScreen), findsNothing);
+      expect(find.text(l10n.walkInProgress), findsNothing);
     });
   }
 }

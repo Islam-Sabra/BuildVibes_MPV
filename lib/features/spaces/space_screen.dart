@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/library.dart';
 import '../../data/repositories/activity_repository.dart';
@@ -14,12 +15,14 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_space_header.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
+import '../../shared/widgets/bv_dialog.dart';
 import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
 import '../library/library_tab.dart';
 import '../work/daybook_tab.dart';
 import '../work/daybook_target.dart';
+import '../work/walk_saved.dart';
 import 'people_tab.dart';
 import 'spaces_state.dart';
 
@@ -83,6 +86,48 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.push(AppRoutes.spaceInvite(widget.spaceId));
       });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_askWalk());
+      });
+    }
+  }
+
+  /// A walk kept on the phone, left when the app was closed (review 79
+  /// P1): Continue opens it where it stopped; Throw away asks first.
+  Future<void> _askWalk() async {
+    final walk = ref.read(walkSavedProvider(widget.spaceId));
+    if (walk == null) return;
+    final l10n = AppLocalizations.of(context);
+    final carryOn = await showBvChoiceDialog(
+      context: context,
+      title: l10n.walkInProgress,
+      body: joinMeta([
+        walk.name.trim(),
+        if (walk.shots.isNotEmpty) l10n.walkPhotos(walk.shots.length),
+      ]),
+      cancelLabel: l10n.walkThrowAway,
+      confirmLabel: l10n.walkContinue,
+    );
+    if (!mounted || carryOn == null) return;
+    // "Keep walking" in the question goes on with it too.
+    final away =
+        !carryOn &&
+        await showBvDialog(
+          context: context,
+          title: l10n.walkDiscardTitle,
+          body: l10n.walkDiscardBody,
+          cancelLabel: l10n.walkKeep,
+          confirmLabel: l10n.walkDiscard,
+          destructive: true,
+        );
+    if (!mounted) return;
+    if (away) {
+      await ref
+          .read(walkSavedProvider(widget.spaceId).notifier)
+          .clear(photos: true);
+    } else {
+      await context.push(AppRoutes.spaceWalk(widget.spaceId));
     }
   }
 

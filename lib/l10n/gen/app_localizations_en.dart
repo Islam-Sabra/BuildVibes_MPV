@@ -4208,4 +4208,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walkShowAll => 'Show all';
+
+  @override
+  String get walkInProgress => 'You have a walk in progress';
+
+  @override
+  String get walkContinue => 'Continue';
+
+  @override
+  String get walkThrowAway => 'Throw away';
 }

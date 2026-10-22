@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
@@ -25,13 +26,14 @@ import 'daybook_draft.dart' show DaybookDraft, DaybookPostDraft;
 import 'daybook_photos.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart' show assignablePeople;
+import 'walk_saved.dart';
 import 'work_outbox.dart';
 
 /// One photo of a walk being taken: the phone's copy, when, its line and
 /// who owns it.
 class _Shot {
-  _Shot({required this.local, required this.at, this.owner})
-    : line = TextEditingController();
+  _Shot({required this.local, required this.at, this.owner, String line = ''})
+    : line = TextEditingController(text: line);
 
   final String local;
   final DateTime at;
@@ -44,7 +46,9 @@ class _Shot {
 /// R1 · Walk mode (2539:34353, slice 6): name the walk, then for each thing
 /// to fix one photo, one line (the keyboard's own mic types it) and who
 /// does it. Finish posts it as one walk with a work item per photo, through
-/// the outbox: with no signal it waits and sends later.
+/// the outbox: with no signal it waits and sends later. From the moment the
+/// camera first opens, the walk is kept on the phone ([walkSavedProvider],
+/// review 79 P1) and opens again as it was.
 class WalkScreen extends ConsumerStatefulWidget {
   const WalkScreen({super.key, required this.spaceId});
 
@@ -62,6 +66,96 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
   var _taking = false;
 
   static const _lineMax = 140;
+
+  @override
+  void initState() {
+    super.initState();
+    final saved = ref.read(walkSavedProvider(widget.spaceId));
+    if (saved != null) {
+      _name.text = saved.name;
+      _place.text = saved.place;
+      for (final s in saved.shots) {
+        final owner = s.ownerId;
+        _shots.add(
+          _Shot(
+            local: s.local,
+            at: s.at,
+            line: s.line,
+            owner: owner == null
+                ? null
+                : BvGiveToPerson(id: owner, name: s.ownerName ?? ''),
+          ),
+        );
+      }
+      _current = _shots.isEmpty ? 0 : _shots.length - 1;
+    }
+    unawaited(_recoverLost(saved));
+  }
+
+  /// Android may have closed the app while the camera was open: the photo
+  /// it took then comes back, when this walk was waiting for it.
+  Future<void> _recoverLost(SavedWalk? saved) async {
+    XFile? photo;
+    try {
+      photo = await ref.read(lostPhotoProvider)();
+    } on Exception {
+      photo = null;
+    }
+    if (!mounted || saved == null || !saved.camera) return;
+    String? kept;
+    try {
+      if (photo != null) kept = await ref.read(keepPhotoProvider)(photo);
+    } on Exception {
+      kept = null;
+    }
+    if (!mounted) return;
+    if (kept != null) {
+      _add(kept);
+    } else {
+      await _save();
+    }
+  }
+
+  /// Keeps the walk on the phone as it is now; [camera] while the camera
+  /// is open.
+  Future<void> _save({bool camera = false}) => ref
+      .read(walkSavedProvider(widget.spaceId).notifier)
+      .save(
+        SavedWalk(
+          name: _name.text,
+          place: _place.text,
+          shots: [
+            for (final s in _shots)
+              SavedShot(
+                local: s.local,
+                at: s.at,
+                line: s.line.text,
+                ownerId: s.owner?.id,
+                ownerName: s.owner?.name,
+              ),
+          ],
+          camera: camera,
+        ),
+      );
+
+  Future<void> _forget() =>
+      ref.read(walkSavedProvider(widget.spaceId).notifier).clear();
+
+  /// A photo kept in the app's folder joins the walk, the last owner
+  /// staying for it.
+  void _add(String local) {
+    setState(() {
+      _shots.add(
+        _Shot(
+          local: local,
+          at: ref.read(clockProvider)(),
+          owner: _shots.lastOrNull?.owner,
+        ),
+      );
+      _current = _shots.length - 1;
+    });
+    unawaited(_save());
+  }
 
   @override
   void dispose() {
@@ -92,6 +186,9 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
       return;
     }
     setState(() => _taking = true);
+    // Kept before the camera opens: Android may close the app behind it.
+    await _save(camera: true);
+    if (!mounted) return;
     String? kept;
     try {
       final picked = await ref.read(pickPhotoProvider)(camera: true);
@@ -106,19 +203,15 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
     } finally {
       if (mounted) setState(() => _taking = false);
     }
-    if (!mounted || kept == null) return;
-    final local = kept;
-    setState(() {
-      // The last owner stays for the next photo.
-      _shots.add(
-        _Shot(
-          local: local,
-          at: ref.read(clockProvider)(),
-          owner: _shots.lastOrNull?.owner,
-        ),
-      );
-      _current = _shots.length - 1;
-    });
+    if (!mounted) return;
+    if (kept != null) {
+      _add(kept);
+    } else if (_shots.isEmpty) {
+      // No photo yet: nothing to come back to.
+      await _forget();
+    } else {
+      await _save();
+    }
   }
 
   Future<void> _pickOwner() async {
@@ -144,7 +237,10 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
         onPick: (p) => Navigator.of(sheet).pop(p),
       ),
     );
-    if (picked != null && mounted) setState(() => shot.owner = picked);
+    if (picked != null && mounted) {
+      setState(() => shot.owner = picked);
+      unawaited(_save());
+    }
   }
 
   Future<void> _remove(int index) async {
@@ -155,6 +251,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
       () =>
           _current = _shots.isEmpty ? 0 : _current.clamp(0, _shots.length - 1),
     );
+    await (_shots.isEmpty ? _forget() : _save());
   }
 
   /// Finish: every photo needs its line and owner; then the walk goes to
@@ -212,6 +309,9 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
       ],
     );
     unawaited(ref.read(workOutboxProvider.notifier).send(item));
+    // The outbox has it now, photos and all.
+    await _forget();
+    if (!mounted) return;
     // Sent: past the "throw it away?" question.
     Navigator.of(context).pop();
   }
@@ -234,6 +334,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
       }
       _shots.clear();
     }
+    await _forget();
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -429,7 +530,10 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
                               hint: l10n.walkLineHint,
                               style: type.bodyMd,
                             ).copyWith(counterText: ''),
-                            onChanged: (_) => setState(() {}),
+                            onChanged: (_) {
+                              setState(() {});
+                              unawaited(_save());
+                            },
                           ),
                           _OwnerChip(
                             owner: shot.owner,

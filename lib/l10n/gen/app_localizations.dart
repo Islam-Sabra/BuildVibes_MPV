@@ -7081,6 +7081,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show all'**
   String get walkShowAll;
+
+  /// Opening a Space with a walk kept on the phone (the app was closed while walking, review 79 P1). The body is the walk's name and its photos.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a walk in progress'**
+  String get walkInProgress;
+
+  /// The walk in progress: opens walk mode where it stopped (review 79 P1).
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get walkContinue;
+
+  /// The walk in progress: drops it and its photos, after asking (review 79 P1).
+  ///
+  /// In en, this message translates to:
+  /// **'Throw away'**
+  String get walkThrowAway;
 }
 
 class _AppLocalizationsDelegate

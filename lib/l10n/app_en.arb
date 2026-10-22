@@ -6053,5 +6053,17 @@
   "walkShowAll": "Show all",
   "@walkShowAll": {
     "description": "R1b: more rows than the card shows; opens the page."
+  },
+  "walkInProgress": "You have a walk in progress",
+  "@walkInProgress": {
+    "description": "Opening a Space with a walk kept on the phone (the app was closed while walking, review 79 P1). The body is the walk's name and its photos."
+  },
+  "walkContinue": "Continue",
+  "@walkContinue": {
+    "description": "The walk in progress: opens walk mode where it stopped (review 79 P1)."
+  },
+  "walkThrowAway": "Throw away",
+  "@walkThrowAway": {
+    "description": "The walk in progress: drops it and its photos, after asking (review 79 P1)."
   }
 }
