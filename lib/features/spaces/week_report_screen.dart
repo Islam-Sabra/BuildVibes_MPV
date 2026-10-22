@@ -286,12 +286,17 @@ class _WeekReportState extends ConsumerState<WeekReportScreen> {
                         const SizedBox(width: BvWeekReportSpec.proofGap),
                     itemBuilder: (context, i) {
                       final r = value.checked[i];
-                      return SizedBox(
-                        width: BvWeekReportSpec.proofWidth,
-                        child: _Proof(
-                          row: r,
-                          words: words,
-                          onTap: () => _open(r.postId),
+                      // Each card as tall as its words; the strip as tall
+                      // as Arabic's two-line titles.
+                      return Align(
+                        alignment: AlignmentDirectional.topStart,
+                        child: SizedBox(
+                          width: BvWeekReportSpec.proofWidth,
+                          child: _Proof(
+                            row: r,
+                            words: words,
+                            onTap: () => _open(r.postId),
+                          ),
                         ),
                       );
                     },
@@ -589,6 +594,7 @@ class _Proof extends ConsumerWidget {
               BvWeekReportSpec.proofPadding,
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: BvSpace.s6,
               children: [
