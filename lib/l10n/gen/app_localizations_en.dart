@@ -4295,4 +4295,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String libraryReplacedOn(String day) {
     return 'replaced $day, kept in the record';
   }
+
+  @override
+  String get pageTypeInside => 'Type inside';
 }

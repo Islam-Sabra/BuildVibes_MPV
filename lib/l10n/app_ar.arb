@@ -1187,5 +1187,6 @@
   "daybookStampNewVersionNo": "نسخة جديدة · {version}",
   "daybookReplacedBy": "استُبدلت بـ {version} · {when}",
   "libraryInUseNo": "{version} · المعتمدة",
-  "libraryReplacedOn": "استُبدلت {day}، وتبقى في السجل"
+  "libraryReplacedOn": "استُبدلت {day}، وتبقى في السجل",
+  "pageTypeInside": "اكتب هنا"
 }

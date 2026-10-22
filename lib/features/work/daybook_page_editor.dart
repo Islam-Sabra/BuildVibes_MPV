@@ -113,6 +113,19 @@ List<PageBlock> withRealIds(List<PageBlock> blocks) => [
       },
 ];
 
+/// F90: each toggle ends with an empty line ready to type inside (dropped
+/// again when the page is saved).
+List<PageBlock> withReadyToggles(List<PageBlock> blocks) => [
+  for (final b in blocks)
+    if (b case PageToggle(:final text, :final children)
+        when children.isEmpty ||
+            !(children.last is PageText &&
+                (children.last as PageText).text.isEmpty))
+      PageToggle(b.id, text, [...children, PageText(newUuid(), '')])
+    else
+      b,
+];
+
 /// What to send for [page] edited into [blocks], [points] (id → words),
 /// [title] and [body], in the order it must go (review 76): [before] (the
 /// words and new points), the blocks, then [after] (the points no block
@@ -139,10 +152,17 @@ planPageSave(
       case PageHeading(:final text) when text.trim().isEmpty:
         break;
       case PageToggle(:final text, :final children):
+        // F90: the empty line ready to type inside goes.
+        final inside = [
+          for (final c in children)
+            if (!(c is PageText && c.text.trim().isEmpty) &&
+                !(c is PageHeading && c.text.trim().isEmpty))
+              c,
+        ];
         if (text.trim().isEmpty) {
-          kept.addAll(children);
+          kept.addAll(inside);
         } else {
-          kept.add(PageToggle(b.id, text.trim(), children));
+          kept.add(PageToggle(b.id, text.trim(), inside));
         }
       case PageChecklist(:final pointIds):
         final ids = [
@@ -271,7 +291,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   static const _filesMax = 10;
 
   late PostPage _page = widget.page;
-  late List<PageBlock> _blocks = withRealIds(_page.shown);
+  late List<PageBlock> _blocks = withReadyToggles(withRealIds(_page.shown));
   late final Map<String, String> _points = {
     for (final p in _page.points) p.id: p.text,
   };
@@ -505,12 +525,27 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
 
   // Adding ------------------------------------------------------------------
 
-  Future<void> _openAdd({String filter = '', int? replace}) async {
+  /// What a toggle may hold (validate_blocks), for "/" inside one (F90).
+  static const _insideToggle = {
+    PageAdd.text,
+    PageAdd.heading,
+    PageAdd.table,
+    PageAdd.photo,
+    PageAdd.file,
+  };
+
+  Future<void> _openAdd({
+    String filter = '',
+    int? replace,
+    (int, String)? intoToggle,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final f = filter.toLowerCase();
     final adds = [
       for (final a in pageAdds(_post))
-        if (f.isEmpty || pageAddName(l10n, a).toLowerCase().startsWith(f)) a,
+        if ((f.isEmpty || pageAddName(l10n, a).toLowerCase().startsWith(f)) &&
+            (intoToggle == null || _insideToggle.contains(a)))
+          a,
     ];
     if (adds.isEmpty) return;
     final picked = await showBvSheet<PageAdd>(
@@ -546,10 +581,14 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     );
     _add.clear();
     if (picked == null || !mounted) return;
-    await _addBlock(picked, at: replace);
+    await _addBlock(picked, at: replace, intoToggle: intoToggle);
   }
 
-  Future<void> _addBlock(PageAdd a, {int? at}) async {
+  Future<void> _addBlock(
+    PageAdd a, {
+    int? at,
+    (int, String)? intoToggle,
+  }) async {
     _blocks = _collect();
     final id = newUuid();
     PageBlock? block;
@@ -562,7 +601,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         block = PageHeading(id, '');
         focus = 't:$id';
       case PageAdd.toggle:
-        block = PageToggle(id, '', const []);
+        block = PageToggle(id, '', [PageText(newUuid(), '')]);
         focus = 't:$id';
       case PageAdd.checklist:
         final point = newUuid();
@@ -583,6 +622,24 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         block = await _item(id);
     }
     if (block == null || !mounted) return;
+    if (intoToggle != null) {
+      // F90: in the empty line's place, inside the toggle; its ready line
+      // follows it.
+      final (index, childId) = intoToggle;
+      _blocks = _collect();
+      final t = _blocks[index] as PageToggle;
+      setState(
+        () => _blocks = withReadyToggles([
+          ..._blocks.take(index),
+          PageToggle(t.id, t.text, [
+            for (final c in t.children) c.id == childId ? block! : c,
+          ]),
+          ..._blocks.skip(index + 1),
+        ]),
+      );
+      if (focus != null) _focusLater(focus);
+      return;
+    }
     setState(() {
       if (at != null && at < _blocks.length) {
         _blocks[at] = block!;
@@ -997,7 +1054,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   /// The editor over [page], as the server has it now.
   void _reload(PostPage page) {
     _page = page;
-    _blocks = withRealIds(page.shown);
+    _blocks = withReadyToggles(withRealIds(page.shown));
     _points
       ..clear()
       ..addAll({for (final p in page.points) p.id: p.text});
@@ -1028,6 +1085,33 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   // Points --------------------------------------------------------------------
 
   /// Enter at the end of a point adds the next one.
+  /// F90: Enter inside a toggle starts a new line after this one; on the
+  /// empty last line it leaves the toggle and starts a line after it.
+  void _enterInToggle(int index, String childId) {
+    _blocks = _collect();
+    final t = _blocks[index] as PageToggle;
+    final at = t.children.indexWhere((c) => c.id == childId);
+    if (at < 0) return;
+    final child = t.children[at];
+    final id = newUuid();
+    final leave =
+        at == t.children.length - 1 &&
+        child is PageText &&
+        child.text.trim().isEmpty;
+    setState(() {
+      if (leave) {
+        _blocks.insert(index + 1, PageText(id, ''));
+      } else {
+        _blocks[index] = PageToggle(t.id, t.text, [
+          ...t.children.take(at + 1),
+          PageText(id, ''),
+          ...t.children.skip(at + 1),
+        ]);
+      }
+    });
+    _focusLater('t:$id');
+  }
+
   void _nextPoint(int index, String after) {
     _blocks = _collect();
     final list = _blocks[index] as PageChecklist;
@@ -1270,6 +1354,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     required String hint,
     int? maxLength,
     ValueChanged<String>? onSlash,
+    VoidCallback? onEnter,
   }) {
     final c = _field(key, text);
     return TextField(
@@ -1277,6 +1362,9 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       controller: c,
       focusNode: _node(key),
       maxLines: null,
+      // F90: inside a toggle, Enter is a new line of its own.
+      textInputAction: onEnter == null ? null : TextInputAction.next,
+      onSubmitted: onEnter == null ? null : (_) => onEnter(),
       maxLength: maxLength,
       style: style,
       textDirection: c.text.isEmpty ? null : directionOf(c.text),
@@ -1353,7 +1441,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
                 ),
               ],
             ),
-            for (final c in children)
+            for (final (n, c) in children.indexed)
               Padding(
                 padding: const EdgeInsetsDirectional.only(
                   start: BvPageSpec.toggleIndent,
@@ -1364,8 +1452,17 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
                         't:${c.id}',
                         c.text,
                         style: type.bodyMd,
-                        hint: l10n.pageText,
+                        // The last, empty line is ready to type inside.
+                        hint: n == children.length - 1 && c.text.isEmpty
+                            ? l10n.pageTypeInside
+                            : l10n.pageText,
                         maxLength: PageText.max,
+                        onEnter: () => _enterInToggle(i, c.id),
+                        onSlash: (f) {
+                          _fields['t:${c.id}']?.text = '';
+                          _lastText['t:${c.id}'] = '';
+                          unawaited(_openAdd(filter: f, intoToggle: (i, c.id)));
+                        },
                       )
                     : PageBlockView(
                         space: widget.space,
@@ -1374,28 +1471,6 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
                         me: null,
                       ),
               ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                key: Key('page-toggle-add-${b.id}'),
-                onPressed: () {
-                  _blocks = _collect();
-                  final id = newUuid();
-                  setState(
-                    () => _blocks[i] = PageToggle(
-                      b.id,
-                      (_blocks[i] as PageToggle).text,
-                      [...children, PageText(id, '')],
-                    ),
-                  );
-                  _focusLater('t:$id');
-                },
-                child: Text(
-                  l10n.pageText,
-                  style: type.bodySm.copyWith(color: BvColors.textSecondary),
-                ),
-              ),
-            ),
           ],
         );
       case PageChecklist(:final pointIds):

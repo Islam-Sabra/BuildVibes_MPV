@@ -542,8 +542,14 @@ class PageTableView extends StatelessWidget {
         );
         final table = Table(
           defaultColumnWidth: FixedColumnWidth(width),
+          // F89: lines between columns too, so 2 × 2 reads as two columns
+          // and a new one shows.
           border: const TableBorder(
             horizontalInside: BorderSide(
+              color: BvColors.borderDefault,
+              width: BvStroke.thin,
+            ),
+            verticalInside: BorderSide(
               color: BvColors.borderDefault,
               width: BvStroke.thin,
             ),

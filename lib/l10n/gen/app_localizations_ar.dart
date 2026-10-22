@@ -4304,4 +4304,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String libraryReplacedOn(String day) {
     return 'استُبدلت $day، وتبقى في السجل';
   }
+
+  @override
+  String get pageTypeInside => 'اكتب هنا';
 }

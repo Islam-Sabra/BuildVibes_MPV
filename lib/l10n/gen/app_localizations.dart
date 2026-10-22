@@ -7225,6 +7225,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'replaced {day}, kept in the record'**
   String libraryReplacedOn(String day);
+
+  /// F90: the hint of the empty line ready to type at the end of an open toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Type inside'**
+  String get pageTypeInside;
 }
 
 class _AppLocalizationsDelegate

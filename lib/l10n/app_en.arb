@@ -6190,5 +6190,9 @@
         "type": "String"
       }
     }
+  },
+  "pageTypeInside": "Type inside",
+  "@pageTypeInside": {
+    "description": "F90: the hint of the empty line ready to type at the end of an open toggle."
   }
 }

@@ -302,7 +302,9 @@ void main() {
         (w) =>
             w.key is ValueKey<String> &&
             (w.key! as ValueKey<String>).value.startsWith('page-field-t:') &&
-            (w as TextField).controller!.text.isEmpty,
+            (w as TextField).controller!.text.isEmpty &&
+            // Not a toggle's line ready to type inside (F90).
+            w.decoration?.hintText != l10n.pageTypeInside,
       );
       expect(heading, findsOneWidget);
       await tester.enterText(heading, 'Sizes');
@@ -558,6 +560,78 @@ void main() {
           .single;
       expect(t.rows.length, 3);
       expect(t.columns, 3);
+    });
+
+    testWidgets('F90: three lines inside a toggle with Enter; Enter on the '
+        'empty last line leaves it; no + Add text [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      await _type(tester, 'page-add-field', '/');
+      await _tap(tester, _key('page-add-toggle'));
+      expect(
+        find.byWidgetPredicate((w) => '${w.key}'.contains('page-toggle-add')),
+        findsNothing,
+      );
+      Finder ready() => find.byWidgetPredicate(
+        (w) =>
+            w is TextField &&
+            w.decoration?.hintText == l10n.pageTypeInside &&
+            w.controller!.text.isEmpty,
+      );
+      // The toggle's own line, then its lines inside.
+      final title = find.byWidgetPredicate(
+        (w) =>
+            w is TextField &&
+            w.decoration?.hintText == l10n.pageToggle &&
+            w.controller!.text.isEmpty,
+      );
+      await tester.enterText(title.last, 'Why');
+      await tester.pumpAndSettle();
+      for (final line in ['One', 'Two', 'Three']) {
+        await tester.ensureVisible(ready().last);
+        await tester.enterText(ready().last, line);
+        await tester.testTextInput.receiveAction(TextInputAction.next);
+        await tester.pumpAndSettle();
+      }
+      // Enter on the empty last line: out, with a line after the toggle.
+      await tester.ensureVisible(ready().last);
+      await tester.showKeyboard(ready().last);
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('page-done'));
+      final toggle = app.postPages.pages[_post]!.blocks
+          .whereType<PageToggle>()
+          .where((t) => t.id != _toggle)
+          .single;
+      expect(toggle.text, 'Why');
+      expect(
+        [for (final c in toggle.children) (c as PageText).text],
+        ['One', 'Two', 'Three'],
+      );
+    });
+
+    testWidgets('F89: a new table starts 2 × 2; + column adds one up to 8, '
+        'then goes [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      await _type(tester, 'page-add-field', '/');
+      await _tap(tester, _key('page-add-table'));
+      final add = find.byWidgetPredicate(
+        (w) =>
+            '${w.key}'.contains('page-add-column-') &&
+            !'${w.key}'.contains(_table),
+      );
+      for (var n = 3; n <= 8; n++) {
+        await _tap(tester, add);
+      }
+      expect(add, findsNothing);
+      await _tap(tester, _key('page-done'));
+      final made = app.postPages.pages[_post]!.blocks
+          .whereType<PageTable>()
+          .where((t) => t.id != _table)
+          .single;
+      expect(made.rows.length, 2);
+      expect(made.columns, 8);
     });
 
     testWidgets('N2: saved first on another phone: Use mine saves over it '
