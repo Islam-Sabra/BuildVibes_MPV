@@ -344,6 +344,7 @@ class DaybookPost {
     this.myAckAt = const {},
     this.editedAt,
     this.quote,
+    this.sourceMessageId,
     this.hasPage = false,
     this.parentId,
     this.children,
@@ -402,6 +403,7 @@ class DaybookPost {
       },
       editedAt: _time(json['edited_at']),
       quote: DaybookQuote.fromJson(json['quote']),
+      sourceMessageId: json['source_message_id'] as String?,
       hasPage: json['has_page'] as bool? ?? false,
       parentId: json['parent_id'] as String?,
       children: DaybookChildren.fromJson(json['children']),
@@ -493,6 +495,10 @@ class DaybookPost {
   /// The message it was made from, quoted (review 64).
   final DaybookQuote? quote;
 
+  /// The Space chat message it was made from (S8m): its quote opens it
+  /// (F87). A direct message is never linked (only its words are kept).
+  final String? sourceMessageId;
+
   /// Its page holds blocks (slice 5): the card says "Open the page ›".
   final bool hasPage;
 
@@ -573,6 +579,7 @@ class DaybookPost {
     myAckAt: myAckAt,
     editedAt: editedAt,
     quote: quote,
+    sourceMessageId: sourceMessageId,
     hasPage: hasPage,
     parentId: parentId,
     children: children ?? this.children,

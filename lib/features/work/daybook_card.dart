@@ -42,7 +42,23 @@ class DaybookCardActions {
     this.onOpenFile,
     this.onOpenPage,
     this.onOpenChild,
+    this.onOpenQuote,
   });
+
+  /// The same, with [onOpenQuote] (F87).
+  DaybookCardActions withOpenQuote(VoidCallback? open) => DaybookCardActions(
+    onMenu: onMenu,
+    onCheck: onCheck,
+    onSignDone: onSignDone,
+    onGiveTo: onGiveTo,
+    onUpdate: onUpdate,
+    onTick: onTick,
+    onAck: onAck,
+    onOpenFile: onOpenFile,
+    onOpenPage: onOpenPage,
+    onOpenChild: onOpenChild,
+    onOpenQuote: open,
+  );
 
   /// Long-press, or a tap: the lifted card and its menu. Gets the card's
   /// place on screen, so a tap is never a dead end (F16).
@@ -76,6 +92,9 @@ class DaybookCardActions {
 
   /// A target's row (slice 6): that work item's own card.
   final ValueChanged<String>? onOpenChild;
+
+  /// F87: the quote opens the Space chat message it was made from.
+  final VoidCallback? onOpenQuote;
 }
 
 /// The card's quiet grey line, "Open the page ›", when its page holds
@@ -387,6 +406,7 @@ class DaybookCardView extends StatelessWidget {
       key: const Key('card-quote'),
       from: words.quoteFrom(quote, now),
       text: quote.text,
+      onTap: lifted ? null : actions.onOpenQuote,
     );
   }
 

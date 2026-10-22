@@ -666,6 +666,39 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     DaybookKind.file => l10n.daybookBodyNote,
   };
 
+  /// Under the words: a checklist's points, and the message it is made
+  /// from (review 64, DM5), on every kind (F83).
+  Widget? _extra(
+    DaybookKind kind,
+    DaybookPostDraft draft,
+    DaybookWords words,
+    DateTime now, {
+    required bool writing,
+  }) {
+    final quote = draft.quote == null
+        ? null
+        : BvQuoteBlock(
+            key: const Key('writing-quote'),
+            from: words.quoteFrom(draft.quote!, now),
+            text: draft.quote!.text,
+            maxLines: BvQuoteSpec.linesWriting,
+          );
+    if (kind != DaybookKind.checklist) return quote;
+    final points = DaybookPointsEditor(
+      key: ValueKey('points-${draft.id}'),
+      points: draft.points,
+      writing: writing,
+      onChanged: _writer.setPoints,
+    );
+    return quote == null
+        ? points
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: BvSpace.s8,
+            children: [quote, points],
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -844,22 +877,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           ? () => menu(DaybookWritingMenu.kind)
           : null,
       properties: properties,
-      extra: kind == DaybookKind.checklist
-          ? DaybookPointsEditor(
-              key: ValueKey('points-${draft.id}'),
-              points: draft.points,
-              writing: writing,
-              onChanged: _writer.setPoints,
-            )
-          : draft.quote == null
-          ? null
-          // The message it is made from (review 64, DM5).
-          : BvQuoteBlock(
-              key: const Key('writing-quote'),
-              from: words.quoteFrom(draft.quote!, now),
-              text: draft.quote!.text,
-              maxLines: BvQuoteSpec.linesWriting,
-            ),
+      extra: _extra(kind, draft, words, now, writing: writing),
       photos: [
         for (final p in draft.photos)
           Image(image: ref.watch(localPhotoProvider(p)), fit: BoxFit.cover),

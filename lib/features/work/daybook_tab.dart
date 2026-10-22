@@ -32,6 +32,7 @@ import '../../shared/widgets/bv_month_dropdown.dart';
 import '../../shared/widgets/bv_new_chip.dart';
 import '../../shared/widgets/bv_pinned_note.dart';
 import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_popover_menu.dart'
     show BvMenuItem, bvGlobalRect, showBvScreenMenu;
 import '../../shared/widgets/bv_post_bar.dart';
@@ -1410,6 +1411,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         until: l10n.daybookPinnedUntil(words.pinnedDay(post.pinnedUntil!, now)),
         title: post.title,
         body: post.body,
+        // F83: the message it was made from, opening it (F87).
+        quote: post.quote == null
+            ? null
+            : BvQuoteBlock(
+                key: const Key('pinned-quote'),
+                from: words.quoteFrom(post.quote!, now),
+                text: post.quote!.text,
+                onTap: post.sourceMessageId == null
+                    ? null
+                    : () => unawaited(
+                        _loop.openQuote(context, post.sourceMessageId!),
+                      ),
+              ),
         // F48: the author's faces of who got it; a tap lists them with times.
         leading: by.isEmpty
             ? null

@@ -17,6 +17,7 @@ class BvPinnedNote extends StatelessWidget {
     required this.until,
     required this.title,
     this.body,
+    this.quote,
     this.leading,
     this.action,
     this.onTap,
@@ -32,6 +33,9 @@ class BvPinnedNote extends StatelessWidget {
   final String until;
   final String title;
   final String? body;
+
+  /// The message it was made from (F83), under the words.
+  final Widget? quote;
   final Widget? leading;
   final Widget? action;
 
@@ -96,6 +100,7 @@ class BvPinnedNote extends StatelessWidget {
               body!,
               style: type.bodyMd.copyWith(color: BvColors.textPrimary),
             ),
+          ?quote,
           if (leading != null || action != null)
             Row(
               spacing: BvAckPillSpec.rowGap,

@@ -19,6 +19,7 @@ import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_photo_strip.dart' show BvPhotoViewer;
+import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
@@ -281,7 +282,7 @@ class _PageView extends ConsumerWidget {
         BvPageSpec.bottom,
       ),
       children: [
-        ...pageTop(context, ref, post, me: me),
+        ...pageTop(context, ref, post, me: me, spaceId: space.id),
         ...pageBlockViews(context, ref, space: space, page: page, me: me),
       ],
     );
@@ -295,10 +296,13 @@ List<Widget> pageTop(
   WidgetRef ref,
   DaybookPost post, {
   required String? me,
+  required String spaceId,
 }) {
   final words = _words(context);
   final now = ref.watch(clockProvider)();
   final body = (post.body ?? '').trim();
+  final quote = post.quote;
+  final message = post.sourceMessageId;
   return [
     BvSlipTitle(post.title, cancelled: post.cancelled),
     if (post.isWorkItem || (post.place ?? '').isNotEmpty)
@@ -314,6 +318,26 @@ List<Widget> pageTop(
             if ((post.place ?? '').isNotEmpty)
               BvSlipFact(icon: BvIcons.place, text: post.place!),
           ],
+        ),
+      ),
+    // F91: the quote where the card has it, opening its message (F87).
+    if (quote != null)
+      Padding(
+        padding: const EdgeInsetsDirectional.only(top: BvPageSpec.blockGap),
+        child: BvQuoteBlock(
+          key: const Key('page-quote'),
+          from: words.quoteFrom(quote, now),
+          text: quote.text,
+          onTap: message == null
+              ? null
+              : () => unawaited(
+                  openQuotedMessage(
+                    context,
+                    ref,
+                    spaceId: spaceId,
+                    messageId: message,
+                  ),
+                ),
         ),
       ),
     if (body.isNotEmpty)

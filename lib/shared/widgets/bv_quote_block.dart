@@ -14,16 +14,20 @@ class BvQuoteBlock extends StatelessWidget {
     required this.from,
     required this.text,
     this.maxLines = BvQuoteSpec.linesCard,
+    this.onTap,
   });
 
   final String from;
   final String text;
   final int maxLines;
 
+  /// F87: opens the message it quotes, when the reader may.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
-    return ClipRRect(
+    final block = ClipRRect(
       borderRadius: BvQuoteSpec.radius,
       child: DecoratedBox(
         decoration: const BoxDecoration(color: BvColors.surfaceSubtle),
@@ -74,5 +78,14 @@ class BvQuoteBlock extends StatelessWidget {
         ),
       ),
     );
+    final tap = onTap;
+    return tap == null
+        ? block
+        : GestureDetector(
+            key: const Key('quote-open'),
+            behavior: HitTestBehavior.opaque,
+            onTap: tap,
+            child: block,
+          );
   }
 }

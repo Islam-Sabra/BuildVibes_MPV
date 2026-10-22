@@ -14,6 +14,7 @@ import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
+import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
@@ -77,8 +78,32 @@ class DaybookLoop {
   bool get _viewer => space.myPass == SpacePass.viewer;
 
   /// The card's actions, as the reader [me] may use them. [signing] are
-  /// the items with a sign-off waiting on the phone.
+  /// the items with a sign-off waiting on the phone. Any card's quote opens
+  /// its chat message (F87), for Viewers too.
   DaybookCardView withActions(
+    BuildContext context,
+    DaybookCardView view, {
+    required String? me,
+    required Set<String> signing,
+  }) {
+    final v = _withActions(context, view, me: me, signing: signing);
+    final message = v.card.post.sourceMessageId;
+    return message == null
+        ? v
+        : v.copyWith(
+            actions: v.actions.withOpenQuote(
+              () => unawaited(openQuote(context, message)),
+            ),
+          );
+  }
+
+  /// F87: the Space chat at the message a post was made from, scrolled to
+  /// it and highlighted, read back to it if older. A message that went
+  /// (deleted, or no longer readable) opens nothing.
+  Future<void> openQuote(BuildContext context, String messageId) =>
+      openQuotedMessage(context, ref, spaceId: _spaceId, messageId: messageId);
+
+  DaybookCardView _withActions(
     BuildContext context,
     DaybookCardView view, {
     required String? me,
@@ -944,4 +969,24 @@ class DaybookItemQuote extends ConsumerWidget {
           : ref.watch(daybookPhotoProvider(path)),
     );
   }
+}
+
+/// F87: the Space chat at the message [messageId] (a quote's), scrolled to
+/// it and highlighted, read back to it if older. A message that went
+/// (deleted, or no longer readable) opens nothing.
+Future<void> openQuotedMessage(
+  BuildContext context,
+  WidgetRef ref, {
+  required String spaceId,
+  required String messageId,
+}) async {
+  final router = GoRouter.of(context);
+  final message = await ref
+      .read(chatRepositoryProvider)
+      .message(messageId)
+      .catchError((Object _) => null);
+  if (message == null || message.deletedAt != null) return;
+  await router.push(
+    AppRoutes.spaceThread(spaceId, message.threadId, message: messageId),
+  );
 }
