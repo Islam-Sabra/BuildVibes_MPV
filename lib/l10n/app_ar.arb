@@ -1183,5 +1183,9 @@
   "daybookAttachLibrary": "من المكتبة",
   "daybookFileToEveryone": "الملف يذهب إلى المساحة كلها. لإرساله إلى شخص واحد استخدم رسالة مباشرة.",
   "daybookAttachCameraNote": "بكاميرا الهاتف",
-  "daybookAttachLibraryNote": "ملف موجود في هذه المساحة"
+  "daybookAttachLibraryNote": "ملف موجود في هذه المساحة",
+  "daybookStampNewVersionNo": "نسخة جديدة · {version}",
+  "daybookReplacedBy": "استُبدلت بـ {version} · {when}",
+  "libraryInUseNo": "{version} · المعتمدة",
+  "libraryReplacedOn": "استُبدلت {day}، وتبقى في السجل"
 }

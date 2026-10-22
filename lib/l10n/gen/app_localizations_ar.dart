@@ -4284,4 +4284,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookAttachLibraryNote => 'ملف موجود في هذه المساحة';
+
+  @override
+  String daybookStampNewVersionNo(String version) {
+    return 'نسخة جديدة · $version';
+  }
+
+  @override
+  String daybookReplacedBy(String version, String when) {
+    return 'استُبدلت بـ $version · $when';
+  }
+
+  @override
+  String libraryInUseNo(String version) {
+    return '$version · المعتمدة';
+  }
+
+  @override
+  String libraryReplacedOn(String day) {
+    return 'استُبدلت $day، وتبقى في السجل';
+  }
 }

@@ -8,6 +8,7 @@ import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/work_outbox.dart'
     show refusalsProvider;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,6 +67,8 @@ LibraryFile _file(
   String by = 'p-lina',
   DateTime? at,
   LibrarySource source = LibrarySource.upload,
+  int? no,
+  String? chain,
 }) => LibraryFile(
   id: id,
   spaceId: _space,
@@ -81,6 +84,8 @@ LibraryFile _file(
   source: source,
   uploadedById: by,
   uploadedByName: by == _me ? 'Omar Haddad' : 'Lina Khalil',
+  versionNo: no,
+  chainId: chain,
 );
 
 /// A-501 is at Rev D with two older versions and new for me, received by
@@ -246,6 +251,17 @@ void main() {
       expect(find.byKey(const Key('version-open-a501-c')), findsOneWidget);
       expect(find.byKey(const Key('version-open-a501-b')), findsOneWidget);
       expect(find.byKey(const Key('version-open-a501-d')), findsNothing);
+      // Below the versions, each older one with when it was replaced.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('file-used-item-17')),
+        100,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('library-file')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       expect(find.byKey(const Key('file-used-item-17')), findsOneWidget);
 
       // Received acts on the newest post carrying this version.
@@ -350,6 +366,71 @@ void main() {
       );
       expect(find.byKey(const Key('file-received')), findsNothing);
       expect(find.byKey(const Key('file-received-by')), findsOneWidget);
+    });
+
+    testWidgets('F75, F80: versions by the app\'s number, exactly one in '
+        'use; the older ones say when they were replaced [$lang]', (
+      tester,
+    ) async {
+      final library = _library();
+      library.filesBySpace[_space]!
+        ..[0] = _file(
+          'a501-d',
+          'A-501 Rev D.pdf',
+          rev: 'Rev D',
+          supersedes: 'a501-c',
+          no: 3,
+          chain: 'a501-b',
+        )
+        ..[1] = _file(
+          'a501-c',
+          'A-501 Rev C.pdf',
+          rev: 'Rev C',
+          supersedes: 'a501-b',
+          at: testNow.subtract(const Duration(days: 9)),
+          no: 2,
+          chain: 'a501-b',
+        )
+        ..[2] = _file(
+          'a501-b',
+          'A-501 Rev B.pdf',
+          rev: 'Rev B',
+          at: testNow.subtract(const Duration(days: 20)),
+          no: 1,
+          chain: 'a501-b',
+        );
+      await _open(
+        tester,
+        lang,
+        '/spaces/$_space/library/a501-d/page',
+        library: library,
+      );
+      final inUse = l10n.libraryInUseNo('').trim();
+      expect(find.textContaining(inUse), findsOneWidget);
+      for (final n in [1, 2, 3]) {
+        expect(find.textContaining(l10n.libraryVersionNo(n)), findsWidgets);
+      }
+      expect(
+        find.textContaining(l10n.libraryReplacedOn('').split(' ').first),
+        findsNWidgets(2),
+      );
+    });
+
+    testWidgets('F70: the empty Library line keeps the screen\'s margins '
+        '[$lang]', (tester) async {
+      await _open(
+        tester,
+        lang,
+        '/spaces/$_space',
+        library: FakeLibraryRepository(now: testNow)
+          ..filesBySpace[_space] = const [],
+      );
+      await _tap(tester, 'space-tab-library');
+      final pad = tester.widget<Padding>(
+        find.byKey(const Key('library-empty')),
+      );
+      expect((pad.padding as EdgeInsetsDirectional).start, BvSpace.gutter);
+      expect((pad.padding as EdgeInsetsDirectional).end, BvSpace.gutter);
     });
   }
 }

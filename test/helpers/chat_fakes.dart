@@ -142,7 +142,7 @@ class FakeChatRepository implements ChatRepository {
     required String fileId,
     String? body,
   }) async {
-    calls.add('share $threadId $fileId');
+    calls.add('share $threadId $fileId${body == null ? '' : ' "$body"'}');
   }
 
   @override

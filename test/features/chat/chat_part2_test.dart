@@ -1,4 +1,3 @@
-import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/routing/app_routes.dart';
 import 'package:buildvibes/shared/widgets/bv_highlight.dart';
 import 'package:buildvibes/data/models/chat.dart';
@@ -8,6 +7,7 @@ import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/library/file_preview_screen.dart';
 import 'package:buildvibes/features/library/library_parts.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/features/chat/thread_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -303,11 +303,19 @@ void main() {
       expect(find.text(l10n.previewShareTeamOnly), findsOneWidget);
       expect(find.byKey(const Key('share-to-$_everyone')), findsNothing);
       await _tap(tester, 'share-to-$_mep');
-      expect(chat.calls.single, 'share $_mep f-mep2');
+      // F77: the Team's chat opens with the file in the message box, not
+      // sent; words go with it on Send.
+      expect(chat.calls.where((c) => c.startsWith('share')), isEmpty);
+      expect(find.byType(ThreadScreen), findsOneWidget);
+      expect(find.byKey(const Key('chat-sharing-f-mep2')), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('chat-input')), 'Rev 2');
+      await tester.pump();
+      await _tap(tester, 'chat-send');
       expect(
-        find.text(l10n.previewShared(inOwnDirection('MEP Team'))),
-        findsOneWidget,
+        chat.calls.where((c) => c.startsWith('share')).single,
+        'share $_mep f-mep2 "Rev 2"',
       );
+      expect(find.byKey(const Key('chat-sharing-f-mep2')), findsNothing);
     });
 
     testWidgets('F1: Download saves the file; share through the phone '

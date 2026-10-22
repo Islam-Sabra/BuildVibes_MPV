@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/activity/activity_screen.dart';
 import '../../data/models/dm.dart';
+import '../../data/models/library.dart';
 import '../../features/activity/needs_you_screen.dart';
 import '../../features/messages/dm_thread_screen.dart';
 import '../../features/messages/messages_screen.dart';
@@ -303,6 +304,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               threadId: state.pathParameters['threadId']!,
               atMessage:
                   state.uri.queryParameters[AppRoutes.threadMessageParam],
+              // F77: Share in chat's file, in the message box.
+              shareFile: state.extra is LibraryFile
+                  ? state.extra! as LibraryFile
+                  : null,
             ),
           ),
           GoRoute(

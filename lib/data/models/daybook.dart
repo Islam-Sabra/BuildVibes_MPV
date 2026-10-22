@@ -146,10 +146,16 @@ class DaybookFile {
     this.replacesName,
     this.replacesRev,
     this.hasNewer = false,
+    this.versionNo,
+    this.replacesVersionNo,
+    this.newerVersionNo,
+    this.newerAt,
+    this.newerPostId,
   });
 
   factory DaybookFile.fromJson(Map<String, dynamic> json) {
     final replaces = json['replaces'] as Map<String, dynamic>?;
+    final newer = json['newer'] as Map<String, dynamic>?;
     return DaybookFile(
       id: json['id'] as String,
       name: json['name'] as String? ?? '',
@@ -160,7 +166,14 @@ class DaybookFile {
       note: json['note'] as String?,
       replacesName: replaces?['name'] as String?,
       replacesRev: replaces?['rev_label'] as String?,
-      hasNewer: json['has_newer'] as bool? ?? false,
+      hasNewer: json['has_newer'] as bool? ?? newer != null,
+      versionNo: (json['version_no'] as num?)?.toInt(),
+      replacesVersionNo: (replaces?['version_no'] as num?)?.toInt(),
+      newerVersionNo: (newer?['version_no'] as num?)?.toInt(),
+      newerAt: newer?['at'] == null
+          ? null
+          : DateTime.parse(newer!['at'] as String),
+      newerPostId: newer?['post_id'] as String?,
     );
   }
 
@@ -182,6 +195,16 @@ class DaybookFile {
 
   /// A newer version is in the Library.
   final bool hasNewer;
+
+  /// F75: this version's number (V1, V2…), and the one it replaces.
+  final int? versionNo;
+  final int? replacesVersionNo;
+
+  /// F76: the version in use now, when this one isn't: its number, when it
+  /// came, and the newest post carrying it the reader can see.
+  final int? newerVersionNo;
+  final DateTime? newerAt;
+  final String? newerPostId;
 
   bool get isPdf => mime == 'application/pdf';
 }

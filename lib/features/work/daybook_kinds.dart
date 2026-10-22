@@ -279,7 +279,8 @@ Widget? daybookAckAction(
     // who got it instead.
     case DaybookPost.announcementKind when !mine:
       return pill(DaybookAck.gotIt, l10n.daybookGotIt, icon: BvIcons.check);
-    case DaybookPost.fileKind when !mine:
+    // F76: nobody confirms an old version.
+    case DaybookPost.fileKind when !mine && !(post.file?.hasNewer ?? false):
       return pill(
         DaybookAck.received,
         l10n.daybookReceived,
@@ -385,7 +386,10 @@ class DaybookFilePreview extends ConsumerWidget {
     final image = path == null
         ? null
         : ref.watch(filePreviewProvider((path: path, mime: file.mime))).value;
-    final replaced = file.replacesRev ?? file.replacesName;
+    // F75: "REPLACES V1", else the older one's revision or name.
+    final replaced = file.replacesVersionNo != null
+        ? l10n.libraryVersionNo(file.replacesVersionNo!)
+        : file.replacesRev ?? file.replacesName;
     final photo = Stack(
       children: [
         BvSlipPhoto(
@@ -409,7 +413,11 @@ class DaybookFilePreview extends ConsumerWidget {
             start: BvFileCardSpec.stampStart,
             child: BvInkStamp(
               key: const Key('stamp-new-version'),
-              label: l10n.daybookStampNewVersion,
+              label: file.versionNo == null
+                  ? l10n.daybookStampNewVersion
+                  : l10n.daybookStampNewVersionNo(
+                      l10n.libraryVersionNo(file.versionNo!),
+                    ),
               size: BvInkStampSize.lg,
               subline: replaced == null
                   ? null

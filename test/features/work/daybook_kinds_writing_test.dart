@@ -402,9 +402,7 @@ void main() {
       await _tap(tester, find.byKey(const Key('replaces-done')));
       // The card: "Replaces M-201.pdf · Rev C", with ✕.
       expect(
-        find.byWidgetPredicate(
-          (w) => '${w.key}'.contains('writing-replaces-'),
-        ),
+        find.byWidgetPredicate((w) => '${w.key}'.contains('writing-replaces-')),
         findsOneWidget,
       );
       await _post(tester);
@@ -654,7 +652,10 @@ void main() {
       await _tap(tester, find.byKey(const Key('writing-kind-chip')));
       final menu = find.byKey(const Key('writing-kind-menu'));
       expect(
-        find.descendant(of: menu, matching: find.text(l10n.daybookKindDocument)),
+        find.descendant(
+          of: menu,
+          matching: find.text(l10n.daybookKindDocument),
+        ),
         findsOneWidget,
       );
       expect(l10n.daybookKindDocument, lang == 'en' ? 'File' : 'ملف');

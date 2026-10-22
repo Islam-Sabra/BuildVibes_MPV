@@ -88,13 +88,21 @@ class DaybookLoop {
   }) {
     final v = _withActions(context, view, me: me, signing: signing);
     final message = v.card.post.sourceMessageId;
-    return message == null
-        ? v
-        : v.copyWith(
-            actions: v.actions.withOpenQuote(
-              () => unawaited(openQuote(context, message)),
-            ),
-          );
+    final newer = v.card.post.file?.newerPostId;
+    if (message == null && newer == null) return v;
+    return v.copyWith(
+      actions: v.actions.withLinks(
+        openQuote: message == null
+            ? null
+            : () => unawaited(openQuote(context, message)),
+        // F76: the newer version's post, on its day.
+        openNewer: newer == null
+            ? null
+            : () => unawaited(
+                GoRouter.of(context).push(AppRoutes.spaceCard(_spaceId, newer)),
+              ),
+      ),
+    );
   }
 
   /// F87: the Space chat at the message a post was made from, scrolled to

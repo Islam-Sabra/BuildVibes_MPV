@@ -385,6 +385,7 @@ class _InfoCard extends StatelessWidget {
               onTap: () => context.push(AppRoutes.libraryFile(spaceId, o.id)),
               child: Text(
                 joinMeta([
+                  if (o.versionNo != null) l10n.libraryVersionNo(o.versionNo!),
                   ?o.revLabel,
                   day(o.createdAt),
                   l10n.previewSuperseded,

@@ -4275,4 +4275,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookAttachLibraryNote => 'A file already in this Space';
+
+  @override
+  String daybookStampNewVersionNo(String version) {
+    return 'NEW VERSION · $version';
+  }
+
+  @override
+  String daybookReplacedBy(String version, String when) {
+    return 'Replaced by $version · $when';
+  }
+
+  @override
+  String libraryInUseNo(String version) {
+    return '$version · in use';
+  }
+
+  @override
+  String libraryReplacedOn(String day) {
+    return 'replaced $day, kept in the record';
+  }
 }

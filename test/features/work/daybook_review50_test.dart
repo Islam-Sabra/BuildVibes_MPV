@@ -317,10 +317,7 @@ void main() {
           ),
           findsWidgets,
         );
-        expect(
-          l10n.daybookKindFileWord,
-          lang == 'en' ? '· file' : '· ملف',
-        );
+        expect(l10n.daybookKindFileWord, lang == 'en' ? '· file' : '· ملف');
         final lines = _lines(tester, DaybookSamples.m201Id);
         expect(lines, isNot(contains('rcv-${DaybookSamples.omar}')));
         expect(lines, isNot(contains('rcv-${DaybookSamples.rakesh}')));

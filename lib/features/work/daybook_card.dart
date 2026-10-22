@@ -46,10 +46,14 @@ class DaybookCardActions {
     this.onOpenPage,
     this.onOpenChild,
     this.onOpenQuote,
+    this.onOpenNewer,
   });
 
-  /// The same, with [onOpenQuote] (F87).
-  DaybookCardActions withOpenQuote(VoidCallback? open) => DaybookCardActions(
+  /// The same, with [onOpenQuote] (F87) and [onOpenNewer] (F76).
+  DaybookCardActions withLinks({
+    VoidCallback? openQuote,
+    VoidCallback? openNewer,
+  }) => DaybookCardActions(
     onMenu: onMenu,
     onCheck: onCheck,
     onSignDone: onSignDone,
@@ -60,7 +64,8 @@ class DaybookCardActions {
     onOpenFile: onOpenFile,
     onOpenPage: onOpenPage,
     onOpenChild: onOpenChild,
-    onOpenQuote: open,
+    onOpenQuote: openQuote ?? onOpenQuote,
+    onOpenNewer: openNewer ?? onOpenNewer,
   );
 
   /// Long-press, or a tap: the lifted card and its menu. Gets the card's
@@ -98,14 +103,27 @@ class DaybookCardActions {
 
   /// F87: the quote opens the Space chat message it was made from.
   final VoidCallback? onOpenQuote;
+
+  /// F76: an older version's "Replaced by V2 ›" opens the newer one's post.
+  final VoidCallback? onOpenNewer;
 }
 
 /// The card's quiet grey line, "Open the page ›", when its page holds
-/// more than the card shows. No count of blocks.
+/// more than the card shows. No count of blocks. The same line says
+/// "Replaced by V2 · today ›" on an older version's post (F76).
 class DaybookOpenPage extends StatelessWidget {
-  const DaybookOpenPage({super.key, required this.onTap});
+  const DaybookOpenPage({
+    super.key,
+    required this.onTap,
+    this.label,
+    this.tapKey = const Key('card-open-page'),
+  });
 
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  /// Null: "Open the page".
+  final String? label;
+  final Key tapKey;
 
   @override
   Widget build(BuildContext context) {
@@ -119,14 +137,21 @@ class DaybookOpenPage extends StatelessWidget {
         child: Semantics(
           button: true,
           child: GestureDetector(
-            key: const Key('card-open-page'),
+            key: tapKey,
             behavior: HitTestBehavior.opaque,
             onTap: onTap,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: BvSpace.s2,
               children: [
-                Text(l10n.pageOpen, style: style),
+                Flexible(
+                  child: Text(
+                    label ?? l10n.pageOpen,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style,
+                  ),
+                ),
                 const Icon(
                   BvIcons.caretForward,
                   size: BvPageSpec.openCaret,
@@ -636,6 +661,17 @@ class DaybookCardView extends StatelessWidget {
           ),
           if (file != null)
             BvSlipFact(icon: BvIcons.document, text: words.fileFact(file)),
+          // F76: an older version says which replaced it; a tap opens its
+          // post.
+          if (file != null && file.newerVersionNo != null)
+            DaybookOpenPage(
+              key: const Key('card-replaced-by'),
+              tapKey: const Key('card-replaced-by-tap'),
+              label: words.replacedBy(file, now),
+              onTap: lifted || file.newerPostId == null
+                  ? null
+                  : actions.onOpenNewer,
+            ),
           if ((post.body ?? '').isNotEmpty) BvSlipNote(post.body!),
           ?_quote(),
           if (!waiting)

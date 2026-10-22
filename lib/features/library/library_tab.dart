@@ -23,11 +23,24 @@ import 'library_parts.dart';
 import '../../shared/widgets/bv_name_text.dart';
 
 /// Only the version in use of each file; older ones open from it (LV2).
+/// F80: exactly one per file, the highest number of its chain (a removed
+/// middle version doesn't leave two); without numbers, the one nothing
+/// replaced.
 List<LibraryFile> currentFiles(List<LibraryFile> all) {
+  final newest = <String, LibraryFile>{};
+  for (final f in all) {
+    final chain = f.chainId;
+    if (chain == null || f.versionNo == null) continue;
+    final best = newest[chain];
+    if (best == null || f.versionNo! > best.versionNo!) newest[chain] = f;
+  }
   final replaced = {for (final f in all) ?f.supersedesId};
   return [
     for (final f in all)
-      if (!replaced.contains(f.id)) f,
+      if (f.chainId != null && f.versionNo != null
+          ? newest[f.chainId]?.id == f.id
+          : !replaced.contains(f.id))
+        f,
   ];
 }
 
@@ -126,7 +139,7 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
     if (all == null) {
       rows = [
         if (files.hasError)
-          EmptyNote(l10n.errorGeneric)
+          _Margins(EmptyNote(l10n.errorGeneric))
         else
           const Padding(
             padding: EdgeInsetsDirectional.all(BvSpace.s32),
@@ -135,10 +148,11 @@ class _LibraryTabState extends ConsumerState<LibraryTab> {
       ];
     } else {
       rows = [
+        // F70: the screen's 16 px on both sides, as everywhere.
         if (all.isEmpty)
-          EmptyNote(l10n.libraryEmpty)
+          _Margins(EmptyNote(l10n.libraryEmpty))
         else if (shown.isEmpty)
-          EmptyNote(l10n.libraryNoMatch),
+          _Margins(EmptyNote(l10n.libraryNoMatch)),
         for (final f in shown)
           LibraryFileRow(
             file: f,
@@ -377,4 +391,21 @@ class _AddFileRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The gutter on both sides of a quiet line (F70).
+class _Margins extends StatelessWidget {
+  const _Margins(this.child);
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    key: const Key('library-empty'),
+    padding: const EdgeInsetsDirectional.symmetric(
+      horizontal: BvSpace.gutter,
+      vertical: BvSpace.s16,
+    ),
+    child: child,
+  );
 }

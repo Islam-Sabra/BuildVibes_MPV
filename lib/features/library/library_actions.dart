@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
-import '../../core/l10n/bidi.dart';
+import '../../core/routing/app_routes.dart';
 import '../../core/share.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/library_repository.dart';
-import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
@@ -72,16 +72,9 @@ Future<void> shareLibraryFileInChat(
     ),
   );
   if (picked == null || !context.mounted) return;
-  try {
-    await ref
-        .read(chatRepositoryProvider)
-        .shareFile(id: newUuid(), threadId: picked, fileId: f.id);
-    ref.invalidate(spaceThreadsProvider(spaceId));
-    if (context.mounted) {
-      final t = threads.firstWhere((t) => t.id == picked);
-      _toast(context, l10n.previewShared(inOwnDirection(threadName(l10n, t))));
-    }
-  } on SpaceException catch (e) {
-    if (context.mounted) showSpaceError(context, e);
-  }
+  // F77: the chat opens with the file in the message box, not sent, so
+  // words can go with it (as in WhatsApp).
+  await GoRouter.of(
+    context,
+  ).push(AppRoutes.spaceThread(spaceId, picked), extra: f);
 }

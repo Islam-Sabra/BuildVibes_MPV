@@ -6151,5 +6151,44 @@
   "daybookAttachLibraryNote": "A file already in this Space",
   "@daybookAttachLibraryNote": {
     "description": "F72: under From the Library on the paper clip's sheet."
+  },
+  "daybookStampNewVersionNo": "NEW VERSION · {version}",
+  "@daybookStampNewVersionNo": {
+    "description": "F75: the stamp on a new version's post, with its number (V2).",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookReplacedBy": "Replaced by {version} · {when}",
+  "@daybookReplacedBy": {
+    "description": "F76: the grey line on an older version's post; a tap opens the newer one's post.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryInUseNo": "{version} · in use",
+  "@libraryInUseNo": {
+    "description": "F75/F80: the version in use on the versions list (V2 · in use; the revision follows when given).",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryReplacedOn": "replaced {day}, kept in the record",
+  "@libraryReplacedOn": {
+    "description": "F80: an older version's line on the versions list.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
   }
 }

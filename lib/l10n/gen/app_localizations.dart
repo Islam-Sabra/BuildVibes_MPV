@@ -7201,6 +7201,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A file already in this Space'**
   String get daybookAttachLibraryNote;
+
+  /// F75: the stamp on a new version's post, with its number (V2).
+  ///
+  /// In en, this message translates to:
+  /// **'NEW VERSION · {version}'**
+  String daybookStampNewVersionNo(String version);
+
+  /// F76: the grey line on an older version's post; a tap opens the newer one's post.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced by {version} · {when}'**
+  String daybookReplacedBy(String version, String when);
+
+  /// F75/F80: the version in use on the versions list (V2 · in use; the revision follows when given).
+  ///
+  /// In en, this message translates to:
+  /// **'{version} · in use'**
+  String libraryInUseNo(String version);
+
+  /// F80: an older version's line on the versions list.
+  ///
+  /// In en, this message translates to:
+  /// **'replaced {day}, kept in the record'**
+  String libraryReplacedOn(String day);
 }
 
 class _AppLocalizationsDelegate

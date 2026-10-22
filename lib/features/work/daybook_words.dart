@@ -462,8 +462,25 @@ class DaybookWords {
     return l10n.daybookDayTime(shortDate(day), _clock(at));
   }
 
-  /// "PDF · 2.4 MB": what a file post's file is.
+  /// F76: "Replaced by V2 · today" on an older version's post.
+  String replacedBy(DaybookFile file, DateTime now) {
+    final at = file.newerAt;
+    final day = at == null ? null : dayOf(at);
+    return l10n.daybookReplacedBy(
+      file.newerVersionNo == null
+          ? ''
+          : l10n.libraryVersionNo(file.newerVersionNo!),
+      day == null
+          ? ''
+          : day == dayOf(now)
+          ? l10n.daybookToday
+          : shortDate(day),
+    );
+  }
+
+  /// "V1 · PDF · 2.4 MB": what a file post's file is (F75: its number).
   String fileFact(DaybookFile file) => [
+    if (file.versionNo != null) l10n.libraryVersionNo(file.versionNo!),
     file.isPdf ? l10n.daybookPdf : l10n.daybookPhoto,
     if (file.bytes != null) fileSize(l10n, file.bytes),
   ].join(' · ');

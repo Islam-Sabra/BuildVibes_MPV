@@ -70,7 +70,8 @@ class SupabaseLibraryRepository implements LibraryRepository {
   // library_files links to profiles twice (uploaded_by, deleted_by).
   static const _file =
       'id, space_id, team_id, name, storage_path, mime, bytes, rev_label, '
-      'note, supersedes_id, source, uploaded_by, created_at, team:teams(name), '
+      'note, supersedes_id, source, uploaded_by, created_at, version_no, '
+      'chain_id, team:teams(name), '
       'uploader:profiles!library_files_uploaded_by_fkey(first_name, last_name)';
 
   Future<T> _guard<T>(Future<T> Function() run) async {
@@ -113,6 +114,38 @@ class SupabaseLibraryRepository implements LibraryRepository {
         .from('work_item_attachments')
         .select('item:work_items(id, ref, title)')
         .eq('library_file_id', fileId);
+    // F75, F80: the chain's versions by number; exactly one is in use, the
+    // highest number not removed (as library_file_in_force sees through a
+    // removed middle version).
+    final chain = file.chainId;
+    if (chain != null) {
+      final rows = await _client
+          .from('library_files')
+          .select(_file)
+          .eq('chain_id', chain)
+          .isFilter('deleted_at', null)
+          .order('version_no', ascending: false)
+          .limit(50);
+      final versions = [for (final r in rows) LibraryFile.fromJson(r)];
+      final inUse = versions.firstOrNull;
+      return LibraryFileDetail(
+        file: file,
+        usedIn: [
+          for (final u in uses)
+            if (u['item'] case final Map<String, dynamic> item)
+              FileUse(
+                itemId: item['id'] as String,
+                ref: item['ref'] as String,
+                title: item['title'] as String,
+              ),
+        ],
+        older: [
+          for (final v in versions)
+            if ((v.versionNo ?? 0) < (file.versionNo ?? 0)) v,
+        ],
+        supersededById: inUse == null || inUse.id == file.id ? null : inUse.id,
+      );
+    }
     final newer = await _client
         .from('library_files')
         .select('id')

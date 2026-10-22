@@ -214,18 +214,15 @@ class LibraryFileScreen extends ConsumerWidget {
               style: type.bodySm.copyWith(color: BvColors.textSecondary),
             ),
           ),
-          _VersionRow(
-            key: Key('version-${f.id}'),
-            file: f,
-            current: d.isCurrent,
-            onOpen: () => context.push(AppRoutes.libraryFile(spaceId, f.id)),
-          ),
-          for (final o in d.older)
+          // F75, F80: by number, newest first; exactly one in use, and each
+          // older one says when the next replaced it.
+          for (final (i, v) in [f, ...d.older].indexed)
             _VersionRow(
-              key: Key('version-${o.id}'),
-              file: o,
-              current: false,
-              onOpen: () => context.push(AppRoutes.libraryFile(spaceId, o.id)),
+              key: Key('version-${v.id}'),
+              file: v,
+              current: i == 0 && d.isCurrent,
+              replacedAt: i == 0 ? null : [f, ...d.older][i - 1].createdAt,
+              onOpen: () => context.push(AppRoutes.libraryFile(spaceId, v.id)),
             ),
           if (canAddVersion)
             InkWell(
@@ -421,11 +418,15 @@ class _VersionRow extends ConsumerWidget {
     required this.file,
     required this.current,
     required this.onOpen,
+    this.replacedAt,
   });
 
   final LibraryFile file;
   final bool current;
   final VoidCallback onOpen;
+
+  /// When the next version replaced this one (F80).
+  final DateTime? replacedAt;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -443,7 +444,17 @@ class _VersionRow extends ConsumerWidget {
     final when = DateUtils.isSameDay(at, now)
         ? '$day ${words.time.clock(at)}'
         : day;
-    final rev = file.revLabel ?? l10n.libraryVersion;
+    // F75: "V2 · Rev B", the number the app gave, then the revision typed.
+    final number = file.versionNo == null
+        ? null
+        : l10n.libraryVersionNo(file.versionNo!);
+    final parts = [?number, ?file.revLabel];
+    final rev = switch (parts.length) {
+      0 => l10n.libraryVersion,
+      1 => parts.single,
+      _ => joinMeta(parts),
+    };
+    final replaced = replacedAt;
     return InkWell(
       onTap: onOpen,
       splashFactory: NoSplash.splashFactory,
@@ -480,7 +491,11 @@ class _VersionRow extends ConsumerWidget {
                   spacing: BvSpace.s2,
                   children: [
                     Text(
-                      current ? l10n.libraryInUse(rev) : rev,
+                      current
+                          ? (number == null
+                                ? l10n.libraryInUse(rev)
+                                : l10n.libraryInUseNo(rev))
+                          : rev,
                       style: type.bodyMd.copyWith(
                         color: current
                             ? BvColors.textPrimary
@@ -491,6 +506,10 @@ class _VersionRow extends ConsumerWidget {
                       joinMeta([
                         inOwnDirection(personName(l10n, file.uploadedByName)),
                         when,
+                        if (!current && replaced != null)
+                          l10n.libraryReplacedOn(
+                            libraryDay(l10n, locale, replaced.toLocal(), now),
+                          ),
                       ]),
                       style: type.metadata.copyWith(
                         color: BvColors.textSecondary,

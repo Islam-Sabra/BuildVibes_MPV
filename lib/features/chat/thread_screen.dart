@@ -55,10 +55,15 @@ class ThreadScreen extends ConsumerStatefulWidget {
     required this.spaceId,
     required this.threadId,
     this.atMessage,
+    this.shareFile,
   });
 
   final String spaceId;
   final String threadId;
+
+  /// F77: Share in chat: this Library file waits in the message box, so
+  /// words can go with it before Send.
+  final LibraryFile? shareFile;
 
   /// Opened from Search at this message: scrolled to it, highlighted.
   final String? atMessage;
@@ -82,6 +87,9 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
 
   /// Photos and a PDF picked for the next message, kept on the phone.
   final _files = <PhoneFile>[];
+
+  /// F77: a Library file to share with the next message.
+  late LibraryFile? _sharing = widget.shareFile;
   static const _maxFiles = 10;
 
   // Recording a voice note. The length comes from a clock ([_watch]); the
@@ -326,6 +334,24 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
 
   Future<void> _send() async {
     final body = _text.text.trim();
+    final sharing = _sharing;
+    if (sharing != null) {
+      // F77: the Library file goes with the words typed (share_library_file).
+      _text.clear();
+      setState(() => _sharing = null);
+      await _deliver(() async {
+        await _repo.shareFile(
+          id: newUuid(),
+          threadId: widget.threadId,
+          fileId: sharing.id,
+          body: body.isEmpty ? null : body,
+        );
+        ref.invalidate(spaceThreadsProvider(widget.spaceId));
+        return true;
+      });
+      if (_files.isEmpty) return;
+      return _send();
+    }
     if (body.isEmpty && _files.isEmpty) return;
     final space = ref.read(spaceDetailProvider(widget.spaceId)).value;
     final m = PendingMessage(
@@ -688,6 +714,13 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
           ChatComposer(
             controller: _text,
             files: _files,
+            shared: [
+              if (_sharing case final f?)
+                _SharedFileChip(
+                  file: f,
+                  onRemove: () => setState(() => _sharing = null),
+                ),
+            ],
             onChanged: () => setState(() {}),
             onSend: _send,
             // Photos and files need the "add files" right; a Viewer
@@ -1271,7 +1304,11 @@ class ChatComposer extends StatelessWidget {
     required this.onRecordSlide,
     required this.onRecordEnd,
     required this.onRecordTap,
+    this.shared = const [],
   });
+
+  /// F77: a Library file waiting in the message box, not sent yet.
+  final List<Widget> shared;
 
   final TextEditingController controller;
   final List<PhoneFile> files;
@@ -1294,7 +1331,10 @@ class ChatComposer extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final hasText = controller.text.trim().isNotEmpty || files.isNotEmpty;
+    final hasText =
+        controller.text.trim().isNotEmpty ||
+        files.isNotEmpty ||
+        shared.isNotEmpty;
     return Container(
       decoration: const BoxDecoration(
         color: BvColors.surfaceElevated,
@@ -1313,13 +1353,14 @@ class ChatComposer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: BvSpace.s8,
           children: [
-            if (files.isNotEmpty)
+            if (files.isNotEmpty || shared.isNotEmpty)
               SingleChildScrollView(
                 key: const Key('chat-picked'),
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   spacing: BvSpace.s8,
                   children: [
+                    ...shared,
                     for (final f in files)
                       _PickedChip(file: f, onRemove: () => onRemove(f)),
                   ],
@@ -1739,6 +1780,54 @@ class _RemovedFile extends StatelessWidget {
                 fontStyle: FontStyle.italic,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// F77: a Library file waiting in the message box: its name, and ✕.
+class _SharedFileChip extends StatelessWidget {
+  const _SharedFileChip({required this.file, required this.onRemove});
+
+  final LibraryFile file;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Container(
+      key: Key('chat-sharing-${file.id}'),
+      padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
+      decoration: const BoxDecoration(
+        color: BvColors.surfaceSubtle,
+        borderRadius: BvRadius.controlAll,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            BvIcons.document,
+            size: BvSize.iconMd,
+            color: BvColors.iconPrimary,
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: BvChatSpec.pickedName),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
+              child: BvNameText(file.name, style: type.bodySm),
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.chatRemoveFile,
+            icon: const Icon(
+              BvIcons.close,
+              size: BvSize.iconSm,
+              color: BvColors.iconSecondary,
+            ),
+            onPressed: onRemove,
           ),
         ],
       ),
