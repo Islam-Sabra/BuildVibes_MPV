@@ -30,6 +30,7 @@ import '../entry/entry_state.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_attach.dart';
 import 'daybook_loop.dart';
+import 'daybook_marks.dart' show checklistPointsProvider, postFilesProvider;
 import 'daybook_page.dart';
 import 'daybook_writing.dart' show assignablePeople;
 import 'work_outbox.dart';
@@ -51,11 +52,15 @@ List<PageAdd> pageAdds(DaybookPost post) => [
     if (switch (a) {
       PageAdd.checklist =>
         post.isWorkItem || post.kind == DaybookPost.checklistKind,
-      PageAdd.item => post.isWorkItem,
+      PageAdd.item => mayHaveItemsUnder(post),
       _ => true,
     })
       a,
 ];
+
+/// A top-level work item: the server allows one level only.
+bool mayHaveItemsUnder(DaybookPost post) =>
+    post.isWorkItem && post.parentId == null;
 
 /// The block menu's words (N3).
 String pageAddName(AppLocalizations l10n, PageAdd a) => switch (a) {
@@ -189,14 +194,51 @@ planPageSave(
         if (edit.isNotEmpty) 'edit': edit,
       },
   };
+  // A photo or file the page no longer shows leaves the post too, once the
+  // page that showed it is saved (edit_space_post keeps a shown one).
+  final (:photos, :files) = pageAttachments(kept);
+  final removeFiles = [
+    for (final f in page.files)
+      // Only what a page can show (PostPage.shown): a photo, a Library
+      // file. Anything else stays as it is.
+      if (f.isPhoto && f.path != null
+          ? !photos.contains(f.path)
+          : f.libraryFileId != null && !files.contains(f.libraryFileId))
+        f.id,
+  ];
   final after = <String, Object?>{
     if (remove.isNotEmpty || reordered)
       'points': {
         if (remove.isNotEmpty) 'remove': remove,
         if (reordered || remove.isNotEmpty) 'order': order,
       },
+    if (removeFiles.isNotEmpty) 'remove_files': removeFiles,
   };
   return (before: before, blocks: kept, after: after);
+}
+
+/// The photos (paths) and Library files (ids) [blocks] show, toggles'
+/// included.
+({Set<String> photos, Set<String> files}) pageAttachments(
+  List<PageBlock> blocks,
+) {
+  final photos = <String>{};
+  final files = <String>{};
+  void see(PageBlock b) {
+    switch (b) {
+      case PagePhoto(:final path):
+        photos.add(path);
+      case PageFile(:final libraryFileId):
+        files.add(libraryFileId);
+      case PageToggle(:final children):
+        children.forEach(see);
+      default:
+        break;
+    }
+  }
+
+  blocks.forEach(see);
+  return (photos: photos, files: files);
 }
 
 bool _sameOrder(List<String> a, List<String> b) {
@@ -252,7 +294,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     for (final c in _fields.values) {
       c.dispose();
     }
-    for (final f in _focus.values) {
+    for (final f in [..._focus.values, ..._keyNodes.values]) {
       f.dispose();
     }
     super.dispose();
@@ -314,17 +356,24 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       title: _title.text,
       body: _body.text,
     );
+    // A photo or file added here and deleted again doesn't go.
+    final (:photos, :files) = pageAttachments(plan.blocks);
+    _addFiles.removeWhere(
+      (a) => a['path'] != null
+          ? !photos.contains(a['path'])
+          : !files.contains(a['library_file_id']),
+    );
     final repo = ref.read(pageRepositoryProvider);
     final unchanged =
         plan.before.isEmpty &&
         plan.after.isEmpty &&
         _addFiles.isEmpty &&
-        _sameBlocks(plan.blocks, _page.blocks);
+        !_blocksChanged(plan.blocks);
     if (unchanged) return true;
     setState(() => _saving = true);
     try {
       if (plan.before.isNotEmpty) await repo.edit(_post.id, plan.before);
-      if (!_sameBlocks(plan.blocks, _page.blocks) || _addFiles.isNotEmpty) {
+      if (_blocksChanged(plan.blocks) || _addFiles.isNotEmpty) {
         await repo.save(
           _post.id,
           plan.blocks,
@@ -342,11 +391,33 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         setState(() => _saving = false);
         showSpaceError(context, e);
       }
+      // Some steps may have gone: start the next Done from what the
+      // server has, so nothing is sent twice.
+      await _catchUp();
       return false;
     }
     _addFiles.clear();
     _changed();
     if (mounted) setState(() => _saving = false);
+    return true;
+  }
+
+  /// Whether [blocks] differ from the page as it opened. A post with no
+  /// page yet opens on its points, photos and files: the same again saves
+  /// nothing (no "Page edited", no "Open the page").
+  bool _blocksChanged(List<PageBlock> blocks) =>
+      !_sameBlocks(blocks, _page.blocks) &&
+      !(_page.blocks.isEmpty && _sameShape(blocks, _page.shown));
+
+  /// The same blocks but for their own ids (the editor gives the page's
+  /// loose points and files real ids).
+  static bool _sameShape(List<PageBlock> a, List<PageBlock> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      final x = {...a[i].toJson()}..remove('id');
+      final y = {...b[i].toJson()}..remove('id');
+      if ('$x' != '$y') return false;
+    }
     return true;
   }
 
@@ -360,27 +431,52 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
 
   /// The page and the daybook read again; others hear of the change.
   void _changed() {
-    ref.invalidate(postPageProvider(_post.id));
+    // The card under the sheet keeps its points and files: read them
+    // again too (the live echo doesn't come back to this phone).
+    ref
+      ..invalidate(postPageProvider(_post.id))
+      ..invalidate(checklistPointsProvider(_post.id))
+      ..invalidate(postFilesProvider(_post.id));
     unawaited(ref.read(daybookLiveProvider).changed(_spaceId, _post.id));
     unawaited(DaybookLoop(ref, widget.space, onEdit: (_) {}).refresh());
   }
 
+  /// The page as the server has it now, under this phone's edit: what
+  /// already went (points, files, a version) isn't sent again.
+  Future<void> _catchUp() async {
+    final PostPage? fresh;
+    try {
+      fresh = await ref.read(pageRepositoryProvider).page(_post.id);
+    } on SpaceException {
+      return;
+    }
+    if (!mounted || fresh == null) return;
+    final paths = {for (final f in fresh.files) ?f.path};
+    final library = {for (final f in fresh.files) ?f.libraryFileId};
+    setState(() {
+      _page = _rebase(fresh!);
+      _addFiles.removeWhere(
+        (a) =>
+            paths.contains(a['path']) || library.contains(a['library_file_id']),
+      );
+    });
+  }
+
   /// The author's other phone saved first: keep this one's, or take the
-  /// newer page.
+  /// newer page. Dismissed, the editor stays as it is.
   Future<bool> _newer() async {
     final l10n = AppLocalizations.of(context);
-    final mine = await showBvDialog(
+    final mine = await showBvChoiceDialog(
       context: context,
       title: l10n.pageStale,
       body: '',
       cancelLabel: l10n.pageUseNewer,
       confirmLabel: l10n.pageUseMine,
     );
-    if (!mounted) return false;
-    final fresh = await ref.read(pageRepositoryProvider).page(_post.id);
-    if (!mounted || fresh == null) return false;
+    if (!mounted || mine == null) return false;
     if (mine) {
-      setState(() => _page = _rebase(fresh));
+      await _catchUp();
+      if (!mounted) return false;
       return save();
     }
     ref.invalidate(postPageProvider(_post.id));
@@ -619,7 +715,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
               key: const Key('page-item-title'),
               controller: words,
               autofocus: text.isEmpty,
-              maxLength: 140,
+              maxLength: PageChecklist.itemTitleMax,
               decoration: InputDecoration(hintText: l10n.pageItemTitle),
             ),
           ),
@@ -652,11 +748,22 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     final l10n = AppLocalizations.of(context);
     _blocks = _collect();
     final b = _blocks[index];
+    // Only what the server takes: a point's or a title's length.
+    final words = b is PageText ? b.text.trim().length : 0;
     final turns = <_BlockAction>[
-      if (b is PageText && pageAdds(_post).contains(PageAdd.checklist))
+      if (b is PageText &&
+          words <= PageChecklist.pointMax &&
+          pageAdds(_post).contains(PageAdd.checklist))
         _BlockAction.point,
-      if (b is PageText && _post.isWorkItem) _BlockAction.item,
+      if (b is PageText &&
+          words <= PageChecklist.itemTitleMax &&
+          mayHaveItemsUnder(_post))
+        _BlockAction.item,
     ];
+    // A work item under this one has its own life: it is cancelled from
+    // its card, never deleted from the page (it would come back).
+    final deletable = b is! PageChildItem;
+    if (turns.isEmpty && !deletable) return;
     final picked = await showBvSheet<_BlockAction>(
       context: context,
       title: turns.isEmpty ? null : l10n.pageTurnInto,
@@ -675,14 +782,15 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
               trailing: const BvRowTrailing.none(),
               onTap: () => Navigator.of(sheet).pop(t),
             ),
-          BvListRow(
-            key: const Key('page-block-delete'),
-            leading: const BvRowIcon(BvIcons.delete, destructive: true),
-            title: l10n.pageDelete,
-            destructive: true,
-            trailing: const BvRowTrailing.none(),
-            onTap: () => Navigator.of(sheet).pop(_BlockAction.delete),
-          ),
+          if (deletable)
+            BvListRow(
+              key: const Key('page-block-delete'),
+              leading: const BvRowIcon(BvIcons.delete, destructive: true),
+              title: l10n.pageDelete,
+              destructive: true,
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheet).pop(_BlockAction.delete),
+            ),
         ],
       ),
     );
@@ -692,7 +800,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         _delete(index);
       case _BlockAction.point when b is PageText:
         final point = newUuid();
-        _points[point] = b.text;
+        _points[point] = b.text.trim();
         setState(() => _blocks[index] = PageChecklist(newUuid(), [point]));
       case _BlockAction.item when b is PageText:
         final block = await _item(newUuid(), text: b.text.trim());
@@ -761,7 +869,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
             trailing: const BvRowTrailing.check(selected: true),
             onTap: () => Navigator.of(sheet).pop(PageTurn.point),
           ),
-          if (_post.isWorkItem)
+          if (mayHaveItemsUnder(_post))
             BvListRow(
               key: const Key('page-turn-item'),
               title: l10n.pageItemUnder,
@@ -778,7 +886,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       setState(() => _splitPoint(index, pointId, PageText(newUuid(), text)));
       return;
     }
-    if (text.length > 140) {
+    if (text.length > PageChecklist.itemTitleMax) {
       showSpaceMessage(context, l10n.pageTooLongForItem);
       return;
     }
@@ -794,9 +902,21 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     // turns in one step (turn_point_into_item).
     final asked = await _askItem(text);
     if (asked == null || !mounted) return;
+    // The server turns the point's own words: what was typed in the sheet
+    // is saved as the point first.
+    _points[pointId] = asked.title;
+    _fields['pt:$pointId']?.text = asked.title;
     if (!await save()) return;
-    final fresh = await ref.read(pageRepositoryProvider).page(_post.id);
+    final PostPage? fresh;
+    try {
+      fresh = await ref.read(pageRepositoryProvider).page(_post.id);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+      return;
+    }
     if (fresh == null || !mounted) return;
+    // Saved: the next Done starts from here.
+    setState(() => _page = fresh!);
     try {
       await ref
           .read(pageRepositoryProvider)
@@ -814,10 +934,16 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       if (mounted) showSpaceError(context, e);
       return;
     }
-    final turned = await ref.read(pageRepositoryProvider).page(_post.id);
+    final PostPage? turned;
+    try {
+      turned = await ref.read(pageRepositoryProvider).page(_post.id);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+      return;
+    }
     if (turned == null || !mounted) return;
     _changed();
-    setState(() => _reload(turned));
+    setState(() => _reload(turned!));
   }
 
   /// The editor over [page], as the server has it now.
@@ -970,7 +1096,9 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
                     TextField(
                       key: const Key('page-title'),
                       controller: _title,
-                      maxLength: _post.isWorkItem ? 140 : 200,
+                      maxLength: _post.isWorkItem
+                          ? PageChecklist.itemTitleMax
+                          : 200,
                       maxLines: null,
                       style: type.titleLg,
                       decoration: bvBareField(
@@ -1111,10 +1239,22 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       onChanged: onSlash == null
           ? null
           : (v) {
-              if (v.startsWith('/')) onSlash(v.substring(1));
+              // Only on a line that was empty: "/" typed before existing
+              // words is just a character.
+              final was = _lastText[key] ?? text;
+              _lastText[key] = v;
+              if (v.startsWith('/') && was.isEmpty) onSlash(v.substring(1));
             },
     );
   }
+
+  /// One key listener's node per point, kept and disposed with the editor.
+  FocusNode _keyNode(String id) =>
+      _keyNodes.putIfAbsent(id, () => FocusNode(skipTraversal: true));
+  final _keyNodes = <String, FocusNode>{};
+
+  /// Each "/" field's text before its latest change.
+  final _lastText = <String, String>{};
 
   Widget _block(int i, PageBlock b) {
     final l10n = AppLocalizations.of(context);
@@ -1130,6 +1270,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
           // "/" at the start of an empty line: this line becomes the block.
           onSlash: (f) {
             _fields['t:${b.id}']?.text = '';
+            _lastText['t:${b.id}'] = '';
             unawaited(_openAdd(filter: f, replace: i));
           },
         );
@@ -1270,7 +1411,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         ),
         Expanded(
           child: KeyboardListener(
-            focusNode: FocusNode(skipTraversal: true),
+            focusNode: _keyNode(id),
             onKeyEvent: (e) {
               if (e is KeyDownEvent &&
                   e.logicalKey == LogicalKeyboardKey.backspace &&
@@ -1283,7 +1424,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
               controller: c,
               focusNode: node,
               readOnly: ticked,
-              maxLength: 300,
+              maxLength: PageChecklist.pointMax,
               style: type.bodyMd.copyWith(
                 color: ticked ? BvColors.textSecondary : null,
                 decoration: ticked ? TextDecoration.lineThrough : null,

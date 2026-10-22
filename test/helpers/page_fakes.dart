@@ -16,6 +16,10 @@ class FakePageRepository implements PageRepository {
   /// Someone else saves before the next save (its version moves on).
   bool staleOnce = false;
 
+  /// The signal goes after the first step of a Done: the next blocks save
+  /// fails, what went before it stays.
+  bool failSaveOnce = false;
+
   void _check() {
     if (offline) throw const SpaceException(SpaceFailure.network);
   }
@@ -34,6 +38,10 @@ class FakePageRepository implements PageRepository {
     List<Map<String, Object?>> addFiles = const [],
   }) async {
     _check();
+    if (failSaveOnce) {
+      failSaveOnce = false;
+      throw const SpaceException(SpaceFailure.network);
+    }
     final p = pages[postId]!;
     if (staleOnce) {
       staleOnce = false;

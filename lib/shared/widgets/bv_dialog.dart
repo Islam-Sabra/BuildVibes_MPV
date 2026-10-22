@@ -31,6 +31,28 @@ Future<bool> showBvDialog({
   return yes ?? false;
 }
 
+/// The same dialog for a choice between two ways on: true for
+/// [confirmLabel], false for [cancelLabel], null when it was dismissed
+/// (a tap outside, Back), which chooses neither.
+Future<bool?> showBvChoiceDialog({
+  required BuildContext context,
+  required String title,
+  required String body,
+  required String cancelLabel,
+  required String confirmLabel,
+}) => showDialog<bool>(
+  context: context,
+  barrierColor: BvColors.overlayScrim,
+  builder: (context) => BvDialog(
+    title: title,
+    body: body,
+    cancelLabel: cancelLabel,
+    confirmLabel: confirmLabel,
+    onCancel: () => Navigator.of(context).pop(false),
+    onConfirm: () => Navigator.of(context).pop(true),
+  ),
+);
+
 class BvDialog extends StatelessWidget {
   const BvDialog({
     super.key,

@@ -441,6 +441,63 @@ void main() {
       ]);
     });
 
+    testWidgets('N2: a "page changed" dialog dismissed keeps the edit '
+        'open, nothing thrown away [$lang]', (tester) async {
+      final pages = FakePageRepository()..staleOnce = true;
+      final app = await _open(tester, lang, pages: pages);
+      await _edit(tester, l10n);
+      await _type(tester, 'page-field-t:$_text', 'Check every sleeve.');
+      await _tap(tester, _key('page-done'));
+      expect(find.text(l10n.pageStale), findsOneWidget);
+      // A tap outside: neither choice.
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.pageStale), findsNothing);
+      expect(_key('page-editor'), findsOneWidget);
+      expect(app.postPages.calls, isEmpty);
+      await _tap(tester, _key('page-done'));
+      await _tap(tester, _key('bv-dialog-confirm'));
+      expect(app.postPages.calls, [
+        'save $_post v5 [text, toggle, checklist_ref, table, child_item]',
+      ]);
+    });
+
+    testWidgets('N2: the signal went after the points were saved: Done '
+        'again sends them only once [$lang]', (tester) async {
+      final pages = FakePageRepository()..failSaveOnce = true;
+      final app = await _open(tester, lang, pages: pages);
+      await _edit(tester, l10n);
+      await _type(tester, 'page-field-t:$_text', 'Check every sleeve.');
+      await _type(tester, 'page-field-pt:$_sized', 'Sized and sealed');
+      await _tap(tester, _key('page-done'));
+      expect(_key('page-editor'), findsOneWidget);
+      await _tap(tester, _key('page-done'));
+      expect(app.postPages.calls, [
+        'edit $_post points',
+        'save $_post v4 [text, toggle, checklist_ref, table, child_item]',
+      ]);
+      expect(_key('page-editor'), findsNothing);
+    });
+
+    testWidgets('N3: "/" typed before words already on a line is just a '
+        'character [$lang]', (tester) async {
+      await _open(tester, lang);
+      await _edit(tester, l10n);
+      final before = s.t(
+        'Check the sizes against the drawing.',
+        'طابق المقاسات مع المخطط.',
+      );
+      await _type(tester, 'page-field-t:$_text', '/$before');
+      expect(_key('page-add-menu'), findsNothing);
+      expect(
+        find.descendant(
+          of: _key('page-field-t:$_text'),
+          matching: find.text('/$before'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('N2: no signal: the edit stays open to send again [$lang]', (
       tester,
     ) async {

@@ -132,4 +132,45 @@ void main() {
     expect(note, isNot(contains(PageAdd.checklist)));
     expect(note, isNot(contains(PageAdd.item)));
   });
+  test('a photo or Library file the page no longer shows leaves the post '
+      'after the blocks; a PDF the page never showed stays', () {
+    final page = PostPage(
+      post: _page().post,
+      blocks: const [
+        PagePhoto('00000000-0000-4000-8000-0000000000c1', 'kct/posts/p/1.jpg'),
+        PageFile('00000000-0000-4000-8000-0000000000c2', 'lib-1'),
+      ],
+      files: const [
+        PageFileRow(id: 'f1', mime: 'image/jpeg', path: 'kct/posts/p/1.jpg'),
+        PageFileRow(id: 'f2', mime: 'application/pdf', libraryFileId: 'lib-1'),
+        PageFileRow(
+          id: 'f3',
+          mime: 'application/pdf',
+          path: 'kct/posts/p/3.pdf',
+        ),
+      ],
+    );
+    final plan = planPageSave(
+      page,
+      blocks: [page.blocks.last],
+      points: const {},
+      title: 'Sleeves',
+      body: 'Before the pour.',
+    );
+    expect(plan.after['remove_files'], ['f1']);
+    expect(plan.before, isEmpty);
+  });
+
+  test('a work item under another one offers no work item under it (one '
+      'level only)', () {
+    final under = DaybookPost(
+      id: 'p',
+      kind: DaybookPost.workItemKind,
+      createdAt: DateTime(2026),
+      title: 't',
+      parentId: 'parent',
+    );
+    expect(pageAdds(under), isNot(contains(PageAdd.item)));
+    expect(mayHaveItemsUnder(under), isFalse);
+  });
 }

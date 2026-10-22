@@ -188,6 +188,12 @@ class PageChecklist extends PageBlock {
 
   static const kind = 'checklist_ref';
 
+  /// A point's words, at most (checklist_points).
+  static const pointMax = 300;
+
+  /// A work item's title, at most (create_work_item).
+  static const itemTitleMax = 140;
+
   final List<String> pointIds;
 
   @override
