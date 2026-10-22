@@ -7808,23 +7808,11 @@ abstract class AppLocalizations {
   /// **'Coming up'**
   String get weekComingUp;
 
-  /// A late work item in Needs a decision.
-  ///
-  /// In en, this message translates to:
-  /// **'{days, plural, =0{late today} =1{late by 1 day} other{late by {days} days}}'**
-  String weekLateBy(int days);
-
   /// A done work item waiting for a check.
   ///
   /// In en, this message translates to:
   /// **'signed as done {when}'**
   String weekSignedDone(String when);
-
-  /// The stamp on a late work item in Needs a decision.
-  ///
-  /// In en, this message translates to:
-  /// **'LATE'**
-  String get weekStampLate;
 
   /// MR1's foot line.
   ///

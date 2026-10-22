@@ -75,7 +75,6 @@ class MeetingReportSamples {
         state: DecisionState.late,
         ownerName: DaybookSamples(lang).omarName,
         dueDate: DateTime(2026, 10, 13),
-        needsMe: true,
       ),
       DecisionRow(
         postId: 'post-trays',
@@ -93,6 +92,8 @@ class MeetingReportSamples {
         state: DecisionState.done,
         ownerName: DaybookSamples(lang).omarName,
         doneAt: DateTime(2026, 10, 15, 14, 10),
+        // Omar signed it as done: it waits on Islam's check.
+        needsMe: true,
       ),
     ],
     checked: [

@@ -740,3 +740,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The week report (MR1): from the Space menu for every member; the market's week with ‹ ›; Needs a decision with stamps and the clip, Checked this week, Targets, Coming up (this week); a row opens its card.
   - Share in chat: the thread list, `share_week_report`; the report's card in the chat opens that week.
   - Checks: analyze clean; 1,644 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Screenshots EN and AR in `docs/screens/slice9/`.
+- **23 Oct** (cloud, `claude/slice9`): review 86 W1: no LATE stamp or "late by N days" in the week report (F57); "was due Tue 13 Oct", grey unless it waits on the reader. Test and MR1 re-shot in EN and AR.

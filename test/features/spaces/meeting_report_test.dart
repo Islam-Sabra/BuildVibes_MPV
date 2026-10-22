@@ -6,7 +6,10 @@ import 'package:buildvibes/data/models/week_report.dart';
 import 'package:buildvibes/features/chat/meeting_notes_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_target.dart';
+import 'package:buildvibes/core/design/bv_tokens.dart';
+import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_stamp.dart';
 import 'package:buildvibes/shared/widgets/bv_button.dart';
 import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
 import 'package:flutter/material.dart';
@@ -316,7 +319,8 @@ void main() {
       await _tap(tester, find.text(l10n.weekReportTitle));
       expect(app.weekReports.read, [MeetingReportSamples.week]);
       expect(find.text(l10n.weekNeedsDecision), findsOneWidget);
-      expect(_key('week-stamp-late'), findsOneWidget);
+      // Review 86 W1: no LATE stamp; past its due reads "was due".
+      expect(_key('week-stamp-late'), findsNothing);
       expect(_key('week-stamp-sent_back'), findsOneWidget);
       expect(_key('week-stamp-done'), findsOneWidget);
       expect(
@@ -326,7 +330,6 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.textContaining(l10n.weekLateBy(2)), findsOneWidget);
       expect(
         find.textContaining(l10n.daybookReasonPhotoMissing),
         findsOneWidget,
@@ -347,6 +350,58 @@ void main() {
       await _seen(tester, 'week-foot');
       expect(find.textContaining(l10n.pageUnderChecked(2, 4)), findsOneWidget);
       expect(_key('week-coming-post-site-walk'), findsOneWidget);
+    });
+
+    testWidgets('MR1, review 86 W1: past its due is "was due Tue 13 Oct", '
+        'never late; grey unless it waits on me [$lang]', (tester) async {
+      final words = DaybookWords(l10n, lang, use24: false);
+      final rebar = m.report().needsDecision.first;
+      // Waits on me: my own work item, past its due.
+      final mine = DecisionRow(
+        postId: rebar.postId,
+        title: rebar.title,
+        state: DecisionState.late,
+        ownerName: rebar.ownerName,
+        dueDate: rebar.dueDate,
+        needsMe: true,
+      );
+      final theirs = DecisionRow(
+        postId: 'post-lift',
+        title: 'Lift shaft survey',
+        state: DecisionState.late,
+        ownerName: s.saraName,
+        dueDate: DateTime(2026, 10, 12),
+      );
+      await _open(
+        tester,
+        lang,
+        reports: FakeWeekReportRepository(
+          reports: {
+            MeetingReportSamples.week: WeekReport(
+              needsDecision: [mine, theirs],
+            ),
+          },
+        ),
+        path: '/spaces/${DaybookSamples.space}/week',
+      );
+      final wasDue = l10n.daybookWasDue(words.shortDate(mine.dueDate!));
+      expect(wasDue, contains(lang == 'ar' ? 'كان موعده' : 'was due'));
+      final line = tester.widget<Text>(
+        _key('week-decision-line-${mine.postId}'),
+      );
+      expect(line.data, endsWith(wasDue));
+      // The owner's own: the action colour; someone else's: grey.
+      expect(line.style!.color, BvColors.textAction);
+      expect(
+        tester.widget<Text>(_key('week-decision-line-post-lift')).style!.color,
+        BvColors.textSecondary,
+      );
+      // No LATE stamp and no "late" word, in either language.
+      expect(_key('week-stamp-late'), findsNothing);
+      expect(find.byType(BvInkStamp), findsNothing);
+      for (final late in ['late', 'Late', 'LATE', 'متأخر']) {
+        expect(find.textContaining(late), findsNothing);
+      }
     });
 
     testWidgets('MR1: the week before has no Coming up; an empty week says '

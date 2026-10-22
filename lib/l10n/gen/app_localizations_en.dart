@@ -4637,24 +4637,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekComingUp => 'Coming up';
 
   @override
-  String weekLateBy(int days) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: 'late by $days days',
-      one: 'late by 1 day',
-      zero: 'late today',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String weekSignedDone(String when) {
     return 'signed as done $when';
   }
-
-  @override
-  String get weekStampLate => 'LATE';
 
   @override
   String get weekFoot =>

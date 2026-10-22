@@ -6664,15 +6664,6 @@
   "@weekComingUp": {
     "description": "MR1's fourth section, this week only."
   },
-  "weekLateBy": "{days, plural, =0{late today} =1{late by 1 day} other{late by {days} days}}",
-  "@weekLateBy": {
-    "description": "A late work item in Needs a decision.",
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
   "weekSignedDone": "signed as done {when}",
   "@weekSignedDone": {
     "description": "A done work item waiting for a check.",
@@ -6681,10 +6672,6 @@
         "type": "String"
       }
     }
-  },
-  "weekStampLate": "LATE",
-  "@weekStampLate": {
-    "description": "The stamp on a late work item in Needs a decision."
   },
   "weekFoot": "Made from the daybook. Everyone sees only what they may read.",
   "@weekFoot": {

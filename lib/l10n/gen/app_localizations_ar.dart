@@ -4649,26 +4649,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get weekComingUp => 'القادم';
 
   @override
-  String weekLateBy(int days) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: 'متأخر $days يومًا',
-      few: 'متأخر $days أيام',
-      two: 'متأخر يومين',
-      one: 'متأخر يومًا واحدًا',
-      zero: 'متأخر اليوم',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String weekSignedDone(String when) {
     return 'وقّع كمنجز $when';
   }
-
-  @override
-  String get weekStampLate => 'متأخر';
 
   @override
   String get weekFoot => 'من يومية الفريق. يرى كل شخص ما يحق له فقط.';

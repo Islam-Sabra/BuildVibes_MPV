@@ -473,7 +473,9 @@ class _Section extends StatelessWidget {
 }
 
 /// A row of Needs a decision (2566:35551): the title, who and why, and
-/// the LATE, SENT BACK or DONE stamp.
+/// the SENT BACK or DONE stamp. A work item past its due has no stamp and
+/// no "late" (F57, review 86 W1): "Omar Haddad · was due Tue 13 Oct", grey,
+/// in the action colour only when it waits on the reader.
 class _DecisionLine extends StatelessWidget {
   const _DecisionLine({
     required this.row,
@@ -492,9 +494,10 @@ class _DecisionLine extends StatelessWidget {
     final l10n = words.l10n;
     final type = BvType.of(context);
     final why = switch (row.state) {
-      DecisionState.late => l10n.weekLateBy(
-        row.dueDate == null ? 0 : today.difference(row.dueDate!).inDays,
-      ),
+      DecisionState.late =>
+        row.dueDate == null
+            ? ''
+            : words.due(row.dueDate!, row.dueAt, now: today, late: true),
       DecisionState.sentBack => words.reason(row.reason),
       DecisionState.done => l10n.weekSignedDone(
         row.doneAt == null
@@ -502,8 +505,8 @@ class _DecisionLine extends StatelessWidget {
             : '${words.shortWeekday(row.doneAt!)} ${words.time.clock(row.doneAt!)}',
       ),
     };
-    final (stamp, tone) = switch (row.state) {
-      DecisionState.late => (l10n.weekStampLate, BvInkStampTone.destructive),
+    final (String? stamp, tone) = switch (row.state) {
+      DecisionState.late => (null, BvInkStampTone.muted),
       DecisionState.sentBack => (
         l10n.daybookStampSentBack,
         BvInkStampTone.destructive,
@@ -531,23 +534,25 @@ class _DecisionLine extends StatelessWidget {
                   Text(
                     [
                       if (row.ownerName != null) inOwnDirection(row.ownerName!),
-                      why,
+                      if (why.isNotEmpty) why,
                     ].join(' · '),
+                    key: Key('week-decision-line-${row.postId}'),
                     style: type.metadata.copyWith(
-                      color: row.state == DecisionState.late
-                          ? BvColors.textDestructive
+                      color: row.state == DecisionState.late && row.needsMe
+                          ? BvColors.textAction
                           : BvColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            BvInkStamp(
-              key: Key('week-stamp-${row.state.json}'),
-              label: stamp,
-              size: BvInkStampSize.xs,
-              tone: tone,
-            ),
+            if (stamp != null)
+              BvInkStamp(
+                key: Key('week-stamp-${row.state.json}'),
+                label: stamp,
+                size: BvInkStampSize.xs,
+                tone: tone,
+              ),
           ],
         ),
       ),

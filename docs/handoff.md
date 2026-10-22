@@ -2,6 +2,16 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — review 86 W1 (branch `claude/slice9`)
+
+- **No "late" in the week report (F57):** no LATE stamp and no "late by N days", in English or Arabic. A work item past its due reads "Omar Haddad · was due Tue 13 Oct" / «عمر حداد · كان موعده الثلاثاء 13 أكتوبر», grey, in the action colour only when it waits on the reader (`needs_me`). The strings `weekLateBy` and `weekStampLate` are gone.
+- **Not done:** review 86 also says an open item past its due that needs nothing from the reader "goes in the open list". MR1 has no such section, so those rows stay in Needs a decision, with no stamp and grey. The lead decides if they should move or go.
+- **Test:** past its due reads "was due …", never "late" (EN and AR), no stamp; grey unless it waits on me.
+- **Shots:** `MR1-week-report` EN and AR re-shot. The sample now has the DONE row waiting on Islam's check (the clip), and Omar's late row grey, as the redrawn frame.
+- Review 86 is copied from `main`. `flutter analyze` clean; the slice 9 tests pass (22).
+
+**Not live, nothing deployed, nothing installed.** Branches as below.
+
 ## Cloud update: 23 Oct 2026 — review 84 N1 and N2, then slice 9 (branches `claude/slice8`, then `claude/slice9` from it)
 
 **Review 84 (on `claude/slice8`, pushed):**
