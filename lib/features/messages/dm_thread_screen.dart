@@ -466,7 +466,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
           if ((m.body ?? '').trim().isNotEmpty && !m.deleted)
             ChatActionRow(
               key: const Key('dm-action-notebook'),
-              icon: BvIcons.myNotebook,
+              icon: BvIcons.notebook,
               label: l10n.notebookSaveMessage,
               onTap: () => Navigator.of(sheet).pop('notebook'),
             ),

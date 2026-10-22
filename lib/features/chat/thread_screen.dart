@@ -476,7 +476,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
           if ((m.body ?? '').trim().isNotEmpty)
             ChatActionRow(
               key: const Key('chat-action-notebook'),
-              icon: BvIcons.myNotebook,
+              icon: BvIcons.notebook,
               label: l10n.notebookSaveMessage,
               onTap: () => Navigator.of(context).pop(_Action.notebook),
             ),

@@ -275,6 +275,7 @@ abstract final class BvIcons {
   // Phosphor: list-checks. Home's way into My notebook (H1), as the
   // notebook's own post bar shows it.
   static const myNotebook = workItems;
-  // Phosphor: notebook. The empty notebook (N2).
+  // Phosphor: notebook. The empty notebook (N2), and Save to my notebook
+  // on a held message (list-checks there is Put in a Space).
   static const notebook = IconData(0xe34e, fontFamily: _family);
 }

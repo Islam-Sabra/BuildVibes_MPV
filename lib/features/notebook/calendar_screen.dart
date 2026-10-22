@@ -46,8 +46,9 @@ int _byDayThenTime(CalendarRow a, CalendarRow b) {
   if (day != 0) return day;
   final at = a.startsAt;
   final bt = b.startsAt;
-  if (at == null || bt == null)
+  if (at == null || bt == null) {
     return (at == null ? 0 : 1) - (bt == null ? 0 : 1);
+  }
   return at.compareTo(bt);
 }
 
@@ -384,13 +385,18 @@ class CalendarRowTile extends StatelessWidget {
               ),
               SizedBox(
                 width: BvCalendarSpec.timeWidth,
-                child: Text(
-                  allDay ? l10n.calendarAllDay : words.time.clock(starts),
-                  key: const Key('calendar-row-time'),
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.fade,
-                  style: type.metadata.copyWith(color: BvColors.textSecondary),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    allDay ? l10n.calendarAllDay : words.time.clock(starts),
+                    key: const Key('calendar-row-time'),
+                    maxLines: 1,
+                    softWrap: false,
+                    style: type.metadata.copyWith(
+                      color: BvColors.textSecondary,
+                    ),
+                  ),
                 ),
               ),
               Expanded(

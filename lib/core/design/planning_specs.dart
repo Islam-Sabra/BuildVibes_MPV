@@ -62,9 +62,9 @@ abstract final class BvCalendarSpec {
   static const barHeight = 40.0;
   static const barRadius = 2.0;
 
-  /// Wide enough for "10:00 am" and "10:00 ص" at the small size; the frame
-  /// cuts them.
-  static const timeWidth = 64.0;
+  /// Wide enough for "10:00 am" and "10:00 صباحًا" at the small size (the
+  /// frame's 64 cuts them); a larger text size shrinks it to fit.
+  static const timeWidth = 80.0;
   static const columnGap = BvSpace.s12;
 
   /// The paper clip at the row's end.
