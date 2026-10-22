@@ -7319,7 +7319,7 @@ abstract class AppLocalizations {
   /// Hint under On site while writing the daily report. Typed words only; the app never counts people (review 79 Q5).
   ///
   /// In en, this message translates to:
-  /// **'Who was on site, and what came in'**
+  /// **'Who was there, and what came in'**
   String get dailyReportOnSiteHint;
 
   /// Hint under Problems while writing the daily report.

@@ -53,6 +53,9 @@ void main() {
       'daybookDateLine',
       'spacesOnSiteSince',
       'spacesOnSiteNote',
+      // The daily report's first heading, as R2 and the built-in Daily
+      // report (key on_site) name it (slice 7).
+      'dailyReportOnSite',
     };
     final en = strings('en');
     final ar = strings('ar');

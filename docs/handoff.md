@@ -64,7 +64,7 @@ Built from review 78, with the lead's notes in review 79 §1, and R2 redrawn (EN
 
 **Checks (cloud):**
 - `flutter analyze`: no issues.
-- `flutter test`: the full run is being counted; see the next commit.
+- `flutter test`: **1,585 pass**; 1 fails, photo_privacy H1, which fails only when run as root in the cloud.
 - `flutter test test_screens/slice7_test.dart --update-goldens`: 14 pass.
 - No SQL changed.
 

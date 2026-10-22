@@ -4348,7 +4348,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyReportProblems => 'Problems';
 
   @override
-  String get dailyReportOnSiteHint => 'Who was on site, and what came in';
+  String get dailyReportOnSiteHint => 'Who was there, and what came in';
 
   @override
   String get dailyReportProblemsHint => 'Anything that held work up';

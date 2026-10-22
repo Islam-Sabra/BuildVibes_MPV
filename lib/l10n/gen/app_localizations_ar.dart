@@ -4357,7 +4357,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dailyReportProblems => 'المشكلات';
 
   @override
-  String get dailyReportOnSiteHint => 'من كان في الموقع، وماذا وصل';
+  String get dailyReportOnSiteHint => 'من كان حاضرًا، وماذا وصل';
 
   @override
   String get dailyReportProblemsHint => 'ما الذي أخّر العمل';

@@ -722,4 +722,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - today's draft only;
     - its card (R2 redrawn);
     - Share as PDF made on the phone (the `pdf` package, both fonts, right to left in Arabic, photos made safe first).
-  - Checks: analyze clean; app tests counted in the next commit. Screenshots EN and AR in `docs/screens/slice7/`.
+  - Checks: analyze clean; 1,585 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Screenshots EN and AR in `docs/screens/slice7/`.

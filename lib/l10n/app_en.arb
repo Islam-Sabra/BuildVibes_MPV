@@ -6269,7 +6269,7 @@
   "@dailyReportProblems": {
     "description": "The daily report's third heading (R2)."
   },
-  "dailyReportOnSiteHint": "Who was on site, and what came in",
+  "dailyReportOnSiteHint": "Who was there, and what came in",
   "@dailyReportOnSiteHint": {
     "description": "Hint under On site while writing the daily report. Typed words only; the app never counts people (review 79 Q5)."
   },
