@@ -728,3 +728,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - S2: "Hand over Space admin" in place of "Transfer ownership".
   - «يحل محل M-201.pdf · V3» in the version picker.
   - Checks: analyze clean; 1,585 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Screenshots in `docs/screens/review82/`.
+- **23 Oct** (cloud, `claude/slice8` from `claude/slice7`): review 83, the slice 8 plan, and slice 8 built on its recommendations; no migration (migration 21).
+  - My notebook (NB1 on v13 paper, no spine): from Home's list-checks; pinned band; notes, to-dos, checklists, voice notes; the writer with one choice of kind; the menu (Put in a Space, Pin, Edit, Delete); changes wait on the phone with no signal.
+  - Put in a Space: the Space's writing card from the note; `mark_note_put` once the post is taken.
+  - Save to my notebook on a held direct message or Space chat message.
+  - My calendar (CAL1): the market's week, swipe, dots, rows by day with the Space's colour, labels, the paper clip; a tap opens the card.
+  - Checks: analyze clean; TESTCOUNT Screenshots EN and AR in `docs/screens/slice8/`.

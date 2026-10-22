@@ -2,6 +2,59 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — slice 8, My notebook and My calendar (branch `claude/slice8`, from `claude/slice7` 37e1cf2)
+
+**Plan:** review 83 (`docs/reviews/2026-10-23-83-slice8-plan.md`), drafted like reviews 76–78 and built on its own recommendations. Six questions wait for the lead, each with a recommendation. **No migration:** everything uses migration 21 (live 16 Oct).
+
+**For the PC:** merge `claude/slice7` first, then `claude/slice8`, into `slice2-app`. No new package. Re-shoot `test_screens/` with the PC's fonts. The new shots are in `docs/screens/slice8/` (26 PNGs, 13 screens in English and Arabic, 12-hour).
+
+**My notebook (NB1 `2557:35384`, AR `2564:549`):**
+- Opens from Home's **list-checks** icon, between Search and Messages (`/notebook`). Guests don't see it.
+- **Built on v13 paper, no hour spine** (question 1): each slip's first line is its kind and time ("To-do · 8:02 am").
+- Header: back, My notebook, a calendar icon (My calendar, question 3), and **Only you** (a tap says what it means).
+- The masthead is today; **pinned notes** sit on the brand-soft band; today's notes oldest first, then earlier days under their day dividers.
+- **Kinds:** Note (words), **To-do** (a box, the words, "by today 4:00 pm" in the action colour), **Checklist** (title and points, tick in place), **Voice** (hold the mic, as in messages; it plays with the chat's player).
+- **Writing:** "Note" opens a small sheet with **one choice** of Note / Checklist / To-do (rule 6), the words, the points, and When (the daybook's due picker; a day with no time is kept at the day's start). Tap a slip to edit it.
+- **The menu** (long press or ⋯, `2557:35481`): Put in a Space with the Spaces I can write work in (each with its colour chip), Pin to the top / Unpin, Edit, Delete (asks first, N7).
+- **No signal:** a change shows at once with "Waiting to send", is kept on the phone per account, and goes on the next change or when the notebook opens again. `save_note` is the same note by its id. A note deleted on another phone drops its waiting edit.
+- **Empty:** N2's words, "Your private working area".
+
+**Put in a Space:**
+- The Space opens writing: a note → a work item (first line the title, the rest the words; a long line is cut at a word and the whole note goes in the words); a to-do → a work item with its due; a checklist → a checklist with its points. A voice note can't be put (no words).
+- A card already half-written keeps its words; the note's go under them.
+- Nothing posts by itself. Once the server takes the post, the app calls `mark_note_put`, and the slip says "Went into a Space". The note stays private.
+
+**Save to my notebook** on holding a direct message and a Space chat message: a note with its words, "Saved to your notebook". It takes the notebook glyph; list-checks is Put in a Space in that menu.
+
+**My calendar (CAL1 `2557:35587`, AR `2564:653`):**
+- From the notebook's header (`/notebook/calendar`). One `my_calendar` read per week.
+- The week strip starts on the market pack's day (Sunday for Kuwait); swipe for the week before or after; a dot under a day with something; the chosen day is the orange pill.
+- Rows from the chosen day to the week's end, **sorted by day, all day first** (the server sends them by time with all-day last), a divider per later day.
+- Each row: the Space's colour bar (`BvProjectColors.forId`, the notebook's slate for to-dos; question 4), the time or All day, the label (Due for you, Due today, Due, Done to check, Scheduled, To-do), the title, "Space · place" or My notebook, and the paper clip when it needs me.
+- A tap opens the work item, checklist or activity at its card; a to-do goes back to the notebook.
+- Empty week: "Nothing planned this week". No counts (rule 3).
+
+**Not in slice 8 (review 83):** Remind me (slice 10, with notifications), photos in notes, search, shared copies, tasks for others, Repeat, Day/Week/Month views.
+
+**For the lead (review 83's questions):**
+1. Redraw NB1 and its Arabic without the hour spine.
+2. Remind me waits for slice 10.
+3. My calendar opens from the notebook's header.
+4. Space colours by id; to-dos slate.
+5. No photos in notes for now.
+6. The writer sheet has no frame: check it on `NB-write-checklist` and `NB-write-todo`.
+
+**Checks:**
+- `flutter analyze`: no issues.
+- `flutter test`: **TESTCOUNT**
+- New tests: `test/features/notebook/notebook_test.dart` (14 × EN and AR), `test/data/note_models_test.dart` (9).
+
+**Not live, nothing deployed, nothing installed.**
+
+**Who has which branch:**
+- Cloud: `claude/slice8` (this work), on top of `claude/slice7`.
+- PC: `slice2-app`, as in the review 81 update below.
+
 ## Cloud update: 23 Oct 2026 — review 82 S1, S2 and the Arabic version picker (branch `claude/slice7`)
 
 On top of slice 7, as asked:
