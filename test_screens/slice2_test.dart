@@ -835,7 +835,7 @@ void main() {
           await tester.pumpAndSettle();
           await _tap(
             tester,
-            find.descendant(of: to, matching: find.byType(Icon)),
+            find.descendant(of: to, matching: find.byType(Icon)).first,
           );
         },
       );
