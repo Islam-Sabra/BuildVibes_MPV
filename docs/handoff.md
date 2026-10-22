@@ -2,6 +2,82 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — slice 7, templates and the daily report (branch `claude/slice7`, from `slice2-app` 2c64cd3)
+
+Built from review 78, with the lead's notes in review 79 §1, and R2 redrawn (EN `2607:36358`, AR `2608:727`). **No migration:** everything uses migration 20's functions (live), and migration 30's `daily_report_notes` when it is there.
+
+**For the PC:** merge `claude/slice7` into `slice2-app`, then run `flutter pub get` (new package: `pdf` 3.13.1, pure Dart, no native code). Re-shoot `test_screens/` with the PC's fonts. The new shots are in `docs/screens/slice7/` (24 PNGs, 12 screens in English and Arabic).
+
+**Templates (review 78 §1–3, review 79 §1):**
+- **More → Template** on the writing card of a work item, a checklist or an announcement. It is hidden when the Space has none of that kind, and never shown on an edit.
+- **The picker** shows the built-ins first, under no heading. The Space's own follow after a hairline, under "This Space's templates", newest first. Each row has the kind's own icon and the name; a Space's own also has a grey line with its Team or "Everyone". There is no count and no date.
+- **Choosing one fills the card:**
+  - the title and the words;
+  - a checklist's points;
+  - the page, under new ids.
+- **A work item's points from a template** go with a `checklist_ref` block on its page, so they show.
+- **A Team's template:**
+  - it is offered only where the card has an audience (an announcement, a report), and choosing it sets the audience;
+  - with a Team chosen first, only that Team's and the Everyone ones are listed;
+  - a work item and a checklist go to Everyone, so they are offered only the Everyone ones.
+- **"From: Concrete pour check"** is a grey line at the small size, with ✕. ✕ drops the template and keeps what was written.
+- **Save as template** is in a post's long-press menu for a Lead or a Space admin, on a work item, checklist, announcement or report.
+  - It asks for a name of 1–60 characters, prefilled with the title.
+  - At 50 it says so, and offers "Open Templates".
+- **Space info › Templates** is for a Lead or a Space admin:
+  - the built-ins are listed and can't be deleted;
+  - Delete asks first.
+
+**The daily report (review 78 §4–6, R2):**
+- **Daily report** is in the Space menu ⋯ for a Lead or Crew who may post. It opens the writing card as kind `report`, from the built-in Daily report:
+  - the title is the day ("Thursday 15 October");
+  - To: Everyone or one Team;
+  - **On site** is written under, and the day's notes are offered there with "Add";
+  - **Done today** fills itself from `daily_report_fill`, from midnight to now, for the chosen audience; each line has its time, a small CHECKED stamp and ✕;
+  - **Problems** is written under;
+  - photos come through 📎, as on any post.
+- **Posting** sends `create_space_post(kind: report, p_template, p_blocks)` through the outbox. The page has headings in the writer's words, the text, and an `item_ref` per line.
+- **Drafts:**
+  - today's own draft opens again from the menu;
+  - yesterday's is put away with a line saying so;
+  - a card of another kind being written opens instead;
+  - the kind chip can't turn a report into another kind.
+- **The card (R2 redrawn):**
+  - "· daily report" in the header, the day as the title;
+  - On site, Done today and Problems as small grey labels;
+  - each work item as a line with its time and CHECKED; a tap opens its card;
+  - a line the reader can't see isn't in `refs`, and is left out;
+  - the photos fill the width;
+  - Share as PDF is the pill at the end;
+  - no stamp of its own and no Sign as done.
+- **Share as PDF** is made on the phone with the `pdf` package:
+  - the Space's name, the day, "By Sara · 5:00 pm", the headings, the lines with "Checked 10:12 by …", and up to 8 photos;
+  - each photo goes through `cleanPhotoBytes` first (F60);
+  - it uses Plus Jakarta Sans and Almarai, each the other's fallback; an Arabic report is right to left;
+  - no logo, no company facts, no totals;
+  - it is shared through the phone's share sheet.
+
+**Calls made here (technical):**
+- The report is written on the writing card, not on a screen of its own: drafts, the outbox, refusals, To, 📎 and photos are shared with every other kind.
+- `SpaceFailure.limit` is used for 54000, the 50 templates.
+- Typed numbers under On site stay words. The app never adds them up (review 79 Q5).
+
+**Checks (cloud):**
+- `flutter analyze`: no issues.
+- `flutter test`: the full run is being counted; see the next commit.
+- `flutter test test_screens/slice7_test.dart --update-goldens`: 14 pass.
+- No SQL changed.
+
+**For the lead:**
+- The template screens have no frames. Check them on the slice 7 shots (T0–T4, SI1).
+- R2's CHECKED stamp is the daybook's small ink stamp, slightly tilted as on every card. The frame draws it straight.
+
+**Not live, nothing deployed, nothing installed.**
+
+**Who has which branch:**
+- Cloud: `claude/slice7` (this work).
+- PC: `slice2-app`, as in the review 81 update below.
+
 ## PC update: 22 Oct 2026 — review 81 applied in `slice2-app` (also pushed to `claude/review80`)
 
 `slice2-app` is `claude/review80` fast-forwarded in, with review 81 (`docs/reviews/2026-10-22-81-review80-check.md` on main) on top.

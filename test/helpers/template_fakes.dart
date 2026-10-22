@@ -54,11 +54,14 @@ class FakeTemplateRepository implements TemplateRepository {
   @override
   Future<List<PostTemplate>> templates(String spaceId) async {
     if (offline) throw const SpaceException(SpaceFailure.network);
+    // The built-ins first, then the Space's own, newest first.
     return [
       for (final t in kept)
         if (t.isBuiltin) t,
-      for (final t in kept.reversed)
-        if (!t.isBuiltin) t,
+      ...[
+        for (final t in kept)
+          if (!t.isBuiltin) t,
+      ]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
     ];
   }
 

@@ -709,3 +709,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migration 38 (not live): version numbers, walk order, the author's Got it refused, push install ids and answers, `search_space.mine`.
   - Checks: analyze clean; 1,539 app tests pass (1 cloud-only failure, photo_privacy H1 as root); 2,362 SQL checks in 36 files. Screenshots EN and AR in `docs/screens/review80/`.
 - **22 Oct** (PC, `slice2-app` = `claude/review80` fast-forwarded): review 81 applied. R1: migration 38 (not live) gets a unique index on `library_files (chain_id, version_no)` and the numbering trigger locks the chain's id. R2: a new version from the paper clip turns the card into a File post. R4: «يحل محل» for Replaces. R3: migration 38 goes live before a build from this branch is installed; 34 is renamed to `20261030120000_review_sign_in.sql`; 36 and 37 are live. Screenshots: W-file uses F71's flow, F73 is the same every run. 1,544 app tests, 2,364 SQL checks in 36 files, 9 push tests, 305 screenshots (with `--update-goldens` and twice without).
+- **23 Oct** (cloud, `claude/slice7` from `slice2-app`): slice 7, templates and the daily report (review 78, review 79 §1, R2 redrawn), no migration.
+  - Templates:
+    - More → Template, filtered by kind and audience;
+    - the picker (built-ins first, the Space's own after a hairline);
+    - "From:" with ✕;
+    - Save as template for a Lead or a Space admin (the limit of 50);
+    - Space info › Templates with Delete.
+  - The daily report:
+    - from the Space menu for a Lead or Crew;
+    - the day, To, On site with the day's notes, Done today from `daily_report_fill` with ✕, Problems, photos;
+    - today's draft only;
+    - its card (R2 redrawn);
+    - Share as PDF made on the phone (the `pdf` package, both fonts, right to left in Arabic, photos made safe first).
+  - Checks: analyze clean; app tests counted in the next commit. Screenshots EN and AR in `docs/screens/slice7/`.
