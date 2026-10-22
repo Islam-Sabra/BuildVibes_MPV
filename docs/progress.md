@@ -688,3 +688,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - 36: `turn_point_into_item(…, p_title)`, security definer, for signed-in people only;
   - 37: `daybook_card(uuid)`, signed-in only, the `space_posts_activity_to_parent` trigger on, `daybook_cards` with the target fold, and NBKCH SITE TEAM's daybook loads as the founder (30 cards).
   - Live is at `20261027120000`. **Migration 34** (store reviewer) is renamed to a timestamp after 37 (e.g. `20261028120000_review_sign_in.sql`; its test file keeps its name) when review 75 B5 is added on `claude/store-reviewer`. The 3D model views come after it.
+- **22 Oct, afternoon** (PC): **migration 38 live** (founder's yes, review 81, with R1's unique index), one file from `slice2-app` 2c64cd3, with a read-only check after:
+  - every Library file numbered, no duplicate (chain, version);
+  - `register_push_token(…, p_install)`;
+  - `finish_push` and `release_push` with answers, for the server only.
+  
+  **Push function deployed** (version 8, `verify_jwt` off as before) from the same commit. Build 507 (2c64cd3) on the emulator: Omar's token registered with an install id. The founder's phone waits for its new wireless-debugging address. Migration 34 is renamed to `20261030120000_review_sign_in.sql` when B5 is added; public channels are still on.
