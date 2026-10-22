@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,13 +10,16 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
+import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart'
     show photosPreparingProvider, PhotosPreparing;
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
+import '../../data/models/template.dart';
 import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
+import '../../data/repositories/template_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_quote_block.dart';
@@ -33,6 +37,7 @@ import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceMessage;
 import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
+import 'daybook_templates.dart';
 import 'daybook_words.dart';
 import 'work_outbox.dart';
 
@@ -448,6 +453,62 @@ class DaybookWriter {
   Future<void> setStart(DateTime start, DateTime? end) =>
       _put((d) => d.copyWith(startsAt: () => start, endsAt: () => end));
 
+  /// Fills the card from [t] (slice 7, review 78 §1); a Team's template
+  /// sets the audience to [team]. A report takes its On site and Problems.
+  Future<void> useTemplate(
+    AppLocalizations l10n,
+    PostTemplate t, {
+    SpaceTeam? team,
+  }) => _put((d) {
+    if (d.kind != DaybookKind.report) {
+      return fillFromTemplate(l10n, d, t, team: team);
+    }
+    final words = reportSections(t);
+    return d.copyWith(
+      onSite: words.onSite.isEmpty ? d.onSite : words.onSite,
+      problems: words.problems.isEmpty ? d.problems : words.problems,
+      team: t.teamId == null || team == null
+          ? null
+          : () => (id: team.id, name: team.name),
+      template: () => (id: t.id, name: templateName(l10n, t), blocks: const []),
+    );
+  });
+
+  /// ✕ on "From:": no longer from a template; what was written stays.
+  Future<void> dropTemplate() => _put((d) => d.copyWith(template: () => null));
+
+  /// A daily report's lines (slice 7).
+  Future<void> setOnSite(String text) => _put((d) => d.copyWith(onSite: text));
+  Future<void> setProblems(String text) =>
+      _put((d) => d.copyWith(problems: text));
+
+  /// Takes a Done today line out of the report, or a note out of On site.
+  Future<void> takeOut(ReportRef r) => _put(
+    (d) => r.isNote
+        ? d.copyWith(
+            notes: [
+              for (final n in d.notes)
+                if (n.postId != r.postId) n,
+            ],
+          )
+        : d.copyWith(refsOut: {...d.refsOut, r.postId}.toList()),
+  );
+
+  /// Adds one of the day's notes under On site.
+  Future<void> addNote(ReportRef note) => _put(
+    (d) => d.notes.any((n) => n.postId == note.postId)
+        ? d
+        : d.copyWith(notes: [...d.notes, note]),
+  );
+
+  /// The day's checked work, as daily_report_fill gave it now.
+  Future<void> setChecked(List<ReportRef> refs) =>
+      _put((d) => listEquals(d.refs, refs) ? d : d.copyWith(refs: refs));
+
+  /// The page a report goes with, made just before Post.
+  Future<void> setPage(List<Map<String, dynamic>> blocks) =>
+      _put((d) => d.copyWith(blocks: blocks));
+
   /// How many more photos and files the post takes (post_files: 10).
   int get room {
     final d = draft;
@@ -543,6 +604,13 @@ class DaybookWriter {
       for (final p in d.photos) PendingPhoto(local: p, takenAt: now),
     ];
     final workItem = d.kind == DaybookKind.workItem;
+    // A work item's points go only with the page that shows them (a
+    // template's, slice 7).
+    final listed = {
+      for (final b in d.blocks)
+        if (b['type'] == 'checklist_ref')
+          for (final id in b['point_ids'] as List? ?? const []) '$id',
+    };
     unawaited(
       ref
           .read(workOutboxProvider.notifier)
@@ -565,6 +633,14 @@ class DaybookWriter {
               draft: workItem ? null : d,
               quote: workItem ? d.quote : null,
               sourceMessageId: workItem ? d.sourceMessageId : null,
+              templateId: workItem ? d.templateId : null,
+              blocks: workItem && d.blocks.isNotEmpty ? d.blocks : null,
+              points: workItem
+                  ? [
+                      for (final p in d.writtenPoints)
+                        if (listed.contains(p.id)) p,
+                    ]
+                  : const [],
             ),
           ),
     );
@@ -726,7 +802,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           );
     if (kind != DaybookKind.checklist) return quote;
     final points = DaybookPointsEditor(
-      key: ValueKey('points-${draft.id}'),
+      key: ValueKey('points-${draft.id}-${draft.templateId}'),
       points: draft.points,
       writing: writing,
       onChanged: _writer.setPoints,
@@ -743,11 +819,18 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final draft = ref.watch(
-      widget.editing
-          ? daybookEditProvider(widget.spaceId)
-          : daybookDraftProvider(widget.spaceId),
-    );
+    final provider = widget.editing
+        ? daybookEditProvider(widget.spaceId)
+        : daybookDraftProvider(widget.spaceId);
+    // Slice 7: a template filled the card; its boxes show the new words
+    // (typing never comes through here: it fills the draft from the box).
+    ref.listen(provider, (was, now) {
+      if (now == null || now.templateId == null) return;
+      if (was?.templateId == now.templateId) return;
+      if (_title.text != now.title) _title.text = now.title;
+      if (_body.text != now.body) _body.text = now.body;
+    });
+    final draft = ref.watch(provider);
     if (draft == null) return const SizedBox.shrink();
     final preparing = ref.watch(
       photosPreparingProvider('daybook:${widget.spaceId}'),
@@ -828,6 +911,17 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           false,
     );
     final properties = <BvWritingProperty>[
+      // Slice 7 (review 79 §1): the template it started from, grey and
+      // small, with ✕; dropping it keeps what was written.
+      if (draft.templateName != null && draft.templateId != null)
+        BvWritingProperty.icon(
+          key: const Key('writing-template'),
+          icon: BvIcons.clipboard,
+          label: l10n.templateFrom(inOwnDirection(draft.templateName!)),
+          empty: true,
+          onRemove: writing ? () => unawaited(_writer.dropTemplate()) : null,
+          removeLabel: l10n.templateDrop,
+        ),
       // F56: an announcement and a Document for receipt go to Everyone or
       // a Team, already filled; a tap chooses (an edit keeps it).
       if (goesToAudience(kind))
@@ -1295,6 +1389,7 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
     required this.onClose,
     required this.onAssigned,
     required this.onPickPeople,
+    required this.onPickTemplate,
     this.editing = false,
   });
 
@@ -1311,11 +1406,14 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
   final VoidCallback onAssigned;
   final VoidCallback onPickPeople;
 
+  /// "Template" (slice 7): start from one of this kind's templates.
+  final VoidCallback onPickTemplate;
+
   @override
   ConsumerState<DaybookWritingPopover> createState() => _PopoverState();
 }
 
-enum _More { assign, people, location, due, pin, time, file }
+enum _More { template, assign, people, location, due, pin, time, file }
 
 /// Everyone, in the To menu (a Team is chosen by its id).
 const _everyone = '';
@@ -1340,7 +1438,33 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     super.dispose();
   }
 
-  List<BvMenuItem<_More>> _moreItems(AppLocalizations l10n, DaybookKind kind) {
+  List<BvMenuItem<_More>> _moreItems(
+    AppLocalizations l10n,
+    DaybookPostDraft? draft,
+  ) {
+    final kind = draft?.kind ?? DaybookKind.workItem;
+    // Slice 7: Template, when the Space has one of this kind for this
+    // audience (hidden otherwise, review 44); never on an edit.
+    final templates = widget.editing || draft == null
+        ? const <PostTemplate>[]
+        : templatesFor(
+            ref.watch(spaceTemplatesProvider(widget.spaceId)).value ?? const [],
+            kind,
+            teamId: draft.teamId,
+            chosenTeam: draft.teamId != null,
+          );
+    final template = [
+      if (templates.isNotEmpty)
+        BvMenuItem(
+          value: _More.template,
+          label: l10n.templateMenu,
+          icon: BvIcons.clipboard,
+        ),
+    ];
+    return [...template, ..._kindItems(l10n, kind)];
+  }
+
+  List<BvMenuItem<_More>> _kindItems(AppLocalizations l10n, DaybookKind kind) {
     final assign = BvMenuItem(
       value: _More.assign,
       label: l10n.daybookAssign,
@@ -1401,8 +1525,9 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
       case DaybookWritingMenu.more:
         return BvPopoverMenu<_More>.more(
           key: const Key('writing-more-menu'),
-          items: _moreItems(l10n, kind),
+          items: _moreItems(l10n, draft),
           onSelected: (v) => switch (v) {
+            _More.template => widget.onPickTemplate(),
             _More.assign => widget.onMenu(DaybookWritingMenu.assign),
             _More.people => widget.onPickPeople(),
             _More.location => widget.onMenu(DaybookWritingMenu.place),

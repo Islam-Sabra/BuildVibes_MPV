@@ -111,6 +111,9 @@ abstract final class AppRoutes {
   /// S · Search inside a Space.
   static String spaceSearch(String id) => '/spaces/$id/search';
 
+  /// Space info › Templates (slice 7): a Lead's or a Space admin's.
+  static String spaceTemplates(String id) => '/spaces/$id/templates';
+
   /// F1: the file full screen, on the drawing table.
   static String libraryFile(String id, String fileId) =>
       '/spaces/$id/library/$fileId';

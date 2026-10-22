@@ -63,10 +63,7 @@ String? headingWords(AppLocalizations l10n, String? key) => switch (key) {
 
 /// [t]'s page for a new post: each block under a new id (a post's ids are
 /// its own), and a heading kept by key in the writer's words.
-List<Map<String, dynamic>> templatePage(
-  AppLocalizations l10n,
-  PostTemplate t,
-) {
+List<Map<String, dynamic>> templatePage(AppLocalizations l10n, PostTemplate t) {
   Map<String, dynamic> fresh(Map<String, dynamic> b) {
     final out = Map<String, dynamic>.of(b)..['id'] = newUuid();
     final words = headingWords(l10n, b['key'] as String?);
@@ -98,9 +95,7 @@ DaybookPostDraft fillFromTemplate(
   SpaceTeam? team,
 }) {
   final page = templatePage(l10n, t);
-  final points = [
-    for (final p in t.points) (id: newUuid(), text: p),
-  ];
+  final points = [for (final p in t.points) (id: newUuid(), text: p)];
   // A work item's points show on its page, under the words.
   if (d.kind == DaybookKind.workItem && points.isNotEmpty) {
     page.add({
@@ -118,8 +113,7 @@ DaybookPostDraft fillFromTemplate(
     team: t.teamId == null || team == null
         ? null
         : () => (id: team.id, name: team.name),
-    template: () =>
-        (id: t.id, name: templateName(l10n, t), blocks: page),
+    template: () => (id: t.id, name: templateName(l10n, t), blocks: page),
   );
 }
 
@@ -289,12 +283,7 @@ Future<TemplateSaved> saveAsTemplate(
   try {
     await ref
         .read(templateRepositoryProvider)
-        .save(
-          id: newUuid(),
-          spaceId: spaceId,
-          fromPostId: post.id,
-          name: name,
-        );
+        .save(id: newUuid(), spaceId: spaceId, fromPostId: post.id, name: name);
     ref.invalidate(spaceTemplatesProvider(spaceId));
     if (context.mounted) showSpaceMessage(context, l10n.templateSaved);
     return TemplateSaved.saved;

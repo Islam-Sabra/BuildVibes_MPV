@@ -54,6 +54,7 @@ import '../../features/chat/thread_screen.dart';
 import '../../features/feed/post_screen.dart';
 import '../../features/library/library_file_screen.dart';
 import '../../features/spaces/space_search_screen.dart';
+import '../../features/spaces/space_templates_screen.dart';
 import '../../features/work/walk_screen.dart';
 import '../../features/library/file_preview_screen.dart';
 import '../../features/spaces/team_screen.dart';
@@ -319,6 +320,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'search',
             builder: (context, state) =>
                 SpaceSearchScreen(spaceId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: 'templates',
+            builder: (context, state) =>
+                SpaceTemplatesScreen(spaceId: state.pathParameters['id']!),
           ),
           // "new" before ":teamId".
           GoRoute(

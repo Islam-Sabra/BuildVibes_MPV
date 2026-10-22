@@ -1228,8 +1228,8 @@ class DaybookRef {
       checkerName: json['checker_name'] as String?,
       authorName: json['author_name'] as String?,
       createdAt: _time(json['created_at']),
-      photoPath: (note ? json['photo_path'] : json['done_photo_path'])
-          as String?,
+      photoPath:
+          (note ? json['photo_path'] : json['done_photo_path']) as String?,
     );
   }
 

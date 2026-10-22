@@ -159,5 +159,6 @@ final templateRepositoryProvider = Provider<TemplateRepository>(
 /// or a delete.
 final spaceTemplatesProvider = FutureProvider.autoDispose
     .family<List<PostTemplate>, String>(
-      (ref, spaceId) => ref.watch(templateRepositoryProvider).templates(spaceId),
+      (ref, spaceId) =>
+          ref.watch(templateRepositoryProvider).templates(spaceId),
     );

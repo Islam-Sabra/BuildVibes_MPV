@@ -22,6 +22,7 @@ import '../../shared/widgets/bv_space_emblem.dart';
 import '../../shared/widgets/bv_text_field.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
+import '../work/daybook_templates.dart' show mayManageTemplates;
 import 'invite_screen.dart' show renewInviteCode;
 import 'new_space_screen.dart';
 import 'pass_words.dart';
@@ -409,6 +410,13 @@ class SpaceInfoScreen extends ConsumerWidget {
                       ? l10n.spacesOnSiteNotSet
                       : formatLongDate(siteDay, locale.toLanguageTag()),
                   onTap: space.iAmAdmin ? siteStart : null,
+                ),
+              // Slice 7: the Space's templates, for a Lead or an admin.
+              if (mayManageTemplates(space))
+                BvInfoRow(
+                  key: const Key('info-templates'),
+                  title: l10n.templatesTitle,
+                  onTap: () => context.push(AppRoutes.spaceTemplates(spaceId)),
                 ),
               if (space.iAmAdmin) ...[
                 BvInfoRow(

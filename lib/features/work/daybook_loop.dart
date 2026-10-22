@@ -34,6 +34,7 @@ import 'daybook_page.dart' show mayEditPage, showDaybookPage;
 import 'daybook_photos.dart';
 import 'daybook_target_card.dart' show showDaybookChild;
 import 'daybook_state.dart';
+import 'daybook_templates.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart' show assignablePeople, pickDueProvider;
 import 'proof_camera.dart';
@@ -48,6 +49,9 @@ enum DaybookSlipAction {
   page,
   giveTo,
   unpin,
+
+  /// Save as template (slice 7): a Lead or a Space admin.
+  template,
   cancel,
 }
 
@@ -233,8 +237,27 @@ class DaybookLoop {
       if (mine && _mayEditPage(post, me)) DaybookSlipAction.page,
       if (actsForAuthor && announcement && post.pinnedUntil != null)
         DaybookSlipAction.unpin,
+      if (_savesAsTemplate(post)) DaybookSlipAction.template,
       if (actsForAuthor) DaybookSlipAction.cancel,
     ];
+  }
+
+  /// Save as template (slice 7): for a Lead or a Space admin, on a work
+  /// item, checklist, announcement or report.
+  bool _savesAsTemplate(DaybookPost post) =>
+      mayManageTemplates(space) && savesAsTemplate(post);
+
+  /// Saves [post]'s words as a template; at the Space's 50 it offers Space
+  /// info › Templates.
+  Future<void> saveTemplate(BuildContext context, DaybookPost post) {
+    final router = GoRouter.of(context);
+    return saveAsTemplate(
+      context,
+      ref,
+      post,
+      spaceId: _spaceId,
+      onOpenList: () => router.push(AppRoutes.spaceTemplates(_spaceId)),
+    );
   }
 
   /// The pinned note's long-press menu (F44), full or folded: [lifted] is
@@ -257,6 +280,8 @@ class DaybookLoop {
         _openPage(context, post, edit: true)();
       case DaybookSlipAction.unpin:
         await unpin(context, post);
+      case DaybookSlipAction.template:
+        await saveTemplate(context, post);
       case DaybookSlipAction.cancel:
         await cancel(context, post);
       default:
@@ -350,6 +375,7 @@ class DaybookLoop {
       if (_mayEditPage(post, me)) DaybookSlipAction.page,
       if ((mine || card.need == DaybookNeed.giveTo) && post.isOpen)
         DaybookSlipAction.giveTo,
+      if (_savesAsTemplate(post)) DaybookSlipAction.template,
       if (mine && !checked) DaybookSlipAction.cancel,
     ];
   }
@@ -386,6 +412,8 @@ class DaybookLoop {
         await _giveTo(context, post, lifted, at);
       case DaybookSlipAction.unpin:
         await unpin(context, post);
+      case DaybookSlipAction.template:
+        await saveTemplate(context, post);
       case DaybookSlipAction.cancel:
         await cancel(context, post);
     }
@@ -456,6 +484,11 @@ class DaybookLoop {
       value: a,
       label: l10n.daybookUnpin,
       icon: BvIcons.pin,
+    ),
+    DaybookSlipAction.template => BvSlipMenuItem(
+      value: a,
+      label: l10n.templateSave,
+      icon: BvIcons.clipboard,
     ),
     DaybookSlipAction.cancel => BvSlipMenuItem(
       value: a,

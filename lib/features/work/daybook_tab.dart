@@ -21,7 +21,9 @@ import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart'
     show daybookRepositoryProvider;
+import '../../data/models/template.dart';
 import '../../data/repositories/space_repository.dart';
+import '../../data/repositories/template_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
@@ -54,6 +56,7 @@ import 'daybook_loop.dart';
 import 'daybook_marks.dart';
 import 'daybook_state.dart';
 import 'daybook_target.dart';
+import 'daybook_templates.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart';
 import 'work_outbox.dart';
@@ -759,6 +762,42 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
+  /// More → Template (slice 7): this kind's templates for this audience;
+  /// one fills the card.
+  Future<void> _pickTemplate() async {
+    _setMenu(null);
+    final draft = _card.draft;
+    if (draft == null) return;
+    final List<PostTemplate> all;
+    try {
+      all = await ref.read(spaceTemplatesProvider(_spaceId).future);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+      return;
+    }
+    if (!mounted) return;
+    final picked = await showTemplatePicker(
+      context,
+      spaceId: _spaceId,
+      templates: templatesFor(
+        all,
+        draft.kind,
+        teamId: draft.teamId,
+        chosenTeam: draft.teamId != null,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    final team = picked.teamId == null
+        ? null
+        : ref
+              .read(spacePeopleProvider(_spaceId))
+              .value
+              ?.teams
+              .where((t) => t.id == picked.teamId)
+              .firstOrNull;
+    await _card.useTemplate(AppLocalizations.of(context), picked, team: team);
+  }
+
   Future<void> _pickDue() async {
     _setMenu(null);
     final draft = _card.draft;
@@ -1281,6 +1320,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                             onClose: () => _setMenu(null),
                             onAssigned: _assigned,
                             onPickPeople: () => unawaited(_pickPeople()),
+                            onPickTemplate: () => unawaited(_pickTemplate()),
                           ),
                         ),
                       ),
