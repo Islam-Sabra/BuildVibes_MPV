@@ -16,6 +16,7 @@ import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_ack_pill.dart';
 import '../../shared/widgets/bv_faces.dart';
+import '../../shared/widgets/bv_name_text.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_slip.dart' show BvSlipPhoto;
 import '../entry/entry_state.dart';
@@ -23,12 +24,14 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
+import '../work/daybook_loop.dart' show DaybookLoop;
 import '../work/daybook_marks.dart';
 import '../work/daybook_photos.dart' show filePreviewProvider;
 import '../work/daybook_words.dart';
+import '../work/work_outbox.dart'
+    show DaybookRefusal, RefusalWhy, RefusedAction;
 import 'library_actions.dart';
 import 'library_parts.dart';
-import '../../shared/widgets/bv_name_text.dart';
 
 enum _FileMenu { share, download }
 
@@ -96,6 +99,7 @@ class LibraryFileScreen extends ConsumerWidget {
     required String postId,
     required bool on,
   }) async {
+    final l10n = AppLocalizations.of(context);
     try {
       await ref
           .read(daybookMarksProvider.notifier)
@@ -107,9 +111,29 @@ class LibraryFileScreen extends ConsumerWidget {
               at: ref.read(clockProvider)(),
               ack: DaybookAck.received,
             ),
+            // Said here, on the file page, not on the Work tab under it:
+            // a foreman who sees nothing taps again (review 79).
+            sayHere: true,
           );
     } on SpaceException catch (e) {
-      if (context.mounted) showSpaceError(context, e);
+      if (!context.mounted) return;
+      if (e.failure == SpaceFailure.network) {
+        showSpaceError(context, e);
+      } else {
+        showSpaceMessage(
+          context,
+          DaybookLoop.refusalText(
+            l10n,
+            DaybookRefusal(
+              action: RefusedAction.ack,
+              spaceId: spaceId,
+              postId: postId,
+              why: RefusalWhy.of(e),
+            ),
+            const [],
+          ),
+        );
+      }
     }
     ref
       ..invalidate(libraryReceiptsProvider(fileId))

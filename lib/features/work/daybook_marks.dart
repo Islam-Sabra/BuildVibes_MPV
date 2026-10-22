@@ -110,8 +110,14 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
   /// Sends [mark]. Rethrows a lost signal for the screen to say. [again]
   /// takes the old acknowledgement back first, so the new one has this
   /// time (review 61 G1); the card shows it given at once all the same
-  /// (F44: the pinned note folds on the tap).
-  Future<void> send(DaybookMark mark, {bool again = false}) async {
+  /// (F44: the pinned note folds on the tap). [sayHere]: a refusal is
+  /// rethrown too, for the screen that sent it to say where the person
+  /// is (the file page, review 79), and the daybook isn't told.
+  Future<void> send(
+    DaybookMark mark, {
+    bool again = false,
+    bool sayHere = false,
+  }) async {
     state = [
       for (final m in state)
         if (m.key != mark.key) m,
@@ -128,6 +134,10 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
     } on SpaceException catch (e) {
       _drop(mark);
       if (e.failure == SpaceFailure.network) rethrow;
+      if (sayHere) {
+        await _readAgain(mark);
+        rethrow;
+      }
       ref
           .read(refusalsProvider.notifier)
           .add(

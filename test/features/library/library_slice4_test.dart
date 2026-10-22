@@ -5,6 +5,8 @@ import 'package:buildvibes/features/library/file_preview_screen.dart';
 import 'package:buildvibes/features/library/library_file_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
+import 'package:buildvibes/features/work/work_outbox.dart'
+    show refusalsProvider;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -253,6 +255,30 @@ void main() {
       // An older version opens full screen.
       await _tap(tester, 'version-open-a501-c');
       expect(find.byType(FilePreviewScreen), findsOneWidget);
+    });
+
+    testWidgets('review 79: a refused Received says so on the file page, '
+        'not on the Work tab under it [$lang]', (tester) async {
+      final app = await _open(tester, lang, '/spaces/$_space');
+      _router(tester).push('/spaces/$_space/library/a501-d/page');
+      await tester.pumpAndSettle();
+      app.daybook.refuse = true;
+      await _tap(tester, 'file-received');
+      final said = l10n.daybookRefusedPlain(l10n.daybookCouldNotAck);
+      expect(
+        find.descendant(
+          of: find.byType(LibraryFileScreen),
+          matching: find.text(said),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text(said), findsOneWidget);
+      // The Work tab isn't told: nothing waits for it there.
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(LibraryFileScreen)),
+      );
+      expect(container.read(refusalsProvider), isNull);
+      expect(find.byType(LibraryFileScreen), findsOneWidget);
     });
 
     testWidgets('LV2: no post, no pill and no Received line [$lang]', (
