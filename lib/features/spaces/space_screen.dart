@@ -9,6 +9,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/library.dart';
+import '../../data/models/space.dart';
 import '../../data/repositories/activity_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -27,7 +28,7 @@ import 'people_tab.dart';
 import 'spaces_state.dart';
 
 /// What the Space menu offers now (MN1).
-enum _SpaceMenu { walk, search, info }
+enum _SpaceMenu { walk, report, search, info }
 
 /// How a Space opens: on its People tab, with the invite screen on top
 /// right after it was created (review 06, S5), or on its daybook with the
@@ -65,6 +66,9 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
   /// The Library asked for a file post (review 69 1b); a tab tap clears
   /// it, so it opens once.
   DaybookFileStart? _fileStart;
+
+  /// The Space menu's Daily report (slice 7), opened once.
+  DaybookReportStart? _reportStart;
 
   void _addFile({LibraryFile? replaces}) => setState(() {
     _fileStart = DaybookFileStart(replaces: replaces);
@@ -143,11 +147,17 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     refreshDay(container.invalidate);
   }
 
-  /// The Space menu (MN1 2566:35619): only what works now, Search and
-  /// Space info. Daily report (slice 7) and Week report (slice 9) join it
-  /// when they are built; nothing says "coming soon" (review 43).
+  /// The Space menu (MN1 2566:35619): only what works now: Walk the site,
+  /// Daily report (slice 7: a Lead or Crew), Search and Space info. Week
+  /// report (slice 9) joins it when it is built; nothing says "coming
+  /// soon" (review 43).
   Future<void> _openMenu() async {
     final l10n = AppLocalizations.of(context);
+    final detail = ref.read(spaceDetailProvider(widget.spaceId)).value;
+    final writes =
+        detail != null &&
+        detail.myRights.createItems &&
+        (detail.myPass == SpacePass.lead || detail.myPass == SpacePass.crew);
     final picked = await showBvScreenMenu<_SpaceMenu>(
       context,
       key: const Key('space-menu'),
@@ -163,6 +173,12 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
             value: _SpaceMenu.walk,
             label: l10n.walkMenu,
             icon: BvIcons.camera,
+          ),
+        if (writes)
+          BvMenuItem(
+            value: _SpaceMenu.report,
+            label: l10n.dailyReportMenu,
+            icon: BvIcons.clipboard,
           ),
         BvMenuItem(
           value: _SpaceMenu.search,
@@ -180,6 +196,11 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     switch (picked) {
       case _SpaceMenu.walk:
         await context.push(AppRoutes.spaceWalk(widget.spaceId));
+      case _SpaceMenu.report:
+        setState(() {
+          _reportStart = DaybookReportStart();
+          _tab = SpaceScreen.workTab;
+        });
       case _SpaceMenu.search:
         final replaces = await context.push<LibraryFile>(
           AppRoutes.spaceSearch(widget.spaceId),
@@ -232,6 +253,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           startWriting: widget.open == SpaceOpen.write,
           target: widget.target,
           startFile: _fileStart,
+          startReport: _reportStart,
         ),
         SpaceScreen.chatTab => ChatTab(space: detail),
         SpaceScreen.libraryTab => LibraryTab(
@@ -249,6 +271,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         onSelect: (i) => setState(() {
           _tab = i;
           _fileStart = null;
+          _reportStart = null;
         }),
         items: [
           BvBottomBarItem(

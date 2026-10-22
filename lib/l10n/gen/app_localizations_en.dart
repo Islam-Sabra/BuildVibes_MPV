@@ -4450,4 +4450,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get templateBuiltinDailyReport => 'Daily report';
+
+  @override
+  String get dailyReportDraftFirst =>
+      'Post or put away the card you\'re writing first.';
 }

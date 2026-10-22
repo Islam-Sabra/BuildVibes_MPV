@@ -535,14 +535,15 @@ void main() {
 
     testWidgets('B1: a newest page with nothing to show loads the older one '
         '[$lang]', (tester) async {
-      // 30 reports (slice 7, not drawn yet) fill the first page; the work
-      // item before them still shows, with no scrolling.
+      // 30 posts of a kind this version doesn't draw (a week report,
+      // slice 9) fill the first page; the work item before them still
+      // shows, with no scrolling.
       final announcements = [
         for (var i = 0; i < 30; i++)
           DaybookCard(
             post: DaybookPost(
               id: 'ann-${i.toString().padLeft(2, '0')}',
-              kind: 'report',
+              kind: 'week_report',
               createdAt: DateTime(2026, 10, 15, 9, i),
               title: 'Notice $i',
             ),
@@ -950,8 +951,9 @@ void main() {
       );
     });
 
-    testWidgets('slice 2: an announcement off its pin is a card; a report '
-        '(slice 7) waits [$lang]', (tester) async {
+    testWidgets('slice 2: an announcement off its pin is a card, and so is a '
+        'daily report (slice 7); a kind this version doesn\'t know waits '
+        '[$lang]', (tester) async {
       await _open(
         tester,
         lang,
@@ -975,11 +977,21 @@ void main() {
             ),
             lastActivityAt: DateTime(2026, 10, 15, 9, 5),
           ),
+          DaybookCard(
+            post: DaybookPost(
+              id: 'post-week',
+              kind: 'week_report',
+              createdAt: DateTime(2026, 10, 15, 9, 6),
+              title: 'Week report',
+            ),
+            lastActivityAt: DateTime(2026, 10, 15, 9, 6),
+          ),
         ],
       );
       expect(find.text('Crane closed today'), findsOneWidget);
-      expect(find.text('Daily report'), findsNothing);
-      expect(find.byType(BvSlip), findsNWidgets(2));
+      expect(find.text('Daily report'), findsOneWidget);
+      expect(find.text('Week report'), findsNothing);
+      expect(find.byType(BvSlip), findsNWidgets(3));
       expect(find.byType(BvFirstPage), findsNothing);
       expect(find.byType(BvPostBar), findsOneWidget);
     });

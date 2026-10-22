@@ -7495,6 +7495,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily report'**
   String get templateBuiltinDailyReport;
+
+  /// Daily report while another kind of post is being written: that card opens instead.
+  ///
+  /// In en, this message translates to:
+  /// **'Post or put away the card you\'re writing first.'**
+  String get dailyReportDraftFirst;
 }
 
 class _AppLocalizationsDelegate

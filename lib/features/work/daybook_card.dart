@@ -27,6 +27,7 @@ import '../spaces/former_member.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
 import 'daybook_photos.dart';
+import 'daybook_report.dart' show DaybookReportBody;
 import 'daybook_target_card.dart' show DaybookTargetRows;
 import 'daybook_words.dart';
 
@@ -47,6 +48,7 @@ class DaybookCardActions {
     this.onOpenChild,
     this.onOpenQuote,
     this.onOpenNewer,
+    this.onShareReport,
   });
 
   /// The same, with [onOpenQuote] (F87) and [onOpenNewer] (F76).
@@ -66,6 +68,7 @@ class DaybookCardActions {
     onOpenChild: onOpenChild,
     onOpenQuote: openQuote ?? onOpenQuote,
     onOpenNewer: openNewer ?? onOpenNewer,
+    onShareReport: onShareReport,
   );
 
   /// Long-press, or a tap: the lifted card and its menu. Gets the card's
@@ -106,6 +109,9 @@ class DaybookCardActions {
 
   /// F76: an older version's "Replaced by V2 ›" opens the newer one's post.
   final VoidCallback? onOpenNewer;
+
+  /// A daily report's Share as PDF (slice 7).
+  final VoidCallback? onShareReport;
 }
 
 /// The card's quiet grey line, "Open the page ›", when its page holds
@@ -428,6 +434,8 @@ class DaybookCardView extends StatelessWidget {
   /// "Open the page ›" while its page holds blocks.
   Widget? _openPage() {
     final open = actions.onOpenPage;
+    // A daily report shows its page on its card (R2).
+    if (_post.isReport) return null;
     if (!_post.hasPage || open == null || lifted) return null;
     return DaybookOpenPage(onTap: open);
   }
@@ -546,6 +554,7 @@ class DaybookCardView extends StatelessWidget {
     DaybookPost.checklistKind => l10n.daybookKindChecklistWord,
     DaybookPost.activityKind => l10n.daybookKindActivityWord,
     DaybookPost.fileKind => l10n.daybookKindFileWord,
+    DaybookPost.reportKind => l10n.daybookKindReportWord,
     _ => l10n.daybookToEveryone,
   };
 
@@ -587,6 +596,19 @@ class DaybookCardView extends StatelessWidget {
       ],
     );
     switch (post.kind) {
+      // A daily report (R2, review 79 §5): the day, then its page.
+      case DaybookPost.reportKind:
+        return [
+          BvSlipTitle(post.title, cancelled: post.cancelled),
+          DaybookReportBody(
+            post: post,
+            words: words,
+            onOpenRef: lifted || waiting ? null : actions.onOpenChild,
+            onShare: lifted || waiting || post.cancelled
+                ? null
+                : actions.onShareReport,
+          ),
+        ];
       // A note (K5 v13 2598:36260): the title, its words, then the
       // photos, for information; no faces and no buttons (F58).
       case DaybookPost.noteKind:

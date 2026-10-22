@@ -37,6 +37,7 @@ import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart' show showSpaceMessage;
 import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
+import 'daybook_report.dart' show ReportWriting;
 import 'daybook_templates.dart';
 import 'daybook_words.dart';
 import 'work_outbox.dart';
@@ -63,7 +64,9 @@ List<SpaceTeam> audienceTeams(
 
 /// The kinds that go to an audience rather than to chosen people.
 bool goesToAudience(DaybookKind kind) =>
-    kind == DaybookKind.announcement || kind == DaybookKind.file;
+    kind == DaybookKind.announcement ||
+    kind == DaybookKind.file ||
+    kind == DaybookKind.report;
 
 /// A due day and, when chosen, its time: both the phone's own. A null
 /// [day] takes the due off (Remove).
@@ -473,6 +476,18 @@ class DaybookWriter {
       template: () => (id: t.id, name: templateName(l10n, t), blocks: const []),
     );
   });
+
+  /// A daily report for [day] (slice 7): its title the day, from the
+  /// built-in Daily report (no "From:" line for it).
+  Future<void> startReport(DateTime day, {required String title}) => _put(
+    (d) => d.copyWith(
+      kind: DaybookKind.report,
+      title: title,
+      reportDay: () => day,
+      template: () =>
+          (id: PostTemplate.dailyReportId, name: null, blocks: const []),
+    ),
+  );
 
   /// ✕ on "From:": no longer from a template; what was written stays.
   Future<void> dropTemplate() => _put((d) => d.copyWith(template: () => null));
@@ -1042,11 +1057,22 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
       // The kind chip opens the kind menu (E6); an edit stays the kind it
       // is.
       kindLabel: writing ? kindName(l10n, kind) : null,
-      onKindTap: writing && !widget.editing
+      // A daily report stays one (it starts from the Space menu).
+      onKindTap: writing && !widget.editing && kind != DaybookKind.report
           ? () => menu(DaybookWritingMenu.kind)
           : null,
       properties: properties,
-      extra: _extra(kind, draft, words, now, writing: writing),
+      // A daily report has its own sections (R2) in place of the words.
+      showBody: kind != DaybookKind.report,
+      extra: kind == DaybookKind.report
+          ? ReportWriting(
+              key: ValueKey('report-${draft.id}'),
+              writer: _writer,
+              draft: draft,
+              words: words,
+              writing: writing,
+            )
+          : _extra(kind, draft, words, now, writing: writing),
       photos: [
         for (final p in draft.photos)
           Image(image: ref.watch(localPhotoProvider(p)), fit: BoxFit.cover),

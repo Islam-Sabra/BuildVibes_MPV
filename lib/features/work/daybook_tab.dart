@@ -54,6 +54,7 @@ import 'daybook_draft.dart';
 import 'daybook_kinds.dart';
 import 'daybook_loop.dart';
 import 'daybook_marks.dart';
+import 'daybook_report.dart';
 import 'daybook_state.dart';
 import 'daybook_target.dart';
 import 'daybook_templates.dart';
@@ -86,6 +87,7 @@ class DaybookTab extends ConsumerStatefulWidget {
     this.startWriting = false,
     this.target,
     this.startFile,
+    this.startReport,
   });
 
   final SpaceDetail space;
@@ -101,6 +103,9 @@ class DaybookTab extends ConsumerStatefulWidget {
 
   /// Opened from the Library: a file post at Now, its chooser open.
   final DaybookFileStart? startFile;
+
+  /// The Space menu's Daily report (slice 7): today's report opens.
+  final DaybookReportStart? startReport;
 
   @override
   ConsumerState<DaybookTab> createState() => _DaybookTabState();
@@ -261,6 +266,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       if (mounted && widget.startFile != null) {
         unawaited(_startFile(widget.startFile!));
       }
+      if (mounted && widget.startReport != null) unawaited(_startReport());
       _flush();
       // Kept from an earlier visit (another page of this Space is open
       // underneath): read again. A first load is already reading.
@@ -278,6 +284,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (start != null && start != old.startFile) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_startFile(start));
+      });
+    }
+    final report = widget.startReport;
+    if (report != null && report != old.startReport) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_startReport());
       });
     }
   }
@@ -704,6 +716,43 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (file != null) await _card.addFile(file);
   }
 
+  /// Daily report (slice 7, review 78 §4): today's own draft if there is
+  /// one; otherwise a new report for today, titled with the day, from the
+  /// built-in Daily report. A report is for today only: yesterday's draft
+  /// is put away. A card of another kind being written opens instead.
+  Future<void> _startReport() async {
+    if (!widget.space.myRights.createItems) return;
+    final l10n = AppLocalizations.of(context);
+    final today = dayOf(ref.read(clockProvider)());
+    final notifier = ref.read(daybookDraftProvider(_spaceId).notifier);
+    final kept = ref.read(daybookDraftProvider(_spaceId));
+    if (kept != null && kept.kind == DaybookKind.report) {
+      if (kept.reportDay == today) {
+        _fromBefore = !kept.isEmpty;
+        _startWriting();
+        return;
+      }
+      await notifier.discard();
+      if (!mounted) return;
+      if (!kept.isEmpty) showSpaceMessage(context, l10n.dailyReportTodayOnly);
+    } else if (kept != null && !kept.isEmpty) {
+      showSpaceMessage(context, l10n.dailyReportDraftFirst);
+      _fromBefore = true;
+      _startWriting();
+      return;
+    }
+    _fromBefore = false;
+    _startWriting();
+    await _writer.startReport(
+      today,
+      title: DaybookWords(
+        l10n,
+        Localizations.localeOf(context).toLanguageTag(),
+        use24: MediaQuery.alwaysUse24HourFormatOf(context),
+      ).compactDate(today),
+    );
+  }
+
   /// Edit a posted work item: its card opens at "Now", filled (X1 Edit).
   void _startEdit(DaybookPost post) {
     ref.read(daybookEditProvider(_spaceId).notifier).start(post);
@@ -975,6 +1024,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void _assigned() => _setMenu(null);
 
   Future<void> _post(String? myName) async {
+    // A daily report goes with its page, made now in the writer's words.
+    final draft = _writer.draft;
+    if (draft != null && draft.kind == DaybookKind.report) {
+      await _writer.setPage(reportPage(AppLocalizations.of(context), draft));
+      if (!mounted) return;
+    }
     await _writer.post(authorName: myName);
     if (!mounted) return;
     FocusManager.instance.primaryFocus?.unfocus();
@@ -1697,6 +1752,23 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             ),
       newVersion: file?.supersedesId != null,
       quote: d.quote,
+      // A daily report waits with its page, as it was posted.
+      blocks: d.kind == DaybookKind.report ? d.blocks : const [],
+      refs: d.kind == DaybookKind.report
+          ? {
+              for (final r in [...d.notes, ...d.refsIn])
+                r.postId: DaybookRef(
+                  title: r.title,
+                  isNote: r.isNote,
+                  itemStatus: r.isNote ? null : WorkStatus.checked,
+                  checkedAt: r.isNote ? null : r.at,
+                  createdAt: r.isNote ? r.at : null,
+                  authorName: r.isNote ? r.ownerName : null,
+                  checkerName: r.checkerName,
+                  photoPath: r.photoPath,
+                ),
+            }
+          : const {},
     );
   }
 

@@ -6424,5 +6424,9 @@
   "templateBuiltinDailyReport": "Daily report",
   "@templateBuiltinDailyReport": {
     "description": "The built-in Daily report template's name."
+  },
+  "dailyReportDraftFirst": "Post or put away the card you're writing first.",
+  "@dailyReportDraftFirst": {
+    "description": "Daily report while another kind of post is being written: that card opens instead."
   }
 }

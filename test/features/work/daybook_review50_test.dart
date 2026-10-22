@@ -433,6 +433,8 @@ void main() {
           l10n.daybookEdit,
           l10n.pageEdit,
           l10n.daybookUnpin,
+          // Slice 7: Sara is a Lead.
+          l10n.templateSave,
           l10n.daybookCancelPost,
         ]);
         await tester.tapAt(const Offset(4, 4));
@@ -448,6 +450,8 @@ void main() {
           l10n.daybookEdit,
           l10n.pageEdit,
           l10n.daybookUnpin,
+          // Slice 7: Sara is a Lead.
+          l10n.templateSave,
           l10n.daybookCancelPost,
         ]);
       });
@@ -523,7 +527,8 @@ void main() {
         ]);
       });
 
-      testWidgets('anyone else: no menu; a tap still opens it', (tester) async {
+      testWidgets('anyone else: only a Lead\'s Save as template (slice 7); '
+          'a tap still opens it', (tester) async {
         await openPinned(
           tester,
           post: pinned(myAcks: const {DaybookAck.gotIt}),
@@ -534,7 +539,8 @@ void main() {
         expect(find.byType(BvPinnedNote), findsOneWidget);
         await tester.longPress(find.byType(BvPinnedNote));
         await tester.pumpAndSettle();
-        expect(find.byKey(const Key('slip-menu')), findsNothing);
+        // The sample Space gives everyone a Lead's pass.
+        expect(_menu(tester), [l10n.templateSave]);
       });
 
       testWidgets('an admin, for an author who has left: Unpin and Cancel, '
@@ -546,7 +552,11 @@ void main() {
         );
         await tester.longPress(find.byType(BvPinnedNote));
         await tester.pumpAndSettle();
-        expect(_menu(tester), [l10n.daybookUnpin, l10n.daybookCancelPost]);
+        expect(_menu(tester), [
+          l10n.daybookUnpin,
+          l10n.templateSave,
+          l10n.daybookCancelPost,
+        ]);
       });
 
       testWidgets('after an edit Omar sees it in full again, until he taps '

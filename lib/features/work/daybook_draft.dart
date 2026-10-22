@@ -447,7 +447,7 @@ class DaybookPostDraft {
     ({String id, String name})? Function()? team,
     DaybookQuote? Function()? quote,
     String? Function()? sourceMessageId,
-    ({String id, String name, List<Map<String, dynamic>> blocks})? Function()?
+    ({String id, String? name, List<Map<String, dynamic>> blocks})? Function()?
     template,
     DateTime? Function()? reportDay,
     String? onSite,

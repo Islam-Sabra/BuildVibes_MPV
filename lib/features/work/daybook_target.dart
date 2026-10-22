@@ -35,6 +35,12 @@ class DaybookTarget {
   int get hashCode => Object.hash(postId, eventId);
 }
 
+/// "Daily report" from the Space menu (slice 7): each tap is its own,
+/// so the same request never opens twice.
+class DaybookReportStart {
+  DaybookReportStart();
+}
+
 /// The writing card opened from the Library (review 69 1b): every file
 /// enters through a post, so "+ Add a file" opens a Document for receipt at
 /// Now with the file chooser open, and "Add a new version" the same with

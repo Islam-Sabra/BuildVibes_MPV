@@ -912,6 +912,8 @@ void main() {
         l10n.daybookCheck,
         l10n.daybookSendBack,
         l10n.daybookAddUpdate,
+        // Slice 7: Islam is a Lead.
+        l10n.templateSave,
         l10n.daybookCancelItem,
       ]);
       await _pick(tester, l10n.daybookCheck);
@@ -1034,8 +1036,8 @@ void main() {
     });
 
     testWidgets('X1: long-press your own open item: Add update, Edit, Give '
-        'to someone else, Cancel work item; someone else\'s: Add update '
-        '[$lang]', (tester) async {
+        'to someone else, Cancel work item; someone else\'s: Add update; a '
+        'Lead also Save as template [$lang]', (tester) async {
       await _open(
         tester,
         lang,
@@ -1047,6 +1049,8 @@ void main() {
         l10n.daybookEdit,
         l10n.pageEdit,
         l10n.daybookGiveTo,
+        // Slice 7: Islam is a Lead.
+        l10n.templateSave,
         l10n.daybookCancelItem,
       ]);
       // A tap on the dim, clear of the menu, closes it.
@@ -1056,7 +1060,7 @@ void main() {
       await tester.pumpAndSettle();
       // Sara's item for me.
       await _longPress(tester, 'post-rebar');
-      expect(_menu(tester), [l10n.daybookAddUpdate]);
+      expect(_menu(tester), [l10n.daybookAddUpdate, l10n.templateSave]);
     });
 
     testWidgets('a Viewer gets no long-press menu and no swipe [$lang]', (

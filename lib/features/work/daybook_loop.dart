@@ -32,6 +32,7 @@ import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
 import 'daybook_marks.dart';
 import 'daybook_page.dart' show mayEditPage, showDaybookPage;
 import 'daybook_photos.dart';
+import 'daybook_report_pdf.dart';
 import 'daybook_target_card.dart' show showDaybookChild;
 import 'daybook_state.dart';
 import 'daybook_templates.dart';
@@ -212,6 +213,13 @@ class DaybookLoop {
             ? null
             : () => context.push(AppRoutes.libraryFile(_spaceId, fileId)),
         onOpenPage: _openPage(context, post),
+        // A daily report's lines open their cards; Share as PDF (slice 7).
+        onOpenChild: post.isReport
+            ? (id) => unawaited(openChild(context, id))
+            : null,
+        onShareReport: post.isReport
+            ? () => unawaited(shareReportPdf(context, ref, space, post))
+            : null,
       ),
     );
   }

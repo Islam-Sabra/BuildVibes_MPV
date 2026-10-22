@@ -4459,4 +4459,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get templateBuiltinDailyReport => 'تقرير يومي';
+
+  @override
+  String get dailyReportDraftFirst =>
+      'انشر البطاقة التي تكتبها أو ضعها جانبًا أولًا.';
 }

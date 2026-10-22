@@ -136,6 +136,7 @@ class BvWritingCard extends StatelessWidget {
     this.bodyMaxLength,
     this.errorLine,
     this.extra,
+    this.showBody = true,
   });
 
   /// Null for a post: it has no title, only its text.
@@ -199,6 +200,10 @@ class BvWritingCard extends StatelessWidget {
   /// file post's file.
   final Widget? extra;
 
+  /// The words box under the title; a kind with its own sections (a daily
+  /// report) draws them in [extra] instead.
+  final bool showBody;
+
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
@@ -252,17 +257,18 @@ class BvWritingCard extends StatelessWidget {
                     maxLength: titleMaxLength,
                   ),
                 if (properties.isNotEmpty) _Properties(items: properties),
-                _field(
-                  key: const Key('writing-body'),
-                  controller: bodyController,
-                  focusNode: bodyFocusNode,
-                  placeholder: bodyPlaceholder,
-                  style: type.bodyLg,
-                  // A post has no title: its text takes the focus.
-                  autofocus: autofocus && titleController == null,
-                  onChanged: onBodyChanged,
-                  maxLength: bodyMaxLength,
-                ),
+                if (showBody)
+                  _field(
+                    key: const Key('writing-body'),
+                    controller: bodyController,
+                    focusNode: bodyFocusNode,
+                    placeholder: bodyPlaceholder,
+                    style: type.bodyLg,
+                    // A post has no title: its text takes the focus.
+                    autofocus: autofocus && titleController == null,
+                    onChanged: onBodyChanged,
+                    maxLength: bodyMaxLength,
+                  ),
                 ?extra,
                 if (slots.isNotEmpty)
                   _PhotoRow(

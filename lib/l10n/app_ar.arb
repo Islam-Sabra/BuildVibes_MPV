@@ -1232,5 +1232,6 @@
   "templateDelete": "احذف القالب",
   "templateDeleteAsk": "حذف «{name}»؟ تبقى المنشورات التي صُنعت منه كما هي.",
   "templateDeleted": "حُذف القالب",
-  "templateBuiltinDailyReport": "تقرير يومي"
+  "templateBuiltinDailyReport": "تقرير يومي",
+  "dailyReportDraftFirst": "انشر البطاقة التي تكتبها أو ضعها جانبًا أولًا."
 }
