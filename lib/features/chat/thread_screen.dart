@@ -43,6 +43,8 @@ import '../spaces/space_screen.dart' show SpaceOpen;
 import '../work/daybook_draft.dart' show daybookDraftProvider;
 import '../work/daybook_writing.dart' show newPostIdProvider;
 import 'chat_tab.dart';
+import 'meeting_notes_screen.dart';
+import '../spaces/week_report_screen.dart' show WeekReportBubble;
 import '../notebook/notebook_state.dart';
 import 'voice.dart';
 import '../spaces/former_member.dart';
@@ -434,6 +436,31 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     );
   }
 
+  /// R3: the message's lines into work items; once posted, a line says so
+  /// with Open, which opens the meeting's card in the daybook.
+  Future<void> _meetingNotes(ChatMessage m) async {
+    final l10n = AppLocalizations.of(context);
+    final posted = await context.push<MeetingPosted>(
+      AppRoutes.spaceMeeting(widget.spaceId, widget.threadId),
+      extra: m,
+    );
+    if (posted == null || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          key: const Key('meeting-posted'),
+          content: Text(l10n.meetingPosted(posted.count)),
+          action: SnackBarAction(
+            label: l10n.libraryOpen,
+            onPressed: () => context.push(
+              AppRoutes.spaceCard(widget.spaceId, posted.parentId),
+            ),
+          ),
+        ),
+      );
+  }
+
   Future<void> _actions(ChatMessage m, {required bool canDelete}) async {
     final l10n = AppLocalizations.of(context);
     final me = ref.read(authUserIdProvider).value;
@@ -451,6 +478,9 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
                 ?.myRights
                 .createItems ??
             false);
+    // Slice 9 (R3): a text message of two lines or more, line by line.
+    final canMeet =
+        canTurn && m.kind == ChatKind.text && hasMeetingLines(m.body);
     FocusManager.instance.primaryFocus?.unfocus();
     final choice = await showBvSheet<_Action>(
       context: context,
@@ -471,6 +501,13 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
               icon: BvIcons.workItems,
               label: l10n.chatTurnIntoWorkItem,
               onTap: () => Navigator.of(context).pop(_Action.workItem),
+            ),
+          if (canMeet)
+            ChatActionRow(
+              key: const Key('chat-action-meeting'),
+              icon: BvIcons.workItems,
+              label: l10n.meetingTurn,
+              onTap: () => Navigator.of(context).pop(_Action.meeting),
             ),
           // Slice 8: its words as a note in My notebook, private.
           if ((m.body ?? '').trim().isNotEmpty)
@@ -508,6 +545,8 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
     switch (choice) {
       case _Action.workItem:
         await _turnIntoWorkItem(m);
+      case _Action.meeting:
+        await _meetingNotes(m);
       case _Action.reply:
         setState(
           () => _replyTo = ChatReply(
@@ -764,7 +803,7 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   }
 }
 
-enum _Action { reply, workItem, copy, delete, report, notebook }
+enum _Action { reply, workItem, meeting, copy, delete, report, notebook }
 
 enum _Attach { camera, gallery, pdf }
 
@@ -873,6 +912,12 @@ class _EntryView extends ConsumerWidget {
           m.file == null) {
         // The Library file it showed was removed since (review 14).
         media = const _RemovedFile();
+      } else if (m != null &&
+          !m.deleted &&
+          m.kind == ChatKind.report &&
+          m.reportWeek != null) {
+        // Slice 9: a shared week report opens with the reader's rights.
+        media = WeekReportBubble(spaceId: spaceId, week: m.reportWeek!);
       } else if (m != null && !m.deleted) {
         media = m.photos.isEmpty && m.file == null
             ? null

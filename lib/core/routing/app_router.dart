@@ -6,7 +6,10 @@ import '../../features/activity/activity_screen.dart';
 import '../../data/models/dm.dart';
 import '../../data/models/library.dart';
 import '../../features/activity/needs_you_screen.dart';
+import '../../data/models/chat.dart';
+import '../../features/chat/meeting_notes_screen.dart';
 import '../../features/messages/dm_thread_screen.dart';
+import '../../features/spaces/week_report_screen.dart';
 import '../../features/notebook/calendar_screen.dart';
 import '../../features/notebook/notebook_screen.dart';
 import '../../features/messages/messages_screen.dart';
@@ -312,6 +315,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            path: 'week',
+            builder: (context, state) => WeekReportScreen(
+              spaceId: state.pathParameters['id']!,
+              week: DateTime.tryParse(
+                state.uri.queryParameters[AppRoutes.weekParam] ?? '',
+              ),
+            ),
+          ),
+          GoRoute(
             path: 'chat/:threadId',
             builder: (context, state) => ThreadScreen(
               spaceId: state.pathParameters['id']!,
@@ -323,6 +335,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ? state.extra! as LibraryFile
                   : null,
             ),
+            routes: [
+              GoRoute(
+                path: 'meeting',
+                redirect: (context, state) =>
+                    state.extra is ChatMessage ? null : AppRoutes.home,
+                builder: (context, state) => MeetingNotesScreen(
+                  spaceId: state.pathParameters['id']!,
+                  threadId: state.pathParameters['threadId']!,
+                  message: state.extra! as ChatMessage,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: 'walk',

@@ -28,7 +28,7 @@ import 'people_tab.dart';
 import 'spaces_state.dart';
 
 /// What the Space menu offers now (MN1).
-enum _SpaceMenu { walk, report, search, info }
+enum _SpaceMenu { walk, search, week, report, info }
 
 /// How a Space opens: on its People tab, with the invite screen on top
 /// right after it was created (review 06, S5), or on its daybook with the
@@ -147,10 +147,9 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     refreshDay(container.invalidate);
   }
 
-  /// The Space menu (MN1 2566:35619): only what works now: Walk the site,
-  /// Daily report (slice 7: a Lead or Crew), Search and Space info. Week
-  /// report (slice 9) joins it when it is built; nothing says "coming
-  /// soon" (review 43).
+  /// The Space menu (MN1 2566:35619), in its order: Walk the site (for
+  /// who may post work), Search, Week report (slice 9, every member),
+  /// Daily report (slice 7: a Lead or Crew) and Space info.
   Future<void> _openMenu() async {
     final l10n = AppLocalizations.of(context);
     final detail = ref.read(spaceDetailProvider(widget.spaceId)).value;
@@ -174,17 +173,22 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
             label: l10n.walkMenu,
             icon: BvIcons.camera,
           ),
+        BvMenuItem(
+          value: _SpaceMenu.search,
+          label: l10n.searchMenu,
+          icon: BvIcons.search,
+        ),
+        BvMenuItem(
+          value: _SpaceMenu.week,
+          label: l10n.weekReportTitle,
+          icon: BvIcons.month,
+        ),
         if (writes)
           BvMenuItem(
             value: _SpaceMenu.report,
             label: l10n.dailyReportMenu,
             icon: BvIcons.clipboard,
           ),
-        BvMenuItem(
-          value: _SpaceMenu.search,
-          label: l10n.searchMenu,
-          icon: BvIcons.search,
-        ),
         BvMenuItem(
           value: _SpaceMenu.info,
           label: l10n.spacesInfoTitle,
@@ -201,6 +205,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           _reportStart = DaybookReportStart();
           _tab = SpaceScreen.workTab;
         });
+      case _SpaceMenu.week:
+        await context.push(AppRoutes.spaceWeekReport(widget.spaceId));
       case _SpaceMenu.search:
         final replaces = await context.push<LibraryFile>(
           AppRoutes.spaceSearch(widget.spaceId),

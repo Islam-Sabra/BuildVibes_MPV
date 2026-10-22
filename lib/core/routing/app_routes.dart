@@ -110,6 +110,26 @@ abstract final class AppRoutes {
   /// highlighted.
   static const threadMessageParam = 'message';
 
+  /// R3 · a chat message's lines into work items (slice 9); the message
+  /// goes as the route's extra.
+  static String spaceMeeting(String id, String threadId) =>
+      '/spaces/$id/chat/$threadId/meeting';
+
+  /// MR1 · the week report (slice 9), at the week from [week] (its first
+  /// day), or this week.
+  static String spaceWeekReport(String id, {DateTime? week}) => Uri(
+    path: '/spaces/$id/week',
+    queryParameters: week == null
+        ? null
+        : {
+            weekParam:
+                '${week.year.toString().padLeft(4, '0')}-'
+                '${week.month.toString().padLeft(2, '0')}-'
+                '${week.day.toString().padLeft(2, '0')}',
+          },
+  ).toString();
+  static const weekParam = 'week';
+
   /// R1 · Walk mode (slice 6).
   static String spaceWalk(String id) => '/spaces/$id/walk';
 

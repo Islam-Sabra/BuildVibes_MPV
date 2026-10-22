@@ -9,9 +9,13 @@ enum ChatKind {
   photo,
   file,
   voice,
-  workItem;
+  workItem,
+
+  /// A week report shared in the chat (slice 9, share_week_report).
+  report;
 
   static ChatKind fromJson(Object? value) => switch (value) {
+    'report' => ChatKind.report,
     'photo' => ChatKind.photo,
     'file' => ChatKind.file,
     'voice' => ChatKind.voice,
@@ -147,6 +151,7 @@ class ChatMessage {
     this.deletedAt,
     this.attachments = const [],
     this.file,
+    this.reportWeek,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -178,6 +183,9 @@ class ChatMessage {
           ChatAttachment.fromJson(a as Map<String, dynamic>),
       ],
       file: file,
+      reportWeek: json['report_week'] == null
+          ? null
+          : DateTime.parse(json['report_week'] as String),
     );
   }
 
@@ -203,6 +211,9 @@ class ChatMessage {
   /// The Library file it shows: a PDF posted here, or a file shared from
   /// the Library. Opens in F1.
   final LibraryFile? file;
+
+  /// A shared week report: the first day of its week.
+  final DateTime? reportWeek;
 
   bool get deleted => deletedAt != null;
 

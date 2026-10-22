@@ -7723,6 +7723,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load your calendar'**
   String get calendarCouldntLoad;
+
+  /// Holding a chat message of two lines or more (R3).
+  ///
+  /// In en, this message translates to:
+  /// **'Turn lines into work items'**
+  String get meetingTurn;
+
+  /// R3's button: the ticked lines.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Post work items} =1{Post 1 work item} other{Post {count} work items}}'**
+  String meetingPost(int count);
+
+  /// After R3's Post.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 work item posted} other{{count} work items posted}}'**
+  String meetingPosted(int count);
+
+  /// R3's Post with no signal: the ticks and owners stay.
+  ///
+  /// In en, this message translates to:
+  /// **'No signal. Try again.'**
+  String get meetingNoSignal;
+
+  /// A ticked line's face: tap to change its owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Change who does it'**
+  String get meetingChangeOwner;
+
+  /// MR1's header and the Space menu entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Week report'**
+  String get weekReportTitle;
+
+  /// MR1's pill: share the week in a Space chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in chat'**
+  String get weekReportShare;
+
+  /// The thread picker after Share in chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in which chat?'**
+  String get weekReportShareWhere;
+
+  /// After sharing the week report.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared in {thread}'**
+  String weekReportShared(String thread);
+
+  /// MR1's masthead: the week's days, "11 – 17 October".
+  ///
+  /// In en, this message translates to:
+  /// **'{from} – {to}'**
+  String weekReportRange(String from, String to);
+
+  /// MR1's first section.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a decision'**
+  String get weekNeedsDecision;
+
+  /// MR1's second section.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked this week'**
+  String get weekChecked;
+
+  /// MR1's third section.
+  ///
+  /// In en, this message translates to:
+  /// **'Targets'**
+  String get weekTargets;
+
+  /// MR1's fourth section, this week only.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get weekComingUp;
+
+  /// A late work item in Needs a decision.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{late today} =1{late by 1 day} other{late by {days} days}}'**
+  String weekLateBy(int days);
+
+  /// A done work item waiting for a check.
+  ///
+  /// In en, this message translates to:
+  /// **'signed as done {when}'**
+  String weekSignedDone(String when);
+
+  /// The stamp on a late work item in Needs a decision.
+  ///
+  /// In en, this message translates to:
+  /// **'LATE'**
+  String get weekStampLate;
+
+  /// MR1's foot line.
+  ///
+  /// In en, this message translates to:
+  /// **'Made from the daybook. Everyone sees only what they may read.'**
+  String get weekFoot;
+
+  /// An empty week report.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to report this week.'**
+  String get weekEmpty;
+
+  /// week_report failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the week report'**
+  String get weekCouldntLoad;
+
+  /// A shared week report in the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Week report · {range}'**
+  String weekReportCard(String range);
 }
 
 class _AppLocalizationsDelegate

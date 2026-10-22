@@ -72,7 +72,7 @@ class SupabaseChatRepository implements ChatRepository {
 
   static const _message =
       'id, thread_id, kind, body, author_id, work_item_id, created_at, '
-      'deleted_at, '
+      'deleted_at, report_week, '
       'attachments:message_attachments(storage_path, mime, bytes, duration_ms, sort), '
       'docs:library_files!library_files_source_message_id_fkey($_file), '
       'shared:library_files!messages_library_file_id_fkey($_file), '

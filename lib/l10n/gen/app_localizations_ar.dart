@@ -4580,4 +4580,107 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get calendarCouldntLoad => 'تعذّر تحميل تقويمك';
+
+  @override
+  String get meetingTurn => 'حوّل الأسطر إلى بنود عمل';
+
+  @override
+  String meetingPost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'انشر $count بند عمل',
+      few: 'انشر $count بنود عمل',
+      two: 'انشر بندَي عمل',
+      one: 'انشر بند عمل واحد',
+      zero: 'انشر بنود العمل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String meetingPosted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'نُشر $count بند عمل',
+      few: 'نُشرت $count بنود عمل',
+      two: 'نُشر بندا عمل',
+      one: 'نُشر بند عمل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get meetingNoSignal => 'لا توجد إشارة. حاول مرة أخرى.';
+
+  @override
+  String get meetingChangeOwner => 'غيّر من ينفّذه';
+
+  @override
+  String get weekReportTitle => 'تقرير الأسبوع';
+
+  @override
+  String get weekReportShare => 'شارك في المحادثة';
+
+  @override
+  String get weekReportShareWhere => 'شارك في أي محادثة؟';
+
+  @override
+  String weekReportShared(String thread) {
+    return 'شوركت في $thread';
+  }
+
+  @override
+  String weekReportRange(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String get weekNeedsDecision => 'بانتظار قرار';
+
+  @override
+  String get weekChecked => 'تم التحقق هذا الأسبوع';
+
+  @override
+  String get weekTargets => 'الأهداف';
+
+  @override
+  String get weekComingUp => 'القادم';
+
+  @override
+  String weekLateBy(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'متأخر $days يومًا',
+      few: 'متأخر $days أيام',
+      two: 'متأخر يومين',
+      one: 'متأخر يومًا واحدًا',
+      zero: 'متأخر اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weekSignedDone(String when) {
+    return 'وقّع كمنجز $when';
+  }
+
+  @override
+  String get weekStampLate => 'متأخر';
+
+  @override
+  String get weekFoot => 'من يومية الفريق. يرى كل شخص ما يحق له فقط.';
+
+  @override
+  String get weekEmpty => 'لا شيء في تقرير هذا الأسبوع.';
+
+  @override
+  String get weekCouldntLoad => 'تعذّر تحميل تقرير الأسبوع';
+
+  @override
+  String weekReportCard(String range) {
+    return 'تقرير الأسبوع · $range';
+  }
 }

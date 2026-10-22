@@ -42,6 +42,7 @@ String chatSnippet(AppLocalizations l10n, ChatKind? kind, String? body) =>
       ChatKind.file when (body ?? '').isEmpty => l10n.chatFile,
       ChatKind.voice => l10n.chatVoice,
       ChatKind.workItem => l10n.chatWorkItemUpdate,
+      ChatKind.report => l10n.weekReportTitle,
       _ => body ?? '',
     };
 

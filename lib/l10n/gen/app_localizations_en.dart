@@ -4572,4 +4572,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarCouldntLoad => 'Couldn\'t load your calendar';
+
+  @override
+  String get meetingTurn => 'Turn lines into work items';
+
+  @override
+  String meetingPost(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Post $count work items',
+      one: 'Post 1 work item',
+      zero: 'Post work items',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String meetingPosted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count work items posted',
+      one: '1 work item posted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get meetingNoSignal => 'No signal. Try again.';
+
+  @override
+  String get meetingChangeOwner => 'Change who does it';
+
+  @override
+  String get weekReportTitle => 'Week report';
+
+  @override
+  String get weekReportShare => 'Share in chat';
+
+  @override
+  String get weekReportShareWhere => 'Share in which chat?';
+
+  @override
+  String weekReportShared(String thread) {
+    return 'Shared in $thread';
+  }
+
+  @override
+  String weekReportRange(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String get weekNeedsDecision => 'Needs a decision';
+
+  @override
+  String get weekChecked => 'Checked this week';
+
+  @override
+  String get weekTargets => 'Targets';
+
+  @override
+  String get weekComingUp => 'Coming up';
+
+  @override
+  String weekLateBy(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'late by $days days',
+      one: 'late by 1 day',
+      zero: 'late today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weekSignedDone(String when) {
+    return 'signed as done $when';
+  }
+
+  @override
+  String get weekStampLate => 'LATE';
+
+  @override
+  String get weekFoot =>
+      'Made from the daybook. Everyone sees only what they may read.';
+
+  @override
+  String get weekEmpty => 'Nothing to report this week.';
+
+  @override
+  String get weekCouldntLoad => 'Couldn\'t load the week report';
+
+  @override
+  String weekReportCard(String range) {
+    return 'Week report · $range';
+  }
 }
