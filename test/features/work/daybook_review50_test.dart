@@ -185,7 +185,7 @@ void main() {
       test('with "$name": the period touches the time', () {
         final line = words.stampLine(name, at);
         // The time and its period are one unit; the name is its own.
-        expect(line, contains(rtlRun('10:58 مساءً')));
+        expect(line, contains(rtlRun('10:58\u00A0مساءً')));
         expect(line, '${inOwnDirection(short)} · ${time.clock(at)}');
         // Never "مساءً ISLAM A": nothing but the time beside the period.
         expect(line.indexOf('مساءً'), greaterThan(line.indexOf('10:58')));

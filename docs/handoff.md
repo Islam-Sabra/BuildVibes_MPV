@@ -2,6 +2,32 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 23 Oct 2026 — review 82 S1, S2 and the Arabic version picker (branch `claude/slice7`)
+
+On top of slice 7, as asked:
+- **S1, a time never wraps:**
+  - every time is one line, its part of the day beside it, everywhere: the card header, history lines, a checklist point's tick, and inside sentences;
+  - `timeClock12` joins them with a no-break space, in both languages;
+  - `BvTime.parts` now gives one line, so the Arabic two-line slot of review 51 F15 is gone.
+  - Tests that typed "10:32 am" now type the no-break space; `bv_time_test` and `one_time_format_test` say the new rule.
+  - One widget test (K1's first-card fit) uses the rebar card without its history line: an Arabic one-line time is wider in the test font. The real-font fit check in `test_screens/slice2_test.dart` still passes.
+- **S2, "Hand over Space admin"** in place of "Transfer ownership", on Space info and on the hand-over screen:
+  - "Hand over to {name}", "Hand over to {name}?" and the button "Hand over";
+  - "Hand over Space admin first" before deleting an account;
+  - the Arabic was already right.
+- **The Arabic version picker** read «يحل محل V3 · M-201.pdf»: the name and the version were two separate pieces. They are now one left-to-right piece, «يحل محل M-201.pdf · V3», as on the writing card.
+
+**Screenshots:**
+- `docs/screens/review82/` (10 PNGs): history lines, a checklist's ticks, Space info, the hand-over screen and the version picker, in English and Arabic, 12-hour.
+- `docs/screens/slice7/` re-shot: T3 in Arabic, and SI1's row in English.
+- The PC re-shoots `test_screens/` after the merge. Older folders (slice 1–6, review 72/80) change wherever an Arabic history line shows a time, and wherever "Transfer ownership" was.
+
+**Checks:**
+- `flutter analyze`: no issues.
+- `flutter test`: the full run is being counted; see the next commit.
+
+**Not live, nothing deployed, nothing installed.**
+
 ## Cloud update: 23 Oct 2026 — slice 7, templates and the daily report (branch `claude/slice7`, from `slice2-app` 2c64cd3)
 
 Built from review 78, with the lead's notes in review 79 §1, and R2 redrawn (EN `2607:36358`, AR `2608:727`). **No migration:** everything uses migration 20's functions (live), and migration 30's `daily_report_notes` when it is there.

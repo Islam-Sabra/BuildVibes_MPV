@@ -127,7 +127,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
   }
 }
 
-/// S12b Transfer ownership first: each Space you are the only admin of.
+/// S12b Hand over Space admin first: each Space you are the only admin of.
 /// Once none is left, it moves on to S13.
 class DeleteBlockedScreen extends ConsumerWidget {
   const DeleteBlockedScreen({super.key});

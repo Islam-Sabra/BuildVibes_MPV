@@ -1822,7 +1822,7 @@
   "@spacesNotifyOff": {
     "description": "Option."
   },
-  "spacesTransfer": "Transfer ownership",
+  "spacesTransfer": "Hand over Space admin",
   "@spacesTransfer": {
     "description": "S15 row and S15d title."
   },
@@ -1877,7 +1877,7 @@
   "@spacesTransferIntro": {
     "description": "S15d intro."
   },
-  "spacesTransferTo": "Transfer to {name}",
+  "spacesTransferTo": "Hand over to {name}",
   "@spacesTransferTo": {
     "description": "S15d button.",
     "placeholders": {
@@ -1886,7 +1886,7 @@
       }
     }
   },
-  "spacesTransferTitle": "Transfer to {name}?",
+  "spacesTransferTitle": "Hand over to {name}?",
   "@spacesTransferTitle": {
     "description": "S15e title.",
     "placeholders": {
@@ -1907,7 +1907,7 @@
       }
     }
   },
-  "spacesTransferButton": "Transfer",
+  "spacesTransferButton": "Hand over",
   "@spacesTransferButton": {
     "description": "S15e button."
   },
@@ -3856,7 +3856,7 @@
   "@deleteKeep": {
     "description": "S12 button."
   },
-  "transferFirst": "Transfer ownership first",
+  "transferFirst": "Hand over Space admin first",
   "@transferFirst": {
     "description": "S12b heading."
   },
@@ -4111,9 +4111,9 @@
       }
     }
   },
-  "timeClock12": "{time} {period}",
+  "timeClock12": "{time} {period}",
   "@timeClock12": {
-    "description": "A 12-hour time on one line, everywhere in the app (review 54 A1): the time with its minutes and the part of the day (timePeriod): \"2:00 pm\", \"2:00 ظهرًا\".",
+    "description": "A 12-hour time on one line, everywhere in the app (review 54 A1): the time with its minutes and the part of the day (timePeriod): \"2:00 pm\", \"2:00 ظهرًا\". A no-break space between them, so a time never wraps (review 82 S1).",
     "placeholders": {
       "time": {
         "type": "String"

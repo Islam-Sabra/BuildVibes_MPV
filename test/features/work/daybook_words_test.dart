@@ -62,7 +62,7 @@ void main() {
       expect(ar.meta(post, me: me, now: _thu), 'لك · قبل الساعة 14:00 اليوم');
       expect(
         _words('en', use24: false).meta(post, me: me, now: _thu),
-        'For you · by today 2:00 pm',
+        'For you · by today 2:00\u00A0pm',
       );
     });
 
@@ -188,7 +188,7 @@ void main() {
     test('by a time today: 12-hour as the AR frame, and 24-hour', () {
       expect(
         meta('ar', due(today, twoPm), _thu, use24: false),
-        'لك · قبل الساعة ${rtlRun('2:00 ظهرًا')} اليوم',
+        'لك · قبل الساعة ${rtlRun('2:00\u00A0ظهرًا')} اليوم',
       );
       expect(
         meta('ar', due(today, twoPm), _thu),
@@ -196,7 +196,7 @@ void main() {
       );
       expect(
         meta('en', due(today, twoPm), _thu, use24: false),
-        'For you · by today 2:00 pm',
+        'For you · by today 2:00\u00A0pm',
       );
       expect(meta('en', due(today, twoPm), _thu), 'For you · by today 14:00');
     });

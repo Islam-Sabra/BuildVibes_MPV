@@ -58,7 +58,7 @@ const _siteDaysAhead = Duration(days: 365);
 /// Invite: the code with Copy, a new code (admins) and who can invite (one
 /// choice, admins). Space: its admins, "On site since" (set by an admin;
 /// others see it once set) and Leave Space. Admins also edit the name and
-/// About, transfer ownership and delete the Space.
+/// About, hand over Space admin and delete the Space.
 class SpaceInfoScreen extends ConsumerWidget {
   const SpaceInfoScreen({super.key, required this.spaceId});
 

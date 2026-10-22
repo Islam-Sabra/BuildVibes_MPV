@@ -30,7 +30,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('2:00 pm'), findsOneWidget);
+    expect(find.text('2:00\u00A0pm'), findsOneWidget);
 
     // Switched to 24-hour while the app was in the background.
     phone = true;

@@ -331,7 +331,7 @@ void main() {
         find.descendant(of: pin, matching: find.text(withTime)),
         findsOneWidget,
       );
-      if (lang == 'en') expect(withTime, 'Pinned until Fri 2:00 pm');
+      if (lang == 'en') expect(withTime, 'Pinned until Fri 2:00\u00A0pm');
       expect(find.text(l10n.daybookPinAddTime), findsNothing);
       await _tap(tester, find.bySemanticsLabel(l10n.daybookPinRemoveTime));
       expect(
@@ -348,7 +348,7 @@ void main() {
       final (app: _, :daybook) = await _open(
         tester,
         lang,
-        // Today (Thursday 10:30): until its end, then 9:00 am.
+        // Today (Thursday 10:30): until its end, then 9:00\u00A0am.
         pinTo: DateTime(2026, 10, 16),
         pinTime: const TimeOfDay(hour: 9, minute: 0),
       );

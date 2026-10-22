@@ -365,9 +365,14 @@ void main() {
           // K1's; test_screens/slice2_test.dart checks K1 itself in the
           // app's fonts.
           // F85 added the facts line to the note; the rebar card without
-          // its Needs you action fits under it in the test font too.
+          // its Needs you action and its history line (review 82 S1: an
+          // Arabic time is one line, wider in the test font) fits under it
+          // in the test font too.
           posts: [
-            s.rebar(needsMe: false),
+            DaybookCard(
+              post: s.rebar(needsMe: false).post,
+              lastActivityAt: s.rebar().lastActivityAt,
+            ),
             DaybookCard(post: post, lastActivityAt: post.createdAt),
           ],
           extras: DaybookExtras(pinned: [post]),
@@ -427,7 +432,7 @@ void main() {
         );
         expect(facts.data, words.pinnedUntil(until, now));
         expect(facts.style?.color, BvColors.textPrimary);
-        if (lang == 'en') expect(facts.data, 'Until today · 10:32 am');
+        if (lang == 'en') expect(facts.data, 'Until today · 10:32\u00A0am');
         now = now.add(const Duration(minutes: 3));
         await tester.pump(const Duration(minutes: 3));
         await tester.pumpAndSettle();

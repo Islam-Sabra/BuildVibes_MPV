@@ -32,10 +32,6 @@ String _shown(WidgetTester tester, Finder slot) {
   return [clock.parts.time, ?clock.parts.period].join(' ');
 }
 
-/// [text] without its direction isolates (F53).
-String _plain(String text) =>
-    String.fromCharCodes(text.runes.where((r) => r < 0x2066 || r > 0x2069));
-
 void main() {
   for (final lang in ['en', 'ar']) {
     for (final use24 in [true, false]) {
@@ -104,8 +100,8 @@ void main() {
         final line = time.clock(_at);
         expect(line, switch ((lang, use24)) {
           (_, true) => '10:56',
-          ('en', false) => '10:56 am',
-          _ => rtlRun('10:56 صباحًا'),
+          ('en', false) => '10:56\u00A0am',
+          _ => rtlRun('10:56\u00A0صباحًا'),
         });
 
         // A post card on Home.
@@ -138,8 +134,7 @@ void main() {
 
         // The daybook card's header: the one line, beside each other and
         // never wrapped (F53, review 79 A3). Its last history line: the
-        // same words; in Arabic on a 12-hour phone, the part of the day on
-        // a second line (F15).
+        // same words, on one line too (review 82 S1).
         router.go('/spaces/${DaybookSamples.space}');
         await tester.pumpAndSettle();
         final card = find.byKey(const Key('daybook-card-post-sleeves'));
@@ -160,15 +155,23 @@ void main() {
           of: find.descendant(of: card, matching: find.byType(BvCardHistory)),
           matching: find.byType(BvClockText),
         );
-        // The two-line slot draws the same words, time and part of the day
-        // apart, so with no isolates around them.
-        expect(_shown(tester, history.last), _plain(line));
+        // Review 82 S1: the history line's time is the same one line, its
+        // part of the day beside it, never under it.
+        expect(_shown(tester, history.last), line);
         expect(
           find.descendant(
             of: history.last,
             matching: find.byKey(const Key('clock-period')),
           ),
-          lang == 'ar' && !use24 ? findsOneWidget : findsNothing,
+          findsNothing,
+        );
+        final historyTime = find.descendant(
+          of: history.last,
+          matching: find.byType(Text),
+        );
+        expect(
+          tester.getSize(historyTime).height,
+          lessThanOrEqualTo(style.fontSize! * style.height! + 1),
         );
       });
     }

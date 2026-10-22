@@ -308,7 +308,7 @@ void main() {
         author: 'Sara Al-Mutairi',
         audience: '· to everyone',
         time: '8:38',
-        until: 'Until Friday 23 Oct · 2:00 pm',
+        until: 'Until Friday 23 Oct · 2:00\u00A0pm',
         title: 'Friday is a half day.',
         leading: const BvFaces([
           (name: 'Omar Haddad', tint: BvAvatarTints.plain),
@@ -323,7 +323,7 @@ void main() {
       'Sara Al-Mutairi',
       '· to everyone',
       '8:38',
-      'Until Friday 23 Oct · 2:00 pm',
+      'Until Friday 23 Oct · 2:00\u00A0pm',
       'Friday is a half day.',
       'Got it',
     ]) {

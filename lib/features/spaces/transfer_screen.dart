@@ -15,7 +15,8 @@ import '../profile/widgets/profile_parts.dart';
 import 'space_errors.dart';
 import 'widgets/space_person_row.dart';
 
-/// S15d · Transfer ownership: pick a member (one single choice), then
+/// S15d · Hand over Space admin (review 82 S2; the frame says "Transfer
+/// ownership"): pick a member (one single choice), then
 /// confirm (S15e). They become a Space admin; you stay as a member.
 class TransferScreen extends ConsumerStatefulWidget {
   const TransferScreen({super.key, required this.spaceId});

@@ -797,7 +797,7 @@
   "daybookFirstInvite": "ادعُ فريقك",
   "daybookStampBy": "{name} · {time}",
   "timePeriod": "{period, select, morning{صباحًا} noon{ظهرًا} afternoon{عصرًا} evening{مساءً} other{مساءً}}",
-  "timeClock12": "{time} {period}",
+  "timeClock12": "{time} {period}",
   "daybookDoubleTapToCheck": "انقر مرتين على الصورة للتحقق",
   "daybookFileChip": "{name} {revision}",
   "daybookWaitingToSend": "بانتظار الإرسال",

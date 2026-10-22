@@ -297,11 +297,16 @@ class _ReplacesChoiceState extends State<_ReplacesChoice> {
               const SizedBox(width: BvSpace.s8),
               Expanded(
                 child: Text(
+                  // "M-201.pdf · V3" as one piece in its own direction, so
+                  // Arabic doesn't read it as «V3 · M-201.pdf» (review 50,
+                  // after review 81), as on the writing card.
                   l10n.daybookReplacesOption(
-                    joinMeta([
-                      inOwnDirection(picked.name),
-                      versionLabel(l10n, picked),
-                    ]),
+                    inOwnDirection(
+                      [
+                        picked.name,
+                        versionLabel(l10n, picked),
+                      ].where((t) => t.isNotEmpty).join(' · '),
+                    ),
                   ),
                   style: BvType.of(context).bodyMd,
                 ),

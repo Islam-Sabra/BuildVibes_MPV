@@ -145,11 +145,11 @@ void main() {
     test('tomorrow, the time once with its part of the day', () {
       expect(
         _words('en').activityWhen(start, end, _thu),
-        'Tomorrow, 7:00 to 8:00 am',
+        'Tomorrow, 7:00 to 8:00\u00A0am',
       );
       expect(
         _words('ar').activityWhen(start, end, _thu),
-        'غدًا، من 7:00 إلى ${rtlRun('8:00 صباحًا')}',
+        'غدًا، من 7:00 إلى ${rtlRun('8:00\u00A0صباحًا')}',
       );
     });
 
@@ -157,26 +157,26 @@ void main() {
       final friday = DateTime(2026, 10, 16, 6, 30);
       expect(
         _words('en').activityWhen(start, end, friday),
-        '7:00 to 8:00 am · starts in 30 min',
+        '7:00 to 8:00\u00A0am · starts in 30 min',
       );
       expect(
         _words('ar').activityWhen(start, end, friday),
-        'من 7:00 إلى ${rtlRun('8:00 صباحًا')} · يبدأ بعد 30 دقيقة',
+        'من 7:00 إلى ${rtlRun('8:00\u00A0صباحًا')} · يبدأ بعد 30 دقيقة',
       );
       expect(
         _words('en').activityWhen(start, end, DateTime(2026, 10, 16, 7, 10)),
-        '7:00 to 8:00 am · on now',
+        '7:00 to 8:00\u00A0am · on now',
       );
       expect(
         _words('en').activityWhen(start, end, DateTime(2026, 10, 16, 5)),
-        '7:00 to 8:00 am',
+        '7:00 to 8:00\u00A0am',
       );
     });
 
     test('later: the date; no end: the start only', () {
       expect(
         _words('en').activityWhen(DateTime(2026, 10, 20, 14), null, _thu),
-        'Tue 20 Oct, 2:00 pm',
+        'Tue 20 Oct, 2:00\u00A0pm',
       );
     });
 
@@ -188,7 +188,7 @@ void main() {
       );
       expect(
         t.range(DateTime(2026, 10, 16, 11, 30), DateTime(2026, 10, 16, 13)),
-        '11:30 am to 1:00 pm',
+        '11:30\u00A0am to 1:00\u00A0pm',
       );
       final t24 = BvTime(
         lookupAppLocalizations(const Locale('ar')),
@@ -217,13 +217,16 @@ void main() {
     final friday2pm = DateTime(2026, 10, 16, 14);
     final today2pm = DateTime(_thu.year, _thu.month, _thu.day, 14);
     final endOfToday = DateTime(_thu.year, _thu.month, _thu.day + 1);
-    expect(en.pinnedShort(friday2pm, _thu), 'Fri 2:00 pm');
-    expect(en.pinnedShort(today2pm, _thu), '2:00 pm');
+    expect(en.pinnedShort(friday2pm, _thu), 'Fri 2:00\u00A0pm');
+    expect(en.pinnedShort(today2pm, _thu), '2:00\u00A0pm');
     expect(en.pinnedShort(DateTime(2026, 10, 17), _thu), 'Fri');
     expect(en.pinnedDay(endOfToday, _thu), 'today');
     expect(en.pinnedUntil(DateTime(2026, 10, 17), _thu), 'Until Friday 16 Oct');
-    expect(en.pinnedUntil(friday2pm, _thu), 'Until Friday 16 Oct · 2:00 pm');
-    expect(en.pinnedUntil(today2pm, _thu), 'Until today · 2:00 pm');
+    expect(
+      en.pinnedUntil(friday2pm, _thu),
+      'Until Friday 16 Oct · 2:00\u00A0pm',
+    );
+    expect(en.pinnedUntil(today2pm, _thu), 'Until today · 2:00\u00A0pm');
     expect(en.pinnedUntil(endOfToday, _thu), 'Until today');
     expect(
       ar.pinnedUntil(DateTime(2026, 10, 17), _thu),

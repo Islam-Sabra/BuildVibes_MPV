@@ -1314,7 +1314,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesNotifyOff => 'Off';
 
   @override
-  String get spacesTransfer => 'Transfer ownership';
+  String get spacesTransfer => 'Hand over Space admin';
 
   @override
   String get spacesDeleteSpace => 'Delete Space';
@@ -1352,12 +1352,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String spacesTransferTo(String name) {
-    return 'Transfer to $name';
+    return 'Hand over to $name';
   }
 
   @override
   String spacesTransferTitle(String name) {
-    return 'Transfer to $name?';
+    return 'Hand over to $name?';
   }
 
   @override
@@ -1366,7 +1366,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get spacesTransferButton => 'Transfer';
+  String get spacesTransferButton => 'Hand over';
 
   @override
   String spacesTransferred(String name) {
@@ -2730,7 +2730,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteKeep => 'Keep my account';
 
   @override
-  String get transferFirst => 'Transfer ownership first';
+  String get transferFirst => 'Hand over Space admin first';
 
   @override
   String get transferFirstBody =>
@@ -2902,7 +2902,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String timeClock12(String time, String period) {
-    return '$time $period';
+    return '$time $period';
   }
 
   @override

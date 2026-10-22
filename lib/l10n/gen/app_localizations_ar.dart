@@ -2896,7 +2896,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String timeClock12(String time, String period) {
-    return '$time $period';
+    return '$time $period';
   }
 
   @override

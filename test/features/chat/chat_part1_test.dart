@@ -417,7 +417,7 @@ void main() {
         findsOneWidget,
       );
       // Review 13: short messages make small bubbles, yours and theirs,
-      // even with the Arabic 12-hour time in words ("10:18 صباحًا",
+      // even with the Arabic 12-hour time in words ("10:18\u00A0صباحًا",
       // review 54 A1).
       for (final id in ['s1', 's0']) {
         final bubble = tester.getSize(find.byKey(Key('chat-message-$id')));

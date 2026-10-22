@@ -418,7 +418,7 @@ void main() {
       tester,
       lang,
     ) async {
-      final time = lang == 'ar' ? rtlRun('8:14 صباحًا') : '8:14 am';
+      final time = lang == 'ar' ? rtlRun('8:14\u00A0صباحًا') : '8:14\u00A0am';
       await pumpComponent(
         tester,
         BvSlipHeader(

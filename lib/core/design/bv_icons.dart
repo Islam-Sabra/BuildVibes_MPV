@@ -117,7 +117,7 @@ abstract final class BvIcons {
   // Phosphor: user-plus (Invite people)
   static const invite = IconData(0xe4d0, fontFamily: _family);
 
-  // Phosphor: user-switch (Transfer ownership)
+  // Phosphor: user-switch (Hand over Space admin)
   static const transfer = IconData(0xe756, fontFamily: _family);
 
   // Phosphor: paper-plane-right (send a comment)

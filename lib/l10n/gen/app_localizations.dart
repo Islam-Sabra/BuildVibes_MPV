@@ -2375,7 +2375,7 @@ abstract class AppLocalizations {
   /// S15 row and S15d title.
   ///
   /// In en, this message translates to:
-  /// **'Transfer ownership'**
+  /// **'Hand over Space admin'**
   String get spacesTransfer;
 
   /// S15 row.
@@ -2435,13 +2435,13 @@ abstract class AppLocalizations {
   /// S15d button.
   ///
   /// In en, this message translates to:
-  /// **'Transfer to {name}'**
+  /// **'Hand over to {name}'**
   String spacesTransferTo(String name);
 
   /// S15e title.
   ///
   /// In en, this message translates to:
-  /// **'Transfer to {name}?'**
+  /// **'Hand over to {name}?'**
   String spacesTransferTitle(String name);
 
   /// S15e body. Neutral.
@@ -2453,7 +2453,7 @@ abstract class AppLocalizations {
   /// S15e button.
   ///
   /// In en, this message translates to:
-  /// **'Transfer'**
+  /// **'Hand over'**
   String get spacesTransferButton;
 
   /// Toast.
@@ -4631,7 +4631,7 @@ abstract class AppLocalizations {
   /// S12b heading.
   ///
   /// In en, this message translates to:
-  /// **'Transfer ownership first'**
+  /// **'Hand over Space admin first'**
   String get transferFirst;
 
   /// S12b body.
@@ -4880,10 +4880,10 @@ abstract class AppLocalizations {
   /// **'{period, select, morning{am} noon{pm} afternoon{pm} evening{pm} other{pm}}'**
   String timePeriod(String period);
 
-  /// A 12-hour time on one line, everywhere in the app (review 54 A1): the time with its minutes and the part of the day (timePeriod): "2:00 pm", "2:00 ظهرًا".
+  /// A 12-hour time on one line, everywhere in the app (review 54 A1): the time with its minutes and the part of the day (timePeriod): "2:00 pm", "2:00 ظهرًا". A no-break space between them, so a time never wraps (review 82 S1).
   ///
   /// In en, this message translates to:
-  /// **'{time} {period}'**
+  /// **'{time} {period}'**
   String timeClock12(String time, String period);
 
   /// Hint on a proof waiting for your check.

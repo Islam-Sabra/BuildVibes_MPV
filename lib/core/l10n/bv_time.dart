@@ -20,16 +20,12 @@ typedef BvClockParts = ({String time, String? period});
 /// - 12-hour, English: "2:00 pm", "8:14 am", always with the minutes.
 /// - 12-hour, Arabic: the time and the part of the day in words, as the AR
 ///   frames write it: "2:00 ظهرًا", "8:14 صباحًا", "4:30 عصرًا",
-///   "11:58 مساءً".
-///   - On one line (the daybook card's header, review 79 A3; traces, post
-///     cards, replies, Activity, Needs you, Home, Chat, and inside
-///     sentences such as a due or a stamp): "2:00 ظهرًا", the same words,
-///     never the short "م" / "ص", so a reader sees one form everywhere.
-///   - In a two-line slot (the card's history lines and a checklist
-///     point's tick, review 51 F15): "2:00" with "ظهرًا" on a small second
-///     line under it ([parts], drawn by BvClockText), so the time column
-///     stays narrow.
-///   English stays on one line everywhere: "2:00 pm" fits.
+///   "11:58 مساءً", never the short "م" / "ص", so a reader sees one form
+///   everywhere.
+///
+/// A time is always one line (review 82 S1): the part of the day stays
+/// beside the time, joined by a no-break space, in the card's header, its
+/// history lines, a checklist point's tick, and inside sentences.
 @immutable
 class BvTime {
   const BvTime(this.l10n, this.locale, {required this.use24});
@@ -55,13 +51,10 @@ class BvTime {
     return _arabic ? rtlRun(clock) : clock;
   }
 
-  /// [t] for a two-line slot: in Arabic 12-hour, the part of the day goes
-  /// on the second line; otherwise [clock] on one line.
-  BvClockParts parts(DateTime t) {
-    final p = _parts(t);
-    if (p.period == null || !_arabic) return (time: clock(t), period: null);
-    return p;
-  }
+  /// [t] for a time column (history lines, a point's tick): one line, as
+  /// [clock] (review 82 S1; the two-line Arabic slot of review 51 F15 is
+  /// gone).
+  BvClockParts parts(DateTime t) => (time: clock(t), period: null);
 
   /// [from] to [to] on one line: "7:00 to 8:00 am", "14:00 to 15:30",
   /// "11:30 am to 1:00 pm"; the part of the day is said once when both
