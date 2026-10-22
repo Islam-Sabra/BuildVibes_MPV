@@ -100,9 +100,17 @@ class FirebasePushMessaging implements PushMessaging {
       ? FirebaseMessaging.onMessageOpenedApp.map(_data)
       : const Stream.empty();
 
+  /// With what the notification says, for the in-app banner (F81).
   @override
-  Stream<Map<String, String>> get foreground =>
-      _ready ? FirebaseMessaging.onMessage.map(_data) : const Stream.empty();
+  Stream<Map<String, String>> get foreground => _ready
+      ? FirebaseMessaging.onMessage.map(
+          (m) => {
+            ..._data(m),
+            '_title': ?m.notification?.title,
+            '_body': ?m.notification?.body,
+          },
+        )
+      : const Stream.empty();
 
   @override
   Future<void> openSettings() => _invoke('openNotificationSettings');

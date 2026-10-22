@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(138);
+select plan(139);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000019' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -435,11 +435,13 @@ select public.create_space_post(pg_temp.item('a113'), pg_temp.sp(), 'checklist',
   p_people => array[pg_temp.uid('e2')], p_points => pg_temp.points(array['b006'], array['Mine']));
 select public.tick_point(pg_temp.item('b006'), true);
 select public.create_space_post(pg_temp.item('a114'), pg_temp.sp(), 'announcement', 'Own note');
-select public.ack(pg_temp.item('a114'), 'got_it');
+-- The author never gives Got it on their own announcement (migration 38, F86).
+select throws_ok($$select public.ack(pg_temp.item('a114'), 'got_it')$$, '42501', null,
+  'the author gives no Got it on their own announcement');
 select lives_ok($$select public.delete_space_post(pg_temp.item('a113'))$$,
   'the author''s own tick doesn''t end Delete');
 select lives_ok($$select public.delete_space_post(pg_temp.item('a114'))$$,
-  'nor their own acknowledgement');
+  'nor their own announcement');
 
 -- A new version of a file ------------------------------------------------------------------------
 

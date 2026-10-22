@@ -35,7 +35,14 @@ class PushSettings {
 /// This phone's push token and the S3 switches. Sending happens on the
 /// server (the push Edge Function).
 abstract class PushRepository {
-  Future<void> register(String token, String platform, String locale);
+  /// [installId] is this install's own (F81): only its old token is
+  /// replaced, so a person's phone and tablet both keep theirs.
+  Future<void> register(
+    String token,
+    String platform,
+    String locale, {
+    String? installId,
+  });
   Future<void> unregister(String token);
   Future<PushSettings> settings();
   Future<void> setSettings(PushSettings settings);
@@ -61,10 +68,20 @@ class SupabasePushRepository implements PushRepository {
   }
 
   @override
-  Future<void> register(String token, String platform, String locale) => _guard(
+  Future<void> register(
+    String token,
+    String platform,
+    String locale, {
+    String? installId,
+  }) => _guard(
     () => _client.rpc(
       'register_push_token',
-      params: {'p_token': token, 'p_platform': platform, 'p_locale': locale},
+      params: {
+        'p_token': token,
+        'p_platform': platform,
+        'p_locale': locale,
+        'p_install': ?installId,
+      },
     ),
   );
 

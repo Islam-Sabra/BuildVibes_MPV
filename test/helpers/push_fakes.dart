@@ -91,8 +91,18 @@ class FakePushRepository implements PushRepository {
   PushSettings saved = const PushSettings();
 
   @override
-  Future<void> register(String token, String platform, String locale) async =>
-      calls.add('register $token $platform $locale');
+  Future<void> register(
+    String token,
+    String platform,
+    String locale, {
+    String? installId,
+  }) async {
+    calls.add('register $token $platform $locale');
+    installIds.add(installId);
+  }
+
+  /// The install id each register sent (F81).
+  final installIds = <String?>[];
 
   @override
   Future<void> unregister(String token) async => calls.add('unregister $token');

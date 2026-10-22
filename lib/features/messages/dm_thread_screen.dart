@@ -27,6 +27,7 @@ import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../chat/thread_screen.dart';
+import 'dm_live.dart';
 import '../chat/voice.dart';
 import '../create/create_sheet.dart' show workItemSpacesProvider;
 import '../library/library_parts.dart';
@@ -123,15 +124,28 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   static const _maxFiles = 10;
   static const _tick = Duration(milliseconds: 250);
 
+  /// Which conversation is on screen (F81: no banner for it).
+  late final OpenDmThread _onScreen;
+
   @override
   void initState() {
     super.initState();
+    _onScreen = ref.read(openDmThreadProvider.notifier);
     _threadId = widget.threadId;
+    _showing(_threadId);
     unawaited(_open());
+  }
+
+  void _showing(String? threadId) {
+    if (threadId == null) return;
+    // Not while the tree builds.
+    unawaited(Future.microtask(() => _onScreen.set(threadId)));
   }
 
   @override
   void dispose() {
+    final id = _threadId;
+    unawaited(Future.microtask(() => _onScreen.clear(id)));
     _live?.cancel();
     _recordTimer?.cancel();
     _text.dispose();
@@ -174,6 +188,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
 
   void _listen(String threadId) {
     if (_live != null) return;
+    _showing(threadId);
     _live = _repo.changes(threadId).listen((_) => unawaited(_reload()));
   }
 
@@ -669,6 +684,12 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // A push, the app back in front, or the list's live change (F81).
+    ref.listen(dmChangeProvider, (_, change) {
+      if (change != null && change.touches(_threadId) && _threadId != null) {
+        unawaited(_reload());
+      }
+    });
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final person = _person;

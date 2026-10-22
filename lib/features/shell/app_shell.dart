@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_bottom_bar.dart';
+import '../../data/repositories/dm_repository.dart';
 import '../activity/activity_state.dart';
 import '../create/create_sheet.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
 import '../feed/post_draft.dart';
+import '../messages/dm_live.dart';
 import '../settings/push_host.dart';
 import '../work/outbox_host.dart';
 
@@ -24,12 +26,17 @@ class AppShell extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final guest = ref.watch(appGateProvider) == AppGate.guest;
     final unread = ref.watch(unreadActivityProvider).value ?? false;
+    final dmUnread =
+        !guest && (ref.watch(dmInboxProvider).value?.anyUnread ?? false);
     const homeTab = 0;
     const activityTab = 2;
     return Scaffold(
       // Push while signed in (permission, this phone's token, taps), and
       // what waits on the phone to be sent.
-      body: OutboxHost(child: PushHost(child: navigationShell)),
+      // Messages, live app-wide (F81).
+      body: OutboxHost(
+        child: PushHost(child: DmLiveHost(child: navigationShell)),
+      ),
       bottomNavigationBar: BvBottomBar(
         selectedIndex: navigationShell.currentIndex,
         // Tapping the current tab again goes back to its first screen.
@@ -68,6 +75,8 @@ class AppShell extends ConsumerWidget {
             key: const Key('nav-home'),
             icon: BvIcons.home,
             label: l10n.navHome,
+            // A direct message waits (F81): Messages is on Home.
+            dot: dmUnread && navigationShell.currentIndex != homeTab,
           ),
           BvBottomBarItem(
             key: const Key('nav-explore'),

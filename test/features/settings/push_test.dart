@@ -74,6 +74,15 @@ void main() {
       );
     });
 
+    testWidgets('F81: the token goes with this install\'s own id, the same '
+        'on every start [$lang]', (tester) async {
+      final push = FakePushMessaging(current: PushPermission.granted);
+      final app = await pumpApp(tester, language: lang, push: push);
+      final id = app.pushes.installIds.single;
+      expect(id, matches(RegExp(r'^[0-9a-f-]{36}$')));
+      expect(app.prefs.getString(pushInstallKey), id);
+    });
+
     testWidgets('F9: no token after the tries: the quiet line on Home and in '
         'Settings, counted once; Fix it opens the notification settings '
         '[$lang]', (tester) async {

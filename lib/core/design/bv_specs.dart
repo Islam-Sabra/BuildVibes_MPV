@@ -444,3 +444,15 @@ abstract final class BvNewChipSpec {
   /// ones wait behind the chip instead of moving the page.
   static const awayFromNow = BvSpace.s64 + BvSpace.s32;
 }
+
+/// F81: a direct message that arrives while the app is open, as a quiet
+/// banner at the top; a tap opens its conversation.
+abstract final class BvMessageBannerSpec {
+  static const margin = BvSpace.s8;
+  static const padding = BvSpace.s12;
+  static const gap = BvSpace.s2;
+  static const radius = BvRadius.cardAll;
+
+  /// Long enough to read a line; it goes by itself.
+  static const shown = Duration(seconds: 4);
+}

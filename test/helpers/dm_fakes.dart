@@ -110,10 +110,14 @@ class FakeDmRepository implements DmRepository {
     calls.add('delete $id');
   }
 
+  /// The threads someone listens to live, now.
+  Set<String> get listened => {
+    for (final e in _live.entries)
+      if (e.value.hasListener) e.key,
+  };
+
   @override
-  Stream<String> changes(String threadId) {
-    final c = StreamController<String>();
-    _live[threadId] = c;
-    return c.stream;
-  }
+  Stream<String> changes(String threadId) =>
+      // Several listeners at once: Messages app-wide and an open thread.
+      _live.putIfAbsent(threadId, StreamController<String>.broadcast).stream;
 }

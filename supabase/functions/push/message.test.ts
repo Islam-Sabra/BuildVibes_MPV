@@ -106,6 +106,9 @@ test("only an error that names the token deletes it", () => {
   // Another project's key, or a wrong project or URL: every phone stays.
   assert.equal(classify(403, '{"error":{"details":[{"errorCode":"SENDER_ID_MISMATCH"}]}}'), "failed");
   assert.equal(classify(404, "Not Found"), "failed");
+  // FCM's own NOT_FOUND for one token: gone, deleted only when another
+  // phone in the same send got it (index.ts).
+  assert.equal(classify(404, '{"error":{"code":404,"status":"NOT_FOUND","message":"Requested entity was not found."}}'), "gone");
   assert.equal(classify(400, '{"error":{"status":"INVALID_ARGUMENT","message":"Invalid JSON payload"}}'), "failed");
 });
 

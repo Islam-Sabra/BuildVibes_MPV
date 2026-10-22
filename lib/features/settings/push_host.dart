@@ -4,12 +4,14 @@ import 'dart:ui';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/l10n/locale_controller.dart';
 import '../../core/push/push_messaging.dart';
 import '../../core/push/push_state.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/repositories/push_repository.dart';
+import '../../data/repositories/work_repository.dart' show newUuid;
 import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../spaces/space_screen.dart' show SpaceOpen;
@@ -27,6 +29,18 @@ String pushLocale(WidgetRef ref) =>
     (ref.read(localeControllerProvider) ??
             resolveAppLocale(PlatformDispatcher.instance.locales))
         .languageCode;
+
+/// This install's own id (F81), made once and kept on the phone: the
+/// server replaces only this install's old token when a new one comes.
+String pushInstallId(SharedPreferences prefs) {
+  final kept = prefs.getString(pushInstallKey);
+  if (kept != null) return kept;
+  final id = newUuid();
+  unawaited(prefs.setString(pushInstallKey, id));
+  return id;
+}
+
+const pushInstallKey = 'push_install_id';
 
 /// Signing out: this phone gets no more pushes for the account. Never
 /// stops the sign-out.
@@ -190,6 +204,7 @@ class _PushHostState extends ConsumerState<PushHost> {
             token,
             ref.read(pushMessagingProvider).platform,
             pushLocale(ref),
+            installId: pushInstallId(ref.read(sharedPreferencesProvider)),
           );
       _registered = token;
     } on Exception catch (e) {

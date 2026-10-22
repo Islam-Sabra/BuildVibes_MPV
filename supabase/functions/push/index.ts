@@ -111,6 +111,11 @@ async function send(row: QueueRow): Promise<void> {
   const failed: string[] = [];
   let retry = false;
   let wait: number | null = null;
+  // FCM's answer for each phone (F81), kept on the queue row: the
+  // platform, the token's last 6 characters, the status and what it meant.
+  const answers: { platform: string; token: string; status: number; outcome: string }[] = [];
+  const gone: string[] = [];
+  let anySent = false;
   for (const t of tokens ?? []) {
     const push = buildPush(row, t.locale, name, strings);
     const res = await fetch(
@@ -135,11 +140,23 @@ async function send(row: QueueRow): Promise<void> {
         }),
       },
     );
-    if (res.ok) continue;
+    const answer = (outcome: string) =>
+      answers.push({ platform: t.platform, token: t.token.slice(-6), status: res.status, outcome });
+    if (res.ok) {
+      anySent = true;
+      answer("sent");
+      continue;
+    }
     const detail = await res.text();
-    switch (classify(res.status, detail)) {
+    const outcome = classify(res.status, detail);
+    answer(outcome);
+    switch (outcome) {
       case "dead":
         await db.from("push_tokens").delete().eq("token", t.token);
+        break;
+      case "gone":
+        gone.push(t.token);
+        failed.push(`${res.status} NOT_FOUND`);
         break;
       case "retry":
         retry = true;
@@ -151,6 +168,10 @@ async function send(row: QueueRow): Promise<void> {
     }
   }
 
+  if (anySent && gone.length > 0) {
+    await db.from("push_tokens").delete().in("token", gone);
+  }
+
   const error = failed.join("; ") || null;
   if (retry) {
     // Back in the queue. With several phones, one that already got it may
@@ -159,9 +180,10 @@ async function send(row: QueueRow): Promise<void> {
       p_id: row.id,
       p_wait: wait ? `${wait} seconds` : null,
       p_error: error,
+      p_answers: answers,
     });
   } else {
-    await db.rpc("finish_push", { p_id: row.id, p_error: error });
+    await db.rpc("finish_push", { p_id: row.id, p_error: error, p_answers: answers });
   }
 }
 

@@ -104,7 +104,11 @@ export function buildPush(
 // What an FCM error means (reviews 21 and 22). Only an error that names
 // the token deletes it. A plain 404 (a wrong project) and SENDER_ID_MISMATCH
 // (another project's key) are failures: they must never wipe phones.
-export type Outcome = "dead" | "retry" | "failed";
+//
+// "gone" (F81): FCM's own NOT_FOUND for one token, with no error code. The
+// token is deleted only when another phone in the same send got the push,
+// which proves the project and key are right.
+export type Outcome = "dead" | "gone" | "retry" | "failed";
 
 export function classify(status: number, body: string): Outcome {
   if (
@@ -114,6 +118,7 @@ export function classify(status: number, body: string): Outcome {
     return "dead";
   }
   if (status === 429 || status >= 500) return "retry";
+  if (status === 404 && /"status"\s*:\s*"NOT_FOUND"/.test(body)) return "gone";
   return "failed";
 }
 
