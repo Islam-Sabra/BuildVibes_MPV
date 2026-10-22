@@ -899,3 +899,15 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - a pin until 2 minutes from now unpins after 2 minutes, with no reload;
   - a time earlier than now today is refused on the card before sending ("Choose a later time");
   - Arabic.
+
+## F83. An announcement made from a quoted message loses the quote once posted (founder, build 473, step 9)
+- **Seen:** Omar's direct message → Put in a Space → Announcement. The writing card showed Omar's words as a quote, but the posted announcement shows only the title the founder typed.
+- **Server:** `create_space_post` keeps `p_quote` for every kind, and the card JSON carries `quote`.
+- **Find which side drops it:**
+  - read the post's `quote` column (read-only);
+  - if it is empty, the app didn't send `p_quote` for an announcement;
+  - if it is there, the announcement card (full or folded) doesn't draw it.
+- **Fix:**
+  - every kind made from a quote (work item, checklist, announcement, scheduled activity, note) **posts the quote and shows it** on its card, as the work item does: "From Omar Haddad · 8:38", then the words, with the start-side bar;
+  - **on a folded announcement** (K1b) the quote shows when it is opened.
+- **Test:** each kind from a quoted direct message and from a quoted Space chat message shows the quote after posting, in EN and AR.
