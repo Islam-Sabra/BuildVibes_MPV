@@ -1325,16 +1325,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesTeams => 'Teams';
 
   @override
-  String spacesTeamMembers(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n members',
-      one: '1 member',
-      zero: 'No members yet',
-    );
-    return '$_temp0';
-  }
+  String get spacesTeamMembersTitle => 'Members';
 
   @override
   String get spacesNewTeam => 'New Team';

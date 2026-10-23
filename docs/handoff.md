@@ -112,12 +112,13 @@ Live is at `20261031120000`. The 3D model views take the next date after 39. Pub
   - `needs_you()` already returns `checklist_for_you`, and `my_spaces()` counts it, but the app dropped those rows.
   - Now a checklist given to you is a "To tick" / «للتأشير» row in Needs you and on Home, until every point is ticked. It opens its card.
   - No migration.
-- **For the lead** (in the report, not changed):
-  - Team screen's "{n} members": recommendation, drop the number.
-  - The Space chat thread's unread number: recommendation, a dot as in Messages.
+- **The lead's two decisions, applied:**
+  - the Team screen's heading is "Members" / «الأعضاء», with no count (the unused string is removed);
+  - a Space chat thread's unread mark is a dot, as in Messages.
+  - Tests updated. `docs/screens/slice3/S7-chat`, `S7N-new-chat` (re-taken) and `T1-team` (new) are in EN and AR, shot with cloud fonts: the PC re-shoots them.
 - **Checks:**
   - `flutter analyze` clean.
-  - `flutter test` 1,717 pass (1 cloud-only failure, photo_privacy H1).
+  - `flutter test` 1,717 pass after the lead's changes too (1 cloud-only failure, photo_privacy H1).
   - Screenshot tests: all 363 pass when shot here. No image differs from `slice2-app` shot in the same place. The committed (PC) images are left as they are.
   - SQL stand-in: 2,464 pass.
 - **Not live, nothing deployed, nothing installed.**

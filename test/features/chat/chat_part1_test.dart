@@ -8,6 +8,7 @@ import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_tab.dart';
 import 'package:buildvibes/features/messages/dm_thread_screen.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
+import 'package:buildvibes/core/design/messages_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -229,6 +230,18 @@ void main() {
       );
       expect(find.byKey(const Key('chat-unread-$_everyone')), findsOneWidget);
       expect(find.byKey(const Key('chat-unread-$_mep')), findsNothing);
+      // A dot, as in Messages: never a number (rule 3).
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('chat-unread-$_everyone')),
+          matching: find.byType(Text),
+        ),
+        findsNothing,
+      );
+      expect(
+        tester.getSize(find.byKey(const Key('chat-unread-$_everyone'))),
+        const Size(BvMessagesSpec.dot, BvMessagesSpec.dot),
+      );
       // Review 13: a card says what happened; Everyone has the group icon.
       expect(find.text(l10n.chatLastDone('Rakesh', 'KCT-017')), findsOneWidget);
       expect(find.byKey(const Key('chat-everyone-tile')), findsOneWidget);

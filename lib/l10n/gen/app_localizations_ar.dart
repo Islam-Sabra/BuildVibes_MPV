@@ -1329,19 +1329,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesTeams => 'الفِرق';
 
   @override
-  String spacesTeamMembers(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n عضو',
-      many: '$n عضوًا',
-      few: '$n أعضاء',
-      two: 'عضوان',
-      one: 'عضو واحد',
-      zero: 'لا أعضاء بعد',
-    );
-    return '$_temp0';
-  }
+  String get spacesTeamMembersTitle => 'الأعضاء';
 
   @override
   String get spacesNewTeam => 'فريق جديد';

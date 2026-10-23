@@ -2384,11 +2384,11 @@ abstract class AppLocalizations {
   /// **'Teams'**
   String get spacesTeams;
 
-  /// Team size inside a Space (founder ok, 12 Oct).
+  /// The heading above a Team's people (no count, rule 3).
   ///
   /// In en, this message translates to:
-  /// **'{n, plural, =0{No members yet} =1{1 member} other{{n} members}}'**
-  String spacesTeamMembers(int n);
+  /// **'Members'**
+  String get spacesTeamMembersTitle;
 
   /// S10k link and S12 title.
   ///

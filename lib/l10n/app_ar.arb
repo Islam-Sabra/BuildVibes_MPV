@@ -381,7 +381,7 @@
   "spacesTransferred": "{name} الآن من مديري المساحة، وأنت عضو.",
   "spacesNoOneToTransfer": "أكّد انضمام شخص إلى المساحة أولًا.",
   "spacesTeams": "الفِرق",
-  "spacesTeamMembers": "{n, plural, =0{لا أعضاء بعد} =1{عضو واحد} =2{عضوان} few{{n} أعضاء} many{{n} عضوًا} other{{n} عضو}}",
+  "spacesTeamMembersTitle": "الأعضاء",
   "spacesNewTeam": "فريق جديد",
   "spacesTeamName": "اسم الفريق",
   "spacesTeamNameHint": "مثال: فريق MEP",

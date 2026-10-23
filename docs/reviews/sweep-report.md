@@ -78,7 +78,7 @@ None in code or copy. "Kuwait", "Egypt" and "+965" appear only in comments. The 
   - A tap opens its card in the daybook.
   - It goes once every point is ticked (the server stops returning it).
 
-## For the lead
+## For the lead (decided 23 Oct: both as recommended, applied)
 1. **"{n} members" on a Team's screen** (`team_screen.dart:190`, `spacesTeamMembers`): a count above the list of the Team's people, seen by everyone in the Space. Rule 3 names member counts. *Recommendation:* drop the number and keep the word "Members" as the list's heading, since the list shows who they are. "No members yet" stays.
 2. **Unread numbers on Space chat threads** (`chat_tab.dart:342`): a number, not a dot, while Messages and the tabs use a dot ("never a number", rule 3 as applied to DM1). *Recommendation:* a dot, to match DM1 and the tab dots.
 
@@ -97,3 +97,13 @@ None in code or copy. "Kuwait", "Egypt" and "+965" appear only in comments. The 
   - Shot again here, on this branch and on `slice2-app`, all 363 tests pass and **no image differs** between the two.
   - The committed images are left as they are.
 - **SQL stand-in:** 2,464 checks pass in every file. No migration on this branch.
+
+## The lead's decisions (23 Oct), applied
+- The Team screen's heading reads "Members" / «الأعضاء», with no count. `spacesTeamMembers` is gone; `spacesTeamMembersTitle` is new.
+- A Space chat thread shows an unread dot, the same as Messages (`BvMessagesSpec.dot`, labelled "Unread"), never a number.
+- Tests:
+  - `spaces_part3_test`: the Team screen has "Members" and no number.
+  - `chat_part1_test`: the unread mark is the 8 px dot with no text.
+- Shots in `docs/screens/slice3/` (cloud fonts; the PC re-shoots):
+  - `S7-chat` and `S7N-new-chat`, re-taken (the dot);
+  - `T1-team`, new.

@@ -1840,14 +1840,9 @@
   "@spacesTeams": {
     "description": "S10k section."
   },
-  "spacesTeamMembers": "{n, plural, =0{No members yet} =1{1 member} other{{n} members}}",
-  "@spacesTeamMembers": {
-    "description": "Team size inside a Space (founder ok, 12 Oct).",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
+  "spacesTeamMembersTitle": "Members",
+  "@spacesTeamMembersTitle": {
+    "description": "The heading above a Team's people (no count, rule 3)."
   },
   "spacesNewTeam": "New Team",
   "@spacesNewTeam": {
