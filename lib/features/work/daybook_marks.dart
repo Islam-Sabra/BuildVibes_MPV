@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/locale_controller.dart';
 import '../../core/network/signal_state.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart' show mySpacesProvider;
+import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import 'daybook_state.dart';
 import 'work_outbox.dart';
@@ -66,6 +69,34 @@ class DaybookMark {
     this.again = false,
   });
 
+  /// One kept on the phone while it waits (review 88 S2).
+  factory DaybookMark.fromJson(Map<String, dynamic> json) => DaybookMark(
+    spaceId: json['space_id'] as String,
+    postId: json['post_id'] as String,
+    on: json['on'] as bool,
+    at: DateTime.parse(json['at'] as String),
+    pointId: json['point_id'] as String?,
+    pointText: json['point_text'] as String?,
+    ack: DaybookAck.fromJson(json['ack']),
+    waiting: true,
+    again: json['again'] as bool? ?? false,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'space_id': spaceId,
+    'post_id': postId,
+    'on': on,
+    'at': at.toUtc().toIso8601String(),
+    'point_id': pointId,
+    'point_text': pointText,
+    'ack': ack?.json,
+    'again': again,
+  };
+
+  /// A kept one the app can still send: a tick, or a known acknowledgement.
+  static bool isKnown(Map<String, dynamic> json) =>
+      json['point_id'] != null || DaybookAck.fromJson(json['ack']) != null;
+
   final String spaceId;
   final String postId;
 
@@ -120,30 +151,73 @@ final daybookMarksProvider = NotifierProvider<DaybookMarks, List<DaybookMark>>(
 /// mark goes. A refusal says why ([refusalsProvider]) and takes it back.
 /// With no signal it stays, "Waiting to send" (slice 10), and is sent
 /// again a little later and when the signal is back; a newer tap of the
-/// same thing replaces it. Kept while the app is open, not between starts.
+/// same thing replaces it. The waiting ones are kept on the phone between
+/// starts (review 88 S2), each account its own, and sent when the app
+/// opens ([flushAll]).
 class DaybookMarks extends Notifier<List<DaybookMark>> {
-  late final _retry = OutboxRetry(_again);
+  late final _retry = OutboxRetry(flushAll);
+
+  String? _key;
 
   @override
   List<DaybookMark> build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final userId = ref.watch(authUserIdProvider).value;
     ref.onDispose(() => _retry.cancel());
     ref.listen(signalProvider, (was, has) {
-      if (was == false && has) unawaited(_again());
+      if (was == false && has) unawaited(flushAll());
     });
-    return const [];
-  }
-
-  /// Every mark that waits for a signal, once more.
-  Future<void> _again() async {
-    for (final m in state.where((m) => m.waiting).toList()) {
-      await send(m, again: m.again);
+    _key = userId == null ? null : 'daybook_marks:$userId';
+    final raw = _key == null ? null : prefs.getString(_key!);
+    if (raw == null) return const [];
+    try {
+      return [
+        for (final j in (jsonDecode(raw) as List).cast<Map<String, dynamic>>())
+          if (DaybookMark.isKnown(j)) DaybookMark.fromJson(j),
+      ];
+    } on FormatException {
+      return const [];
     }
   }
 
-  void _drop(DaybookMark mark) => state = [
+  /// The marks now; the waiting ones are kept on the phone too.
+  void _set(List<DaybookMark> marks) {
+    state = marks;
+    final key = _key;
+    if (key == null) return;
+    final waiting = [
+      for (final m in marks)
+        if (m.waiting) m.toJson(),
+    ];
+    final prefs = ref.read(sharedPreferencesProvider);
+    unawaited(
+      waiting.isEmpty
+          ? prefs.remove(key)
+          : prefs.setString(key, jsonEncode(waiting)),
+    );
+  }
+
+  /// Every mark that waits for a signal, once more: on opening the app,
+  /// when the signal is back, and a little later after a failed try.
+  Future<void> flushAll() async {
+    for (final m in state.where((m) => m.waiting).toList()) {
+      // Never one twice at once: the try in flight has it.
+      if (!_sending.add(m.key)) continue;
+      try {
+        await send(m, again: m.again);
+      } finally {
+        _sending.remove(m.key);
+      }
+    }
+  }
+
+  /// The waiting ones being sent again now.
+  final _sending = <String>{};
+
+  void _drop(DaybookMark mark) => _set([
     for (final m in state)
       if (m.key != mark.key) m,
-  ];
+  ]);
 
   /// Sends [mark]. With no signal it waits (above). [again] takes the old
   /// acknowledgement back first, so the new one has this time (review 61
@@ -164,13 +238,15 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
       pointId: mark.pointId,
       pointText: mark.pointText,
       ack: mark.ack,
+      // A waiting one stays kept on the phone until the server has it.
+      waiting: mark.waiting,
       again: again,
     );
-    state = [
+    _set([
       for (final m in state)
         if (m.key != mark.key) m,
       sent,
-    ];
+    ]);
     final repo = ref.read(daybookRepositoryProvider);
     try {
       if (mark.isTick) {
@@ -183,9 +259,9 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
       if (e.failure == SpaceFailure.network) {
         // Unless a newer tap of the same thing came meanwhile.
         if (state.any((m) => identical(m, sent))) {
-          state = [
+          _set([
             for (final m in state) identical(m, sent) ? sent.waitingNow() : m,
-          ];
+          ]);
         }
         ref.read(signalProvider.notifier).lost();
         _retry.later(ref.read(outboxRetryLaterProvider));
@@ -215,10 +291,10 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
     unawaited(ref.read(daybookLiveProvider).changed(mark.spaceId, mark.postId));
     await _readAgain(mark);
     // Unless a newer tap of the same thing waits.
-    state = [
+    _set([
       for (final m in state)
         if (!identical(m, sent)) m,
-    ];
+    ]);
   }
 
   /// The card's points, faces and place, as the server has them now.
