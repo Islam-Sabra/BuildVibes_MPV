@@ -135,4 +135,11 @@ void main() {
       expect(find.byKey(const Key('dm-view-profile')), findsNothing);
     });
   }
+
+  test('review 88 S4: «عرض الملف الشخصي», never «عرض الملف» (a file); '
+      'Settings reads the same', () {
+    final ar = lookupAppLocalizations(const Locale('ar'));
+    expect(ar.dmViewProfile, 'عرض الملف الشخصي');
+    expect(ar.settingsViewProfile, ar.dmViewProfile);
+  });
 }

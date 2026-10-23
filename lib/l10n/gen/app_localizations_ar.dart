@@ -2563,7 +2563,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settingsViewProfile => 'عرض الملف';
+  String get settingsViewProfile => 'عرض الملف الشخصي';
 
   @override
   String get settingsLanguageLabel => 'اللغة';
@@ -4702,7 +4702,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes.';
 
   @override
-  String get dmViewProfile => 'عرض الملف';
+  String get dmViewProfile => 'عرض الملف الشخصي';
 
   @override
   String get dmStartLine => 'بداية محادثتكما';
