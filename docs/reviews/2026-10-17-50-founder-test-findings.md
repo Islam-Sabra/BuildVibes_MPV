@@ -1083,3 +1083,18 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - the card is the first thing in the conversation, so it scrolls away as messages come and is there when scrolling back to the start;
   - a request (someone who shares no Space) shows the same card, with the request's Accept / Block under it.
 - **Test:** a new conversation shows the card at the top and the first message near the typing box; with 30 messages the card is reached by scrolling up; EN and AR.
+
+## Build 529 test (23 Oct, morning): the banner shows, but for a blink
+- **Screen off (Test 4, 10:21):** a notification with sound; a tap opened the conversation. ✓ (as 22 Oct).
+- **App open on Home (Test 5, 10:44):** the in-app banner appeared for about 0.1–0.2 s, then went. Too short to read or tap.
+
+## F99. The in-app banner must stay long enough to read and tap
+- **Seen:** the banner for a direct message flashes and disappears at once.
+- **Likely cause (to confirm):** something rebuilds or replaces it straight after it shows, for example the Messages refresh from Realtime or the push, a second banner call for the same message, or the shell's overlay being rebuilt.
+- **Fix:**
+  - it stays **4 seconds**, then slides away;
+  - a tap opens the conversation; a swipe up dismisses it;
+  - a second message from the same conversation while it shows updates the same banner (text and count), without restarting it from zero; a different conversation replaces it;
+  - not shown while that conversation is open;
+  - no sound inside the app (the phone's own sound is for a closed or background app).
+- **Test:** a widget test pumps the banner, then a Messages refresh, and it is still there at 3.9 s and gone at 4.5 s; a tap opens the conversation.
