@@ -1098,3 +1098,28 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - not shown while that conversation is open;
   - no sound inside the app (the phone's own sound is for a closed or background app).
 - **Test:** a widget test pumps the banner, then a Messages refresh, and it is still there at 3.9 s and gone at 4.5 s; a tap opens the conversation.
+
+## Build 547 test (23 Oct, 11:55): F99 passed; nothing shows inside the quiet time
+- **F99 ✓:** Test 6, app open on Home: the banner stayed 4 seconds.
+- **Seen:** Test 7 and 7b, two messages 2 seconds apart a minute later, app open on Home: **no banner and no unread dot** on Home or the Messages tab.
+
+## F100. With the app open, a new message must show at once, push or no push
+**Cause, from the code (`dm_live.dart` on `slice2-app`):**
+1. **The banner comes only from a push** (`_arrived`). Inside a conversation's 5-minute quiet time no push is sent (by design, for the lock screen), so the app shows nothing. The quiet time is for the phone's notifications, not for the open app.
+2. **`dmPushKinds` lacks `dm_follow_up`**, so F97's follow-up arriving while the app is open is ignored: no banner, no list refresh.
+3. **The live channel didn't refresh the dot.** Each thread's `dm:<id>` private channel (migration 31) should invalidate the inbox on a new row, but Home and the tab didn't change. That matches the founder's 22 Oct finding ("I have to close the app and open it again to see Omar's message"), so the live path has likely never worked on the phone.
+
+**Fix:**
+- **Find why the live channel is silent.** On the phone over adb, log each `dm:` channel's `subscribe` status and error, and whether a callback ever arrives when Omar sends. Likely suspects:
+  - the private join is refused;
+  - Postgres changes on a private channel aren't authorised by `daybook_live_receive` (broadcast only);
+  - the channel is never subscribed for the thread.
+  
+  Fix the cause. If Postgres changes can't run on the private topic, use a broadcast from a `dm_messages` insert trigger (`realtime.send` to `dm:<thread>`, as the daybook does), in a new migration with a test that a non-member can't receive it.
+- **The banner comes from the live update when the app is open:** a new message from the other person, in a thread that isn't on screen, shows the banner (name, and the text only if the lock-screen setting allows, as the push does). It's deduplicated by `message_id`, so the push for the same message doesn't show it twice.
+- **Add `dm_follow_up` to `dmPushKinds`.** A follow-up while the app is open only refreshes the list. No banner, since each message already had its live banner.
+- **Tests:**
+  - a live insert with no push shows the banner and the dot;
+  - the same message arriving by live and push shows one banner;
+  - a follow-up push refreshes and shows no banner;
+  - the SQL test for any new broadcast policy.
