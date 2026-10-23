@@ -23,8 +23,8 @@ import 'needs_card.dart' show openNeeds;
 /// slip comes with pushes in slice 10.
 ///
 /// A checklist with points left for you (needs_you's checklist_for_you)
-/// has its paper clip on its daybook card (slice 2); it joins this list
-/// with Needs you across Spaces (slice 10).
+/// is here too, "To tick", until every point is ticked: the list and
+/// My Spaces' count are the same rows.
 class NeedsYouScreen extends ConsumerWidget {
   const NeedsYouScreen({super.key});
 
@@ -52,6 +52,7 @@ class NeedsYouScreen extends ConsumerWidget {
       NeedsKind.sentBack => l10n.needsRowSentBack,
       NeedsKind.ownerLeft => l10n.needsRowOwnerLeft,
       NeedsKind.joinRequest => l10n.needsRowJoin,
+      NeedsKind.checklist => l10n.needsRowChecklist,
     };
 
     // Who and when; F34: the name stands out, and a due is grey, ink
@@ -66,7 +67,9 @@ class NeedsYouScreen extends ConsumerWidget {
           (c.dueAt != null ? now.isAfter(c.dueAt!) : dayOf(now).isAfter(due));
       final dueText =
           due != null &&
-              (c.kind == NeedsKind.forYou || c.kind == NeedsKind.ownerLeft)
+              (c.kind == NeedsKind.forYou ||
+                  c.kind == NeedsKind.ownerLeft ||
+                  c.kind == NeedsKind.checklist)
           ? words.due(due, c.dueAt, now: now, late: late)
           : null;
       final detail =
@@ -107,7 +110,7 @@ class NeedsYouScreen extends ConsumerWidget {
     Widget row(NeedsCard c) {
       final path = c.photoPath;
       return BvNeedsRow(
-        key: Key('needs-row-${c.workItemId ?? c.requestId ?? c.spaceId}'),
+        key: Key('needs-row-${c.cardId ?? c.requestId ?? c.spaceId}'),
         label: label(c.kind),
         title: c.kind == NeedsKind.joinRequest
             ? personName(l10n, c.actorName)

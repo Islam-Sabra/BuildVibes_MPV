@@ -7729,6 +7729,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave'**
   String get pageLeaveGo;
+
+  /// Needs you: a checklist given to you with points still to tick.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gave you a checklist: {title}'**
+  String needsChecklist(String name, String title);
+
+  /// Needs you: a checklist you gave yourself, points still to tick.
+  ///
+  /// In en, this message translates to:
+  /// **'A checklist for you: {title}'**
+  String needsChecklistSelf(String title);
+
+  /// Needs you row label (2544:35068): a checklist with points left for you.
+  ///
+  /// In en, this message translates to:
+  /// **'To tick'**
+  String get needsRowChecklist;
 }
 
 class _AppLocalizationsDelegate

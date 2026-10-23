@@ -1271,5 +1271,8 @@
   "pageLeaveTitle": "المغادرة دون حفظ؟",
   "pageLeaveBody": "تعديلاتك على هذه الصفحة لم تُحفظ بعد.",
   "pageLeaveStay": "تابع التعديل",
-  "pageLeaveGo": "غادر"
+  "pageLeaveGo": "غادر",
+  "needsChecklist": "قائمة تحقق لك من {name}: {title}",
+  "needsChecklistSelf": "قائمة تحقق لك: {title}",
+  "needsRowChecklist": "للتأشير"
 }

@@ -4604,4 +4604,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pageLeaveGo => 'Leave';
+
+  @override
+  String needsChecklist(String name, String title) {
+    return '$name gave you a checklist: $title';
+  }
+
+  @override
+  String needsChecklistSelf(String title) {
+    return 'A checklist for you: $title';
+  }
+
+  @override
+  String get needsRowChecklist => 'To tick';
 }

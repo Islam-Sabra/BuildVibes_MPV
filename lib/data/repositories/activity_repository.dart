@@ -92,6 +92,13 @@ class SupabaseActivityRepository implements ActivityRepository {
       for (final n in needs)
         if (n['request_id'] != null) n['request_id'] as String,
     }.toList();
+    // Checklists given to me with points left (checklist_for_you): their
+    // title, author and due, as the member reads them.
+    final checklistIds = {
+      for (final n in needs)
+        if (n['kind'] == 'checklist_for_you' && n['space_post_id'] != null)
+          n['space_post_id'] as String,
+    }.toList();
 
     final spaces = {
       for (final s in _rows(await _client.rpc<List<dynamic>>('my_spaces')))
@@ -149,6 +156,14 @@ class SupabaseActivityRepository implements ActivityRepository {
                 .inFilter('event_id', doneIds)
                 .order('created_at', ascending: true),
           );
+    final checklists = checklistIds.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : _rows(
+            await _client
+                .from('space_posts')
+                .select('id, title, author_id, due_date, due_at')
+                .inFilter('id', checklistIds),
+          );
     final requests = requestIds.isEmpty
         ? const <Map<String, dynamic>>[]
         : _rows(
@@ -162,6 +177,8 @@ class SupabaseActivityRepository implements ActivityRepository {
       for (final e in events)
         if (e['actor_id'] != null) e['actor_id'] as String,
       for (final r in requests) r['profile_id'] as String,
+      for (final c in checklists)
+        if (c['author_id'] != null) c['author_id'] as String,
     }.toList();
     final names = peopleIds.isEmpty
         ? const <String, String>{}
@@ -250,6 +267,26 @@ class SupabaseActivityRepository implements ActivityRepository {
           );
         case 'owner_left':
           cards.add(card(NeedsKind.ownerLeft, null));
+        case 'checklist_for_you':
+          final post = checklists
+              .where((c) => c['id'] == n['space_post_id'])
+              .firstOrNull;
+          if (post == null) continue;
+          final day = post['due_date'] as String?;
+          final dueAt = post['due_at'] as String?;
+          cards.add(
+            NeedsCard(
+              kind: NeedsKind.checklist,
+              spaceId: spaceId,
+              spaceName: spaces[spaceId] ?? '',
+              at: at,
+              postId: post['id'] as String,
+              workItemTitle: post['title'] as String?,
+              due: day == null ? null : DateTime.parse(day),
+              dueAt: dueAt == null ? null : DateTime.parse(dueAt).toLocal(),
+              actorName: nameOf(post['author_id']),
+            ),
+          );
         case 'join_request':
           final r = requests
               .where((r) => r['id'] == n['request_id'])

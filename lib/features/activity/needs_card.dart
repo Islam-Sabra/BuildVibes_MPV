@@ -26,6 +26,10 @@ String needsTitle(AppLocalizations l10n, NeedsCard c) {
           ? l10n.needsSentBackSelf(title)
           : l10n.needsSentBack(name, title),
     NeedsKind.ownerLeft => l10n.needsOwnerLeft(title),
+    NeedsKind.checklist =>
+      name == null
+          ? l10n.needsChecklistSelf(title)
+          : l10n.needsChecklist(name, title),
     NeedsKind.joinRequest => l10n.needsJoin(
       name ?? l10n.activitySomeone,
       inOwnDirection(c.spaceName),
@@ -33,10 +37,10 @@ String needsTitle(AppLocalizations l10n, NeedsCard c) {
   };
 }
 
-/// Opens what the card is about: the work item's card on its Space's
-/// daybook (F20), or the Space's People tab.
+/// Opens what the card is about: the work item's or the checklist's card on
+/// its Space's daybook (F20), or the Space's People tab.
 void openNeeds(BuildContext context, NeedsCard c) {
-  final item = c.workItemId;
+  final item = c.cardId;
   if (item != null) {
     openWorkCard(context, spaceId: c.spaceId, postId: item);
   } else {

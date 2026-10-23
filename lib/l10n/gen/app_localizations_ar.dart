@@ -4614,4 +4614,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pageLeaveGo => 'غادر';
+
+  @override
+  String needsChecklist(String name, String title) {
+    return 'قائمة تحقق لك من $name: $title';
+  }
+
+  @override
+  String needsChecklistSelf(String title) {
+    return 'قائمة تحقق لك: $title';
+  }
+
+  @override
+  String get needsRowChecklist => 'للتأشير';
 }
