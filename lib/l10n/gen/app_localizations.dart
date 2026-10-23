@@ -1874,12 +1874,6 @@ abstract class AppLocalizations {
   /// **'Library'**
   String get spacesTabLibrary;
 
-  /// Space People tab and Space info.
-  ///
-  /// In en, this message translates to:
-  /// **'Invite people'**
-  String get spacesInvitePeople;
-
   /// S16 title.
   ///
   /// In en, this message translates to:
@@ -1988,77 +1982,17 @@ abstract class AppLocalizations {
   /// **'{n, plural, =1{1 day ago} other{{n} days ago}}'**
   String timeDaysAgo(int n);
 
-  /// S10k search.
-  ///
-  /// In en, this message translates to:
-  /// **'Search members'**
-  String get spacesSearchMembers;
-
-  /// S10k overline, admins only.
-  ///
-  /// In en, this message translates to:
-  /// **'REQUESTS TO JOIN · YOU CONFIRM'**
-  String get spacesRequestsTitle;
-
-  /// Request line: when.
-  ///
-  /// In en, this message translates to:
-  /// **'Asked {when}'**
-  String spacesAsked(String when);
-
-  /// Request line: who shared the code.
-  ///
-  /// In en, this message translates to:
-  /// **'invite code shared by {name}'**
-  String spacesViaCodeFrom(String name);
-
-  /// Request line: no name.
-  ///
-  /// In en, this message translates to:
-  /// **'invite code'**
-  String get spacesViaCode;
-
   /// Request button.
   ///
   /// In en, this message translates to:
   /// **'Decline'**
   String get spacesDecline;
 
-  /// Request button.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
-  String get spacesConfirm;
-
-  /// S10k section: the Space admins (glossary: Space admin).
-  ///
-  /// In en, this message translates to:
-  /// **'Space admin'**
-  String get spacesAdminSection;
-
-  /// The line under a Space admin's name in People.
-  ///
-  /// In en, this message translates to:
-  /// **'Space admin'**
-  String get spacesAdminTag;
-
-  /// S10k section.
-  ///
-  /// In en, this message translates to:
-  /// **'Members'**
-  String get spacesMembers;
-
   /// Tag on your own row.
   ///
   /// In en, this message translates to:
   /// **'You'**
   String get spacesYouTag;
-
-  /// S10k search with no result.
-  ///
-  /// In en, this message translates to:
-  /// **'No one matches.'**
-  String get spacesNoMatch;
 
   /// Pass name.
   ///
@@ -2077,18 +2011,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Viewer'**
   String get spacesPassViewer;
-
-  /// Member row: the pass.
-  ///
-  /// In en, this message translates to:
-  /// **'{pass} pass'**
-  String spacesPassLine(String pass);
-
-  /// Confirm sheet overline. Neutral: no him/her.
-  ///
-  /// In en, this message translates to:
-  /// **'GIVE A PASS FOR THIS SPACE'**
-  String get spacesGivePass;
 
   /// Lead pass card.
   ///
@@ -2125,18 +2047,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Client, supplier'**
   String get spacesViewerFor;
-
-  /// Confirm sheet main button.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm as {pass}'**
-  String spacesConfirmAs(String pass);
-
-  /// S17k banner after confirming.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} joined as {pass}. The Space is open to them now.'**
-  String spacesJoinedAs(String name, String pass);
 
   /// S10k-D toast.
   ///
@@ -2480,12 +2390,6 @@ abstract class AppLocalizations {
   /// **'{n, plural, =0{No members yet} =1{1 member} other{{n} members}}'**
   String spacesTeamMembers(int n);
 
-  /// Team row.
-  ///
-  /// In en, this message translates to:
-  /// **'you\'re in it'**
-  String get spacesInTeam;
-
   /// S10k link and S12 title.
   ///
   /// In en, this message translates to:
@@ -2611,12 +2515,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This item isn\'t available.'**
   String get workItemGone;
-
-  /// W4 field.
-  ///
-  /// In en, this message translates to:
-  /// **'Note'**
-  String get workNote;
 
   /// RE2 title.
   ///
@@ -3029,20 +2927,8 @@ abstract class AppLocalizations {
   /// S13k filter.
   ///
   /// In en, this message translates to:
-  /// **'All'**
-  String get libraryAll;
-
-  /// S13k filter.
-  ///
-  /// In en, this message translates to:
   /// **'Files'**
   String get libraryFiles;
-
-  /// S13k section.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent in this Space'**
-  String get libraryRecent;
 
   /// A file that came from chat.
   ///
@@ -3061,102 +2947,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing matches.'**
   String get libraryNoMatch;
-
-  /// S13k button.
-  ///
-  /// In en, this message translates to:
-  /// **'Add file'**
-  String get libraryAdd;
-
-  /// Add file title.
-  ///
-  /// In en, this message translates to:
-  /// **'Add to the Library'**
-  String get libraryAddTitle;
-
-  /// New revision title.
-  ///
-  /// In en, this message translates to:
-  /// **'New revision'**
-  String get libraryRevisionTitle;
-
-  /// New revision helper.
-  ///
-  /// In en, this message translates to:
-  /// **'Replaces {name}. The old one is kept in the record.'**
-  String libraryRevisionOf(String name);
-
-  /// Add file picker.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a PDF or photo'**
-  String get libraryPickFile;
-
-  /// Add file picker, after a pick.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose another file'**
-  String get libraryChangeFile;
-
-  /// Add file field.
-  ///
-  /// In en, this message translates to:
-  /// **'Title'**
-  String get libraryName;
-
-  /// Add file: Everyone or one Team (single choice).
-  ///
-  /// In en, this message translates to:
-  /// **'Who sees it'**
-  String get libraryFor;
-
-  /// Add file helper for a Team file.
-  ///
-  /// In en, this message translates to:
-  /// **'Only {team} and the Space admins see it.'**
-  String libraryTeamOnly(String team);
-
-  /// Add file field.
-  ///
-  /// In en, this message translates to:
-  /// **'Revision'**
-  String get libraryRev;
-
-  /// Add file placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'For example Rev C'**
-  String get libraryRevHint;
-
-  /// Add file note placeholder.
-  ///
-  /// In en, this message translates to:
-  /// **'What changed'**
-  String get libraryNoteHint;
-
-  /// Add file button.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload'**
-  String get libraryUpload;
-
-  /// Toast.
-  ///
-  /// In en, this message translates to:
-  /// **'Added to the Library.'**
-  String get libraryAdded;
-
-  /// Add file error.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a file first.'**
-  String get libraryPickFirst;
-
-  /// Add file error.
-  ///
-  /// In en, this message translates to:
-  /// **'Give it a title.'**
-  String get libraryNameRequired;
 
   /// F1 subtitle part.
   ///
@@ -3218,12 +3008,6 @@ abstract class AppLocalizations {
   /// **'Download'**
   String get previewDownload;
 
-  /// F1 link.
-  ///
-  /// In en, this message translates to:
-  /// **'Upload a new revision'**
-  String get previewNewRevision;
-
   /// Share sheet title.
   ///
   /// In en, this message translates to:
@@ -3235,12 +3019,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A Team file is shared in its Team\'s thread only.'**
   String get previewShareTeamOnly;
-
-  /// Toast.
-  ///
-  /// In en, this message translates to:
-  /// **'Shared in {thread}.'**
-  String previewShared(String thread);
 
   /// Toast after Download.
   ///
@@ -6044,12 +5822,6 @@ abstract class AppLocalizations {
   /// **'Scheduled activity'**
   String get daybookKindActivity;
 
-  /// Kind menu and chip: a file; also the attach sheet row.
-  ///
-  /// In en, this message translates to:
-  /// **'File'**
-  String get daybookKindFile;
-
   /// Writing card text line: a checklist or file post.
   ///
   /// In en, this message translates to:
@@ -6175,12 +5947,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Is it a new version of a file?'**
   String get daybookReplacesTitle;
-
-  /// The picked file replaces nothing.
-  ///
-  /// In en, this message translates to:
-  /// **'No, a new file'**
-  String get daybookReplacesNone;
 
   /// The picked file is a new version of this one.
   ///
@@ -6463,12 +6229,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report {name}'**
   String dmReportPerson(String name);
-
-  /// A new conversation's field hint, before the thread exists.
-  ///
-  /// In en, this message translates to:
-  /// **'Write the first message'**
-  String get dmFirstMessage;
 
   /// start_dm paused by the spam guard.
   ///

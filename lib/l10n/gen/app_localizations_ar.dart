@@ -991,9 +991,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesTabLibrary => 'المكتبة';
 
   @override
-  String get spacesInvitePeople => 'دعوة أشخاص';
-
-  @override
   String spacesInviteTitle(String space) {
     return 'دعوة إلى $space';
   }
@@ -1086,44 +1083,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get spacesSearchMembers => 'ابحث في الأعضاء';
-
-  @override
-  String get spacesRequestsTitle => 'طلبات الانضمام · أنت تؤكدها';
-
-  @override
-  String spacesAsked(String when) {
-    return 'قُدّم الطلب $when';
-  }
-
-  @override
-  String spacesViaCodeFrom(String name) {
-    return 'رمز دعوة من $name';
-  }
-
-  @override
-  String get spacesViaCode => 'رمز دعوة';
-
-  @override
   String get spacesDecline => 'رفض';
 
   @override
-  String get spacesConfirm => 'تأكيد';
-
-  @override
-  String get spacesAdminSection => 'مدير المساحة';
-
-  @override
-  String get spacesAdminTag => 'مدير المساحة';
-
-  @override
-  String get spacesMembers => 'الأعضاء';
-
-  @override
   String get spacesYouTag => 'أنت';
-
-  @override
-  String get spacesNoMatch => 'لا يوجد من يطابق البحث.';
 
   @override
   String get spacesPassLead => 'مسؤول';
@@ -1133,14 +1096,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesPassViewer => 'مُطّلع';
-
-  @override
-  String spacesPassLine(String pass) {
-    return 'تصريح $pass';
-  }
-
-  @override
-  String get spacesGivePass => 'امنح تصريحًا لهذه المساحة';
 
   @override
   String get spacesLeadOpens =>
@@ -1161,16 +1116,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesViewerFor => 'العميل والمورّد';
-
-  @override
-  String spacesConfirmAs(String pass) {
-    return 'تأكيد بتصريح $pass';
-  }
-
-  @override
-  String spacesJoinedAs(String name, String pass) {
-    return 'تم تأكيد انضمام $name بتصريح $pass. أصبحت المساحة متاحة الآن.';
-  }
 
   @override
   String spacesDeclined(String name) {
@@ -1399,9 +1344,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get spacesInTeam => 'أنت فيه';
-
-  @override
   String get spacesNewTeam => 'فريق جديد';
 
   @override
@@ -1482,9 +1424,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get workItemGone => 'هذا البند غير متاح.';
-
-  @override
-  String get workNote => 'ملاحظة';
 
   @override
   String get deliveredTitle => 'عمل أنجزته';
@@ -1734,13 +1673,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get librarySearch => 'ابحث في الملفات';
 
   @override
-  String get libraryAll => 'الكل';
-
-  @override
   String get libraryFiles => 'الملفات';
-
-  @override
-  String get libraryRecent => 'الأحدث في هذه المساحة';
 
   @override
   String get libraryFromChat => 'من المحادثة';
@@ -1751,58 +1684,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get libraryNoMatch => 'لا نتائج.';
-
-  @override
-  String get libraryAdd => 'إضافة ملف';
-
-  @override
-  String get libraryAddTitle => 'إضافة إلى المكتبة';
-
-  @override
-  String get libraryRevisionTitle => 'إصدار جديد';
-
-  @override
-  String libraryRevisionOf(String name) {
-    return 'يحل محل $name. تبقى النسخة القديمة في السجل.';
-  }
-
-  @override
-  String get libraryPickFile => 'اختر ملف PDF أو صورة';
-
-  @override
-  String get libraryChangeFile => 'اختر ملفًا آخر';
-
-  @override
-  String get libraryName => 'العنوان';
-
-  @override
-  String get libraryFor => 'من يراه';
-
-  @override
-  String libraryTeamOnly(String team) {
-    return 'لا يراه إلا $team ومديرو المساحة.';
-  }
-
-  @override
-  String get libraryRev => 'الإصدار';
-
-  @override
-  String get libraryRevHint => 'مثلًا Rev C';
-
-  @override
-  String get libraryNoteHint => 'ما الذي تغيّر';
-
-  @override
-  String get libraryUpload => 'رفع';
-
-  @override
-  String get libraryAdded => 'أُضيف إلى المكتبة.';
-
-  @override
-  String get libraryPickFirst => 'اختر ملفًا أولًا.';
-
-  @override
-  String get libraryNameRequired => 'أضف عنوانًا.';
 
   @override
   String previewFrom(String name) {
@@ -1841,18 +1722,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get previewDownload => 'تنزيل';
 
   @override
-  String get previewNewRevision => 'رفع إصدار جديد';
-
-  @override
   String get previewShareTo => 'المشاركة في أي محادثة؟';
 
   @override
   String get previewShareTeamOnly => 'يُشارك ملف الفريق في محادثة فريقه فقط.';
-
-  @override
-  String previewShared(String thread) {
-    return 'تمت المشاركة في $thread.';
-  }
 
   @override
   String get previewSaved => 'تم الحفظ.';
@@ -3596,9 +3469,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindActivity => 'نشاط مجدول';
 
   @override
-  String get daybookKindFile => 'ملف';
-
-  @override
   String get daybookBodyNote => 'أضف ملاحظة';
 
   @override
@@ -3664,9 +3534,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookReplacesTitle => 'هل هو نسخة جديدة من ملف؟';
-
-  @override
-  String get daybookReplacesNone => 'لا، ملف جديد';
 
   @override
   String daybookReplacesOption(String name) {
@@ -3831,9 +3698,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String dmReportPerson(String name) {
     return 'الإبلاغ عن $name';
   }
-
-  @override
-  String get dmFirstMessage => 'اكتب الرسالة الأولى';
 
   @override
   String dmPaused(String day) {
