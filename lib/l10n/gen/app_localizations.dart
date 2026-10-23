@@ -7969,6 +7969,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave'**
   String get pageLeaveGo;
+
+  /// F100: the in-app banner for a direct message that arrived live (as the push's title).
+  ///
+  /// In en, this message translates to:
+  /// **'Message from {name}'**
+  String dmBannerTitle(String name);
+
+  /// F100: the in-app banner's words when the lock-screen setting hides message text.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get dmBannerHidden;
 }
 
 class _AppLocalizationsDelegate

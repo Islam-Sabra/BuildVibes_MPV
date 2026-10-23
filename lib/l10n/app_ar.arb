@@ -1311,5 +1311,7 @@
   "pageLeaveTitle": "المغادرة دون حفظ؟",
   "pageLeaveBody": "تعديلاتك على هذه الصفحة لم تُحفظ بعد.",
   "pageLeaveStay": "تابع التعديل",
-  "pageLeaveGo": "غادر"
+  "pageLeaveGo": "غادر",
+  "dmBannerTitle": "رسالة من {name}",
+  "dmBannerHidden": "رسالة جديدة"
 }

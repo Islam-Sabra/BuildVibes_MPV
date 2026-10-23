@@ -19,15 +19,62 @@ class FakeDmRepository implements DmRepository {
 
   final calls = <String>[];
   bool offline = false;
-  final _live = <String, StreamController<String>>{};
+
+  /// How many times each thread's page was read.
+  final pageReads = <String, int>{};
+
+  /// Each thread's open channels, as the app opened them.
+  final _live = <String, List<StreamController<DmLiveEvent>>>{};
+
+  /// How many times each thread's channel was opened.
+  final opens = <String, int>{};
+
+  /// The next opens of a thread's channel fail at once (a refused join, a
+  /// timeout).
+  final failOpens = <String, int>{};
 
   void _check() {
     if (offline) throw const SpaceException(SpaceFailure.network);
   }
 
+  Iterable<StreamController<DmLiveEvent>> _open(String threadId) =>
+      (_live[threadId] ?? const []).where((c) => c.hasListener && !c.isClosed);
+
   /// Someone else's change to [threadId] arrives live.
-  void push(String threadId, String messageId) =>
-      _live[threadId]?.add(messageId);
+  void push(String threadId, String messageId) {
+    for (final c in _open(threadId)) {
+      c.add(DmLiveRow(id: messageId));
+    }
+  }
+
+  /// A new message arrives live, by [authorId].
+  void arrive(
+    String threadId,
+    String messageId, {
+    required String authorId,
+    String body = '',
+    String kind = 'text',
+  }) {
+    for (final c in _open(threadId)) {
+      c.add(
+        DmLiveRow(
+          id: messageId,
+          inserted: true,
+          authorId: authorId,
+          kind: kind,
+          body: body,
+        ),
+      );
+    }
+  }
+
+  /// [threadId]'s channels close (the socket dropped, a timeout).
+  void drop(String threadId) {
+    for (final c in _open(threadId).toList()) {
+      c.addError(const DmLiveLost('closed'));
+      unawaited(c.close());
+    }
+  }
 
   @override
   Future<DmInbox> inbox() async {
@@ -48,6 +95,7 @@ class FakeDmRepository implements DmRepository {
     String? beforeId,
   }) async {
     _check();
+    pageReads[threadId] = (pageReads[threadId] ?? 0) + 1;
     return pages[threadId];
   }
 
@@ -112,12 +160,27 @@ class FakeDmRepository implements DmRepository {
 
   /// The threads someone listens to live, now.
   Set<String> get listened => {
-    for (final e in _live.entries)
-      if (e.value.hasListener) e.key,
+    for (final e in _live.keys)
+      if (_open(e).isNotEmpty) e,
   };
 
   @override
-  Stream<String> changes(String threadId) =>
-      // Several listeners at once: Messages app-wide and an open thread.
-      _live.putIfAbsent(threadId, StreamController<String>.broadcast).stream;
+  Stream<DmLiveEvent> changes(String threadId) {
+    opens[threadId] = (opens[threadId] ?? 0) + 1;
+    late final StreamController<DmLiveEvent> c;
+    c = StreamController<DmLiveEvent>(
+      onListen: () {
+        final fail = failOpens[threadId] ?? 0;
+        if (fail > 0) {
+          failOpens[threadId] = fail - 1;
+          c.addError(const DmLiveLost('channelError'));
+          unawaited(c.close());
+        } else {
+          c.add(const DmLiveJoined());
+        }
+      },
+    );
+    _live.putIfAbsent(threadId, () => []).add(c);
+    return c.stream;
+  }
 }

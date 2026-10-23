@@ -45,6 +45,10 @@ abstract class AuthRepository {
   /// Emits the signed-in user id, or null after signing out.
   Stream<String?> userIdChanges();
 
+  /// Each time the sign-in token is new: refreshed, or signed in again.
+  /// Live channels join again with it (F100).
+  Stream<void> sessionRenewed();
+
   /// [allowSignUp] is false when new accounts are not open for this
   /// number: existing accounts still get a code.
   Future<void> sendPhoneCode({
@@ -111,6 +115,15 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Stream<String?> userIdChanges() =>
       _auth.onAuthStateChange.map((state) => state.session?.user.id);
+
+  @override
+  Stream<void> sessionRenewed() => _auth.onAuthStateChange
+      .where(
+        (s) =>
+            s.event == AuthChangeEvent.tokenRefreshed ||
+            s.event == AuthChangeEvent.signedIn,
+      )
+      .map((_) {});
 
   @override
   Future<void> sendPhoneCode({

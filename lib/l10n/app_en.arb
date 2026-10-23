@@ -6842,5 +6842,18 @@
   "pageLeaveGo": "Leave",
   "@pageLeaveGo": {
     "description": "The page editor: leave and lose the changes."
+  },
+  "dmBannerTitle": "Message from {name}",
+  "@dmBannerTitle": {
+    "description": "F100: the in-app banner for a direct message that arrived live (as the push's title).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dmBannerHidden": "New message",
+  "@dmBannerHidden": {
+    "description": "F100: the in-app banner's words when the lock-screen setting hides message text."
   }
 }

@@ -109,7 +109,7 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   String? _threadId;
   DmThreadPage? _page;
   DmMessage? _replyTo;
-  StreamSubscription<String>? _live;
+  var _listening = false;
   var _loading = true;
   var _failed = false;
 
@@ -147,7 +147,6 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   void dispose() {
     final id = _threadId;
     unawaited(Future.microtask(() => _onScreen.clear(id)));
-    _live?.cancel();
     _recordTimer?.cancel();
     _text.dispose();
     super.dispose();
@@ -188,9 +187,12 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
   }
 
   void _listen(String threadId) {
-    if (_live != null) return;
+    if (_listening) return;
     _showing(threadId);
-    _live = _repo.changes(threadId).listen((_) => unawaited(_reload()));
+    // Live through DmLiveHost, which follows the conversation on screen
+    // too: one channel per thread, since a second join of the same topic
+    // closes the first (F100). Its changes arrive by [dmChangeProvider].
+    _listening = true;
   }
 
   void _toast(String text) => ScaffoldMessenger.of(context)

@@ -42,6 +42,11 @@ class DmBanners extends Notifier<DmBanner?> {
   Timer? _timer;
   var _serial = 0;
 
+  /// The messages already shown (F100): the live update and the push for
+  /// the same message show one banner, whichever comes first.
+  final _seen = <String>[];
+  static const _seenMax = 100;
+
   @override
   DmBanner? build() {
     ref.onDispose(() => _timer?.cancel());
@@ -55,8 +60,9 @@ class DmBanners extends Notifier<DmBanner?> {
     return null;
   }
 
-  /// A message of [threadId]. The same message again (a second push)
-  /// changes nothing; a newer one of the same conversation changes the
+  /// A message of [threadId]. The same message again (a second push, or
+  /// its push after its live update) changes nothing, even after its
+  /// banner went; a newer one of the same conversation changes the
   /// words and starts the time again; another conversation replaces it.
   void show({
     required String threadId,
@@ -66,11 +72,10 @@ class DmBanners extends Notifier<DmBanner?> {
     String? messageId,
   }) {
     final now = state;
-    if (now != null &&
-        now.threadId == threadId &&
-        messageId != null &&
-        now.messageId == messageId) {
-      return;
+    if (messageId != null) {
+      if (_seen.contains(messageId)) return;
+      _seen.add(messageId);
+      if (_seen.length > _seenMax) _seen.removeAt(0);
     }
     state = DmBanner(
       serial: now != null && now.threadId == threadId ? now.serial : ++_serial,

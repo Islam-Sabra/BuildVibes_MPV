@@ -176,6 +176,21 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Stream<String?> userIdChanges() => _changes.stream;
 
+  final _renewed = StreamController<void>.broadcast();
+
+  /// The sign-in token is refreshed.
+  void renew() => _renewed.add(null);
+
+  /// Signed in again as [id], after signing out (a new token).
+  void signInAgain(String id) {
+    userId = id;
+    _changes.add(id);
+    _renewed.add(null);
+  }
+
+  @override
+  Stream<void> sessionRenewed() => _renewed.stream;
+
   void _signIn(String? signedInPhone) {
     userId = newUserId;
     phone = signedInPhone;

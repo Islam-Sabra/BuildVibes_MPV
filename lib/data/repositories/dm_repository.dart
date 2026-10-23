@@ -64,9 +64,52 @@ abstract class DmRepository {
   /// My own message; it stays as "Message deleted".
   Future<void> delete(String id);
 
-  /// The ids of messages added or changed in [threadId], live, on the
-  /// private `dm:` channel (migration 31).
-  Stream<String> changes(String threadId);
+  /// [threadId] live, on its private `dm:` channel (migration 31): joined,
+  /// then each message added or changed. When the channel closes, errors or
+  /// times out, the stream ends with a [DmLiveLost] error; the caller opens
+  /// it again (F100).
+  Stream<DmLiveEvent> changes(String threadId);
+}
+
+/// What a thread's live channel says (F100).
+@immutable
+sealed class DmLiveEvent {
+  const DmLiveEvent();
+}
+
+/// The channel is joined: what happens now arrives live.
+class DmLiveJoined extends DmLiveEvent {
+  const DmLiveJoined();
+}
+
+/// A message added ([inserted]) or changed (a delete, an edit).
+class DmLiveRow extends DmLiveEvent {
+  const DmLiveRow({
+    required this.id,
+    this.inserted = false,
+    this.authorId,
+    this.kind,
+    this.body,
+    this.deleted = false,
+  });
+
+  final String id;
+  final bool inserted;
+  final String? authorId;
+  final String? kind;
+  final String? body;
+  final bool deleted;
+}
+
+/// The channel closed, errored or timed out.
+class DmLiveLost implements Exception {
+  const DmLiveLost(this.status, [this.error]);
+
+  final String status;
+  final Object? error;
+
+  @override
+  String toString() => 'DmLiveLost($status${error == null ? '' : ', $error'})';
 }
 
 class SupabaseDmRepository implements DmRepository {
@@ -206,10 +249,14 @@ class SupabaseDmRepository implements DmRepository {
       _guard(() => _client.rpc('delete_dm', params: {'p_id': id}));
 
   @override
-  Stream<String> changes(String threadId) {
+  Stream<DmLiveEvent> changes(String threadId) {
     late final RealtimeChannel channel;
-    final controller = StreamController<String>(
-      onCancel: () => _client.removeChannel(channel),
+    var cancelled = false;
+    final controller = StreamController<DmLiveEvent>(
+      onCancel: () async {
+        cancelled = true;
+        await _client.removeChannel(channel);
+      },
     );
     channel = _client
         // Private (migration 31): only the thread's two people join.
@@ -227,12 +274,38 @@ class SupabaseDmRepository implements DmRepository {
             value: threadId,
           ),
           callback: (payload) {
-            final id = payload.newRecord['id'] ?? payload.oldRecord['id'];
-            if (id is String && !controller.isClosed) controller.add(id);
+            final row = payload.newRecord;
+            final id = row['id'] ?? payload.oldRecord['id'];
+            if (id is! String || cancelled) return;
+            controller.add(
+              DmLiveRow(
+                id: id,
+                inserted: payload.eventType == PostgresChangeEvent.insert,
+                authorId: row['author_id'] as String?,
+                kind: row['kind'] as String?,
+                body: row['body'] as String?,
+                deleted: row['deleted_at'] != null,
+              ),
+            );
           },
         )
         .subscribe((status, [error]) {
-          if (error != null) debugPrint('dm live: $error');
+          // F100: one line per status change, for adb.
+          debugPrint(
+            'BV-LIVE status dm:$threadId ${status.name}'
+            '${error == null ? '' : ' error=$error'}',
+          );
+          if (cancelled) return;
+          switch (status) {
+            case RealtimeSubscribeStatus.subscribed:
+              controller.add(const DmLiveJoined());
+            case RealtimeSubscribeStatus.channelError ||
+                RealtimeSubscribeStatus.timedOut ||
+                RealtimeSubscribeStatus.closed:
+              cancelled = true;
+              controller.addError(DmLiveLost(status.name, error));
+              unawaited(controller.close());
+          }
         });
     return controller.stream;
   }

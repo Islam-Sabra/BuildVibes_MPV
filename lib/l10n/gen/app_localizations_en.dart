@@ -4740,4 +4740,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pageLeaveGo => 'Leave';
+
+  @override
+  String dmBannerTitle(String name) {
+    return 'Message from $name';
+  }
+
+  @override
+  String get dmBannerHidden => 'New message';
 }
