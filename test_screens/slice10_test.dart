@@ -125,7 +125,9 @@ void main() {
       await pumpApp(
         tester,
         language: lang,
-        now: DaybookSamples.thursday,
+        // After Omar's sign at 10:56, so the history reads in order
+        // (review 88 S5): the waiting send-back is stamped 11:05.
+        now: DateTime(2026, 10, 15, 11, 5),
         auth: FakeAuthRepository(
           userId: DaybookSamples.islam,
           phone: '+96550000001',
