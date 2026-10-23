@@ -95,6 +95,35 @@ Live is at `20261031120000`. The 3D model views take the next date after 39. Pub
 - Cloud: `claude/slice10` (this work), from `slice2-app` 2a26898.
 - PC: `slice2-app`.
 
+## Cloud update: 23 Oct 2026 — the sweep (branch `claude/sweep`, from `slice2-app` d9b1cad)
+
+`docs/reviews/sweep-report.md` lists every hit of a scan of `lib/` against the definition of done and the product rules, with file and line. The DM files that `claude/f100-fix` changes were not touched (no hits there).
+
+- **Fixed, in commits by kind:**
+  - Sign out's arrow now mirrors in Arabic; the card highlight uses start/end.
+  - The list separator ("، " / ", ") comes from the ARB in 4 places instead of being typed per language.
+  - 40 ARB keys used nowhere are removed (English and Arabic still match).
+- **Clean:**
+  - no Material icons, raw colours, font sizes or spacing numbers;
+  - no Eastern digits;
+  - no country facts outside the market pack;
+  - no "late" or «متأخر» shown.
+- **Needs you and checklists (slice 2 note): still true, now fixed in the list.**
+  - `needs_you()` already returns `checklist_for_you`, and `my_spaces()` counts it, but the app dropped those rows.
+  - Now a checklist given to you is a "To tick" / «للتأشير» row in Needs you and on Home, until every point is ticked. It opens its card.
+  - No migration.
+- **For the lead** (in the report, not changed):
+  - Team screen's "{n} members": recommendation, drop the number.
+  - The Space chat thread's unread number: recommendation, a dot as in Messages.
+- **Checks:**
+  - `flutter analyze` clean.
+  - `flutter test` 1,717 pass (1 cloud-only failure, photo_privacy H1).
+  - Screenshot tests: all 363 pass when shot here. No image differs from `slice2-app` shot in the same place. The committed (PC) images are left as they are.
+  - SQL stand-in: 2,464 pass.
+- **Not live, nothing deployed, nothing installed.**
+
+**Who has which branch:** cloud `claude/sweep` (this), `claude/f100-fix`, `claude/slice10`; PC `slice2-app` and `claude/f100`.
+
 ## Cloud update: 23 Oct 2026 — review 86 W1 (branch `claude/slice9`)
 
 - **No "late" in the week report (F57):** no LATE stamp and no "late by N days", in English or Arabic. A work item past its due reads "Omar Haddad · was due Tue 13 Oct" / «عمر حداد · كان موعده الثلاثاء 13 أكتوبر», grey, in the action colour only when it waits on the reader (`needs_me`). The strings `weekLateBy` and `weekStampLate` are gone.

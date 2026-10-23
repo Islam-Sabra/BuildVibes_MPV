@@ -82,5 +82,18 @@ None in code or copy. "Kuwait", "Egypt" and "+965" appear only in comments. The 
 1. **"{n} members" on a Team's screen** (`team_screen.dart:190`, `spacesTeamMembers`): a count above the list of the Team's people, seen by everyone in the Space. Rule 3 names member counts. *Recommendation:* drop the number and keep the word "Members" as the list's heading, since the list shows who they are. "No members yet" stays.
 2. **Unread numbers on Space chat threads** (`chat_tab.dart:342`): a number, not a dot, while Messages and the tabs use a dot ("never a number", rule 3 as applied to DM1). *Recommendation:* a dot, to match DM1 and the tab dots.
 
-## Checks
-See the handoff for this branch: `flutter analyze`, `flutter test`, the screenshot tests and the SQL stand-in.
+## Fix commits (by kind)
+1. Sign out's arrow mirrors; the card highlight uses start/end.
+2. List separators from the ARB.
+3. 40 unused ARB keys removed.
+4. Needs you lists checklists given to you.
+
+## Checks (cloud)
+- `flutter analyze`: no issues.
+- `flutter test`: 1,717 pass; 1 fails, photo_privacy H1, which fails only as root in the cloud.
+- New: `test/features/activity/needs_checklist_test.dart` (3 tests, English and Arabic).
+- **Screenshot tests** (`test_screens/`, 363):
+  - Against the committed images, 416 images differ by 1–4%, the same 416 on untouched `slice2-app`. The committed images were shot on the PC with Windows fonts.
+  - Shot again here, on this branch and on `slice2-app`, all 363 tests pass and **no image differs** between the two.
+  - The committed images are left as they are.
+- **SQL stand-in:** 2,464 checks pass in every file. No migration on this branch.

@@ -762,3 +762,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
      - 0 unsent.
   
   Live is at `20261031120000`. Before that, `claude/slice10` (slice 10, review 88 S1–S5, F99) was merged into `slice2-app`: analyze clean, 1,712 app tests, 2,464 SQL checks in 38 files, 11 push tests. Build 547 is on the emulator; the founder's phone waits for its wireless-debugging address.
+- **23 Oct** (cloud, `claude/sweep` from `slice2-app`): the sweep of `lib/` (`docs/reviews/sweep-report.md`).
+  - Fixed: Sign out's arrow mirrors; list separators from the ARB; 40 unused ARB keys removed.
+  - Needs you lists checklists given to you ("To tick"), as My Spaces counts them; no migration.
+  - Two calls for the lead.
+  - Checks: analyze clean; 1,717 tests pass (1 cloud-only failure); 363 screenshot tests pass shot here, none differs from `slice2-app`; 2,464 SQL checks pass.
+
