@@ -694,3 +694,17 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `finish_push` and `release_push` with answers, for the server only.
   
   **Push function deployed** (version 8, `verify_jwt` off as before) from the same commit. Build 507 (2c64cd3) on the emulator: Omar's token registered with an install id. The founder's phone waits for its new wireless-debugging address. Migration 34 is renamed to `20261030120000_review_sign_in.sql` when B5 is added; public channels are still on.
+- **23 Oct 2026, 08:36 Kuwait** (PC, founder's yes): live, in this order, from `slice2-app` e1b567d:
+  1. **the push function, version 9** (`verify_jwt` off as before). Only the message wording changed (`dm_follow_up`); `index.ts` and its database calls are unchanged, so it was safe before migration 39;
+  2. **migration 34**, `20261030120000_review_sign_in.sql`, from `claude/store-reviewer-b5` (the migration and its test only). Read-only check:
+     - `projects.is_demo` and `companies.is_demo` exist and are all false (3 projects, 0 companies);
+     - `review_sign_in_state` has RLS;
+     - the sign-in functions are for the server only.
+     
+     `review-sign-in` is **not** deployed, its secrets are not set, and the demo seed was not run;
+  3. **migration 39**, `20261031120000_slice10_notifications.sql`. Read-only check:
+     - the push queue accepts `dm_follow_up`;
+     - `claim_push` handles it, for the server only;
+     - 0 unsent.
+  
+  Live is at `20261031120000`. Before that, `claude/slice10` (slice 10, review 88 S1–S5, F99) was merged into `slice2-app`: analyze clean, 1,712 app tests, 2,464 SQL checks in 38 files, 11 push tests. Build 547 is on the emulator; the founder's phone waits for its wireless-debugging address.
