@@ -5858,7 +5858,7 @@ abstract class AppLocalizations {
   /// **'{list} and {last}'**
   String daybookNamesAnd(String list, String last);
 
-  /// Between names in a list.
+  /// Between items in a list: names, choices, places.
   ///
   /// In en, this message translates to:
   /// **', '**

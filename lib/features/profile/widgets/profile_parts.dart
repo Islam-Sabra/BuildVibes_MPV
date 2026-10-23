@@ -176,7 +176,7 @@ String confirmerNames(AppLocalizations l10n, List<String> names) {
   return names.length == 2
       ? two
       : l10n.listAndOthers(
-          '${names[0]}${l10n.localeName == 'ar' ? '، ' : ', '}${names[1]}',
+          '${names[0]}${l10n.daybookNamesComma}${names[1]}',
         );
 }
 

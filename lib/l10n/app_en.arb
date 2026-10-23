@@ -4991,7 +4991,7 @@
   },
   "daybookNamesComma": ", ",
   "@daybookNamesComma": {
-    "description": "Between names in a list."
+    "description": "Between items in a list: names, choices, places."
   },
   "daybookNamesOthers": "{list} and others",
   "@daybookNamesOthers": {

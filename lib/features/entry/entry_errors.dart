@@ -39,7 +39,7 @@ Future<void> showNotOpenSheet(
       : l10n.notOpenOther(
           liveMarkets
               .map((m) => m.name.of(locale))
-              .join(locale.languageCode == 'ar' ? '، ' : ', '),
+              .join(l10n.daybookNamesComma),
         );
   return showBvSheet(
     context: context,
