@@ -209,7 +209,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
           if (note.kind != NoteKind.voice)
             ChatActionRow(
               key: const Key('note-remind'),
-              icon: BvIcons.calendar,
+              icon: BvIcons.remind,
               label: l10n.notebookRemindMe,
               onTap: () => Navigator.of(sheet).pop('remind'),
             ),

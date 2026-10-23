@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/models/note.dart';
@@ -84,6 +85,21 @@ void main() {
       await _menu(tester, 'note-sleeves');
       expect(_key('note-remind'), findsOneWidget);
       expect(find.text(l10n.notebookRemindMe), findsOneWidget);
+      // A bell, not My calendar's glyph (review 88 S3).
+      expect(
+        find.descendant(
+          of: _key('note-remind'),
+          matching: find.byIcon(BvIcons.remind),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _key('note-remind'),
+          matching: find.byIcon(BvIcons.calendar),
+        ),
+        findsNothing,
+      );
       await _tap(tester, _key('note-remind'));
       expect(
         app.notebook.kept['note-sleeves']!.remindAt,
