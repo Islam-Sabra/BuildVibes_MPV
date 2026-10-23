@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../core/design/bv_icons.dart';
@@ -81,50 +79,4 @@ class BvMessageBanner extends StatelessWidget {
       ),
     );
   }
-}
-
-OverlayEntry? _shown;
-Timer? _timer;
-
-/// Shows [BvMessageBanner] at the top of the app for a few seconds; a new
-/// one replaces the last. A tap closes it and runs [onTap].
-void showBvMessageBanner(
-  BuildContext context, {
-  required String title,
-  required String body,
-  required VoidCallback onTap,
-}) {
-  final overlay = Overlay.maybeOf(context, rootOverlay: true);
-  if (overlay == null) return;
-  hideBvMessageBanner();
-  final entry = OverlayEntry(
-    builder: (context) => PositionedDirectional(
-      start: BvMessageBannerSpec.margin,
-      end: BvMessageBannerSpec.margin,
-      top: MediaQuery.paddingOf(context).top + BvMessageBannerSpec.margin,
-      child: Dismissible(
-        key: const Key('bv-message-banner'),
-        direction: DismissDirection.up,
-        onDismissed: (_) => hideBvMessageBanner(),
-        child: BvMessageBanner(
-          title: title,
-          body: body,
-          onTap: () {
-            hideBvMessageBanner();
-            onTap();
-          },
-        ),
-      ),
-    ),
-  );
-  _shown = entry;
-  overlay.insert(entry);
-  _timer = Timer(BvMessageBannerSpec.shown, hideBvMessageBanner);
-}
-
-void hideBvMessageBanner() {
-  _timer?.cancel();
-  _timer = null;
-  _shown?.remove();
-  _shown = null;
 }

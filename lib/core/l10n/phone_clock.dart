@@ -72,9 +72,13 @@ class _PhoneClockScopeState extends ConsumerState<PhoneClockScope> {
   @override
   Widget build(BuildContext context) {
     final use24 = ref.watch(phoneClockProvider);
-    if (use24 == null) return widget.child;
+    final media = MediaQuery.of(context);
+    // Always the same shape (F99): when the phone's answer came, the app
+    // under it was built anew, and lost whatever showed.
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: use24),
+      data: use24 == null
+          ? media
+          : media.copyWith(alwaysUse24HourFormat: use24),
       child: widget.child,
     );
   }

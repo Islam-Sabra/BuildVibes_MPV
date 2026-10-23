@@ -453,6 +453,11 @@ abstract final class BvMessageBannerSpec {
   static const gap = BvSpace.s2;
   static const radius = BvRadius.cardAll;
 
-  /// Long enough to read a line; it goes by itself.
+  /// Long enough to read a line; it goes by itself. A newer message of the
+  /// same conversation starts it again (F99).
   static const shown = Duration(seconds: 4);
+
+  /// It slides down from above the top, and back up when it goes.
+  static const slide = BvMotion.base;
+  static const from = Offset(0, -1.5);
 }

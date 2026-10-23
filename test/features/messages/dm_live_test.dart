@@ -39,13 +39,41 @@ DmMessage _m(String id, String body) => DmMessage(
   body: body,
 );
 
-Map<String, String> _dmPush(String thread) => {
+Map<String, String> _dmPush(
+  String thread, {
+  String message = 'm9',
+  String title = 'Message from Omar Haddad',
+  String body = 'Gate 2 is blocked',
+}) => {
   'kind': 'dm_message',
   'route': '/messages/$thread',
   'dm_thread_id': thread,
-  pushTitleKey: 'Message from Omar Haddad',
-  pushBodyKey: 'Gate 2 is blocked',
+  'message_id': message,
+  pushTitleKey: title,
+  pushBodyKey: body,
 };
+
+Finder get _banner => find.byType(BvMessageBanner);
+
+/// The banner's place now: Offset.zero once it has slid in.
+Offset _slid(WidgetTester tester) => tester
+    .widget<SlideTransition>(find.byKey(const Key('dm-banner-slide')))
+    .position
+    .value;
+
+/// [time] passing as on a phone, one frame each 16 ms.
+Future<void> _frames(WidgetTester tester, Duration time) async {
+  const frame = Duration(milliseconds: 16);
+  for (var t = Duration.zero; t < time; t += frame) {
+    await tester.pump(time - t < frame ? time - t : frame);
+  }
+}
+
+Key? _bannerKey(WidgetTester tester) => tester
+    .widget<Dismissible>(
+      find.ancestor(of: _banner, matching: find.byType(Dismissible)),
+    )
+    .key;
 
 Future<void> _go(WidgetTester tester, String path) async {
   GoRouter.of(tester.element(find.byType(Scaffold).first)).push(path);
@@ -126,5 +154,117 @@ void main() {
     expect(find.byType(BvMessageBanner), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
     expect(find.byType(BvMessageBanner), findsNothing);
+  });
+
+  group('F99: the banner stays long enough to read and tap', () {
+    testWidgets('a Messages refresh, a live change and the same push again '
+        'leave it: there at 3.9 s, gone at 4.5 s', (tester) async {
+      final push = FakePushMessaging();
+      final dm = FakeDmRepository()
+        ..inboxValue = DmInbox(threads: [_omar('At the gate at 7?')]);
+      await pumpApp(tester, dm: dm, push: push, now: _now);
+      push.arrive(_dmPush('t-omar'));
+      await tester.pump();
+      await tester.pump();
+      final shown = tester.binding.clock.now();
+      expect(_banner, findsOneWidget);
+      // The Messages refresh the push and Realtime cause, and the same
+      // message's push a second time (a phone with two tokens).
+      await tester.pump(const Duration(milliseconds: 100));
+      dm.inboxValue = DmInbox(threads: [_omar('Gate 2 is blocked')]);
+      dm.push('t-omar', 'm9');
+      push.arrive(_dmPush('t-omar'));
+      await tester.pump(const Duration(milliseconds: 100));
+      await backToTheApp(tester);
+      expect(_banner, findsOneWidget);
+      await tester.pump(
+        const Duration(milliseconds: 3900) -
+            tester.binding.clock.now().difference(shown),
+      );
+      expect(_banner, findsOneWidget);
+      expect(find.text('Gate 2 is blocked'), findsOneWidget);
+      await _frames(tester, const Duration(milliseconds: 600));
+      expect(_banner, findsNothing);
+    });
+
+    testWidgets('a second message of the same conversation changes the '
+        'words in place, with no new slide-in, and starts the 4 s again: '
+        'there at 6.9 s, gone by 7.5 s', (tester) async {
+      final push = FakePushMessaging();
+      await pumpApp(tester, push: push, now: _now);
+      push.arrive(_dmPush('t-omar'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      final key = _bannerKey(tester);
+      expect(_slid(tester), Offset.zero);
+      await tester.pump(const Duration(seconds: 2));
+      // 3 s: the next message.
+      push.arrive(_dmPush('t-omar', message: 'm10', body: 'Pump is late'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Pump is late'), findsOneWidget);
+      expect(find.text('Gate 2 is blocked'), findsNothing);
+      // The same banner, where it was: no slide-in.
+      expect(_bannerKey(tester), key);
+      expect(_slid(tester), Offset.zero);
+      await tester.pump(const Duration(milliseconds: 3900));
+      expect(_banner, findsOneWidget);
+      await _frames(tester, const Duration(milliseconds: 600));
+      expect(_banner, findsNothing);
+    });
+
+    testWidgets('another conversation replaces it, sliding in', (tester) async {
+      final push = FakePushMessaging();
+      await pumpApp(tester, push: push, now: _now);
+      push.arrive(_dmPush('t-omar'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      final key = _bannerKey(tester);
+      push.arrive(
+        _dmPush(
+          't-sara',
+          message: 'm20',
+          title: 'Message from Sara Ali',
+          body: 'Rebar is here',
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(_banner, findsOneWidget);
+      expect(find.text('Message from Sara Ali'), findsOneWidget);
+      expect(find.text('Message from Omar Haddad'), findsNothing);
+      expect(_bannerKey(tester), isNot(key));
+      expect(_slid(tester), isNot(Offset.zero));
+      await tester.pumpAndSettle();
+      expect(_slid(tester), Offset.zero);
+    });
+
+    testWidgets('a swipe up takes it away at once', (tester) async {
+      final push = FakePushMessaging();
+      await pumpApp(tester, push: push, now: _now);
+      push.arrive(_dmPush('t-omar'));
+      await tester.pumpAndSettle();
+      await tester.fling(_banner, const Offset(0, -200), 1000);
+      await tester.pumpAndSettle();
+      expect(_banner, findsNothing);
+      expect(find.byType(DmThreadScreen), findsNothing);
+    });
+
+    testWidgets('it goes when its conversation opens', (tester) async {
+      final push = FakePushMessaging();
+      final dm = FakeDmRepository()
+        ..pages['t-omar'] = _page('t-omar', 'Omar Haddad', [
+          _m('m9', 'Gate 2 is blocked'),
+        ]);
+      await pumpApp(tester, dm: dm, push: push, now: _now);
+      push.arrive(_dmPush('t-omar'));
+      await tester.pump();
+      await tester.pump();
+      expect(_banner, findsOneWidget);
+      await _go(tester, '/messages/t-omar');
+      expect(_banner, findsNothing);
+    });
   });
 }
