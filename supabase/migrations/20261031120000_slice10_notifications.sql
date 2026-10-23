@@ -110,9 +110,12 @@ $$;
 -- Takes one row to send, once (as in 20261012190000_push.sql): unsent, not
 -- claimed in the last minute (a send that crashed is claimed again), and
 -- not asked to wait. Empty when another call has it, or it is done.
--- A follow-up (F97) goes only if the messages after its first push are
--- still unread, still muted-free and open, with how many in "count";
--- otherwise it is closed without a push.
+-- A follow-up (F97) goes only if the messages after its first push and
+-- before the quiet time's end are still unread, still muted-free and open,
+-- with how many in "count"; otherwise it is closed without a push. If a new
+-- quiet time has already begun with its own push (the cron sends up to a
+-- minute after not_before), that push has the news: the follow-up is
+-- closed as 'superseded' (review 88 S1).
 create or replace function public.claim_push(p_id bigint)
 returns setof public.push_queue
 language plpgsql
@@ -136,6 +139,15 @@ begin
     return;
   end if;
   if v_row.kind = 'dm_follow_up' then
+    if exists (select 1 from public.push_queue q
+               where q.profile_id = v_row.profile_id and q.kind = 'dm_message'
+                 and q.dm_thread_id = v_row.dm_thread_id
+                 and q.created_at >= v_row.not_before) then
+      update public.push_queue
+      set sent_at = now(), claimed_at = null, error = 'superseded'
+      where id = v_row.id;
+      return;
+    end if;
     select count(*) into v_count
     from public.dm_messages m
     join public.dm_members me on me.thread_id = m.thread_id and me.profile_id = v_row.profile_id
@@ -143,6 +155,7 @@ begin
       and m.author_id = v_row.actor_id
       and m.deleted_at is null
       and m.created_at > (v_row.data ->> 'since')::timestamptz
+      and m.created_at < v_row.not_before
       and (me.last_read_at is null or m.created_at > me.last_read_at)
       and me.state = 'open' and not me.muted
       and not public.dm_blocked(v_row.profile_id, v_row.actor_id);

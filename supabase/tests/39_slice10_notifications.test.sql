@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(20);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000039' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -83,8 +83,11 @@ select is((pg_temp.follow_up('e2')).data ->> 'dm_thread_id', pg_temp.id('a001'):
 
 select is((select count(*) from public.claim_push((pg_temp.follow_up('e2')).id)), 0::bigint,
   'before the quiet time ends it isn''t sent');
+-- The quiet time ends: both messages came before its end.
 update public.push_queue set not_before = now() - interval '1 second'
 where id = (pg_temp.follow_up('e2')).id;
+update public.dm_messages set created_at = now() - interval '2 seconds'
+where id in (pg_temp.id('b002'), pg_temp.id('b003'));
 select is((select data ->> 'count' from public.claim_push((pg_temp.follow_up('e2')).id)), '2',
   'at its end, unread: one push for the 2 new messages');
 select is(array(select id from public.retry_push_queue()
@@ -128,6 +131,42 @@ select public.send_dm(pg_temp.id('b014'), pg_temp.id('a002'), 'Still muted?');
 reset role;
 select is(pg_temp.q('e3', 'dm_message') + pg_temp.q('e3', 'dm_follow_up'), 0::bigint,
   'a muted conversation gets neither');
+
+-- F97 (review 88 S1): a follow-up that arrives after a new quiet time began ----------------
+
+-- Rakesh writes to Sara; 2 minutes later one more (a follow-up for minute 5).
+select pg_temp.as_user('e2');
+set local role authenticated;
+select public.start_dm(pg_temp.id('a003'), pg_temp.uid('e3'), pg_temp.id('b021'), 'Rebar is here');
+reset role;
+select pg_temp.two_minutes_ago('a003');
+select pg_temp.as_user('e2');
+set local role authenticated;
+select public.send_dm(pg_temp.id('b022'), pg_temp.id('a003'), 'Where to put it?');
+reset role;
+-- Now it is minute 5:20: the follow-up is due, but not yet sent.
+update public.push_queue set created_at = created_at - interval '3 minutes 20 seconds',
+                             not_before = not_before - interval '3 minutes 20 seconds'
+where dm_thread_id = pg_temp.id('a003');
+update public.dm_messages set created_at = created_at - interval '3 minutes 20 seconds'
+where thread_id = pg_temp.id('a003');
+-- A third message: the quiet time is over, so it has its own push.
+select pg_temp.as_user('e2');
+set local role authenticated;
+select public.send_dm(pg_temp.id('b023'), pg_temp.id('a003'), 'Near gate 2');
+reset role;
+select is((select count(*) from public.claim_push(
+             (select id from public.push_queue
+              where dm_thread_id = pg_temp.id('a003') and kind = 'dm_follow_up'))), 0::bigint,
+  'a follow-up after a new quiet time began is not sent');
+select is((select error from public.push_queue
+           where dm_thread_id = pg_temp.id('a003') and kind = 'dm_follow_up'), 'superseded',
+  'it is closed as superseded');
+select is((select data ->> 'message_id' from public.claim_push(
+             (select id from public.push_queue
+              where dm_thread_id = pg_temp.id('a003') and kind = 'dm_message'
+              order by created_at desc limit 1))), pg_temp.id('b023')::text,
+  'only the third message''s push goes');
 
 -- Activity: a daybook post's rows -------------------------------------------------------------
 
