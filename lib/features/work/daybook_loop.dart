@@ -653,14 +653,25 @@ class DaybookLoop {
           ),
         );
     if (result == null || !context.mounted) return;
-    await _call(
-      context,
-      RefusedAction.sendBack,
-      post.id,
-      () => ref
-          .read(workRepositoryProvider)
-          .sendBack(post.id, result.$1, note: result.$2, due: result.$3),
-    );
+    // On the phone first: with no signal it waits and goes by itself
+    // (slice 10).
+    await ref
+        .read(workOutboxProvider.notifier)
+        .send(
+          PendingItem(
+            kind: PendingKind.sendBack,
+            id: post.id,
+            spaceId: _spaceId,
+            title: post.title,
+            ownerId: post.item?.ownerId ?? '',
+            ownerName: post.item?.ownerName ?? '',
+            body: result.$1.json,
+            note: result.$2,
+            dueDate: result.$3.day,
+            dueAt: result.$3.at,
+            madeAt: ref.read(clockProvider)(),
+          ),
+        );
   }
 
   /// An update (Y1 → Y2): one line on a sheet that sits on the keyboard,
@@ -679,12 +690,21 @@ class DaybookLoop {
       ),
     );
     if (text == null || text.trim().isEmpty || !context.mounted) return;
-    await _call(
-      context,
-      RefusedAction.update,
-      postId,
-      () => ref.read(workRepositoryProvider).addComment(postId, text),
-    );
+    await ref
+        .read(workOutboxProvider.notifier)
+        .send(
+          PendingItem(
+            kind: PendingKind.update,
+            id: newUuid(),
+            postId: postId,
+            spaceId: _spaceId,
+            title: card.post.title,
+            ownerId: card.post.item?.ownerId ?? '',
+            ownerName: card.post.item?.ownerName ?? '',
+            body: text,
+            madeAt: ref.read(clockProvider)(),
+          ),
+        );
   }
 
   /// Give to someone else (X2): Lead and Crew only, the owner marked
@@ -715,46 +735,19 @@ class DaybookLoop {
     if (picked == null || picked.id == p.item?.ownerId || !context.mounted) {
       return;
     }
-    await _call(
-      context,
-      RefusedAction.giveTo,
-      p.id,
-      () => ref.read(workRepositoryProvider).reassign(p.id, picked.id),
-    );
-  }
-
-  /// Runs a change on the server, then reads the daybook again. A lost
-  /// signal says so; a refusal says why in plain words (review 47, answer
-  /// 5) and the page reads again too.
-  Future<void> _call(
-    BuildContext context,
-    RefusedAction action,
-    String postId,
-    Future<void> Function() run,
-  ) async {
-    try {
-      await run();
-    } on SpaceException catch (e) {
-      if (e.failure == SpaceFailure.network) {
-        if (context.mounted) showSpaceError(context, e);
-        return;
-      }
-      await refresh();
-      ref
-          .read(refusalsProvider.notifier)
-          .add(
-            DaybookRefusal(
-              action: action,
-              spaceId: _spaceId,
-              postId: postId,
-              why: RefusalWhy.of(e),
-            ),
-          );
-      return;
-    }
-    // The Space's other open daybooks read it at once (F47).
-    unawaited(ref.read(daybookLiveProvider).changed(_spaceId, postId));
-    await refresh();
+    await ref
+        .read(workOutboxProvider.notifier)
+        .send(
+          PendingItem(
+            kind: PendingKind.giveTo,
+            id: p.id,
+            spaceId: _spaceId,
+            title: p.title,
+            ownerId: picked.id,
+            ownerName: picked.name,
+            madeAt: ref.read(clockProvider)(),
+          ),
+        );
   }
 
   /// "Couldn't check: this item was cancelled". [cards] is the page read

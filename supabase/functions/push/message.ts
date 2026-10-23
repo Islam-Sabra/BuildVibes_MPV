@@ -37,6 +37,7 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
     // Direct messages (migration 22): the thread; a request opens it too.
     case "dm_message":
     case "dm_request":
+    case "dm_follow_up":
       return { route: `/messages/${d.dm_thread_id}` };
     case "join_request":
       return { route: `/spaces/${d.space_id}`, open: "people" };
@@ -48,18 +49,14 @@ export function routeFor(row: QueueRow): { route: string; open?: string } {
       return { route: `/people/${row.actor_id}` };
     case "post_reply":
       return { route: `/posts/${d.post_id}` };
-    // Daybook posts (migration 19) open their Space until the app has a
-    // route for one post; the post's id is in the data (space_post_id).
-    case "announcement_new":
-    case "checklist_for_you":
-    case "activity_invited":
-    case "activity_starting":
-    case "file_new_version":
-      return { route: `/spaces/${d.space_id}` };
-    default:
-      return d.work_item_id
-        ? { route: `/spaces/${d.space_id}/items/${d.work_item_id}` }
+    // Everything else opens its card in the Space: the work item, or the
+    // daybook post (migration 19's space_post_id); the Space with neither.
+    default: {
+      const card = d.work_item_id || d.space_post_id;
+      return card
+        ? { route: `/spaces/${d.space_id}/items/${card}` }
         : { route: `/spaces/${d.space_id}` };
+    }
   }
 }
 
@@ -96,9 +93,30 @@ export function buildPush(
       tag: row.data?.dm_thread_id ?? undefined,
     };
   }
+  if (row.kind === "dm_follow_up") {
+    // F97: the messages after the first push, still unread at the quiet
+    // time's end. Never the text: it stands for several. Same tag, so it
+    // replaces the first push.
+    const n = Number(row.data?.count ?? "0");
+    return {
+      title: fill(t.dm_title),
+      body: (t[followUpKey(n)] ?? t.dm_follow_up_many).replaceAll("{count}", String(n)),
+      data,
+      tag: row.data?.dm_thread_id ?? undefined,
+    };
+  }
   const template = t[row.kind];
   if (!template) throw new Error(`no text for ${row.kind}`);
   return { title: t.title, body: fill(template), data };
+}
+
+// Arabic counts its nouns in four forms (one, two, 3–10, 11 and more);
+// English uses the first and the last.
+export function followUpKey(n: number): string {
+  if (n === 1) return "dm_follow_up_one";
+  if (n === 2) return "dm_follow_up_two";
+  if (n >= 3 && n <= 10) return "dm_follow_up_few";
+  return "dm_follow_up_many";
 }
 
 // What an FCM error means (reviews 21 and 22). Only an error that names

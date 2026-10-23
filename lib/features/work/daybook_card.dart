@@ -198,6 +198,7 @@ class DaybookCardView extends StatelessWidget {
     required this.activityAt,
     this.viewer = false,
     this.waiting = false,
+    this.changeWaiting = false,
     this.sending,
     this.couldNotSend = false,
     this.localPhoto,
@@ -223,6 +224,11 @@ class DaybookCardView extends StatelessWidget {
   final DateTime activityAt;
   final bool viewer;
   final bool waiting;
+
+  /// A change to it (a tick, Got it, a send-back, give to, an update)
+  /// waits for a signal (slice 10): the card says "Waiting to send" and
+  /// stays as it is otherwise.
+  final bool changeWaiting;
 
   /// F73: on its way now, with a file's bytes while it uploads; null while
   /// it waits for a signal.
@@ -276,6 +282,7 @@ class DaybookCardView extends StatelessWidget {
         activityAt: activityAt,
         viewer: viewer,
         waiting: waiting,
+        changeWaiting: changeWaiting,
         sending: sending,
         couldNotSend: couldNotSend,
         localPhoto: localPhoto,
@@ -413,7 +420,7 @@ class DaybookCardView extends StatelessWidget {
             ?history,
             if (couldNotSend)
               BvSlipError(l10n.daybookCouldNotSend)
-            else if (waiting)
+            else if (waiting || changeWaiting)
               _waitingLine(context, l10n),
             ?action,
           ],
@@ -540,7 +547,7 @@ class DaybookCardView extends StatelessWidget {
           ?history,
           if (couldNotSend)
             BvSlipError(l10n.daybookCouldNotSend)
-          else if (waiting)
+          else if (waiting || changeWaiting)
             _waitingLine(context, l10n),
         ],
       ),

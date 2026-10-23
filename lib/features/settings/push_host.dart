@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/l10n/locale_controller.dart';
+import '../../core/network/signal_state.dart';
 import '../../core/push/push_messaging.dart';
 import '../../core/push/push_state.dart';
 import '../../core/routing/app_routes.dart';
@@ -14,6 +15,7 @@ import '../../data/repositories/push_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
+import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_screen.dart' show SpaceOpen;
 
 /// Whether the phone lets BuildVibes notify (S4 shows when it doesn't).
@@ -42,6 +44,18 @@ String pushInstallId(SharedPreferences prefs) {
 
 const pushInstallKey = 'push_install_id';
 
+/// When this install first failed to get a push token (F96), kept until
+/// one comes: after a day, Settings → Notifications says to restart the
+/// phone.
+const pushNoTokenSinceKey = 'push_no_token_since';
+
+/// F96: how long the phone has gone without a push token, or null while
+/// it has one (or hasn't tried).
+Duration? pushNoTokenFor(SharedPreferences prefs, DateTime now) {
+  final since = DateTime.tryParse(prefs.getString(pushNoTokenSinceKey) ?? '');
+  return since == null ? null : now.difference(since);
+}
+
 /// Signing out: this phone gets no more pushes for the account. Never
 /// stops the sign-out.
 Future<void> unregisterPush(WidgetRef ref) async {
@@ -60,9 +74,11 @@ Future<void> unregisterPush(WidgetRef ref) async {
 ///
 /// Some phones fail to get a push token at first and Firebase doesn't try
 /// again (F9, a Xiaomi in the pilot): the token is tried again with waits
-/// between, and on each return to the app. With none after the tries, Home
-/// and Settings → Notifications say notifications aren't reaching this
-/// phone ([pushHealthProvider]).
+/// between. With none after the tries, Home and Settings → Notifications
+/// say notifications aren't reaching this phone ([pushHealthProvider]),
+/// and the phone keeps trying (F96) until this install's token is
+/// registered: on each return to the app, when the signal comes back, and
+/// every [pushKeepTryingProvider] while the app is open.
 class PushHost extends ConsumerStatefulWidget {
   const PushHost({super.key, required this.child});
 
@@ -84,6 +100,9 @@ class _PushHostState extends ConsumerState<PushHost> {
   /// The "no token" count is sent once per app start.
   var _reported = false;
 
+  /// F96: the tries while the app is open, after the first ones failed.
+  Timer? _keepTrying;
+
   @override
   void initState() {
     super.initState();
@@ -94,6 +113,7 @@ class _PushHostState extends ConsumerState<PushHost> {
   @override
   void dispose() {
     _life.dispose();
+    _keepTrying?.cancel();
     for (final s in _subs) {
       s.cancel();
     }
@@ -124,13 +144,15 @@ class _PushHostState extends ConsumerState<PushHost> {
   }
 
   /// Asks the phone for its token until it gives one, waiting longer
-  /// between tries; then registers it.
-  Future<void> _getToken() async {
+  /// between tries; then registers it. [once]: one more try (F96).
+  Future<void> _getToken({bool once = false}) async {
     if (_gettingToken) return;
     _gettingToken = true;
     try {
       final messaging = ref.read(pushMessagingProvider);
-      final delays = ref.read(pushTokenRetryDelaysProvider);
+      final delays = once
+          ? const <Duration>[]
+          : ref.read(pushTokenRetryDelaysProvider);
       for (var attempt = 0; ; attempt++) {
         String? token;
         try {
@@ -147,7 +169,19 @@ class _PushHostState extends ConsumerState<PushHost> {
         await Future<void>.delayed(delays[attempt]);
         if (!mounted) return;
       }
+      final prefs = ref.read(sharedPreferencesProvider);
+      if (!prefs.containsKey(pushNoTokenSinceKey)) {
+        await prefs.setString(
+          pushNoTokenSinceKey,
+          ref.read(clockProvider)().toUtc().toIso8601String(),
+        );
+      }
+      if (!mounted) return;
       ref.read(pushHealthProvider.notifier).set(PushHealth.notReaching);
+      _keepTrying ??= Timer.periodic(
+        ref.read(pushKeepTryingProvider),
+        (_) => unawaited(_tryAgain()),
+      );
       if (!_reported) {
         _reported = true;
         messaging.reportNoToken();
@@ -160,8 +194,25 @@ class _PushHostState extends ConsumerState<PushHost> {
   Future<void> _gotToken(String token) async {
     if (!mounted) return;
     _token = token;
+    _keepTrying?.cancel();
+    _keepTrying = null;
+    unawaited(ref.read(sharedPreferencesProvider).remove(pushNoTokenSinceKey));
     ref.read(pushHealthProvider.notifier).set(PushHealth.working);
     await _register(token);
+  }
+
+  /// F96: the timer's try, or the signal's return: one more ask for the
+  /// token, or the server is given the one it missed.
+  Future<void> _tryAgain() async {
+    if (!_ready) return;
+    final token = _token;
+    if (token == null) {
+      if (ref.read(pushHealthProvider) == PushHealth.notReaching) {
+        await _getToken(once: true);
+      }
+    } else if (_registered != token) {
+      await _register(token);
+    }
   }
 
   /// Back in the app: notifications may have been turned on, or the phone
@@ -242,6 +293,10 @@ class _PushHostState extends ConsumerState<PushHost> {
     ref.listen(localeControllerProvider, (_, _) {
       final token = _token;
       if (token != null) unawaited(_register(token));
+    });
+    // F96: the signal is back (the outbox got through).
+    ref.listen(signalProvider, (was, has) {
+      if (was == false && has) unawaited(_tryAgain());
     });
     return widget.child;
   }

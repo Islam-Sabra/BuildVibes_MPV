@@ -14,7 +14,15 @@ enum ActivityKind {
   postReply('post_reply'),
   postUseful('post_useful'),
   contentRemoved('content_removed'),
-  appealDecided('appeal_decided');
+  appealDecided('appeal_decided'),
+  // Daybook posts (migration 19): a change or a cancel of something for
+  // you, and the post kinds' own rows. Their row opens the post's card.
+  itemEdited('item_edited'),
+  itemCancelled('item_cancelled'),
+  announcementNew('announcement_new'),
+  checklistForYou('checklist_for_you'),
+  activityInvited('activity_invited'),
+  fileNewVersion('file_new_version');
 
   const ActivityKind(this.json);
 
@@ -49,6 +57,8 @@ class ActivityRow {
     this.targetKind,
     this.result,
     this.eventId,
+    this.spacePostId,
+    this.postKind,
   });
 
   factory ActivityRow.fromJson(Map<String, dynamic> j) => ActivityRow(
@@ -75,6 +85,8 @@ class ActivityRow {
     eventId: (j['payload'] as Map?)?['event_id'] as String?,
     targetKind: (j['payload'] as Map?)?['target_kind'] as String?,
     result: (j['payload'] as Map?)?['result'] as String?,
+    spacePostId: j['space_post_id'] as String?,
+    postKind: j['post_kind'] as String?,
   );
 
   final String id;
@@ -111,6 +123,14 @@ class ActivityRow {
   /// The work item event a row is about (its history line), when the
   /// server says (F20).
   final String? eventId;
+
+  /// The daybook post a row is about when it isn't a work item (an
+  /// announcement, a checklist, a scheduled activity, a file), and its kind.
+  final String? spacePostId;
+  final String? postKind;
+
+  /// The card the row opens in its Space's daybook.
+  String? get cardId => workItemId ?? spacePostId;
 }
 
 /// Which Space tab a "Today in your Spaces" row opens.

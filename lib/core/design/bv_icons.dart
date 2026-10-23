@@ -251,6 +251,10 @@ abstract final class BvIcons {
   /// push-pin: an announcement pinned under the masthead.
   static const pin = IconData(0xe3e2, fontFamily: _family);
 
+  /// bell: Remind me on a note (review 88 S3); the calendar glyph is My
+  /// calendar.
+  static const remind = activity;
+
   /// bell-slash: notifications aren't reaching this phone (F9).
   static const notificationsOff = IconData(0xe0d4, fontFamily: _family);
 

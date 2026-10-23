@@ -10,6 +10,7 @@ import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_page_specs.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/network/signal_state.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/library.dart';
 import '../../data/models/post_page.dart';
@@ -377,6 +378,22 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   /// page to choose from).
   Future<bool> save() async => await _save() != _Saved.failed;
 
+  /// Something written here isn't on the server yet: leaving asks first
+  /// (slice 10).
+  bool get dirty {
+    final plan = planPageSave(
+      _page,
+      blocks: _collect(),
+      points: _points,
+      title: _title.text,
+      body: _body.text,
+    );
+    return plan.before.isNotEmpty ||
+        plan.after.isNotEmpty ||
+        _addFiles.isNotEmpty ||
+        _blocksChanged(plan.blocks);
+  }
+
   Future<_Saved> _save() async {
     if (_saving) return _Saved.failed;
     final plan = planPageSave(
@@ -417,15 +434,26 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       setState(() => _saving = false);
       return await _newer() ? _Saved.sent : _Saved.failed;
     } on SpaceException catch (e) {
+      final network = e.failure == SpaceFailure.network;
+      if (network) ref.read(signalProvider.notifier).lost();
       if (mounted) {
         setState(() => _saving = false);
-        showSpaceError(context, e);
+        // No signal (slice 10): the editor stays open with every change;
+        // a later send could clash with the page's version, so it isn't
+        // queued.
+        network
+            ? showSpaceMessage(
+                context,
+                AppLocalizations.of(context).pageNoSignal,
+              )
+            : showSpaceError(context, e);
       }
       // Some steps may have gone: start the next Done from what the
       // server has, so nothing is sent twice.
       await _catchUp();
       return _Saved.failed;
     }
+    ref.read(signalProvider.notifier).back();
     _addFiles.clear();
     _changed();
     if (mounted) setState(() => _saving = false);

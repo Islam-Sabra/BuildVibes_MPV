@@ -222,7 +222,12 @@ void main() {
       await _go(tester, '/messages');
       await _tap(tester, find.byKey(const Key('messages-row-t-omar')));
       expect(
-        find.text('Site Engineer · ${inOwnDirection('Al Hamra Contracting')}'),
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text(
+            'Site Engineer · ${inOwnDirection('Al Hamra Contracting')}',
+          ),
+        ),
         findsOneWidget,
       );
       expect(

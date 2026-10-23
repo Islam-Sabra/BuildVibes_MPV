@@ -22,7 +22,11 @@
     "chat_hidden": "Open BuildVibes to read it.",
     "dm_request": "{name} sent you a message request.",
     "dm_title": "Message from {name}",
-    "someone": "Someone"
+    "someone": "Someone",
+    "dm_follow_up_one": "1 new message",
+    "dm_follow_up_two": "2 new messages",
+    "dm_follow_up_few": "{count} new messages",
+    "dm_follow_up_many": "{count} new messages"
   },
   "ar": {
     "title": "BuildVibes",
@@ -47,6 +51,10 @@
     "chat_hidden": "افتح BuildVibes لقراءتها.",
     "dm_request": "طلب رسالة من {name}.",
     "dm_title": "رسالة من {name}",
-    "someone": "أحدهم"
+    "someone": "أحدهم",
+    "dm_follow_up_one": "رسالة جديدة",
+    "dm_follow_up_two": "رسالتان جديدتان",
+    "dm_follow_up_few": "{count} رسائل جديدة",
+    "dm_follow_up_many": "{count} رسالة جديدة"
   }
 }

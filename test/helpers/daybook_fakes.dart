@@ -211,10 +211,21 @@ class FakeDaybookRepository implements DaybookRepository {
   Future<List<DaybookAckFace>> acks(String postId) async =>
       acksByPost[postId] ?? const [];
 
+  /// The next ticks and acknowledgements fail as if the signal dropped.
+  int failMarks = 0;
+
+  void _maybeFailMark() {
+    if (failMarks > 0) {
+      failMarks--;
+      throw const SpaceException(SpaceFailure.network);
+    }
+  }
+
   @override
   Future<void> tickPoint(String pointId, {required bool on}) async {
     await holdMarks?.future;
     _check();
+    _maybeFailMark();
     marks.add('tick $pointId $on');
   }
 
@@ -222,6 +233,7 @@ class FakeDaybookRepository implements DaybookRepository {
   Future<void> ack(String postId, DaybookAck kind, {required bool on}) async {
     await holdMarks?.future;
     _check();
+    _maybeFailMark();
     marks.add('ack $postId ${kind.json} $on');
   }
 

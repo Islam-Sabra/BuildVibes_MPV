@@ -117,7 +117,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
         padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s32),
         children: [
           // F9: allowed, but the phone has no push token.
-          const PushNotReachingLine(),
+          const PushNotReachingLine(afterADay: true),
           if (off)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(

@@ -2563,7 +2563,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settingsViewProfile => 'عرض الملف';
+  String get settingsViewProfile => 'عرض الملف الشخصي';
 
   @override
   String get settingsLanguageLabel => 'اللغة';
@@ -4666,4 +4666,88 @@ class AppLocalizationsAr extends AppLocalizations {
   String weekReportCard(String range) {
     return 'تقرير الأسبوع · $range';
   }
+
+  @override
+  String activityItemEdited(String name, String title) {
+    return 'تعديل من $name على $title';
+  }
+
+  @override
+  String activityItemCancelled(String name, String title) {
+    return 'إلغاء من $name: $title';
+  }
+
+  @override
+  String activityAnnouncement(String name, String title) {
+    return 'إعلان من $name: $title';
+  }
+
+  @override
+  String activityChecklist(String name, String title) {
+    return 'قائمة تحقق لك من $name: $title';
+  }
+
+  @override
+  String activityInvited(String name, String title) {
+    return 'دعوة من $name إلى نشاط مجدول: $title';
+  }
+
+  @override
+  String activityFileVersion(String name, String title) {
+    return 'نسخة جديدة من $name: $title';
+  }
+
+  @override
+  String get pushNotYet =>
+      'لا يصل الإشعار إلى هذا الهاتف بعد. أعد تشغيل الهاتف ثم افتح BuildVibes.';
+
+  @override
+  String get dmViewProfile => 'عرض الملف الشخصي';
+
+  @override
+  String get dmStartLine => 'بداية محادثتكما';
+
+  @override
+  String get notebookRemindMe => 'ذكّرني';
+
+  @override
+  String notebookReminderLine(String when) {
+    return 'تذكير · $when';
+  }
+
+  @override
+  String notebookReminderWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookRemindPast => 'اختر وقتًا لم يأتِ بعد.';
+
+  @override
+  String get reminderTitle => 'تذكير';
+
+  @override
+  String get reminderChannel => 'التذكيرات';
+
+  @override
+  String get reminderChannelAbout => 'التذكيرات التي تضبطها في دفتري.';
+
+  @override
+  String get noSignalStrip => 'لا توجد إشارة. كل ما تنشره ينتظر ويُرسل وحده.';
+
+  @override
+  String get pageNoSignal =>
+      'لا توجد إشارة. تبقى تعديلاتك هنا. اضغط تم مرة أخرى عند عودة الإشارة.';
+
+  @override
+  String get pageLeaveTitle => 'المغادرة دون حفظ؟';
+
+  @override
+  String get pageLeaveBody => 'تعديلاتك على هذه الصفحة لم تُحفظ بعد.';
+
+  @override
+  String get pageLeaveStay => 'تابع التعديل';
+
+  @override
+  String get pageLeaveGo => 'غادر';
 }

@@ -27,6 +27,9 @@ class FakeWorkRepository implements WorkRepository {
     if (e != null) throw e;
   }
 
+  /// Give to is refused with [refuse] too.
+  bool reassignRefused = false;
+
   /// Uploads the server cleaned up: sending them is refused as bad input.
   final cleanedUp = <String>{};
 
@@ -67,11 +70,14 @@ class FakeWorkRepository implements WorkRepository {
 
   @override
   Future<void> addComment(String itemId, String text) async {
+    _maybeFail();
     calls.add('comment $itemId $text');
   }
 
   @override
   Future<void> reassign(String itemId, String ownerId) async {
+    _maybeFail();
+    if (reassignRefused) _maybeRefuse();
     calls.add('reassign $itemId $ownerId');
   }
 

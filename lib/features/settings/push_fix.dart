@@ -9,7 +9,9 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_quiet_line.dart';
 import '../../shared/widgets/bv_sheet.dart';
-import 'push_host.dart' show pushPermissionProvider;
+import '../../core/l10n/locale_controller.dart' show sharedPreferencesProvider;
+import '../profile/edit/experience_screens.dart' show clockProvider;
+import 'push_host.dart' show pushNoTokenFor, pushPermissionProvider;
 
 /// Xiaomi, Redmi and POCO phones stop an app in the background unless
 /// Autostart is on and the battery saver leaves it alone, and then its
@@ -85,8 +87,15 @@ class PushFixSteps extends StatelessWidget {
 /// F9: "Notifications aren't reaching this phone · Fix it", while
 /// notifications are allowed but the phone has no push token. With them
 /// off, Settings → Notifications says so instead (S4).
+///
+/// [afterADay] (Settings, F96): after a day without a token, the line says
+/// to restart the phone, then open BuildVibes.
 class PushNotReachingLine extends ConsumerWidget {
-  const PushNotReachingLine({super.key});
+  const PushNotReachingLine({super.key, this.afterADay = false});
+
+  final bool afterADay;
+
+  static const day = Duration(hours: 24);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,10 +105,17 @@ class PushNotReachingLine extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final l10n = AppLocalizations.of(context);
+    final without = afterADay
+        ? pushNoTokenFor(
+            ref.watch(sharedPreferencesProvider),
+            ref.read(clockProvider)(),
+          )
+        : null;
+    final long = without != null && without >= day;
     return BvQuietLine(
-      key: const Key('push-not-reaching'),
+      key: Key(long ? 'push-not-yet' : 'push-not-reaching'),
       icon: BvIcons.notificationsOff,
-      text: l10n.pushNotReaching,
+      text: long ? l10n.pushNotYet : l10n.pushNotReaching,
       actionLabel: l10n.pushFixIt,
       onAction: () => fixPush(context, ref),
     );

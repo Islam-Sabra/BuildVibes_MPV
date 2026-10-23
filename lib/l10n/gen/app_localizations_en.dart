@@ -4655,4 +4655,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String weekReportCard(String range) {
     return 'Week report · $range';
   }
+
+  @override
+  String activityItemEdited(String name, String title) {
+    return '$name made a change to $title';
+  }
+
+  @override
+  String activityItemCancelled(String name, String title) {
+    return '$name cancelled $title';
+  }
+
+  @override
+  String activityAnnouncement(String name, String title) {
+    return '$name posted an announcement: $title';
+  }
+
+  @override
+  String activityChecklist(String name, String title) {
+    return '$name gave you a checklist: $title';
+  }
+
+  @override
+  String activityInvited(String name, String title) {
+    return '$name added you to a scheduled activity: $title';
+  }
+
+  @override
+  String activityFileVersion(String name, String title) {
+    return '$name shared a new version of $title';
+  }
+
+  @override
+  String get pushNotYet =>
+      'This phone isn\'t getting notifications yet. Restart the phone, then open BuildVibes.';
+
+  @override
+  String get dmViewProfile => 'View profile';
+
+  @override
+  String get dmStartLine => 'The start of your conversation';
+
+  @override
+  String get notebookRemindMe => 'Remind me';
+
+  @override
+  String notebookReminderLine(String when) {
+    return 'Reminder · $when';
+  }
+
+  @override
+  String notebookReminderWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookRemindPast => 'Pick a time still to come.';
+
+  @override
+  String get reminderTitle => 'Reminder';
+
+  @override
+  String get reminderChannel => 'Reminders';
+
+  @override
+  String get reminderChannelAbout => 'Reminders you set in My notebook.';
+
+  @override
+  String get noSignalStrip =>
+      'No signal. Everything you post waits and sends by itself.';
+
+  @override
+  String get pageNoSignal =>
+      'No signal. Your changes stay here. Press Done again when the signal is back.';
+
+  @override
+  String get pageLeaveTitle => 'Leave without saving?';
+
+  @override
+  String get pageLeaveBody => 'Your changes to this page aren\'t saved yet.';
+
+  @override
+  String get pageLeaveStay => 'Keep editing';
+
+  @override
+  String get pageLeaveGo => 'Leave';
 }

@@ -18,6 +18,7 @@ import '../../data/repositories/page_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
+import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_photo_strip.dart' show BvPhotoViewer;
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_slip.dart';
@@ -102,6 +103,25 @@ class _DaybookPageSheetState extends ConsumerState<DaybookPageSheet> {
     if (saved && mounted) setState(() => _editing = false);
   }
 
+  /// Leaving while editing (back, or a tap above the sheet): with changes
+  /// not saved, it asks first (slice 10).
+  Future<void> _leave() async {
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+    if (_editor.currentState?.dirty ?? false) {
+      final leave = await showBvDialog(
+        context: context,
+        title: l10n.pageLeaveTitle,
+        body: l10n.pageLeaveBody,
+        cancelLabel: l10n.pageLeaveStay,
+        confirmLabel: l10n.pageLeaveGo,
+        destructive: true,
+      );
+      if (!leave || !mounted) return;
+    }
+    navigator.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -130,8 +150,30 @@ class _DaybookPageSheetState extends ConsumerState<DaybookPageSheet> {
       body = _PageView(space: widget.space, page: page, me: me);
     }
 
+    final editing = _editing && canEdit;
     // Its own messenger: Undo and "no signal" show on the sheet, not
-    // under it.
+    // under it. While editing, leaving goes through [_leave], and the
+    // sheet isn't dragged away (its pages still scroll).
+    return PopScope(
+      canPop: !editing,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_leave());
+      },
+      child: GestureDetector(
+        onVerticalDragStart: editing ? (_) {} : null,
+        child: _sheet(context, post, page, me, canEdit, body),
+      ),
+    );
+  }
+
+  Widget _sheet(
+    BuildContext context,
+    DaybookPost post,
+    PostPage? page,
+    String? me,
+    bool canEdit,
+    Widget body,
+  ) {
     return FractionallySizedBox(
       heightFactor: BvPageSpec.heightFactor,
       child: ScaffoldMessenger(

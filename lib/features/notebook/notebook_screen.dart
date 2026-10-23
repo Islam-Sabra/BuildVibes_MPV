@@ -32,7 +32,8 @@ import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../spaces/space_screen.dart' show SpaceOpen;
 import '../work/daybook_draft.dart' show daybookDraftProvider;
 import '../work/daybook_words.dart';
-import '../work/daybook_writing.dart' show newPostIdProvider;
+import '../work/daybook_writing.dart' show newPostIdProvider, pickDueProvider;
+import 'note_reminders.dart' show remindsAt;
 import 'note_writer.dart';
 import 'notebook_state.dart';
 
@@ -152,7 +153,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   }
 
   /// The note's menu (2557:35481): Put in a Space with the Spaces, Pin to
-  /// the top, Edit and Delete.
+  /// the top, Remind me (not for a voice note), Edit and Delete.
   Future<void> _menu(Note note) async {
     final l10n = AppLocalizations.of(context);
     List<SpaceSummary> spaces = const [];
@@ -207,6 +208,13 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
           ),
           if (note.kind != NoteKind.voice)
             ChatActionRow(
+              key: const Key('note-remind'),
+              icon: BvIcons.remind,
+              label: l10n.notebookRemindMe,
+              onTap: () => Navigator.of(sheet).pop('remind'),
+            ),
+          if (note.kind != NoteKind.voice)
+            ChatActionRow(
               key: const Key('note-edit'),
               icon: BvIcons.edit,
               label: l10n.daybookEdit,
@@ -229,6 +237,8 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
         await _putIn(note, space);
       case 'pin':
         await notebook.pin(note, on: !note.pinned);
+      case 'remind':
+        await _remind(note);
       case 'edit':
         await _write(note);
       case 'delete':
@@ -243,6 +253,36 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
         if (yes) await notebook.delete(note);
     }
   }
+
+  /// Remind me: a day and a time (the daybook's picker; no time is 9 am),
+  /// or Remove. Saved as the note's remind_at; this phone sets the
+  /// reminder (ReminderHost).
+  Future<void> _remind(Note note) async {
+    final l10n = AppLocalizations.of(context);
+    final now = ref.read(clockProvider)();
+    final kept = note.remindAt;
+    final picked = await ref.read(pickDueProvider)(
+      context,
+      now: now,
+      day: kept == null ? null : dayOf(kept),
+      at: kept,
+    );
+    if (!mounted || picked == null) return;
+    final day = picked.day;
+    final at = day == null
+        ? null
+        : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
+    if (at != null && !at.isAfter(now)) {
+      _toast(l10n.notebookRemindPast);
+      return;
+    }
+    await ref
+        .read(notebookProvider.notifier)
+        .save(note.copyWith(remindAt: () => at));
+  }
+
+  /// A reminder picked with no time: that morning.
+  static const _morningHour = 9;
 
   /// The Space's writing card opens with the note's words; nothing is
   /// posted until Post. The note stays here, private.
@@ -646,12 +686,38 @@ class NoteSlip extends ConsumerWidget {
                 ref.read(notebookRepositoryProvider).recordingUrl(path),
           ),
         },
+        if (remindsAt(note, now))
+          BvSlipQuiet(
+            key: Key('note-reminder-${note.id}'),
+            l10n.notebookReminderLine(
+              reminderWhen(l10n, words, note.remindAt!, now),
+            ),
+          ),
         if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
         if (note.putInPostId != null && !note.waiting)
           BvSlipQuiet(l10n.notebookPut),
       ],
     );
   }
+}
+
+/// A reminder's time on its slip: "today 4:00 pm", "tomorrow 9:00 am",
+/// "Sun 18 Oct 9:00 am". In grey: it is the person's own, not a due
+/// (review 87 Q4).
+String reminderWhen(
+  AppLocalizations l10n,
+  DaybookWords words,
+  DateTime at,
+  DateTime now,
+) {
+  final day = dayOf(at);
+  final today = dayOf(now);
+  final name = day == today
+      ? l10n.daybookToday
+      : day == today.add(const Duration(days: 1))
+      ? l10n.daybookTomorrow
+      : words.shortDate(day);
+  return l10n.notebookReminderWhen(name, words.time.clock(at));
 }
 
 /// A to-do's due as its slip says it: "by today 4:00 pm"; a day with no

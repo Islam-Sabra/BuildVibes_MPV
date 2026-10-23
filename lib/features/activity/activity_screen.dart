@@ -362,6 +362,36 @@ ActivityWords activityWords(AppLocalizations l10n, ActivityRow row) {
       name: null,
       where: null,
     ),
+    ActivityKind.itemEdited => (
+      text: l10n.activityItemEdited(name, title),
+      name: name,
+      where: space,
+    ),
+    ActivityKind.itemCancelled => (
+      text: l10n.activityItemCancelled(name, title),
+      name: name,
+      where: space,
+    ),
+    ActivityKind.announcementNew => (
+      text: l10n.activityAnnouncement(name, title),
+      name: name,
+      where: space,
+    ),
+    ActivityKind.checklistForYou => (
+      text: l10n.activityChecklist(name, title),
+      name: name,
+      where: space,
+    ),
+    ActivityKind.activityInvited => (
+      text: l10n.activityInvited(name, title),
+      name: name,
+      where: space,
+    ),
+    ActivityKind.fileNewVersion => (
+      text: l10n.activityFileVersion(name, title),
+      name: name,
+      where: space,
+    ),
   };
 }
 
@@ -387,7 +417,7 @@ class ActivityRowView extends StatelessWidget {
     final post = row.postId;
     final actor = row.actorId;
     final removal = row.removalId;
-    final workItem = row.workItemId;
+    final workItem = row.cardId;
     return switch (row.kind) {
       ActivityKind.joinRequest when space != null => () => context.push(
         AppRoutes.space(space),
@@ -402,8 +432,9 @@ class ActivityRowView extends StatelessWidget {
       ),
       ActivityKind.postReply || ActivityKind.postUseful when post != null =>
         () => context.push(AppRoutes.post(post)),
-      // A work item opens at its card on its Space's daybook, at the line
-      // the row is about (F20); a confirmed join opens the Space.
+      // A work item or a daybook post opens at its card on its Space's
+      // daybook, at the line the row is about (F20); a confirmed join opens
+      // the Space.
       _ when space != null && workItem != null => () => openWorkCard(
         context,
         spaceId: space,

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../core/network/signal_state.dart';
 import '../../core/photo_privacy.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/sound/sent_chime.dart';
@@ -116,7 +117,19 @@ enum PendingKind {
 
   /// A walk (slice 6): the walk's work item and one per photo, in one
   /// create_walk call once every photo is up.
-  walk('daybook_walk');
+  walk('daybook_walk'),
+
+  /// Sending a work item back (slice 10): the reason in [PendingItem.body],
+  /// the note, and the new due date and time.
+  sendBack('send_back'),
+
+  /// Giving a work item to someone else (slice 10): the new owner in
+  /// [PendingItem.ownerId] and [PendingItem.ownerName].
+  giveTo('give_to'),
+
+  /// An update on a work item (slice 10): its words in [PendingItem.body].
+  /// Each has its own id; [PendingItem.postId] is the item's.
+  update('add_update');
 
   const PendingKind(this.json);
   final String json;
@@ -160,6 +173,7 @@ class PendingItem {
     this.blocks,
     this.points = const [],
     this.noteId,
+    this.postId,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -205,6 +219,7 @@ class PendingItem {
         ),
     ],
     noteId: json['note_id'] as String?,
+    postId: json['post_id'] as String?,
   );
 
   static DateTime? _time(Object? value) =>
@@ -279,6 +294,19 @@ class PendingItem {
   /// The note this new post was put in from, of any kind.
   String? get fromNote => noteId ?? draft?.noteId;
 
+  /// An update's work item, when [id] is the update's own.
+  final String? postId;
+
+  /// The card this is about.
+  String get cardId => postId ?? id;
+
+  /// A change to a card already on the server: send back, give to, an
+  /// update (slice 10).
+  bool get isChange =>
+      kind == PendingKind.sendBack ||
+      kind == PendingKind.giveTo ||
+      kind == PendingKind.update;
+
   PendingItem copyWith({
     List<PendingPhoto>? photos,
     List<DraftFile>? files,
@@ -310,6 +338,7 @@ class PendingItem {
     blocks: blocks,
     points: points,
     noteId: noteId,
+    postId: postId,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -339,6 +368,7 @@ class PendingItem {
     blocks: blocks,
     points: points,
     noteId: noteId,
+    postId: postId,
   );
 
   /// A new post, of any kind.
@@ -380,6 +410,7 @@ class PendingItem {
         for (final p in points) {'id': p.id, 'text': p.text},
       ],
     'note_id': ?noteId,
+    'post_id': ?postId,
   };
 
   /// Only the kinds this version knows are read back.
@@ -746,6 +777,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         }
         if (e.failure == SpaceFailure.network) {
           await _put(current);
+          ref.read(signalProvider.notifier).lost();
           _retry.later(ref.read(outboxRetryLaterProvider));
         } else {
           await _refused(current, e);
@@ -757,6 +789,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     // "Waiting to send" goes at once (F17); the slip stays until the
     // daybook has the server's entry.
     _retry.reached();
+    ref.read(signalProvider.notifier).back();
     // The Space's other open daybooks read it at once (F47).
     unawaited(ref.read(daybookLiveProvider).changed(item.spaceId, item.id));
     // F5: a post or a sign-off the server took, not a check or a cancel.
@@ -792,6 +825,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       _retry.later(ref.read(outboxRetryLaterProvider));
       return true;
     }
+    ref.read(signalProvider.notifier).back();
     await _drop(item);
     _deleteFiles(item);
     return true;
@@ -921,6 +955,21 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         await ref.read(workRepositoryProvider).checkItem(item.id);
       case PendingKind.cancel:
         await daybook.cancelPost(item.id);
+      case PendingKind.sendBack:
+        await ref
+            .read(workRepositoryProvider)
+            .sendBack(
+              item.id,
+              SendBackReason.fromJson(item.body) ?? SendBackReason.other,
+              note: item.note,
+              due: (day: item.dueDate, at: item.dueAt),
+            );
+      case PendingKind.giveTo:
+        await ref.read(workRepositoryProvider).reassign(item.id, item.ownerId);
+      case PendingKind.update:
+        await ref
+            .read(workRepositoryProvider)
+            .addComment(item.cardId, item.body ?? '');
       case PendingKind.walk:
         await daybook.createWalk(
           NewWalk(
@@ -943,8 +992,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   ///   to fix", review 46);
   /// - a sign-off keeps its photos on the phone and shows on its proof
   ///   slip as "Couldn't send. Tap to fix"; tapping reopens the proof;
-  /// - a check or a cancel leaves the phone, the page reads again, and a
-  ///   short line says why ([refusalsProvider]).
+  /// - a check, a cancel, a send-back, a give-to or an update leaves the
+  ///   phone, the page reads again, and a short line says why
+  ///   ([refusalsProvider]).
   Future<void> _refused(PendingItem item, SpaceException e) async {
     switch (item.kind) {
       case PendingKind.workItem || PendingKind.post:
@@ -961,18 +1011,26 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         await _put(back.copyWith(refused: true));
       case PendingKind.signOff || PendingKind.walk:
         await _put(item.copyWith(refused: true));
-      case PendingKind.check || PendingKind.cancel:
+      case PendingKind.check ||
+          PendingKind.cancel ||
+          PendingKind.sendBack ||
+          PendingKind.giveTo ||
+          PendingKind.update:
         await _drop(item);
         await _refreshDaybook(item.spaceId);
         ref
             .read(refusalsProvider.notifier)
             .add(
               DaybookRefusal(
-                action: item.kind == PendingKind.check
-                    ? RefusedAction.check
-                    : RefusedAction.cancel,
+                action: switch (item.kind) {
+                  PendingKind.check => RefusedAction.check,
+                  PendingKind.sendBack => RefusedAction.sendBack,
+                  PendingKind.giveTo => RefusedAction.giveTo,
+                  PendingKind.update => RefusedAction.update,
+                  _ => RefusedAction.cancel,
+                },
                 spaceId: item.spaceId,
-                postId: item.id,
+                postId: item.cardId,
                 why: RefusalWhy.of(e),
               ),
             );

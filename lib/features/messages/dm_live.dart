@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/push/push_state.dart';
 import '../../data/models/dm.dart';
 import '../../data/repositories/dm_repository.dart';
-import '../../shared/widgets/bv_message_banner.dart';
 import '../entry/entry_state.dart';
+import 'dm_banner.dart';
 
 /// A direct message thread changed (F81): live, by a push, or because the
 /// app came back to the front. A null [threadId] means any thread.
@@ -63,8 +62,8 @@ const pushBodyKey = '_body';
 /// tab's dot read again when a thread changes live (each thread on the list
 /// and the newest request, on their private `dm:` channels), when a direct
 /// message push arrives, and when the app comes back to the front. A push
-/// for a conversation that isn't on screen shows a quiet banner; a tap
-/// opens it.
+/// for a conversation that isn't on screen shows a quiet banner
+/// ([DmBannerHost]); a tap opens it.
 class DmLiveHost extends ConsumerStatefulWidget {
   const DmLiveHost({super.key, required this.child});
 
@@ -93,7 +92,6 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
     for (final s in _subs.values) {
       unawaited(s.cancel());
     }
-    hideBvMessageBanner();
     super.dispose();
   }
 
@@ -127,13 +125,15 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
     }
     final title = data[pushTitleKey];
     if (title == null || title.isEmpty) return;
-    final router = GoRouter.of(context);
-    showBvMessageBanner(
-      context,
-      title: title,
-      body: data[pushBodyKey] ?? '',
-      onTap: () => router.push(route),
-    );
+    ref
+        .read(dmBannerProvider.notifier)
+        .show(
+          threadId: id,
+          messageId: data['message_id'],
+          title: title,
+          body: data[pushBodyKey] ?? '',
+          route: route,
+        );
   }
 
   @override

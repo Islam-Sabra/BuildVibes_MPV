@@ -6693,5 +6693,154 @@
         "type": "String"
       }
     }
+  },
+  "activityItemEdited": "{name} made a change to {title}",
+  "@activityItemEdited": {
+    "description": "Activity: someone changed a post that is for you (item_edited).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityItemCancelled": "{name} cancelled {title}",
+  "@activityItemCancelled": {
+    "description": "Activity: someone cancelled a post that was for you (item_cancelled).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityAnnouncement": "{name} posted an announcement: {title}",
+  "@activityAnnouncement": {
+    "description": "Activity: a new announcement in a Space.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityChecklist": "{name} gave you a checklist: {title}",
+  "@activityChecklist": {
+    "description": "Activity: a checklist given to you.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityInvited": "{name} added you to a scheduled activity: {title}",
+  "@activityInvited": {
+    "description": "Activity: you were added to a scheduled activity.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "activityFileVersion": "{name} shared a new version of {title}",
+  "@activityFileVersion": {
+    "description": "Activity: a new version of a file you received.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pushNotYet": "This phone isn't getting notifications yet. Restart the phone, then open BuildVibes.",
+  "@pushNotYet": {
+    "description": "Settings › Notifications (F96): a day without a push token on this phone."
+  },
+  "dmViewProfile": "View profile",
+  "@dmViewProfile": {
+    "description": "F98: the person card at the start of a conversation opens their profile."
+  },
+  "dmStartLine": "The start of your conversation",
+  "@dmStartLine": {
+    "description": "F98: under the person card at the start of a conversation."
+  },
+  "notebookRemindMe": "Remind me",
+  "@notebookRemindMe": {
+    "description": "A note's menu (2557:35481): set, change or remove the phone's reminder."
+  },
+  "notebookReminderLine": "Reminder · {when}",
+  "@notebookReminderLine": {
+    "description": "A note's slip: when this phone will remind you.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookReminderWhen": "{day} {time}",
+  "@notebookReminderWhen": {
+    "description": "A reminder's day and time on a note's slip: 'today 4:00 pm'.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookRemindPast": "Pick a time still to come.",
+  "@notebookRemindPast": {
+    "description": "Remind me: the time picked has passed."
+  },
+  "reminderTitle": "Reminder",
+  "@reminderTitle": {
+    "description": "The phone's notification for a note's reminder: its title (the note's words under it)."
+  },
+  "reminderChannel": "Reminders",
+  "@reminderChannel": {
+    "description": "Android's notification channel for My notebook's reminders."
+  },
+  "reminderChannelAbout": "Reminders you set in My notebook.",
+  "@reminderChannelAbout": {
+    "description": "Android's notification channel description for reminders."
+  },
+  "noSignalStrip": "No signal. Everything you post waits and sends by itself.",
+  "@noSignalStrip": {
+    "description": "OF (2544:35135): under the daybook's masthead while the phone can't reach the server."
+  },
+  "pageNoSignal": "No signal. Your changes stay here. Press Done again when the signal is back.",
+  "@pageNoSignal": {
+    "description": "The page editor (slice 10): Done failed for want of a signal; the editor stays open."
+  },
+  "pageLeaveTitle": "Leave without saving?",
+  "@pageLeaveTitle": {
+    "description": "The page editor: leaving with changes not saved."
+  },
+  "pageLeaveBody": "Your changes to this page aren't saved yet.",
+  "@pageLeaveBody": {
+    "description": "The page editor: leaving with changes not saved."
+  },
+  "pageLeaveStay": "Keep editing",
+  "@pageLeaveStay": {
+    "description": "The page editor: stay and keep the changes."
+  },
+  "pageLeaveGo": "Leave",
+  "@pageLeaveGo": {
+    "description": "The page editor: leave and lose the changes."
   }
 }

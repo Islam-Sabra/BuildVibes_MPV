@@ -7837,6 +7837,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Week report · {range}'**
   String weekReportCard(String range);
+
+  /// Activity: someone changed a post that is for you (item_edited).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} made a change to {title}'**
+  String activityItemEdited(String name, String title);
+
+  /// Activity: someone cancelled a post that was for you (item_cancelled).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} cancelled {title}'**
+  String activityItemCancelled(String name, String title);
+
+  /// Activity: a new announcement in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} posted an announcement: {title}'**
+  String activityAnnouncement(String name, String title);
+
+  /// Activity: a checklist given to you.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gave you a checklist: {title}'**
+  String activityChecklist(String name, String title);
+
+  /// Activity: you were added to a scheduled activity.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added you to a scheduled activity: {title}'**
+  String activityInvited(String name, String title);
+
+  /// Activity: a new version of a file you received.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} shared a new version of {title}'**
+  String activityFileVersion(String name, String title);
+
+  /// Settings › Notifications (F96): a day without a push token on this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone isn\'t getting notifications yet. Restart the phone, then open BuildVibes.'**
+  String get pushNotYet;
+
+  /// F98: the person card at the start of a conversation opens their profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get dmViewProfile;
+
+  /// F98: under the person card at the start of a conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'The start of your conversation'**
+  String get dmStartLine;
+
+  /// A note's menu (2557:35481): set, change or remove the phone's reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me'**
+  String get notebookRemindMe;
+
+  /// A note's slip: when this phone will remind you.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder · {when}'**
+  String notebookReminderLine(String when);
+
+  /// A reminder's day and time on a note's slip: 'today 4:00 pm'.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {time}'**
+  String notebookReminderWhen(String day, String time);
+
+  /// Remind me: the time picked has passed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time still to come.'**
+  String get notebookRemindPast;
+
+  /// The phone's notification for a note's reminder: its title (the note's words under it).
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get reminderTitle;
+
+  /// Android's notification channel for My notebook's reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminderChannel;
+
+  /// Android's notification channel description for reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders you set in My notebook.'**
+  String get reminderChannelAbout;
+
+  /// OF (2544:35135): under the daybook's masthead while the phone can't reach the server.
+  ///
+  /// In en, this message translates to:
+  /// **'No signal. Everything you post waits and sends by itself.'**
+  String get noSignalStrip;
+
+  /// The page editor (slice 10): Done failed for want of a signal; the editor stays open.
+  ///
+  /// In en, this message translates to:
+  /// **'No signal. Your changes stay here. Press Done again when the signal is back.'**
+  String get pageNoSignal;
+
+  /// The page editor: leaving with changes not saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave without saving?'**
+  String get pageLeaveTitle;
+
+  /// The page editor: leaving with changes not saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes to this page aren\'t saved yet.'**
+  String get pageLeaveBody;
+
+  /// The page editor: stay and keep the changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get pageLeaveStay;
+
+  /// The page editor: leave and lose the changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get pageLeaveGo;
 }
 
 class _AppLocalizationsDelegate

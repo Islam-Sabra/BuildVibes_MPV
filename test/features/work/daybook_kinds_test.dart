@@ -199,6 +199,39 @@ void main() {
         expect(daybook.marks, ['tick pt-2 true']);
       });
 
+      testWidgets('slice 10: a tick with no signal stays, "Waiting to '
+          'send", and goes when the signal is back', (tester) async {
+        final daybook = await _open(
+          tester,
+          lang,
+          me: DaybookSamples.sara,
+          posts: [s.handover(need: DaybookNeed.toTick)],
+        );
+        const id = DaybookSamples.handoverId;
+        daybook.failMarks = 1;
+        await tester.tap(find.byKey(const Key('checklist-point-pt-2')));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(_card(id));
+        await tester.pumpAndSettle();
+        expect(daybook.marks, isEmpty);
+        // Not taken back.
+        expect(
+          tester
+              .widget<BvChecklistPoint>(
+                find.byKey(const Key('checklist-point-pt-2')),
+              )
+              .tick,
+          isNotNull,
+        );
+        expect(_in(id, find.text(l10n.daybookWaitingToSend)), findsOneWidget);
+        expect(find.byKey(const Key('no-signal')), findsOneWidget);
+        await tester.pump(const Duration(seconds: 31));
+        await tester.pumpAndSettle();
+        expect(daybook.marks, ['tick pt-2 true']);
+        expect(_in(id, find.text(l10n.daybookWaitingToSend)), findsNothing);
+        expect(find.byKey(const Key('no-signal')), findsNothing);
+      });
+
       testWidgets('a Viewer reads the points but can\'t tick them', (
         tester,
       ) async {

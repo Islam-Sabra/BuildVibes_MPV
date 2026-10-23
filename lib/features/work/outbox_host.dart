@@ -4,11 +4,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../feed/feed_state.dart';
+import 'daybook_marks.dart';
 import 'work_outbox.dart';
 
 /// Sends what waits on the phone when the app opens signed in: a work
 /// item, sign-off or Home post made with no signal, and a check or cancel
-/// whose undo bar was cut short by closing the app (review 44, answer 4).
+/// whose undo bar was cut short by closing the app (review 44, answer 4),
+/// and ticks and acknowledgements that waited for a signal (review 88 S2).
 class OutboxHost extends ConsumerStatefulWidget {
   const OutboxHost({super.key, required this.child});
 
@@ -26,6 +28,7 @@ class _OutboxHostState extends ConsumerState<OutboxHost> {
       if (mounted) {
         unawaited(ref.read(workOutboxProvider.notifier).flushAll());
         unawaited(ref.read(postOutboxProvider.notifier).flushAll());
+        unawaited(ref.read(daybookMarksProvider.notifier).flushAll());
       }
     });
   }

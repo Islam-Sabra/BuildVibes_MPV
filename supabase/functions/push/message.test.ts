@@ -26,7 +26,7 @@ test("every kind has its text in English and Arabic", () => {
     "follow", "post_reply", "chat_message",
     "item_edited", "item_cancelled", "announcement_new", "checklist_for_you",
     "activity_invited", "activity_starting", "file_new_version",
-    "dm_message", "dm_request",
+    "dm_message", "dm_request", "dm_follow_up",
   ]) {
     for (const locale of ["en", "ar"]) {
       const p = buildPush(row(kind), locale, "Sara Ali", strings);
@@ -43,12 +43,12 @@ test("the text names the person, never the work item; ids go in data", () => {
   assert.equal(p.data.work_item_id, "i1");
 });
 
-test("a daybook post opens its Space; its id travels in the data", () => {
+test("a daybook post opens its card (slice 10); its id travels in the data", () => {
   for (const kind of ["announcement_new", "checklist_for_you", "activity_invited",
-                      "activity_starting", "file_new_version"]) {
+                      "activity_starting", "file_new_version", "item_edited", "item_cancelled"]) {
     const p = buildPush(row(kind, { data: { space_id: "s1", space_post_id: "sp1" } }),
                         "en", "Sara Ali", strings);
-    assert.equal(p.data.route, "/spaces/s1", kind);
+    assert.equal(p.data.route, "/spaces/s1/items/sp1", kind);
     assert.equal(p.data.space_post_id, "sp1");
   }
   // An edit to a work item still opens the item.
@@ -72,6 +72,29 @@ test("a direct message: like chat, one tag per thread; a request never shows tex
   const request = buildPush(row("dm_request", { data, message_text: "Buy now" }), "en", "Sam Spam", strings);
   assert.equal(request.body, "⁨Sam Spam⁩ sent you a message request.");
   assert.equal(request.data.route, "/messages/d1");
+});
+
+test("F97: one follow-up for the messages after the first push, never the text", () => {
+  const data = { dm_thread_id: "d1", since: "2026-10-23T07:00:00Z", count: "2" };
+  const en = buildPush(row("dm_follow_up", { data }), "en", "Omar Haddad", strings);
+  assert.equal(en.title, "Message from ⁨Omar Haddad⁩");
+  assert.equal(en.body, "2 new messages");
+  assert.equal(en.tag, "d1", "it replaces the first push");
+  assert.equal(en.data.route, "/messages/d1");
+  const words = (n: number, locale: string) =>
+    buildPush(row("dm_follow_up", { data: { ...data, count: String(n) } }), locale, "Omar Haddad", strings).body;
+  assert.equal(words(1, "en"), "1 new message");
+  assert.equal(words(7, "en"), "7 new messages");
+  assert.equal(words(1, "ar"), "رسالة جديدة");
+  assert.equal(words(2, "ar"), "رسالتان جديدتان");
+  assert.equal(words(3, "ar"), "3 رسائل جديدة");
+  assert.equal(words(10, "ar"), "10 رسائل جديدة");
+  assert.equal(words(11, "ar"), "11 رسالة جديدة");
+});
+
+test("a space with no card opens the Space", () => {
+  assert.equal(buildPush(row("join_confirmed", { data: { space_id: "s1" } }), "en", "Sara", strings).data.route,
+               "/spaces/s1");
 });
 
 test("Arabic text with the name kept in its own direction", () => {
