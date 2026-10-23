@@ -64,10 +64,10 @@ class _BvHighlightState extends State<BvHighlight>
       clipBehavior: Clip.none,
       children: [
         widget.child,
-        Positioned(
-          left: -o,
+        PositionedDirectional(
+          start: -o,
           top: -o,
-          right: -o,
+          end: -o,
           bottom: -o,
           child: IgnorePointer(
             child: AnimatedBuilder(

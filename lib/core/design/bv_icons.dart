@@ -79,8 +79,12 @@ abstract final class BvIcons {
   static const calendar = IconData(0xe108, fontFamily: _family);
   // Phosphor: gear
   static const settings = IconData(0xe270, fontFamily: _family);
-  // Phosphor: sign-out
-  static const signOut = IconData(0xe42a, fontFamily: _family);
+  // Phosphor: sign-out. An arrow leaving, so it mirrors in right to left.
+  static const signOut = IconData(
+    0xe42a,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
 
   // Phosphor: google-logo
   static const google = IconData(0xe292, fontFamily: _family);
