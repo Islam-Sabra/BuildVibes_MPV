@@ -2,7 +2,18 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## Cloud update: 23 Oct 2026 — slice 10, no signal and notifications (branch `claude/slice10`, from `slice2-app` 2a26898)
+## PC update: 23 Oct 2026 — review 88 S1–S5 and F99 (branch `claude/slice10`)
+
+- **S1:** `claim_push` closes a follow-up as `superseded` when a `dm_message` push for the same person and conversation was queued at or after its `not_before`, and counts only the messages before `not_before`. Migration 39 edited in place, **not live**; test 39 has 20 checks.
+- **S2:** ticks and Got it / Received / On my way that wait for a signal are kept on the phone (`daybook_marks:<user>`), sent when the app opens, when the signal is back and on the retry; never twice at once.
+- **S3:** Remind me uses Phosphor's bell (`BvIcons.remind`). **S4:** «عرض الملف الشخصي» for `dmViewProfile` and `settingsViewProfile`. **S5:** OF's send-back at 11:05.
+- **F99:** the DM banner's life is in `dmBannerProvider` and shown by `DmBannerHost` in MaterialApp's builder, so no rebuild of the screens can end it. 4 s, slides away; tap opens; swipe up dismisses; same message again changes nothing; a newer message of the same conversation updates the words in place and restarts the 4 s; another conversation replaces it; never over its own conversation. `PhoneClockScope` always keeps the same shape.
+- **Checks:** analyze clean; `flutter test` 1,712 pass; local stand-in 2,384 SQL checks (this branch's migrations, without 34); push Node tests 11; `test_screens/` 363 pass.
+- **Next:** review 88 section 6, from the PC with the founder's yes for each live step. Founder test for F99 on the Xiaomi: the banner with the app open on Home.
+
+**Not live, nothing deployed, nothing installed.** PC has `slice10` (worktree) tracking `claude/slice10`.
+
+, no signal and notifications (branch `claude/slice10`, from `slice2-app` 2a26898)
 
 **Plan:** review 87 (`docs/reviews/2026-10-23-87-slice10-plan.md`), built on its own recommendations. Seven questions wait for the lead, each with a recommendation.
 
