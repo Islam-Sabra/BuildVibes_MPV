@@ -2,6 +2,31 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 23 Oct 2026, 08:36 — push v9, migrations 34 and 39 live, build 547
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**Live** (founder's yes), from `slice2-app` e1b567d, one step at a time, each with a check:
+1. **the push function, v9;**
+2. **migration 34**, `20261030120000_review_sign_in.sql`:
+   - `projects.is_demo` and `companies.is_demo` all false;
+   - `review-sign-in` NOT deployed, no secrets, no demo seed: each of those still needs its own yes, before 13 Dec;
+3. **migration 39**, `20261031120000_slice10_notifications.sql`: the queue accepts `dm_follow_up`.
+
+Live is at `20261031120000`. The 3D model views take the next date after 39. Public channels are still on.
+
+**`slice2-app`** (e1b567d):
+- migration 34 and its test, taken from `claude/store-reviewer-b5` (nothing else from that branch);
+- `claude/slice10` merged in;
+- analyze clean, 1,712 app tests, 2,464 SQL checks (38 files), 11 push tests.
+
+**Build 547:** installed on the emulator. **The founder's phone wasn't reachable**: install it when he sends the new wireless-debugging address.
+
+**Who has which branch:**
+- PC: `slice2-app` (worktree `BuildVibes-slice1`), `slice10` (worktree `BuildVibes-slice10`, merged), `slice2-live-db` = main.
+- `claude/slice10` and `claude/store-reviewer-b5` are done; the rest of `store-reviewer-b5` (the Edge Function, the seed) waits for its own go-live yes.
+
+
 ## PC update: 23 Oct 2026 — review 88 S1–S5 and F99 (branch `claude/slice10`)
 
 - **S1:** `claim_push` closes a follow-up as `superseded` when a `dm_message` push for the same person and conversation was queued at or after its `not_before`, and counts only the messages before `not_before`. Migration 39 edited in place, **not live**; test 39 has 20 checks.
