@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show AuthState, SupabaseClient;
 
 import '../../core/push/push_state.dart';
 import '../../data/models/dm.dart';
@@ -88,8 +89,14 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
   void initState() {
     super.initState();
     _life = AppLifecycleListener(onResume: () => _changed(null));
-    // F100 diagnostic: when sign-in and the live socket change.
-    final client = ref.read(supabaseClientProvider);
+    // F100 diagnostic: when sign-in and the live socket change. Tests have
+    // no Supabase client, so they skip it.
+    final SupabaseClient client;
+    try {
+      client = ref.read(supabaseClientProvider);
+    } on Object {
+      return;
+    }
     debugPrint(
       'BV-LIVE host start at=${DateTime.now().toIso8601String()} '
       'session=${client.auth.currentSession != null} '

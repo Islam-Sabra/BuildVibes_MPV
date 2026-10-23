@@ -215,9 +215,9 @@ class SupabaseDmRepository implements DmRepository {
       'session=${session != null} expires=${expires == null ? '-' : DateTime.fromMillisecondsSinceEpoch(expires * 1000).toIso8601String()}',
     );
     final controller = StreamController<String>(
-      onCancel: () {
+      onCancel: () async {
         debugPrint('BV-LIVE close dm:$threadId');
-        return _client.removeChannel(channel);
+        await _client.removeChannel(channel);
       },
     );
     channel = _client
