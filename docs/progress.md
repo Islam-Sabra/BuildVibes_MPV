@@ -762,3 +762,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
      - 0 unsent.
   
   Live is at `20261031120000`. Before that, `claude/slice10` (slice 10, review 88 S1–S5, F99) was merged into `slice2-app`: analyze clean, 1,712 app tests, 2,464 SQL checks in 38 files, 11 push tests. Build 547 is on the emulator; the founder's phone waits for its wireless-debugging address.
+- **23 Oct** (cloud, `claude/f100-fix` from `slice2-app`): F100's parts that don't wait on the diagnosis.
+  - The `dm:` channels rejoin after sign-in, a new token, a return to the front, and with waits after a close or error. One channel per thread.
+  - A live message shows the F99 banner once (by `message_id`); `dm_follow_up` refreshes with no banner; a BV-LIVE line per channel status.
+  - Checks: analyze clean; 1,720 tests pass (1 cloud-only failure).
+

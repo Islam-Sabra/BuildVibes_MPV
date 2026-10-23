@@ -95,6 +95,28 @@ Live is at `20261031120000`. The 3D model views take the next date after 39. Pub
 - Cloud: `claude/slice10` (this work), from `slice2-app` 2a26898.
 - PC: `slice2-app`.
 
+## Cloud update: 23 Oct 2026 — F100, the parts that don't wait on the diagnosis (branch `claude/f100-fix`, from `slice2-app` d9b1cad)
+
+`claude/f100` (the PC's diagnostic branch) is untouched. No migration; nothing live, deployed or installed.
+
+- **Rejoin, not open once:**
+  - The `dm:` channels open only once sign-in is complete (gate ready and a user).
+  - When the sign-in token is new (refreshed, or signed in again), every channel closes and opens again. Signed out, none stays open.
+  - When the app comes back to the front, they open again.
+  - A channel that closes, errors or times out opens again after 2 s, then 5 s, then 15 s, then every 30 s. A join resets the waits.
+  - `AuthRepository.sessionRenewed()` is new (Supabase's `tokenRefreshed` and `signedIn`).
+- **One channel per thread:** the conversation screen no longer joins `dm:<thread>` itself. A second join of the same topic closes the first, which may be part of F100. The host follows the conversation on screen too, and the screen reads again through `dmChangeProvider`.
+- **The live banner:**
+  - A new message from the other person arriving live, in a conversation not on screen, shows the F99 banner: "Message from Omar Haddad", over the words only if the lock-screen setting shows message text (else "New message" / «رسالة جديدة»).
+  - The live update and the push for the same message show one banner, matched on `message_id`, even after the first banner has gone.
+- **`dm_follow_up`** is in `dmPushKinds`: it refreshes the list, with no banner.
+- **Logs:** one `BV-LIVE status dm:<thread> <status>` line per channel status change, and `BV-LIVE lost dm:<thread> …` when one is opened again later.
+- **Tests:** `test/features/messages/dm_live_f100_test.dart` (9).
+- **Checks:** `flutter analyze` clean; `flutter test` 1,720 pass, 1 fails (photo_privacy H1, which fails only as root in the cloud).
+- **Still for the diagnosis (PC):** whether the private join is refused, and whether Postgres changes reach a private channel. If not, the broadcast trigger and its migration (F100's fix) come after.
+
+**Who has which branch:** cloud `claude/f100-fix` (this) and `claude/slice10`; PC `slice2-app` and `claude/f100`.
+
 ## Cloud update: 23 Oct 2026 — review 86 W1 (branch `claude/slice9`)
 
 - **No "late" in the week report (F57):** no LATE stamp and no "late by N days", in English or Arabic. A work item past its due reads "Omar Haddad · was due Tue 13 Oct" / «عمر حداد · كان موعده الثلاثاء 13 أكتوبر», grey, in the action colour only when it waits on the reader (`needs_me`). The strings `weekLateBy` and `weekStampLate` are gone.
