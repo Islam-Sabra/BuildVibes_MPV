@@ -694,7 +694,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `finish_push` and `release_push` with answers, for the server only.
   
   **Push function deployed** (version 8, `verify_jwt` off as before) from the same commit. Build 507 (2c64cd3) on the emulator: Omar's token registered with an install id. The founder's phone waits for its new wireless-debugging address. Migration 34 is renamed to `20261030120000_review_sign_in.sql` when B5 is added; public channels are still on.
-- **23 Oct 2026, 08:36 Kuwait** (PC, founder's yes): live, in this order, from `slice2-app` e1b567d:
+- **23 Oct 2026, 11:36 Kuwait** (PC, founder's yes): live, in this order, from `slice2-app` e1b567d:
   1. **the push function, version 9** (`verify_jwt` off as before). Only the message wording changed (`dm_follow_up`); `index.ts` and its database calls are unchanged, so it was safe before migration 39;
   2. **migration 34**, `20261030120000_review_sign_in.sql`, from `claude/store-reviewer-b5` (the migration and its test only). Read-only check:
      - `projects.is_demo` and `companies.is_demo` exist and are all false (3 projects, 0 companies);
