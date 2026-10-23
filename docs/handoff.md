@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 23 Oct 2026, 08:36 — push v9, migrations 34 and 39 live, build 547
+## PC update: 23 Oct 2026, 11:36 — push v9, migrations 34 and 39 live, build 547
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 

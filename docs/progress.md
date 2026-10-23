@@ -748,7 +748,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - F98: the person card at the start of a conversation.
   - Checks: analyze clean; 1,704 app tests pass (1 cloud-only failure, photo_privacy H1 as root). Stand-in: 2,381 SQL checks pass. Screenshots EN and AR in `docs/screens/slice10/`.
 - **23 Oct** (PC, `claude/slice10`): review 88 S1–S5 and F99. S1 a follow-up after a new quiet time began is closed as superseded (migration 39 edited, not live); S2 waiting ticks and marks kept across a restart; S3 Remind me's bell; S4 «عرض الملف الشخصي»; S5 OF at 11:05. F99: the DM banner lives in a provider and a host over every screen: 4 s, slides away, tap, swipe up, same conversation updates in place and restarts the 4 s. Checks: analyze clean; 1,712 app tests; 2,384 SQL checks (local, without 34); Node 11; 363 screen tests; slice 10 and the older DM, E7, NB-menu and F79 shots re-shot.
-- **23 Oct 2026, 08:36 Kuwait** (PC, founder's yes): live, in this order, from `slice2-app` e1b567d:
+- **23 Oct 2026, 11:36 Kuwait** (PC, founder's yes): live, in this order, from `slice2-app` e1b567d:
   1. **the push function, version 9** (`verify_jwt` off as before). Only the message wording changed (`dm_follow_up`); `index.ts` and its database calls are unchanged, so it was safe before migration 39;
   2. **migration 34**, `20261030120000_review_sign_in.sql`, from `claude/store-reviewer-b5` (the migration and its test only). Read-only check:
      - `projects.is_demo` and `companies.is_demo` exist and are all false (3 projects, 0 companies);
