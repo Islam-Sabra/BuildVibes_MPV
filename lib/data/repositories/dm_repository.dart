@@ -208,8 +208,17 @@ class SupabaseDmRepository implements DmRepository {
   @override
   Stream<String> changes(String threadId) {
     late final RealtimeChannel channel;
+    final session = _client.auth.currentSession;
+    final expires = session?.expiresAt;
+    debugPrint(
+      'BV-LIVE open dm:$threadId at=${DateTime.now().toIso8601String()} '
+      'session=${session != null} expires=${expires == null ? '-' : DateTime.fromMillisecondsSinceEpoch(expires * 1000).toIso8601String()}',
+    );
     final controller = StreamController<String>(
-      onCancel: () => _client.removeChannel(channel),
+      onCancel: () {
+        debugPrint('BV-LIVE close dm:$threadId');
+        return _client.removeChannel(channel);
+      },
     );
     channel = _client
         // Private (migration 31): only the thread's two people join.
@@ -227,12 +236,20 @@ class SupabaseDmRepository implements DmRepository {
             value: threadId,
           ),
           callback: (payload) {
+            debugPrint(
+              'BV-LIVE callback dm:$threadId event=${payload.eventType.name} '
+              'at=${DateTime.now().toIso8601String()}',
+            );
             final id = payload.newRecord['id'] ?? payload.oldRecord['id'];
             if (id is String && !controller.isClosed) controller.add(id);
           },
         )
         .subscribe((status, [error]) {
-          if (error != null) debugPrint('dm live: $error');
+          debugPrint(
+            'BV-LIVE status dm:$threadId ${status.name} '
+            'at=${DateTime.now().toIso8601String()}'
+            '${error == null ? '' : ' error=$error'}',
+          );
         });
     return controller.stream;
   }

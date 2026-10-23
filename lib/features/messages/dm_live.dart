@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
 
 import '../../core/push/push_state.dart';
 import '../../data/models/dm.dart';
 import '../../data/repositories/dm_repository.dart';
+import '../../data/supabase/supabase_provider.dart';
 import '../entry/entry_state.dart';
 import 'dm_banner.dart';
 
@@ -80,14 +82,46 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
   final _subs = <String, StreamSubscription<String>>{};
   late final AppLifecycleListener _life;
 
+  StreamSubscription<AuthState>? _authLog;
+
   @override
   void initState() {
     super.initState();
     _life = AppLifecycleListener(onResume: () => _changed(null));
+    // F100 diagnostic: when sign-in and the live socket change.
+    final client = ref.read(supabaseClientProvider);
+    debugPrint(
+      'BV-LIVE host start at=${DateTime.now().toIso8601String()} '
+      'session=${client.auth.currentSession != null} '
+      'gate=${ref.read(appGateProvider).name}',
+    );
+    _authLog = client.auth.onAuthStateChange.listen(
+      (s) => debugPrint(
+        'BV-LIVE auth ${s.event.name} at=${DateTime.now().toIso8601String()} '
+        'session=${s.session != null}',
+      ),
+    );
+    client.realtime
+      ..onOpen(
+        () => debugPrint(
+          'BV-LIVE socket open at=${DateTime.now().toIso8601String()}',
+        ),
+      )
+      ..onClose(
+        (e) => debugPrint(
+          'BV-LIVE socket close at=${DateTime.now().toIso8601String()} $e',
+        ),
+      )
+      ..onError(
+        (e) => debugPrint(
+          'BV-LIVE socket error at=${DateTime.now().toIso8601String()} $e',
+        ),
+      );
   }
 
   @override
   void dispose() {
+    unawaited(_authLog?.cancel());
     _life.dispose();
     for (final s in _subs.values) {
       unawaited(s.cancel());
@@ -109,6 +143,14 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
       for (final t in inbox.threads.take(DmLiveHost.followMax)) t.threadId,
       ?inbox.newestRequest?.threadId,
     ];
+    final fresh = ids.where((id) => !_subs.containsKey(id)).length;
+    if (fresh > 0) {
+      debugPrint(
+        'BV-LIVE follow $fresh new of ${ids.length} '
+        'at=${DateTime.now().toIso8601String()} '
+        'gate=${ref.read(appGateProvider).name}',
+      );
+    }
     for (final id in ids) {
       _subs[id] ??= repo.changes(id).listen((_) => _changed(id));
     }
