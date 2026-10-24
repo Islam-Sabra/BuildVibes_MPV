@@ -6681,5 +6681,33 @@
   "needsRowChecklist": "To tick",
   "@needsRowChecklist": {
     "description": "Needs you row label (2544:35068): a checklist with points left for you."
+  },
+  "muteForHowLong": "For how long?",
+  "@muteForHowLong": {
+    "description": "F102: the mute sheet's title (Space info → Notifications Off or Needs you only, a conversation's Mute, long-press Mute)."
+  },
+  "muteFor8Hours": "8 hours",
+  "@muteFor8Hours": {
+    "description": "F102: mute sheet choice."
+  },
+  "muteFor1Week": "1 week",
+  "@muteFor1Week": {
+    "description": "F102: mute sheet choice."
+  },
+  "muteForAlways": "Always",
+  "@muteForAlways": {
+    "description": "F102: mute sheet choice: until unmuted."
+  },
+  "muteMute": "Mute",
+  "@muteMute": {
+    "description": "F102: long-press menu on a Space or conversation row."
+  },
+  "muteUnmute": "Unmute",
+  "@muteUnmute": {
+    "description": "F102: long-press menu on a muted Space or conversation row."
+  },
+  "muteMutedLabel": "Notifications muted",
+  "@muteMutedLabel": {
+    "description": "F102: screen-reader label of the bell-slash beside a muted row's name."
   }
 }

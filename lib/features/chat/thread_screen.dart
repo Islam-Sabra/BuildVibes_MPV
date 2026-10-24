@@ -13,6 +13,7 @@ import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/l10n/bv_time.dart';
+import '../../core/push/push_messaging.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/library.dart';
@@ -109,12 +110,15 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   var _elapsed = Duration.zero;
   Timer? _recordTimer;
 
+  late final PushMessaging _push = ref.read(pushMessagingProvider);
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _scroll.addListener(_maybeLoadOlder);
     unawaited(_markRead());
+    _clearNotification();
   }
 
   @override
@@ -133,13 +137,22 @@ class _ThreadScreenState extends ConsumerState<ThreadScreen>
   /// away (the thumb-up may never come), and playback pauses.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) return;
+    if (state == AppLifecycleState.resumed) {
+      // Back on this thread: its notification goes (F102).
+      _clearNotification();
+      return;
+    }
     unawaited(ref.read(voicePlayerProvider.notifier).pause());
     if (_recording || _holding) {
       _cancelling = true;
       unawaited(_endRecording());
     }
   }
+
+  /// F102: the thread's phone notification (tagged with its id) goes once
+  /// it is open.
+  void _clearNotification() =>
+      unawaited(_push.clearNotification(widget.threadId));
 
   Future<void> _markRead() async {
     try {

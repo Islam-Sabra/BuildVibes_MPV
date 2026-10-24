@@ -413,7 +413,16 @@ void main() {
       expect(find.byKey(const Key('dm-menu-report')), findsOneWidget);
       expect(find.byKey(const Key('dm-menu-block')), findsOneWidget);
       await _tap(tester, find.byKey(const Key('dm-menu-mute')));
-      expect(dm.calls, contains('mute t-omar true'));
+      // F102: for how long?
+      expect(find.byKey(const Key('mute-sheet')), findsOneWidget);
+      await _tap(tester, find.byKey(const Key('mute-for-oneWeek')));
+      expect(
+        dm.calls,
+        contains(
+          'mute t-omar true until '
+          '${_now.add(const Duration(days: 7)).toIso8601String()}',
+        ),
+      );
     });
 
     testWidgets('a new conversation from a profile: the first message makes '

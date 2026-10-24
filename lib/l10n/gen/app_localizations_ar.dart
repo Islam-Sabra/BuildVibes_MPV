@@ -4637,4 +4637,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get needsRowChecklist => 'للتأشير';
+
+  @override
+  String get muteForHowLong => 'لأي مدة؟';
+
+  @override
+  String get muteFor8Hours => '8 ساعات';
+
+  @override
+  String get muteFor1Week => 'أسبوع واحد';
+
+  @override
+  String get muteForAlways => 'دائمًا';
+
+  @override
+  String get muteMute => 'كتم';
+
+  @override
+  String get muteUnmute => 'إلغاء الكتم';
+
+  @override
+  String get muteMutedLabel => 'الإشعارات مكتومة';
 }

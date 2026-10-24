@@ -14,11 +14,13 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_mute_sheet.dart';
 import '../entry/entry_state.dart';
 import '../entry/widgets/join_wall.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'code_sheet.dart';
 import 'space_errors.dart';
+import 'space_mute.dart';
 import 'spaces_state.dart';
 
 /// My Spaces (S1 v2, project Spaces only), or the empty state (H1e) with
@@ -158,7 +160,12 @@ class _SpaceList extends ConsumerWidget {
                         )
                       // S1 rows have no chevron.
                       : const BvRowTrailing.none(),
+                  titleMark: s.muted
+                      ? BvMutedMark(key: Key('space-muted-${s.id}'))
+                      : null,
                   onTap: () => context.push(AppRoutes.space(s.id)),
+                  // F102: Mute / Unmute.
+                  onLongPress: () => muteSpaceFromList(context, ref, s),
                 ),
             ],
           ),

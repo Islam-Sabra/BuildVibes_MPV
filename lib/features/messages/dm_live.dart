@@ -68,6 +68,45 @@ const dmBannerKinds = {'dm_message', 'dm_request'};
 const pushTitleKey = '_title';
 const pushBodyKey = '_body';
 
+/// What the in-app banner says for a direct message push (app open; the
+/// phone shows no notification then). F102's pushes are written for the
+/// lock screen: text on, the name over "Pump is late · 3 new messages";
+/// text off, "Message from Omar Haddad" over "3 new messages". The banner
+/// stays as F99/F101 drew it: "Message from Omar Haddad" over the newest
+/// words, or over "New message" (then counting up itself) when the words
+/// are hidden.
+///
+/// [data] is the push's data with what it said ([pushTitleKey],
+/// [pushBodyKey]). `shown` marks a body that holds the words; a push
+/// without `count` (sent before migration 41) keeps its title and body,
+/// hidden as [showText] says.
+({String title, String body, bool hidden}) dmPushBanner(
+  Map<String, String> data,
+  AppLocalizations l10n, {
+  required bool showText,
+}) {
+  final title = data[pushTitleKey] ?? '';
+  final body = data[pushBodyKey] ?? '';
+  if (data['kind'] != 'dm_message' || !data.containsKey('count')) {
+    return (title: title, body: body, hidden: !showText);
+  }
+  if (data['shown'] != '1') {
+    return (title: title, body: l10n.dmBannerHidden, hidden: true);
+  }
+  final count = int.tryParse(data['count'] ?? '') ?? 1;
+  // The server adds " · 3 new messages" after the words when count > 1.
+  final cut = count > 1 ? body.lastIndexOf(pushCountSeparator) : -1;
+  return (
+    // The push's title is the name alone, already in its own direction.
+    title: l10n.dmBannerTitle(title),
+    body: cut > 0 ? body.substring(0, cut) : body,
+    hidden: false,
+  );
+}
+
+/// Between the words and the count in a push body (strings.json).
+const pushCountSeparator = ' · ';
+
 /// The waits before a closed, failed or timed-out channel is opened again
 /// (F100); the last one again and again. Tests set their own.
 final dmLiveRetryDelaysProvider = Provider<List<Duration>>(
@@ -275,12 +314,12 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
   }
 
   /// The push's banner (F101): its words are hidden exactly when the
-  /// lock-screen setting is off, so the banner can count what came.
+  /// lock-screen setting is off, so the banner can count what came. F102:
+  /// the push's own words are read by [dmPushBanner].
   Future<void> _pushBanner({
     required String threadId,
     required String? messageId,
-    required String title,
-    required String body,
+    required Map<String, String> data,
     required String route,
   }) async {
     var showText = false;
@@ -293,15 +332,20 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
     if (!mounted || !_signedIn || ref.read(openDmThreadProvider) == threadId) {
       return;
     }
+    final banner = dmPushBanner(
+      data,
+      AppLocalizations.of(context),
+      showText: showText,
+    );
     ref
         .read(dmBannerProvider.notifier)
         .show(
           threadId: threadId,
           messageId: messageId,
-          title: title,
-          body: body,
+          title: banner.title,
+          body: banner.body,
           route: route,
-          hidden: !showText,
+          hidden: banner.hidden,
         );
   }
 
@@ -321,8 +365,7 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
       _pushBanner(
         threadId: id,
         messageId: data['message_id'],
-        title: title,
-        body: data[pushBodyKey] ?? '',
+        data: data,
         route: route,
       ),
     );

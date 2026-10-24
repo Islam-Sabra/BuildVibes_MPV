@@ -58,6 +58,8 @@ class _NoPush implements PushMessaging {
   @override
   Future<void> openAppSettings() async {}
   @override
+  Future<void> clearNotification(String tag) async {}
+  @override
   Future<List<String>> phoneMakers() async => const [];
   @override
   void reportNoToken() {}

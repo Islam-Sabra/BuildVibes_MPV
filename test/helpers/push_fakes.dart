@@ -76,6 +76,12 @@ class FakePushMessaging implements PushMessaging {
   @override
   Future<void> openAppSettings() async => openedAppSettings++;
 
+  /// The notifications taken off the phone, by tag (F102).
+  final cleared = <String>[];
+
+  @override
+  Future<void> clearNotification(String tag) async => cleared.add(tag);
+
   @override
   Future<List<String>> phoneMakers() async => makers;
 

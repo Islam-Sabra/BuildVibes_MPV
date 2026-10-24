@@ -73,6 +73,8 @@ class BvListRow extends StatelessWidget {
     this.leading,
     this.trailing = const BvRowTrailing.chevron(),
     this.onTap,
+    this.onLongPress,
+    this.titleMark,
     this.destructive = false,
   });
 
@@ -83,6 +85,12 @@ class BvListRow extends StatelessWidget {
   final Widget? leading;
   final BvRowTrailing trailing;
   final VoidCallback? onTap;
+
+  /// A row's quick menu (F102: Mute / Unmute on a Space).
+  final VoidCallback? onLongPress;
+
+  /// A small mark right after the title (F102: the bell-slash).
+  final Widget? titleMark;
 
   /// The title in red, for actions such as Delete or Leave (S15).
   final bool destructive;
@@ -100,6 +108,13 @@ class BvListRow extends StatelessWidget {
       _ => onTap,
     };
 
+    final titleText = Text(
+      title,
+      style: type.titleMd.copyWith(
+        color: destructive ? BvColors.textDestructive : BvColors.textPrimary,
+      ),
+    );
+
     const chevron = Icon(
       BvIcons.caretForward,
       size: BvListRowSpec.chevronSize,
@@ -110,6 +125,7 @@ class BvListRow extends StatelessWidget {
       color: BvColors.surfaceElevated,
       child: InkWell(
         onTap: tap,
+        onLongPress: onLongPress,
         splashFactory: NoSplash.splashFactory,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: BvListRowSpec.minHeight),
@@ -128,14 +144,15 @@ class BvListRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     spacing: BvListRowSpec.textGap,
                     children: [
-                      Text(
-                        title,
-                        style: type.titleMd.copyWith(
-                          color: destructive
-                              ? BvColors.textDestructive
-                              : BvColors.textPrimary,
-                        ),
-                      ),
+                      if (titleMark case final mark?)
+                        Row(
+                          children: [
+                            Flexible(child: titleText),
+                            mark,
+                          ],
+                        )
+                      else
+                        titleText,
                       if (subtitle != null)
                         Text(
                           subtitle!,

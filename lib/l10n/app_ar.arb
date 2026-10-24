@@ -1277,5 +1277,12 @@
   "spacesTeamMembersTitle": "الأعضاء",
   "needsChecklist": "قائمة تحقق لك من {name}: {title}",
   "needsChecklistSelf": "قائمة تحقق لك: {title}",
-  "needsRowChecklist": "للتأشير"
+  "needsRowChecklist": "للتأشير",
+  "muteForHowLong": "لأي مدة؟",
+  "muteFor8Hours": "8 ساعات",
+  "muteFor1Week": "أسبوع واحد",
+  "muteForAlways": "دائمًا",
+  "muteMute": "كتم",
+  "muteUnmute": "إلغاء الكتم",
+  "muteMutedLabel": "الإشعارات مكتومة"
 }

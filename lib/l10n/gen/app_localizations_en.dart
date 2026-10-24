@@ -4627,4 +4627,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get needsRowChecklist => 'To tick';
+
+  @override
+  String get muteForHowLong => 'For how long?';
+
+  @override
+  String get muteFor8Hours => '8 hours';
+
+  @override
+  String get muteFor1Week => '1 week';
+
+  @override
+  String get muteForAlways => 'Always';
+
+  @override
+  String get muteMute => 'Mute';
+
+  @override
+  String get muteUnmute => 'Unmute';
+
+  @override
+  String get muteMutedLabel => 'Notifications muted';
 }

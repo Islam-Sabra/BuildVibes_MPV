@@ -85,7 +85,13 @@ abstract class SpaceRepository {
     required SpaceInviters whoCanInvite,
   });
 
-  Future<void> setNotifications(String spaceId, SpaceNotify level);
+  /// [until]: how long a level other than All holds (F102); null with
+  /// one = always. All clears it.
+  Future<void> setNotifications(
+    String spaceId,
+    SpaceNotify level, {
+    DateTime? until,
+  });
 
   /// "On site since": the daybook's day 1. A Space admin only; null clears
   /// it (set_site_start_date, migration 23).
@@ -224,7 +230,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
     if (space == null) return null;
     final member = await _client
         .from('space_members')
-        .select('pass, is_admin, notify')
+        .select('pass, is_admin, notify, notify_until')
         .eq('space_id', spaceId)
         .eq('profile_id', me)
         .isFilter('left_at', null)
@@ -250,7 +256,11 @@ class SupabaseSpaceRepository implements SpaceRepository {
       iAmAdmin: member['is_admin'] as bool? ?? false,
       myRights: MemberRights.fromJson(rights),
       whoCanInvite: SpaceInviters.fromJson(space['who_can_invite']),
-      myNotify: SpaceNotify.fromJson(member['notify']),
+      myNotify: SpaceNotify.inForce(
+        member['notify'],
+        member['notify_until'],
+        DateTime.now(),
+      ),
       siteStartDate: switch (space['site_start_date']) {
         final String day => DateTime.parse(day),
         _ => null,
@@ -472,10 +482,20 @@ class SupabaseSpaceRepository implements SpaceRepository {
   );
 
   @override
-  Future<void> setNotifications(String spaceId, SpaceNotify level) => _guard(
+  Future<void> setNotifications(
+    String spaceId,
+    SpaceNotify level, {
+    DateTime? until,
+  }) => _guard(
     () => _client.rpc<void>(
       'set_space_notifications',
-      params: {'p_space': spaceId, 'p_level': level.json},
+      params: {
+        'p_space': spaceId,
+        'p_level': level.json,
+        'p_until': level == SpaceNotify.all
+            ? null
+            : until?.toUtc().toIso8601String(),
+      },
     ),
   );
 

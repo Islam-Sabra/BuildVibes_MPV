@@ -17,6 +17,7 @@ import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_marked_text.dart';
+import '../../shared/widgets/bv_mute_sheet.dart';
 import '../../shared/widgets/bv_space_emblem.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../activity/activity_state.dart';
@@ -26,6 +27,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/code_sheet.dart';
 import '../spaces/my_spaces_view.dart';
+import '../spaces/space_mute.dart';
 import '../work/daybook_words.dart';
 
 /// Home → Spaces (H1b, review 50 F3, F10 and F28): one line with the date
@@ -256,6 +258,8 @@ class _YourSpaces extends ConsumerWidget {
       return InkWell(
         key: Key('home-space-${s.id}'),
         onTap: () => open(s.id, shown),
+        // F102: Mute / Unmute.
+        onLongPress: () => muteSpaceFromList(context, ref, s),
         child: ConstrainedBox(
           constraints: const BoxConstraints(
             minHeight: BvActivitySpec.cardMinHeight,
@@ -273,11 +277,19 @@ class _YourSpaces extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: BvActivitySpec.lineGap,
                     children: [
-                      Text(
-                        inOwnDirection(s.name),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: type.titleMd,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              inOwnDirection(s.name),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: type.titleMd,
+                            ),
+                          ),
+                          if (s.muted)
+                            BvMutedMark(key: Key('home-space-muted-${s.id}')),
+                        ],
                       ),
                       if (shown != null)
                         Text(

@@ -406,9 +406,36 @@ class FakeSpaceRepository implements SpaceRepository {
   }
 
   @override
-  Future<void> setNotifications(String spaceId, SpaceNotify level) async {
-    calls.add('notify ${level.json}');
-    details[spaceId] = _detail(details[spaceId]!, myNotify: level);
+  Future<void> setNotifications(
+    String spaceId,
+    SpaceNotify level, {
+    DateTime? until,
+  }) async {
+    calls.add(
+      until == null
+          ? 'notify ${level.json}'
+          : 'notify ${level.json} until ${until.toIso8601String()}',
+    );
+    if (details[spaceId] case final d?) {
+      details[spaceId] = _detail(d, myNotify: level);
+    }
+    final i = spaces.indexWhere((s) => s.id == spaceId);
+    if (i >= 0) {
+      final s = spaces[i];
+      spaces[i] = SpaceSummary(
+        id: s.id,
+        name: s.name,
+        pass: s.pass,
+        isAdmin: s.isAdmin,
+        projectId: s.projectId,
+        projectName: s.projectName,
+        projectTypeId: s.projectTypeId,
+        pendingRequests: s.pendingRequests,
+        needsYou: s.needsYou,
+        lastActivityAt: s.lastActivityAt,
+        notify: level,
+      );
+    }
   }
 
   @override

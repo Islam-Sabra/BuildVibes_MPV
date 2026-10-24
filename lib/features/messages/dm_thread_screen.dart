@@ -15,6 +15,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/messages_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/l10n/bv_time.dart';
+import '../../core/push/push_messaging.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/dm.dart';
 import '../../data/models/library.dart';
@@ -28,6 +29,7 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../chat/thread_screen.dart';
 import 'dm_live.dart';
+import 'dm_mute.dart';
 import '../chat/voice.dart';
 import '../create/create_sheet.dart' show workItemSpacesProvider;
 import '../library/library_parts.dart';
@@ -183,6 +185,9 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     });
     _listen(id);
     unawaited(_repo.markRead(id));
+    // F102: read now, so its phone notification (tagged with the thread)
+    // goes.
+    unawaited(ref.read(pushMessagingProvider).clearNotification(id));
     ref.invalidate(dmInboxProvider);
   }
 
@@ -650,11 +655,15 @@ class _DmThreadScreenState extends ConsumerState<DmThreadScreen> {
     if (!mounted) return;
     switch (choice) {
       case 'mute':
-        try {
-          await _repo.mute(page.threadId, on: !page.muted);
+        // F102: Mute asks for how long; Unmute at once.
+        if (await toggleDmMute(
+              context,
+              ref,
+              page.threadId,
+              muted: page.muted,
+            ) &&
+            mounted) {
           await _reload();
-        } on SpaceException catch (e) {
-          if (mounted) showSpaceError(context, e);
         }
       case 'report':
         await startReport(

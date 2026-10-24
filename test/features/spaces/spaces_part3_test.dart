@@ -155,7 +155,10 @@ void main() {
 
       await _tap(tester, 'inviters-everyone');
       expect(spaces.calls.last, 'update $_spaceName everyone');
+      // F102: Needs you only and Off ask for how long first.
       await _tap(tester, 'notify-needs-you');
+      expect(find.byKey(const Key('mute-sheet')), findsOneWidget);
+      await _tap(tester, 'mute-for-always');
       expect(spaces.calls.last, 'notify needs_you');
       final notify = tester.widget<BvSegmented<SpaceNotify>>(
         find.descendant(
@@ -164,6 +167,30 @@ void main() {
         ),
       );
       expect(notify.value, SpaceNotify.needsYou);
+    });
+
+    testWidgets('F102: Off asks for how long; dismissed, nothing changes; '
+        'All needs no time [$lang]', (tester) async {
+      final spaces = _spaces();
+      await pumpApp(tester, language: lang, spaces: spaces);
+      await _openInfo(tester);
+      final before = spaces.calls.length;
+      await _tap(tester, 'notify-off');
+      expect(find.byKey(const Key('mute-sheet')), findsOneWidget);
+      // Dismissed: no change.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(spaces.calls.length, before);
+      await _tap(tester, 'notify-off');
+      await _tap(tester, 'mute-for-eightHours');
+      expect(
+        spaces.calls.last,
+        'notify off until '
+        '${testNow.add(const Duration(hours: 8)).toIso8601String()}',
+      );
+      await _tap(tester, 'notify-all');
+      expect(find.byKey(const Key('mute-sheet')), findsNothing);
+      expect(spaces.calls.last, 'notify all');
     });
 
     testWidgets('On site since: an admin picks the day, then removes it; '

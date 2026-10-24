@@ -53,6 +53,16 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "phoneMakers" -> result.success(listOf(Build.MANUFACTURER, Build.BRAND))
+                    // F102: opening a conversation takes its notification
+                    // off the phone. FCM draws a notification message under
+                    // its tag (the conversation's id) with id 0.
+                    "cancelNotification" -> {
+                        val tag = call.argument<String>("tag")
+                        if (tag != null) {
+                            getSystemService(NotificationManager::class.java).cancel(tag, 0)
+                        }
+                        result.success(null)
+                    }
                     // F37: the phone's 24-hour setting, read again when the
                     // app comes back to the front (Android doesn't tell
                     // Flutter about a change until the app restarts).

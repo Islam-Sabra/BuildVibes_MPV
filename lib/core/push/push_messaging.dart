@@ -39,6 +39,11 @@ abstract class PushMessaging {
   /// F9: the phone's own page for BuildVibes (Autostart, battery).
   Future<void> openAppSettings();
 
+  /// F102: takes a conversation's notification off the phone when it is
+  /// opened. Android draws message pushes itself (FCM), tagged with the
+  /// conversation's id ([tag]: the DM thread or the Space chat thread).
+  Future<void> clearNotification(String tag);
+
   /// Who made the phone and its brand, lower case ("xiaomi", "redmi").
   Future<List<String>> phoneMakers();
 
@@ -117,6 +122,18 @@ class FirebasePushMessaging implements PushMessaging {
 
   @override
   Future<void> openAppSettings() => _invoke('openAppSettings');
+
+  /// FCM shows a notification message under its tag with id 0, so the
+  /// phone cancels (tag, 0). Never fails the screen that asked.
+  @override
+  Future<void> clearNotification(String tag) async {
+    if (!_ready || !Platform.isAndroid) return;
+    try {
+      await _settings.invokeMethod<void>('cancelNotification', {'tag': tag});
+    } on Exception catch (e) {
+      debugPrint('cancelNotification: $e');
+    }
+  }
 
   Future<void> _invoke(String method) async {
     try {

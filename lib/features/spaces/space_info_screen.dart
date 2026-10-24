@@ -27,6 +27,7 @@ import 'invite_screen.dart' show renewInviteCode;
 import 'new_space_screen.dart';
 import 'pass_words.dart';
 import 'space_errors.dart';
+import 'space_mute.dart';
 
 /// Picks the "On site since" day: the phone's date picker, from [initial].
 /// Null when the person cancels. A provider so tests can stand in for it.
@@ -296,8 +297,8 @@ class SpaceInfoScreen extends ConsumerWidget {
                 title: l10n.spacesNotifications,
                 below: BvSegmented<SpaceNotify>(
                   value: space.myNotify,
-                  onChanged: (v) =>
-                      run((repo) => repo.setNotifications(spaceId, v)),
+                  // F102: Off or Needs you only asks for how long.
+                  onChanged: (v) => setSpaceNotify(context, ref, spaceId, v),
                   segments: [
                     BvSegment(
                       key: const Key('notify-all'),

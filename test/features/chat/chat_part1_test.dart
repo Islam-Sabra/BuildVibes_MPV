@@ -1,5 +1,6 @@
 import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
+import 'package:buildvibes/core/push/push_messaging.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
@@ -17,6 +18,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../helpers/chat_fakes.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/push_fakes.dart';
 import '../../helpers/space_fakes.dart';
 import '../../helpers/work_fakes.dart';
 
@@ -188,6 +190,23 @@ Future<TestApp> _openThread(
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
+
+    testWidgets('F102: opening a chat thread clears its phone notification, '
+        'by its tag [$lang]', (tester) async {
+      final push = FakePushMessaging(current: PushPermission.granted);
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _spaces(),
+        work: _work(),
+        chat: _chat(),
+        push: push,
+      );
+      expect(push.cleared, isEmpty);
+      _router(tester).push('/spaces/$_space/chat/$_mep');
+      await tester.pumpAndSettle();
+      expect(push.cleared, [_mep]);
+    });
 
     testWidgets('S7k: Everyone first, last lines, unread [$lang]', (
       tester,

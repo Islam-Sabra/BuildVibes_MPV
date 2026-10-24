@@ -34,6 +34,7 @@ class SpaceSummary {
     this.pendingRequests = 0,
     int? needsYou,
     this.lastActivityAt,
+    this.notify = SpaceNotify.all,
   }) : needsYou = needsYou ?? pendingRequests;
 
   factory SpaceSummary.fromJson(Map<String, dynamic> json) => SpaceSummary(
@@ -49,6 +50,7 @@ class SpaceSummary {
     lastActivityAt: json['last_activity_at'] == null
         ? null
         : DateTime.parse(json['last_activity_at'] as String),
+    notify: SpaceNotify.fromJson(json['notify']),
   );
 
   final String id;
@@ -69,6 +71,13 @@ class SpaceSummary {
   /// The time on the newest daybook card I can see here (F28, migration
   /// 28); null with none.
   final DateTime? lastActivityAt;
+
+  /// My notifications for this Space in force now (F102, migration 41): a
+  /// mute whose time has passed is already back to all.
+  final SpaceNotify notify;
+
+  /// Anything but All mutes the Space's chat: the row shows the bell-slash.
+  bool get muted => notify != SpaceNotify.all;
 }
 
 enum JoinRequestStatus { pending, declined }
@@ -278,6 +287,15 @@ enum SpaceNotify {
 
   static SpaceNotify fromJson(Object? value) =>
       values.where((v) => v.json == value).firstOrNull ?? all;
+
+  /// The level in force at [now] (F102): a level other than All holds
+  /// until [until] (null = always), then it is All again by itself, as
+  /// space_push_level reads it on the server.
+  static SpaceNotify inForce(Object? value, Object? until, DateTime now) {
+    final level = fromJson(value);
+    final end = until is String ? DateTime.tryParse(until) : null;
+    return level != all && end != null && !end.isAfter(now) ? all : level;
+  }
 }
 
 /// A person as Space lists show them: name, and role · company.

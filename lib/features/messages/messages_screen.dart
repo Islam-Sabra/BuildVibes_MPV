@@ -13,10 +13,12 @@ import '../../data/models/dm.dart';
 import '../../data/repositories/dm_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
+import '../../shared/widgets/bv_mute_sheet.dart';
 import '../../shared/widgets/bv_search_field.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
+import 'dm_mute.dart';
 
 /// Messages (DM1 2560:35524, AR 2564:745): the newest Message request on
 /// top, then the threads, Today and Earlier. An unread thread is a white
@@ -82,6 +84,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           style: type.metadata.copyWith(color: BvColors.textSecondary),
         ),
       );
+      // F102: long-press for Mute / Unmute.
+      Future<void> mute(DmRow r) =>
+          muteDmFromList(context, ref, r.threadId, muted: r.muted);
+
       return ListView(
         key: const Key('messages-list'),
         padding: const EdgeInsetsDirectional.only(
@@ -97,11 +103,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             ),
           if (todays.isNotEmpty) ...[
             group(l10n.messagesToday),
-            for (final r in todays) DmListRow(row: r, now: now),
+            for (final r in todays)
+              DmListRow(row: r, now: now, onLongPress: () => mute(r)),
           ],
           if (earlier.isNotEmpty) ...[
             group(l10n.messagesEarlier),
-            for (final r in earlier) DmListRow(row: r, now: now),
+            for (final r in earlier)
+              DmListRow(row: r, now: now, onLongPress: () => mute(r)),
           ],
         ],
       );
@@ -242,10 +250,18 @@ String voiceLength(int ms) {
 /// one line, and the time. Unread: a white card, the time in the action
 /// colour, and a dot.
 class DmListRow extends StatelessWidget {
-  const DmListRow({super.key, required this.row, required this.now});
+  const DmListRow({
+    super.key,
+    required this.row,
+    required this.now,
+    this.onLongPress,
+  });
 
   final DmRow row;
   final DateTime now;
+
+  /// Mute / Unmute (F102), on the Messages list.
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +269,8 @@ class DmListRow extends StatelessWidget {
     final type = BvType.of(context);
     final name = personName(l10n, row.person.former ? null : row.person.name);
     final last = row.last;
-    final unread = row.unread && !row.muted;
+    // A muted conversation still shows its unread dot (F102).
+    final unread = row.unread;
     return Material(
       key: Key('messages-row-${row.threadId}'),
       color: unread ? BvColors.surfaceElevated : Colors.transparent,
@@ -261,6 +278,7 @@ class DmListRow extends StatelessWidget {
       child: InkWell(
         borderRadius: BvMessagesSpec.rowRadius,
         onTap: () => context.push(AppRoutes.messagesThread(row.threadId)),
+        onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsetsDirectional.all(BvMessagesSpec.rowPadding),
           child: Row(
@@ -274,11 +292,21 @@ class DmListRow extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            inOwnDirection(name),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: type.titleMd,
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  inOwnDirection(name),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: type.titleMd,
+                                ),
+                              ),
+                              if (row.muted)
+                                BvMutedMark(
+                                  key: Key('messages-muted-${row.threadId}'),
+                                ),
+                            ],
                           ),
                         ),
                         Text(

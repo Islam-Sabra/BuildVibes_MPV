@@ -7765,6 +7765,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To tick'**
   String get needsRowChecklist;
+
+  /// F102: the mute sheet's title (Space info → Notifications Off or Needs you only, a conversation's Mute, long-press Mute).
+  ///
+  /// In en, this message translates to:
+  /// **'For how long?'**
+  String get muteForHowLong;
+
+  /// F102: mute sheet choice.
+  ///
+  /// In en, this message translates to:
+  /// **'8 hours'**
+  String get muteFor8Hours;
+
+  /// F102: mute sheet choice.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week'**
+  String get muteFor1Week;
+
+  /// F102: mute sheet choice: until unmuted.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get muteForAlways;
+
+  /// F102: long-press menu on a Space or conversation row.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get muteMute;
+
+  /// F102: long-press menu on a muted Space or conversation row.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get muteUnmute;
+
+  /// F102: screen-reader label of the bell-slash beside a muted row's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications muted'**
+  String get muteMutedLabel;
 }
 
 class _AppLocalizationsDelegate

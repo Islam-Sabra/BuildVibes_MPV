@@ -59,7 +59,9 @@ abstract class DmRepository {
 
   Future<void> markRead(String threadId);
   Future<void> decline(String threadId);
-  Future<void> mute(String threadId, {required bool on});
+
+  /// [until]: how long the mute holds (F102); null = always.
+  Future<void> mute(String threadId, {required bool on, DateTime? until});
 
   /// My own message; it stays as "Message deleted".
   Future<void> delete(String id);
@@ -269,9 +271,17 @@ class SupabaseDmRepository implements DmRepository {
       _guard(() => _client.rpc('decline_dm', params: {'p_thread': threadId}));
 
   @override
-  Future<void> mute(String threadId, {required bool on}) => _guard(
-    () => _client.rpc('mute_dm', params: {'p_thread': threadId, 'p_on': on}),
-  );
+  Future<void> mute(String threadId, {required bool on, DateTime? until}) =>
+      _guard(
+        () => _client.rpc(
+          'mute_dm',
+          params: {
+            'p_thread': threadId,
+            'p_on': on,
+            'p_until': on ? until?.toUtc().toIso8601String() : null,
+          },
+        ),
+      );
 
   @override
   Future<void> delete(String id) =>

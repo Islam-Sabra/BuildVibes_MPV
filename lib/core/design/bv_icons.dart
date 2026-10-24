@@ -262,6 +262,9 @@ abstract final class BvIcons {
   /// bell-slash: notifications aren't reaching this phone (F9).
   static const notificationsOff = IconData(0xe0d4, fontFamily: _family);
 
+  /// bell-slash: a muted Space or conversation, beside its name (F102).
+  static const muted = notificationsOff;
+
   /// arrow-down and arrow-up: "New" entries below (the Daybook's Now) or
   /// above (the Home feed's top). Up and down don't mirror.
   static const newBelow = IconData(0xe03e, fontFamily: _family);

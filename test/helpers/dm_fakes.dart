@@ -152,9 +152,17 @@ class FakeDmRepository implements DmRepository {
   }
 
   @override
-  Future<void> mute(String threadId, {required bool on}) async {
+  Future<void> mute(
+    String threadId, {
+    required bool on,
+    DateTime? until,
+  }) async {
     _check();
-    calls.add('mute $threadId $on');
+    calls.add(
+      until == null
+          ? 'mute $threadId $on'
+          : 'mute $threadId $on until ${until.toIso8601String()}',
+    );
   }
 
   @override
