@@ -1139,3 +1139,12 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **Fix:** while a banner of one conversation shows and the text is hidden, each newer message from it counts up: "2 new messages" / «رسالتان جديدتان», "3 new messages" / «3 رسائل جديدة», "11 new messages" / «11 رسالة جديدة». Same words and Arabic counting forms as F97's follow-up push. The 4 seconds restart, with no new slide-in. With the text allowed, it shows the newest message's words, as now.
 - **The count:** messages from this conversation since the banner first showed, still unread. A new banner (after it ended) starts again at "New message".
 - **Test:** text hidden, 3 messages 1 s apart: "New message", "2 new messages", "3 new messages", still there at 3.9 s after the third; in EN and AR.
+
+## Build 565 test (24 Oct, 09:30–09:57): F100 ✓, F101 ✓, pushes ✓
+- **App open:** the banner counts up ("New message", "2 new messages", "3 new messages"), and the dot and list update. F100 and F101 pass.
+- **"No notification with the app closed":** checked on live. Every push was queued, held or sent as designed, with FCM 200 for both tokens. The two sent at 09:30 and 09:48 arrived while the app was open, so the app showed its banner rather than the phone's own notification.
+- **Locked, clean test:**
+  - the follow-up for 12 held messages arrived on the lock screen ("12 new messages");
+  - one message after the quiet time arrived at once, with sound;
+  - the next one, inside the quiet time, gave no sound and left the notification as it was, as designed (F97).
+- **Still to test:** F47, the daybook live update in an open Space.
