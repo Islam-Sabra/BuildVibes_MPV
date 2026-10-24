@@ -64,11 +64,16 @@ abstract class DmRepository {
   /// My own message; it stays as "Message deleted".
   Future<void> delete(String id);
 
-  /// [threadId] live, on its private `dm:` channel (migration 31): joined,
-  /// then each message added or changed. When the channel closes, errors or
+  /// [threadId] live, on its private `dm:` channel (migrations 31 and 40):
+  /// joined, then each message added or deleted, as the database's
+  /// broadcast tells it (ids only). When the channel closes, errors or
   /// times out, the stream ends with a [DmLiveLost] error; the caller opens
   /// it again (F100).
   Stream<DmLiveEvent> changes(String threadId);
+
+  /// What a message says, read by its id under the thread's read rule, for
+  /// the live banner (F100). Null when it can't be read or was deleted.
+  Future<DmLiveText?> liveText(String messageId);
 }
 
 /// What a thread's live channel says (F100).
@@ -82,23 +87,47 @@ class DmLiveJoined extends DmLiveEvent {
   const DmLiveJoined();
 }
 
-/// A message added ([inserted]) or changed (a delete, an edit).
+/// A message added ([inserted]) or [deleted], by [authorId]: the ids the
+/// broadcast carries, never the words (migration 40).
 class DmLiveRow extends DmLiveEvent {
   const DmLiveRow({
     required this.id,
     this.inserted = false,
     this.authorId,
-    this.kind,
-    this.body,
     this.deleted = false,
   });
+
+  /// Migration 40's broadcast, as the Realtime client hands it over: the
+  /// whole message, with `{thread_id, message_id, author_id, op}` in its
+  /// payload. Null when it isn't one.
+  static DmLiveRow? fromBroadcast(Map<String, dynamic> message) {
+    final payload = message['payload'];
+    if (payload is! Map) return null;
+    final id = payload['message_id'];
+    if (id is! String) return null;
+    final author = payload['author_id'];
+    final op = payload['op'];
+    return DmLiveRow(
+      id: id,
+      inserted: op == 'insert',
+      authorId: author is String ? author : null,
+      deleted: op == 'delete',
+    );
+  }
 
   final String id;
   final bool inserted;
   final String? authorId;
-  final String? kind;
-  final String? body;
   final bool deleted;
+}
+
+/// A message's kind and words, read again by id ([DmRepository.liveText]).
+@immutable
+class DmLiveText {
+  const DmLiveText({required this.kind, this.body});
+
+  final String kind;
+  final String? body;
 }
 
 /// The channel closed, errored or timed out.
@@ -248,6 +277,9 @@ class SupabaseDmRepository implements DmRepository {
   Future<void> delete(String id) =>
       _guard(() => _client.rpc('delete_dm', params: {'p_id': id}));
 
+  /// The broadcast event of migration 40.
+  static const _liveEvent = 'dm';
+
   @override
   Stream<DmLiveEvent> changes(String threadId) {
     late final RealtimeChannel channel;
@@ -264,29 +296,13 @@ class SupabaseDmRepository implements DmRepository {
           'dm:$threadId',
           opts: const RealtimeChannelConfig(private: true),
         )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'dm_messages',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'thread_id',
-            value: threadId,
-          ),
-          callback: (payload) {
-            final row = payload.newRecord;
-            final id = row['id'] ?? payload.oldRecord['id'];
-            if (id is! String || cancelled) return;
-            controller.add(
-              DmLiveRow(
-                id: id,
-                inserted: payload.eventType == PostgresChangeEvent.insert,
-                authorId: row['author_id'] as String?,
-                kind: row['kind'] as String?,
-                body: row['body'] as String?,
-                deleted: row['deleted_at'] != null,
-              ),
-            );
+        // Migration 40: the database broadcasts each new or deleted
+        // message on the thread's topic, with ids only.
+        .onBroadcast(
+          event: _liveEvent,
+          callback: (message) {
+            final row = DmLiveRow.fromBroadcast(message);
+            if (row != null && !cancelled) controller.add(row);
           },
         )
         .subscribe((status, [error]) {
@@ -309,6 +325,20 @@ class SupabaseDmRepository implements DmRepository {
         });
     return controller.stream;
   }
+
+  @override
+  Future<DmLiveText?> liveText(String messageId) => _guard(() async {
+    final row = await _client
+        .from('dm_messages')
+        .select('kind, body, deleted_at')
+        .eq('id', messageId)
+        .maybeSingle();
+    if (row == null || row['deleted_at'] != null) return null;
+    return DmLiveText(
+      kind: row['kind'] as String,
+      body: row['body'] as String?,
+    );
+  });
 }
 
 final dmRepositoryProvider = Provider<DmRepository>(

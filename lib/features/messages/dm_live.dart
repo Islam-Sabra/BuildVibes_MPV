@@ -226,7 +226,9 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
 
   /// F100: a new message from the other person shows the banner, as its
   /// push would: their name, and its words only if the lock-screen setting
-  /// shows message text.
+  /// shows message text. The broadcast carries only ids (migration 40), so
+  /// the message is read again by id, under the thread's read rule: one
+  /// that can't be read, or was deleted meanwhile, shows nothing.
   Future<void> _liveBanner(String id, DmLiveRow row) async {
     final me = ref.read(authUserIdProvider).value;
     if (row.deleted || row.authorId == null || row.authorId == me) return;
@@ -236,6 +238,13 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
       ...?inbox?.threads,
       ?inbox?.newestRequest,
     ].where((t) => t.threadId == id).firstOrNull?.person;
+    DmLiveText? text;
+    try {
+      text = await ref.read(dmRepositoryProvider).liveText(row.id);
+      if (text == null) return;
+    } on Object {
+      // Unknown: the banner still tells, with the words hidden.
+    }
     var showText = false;
     try {
       showText =
@@ -245,11 +254,11 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
     }
     if (!mounted || !_signedIn || ref.read(openDmThreadProvider) == id) return;
     final l10n = AppLocalizations.of(context);
-    final words = switch (row.kind) {
+    final words = switch (text?.kind) {
       'photo' => l10n.chatPhoto,
       'file' => l10n.chatFile,
       'voice' => l10n.chatVoice,
-      _ => row.body?.trim() ?? '',
+      _ => text?.body?.trim() ?? '',
     };
     ref
         .read(dmBannerProvider.notifier)

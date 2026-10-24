@@ -47,7 +47,11 @@ class FakeDmRepository implements DmRepository {
     }
   }
 
-  /// A new message arrives live, by [authorId].
+  /// Message id → what it says, as liveText reads it (null: can't be read).
+  final texts = <String, DmLiveText?>{};
+
+  /// A new message arrives live, by [authorId]: the broadcast's ids, and
+  /// its words kept for liveText (migration 40).
   void arrive(
     String threadId,
     String messageId, {
@@ -55,16 +59,17 @@ class FakeDmRepository implements DmRepository {
     String body = '',
     String kind = 'text',
   }) {
+    texts[messageId] = DmLiveText(kind: kind, body: body);
     for (final c in _open(threadId)) {
-      c.add(
-        DmLiveRow(
-          id: messageId,
-          inserted: true,
-          authorId: authorId,
-          kind: kind,
-          body: body,
-        ),
-      );
+      c.add(DmLiveRow(id: messageId, inserted: true, authorId: authorId));
+    }
+  }
+
+  /// [messageId] by [authorId] was deleted, live.
+  void deleted(String threadId, String messageId, {required String authorId}) {
+    texts[messageId] = null;
+    for (final c in _open(threadId)) {
+      c.add(DmLiveRow(id: messageId, deleted: true, authorId: authorId));
     }
   }
 
@@ -163,6 +168,13 @@ class FakeDmRepository implements DmRepository {
     for (final e in _live.keys)
       if (_open(e).isNotEmpty) e,
   };
+
+  @override
+  Future<DmLiveText?> liveText(String messageId) async {
+    _check();
+    calls.add('liveText $messageId');
+    return texts[messageId];
+  }
 
   @override
   Stream<DmLiveEvent> changes(String threadId) {

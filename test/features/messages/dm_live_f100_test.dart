@@ -5,6 +5,7 @@
 import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
+import 'package:buildvibes/data/repositories/dm_repository.dart';
 import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/features/messages/dm_live.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
@@ -231,5 +232,92 @@ void main() {
     expect(dm.opens['t-omar'], opens);
     // The screen reads the conversation again.
     expect(dm.pageReads['t-omar'], greaterThan(reads));
+  });
+
+  test('migration 40: the broadcast, as the Realtime client hands it over, '
+      'gives the message id, its author and what happened', () {
+    // As the local stack delivered it (the end-to-end check).
+    Map<String, dynamic> cast(String op) => {
+      'event': 'dm',
+      'type': 'broadcast',
+      'meta': {'id': 'r1'},
+      'payload': {
+        'id': 'r1',
+        'op': op,
+        'thread_id': 't-omar',
+        'message_id': 'm9',
+        'author_id': 'p-omar',
+      },
+    };
+    final added = DmLiveRow.fromBroadcast(cast('insert'))!;
+    expect(added.id, 'm9');
+    expect(added.inserted, isTrue);
+    expect(added.deleted, isFalse);
+    expect(added.authorId, 'p-omar');
+    final gone = DmLiveRow.fromBroadcast(cast('delete'))!;
+    expect(gone.inserted, isFalse);
+    expect(gone.deleted, isTrue);
+    // The payload alone (not the whole broadcast) isn't one.
+    expect(DmLiveRow.fromBroadcast(cast('insert')['payload']), isNull);
+    expect(
+      DmLiveRow.fromBroadcast(const {'payload': <String, dynamic>{}}),
+      isNull,
+    );
+  });
+
+  testWidgets('the live banner reads the message by id: the broadcast has '
+      'no words', (tester) async {
+    final dm = FakeDmRepository()
+      ..inboxValue = DmInbox(threads: [_omar('At the gate at 7?')]);
+    final app = await pumpApp(tester, dm: dm, now: _now);
+    app.pushes.saved = const PushSettings(messageText: true);
+    dm.arrive('t-omar', 'm9', authorId: 'p-omar', body: 'Stop the pour');
+    await tester.pumpAndSettle();
+    expect(dm.calls, contains('liveText m9'));
+    expect(_bannerText(tester), contains('Stop the pour'));
+    expect(_bannerText(tester), contains('Omar Haddad'));
+  });
+
+  testWidgets('a second live message 1 s later changes the banner words '
+      'in place', (tester) async {
+    final dm = FakeDmRepository()
+      ..inboxValue = DmInbox(threads: [_omar('At the gate at 7?')]);
+    final app = await pumpApp(tester, dm: dm, now: _now);
+    app.pushes.saved = const PushSettings(messageText: true);
+    dm.arrive('t-omar', 'm9', authorId: 'p-omar', body: 'Stop the pour');
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(_banner, findsOneWidget);
+    final key = tester.widget(_banner).key;
+    dm.arrive('t-omar', 'm10', authorId: 'p-omar', body: 'Pump is late');
+    await tester.pump();
+    await tester.pump();
+    expect(_banner, findsOneWidget);
+    expect(_bannerText(tester), contains('Pump is late'));
+    expect(_bannerText(tester), isNot(contains('Stop the pour')));
+    expect(tester.widget(_banner).key, key, reason: 'the same banner');
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
+  testWidgets('a message deleted before it is read shows no banner; a live '
+      'delete reads the list again with no banner', (tester) async {
+    final dm = FakeDmRepository()
+      ..inboxValue = DmInbox(threads: [_omar('At the gate at 7?')]);
+    await pumpApp(tester, dm: dm, now: _now);
+    GoRouter.of(tester.element(find.byType(Scaffold).first)).push('/messages');
+    await tester.pumpAndSettle();
+    // Gone by the time the app reads it: nothing to tell.
+    dm.arrive('t-omar', 'm9', authorId: 'p-omar', body: 'Stop the pour');
+    dm.texts['m9'] = null;
+    await tester.pumpAndSettle();
+    expect(_banner, findsNothing);
+    // The other person deletes a message: the list reads again.
+    dm.inboxValue = DmInbox(threads: [_omar('Message deleted')]);
+    dm.deleted('t-omar', 'm8', authorId: 'p-omar');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Message deleted'), findsOneWidget);
+    expect(_banner, findsNothing);
+    expect(dm.calls, isNot(contains('liveText m8')));
   });
 }
