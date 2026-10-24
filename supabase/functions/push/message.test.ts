@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { buildPush, classify, retryAfterSeconds, type QueueRow } from "./message.ts";
+import { buildPush, classify, fcmMessage, retryAfterSeconds, type QueueRow } from "./message.ts";
 
 const strings = JSON.parse(
   readFileSync(new URL("./strings.json", import.meta.url), "utf8"),
@@ -60,21 +60,49 @@ test("a daybook post opens its card (slice 10); its id travels in the data", () 
     "A scheduled activity you are in starts in 30 minutes.");
 });
 
-test("a direct message: like chat, one tag per thread; a request never shows text", () => {
+test("F102: a direct message, text off: who, and how many, on one notification per thread", () => {
+  const data = { dm_thread_id: "d1", message_id: "m1", count: "1" };
+  const one = buildPush(row("dm_message", { data }), "en", "Omar Haddad", strings);
+  assert.equal(one.title, "Message from ⁨Omar Haddad⁩");
+  assert.equal(one.body, "1 new message");
+  assert.equal(one.tag, "d1");
+  assert.equal(one.data.route, "/messages/d1");
+  assert.equal(one.data.shown, undefined);
+  const three = buildPush(row("dm_message", { data: { ...data, count: "3" } }), "en", "Omar Haddad", strings);
+  assert.equal(`${three.title} · ${three.body}`, "Message from ⁨Omar Haddad⁩ · 3 new messages");
+  assert.equal(three.tag, "d1", "the same tag: it replaces the last one");
+  const ar = (n: number) => buildPush(row("dm_message", { data: { ...data, count: String(n) } }), "ar", "عمر حداد", strings);
+  assert.equal(`${ar(3).title} · ${ar(3).body}`, "رسالة من ⁨عمر حداد⁩ · 3 رسائل جديدة");
+  assert.deepEqual([1, 2, 3, 10, 11].map((n) => ar(n).body),
+    ["رسالة جديدة", "رسالتان جديدتان", "3 رسائل جديدة", "10 رسائل جديدة", "11 رسالة جديدة"]);
+  // A push queued before migration 41 has no count: one message.
+  const old = buildPush(row("dm_message", { data: { dm_thread_id: "d1" } }), "en", "Omar Haddad", strings);
+  assert.equal(old.body, "1 new message");
+});
+
+test("F102: a direct message, text on: the name, the newest words, then the count", () => {
+  const data = { dm_thread_id: "d1", message_id: "m1", count: "1" };
+  const one = buildPush(row("dm_message", { data, message_text: "Pump is late" }), "en", "Omar Haddad", strings);
+  assert.equal(one.title, "⁨Omar Haddad⁩");
+  assert.equal(one.body, "Pump is late");
+  assert.equal(one.data.shown, "1");
+  const three = buildPush(row("dm_message", { data: { ...data, count: "3" }, message_text: "Pump is late" }),
+                          "en", "Omar Haddad", strings);
+  assert.equal(three.body, "Pump is late · 3 new messages");
+  assert.equal(three.tag, "d1");
+  const ar = buildPush(row("dm_message", { data: { ...data, count: "2" }, message_text: "المضخة متأخرة" }),
+                       "ar", "عمر حداد", strings);
+  assert.equal(ar.body, "المضخة متأخرة · رسالتان جديدتان");
+});
+
+test("a message request never shows text", () => {
   const data = { dm_thread_id: "d1", message_id: "m1" };
-  const hidden = buildPush(row("dm_message", { data }), "en", "Omar Haddad", strings);
-  assert.equal(hidden.title, "Message from ⁨Omar Haddad⁩");
-  assert.equal(hidden.body, "Open BuildVibes to read it.");
-  assert.equal(hidden.tag, "d1");
-  assert.equal(hidden.data.route, "/messages/d1");
-  const shown = buildPush(row("dm_message", { data, message_text: "At the gate." }), "en", "Omar Haddad", strings);
-  assert.equal(shown.body, "At the gate.");
   const request = buildPush(row("dm_request", { data, message_text: "Buy now" }), "en", "Sam Spam", strings);
   assert.equal(request.body, "⁨Sam Spam⁩ sent you a message request.");
   assert.equal(request.data.route, "/messages/d1");
 });
 
-test("F97: one follow-up for the messages after the first push, never the text", () => {
+test("F97: a follow-up queued before migration 41 still reads right, never the text", () => {
   const data = { dm_thread_id: "d1", since: "2026-10-23T07:00:00Z", count: "2" };
   const en = buildPush(row("dm_follow_up", { data }), "en", "Omar Haddad", strings);
   assert.equal(en.title, "Message from ⁨Omar Haddad⁩");
@@ -103,18 +131,49 @@ test("Arabic text with the name kept in its own direction", () => {
   assert.equal(p.data.open, "people");
 });
 
-test("chat: the text only when kept for the lock screen; one tag per thread", () => {
-  const data = { space_id: "s1", thread_id: "t1", message_id: "m1" };
+test("F102: Space chat names the person, never the thread or the Space; one tag per thread", () => {
+  const data = { space_id: "s1", thread_id: "t1", message_id: "m1", count: "3" };
   const hidden = buildPush(row("chat_message", { thread_id: "t1", data }), "en", "Omar Haddad", strings);
-  assert.equal(hidden.title, "New message from ⁨Omar Haddad⁩");
-  assert.equal(hidden.body, "Open BuildVibes to read it.");
+  assert.equal(`${hidden.title} · ${hidden.body}`,
+    "Message from ⁨Omar Haddad⁩ in a Space chat · 3 new messages");
   assert.equal(hidden.tag, "t1");
   assert.equal(hidden.data.route, "/spaces/s1/chat/t1");
+  const ar = buildPush(row("chat_message", { thread_id: "t1", data }), "ar", "عمر حداد", strings);
+  assert.equal(`${ar.title} · ${ar.body}`, "رسالة من ⁨عمر حداد⁩ في محادثة مساحة · 3 رسائل جديدة");
   const shown = buildPush(
-    row("chat_message", { thread_id: "t1", data, message_text: "Concrete at 7." }),
+    row("chat_message", { thread_id: "t1", data: { ...data, count: "1" }, message_text: "Concrete at 7." }),
     "en", "Omar Haddad", strings,
   );
+  assert.equal(shown.title, "⁨Omar Haddad⁩ in a Space chat");
   assert.equal(shown.body, "Concrete at 7.");
+  const two = buildPush(
+    row("chat_message", { thread_id: "t1", data: { ...data, count: "2" }, message_text: "Concrete at 7." }),
+    "en", "Omar Haddad", strings,
+  );
+  assert.equal(two.body, "Concrete at 7. · 2 new messages");
+});
+
+test("F102: FCM gets a notification Android draws, tagged per conversation, with sound", () => {
+  const push = buildPush(row("dm_message", { data: { dm_thread_id: "d1", count: "2" } }), "en", "Omar Haddad", strings);
+  const m = fcmMessage("tok", push) as {
+    token: string;
+    notification: { title: string; body: string };
+    data: Record<string, string>;
+    android: { priority: string; notification: Record<string, unknown> };
+  };
+  assert.equal(m.token, "tok");
+  assert.deepEqual(m.notification, { title: "Message from ⁨Omar Haddad⁩", body: "2 new messages" });
+  assert.equal(m.android.priority, "high");
+  assert.equal(m.android.notification.channel_id, "buildvibes");
+  assert.equal(m.android.notification.tag, "d1");
+  assert.equal(m.android.notification.default_sound, true);
+  assert.equal(m.android.notification.default_vibrate_timings, true);
+  assert.equal(m.data.count, "2");
+  // Other kinds: no tag, each stands alone.
+  const item = fcmMessage("tok", buildPush(row("item_assigned"), "en", "Sara", strings)) as {
+    android: { notification: Record<string, unknown> };
+  };
+  assert.equal(item.android.notification.tag, undefined);
 });
 
 test("no name: Someone", () => {

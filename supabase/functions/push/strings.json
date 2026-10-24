@@ -18,15 +18,17 @@
     "activity_invited": "{name} added you to a scheduled activity.",
     "activity_starting": "A scheduled activity you are in starts in 30 minutes.",
     "file_new_version": "{name} shared a new version of a file you received.",
-    "chat_title": "New message from {name}",
-    "chat_hidden": "Open BuildVibes to read it.",
     "dm_request": "{name} sent you a message request.",
     "dm_title": "Message from {name}",
     "someone": "Someone",
     "dm_follow_up_one": "1 new message",
     "dm_follow_up_two": "2 new messages",
     "dm_follow_up_few": "{count} new messages",
-    "dm_follow_up_many": "{count} new messages"
+    "dm_follow_up_many": "{count} new messages",
+    "dm_shown_title": "{name}",
+    "chat_shown_title": "{name} in a Space chat",
+    "chat_hidden_title": "Message from {name} in a Space chat",
+    "separator": " · "
   },
   "ar": {
     "title": "BuildVibes",
@@ -47,14 +49,16 @@
     "activity_invited": "دعوة من {name} إلى نشاط مجدول.",
     "activity_starting": "نشاط مجدول مدرج لك يبدأ بعد 30 دقيقة.",
     "file_new_version": "نسخة جديدة من ملف استلمته، من {name}.",
-    "chat_title": "رسالة جديدة من {name}",
-    "chat_hidden": "افتح BuildVibes لقراءتها.",
     "dm_request": "طلب رسالة من {name}.",
     "dm_title": "رسالة من {name}",
     "someone": "أحدهم",
     "dm_follow_up_one": "رسالة جديدة",
     "dm_follow_up_two": "رسالتان جديدتان",
     "dm_follow_up_few": "{count} رسائل جديدة",
-    "dm_follow_up_many": "{count} رسالة جديدة"
+    "dm_follow_up_many": "{count} رسالة جديدة",
+    "dm_shown_title": "{name}",
+    "chat_shown_title": "{name} في محادثة مساحة",
+    "chat_hidden_title": "رسالة من {name} في محادثة مساحة",
+    "separator": " · "
   }
 }

@@ -20,7 +20,7 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import strings from "./strings.json" with { type: "json" };
-import { buildPush, classify, retryAfterSeconds, type QueueRow } from "./message.ts";
+import { buildPush, classify, fcmMessage, retryAfterSeconds, type QueueRow } from "./message.ts";
 
 type ServiceAccount = {
   project_id: string;
@@ -127,17 +127,7 @@ async function send(row: QueueRow): Promise<void> {
           authorization: `Bearer ${await accessToken()}`,
           "content-type": "application/json",
         },
-        body: JSON.stringify({
-          message: {
-            token: t.token,
-            notification: { title: push.title, body: push.body },
-            data: push.data,
-            android: {
-              priority: "high",
-              notification: { channel_id: "buildvibes", ...(push.tag ? { tag: push.tag } : {}) },
-            },
-          },
-        }),
+        body: JSON.stringify({ message: fcmMessage(t.token, push) }),
       },
     );
     const answer = (outcome: string) =>

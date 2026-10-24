@@ -74,33 +74,17 @@ export function buildPush(
   if (open) data.open = open;
   for (const [k, v] of Object.entries(row.data ?? {})) data[k] = String(v);
 
-  if (row.kind === "chat_message") {
-    return {
-      title: fill(t.chat_title),
-      // The text only when the person turned it on (the queue holds it
-      // only then).
-      body: row.message_text ?? t.chat_hidden,
-      data,
-      tag: row.thread_id ?? undefined,
-    };
-  }
-  if (row.kind === "dm_message") {
-    return {
-      title: fill(t.dm_title),
-      // As chat: the text only when the person turned it on.
-      body: row.message_text ?? t.chat_hidden,
-      data,
-      tag: row.data?.dm_thread_id ?? undefined,
-    };
+  if (row.kind === "chat_message" || row.kind === "dm_message") {
+    return messagePush(row, t, name, data);
   }
   if (row.kind === "dm_follow_up") {
-    // F97: the messages after the first push, still unread at the quiet
-    // time's end. Never the text: it stands for several. Same tag, so it
-    // replaces the first push.
+    // F97 (queued before migration 41 only): the messages after the first
+    // push, still unread at the quiet time's end. Never the text: it
+    // stands for several. Same tag, so it replaces the first push.
     const n = Number(row.data?.count ?? "0");
     return {
       title: fill(t.dm_title),
-      body: (t[followUpKey(n)] ?? t.dm_follow_up_many).replaceAll("{count}", String(n)),
+      body: countWords(t, n),
       data,
       tag: row.data?.dm_thread_id ?? undefined,
     };
@@ -108,6 +92,72 @@ export function buildPush(
   const template = t[row.kind];
   if (!template) throw new Error(`no text for ${row.kind}`);
   return { title: t.title, body: fill(template), data };
+}
+
+// F102: a message push, sent for every message (migration 41). Android
+// shows one notification per conversation: the same tag (the DM thread or
+// the chat thread) replaces the last one, with sound each time. data.count
+// is the person's unread messages there, counted when it was queued.
+// - Text on (the queue holds the words): the name as the title (in a
+//   Space chat, "Omar Haddad in a Space chat"), the newest words as the
+//   body, then " · 3 new messages" when there is more than one.
+// - Text off, or no words (a photo, a voice note): "Message from Omar
+//   Haddad" (in a Space chat, "... in a Space chat") over "3 new messages".
+// Never a thread's or a Space's name.
+function messagePush(
+  row: QueueRow,
+  t: Record<string, string>,
+  name: string,
+  data: Record<string, string>,
+): Push {
+  const chat = row.kind === "chat_message";
+  const fill = (s: string) => s.replaceAll("{name}", name);
+  const n = Math.max(1, Number(row.data?.count ?? "1") || 1);
+  const words = row.message_text?.trim();
+  const tag = (chat ? row.thread_id ?? row.data?.thread_id : row.data?.dm_thread_id) ?? undefined;
+  if (words) {
+    return {
+      title: fill(chat ? t.chat_shown_title : t.dm_shown_title),
+      body: n > 1 ? `${words}${t.separator}${countWords(t, n)}` : words,
+      // Tells the app's banner (app open) that the body holds the words.
+      data: { ...data, shown: "1" },
+      tag,
+    };
+  }
+  return {
+    title: fill(chat ? t.chat_hidden_title : t.dm_title),
+    body: countWords(t, n),
+    data,
+    tag,
+  };
+}
+
+// "3 new messages" / «3 رسائل جديدة», as F97 and F101.
+export function countWords(t: Record<string, string>, n: number): string {
+  return (t[followUpKey(n)] ?? t.dm_follow_up_many).replaceAll("{count}", String(n));
+}
+
+// What goes to FCM for one phone. A notification message drawn by Android
+// itself (the lead's decision, 24 Oct: no data-only messages, which MIUI
+// may never wake a closed app for). The tag makes each push of a
+// conversation replace the last; Android sounds again on each replace
+// (FCM never sets "alert once"), through the high-importance channel.
+export function fcmMessage(token: string, push: Push): Record<string, unknown> {
+  return {
+    token,
+    notification: { title: push.title, body: push.body },
+    data: push.data,
+    android: {
+      priority: "high",
+      notification: {
+        channel_id: "buildvibes",
+        ...(push.tag ? { tag: push.tag } : {}),
+        // Phones before Android 8; from 8 on the channel decides.
+        default_sound: true,
+        default_vibrate_timings: true,
+      },
+    },
+  };
 }
 
 // Arabic counts its nouns in four forms (one, two, 3–10, 11 and more);
