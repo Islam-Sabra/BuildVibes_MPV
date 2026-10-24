@@ -2,6 +2,14 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 24 Oct 2026 — F47 reopened, the daybook kept live by the database (same branch `claude/f102`)
+
+**Not live, nothing deployed, nothing installed.**
+- **Migration 42**, `20261103120000_daybook_broadcast.sql`: statement-level triggers on `space_posts`, `work_items`, `work_item_events`, `post_point_events`, `post_acks`, `post_edits` and `post_files` send `{space_id, post_id}` on the private `daybook:<space>` (event `changed`), once per post per transaction, wrapped so they never block the action. `daybook_live_send` is dropped: the app can't send. Test 42, 34 checks; test 29 adjusted.
+- **App:** the phone only listens (`DaybookLive.changed` and its call sites removed); `BV-LIVE daybook:<space> <status>` and `BV-LIVE daybook:<space> broadcast post=<id>` lines; rejoin after a close, error or timeout.
+- **Checks:** analyze clean; 1,759 app tests; 2,561 SQL checks (local); Node 14; `test_screens/` 373; local end-to-end 8/8.
+- **Live order for this branch (each with the founder's yes, from the PC):** migration 41, then the push function deploy, then migration 42, then one build. Founder's phone checks: F102 (locked, 3 messages, one notification counting 1, 2, 3; mute 8 hours) and F47 (Omar's tick and Got it within 5 s without leaving the Space, and the other way round).
+
 ## PC update: 24 Oct 2026 — F102, message pushes as WhatsApp and mute for a time (branch `f102`, pushed as `claude/f102`)
 
 **Not live, nothing deployed, nothing installed.**

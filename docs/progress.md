@@ -785,3 +785,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - App: the mute sheet (8 hours / 1 week / Always) for Space info and DM Mute; long-press Mute / Unmute on Spaces and Messages; bell-slash on muted rows (unread dot kept); opening a thread clears its notification. 8 shots in `docs/screens/f102/`.
   - Checks: analyze clean; 1,759 app tests; 2,527 SQL checks (40 files, local); Node 14; `test_screens/` 373.
   - Live order (each with the founder's yes, from the PC): migration 41 (needs 40, which is live), then the push function deploy, then a build.
+- **24 Oct** (PC, same branch `claude/f102`): F47 reopened, the daybook kept live by the database. **Not live.**
+  - Migration 42 (`20261103120000_daybook_broadcast.sql`): statement-level triggers on `space_posts`, `work_items`, `work_item_events`, `post_point_events`, `post_acks`, `post_edits` and `post_files` broadcast `{space_id, post_id}` on `daybook:<space>`, once per post per transaction, never blocking the action; `daybook_live_send` dropped. Test 42 (34 checks); test 29 adjusted.
+  - App: no more sends from the phone (`DaybookLive.changed` and its call sites gone); BV-LIVE lines per status and per broadcast; rejoin after a close, error or timeout.
+  - Checks: analyze clean; 1,759 app tests; 2,561 SQL checks (41 files, local); Node 14; `test_screens/` 373; local end-to-end 8/8 (a member receives after a tick done via psql by another member; a non-member is refused; an app send reaches nobody).
+  - Live order (each with the founder's yes): migration 41, then the push function, then migration 42, then one build from `claude/f102`.

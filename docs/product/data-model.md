@@ -789,3 +789,13 @@ Review 50 F102.
 - **Known:** `space_members` is readable by the Space's members, so others could read `notify_until` as they can already read `notify`.
 - **Live order:** migration 40 is live; then this migration, then the push function deploy, then a build.
 - **Tests:** `supabase/tests/41_message_pushes.test.sql` (40 checks). Tests 14, 22 and 39 changed: no quiet time; test 39 puts its follow-ups in by hand.
+
+## A Space's daybook kept live by the database (migration 42, `20261103120000_daybook_broadcast.sql`, branch `claude/f102`, not live)
+Review 50, F47 reopened. On build 565 Omar's tick and Got it never showed live on the founder's phone. The acting phone used to send the broadcast itself (`DaybookLive.changed`), sometimes on a second channel opened just to send: the pattern that failed for direct messages (F100). Now the database sends it, as migration 40 does for `dm:`.
+- **Triggers, statement-level with transition tables** (functions security definer, `search_path = ''`, nobody may call them): `space_posts` insert and update (any real change: state, due, pin, cancel, edit, delete); `work_items` update (state, owner, due, check); `work_item_events` insert (history lines and comments); `post_point_events` insert (ticks); `post_acks` insert and delete (Got it, Received, On my way); `post_edits` insert; `post_files` insert and delete.
+- **Each sends** `realtime.send({space_id, post_id}, 'changed', 'daybook:' || space_id, true)` through `daybook_send`: ids only, never text. One per post per statement, and at most one per post per transaction (a transaction-local setting, `bv.daybook_sent`), so one action that writes a post, its points and files sends once. Realtime delivers only after commit, so nothing is lost.
+- **Never blocks the action:** every send is wrapped in `exception when others then raise warning`.
+- **Receiving:** unchanged, `daybook_live_receive` (members of the Space). **Sending:** `daybook_live_send` is dropped, so no policy lets anyone insert into `realtime.messages`; chat `thread:` was already receive only and `dm:` is sent by migration 40.
+- **App:** `DaybookLive` only listens (`changes`), reads `post_id` from the broadcast's inner `payload`, logs `BV-LIVE daybook:<space> <status>` and `BV-LIVE daybook:<space> broadcast post=<id>`, and joins again after a close, error or timeout (2, 5, 15, 30 s).
+- **Live order:** migration 41, then the push function, then this migration, then one build. An older build's own sends are refused after this migration, but its changes still reach the others from the database.
+- **Tests:** `supabase/tests/42_daybook_broadcast.test.sql` (34 checks). Test 29 now writes its broadcasts as the database. Local end-to-end (scratchpad `rt/daybookcast.mjs`): 8/8.
