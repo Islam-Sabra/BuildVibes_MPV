@@ -1130,3 +1130,12 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **App open on Home:** message 1's banner came from its push. Message 2 changed nothing: no new banner text, no dot, no list refresh.
 - **The phone's `BV-LIVE` lines:** the `dm:` channel was joined throughout the test (it closed at 08:32:39 and rejoined at 08:32:41), but no live update arrived. So Postgres changes don't reach the private `dm:` channel on the live server, though they did on the local one.
 - **Next:** F100's fallback on `claude/f100-broadcast`: migration 40 broadcasts ids to `dm:<thread>` on insert and delete, as the daybook does, and the app listens for that broadcast.
+
+## Build from `claude/f100-broadcast` (24 Oct, 09:30): F100's live path works
+- **Seen:** with the app open on Home, a message sent just after a banner ended showed a new banner at once. That message was inside the quiet time (no push), so it came by migration 40's broadcast. F100 ✓ for the live update.
+- **Seen:** a second message sent while the banner still showed changed nothing visible. The founder's "Show message text on lock screen" is off, so both read "Message from Omar Haddad · New message"; the words were replaced by the same words.
+
+## F101. A second message on a showing banner must be visible when the text is hidden
+- **Fix:** while a banner of one conversation shows and the text is hidden, each newer message from it counts up: "2 new messages" / «رسالتان جديدتان», "3 new messages" / «3 رسائل جديدة», "11 new messages" / «11 رسالة جديدة». Same words and Arabic counting forms as F97's follow-up push. The 4 seconds restart, with no new slide-in. With the text allowed, it shows the newest message's words, as now.
+- **The count:** messages from this conversation since the banner first showed, still unread. A new banner (after it ended) starts again at "New message".
+- **Test:** text hidden, 3 messages 1 s apart: "New message", "2 new messages", "3 new messages", still there at 3.9 s after the third; in EN and AR.
