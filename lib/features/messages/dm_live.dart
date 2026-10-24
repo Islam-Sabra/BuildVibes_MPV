@@ -270,6 +270,38 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
           ),
           body: showText && words.isNotEmpty ? words : l10n.dmBannerHidden,
           route: AppRoutes.messagesThread(id),
+          hidden: !(showText && words.isNotEmpty),
+        );
+  }
+
+  /// The push's banner (F101): its words are hidden exactly when the
+  /// lock-screen setting is off, so the banner can count what came.
+  Future<void> _pushBanner({
+    required String threadId,
+    required String? messageId,
+    required String title,
+    required String body,
+    required String route,
+  }) async {
+    var showText = false;
+    try {
+      showText =
+          (await ref.read(pushRepositoryProvider).settings()).messageText;
+    } on Object {
+      // Unknown: counted as hidden, as on the lock screen.
+    }
+    if (!mounted || !_signedIn || ref.read(openDmThreadProvider) == threadId) {
+      return;
+    }
+    ref
+        .read(dmBannerProvider.notifier)
+        .show(
+          threadId: threadId,
+          messageId: messageId,
+          title: title,
+          body: body,
+          route: route,
+          hidden: !showText,
         );
   }
 
@@ -285,15 +317,15 @@ class _DmLiveHostState extends ConsumerState<DmLiveHost> {
     }
     final title = data[pushTitleKey];
     if (title == null || title.isEmpty) return;
-    ref
-        .read(dmBannerProvider.notifier)
-        .show(
-          threadId: id,
-          messageId: data['message_id'],
-          title: title,
-          body: data[pushBodyKey] ?? '',
-          route: route,
-        );
+    unawaited(
+      _pushBanner(
+        threadId: id,
+        messageId: data['message_id'],
+        title: title,
+        body: data[pushBodyKey] ?? '',
+        route: route,
+      ),
+    );
   }
 
   @override

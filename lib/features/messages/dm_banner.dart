@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/routing/app_router.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_message_banner.dart';
 import '../entry/entry_state.dart';
 import 'dm_live.dart' show openDmThreadProvider;
@@ -20,11 +21,17 @@ class DmBanner {
     required this.body,
     required this.route,
     this.messageId,
+    this.hiddenCount = 0,
   });
 
   /// A new one for each conversation shown: it slides in once. The same
   /// conversation's next message keeps it, and only the words change.
   final int serial;
+
+  /// F101: with the words hidden, how many of the conversation's messages
+  /// came while this banner showed (0 when the words show). From 2 the
+  /// banner counts them, so a newer message still visibly changes it.
+  final int hiddenCount;
   final String threadId;
   final String? messageId;
   final String title;
@@ -70,6 +77,7 @@ class DmBanners extends Notifier<DmBanner?> {
     required String body,
     required String route,
     String? messageId,
+    bool hidden = false,
   }) {
     final now = state;
     if (messageId != null) {
@@ -77,13 +85,19 @@ class DmBanners extends Notifier<DmBanner?> {
       _seen.add(messageId);
       if (_seen.length > _seenMax) _seen.removeAt(0);
     }
+    final same = now != null && now.threadId == threadId;
     state = DmBanner(
-      serial: now != null && now.threadId == threadId ? now.serial : ++_serial,
+      serial: same ? now.serial : ++_serial,
       threadId: threadId,
       messageId: messageId,
       title: title,
       body: body,
       route: route,
+      hiddenCount: !hidden
+          ? 0
+          : same && now.hiddenCount > 0
+          ? now.hiddenCount + 1
+          : 1,
     );
     _timer?.cancel();
     _timer = Timer(BvMessageBannerSpec.shown, hide);
@@ -190,7 +204,11 @@ class _DmBannerHostState extends ConsumerState<DmBannerHost>
                 onDismissed: (_) => _swiped(),
                 child: BvMessageBanner(
                   title: banner.title,
-                  body: banner.body,
+                  body: banner.hiddenCount > 1
+                      ? AppLocalizations.of(
+                          context,
+                        ).dmBannerHiddenCount(banner.hiddenCount)
+                      : banner.body,
                   onTap: () => _open(banner),
                 ),
               ),

@@ -2,6 +2,7 @@
 // direct message push while the app is open.
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
+import 'package:buildvibes/data/repositories/push_repository.dart';
 import 'package:buildvibes/features/messages/dm_live.dart';
 import 'package:buildvibes/features/messages/dm_thread_screen.dart';
 import 'package:buildvibes/shared/widgets/bv_message_banner.dart';
@@ -191,7 +192,9 @@ void main() {
         'words in place, with no new slide-in, and starts the 4 s again: '
         'there at 6.9 s, gone by 7.5 s', (tester) async {
       final push = FakePushMessaging();
-      await pumpApp(tester, push: push, now: _now);
+      final app = await pumpApp(tester, push: push, now: _now);
+      // The pushes carry their words: the lock-screen setting is on.
+      app.pushes.saved = const PushSettings(messageText: true);
       push.arrive(_dmPush('t-omar'));
       await tester.pump();
       await tester.pump();

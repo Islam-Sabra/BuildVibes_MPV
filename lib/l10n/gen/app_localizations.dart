@@ -7736,6 +7736,12 @@ abstract class AppLocalizations {
   /// **'New message'**
   String get dmBannerHidden;
 
+  /// F101: the in-app banner with message text hidden, once newer messages of the same conversation came while it showed. Same words as the follow-up push (F97).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{New message} other{{count} new messages}}'**
+  String dmBannerHiddenCount(int count);
+
   /// The heading above a Team's people (no count, rule 3).
   ///
   /// In en, this message translates to:

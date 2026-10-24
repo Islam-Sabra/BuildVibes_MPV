@@ -4609,6 +4609,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dmBannerHidden => 'رسالة جديدة';
 
   @override
+  String dmBannerHiddenCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رسالة جديدة',
+      many: '$count رسالة جديدة',
+      few: '$count رسائل جديدة',
+      two: 'رسالتان جديدتان',
+      one: 'رسالة جديدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get spacesTeamMembersTitle => 'الأعضاء';
 
   @override

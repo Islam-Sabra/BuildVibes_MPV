@@ -1273,6 +1273,7 @@
   "pageLeaveGo": "غادر",
   "dmBannerTitle": "رسالة من {name}",
   "dmBannerHidden": "رسالة جديدة",
+  "dmBannerHiddenCount": "{count, plural, =1{رسالة جديدة} =2{رسالتان جديدتان} few{{count} رسائل جديدة} many{{count} رسالة جديدة} other{{count} رسالة جديدة}}",
   "spacesTeamMembersTitle": "الأعضاء",
   "needsChecklist": "قائمة تحقق لك من {name}: {title}",
   "needsChecklistSelf": "قائمة تحقق لك: {title}",

@@ -4602,6 +4602,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dmBannerHidden => 'New message';
 
   @override
+  String dmBannerHiddenCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new messages',
+      one: 'New message',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get spacesTeamMembersTitle => 'Members';
 
   @override

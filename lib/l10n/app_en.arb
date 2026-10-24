@@ -6644,6 +6644,15 @@
   "@dmBannerHidden": {
     "description": "F100: the in-app banner's words when the lock-screen setting hides message text."
   },
+  "dmBannerHiddenCount": "{count, plural, =1{New message} other{{count} new messages}}",
+  "@dmBannerHiddenCount": {
+    "description": "F101: the in-app banner with message text hidden, once newer messages of the same conversation came while it showed. Same words as the follow-up push (F97).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "spacesTeamMembersTitle": "Members",
   "@spacesTeamMembersTitle": {
     "description": "The heading above a Team's people (no count, rule 3)."
