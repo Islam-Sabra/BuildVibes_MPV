@@ -175,9 +175,7 @@ String confirmerNames(AppLocalizations l10n, List<String> names) {
   final two = l10n.listAnd(names[0], names[1]);
   return names.length == 2
       ? two
-      : l10n.listAndOthers(
-          '${names[0]}${l10n.localeName == 'ar' ? '، ' : ', '}${names[1]}',
-        );
+      : l10n.listAndOthers('${names[0]}${l10n.daybookNamesComma}${names[1]}');
 }
 
 class CvProjectRow extends StatelessWidget {

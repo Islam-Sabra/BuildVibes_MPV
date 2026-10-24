@@ -187,7 +187,7 @@ class TeamScreen extends ConsumerWidget {
               BvSpace.s8,
             ),
             child: Text(
-              l10n.spacesTeamMembers(members.length),
+              l10n.spacesTeamMembersTitle,
               style: type.labelMd.copyWith(color: BvColors.textSecondary),
             ),
           ),

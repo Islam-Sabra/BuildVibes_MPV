@@ -41,6 +41,7 @@ import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
+import 'package:buildvibes/features/spaces/team_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -868,6 +869,22 @@ void main() {
               needsMe: true,
             ),
           ],
+        ),
+      );
+    });
+
+    testWidgets('T1 a Team: "Members" over its people, never how many '
+        '(sweep) [$lang]', (tester) async {
+      await shoot(
+        tester,
+        'T1-team',
+        lang,
+        (_) => const TeamScreen(spaceId: DaybookSamples.space, teamId: 't-mep'),
+        folder: 'slice3',
+        overrides: await _overrides(
+          s,
+          now: DaybookSamples.thursday,
+          posts: const [],
         ),
       );
     });

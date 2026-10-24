@@ -1352,10 +1352,6 @@
   "@spacesTabLibrary": {
     "description": "Space tab."
   },
-  "spacesInvitePeople": "Invite people",
-  "@spacesInvitePeople": {
-    "description": "Space People tab and Space info."
-  },
   "spacesInviteTitle": "Invite to {space}",
   "@spacesInviteTitle": {
     "description": "S16 title.",
@@ -1461,63 +1457,13 @@
       }
     }
   },
-  "spacesSearchMembers": "Search members",
-  "@spacesSearchMembers": {
-    "description": "S10k search."
-  },
-  "spacesRequestsTitle": "REQUESTS TO JOIN · YOU CONFIRM",
-  "@spacesRequestsTitle": {
-    "description": "S10k overline, admins only."
-  },
-  "spacesAsked": "Asked {when}",
-  "@spacesAsked": {
-    "description": "Request line: when.",
-    "placeholders": {
-      "when": {
-        "type": "String"
-      }
-    }
-  },
-  "spacesViaCodeFrom": "invite code shared by {name}",
-  "@spacesViaCodeFrom": {
-    "description": "Request line: who shared the code.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "spacesViaCode": "invite code",
-  "@spacesViaCode": {
-    "description": "Request line: no name."
-  },
   "spacesDecline": "Decline",
   "@spacesDecline": {
     "description": "Request button."
   },
-  "spacesConfirm": "Confirm",
-  "@spacesConfirm": {
-    "description": "Request button."
-  },
-  "spacesAdminSection": "Space admin",
-  "@spacesAdminSection": {
-    "description": "S10k section: the Space admins (glossary: Space admin)."
-  },
-  "spacesAdminTag": "Space admin",
-  "@spacesAdminTag": {
-    "description": "The line under a Space admin's name in People."
-  },
-  "spacesMembers": "Members",
-  "@spacesMembers": {
-    "description": "S10k section."
-  },
   "spacesYouTag": "You",
   "@spacesYouTag": {
     "description": "Tag on your own row."
-  },
-  "spacesNoMatch": "No one matches.",
-  "@spacesNoMatch": {
-    "description": "S10k search with no result."
   },
   "spacesPassLead": "Lead",
   "@spacesPassLead": {
@@ -1530,19 +1476,6 @@
   "spacesPassViewer": "Viewer",
   "@spacesPassViewer": {
     "description": "Pass name."
-  },
-  "spacesPassLine": "{pass} pass",
-  "@spacesPassLine": {
-    "description": "Member row: the pass.",
-    "placeholders": {
-      "pass": {
-        "type": "String"
-      }
-    }
-  },
-  "spacesGivePass": "GIVE A PASS FOR THIS SPACE",
-  "@spacesGivePass": {
-    "description": "Confirm sheet overline. Neutral: no him/her."
   },
   "spacesLeadOpens": "Opens: create items · check and close · files · invite",
   "@spacesLeadOpens": {
@@ -1567,27 +1500,6 @@
   "spacesViewerFor": "Client, supplier",
   "@spacesViewerFor": {
     "description": "Viewer pass card."
-  },
-  "spacesConfirmAs": "Confirm as {pass}",
-  "@spacesConfirmAs": {
-    "description": "Confirm sheet main button.",
-    "placeholders": {
-      "pass": {
-        "type": "String"
-      }
-    }
-  },
-  "spacesJoinedAs": "{name} joined as {pass}. The Space is open to them now.",
-  "@spacesJoinedAs": {
-    "description": "S17k banner after confirming.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "pass": {
-        "type": "String"
-      }
-    }
   },
   "spacesDeclined": "{name}'s request declined. They aren't told why.",
   "@spacesDeclined": {
@@ -1928,19 +1840,6 @@
   "@spacesTeams": {
     "description": "S10k section."
   },
-  "spacesTeamMembers": "{n, plural, =0{No members yet} =1{1 member} other{{n} members}}",
-  "@spacesTeamMembers": {
-    "description": "Team size inside a Space (founder ok, 12 Oct).",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "spacesInTeam": "you're in it",
-  "@spacesInTeam": {
-    "description": "Team row."
-  },
   "spacesNewTeam": "New Team",
   "@spacesNewTeam": {
     "description": "S10k link and S12 title."
@@ -2044,10 +1943,6 @@
   "workItemGone": "This item isn't available.",
   "@workItemGone": {
     "description": "W3 when gone or not a member."
-  },
-  "workNote": "Note",
-  "@workNote": {
-    "description": "W4 field."
   },
   "deliveredTitle": "Work you delivered",
   "@deliveredTitle": {
@@ -2437,17 +2332,9 @@
   "@librarySearch": {
     "description": "LV1: the search field on top; it filters the list in the app (names, revisions, notes)."
   },
-  "libraryAll": "All",
-  "@libraryAll": {
-    "description": "S13k filter."
-  },
   "libraryFiles": "Files",
   "@libraryFiles": {
     "description": "S13k filter."
-  },
-  "libraryRecent": "Recent in this Space",
-  "@libraryRecent": {
-    "description": "S13k section."
   },
   "libraryFromChat": "From chat",
   "@libraryFromChat": {
@@ -2460,80 +2347,6 @@
   "libraryNoMatch": "Nothing matches.",
   "@libraryNoMatch": {
     "description": "S13k search empty."
-  },
-  "libraryAdd": "Add file",
-  "@libraryAdd": {
-    "description": "S13k button."
-  },
-  "libraryAddTitle": "Add to the Library",
-  "@libraryAddTitle": {
-    "description": "Add file title."
-  },
-  "libraryRevisionTitle": "New revision",
-  "@libraryRevisionTitle": {
-    "description": "New revision title."
-  },
-  "libraryRevisionOf": "Replaces {name}. The old one is kept in the record.",
-  "@libraryRevisionOf": {
-    "description": "New revision helper.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "libraryPickFile": "Choose a PDF or photo",
-  "@libraryPickFile": {
-    "description": "Add file picker."
-  },
-  "libraryChangeFile": "Choose another file",
-  "@libraryChangeFile": {
-    "description": "Add file picker, after a pick."
-  },
-  "libraryName": "Title",
-  "@libraryName": {
-    "description": "Add file field."
-  },
-  "libraryFor": "Who sees it",
-  "@libraryFor": {
-    "description": "Add file: Everyone or one Team (single choice)."
-  },
-  "libraryTeamOnly": "Only {team} and the Space admins see it.",
-  "@libraryTeamOnly": {
-    "description": "Add file helper for a Team file.",
-    "placeholders": {
-      "team": {
-        "type": "String"
-      }
-    }
-  },
-  "libraryRev": "Revision",
-  "@libraryRev": {
-    "description": "Add file field."
-  },
-  "libraryRevHint": "For example Rev C",
-  "@libraryRevHint": {
-    "description": "Add file placeholder."
-  },
-  "libraryNoteHint": "What changed",
-  "@libraryNoteHint": {
-    "description": "Add file note placeholder."
-  },
-  "libraryUpload": "Upload",
-  "@libraryUpload": {
-    "description": "Add file button."
-  },
-  "libraryAdded": "Added to the Library.",
-  "@libraryAdded": {
-    "description": "Toast."
-  },
-  "libraryPickFirst": "Choose a file first.",
-  "@libraryPickFirst": {
-    "description": "Add file error."
-  },
-  "libraryNameRequired": "Give it a title.",
-  "@libraryNameRequired": {
-    "description": "Add file error."
   },
   "previewFrom": "from {name}",
   "@previewFrom": {
@@ -2590,10 +2403,6 @@
   "@previewDownload": {
     "description": "F1 button."
   },
-  "previewNewRevision": "Upload a new revision",
-  "@previewNewRevision": {
-    "description": "F1 link."
-  },
   "previewShareTo": "Share in which thread?",
   "@previewShareTo": {
     "description": "Share sheet title."
@@ -2601,15 +2410,6 @@
   "previewShareTeamOnly": "A Team file is shared in its Team's thread only.",
   "@previewShareTeamOnly": {
     "description": "Share sheet helper."
-  },
-  "previewShared": "Shared in {thread}.",
-  "@previewShared": {
-    "description": "Toast.",
-    "placeholders": {
-      "thread": {
-        "type": "String"
-      }
-    }
   },
   "previewSaved": "Saved.",
   "@previewSaved": {
@@ -5192,10 +4992,6 @@
   "@daybookKindActivity": {
     "description": "Kind menu and chip: a scheduled activity."
   },
-  "daybookKindFile": "File",
-  "@daybookKindFile": {
-    "description": "Kind menu and chip: a file; also the attach sheet row."
-  },
   "daybookBodyNote": "Add a note",
   "@daybookBodyNote": {
     "description": "Writing card text line: a checklist or file post."
@@ -5289,10 +5085,6 @@
   "daybookReplacesTitle": "Is it a new version of a file?",
   "@daybookReplacesTitle": {
     "description": "Sheet title after picking a file on the phone."
-  },
-  "daybookReplacesNone": "No, a new file",
-  "@daybookReplacesNone": {
-    "description": "The picked file replaces nothing."
   },
   "daybookReplacesOption": "Replaces {name}",
   "@daybookReplacesOption": {
@@ -5539,10 +5331,6 @@
         "type": "String"
       }
     }
-  },
-  "dmFirstMessage": "Write the first message",
-  "@dmFirstMessage": {
-    "description": "A new conversation's field hint, before the thread exists."
   },
   "dmPaused": "Many people you wrote to haven't answered. You can start new conversations again on {day}.",
   "@dmPaused": {
@@ -6855,5 +6643,34 @@
   "dmBannerHidden": "New message",
   "@dmBannerHidden": {
     "description": "F100: the in-app banner's words when the lock-screen setting hides message text."
+  },
+  "spacesTeamMembersTitle": "Members",
+  "@spacesTeamMembersTitle": {
+    "description": "The heading above a Team's people (no count, rule 3)."
+  },
+  "needsChecklist": "{name} gave you a checklist: {title}",
+  "@needsChecklist": {
+    "description": "Needs you: a checklist given to you with points still to tick.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsChecklistSelf": "A checklist for you: {title}",
+  "@needsChecklistSelf": {
+    "description": "Needs you: a checklist you gave yourself, points still to tick.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "needsRowChecklist": "To tick",
+  "@needsRowChecklist": {
+    "description": "Needs you row label (2544:35068): a checklist with points left for you."
   }
 }

@@ -398,7 +398,7 @@ class SpaceInfoScreen extends ConsumerWidget {
                 BvInfoRow(
                   key: const Key('info-admins'),
                   title: l10n.spacesAdminRow,
-                  value: admins.join(l10n.localeName == 'ar' ? '، ' : ', '),
+                  value: admins.join(l10n.daybookNamesComma),
                 ),
               // Set by a Space admin; others see it once it is set
               // (review 44, answer 2).

@@ -384,7 +384,7 @@ class _NeedsBySpace extends ConsumerWidget {
       final title = needsTitle(l10n, c);
       final name = c.actorName == null ? null : inOwnDirection(c.actorName!);
       return InkWell(
-        key: Key('needs-${c.workItemId ?? c.requestId ?? c.spaceId}'),
+        key: Key('needs-${c.cardId ?? c.requestId ?? c.spaceId}'),
         onTap: () => openNeeds(context, c),
         child: ConstrainedBox(
           constraints: const BoxConstraints(

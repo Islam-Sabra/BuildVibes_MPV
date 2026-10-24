@@ -999,9 +999,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesTabLibrary => 'Library';
 
   @override
-  String get spacesInvitePeople => 'Invite people';
-
-  @override
   String spacesInviteTitle(String space) {
     return 'Invite to $space';
   }
@@ -1082,44 +1079,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get spacesSearchMembers => 'Search members';
-
-  @override
-  String get spacesRequestsTitle => 'REQUESTS TO JOIN · YOU CONFIRM';
-
-  @override
-  String spacesAsked(String when) {
-    return 'Asked $when';
-  }
-
-  @override
-  String spacesViaCodeFrom(String name) {
-    return 'invite code shared by $name';
-  }
-
-  @override
-  String get spacesViaCode => 'invite code';
-
-  @override
   String get spacesDecline => 'Decline';
 
   @override
-  String get spacesConfirm => 'Confirm';
-
-  @override
-  String get spacesAdminSection => 'Space admin';
-
-  @override
-  String get spacesAdminTag => 'Space admin';
-
-  @override
-  String get spacesMembers => 'Members';
-
-  @override
   String get spacesYouTag => 'You';
-
-  @override
-  String get spacesNoMatch => 'No one matches.';
 
   @override
   String get spacesPassLead => 'Lead';
@@ -1129,14 +1092,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesPassViewer => 'Viewer';
-
-  @override
-  String spacesPassLine(String pass) {
-    return '$pass pass';
-  }
-
-  @override
-  String get spacesGivePass => 'GIVE A PASS FOR THIS SPACE';
 
   @override
   String get spacesLeadOpens =>
@@ -1157,16 +1112,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesViewerFor => 'Client, supplier';
-
-  @override
-  String spacesConfirmAs(String pass) {
-    return 'Confirm as $pass';
-  }
-
-  @override
-  String spacesJoinedAs(String name, String pass) {
-    return '$name joined as $pass. The Space is open to them now.';
-  }
 
   @override
   String spacesDeclined(String name) {
@@ -1380,21 +1325,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesTeams => 'Teams';
 
   @override
-  String spacesTeamMembers(int n) {
-    String _temp0 = intl.Intl.pluralLogic(
-      n,
-      locale: localeName,
-      other: '$n members',
-      one: '1 member',
-      zero: 'No members yet',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get spacesInTeam => 'you\'re in it';
-
-  @override
   String get spacesNewTeam => 'New Team';
 
   @override
@@ -1474,9 +1404,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workItemGone => 'This item isn\'t available.';
-
-  @override
-  String get workNote => 'Note';
 
   @override
   String get deliveredTitle => 'Work you delivered';
@@ -1727,13 +1654,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get librarySearch => 'Search files';
 
   @override
-  String get libraryAll => 'All';
-
-  @override
   String get libraryFiles => 'Files';
-
-  @override
-  String get libraryRecent => 'Recent in this Space';
 
   @override
   String get libraryFromChat => 'From chat';
@@ -1744,58 +1665,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryNoMatch => 'Nothing matches.';
-
-  @override
-  String get libraryAdd => 'Add file';
-
-  @override
-  String get libraryAddTitle => 'Add to the Library';
-
-  @override
-  String get libraryRevisionTitle => 'New revision';
-
-  @override
-  String libraryRevisionOf(String name) {
-    return 'Replaces $name. The old one is kept in the record.';
-  }
-
-  @override
-  String get libraryPickFile => 'Choose a PDF or photo';
-
-  @override
-  String get libraryChangeFile => 'Choose another file';
-
-  @override
-  String get libraryName => 'Title';
-
-  @override
-  String get libraryFor => 'Who sees it';
-
-  @override
-  String libraryTeamOnly(String team) {
-    return 'Only $team and the Space admins see it.';
-  }
-
-  @override
-  String get libraryRev => 'Revision';
-
-  @override
-  String get libraryRevHint => 'For example Rev C';
-
-  @override
-  String get libraryNoteHint => 'What changed';
-
-  @override
-  String get libraryUpload => 'Upload';
-
-  @override
-  String get libraryAdded => 'Added to the Library.';
-
-  @override
-  String get libraryPickFirst => 'Choose a file first.';
-
-  @override
-  String get libraryNameRequired => 'Give it a title.';
 
   @override
   String previewFrom(String name) {
@@ -1834,19 +1703,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previewDownload => 'Download';
 
   @override
-  String get previewNewRevision => 'Upload a new revision';
-
-  @override
   String get previewShareTo => 'Share in which thread?';
 
   @override
   String get previewShareTeamOnly =>
       'A Team file is shared in its Team\'s thread only.';
-
-  @override
-  String previewShared(String thread) {
-    return 'Shared in $thread.';
-  }
 
   @override
   String get previewSaved => 'Saved.';
@@ -3591,9 +3452,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookKindActivity => 'Scheduled activity';
 
   @override
-  String get daybookKindFile => 'File';
-
-  @override
   String get daybookBodyNote => 'Add a note';
 
   @override
@@ -3659,9 +3517,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookReplacesTitle => 'Is it a new version of a file?';
-
-  @override
-  String get daybookReplacesNone => 'No, a new file';
 
   @override
   String daybookReplacesOption(String name) {
@@ -3826,9 +3681,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String dmReportPerson(String name) {
     return 'Report $name';
   }
-
-  @override
-  String get dmFirstMessage => 'Write the first message';
 
   @override
   String dmPaused(String day) {
@@ -4748,4 +4600,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dmBannerHidden => 'New message';
+
+  @override
+  String get spacesTeamMembersTitle => 'Members';
+
+  @override
+  String needsChecklist(String name, String title) {
+    return '$name gave you a checklist: $title';
+  }
+
+  @override
+  String needsChecklistSelf(String title) {
+    return 'A checklist for you: $title';
+  }
+
+  @override
+  String get needsRowChecklist => 'To tick';
 }

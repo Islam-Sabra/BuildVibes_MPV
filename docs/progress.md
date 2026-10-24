@@ -766,4 +766,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The `dm:` channels rejoin after sign-in, a new token, a return to the front, and with waits after a close or error. One channel per thread.
   - A live message shows the F99 banner once (by `message_id`); `dm_follow_up` refreshes with no banner; a BV-LIVE line per channel status.
   - Checks: analyze clean; 1,720 tests pass (1 cloud-only failure).
+- **23 Oct** (cloud, `claude/sweep` from `slice2-app`): the sweep of `lib/` (`docs/reviews/sweep-report.md`).
+  - Fixed: Sign out's arrow mirrors; list separators from the ARB; 40 unused ARB keys removed.
+  - Needs you lists checklists given to you ("To tick"), as My Spaces counts them; no migration.
+  - Two calls for the lead.
+  - Checks: analyze clean; 1,717 tests pass (1 cloud-only failure); 363 screenshot tests pass shot here, none differs from `slice2-app`; 2,464 SQL checks pass.
+- **23 Oct** (cloud, `claude/sweep`): the lead's two calls: the Team screen says "Members" with no count; Space chat threads show an unread dot, not a number. Tests updated; S7-chat re-shot and T1-team shot, EN and AR.
 

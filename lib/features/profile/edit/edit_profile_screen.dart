@@ -82,7 +82,7 @@ class EditProfileScreen extends ConsumerWidget {
                     ? l10n.editOpenToEmpty
                     : openTo.options
                           .map((o) => openToLabel(l10n, o))
-                          .join(lang == 'ar' ? '، ' : ', '),
+                          .join(l10n.daybookNamesComma),
                 onTap: () => context.push(AppRoutes.profileEditOpenTo),
               ),
             ],

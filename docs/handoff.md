@@ -116,6 +116,35 @@ Live is at `20261031120000`. The 3D model views take the next date after 39. Pub
 - **Still for the diagnosis (PC):** whether the private join is refused, and whether Postgres changes reach a private channel. If not, the broadcast trigger and its migration (F100's fix) come after.
 
 **Who has which branch:** cloud `claude/f100-fix` (this) and `claude/slice10`; PC `slice2-app` and `claude/f100`.
+## Cloud update: 23 Oct 2026 — the sweep (branch `claude/sweep`, from `slice2-app` d9b1cad)
+
+`docs/reviews/sweep-report.md` lists every hit of a scan of `lib/` against the definition of done and the product rules, with file and line. The DM files that `claude/f100-fix` changes were not touched (no hits there).
+
+- **Fixed, in commits by kind:**
+  - Sign out's arrow now mirrors in Arabic; the card highlight uses start/end.
+  - The list separator ("، " / ", ") comes from the ARB in 4 places instead of being typed per language.
+  - 40 ARB keys used nowhere are removed (English and Arabic still match).
+- **Clean:**
+  - no Material icons, raw colours, font sizes or spacing numbers;
+  - no Eastern digits;
+  - no country facts outside the market pack;
+  - no "late" or «متأخر» shown.
+- **Needs you and checklists (slice 2 note): still true, now fixed in the list.**
+  - `needs_you()` already returns `checklist_for_you`, and `my_spaces()` counts it, but the app dropped those rows.
+  - Now a checklist given to you is a "To tick" / «للتأشير» row in Needs you and on Home, until every point is ticked. It opens its card.
+  - No migration.
+- **The lead's two decisions, applied:**
+  - the Team screen's heading is "Members" / «الأعضاء», with no count (the unused string is removed);
+  - a Space chat thread's unread mark is a dot, as in Messages.
+  - Tests updated. `docs/screens/slice3/S7-chat`, `S7N-new-chat` (re-taken) and `T1-team` (new) are in EN and AR, shot with cloud fonts: the PC re-shoots them.
+- **Checks:**
+  - `flutter analyze` clean.
+  - `flutter test` 1,717 pass after the lead's changes too (1 cloud-only failure, photo_privacy H1).
+  - Screenshot tests: all 363 pass when shot here. No image differs from `slice2-app` shot in the same place. The committed (PC) images are left as they are.
+  - SQL stand-in: 2,464 pass.
+- **Not live, nothing deployed, nothing installed.**
+
+**Who has which branch:** cloud `claude/sweep` (this), `claude/f100-fix`, `claude/slice10`; PC `slice2-app` and `claude/f100`.
 
 ## Cloud update: 23 Oct 2026 — review 86 W1 (branch `claude/slice9`)
 

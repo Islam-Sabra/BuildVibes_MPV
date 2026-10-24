@@ -316,9 +316,6 @@ void main() {
             (w.key! as ValueKey<String>).value.startsWith('team-chip-'),
       );
       expect(chips, findsWidgets);
-      for (final n in [0, 1, 2, 3]) {
-        expect(find.textContaining(l10n.spacesTeamMembers(n)), findsNothing);
-      }
       final teamDigits = tester
           .widgetList<Text>(
             find.descendant(of: chips, matching: find.byType(Text)),
@@ -345,7 +342,14 @@ void main() {
       expect(spaces.calls.last, 'team Structure team [p-sara, p-rakesh]');
       expect(find.byType(TeamScreen), findsOneWidget);
       expect(find.text(l10n.spacesTeamIntro(_spaceName)), findsOneWidget);
-      expect(find.text(l10n.spacesTeamMembers(2)), findsOneWidget);
+      // "Members" over the people, never how many (rule 3).
+      expect(find.text(l10n.spacesTeamMembersTitle), findsOneWidget);
+      final digits = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data ?? '')
+          .where((t) => RegExp(r'^\d+\b').hasMatch(t));
+      expect(digits, isEmpty, reason: 'no count on the Team screen');
+      expect(find.byKey(const Key('team-member-p-sara')), findsOneWidget);
     });
 
     testWidgets('a Team: Add people, Rename, Delete [$lang]', (tester) async {

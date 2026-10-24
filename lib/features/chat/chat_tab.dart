@@ -21,7 +21,6 @@ import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
-import '../../shared/widgets/bv_badge.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_text_field.dart';
@@ -336,11 +335,19 @@ class _ThreadRow extends ConsumerWidget {
                           ),
                         ),
                       ),
+                      // A dot, as in Messages: never a number (rule 3).
                       if (unread)
-                        BvBadge(
-                          key: Key('chat-unread-${thread.id}'),
-                          label: '${thread.unread}',
-                          tone: BvBadgeTone.action,
+                        Semantics(
+                          label: l10n.messagesUnread,
+                          child: Container(
+                            key: Key('chat-unread-${thread.id}'),
+                            width: BvMessagesSpec.dot,
+                            height: BvMessagesSpec.dot,
+                            decoration: const BoxDecoration(
+                              color: BvColors.actionPrimary,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
                     ],
                   ),

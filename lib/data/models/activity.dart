@@ -206,8 +206,9 @@ class SpaceToday {
   final String? actorName;
 }
 
-/// What a Needs-you card asks of you.
-enum NeedsKind { forYou, youCheck, sentBack, ownerLeft, joinRequest }
+/// What a Needs-you card asks of you. [checklist]: a checklist given to
+/// you with points still to tick (needs_you's checklist_for_you).
+enum NeedsKind { forYou, youCheck, sentBack, ownerLeft, joinRequest, checklist }
 
 /// One Needs-you card (Home H1b and Activity A1), from needs_you().
 @immutable
@@ -225,6 +226,7 @@ class NeedsCard {
     this.actorName,
     this.dueAt,
     this.photoPath,
+    this.postId,
   });
 
   final NeedsKind kind;
@@ -246,4 +248,10 @@ class NeedsCard {
   /// The row's photo (Needs you, 2544:35068): the proof to check, or the
   /// work item's cover.
   final String? photoPath;
+
+  /// A checklist's post, when the card isn't about a work item.
+  final String? postId;
+
+  /// The card the row opens in its Space's daybook.
+  String? get cardId => workItemId ?? postId;
 }
