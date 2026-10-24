@@ -6709,5 +6709,14 @@
   "muteMutedLabel": "Notifications muted",
   "@muteMutedLabel": {
     "description": "F102: screen-reader label of the bell-slash beside a muted row's name."
+  },
+  "daybookFacesMore": "+{count}",
+  "@daybookFacesMore": {
+    "description": "F104: after 3 faces of who tapped Got it, how many more (\"+2\"); the only number shown.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

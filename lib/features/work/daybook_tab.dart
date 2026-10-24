@@ -1582,6 +1582,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ),
     );
     if (folds && !_openPinned.contains(post.id)) {
+      // F104: its author sees who got it on the folded line too, live (a
+      // broadcast reads postAcksProvider again). Nobody else sees others'.
+      final gotBy = _loop.actsFor(post, me: me)
+          ? acknowledgedBy(ref, post.id, DaybookAck.gotIt)
+          : const <DaybookPerson>[];
       return withMenu(
         (onLongPress) => BvPinnedLine(
           key: Key('pinned-line-${post.id}'),
@@ -1590,6 +1595,12 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           until: l10n.daybookPinnedLineUntil(
             words.pinnedDay(post.pinnedUntil!, now),
           ),
+          faces: gotBy.isEmpty
+              ? null
+              : DaybookFacesLine(
+                  key: Key('pinned-line-faces-${post.id}'),
+                  faces: facesOf(l10n, gotBy),
+                ),
           onTap: () => setState(() => _openPinned.add(post.id)),
           onLongPress: onLongPress,
         ),

@@ -7807,6 +7807,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications muted'**
   String get muteMutedLabel;
+
+  /// F104: after 3 faces of who tapped Got it, how many more ("+2"); the only number shown.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String daybookFacesMore(int count);
 }
 
 class _AppLocalizationsDelegate

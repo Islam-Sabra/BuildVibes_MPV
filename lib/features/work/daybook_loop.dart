@@ -223,6 +223,17 @@ class DaybookLoop {
     );
   }
 
+  /// Whether [me] is [post]'s author, or an admin acting for an author who
+  /// has left the Space (review 62 N2).
+  bool actsFor(DaybookPost post, {required String? me}) {
+    if (post.authorId != null && post.authorId == me) return true;
+    final people = ref.read(spacePeopleProvider(_spaceId)).value;
+    final authorId = post.authorId;
+    final gone =
+        people != null && (authorId == null || people.member(authorId) == null);
+    return gone && space.iAmAdmin;
+  }
+
   /// The long-press menu of a note, a checklist, an announcement, an
   /// activity or a file, the same on its card and on the pinned note (F44):
   /// - its author: Edit (a note or an announcement) and Unpin (an
@@ -233,12 +244,8 @@ class DaybookLoop {
   List<DaybookSlipAction> kindMenu(DaybookPost post, {required String? me}) {
     if (post.cancelled || _viewer) return const [];
     final mine = post.authorId != null && post.authorId == me;
-    final people = ref.read(spacePeopleProvider(_spaceId)).value;
-    final authorId = post.authorId;
-    final gone =
-        people != null && (authorId == null || people.member(authorId) == null);
     final announcement = post.kind == DaybookPost.announcementKind;
-    final actsForAuthor = mine || (gone && space.iAmAdmin);
+    final actsForAuthor = actsFor(post, me: me);
     return [
       if (mine && (announcement || post.isNote)) DaybookSlipAction.edit,
       if (mine && _mayEditPage(post, me)) DaybookSlipAction.page,

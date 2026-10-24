@@ -165,6 +165,7 @@ class BvPinnedLine extends StatelessWidget {
     super.key,
     required this.text,
     this.until,
+    this.faces,
     this.onTap,
     this.onLongPress,
   });
@@ -173,6 +174,9 @@ class BvPinnedLine extends StatelessWidget {
 
   /// "until Fri", in grey before ›.
   final String? until;
+
+  /// For its author: the faces of who tapped Got it (F104), before ›.
+  final Widget? faces;
   final VoidCallback? onTap;
 
   /// The same long-press menu as a card's (review 50 F44).
@@ -224,6 +228,7 @@ class BvPinnedLine extends StatelessWidget {
                   key: const Key('pinned-line-until'),
                   style: type.metadata.copyWith(color: BvColors.textSecondary),
                 ),
+              ?faces,
               const Icon(
                 BvIcons.caretForward,
                 size: BvPinnedSpec.caret,

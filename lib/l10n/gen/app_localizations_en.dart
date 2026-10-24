@@ -4648,4 +4648,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get muteMutedLabel => 'Notifications muted';
+
+  @override
+  String daybookFacesMore(int count) {
+    return '+$count';
+  }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_kinds_specs.dart';
+import '../../core/l10n/bidi.dart';
 import '../../data/models/daybook.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_ack_pill.dart';
@@ -124,7 +125,8 @@ class DaybookChecklistPoints extends ConsumerWidget {
 
 /// A row of faces and a small grey line: who received a file ("Received
 /// by Omar Haddad and Rakesh Nair"). A tap ([onTap]) lists them with their
-/// times (F48).
+/// times (F48). With no line (who got an announcement), more than three
+/// faces end with "+2" (F104): up to 3 faces, then "+N", no other number.
 class DaybookFacesLine extends StatelessWidget {
   const DaybookFacesLine({
     super.key,
@@ -143,6 +145,19 @@ class DaybookFacesLine extends StatelessWidget {
       spacing: BvAckPillSpec.rowGap,
       children: [
         BvFaces(faces, large: true),
+        if (text == null && faces.length > BvFaces.max)
+          Text(
+            // Western digits, kept in order in right to left.
+            ltrRun(
+              AppLocalizations.of(
+                context,
+              ).daybookFacesMore(faces.length - BvFaces.max),
+            ),
+            key: const Key('faces-more'),
+            style: BvType.of(
+              context,
+            ).metadata.copyWith(color: BvColors.textSecondary),
+          ),
         if (text != null)
           Expanded(
             child: Text(

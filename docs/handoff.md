@@ -16,6 +16,12 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 
 **Who has which branch:** the PC has `claude/f102` (worktree `BuildVibes-f102`, build 576 on test) and `slice2-app` (f100-broadcast merged, 384ac86). Merge `claude/f102` into `slice2-app` after F102, F47 and F103 pass.
 
+## PC update: 24 Oct 2026 — F104, Got it faces on the author's folded pinned line (branch `claude/f102`)
+
+- **App only, no SQL, nothing installed.** The author of a pinned announcement (or an admin acting for an author who left) sees, on the folded slim line, the faces of who tapped Got it: up to 3, then "+2", before the ›. The ordinary card and the full note show "+N" the same way. It refreshes with the live broadcast. Others see no one else's faces.
+- **Checks:** analyze clean; 1,772 app tests; `test_screens/` 377; new shots in `docs/screens/f104/` (3 and 5 Got it, EN and AR).
+- **Next:** one build from `claude/f102` for the founder's F47 recheck (Omar's Got it on his announcement, on Work, without opening it).
+
 ## PC update: 24 Oct 2026 — review 89: M1, M2, M3 and F103 (same branch `claude/f102`)
 
 **Not live, nothing deployed, nothing installed.**

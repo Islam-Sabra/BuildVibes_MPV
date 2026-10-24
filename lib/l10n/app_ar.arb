@@ -1284,5 +1284,6 @@
   "muteForAlways": "دائمًا",
   "muteMute": "كتم",
   "muteUnmute": "إلغاء الكتم",
-  "muteMutedLabel": "الإشعارات مكتومة"
+  "muteMutedLabel": "الإشعارات مكتومة",
+  "daybookFacesMore": "+{count}"
 }

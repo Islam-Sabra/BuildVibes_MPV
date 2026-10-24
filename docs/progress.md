@@ -803,3 +803,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
   4. **migration 43** (F103): `messages_broadcast` and `messages_deleted_broadcast`, nobody can run `handle_chat_broadcast`, no app send policy.
   
   Live is at `20261104120000`. Build 576 (da56a31) is on the founder's phone and the emulator; both have the new Messages channel. Next: the founder's tests F102, F47, F103 (review 89 §6).
+- **24 Oct** (PC, `claude/f102`): F104, the author's Got it faces on the folded pinned line. App only, no SQL. The author (or an admin acting for an author who left) sees up to 3 faces, then "+N", before the ›; the announcement's own card and the full pinned note show "+N" the same way (`DaybookFacesLine`). Live: the line watches `postAcksProvider`, which a broadcast refreshes. Others see no one else's faces. Checks: analyze clean; 1,772 app tests; `test_screens/` 377 (4 new shots in `docs/screens/f104/`, none changed). Goes with the next build.
