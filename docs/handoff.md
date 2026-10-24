@@ -2,6 +2,16 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 24 Oct 2026 — F100's broadcast fallback (branch `f100-broadcast`, pushed as `claude/f100-broadcast`)
+
+**Why:** on build 560 the private `dm:` channel joins, but no Postgres-changes callback ever arrives for a new direct message; locally it worked. So the database broadcasts instead.
+
+- **Migration 40**, `20261101120000_dm_broadcast.sql`, **not live**: a trigger on `dm_messages` (insert, and a message deleted) calls `realtime.send` on `dm:<thread>`, private, event `dm`, with ids only (`thread_id`, `message_id`, `author_id`, `op`). A Realtime failure never blocks the message. Receiving goes through the existing `daybook_live_receive`; nobody sends on `dm:` from the app. Test 40, 27 checks.
+- **App:** `DmRepository.changes()` listens with `onBroadcast('dm')`; the Postgres-changes subscription is gone. The live banner reads the message by id (`liveText`, under RLS) for its words. Join, rejoin, BV-LIVE lines, the dedupe with the push and `dm_follow_up` unchanged.
+- **Checks:** analyze clean; 1,731 app tests; 2,491 SQL checks (local); Node 11; local end-to-end 7/7 (member receives; a Space member outside the thread and an outsider refused).
+- **Live order (each with the founder's yes, from the PC):** migration 40 first, then a build from this branch on the phone.
+- **Who has which branch:** `f100-broadcast` (worktree `BuildVibes-f100b`), from `slice2-app` 038e8e7; not merged anywhere.
+
 ## PC update: 23 Oct 2026, 11:36 — push v9, migrations 34 and 39 live, build 547
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

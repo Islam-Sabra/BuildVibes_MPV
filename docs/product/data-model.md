@@ -766,3 +766,13 @@ Review 76 (slice 5), with review 79 C1.
   - A stale `base_version` is refused with `40001`.
   - Returns the page's new `blocks_version`.
 - **Tests:** `supabase/tests/36_turn_point_into_item.test.sql` (29 checks).
+
+## A direct message's live update as a broadcast (migration 40, `20261101120000_dm_broadcast.sql`, branch `f100-broadcast`, not live)
+Review 50 F100. On the founder's phone (build 560) the private `dm:<thread>` channel joined, but no Postgres-changes callback ever came for a new `dm_messages` row; locally it worked. So the database now broadcasts instead.
+- **Trigger** `handle_dm_broadcast()` (security definer, `search_path = ''`), after insert on `dm_messages` and after update of `deleted_at` (only when a message becomes deleted). It calls `realtime.send(payload, 'dm', 'dm:' || thread_id, true)`.
+- **Payload, ids only:** `{thread_id, message_id, author_id, op}` with `op` `insert` or `delete` (`realtime.send` adds its own `id`). Never the words: the app reads the message by id under `dm_messages_read`.
+- **Never blocks a message:** the send is wrapped in `exception when others then raise warning`, as the push triggers are (and `realtime.send` swallows its own errors too).
+- **Receiving:** unchanged. `daybook_live_receive` (migration 29, with `may_use_dm_topic` from migration 31) lets the thread's two people receive, while neither has blocked the other. **Sending:** `daybook_live_send` allows only daybook topics, so nobody sends on `dm:` from the app; `realtime.send` called by a member writes nothing.
+- **App:** `DmRepository.changes()` listens with `onBroadcast('dm')` on the same private channel; `liveText(id)` reads a message's kind and words for the live banner.
+- **Live order:** migration 40 first, then a build from this branch. An older build on migration 40 still joins and simply gets no Postgres changes, as today.
+- **Tests:** `supabase/tests/40_dm_broadcast.test.sql` (27 checks). Test 31 now counts only its own rows on the topic.

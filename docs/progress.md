@@ -773,3 +773,8 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Checks: analyze clean; 1,717 tests pass (1 cloud-only failure); 363 screenshot tests pass shot here, none differs from `slice2-app`; 2,464 SQL checks pass.
 - **23 Oct** (cloud, `claude/sweep`): the lead's two calls: the Team screen says "Members" with no count; Space chat threads show an unread dot, not a number. Tests updated; S7-chat re-shot and T1-team shot, EN and AR.
 
+- **24 Oct** (PC, `f100-broadcast` from `slice2-app` 038e8e7): F100's fallback, since the phone gets no Postgres changes on the private `dm:` channel.
+  - Migration 40 (`20261101120000_dm_broadcast.sql`), **not live**: a `dm_messages` insert or delete sends a private broadcast on `dm:<thread>` with ids only (`realtime.send`); a Realtime failure never blocks the message. Test 40 (27 checks).
+  - App: `changes()` uses `onBroadcast('dm')`; the live banner reads the message by id for its words. Join, rejoin and BV-LIVE lines unchanged.
+  - Checks: analyze clean; 1,731 app tests; 2,491 SQL checks (39 files, local); Node 11; local end-to-end: a thread member receives the broadcast, a Space member outside the thread and an outsider are refused (7/7).
+  - Live order: migration 40 first, then a build from this branch, each with the founder's yes.
