@@ -69,3 +69,11 @@ grant select, insert on realtime.messages to anon, authenticated; grant all on r
 grant usage on sequence realtime.messages_id_seq to anon, authenticated, service_role;
 create function realtime.topic() returns text language sql stable as $$ select nullif(current_setting('realtime.topic', true), '')::text $$;
 grant execute on function realtime.topic() to anon, authenticated, service_role;
+-- As Supabase's realtime.send: a broadcast row in realtime.messages.
+create function realtime.send(payload jsonb, event text, topic text, private boolean default true) returns void
+language plpgsql as $$ begin
+  insert into realtime.messages (payload, event, topic, private, extension)
+  values (payload, event, topic, private, 'broadcast');
+exception when others then
+  raise warning 'ErrorSendingBroadcastMessage: %', sqlerrm;
+end $$;
