@@ -133,9 +133,11 @@ select throws_ok($$update public.dm_messages set body = 'edited' where id = pg_t
 -- Pushes ---------------------------------------------------------------------------------------------
 
 reset role;
-select is(pg_temp.q('e2', 'dm_message'), 1::bigint, 'an open thread pushes once in 5 minutes, not per message');
-select is((select message_text from public.push_queue where profile_id = pg_temp.uid('e2') and kind = 'dm_message'),
-  null, 'without the text unless the person chose it');
+-- F102 (migration 41): no quiet time any more; every message pushes.
+select is(pg_temp.q('e2', 'dm_message'), 2::bigint, '(F102) an open thread pushes every message');
+select is((select count(*) from public.push_queue where profile_id = pg_temp.uid('e2') and kind = 'dm_message'
+             and message_text is not null),
+  0::bigint, 'without the text unless the person chose it');
 select is(pg_temp.q('e3', 'dm_request'), 1::bigint, 'a request pushes once');
 select ok((select message_text is null and dm_thread_id = pg_temp.id('a002')
            from public.push_queue where profile_id = pg_temp.uid('e3') and kind = 'dm_request'),

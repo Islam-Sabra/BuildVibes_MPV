@@ -267,7 +267,8 @@ select public.post_message(gen_random_uuid(),
   (select id from public.threads where space_id = current_setting('test.space')::uuid and team_id is null),
   'And the pump at 8.');
 reset role;
-select is(pg_temp.q('b3', 'chat_message'), 1::bigint, 'one push per thread every 5 minutes');
+-- F102 (migration 41): no quiet time any more; every message pushes.
+select is(pg_temp.q('b3', 'chat_message'), 2::bigint, '(F102) every message pushes: no quiet time');
 
 delete from public.blocks where blocker_id = pg_temp.uid('b4');
 select pg_temp.as_user('b1');
@@ -289,8 +290,8 @@ select public.post_message(gen_random_uuid(),
   'Steel delivery moved to Sunday.');
 reset role;
 select is((select count(*) from public.push_queue
-           where profile_id = pg_temp.uid('b3') and kind = 'chat_message'), 2::bigint,
-  'a Team thread: its member hears');
+           where profile_id = pg_temp.uid('b3') and kind = 'chat_message'), 4::bigint,
+  'a Team thread: its member hears (F102: on top of the three Everyone messages)');
 select is(pg_temp.q('b4', 'chat_message'), 1::bigint, 'nobody outside the Team does');
 select pg_temp.as_user('b3');
 set local role authenticated;

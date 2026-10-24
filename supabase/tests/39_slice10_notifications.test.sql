@@ -1,12 +1,14 @@
 -- Migration 39 (review 87): F97's one follow-up push per quiet time, and
--- Activity rows about a daybook post. Run with: supabase test db
+-- Activity rows about a daybook post. Since migration 41 (F102) nothing
+-- queues a follow-up; claim_push still handles one queued before.
+-- Run with: supabase test db
 --
 -- Omar (e1) runs the Space; Rakesh (e2) and Sara (e3) are Crew in it, so
 -- their conversations with Omar are open. Phones: e1, e2, e3.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(16);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000039' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -56,7 +58,7 @@ insert into public.push_tokens (token, profile_id, platform)
 select 'fcm-token-for-' || x.id || '-0123456789abcdef', pg_temp.uid(x.id), 'android'
 from (values ('e1'), ('e2'), ('e3')) x(id);
 
--- F97: three messages in two minutes ----------------------------------------------------------
+-- F97, after migration 41 (F102): every message pushes, no follow-up is queued --------------
 
 select pg_temp.as_user('e1');
 set local role authenticated;
@@ -64,43 +66,46 @@ select public.start_dm(pg_temp.id('a001'), pg_temp.uid('e2'), pg_temp.id('b001')
 reset role;
 select pg_temp.two_minutes_ago('a001');
 select is(pg_temp.q('e2', 'dm_message'), 1::bigint, 'the first message is pushed');
-select is(pg_temp.q('e2', 'dm_follow_up'), 0::bigint, 'with nothing to follow it yet');
 
 select pg_temp.as_user('e1');
 set local role authenticated;
 select public.send_dm(pg_temp.id('b002'), pg_temp.id('a001'), 'Pump is late');
 select public.send_dm(pg_temp.id('b003'), pg_temp.id('a001'), 'Stop the pour');
 reset role;
-select is(pg_temp.q('e2', 'dm_message'), 1::bigint, 'inside the quiet time no second push');
-select is(pg_temp.q('e2', 'dm_follow_up'), 1::bigint, 'but one follow-up, for both messages');
-select ok((pg_temp.follow_up('e2')).not_before
-            = (select created_at from public.push_queue
-               where profile_id = pg_temp.uid('e2') and kind = 'dm_message') + interval '5 minutes',
-  'it waits for the quiet time''s end');
-select is((pg_temp.follow_up('e2')).message_text, null, 'never with the text');
-select is((pg_temp.follow_up('e2')).data ->> 'dm_thread_id', pg_temp.id('a001')::text,
-  'it opens the conversation');
+select is(pg_temp.q('e2', 'dm_message'), 3::bigint, '(F102) inside the old quiet time each message pushes');
+select is(pg_temp.q('e2', 'dm_follow_up'), 0::bigint, '(F102) and no follow-up is queued');
 
+-- A follow-up queued on the live server before migration 41 still goes
+-- through claim_push as designed (review 88 S1). It is put in by hand.
+create function pg_temp.old_follow_up(p_who text, p_from text, p_thread text) returns void language sql as $$
+  insert into public.push_queue (profile_id, kind, actor_id, dm_thread_id, data, not_before)
+  select pg_temp.uid(p_who), 'dm_follow_up', pg_temp.uid(p_from), pg_temp.id(p_thread),
+         jsonb_build_object('dm_thread_id', pg_temp.id(p_thread), 'since', min(q.created_at)),
+         min(q.created_at) + interval '5 minutes'
+  from public.push_queue q
+  where q.profile_id = pg_temp.uid(p_who) and q.dm_thread_id = pg_temp.id(p_thread)
+    and q.kind = 'dm_message';
+$$;
+-- The two later messages and their pushes came after the first, inside
+-- its 5 minutes.
+update public.push_queue set created_at = now() - interval '90 seconds'
+where profile_id = pg_temp.uid('e2') and kind = 'dm_message'
+  and data ->> 'message_id' in (pg_temp.id('b002')::text, pg_temp.id('b003')::text);
+update public.dm_messages set created_at = now() - interval '90 seconds'
+where id in (pg_temp.id('b002'), pg_temp.id('b003'));
+select pg_temp.old_follow_up('e2', 'e1', 'a001');
 select is((select count(*) from public.claim_push((pg_temp.follow_up('e2')).id)), 0::bigint,
-  'before the quiet time ends it isn''t sent');
--- The quiet time ends: both messages came before its end.
+  'an old follow-up isn''t sent before its time');
 update public.push_queue set not_before = now() - interval '1 second'
 where id = (pg_temp.follow_up('e2')).id;
-update public.dm_messages set created_at = now() - interval '2 seconds'
-where id in (pg_temp.id('b002'), pg_temp.id('b003'));
 select is((select data ->> 'count' from public.claim_push((pg_temp.follow_up('e2')).id)), '2',
-  'at its end, unread: one push for the 2 new messages');
+  'at its time, unread: one push for the 2 new messages');
+select is((pg_temp.follow_up('e2')).message_text, null, 'never with the text');
 select is(array(select id from public.retry_push_queue()
                 where id = (pg_temp.follow_up('e2')).id), '{}'::bigint[],
   'claimed: the minute''s retry leaves it');
 
-select pg_temp.as_user('e1');
-set local role authenticated;
-select public.send_dm(pg_temp.id('b004'), pg_temp.id('a001'), 'And one more');
-reset role;
-select is(pg_temp.q('e2', 'dm_follow_up'), 1::bigint, 'never two in one quiet time');
-
--- F97: read in time --------------------------------------------------------------------------
+-- An old follow-up: read in time ---------------------------------------------------------------
 
 select pg_temp.as_user('e1');
 set local role authenticated;
@@ -110,16 +115,20 @@ select pg_temp.two_minutes_ago('a002');
 select pg_temp.as_user('e1');
 set local role authenticated;
 select public.send_dm(pg_temp.id('b012'), pg_temp.id('a002'), 'Or 8?');
-select pg_temp.as_user('e3');
-select public.mark_dm_read(pg_temp.id('a002'));
 reset role;
+delete from public.push_queue
+where profile_id = pg_temp.uid('e3') and data ->> 'message_id' = pg_temp.id('b012')::text;
+select pg_temp.old_follow_up('e3', 'e1', 'a002');
+update public.dm_messages set created_at = now() - interval '90 seconds' where id = pg_temp.id('b012');
+update public.dm_members set last_read_at = now() - interval '60 seconds'
+where thread_id = pg_temp.id('a002') and profile_id = pg_temp.uid('e3');
 update public.push_queue set not_before = now() - interval '1 second'
 where id = (pg_temp.follow_up('e3')).id;
 select is((select count(*) from public.claim_push((pg_temp.follow_up('e3')).id)), 0::bigint,
-  'read before the quiet time ended: no follow-up push');
+  'read before its time: no follow-up push');
 select ok((pg_temp.follow_up('e3')).sent_at is not null, 'and it is closed');
 
--- F97: muted ----------------------------------------------------------------------------------
+-- Muted ------------------------------------------------------------------------------------------
 
 update public.dm_members set muted = true
 where thread_id = pg_temp.id('a002') and profile_id = pg_temp.uid('e3');
@@ -132,25 +141,21 @@ reset role;
 select is(pg_temp.q('e3', 'dm_message') + pg_temp.q('e3', 'dm_follow_up'), 0::bigint,
   'a muted conversation gets neither');
 
--- F97 (review 88 S1): a follow-up that arrives after a new quiet time began ----------------
+-- An old follow-up after a newer push (review 88 S1) ------------------------------------------
 
--- Rakesh writes to Sara; 2 minutes later one more (a follow-up for minute 5).
 select pg_temp.as_user('e2');
 set local role authenticated;
 select public.start_dm(pg_temp.id('a003'), pg_temp.uid('e3'), pg_temp.id('b021'), 'Rebar is here');
 reset role;
 select pg_temp.two_minutes_ago('a003');
-select pg_temp.as_user('e2');
-set local role authenticated;
-select public.send_dm(pg_temp.id('b022'), pg_temp.id('a003'), 'Where to put it?');
-reset role;
--- Now it is minute 5:20: the follow-up is due, but not yet sent.
+select pg_temp.old_follow_up('e3', 'e2', 'a003');
+-- Now it is minute 5:20: the follow-up is due, and a newer message has
+-- its own push.
 update public.push_queue set created_at = created_at - interval '3 minutes 20 seconds',
                              not_before = not_before - interval '3 minutes 20 seconds'
 where dm_thread_id = pg_temp.id('a003');
 update public.dm_messages set created_at = created_at - interval '3 minutes 20 seconds'
 where thread_id = pg_temp.id('a003');
--- A third message: the quiet time is over, so it has its own push.
 select pg_temp.as_user('e2');
 set local role authenticated;
 select public.send_dm(pg_temp.id('b023'), pg_temp.id('a003'), 'Near gate 2');
@@ -158,7 +163,7 @@ reset role;
 select is((select count(*) from public.claim_push(
              (select id from public.push_queue
               where dm_thread_id = pg_temp.id('a003') and kind = 'dm_follow_up'))), 0::bigint,
-  'a follow-up after a new quiet time began is not sent');
+  'an old follow-up after a newer push is not sent');
 select is((select error from public.push_queue
            where dm_thread_id = pg_temp.id('a003') and kind = 'dm_follow_up'), 'superseded',
   'it is closed as superseded');
@@ -166,7 +171,7 @@ select is((select data ->> 'message_id' from public.claim_push(
              (select id from public.push_queue
               where dm_thread_id = pg_temp.id('a003') and kind = 'dm_message'
               order by created_at desc limit 1))), pg_temp.id('b023')::text,
-  'only the third message''s push goes');
+  'the newer message''s push goes');
 
 -- Activity: a daybook post's rows -------------------------------------------------------------
 
