@@ -8,7 +8,6 @@ import '../../core/l10n/locale_controller.dart';
 import '../../core/network/signal_state.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
-import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart' show mySpacesProvider;
 import '../entry/entry_state.dart';
@@ -287,8 +286,6 @@ class DaybookMarks extends Notifier<List<DaybookMark>> {
     }
     _retry.reached();
     ref.read(signalProvider.notifier).back();
-    // The Space's other open daybooks read it at once (F47).
-    unawaited(ref.read(daybookLiveProvider).changed(mark.spaceId, mark.postId));
     await _readAgain(mark);
     // Unless a newer tap of the same thing waits.
     _set([

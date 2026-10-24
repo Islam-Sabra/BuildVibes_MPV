@@ -114,17 +114,22 @@ void main() {
         expect(reads, inInclusiveRange(2, 3));
       });
 
-      testWidgets('what I do tells the Space\'s other daybooks', (
-        tester,
-      ) async {
-        final (daybook: _, :live, app: _) = await _open(
+      testWidgets('F47 reopened: the phone sends nothing itself; the '
+          'database broadcast reads the page again', (tester) async {
+        final (:daybook, :live, app: _) = await _open(
           tester,
           lang,
           posts: [s.m201()],
         );
         await tester.tap(find.byKey(const Key('ack-received')));
         await tester.pumpAndSettle();
-        expect(live.sent, ['${DaybookSamples.space} ${DaybookSamples.m201Id}']);
+        // DaybookLive has no way to send any more (migration 42): the
+        // database broadcasts the Received, and this daybook hears it too.
+        final before = daybook.pageCalls.length;
+        live.push(DaybookSamples.space, DaybookSamples.m201Id);
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pumpAndSettle();
+        expect(daybook.pageCalls.length, greaterThan(before));
       });
 
       testWidgets('my own post of any kind is at Now at once, even with no '

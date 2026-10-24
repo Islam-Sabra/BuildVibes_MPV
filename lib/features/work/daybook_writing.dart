@@ -16,7 +16,6 @@ import '../../core/photo_privacy.dart'
 import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/template.dart';
-import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/template_repository.dart';
@@ -696,8 +695,6 @@ class DaybookWriter {
     final id = draft?.id;
     if (id == null || edit.isEmpty) return;
     await ref.read(daybookRepositoryProvider).editPost(id, edit);
-    // The Space's other open daybooks read it at once (F47).
-    unawaited(ref.read(daybookLiveProvider).changed(spaceId, id));
   }
 }
 

@@ -15,7 +15,6 @@ import '../../data/models/daybook.dart' show DaybookQuote;
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
-import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/notebook_repository.dart';
@@ -790,8 +789,6 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     // daybook has the server's entry.
     _retry.reached();
     ref.read(signalProvider.notifier).back();
-    // The Space's other open daybooks read it at once (F47).
-    unawaited(ref.read(daybookLiveProvider).changed(item.spaceId, item.id));
     // F5: a post or a sign-off the server took, not a check or a cancel.
     if (item.kind == PendingKind.signOff || item.isNewPost) {
       unawaited(ref.read(sentChimeProvider).play());

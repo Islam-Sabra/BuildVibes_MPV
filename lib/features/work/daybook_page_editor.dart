@@ -15,7 +15,6 @@ import '../../data/models/daybook.dart';
 import '../../data/models/library.dart';
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
-import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/library_repository.dart';
 import '../../data/repositories/page_repository.dart';
@@ -490,12 +489,11 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   /// The page and the daybook read again; others hear of the change.
   void _changed() {
     // The card under the sheet keeps its points and files: read them
-    // again too (the live echo doesn't come back to this phone).
+    // again too (the database's broadcast reads only the daybook).
     ref
       ..invalidate(postPageProvider(_post.id))
       ..invalidate(checklistPointsProvider(_post.id))
       ..invalidate(postFilesProvider(_post.id));
-    unawaited(ref.read(daybookLiveProvider).changed(_spaceId, _post.id));
     unawaited(DaybookLoop(ref, widget.space, onEdit: (_) {}).refresh());
   }
 

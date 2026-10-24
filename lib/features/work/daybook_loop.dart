@@ -15,7 +15,6 @@ import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/chat_repository.dart';
-import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
@@ -308,7 +307,6 @@ class DaybookLoop {
       if (context.mounted) showSpaceError(context, e);
       return;
     }
-    unawaited(ref.read(daybookLiveProvider).changed(_spaceId, post.id));
     ref.invalidate(daybookExtrasProvider(_spaceId));
     await refresh();
   }

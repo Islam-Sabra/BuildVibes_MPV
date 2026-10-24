@@ -263,11 +263,10 @@ class FakeDaybookRepository implements DaybookRepository {
   }
 }
 
-/// The Space channel with no network: [push] plays a change by someone
-/// else; [sent] lists the changes this phone told, as `space post`.
+/// The Space channel with no network: [push] plays a change the database
+/// broadcast (migration 42).
 class FakeDaybookLive implements DaybookLive {
   final _streams = <String, StreamController<String>>{};
-  final sent = <String>[];
 
   /// Someone else changed [postId] in [spaceId].
   void push(String spaceId, String postId) => _streams[spaceId]?.add(postId);
@@ -278,8 +277,4 @@ class FakeDaybookLive implements DaybookLive {
     _streams[spaceId] = controller;
     return controller.stream;
   }
-
-  @override
-  Future<void> changed(String spaceId, String postId) async =>
-      sent.add('$spaceId $postId');
 }
