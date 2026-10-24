@@ -38,6 +38,17 @@ class SupabaseDaybookLive implements DaybookLive {
   static const _event = 'changed';
   static const _postKey = 'post_id';
 
+  /// The post id in a broadcast as the Realtime client hands it over: the
+  /// whole message (`{event, type, payload}`), with what was sent inside
+  /// `payload` (F100: reading it at the top level never found it).
+  @visibleForTesting
+  static String? postIdFromBroadcast(Map<String, dynamic> message) {
+    final payload = message['payload'];
+    if (payload is! Map) return null;
+    final id = payload[_postKey];
+    return id is String ? id : null;
+  }
+
   @override
   Stream<String> changes(String spaceId) {
     late final StreamController<String> controller;
@@ -51,9 +62,9 @@ class SupabaseDaybookLive implements DaybookLive {
         .channel(_topic(spaceId), opts: _private)
         .onBroadcast(
           event: _event,
-          callback: (payload) {
-            final id = payload[_postKey];
-            if (id is String && !controller.isClosed) controller.add(id);
+          callback: (message) {
+            final id = postIdFromBroadcast(message);
+            if (id != null && !controller.isClosed) controller.add(id);
           },
         )
         .subscribe();
