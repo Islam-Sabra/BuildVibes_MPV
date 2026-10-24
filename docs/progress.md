@@ -790,3 +790,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - App: no more sends from the phone (`DaybookLive.changed` and its call sites gone); BV-LIVE lines per status and per broadcast; rejoin after a close, error or timeout.
   - Checks: analyze clean; 1,759 app tests; 2,561 SQL checks (41 files, local); Node 14; `test_screens/` 373; local end-to-end 8/8 (a member receives after a tick done via psql by another member; a non-member is refused; an app send reaches nobody).
   - Live order (each with the founder's yes): migration 41, then the push function, then migration 42, then one build from `claude/f102`.
+- **24 Oct** (PC, same branch `claude/f102`): review 89 M1, M2, M3 and F103. **Not live.**
+  - M1 (migration 41, edited in place): `notify` and `notify_until` no longer readable from `space_members`; `my_space_notify(p_space)`; the app reads its own level from there. Test 41: 46 checks.
+  - M2: a "Messages" channel (`buildvibes_messages`) with vibration, made at start-up; message kinds use it. M3: with text on, the count is in the title. Node 15.
+  - F103: migration 43 (`20261104120000_chat_broadcast.sql`) broadcasts each chat message and delete on `thread:<id>` with ids only; the app listens for it (shared helper with the daybook, BV-LIVE lines, rejoin). Test 43 (16 checks); local end-to-end 6/6.
+  - Checks: analyze clean; 1,760 app tests; 2,583 SQL checks (42 files, local); Node 15; `test_screens/` 373 (none changed); a debug APK builds.
+  - Live order (each with the founder's yes): 41 (with M1), the push function (M2, M3), 42, 43, one build.

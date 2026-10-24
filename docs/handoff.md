@@ -2,6 +2,16 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 24 Oct 2026 — review 89: M1, M2, M3 and F103 (same branch `claude/f102`)
+
+**Not live, nothing deployed, nothing installed.**
+- **M1 (migration 41, edited in place):** a Space's level is the person's own. `notify` and `notify_until` are no longer readable from `space_members` (the grant is a column list without them); `my_space_notify(p_space)` and `my_spaces()` give your own. The app reads it from there. An older build fails on Space info once 41 is live, so the new build goes on both phones right after.
+- **M2:** a "Messages" Android channel, `buildvibes_messages`, with vibration, made in MainActivity at every start; `dm_message`, `dm_request` and `chat_message` use it, the rest stay on `buildvibes`.
+- **M3:** with text on, "Omar Haddad · 3 new messages" is the title and the newest words the body.
+- **F103, migration 43** (`20261104120000_chat_broadcast.sql`): each chat message and delete broadcasts ids on `thread:<id>`; the app listens for it instead of Postgres changes, with BV-LIVE lines and rejoin. Test 43, 16 checks; local end-to-end 6/6.
+- **Checks:** analyze clean; 1,760 app tests; 2,583 SQL checks (local); Node 15; `test_screens/` 373; a debug APK builds (not installed).
+- **Live order (each with the founder's yes, from the PC, one at a time):** 41 (with M1), the push function (M2, M3), 42, 43, then one build on the phone and the emulator. Founder's tests: review 89 section 6.
+
 ## PC update: 24 Oct 2026 — F47 reopened, the daybook kept live by the database (same branch `claude/f102`)
 
 **Not live, nothing deployed, nothing installed.**
