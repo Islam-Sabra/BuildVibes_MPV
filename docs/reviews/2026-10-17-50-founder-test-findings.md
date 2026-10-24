@@ -1173,3 +1173,16 @@ Before testing pushes on an emulator, switch its network off and on, especially 
 - **SQL:** 3 messages in 10 seconds queue 3 pushes, each with its count (1, 2, 3); a muted Space or conversation queues none until its time passes, then queues again; nobody can set another person's mute.
 - **App:** the mute sheet's three choices in EN and AR; the bell-slash on the row; long-press Mute; opening a conversation clears its notification.
 - **Phone (founder):** locked, Omar sends 3 messages 2 seconds apart; one notification updating 1, 2, 3, with sound each time. Then mute for 8 hours, and nothing comes.
+
+## F47 reopened (build 565, 24 Oct, 10:55): a Space's daybook isn't live
+- **Seen:** with NBKCH SITE TEAM open on Work on the founder's phone, Omar (emulator) ticked a point on "Cleaning" and tapped Got it on a new announcement. Neither showed on the phone without leaving the Space. The one-line fix (reading `post_id` from the broadcast's inner `payload`) wasn't enough.
+- **How it works today:** the acting phone sends the broadcast itself (`DaybookLive.changed`) on the private `daybook:<space>` channel, from 6 places (writing, outbox, marks, page editor, loop). With no daybook open, it opens a second channel on the same topic just to send, then removes it. That's the same pattern that broke F100.
+- **Fix (as F100): the database sends it.** Migration 42:
+  - triggers on `space_posts` (insert; and update of anything the card shows: state, owner, due, pin, cancel, edit), `post_point_events` (insert), the acknowledgements table (insert and delete), and the history and comment rows the card shows;
+  - each sends `realtime.send({space_id, post_id}, 'changed', 'daybook:' || space_id, true)`: ids only, wrapped so a broadcast problem never blocks the action;
+  - one broadcast per statement where a trigger can fire many times (a walk's photos), not per row.
+- **The app:** it stops sending (`changed()` becomes a no-op, then is removed) and only listens. Log `BV-LIVE daybook:<space> <status>` on each status change and one line per broadcast received.
+- **Tests:**
+  - SQL: each action broadcasts on its Space's topic with only ids; a non-member can't receive; the app can't send on `daybook:`. Tighten `daybook_live_send` to nothing, since only the database sends now;
+  - app: a received broadcast reads the page again;
+  - phone: the founder's two checks again (Omar's tick, Omar's Got it), each within 5 s without leaving the Space, plus the other way round.
