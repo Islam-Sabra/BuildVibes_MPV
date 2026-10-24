@@ -4345,22 +4345,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتفظ بملاحظاتك وقوائم التحقق والمهام لعملك. لا يراها أحد غيرك.';
 
   @override
-  String get notebookWriteHint => 'اكتب ملاحظة';
-
-  @override
-  String get notebookChecklistHint => 'لماذا قائمة التحقق هذه؟';
-
-  @override
-  String get notebookTodoHint => 'ما المطلوب';
-
-  @override
-  String get notebookPointHint => 'أضف نقطة';
-
-  @override
-  String get notebookWhen => 'متى';
-
-  @override
-  String get notebookNoTime => 'أي وقت';
+  String get notebookWriteHint => 'اكتب ملاحظة…';
 
   @override
   String get notebookPinTop => 'ثبّت في الأعلى';
@@ -4571,6 +4556,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookRemindPast => 'اختر وقتًا لم يأتِ بعد.';
+
+  @override
+  String get notebookNow => 'الآن';
+
+  @override
+  String get notebookDraftKept => 'محفوظة كما تركتها. اضغط لتكمل الكتابة.';
+
+  @override
+  String get notebookByWhen => 'موعد الإنجاز';
+
+  @override
+  String get notebookRemoveByWhen => 'إزالة موعد الإنجاز';
+
+  @override
+  String get notebookRemoveReminder => 'إزالة التذكير';
+
+  @override
+  String get notebookDraftFirst => 'أكمل المسودة أو امسحها أولًا.';
 
   @override
   String get reminderTitle => 'تذكير';

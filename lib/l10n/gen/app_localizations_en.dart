@@ -4339,22 +4339,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep notes, checklists and to-dos for your work. Only you can see them.';
 
   @override
-  String get notebookWriteHint => 'Write a note';
-
-  @override
-  String get notebookChecklistHint => 'What is the checklist for?';
-
-  @override
-  String get notebookTodoHint => 'What to do';
-
-  @override
-  String get notebookPointHint => 'Add a point';
-
-  @override
-  String get notebookWhen => 'When';
-
-  @override
-  String get notebookNoTime => 'Any time';
+  String get notebookWriteHint => 'Write a note…';
 
   @override
   String get notebookPinTop => 'Pin to the top';
@@ -4563,6 +4548,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookRemindPast => 'Pick a time still to come.';
+
+  @override
+  String get notebookNow => 'Now';
+
+  @override
+  String get notebookDraftKept => 'Kept as you left it. Tap to go on writing.';
+
+  @override
+  String get notebookByWhen => 'By when';
+
+  @override
+  String get notebookRemoveByWhen => 'Remove by when';
+
+  @override
+  String get notebookRemoveReminder => 'Remove reminder';
+
+  @override
+  String get notebookDraftFirst => 'Finish or clear your draft first.';
 
   @override
   String get reminderTitle => 'Reminder';

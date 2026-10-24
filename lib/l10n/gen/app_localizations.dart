@@ -7313,38 +7313,8 @@ abstract class AppLocalizations {
   /// The words box when writing a note.
   ///
   /// In en, this message translates to:
-  /// **'Write a note'**
+  /// **'Write a note…'**
   String get notebookWriteHint;
-
-  /// A checklist note's title box.
-  ///
-  /// In en, this message translates to:
-  /// **'What is the checklist for?'**
-  String get notebookChecklistHint;
-
-  /// A to-do note's words box.
-  ///
-  /// In en, this message translates to:
-  /// **'What to do'**
-  String get notebookTodoHint;
-
-  /// A new point on a checklist note.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a point'**
-  String get notebookPointHint;
-
-  /// A to-do's day and time, while writing it.
-  ///
-  /// In en, this message translates to:
-  /// **'When'**
-  String get notebookWhen;
-
-  /// A to-do with no time yet.
-  ///
-  /// In en, this message translates to:
-  /// **'Any time'**
-  String get notebookNoTime;
 
   /// A note's menu: it shows above the others.
   ///
@@ -7669,6 +7639,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a time still to come.'**
   String get notebookRemindPast;
+
+  /// A note being written in My notebook: its time, at the end of its first line (F106 NBW1).
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get notebookNow;
+
+  /// A note left unsent in My notebook, under its words (F106 NBW5).
+  ///
+  /// In en, this message translates to:
+  /// **'Kept as you left it. Tap to go on writing.'**
+  String get notebookDraftKept;
+
+  /// The writing tool that gives a to-do its day and time (F106 NBW3); read out.
+  ///
+  /// In en, this message translates to:
+  /// **'By when'**
+  String get notebookByWhen;
+
+  /// The × on a to-do's by when chip while writing it; read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove by when'**
+  String get notebookRemoveByWhen;
+
+  /// The × on a note's reminder chip while writing it; read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reminder'**
+  String get notebookRemoveReminder;
+
+  /// A note is edited while another is left as a draft: one at a time (F106).
+  ///
+  /// In en, this message translates to:
+  /// **'Finish or clear your draft first.'**
+  String get notebookDraftFirst;
 
   /// The phone's notification for a note's reminder: its title (the note's words under it).
   ///

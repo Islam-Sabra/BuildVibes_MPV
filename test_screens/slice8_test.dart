@@ -1,8 +1,9 @@
 // Slice 8, My notebook and My calendar (review 83), against NB1 (EN
 // 2557:35384, AR 2564:549), Put a note in a Space (2557:35481) and CAL1
 // (EN 2557:35587, AR 2564:653). The notebook is on v13 paper, with no
-// hour spine (review 83, question 1); the writer, the empty states and
-// Delete have no prototype frames (N2, N7 and PL14 give their words).
+// hour spine (review 83, question 1); the empty states and Delete have
+// no prototype frames (N2, N7 and PL14 give their words). Writing a note
+// in place is F106's (test_screens/f106_test.dart).
 // English and Arabic, at 390 × 844 on a 12-hour phone, in the app's fonts.
 // Run:
 //   flutter test test_screens/slice8_test.dart --update-goldens
@@ -154,28 +155,6 @@ void main() {
       await _open(tester, lang, empty: true);
       await _tap(tester, _key('notebook-only-you'));
       await _snap(tester, 'NB1-empty', lang);
-    });
-
-    testWidgets('writing a checklist and a to-do [$lang]', (tester) async {
-      await _open(tester, lang, empty: true);
-      await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('note-kind-checklist'));
-      await tester.enterText(_key('note-body'), n.walkTitle);
-      await tester.pumpAndSettle();
-      await tester.enterText(_key('note-point-0'), n.walkPoints[0]);
-      await tester.pumpAndSettle();
-      await tester.enterText(_key('note-point-1'), n.walkPoints[1]);
-      await tester.pumpAndSettle();
-      FocusManager.instance.primaryFocus?.unfocus();
-      await tester.pumpAndSettle();
-      await _snap(tester, 'NB-write-checklist', lang);
-      await _tap(tester, _key('note-kind-todo'));
-      await tester.enterText(_key('note-body'), n.sleevesTodo);
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('note-when'));
-      FocusManager.instance.primaryFocus?.unfocus();
-      await tester.pumpAndSettle();
-      await _snap(tester, 'NB-write-todo', lang);
     });
 
     testWidgets('the note\'s menu: Put in a Space, Pin, Edit, Delete; '

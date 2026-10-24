@@ -6261,29 +6261,9 @@
   "@notebookEmptyBody": {
     "description": "The empty notebook's words (N2)."
   },
-  "notebookWriteHint": "Write a note",
+  "notebookWriteHint": "Write a note…",
   "@notebookWriteHint": {
     "description": "The words box when writing a note."
-  },
-  "notebookChecklistHint": "What is the checklist for?",
-  "@notebookChecklistHint": {
-    "description": "A checklist note's title box."
-  },
-  "notebookTodoHint": "What to do",
-  "@notebookTodoHint": {
-    "description": "A to-do note's words box."
-  },
-  "notebookPointHint": "Add a point",
-  "@notebookPointHint": {
-    "description": "A new point on a checklist note."
-  },
-  "notebookWhen": "When",
-  "@notebookWhen": {
-    "description": "A to-do's day and time, while writing it."
-  },
-  "notebookNoTime": "Any time",
-  "@notebookNoTime": {
-    "description": "A to-do with no time yet."
   },
   "notebookPinTop": "Pin to the top",
   "@notebookPinTop": {
@@ -6594,6 +6574,30 @@
   "notebookRemindPast": "Pick a time still to come.",
   "@notebookRemindPast": {
     "description": "Remind me: the time picked has passed."
+  },
+  "notebookNow": "Now",
+  "@notebookNow": {
+    "description": "A note being written in My notebook: its time, at the end of its first line (F106 NBW1)."
+  },
+  "notebookDraftKept": "Kept as you left it. Tap to go on writing.",
+  "@notebookDraftKept": {
+    "description": "A note left unsent in My notebook, under its words (F106 NBW5)."
+  },
+  "notebookByWhen": "By when",
+  "@notebookByWhen": {
+    "description": "The writing tool that gives a to-do its day and time (F106 NBW3); read out."
+  },
+  "notebookRemoveByWhen": "Remove by when",
+  "@notebookRemoveByWhen": {
+    "description": "The × on a to-do's by when chip while writing it; read out."
+  },
+  "notebookRemoveReminder": "Remove reminder",
+  "@notebookRemoveReminder": {
+    "description": "The × on a note's reminder chip while writing it; read out."
+  },
+  "notebookDraftFirst": "Finish or clear your draft first.",
+  "@notebookDraftFirst": {
+    "description": "A note is edited while another is left as a draft: one at a time (F106)."
   },
   "reminderTitle": "Reminder",
   "@reminderTitle": {

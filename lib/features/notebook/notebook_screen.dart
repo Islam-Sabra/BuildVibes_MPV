@@ -10,6 +10,7 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart' show BvChatSpec;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
+import '../../core/photo_privacy.dart' show photosPreparingProvider;
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/note.dart';
@@ -24,6 +25,7 @@ import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
+import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../chat/thread_screen.dart' show ChatActionRow;
 import '../chat/voice.dart';
 import '../create/create_sheet.dart' show workItemSpacesProvider;
@@ -33,15 +35,18 @@ import '../spaces/space_screen.dart' show SpaceOpen;
 import '../work/daybook_draft.dart' show daybookDraftProvider;
 import '../work/daybook_words.dart';
 import '../work/daybook_writing.dart' show newPostIdProvider, pickDueProvider;
+import '../work/work_outbox.dart' show keepPhotoProvider, pickPhotoProvider;
+import 'note_draft.dart';
 import 'note_reminders.dart' show remindsAt;
-import 'note_writer.dart';
+import 'note_writing.dart';
 import 'notebook_state.dart';
 
 /// My notebook (NB1 2557:35384, review 83): a private daybook. Only its
 /// owner reads it. Built on v13 paper: no hour spine, each slip says its
-/// kind and time on its first line. Today first, under the masthead, with
-/// the pinned notes on the brand-soft band; earlier days below. "Note"
-/// writes one; hold the mic for a voice note.
+/// kind and time on its first line. The masthead and the pinned notes on
+/// the brand-soft band at the top; the days at the foot, today first,
+/// then earlier days. "Note" writes one in place at the end of today
+/// (F106, review 90); hold the mic for a voice note.
 class NotebookScreen extends ConsumerStatefulWidget {
   const NotebookScreen({super.key});
 
@@ -59,8 +64,29 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   Stopwatch? _watch;
   Timer? _recordTimer;
 
+  /// F106: the slip at the end of today is being written, with the
+  /// keyboard up and the tools above it.
+  bool _writing = false;
+
+  /// The kind menu is open over the slip (NBW2), this far above the
+  /// list's foot.
+  double? _kindMenuBottom;
+
+  final _listKey = GlobalKey();
+  final _slipKey = GlobalKey();
+  late final AppLifecycleListener _life;
+
+  @override
+  void initState() {
+    super.initState();
+    // The app going behind another, or closing: the slip is kept as the
+    // Draft (it is already on the phone).
+    _life = AppLifecycleListener(onHide: _putDown);
+  }
+
   @override
   void dispose() {
+    _life.dispose();
     _recordTimer?.cancel();
     if (_recording) unawaited(ref.read(voiceRecorderProvider).cancel());
     super.dispose();
@@ -76,7 +102,189 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     use24: MediaQuery.alwaysUse24HourFormatOf(context),
   );
 
-  Future<void> _write([Note? note]) => showNoteWriter(context, ref, note: note);
+  NoteDraftNotifier get _drafts => ref.read(noteDraftProvider.notifier);
+
+  /// "Note": a slip at the end of today, or the Draft again (one at a
+  /// time), with the keyboard up.
+  Future<void> _write() async {
+    if (ref.read(noteDraftProvider) == null) {
+      await _drafts.put(
+        NoteDraft(
+          id: ref.read(newPostIdProvider)(),
+          startedAt: ref.read(clockProvider)(),
+        ),
+      );
+    }
+    if (!mounted) return;
+    setState(() => _writing = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final slip = _slipKey.currentContext;
+      if (slip == null || !slip.mounted) return;
+      unawaited(
+        Scrollable.ensureVisible(
+          slip,
+          alignment: 1,
+          duration: BvMotion.fast,
+          curve: BvMotion.standard,
+        ),
+      );
+    });
+  }
+
+  /// Edit: the note's slip is written in place. A Draft left of another
+  /// note goes on first (one at a time).
+  Future<void> _edit(Note note) async {
+    final draft = ref.read(noteDraftProvider);
+    if (draft != null && draft.id != note.id) {
+      if (!draft.isEmpty) {
+        _toast(AppLocalizations.of(context).notebookDraftFirst);
+        return _write();
+      }
+      await _drafts.discard();
+    }
+    if (ref.read(noteDraftProvider) == null) {
+      await _drafts.put(NoteDraft.of(note));
+    }
+    return _write();
+  }
+
+  /// Back, the app going behind, or Send: the slip is put down. One with
+  /// anything in it stays as the Draft (NBW5); an empty one is gone.
+  void _putDown() {
+    if (!_writing) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _writing = false;
+      _kindMenuBottom = null;
+    });
+    unawaited(_drafts.close());
+  }
+
+  /// Send (it replaces Save): the note is kept, and the slip is gone.
+  Future<void> _send() async {
+    final draft = ref.read(noteDraftProvider);
+    if (draft == null || !draft.ready) return;
+    final note = draft.toNote(ref.read(clockProvider)());
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _writing = false;
+      _kindMenuBottom = null;
+    });
+    await _drafts.discard(keepPhotos: true);
+    await ref.read(notebookProvider.notifier).save(note);
+  }
+
+  Future<void> _change(NoteDraft Function(NoteDraft d) change) async {
+    final draft = ref.read(noteDraftProvider);
+    if (draft != null) await _drafts.put(change(draft));
+  }
+
+  /// The kind chip: its menu opens just above it (NBW2).
+  void _openKindMenu() {
+    if (_kindMenuBottom != null) {
+      setState(() => _kindMenuBottom = null);
+      return;
+    }
+    final list = _listKey.currentContext?.findRenderObject() as RenderBox?;
+    final slip = _slipKey.currentContext?.findRenderObject() as RenderBox?;
+    if (list == null || slip == null) return;
+    final chipTop =
+        slip.localToGlobal(Offset.zero, ancestor: list).dy +
+        BvNoteWritingSpec.slipPadding.top;
+    setState(
+      () => _kindMenuBottom =
+          list.size.height - chipTop + BvNoteWritingSpec.menuGap,
+    );
+  }
+
+  Future<void> _setKind(NoteKind kind) async {
+    setState(() => _kindMenuBottom = null);
+    await _change((d) => d.asKind(kind));
+  }
+
+  /// By when (NBW3): the daybook's day-and-time picker. It makes the note
+  /// a to-do: only a to-do has one.
+  Future<void> _pickDue() async {
+    final draft = ref.read(noteDraftProvider);
+    if (draft == null) return;
+    final due = draft.kind == NoteKind.todo ? draft.dueAt : null;
+    final picked = await ref.read(pickDueProvider)(
+      context,
+      now: ref.read(clockProvider)(),
+      day: due == null ? null : dayOf(due),
+      at: due,
+    );
+    if (picked == null || !mounted) return;
+    final day = picked.day;
+    // A day with no time is kept at the day's start, and reads as the day.
+    await _change(
+      (d) => d
+          .asKind(NoteKind.todo)
+          .copyWith(dueAt: () => day == null ? null : picked.at ?? day),
+    );
+  }
+
+  /// Remind me: as on a saved note's menu, a day and a time (no time is
+  /// that morning), never one gone by.
+  Future<void> _pickRemind() async {
+    final draft = ref.read(noteDraftProvider);
+    if (draft == null) return;
+    final at = await _askReminder(draft.remindAt);
+    if (at == null || !mounted) return;
+    await _change((d) => d.copyWith(remindAt: () => at.value));
+  }
+
+  /// A reminder picked with the daybook's picker; `(value: null)` is
+  /// Remove, null is cancelled or a time gone by.
+  Future<({DateTime? value})?> _askReminder(DateTime? kept) async {
+    final l10n = AppLocalizations.of(context);
+    final now = ref.read(clockProvider)();
+    final picked = await ref.read(pickDueProvider)(
+      context,
+      now: now,
+      day: kept == null ? null : dayOf(kept),
+      at: kept,
+    );
+    if (!mounted || picked == null) return null;
+    final day = picked.day;
+    final at = day == null
+        ? null
+        : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
+    if (at != null && !at.isAfter(now)) {
+      _toast(l10n.notebookRemindPast);
+      return null;
+    }
+    return (value: at);
+  }
+
+  /// Photo: the camera, made safe to leave the phone (cleanPhoto) and kept
+  /// in the app's folder until it is sent; at most 10 on a note.
+  Future<void> _addPhoto() async {
+    final draft = ref.read(noteDraftProvider);
+    if (draft == null || draft.photos.length >= Note.photosMax) return;
+    final picked = await ref.read(pickPhotoProvider)(
+      camera: true,
+      onPreparing: ref
+          .read(photosPreparingProvider(notePhotosCard).notifier)
+          .set,
+    );
+    final kept = [
+      for (final p in picked.photos) await ref.read(keepPhotoProvider)(p),
+    ];
+    if (kept.isNotEmpty) {
+      await _change(
+        (d) => d.copyWith(
+          photos: [
+            ...d.photos,
+            for (final k in kept) NotePhoto(local: k),
+          ].take(Note.photosMax).toList(),
+        ),
+      );
+    }
+    if (picked.refused > 0 && mounted) {
+      _toast(AppLocalizations.of(context).photoCannotOpen);
+    }
+  }
 
   Future<void> _startRecording() async {
     final l10n = AppLocalizations.of(context);
@@ -111,7 +319,9 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     if (cancelling != _cancelling) setState(() => _cancelling = cancelling);
   }
 
-  /// Release: keep it as a voice note; slid away: throw it away.
+  /// Release: keep it as a voice note; slid away: throw it away. While a
+  /// slip is written (the Voice tool, F106) the voice note is its own
+  /// slip, after it; the words stay on the slip.
   Future<void> _endRecording() async {
     _holding = false;
     _recordTimer?.cancel();
@@ -240,7 +450,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       case 'remind':
         await _remind(note);
       case 'edit':
-        await _write(note);
+        await _edit(note);
       case 'delete':
         final yes = await showBvDialog(
           context: context,
@@ -258,27 +468,11 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   /// or Remove. Saved as the note's remind_at; this phone sets the
   /// reminder (ReminderHost).
   Future<void> _remind(Note note) async {
-    final l10n = AppLocalizations.of(context);
-    final now = ref.read(clockProvider)();
-    final kept = note.remindAt;
-    final picked = await ref.read(pickDueProvider)(
-      context,
-      now: now,
-      day: kept == null ? null : dayOf(kept),
-      at: kept,
-    );
-    if (!mounted || picked == null) return;
-    final day = picked.day;
-    final at = day == null
-        ? null
-        : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
-    if (at != null && !at.isAfter(now)) {
-      _toast(l10n.notebookRemindPast);
-      return;
-    }
+    final at = await _askReminder(note.remindAt);
+    if (at == null || !mounted) return;
     await ref
         .read(notebookProvider.notifier)
-        .save(note.copyWith(remindAt: () => at));
+        .save(note.copyWith(remindAt: () => at.value));
   }
 
   /// A reminder picked with no time: that morning.
@@ -303,6 +497,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     final today = dayOf(now);
     final notebook = ref.watch(notebookProvider);
     final notes = notebook.value ?? const <Note>[];
+    final draft = ref.watch(noteDraftProvider);
     final pinned = [
       for (final n in notes)
         if (n.pinned) n,
@@ -313,6 +508,15 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       if (n.pinned) continue;
       byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
     }
+    // F106: the slip being written, or the Draft, among today's notes at
+    // the time it was started (so at the end of today); an edit in the
+    // edited note's place.
+    final editing = draft?.editing;
+    final inPlace =
+        editing != null &&
+        (byDay[dayOf(editing.createdAt)]?.any((n) => n.id == editing.id) ??
+            false);
+    if (draft != null && !inPlace) byDay.putIfAbsent(today, () => []);
     final days = byDay.keys.toList()..sort((a, b) => b.compareTo(a));
 
     Widget slip(Note n) => Padding(
@@ -322,99 +526,270 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
         words: words,
         now: now,
         onMenu: () => _menu(n),
-        onEdit: n.kind == NoteKind.voice ? null : () => _write(n),
+        onEdit: n.kind == NoteKind.voice ? null : () => _edit(n),
       ),
     );
 
-    return Scaffold(
-      backgroundColor: BvColors.surfaceApp,
-      appBar: AppBar(
-        backgroundColor: BvColors.surfaceApp,
-        title: Text(l10n.notebookTitle),
-        actions: [
-          IconButton(
-            key: const Key('notebook-calendar'),
-            tooltip: l10n.calendarTitle,
-            icon: const Icon(BvIcons.calendar),
-            onPressed: () => context.push(AppRoutes.calendar),
+    Widget writingSlip() => Padding(
+      key: _slipKey,
+      padding: const EdgeInsetsDirectional.only(bottom: BvNotebookSpec.slipGap),
+      child: NoteWritingSlip(
+        key: ValueKey(('note-writing', draft!.id)),
+        writing: _writing,
+        words: words,
+        onOpen: _write,
+        onKindTap: _openKindMenu,
+        onPickDue: () => unawaited(_pickDue()),
+        onPickRemind: () => unawaited(_pickRemind()),
+      ),
+    );
+
+    List<Widget> dayNotes(DateTime day) {
+      final list = byDay[day]!;
+      if (draft == null) return [for (final n in list) slip(n)];
+      if (inPlace) {
+        return [
+          for (final n in list) n.id == editing.id ? writingSlip() : slip(n),
+        ];
+      }
+      if (day != today) return [for (final n in list) slip(n)];
+      final at = dayOf(draft.startedAt) == today ? draft.startedAt : now;
+      // A note made since (a voice note while writing) comes after it.
+      final before = list.where((n) => n.createdAt.isBefore(at)).length;
+      return [
+        for (final n in list.take(before)) slip(n),
+        writingSlip(),
+        for (final n in list.skip(before)) slip(n),
+      ];
+    }
+
+    final drafting = draft != null;
+    final daysPart = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final day in days) ...[
+          Padding(
+            padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s12),
+            child: BvDayDivider(
+              label: day == today
+                  ? l10n.daybookTodayDivider
+                  : words.compactDate(day),
+            ),
           ),
           Padding(
-            padding: const EdgeInsetsDirectional.only(end: BvSpace.s12),
-            child: _OnlyYou(onTap: () => _toast(l10n.notebookOnlyYouBody)),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: notebook.hasError && notes.isEmpty
-                ? Padding(
-                    padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-                    child: EmptyNote(l10n.notebookCouldntLoad),
-                  )
-                : ListView(
-                    key: const Key('notebook-list'),
-                    padding: const EdgeInsetsDirectional.only(
-                      bottom: BvSpace.s24,
-                    ),
-                    children: [
-                      BvDaybookMasthead(
-                        weekday: words.weekday(today),
-                        date: words.dayMonth(today),
-                      ),
-                      for (final n in pinned)
-                        Padding(
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                            BvNotebookSpec.gutter,
-                            0,
-                            BvNotebookSpec.gutter,
-                            BvSpace.s12,
-                          ),
-                          child: PinnedNote(note: n, onTap: () => _menu(n)),
-                        ),
-                      if (notes.isEmpty && !notebook.isLoading)
-                        _Empty(type: type, l10n: l10n),
-                      for (final day in days) ...[
-                        if (day != today)
-                          Padding(
-                            padding: const EdgeInsetsDirectional.only(
-                              bottom: BvSpace.s12,
-                            ),
-                            child: BvDayDivider(label: words.compactDate(day)),
-                          ),
-                        Padding(
-                          padding: const EdgeInsetsDirectional.symmetric(
-                            horizontal: BvNotebookSpec.gutter,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [for (final n in byDay[day]!) slip(n)],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-          ),
-          SafeArea(
-            top: false,
-            child: BvPostBar(
-              placeholder: l10n.notebookNote,
-              onWrite: _write,
-              field: _recording
-                  ? RecordingBar(elapsed: _elapsed, cancelling: _cancelling)
-                  : null,
-              end: RecordButton(
-                onStart: _startRecording,
-                onSlide: _slide,
-                onEnd: _endRecording,
-                onTap: () => _toast(l10n.chatRecord),
-              ),
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: BvNotebookSpec.gutter,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: dayNotes(day),
             ),
           ),
         ],
+      ],
+    );
+
+    return PopScope(
+      // Back while writing puts the slip down, kept as the Draft (NBW5).
+      canPop: !_writing,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _putDown();
+      },
+      child: Scaffold(
+        backgroundColor: BvColors.surfaceApp,
+        appBar: AppBar(
+          backgroundColor: BvColors.surfaceApp,
+          title: Text(l10n.notebookTitle),
+          actions: [
+            IconButton(
+              key: const Key('notebook-calendar'),
+              tooltip: l10n.calendarTitle,
+              icon: const Icon(BvIcons.calendar),
+              onPressed: () => context.push(AppRoutes.calendar),
+            ),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: BvSpace.s12),
+              child: _OnlyYou(onTap: () => _toast(l10n.notebookOnlyYouBody)),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: notebook.hasError && notes.isEmpty && !drafting
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+                      child: EmptyNote(l10n.notebookCouldntLoad),
+                    )
+                  : LayoutBuilder(
+                      key: _listKey,
+                      builder: (context, box) => Stack(
+                        children: [
+                          // F106: the days sit at the foot, newest last,
+                          // over the slip being written; the masthead and
+                          // the pinned notes stay at the top.
+                          SingleChildScrollView(
+                            key: const Key('notebook-list'),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: box.maxHeight,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsetsDirectional.only(
+                                  bottom: BvSpace.s12,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        BvDaybookMasthead(
+                                          weekday: words.weekday(today),
+                                          date: words.dayMonth(today),
+                                        ),
+                                        for (final n in pinned)
+                                          Padding(
+                                            padding:
+                                                const EdgeInsetsDirectional.fromSTEB(
+                                                  BvNotebookSpec.gutter,
+                                                  0,
+                                                  BvNotebookSpec.gutter,
+                                                  BvSpace.s12,
+                                                ),
+                                            child: PinnedNote(
+                                              note: n,
+                                              onTap: () => _menu(n),
+                                            ),
+                                          ),
+                                        if (notes.isEmpty &&
+                                            !drafting &&
+                                            !notebook.isLoading)
+                                          _Empty(type: type, l10n: l10n),
+                                      ],
+                                    ),
+                                    daysPart,
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_kindMenuBottom != null && draft != null) ...[
+                            // No dim: a tap anywhere else closes it.
+                            Positioned.fill(
+                              child: GestureDetector(
+                                key: const Key('note-kind-away'),
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () =>
+                                    setState(() => _kindMenuBottom = null),
+                              ),
+                            ),
+                            PositionedDirectional(
+                              start:
+                                  BvNotebookSpec.gutter +
+                                  BvNoteWritingSpec.menuStart,
+                              bottom: _kindMenuBottom,
+                              child: NoteKindMenu(
+                                selected: draft.kind,
+                                onSelected: (k) => unawaited(_setKind(k)),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+            ),
+            SafeArea(
+              top: false,
+              child: _writing && draft != null
+                  ? _tools(l10n, draft)
+                  : BvPostBar(
+                      placeholder: l10n.notebookNote,
+                      onWrite: () => unawaited(_write()),
+                      field: _recording
+                          ? RecordingBar(
+                              elapsed: _elapsed,
+                              cancelling: _cancelling,
+                            )
+                          : null,
+                      end: RecordButton(
+                        onStart: _startRecording,
+                        onSlide: _slide,
+                        onEnd: _endRecording,
+                        onTap: () => _toast(l10n.chatRecord),
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  /// The tools above the keyboard (NBW1): Checklist, Remind me, By when,
+  /// Photo and Voice note, then Send. A tool in use is tinted; Send is
+  /// grey until there is something to keep.
+  Widget _tools(AppLocalizations l10n, NoteDraft draft) =>
+      BvWritingToolbar.tools(
+        key: const Key('note-tools'),
+        tools: [
+          BvWritingTool(
+            key: const Key('note-tool-checklist'),
+            icon: BvIcons.workItems,
+            label: l10n.daybookKindChecklist,
+            active: draft.kind == NoteKind.checklist,
+            onTap: () => unawaited(
+              _setKind(
+                draft.kind == NoteKind.checklist
+                    ? NoteKind.text
+                    : NoteKind.checklist,
+              ),
+            ),
+          ),
+          BvWritingTool(
+            key: const Key('note-tool-remind'),
+            icon: BvIcons.remind,
+            label: l10n.notebookRemindMe,
+            active: draft.remindAt != null,
+            onTap: () => unawaited(_pickRemind()),
+          ),
+          BvWritingTool(
+            key: const Key('note-tool-due'),
+            icon: BvIcons.due,
+            label: l10n.notebookByWhen,
+            active: draft.kind == NoteKind.todo && draft.dueAt != null,
+            onTap: () => unawaited(_pickDue()),
+          ),
+          BvWritingTool(
+            key: const Key('note-tool-photo'),
+            icon: BvIcons.camera,
+            label: l10n.daybookCamera,
+            onTap: draft.photos.length >= Note.photosMax
+                ? null
+                : () => unawaited(_addPhoto()),
+          ),
+          // Option A (F106): hold for a voice note of its own, after the
+          // slip; the words stay on the slip.
+          BvWritingTool(
+            key: const Key('note-tool-voice'),
+            icon: BvIcons.microphone,
+            label: l10n.notebookVoice,
+            onTap: () => _toast(l10n.chatRecord),
+            onHoldStart: _startRecording,
+            onHoldMove: _slide,
+            onHoldEnd: _endRecording,
+          ),
+        ],
+        field: _recording
+            ? RecordingBar(elapsed: _elapsed, cancelling: _cancelling)
+            : null,
+        postLabel: l10n.chatSend,
+        onPost: draft.ready ? () => unawaited(_send()) : null,
+      );
 }
 
 /// "Only you" (2557:35400): a quiet pill; a tap says what it means.
@@ -573,7 +948,8 @@ class PinnedNote extends StatelessWidget {
 
 /// A note on its slip: the kind and time on the first line, then the
 /// words; a to-do's box and its due in the action colour; a checklist's
-/// title and points; a voice note's player. "Waiting to send" while it is
+/// title and points; a voice note's player; its photos (F106). "Waiting
+/// to send" while it is
 /// still on the phone; "Went into a Space" once put in one.
 class NoteSlip extends ConsumerWidget {
   const NoteSlip({
@@ -686,6 +1062,8 @@ class NoteSlip extends ConsumerWidget {
                 ref.read(notebookRepositoryProvider).recordingUrl(path),
           ),
         },
+        if (note.photos.isNotEmpty)
+          NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
         if (remindsAt(note, now))
           BvSlipQuiet(
             key: Key('note-reminder-${note.id}'),

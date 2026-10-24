@@ -5,6 +5,7 @@ import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/notebook/calendar_screen.dart';
+import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/notebook_screen.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
@@ -261,6 +262,99 @@ void main() {
       expect(d.title, 'Gate');
       expect(d.body, 'Fix it\n\nHinge is loose');
       expect(d.noteId, 'n1');
+    });
+  });
+
+  group('F106: a note written in place', () {
+    final start = DateTime(2026, 10, 15, 12);
+
+    test('photos come from note_files, in their order', () {
+      final note = Note.fromJson({
+        'id': 'n1',
+        'kind': 'text',
+        'body': 'Pump',
+        'created_at': '2026-10-15T09:00:00Z',
+        'note_files': [
+          {'storage_path': 'u/n1/b.jpg', 'kind': 'photo', 'sort': 1},
+          {'storage_path': 'u/n1/a.jpg', 'kind': 'photo', 'sort': 0},
+        ],
+      });
+      expect(
+        [for (final p in note.photos) p.path],
+        ['u/n1/a.jpg', 'u/n1/b.jpg'],
+      );
+      // Kept on the phone while it waits, with its own copy.
+      final back = Note.fromJson(
+        note.copyWith(photos: [const NotePhoto(local: '/kept.jpg')]).toJson(),
+      );
+      expect(back.photos.single.local, '/kept.jpg');
+    });
+
+    test('the kind changes and keeps the words', () {
+      final note = NoteDraft(
+        id: 'd',
+        startedAt: start,
+        title: 'Before the walk',
+        body: 'Print A-501\n\nCharge the meter',
+      );
+      final list = note.asKind(NoteKind.checklist);
+      expect(list.title, 'Before the walk');
+      expect(list.body, isEmpty);
+      expect(
+        [for (final p in list.points) p.text],
+        ['Print A-501', 'Charge the meter'],
+      );
+      final back = list.asKind(NoteKind.text);
+      expect(back.points, isEmpty);
+      expect(back.body, 'Print A-501\nCharge the meter');
+      // A to-do takes the first line; with no title, the first line of
+      // the words (the rest waits for another kind).
+      expect(note.asKind(NoteKind.todo).title, 'Before the walk');
+      final untitled = NoteDraft(id: 'd', startedAt: start, body: 'A\nB');
+      final todo = untitled.asKind(NoteKind.todo);
+      expect((todo.title, todo.body), ('A', 'B'));
+      expect(todo.toNote(start).body, 'A');
+    });
+
+    test('what each kind saves, and when it is ready', () {
+      final draft = NoteDraft(id: 'd', startedAt: start);
+      expect(draft.isEmpty, isTrue);
+      expect(draft.ready, isFalse);
+      final note = draft.copyWith(title: 'Pump', body: 'at 2 pm');
+      expect(note.ready, isTrue);
+      expect(note.toNote(start).body, 'Pump\nat 2 pm');
+      final list = draft.copyWith(kind: NoteKind.checklist, title: 'Walk');
+      expect(list.ready, isFalse);
+      final pointed = list.copyWith(points: [(id: 'p', text: 'Doors')]);
+      expect(pointed.ready, isTrue);
+      expect(pointed.toNote(start).points.single.text, 'Doors');
+      final due = DateTime(2026, 10, 15, 16);
+      final todo = draft.copyWith(
+        kind: NoteKind.todo,
+        title: 'Sleeves',
+        dueAt: () => due,
+      );
+      expect(todo.toNote(start).dueAt, due);
+      // A note left from another day is kept on the day it is sent.
+      final later = DateTime(2026, 10, 17, 8);
+      expect(note.toNote(later).createdAt, later);
+      expect(note.toNote(start).createdAt, start);
+    });
+
+    test('the Draft is kept on the phone, and an empty one is not', () async {
+      final container = await _container();
+      final drafts = container.read(noteDraftProvider.notifier);
+      await drafts.put(NoteDraft(id: 'd', startedAt: start, title: 'Pump'));
+      final prefs = container.read(sharedPreferencesProvider);
+      expect(prefs.getString('notebook_draft:user-1'), contains('Pump'));
+      container.invalidate(noteDraftProvider);
+      expect(container.read(noteDraftProvider)!.title, 'Pump');
+      await container
+          .read(noteDraftProvider.notifier)
+          .put(NoteDraft(id: 'd', startedAt: start));
+      expect(prefs.getString('notebook_draft:user-1'), isNull);
+      await container.read(noteDraftProvider.notifier).close();
+      expect(container.read(noteDraftProvider), isNull);
     });
   });
 }

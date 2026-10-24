@@ -2,6 +2,8 @@
 // no hour spine, review 83) and My calendar (CAL1 2557:35587). Values
 // that already exist as tokens point at them.
 
+import 'package:flutter/widgets.dart';
+
 import 'bv_tokens.dart';
 
 /// My notebook (NB1): the Only you pill, the slips' gaps, a to-do's and a
@@ -37,9 +39,29 @@ abstract final class BvNotebookSpec {
 
   /// The empty notebook's icon (N2).
   static const emptyIcon = 40.0;
+}
 
-  /// The note writer's points: at most this many lines for the words.
-  static const writerLines = 6;
+/// My notebook writes in place (F106, review 90; NBW1 2613:36507): the
+/// slip being written, its chips, and the kind menu over it.
+abstract final class BvNoteWritingSpec {
+  /// The slip: 14 inside (12 at the foot), its parts 8 apart.
+  static const slipPadding = EdgeInsetsDirectional.fromSTEB(
+    BvNotebookSpec.pinnedPadding,
+    BvNotebookSpec.pinnedPadding,
+    BvNotebookSpec.pinnedPadding,
+    BvSpace.s12,
+  );
+  static const slipGap = BvSpace.s8;
+
+  /// By when and Remind me (NBW3): pills as Only you, 6 apart, each with
+  /// a 12 ×.
+  static const chipGap = 5.0;
+  static const chipsGap = BvSpace.s6;
+  static const chipRemove = 12.0;
+
+  /// The kind menu (NBW2) stands just above the kind chip, from its start.
+  static const menuStart = 15.0;
+  static const menuGap = BvSpace.s6;
 }
 
 /// My calendar (CAL1): the week strip, the rows and their colour bar.
