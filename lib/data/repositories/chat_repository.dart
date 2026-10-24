@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/chat.dart';
 import '../models/library.dart';
 import '../models/space.dart';
+import '../supabase/live_broadcast.dart';
 import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
 import 'work_repository.dart' show newUuid;
@@ -197,34 +199,23 @@ class SupabaseChatRepository implements ChatRepository {
     () => _client.rpc('mark_thread_read', params: {'p_thread': threadId}),
   );
 
+  /// F103 (migration 43): the database broadcasts each new or deleted
+  /// message on the thread's private topic, with ids only; the thread
+  /// reads the message again by id. Joined again by itself when lost.
   @override
-  Stream<String> changes(String threadId) {
-    late final RealtimeChannel channel;
-    final controller = StreamController<String>(
-      onCancel: () => _client.removeChannel(channel),
-    );
-    channel = _client
-        // Private (review 63 R1): only whoever may use the thread joins.
-        .channel(
-          'thread:$threadId',
-          opts: const RealtimeChannelConfig(private: true),
-        )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'messages',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'thread_id',
-            value: threadId,
-          ),
-          callback: (payload) {
-            final id = payload.newRecord['id'] ?? payload.oldRecord['id'];
-            if (id is String && !controller.isClosed) controller.add(id);
-          },
-        )
-        .subscribe();
-    return controller.stream;
+  Stream<String> changes(String threadId) => privateBroadcasts(
+    _client,
+    'thread:$threadId',
+    'chat',
+    describe: (p) => 'message=${p['message_id']} op=${p['op']}',
+  ).map(messageIdFromBroadcast).where((id) => id != null).cast<String>();
+
+  /// The message id in migration 43's payload, `{thread_id, message_id,
+  /// author_id, op}`.
+  @visibleForTesting
+  static String? messageIdFromBroadcast(Map<String, dynamic> payload) {
+    final id = payload['message_id'];
+    return id is String ? id : null;
   }
 }
 

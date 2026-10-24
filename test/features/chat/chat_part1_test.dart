@@ -474,9 +474,8 @@ void main() {
       expect(find.text(l10n.chatSending), findsNothing);
     });
 
-    testWidgets('live: a new message appears and is read [$lang]', (
-      tester,
-    ) async {
+    testWidgets('live (F103, the database broadcast): a new message is read '
+        'again by id, appears and is read [$lang]', (tester) async {
       final chat = _chat();
       await _openThread(tester, lang, chat: chat);
       final reads = chat.calls.where((c) => c == 'read $_everyone').length;
