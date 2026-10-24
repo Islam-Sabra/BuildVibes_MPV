@@ -2,6 +2,18 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: F106, My notebook writes in place (review 90) — on `claude/f106`, not merged
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch `claude/f106`** (local `f106`, worktree `BuildVibes-f106`): F106 is built from `slice2-app` f2801d8. It is app only, with **no migration**, so nothing needs to go live. Checks: analyze clean, 1,815 app tests, `test_screens/` 385.
+- **What it is:**
+  - the notebook's sheet is replaced by a writing slip at the end of today: kind chip, the tools row, Send, by when and Remind me chips, and a Draft on leaving;
+  - photos on notes (no migration);
+  - the Voice note tool records a separate voice note (decision A; differs from review 90 §7 "attach").
+- **Shots:** `docs/screens/f106/` (NBW1–NBW5, EN and AR). The slice 8 and slice 10 notebook shots were shot again.
+- **Next (PC):** merge `claude/f106` into `slice2-app`, build, and have the founder test F106 on the phone.
+
 ## PC update: 24 Oct 2026, end of day — every F-item passed, build 579
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
