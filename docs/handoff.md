@@ -2,6 +2,37 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 24 Oct 2026, end of day — every F-item passed, build 579
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**State:**
+- **Live:** migrations to `20261104120000` (43), the push function v10, public channels still on. Nothing waits to go live from today.
+- **`slice2-app`:** fb7927a, with `claude/f100-broadcast`, `claude/f102` and `claude/f105` merged. Checks: analyze clean, 1,781 app tests, 2,583 SQL checks in 42 files, 15 push tests, 377 screenshots.
+- **Build 579** (fb7927a) is on the founder's Xiaomi and the emulator (Omar).
+- **Passed today:** F100, F101, F102, F103, F47 (reopened), F104 and F105, all on the phone.
+
+- **24 Oct 2026, end of day** (PC): every F-item from today passed on the founder's phone and the emulator:
+  - F100: live direct messages through the database broadcast, migration 40;
+  - F101: the banner counts hidden messages;
+  - F102: one notification per conversation, counting, with sound and vibration, and mute for 8 hours / 1 week / Always;
+  - F103: Space chat live, migration 43;
+  - F47 reopened: the daybook live, migration 42;
+  - F104: Got it faces on the author's folded line;
+  - F105: Back from a Space chat goes to its Chat tab, and from a DM to Messages.
+  
+  `claude/f100-broadcast`, `claude/f102` and `claude/f105` are merged into `slice2-app` (fb7927a). **Live is at `20261104120000`** (migration 43); the push function is v10. **Build 579** (fb7927a) is on both phones.
+
+**Open, for later:**
+- the old 13 Oct token (`…IYgxHw`) is still accepted by Google: an old install somewhere is still signed in as Islam;
+- F105: when the Space is already on top, Back from a thread opened by a quote, banner or notification returns to the tab that was showing, not always Chat (the founder can ask for always-Chat);
+- the shared rejoin helper has no unit test of its own.
+
+**Who has which branch:**
+- PC: `slice2-app` (worktree `BuildVibes-slice1`); `slice2-live-db` = main (worktree `BuildVibes-db29`).
+- `claude/f100`, the diagnostic, stays unmerged. `claude/f100-broadcast`, `claude/f102` and `claude/f105` are merged and done.
+- The worktrees `BuildVibes-f100`, `BuildVibes-f100b`, `BuildVibes-f102`, `BuildVibes-f105` and `BuildVibes-slice10` can be removed.
+
 ## PC update: review 89 live
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

@@ -805,3 +805,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   Live is at `20261104120000`. Build 576 (da56a31) is on the founder's phone and the emulator; both have the new Messages channel. Next: the founder's tests F102, F47, F103 (review 89 §6).
 - **24 Oct** (PC, `claude/f102`): F104, the author's Got it faces on the folded pinned line. App only, no SQL. The author (or an admin acting for an author who left) sees up to 3 faces, then "+N", before the ›; the announcement's own card and the full pinned note show "+N" the same way (`DaybookFacesLine`). Live: the line watches `postAcksProvider`, which a broadcast refreshes. Others see no one else's faces. Checks: analyze clean; 1,772 app tests; `test_screens/` 377 (4 new shots in `docs/screens/f104/`, none changed). Goes with the next build.
 - **24 Oct** (`claude/f105`): F105, Back from a chat. App only, no SQL. Every way into a Space thread goes through `openSpaceThread` (`lib/core/routing/open_thread.dart`): on the Space already, only the thread opens; anywhere else the Space opens on its Chat tab (`/spaces/<id>?tab=chat`, new) under the thread, so Back goes to the Chat tab, then where the person came from. Every way into a direct message goes through `openDmThread`: Messages opens under it unless it is already underneath (from New message the thread takes the search's place). Notification taps and the message banner use `openRoute`. Cause: every way in pushed the thread on the page showing, and Home's Spaces row opens the thread straight over Home; the row keeps opening it because opening a thread never marked the Space seen. Checks: analyze clean; 1,781 app tests (9 new in `test/features/navigation/f105_chat_back_test.dart`); `test_screens/` 377, no shot changed. Goes with the next build.
+- **24 Oct 2026, end of day** (PC): every F-item from today passed on the founder's phone and the emulator:
+  - F100: live direct messages through the database broadcast, migration 40;
+  - F101: the banner counts hidden messages;
+  - F102: one notification per conversation, counting, with sound and vibration, and mute for 8 hours / 1 week / Always;
+  - F103: Space chat live, migration 43;
+  - F47 reopened: the daybook live, migration 42;
+  - F104: Got it faces on the author's folded line;
+  - F105: Back from a Space chat goes to its Chat tab, and from a DM to Messages.
+  
+  `claude/f100-broadcast`, `claude/f102` and `claude/f105` are merged into `slice2-app` (fb7927a). **Live is at `20261104120000`** (migration 43); the push function is v10. **Build 579** (fb7927a) is on both phones.
