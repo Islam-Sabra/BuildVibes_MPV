@@ -227,20 +227,40 @@ class Notebook extends AsyncNotifier<List<Note>> {
     }
   }
 
-  /// A voice note's recording goes to Storage first, once.
+  /// A voice note's recording, or a note's photos (F106), go to Storage
+  /// first, once each.
   Future<NoteChange> _upload(NoteChange change) async {
     final note = change.note;
-    final recording = note?.recording;
-    if (change.op != 'save' || recording == null || recording.path != null) {
+    if (change.op != 'save' || note == null) return change;
+    final recording = note.recording;
+    final photos = note.photos;
+    final waitingRecording = recording != null && recording.path == null;
+    if (!waitingRecording && photos.every((p) => p.path != null)) {
       return change;
     }
-    final path = await _repo.uploadRecording(note!.id, recording);
-    final uploaded = NoteChange.save(
-      note.copyWith(recording: recording.uploaded(path)),
-    );
-    _waiting = [uploaded, ..._waiting.skip(1)];
+    var uploaded = note;
+    if (waitingRecording) {
+      final path = await _repo.uploadRecording(note.id, recording);
+      uploaded = uploaded.copyWith(recording: recording.uploaded(path));
+    }
+    final sent = <NotePhoto>[];
+    for (final p in photos) {
+      sent.add(
+        p.path != null ? p : p.uploaded(await _repo.uploadPhoto(note.id, p)),
+      );
+      // Each one kept as it goes, so a lost signal sends only the rest.
+      _waiting = [
+        NoteChange.save(
+          uploaded.copyWith(photos: [...sent, ...photos.skip(sent.length)]),
+        ),
+        ..._waiting.skip(1),
+      ];
+      await _store();
+    }
+    final done = NoteChange.save(uploaded.copyWith(photos: sent));
+    _waiting = [done, ..._waiting.skip(1)];
     await _store();
-    return uploaded;
+    return done;
   }
 
   /// False when the note was deleted elsewhere.

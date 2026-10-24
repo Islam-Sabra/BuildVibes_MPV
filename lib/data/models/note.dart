@@ -90,6 +90,48 @@ class NoteRecording {
   };
 }
 
+/// A photo on a note (F106): in `notebook-files` once sent ([path]), on
+/// the phone until then ([local]). At most [Note.photosMax]
+/// (set_note_files).
+@immutable
+class NotePhoto {
+  const NotePhoto({
+    this.path,
+    this.local,
+    this.mime = 'image/jpeg',
+    this.bytes,
+  });
+
+  factory NotePhoto.fromJson(Map<String, dynamic> json) => NotePhoto(
+    path: json['storage_path'] as String? ?? json['path'] as String?,
+    local: json['local'] as String?,
+    mime: json['mime'] as String? ?? 'image/jpeg',
+    bytes: json['bytes'] as int?,
+  );
+
+  final String? path;
+  final String? local;
+  final String mime;
+  final int? bytes;
+
+  NotePhoto uploaded(String path) =>
+      NotePhoto(path: path, local: local, mime: mime, bytes: bytes);
+
+  /// As set_note_files takes it.
+  Map<String, dynamic> toServer() => {
+    'path': path,
+    'mime': mime,
+    'bytes': ?bytes,
+  };
+
+  Map<String, dynamic> toJson() => {
+    'path': path,
+    'local': local,
+    'mime': mime,
+    'bytes': bytes,
+  };
+}
+
 /// A note in My notebook (migration 21): only its owner ever reads it.
 /// The app chose its [id], so saving it again is the same note.
 @immutable
@@ -106,6 +148,7 @@ class Note {
     this.remindAt,
     this.putInPostId,
     this.recording,
+    this.photos = const [],
     this.waiting = false,
   });
 
@@ -140,6 +183,13 @@ class Note {
                     json['recording'] as Map<String, dynamic>,
                   ))
           : NoteRecording.fromJson(voice),
+      photos: [
+        for (final f in files)
+          if (f['kind'] == 'photo') NotePhoto.fromJson(f),
+        if (files.isEmpty)
+          for (final p in json['photos'] as List? ?? const [])
+            NotePhoto.fromJson(p as Map<String, dynamic>),
+      ],
       waiting: json['waiting'] as bool? ?? false,
     );
   }
@@ -151,6 +201,7 @@ class Note {
   static const bodyMax = 5000;
   static const pointsMax = 50;
   static const pointMax = 300;
+  static const photosMax = 10;
 
   final String id;
   final NoteKind kind;
@@ -173,6 +224,9 @@ class Note {
   final DateTime createdAt;
   final NoteRecording? recording;
 
+  /// A note's, a checklist's or a to-do's photos (F106).
+  final List<NotePhoto> photos;
+
   /// Still on the phone: not yet taken by the server.
   final bool waiting;
 
@@ -191,6 +245,7 @@ class Note {
     DateTime? Function()? remindAt,
     String? putInPostId,
     NoteRecording? recording,
+    List<NotePhoto>? photos,
     bool? waiting,
   }) => Note(
     id: id,
@@ -204,6 +259,7 @@ class Note {
     remindAt: remindAt == null ? this.remindAt : remindAt(),
     putInPostId: putInPostId ?? this.putInPostId,
     recording: recording ?? this.recording,
+    photos: photos ?? this.photos,
     waiting: waiting ?? this.waiting,
   );
 
@@ -220,6 +276,7 @@ class Note {
     'put_in_post_id': putInPostId,
     'created_at': createdAt.toUtc().toIso8601String(),
     'recording': recording?.toJson(),
+    'photos': [for (final p in photos) p.toJson()],
     'waiting': waiting,
   };
 }

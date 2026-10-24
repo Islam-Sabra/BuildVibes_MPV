@@ -18,10 +18,13 @@ class FakeNotebookRepository implements NotebookRepository {
   /// my_calendar's rows, every day; [calendar] gives those in its days.
   List<CalendarRow> rows;
   final Set<String> deleted = {};
+
+  /// The photos each note's last save_note sent as p_files (F106).
+  final Map<String, List<String>> files = {};
   bool offline = false;
 
   /// Each call, in order: `save:id`, `delete:id`, `done:id:on`,
-  /// `pin:id:on`, `put:note:post`, `upload:id`, `calendar:month-day`.
+  /// `pin:id:on`, `put:note:post`, `upload:id`, `photo:id`, `calendar:month-day`.
   final List<String> calls = [];
 
   void _check() {
@@ -40,6 +43,9 @@ class FakeNotebookRepository implements NotebookRepository {
     _check();
     calls.add('save:${note.id}');
     if (deleted.contains(note.id)) return false;
+    if (note.kind != NoteKind.voice) {
+      files[note.id] = [for (final p in note.photos) ?p.path];
+    }
     final before = kept[note.id];
     kept[note.id] = note.copyWith(waiting: false, doneAt: () => before?.doneAt);
     return true;
@@ -83,6 +89,16 @@ class FakeNotebookRepository implements NotebookRepository {
     _check();
     calls.add('upload:$noteId');
     return 'user-1/$noteId/voice.m4a';
+  }
+
+  /// Each photo's server path, in the order they went.
+  int _photos = 0;
+
+  @override
+  Future<String> uploadPhoto(String noteId, NotePhoto photo) async {
+    _check();
+    calls.add('photo:$noteId');
+    return 'user-1/$noteId/photo-${_photos++}.jpg';
   }
 
   @override

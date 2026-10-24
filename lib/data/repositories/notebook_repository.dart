@@ -20,8 +20,8 @@ abstract class NotebookRepository {
   /// same note). False when the note was deleted: the app drops its edit.
   Future<bool> save(Note note);
 
-  /// delete_note, then its recording from Storage (the cleanup takes any
-  /// file left behind).
+  /// delete_note, then its recording or photos from Storage (the cleanup
+  /// takes any file left behind).
   Future<void> delete(Note note);
 
   /// set_note_done: a to-do only.
@@ -36,7 +36,11 @@ abstract class NotebookRepository {
   /// A recording into `notebook-files`, at `<me>/<note>/<file>`.
   Future<String> uploadRecording(String noteId, NoteRecording recording);
 
-  /// A short link to play a recording.
+  /// A photo into `notebook-files`, at `<me>/<note>/<file>` (F106); made
+  /// safe to leave the phone when it was picked (cleanPhoto).
+  Future<String> uploadPhoto(String noteId, NotePhoto photo);
+
+  /// A short link to play a recording or show a photo.
   Future<String> recordingUrl(String path);
 
   /// my_calendar: from [from] to [to] (the phone's days, both in; up to
@@ -108,10 +112,17 @@ class SupabaseNotebookRepository implements NotebookRepository {
             : null,
         'p_remind_at': note.remindAt == null ? null : _instant(note.remindAt!),
         'p_pinned': note.pinned,
-        // Null keeps the files; a voice note sends its one recording.
-        'p_files': note.kind == NoteKind.voice && note.recording?.path != null
-            ? [note.recording!.toServer()]
-            : null,
+        // A voice note sends its one recording (null keeps it until it is
+        // uploaded); any other note its photos, all of them each time
+        // (F106: set_note_files replaces them).
+        'p_files': note.kind == NoteKind.voice
+            ? (note.recording?.path == null
+                  ? null
+                  : [note.recording!.toServer()])
+            : [
+                for (final p in note.photos)
+                  if (p.path != null) p.toServer(),
+              ],
       },
     );
     return id != null;
@@ -120,10 +131,10 @@ class SupabaseNotebookRepository implements NotebookRepository {
   @override
   Future<void> delete(Note note) => _guard(() async {
     await _client.rpc<void>('delete_note', params: {'p_id': note.id});
-    final path = note.recording?.path;
-    if (path == null) return;
+    final paths = [?note.recording?.path, for (final p in note.photos) ?p.path];
+    if (paths.isEmpty) return;
     try {
-      await _client.storage.from(notebookBucket).remove([path]);
+      await _client.storage.from(notebookBucket).remove(paths);
     } on StorageException {
       // The cleanup takes it.
     }
@@ -158,6 +169,21 @@ class SupabaseNotebookRepository implements NotebookRepository {
               path,
               File(recording.local!),
               fileOptions: FileOptions(contentType: recording.mime),
+            );
+        return path;
+      });
+
+  @override
+  Future<String> uploadPhoto(String noteId, NotePhoto photo) =>
+      _guard(() async {
+        final me = _client.auth.currentUser!.id;
+        final path = '$me/$noteId/${newUuid()}.jpg';
+        await _client.storage
+            .from(notebookBucket)
+            .upload(
+              path,
+              File(photo.local!),
+              fileOptions: FileOptions(contentType: photo.mime),
             );
         return path;
       });
