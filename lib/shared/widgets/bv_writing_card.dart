@@ -20,6 +20,8 @@ InputDecoration bvBareField({required String hint, required TextStyle style}) =>
       border: InputBorder.none,
       enabledBorder: InputBorder.none,
       focusedBorder: InputBorder.none,
+      // A Draft's fields are off (read only): no box there either (F106).
+      disabledBorder: InputBorder.none,
       hintText: hint,
       hintStyle: style.copyWith(color: BvColors.textSecondary),
     );
@@ -123,6 +125,9 @@ class BvWritingCard extends StatelessWidget {
     this.draftLabel,
     this.kindLabel,
     this.onKindTap,
+    this.headerEnd,
+    this.padding = BvWritingCardSpec.padding,
+    this.gap = BvWritingCardSpec.gap,
     this.properties = const [],
     this.author,
     this.photos = const [],
@@ -159,6 +164,15 @@ class BvWritingCard extends StatelessWidget {
   /// nothing to choose ([onKindTap] null) the chip has no drop-down caret.
   final String? kindLabel;
   final VoidCallback? onKindTap;
+
+  /// On the kind chip's line, at the end: a note's "Now" or its Draft pill
+  /// (My notebook, F106).
+  final Widget? headerEnd;
+
+  /// Inside the dashed outline, and between the card's parts: the Daybook
+  /// card's by default; the notebook's slip is tighter (F106).
+  final EdgeInsetsDirectional padding;
+  final double gap;
 
   /// The quiet line under the title (owner, due, place). Hidden when empty.
   final List<BvWritingProperty> properties;
@@ -225,24 +239,28 @@ class BvWritingCard extends StatelessWidget {
           borderRadius: BvWritingCardSpec.radius,
         ),
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(
-            BvWritingCardSpec.paddingSide,
-            BvWritingCardSpec.paddingTop,
-            BvWritingCardSpec.paddingSide,
-            BvWritingCardSpec.paddingBottom,
-          ),
+          padding: padding,
           // The cover's remove button reaches its 48 touch area into the
           // side padding.
           child: BvTapTarget(
-            outset: const EdgeInsetsDirectional.symmetric(
-              horizontal: BvWritingCardSpec.paddingSide,
+            outset: EdgeInsetsDirectional.only(
+              start: padding.start,
+              end: padding.end,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: BvWritingCardSpec.gap,
+              spacing: gap,
               children: [
                 if (draftLabel != null) _DraftMarker(label: draftLabel!),
-                if (kindLabel != null)
+                if (kindLabel != null && headerEnd != null)
+                  Row(
+                    children: [
+                      _KindChip(label: kindLabel!, onTap: onKindTap),
+                      const Spacer(),
+                      headerEnd!,
+                    ],
+                  )
+                else if (kindLabel != null)
                   _KindChip(label: kindLabel!, onTap: onKindTap),
                 if (author != null) _Author(author: author!),
                 if (titleController != null)

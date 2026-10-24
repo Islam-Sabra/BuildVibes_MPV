@@ -17,6 +17,12 @@ abstract final class BvWritingCardSpec {
   static const paddingTop = 18.0;
   static const paddingBottom = BvSpace.s16;
   static const paddingSide = BvSpace.s16;
+  static const padding = EdgeInsetsDirectional.fromSTEB(
+    paddingSide,
+    paddingTop,
+    paddingSide,
+    paddingBottom,
+  );
   static const gap = 10.0;
 
   /// The dashed border.
