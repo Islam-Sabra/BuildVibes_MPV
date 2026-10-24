@@ -1186,3 +1186,23 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - SQL: each action broadcasts on its Space's topic with only ids; a non-member can't receive; the app can't send on `daybook:`. Tighten `daybook_live_send` to nothing, since only the database sends now;
   - app: a received broadcast reads the page again;
   - phone: the founder's two checks again (Omar's tick, Omar's Got it), each within 5 s without leaving the Space, plus the other way round.
+
+## Builds 576–579 test (24 Oct, 12:50–14:10): F102, F103, F47, F104, F105 pass
+- **F102 ✓:**
+  - locked, 3 messages: one notification counting up, with sound and vibration;
+  - muted for 8 hours: nothing came;
+  - unmuted by long-press.
+- **F103 ✓:** Omar's Space chat message showed live in the open chat.
+- **F47 ✓:** ticks are live. Got it on the author's pinned announcement only showed inside it, so F104 was added.
+
+## F104. The author sees who tapped Got it on the card (lead's call)
+- The author's announcement card, and its folded slim line, shows the faces of those who tapped Got it (up to 3, then "+N"), refreshed live.
+- ✓ on build 578: Omar's face went and came back within seconds when he took back and gave Got it again.
+
+## F105. Back from a chat goes to its list, then to where you came from (lead's call)
+- **Cause:** every way into a chat stacked it on whatever screen was showing, so from Home's Spaces row Back went to Home. Home's row kept pointing at the chat because only opening the Space clears its news.
+- **Rule:**
+  - a Space chat opens with its Space on the Chat tab underneath;
+  - a direct message opens with Messages underneath;
+  - if the Space is already open, the chat opens on top of it, and Back returns to the tab you were on.
+- ✓ on build 579 (founder: "fixed now").
