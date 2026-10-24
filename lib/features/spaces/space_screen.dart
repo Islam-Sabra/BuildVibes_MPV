@@ -38,13 +38,22 @@ enum SpaceOpen { people, invite, write }
 /// A Space: the Space header (MN1) and the tabs Work · Chat · People ·
 /// Library at the bottom.
 class SpaceScreen extends ConsumerStatefulWidget {
-  const SpaceScreen({super.key, required this.spaceId, this.open, this.target});
+  const SpaceScreen({
+    super.key,
+    required this.spaceId,
+    this.open,
+    this.target,
+    this.onChat = false,
+  });
 
   final String spaceId;
   final SpaceOpen? open;
 
   /// Opened at a work item's card (F20): the Work tab, at that card.
   final DaybookTarget? target;
+
+  /// Opened on the Chat tab, under one of its threads (F105).
+  final bool onChat;
 
   static const workTab = 0;
   static const chatTab = 1;
@@ -58,6 +67,8 @@ class SpaceScreen extends ConsumerStatefulWidget {
 class _SpaceScreenState extends ConsumerState<SpaceScreen> {
   late var _tab = widget.target != null
       ? SpaceScreen.workTab
+      : widget.onChat
+      ? SpaceScreen.chatTab
       : switch (widget.open) {
           SpaceOpen.people || SpaceOpen.invite => SpaceScreen.peopleTab,
           SpaceOpen.write || null => SpaceScreen.workTab,
@@ -90,7 +101,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.push(AppRoutes.spaceInvite(widget.spaceId));
       });
-    } else {
+    } else if (!widget.onChat) {
+      // Not over a thread opened on top of the Space.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_askWalk());
       });

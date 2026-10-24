@@ -16,6 +16,12 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 
 **Who has which branch:** the PC has `claude/f102` (worktree `BuildVibes-f102`, build 576 on test) and `slice2-app` (f100-broadcast merged, 384ac86). Merge `claude/f102` into `slice2-app` after F102, F47 and F103 pass.
 
+## Update: 24 Oct 2026 — F105, Back from a chat (branch `claude/f105`, from `slice2-app` ae599f4)
+
+- **App only, no SQL, nothing installed, not merged.** Back from a Space thread goes to that Space's Chat tab, then where the person came from; Back from a direct message goes to Messages, then where they came from. Every way in: Home's Spaces row, the Chat tab, Library Share in chat, Space search, a quote's link, the message banner, a notification, Messages, a profile's Message, New message, a Space's People.
+- **Checks:** analyze clean; 1,781 app tests; `test_screens/` 377, none changed.
+- **Next:** the PC merges `claude/f105` into the work branch; the founder checks it on the next build.
+
 ## PC update: 24 Oct 2026 — F104, Got it faces on the author's folded pinned line (branch `claude/f102`)
 
 - **App only, no SQL, nothing installed.** The author of a pinned announcement (or an admin acting for an author who left) sees, on the folded slim line, the faces of who tapped Got it: up to 3, then "+2", before the ›. The ordinary card and the full note show "+N" the same way. It refreshes with the live broadcast. Others see no one else's faces.

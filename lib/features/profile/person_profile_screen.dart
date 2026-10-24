@@ -21,6 +21,7 @@ import '../feed/feed_state.dart';
 import '../safety/report_flow.dart';
 import 'widgets/profile_body.dart';
 import 'widgets/profile_parts.dart';
+import '../../core/routing/open_thread.dart';
 
 /// R5 · Someone else's profile, as a visitor sees it (R5 v3 2345:38825):
 /// Follow, Message (their conversation, or a new one), and only what they
@@ -184,7 +185,8 @@ class _PersonProfileScreenState extends ConsumerState<PersonProfileScreen> {
                             style: BvButtonStyle.secondary,
                             size: BvButtonSize.medium,
                             expand: true,
-                            onPressed: () => context.push(
+                            onPressed: () => openDmThread(
+                              GoRouter.of(context),
                               AppRoutes.messagesWith(p.id),
                               extra: DmPerson(
                                 id: p.id,

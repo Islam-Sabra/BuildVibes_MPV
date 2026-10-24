@@ -29,6 +29,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import 'thread_screen.dart' show ChatActionRow;
+import '../../core/routing/open_thread.dart';
 
 /// A thread's name: "Everyone" or the Team's.
 String threadName(AppLocalizations l10n, ChatThread t) =>
@@ -202,7 +203,8 @@ Future<void> newChat(
     ),
   );
   if (!context.mounted || picked == null) return;
-  await context.push(
+  await openDmThread(
+    GoRouter.of(context),
     AppRoutes.messagesWith(picked.id),
     extra: DmPerson(id: picked.id, name: picked.name),
   );
@@ -272,7 +274,7 @@ class _ThreadRow extends ConsumerWidget {
     return InkWell(
       key: Key('chat-thread-${thread.id}'),
       onTap: () async {
-        await context.push(AppRoutes.spaceThread(space.id, thread.id));
+        await openSpaceThread(GoRouter.of(context), space.id, thread.id);
         ref.invalidate(spaceThreadsProvider(space.id));
       },
       child: Padding(

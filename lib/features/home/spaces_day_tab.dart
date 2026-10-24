@@ -29,6 +29,7 @@ import '../spaces/code_sheet.dart';
 import '../spaces/my_spaces_view.dart';
 import '../spaces/space_mute.dart';
 import '../work/daybook_words.dart';
+import '../../core/routing/open_thread.dart';
 
 /// Home → Spaces (H1b, review 50 F3, F10 and F28): one line with the date
 /// and what needs you; New Space and Join with a code, sharing the width;
@@ -241,7 +242,7 @@ class _YourSpaces extends ConsumerWidget {
       if (r?.change == SpaceChange.library && file != null) {
         context.push(AppRoutes.libraryFile(spaceId, file));
       } else if (r?.change == SpaceChange.chat && thread != null) {
-        context.push(AppRoutes.spaceThread(spaceId, thread));
+        openSpaceThread(GoRouter.of(context), spaceId, thread);
       } else {
         context.push(AppRoutes.space(spaceId));
       }

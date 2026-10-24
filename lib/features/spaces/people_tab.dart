@@ -26,6 +26,7 @@ import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'pass_words.dart';
 import 'space_errors.dart';
+import '../../core/routing/open_thread.dart';
 
 /// P1 · Space People (2542:34824): the requests to join (admins only),
 /// then Leads, Crew and Viewers, each with their pass tag, the Teams as
@@ -192,7 +193,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
       case _PersonAction.profile:
         await router.push(AppRoutes.person(m.person.id));
       case _PersonAction.message:
-        await router.push(AppRoutes.messagesWith(m.person.id));
+        await openDmThread(router, AppRoutes.messagesWith(m.person.id));
       case _PersonAction.pass:
         await router.push(AppRoutes.spaceMember(_spaceId, m.person.id));
         if (mounted) _refresh();

@@ -22,6 +22,7 @@ import '../library/library_parts.dart' show libraryDay;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import 'former_member.dart';
+import '../../core/routing/open_thread.dart';
 
 /// S · Search inside the Space (2543:35148): the field with ✕ and
 /// Cancel; after 2 characters and a short pause, what the reader may see,
@@ -92,7 +93,12 @@ class _SpaceSearchScreenState extends ConsumerState<SpaceSearchScreen> {
         );
         if (replaces != null && mounted) context.pop(replaces);
       case SpaceSearchKind.message:
-        context.push(AppRoutes.spaceThread(space, h.threadId!, message: h.id));
+        openSpaceThread(
+          GoRouter.of(context),
+          space,
+          h.threadId!,
+          message: h.id,
+        );
     }
   }
 

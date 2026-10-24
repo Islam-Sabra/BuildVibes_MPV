@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design/bv_icons.dart';
-import '../../core/routing/app_routes.dart';
 import '../../core/share.dart';
 import '../../data/models/library.dart';
 import '../../data/models/space.dart';
@@ -14,6 +13,7 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_tab.dart' show threadName;
 import '../spaces/space_errors.dart';
+import '../../core/routing/open_thread.dart';
 
 /// What a Library file offers wherever it opens (F1, LV2): Download, and
 /// Share in chat.
@@ -74,7 +74,5 @@ Future<void> shareLibraryFileInChat(
   if (picked == null || !context.mounted) return;
   // F77: the chat opens with the file in the message box, not sent, so
   // words can go with it (as in WhatsApp).
-  await GoRouter.of(
-    context,
-  ).push(AppRoutes.spaceThread(spaceId, picked), extra: f);
+  await openSpaceThread(GoRouter.of(context), spaceId, picked, extra: f);
 }

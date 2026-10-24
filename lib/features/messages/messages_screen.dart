@@ -19,6 +19,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
 import 'dm_mute.dart';
+import '../../core/routing/open_thread.dart';
 
 /// Messages (DM1 2560:35524, AR 2564:745): the newest Message request on
 /// top, then the threads, Today and Earlier. An unread thread is a white
@@ -277,7 +278,10 @@ class DmListRow extends StatelessWidget {
       borderRadius: BvMessagesSpec.rowRadius,
       child: InkWell(
         borderRadius: BvMessagesSpec.rowRadius,
-        onTap: () => context.push(AppRoutes.messagesThread(row.threadId)),
+        onTap: () => openDmThread(
+          GoRouter.of(context),
+          AppRoutes.messagesThread(row.threadId),
+        ),
         onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsetsDirectional.all(BvMessagesSpec.rowPadding),

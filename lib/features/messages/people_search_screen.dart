@@ -15,6 +15,7 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_search_field.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
+import '../../core/routing/open_thread.dart';
 
 /// Why people are searched: to write to one (Messages' +, "New message"),
 /// or to open their profile (Home's "Search people").
@@ -92,7 +93,8 @@ class _PeopleSearchScreenState extends ConsumerState<PeopleSearchScreen> {
   }
 
   void _open(SpacePerson p) => switch (widget.purpose) {
-    PeopleSearchFor.message => context.pushReplacement(
+    PeopleSearchFor.message => openDmThread(
+      GoRouter.of(context),
       AppRoutes.messagesWith(p.id),
     ),
     PeopleSearchFor.profile => context.push(AppRoutes.person(p.id)),

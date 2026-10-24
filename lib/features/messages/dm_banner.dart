@@ -10,6 +10,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_message_banner.dart';
 import '../entry/entry_state.dart';
 import 'dm_live.dart' show openDmThreadProvider;
+import '../../core/routing/open_thread.dart';
 
 /// The direct-message banner on screen now (F81, F99).
 @immutable
@@ -179,7 +180,7 @@ class _DmBannerHostState extends ConsumerState<DmBannerHost>
 
   void _open(DmBanner banner) {
     ref.read(dmBannerProvider.notifier).hide();
-    ref.read(appRouterProvider).push(banner.route);
+    openRoute(ref.read(appRouterProvider), banner.route);
   }
 
   @override

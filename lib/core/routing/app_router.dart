@@ -283,6 +283,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           spaceId: state.pathParameters['id']!,
           open: state.extra as SpaceOpen?,
           target: DaybookTarget.fromQuery(state.uri.queryParameters),
+          onChat:
+              state.uri.queryParameters[AppRoutes.spaceTabParam] ==
+              AppRoutes.spaceChatTab,
         ),
         routes: [
           GoRoute(

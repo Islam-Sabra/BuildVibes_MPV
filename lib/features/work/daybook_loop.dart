@@ -39,6 +39,7 @@ import 'daybook_words.dart';
 import 'daybook_writing.dart' show assignablePeople, pickDueProvider;
 import 'proof_camera.dart';
 import 'work_outbox.dart';
+import '../../core/routing/open_thread.dart';
 
 /// What the long-press menus offer (B1 2530:33626, X1 2530:34246).
 enum DaybookSlipAction {
@@ -1033,7 +1034,5 @@ Future<void> openQuotedMessage(
       .message(messageId)
       .catchError((Object _) => null);
   if (message == null || message.deletedAt != null) return;
-  await router.push(
-    AppRoutes.spaceThread(spaceId, message.threadId, message: messageId),
-  );
+  await openSpaceThread(router, spaceId, message.threadId, message: messageId);
 }

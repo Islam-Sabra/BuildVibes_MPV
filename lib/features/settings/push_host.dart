@@ -17,6 +17,7 @@ import '../activity/activity_state.dart';
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/space_screen.dart' show SpaceOpen;
+import '../../core/routing/open_thread.dart';
 
 /// Whether the phone lets BuildVibes notify (S4 shows when it doesn't).
 final pushPermissionProvider = FutureProvider.autoDispose<PushPermission>(
@@ -280,7 +281,8 @@ class _PushHostState extends ConsumerState<PushHost> {
       AppRoutes.people,
       AppRoutes.messages,
     ].any((p) => route.startsWith('$p/'))) {
-      router.push(
+      openRoute(
+        router,
         route,
         extra: data['open'] == 'people' ? SpaceOpen.people : null,
       );

@@ -81,6 +81,14 @@ abstract final class AppRoutes {
   static const spacesNew = '/spaces/new';
   static String space(String id) => '/spaces/$id';
 
+  /// The Space on its Chat tab: what lies under a Space thread (F105).
+  static String spaceChat(String id) => Uri(
+    path: space(id),
+    queryParameters: {spaceTabParam: spaceChatTab},
+  ).toString();
+  static const spaceTabParam = 'tab';
+  static const spaceChatTab = 'chat';
+
   /// The Space's daybook at one work item's card, and at one line of its
   /// history (F20): what an Activity row, a push and a Needs you card open.
   static String spaceCard(String id, String postId, {String? eventId}) => Uri(
