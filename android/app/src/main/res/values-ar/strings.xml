@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="push_channel_name">بنود العمل والمساحات والرسائل</string>
+    <string name="push_channel_name">بنود العمل والمساحات</string>
+    <string name="push_messages_channel_name">الرسائل</string>
 </resources>

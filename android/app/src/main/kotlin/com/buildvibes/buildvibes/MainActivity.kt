@@ -17,16 +17,31 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Push (FCM) arrives on this channel; its name follows the phone's
-        // language (values / values-ar).
+        // Push (FCM) arrives on these channels, made at every start, before
+        // this phone registers its push token; their names follow the
+        // phone's language (values / values-ar). A push naming a channel
+        // that doesn't exist yet (an older build) goes to the manifest's
+        // default, "buildvibes".
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "buildvibes",
-                getString(R.string.push_channel_name),
-                NotificationManager.IMPORTANCE_HIGH,
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    "buildvibes",
+                    getString(R.string.push_channel_name),
+                    NotificationManager.IMPORTANCE_HIGH,
+                ),
             )
-            getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
+            // Review 89 M2: direct messages and Space chat (the push
+            // function's MESSAGE_CHANNEL), with sound and vibration on
+            // each message. A channel's sound and vibration are fixed once
+            // made, hence a new id rather than changing "buildvibes".
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    "buildvibes_messages",
+                    getString(R.string.push_messages_channel_name),
+                    NotificationManager.IMPORTANCE_HIGH,
+                ).apply { enableVibration(true) },
+            )
         }
     }
 

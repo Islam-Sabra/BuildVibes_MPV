@@ -2,7 +2,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { buildPush, classify, fcmMessage, retryAfterSeconds, type QueueRow } from "./message.ts";
+import {
+  buildPush, channelFor, classify, DEFAULT_CHANNEL, fcmMessage, MESSAGE_CHANNEL, retryAfterSeconds,
+  type QueueRow,
+} from "./message.ts";
 
 const strings = JSON.parse(
   readFileSync(new URL("./strings.json", import.meta.url), "utf8"),
@@ -80,7 +83,7 @@ test("F102: a direct message, text off: who, and how many, on one notification p
   assert.equal(old.body, "1 new message");
 });
 
-test("F102: a direct message, text on: the name, the newest words, then the count", () => {
+test("F102, review 89 M3: a direct message, text on: the name and the count as the title, the newest words as the body", () => {
   const data = { dm_thread_id: "d1", message_id: "m1", count: "1" };
   const one = buildPush(row("dm_message", { data, message_text: "Pump is late" }), "en", "Omar Haddad", strings);
   assert.equal(one.title, "⁨Omar Haddad⁩");
@@ -88,11 +91,13 @@ test("F102: a direct message, text on: the name, the newest words, then the coun
   assert.equal(one.data.shown, "1");
   const three = buildPush(row("dm_message", { data: { ...data, count: "3" }, message_text: "Pump is late" }),
                           "en", "Omar Haddad", strings);
-  assert.equal(three.body, "Pump is late · 3 new messages");
+  assert.equal(three.title, "⁨Omar Haddad⁩ · 3 new messages");
+  assert.equal(three.body, "Pump is late");
   assert.equal(three.tag, "d1");
   const ar = buildPush(row("dm_message", { data: { ...data, count: "2" }, message_text: "المضخة متأخرة" }),
                        "ar", "عمر حداد", strings);
-  assert.equal(ar.body, "المضخة متأخرة · رسالتان جديدتان");
+  assert.equal(ar.title, "⁨عمر حداد⁩ · رسالتان جديدتان");
+  assert.equal(ar.body, "المضخة متأخرة");
 });
 
 test("a message request never shows text", () => {
@@ -150,7 +155,8 @@ test("F102: Space chat names the person, never the thread or the Space; one tag 
     row("chat_message", { thread_id: "t1", data: { ...data, count: "2" }, message_text: "Concrete at 7." }),
     "en", "Omar Haddad", strings,
   );
-  assert.equal(two.body, "Concrete at 7. · 2 new messages");
+  assert.equal(two.title, "⁨Omar Haddad⁩ in a Space chat · 2 new messages");
+  assert.equal(two.body, "Concrete at 7.");
 });
 
 test("F102: FCM gets a notification Android draws, tagged per conversation, with sound", () => {
@@ -164,7 +170,7 @@ test("F102: FCM gets a notification Android draws, tagged per conversation, with
   assert.equal(m.token, "tok");
   assert.deepEqual(m.notification, { title: "Message from ⁨Omar Haddad⁩", body: "2 new messages" });
   assert.equal(m.android.priority, "high");
-  assert.equal(m.android.notification.channel_id, "buildvibes");
+  assert.equal(m.android.notification.channel_id, "buildvibes_messages");
   assert.equal(m.android.notification.tag, "d1");
   assert.equal(m.android.notification.default_sound, true);
   assert.equal(m.android.notification.default_vibrate_timings, true);
@@ -174,6 +180,7 @@ test("F102: FCM gets a notification Android draws, tagged per conversation, with
     android: { notification: Record<string, unknown> };
   };
   assert.equal(item.android.notification.tag, undefined);
+  assert.equal(item.android.notification.channel_id, "buildvibes");
 });
 
 test("no name: Someone", () => {
@@ -201,4 +208,20 @@ test("429 and 5xx are tried again, after Retry-After", () => {
   assert.equal(retryAfterSeconds(null), null);
   assert.equal(retryAfterSeconds("soon"), null);
   assert.equal(retryAfterSeconds("99999"), 3600);
+});
+
+test("review 89 M2: messages go on their own channel, with vibration; the rest stay on buildvibes", () => {
+  assert.equal(MESSAGE_CHANNEL, "buildvibes_messages");
+  assert.equal(DEFAULT_CHANNEL, "buildvibes");
+  for (const kind of ["dm_message", "dm_request", "chat_message", "dm_follow_up"]) {
+    assert.equal(channelFor(kind), MESSAGE_CHANNEL, kind);
+  }
+  for (const kind of ["item_assigned", "announcement_new", "join_request", "follow", undefined]) {
+    assert.equal(channelFor(kind), DEFAULT_CHANNEL, String(kind));
+  }
+  // The app makes that channel, with vibration on (MainActivity).
+  const activity = readFileSync(new URL(
+    "../../../android/app/src/main/kotlin/com/buildvibes/buildvibes/MainActivity.kt", import.meta.url), "utf8");
+  assert.ok(activity.includes(`"${MESSAGE_CHANNEL}"`) && activity.includes("enableVibration(true)"));
+  assert.ok(activity.includes(`"${DEFAULT_CHANNEL}"`));
 });

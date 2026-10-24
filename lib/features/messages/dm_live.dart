@@ -70,8 +70,9 @@ const pushBodyKey = '_body';
 
 /// What the in-app banner says for a direct message push (app open; the
 /// phone shows no notification then). F102's pushes are written for the
-/// lock screen: text on, the name over "Pump is late · 3 new messages";
-/// text off, "Message from Omar Haddad" over "3 new messages". The banner
+/// lock screen: text on, "Omar Haddad · 3 new messages" over the newest
+/// words (review 89 M3); text off, "Message from Omar Haddad" over "3 new
+/// messages". The banner
 /// stays as F99/F101 drew it: "Message from Omar Haddad" over the newest
 /// words, or over "New message" (then counting up itself) when the words
 /// are hidden.
@@ -94,17 +95,17 @@ const pushBodyKey = '_body';
     return (title: title, body: l10n.dmBannerHidden, hidden: true);
   }
   final count = int.tryParse(data['count'] ?? '') ?? 1;
-  // The server adds " · 3 new messages" after the words when count > 1.
-  final cut = count > 1 ? body.lastIndexOf(pushCountSeparator) : -1;
+  // The server adds " · 3 new messages" after the name when count > 1.
+  final cut = count > 1 ? title.lastIndexOf(pushCountSeparator) : -1;
   return (
-    // The push's title is the name alone, already in its own direction.
-    title: l10n.dmBannerTitle(title),
-    body: cut > 0 ? body.substring(0, cut) : body,
+    // The name, already in its own direction.
+    title: l10n.dmBannerTitle(cut > 0 ? title.substring(0, cut) : title),
+    body: body,
     hidden: false,
   );
 }
 
-/// Between the words and the count in a push body (strings.json).
+/// Between the name and the count in a push title (strings.json).
 const pushCountSeparator = ' · ';
 
 /// The waits before a closed, failed or timed-out channel is opened again

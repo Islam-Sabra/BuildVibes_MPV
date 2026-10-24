@@ -135,8 +135,9 @@ void main() {
             'kind': 'dm_message',
             'count': '3',
             'shown': '1',
-            pushTitleKey: name,
-            pushBodyKey: 'Pump is late · 3 new messages',
+            // Review 89 M3: the count is in the title.
+            pushTitleKey: '$name · 3 new messages',
+            pushBodyKey: 'Pump is late',
           },
           l10n,
           showText: true,

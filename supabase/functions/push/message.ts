@@ -99,8 +99,9 @@ export function buildPush(
 // the chat thread) replaces the last one, with sound each time. data.count
 // is the person's unread messages there, counted when it was queued.
 // - Text on (the queue holds the words): the name as the title (in a
-//   Space chat, "Omar Haddad in a Space chat"), the newest words as the
-//   body, then " · 3 new messages" when there is more than one.
+//   Space chat, "Omar Haddad in a Space chat"), then " · 3 new messages"
+//   when there is more than one, in the title, where a long message never
+//   cuts it off (review 89 M3); the newest words as the body.
 // - Text off, or no words (a photo, a voice note): "Message from Omar
 //   Haddad" (in a Space chat, "... in a Space chat") over "3 new messages".
 // Never a thread's or a Space's name.
@@ -116,10 +117,12 @@ function messagePush(
   const words = row.message_text?.trim();
   const tag = (chat ? row.thread_id ?? row.data?.thread_id : row.data?.dm_thread_id) ?? undefined;
   if (words) {
+    const who = fill(chat ? t.chat_shown_title : t.dm_shown_title);
     return {
-      title: fill(chat ? t.chat_shown_title : t.dm_shown_title),
-      body: n > 1 ? `${words}${t.separator}${countWords(t, n)}` : words,
-      // Tells the app's banner (app open) that the body holds the words.
+      title: n > 1 ? `${who}${t.separator}${countWords(t, n)}` : who,
+      body: words,
+      // Tells the app's banner (app open) that the body holds the words
+      // and the title the name (then the count).
       data: { ...data, shown: "1" },
       tag,
     };
@@ -142,6 +145,17 @@ export function countWords(t: Record<string, string>, n: number): string {
 // may never wake a closed app for). The tag makes each push of a
 // conversation replace the last; Android sounds again on each replace
 // (FCM never sets "alert once"), through the high-importance channel.
+// Android channels (MainActivity): messages have their own, with vibration
+// (review 89 M2); everything else stays on "buildvibes".
+export const MESSAGE_CHANNEL = "buildvibes_messages";
+export const DEFAULT_CHANNEL = "buildvibes";
+// A follow-up queued before migration 41 is a message too.
+const messageKinds = new Set(["dm_message", "dm_request", "chat_message", "dm_follow_up"]);
+
+export function channelFor(kind: string | undefined): string {
+  return kind && messageKinds.has(kind) ? MESSAGE_CHANNEL : DEFAULT_CHANNEL;
+}
+
 export function fcmMessage(token: string, push: Push): Record<string, unknown> {
   return {
     token,
@@ -150,7 +164,7 @@ export function fcmMessage(token: string, push: Push): Record<string, unknown> {
     android: {
       priority: "high",
       notification: {
-        channel_id: "buildvibes",
+        channel_id: channelFor(push.data.kind),
         ...(push.tag ? { tag: push.tag } : {}),
         // Phones before Android 8; from 8 on the channel decides.
         default_sound: true,

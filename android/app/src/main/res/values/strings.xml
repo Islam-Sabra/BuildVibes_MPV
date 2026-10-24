@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="push_channel_name">Work items, Spaces and messages</string>
+    <string name="push_channel_name">Work items and Spaces</string>
+    <!-- Review 89 M2: direct messages and Space chat, with vibration. -->
+    <string name="push_messages_channel_name">Messages</string>
 </resources>
