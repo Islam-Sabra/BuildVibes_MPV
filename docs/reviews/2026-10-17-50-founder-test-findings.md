@@ -1148,3 +1148,28 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - one message after the quiet time arrived at once, with sound;
   - the next one, inside the quiet time, gave no sound and left the notification as it was, as designed (F97).
 - **Still to test:** F47, the daybook live update in an open Space.
+
+## F102. Message notifications as WhatsApp, with mute for a time (founder, 24 Oct: "make it the same way, and add an option to mute a Space, like other apps")
+**Today:** a conversation's first message rings; the next ones within 5 minutes change nothing on the lock screen; one follow-up comes at 5 minutes if unread (F97). The lock screen lags behind for up to 5 minutes.
+
+**New, for direct messages and Space chat alike:**
+- **Every message pushes.** It updates the **same** notification for that conversation (same tag), so the phone shows one per conversation, never a pile:
+  - with "Show message text on lock screen" on: the newest words, with "Omar Haddad" as the title, and the count when there is more than one ("3 new messages" under the latest words, Android's messaging style);
+  - with it off: "Message from Omar Haddad · 3 new messages" / «رسالة من عمر حداد · 3 رسائل جديدة»;
+  - Space chat: the thread's name never shows (the notifications rule, never a Space or project name). It reads "Message from Omar Haddad in a Space chat · 3 new messages".
+- **Sound and vibration on each message,** as WhatsApp. Android itself limits how often one app may sound.
+- **The count** is that person's unread messages in that conversation, counted when the push is sent. Opening the conversation clears the notification (the app cancels it by tag).
+- **The 5-minute quiet time and F97's follow-up end** for messages: `handle_dm_push` and the Space chat push queue every message; `dm_follow_up` stays a valid kind but is no longer queued.
+- **With the app open:** the F99/F101 banner as now; no phone notification.
+
+**Mute, as WhatsApp ("Mute notifications"):**
+- **A Space:** Space info → Notifications keeps its single choice (All / Needs you only / Off). Choosing Off or Needs you only asks **for how long**: 8 hours / 1 week / Always (one single choice). After the time, it goes back to All by itself.
+- **A direct message:** Mute asks the same: 8 hours / 1 week / Always.
+- **Quick way in:** long-press a Space in the Spaces list, or a conversation in Messages, to get Mute / Unmute.
+- **A muted row** shows Phosphor's bell-slash beside its name. A muted conversation still shows its unread dot.
+- **Server:** `space_members.notify_until` and `dm_members.muted_until` (null = always). `space_push_level` and the DM mute check treat a passed time as unmuted. RLS: only the person themselves sets their own.
+
+**Tests:**
+- **SQL:** 3 messages in 10 seconds queue 3 pushes, each with its count (1, 2, 3); a muted Space or conversation queues none until its time passes, then queues again; nobody can set another person's mute.
+- **App:** the mute sheet's three choices in EN and AR; the bell-slash on the row; long-press Mute; opening a conversation clears its notification.
+- **Phone (founder):** locked, Omar sends 3 messages 2 seconds apart; one notification updating 1, 2, 3, with sound each time. Then mute for 8 hours, and nothing comes.
