@@ -89,6 +89,12 @@ language sql as $$
   insert into realtime.messages (topic, extension, event, payload, private)
   values (p_topic, p_extension, 'changed', jsonb_build_object('post_id', gen_random_uuid()), true);
 $$;
+-- What Realtime itself writes (realtime.send, run by the database since
+-- migration 42): as the database owner, past row-level security.
+create function pg_temp.db_cast(p_topic text) returns void language sql as $$
+  insert into realtime.messages (topic, extension, event, payload, private)
+  values (p_topic, 'broadcast', 'changed', jsonb_build_object('post_id', gen_random_uuid()), true);
+$$;
 create function pg_temp.seen(p_topic text) returns bigint language sql as $$
   select count(*) from realtime.messages where topic = p_topic;
 $$;
@@ -111,17 +117,20 @@ select set_config('test.space_eve', public.create_space('Eve''s site')::text, tr
 reset role;
 
 -- N1: the daybook's private channel -----------------------------------------------------------
+-- Since migration 42 (F47 reopened) only the database sends on it.
 
+select pg_temp.db_cast(pg_temp.topic(pg_temp.sp()));
+select pg_temp.db_cast(pg_temp.topic(pg_temp.sp()));
 select pg_temp.as_user('e2');
 select pg_temp.on_topic(pg_temp.topic(pg_temp.sp()));
 set local role authenticated;
-select lives_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()))$$,
-  'a member may send on her Space''s daybook topic');
-select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 1::bigint, 'and receives on it');
+select throws_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()))$$, '42501', null,
+  '(F47) a member no longer sends on her Space''s daybook topic: only the database does');
+select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 2::bigint, 'but receives on it');
 select pg_temp.as_user('e4');
-select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 1::bigint, 'a Viewer receives too');
-select lives_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()))$$,
-  'and may send (a Viewer acknowledges, and says so)');
+select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 2::bigint, 'a Viewer receives too');
+select throws_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()))$$, '42501', null,
+  '(F47) nor does a Viewer send');
 select throws_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()), 'presence')$$, '42501', null,
   'only broadcast: presence on the topic is refused');
 
@@ -131,12 +140,13 @@ select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 0::bigint,
 select throws_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()))$$, '42501', null,
   'and her send is refused');
 reset role;
+select pg_temp.db_cast(pg_temp.topic(pg_temp.sp_eve()));
 select pg_temp.on_topic(pg_temp.topic(pg_temp.sp_eve()));
 select pg_temp.as_user('e5');
 set local role authenticated;
-select lives_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp_eve()))$$,
-  'on her own Space''s topic she may send');
-select is(pg_temp.seen(pg_temp.topic(pg_temp.sp_eve())), 1::bigint, 'and receive');
+select throws_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp_eve()))$$, '42501', null,
+  '(F47) even on her own Space''s topic she sends nothing');
+select is(pg_temp.seen(pg_temp.topic(pg_temp.sp_eve())), 1::bigint, 'but receives');
 select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 0::bigint,
   'but her own channel never shows another Space''s rows');
 select throws_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()))$$, '42501', null,
@@ -193,8 +203,8 @@ select public.block(pg_temp.uid('e2'), true);
 select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 2::bigint,
   'a block between members changes nothing (Space reading ignores it too)');
 select pg_temp.as_user('e2');
-select lives_ok($$select pg_temp.send(pg_temp.topic(pg_temp.sp()))$$,
-  'and the blocked member still signals the Space');
+select is(pg_temp.seen(pg_temp.topic(pg_temp.sp())), 2::bigint,
+  'and the blocked member still receives');
 select pg_temp.as_user('e3');
 select public.block(pg_temp.uid('e2'), false);
 reset role;
