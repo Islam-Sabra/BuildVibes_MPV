@@ -230,7 +230,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
     if (space == null) return null;
     final member = await _client
         .from('space_members')
-        .select('pass, is_admin, notify, notify_until')
+        .select('pass, is_admin')
         .eq('space_id', spaceId)
         .eq('profile_id', me)
         .isFilter('left_at', null)
@@ -240,6 +240,13 @@ class SupabaseSpaceRepository implements SpaceRepository {
       'member_rights',
       params: {'p_space': spaceId, 'p_profile': me},
     );
+    // Review 89 M1: my level is mine alone; the table doesn't show it.
+    final notify = _rows(
+      await _client.rpc<List<dynamic>>(
+        'my_space_notify',
+        params: {'p_space': spaceId},
+      ),
+    ).firstOrNull;
     final project = space['project'] as Map<String, dynamic>?;
     final place = project?['place'] as Map<String, dynamic>?;
     return SpaceDetail(
@@ -256,11 +263,8 @@ class SupabaseSpaceRepository implements SpaceRepository {
       iAmAdmin: member['is_admin'] as bool? ?? false,
       myRights: MemberRights.fromJson(rights),
       whoCanInvite: SpaceInviters.fromJson(space['who_can_invite']),
-      myNotify: SpaceNotify.inForce(
-        member['notify'],
-        member['notify_until'],
-        DateTime.now(),
-      ),
+      // In force now: a passed time is already All (migration 41).
+      myNotify: SpaceNotify.fromJson(notify?['notify']),
       siteStartDate: switch (space['site_start_date']) {
         final String day => DateTime.parse(day),
         _ => null,

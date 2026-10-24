@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(40);
+select plan(46);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000041' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -206,8 +206,8 @@ select is((select notify || coalesce(notify_until::text, '-') from public.space_
 select pg_temp.as_user('e2');
 set local role authenticated;
 select public.set_space_notifications(current_setting('test.space')::uuid, 'all');
-select is((select notify || coalesce(notify_until::text, '-') from public.space_members
-           where space_id = current_setting('test.space')::uuid and profile_id = auth.uid()),
+select is((select notify || coalesce(notify_until::text, '-')
+           from public.my_space_notify(current_setting('test.space')::uuid)),
   'all-', 'back to all clears the time');
 select throws_ok($$select public.set_space_notifications(current_setting('test.space')::uuid, 'off',
                                                          now() - interval '1 minute')$$,
@@ -227,6 +227,26 @@ select pg_temp.as_user('e4');
 set local role authenticated;
 select throws_ok($$select public.set_space_notifications(current_setting('test.space')::uuid, 'off')$$,
   '42501', null, 'nor does someone outside the Space');
+select is((select count(*) from public.my_space_notify(current_setting('test.space')::uuid)), 0::bigint,
+  '(M1) and has no level there to read');
+
+-- Review 89 M1: a level is the person's own ---------------------------------------------------
+
+select pg_temp.as_user('e3');
+select throws_ok($$select notify from public.space_members
+                   where space_id = current_setting('test.space')::uuid and profile_id = pg_temp.uid('e2')$$,
+  '42501', null, '(M1) a member can''t read another member''s level');
+select throws_ok($$select notify_until from public.space_members
+                   where space_id = current_setting('test.space')::uuid$$,
+  '42501', null, '(M1) nor anyone''s until');
+select is((select count(*) from public.space_members
+           where space_id = current_setting('test.space')::uuid and pass is not null), 3::bigint,
+  '(M1) every other column still reads');
+select is((select notify || coalesce(notify_until::text, '-')
+           from public.my_space_notify(current_setting('test.space')::uuid)),
+  'off-', '(M1) my own level comes through my_space_notify');
+select is((select notify from public.my_spaces() where space_id = current_setting('test.space')::uuid),
+  'off', '(M1) and through my_spaces');
 select pg_temp.as_user('e3');
 select throws_ok($$update public.space_members set notify = 'off', notify_until = null
                    where space_id = current_setting('test.space')::uuid$$,

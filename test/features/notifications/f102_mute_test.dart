@@ -103,24 +103,6 @@ void main() {
       expect(MuteFor.always.until(_now), isNull);
     });
 
-    test('a Space level other than All holds until its time, then is All', () {
-      final later = _now
-          .add(const Duration(hours: 1))
-          .toUtc()
-          .toIso8601String();
-      final earlier = _now
-          .subtract(const Duration(minutes: 1))
-          .toUtc()
-          .toIso8601String();
-      expect(SpaceNotify.inForce('off', later, _now), SpaceNotify.off);
-      expect(SpaceNotify.inForce('off', earlier, _now), SpaceNotify.all);
-      expect(
-        SpaceNotify.inForce('needs_you', null, _now),
-        SpaceNotify.needsYou,
-      );
-      expect(SpaceNotify.inForce('all', later, _now), SpaceNotify.all);
-    });
-
     test('my_spaces gives the level in force: anything but All is muted', () {
       SpaceSummary row(String notify) => SpaceSummary.fromJson({
         'space_id': 's',

@@ -21,6 +21,13 @@
 --   the app, so nobody can set another person's level or mute.
 -- - my_spaces, dm_list_row and dm_thread_page return the level or mute in
 --   force now, for the bell-slash on the rows.
+-- - Review 89 M1: a Space's level is the person's own. Members could read
+--   every member's space_members row, so notify (and now notify_until)
+--   showed who muted the Space and until when. Those two columns are no
+--   longer readable by the app; each person reads their own through
+--   my_spaces() or my_space_notify(p_space). An older build that reads
+--   notify from the table fails on Space info once this is live (the new
+--   build goes on both phones right after; the pilot hasn't started).
 --
 -- Changed functions are re-created from their latest definitions (dumped
 -- from the local database with pg_get_functiondef), changing only what
@@ -478,16 +485,45 @@ as $$
   where t.id = p_thread;
 $$;
 
+-- Review 89 M1: my own level for one Space, in force now, and until when
+-- (null = always, or All). Empty for a Space I'm not in.
+create function public.my_space_notify(p_space uuid)
+returns table (notify text, notify_until timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select public.space_notify_now(m.notify, m.notify_until),
+         case when public.space_notify_now(m.notify, m.notify_until) <> 'all'
+              then m.notify_until end
+  from public.space_members m
+  where m.space_id = p_space and m.profile_id = auth.uid() and m.left_at is null;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- Grants
 -- ---------------------------------------------------------------------------
+
+-- Review 89 M1: every column of space_members stays readable (under
+-- space_members_read) except notify and notify_until. A column privilege
+-- can't be taken away from a table-wide grant, so the table grant becomes
+-- a column list. A new column of space_members must be added here to be
+-- readable. No policy, view or security-invoker function reads either
+-- column; the definer functions (space_push_level, the push triggers,
+-- my_spaces, my_space_notify) read them as their owner.
+revoke select on public.space_members from authenticated;
+grant select (space_id, profile_id, pass, is_admin, custom, confirmed_by, confirmed_at,
+              left_at, removed_by, created_at, updated_at)
+  on public.space_members to authenticated;
 
 revoke execute on function
   public.space_notify_now(text, timestamptz),
   public.dm_muted_now(boolean, timestamptz),
   public.set_space_notifications(uuid, text, timestamptz),
   public.mute_dm(uuid, boolean, timestamptz),
-  public.my_spaces()
+  public.my_spaces(),
+  public.my_space_notify(uuid)
   from public, anon;
 -- Internal helpers.
 revoke execute on function
@@ -497,5 +533,6 @@ revoke execute on function
 grant execute on function
   public.set_space_notifications(uuid, text, timestamptz),
   public.mute_dm(uuid, boolean, timestamptz),
-  public.my_spaces()
+  public.my_spaces(),
+  public.my_space_notify(uuid)
   to authenticated;

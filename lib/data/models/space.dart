@@ -287,15 +287,6 @@ enum SpaceNotify {
 
   static SpaceNotify fromJson(Object? value) =>
       values.where((v) => v.json == value).firstOrNull ?? all;
-
-  /// The level in force at [now] (F102): a level other than All holds
-  /// until [until] (null = always), then it is All again by itself, as
-  /// space_push_level reads it on the server.
-  static SpaceNotify inForce(Object? value, Object? until, DateTime now) {
-    final level = fromJson(value);
-    final end = until is String ? DateTime.tryParse(until) : null;
-    return level != all && end != null && !end.isAfter(now) ? all : level;
-  }
 }
 
 /// A person as Space lists show them: name, and role · company.
