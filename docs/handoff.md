@@ -2,6 +2,16 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 24 Oct 2026 — F102, message pushes as WhatsApp and mute for a time (branch `f102`, pushed as `claude/f102`)
+
+**Not live, nothing deployed, nothing installed.**
+- **Migration 41**, `20261102120000_message_pushes.sql`: every DM and Space chat message queues a push, with that person's unread count in the conversation (counted when queued); the 5-minute quiet time and F97's follow-up end (`dm_follow_up` stays valid; old queued ones still close or send). `space_members.notify_until` and `dm_members.muted_until` (null = always; a passed time is unmuted by itself). `set_space_notifications` and `mute_dm` take an optional until and touch only your own row. Test 41, 40 checks.
+- **Push function:** still notification messages drawn by Android (the lead's decision); one per conversation by tag, replaced with sound each time. Text off: "Message from Omar Haddad" · "3 new messages"; text on: "Omar Haddad" · "Pump is late · 3 new messages"; Space chat: "… in a Space chat", never its name.
+- **App:** "For how long?" (8 hours / 1 week / Always) for Space info Off or Needs you only and DM Mute; long-press Mute / Unmute on Home → Spaces, My Spaces and Messages; bell-slash on muted rows, unread dot kept; opening a DM or Space chat thread cancels its notification (`cancelNotification` on `buildvibes/settings`, tag + id 0). Shots in `docs/screens/f102/`.
+- **Checks:** analyze clean; 1,759 app tests; 2,527 SQL checks (local); Node 14; `test_screens/` 373.
+- **Live order (each with the founder's yes, from the PC):** migration 41 (needs 40, which is live), then the push function deploy, then a build from this branch.
+- **Who has which branch:** `f102` (worktree `BuildVibes-f102`), from `claude/f100-broadcast` 384ac86; not merged anywhere.
+
 ## PC update: 24 Oct 2026 — F100's broadcast fallback (branch `f100-broadcast`, pushed as `claude/f100-broadcast`)
 
 **Why:** on build 560 the private `dm:` channel joins, but no Postgres-changes callback ever arrives for a new direct message; locally it worked. So the database broadcasts instead.

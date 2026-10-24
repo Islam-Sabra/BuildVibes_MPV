@@ -778,3 +778,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - App: `changes()` uses `onBroadcast('dm')`; the live banner reads the message by id for its words. Join, rejoin and BV-LIVE lines unchanged.
   - Checks: analyze clean; 1,731 app tests; 2,491 SQL checks (39 files, local); Node 11; local end-to-end: a thread member receives the broadcast, a Space member outside the thread and an outsider are refused (7/7).
   - Live order: migration 40 first, then a build from this branch, each with the founder's yes.
+
+- **24 Oct** (PC, `claude/f102` from `claude/f100-broadcast` 384ac86): F102, message notifications as WhatsApp, with mute for a time. **Not live.**
+  - Migration 41 (`20261102120000_message_pushes.sql`): every DM and Space chat message queues a push with the unread count (counted when queued); the quiet time and F97's follow-up end; `notify_until` and `muted_until`; `set_space_notifications` and `mute_dm` take an optional until, own row only. Test 41 (40 checks); tests 14, 22 and 39 adjusted.
+  - Push function: one Android-drawn notification per conversation by tag, with the count; Space chat never names the thread or Space. Node 14.
+  - App: the mute sheet (8 hours / 1 week / Always) for Space info and DM Mute; long-press Mute / Unmute on Spaces and Messages; bell-slash on muted rows (unread dot kept); opening a thread clears its notification. 8 shots in `docs/screens/f102/`.
+  - Checks: analyze clean; 1,759 app tests; 2,527 SQL checks (40 files, local); Node 14; `test_screens/` 373.
+  - Live order (each with the founder's yes, from the PC): migration 41 (needs 40, which is live), then the push function deploy, then a build.
