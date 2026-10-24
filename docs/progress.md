@@ -715,3 +715,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   4. **migration 43** (F103): `messages_broadcast` and `messages_deleted_broadcast`, nobody can run `handle_chat_broadcast`, no app send policy.
   
   Live is at `20261104120000`. Build 576 (da56a31) is on the founder's phone and the emulator; both have the new Messages channel. Next: the founder's tests F102, F47, F103 (review 89 §6).
+- **24 Oct 2026, end of day** (PC): every F-item from today passed on the founder's phone and the emulator:
+  - F100: live direct messages through the database broadcast, migration 40;
+  - F101: the banner counts hidden messages;
+  - F102: one notification per conversation, counting, with sound and vibration, and mute for 8 hours / 1 week / Always;
+  - F103: Space chat live, migration 43;
+  - F47 reopened: the daybook live, migration 42;
+  - F104: Got it faces on the author's folded line;
+  - F105: Back from a Space chat goes to its Chat tab, and from a DM to Messages.
+  
+  `claude/f100-broadcast`, `claude/f102` and `claude/f105` are merged into `slice2-app` (fb7927a). **Live is at `20261104120000`** (migration 43); the push function is v10. **Build 579** (fb7927a) is on both phones.
