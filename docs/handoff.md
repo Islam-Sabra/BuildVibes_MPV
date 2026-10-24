@@ -2,6 +2,20 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: review 89 live
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **24 Oct 2026, 12:03 Kuwait** (PC, founder's yes, review 89's order): live from `claude/f102` da56a31, one file per push, each with a read-only check:
+  1. **migration 41** (F102 + M1): `notify` and `notify_until` no longer readable by the app, `my_space_notify` for signed-in people, the quiet time gone;
+  2. **the push function, v10** (M2 `buildvibes_messages` channel, M3 count in the title);
+  3. **migration 42** (F47): 10 broadcast triggers on 7 tables, `daybook_live_send` dropped;
+  4. **migration 43** (F103): `messages_broadcast` and `messages_deleted_broadcast`, nobody can run `handle_chat_broadcast`, no app send policy.
+  
+  Live is at `20261104120000`. Build 576 (da56a31) is on the founder's phone and the emulator; both have the new Messages channel. Next: the founder's tests F102, F47, F103 (review 89 §6).
+
+**Who has which branch:** the PC has `claude/f102` (worktree `BuildVibes-f102`, build 576 on test) and `slice2-app` (f100-broadcast merged, 384ac86). Merge `claude/f102` into `slice2-app` after F102, F47 and F103 pass.
+
 ## PC update: 24 Oct 2026 — review 89: M1, M2, M3 and F103 (same branch `claude/f102`)
 
 **Not live, nothing deployed, nothing installed.**

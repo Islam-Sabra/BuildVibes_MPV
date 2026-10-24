@@ -796,3 +796,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - F103: migration 43 (`20261104120000_chat_broadcast.sql`) broadcasts each chat message and delete on `thread:<id>` with ids only; the app listens for it (shared helper with the daybook, BV-LIVE lines, rejoin). Test 43 (16 checks); local end-to-end 6/6.
   - Checks: analyze clean; 1,760 app tests; 2,583 SQL checks (42 files, local); Node 15; `test_screens/` 373 (none changed); a debug APK builds.
   - Live order (each with the founder's yes): 41 (with M1), the push function (M2, M3), 42, 43, one build.
+- **24 Oct 2026, 12:03 Kuwait** (PC, founder's yes, review 89's order): live from `claude/f102` da56a31, one file per push, each with a read-only check:
+  1. **migration 41** (F102 + M1): `notify` and `notify_until` no longer readable by the app, `my_space_notify` for signed-in people, the quiet time gone;
+  2. **the push function, v10** (M2 `buildvibes_messages` channel, M3 count in the title);
+  3. **migration 42** (F47): 10 broadcast triggers on 7 tables, `daybook_live_send` dropped;
+  4. **migration 43** (F103): `messages_broadcast` and `messages_deleted_broadcast`, nobody can run `handle_chat_broadcast`, no app send policy.
+  
+  Live is at `20261104120000`. Build 576 (da56a31) is on the founder's phone and the emulator; both have the new Messages channel. Next: the founder's tests F102, F47, F103 (review 89 §6).
