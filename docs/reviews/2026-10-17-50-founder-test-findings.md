@@ -1123,3 +1123,10 @@ Before testing pushes on an emulator, switch its network off and on, especially 
   - the same message arriving by live and push shows one banner;
   - a follow-up push refreshes and shows no banner;
   - the SQL test for any new broadcast policy.
+
+## Build 560 test (24 Oct, 08:35): F97 passed; F100's live path confirmed silent
+- **F97 ✓:** Omar sent "Ttt" (08:35:25) and "ttttt" (08:35:29). The first was pushed at once. The second, inside the quiet time and left unread, came at about 08:41 as one follow-up: "Message from Omar Haddad · 1 new message", with no text.
+- **Background, 2 messages, 1 notification:** as designed.
+- **App open on Home:** message 1's banner came from its push. Message 2 changed nothing: no new banner text, no dot, no list refresh.
+- **The phone's `BV-LIVE` lines:** the `dm:` channel was joined throughout the test (it closed at 08:32:39 and rejoined at 08:32:41), but no live update arrived. So Postgres changes don't reach the private `dm:` channel on the live server, though they did on the local one.
+- **Next:** F100's fallback on `claude/f100-broadcast`: migration 40 broadcasts ids to `dm:<thread>` on insert and delete, as the daybook does, and the app listens for that broadcast.
