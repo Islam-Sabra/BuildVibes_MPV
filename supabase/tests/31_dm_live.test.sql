@@ -33,7 +33,9 @@ create function pg_temp.on_topic(p_topic text) returns void language sql as $$
   select set_config('realtime.topic', p_topic, true);
 $$;
 create function pg_temp.seen(p_topic text) returns bigint language sql as $$
-  select count(*) from realtime.messages where topic = p_topic;
+  -- Only the row this test wrote: migration 40's own broadcasts are
+  -- tested in 40_dm_broadcast.
+  select count(*) from realtime.messages where topic = p_topic and event = 'x';
 $$;
 
 -- Setup: Omar starts the thread; Realtime writes one row on its topic.
