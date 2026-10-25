@@ -2,6 +2,36 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 25 Oct 2026 — build 612 on the founder's phone; review 95 on `claude/r95`, waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Build 612** (bc269ec, `slice2-app`) is on the founder's Xiaomi (192.168.8.24:35509) and the emulator. Only BuildVibes was installed.
+- The live Check+Undo test is dropped (founder): the widget tests and the Cancel try on 612 cover it.
+- **Review 95, on `claude/r95`** (1599922, from `slice2-app` bc269ec). **Not merged. Migration 46 is not live**; it waits for the lead's check and the founder's yes.
+  - **Migration 46** (`20261107120000_post_numbers.sql`):
+    - every post takes the Space's next number in one before-insert trigger that locks the Space row;
+    - `space_posts.number` and `ref` are added; a work item's number and ref are its post's, enforced by a trigger, and `create_work_item` stops counting;
+    - backfill: work items keep theirs, and other posts are numbered oldest first;
+    - `space_post_json` and `activity_rows` carry `ref` for every kind;
+    - `search_space` finds a post by its number, first, with a new `exact` column (dropped and made again, same grants);
+    - fixed on the way: a ref past 999 is no longer cut to 3 digits.
+  - **App:**
+    - every kind shows "· NST-031 · note" in its card header, and the Discuss in chat quote carries the number;
+    - Search is a 48 button before ⋯ in the Space header and has left the ⋯ menu;
+    - the hint reads "Search words or a number, e.g. 23" / «ابحث بكلمة أو رقم، مثل 23»;
+    - a number alone searches from one digit; the number hit comes first with "Exact number", and every post row shows its ref.
+  - **Checks:** analyze clean; 1,944 app tests; 2,739 SQL checks in 45 files (43 new; two old fixtures now take their post's number); 410 screenshots.
+  - **Screenshots:** R1–R3 in `docs/screens/r95/`, EN and AR. Every frame with a Space header was shot again: 255 frames, changed only in the header, plus MN1 (menu without Search) and S (the new hint).
+  - **Live test data (read-only, 25 Oct):** 53 posts in 5 Spaces; 35 are work items and keep their refs; the other 18 will take new numbers.
+  - **Not covered:**
+    - two writers at once can't be run in one test session; the check confirms the number comes from the locked Space row and is unique per Space;
+    - the week report's and daily report's rows list only work items, which already had refs, so they are unchanged;
+    - Search still groups every post hit under "Work items".
+  - **When the founder says yes:** push migration 46 as the only file. The read-only check: no post without a number, no duplicate in a Space, work item refs unchanged.
+- **Next:** wait for review 96 (UX and interaction) from the lead.
+- **Who has which branch:** PC has `claude/r95` (worktree `BuildVibes-r95`) and `slice2-app` (worktree `BuildVibes-slice1`). The worktree `BuildVibes-hold` can be removed.
+
 ## PC update: 25 Oct 2026, 15:35 Kuwait — review 94 merged into `slice2-app`; build 612 waits for the phone's address
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
