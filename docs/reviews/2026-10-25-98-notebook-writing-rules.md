@@ -126,3 +126,27 @@ Rules that still hold in every step:
 - **No unnecessary settings:** a database starts from a table and offers few field types, never a settings page.
 - **Colours** come from tokens, with a fixed short palette, the same in EN and AR.
 - **Arabic, one-minute rule, Western digits, no hard-coded strings,** as always.
+
+## Lead's check of `claude/r98` (25 Oct, late)
+**Approved, after one small fix (C1).** I read the diff: `note_outline.dart` (Move up/down, Duplicate), the editor, the popover, the ARB files and the tests. The cloud session's technical calls are accepted as listed in its report:
+- shortcuts and the line popover in the notebook only;
+- Work's ⋮⋮ sheet gains Move up and Move down;
+- tablets keep the drag;
+- the `/` card scrolls after 5½ rows;
+- grid tiles are 64 high;
+- Duplicate is hidden on a voice note;
+- `+` on an empty to-do adds a line below.
+
+**C1 (fix): one Arabic word per menu row, everywhere.** The notebook's line menu now says «تحويل إلى» and «حذف». Work's ⋮⋮ sheet still says «حوّلها إلى» and «احذف» for the same actions.
+- Make the menu rows match in both places: Turn into = «تحويل إلى», Delete (as a menu row) = «حذف», Move up = «نقل لأعلى», Move down = «نقل لأسفل».
+- A confirm **button** in a dialog keeps the imperative «احذف».
+- Remove any string left unused, such as `notebookRestartNumbering` if nothing reads it now.
+
+**For the PC, after C1:**
+1. Shoot NBY1–NBY5 (EN and AR, 390×844) and compare them with the frames. Shoot F108 L3 again.
+2. On the emulator, check:
+   - the keyboard stays up under the `/` card and under the line menu;
+   - the shortcut click is felt;
+   - Move up and Move down slide;
+   - Undo restores.
+3. Merge `claude/r98` into `slice2-app` with the founder's yes (after review 96's merge), then build for his phone.
