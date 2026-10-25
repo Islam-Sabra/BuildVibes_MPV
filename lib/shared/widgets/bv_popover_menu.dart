@@ -176,8 +176,25 @@ class BvPopoverMenu<T> extends StatelessWidget {
                   padding: BvLineMenuSpec.titlePadding,
                   child: Text(title, style: quiet),
                 ),
-              for (final item in items)
-                _lineRow(type, item, item.value == selected),
+              if (items.length > BvLineMenuSpec.rowsShown)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxHeight:
+                        BvLineMenuSpec.rowHeight * BvLineMenuSpec.rowsShown,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final item in items)
+                          _lineRow(type, item, item.value == selected),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                for (final item in items)
+                  _lineRow(type, item, item.value == selected),
               if (hint case final hint?)
                 Padding(
                   padding: BvLineMenuSpec.hintPadding,
@@ -205,7 +222,10 @@ class BvPopoverMenu<T> extends StatelessWidget {
         child: InkWell(
           canRequestFocus: false,
           onTap: () => onSelected(item.value),
-          child: Padding(
+          child: Container(
+            constraints: const BoxConstraints(
+              minHeight: BvLineMenuSpec.rowHeight,
+            ),
             padding: BvLineMenuSpec.rowPadding,
             child: Row(
               spacing: BvLineMenuSpec.rowGap,

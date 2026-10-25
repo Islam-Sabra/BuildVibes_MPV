@@ -116,6 +116,11 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   final _focus = <String, FocusNode>{};
   final _keyNodes = <String, FocusNode>{};
 
+  /// Each field's place, kept when its line changes kind (review 98: a
+  /// shortcut, "/" or Turn into moves the field into another row, and it
+  /// keeps the keyboard).
+  final _fieldPlaces = <String, GlobalKey>{};
+
   /// Each "/" field's text before its latest change.
   final _lastText = <String, String>{};
 
@@ -313,7 +318,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     bool readOnly = false,
   }) {
     final c = blockField(key, text);
-    Widget field = TextField(
+    final field = TextField(
       key: Key('page-field-$key'),
       controller: c,
       focusNode: blockNode(key),
@@ -363,8 +368,10 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         blocksEdited();
       },
     );
-    if (onStartBack != null || slash) {
-      field = KeyboardListener(
+    // Always the same widgets around the field, so it can move.
+    return KeyedSubtree(
+      key: _fieldPlaces.putIfAbsent(key, GlobalKey.new),
+      child: KeyboardListener(
         focusNode: _keyNode(key),
         onKeyEvent: (e) {
           if (e is! KeyDownEvent) return;
@@ -381,9 +388,8 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
           }
         },
         child: field,
-      );
-    }
-    return field;
+      ),
+    );
   }
 
   /// The field under [key] holds [text], the cursor at [cursor] (a line

@@ -166,7 +166,12 @@ abstract final class BvLineMenuSpec {
     vertical: BvSpace.s6,
   );
   static const rowGap = 10.0;
+  static const rowHeight = 44.0;
   static const rowRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+
+  /// The "/" card with every kind shows five and a half rows, so it keeps
+  /// clear of the line and the keyboard; the rest scroll.
+  static const rowsShown = 5.5;
   static const tile = BvSize.avatarSm; // 32
   static const icon = 18.0;
   static const caret = BvSize.iconSm; // 16
