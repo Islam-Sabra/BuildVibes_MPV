@@ -1228,11 +1228,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تحتاج المساحة إلى مدير. اجعل شخصًا آخر مديرًا أولًا.';
 
   @override
-  String spacesRemoved(String name) {
-    return 'تمت إزالة $name من المساحة.';
-  }
-
-  @override
   String get spacesAdminRights => 'لدى المديرين كل الصلاحيات في المساحة.';
 
   @override
@@ -2756,9 +2751,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String timeClock12(String time, String period) {
     return '$time $period';
   }
-
-  @override
-  String get daybookDoubleTapToCheck => 'انقر مرتين على الصورة للتحقق';
 
   @override
   String daybookFileChip(String name, String revision) {
@@ -4866,4 +4858,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookTitleHint => 'العنوان';
+
+  @override
+  String get holdToCheck => 'اضغط مطولًا للتحقق';
+
+  @override
+  String get holdToCancel => 'اضغط مطولًا للإلغاء';
+
+  @override
+  String get holdToRemove => 'اضغط مطولًا للإزالة';
+
+  @override
+  String get holdKeepHolding => 'استمر بالضغط للتأكيد';
+
+  @override
+  String get holdCheckTitle => 'التحقق من بند العمل؟';
+
+  @override
+  String get holdCheckBody => 'لا يمكن تغييره بعد ذلك.';
+
+  @override
+  String get holdNotNow => 'ليس الآن';
+
+  @override
+  String get holdCancelTitle => 'إلغاء بند العمل؟';
+
+  @override
+  String get holdCancelBody =>
+      'يبقى في الدفتر بعلامة الإلغاء، ولا يمكن توقيعه كمنجز أو التحقق منه.';
+
+  @override
+  String get spacesRemovedUndo => 'أُزيل';
+
+  @override
+  String get spacesCouldNotRemove => 'تعذّرت الإزالة';
 }

@@ -429,10 +429,7 @@ void main() {
       Finder clip(String id) => _inCard(id, find.byType(BvPaperClip));
       expect(_inCard('post-mine', find.text(l10n.daybookSignAsDone)), findsOne);
       expect(clip('post-mine'), findsOne);
-      expect(
-        _inCard('post-sleeves', find.text(l10n.daybookDoubleTapToCheck)),
-        findsOne,
-      );
+      expect(_inCard('post-sleeves', find.text(l10n.holdToCheck)), findsOne);
       expect(clip('post-sleeves'), findsOne);
       expect(_inCard('post-give', find.text(l10n.daybookGiveTo)), findsOne);
       expect(clip('post-give'), findsOne);
@@ -453,7 +450,8 @@ void main() {
     });
 
     testWidgets('a note-only proof to check: the note and its stamp, no '
-        'frame and no hint; Check is in the menu [$lang]', (tester) async {
+        'frame; Hold to check on the card and Check in the menu (review 94) '
+        '[$lang]', (tester) async {
       await _open(tester, lang, posts: [s.sleevesCard(photos: const [])]);
       expect(
         _inCard('post-sleeves', find.byKey(const Key('slip-photo'))),
@@ -461,7 +459,7 @@ void main() {
       );
       expect(_inCard('post-sleeves', find.byType(BvSlipNote)), findsOne);
       expect(_inCard('post-sleeves', find.byType(BvInkStamp)), findsOne);
-      expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(_inCard('post-sleeves', find.text(l10n.holdToCheck)), findsOne);
       expect(_inCard('post-sleeves', find.byType(BvPaperClip)), findsOne);
       await tester.longPress(_inCard('post-sleeves', find.byType(BvSlip)));
       await tester.pumpAndSettle();
@@ -479,7 +477,7 @@ void main() {
       expect(stamp.tone, BvInkStampTone.positive);
       expect(find.byType(BvPaperClip), findsNothing);
       expect(find.byKey(const Key('slip-pill-action')), findsNothing);
-      expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(find.text(l10n.holdToCheck), findsNothing);
     });
 
     testWidgets('sent back: SENT BACK on the photo; the owner signs again '
@@ -909,7 +907,7 @@ void main() {
         admin: false,
       );
       expect(find.byType(BvPaperClip), findsNothing);
-      expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(find.text(l10n.holdToCheck), findsNothing);
       expect(find.text(l10n.daybookSignAsDone), findsNothing);
       expect(find.byKey(const Key('slip-pill-action')), findsNothing);
       expect(find.byType(BvPassChip), findsOneWidget);

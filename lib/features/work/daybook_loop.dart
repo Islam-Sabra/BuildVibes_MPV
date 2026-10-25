@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/daybook_loop_specs.dart' show BvFieldSheetSpec;
 import '../../core/design/daybook_writing_specs.dart' show BvUndoBarSpec;
-import '../../core/haptics.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
@@ -21,6 +20,7 @@ import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_field_sheet.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
+import '../../shared/widgets/bv_hold_button.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_send_back_card.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
@@ -410,10 +410,22 @@ class DaybookLoop {
       workItem: card.post.isWorkItem,
     );
     if (picked == null || !context.mounted) return;
+    final l10n = AppLocalizations.of(context);
     final post = card.post;
     switch (picked) {
+      // Review 94: from the menu too, Check and Cancel work item are held.
       case DaybookSlipAction.check:
-        await check(context, card);
+        if (await showBvHoldSheet(
+              context,
+              title: l10n.holdCheckTitle,
+              body: l10n.holdCheckBody,
+              label: l10n.holdToCheck,
+              hint: l10n.holdKeepHolding,
+              icon: BvIcons.check,
+            ) &&
+            context.mounted) {
+          await check(context, card);
+        }
       case DaybookSlipAction.sendBack:
         await _sendBack(context, card, localPhoto);
       case DaybookSlipAction.update:
@@ -429,7 +441,19 @@ class DaybookLoop {
       case DaybookSlipAction.template:
         await saveTemplate(context, post);
       case DaybookSlipAction.cancel:
-        await cancel(context, post);
+        if (!post.isWorkItem ||
+            await showBvHoldSheet(
+                  context,
+                  title: l10n.holdCancelTitle,
+                  body: l10n.holdCancelBody,
+                  label: l10n.holdToCancel,
+                  hint: l10n.holdKeepHolding,
+                  icon: BvIcons.close,
+                  destructive: true,
+                ) &&
+                context.mounted) {
+          await cancel(context, post);
+        }
     }
   }
 
@@ -512,12 +536,12 @@ class DaybookLoop {
     ),
   };
 
-  /// Check (B3): the stamp lands with a strong haptic, and "Checked ·
-  /// Undo" shows for 5 seconds. Only then is the check sent (review 44,
-  /// answer 4); Undo takes it back before anything reaches the server.
+  /// Check (B3), once held (review 94; the hold's end is the strong
+  /// haptic): the stamp lands, and "Checked · Undo" shows for 5 seconds.
+  /// Only then is the check sent (review 44, answer 4); Undo takes it back
+  /// before anything reaches the server.
   Future<void> check(BuildContext context, DaybookCard card) async {
     final l10n = AppLocalizations.of(context);
-    unawaited(bvHaptic(BvHaptic.strong));
     final outbox = ref.read(workOutboxProvider.notifier);
     final post = card.post;
     await outbox.hold(
@@ -771,6 +795,7 @@ class DaybookLoop {
       RefusedAction.update => l10n.daybookCouldNotUpdate,
       RefusedAction.tick => l10n.daybookCouldNotTick,
       RefusedAction.ack => l10n.daybookCouldNotAck,
+      RefusedAction.remove => l10n.spacesCouldNotRemove,
     };
     var why = r.why;
     if (why == RefusalWhy.changed) {

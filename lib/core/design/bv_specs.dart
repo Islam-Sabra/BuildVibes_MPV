@@ -492,3 +492,25 @@ abstract final class BvSplashSpec {
   /// (assets/brand/bv_splash.svg). One cube unit in dp.
   static const cubeUnit = 288 / 108 * 0.72;
 }
+
+/// Hold to confirm (review 94): a round pill like the slip's action, or a
+/// full-width bar in a sheet; the hint 6 under it.
+abstract final class BvHoldSpec {
+  static const paddingStart = BvSpace.s12;
+  static const paddingEnd = 14.0;
+  static const paddingVertical = 9.0;
+  static const gap = BvSpace.s8;
+  static const icon = 18.0;
+  static const barHeight = BvSize.touchMin;
+  static const hintGap = BvSpace.s6;
+
+  /// In a sheet: the words, then the bar 16 under them.
+  static const sheetGap = BvSpace.s16;
+
+  /// A finger that wanders this far off the button lets go.
+  static const slop = BvSpace.s24;
+
+  /// The "Keep holding to confirm" line shows after the first two early
+  /// lets-go on a phone, then no more.
+  static const hintTimes = 2;
+}

@@ -1675,15 +1675,6 @@
   "@spacesNeedsAdmin": {
     "description": "Last admin (P0001)."
   },
-  "spacesRemoved": "{name} was removed from the Space.",
-  "@spacesRemoved": {
-    "description": "Toast after removing.",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "spacesAdminRights": "Admins have every right in the Space.",
   "@spacesAdminRights": {
     "description": "S17k note for an admin member."
@@ -3922,10 +3913,6 @@
         "type": "String"
       }
     }
-  },
-  "daybookDoubleTapToCheck": "Double-tap the photo to check it",
-  "@daybookDoubleTapToCheck": {
-    "description": "Hint on a proof waiting for your check."
   },
   "daybookFileChip": "{name} {revision}",
   "@daybookFileChip": {
@@ -6970,5 +6957,49 @@
   "notebookTitleHint": "Title",
   "@notebookTitleHint": {
     "description": "F107: a note's title."
+  },
+  "holdToCheck": "Hold to check",
+  "@holdToCheck": {
+    "description": "Review 94: Check a work item by holding the button; the fill runs from the start side for 600 ms."
+  },
+  "holdToCancel": "Hold to cancel",
+  "@holdToCancel": {
+    "description": "Review 94: Cancel work item by holding."
+  },
+  "holdToRemove": "Hold to remove",
+  "@holdToRemove": {
+    "description": "Review 94: Remove from Space by holding."
+  },
+  "holdKeepHolding": "Keep holding to confirm",
+  "@holdKeepHolding": {
+    "description": "Under a hold button let go too early, the first two times on a phone."
+  },
+  "holdCheckTitle": "Check this work item?",
+  "@holdCheckTitle": {
+    "description": "With TalkBack or VoiceOver on, a double-tap on Hold to check asks this."
+  },
+  "holdCheckBody": "It can't be changed after.",
+  "@holdCheckBody": {
+    "description": "Under the question before checking with a screen reader."
+  },
+  "holdNotNow": "Not now",
+  "@holdNotNow": {
+    "description": "The way out of a hold's question with a screen reader."
+  },
+  "holdCancelTitle": "Cancel this work item?",
+  "@holdCancelTitle": {
+    "description": "The sheet before Hold to cancel (from the card's menu)."
+  },
+  "holdCancelBody": "It stays on the daybook, marked cancelled, and can't be signed or checked.",
+  "@holdCancelBody": {
+    "description": "Under the question before cancelling a work item."
+  },
+  "spacesRemovedUndo": "Removed",
+  "@spacesRemovedUndo": {
+    "description": "The undo bar after Remove from Space: \"Removed · Undo\"."
+  },
+  "spacesCouldNotRemove": "Couldn't remove",
+  "@spacesCouldNotRemove": {
+    "description": "A Remove from Space the server refused, when the undo bar has gone."
   }
 }

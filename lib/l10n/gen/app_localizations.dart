@@ -2228,12 +2228,6 @@ abstract class AppLocalizations {
   /// **'A Space needs an admin. Make someone else an admin first.'**
   String get spacesNeedsAdmin;
 
-  /// Toast after removing.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} was removed from the Space.'**
-  String spacesRemoved(String name);
-
   /// S17k note for an admin member.
   ///
   /// In en, this message translates to:
@@ -4657,12 +4651,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{time} {period}'**
   String timeClock12(String time, String period);
-
-  /// Hint on a proof waiting for your check.
-  ///
-  /// In en, this message translates to:
-  /// **'Double-tap the photo to check it'**
-  String get daybookDoubleTapToCheck;
 
   /// A Library file on a work item slip: its name and revision ("M-201 Rev C").
   ///
@@ -8137,6 +8125,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Title'**
   String get notebookTitleHint;
+
+  /// Review 94: Check a work item by holding the button; the fill runs from the start side for 600 ms.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to check'**
+  String get holdToCheck;
+
+  /// Review 94: Cancel work item by holding.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to cancel'**
+  String get holdToCancel;
+
+  /// Review 94: Remove from Space by holding.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to remove'**
+  String get holdToRemove;
+
+  /// Under a hold button let go too early, the first two times on a phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep holding to confirm'**
+  String get holdKeepHolding;
+
+  /// With TalkBack or VoiceOver on, a double-tap on Hold to check asks this.
+  ///
+  /// In en, this message translates to:
+  /// **'Check this work item?'**
+  String get holdCheckTitle;
+
+  /// Under the question before checking with a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'It can\'t be changed after.'**
+  String get holdCheckBody;
+
+  /// The way out of a hold's question with a screen reader.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get holdNotNow;
+
+  /// The sheet before Hold to cancel (from the card's menu).
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this work item?'**
+  String get holdCancelTitle;
+
+  /// Under the question before cancelling a work item.
+  ///
+  /// In en, this message translates to:
+  /// **'It stays on the daybook, marked cancelled, and can\'t be signed or checked.'**
+  String get holdCancelBody;
+
+  /// The undo bar after Remove from Space: "Removed · Undo".
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get spacesRemovedUndo;
+
+  /// A Remove from Space the server refused, when the undo bar has gone.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t remove'**
+  String get spacesCouldNotRemove;
 }
 
 class _AppLocalizationsDelegate

@@ -128,7 +128,11 @@ enum PendingKind {
 
   /// An update on a work item (slice 10): its words in [PendingItem.body].
   /// Each has its own id; [PendingItem.postId] is the item's.
-  update('add_update');
+  update('add_update'),
+
+  /// Remove from Space (review 94), held for the undo bar's 5 seconds
+  /// first: [PendingItem.id] is the person's.
+  remove('remove_member');
 
   const PendingKind(this.json);
   final String json;
@@ -648,13 +652,36 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
     });
   }
 
-  /// Undo: the held [kind] of [id] never leaves the phone.
-  Future<void> undo(PendingKind kind, String id) async {
-    _held.remove((kind, id))?.cancel();
+  /// Undo: the held [kind] of [id] never leaves the phone. False when it
+  /// is no longer held (already on its way: the Space or the app was left
+  /// while its bar showed), and then nothing changes.
+  Future<bool> undo(PendingKind kind, String id) async {
+    final held = _held.remove((kind, id));
+    if (held == null) return false;
+    held.cancel();
     await _save([
       for (final i in state)
         if (i.kind != kind || i.id != id) i,
     ]);
+    return true;
+  }
+
+  /// Leaving the Space ([spaceId]) or the app while an undo bar shows
+  /// (review 94): what it holds was confirmed, so it goes now. True when
+  /// something was held.
+  bool releaseHeld({String? spaceId}) {
+    final going = [
+      for (final i in state)
+        if (_held.containsKey((i.kind, i.id)) &&
+            (spaceId == null || i.spaceId == spaceId))
+          i,
+    ];
+    for (final i in going) {
+      _held.remove((i.kind, i.id))?.cancel();
+      // Just after: a screen being taken down can't change the outbox.
+      unawaited(Future.microtask(() => send(i)));
+    }
+    return going.isNotEmpty;
   }
 
   /// Sends everything of [spaceId] still waiting for a signal (not what
@@ -818,6 +845,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
   /// never there twice. With no signal for that read, it waits, without
   /// the label, and is settled on the next try.
   Future<bool> _settle(PendingItem item) async {
+    if (item.kind == PendingKind.remove) {
+      ref.invalidate(spacePeopleProvider(item.spaceId));
+    }
     if (!await _refreshDaybook(item.spaceId)) {
       _retry.later(ref.read(outboxRetryLaterProvider));
       return true;
@@ -952,6 +982,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         await ref.read(workRepositoryProvider).checkItem(item.id);
       case PendingKind.cancel:
         await daybook.cancelPost(item.id);
+      case PendingKind.remove:
+        await ref
+            .read(spaceRepositoryProvider)
+            .removeMember(item.spaceId, item.id);
       case PendingKind.sendBack:
         await ref
             .read(workRepositoryProvider)
@@ -1010,10 +1044,14 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         await _put(item.copyWith(refused: true));
       case PendingKind.check ||
           PendingKind.cancel ||
+          PendingKind.remove ||
           PendingKind.sendBack ||
           PendingKind.giveTo ||
           PendingKind.update:
         await _drop(item);
+        if (item.kind == PendingKind.remove) {
+          ref.invalidate(spacePeopleProvider(item.spaceId));
+        }
         await _refreshDaybook(item.spaceId);
         ref
             .read(refusalsProvider.notifier)
@@ -1024,6 +1062,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
                   PendingKind.sendBack => RefusedAction.sendBack,
                   PendingKind.giveTo => RefusedAction.giveTo,
                   PendingKind.update => RefusedAction.update,
+                  PendingKind.remove => RefusedAction.remove,
                   _ => RefusedAction.cancel,
                 },
                 spaceId: item.spaceId,
@@ -1082,7 +1121,16 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
 }
 
 /// What the server refused on the daybook (review 47, answer 5).
-enum RefusedAction { check, sendBack, cancel, giveTo, update, tick, ack }
+enum RefusedAction {
+  check,
+  sendBack,
+  cancel,
+  giveTo,
+  update,
+  tick,
+  ack,
+  remove,
+}
 
 /// Why, when the server's message says it.
 enum RefusalWhy {

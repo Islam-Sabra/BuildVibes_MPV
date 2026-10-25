@@ -25,6 +25,7 @@ import '../../shared/widgets/bv_tap_target.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'pass_words.dart';
+import 'remove_member.dart';
 import 'space_errors.dart';
 import '../../core/routing/open_thread.dart';
 
@@ -204,37 +205,8 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     }
   }
 
-  Future<void> _remove(SpaceMember member) async {
-    final l10n = AppLocalizations.of(context);
-    final name = inOwnDirection(member.person.fullName);
-    final yes = await showBvSheet<bool>(
-      context: context,
-      title: l10n.spacesRemoveTitle(name),
-      footer: BvSheetFooter(
-        cancelLabel: l10n.commonCancel,
-        confirmLabel: l10n.spacesRemove,
-        onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-      ),
-      builder: (sheetContext) => Text(
-        l10n.spacesRemoveBody,
-        style: BvType.of(
-          sheetContext,
-        ).bodyMd.copyWith(color: BvColors.textSecondary),
-      ),
-    );
-    if (yes != true || !mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref
-          .read(spaceRepositoryProvider)
-          .removeMember(_spaceId, member.person.id);
-      if (!mounted) return;
-      _refresh();
-      messenger.showSnackBar(SnackBar(content: Text(l10n.spacesRemoved(name))));
-    } on SpaceException catch (e) {
-      if (mounted) _showError(e);
-    }
-  }
+  Future<void> _remove(SpaceMember member) =>
+      holdToRemove(context, ref, spaceId: _spaceId, member: member);
 
   void _showError(SpaceException e) {
     final l10n = AppLocalizations.of(context);
@@ -264,6 +236,8 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     final me = ref.watch(authUserIdProvider).value;
     final people = ref.watch(spacePeopleProvider(_spaceId));
     final data = people.value;
+    // Removed here, its undo bar still showing: gone at once (review 94).
+    final removing = beingRemoved(ref, _spaceId);
     // Who may invite follows Space info; the rest see no code (review 67).
     final invite = widget.space.canInvite
         ? ref.watch(spaceInviteProvider(_spaceId)).value
@@ -294,7 +268,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
     List<Widget> group(String label, SpacePass pass) {
       final members = [
         for (final m in data.members)
-          if (m.pass == pass) m,
+          if (m.pass == pass && !removing.contains(m.person.id)) m,
       ];
       if (members.isEmpty) return const [];
       return [

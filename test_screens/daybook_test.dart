@@ -45,6 +45,7 @@ import '../test/helpers/activity_fakes.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
+import '../test/helpers/hold.dart';
 import '../test/helpers/space_fakes.dart';
 import '../test/helpers/work_fakes.dart';
 import 'shot.dart';
@@ -174,14 +175,22 @@ Future<void> _longPress(WidgetTester tester, String id) async {
 }
 
 /// Double-taps the proof photo of card [id].
-Future<void> _doubleTap(WidgetTester tester, String id) async {
-  // Clear of the stamp in the middle.
-  final photo =
-      tester.getTopLeft(_inCard(id, find.byKey(const Key('slip-photo')))) +
-      const Offset(20, 20);
-  await tester.tapAt(photo);
-  await tester.pump(const Duration(milliseconds: 100));
-  await tester.tapAt(photo);
+/// Hold to check (review 94) on card [id].
+Future<void> _holdCheck(WidgetTester tester, String id) =>
+    hold(tester, _inCard(id, find.byKey(const Key('hold-check'))));
+
+/// Review 94's shots: the button scrolled into the middle of the page.
+Future<void> _toHold(WidgetTester tester) async {
+  await tester.scrollUntilVisible(
+    find.byKey(const Key('hold-check')),
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byKey(const Key('daybook')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
   await tester.pumpAndSettle();
 }
 
@@ -309,9 +318,80 @@ void main() {
           me: DaybookSamples.islam,
           now: _checkAt,
         ),
-        before: (tester) => _doubleTap(tester, 'post-sleeves'),
+        before: (tester) => _holdCheck(tester, 'post-sleeves'),
       );
       // The undo bar's 5 seconds, then the check is sent.
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+    });
+
+    // Review 94: Hold to confirm.
+
+    testWidgets('H1 Hold to check, at rest [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H1-hold-at-rest',
+        lang,
+        _space,
+        folder: 'hold-confirm',
+        overrides: await _overrides(
+          s,
+          posts: s.v13(),
+          me: DaybookSamples.islam,
+          now: _checkAt,
+        ),
+        before: _toHold,
+      );
+    });
+
+    testWidgets('H2 Hold to check, half held [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      TestGesture? finger;
+      await shoot(
+        tester,
+        'H2-hold-half',
+        lang,
+        _space,
+        folder: 'hold-confirm',
+        overrides: await _overrides(
+          s,
+          posts: s.v13(),
+          me: DaybookSamples.islam,
+          now: _checkAt,
+        ),
+        before: (tester) async {
+          await _toHold(tester);
+          finger = await tester.startGesture(
+            holdPoint(tester, find.byKey(const Key('hold-check'))),
+          );
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 300));
+        },
+      );
+      await finger!.up();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('H3 Checked · Undo after the hold [$lang]', (tester) async {
+      await warmSamplePhoto(tester);
+      await shoot(
+        tester,
+        'H3-checked-undo',
+        lang,
+        _space,
+        folder: 'hold-confirm',
+        overrides: await _overrides(
+          s,
+          posts: s.v13(),
+          me: DaybookSamples.islam,
+          now: _checkAt,
+        ),
+        before: (tester) async {
+          await _toHold(tester);
+          await _holdCheck(tester, 'post-sleeves');
+        },
+      );
       await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
     });

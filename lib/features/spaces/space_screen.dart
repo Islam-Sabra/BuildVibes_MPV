@@ -24,6 +24,7 @@ import '../library/library_tab.dart';
 import '../work/daybook_tab.dart';
 import '../work/daybook_target.dart';
 import '../work/walk_saved.dart';
+import '../work/work_outbox.dart';
 import 'people_tab.dart';
 import 'spaces_state.dart';
 
@@ -86,9 +87,33 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     _tab = SpaceScreen.workTab;
   });
 
+  /// Review 94: a Check, a Cancel or a Remove whose undo bar still shows
+  /// goes at once when the Space or the app is left; it was confirmed by
+  /// the hold.
+  late final _outbox = ref.read(workOutboxProvider.notifier);
+  late final _life = AppLifecycleListener(onHide: _outbox.releaseHeld);
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
+
+  @override
+  void dispose() {
+    _life.dispose();
+    // Its Undo would no longer take anything back.
+    if (_outbox.releaseHeld(spaceId: widget.spaceId)) {
+      _messenger?.hideCurrentSnackBar();
+    }
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    _life;
     _markSeen();
     // Create lists this Space first next time (F1); after the first
     // frame, as a provider can't change while the tree builds.

@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/hold.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -98,13 +99,37 @@ void main() {
       expect(_key('person-pass'), findsNothing);
     });
 
-    testWidgets('Remove asks first, then removes [$lang]', (tester) async {
+    testWidgets('Remove asks first and is held; the person leaves the list '
+        'at once, and goes when the undo bar has (review 94) [$lang]', (
+      tester,
+    ) async {
       final spaces = await _open(tester, lang);
       await _tap(tester, _key('member-${DaybookSamples.omar}'));
       await _tap(tester, _key('person-remove'));
       expect(find.text(l10n.spacesRemoveBody), findsOneWidget);
-      await _tap(tester, find.text(l10n.spacesRemove).last);
+      expect(find.text(l10n.holdToRemove), findsOneWidget);
+      await hold(tester, holdOnSheet);
+      expect(_key('member-${DaybookSamples.omar}'), findsNothing);
+      expect(find.text(l10n.spacesRemovedUndo), findsOneWidget);
+      expect(spaces.calls, isNot(contains('remove ${DaybookSamples.omar}')));
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
       expect(spaces.calls.last, 'remove ${DaybookSamples.omar}');
+    });
+
+    testWidgets('Undo puts the person back, and nothing is removed '
+        '(review 94) [$lang]', (tester) async {
+      final spaces = await _open(tester, lang);
+      await _tap(tester, _key('member-${DaybookSamples.omar}'));
+      await _tap(tester, _key('person-remove'));
+      await hold(tester, holdOnSheet);
+      expect(_key('member-${DaybookSamples.omar}'), findsNothing);
+      await tester.tap(find.byKey(const Key('undo-bar-action')));
+      await tester.pumpAndSettle();
+      expect(_key('member-${DaybookSamples.omar}'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(spaces.calls, isNot(contains('remove ${DaybookSamples.omar}')));
     });
   }
 }

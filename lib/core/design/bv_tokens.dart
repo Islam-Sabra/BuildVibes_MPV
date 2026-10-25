@@ -32,6 +32,8 @@ abstract final class BvPrimitive {
   static const warning = Color(0xFFD4921A);
   static const warningStrong = Color(0xFF946612);
   static const destructive = Color(0xFFC23B3B);
+  // Hold to confirm (review 94): a destructive hold at rest.
+  static const destructiveSoft = Color(0xFFF8E6E3);
   static const ink48 = Color(0x7A141B33);
   static const ink38 = Color(0x61141B33);
   // The app icon's cube (review 91): its left and right faces.
@@ -107,6 +109,17 @@ abstract final class BvColors {
   static const brandCubeLeft = BvPrimitive.cubeLeft;
   static const brandCubeRight = BvPrimitive.cubeRight;
   static const brandCubeLetters = BvPrimitive.energyStrong;
+
+  /// Hold to confirm (review 94): the button at rest, the fill that runs
+  /// from the start side while it is held, and their words. Cancel and
+  /// Remove from Space hold in red.
+  static const holdRest = BvPrimitive.energySoft;
+  static const holdFill = BvPrimitive.energyStrong;
+  static const holdLabel = BvPrimitive.energyStrong;
+  static const holdLabelFilled = BvPrimitive.elevated;
+  static const holdRestDestructive = BvPrimitive.destructiveSoft;
+  static const holdFillDestructive = BvPrimitive.destructive;
+  static const holdLabelDestructive = BvPrimitive.destructive;
 }
 
 /// Accent colours for project and Space avatars ("Color / Project").
@@ -235,6 +248,11 @@ abstract final class BvMotion {
   static const slow = Duration(milliseconds: 360);
   static const sheet = Duration(milliseconds: 420);
   static const stagger = Duration(milliseconds: 40);
+
+  /// Hold to confirm (review 94): held this long, it acts; let go early,
+  /// the fill runs back in [holdBack].
+  static const hold = Duration(milliseconds: 600);
+  static const holdBack = Duration(milliseconds: 150);
 
   static const standard = Cubic(0.2, 0, 0, 1);
   static const enter = Cubic(0.05, 0.7, 0.1, 1);

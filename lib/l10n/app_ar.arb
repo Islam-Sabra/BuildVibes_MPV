@@ -355,7 +355,6 @@
   "spacesAdminOff": "تمت إزالة {name} من مديري المساحة.",
   "spacesTeamsSaved": "تم حفظ الفِرق.",
   "spacesNeedsAdmin": "تحتاج المساحة إلى مدير. اجعل شخصًا آخر مديرًا أولًا.",
-  "spacesRemoved": "تمت إزالة {name} من المساحة.",
   "spacesAdminRights": "لدى المديرين كل الصلاحيات في المساحة.",
   "listAnd": "{a} و{b}",
   "listAndOthers": "{names} وآخرون",
@@ -760,7 +759,6 @@
   "daybookStampBy": "{name} · {time}",
   "timePeriod": "{period, select, morning{صباحًا} noon{ظهرًا} afternoon{عصرًا} evening{مساءً} other{مساءً}}",
   "timeClock12": "{time} {period}",
-  "daybookDoubleTapToCheck": "انقر مرتين على الصورة للتحقق",
   "daybookFileChip": "{name} {revision}",
   "daybookWaitingToSend": "بانتظار الإرسال",
   "daybookDraft": "مسودة",
@@ -1339,5 +1337,16 @@
   "notebookCouldntKeep": "تعذّر حفظ هذه الملاحظة. عادت كمسودة.",
   "notebookReminderGone": "مضى وقت التذكير، فأُزيل.",
   "notebookPhotosStay": "بقيت الصور في دفترك: تعذّرت إضافتها.",
-  "notebookTitleHint": "العنوان"
+  "notebookTitleHint": "العنوان",
+  "holdToCheck": "اضغط مطولًا للتحقق",
+  "holdToCancel": "اضغط مطولًا للإلغاء",
+  "holdToRemove": "اضغط مطولًا للإزالة",
+  "holdKeepHolding": "استمر بالضغط للتأكيد",
+  "holdCheckTitle": "التحقق من بند العمل؟",
+  "holdCheckBody": "لا يمكن تغييره بعد ذلك.",
+  "holdNotNow": "ليس الآن",
+  "holdCancelTitle": "إلغاء بند العمل؟",
+  "holdCancelBody": "يبقى في الدفتر بعلامة الإلغاء، ولا يمكن توقيعه كمنجز أو التحقق منه.",
+  "spacesRemovedUndo": "أُزيل",
+  "spacesCouldNotRemove": "تعذّرت الإزالة"
 }

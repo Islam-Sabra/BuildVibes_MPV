@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../helpers/hold.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -337,7 +338,8 @@ void main() {
       expect(find.text(l10n.spacesNeedsAdmin), findsOneWidget);
     });
 
-    testWidgets('remove asks first; closed work stays [$lang]', (tester) async {
+    testWidgets('remove asks first and is held (review 94); it goes when '
+        'the undo bar has; closed work stays [$lang]', (tester) async {
       final spaces = _spaces();
       await pumpApp(tester, language: lang, spaces: spaces);
       await _openMember(tester, 'p-rakesh');
@@ -346,13 +348,25 @@ void main() {
         find.text(l10n.spacesRemoveTitle(inOwnDirection('Rakesh Nair'))),
         findsOneWidget,
       );
-      await _tap(tester, 'bv-sheet-confirm');
-      expect(spaces.calls.last, 'remove p-rakesh');
-      expect(find.byType(MemberPassScreen), findsNothing);
       expect(
-        find.text(l10n.spacesRemoved(inOwnDirection('Rakesh Nair'))),
+        find.descendant(
+          of: find.byKey(const Key('hold-sheet')),
+          matching: find.text(l10n.spacesRemoveBody),
+        ),
         findsOneWidget,
       );
+      expect(find.text(l10n.holdToRemove), findsOneWidget);
+      // A tap does nothing.
+      await tester.tap(holdOnSheet);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('hold-sheet')), findsOneWidget);
+      await hold(tester, holdOnSheet);
+      expect(find.byType(MemberPassScreen), findsNothing);
+      expect(find.text(l10n.spacesRemovedUndo), findsOneWidget);
+      expect(spaces.calls, isNot(contains('remove p-rakesh')));
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+      expect(spaces.calls.last, 'remove p-rakesh');
     });
 
     testWidgets('members see a pass read-only [$lang]', (tester) async {

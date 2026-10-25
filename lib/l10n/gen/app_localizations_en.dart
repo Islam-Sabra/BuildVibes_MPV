@@ -1224,11 +1224,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'A Space needs an admin. Make someone else an admin first.';
 
   @override
-  String spacesRemoved(String name) {
-    return '$name was removed from the Space.';
-  }
-
-  @override
   String get spacesAdminRights => 'Admins have every right in the Space.';
 
   @override
@@ -2765,9 +2760,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String timeClock12(String time, String period) {
     return '$time $period';
   }
-
-  @override
-  String get daybookDoubleTapToCheck => 'Double-tap the photo to check it';
 
   @override
   String daybookFileChip(String name, String revision) {
@@ -4853,4 +4845,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookTitleHint => 'Title';
+
+  @override
+  String get holdToCheck => 'Hold to check';
+
+  @override
+  String get holdToCancel => 'Hold to cancel';
+
+  @override
+  String get holdToRemove => 'Hold to remove';
+
+  @override
+  String get holdKeepHolding => 'Keep holding to confirm';
+
+  @override
+  String get holdCheckTitle => 'Check this work item?';
+
+  @override
+  String get holdCheckBody => 'It can\'t be changed after.';
+
+  @override
+  String get holdNotNow => 'Not now';
+
+  @override
+  String get holdCancelTitle => 'Cancel this work item?';
+
+  @override
+  String get holdCancelBody =>
+      'It stays on the daybook, marked cancelled, and can\'t be signed or checked.';
+
+  @override
+  String get spacesRemovedUndo => 'Removed';
+
+  @override
+  String get spacesCouldNotRemove => 'Couldn\'t remove';
 }

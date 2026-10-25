@@ -13,10 +13,10 @@ import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_chip.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_pass_card.dart';
-import '../../shared/widgets/bv_sheet.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'pass_words.dart';
+import 'remove_member.dart';
 import 'space_errors.dart';
 
 /// How the member pass opens: with a banner, right after confirming.
@@ -77,41 +77,17 @@ class _MemberPassScreenState extends ConsumerState<MemberPassScreen> {
     }
   }
 
+  /// Held on a sheet (review 94); back on the People tab, the person is
+  /// gone and "Removed · Undo" shows.
   Future<void> _remove(SpaceMember member) async {
-    final l10n = AppLocalizations.of(context);
-    final yes = await showBvSheet<bool>(
-      context: context,
-      title: l10n.spacesRemoveTitle(inOwnDirection(member.person.fullName)),
-      footer: BvSheetFooter(
-        cancelLabel: l10n.commonCancel,
-        confirmLabel: l10n.spacesRemove,
-        onConfirm: () => Navigator.of(context, rootNavigator: true).pop(true),
-      ),
-      builder: (sheetContext) => Text(
-        l10n.spacesRemoveBody,
-        style: BvType.of(
-          sheetContext,
-        ).bodyMd.copyWith(color: BvColors.textSecondary),
-      ),
-    );
-    if (yes != true || !mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    try {
-      await ref
-          .read(spaceRepositoryProvider)
-          .removeMember(widget.spaceId, widget.profileId);
-      ref.invalidate(spacePeopleProvider(widget.spaceId));
+    if (await holdToRemove(
+      context,
+      ref,
+      spaceId: widget.spaceId,
+      member: member,
+    )) {
       navigator.pop();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n.spacesRemoved(inOwnDirection(member.person.fullName)),
-          ),
-        ),
-      );
-    } on SpaceException catch (e) {
-      if (mounted) showSpaceError(context, e);
     }
   }
 

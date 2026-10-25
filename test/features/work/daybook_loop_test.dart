@@ -39,6 +39,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/hold.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 import '../../helpers/work_fakes.dart';
@@ -124,17 +125,9 @@ Future<void> _pick(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _doubleTapProof(WidgetTester tester) async {
-  final photo = _in('post-sleeves', find.byKey(const Key('slip-photo')));
-  await tester.ensureVisible(photo);
-  await tester.pumpAndSettle();
-  // Clear of the stamp in the middle of the photo.
-  final at = tester.getTopLeft(photo) + const Offset(20, 20);
-  await tester.tapAt(at);
-  await tester.pump(const Duration(milliseconds: 100));
-  await tester.tapAt(at);
-  await tester.pumpAndSettle();
-}
+/// Hold to check (review 94) on the proof's card.
+Future<void> _holdCheck(WidgetTester tester) =>
+    hold(tester, _in('post-sleeves', find.byKey(const Key('hold-check'))));
 
 /// A history line of card [id], as its plain text.
 Finder _line(String id, String text) =>
@@ -402,7 +395,7 @@ void main() {
               ? c.copyWith(post: c.post.shownAs(cancelled: true))
               : c,
       ];
-      await _doubleTapProof(tester);
+      await _holdCheck(tester);
       await tester.pump(_undoGone);
       await tester.pumpAndSettle();
       expect(
@@ -496,7 +489,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(BvPaperClip), findsNothing);
-      expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(find.text(l10n.holdToCheck), findsNothing);
       expect(_signPills(l10n), findsNothing);
       expect(
         _in(
@@ -801,7 +794,7 @@ void main() {
 
     testWidgets('F5: a check is not a post: no sound [$lang]', (tester) async {
       final app = await _open(tester, lang, posts: s.d1());
-      await _doubleTapProof(tester);
+      await _holdCheck(tester);
       await tester.pump(_undoGone);
       await tester.pumpAndSettle();
       expect(app.work.calls.single, 'check post-sleeves');
@@ -848,10 +841,10 @@ void main() {
 
     // Your side.
 
-    testWidgets('B3: double-tap the proof: CHECKED lands, "Checked · Undo", '
+    testWidgets('B3: hold to check: CHECKED lands, "Checked · Undo", '
         'and check_item goes only after the 5 seconds [$lang]', (tester) async {
       final app = await _open(tester, lang, posts: s.d1());
-      await _doubleTapProof(tester);
+      await _holdCheck(tester);
       expect(
         _in('post-sleeves', find.text(l10n.daybookStampChecked)),
         findsOneWidget,
@@ -871,7 +864,7 @@ void main() {
       );
       // At once, a line in the history, and nothing to do any more.
       expect(_line('post-sleeves', l10n.daybookLineYouChecked), findsOneWidget);
-      expect(find.text(l10n.daybookDoubleTapToCheck), findsNothing);
+      expect(find.text(l10n.holdToCheck), findsNothing);
       expect(_in('post-sleeves', find.byType(BvPaperClip)), findsNothing);
       // Nothing has reached the server yet.
       expect(app.work.calls, isEmpty);
@@ -883,7 +876,7 @@ void main() {
     testWidgets('B3: Undo takes the check back: nothing reaches the server '
         '[$lang]', (tester) async {
       final app = await _open(tester, lang, posts: s.d1());
-      await _doubleTapProof(tester);
+      await _holdCheck(tester);
       await tester.tap(find.byKey(const Key('undo-bar-action')));
       await tester.pumpAndSettle();
       await tester.pump(_undoGone);
@@ -898,6 +891,108 @@ void main() {
         findsNothing,
       );
       expect(_line('post-sleeves', l10n.daybookLineYouChecked), findsNothing);
+    });
+
+    // Review 94: Hold to confirm ------------------------------------------
+
+    testWidgets('a short hold does nothing; Sign as done and Send back are '
+        'still one tap [$lang]', (tester) async {
+      final app = await _open(tester, lang, posts: s.d1());
+      final button = _in('post-sleeves', find.byKey(const Key('hold-check')));
+      expect(_in('post-sleeves', find.text(l10n.holdToCheck)), findsOneWidget);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await hold(tester, button, time: const Duration(milliseconds: 400));
+      expect(find.byType(BvUndoBar), findsNothing);
+      expect(_in('post-sleeves', find.text(l10n.daybookStampDone)), findsOne);
+      await tester.pump(_undoGone);
+      expect(app.work.calls, isEmpty);
+      // Send back: picked from the menu, no hold.
+      await _longPress(tester, 'post-sleeves');
+      await _pick(tester, l10n.daybookSendBack);
+      expect(find.byType(BvSendBackCard<SendBackReason>), findsOneWidget);
+      expect(find.byKey(const Key('hold-sheet')), findsNothing);
+    });
+
+    testWidgets('leaving the Space while "Checked · Undo" shows sends the '
+        'check at once; a late Undo changes nothing [$lang]', (tester) async {
+      final app = await _open(tester, lang, posts: s.d1());
+      await _holdCheck(tester);
+      expect(app.work.calls, isEmpty);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'check post-sleeves');
+      expect(find.byType(BvUndoBar), findsNothing);
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'check post-sleeves');
+    });
+
+    testWidgets('closing the app while "Checked · Undo" shows sends it '
+        '[$lang]', (tester) async {
+      final app = await _open(tester, lang, posts: s.d1());
+      await _holdCheck(tester);
+      expect(app.work.calls, isEmpty);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'check post-sleeves');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'check post-sleeves');
+    });
+
+    testWidgets('TalkBack or VoiceOver: a double-tap asks first; Check '
+        'checks, with its undo bar [$lang]', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(accessibleNavigation: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      final app = await _open(tester, lang, posts: s.d1());
+      final button = _in('post-sleeves', find.byKey(const Key('hold-check')));
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.holdCheckTitle), findsOneWidget);
+      expect(find.text(l10n.holdCheckBody), findsOneWidget);
+      await tester.tap(find.text(l10n.holdNotNow));
+      await tester.pumpAndSettle();
+      expect(find.byType(BvUndoBar), findsNothing);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.daybookCheck).last);
+      await tester.pumpAndSettle();
+      expect(find.byType(BvUndoBar), findsOneWidget);
+      await tester.pump(_undoGone);
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'check post-sleeves');
+    });
+
+    testWidgets('a cancel let go early is not cancelled [$lang]', (
+      tester,
+    ) async {
+      final app = await _open(
+        tester,
+        lang,
+        posts: [s.traysForOmar(needsMe: false)],
+      );
+      await _longPress(tester, 'post-trays');
+      await _pick(tester, l10n.daybookCancelItem);
+      await hold(tester, holdOnSheet, time: const Duration(milliseconds: 300));
+      expect(find.byKey(const Key('hold-sheet')), findsOneWidget);
+      expect(find.text(l10n.holdKeepHolding), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(
+        _in('post-trays', find.text(l10n.daybookStampCancelled)),
+        findsNothing,
+      );
+      await tester.pump(_undoGone);
+      expect(app.daybook.calls, isEmpty);
     });
 
     testWidgets('B1: long-press the card to check: the lifted card and '
@@ -917,6 +1012,10 @@ void main() {
         l10n.daybookCancelItem,
       ]);
       await _pick(tester, l10n.daybookCheck);
+      // Review 94: held, from the menu too.
+      expect(find.text(l10n.holdCheckTitle), findsOneWidget);
+      expect(app.work.calls, isEmpty);
+      await hold(tester, holdOnSheet);
       expect(find.byType(BvUndoBar), findsOneWidget);
       await tester.pump(_undoGone);
       await tester.pumpAndSettle();
@@ -1290,6 +1389,10 @@ void main() {
       );
       await _longPress(tester, 'post-trays');
       await _pick(tester, l10n.daybookCancelItem);
+      // Review 94: asked on a sheet and held.
+      expect(find.text(l10n.holdCancelTitle), findsOneWidget);
+      expect(find.text(l10n.holdToCancel), findsOneWidget);
+      await hold(tester, holdOnSheet);
       expect(
         _in('post-trays', find.text(l10n.daybookStampCancelled)),
         findsOneWidget,

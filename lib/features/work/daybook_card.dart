@@ -13,7 +13,9 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_card_history.dart';
 import '../../shared/widgets/bv_checklist_point.dart';
+import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_faces.dart';
+import '../../shared/widgets/bv_hold_button.dart';
 import '../../shared/widgets/bv_marked_text.dart';
 import '../../shared/widgets/bv_photo_strip.dart';
 import '../../shared/widgets/bv_popover_menu.dart' show bvGlobalRect;
@@ -75,7 +77,7 @@ class DaybookCardActions {
   /// place on screen, so a tap is never a dead end (F16).
   final ValueChanged<Rect>? onMenu;
 
-  /// Double-tap the proof photo (B3), while it needs the reader's check.
+  /// Hold to check (review 94), while it needs the reader's check.
   final VoidCallback? onCheck;
 
   /// The owner's "Sign as done" (O1).
@@ -306,9 +308,6 @@ class DaybookCardView extends StatelessWidget {
     final proof = card.proof;
     final hasPhoto = localPhoto != null || (proof?.photos.isNotEmpty ?? false);
     final stamp = _stamp(l10n);
-    final check = card.need == DaybookNeed.toCheck && !lifted
-        ? actions.onCheck
-        : null;
     final chips = [
       for (final f in post.attachments)
         BvSlipChip(
@@ -395,11 +394,7 @@ class DaybookCardView extends StatelessWidget {
                 stamp: proof == null ? null : stamp,
               )
             else if (proof != null && proof.photos.isNotEmpty)
-              _Photo(
-                path: proof.photos.first.path,
-                stamp: stamp,
-                onDoubleTap: check,
-              )
+              _Photo(path: proof.photos.first.path, stamp: stamp)
             // A target's photos are on its rows' strip, not here.
             else if (proof == null &&
                 !post.isTarget &&
@@ -894,21 +889,34 @@ class DaybookCardView extends StatelessWidget {
     );
   }
 
-  /// The reader's one action: Sign as done, the double-tap hint, or Give
-  /// to someone else; nothing once checked.
+  /// The reader's one action: Sign as done, Hold to check (review 94), or
+  /// Give to someone else; nothing once checked.
   Widget? _action(BuildContext context, AppLocalizations l10n, bool hasPhoto) {
     if (viewer || waiting) return null;
     final signDone = actions.onSignDone;
     final giveTo = actions.onGiveTo;
+    final check = actions.onCheck;
     return switch (card.need) {
       DaybookNeed.toSign when signDone != null => BvSlipPill.action(
         label: l10n.daybookSignAsDone,
         icon: BvIcons.camera,
         onTap: signDone,
       ),
-      // A proof with only a note is checked from the menu.
-      DaybookNeed.toCheck when hasPhoto && actions.onCheck != null =>
-        BvSlipPill.hint(label: l10n.daybookDoubleTapToCheck),
+      // Checking locks the item: held, never a tap (review 94).
+      DaybookNeed.toCheck when check != null => BvHoldButton(
+        key: const Key('hold-check'),
+        label: l10n.holdToCheck,
+        icon: BvIcons.check,
+        hint: l10n.holdKeepHolding,
+        onConfirmed: check,
+        confirm: () => showBvDialog(
+          context: context,
+          title: l10n.holdCheckTitle,
+          body: l10n.holdCheckBody,
+          cancelLabel: l10n.holdNotNow,
+          confirmLabel: l10n.daybookCheck,
+        ),
+      ),
       DaybookNeed.giveTo when giveTo != null => Builder(
         builder: (context) => BvSlipPill.action(
           label: l10n.daybookGiveTo,
@@ -933,17 +941,15 @@ class DaybookCardView extends StatelessWidget {
 
 /// A photo from the Space's private files, on a card.
 class _Photo extends ConsumerWidget {
-  const _Photo({required this.path, this.stamp, this.onDoubleTap});
+  const _Photo({required this.path, this.stamp});
 
   final String path;
   final Widget? stamp;
-  final VoidCallback? onDoubleTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => BvSlipPhoto(
     height: BvSlipSpec.photoHeightCard,
     stamp: stamp,
-    onDoubleTap: onDoubleTap,
     image: ref.watch(daybookPhotoProvider(path)),
   );
 }
