@@ -30,8 +30,8 @@ final nativeSplashProvider = Provider<NativeSplash>(
 /// splash goes and the first screen fades in from the splash colour.
 ///
 /// Addendum: still loading after [BvSplashSpec.traceAfter], the native
-/// splash goes and the cube traces itself on the same terracotta, in the
-/// same place. Decided mid-trace, the rest plays in [BvSplashSpec.finishIn];
+/// splash (the terracotta colour only, no cube) goes and the cube traces
+/// itself from nothing on the same terracotta. Decided mid-trace, the rest plays in [BvSplashSpec.finishIn];
 /// either way the fade starts at most [BvSplashSpec.loaderMax] after the
 /// native splash went. Reduce motion: no trace, only the fade.
 class SplashHandover extends ConsumerStatefulWidget {
@@ -53,12 +53,12 @@ class _SplashHandoverState extends ConsumerState<SplashHandover>
     animationBehavior: AnimationBehavior.preserve,
   )..addStatusListener((_) => setState(() {}));
 
-  /// The cube, 0 to 1 over [BvSplashSpec.loader]. At 1 (the start) it is
-  /// the native splash's cube, for a seamless fade.
+  /// The cube, 0 to 1 over [BvSplashSpec.loader]. At 0 (the start) nothing
+  /// is drawn, as on the native splash (the colour only), so a fast start
+  /// fades from the plain colour and the trace always starts from nothing.
   late final AnimationController _loader = AnimationController(
     vsync: this,
     duration: BvSplashSpec.loader,
-    value: 1,
   )..addStatusListener(_loaderStatus);
 
   bool _decided = false;

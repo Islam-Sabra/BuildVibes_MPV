@@ -57,7 +57,8 @@ final _cover = find.byKey(const Key('splash-cover'));
 double _coverOpacity(WidgetTester tester) =>
     tester.widget<FadeTransition>(_cover).opacity.value;
 
-/// The cube's progress, 0 to 1 (1: the native splash's cube).
+/// The cube's progress, 0 to 1 (0: nothing drawn, as on the native splash,
+/// which is the colour only).
 double _cube(WidgetTester tester) =>
     (tester.widget<CustomPaint>(find.byKey(const Key('splash-cube'))).painter!
             as SplashCubePainter)
@@ -127,7 +128,8 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     expect(splash.removed, 0);
     expect(_coverOpacity(tester), 1);
-    expect(_cube(tester), 1);
+    // The colour only: no cube is ever drawn.
+    expect(_cube(tester), 0);
 
     final container = ProviderScope.containerOf(
       tester.element(find.text('first screen')),
@@ -195,18 +197,19 @@ void main() {
       expect(BvColors.brandCubeLetters, BvPrimitive.energyStrong);
     });
 
-    testWidgets('fast start-up (under 300 ms): no trace, straight to the '
-        'fade from the full cube', (tester) async {
+    testWidgets('fast start-up (under 300 ms): no trace and no cube, straight '
+        'to the fade from the plain colour', (tester) async {
       final splash = await _pump(tester, AppGate.loading);
       await tester.pump(BvSplashSpec.traceAfter - _frame * 2);
       expect(splash.removed, 0);
+      expect(_cube(tester), 0);
       _set(tester, AppGate.ready);
       await tester.pump();
       expect(splash.removed, 1);
-      expect(_cube(tester), 1);
+      expect(_cube(tester), 0);
       await tester.pump(BvSplashSpec.fade ~/ 2);
       expect(_coverOpacity(tester), lessThan(1));
-      expect(_cube(tester), 1);
+      expect(_cube(tester), 0);
       await _fadeOut(tester);
       expect(splash.removed, 1);
     });
@@ -218,23 +221,30 @@ void main() {
       final splash = await _pump(tester, AppGate.loading);
       await tester.pump(BvSplashSpec.traceAfter * 2);
       expect(splash.removed, 0);
-      expect(_cube(tester), 1);
+      expect(_cube(tester), 0);
       expect(tester.hasRunningAnimations, isFalse);
       _set(tester, AppGate.ready);
       await tester.pump();
       expect(splash.removed, 1);
-      expect(_cube(tester), 1);
+      expect(_cube(tester), 0);
       await _fadeOut(tester);
     });
 
     testWidgets('still loading at 300 ms: the native splash goes and the '
         'trace plays', (tester) async {
       final splash = await _pump(tester, AppGate.loading);
+      // Before the trace, nothing is drawn.
+      expect(_cube(tester), 0);
       await tester.pump(BvSplashSpec.traceAfter);
       expect(splash.removed, 1);
       await tester.pump();
+      // The trace starts from nothing and the outline grows.
       expect(_cube(tester), 0);
-      await tester.pump(BvSplashSpec.trace ~/ 2);
+      await tester.pump(BvSplashSpec.trace ~/ 4);
+      final quarter = _cube(tester);
+      expect(quarter, greaterThan(0));
+      await tester.pump(BvSplashSpec.trace ~/ 4);
+      expect(_cube(tester), greaterThan(quarter));
       expect(SplashCubePainter.traceAt(_cube(tester)), closeTo(0.5, 0.03));
       expect(_coverOpacity(tester), 1);
     });

@@ -1,12 +1,14 @@
-# Review 91: a calm splash, the cube on terracotta (BvPrimitive.energyStrong).
-# No branding image and no dark variant (the app is light only). Run
+# Review 91: a calm splash on terracotta (BvPrimitive.energyStrong), the
+# colour only: the cube traces itself in the app (addendum), so the start
+# is seamless. Android 12+ shows the app icon unless given one, so it gets a
+# fully transparent image. No branding image and no dark variant (the app is
+# light only). Run
 #   dart run flutter_native_splash:create
 flutter_native_splash:
   color: "#C24417"
-  image: assets/brand/bv_splash_1152.png
   android_12:
     color: "#C24417"
-    image: assets/brand/bv_splash_1152.png
+    image: assets/brand/bv_splash_blank_1152.png
   android: true
   ios: true
   web: false
