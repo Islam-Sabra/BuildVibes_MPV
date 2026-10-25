@@ -2,6 +2,30 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 25 Oct 2026 — review 96 on `claude/r96-fix` (from `claude/r95` 1599922), not merged, not live
+
+- **F1:**
+  - Space search's group is now **"Posts" / «المنشورات»** (was "Work items").
+  - Each post row has its own kind's icon, the same as its kind chip (`kindIcon`): note, work item, checklist, announcement, scheduled activity, file, report.
+  - Test (`space_search_test`, EN and AR): a number search ("23") finds a note and a work item, both under "Posts", each with its own icon, the number first.
+- **F2:**
+  - The word after a post's number is now built from the kind chip's word (`kindName`), so the two can't drift. Work items show none.
+  - Two headers change as a result:
+    - a scheduled activity reads "· scheduled activity" / «· نشاط مجدول» (was "· scheduled" / «· مُجدول»);
+    - an announcement reads "· announcement" / «· إعلان» (was "· to everyone" / «· للجميع»).
+  - Note, checklist, file and daily report are unchanged.
+  - The five old header strings and `searchWorkItems` are removed. Test: `kind_word_test` (EN and AR words; a work item has none).
+- **F4:** `supabase/dev/standin/shim.sql` from `main` (with `realtime.send`).
+- **Checks (cloud):**
+  - `flutter analyze` clean.
+  - `flutter test test` 1,951 pass; 1 fails, photo_privacy H1, which fails only as root in the cloud.
+  - SQL stand-in: 2,739 checks in 45 files pass.
+  - `test_screens/` not run here, and no `--update-goldens`.
+- **For the PC:**
+  1. Retake the shots with `--update-goldens` on the PC's fonts. **R3** (`docs/screens/r95/`) changes for F1. Because of F2, any shot with an announcement or a scheduled activity card changes too: check the diff before committing.
+  2. Then the lead checks, and with the founder's yes, review 96's steps: merge `claude/r96-fix` (it carries `claude/r95`) into `slice2-app`; push migration 46 alone; the read-only check; build 613.
+- **Not merged, nothing pushed to the database, nothing deployed, nothing installed.**
+
 ## Cloud update: 25 Oct 2026 — review 91, the interim app icon and splash (`claude/app-icon`)
 
 - **Branch `claude/app-icon`** (from `slice2-app` 1a3cc00): the icon (`flutter_launcher_icons` 0.14.4), the native splash (`flutter_native_splash` 2.4.8) and the 350 ms fade from the splash once start-up decides. iOS label fixed to "BuildVibes". Nothing live, no migration.
