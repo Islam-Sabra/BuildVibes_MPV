@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 25 Oct 2026 — F106, F107 and the icon merged; migration 44 live; build 605
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**State:**
+- **Live:** migrations to `20261105120000` (44, `notebook_blocks`), pushed on the founder's yes with only that file listed. Read-only check: `notes.blocks`, `notes.title` and the location columns exist; `note_files.kind` accepts photo, voice and file, with a `name` column; RLS on for both; the bucket takes PDF up to 25 MB; `is_valid_note_blocks` and `note_for_space` exist and anon can't run them. The push function is still v10; public channels still on.
+- **`slice2-app`:** db16f35. `claude/f106`, `claude/f107` (with the review 92 bug list) and `claude/app-icon` (icon, colour-only splash, the cube trace) are merged. Checks: analyze clean, 1,872 app tests, 392 screenshot checks.
+- **Exact reminders** (founder, 25 Oct): on a phone that keeps alarms inexact (Android 12+), the first Remind me asks once, with one line why, and opens the phone's exact alarms setting. Refused or Not now, reminders stay inexact; never asked again.
+- **Build 605** (db16f35) is on the founder's Xiaomi and the emulator. Only BuildVibes was installed.
+
+**Not yet checked on a phone:** GPS location, exact reminders and the setting, the mic label, PDF picking, the new icon and splash.
+
+**Open, for the stores:** the `SCHEDULE_EXACT_ALARM` declaration, and the location entry in Google Play's data safety form.
+
+**Who has which branch:**
+- PC: `slice2-app` (worktree `BuildVibes-slice1`); `slice2-live-db` = main (worktree `BuildVibes-db29`).
+- `claude/f106`, `claude/f107` and `claude/app-icon` are merged and done; the worktrees `BuildVibes-f106`, `BuildVibes-f107` and `BuildVibes-icon` can be removed.
+
 ## PC update: 24 Oct 2026, end of day — every F-item passed, build 579
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
