@@ -42,7 +42,7 @@ abstract final class BvNotebookSpec {
 }
 
 /// My notebook writes in place (F106, review 90; NBW1 2613:36507): the
-/// slip being written, its chips, and the kind menu over it.
+/// slip being written and its chips.
 abstract final class BvNoteWritingSpec {
   /// The slip: 14 inside (12 at the foot), its parts 8 apart.
   static const slipPadding = EdgeInsetsDirectional.fromSTEB(
@@ -58,10 +58,6 @@ abstract final class BvNoteWritingSpec {
   static const chipGap = 5.0;
   static const chipsGap = BvSpace.s6;
   static const chipRemove = 12.0;
-
-  /// The kind menu (NBW2) stands just above the kind chip, from its start.
-  static const menuStart = 15.0;
-  static const menuGap = BvSpace.s6;
 }
 
 /// F107 (review 92): a note as a page of blocks. The categories grid in
@@ -140,6 +136,9 @@ abstract final class BvNoteBlocksSpec {
   static const calloutPadding = EdgeInsetsDirectional.all(BvSpace.s12);
   static const calloutIcon = BvSize.iconMd;
   static const blockGap = BvSpace.s8;
+
+  /// A line's ⋮⋮ (the line being written's only): as high as the line.
+  static const handleHeight = BvSize.iconLg;
 
   /// The saved slip: the title, then the first three lines of the page.
   static const slipLines = 3;

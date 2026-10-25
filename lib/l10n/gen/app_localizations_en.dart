@@ -4339,9 +4339,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep notes, checklists and to-dos for your work. Only you can see them.';
 
   @override
-  String get notebookWriteHint => 'Write a note…';
-
-  @override
   String get notebookPinTop => 'Pin to the top';
 
   @override
@@ -4556,12 +4553,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookDraftKept => 'Kept as you left it. Tap to go on writing.';
 
   @override
-  String get notebookByWhen => 'By when';
-
-  @override
-  String get notebookRemoveByWhen => 'Remove by when';
-
-  @override
   String get notebookRemoveReminder => 'Remove reminder';
 
   @override
@@ -4715,7 +4706,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookDate => 'Date';
 
   @override
-  String get notebookWhereHint => 'Where on site';
+  String get notebookWhereHint => 'Where';
 
   @override
   String get notebookAddGps => 'Add my GPS position';
@@ -4745,7 +4736,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookLocationHelp =>
-      'Type where on site, add the phone\'s GPS, or both.';
+      'Type where, add the phone\'s GPS, or both.';
 
   @override
   String notebookGpsChip(String metres) {

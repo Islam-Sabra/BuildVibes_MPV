@@ -125,7 +125,6 @@ class BvWritingCard extends StatelessWidget {
     this.draftLabel,
     this.kindLabel,
     this.onKindTap,
-    this.headerEnd,
     this.padding = BvWritingCardSpec.padding,
     this.gap = BvWritingCardSpec.gap,
     this.properties = const [],
@@ -164,10 +163,6 @@ class BvWritingCard extends StatelessWidget {
   /// nothing to choose ([onKindTap] null) the chip has no drop-down caret.
   final String? kindLabel;
   final VoidCallback? onKindTap;
-
-  /// On the kind chip's line, at the end: a note's "Now" or its Draft pill
-  /// (My notebook, F106).
-  final Widget? headerEnd;
 
   /// Inside the dashed outline, and between the card's parts: the Daybook
   /// card's by default; the notebook's slip is tighter (F106).
@@ -252,15 +247,7 @@ class BvWritingCard extends StatelessWidget {
               spacing: gap,
               children: [
                 if (draftLabel != null) _DraftMarker(label: draftLabel!),
-                if (kindLabel != null && headerEnd != null)
-                  Row(
-                    children: [
-                      _KindChip(label: kindLabel!, onTap: onKindTap),
-                      const Spacer(),
-                      headerEnd!,
-                    ],
-                  )
-                else if (kindLabel != null)
+                if (kindLabel != null)
                   _KindChip(label: kindLabel!, onTap: onKindTap),
                 if (author != null) _Author(author: author!),
                 if (titleController != null)

@@ -108,6 +108,8 @@ class _NoteLocationPanelState extends ConsumerState<NoteLocationPanel> {
   @override
   void initState() {
     super.initState();
+    // The cursor at the end first: no selection handle, as after a tap.
+    _typed.selection = TextSelection.collapsed(offset: _typed.text.length);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focus.requestFocus();
     });

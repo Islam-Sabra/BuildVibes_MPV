@@ -4345,9 +4345,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتفظ بملاحظاتك وقوائم التحقق والمهام لعملك. لا يراها أحد غيرك.';
 
   @override
-  String get notebookWriteHint => 'اكتب ملاحظة…';
-
-  @override
   String get notebookPinTop => 'ثبّت في الأعلى';
 
   @override
@@ -4564,12 +4561,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookDraftKept => 'محفوظة كما تركتها. اضغط لتكمل الكتابة.';
 
   @override
-  String get notebookByWhen => 'موعد الإنجاز';
-
-  @override
-  String get notebookRemoveByWhen => 'إزالة موعد الإنجاز';
-
-  @override
   String get notebookRemoveReminder => 'إزالة التذكير';
 
   @override
@@ -4725,13 +4716,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookDate => 'التاريخ';
 
   @override
-  String get notebookWhereHint => 'أين في الموقع';
+  String get notebookWhereHint => 'أين';
 
   @override
-  String get notebookAddGps => 'أضف موقعي من GPS';
+  String get notebookAddGps => 'أضف إحداثيات GPS';
 
   @override
-  String get notebookGpsAdded => 'أُضيف موقعي من GPS';
+  String get notebookGpsAdded => 'أُضيفت إحداثيات GPS';
 
   @override
   String notebookGpsLine(String lat, String lng, String metres) {
@@ -4739,22 +4730,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookGpsFinding => 'جارٍ تحديد موقعك…';
+  String get notebookGpsFinding => 'جارٍ تحديد مكانك…';
 
   @override
   String get notebookGpsDenied =>
-      'اسمح لـ BuildVibes بالوصول إلى الموقع من إعدادات هاتفك لإضافة موقعك.';
+      'اسمح لـ BuildVibes بتحديد المكان من إعدادات هاتفك لإضافة إحداثياتك.';
 
   @override
-  String get notebookGpsOff => 'شغّل خدمة الموقع في هاتفك لإضافة موقعك.';
+  String get notebookGpsOff => 'شغّل تحديد المكان في هاتفك لإضافة إحداثياتك.';
 
   @override
   String get notebookGpsFailed =>
-      'تعذّر تحديد موقعك. حاول مجددًا في مكان مفتوح.';
+      'تعذّر تحديد مكانك. حاول مجددًا في مكان مفتوح.';
 
   @override
   String get notebookLocationHelp =>
-      'اكتب أين في الموقع، أو أضف GPS الهاتف، أو كليهما.';
+      'اكتب المكان، أو أضف GPS الهاتف، أو كليهما.';
 
   @override
   String notebookGpsChip(String metres) {
@@ -4765,7 +4756,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemoveLocation => 'إزالة المكان';
 
   @override
-  String get notebookRemoveGps => 'إزالة موقعي من GPS';
+  String get notebookRemoveGps => 'إزالة إحداثيات GPS';
 
   @override
   String get notebookRemoveFile => 'إزالة الملف';
@@ -4806,7 +4797,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookIncludeGps => 'أرفق موقعي من GPS';
+  String get notebookIncludeGps => 'أرفق إحداثيات GPS';
 
   @override
   String get notebookRemindTime => 'ذكّرني الساعة…';

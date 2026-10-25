@@ -7310,12 +7310,6 @@ abstract class AppLocalizations {
   /// **'Keep notes, checklists and to-dos for your work. Only you can see them.'**
   String get notebookEmptyBody;
 
-  /// The words box when writing a note.
-  ///
-  /// In en, this message translates to:
-  /// **'Write a note…'**
-  String get notebookWriteHint;
-
   /// A note's menu: it shows above the others.
   ///
   /// In en, this message translates to:
@@ -7652,18 +7646,6 @@ abstract class AppLocalizations {
   /// **'Kept as you left it. Tap to go on writing.'**
   String get notebookDraftKept;
 
-  /// The writing tool that gives a to-do its day and time (F106 NBW3); read out.
-  ///
-  /// In en, this message translates to:
-  /// **'By when'**
-  String get notebookByWhen;
-
-  /// The × on a to-do's by when chip while writing it; read out.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove by when'**
-  String get notebookRemoveByWhen;
-
   /// The × on a note's reminder chip while writing it; read out.
   ///
   /// In en, this message translates to:
@@ -7937,7 +7919,7 @@ abstract class AppLocalizations {
   /// F107 NBX4: the typed field's placeholder.
   ///
   /// In en, this message translates to:
-  /// **'Where on site'**
+  /// **'Where'**
   String get notebookWhereHint;
 
   /// F107 NBX4.
@@ -7985,7 +7967,7 @@ abstract class AppLocalizations {
   /// F107 NBX4.
   ///
   /// In en, this message translates to:
-  /// **'Type where on site, add the phone\'s GPS, or both.'**
+  /// **'Type where, add the phone\'s GPS, or both.'**
   String get notebookLocationHelp;
 
   /// F107 NBX3: the location chip's GPS part.

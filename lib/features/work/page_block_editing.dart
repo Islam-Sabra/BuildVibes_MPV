@@ -141,8 +141,19 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     return parts.length < 2 ? null : parts[1];
   }
 
-  void focusBlockLater(String key) => WidgetsBinding.instance
-      .addPostFrameCallback((_) => _focus[key]?.requestFocus());
+  void focusBlockLater(String key) =>
+      WidgetsBinding.instance.addPostFrameCallback((_) => focusBlock(key));
+
+  /// The cursor at the end of [key]'s words, then the focus: a field
+  /// focused with no cursor of its own would show its selection handle,
+  /// as after a tap.
+  void focusBlock(String key) {
+    final c = _fields[key];
+    if (c != null && !c.selection.isValid) {
+      c.selection = TextSelection.collapsed(offset: c.text.length);
+    }
+    _focus[key]?.requestFocus();
+  }
 
   /// One key listener's node per field, kept and disposed with the editor.
   /// It hears the keys the field's own node gets; it never takes the
@@ -283,6 +294,12 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// its lines start where its title does, as NBX1–NBX4 draw them).
   bool get handleOnlyWhileWriting => false;
 
+  /// The ⋮⋮ shows at all (a note's Draft, read only, has none).
+  bool get handlesShown => true;
+
+  /// The ⋮⋮'s height (Work's page: a 44 row; a note's lines are lower).
+  double get handleHeight => BvSize.controlMd;
+
   /// A block on its row: ⋮⋮ (hold to move, tap for its menu), and the
   /// block.
   Widget blockRow(int i) {
@@ -298,10 +315,10 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
           key: Key('page-handle-${b.id}'),
           behavior: HitTestBehavior.opaque,
           onTap: () => unawaited(blockMenu(i)),
-          child: const SizedBox(
+          child: SizedBox(
             width: BvPageSpec.handleWidth,
-            height: BvSize.controlMd,
-            child: Icon(
+            height: handleHeight,
+            child: const Icon(
               BvIcons.dragHandle,
               size: BvPageSpec.handleIcon,
               color: BvColors.iconSecondary,
@@ -318,9 +335,9 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: BvSpace.s8,
         children: [
-          if (!at) handle,
+          if (!at && handlesShown) handle,
           Expanded(child: blockEditor(i, b)),
-          if (at && currentBlockId == b.id) handle,
+          if (at && handlesShown && currentBlockId == b.id) handle,
         ],
       ),
     );

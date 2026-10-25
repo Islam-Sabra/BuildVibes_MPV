@@ -118,7 +118,6 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   void dispose() {
     _life.dispose();
     _titleFocus.dispose();
-    _list.dispose();
     _recordTimer?.cancel();
     if (_recording) unawaited(ref.read(voiceRecorderProvider).cancel());
     super.dispose();
@@ -237,16 +236,26 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     await saving;
   }
 
-  /// The end of today in view: the list is at its foot (B9).
+  /// The end of today in view (B9): where the notebook opens, and where a
+  /// sent note goes.
   void _showEnd() => WidgetsBinding.instance.addPostFrameCallback((_) {
-    final list = _list;
-    if (!list.hasClients) return;
+    final end = _todayEnd.currentContext;
+    if (end == null || !end.mounted) return;
     unawaited(
-      list.animateTo(0, duration: BvMotion.fast, curve: BvMotion.standard),
+      Scrollable.ensureVisible(
+        end,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        duration: BvMotion.fast,
+        curve: BvMotion.standard,
+      ),
     );
   });
 
-  final _list = ScrollController();
+  /// After today's last slip.
+  final _todayEnd = GlobalKey();
+
+  /// The notebook has been shown at the end of today once (B9).
+  var _shownToday = false;
 
   Future<void> _change(NoteDraft Function(NoteDraft d) change) async {
     final draft = ref.read(noteDraftProvider);
@@ -732,6 +741,14 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     final notebook = ref.watch(notebookProvider);
     final notes = notebook.value ?? const <Note>[];
     final draft = ref.watch(noteDraftProvider);
+    // B10: as the slip grows, its end stays above the bar.
+    ref.listen(noteDraftProvider, (_, _) {
+      if (_writing) _showSlip();
+    });
+    if (!_shownToday && notebook.hasValue) {
+      _shownToday = true;
+      _showEnd();
+    }
     // B15: a refused note is said, and its words come back as the Draft.
     ref.listen(noteRefusedProvider, (_, lost) {
       if (lost == null) return;
@@ -815,6 +832,11 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       ];
     }
 
+    List<Widget> dayPart(DateTime day) => [
+      ...dayNotes(day),
+      if (day == today) SizedBox(key: _todayEnd),
+    ];
+
     final drafting = draft != null;
     final daysPart = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -834,7 +856,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: dayNotes(day),
+              children: dayPart(day),
             ),
           ),
         ],
@@ -883,11 +905,6 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                   : LayoutBuilder(
                       builder: (context, box) => SingleChildScrollView(
                         key: const Key('notebook-list'),
-                        controller: _list,
-                        // B9: it opens at its foot, the end of today, and
-                        // grows up from there (B10: the slip's end stays
-                        // above the bar).
-                        reverse: true,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(minHeight: box.maxHeight),
                           child: Padding(
@@ -1021,7 +1038,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
           ),
           BvWritingTool(
             key: const Key('note-tool-date'),
-            icon: BvIcons.calendar,
+            icon: BvIcons.due,
             label: l10n.notebookDate,
             active: draft.dueAt != null,
             onTap: () => unawaited(_pickDue()),

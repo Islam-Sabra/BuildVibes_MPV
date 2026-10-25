@@ -2,12 +2,13 @@
 // 2613:36507, 2613:36619, 2613:36731, 2613:36843, 2613:36956; AR
 // 2613:37050, 2613:37162, 2613:37274, 2613:37386, 2613:37499). English and
 // Arabic, at 390 × 844 on a 12-hour phone, in the app's fonts. The frames
-// draw a keyboard under the tools; a test has none.
+// draw a keyboard under the tools; a test has none. F107 (review 92): the
+// slip is a page and the kind chip has gone, so NBW2 has no shot; the
+// slip and the Draft stay the reference.
 // Run:
 //   flutter test test_screens/f106_test.dart --update-goldens
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
-import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -16,8 +17,6 @@ import '../test/helpers/notebook_fakes.dart';
 import '../test/helpers/notebook_samples.dart';
 import '../test/helpers/pump_app.dart';
 import 'shot.dart';
-
-AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
 Finder _key(String k) => find.byKey(Key(k));
 
@@ -82,13 +81,16 @@ Future<TestApp> _open(
   return app;
 }
 
-Future<void> _todo(WidgetTester tester, AppLocalizations l10n, String w) async {
+/// NBW3 on F107's page: a to-do line, its date and Remind me as chips.
+Future<void> _todo(WidgetTester tester, String w) async {
   await _tap(tester, _key('post-bar-notepad'));
-  await _tap(tester, _key('writing-kind-chip'));
-  await _tap(tester, find.text(l10n.notebookTodo).last);
-  await tester.enterText(_key('note-todo-line'), w);
+  await tester.testTextInput.receiveAction(TextInputAction.next);
   await tester.pumpAndSettle();
-  await _tap(tester, _key('note-tool-due'));
+  await _tap(tester, _key('note-tool-categories'));
+  await _tap(tester, _key('note-category-todo'));
+  tester.testTextInput.enterText(w);
+  await tester.pumpAndSettle();
+  await _tap(tester, _key('note-tool-date'));
   await _tap(tester, _key('note-tool-remind'));
 }
 
@@ -96,7 +98,6 @@ void main() {
   setUpAll(loadAppFonts);
 
   for (final lang in ['en', 'ar']) {
-    final l10n = _l10n(lang);
     final n = NotebookSamples(lang);
 
     testWidgets('NBW1 Tap Note: a slip at the end of today [$lang]', (
@@ -107,48 +108,34 @@ void main() {
       await _snap(tester, 'NBW1-slip', lang);
     });
 
-    testWidgets('NBW2 The kind chip: Note, To-do or Checklist [$lang]', (
-      tester,
-    ) async {
-      await _open(tester, lang, [n.checklist()]);
-      await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('writing-kind-chip'));
-      await _snap(tester, 'NBW2-kind-menu', lang);
-    });
-
     testWidgets('NBW3 A to-do with by when and Remind me [$lang]', (
       tester,
     ) async {
       await _open(tester, lang, [_lina(n)]);
-      await _todo(tester, l10n, n.sleevesTodo);
+      await _todo(tester, n.sleevesTodo);
       await _snap(tester, 'NBW3-todo', lang);
     });
 
     testWidgets('NBW4 A checklist typed in place [$lang]', (tester) async {
       await _open(tester, lang, [n.todo()]);
       await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('writing-kind-chip'));
-      await _tap(tester, find.text(l10n.daybookKindChecklist).last);
-      await tester.enterText(_key('writing-title'), n.walkTitle);
+      await tester.enterText(_key('note-title'), n.walkTitle);
+      await tester.testTextInput.receiveAction(TextInputAction.next);
       await tester.pumpAndSettle();
-      Finder empty() => find
-          .descendant(
-            of: _key('writing-points'),
-            matching: find.byType(TextField),
-          )
-          .last;
+      await _tap(tester, _key('note-tool-categories'));
+      await _tap(tester, _key('note-category-todo'));
       for (final p in n.walkPoints.take(2)) {
-        await tester.enterText(empty(), p);
+        tester.testTextInput.enterText(p);
+        await tester.pumpAndSettle();
+        await tester.testTextInput.receiveAction(TextInputAction.next);
         await tester.pumpAndSettle();
       }
-      await tester.tap(empty());
-      await tester.pumpAndSettle();
       await _snap(tester, 'NBW4-checklist', lang);
     });
 
     testWidgets('NBW5 Left unsent: kept as a draft [$lang]', (tester) async {
       await _open(tester, lang, [n.checklist(), _lina(n)]);
-      await _todo(tester, l10n, n.sleevesTodo);
+      await _todo(tester, n.sleevesTodo);
       // Back: the slip is put down, kept as the Draft.
       await Navigator.of(tester.element(_key('note-tools'))).maybePop();
       await tester.pumpAndSettle();

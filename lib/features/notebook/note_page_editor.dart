@@ -175,6 +175,12 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   bool get handleOnlyWhileWriting => true;
 
   @override
+  bool get handlesShown => widget.writing;
+
+  @override
+  double get handleHeight => BvNoteBlocksSpec.handleHeight;
+
+  @override
   void initState() {
     super.initState();
     editBlocks = withReadyToggles(
@@ -232,10 +238,11 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   void focusCurrent() {
     final b = editBlocks.isEmpty ? null : editBlocks[_current];
     if (b == null || b is PageDivider || b is PageVoice) {
+      _title.selection = TextSelection.collapsed(offset: _title.text.length);
       widget.titleFocus?.requestFocus();
       return;
     }
-    existingNode(_focusKey(b))?.requestFocus();
+    focusBlock(_focusKey(b));
   }
 
   /// A tile in the grid (NBX2): an empty line turns into [kind]; otherwise
@@ -560,30 +567,32 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          key: const Key('note-title'),
-          controller: _title,
-          focusNode: widget.titleFocus,
-          readOnly: !widget.writing,
-          inputFormatters: [LengthLimitingTextInputFormatter(Note.titleMax)],
-          minLines: 1,
-          maxLines: null,
-          // Enter goes on to the first line (F107; B1).
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            final first = editBlocks.firstOrNull;
-            if (first == null || lineWords(first) == null) {
-              setState(() => editBlocks.insert(0, PageText(newUuid(), '')));
-            }
-            focusBlockLater(_focusKey(editBlocks.first));
-          },
-          textCapitalization: TextCapitalization.sentences,
-          onChanged: widget.onTitleChanged,
-          style: style.copyWith(color: BvColors.textPrimary),
-          cursorColor: BvColors.actionPrimary,
-          cursorWidth: BvWritingCardSpec.cursorWidth,
-          decoration: bvBareField(hint: l10n.notebookTitleHint, style: style),
-        ),
+        // A Draft with no title shows none.
+        if (widget.writing || _title.text.trim().isNotEmpty)
+          TextField(
+            key: const Key('note-title'),
+            controller: _title,
+            focusNode: widget.titleFocus,
+            readOnly: !widget.writing,
+            inputFormatters: [LengthLimitingTextInputFormatter(Note.titleMax)],
+            minLines: 1,
+            maxLines: null,
+            // Enter goes on to the first line (F107; B1).
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) {
+              final first = editBlocks.firstOrNull;
+              if (first == null || lineWords(first) == null) {
+                setState(() => editBlocks.insert(0, PageText(newUuid(), '')));
+              }
+              focusBlockLater(_focusKey(editBlocks.first));
+            },
+            textCapitalization: TextCapitalization.sentences,
+            onChanged: widget.onTitleChanged,
+            style: style.copyWith(color: BvColors.textPrimary),
+            cursorColor: BvColors.actionPrimary,
+            cursorWidth: BvWritingCardSpec.cursorWidth,
+            decoration: bvBareField(hint: l10n.notebookTitleHint, style: style),
+          ),
         ReorderableListView.builder(
           key: const Key('note-page'),
           shrinkWrap: true,

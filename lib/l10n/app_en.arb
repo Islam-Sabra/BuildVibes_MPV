@@ -6261,10 +6261,6 @@
   "@notebookEmptyBody": {
     "description": "The empty notebook's words (N2)."
   },
-  "notebookWriteHint": "Write a note…",
-  "@notebookWriteHint": {
-    "description": "The words box when writing a note."
-  },
   "notebookPinTop": "Pin to the top",
   "@notebookPinTop": {
     "description": "A note's menu: it shows above the others."
@@ -6583,14 +6579,6 @@
   "@notebookDraftKept": {
     "description": "A note left unsent in My notebook, under its words (F106 NBW5)."
   },
-  "notebookByWhen": "By when",
-  "@notebookByWhen": {
-    "description": "The writing tool that gives a to-do its day and time (F106 NBW3); read out."
-  },
-  "notebookRemoveByWhen": "Remove by when",
-  "@notebookRemoveByWhen": {
-    "description": "The × on a to-do's by when chip while writing it; read out."
-  },
   "notebookRemoveReminder": "Remove reminder",
   "@notebookRemoveReminder": {
     "description": "The × on a note's reminder chip while writing it; read out."
@@ -6799,7 +6787,7 @@
   "@notebookDate": {
     "description": "F107: the bar's Date, read out."
   },
-  "notebookWhereHint": "Where on site",
+  "notebookWhereHint": "Where",
   "@notebookWhereHint": {
     "description": "F107 NBX4: the typed field's placeholder."
   },
@@ -6842,7 +6830,7 @@
   "@notebookGpsFailed": {
     "description": "F107 NBX4."
   },
-  "notebookLocationHelp": "Type where on site, add the phone's GPS, or both.",
+  "notebookLocationHelp": "Type where, add the phone's GPS, or both.",
   "@notebookLocationHelp": {
     "description": "F107 NBX4."
   },
