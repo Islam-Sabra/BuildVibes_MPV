@@ -1,17 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart';
 import '../../core/design/planning_specs.dart';
 import '../../data/models/note.dart';
-import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_tap_target.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
@@ -72,22 +68,6 @@ final findPositionProvider = Provider<FindPosition>(
     } on Object {
       return _noPosition;
     }
-  },
-);
-
-/// Keeps a picked file in the app's own folder until it is sent (a PDF,
-/// F107): the picker's copy may go. A provider so tests can stand in.
-typedef KeepNoteFile = Future<String> Function(String local, String ext);
-
-final keepNoteFileProvider = Provider<KeepNoteFile>(
-  (ref) => (local, ext) async {
-    final dir = Directory(
-      '${(await getApplicationDocumentsDirectory()).path}/outbox',
-    );
-    await dir.create(recursive: true);
-    final kept = '${dir.path}/${newUuid()}.$ext';
-    await File(local).copy(kept);
-    return kept;
   },
 );
 

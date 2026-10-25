@@ -145,8 +145,12 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       .addPostFrameCallback((_) => _focus[key]?.requestFocus());
 
   /// One key listener's node per field, kept and disposed with the editor.
-  FocusNode _keyNode(String key) =>
-      _keyNodes.putIfAbsent(key, () => FocusNode(skipTraversal: true));
+  /// It hears the keys the field's own node gets; it never takes the
+  /// focus itself (a sheet closing gives it back to the field).
+  FocusNode _keyNode(String key) => _keyNodes.putIfAbsent(
+    key,
+    () => FocusNode(skipTraversal: true, canRequestFocus: false),
+  );
 
   /// Every field read again from [editBlocks] (the page was read again).
   void resetBlockFields() {

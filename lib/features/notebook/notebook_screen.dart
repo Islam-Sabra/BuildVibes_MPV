@@ -30,6 +30,7 @@ import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../chat/thread_screen.dart' show ChatActionRow;
+import '../chat/chat_state.dart' show keepFileProvider;
 import '../chat/voice.dart';
 import '../create/create_sheet.dart' show workItemSpacesProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -424,7 +425,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       _toast(l10n.chatFileTooBig);
       return _back();
     }
-    final local = await ref.read(keepNoteFileProvider)(file.local, 'pdf');
+    final local = await ref.read(keepFileProvider)(file.local, 'pdf');
     await _change(
       (d) => d.copyWith(
         files: [

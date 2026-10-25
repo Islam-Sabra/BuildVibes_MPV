@@ -248,7 +248,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final words = here == null ? null : lineWords(here);
     final empty =
         here != null && words != null && words.isEmpty && here is! PageToggle;
-    final id = empty ? here.id : newUuid();
+    // A new id even for the empty line it turns: a fresh field takes the
+    // keyboard, with nothing of the "/" typed there.
+    final id = newUuid();
     final block =
         lineOf(kind, id, '') ??
         switch (kind) {
@@ -261,7 +263,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final next = block is PageDivider ? PageText(newUuid(), '') : null;
     setState(() {
       if (empty) {
-        dropField('t:$id');
+        dropField('t:${here.id}');
         editBlocks[at] = block;
       } else {
         editBlocks.insert(at + 1, block);
