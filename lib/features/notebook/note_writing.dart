@@ -642,9 +642,9 @@ class NoteChip extends StatelessWidget {
 
 /// The categories (F107 NBX2 2619:36869), in place of the keyboard: a
 /// 3-column grid of the twelve kinds, the line's own kind outlined, and
-/// "or type /" in the corner. A tap inserts that kind, or turns an empty
-/// line into it; the keyboard comes back. In Arabic the tiles read right
-/// to left.
+/// "or type /" in the corner; under each name, small and grey, what to
+/// type for it (review 98). A tap turns the empty line + made into that
+/// kind; the keyboard comes back. In Arabic the tiles read right to left.
 class NoteCategoriesGrid extends StatelessWidget {
   const NoteCategoriesGrid({
     super.key,
@@ -748,13 +748,13 @@ class _Tile extends StatelessWidget {
             height: BvNoteBlocksSpec.tileHeight,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              spacing: BvNoteBlocksSpec.tileLabelGap,
               children: [
                 Icon(
                   kind.icon,
                   size: BvNoteBlocksSpec.tileIcon,
                   color: BvColors.iconPrimary,
                 ),
+                const SizedBox(height: BvNoteBlocksSpec.tileLabelGap),
                 Text(
                   kind.label(l10n),
                   maxLines: 1,
@@ -762,6 +762,16 @@ class _Tile extends StatelessWidget {
                   style: BvType.of(
                     context,
                   ).labelSm.copyWith(color: BvColors.textPrimary),
+                ),
+                // Every tile keeps the line, so the icons line up.
+                Text(
+                  kind.shortcut ?? '',
+                  key: Key('note-category-shortcut-${kind.name}'),
+                  maxLines: 1,
+                  textDirection: TextDirection.ltr,
+                  style: BvType.of(
+                    context,
+                  ).metadata.copyWith(color: BvColors.textSecondary),
                 ),
               ],
             ),

@@ -41,8 +41,9 @@ enum PageAdd { text, heading, checklist, toggle, table, photo, file, item }
 /// What a block turns into (N4).
 enum PageTurn { text, point, item }
 
-/// A block's menu on its ⋮⋮ (N4): Turn into, and Delete.
-enum _BlockAction { text, point, item, delete }
+/// A block's menu on its ⋮⋮ (N4): Turn into, Move up and Move down
+/// (review 98: no drag on a phone), and Delete.
+enum _BlockAction { text, point, item, up, down, delete }
 
 /// How a save went: it stays open ([failed]), there was nothing to send,
 /// or it was sent.
@@ -561,10 +562,13 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     await _addBlock(picked, at: replace, intoToggle: intoToggle);
   }
 
+  /// [keep]: the line at [at] (or the toggle's line) keeps its words and
+  /// the new block goes after it.
   Future<void> _addBlock(
     PageAdd a, {
     int? at,
     (int, String)? intoToggle,
+    bool keep = false,
   }) async {
     editBlocks = _collect();
     final id = newUuid();
@@ -609,7 +613,13 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
         () => editBlocks = withReadyToggles([
           ...editBlocks.take(index),
           PageToggle(t.id, t.text, [
-            for (final c in t.children) c.id == childId ? block! : c,
+            for (final c in t.children)
+              if (c.id != childId)
+                c
+              else ...[
+                if (keep) c,
+                block!,
+              ],
           ]),
           ...editBlocks.skip(index + 1),
         ]),
@@ -619,7 +629,11 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     }
     setState(() {
       if (at != null && at < editBlocks.length) {
-        editBlocks[at] = block!;
+        if (keep) {
+          editBlocks.insert(at + 1, block!);
+        } else {
+          editBlocks[at] = block!;
+        }
       } else {
         editBlocks.add(block!);
       }
@@ -757,11 +771,56 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     );
   }
 
+  /// The block a field's key is in: its index, and the toggle's own line
+  /// when it is one.
+  (int, String?)? _whereKey(String key) {
+    final id = PageBlockEditing.blockIdOfKey(key);
+    for (final (i, b) in editBlocks.indexed) {
+      if (b.id == id) return (i, null);
+      if (b case PageToggle(:final children)
+          when children.any((c) => c.id == id)) {
+        return (i, id);
+      }
+    }
+    return null;
+  }
+
+  /// "/" (review 98): the same kinds as +, by their names in English and
+  /// Arabic.
   @override
-  void slashAt(String filter, {int? replace, (int, String)? intoToggle}) =>
-      unawaited(
-        _openAdd(filter: filter, replace: replace, intoToggle: intoToggle),
-      );
+  List<PageSlashItem> slashItems(String key) {
+    final l10n = AppLocalizations.of(context);
+    final where = _whereKey(key);
+    if (where == null) return const [];
+    return [
+      for (final a in pageAdds(_post))
+        if (where.$2 == null || _insideToggle.contains(a))
+          (
+            value: a,
+            key: a.name,
+            label: pageAddName(l10n, a),
+            icon: pageAddIcon(a),
+            shortcut: null,
+            words: [for (final w in slashLanguages) pageAddName(w, a)],
+          ),
+    ];
+  }
+
+  /// A kind picked from "/": an empty line becomes it; a line with words
+  /// keeps them, and the kind goes after it.
+  @override
+  void slashPicked(String key, Object value) {
+    editBlocks = _collect();
+    final where = _whereKey(key);
+    if (where == null || value is! PageAdd) return;
+    final (index, child) = where;
+    final empty = (existingField(key)?.text ?? '').trim().isEmpty;
+    unawaited(
+      child != null
+          ? _addBlock(value, intoToggle: (index, child), keep: !empty)
+          : _addBlock(value, at: index, keep: !empty),
+    );
+  }
 
   // A block's menu ------------------------------------------------------------
 
@@ -785,7 +844,10 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     // A work item under this one has its own life: it is cancelled from
     // its card, never deleted from the page (it would come back).
     final deletable = b is! PageChildItem;
-    if (turns.isEmpty && !deletable) return;
+    final phone = !dragsLines;
+    final up = phone && index > 0;
+    final down = phone && index < editBlocks.length - 1;
+    if (turns.isEmpty && !deletable && !up && !down) return;
     final picked = await showBvSheet<_BlockAction>(
       context: context,
       title: turns.isEmpty ? null : l10n.pageTurnInto,
@@ -804,6 +866,22 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
               trailing: const BvRowTrailing.none(),
               onTap: () => Navigator.of(sheet).pop(t),
             ),
+          if (up)
+            BvListRow(
+              key: const Key('page-move-up'),
+              leading: const BvRowIcon(BvIcons.moveUp),
+              title: l10n.notebookMoveUp,
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheet).pop(_BlockAction.up),
+            ),
+          if (down)
+            BvListRow(
+              key: const Key('page-move-down'),
+              leading: const BvRowIcon(BvIcons.moveDown),
+              title: l10n.notebookMoveDown,
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheet).pop(_BlockAction.down),
+            ),
           if (deletable)
             BvListRow(
               key: const Key('page-block-delete'),
@@ -820,6 +898,10 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     switch (picked) {
       case _BlockAction.delete:
         _delete(index);
+      case _BlockAction.up || _BlockAction.down:
+        final to = picked == _BlockAction.up ? index - 1 : index + 1;
+        editBlocks = _collect();
+        setState(() => editBlocks.insert(to, editBlocks.removeAt(index)));
       case _BlockAction.point when b is PageText:
         final point = newUuid();
         _points[point] = b.text.trim();

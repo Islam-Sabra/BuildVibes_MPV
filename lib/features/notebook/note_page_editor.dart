@@ -15,8 +15,9 @@ import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_dialog.dart';
-import '../../shared/widgets/bv_list_row.dart';
-import '../../shared/widgets/bv_sheet.dart';
+import '../../shared/widgets/bv_line_popover.dart';
+import '../../shared/widgets/bv_popover_menu.dart';
+import '../../shared/widgets/bv_undo_bar.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../chat/voice.dart' show VoiceNote;
 import '../work/daybook_page_editor.dart' show withReadyToggles;
@@ -79,6 +80,54 @@ enum NoteBlockKind {
     quote => BvIcons.quote,
     divider => BvIcons.divider,
     voice => BvIcons.microphone,
+  };
+
+  /// What is typed at the start of a text line, then a space, for this
+  /// kind (review 98); the "/" card and the grid show it.
+  String? get shortcut => switch (this) {
+    heading => '#',
+    subheading => '##',
+    todo => '[]',
+    bullets => '-',
+    numbers => '1.',
+    toggle => '>',
+    quote => '"',
+    divider => '---',
+    _ => null,
+  };
+
+  /// The kind [typed] at the start of a text line stands for, before its
+  /// space: `1.` `1)` (or `١.`), `-` `*`, `[]` `[ ]`, `#` `##`, `>`, `"`
+  /// (as a phone may curl it) and `---` (or the phone's dash and `-`).
+  static NoteBlockKind? typed(String typed) => switch (typed) {
+    '-' || '*' => bullets,
+    '[]' || '[ ]' => todo,
+    '#' => heading,
+    '##' => subheading,
+    '>' => toggle,
+    '"' || '\u201C' || '\u201D' => quote,
+    '---' || '\u2014-' => divider,
+    _ when _numberShortcut.hasMatch(typed) => numbers,
+    _ => null,
+  };
+
+  /// "1." or "1)", in Western or Arabic-Indic digits.
+  static final _numberShortcut = RegExp('^[1\u0661][.)]\$');
+
+  /// More words that find this kind in the "/" card ("num", «مهام»).
+  String find(AppLocalizations l10n) => switch (this) {
+    text => l10n.notebookFindText,
+    heading => l10n.notebookFindHeading,
+    subheading => l10n.notebookFindSubheading,
+    todo => l10n.notebookFindTodo,
+    bullets => l10n.notebookFindBullets,
+    numbers => l10n.notebookFindNumbers,
+    toggle => l10n.notebookFindToggle,
+    table => l10n.notebookFindTable,
+    callout => l10n.notebookFindCallout,
+    quote => l10n.notebookFindQuote,
+    divider => l10n.notebookFindDivider,
+    voice => '',
   };
 
   /// The kind [b] is.
@@ -186,17 +235,51 @@ class NotePageEditor extends ConsumerStatefulWidget {
 }
 
 class NotePageEditorState extends ConsumerState<NotePageEditor>
-    with PageBlockEditing<NotePageEditor> {
-  /// The block menu's Delete, Continue numbering, Restart at 1 and Turn into.
-  static const _delete = #delete;
+    with PageBlockEditing<NotePageEditor>, TickerProviderStateMixin {
+  /// The line menu's rows that aren't a kind (review 98 NBY2).
+  static const _turnInto = #turnInto;
+  static const _up = #up;
+  static const _down = #down;
+  static const _indent = #indent;
+  static const _out = #outdent;
+  static const _duplicate = #duplicate;
   static const _continue = #goOn;
   static const _restart = #restart;
-  static const _turnInto = #turnInto;
+  static const _delete = #delete;
 
   late final _title = TextEditingController(text: widget.title);
 
   /// The lines folded shut, by id (while the note is open).
   final _folded = <String>{};
+
+  /// The line menu next to its line (review 98), the line it is for
+  /// (tinted), and whether it lists the kinds (Turn into ›).
+  final _menu = BvLinePopover();
+  String? _marked;
+  var _turning = false;
+
+  /// Each line's row, by id: measured for Move up and Move down, and the
+  /// line menu's place.
+  final _rows = <String, GlobalKey>{};
+
+  /// Move up and Move down slide the lines that moved from where they were
+  /// ([_slideFrom], by id) to their place, in 180 ms (review 98).
+  late final _slide = AnimationController(
+    vsync: this,
+    duration: BvMotion.slide,
+    value: 1,
+  );
+  final _slideFrom = <String, double>{};
+
+  /// A fold slides its lines shut ([_closing]) or open ([_opening]) in
+  /// 180 ms, and its arrow turns.
+  late final _foldMotion = AnimationController(
+    vsync: this,
+    duration: BvMotion.slide,
+    value: 1,
+  );
+  String? _closing;
+  String? _opening;
 
   @override
   int get blockTextMax => Note.lineMax;
@@ -214,6 +297,12 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   double get handleHeight => BvNoteBlocksSpec.handleHeight;
 
   @override
+  String? get markedBlockId => _marked;
+
+  /// Reduce motion: nothing moves.
+  bool get _still => MediaQuery.disableAnimationsOf(context);
+
+  @override
   void initState() {
     super.initState();
     editBlocks = normalized(
@@ -225,6 +314,10 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     for (final (i, b) in editBlocks.indexed) {
       if (b.folded && folds(editBlocks, i)) _folded.add(b.id);
     }
+    _foldMotion.addStatusListener((status) {
+      if (status != AnimationStatus.completed || !mounted) return;
+      _endFold();
+    });
   }
 
   /// The page as [blocks], put where its lines may be; a fold with
@@ -243,6 +336,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
 
   @override
   void dispose() {
+    _menu.hide();
+    _slide.dispose();
+    _foldMotion.dispose();
     _title.dispose();
     disposeBlockEditing();
     super.dispose();
@@ -291,6 +387,8 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     return at < 0 ? null : at;
   }
 
+  int _indexOf(String id) => editBlocks.indexWhere((b) => b.id == id);
+
   /// ⇥ and ⇤ on the bar: the line the cursor is in can go deeper, or out.
   bool get canIndentCurrent =>
       widget.writing && _here != null && canIndent(editBlocks, _here!);
@@ -319,11 +417,130 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     _set(outdented(editBlocks, index));
   }
 
-  /// A fold arrow tapped: the lines under [id] hide or show, and the note
-  /// keeps it.
+  // Undo (review 98) ----------------------------------------------------------
+
+  /// The whole note as it is: its lines, its folds and the line written in.
+  ({List<PageBlock> blocks, Set<String> folded, String? current}) _snap() => (
+    blocks: collectBlocks(),
+    folded: {..._folded},
+    current: currentBlockId,
+  );
+
+  /// The Undo bar for 5 s after a line's action ("Moved · Undo"); Undo
+  /// puts [before] back, children and folds and all. [mark]: the line
+  /// stays tinted while it shows (NBY5).
+  void _undoBar(
+    String message,
+    ({List<PageBlock> blocks, Set<String> folded, String? current}) before, {
+    String? mark,
+  }) {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final bar = showBvUndoBar(
+      context,
+      message: message,
+      actionLabel: l10n.spacesUndo,
+      bottom: BvWritingToolbarSpec.height,
+      onAction: () {
+        if (mounted) _restore(before);
+      },
+    );
+    if (mark == null) return;
+    unawaited(
+      bar.closed.then((_) {
+        if (mounted && _marked == mark && !_menu.isOpen) {
+          setState(() => _marked = null);
+        }
+      }),
+    );
+  }
+
+  /// [before] back, with each field's words as they were.
+  void _restore(
+    ({List<PageBlock> blocks, Set<String> folded, String? current}) before,
+  ) {
+    void words(PageBlock b) {
+      if (b case PageTable(:final rows)) {
+        for (final (r, row) in rows.indexed) {
+          for (final (c, cell) in row.indexed) {
+            final key = 'c:${b.id}:$r:$c';
+            if (existingField(key) != null) setField(key, cell, cell.length);
+          }
+        }
+        return;
+      }
+      final text = switch (b) {
+        PageToggle(:final text) => text,
+        _ => lineWords(b),
+      };
+      final key = 't:${b.id}';
+      if (text != null && existingField(key) != null) {
+        setField(key, text, text.length);
+      }
+      if (b case PageToggle(:final children)) children.forEach(words);
+    }
+
+    before.blocks.forEach(words);
+    _folded
+      ..clear()
+      ..addAll(before.folded);
+    currentBlockId = before.current;
+    _marked = null;
+    _set(before.blocks);
+    if (before.current case final id?) {
+      final b = before.blocks.where((b) => b.id == id).firstOrNull;
+      if (b != null && b is! PageDivider && b is! PageVoice) {
+        focusBlockLater(_focusKey(b));
+      }
+    }
+  }
+
+  // Folds ---------------------------------------------------------------------
+
+  /// A fold arrow tapped: the lines under [id] slide shut or open, and the
+  /// note keeps it.
   void _fold(String id) {
-    setState(() => _folded.contains(id) ? _folded.remove(id) : _folded.add(id));
-    blocksEdited();
+    if (_closing != null || _opening != null) _endFold();
+    final closing = !_folded.contains(id);
+    if (_still) {
+      setState(() => closing ? _folded.add(id) : _folded.remove(id));
+      blocksEdited();
+      return;
+    }
+    setState(() {
+      if (closing) {
+        _closing = id;
+      } else {
+        _folded.remove(id);
+        _opening = id;
+      }
+    });
+    _foldMotion.forward(from: 0);
+    if (!closing) blocksEdited();
+  }
+
+  /// The fold's slide is over: a line folded shut hides its lines now.
+  void _endFold() {
+    final closing = _closing;
+    setState(() {
+      if (closing != null) _folded.add(closing);
+      _closing = null;
+      _opening = null;
+    });
+    if (closing != null) blocksEdited();
+  }
+
+  /// +1 while [index]'s line slides open under its fold, -1 while it slides
+  /// shut, 0 otherwise.
+  int _folding(int index) {
+    for (final (id, way) in [(_closing, -1), (_opening, 1)]) {
+      if (id == null) continue;
+      final at = _indexOf(id);
+      if (at >= 0 && index > at && index < subtreeEnd(editBlocks, at)) {
+        return way;
+      }
+    }
+    return 0;
   }
 
   /// The field a block's cursor goes to.
@@ -341,6 +558,25 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       return;
     }
     focusBlock(_focusKey(b));
+  }
+
+  /// + on the bar (review 98): the grid is for a new line below the line
+  /// being written and its children, at its level; an empty text line is
+  /// turned itself.
+  void lineForGrid() {
+    if (!widget.writing) return;
+    closeSlash();
+    editBlocks = collectBlocks();
+    if (editBlocks.isEmpty) return;
+    final at = _current;
+    final here = editBlocks[at];
+    if (here is PageText && here.text.isEmpty) {
+      currentBlockId = here.id;
+      return;
+    }
+    final line = PageText(newUuid(), '', indent: here.indent);
+    currentBlockId = line.id;
+    _set([...editBlocks]..insert(subtreeEnd(editBlocks, at), line));
   }
 
   /// A tile in the grid (NBX2): an empty line turns into [kind]; otherwise
@@ -374,6 +610,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     if (empty) {
       dropField('t:${here.id}');
       blocks[at] = block;
+      if (kind != NoteBlockKind.of(here)) _changedKind();
     } else {
       blocks.insert(here == null ? 0 : subtreeEnd(blocks, at), block);
     }
@@ -400,152 +637,352 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     _set(blocks);
   }
 
-  @override
-  void slashAt(String filter, {int? replace, (int, String)? intoToggle}) =>
-      unawaited(_slash(filter, replace: replace, intoToggle: intoToggle));
+  /// A light click: a line changed kind (review 98).
+  void _changedKind() => unawaited(HapticFeedback.selectionClick());
 
-  /// "/" (NBX2's "or type /"): the same list as Work's page, with a
-  /// note's kinds.
-  Future<void> _slash(
-    String filter, {
-    int? replace,
-    (int, String)? intoToggle,
-  }) async {
-    final l10n = AppLocalizations.of(context);
-    final f = filter.toLowerCase();
-    final kinds = [
-      for (final k in NoteBlockKind.values)
-        if (k != NoteBlockKind.voice &&
-            (intoToggle == null ||
-                (k != NoteBlockKind.toggle && k != NoteBlockKind.table)) &&
-            (f.isEmpty || k.label(l10n).toLowerCase().startsWith(f)))
-          k,
-    ];
-    if (kinds.isEmpty) return;
-    final picked = await showPageBlockMenu<NoteBlockKind>(
-      context,
-      title: l10n.notebookCategories,
-      items: [
-        for (final k in kinds) (value: k, label: k.label(l10n), icon: k.icon),
-      ],
-      keyOf: (k) => k.name,
-    );
-    if (picked == null || !mounted) return;
-    if (intoToggle != null) {
-      _intoToggle(intoToggle, picked);
-      return;
+  // "/" and the typed shortcuts (review 98) -----------------------------------
+
+  /// The toggle [key]'s field is a line of, and that line's id.
+  (int, String)? _toggleOf(String key) {
+    final id = PageBlockEditing.blockIdOfKey(key);
+    for (final (i, b) in editBlocks.indexed) {
+      if (b case PageToggle(:final children)
+          when b.id != id && children.any((c) => c.id == id)) {
+        return (i, id!);
+      }
     }
-    if (replace != null) currentBlockId = editBlocks[replace].id;
-    insertKind(picked);
+    return null;
   }
 
-  /// A kind picked on a toggle's line: that line turns into it.
+  /// "/" lists the grid's kinds (but a voice note: hold the mic), by
+  /// their names in English and Arabic and a few simple words, each with
+  /// its shortcut; a toggle's own line takes no toggle and no table.
+  @override
+  List<PageSlashItem> slashItems(String key) {
+    if (!widget.writing) return const [];
+    final l10n = AppLocalizations.of(context);
+    final inToggle = _toggleOf(key) != null;
+    return [
+      for (final k in NoteBlockKind.values)
+        if (k != NoteBlockKind.voice &&
+            !(inToggle &&
+                (k == NoteBlockKind.toggle || k == NoteBlockKind.table)))
+          (
+            value: k,
+            key: k.name,
+            label: k.label(l10n),
+            icon: k.icon,
+            shortcut: k.shortcut,
+            words: [
+              for (final w in slashLanguages) ...[k.label(w), k.find(w)],
+            ],
+          ),
+    ];
+  }
+
+  /// A kind from "/": an empty line becomes it; a line with words turns
+  /// into it keeping them, or, for a table or a divider, it goes after.
+  @override
+  void slashPicked(String key, Object value) {
+    if (value is! NoteBlockKind) return;
+    if (_toggleOf(key) case final where?) {
+      _intoToggle(where, value);
+      return;
+    }
+    editBlocks = collectBlocks();
+    final index = _indexOf(PageBlockEditing.blockIdOfKey(key) ?? '');
+    if (index < 0) return;
+    final b = editBlocks[index];
+    currentBlockId = b.id;
+    final words = lineWords(b) ?? '';
+    if (words.isEmpty || lineOf(value, b.id, words) == null) {
+      insertKind(value);
+      return;
+    }
+    if (value != NoteBlockKind.of(b)) _turn(index, value);
+  }
+
+  /// A kind picked on a toggle's line: that line turns into it, keeping
+  /// its words.
   void _intoToggle((int, String) where, NoteBlockKind kind) {
     final (index, childId) = where;
     editBlocks = collectBlocks();
     final t = editBlocks[index] as PageToggle;
-    final block = lineOf(kind, childId, '') ?? PageDivider(childId);
-    dropField('t:$childId');
+    final child = t.children.where((c) => c.id == childId).firstOrNull;
+    final words = child == null ? '' : lineWords(child) ?? '';
+    final block = lineOf(kind, childId, words) ?? PageDivider(childId);
+    if (block is PageDivider) dropField('t:$childId');
+    _changedKind();
     setState(
       () => editBlocks[index] = PageToggle(t.id, t.text, [
         for (final c in t.children) c.id == childId ? block : c,
-      ]),
+      ], indent: t.indent),
     );
     if (block is! PageDivider) focusBlockLater('t:$childId');
     blocksEdited();
   }
 
+  /// "1. ", "- ", "[] ", "# ", "> ", '" ' or "--- " at the start of a text
+  /// line on the page turns it into that kind; the typed characters go,
+  /// and Undo gives them back as text.
   @override
-  Future<void> blockMenu(int index) async {
-    final l10n = AppLocalizations.of(context);
+  bool typedShortcut(String key, String before, String after) {
+    final kind = NoteBlockKind.typed(before);
+    if (kind == null || !widget.writing) return false;
+    final index = _indexOf(PageBlockEditing.blockIdOfKey(key) ?? '');
+    if (index < 0 || editBlocks[index] is! PageText) return false;
+    final undo = _snap();
     editBlocks = collectBlocks();
     final b = editBlocks[index];
-    final words = lineWords(b);
+    final l10n = AppLocalizations.of(context);
+    _changedKind();
+    if (kind == NoteBlockKind.divider) {
+      // The line becomes the divider; what was after the dashes goes on a
+      // new text line under it, with the cursor.
+      final line = PageText(newUuid(), after, indent: b.indent);
+      dropField(key);
+      currentBlockId = line.id;
+      _set([...editBlocks]..replaceRange(index, index + 1, [
+          PageDivider(b.id, indent: b.indent),
+          line,
+        ]));
+      focusBlockLater('t:${line.id}');
+    } else {
+      setField(key, after, 0);
+      final block = lineOf(kind, b.id, after, indent: b.indent)!;
+      if (!holdsChildren(block)) _folded.remove(b.id);
+      _set([...editBlocks]..[index] = block);
+      focusBlockLater(key);
+    }
+    _undoBar(l10n.notebookUndoTurned(kind.label(l10n)), undo);
+    return true;
+  }
+
+  // The line menu (review 98 NBY2) --------------------------------------------
+
+  /// ⋮⋮ tapped, or the line's marker held: the line menu next to the line,
+  /// the line tinted.
+  @override
+  Future<void> blockMenu(int index) async {
+    if (!widget.writing) return;
+    closeSlash();
+    editBlocks = collectBlocks();
+    final id = editBlocks[index].id;
+    setState(() {
+      _marked = id;
+      _turning = false;
+    });
+    _menu.show(
+      context,
+      anchor: () => _rows[id]?.currentContext,
+      atEnd: true,
+      barrier: true,
+      gap: BvLineMenuSpec.menuGap,
+      onDismiss: _closeMenu,
+      builder: (context) => _menuCard(context, id),
+    );
+  }
+
+  void _closeMenu({bool keepMark = false}) {
+    _menu.hide();
+    if (!mounted) return;
+    setState(() {
+      if (!keepMark) _marked = null;
+      _turning = false;
+    });
+  }
+
+  /// The menu's rows, those that can act only: Turn into ›, Move up, Move
+  /// down, Indent, Outdent, Duplicate, Continue numbering or Restart at 1,
+  /// Delete; or, after Turn into, the kinds the line can become.
+  Widget _menuCard(BuildContext context, String id) {
+    final l10n = AppLocalizations.of(context);
+    final index = _indexOf(id);
+    if (index < 0) return const SizedBox.shrink();
+    final b = editBlocks[index];
     final now = NoteBlockKind.of(b);
-    // Review 93: on one screen, Continue numbering (when it applies),
-    // Restart at 1 (a numbered line), Turn into › (the kinds on a sheet of
-    // their own), then Delete.
-    final goOn = continueAt(editBlocks, index);
-    final picked = await showBvSheet<Object>(
-      context: context,
-      builder: (sheet) => Column(
-        key: const Key('page-block-menu'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (goOn != null)
-            BvListRow(
-              key: const Key('page-continue-numbering'),
-              leading: const BvRowIcon(BvIcons.numberList),
-              title: l10n.notebookContinueNumbering(goOn),
-              trailing: const BvRowTrailing.none(),
-              onTap: () => Navigator.of(sheet).pop(_continue),
-            ),
-          if (b is PageNumbered)
-            BvListRow(
-              key: const Key('page-restart-numbering'),
-              leading: const BvRowIcon(BvIcons.restartNumbering),
-              title: l10n.notebookRestartNumbering,
-              trailing: const BvRowTrailing.none(),
-              onTap: () => Navigator.of(sheet).pop(_restart),
-            ),
-          if (words != null)
-            BvListRow(
-              key: const Key('page-turn-into'),
-              leading: BvRowIcon(now.icon),
-              title: l10n.pageTurnInto,
-              trailing: const BvRowTrailing.chevron(),
-              onTap: () => Navigator.of(sheet).pop(_turnInto),
-            ),
-          BvListRow(
-            key: const Key('page-block-delete'),
-            leading: const BvRowIcon(BvIcons.delete, destructive: true),
-            title: l10n.pageDelete,
-            destructive: true,
-            trailing: const BvRowTrailing.none(),
-            onTap: () => Navigator.of(sheet).pop(_delete),
-          ),
-        ],
-      ),
-    );
-    if (picked == null || !mounted) return;
-    if (picked == _delete) {
-      unawaited(_deleteLine(index));
-      return;
-    }
-    if (picked == _continue || picked == _restart) {
-      editBlocks = collectBlocks();
-      final line = editBlocks[index];
-      if (line is! PageNumbered) return;
-      _set([
-        ...editBlocks.take(index),
-        picked == _restart
-            ? line.startingAt(1)
-            : continued(editBlocks, index, goOn!),
-        ...editBlocks.skip(index + 1),
-      ]);
-      return;
-    }
-    if (picked != _turnInto || words == null) return;
-    final kind = await showBvSheet<NoteBlockKind>(
-      context: context,
-      title: l10n.pageTurnInto,
-      builder: (sheet) => Column(
+    if (_turning) {
+      return BvPopoverMenu<Object>.line(
         key: const Key('page-turn-menu'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+        selected: now,
+        items: [
           for (final k in NoteBlockKind.words)
-            BvListRow(
+            BvMenuItem(
               key: Key('page-turn-${k.name}'),
-              leading: BvRowIcon(k.icon),
-              title: k.label(l10n),
-              trailing: BvRowTrailing.check(selected: k == now),
-              onTap: () => Navigator.of(sheet).pop(k),
+              value: k,
+              label: k.label(l10n),
+              icon: k.icon,
+              shortcut: k.shortcut,
             ),
         ],
-      ),
+        onSelected: (v) => _menuPicked(id, v),
+      );
+    }
+    final blocks = editBlocks;
+    final goOn = continueAt(blocks, index);
+    return BvPopoverMenu<Object>.line(
+      key: const Key('page-block-menu'),
+      items: [
+        if (lineWords(b) != null)
+          BvMenuItem(
+            key: const Key('page-turn-into'),
+            value: _turnInto,
+            label: l10n.notebookLineTurnInto,
+            icon: BvIcons.turnInto,
+            more: true,
+          ),
+        if (canMoveUp(blocks, index))
+          BvMenuItem(
+            key: const Key('page-move-up'),
+            value: _up,
+            label: l10n.notebookMoveUp,
+            icon: BvIcons.moveUp,
+          ),
+        if (canMoveDown(blocks, index))
+          BvMenuItem(
+            key: const Key('page-move-down'),
+            value: _down,
+            label: l10n.notebookMoveDown,
+            icon: BvIcons.moveDown,
+          ),
+        if (canIndent(blocks, index))
+          BvMenuItem(
+            key: const Key('page-indent'),
+            value: _indent,
+            label: l10n.notebookLineIndent,
+            icon: BvIcons.indent,
+          ),
+        if (canOutdent(blocks, index))
+          BvMenuItem(
+            key: const Key('page-outdent'),
+            value: _out,
+            label: l10n.notebookOutdent,
+            icon: BvIcons.outdent,
+          ),
+        if (canDuplicate(blocks, index))
+          BvMenuItem(
+            key: const Key('page-duplicate'),
+            value: _duplicate,
+            label: l10n.notebookDuplicate,
+            icon: BvIcons.duplicate,
+          ),
+        if (goOn != null)
+          BvMenuItem(
+            key: const Key('page-continue-numbering'),
+            value: _continue,
+            label: l10n.notebookContinueNumbering(goOn),
+            icon: BvIcons.numberList,
+          ),
+        // Any numbered line, as review 93 has it.
+        if (b is PageNumbered)
+          BvMenuItem(
+            key: const Key('page-restart-numbering'),
+            value: _restart,
+            label: l10n.notebookLineRestart,
+            icon: BvIcons.restartNumbering,
+          ),
+        BvMenuItem(
+          key: const Key('page-block-delete'),
+          value: _delete,
+          label: l10n.notebookLineDelete,
+          icon: BvIcons.delete,
+          destructive: true,
+        ),
+      ],
+      onSelected: (v) => _menuPicked(id, v),
     );
-    if (kind == null || kind == now || !mounted) return;
-    _turn(index, kind);
+  }
+
+  void _menuPicked(String id, Object picked) {
+    final l10n = AppLocalizations.of(context);
+    editBlocks = collectBlocks();
+    final index = _indexOf(id);
+    if (index < 0) {
+      _closeMenu();
+      return;
+    }
+    if (picked == _turnInto) {
+      setState(() => _turning = true);
+      _menu.rebuild();
+      return;
+    }
+    final before = _snap();
+    switch (picked) {
+      case NoteBlockKind kind:
+        _closeMenu();
+        if (kind == NoteBlockKind.of(editBlocks[index])) return;
+        _turn(index, kind);
+        _undoBar(l10n.notebookUndoTurned(kind.label(l10n)), before);
+      case _up || _down:
+        _closeMenu(keepMark: true);
+        _move(index, up: picked == _up);
+        _undoBar(l10n.notebookUndoMoved, before, mark: id);
+      case _indent:
+        _closeMenu();
+        _set(indented(editBlocks, index));
+        _undoBar(l10n.notebookUndoIndented, before);
+      case _out:
+        _closeMenu();
+        _set(outdented(editBlocks, index));
+        _undoBar(l10n.notebookUndoOutdented, before);
+      case _duplicate:
+        _closeMenu();
+        _set(duplicated(editBlocks, index, newUuid));
+        _undoBar(l10n.notebookUndoDuplicated, before);
+      case _continue || _restart:
+        _closeMenu();
+        final line = editBlocks[index];
+        final goOn = continueAt(editBlocks, index);
+        if (line is! PageNumbered || (picked == _continue && goOn == null)) {
+          return;
+        }
+        _set([
+          ...editBlocks.take(index),
+          picked == _restart
+              ? line.startingAt(1)
+              : continued(editBlocks, index, goOn!),
+          ...editBlocks.skip(index + 1),
+        ]);
+      case _delete:
+        _closeMenu();
+        unawaited(_deleteLine(index));
+    }
+    focusCurrent();
+  }
+
+  /// Move up or Move down: the line and its children over the whole group
+  /// next to them at their level; both slide to their place (review 98).
+  void _move(int index, {required bool up}) {
+    final blocks = editBlocks;
+    final end = subtreeEnd(blocks, index);
+    final (from, to) = up
+        ? (
+            blocks.lastIndexWhere(
+              (b) => b.indent == blocks[index].indent,
+              index - 1,
+            ),
+            index,
+          )
+        : (end, subtreeEnd(blocks, end));
+    final shown = visibleLines(blocks, _folded).toSet();
+    double tall(int start, int stop) => [
+      for (var i = start; i < stop; i++)
+        if (shown.contains(i))
+          (_rows[blocks[i].id]?.currentContext?.size?.height ?? 0),
+    ].fold(0, (a, b) => a + b);
+    final group = tall(index, end);
+    final other = tall(from, to);
+    _slideFrom.clear();
+    if (!_still) {
+      for (var i = index; i < end; i++) {
+        _slideFrom[blocks[i].id] = up ? other : -other;
+      }
+      for (var i = from; i < to; i++) {
+        _slideFrom[blocks[i].id] = up ? -group : group;
+      }
+    }
+    _set(up ? movedUp(blocks, index) : movedDown(blocks, index));
+    if (_slideFrom.isNotEmpty) _slide.forward(from: 0);
   }
 
   /// The line at [index] becomes [kind], keeping its words, its id, its
@@ -557,13 +994,13 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final block = lineOf(kind, b.id, lineWords(b) ?? '', indent: b.indent);
     if (block == null) return;
     if (!holdsChildren(block)) _folded.remove(b.id);
+    if (kind != NoteBlockKind.of(b)) _changedKind();
     _set([...editBlocks]..[index] = block);
     focusBlockLater('t:${b.id}');
   }
 
-  /// Delete on ⋮⋮: the line goes and its children move up a level; a
-  /// folded line asks first, then goes with the lines under it. Undo puts
-  /// it all back.
+  /// Delete: the line goes and its children move up a level; a folded line
+  /// asks first, then goes with the lines under it. Undo puts it all back.
   Future<void> _deleteLine(int index) async {
     final l10n = AppLocalizations.of(context);
     editBlocks = collectBlocks();
@@ -581,33 +1018,24 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       if (!yes || !mounted) return;
       editBlocks = collectBlocks();
     }
-    final before = [...editBlocks];
-    final folded = {..._folded};
+    final before = _snap();
+    final gone = editBlocks[index].id;
+    if (currentBlockId == gone) {
+      final shown = visibleLines(editBlocks, _folded);
+      final at = shown.indexOf(index);
+      currentBlockId = at > 0 ? editBlocks[shown[at - 1]].id : null;
+    }
     _set(
       whole
           ? withoutSubtree(editBlocks, index)
           : withoutLifting(editBlocks, index),
     );
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(l10n.pageDeleted),
-          action: SnackBarAction(
-            key: const Key('page-undo'),
-            label: l10n.spacesUndo,
-            onPressed: () {
-              if (!mounted) return;
-              _folded.addAll(folded);
-              _set(before);
-            },
-          ),
-        ),
-      );
+    _undoBar(l10n.notebookUndoDeleted, before);
   }
 
-  /// A drag on ⋮⋮ ([from] and [to] count the lines shown): the line moves
-  /// with its children, to the level of the line it lands before.
+  /// A drag on ⋮⋮ (a tablet; [from] and [to] count the lines shown): the
+  /// line moves with its children, to the level of the line it lands
+  /// before.
   @override
   void moveBlock(int from, int to) {
     editBlocks = collectBlocks();
@@ -719,12 +1147,14 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   }
 
   /// Each line at its level, with room for a fold arrow when a line of
-  /// its list has children (review 93).
+  /// its list has children (review 93); the arrow turns as its lines slide
+  /// shut or open (review 98).
   @override
   Widget decorateBlock(int index, PageBlock b, Widget child) {
     final l10n = AppLocalizations.of(context);
     final arrow = folds(editBlocks, index);
-    final open = !_folded.contains(b.id);
+    final open = !_folded.contains(b.id) && _closing != b.id;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return Padding(
       padding: EdgeInsetsDirectional.only(
         start: b.indent * BvNoteBlocksSpec.indent,
@@ -749,10 +1179,21 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
                             key: Key('note-fold-${b.id}'),
                             behavior: HitTestBehavior.opaque,
                             onTap: () => _fold(b.id),
-                            child: Icon(
-                              open ? BvIcons.caretDown : BvIcons.caretForward,
-                              size: BvNoteBlocksSpec.foldIcon,
-                              color: BvColors.iconSecondary,
+                            // The caret points down while open and, shut,
+                            // forward (a quarter turn to the reading side).
+                            child: AnimatedRotation(
+                              turns: open
+                                  ? 0
+                                  : rtl
+                                  ? BvNoteBlocksSpec.foldTurn
+                                  : -BvNoteBlocksSpec.foldTurn,
+                              duration: _still ? Duration.zero : BvMotion.slide,
+                              curve: BvMotion.standard,
+                              child: const Icon(
+                                BvIcons.caretDown,
+                                size: BvNoteBlocksSpec.foldIcon,
+                                color: BvColors.iconSecondary,
+                              ),
                             ),
                           ),
                         )
@@ -764,11 +1205,28 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     );
   }
 
+  /// A list line's marker (number, bullet or box): held, it opens the line
+  /// menu (review 98); holding the words still selects them.
+  Widget _marker(int index, PageBlock b, Widget marker) =>
+      !widget.writing || editBlocks[index].id != b.id
+      ? marker
+      : GestureDetector(
+          key: Key('note-marker-${b.id}'),
+          behavior: HitTestBehavior.opaque,
+          onLongPress: () {
+            currentBlockId = b.id;
+            unawaited(blockMenu(index));
+          },
+          child: marker,
+        );
+
   @override
   Widget hostBlock(int index, PageBlock b) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final style = type.bodyMd.copyWith(color: BvColors.textPrimary);
+    // A toggle's own lines take no "/" here: the toggle's field does.
+    final onPage = index < editBlocks.length && editBlocks[index].id == b.id;
     Widget line(PageLine b, String hint, {TextStyle? textStyle}) => blockText(
       't:${b.id}',
       b.text,
@@ -776,6 +1234,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       hint: hint,
       maxLength: Note.lineMax,
       readOnly: !widget.writing,
+      slash: onPage,
       onEnter: () => _enter(index),
       onStartBack: () => _back(index),
     );
@@ -785,10 +1244,14 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
           key: Key('note-todo-${b.id}'),
           spacing: BvNoteBlocksSpec.lineGap,
           children: [
-            NoteTick(
-              key: Key('note-tick-${b.id}'),
-              ticked: done,
-              onTap: () => _tick(index),
+            _marker(
+              index,
+              b,
+              NoteTick(
+                key: Key('note-tick-${b.id}'),
+                ticked: done,
+                onTap: () => _tick(index),
+              ),
             ),
             Expanded(
               child: line(
@@ -809,7 +1272,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         return Row(
           spacing: BvNoteBlocksSpec.lineGap,
           children: [
-            const NoteBullet(),
+            _marker(index, b, const NoteBullet()),
             Expanded(child: line(b, l10n.notebookListHint)),
           ],
         );
@@ -817,7 +1280,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         return Row(
           spacing: BvNoteBlocksSpec.lineGap,
           children: [
-            NoteNumber(_label(index, b)),
+            _marker(index, b, NoteNumber(_label(index, b))),
             Expanded(child: line(b, l10n.notebookListHint)),
           ],
         );
@@ -885,11 +1348,67 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
           padding: const EdgeInsets.only(top: BvNoteBlocksSpec.blockGap),
           itemCount: shown.length,
           onReorderItem: moveBlock,
-          itemBuilder: (context, i) => blockRow(shown[i], listIndex: i),
+          itemBuilder: (context, i) {
+            final id = editBlocks[shown[i]].id;
+            return _LineMotion(
+              key: _rows.putIfAbsent(id, GlobalKey.new),
+              slide: _slide,
+              from: _slideFrom[id] ?? 0,
+              fold: _foldMotion,
+              folding: _folding(shown[i]),
+              child: blockRow(shown[i], listIndex: i),
+            );
+          },
         ),
       ],
     );
   }
+}
+
+/// A line's row as it moves (review 98): slid from [from] to its place as
+/// [slide] runs (Move up, Move down), and shut or opened as [fold] runs
+/// ([folding] -1 or +1) under a fold. Always the same widgets, so a line's
+/// field keeps its keyboard while it moves.
+class _LineMotion extends StatelessWidget {
+  const _LineMotion({
+    super.key,
+    required this.slide,
+    required this.from,
+    required this.fold,
+    required this.folding,
+    required this.child,
+  });
+
+  final Animation<double> slide;
+  final double from;
+  final Animation<double> fold;
+  final int folding;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: Listenable.merge([slide, fold]),
+    builder: (context, child) {
+      final shut = BvMotion.standard.transform(fold.value);
+      final slid = BvMotion.standard.transform(slide.value);
+      return ClipRect(
+        clipBehavior: folding == 0 ? Clip.none : Clip.hardEdge,
+        child: Align(
+          alignment: AlignmentDirectional.topStart,
+          heightFactor: switch (folding) {
+            > 0 => shut,
+            < 0 => 1 - shut,
+            _ => 1,
+          },
+          child: Transform.translate(
+            offset: Offset(0, from * (1 - slid)),
+            child: child,
+          ),
+        ),
+      );
+    },
+    child: child,
+  );
 }
 
 /// A to-do's box (NBX3): 18, radius 4, a grey edge; ticked, filled in the

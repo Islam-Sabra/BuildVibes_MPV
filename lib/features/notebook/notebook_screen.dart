@@ -273,6 +273,9 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       _editorKey.currentState?.focusCurrent();
       return;
     }
+    // Review 98: the grid is for a new line below this one (an empty text
+    // line is turned itself).
+    _editorKey.currentState?.lineForGrid();
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _kind = _editorKey.currentState?.currentKind ?? _kind;
@@ -1028,7 +1031,8 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   }
 
   /// The additions bar (NBX1 2619:36779): + for the categories, ⇥ and ⇤
-  /// while the line being written can move (review 93), a thin line, then
+  /// each only while the line being written can move that way (review 93;
+  /// review 98 NBY3, NBY4: hidden, not greyed), a thin line, then
   /// Location, Image, File, Date, Remind me and Voice, then Send. An
   /// addition in use is tinted; Send is grey until there is something to
   /// keep.
@@ -1046,20 +1050,20 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       ),
       categoriesOpen: _panel == _Panel.categories,
       beside: [
-        if (deeper || out) ...[
+        if (deeper)
           BvWritingTool(
             key: const Key('note-tool-indent'),
             icon: BvIcons.indent,
             label: l10n.notebookIndent,
-            onTap: deeper ? () => editor!.indentCurrent() : null,
+            onTap: () => editor!.indentCurrent(),
           ),
+        if (out)
           BvWritingTool(
             key: const Key('note-tool-outdent'),
             icon: BvIcons.outdent,
             label: l10n.notebookOutdent,
-            onTap: out ? () => editor!.outdentCurrent() : null,
+            onTap: () => editor!.outdentCurrent(),
           ),
-        ],
       ],
       tools: [
         BvWritingTool(
