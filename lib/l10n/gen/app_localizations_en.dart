@@ -4547,6 +4547,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookRemindPast => 'Pick a time still to come.';
 
   @override
+  String get notebookExactTitle => 'On-time reminders';
+
+  @override
+  String get notebookExactBody =>
+      'To remind you on the minute, allow exact alarms for BuildVibes.';
+
+  @override
+  String get notebookExactOpen => 'Open settings';
+
+  @override
+  String get notebookExactNotNow => 'Not now';
+
+  @override
   String get notebookNow => 'Now';
 
   @override

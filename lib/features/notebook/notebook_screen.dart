@@ -13,6 +13,8 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
 import '../../core/photo_privacy.dart' show photosPreparingProvider;
 import '../../core/l10n/bidi.dart';
+import '../../core/l10n/locale_controller.dart' show sharedPreferencesProvider;
+import '../../core/push/reminders.dart' show phoneRemindersProvider;
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/note.dart';
@@ -352,7 +354,31 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       _toast(l10n.notebookRemindPast);
       return null;
     }
+    if (at != null) await _offerExact();
     return (value: at);
+  }
+
+  static const _exactAskedKey = 'notebook_exact_asked';
+
+  /// The first Remind me, on a phone that keeps alarms inexact (Android
+  /// 12+): asked once, with one line why, to allow exact alarms in the
+  /// phone's own setting. Refused or not now, reminders stay inexact.
+  Future<void> _offerExact() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final reminders = ref.read(phoneRemindersProvider);
+    if (prefs.getBool(_exactAskedKey) ?? false) return;
+    if (await reminders.canBeExact()) return;
+    await prefs.setBool(_exactAskedKey, true);
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final open = await showBvDialog(
+      context: context,
+      title: l10n.notebookExactTitle,
+      body: l10n.notebookExactBody,
+      cancelLabel: l10n.notebookExactNotNow,
+      confirmLabel: l10n.notebookExactOpen,
+    );
+    if (open) await reminders.openExactSetting();
   }
 
   /// Image (NBX3): the camera or the gallery, made safe to leave the

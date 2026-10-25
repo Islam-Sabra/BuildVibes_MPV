@@ -40,4 +40,13 @@ class FakePhoneReminders implements PhoneReminders {
     onPhone.remove(noteId);
     calls.add('cancel $noteId');
   }
+
+  /// Whether the phone allows exact alarms (Android 12+ asks the person).
+  bool exact = true;
+
+  @override
+  Future<bool> canBeExact() async => exact;
+
+  @override
+  Future<void> openExactSetting() async => calls.add('exact setting');
 }

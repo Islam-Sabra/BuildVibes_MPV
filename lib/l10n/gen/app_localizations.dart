@@ -7634,6 +7634,30 @@ abstract class AppLocalizations {
   /// **'Pick a time still to come.'**
   String get notebookRemindPast;
 
+  /// Asked once, at the first Remind me, when the phone keeps alarms inexact (Android 12+).
+  ///
+  /// In en, this message translates to:
+  /// **'On-time reminders'**
+  String get notebookExactTitle;
+
+  /// The one line why, before opening the phone's exact alarms setting.
+  ///
+  /// In en, this message translates to:
+  /// **'To remind you on the minute, allow exact alarms for BuildVibes.'**
+  String get notebookExactBody;
+
+  /// Opens the phone's own exact alarms setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get notebookExactOpen;
+
+  /// Keeps reminders inexact; never asked again.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notebookExactNotNow;
+
   /// A note being written in My notebook: its time, at the end of its first line (F106 NBW1).
   ///
   /// In en, this message translates to:

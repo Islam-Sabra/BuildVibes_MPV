@@ -4555,6 +4555,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemindPast => 'اختر وقتًا لم يأتِ بعد.';
 
   @override
+  String get notebookExactTitle => 'تذكيرات في موعدها';
+
+  @override
+  String get notebookExactBody =>
+      'لتصلك التذكيرات في موعدها بالدقيقة، اسمح بالمنبّهات الدقيقة لـ BuildVibes.';
+
+  @override
+  String get notebookExactOpen => 'فتح الإعدادات';
+
+  @override
+  String get notebookExactNotNow => 'ليس الآن';
+
+  @override
   String get notebookNow => 'الآن';
 
   @override

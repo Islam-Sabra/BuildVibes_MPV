@@ -6571,6 +6571,22 @@
   "@notebookRemindPast": {
     "description": "Remind me: the time picked has passed."
   },
+  "notebookExactTitle": "On-time reminders",
+  "@notebookExactTitle": {
+    "description": "Asked once, at the first Remind me, when the phone keeps alarms inexact (Android 12+)."
+  },
+  "notebookExactBody": "To remind you on the minute, allow exact alarms for BuildVibes.",
+  "@notebookExactBody": {
+    "description": "The one line why, before opening the phone's exact alarms setting."
+  },
+  "notebookExactOpen": "Open settings",
+  "@notebookExactOpen": {
+    "description": "Opens the phone's own exact alarms setting."
+  },
+  "notebookExactNotNow": "Not now",
+  "@notebookExactNotNow": {
+    "description": "Keeps reminders inexact; never asked again."
+  },
   "notebookNow": "Now",
   "@notebookNow": {
     "description": "A note being written in My notebook: its time, at the end of its first line (F106 NBW1)."

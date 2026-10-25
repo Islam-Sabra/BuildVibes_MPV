@@ -29,6 +29,14 @@ abstract class PhoneReminders {
   });
 
   Future<void> cancel(String noteId);
+
+  /// Whether reminders go on the minute: on Android 12+ only once the
+  /// person allows exact alarms; elsewhere always.
+  Future<bool> canBeExact();
+
+  /// Opens the phone's own setting for exact alarms (Android 12+); the
+  /// person decides there. Refused, reminders stay inexact.
+  Future<void> openExactSetting();
 }
 
 final phoneRemindersProvider = Provider<PhoneReminders>(
@@ -132,19 +140,35 @@ class LocalReminders implements PhoneReminders {
   }
 
   /// On time when the phone allows exact alarms (F107 B12: Android's
-  /// inexact window was up to an hour); never asked for, so inexact
-  /// otherwise.
-  Future<AndroidScheduleMode> _mode() async {
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    final exact =
-        android != null &&
-        (await android.canScheduleExactNotifications() ?? false);
-    return exact
-        ? AndroidScheduleMode.exactAllowWhileIdle
-        : AndroidScheduleMode.inexactAllowWhileIdle;
+  /// inexact window was up to an hour); inexact otherwise.
+  Future<AndroidScheduleMode> _mode() async => await canBeExact()
+      ? AndroidScheduleMode.exactAllowWhileIdle
+      : AndroidScheduleMode.inexactAllowWhileIdle;
+
+  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
+
+  @override
+  Future<bool> canBeExact() async {
+    final android = _android;
+    if (android == null) return true;
+    try {
+      return await android.canScheduleExactNotifications() ?? false;
+    } on Object catch (e) {
+      debugPrint('reminder exact check: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<void> openExactSetting() async {
+    try {
+      await _android?.requestExactAlarmsPermission();
+    } on Object catch (e) {
+      debugPrint('reminder exact setting: $e');
+    }
   }
 
   @override
