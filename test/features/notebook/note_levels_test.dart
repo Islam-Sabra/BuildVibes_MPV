@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildvibes/core/design/bv_icons.dart';
+import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
@@ -209,6 +210,7 @@ void main() {
         _n(3, 'Ties', indent: 2),
       ]);
       await _menu(tester, 1);
+      await _tap(tester, _key('page-turn-into'));
       await _tap(tester, _key('page-turn-heading'));
       final blocks = _blocks(tester);
       expect(blocks.first, isA<PageHeading>());
@@ -282,6 +284,98 @@ void main() {
       await _tap(tester, _key('note-fold-${_id(1)}'));
       expect(_line(2), findsOneWidget);
       expect(find.text('a.'), findsOneWidget);
+    });
+
+    testWidgets('a fold is kept: the note opens again folded, and a line '
+        'left with nothing under it keeps no fold [$lang]', (tester) async {
+      await _open(tester, lang, [
+        PageNumbered(_id(1), 'Pour', folded: true),
+        _n(2, 'Rebar', indent: 1),
+        _n(3, 'Cure'),
+      ]);
+      // Opened folded, as it was left.
+      expect(_line(2), findsNothing);
+      expect(find.text('2.'), findsOneWidget);
+      await _tap(tester, _key('note-fold-${_id(1)}'));
+      expect(_line(2), findsOneWidget);
+      expect(_blocks(tester).first.folded, isFalse);
+      await _tap(tester, _key('note-fold-${_id(1)}'));
+      expect(_blocks(tester).first.folded, isTrue);
+      expect(_blocks(tester).first.toJson()['folded'], isTrue);
+      // Unfolded, Rebar out a level: Pour has nothing left to fold.
+      await _tap(tester, _key('note-fold-${_id(1)}'));
+      await _cursor(tester, 2);
+      await _tap(tester, _key('note-tool-outdent'));
+      expect(_blocks(tester).first.folded, isFalse);
+      expect(_key('note-fold-${_id(1)}'), findsNothing);
+    });
+
+    testWidgets('a saved note keeps its fold on its slip and when opened '
+        'again [$lang]', (tester) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        now: NotebookSamples.now,
+        notebook: FakeNotebookRepository(
+          notes: [
+            Note(
+              id: 'note-folded',
+              kind: NoteKind.text,
+              title: 'Level 3 slab',
+              body: 'Level 3 slab',
+              blocks: [
+                PageNumbered(_id(1), 'Pour', folded: true),
+                _n(2, 'Rebar', indent: 1),
+                _n(3, 'Cure'),
+              ],
+              createdAt: DateTime(2026, 10, 15, 9),
+            ),
+          ],
+        ),
+      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/notebook');
+      await tester.pumpAndSettle();
+      expect(find.text('Rebar'), findsNothing);
+      expect(find.text('Cure'), findsOneWidget);
+      await _tap(tester, find.text('Level 3 slab'));
+      expect(_key('note-writing-card'), findsOneWidget);
+      expect(_line(1), findsOneWidget);
+      expect(_line(2), findsNothing);
+      expect(_key('note-fold-${_id(1)}'), findsOneWidget);
+    });
+
+    testWidgets('the ⋮⋮ menu fits one screen: Continue, Restart, Turn into › '
+        'with the kinds on their own sheet, then Delete [$lang]', (
+      tester,
+    ) async {
+      await _open(tester, lang, [
+        _n(1, 'Pour'),
+        PageCallout(_id(2), 'Rain'),
+        _n(3, 'Strip'),
+      ]);
+      await _menu(tester, 3);
+      for (final row in [
+        'page-continue-numbering',
+        'page-restart-numbering',
+        'page-turn-into',
+        'page-block-delete',
+      ]) {
+        expect(_key(row), findsOneWidget, reason: row);
+        // All in sight, on the phone's screen.
+        expect(tester.getRect(_key(row)).bottom, lessThan(844));
+      }
+      expect(_key('page-turn-heading'), findsNothing);
+      await _tap(tester, _key('page-turn-into'));
+      expect(_key('page-turn-menu'), findsOneWidget);
+      expect(find.text(l10n.pageTurnInto), findsOneWidget);
+      await _tap(tester, _key('page-turn-bullets'));
+      expect(_blocks(tester)[2], isA<PageBullet>());
+      // A callout: no numbering rows.
+      await _menu(tester, 2);
+      expect(_key('page-restart-numbering'), findsNothing);
+      expect(_key('page-turn-into'), findsOneWidget);
     });
 
     testWidgets('a numbered line from the grid right under a list goes on '

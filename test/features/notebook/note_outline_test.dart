@@ -243,6 +243,15 @@ void main() {
         'start': 0,
       });
       expect((odd.indent, (odd as PageNumbered).start), (3, null));
+      // A fold is kept only when folded, and on the kinds that fold.
+      final shut = PageBlock.fromJson(
+        PageBullet(_id(6), 'b', folded: true).toJson(),
+      );
+      expect(shut.folded, isTrue);
+      expect(_t(7).withFolded(true).toJson()['folded'], isTrue);
+      expect(_t(8).toJson().containsKey('folded'), isFalse);
+      expect(PageCallout(_id(9), 'c').withFolded(true).folded, isFalse);
+      expect(_n(10).withFolded(true).atIndent(1).folded, isTrue);
       // A heading's own level is its size, apart from its indent.
       final h = PageBlock.fromJson({
         'id': _id(5),

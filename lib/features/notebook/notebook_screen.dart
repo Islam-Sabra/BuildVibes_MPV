@@ -46,7 +46,7 @@ import '../work/daybook_writing.dart'
 import '../work/work_outbox.dart' show keepPhotoProvider, pickPhotoProvider;
 import 'note_draft.dart';
 import 'note_location.dart';
-import 'note_outline.dart' show numberAt, numberLabel;
+import 'note_outline.dart' show numberAt, numberLabel, visibleLines;
 import 'note_page_editor.dart';
 import 'note_reminders.dart' show remindsAt;
 import 'note_writing.dart';
@@ -1433,8 +1433,15 @@ class NotePageSummary extends ConsumerWidget {
     final main = type.bodyMd.copyWith(color: BvColors.textPrimary);
     final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final blocks = note.blocks ?? const <PageBlock>[];
-    final shown = blocks.take(BvNoteBlocksSpec.slipLines).toList();
-    final more = blocks.length > shown.length;
+    // Folded lines hide what is under them here too.
+    final open = visibleLines(blocks, {
+      for (final b in blocks)
+        if (b.folded) b.id,
+    });
+    final shown = [
+      for (final i in open.take(BvNoteBlocksSpec.slipLines)) (i, blocks[i]),
+    ];
+    final more = open.length > shown.length;
     Text line(String text, TextStyle style) => Text(
       text,
       maxLines: 1,
@@ -1532,7 +1539,7 @@ class NotePageSummary extends ConsumerWidget {
             textDirection: directionOf(note.title),
             style: type.headingMd.copyWith(color: BvColors.textPrimary),
           ),
-        for (final (i, b) in shown.indexed)
+        for (final (i, b) in shown)
           Padding(
             padding: EdgeInsetsDirectional.only(
               start: b.indent * BvNoteBlocksSpec.indent,

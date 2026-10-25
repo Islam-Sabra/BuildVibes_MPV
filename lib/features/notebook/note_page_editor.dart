@@ -187,10 +187,11 @@ class NotePageEditor extends ConsumerStatefulWidget {
 
 class NotePageEditorState extends ConsumerState<NotePageEditor>
     with PageBlockEditing<NotePageEditor> {
-  /// The block menu's Delete, Continue numbering and Restart at 1.
+  /// The block menu's Delete, Continue numbering, Restart at 1 and Turn into.
   static const _delete = #delete;
   static const _continue = #goOn;
   static const _restart = #restart;
+  static const _turnInto = #turnInto;
 
   late final _title = TextEditingController(text: widget.title);
 
@@ -220,6 +221,10 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         widget.blocks.isEmpty ? [PageText(newUuid(), '')] : [...widget.blocks],
       ),
     );
+    // The note opens folded as it was left.
+    for (final (i, b) in editBlocks.indexed) {
+      if (b.folded && folds(editBlocks, i)) _folded.add(b.id);
+    }
   }
 
   /// The page as [blocks], put where its lines may be; a fold with
@@ -246,17 +251,21 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   @override
   void blocksEdited() => widget.onChanged(_kept());
 
-  /// Toggles' ready lines aren't kept.
-  List<PageBlock> _kept() => [
-    for (final b in collectBlocks())
-      if (b case PageToggle(:final text, :final children))
-        PageToggle(b.id, text, [
-          for (final c in children)
-            if (!(c is PageText && c.text.isEmpty)) c,
-        ])
-      else
-        b,
-  ];
+  /// Toggles' ready lines aren't kept; each line keeps whether it is
+  /// folded (only a line with children is).
+  List<PageBlock> _kept() {
+    final blocks = collectBlocks();
+    return [
+      for (final (i, b) in blocks.indexed)
+        if (b case PageToggle(:final text, :final children))
+          PageToggle(b.id, text, [
+            for (final c in children)
+              if (!(c is PageText && c.text.isEmpty)) c,
+          ], indent: b.indent)
+        else
+          b.withFolded(_folded.contains(b.id) && folds(blocks, i)),
+    ];
+  }
 
   @override
   void currentBlockChanged() {
@@ -310,10 +319,12 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     _set(outdented(editBlocks, index));
   }
 
-  /// A fold arrow tapped: the lines under [id] hide or show.
-  void _fold(String id) => setState(
-    () => _folded.contains(id) ? _folded.remove(id) : _folded.add(id),
-  );
+  /// A fold arrow tapped: the lines under [id] hide or show, and the note
+  /// keeps it.
+  void _fold(String id) {
+    setState(() => _folded.contains(id) ? _folded.remove(id) : _folded.add(id));
+    blocksEdited();
+  }
 
   /// The field a block's cursor goes to.
   static String _focusKey(PageBlock b) => switch (b) {
@@ -451,14 +462,12 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final b = editBlocks[index];
     final words = lineWords(b);
     final now = NoteBlockKind.of(b);
-    // Review 93: a numbered line can go on from the list before it, or
-    // start again at 1; those come first, and Turn into is named under
-    // them.
+    // Review 93: on one screen, Continue numbering (when it applies),
+    // Restart at 1 (a numbered line), Turn into › (the kinds on a sheet of
+    // their own), then Delete.
     final goOn = continueAt(editBlocks, index);
-    final numbered = b is PageNumbered;
     final picked = await showBvSheet<Object>(
       context: context,
-      title: words == null || numbered ? null : l10n.pageTurnInto,
       builder: (sheet) => Column(
         key: const Key('page-block-menu'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -471,7 +480,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
               trailing: const BvRowTrailing.none(),
               onTap: () => Navigator.of(sheet).pop(_continue),
             ),
-          if (numbered) ...[
+          if (b is PageNumbered)
             BvListRow(
               key: const Key('page-restart-numbering'),
               leading: const BvRowIcon(BvIcons.restartNumbering),
@@ -479,26 +488,14 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
               trailing: const BvRowTrailing.none(),
               onTap: () => Navigator.of(sheet).pop(_restart),
             ),
-            const NoteDividerLine(),
-            Padding(
-              padding: BvNoteBlocksSpec.menuLabelPadding,
-              child: Text(
-                l10n.pageTurnInto,
-                style: BvType.of(
-                  context,
-                ).metadata.copyWith(color: BvColors.textSecondary),
-              ),
-            ),
-          ],
           if (words != null)
-            for (final k in NoteBlockKind.words)
-              BvListRow(
-                key: Key('page-turn-${k.name}'),
-                leading: BvRowIcon(k.icon),
-                title: k.label(l10n),
-                trailing: BvRowTrailing.check(selected: k == now),
-                onTap: () => Navigator.of(sheet).pop(k),
-              ),
+            BvListRow(
+              key: const Key('page-turn-into'),
+              leading: BvRowIcon(now.icon),
+              title: l10n.pageTurnInto,
+              trailing: const BvRowTrailing.chevron(),
+              onTap: () => Navigator.of(sheet).pop(_turnInto),
+            ),
           BvListRow(
             key: const Key('page-block-delete'),
             leading: const BvRowIcon(BvIcons.delete, destructive: true),
@@ -528,8 +525,27 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       ]);
       return;
     }
-    if (words == null || picked is! NoteBlockKind || picked == now) return;
-    _turn(index, picked);
+    if (picked != _turnInto || words == null) return;
+    final kind = await showBvSheet<NoteBlockKind>(
+      context: context,
+      title: l10n.pageTurnInto,
+      builder: (sheet) => Column(
+        key: const Key('page-turn-menu'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final k in NoteBlockKind.words)
+            BvListRow(
+              key: Key('page-turn-${k.name}'),
+              leading: BvRowIcon(k.icon),
+              title: k.label(l10n),
+              trailing: BvRowTrailing.check(selected: k == now),
+              onTap: () => Navigator.of(sheet).pop(k),
+            ),
+        ],
+      ),
+    );
+    if (kind == null || kind == now || !mounted) return;
+    _turn(index, kind);
   }
 
   /// The line at [index] becomes [kind], keeping its words, its id, its

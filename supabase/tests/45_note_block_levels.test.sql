@@ -5,7 +5,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(33);
+select plan(41);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000045' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -86,6 +86,25 @@ select ok(not pg_temp.ok_page(pg_temp.b('numbered', null, '{"start": 2.5}')), 'a
 select ok(not pg_temp.ok_page(pg_temp.b('numbered', null, '{"start": "3"}')), 'a number, not words');
 select ok(not pg_temp.ok_page(pg_temp.b('bullet', null, '{"start": 3}')), 'only a numbered line starts');
 
+-- Folded lines ----------------------------------------------------------------------------------
+
+select ok(pg_temp.ok_page(pg_temp.b('numbered', null, '{"folded": true}'), pg_temp.b('text', '1')),
+  'a line with children folds');
+select ok(pg_temp.ok_page(pg_temp.b('todo', null, '{"folded": false}'), pg_temp.b('bullet', null,
+                          '{"folded": true}'), pg_temp.b('text', '1'), pg_temp.b('text', '0')),
+  'folded or open, on a to-do, a bullet or text');
+select ok(not pg_temp.ok_page(pg_temp.b('numbered', null, '{"folded": true}'), pg_temp.b('text')),
+  'a line with nothing under it doesn''t fold');
+select ok(not pg_temp.ok_page(pg_temp.b('text'), pg_temp.b('numbered', '1', '{"folded": true}')),
+  'not even as the last line');
+select ok(not pg_temp.ok_page(pg_temp.b('callout', null, '{"folded": true}'), pg_temp.b('text', '1')),
+  'a callout can''t fold');
+select ok(not pg_temp.ok_page(pg_temp.b('text', null, '{"folded": "yes"}'), pg_temp.b('text', '1')),
+  'folded is true or false');
+select ok(not pg_temp.ok_page(pg_temp.b('toggle', null, jsonb_build_object('children',
+                                        jsonb_build_array(pg_temp.b('text', null, '{"folded": true}'))))),
+  'a toggle''s own line doesn''t fold');
+
 -- save_note keeps them; the owner alone reads them ---------------------------------------------
 
 select pg_temp.as_user('f1');
@@ -93,7 +112,8 @@ set local role authenticated;
 
 select lives_ok($$select public.save_note(p_id => pg_temp.id('c001'), p_kind => 'text',
   p_body => 'Pour', p_blocks => jsonb_build_array(
-    jsonb_build_object('id', 'c0000000-0000-4000-8000-000000000001', 'type', 'numbered', 'text', 'Pour'),
+    jsonb_build_object('id', 'c0000000-0000-4000-8000-000000000001', 'type', 'numbered', 'text', 'Pour',
+                       'folded', true),
     jsonb_build_object('id', 'c0000000-0000-4000-8000-000000000002', 'type', 'callout',
                        'text', 'Rain', 'indent', 1),
     jsonb_build_object('id', 'c0000000-0000-4000-8000-000000000003', 'type', 'numbered',
@@ -103,6 +123,8 @@ select is((select blocks -> 1 -> 'indent' from public.notes where id = pg_temp.i
   '1'::jsonb, 'the level is kept');
 select is((select blocks -> 2 -> 'start' from public.notes where id = pg_temp.id('c001')),
   '3'::jsonb, 'the start is kept');
+select is((select blocks -> 0 -> 'folded' from public.notes where id = pg_temp.id('c001')),
+  'true'::jsonb, 'the fold is kept');
 select throws_ok($$select public.save_note(p_id => pg_temp.id('c002'), p_kind => 'text',
   p_body => 'x', p_blocks => jsonb_build_array(pg_temp.b('text'), pg_temp.b('text', '1'),
                                                pg_temp.b('text', '2'), pg_temp.b('text', '3'),

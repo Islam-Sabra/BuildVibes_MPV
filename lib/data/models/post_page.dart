@@ -7,7 +7,7 @@ import 'work_item.dart';
 /// checked by `validate_blocks`). Each has its own id, chosen by the app.
 @immutable
 sealed class PageBlock {
-  const PageBlock(this.id, {this.indent = 0});
+  const PageBlock(this.id, {this.indent = 0, this.folded = false});
 
   final String id;
 
@@ -19,15 +19,26 @@ sealed class PageBlock {
   /// Four levels: more is unreadable on a phone.
   static const maxIndent = 3;
 
+  /// A note's text, to-do, bulleted or numbered line with children, folded
+  /// shut (review 93): kept, so the note opens again as it was left.
+  final bool folded;
+
   String get type;
 
   /// The same block at [indent] (a note's lines; Work's blocks stay at 0).
   PageBlock atIndent(int indent) => this;
 
+  /// The same line folded or open (only a line that can be folded).
+  PageBlock withFolded(bool folded) => this;
+
   Map<String, dynamic> toJson();
 
-  /// Kept only when deeper than 0: old notes have none.
-  Map<String, dynamic> get _indentJson => indent > 0 ? {'indent': indent} : {};
+  /// Kept only when deeper than 0, and folded only when folded: old notes
+  /// have neither.
+  Map<String, dynamic> get _indentJson => {
+    if (indent > 0) 'indent': indent,
+    if (folded) 'folded': true,
+  };
 
   /// A block from the server, or [PageOtherBlock] for a kind this page
   /// doesn't edit (a report's work item), kept as it came.
@@ -35,8 +46,9 @@ sealed class PageBlock {
     final id = json['id'] as String? ?? '';
     String text() => json['text'] as String? ?? '';
     final indent = ((json['indent'] as num?)?.toInt() ?? 0).clamp(0, maxIndent);
+    final folded = json['folded'] == true;
     return switch (json['type']) {
-      PageText.kind => PageText(id, text(), indent: indent),
+      PageText.kind => PageText(id, text(), indent: indent, folded: folded),
       PageHeading.kind => PageHeading(
         id,
         text(),
@@ -66,12 +78,14 @@ sealed class PageBlock {
         text(),
         done: json['done'] as bool? ?? false,
         indent: indent,
+        folded: folded,
       ),
-      PageBullet.kind => PageBullet(id, text(), indent: indent),
+      PageBullet.kind => PageBullet(id, text(), indent: indent, folded: folded),
       PageNumbered.kind => PageNumbered(
         id,
         text(),
         indent: indent,
+        folded: folded,
         start: switch ((json['start'] as num?)?.toInt()) {
           final n? when n >= 1 && n <= PageNumbered.startMax => n,
           _ => null,
@@ -93,7 +107,7 @@ sealed class PageBlock {
 }
 
 class PageText extends PageBlock {
-  const PageText(super.id, this.text, {super.indent});
+  const PageText(super.id, this.text, {super.indent, super.folded});
 
   static const kind = 'text';
 
@@ -106,7 +120,12 @@ class PageText extends PageBlock {
   String get type => kind;
 
   @override
-  PageText atIndent(int indent) => PageText(id, text, indent: indent);
+  PageText atIndent(int indent) =>
+      PageText(id, text, indent: indent, folded: folded);
+
+  @override
+  PageText withFolded(bool folded) =>
+      PageText(id, text, indent: indent, folded: folded);
 
   @override
   Map<String, dynamic> toJson() => {
@@ -296,7 +315,7 @@ class PageChildItem extends PageBlock {
 /// One line of words: a to-do, a bullet, a numbered line, a callout or a
 /// quote.
 sealed class PageLine extends PageBlock {
-  const PageLine(super.id, this.text, {super.indent});
+  const PageLine(super.id, this.text, {super.indent, super.folded});
 
   /// is_valid_note_blocks: up to 5,000 characters.
   static const max = 5000;
@@ -320,7 +339,13 @@ sealed class PageLine extends PageBlock {
 
 /// A to-do: ticked or not, by its owner, on the note.
 class PageTodo extends PageLine {
-  const PageTodo(super.id, super.text, {this.done = false, super.indent});
+  const PageTodo(
+    super.id,
+    super.text, {
+    this.done = false,
+    super.indent,
+    super.folded,
+  });
 
   static const kind = 'todo';
 
@@ -331,20 +356,25 @@ class PageTodo extends PageLine {
 
   @override
   PageTodo withText(String text) =>
-      PageTodo(id, text, done: done, indent: indent);
+      PageTodo(id, text, done: done, indent: indent, folded: folded);
 
   @override
   PageTodo atIndent(int indent) =>
-      PageTodo(id, text, done: done, indent: indent);
+      PageTodo(id, text, done: done, indent: indent, folded: folded);
 
-  PageTodo ticked() => PageTodo(id, text, done: !done, indent: indent);
+  @override
+  PageTodo withFolded(bool folded) =>
+      PageTodo(id, text, done: done, indent: indent, folded: folded);
+
+  PageTodo ticked() =>
+      PageTodo(id, text, done: !done, indent: indent, folded: folded);
 
   @override
   Map<String, dynamic> toJson() => {...super.toJson(), 'done': done};
 }
 
 class PageBullet extends PageLine {
-  const PageBullet(super.id, super.text, {super.indent});
+  const PageBullet(super.id, super.text, {super.indent, super.folded});
 
   static const kind = 'bullet';
 
@@ -352,16 +382,28 @@ class PageBullet extends PageLine {
   String get type => kind;
 
   @override
-  PageBullet withText(String text) => PageBullet(id, text, indent: indent);
+  PageBullet withText(String text) =>
+      PageBullet(id, text, indent: indent, folded: folded);
 
   @override
-  PageBullet atIndent(int indent) => PageBullet(id, text, indent: indent);
+  PageBullet atIndent(int indent) =>
+      PageBullet(id, text, indent: indent, folded: folded);
+
+  @override
+  PageBullet withFolded(bool folded) =>
+      PageBullet(id, text, indent: indent, folded: folded);
 }
 
 /// Numbered by its place in a run of numbered lines at its level (review
 /// 93); the number is never kept, only worked out when shown.
 class PageNumbered extends PageLine {
-  const PageNumbered(super.id, super.text, {super.indent, this.start});
+  const PageNumbered(
+    super.id,
+    super.text, {
+    super.indent,
+    super.folded,
+    this.start,
+  });
 
   static const kind = 'numbered';
 
@@ -375,15 +417,19 @@ class PageNumbered extends PageLine {
 
   @override
   PageNumbered withText(String text) =>
-      PageNumbered(id, text, indent: indent, start: start);
+      PageNumbered(id, text, indent: indent, folded: folded, start: start);
 
   @override
   PageNumbered atIndent(int indent) =>
-      PageNumbered(id, text, indent: indent, start: start);
+      PageNumbered(id, text, indent: indent, folded: folded, start: start);
+
+  @override
+  PageNumbered withFolded(bool folded) =>
+      PageNumbered(id, text, indent: indent, folded: folded, start: start);
 
   /// The count starting here at [start], or by itself (null).
   PageNumbered startingAt(int? start) =>
-      PageNumbered(id, text, indent: indent, start: start);
+      PageNumbered(id, text, indent: indent, folded: folded, start: start);
 
   @override
   Map<String, dynamic> toJson() => {

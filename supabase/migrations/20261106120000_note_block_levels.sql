@@ -8,6 +8,9 @@
 -- - A numbered line may carry `start`, where its count begins: a whole
 --   number from 1 to 999 ("Continue numbering" or "Restart at 1"). Numbers
 --   themselves are never kept.
+-- - A text, to-do, bulleted or numbered line may carry `folded`, true or
+--   false: whether the lines under it are folded shut, so the note opens
+--   again as it was left. Folded is true only on a line with children.
 -- - Only is_valid_note_blocks changes; the notes.blocks check and
 --   save_note already call it. Every saved note stays valid.
 
@@ -29,6 +32,7 @@ declare
   v_cell jsonb;
   v_level integer;
   v_before integer := -1;
+  v_shut boolean := false;
   v_text text[] := array['text', 'heading', 'todo', 'bullet', 'numbered', 'toggle',
                          'callout', 'quote'];
 begin
@@ -56,8 +60,19 @@ begin
     if v_level > v_before + 1 then
       return false;
     end if;
+    -- The line before was folded: this one is under it.
+    if v_shut and v_level <= v_before then
+      return false;
+    end if;
+    if v_block ? 'folded' and jsonb_typeof(v_block -> 'folded') <> 'boolean' then
+      return false;
+    end if;
+    v_shut := coalesce((v_block ->> 'folded')::boolean, false);
     v_before := v_level;
   end loop;
+  if v_shut then
+    return false;
+  end if;
   for v_block in
     select b from jsonb_array_elements(p_blocks) b
     union all
@@ -78,11 +93,11 @@ begin
     v_type := v_block ->> 'type';
     select array_agg(k) into v_keys from jsonb_object_keys(v_block) k;
     if v_type is null or not (v_keys <@ (case v_type
-         when 'text' then array['id', 'type', 'text', 'indent']
+         when 'text' then array['id', 'type', 'text', 'indent', 'folded']
          when 'heading' then array['id', 'type', 'text', 'level', 'indent']
-         when 'todo' then array['id', 'type', 'text', 'done', 'indent']
-         when 'bullet' then array['id', 'type', 'text', 'indent']
-         when 'numbered' then array['id', 'type', 'text', 'indent', 'start']
+         when 'todo' then array['id', 'type', 'text', 'done', 'indent', 'folded']
+         when 'bullet' then array['id', 'type', 'text', 'indent', 'folded']
+         when 'numbered' then array['id', 'type', 'text', 'indent', 'start', 'folded']
          when 'toggle' then array['id', 'type', 'text', 'children', 'indent']
          when 'table' then array['id', 'type', 'rows', 'indent']
          when 'callout' then array['id', 'type', 'text', 'indent']
@@ -117,7 +132,8 @@ begin
         if jsonb_typeof(v_child) <> 'object'
            or (v_child ->> 'type') not in ('text', 'heading', 'todo', 'bullet', 'numbered',
                                            'table', 'callout', 'quote', 'divider')
-           or (v_child ? 'indent' and (v_child -> 'indent') <> '0'::jsonb) then
+           or (v_child ? 'indent' and (v_child -> 'indent') <> '0'::jsonb)
+           or (v_child ? 'folded' and (v_child -> 'folded') <> 'false'::jsonb) then
           return false;
         end if;
       end loop;

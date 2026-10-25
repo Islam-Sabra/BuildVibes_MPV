@@ -184,7 +184,12 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   PageBlock collectBlock(PageBlock b) {
     String words(String fallback) => _fields['t:${b.id}']?.text ?? fallback;
     return switch (b) {
-      PageText(:final text) => PageText(b.id, words(text), indent: b.indent),
+      PageText(:final text) => PageText(
+        b.id,
+        words(text),
+        indent: b.indent,
+        folded: b.folded,
+      ),
       PageHeading(:final text, :final level) => PageHeading(
         b.id,
         words(text),

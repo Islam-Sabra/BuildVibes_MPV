@@ -146,15 +146,6 @@ abstract final class BvNoteBlocksSpec {
   static const fold = 20.0;
   static const foldIcon = BvSize.iconSm;
 
-  /// A numbered line's ⋮⋮ menu: "Turn into" named under Continue and
-  /// Restart, at the rows' own start.
-  static const menuLabelPadding = EdgeInsetsDirectional.fromSTEB(
-    BvSpace.gutter,
-    BvSpace.s4,
-    BvSpace.gutter,
-    BvSpace.s4,
-  );
-
   /// The saved slip: the title, then the first three lines of the page.
   static const slipLines = 3;
   static const chipIcon = 14.0;
