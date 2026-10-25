@@ -2,4 +2,5 @@
 <resources>
     <!-- Push: the small icon's tint (BvPrimitive.energyStrong). -->
     <color name="push_accent">#C24417</color>
+    <color name="ic_launcher_background">#C24417</color>
 </resources>

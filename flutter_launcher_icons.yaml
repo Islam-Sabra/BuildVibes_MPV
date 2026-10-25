@@ -1,0 +1,15 @@
+# Review 91: the interim app icon (icon 2, the founder's choice, 24 Oct).
+# When the real logo comes, only assets/brand/ changes; then run
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/brand/bv_icon_1024.png
+  adaptive_icon_background: "#C24417"
+  adaptive_icon_foreground: assets/brand/bv_icon_foreground_1024.png
+  adaptive_icon_monochrome: assets/brand/bv_icon_monochrome_1024.png
+  # The foreground and monochrome files are drawn on the full 108 dp canvas
+  # with the cube already inside the 66 dp safe zone, so no extra inset
+  # (the generator's default of 16% would shrink the cube a second time).
+  adaptive_icon_foreground_inset: 0
+  remove_alpha_ios: true

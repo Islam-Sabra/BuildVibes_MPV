@@ -60,6 +60,10 @@ dependencies:
   pdf: ^3.13.1
   flutter_local_notifications: ^22.3.2
   timezone: ^0.11.0
+  # Review 91: the calm splash (config in flutter_native_splash.yaml). A
+  # runtime dependency because main() keeps the splash up (preserve) until
+  # start-up knows the first screen (remove).
+  flutter_native_splash: 2.4.8
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -73,6 +77,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  # Review 91: the interim app icon (config in flutter_launcher_icons.yaml).
+  flutter_launcher_icons: 0.14.4
 
 # share_plus needs path_provider. Its newest Android and iOS parts are
 # built with native-asset hooks (jni, objective_c), and those hooks fail
