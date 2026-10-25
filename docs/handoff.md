@@ -2,6 +2,30 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 25 Oct 2026 — review 98, the notebook writes like Notion (`claude/r98`)
+
+- **Branch `claude/r98`** (from `slice2-app` bc269ec): review 98 rules 1–8 in our own editor (`note_page_editor.dart`, the shared `page_block_editing.dart`, and Work's `daybook_page_editor.dart` where the code is shared). App only: **no database change**, nothing live, nothing installed, not merged.
+- **What it does:**
+  - typed shortcuts at the start of a text line (`1.` `1)` `١.`, `-` `*`, `[]` `[ ]`, `#` `##`, `>`, `"`, `---`), with a light click and the Undo bar, which gives the characters back;
+  - `/` at the start of any line or after a space opens a small card next to the line (NBY1); typing filters it by the English or Arabic name and simple words ("num", "todo", «مهام»); Enter picks the first; Escape, or a space with no match, leaves the `/`; each kind shows its shortcut;
+  - + adds a text line below the line and its children and opens the grid for it; an empty text line is turned instead; each tile shows its shortcut;
+  - ⇥ and ⇤ on the bar each show only when they can act (NBY3, NBY4);
+  - the line menu is a popover next to the line, the line tinted (NBY2), from ⋮⋮ or by holding the number, bullet or box; holding the words still selects text. Rows: Turn into ›, Move up, Move down, Indent, Outdent, Duplicate, Continue numbering / Restart at 1, Delete; rows that can't act are hidden;
+  - Move up and Move down jump the whole neighbouring group, children with them; Duplicate copies the children (new ids, a toggle's lines too);
+  - the Undo bar for 5 s after each menu action, a shortcut and Delete ("Moved · Undo", NBY5); Undo restores the whole note;
+  - motion: the menus open in 150 ms, moves and folds slide in 180 ms and the fold arrow turns; none with Reduce motion;
+  - no ⋮⋮ drag on a phone (short side under 600); a tablet keeps it.
+- **Technical calls (mine):**
+  - Work's page shares `/` after a space and the card (its + and "Type / to add" line keep the sheet), and loses the drag on phones: its ⋮⋮ sheet gains Move up / Move down. Shortcuts and the line popover are the notebook's only (Work's blocks are paragraphs, and its menu has other rows).
+  - The bar's ⇥ ⇤ show no Undo bar (each undoes the other; NBY3 shows none). Restart at 1 stays on every numbered line ("as today").
+  - The unfiltered `/` card shows 5½ rows and scrolls; grid tiles are 64 high (58 before) so the shortcut fits in Arabic.
+  - Duplicate is hidden on a voice note (it is one recording). + on an empty line of another kind (an empty to-do) adds a line below, as the rule names only an empty text line.
+  - The line menu uses the frames' Arabic (new keys: «تحويل إلى», «إزاحة», «ابدأ من 1», «حذف»); the older strings elsewhere are unchanged.
+  - Each field keeps its place (a global key), so it keeps the keyboard when its line changes kind.
+- **Checks (cloud):** `flutter analyze` clean; `flutter test test`: 2,020 pass, 1 fails (photo_privacy H1, which fails only as root in the cloud). New: `test/features/notebook/note_writing_rules_test.dart` (76, EN and AR), 5 in `note_outline_test.dart`, 4 in `daybook_page_test.dart`; 4 older tests changed to the new rules. `test_screens/` not run; no goldens updated.
+- **Next (PC):** shoot NBY1–NBY5 in EN and AR at 390×844 and compare with the frames; F108's L3 shot (the ⋮⋮ menu) is now the popover, so shoot it again. On the emulator: the keyboard stays up under the `/` card and the line menu, the click on a shortcut, the slides. Then merge `claude/r98` into `slice2-app` after the lead's review.
+- **Who has which branch:** this cloud session had `claude/r98` (done, pushed). Nothing else changed.
+
 ## Cloud update: 25 Oct 2026 — review 91, the interim app icon and splash (`claude/app-icon`)
 
 - **Branch `claude/app-icon`** (from `slice2-app` 1a3cc00): the icon (`flutter_launcher_icons` 0.14.4), the native splash (`flutter_native_splash` 2.4.8) and the 350 ms fade from the splash once start-up decides. iOS label fixed to "BuildVibes". Nothing live, no migration.
