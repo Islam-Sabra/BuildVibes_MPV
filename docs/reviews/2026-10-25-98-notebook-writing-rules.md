@@ -2,7 +2,15 @@
 
 **Founder (25 Oct):** keep our own editor and build the proven behaviour into it ("B"). The reference is the doc "Notion and AppFlowy: how they organise work" (claude.ai artifact, 25 Oct), from hands-on tests of both apps and AppFlowy's code. Nothing is copied from either app; only their behaviour is followed. The AppFlowy editor trial (review 97) failed to compile; its branch `claude/editor-trial` is kept for later.
 
-**Status:** the rules below are for the founder's approval. The Figma frames for the two new pieces (the line menu and the hints in the menus) follow his yes, then the build.
+**Status:** approved by the founder (25 Oct, 22:43), with the Figma frames on "PROTOTYPE · Full app v1 · EN", named "… · R98 · PROPOSAL":
+
+| Frame | EN | AR |
+|---|---|---|
+| NBY1 · `/` next to the line, filtered to "num", shortcut beside it | `2629:37317` | `2629:37961` |
+| NBY2 · the line menu next to a numbered line with children (Outdent hidden) | `2629:37448` | `2629:38092` |
+| NBY3 · the bar on the 2nd to-do: ⇥ ⇤ shown | `2629:37610` | `2629:38254` |
+| NBY4 · the bar on a heading: no ⇥ ⇤ | `2629:37729` | `2629:38373` |
+| NBY5 · Move down, then Moved · Undo | `2629:37841` | `2629:38485` |
 
 **No database change.** Everything fits the `notes.blocks` format of migrations 44 and 45.
 
