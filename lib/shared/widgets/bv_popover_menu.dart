@@ -14,6 +14,10 @@ class BvMenuItem<T> {
     required this.label,
     required this.icon,
     this.note,
+    this.key,
+    this.shortcut,
+    this.more = false,
+    this.destructive = false,
   });
 
   final T value;
@@ -23,6 +27,19 @@ class BvMenuItem<T> {
   /// A small line under the label, saying what the choice does (review 50
   /// F50: "Each person confirms they received it").
   final String? note;
+
+  /// The row's own key.
+  final Key? key;
+
+  /// The line menu (review 98): what to type for this kind ("1.", "[]"),
+  /// small and grey at the row's end.
+  final String? shortcut;
+
+  /// The line menu: › at the row's end (Turn into opens the kinds).
+  final bool more;
+
+  /// The line menu: in the destructive colour (Delete).
+  final bool destructive;
 }
 
 /// The small menus: a leading icon and a label per row. While writing
@@ -38,7 +55,10 @@ class BvPopoverMenu<T> extends StatelessWidget {
   }) : selected = null,
        picker = false,
        screen = false,
-       wide = false;
+       wide = false,
+       line = false,
+       title = null,
+       hint = null;
 
   /// [wide]: the kind menu (E6 v14 2598:36413), whose small lines fit on
   /// one line.
@@ -49,7 +69,10 @@ class BvPopoverMenu<T> extends StatelessWidget {
     required this.selected,
     this.wide = false,
   }) : picker = true,
-       screen = false;
+       screen = false,
+       line = false,
+       title = null,
+       hint = null;
 
   const BvPopoverMenu.screen({
     super.key,
@@ -58,7 +81,25 @@ class BvPopoverMenu<T> extends StatelessWidget {
   }) : selected = null,
        picker = false,
        screen = true,
-       wide = false;
+       wide = false,
+       line = false,
+       title = null,
+       hint = null;
+
+  /// The card next to a line (review 98): the line menu (NBY2), and the
+  /// "/" card (NBY1) with its [title], the [selected] row tinted (Enter
+  /// picks it) and its [hint].
+  const BvPopoverMenu.line({
+    super.key,
+    required this.items,
+    required this.onSelected,
+    this.selected,
+    this.title,
+    this.hint,
+  }) : picker = false,
+       screen = false,
+       wide = false,
+       line = true;
 
   final List<BvMenuItem<T>> items;
   final ValueChanged<T> onSelected;
@@ -66,10 +107,16 @@ class BvPopoverMenu<T> extends StatelessWidget {
   final bool picker;
   final bool screen;
   final bool wide;
+  final bool line;
+
+  /// The line card's small grey words over its rows, and under them.
+  final String? title;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
+    if (line) return _line(type);
     return Container(
       width: screen
           ? BvScreenMenuSpec.width
@@ -99,6 +146,114 @@ class BvPopoverMenu<T> extends StatelessWidget {
             for (final item in items)
               _row(type, item, picker && item.value == selected),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _line(BvTypeSet type) {
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    return TextFieldTapRegion(
+      child: Container(
+        width: BvLineMenuSpec.width,
+        padding: const EdgeInsetsDirectional.all(BvLineMenuSpec.padding),
+        decoration: const BoxDecoration(
+          color: BvColors.surfaceElevated,
+          borderRadius: BvLineMenuSpec.radius,
+          border: Border.fromBorderSide(
+            BorderSide(color: BvColors.borderSubtle, width: BvStroke.thin),
+          ),
+          boxShadow: BvShadow.lineMenu,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (title case final title?)
+                Padding(
+                  padding: BvLineMenuSpec.titlePadding,
+                  child: Text(title, style: quiet),
+                ),
+              for (final item in items)
+                _lineRow(type, item, item.value == selected),
+              if (hint case final hint?)
+                Padding(
+                  padding: BvLineMenuSpec.hintPadding,
+                  child: Text(hint, style: quiet),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _lineRow(BvTypeSet type, BvMenuItem<T> item, bool tinted) {
+    final ink = item.destructive
+        ? BvColors.textDestructive
+        : BvColors.textPrimary;
+    return Semantics(
+      button: true,
+      selected: tinted ? true : null,
+      child: Material(
+        key: item.key,
+        color: tinted ? BvColors.surfaceBrandSoft : Colors.transparent,
+        borderRadius: BvLineMenuSpec.rowRadius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: () => onSelected(item.value),
+          child: Padding(
+            padding: BvLineMenuSpec.rowPadding,
+            child: Row(
+              spacing: BvLineMenuSpec.rowGap,
+              children: [
+                Container(
+                  width: BvLineMenuSpec.tile,
+                  height: BvLineMenuSpec.tile,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: item.destructive
+                        ? BvColors.surfaceDestructiveSoft
+                        : BvColors.surfaceSubtle,
+                    borderRadius: BvLineMenuSpec.rowRadius,
+                  ),
+                  child: Icon(
+                    item.icon,
+                    size: BvLineMenuSpec.icon,
+                    color: item.destructive
+                        ? BvColors.textDestructive
+                        : BvColors.iconPrimary,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: type.labelMd.copyWith(color: ink),
+                  ),
+                ),
+                if (item.shortcut case final shortcut?)
+                  Text(
+                    shortcut,
+                    // What is typed reads left to right in Arabic too.
+                    textDirection: TextDirection.ltr,
+                    style: type.metadata.copyWith(
+                      color: BvColors.textSecondary,
+                    ),
+                  ),
+                if (item.more)
+                  const Icon(
+                    BvIcons.caretForward,
+                    size: BvLineMenuSpec.caret,
+                    color: BvColors.iconSecondary,
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

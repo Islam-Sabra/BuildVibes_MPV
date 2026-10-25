@@ -5,6 +5,10 @@ import 'bv_tokens.dart';
 /// Slice 5: a post's page, opened in place (N1 2537:34046, N2 2537:34235,
 /// N3 2537:34497, N4 2537:34853).
 abstract final class BvPageSpec {
+  /// Lines drag on ⋮⋮ only where the screen's short side is this wide (a
+  /// tablet): never on a phone (review 98).
+  static const dragMinSide = 600.0;
+
   /// The sheet rises to here over the daybook (N1: its top at 180 of
   /// 844).
   static const heightFactor = 0.8;

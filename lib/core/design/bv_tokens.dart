@@ -34,6 +34,8 @@ abstract final class BvPrimitive {
   static const destructive = Color(0xFFC23B3B);
   // Hold to confirm (review 94): a destructive hold at rest.
   static const destructiveSoft = Color(0xFFF8E6E3);
+  // The line menu's Delete tile (review 98, NBY2).
+  static const destructiveTint = Color(0xFFFBEAEA);
   static const ink48 = Color(0x7A141B33);
   static const ink38 = Color(0x61141B33);
   // The app icon's cube (review 91): its left and right faces.
@@ -118,6 +120,9 @@ abstract final class BvColors {
   static const holdLabel = BvPrimitive.energyStrong;
   static const holdLabelFilled = BvPrimitive.elevated;
   static const holdRestDestructive = BvPrimitive.destructiveSoft;
+
+  /// The line menu (review 98): a destructive row's tile.
+  static const surfaceDestructiveSoft = BvPrimitive.destructiveTint;
   static const holdFillDestructive = BvPrimitive.destructive;
   static const holdLabelDestructive = BvPrimitive.destructive;
 }
@@ -254,6 +259,11 @@ abstract final class BvMotion {
   static const hold = Duration(milliseconds: 600);
   static const holdBack = Duration(milliseconds: 150);
 
+  /// Review 98: the line menu and the "/" card open in [menu], from the
+  /// line; Move up and Move down, and a fold, slide in [slide].
+  static const menu = Duration(milliseconds: 150);
+  static const slide = Duration(milliseconds: 180);
+
   static const standard = Cubic(0.2, 0, 0, 1);
   static const enter = Cubic(0.05, 0.7, 0.1, 1);
   static const exit = Cubic(0.3, 0, 1, 1);
@@ -293,6 +303,10 @@ abstract final class BvShadow {
   // menu (MN1), Needs you rows (2544:35068).
   static const infoSlip = [
     BoxShadow(color: Color(0x12332414), offset: Offset(0, 1), blurRadius: 3),
+  ];
+  // The line menu and the "/" card next to a line (review 98).
+  static const lineMenu = [
+    BoxShadow(color: Color(0x2E141A33), offset: Offset(0, 8), blurRadius: 28),
   ];
   static const screenMenu = [
     BoxShadow(color: Color(0x29000000), offset: Offset(0, 8), blurRadius: 24),

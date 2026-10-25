@@ -256,6 +256,18 @@ abstract final class BvIcons {
   /// arrow-counter-clockwise again: a numbered list's Restart at 1.
   static const restartNumbering = sendBack;
 
+  /// The line menu (review 98 NBY2): arrow-clockwise for Turn into (it
+  /// mirrors), caret-up for Move up, caret-down for Move down, copy for
+  /// Duplicate.
+  static const turnInto = IconData(
+    0xe036,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+  static const moveUp = IconData(0xe13c, fontFamily: _family);
+  static const moveDown = caretDown;
+  static const duplicate = copy;
+
   /// plus: add an update (the bottom bar's Create is the same glyph).
   static const add = create;
 

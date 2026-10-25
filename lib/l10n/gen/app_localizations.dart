@@ -8191,6 +8191,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t remove'**
   String get spacesCouldNotRemove;
+
+  /// Review 98 NBY1: the small title over the "/" card's kinds.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks'**
+  String get pageSlashTitle;
+
+  /// Review 98 NBY1: under the "/" card; the keyboard's Enter picks the tinted kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter picks it'**
+  String get pageSlashEnter;
+
+  /// Review 98 NBY2: the line menu's first row; opens the kinds the line can become.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn into'**
+  String get notebookLineTurnInto;
+
+  /// Review 98 NBY2: the line, with the lines under it, goes above the group before it.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get notebookMoveUp;
+
+  /// Review 98 NBY2: the line, with the lines under it, goes below the group after it.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get notebookMoveDown;
+
+  /// Review 98 NBY2: the line menu's row that puts the line one level deeper.
+  ///
+  /// In en, this message translates to:
+  /// **'Indent'**
+  String get notebookLineIndent;
+
+  /// Review 98 NBY2: a copy of the line and the lines under it, right after them.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get notebookDuplicate;
+
+  /// Review 98 NBY2: a numbered line counts from 1 again.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart at 1'**
+  String get notebookLineRestart;
+
+  /// Review 98 NBY2: the line menu's last row, in the destructive colour.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get notebookLineDelete;
+
+  /// Review 98: the Undo bar after a line changed kind (Turn into, or a typed shortcut such as "1. "). kind is the kind's name, e.g. Numbered list.
+  ///
+  /// In en, this message translates to:
+  /// **'Turned into {kind}'**
+  String notebookUndoTurned(String kind);
+
+  /// Review 98 NBY5: the Undo bar after Move up or Move down.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved'**
+  String get notebookUndoMoved;
+
+  /// Review 98: the Undo bar after the line menu's Indent.
+  ///
+  /// In en, this message translates to:
+  /// **'Indented'**
+  String get notebookUndoIndented;
+
+  /// Review 98: the Undo bar after the line menu's Outdent.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdented'**
+  String get notebookUndoOutdented;
+
+  /// Review 98: the Undo bar after Duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicated'**
+  String get notebookUndoDuplicated;
+
+  /// Review 98: the Undo bar after a line was deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get notebookUndoDeleted;
+
+  /// Review 98: words that also find Text in the "/" card (never shown; space between words).
+  ///
+  /// In en, this message translates to:
+  /// **'text plain paragraph'**
+  String get notebookFindText;
+
+  /// Review 98: words that also find Heading in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'heading title h1'**
+  String get notebookFindHeading;
+
+  /// Review 98: words that also find Subheading in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'subheading subtitle h2'**
+  String get notebookFindSubheading;
+
+  /// Review 98: words that also find To-do list in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'todo to-do task check checklist'**
+  String get notebookFindTodo;
+
+  /// Review 98: words that also find Bulleted list in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'bullet bulleted list dot'**
+  String get notebookFindBullets;
+
+  /// Review 98: words that also find Numbered list in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'num number numbered ordered list'**
+  String get notebookFindNumbers;
+
+  /// Review 98: words that also find Toggle in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'toggle fold collapse'**
+  String get notebookFindToggle;
+
+  /// Review 98: words that also find Table in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'table grid'**
+  String get notebookFindTable;
+
+  /// Review 98: words that also find Callout in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'callout note info box'**
+  String get notebookFindCallout;
+
+  /// Review 98: words that also find Quote in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'quote quotation'**
+  String get notebookFindQuote;
+
+  /// Review 98: words that also find Divider in the "/" card (never shown).
+  ///
+  /// In en, this message translates to:
+  /// **'divider line separator'**
+  String get notebookFindDivider;
 }
 
 class _AppLocalizationsDelegate

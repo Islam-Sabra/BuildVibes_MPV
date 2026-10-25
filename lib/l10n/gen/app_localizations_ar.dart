@@ -4892,4 +4892,84 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesCouldNotRemove => 'تعذّرت الإزالة';
+
+  @override
+  String get pageSlashTitle => 'الأنواع';
+
+  @override
+  String get pageSlashEnter => 'Enter لاختياره';
+
+  @override
+  String get notebookLineTurnInto => 'تحويل إلى';
+
+  @override
+  String get notebookMoveUp => 'نقل لأعلى';
+
+  @override
+  String get notebookMoveDown => 'نقل لأسفل';
+
+  @override
+  String get notebookLineIndent => 'إزاحة';
+
+  @override
+  String get notebookDuplicate => 'تكرار';
+
+  @override
+  String get notebookLineRestart => 'ابدأ من 1';
+
+  @override
+  String get notebookLineDelete => 'حذف';
+
+  @override
+  String notebookUndoTurned(String kind) {
+    return 'تحوّل إلى $kind';
+  }
+
+  @override
+  String get notebookUndoMoved => 'نُقل';
+
+  @override
+  String get notebookUndoIndented => 'أُزيح للداخل';
+
+  @override
+  String get notebookUndoOutdented => 'أُزيح للخارج';
+
+  @override
+  String get notebookUndoDuplicated => 'تكرّر';
+
+  @override
+  String get notebookUndoDeleted => 'حُذف';
+
+  @override
+  String get notebookFindText => 'نص فقرة';
+
+  @override
+  String get notebookFindHeading => 'عنوان رئيسي';
+
+  @override
+  String get notebookFindSubheading => 'عنوان فرعي';
+
+  @override
+  String get notebookFindTodo => 'مهام مهمة تأشير';
+
+  @override
+  String get notebookFindBullets => 'نقاط نقطية قائمة';
+
+  @override
+  String get notebookFindNumbers => 'رقم أرقام ترقيم مرقمة قائمة';
+
+  @override
+  String get notebookFindToggle => 'طي قسم';
+
+  @override
+  String get notebookFindTable => 'جدول';
+
+  @override
+  String get notebookFindCallout => 'ملاحظة بارزة تنبيه';
+
+  @override
+  String get notebookFindQuote => 'اقتباس';
+
+  @override
+  String get notebookFindDivider => 'فاصل خط';
 }
