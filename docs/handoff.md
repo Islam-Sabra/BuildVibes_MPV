@@ -2,6 +2,27 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 25 Oct 2026, 15:35 Kuwait — review 94 merged into `slice2-app`; build 612 waits for the phone's address
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **NST-025 (read-only):** Omar Haddad, its author and owner (Crew), signed it as done himself on 22 Oct at 11:19; the founder did not. `sign_done` allows only the owner, so no one can sign for someone else: no gap. Acting for someone exists only for Check and Cancel, when the author has gone.
+- **Step 2 done, live:** NST-023 "Lead test: cracked tile at the stair" was signed as done by the founder (15:13). Omar held Check in its own sheet on the emulator, and it went through: **Checked on live at 15:15**.
+- **Step 1 not done, and a bug found and fixed:**
+  - In a walk row's own sheet, Hold to check left the DONE stamp until the server answered.
+  - Its "Checked · Undo" opened on the app's messenger behind the sheet, out of reach, so Undo couldn't be tapped and the check went through.
+  - The bug was older than review 94 (the double-tap had it too).
+  - Fixed on `claude/hold-confirm` (bc269ec): the sheet shows CHECKED or CANCELLED at once, with its line, and its undo bar opens on the sheet. Test in `walk_test`.
+  - Nothing else for Omar to check is Done on live, so Check then Undo hasn't been redone for real.
+- **Tried the fixed sheet on build 612** (emulator), with Cancel on NST-024 "Lead test: hanger missing at door 2.04": CANCELLED landed at once and "Cancelled · Undo" showed on the sheet. My automated Undo tap missed (the screen-reader dump didn't find the bar in time), so **NST-024 is now cancelled on live**, a test item of Omar's.
+- **Step 3:**
+  - `slice2-app` fast-forwarded to bc269ec, pushed.
+  - Analyze clean; 1,936 app tests; 404 screenshots (SQL unchanged, 2,696).
+  - **Build 612** (bc269ec) is on the emulator.
+  - **Not on the founder's phone yet:** 192.168.8.24:40329 refused the connection; waiting for the new wireless-debugging address.
+- **Review 95** waits until 612 is on the phone, as it says; `claude/r95` isn't made yet.
+- **Who has which branch:** `claude/hold-confirm` is merged and done (worktree `BuildVibes-hold` can be removed). PC has `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 25 Oct 2026 — the live Check test is still blocked; nothing merged or installed
 
 - The founder signed **NST-025** "Lead test: debris on the walkway" as done.
