@@ -38,6 +38,12 @@ Error: The non-abstract class 'DeltaTextInputService' is missing implementations
 - So no screen was added. Production navigation and the current notebook are untouched.
 - `tool/editor_trial/compile_probe_test.dart` reproduces the failure on its own: `flutter test tool/editor_trial/compile_probe_test.dart`.
 
+## Checks run
+- `flutter analyze`: no issues.
+- `flutter test test`: 1,935 pass. 1 fails, photo_privacy H1, which fails only as root in the cloud. The app is unchanged: the package is in the pubspec but imported by nothing in `lib/` or `test/`.
+- `flutter test tool/editor_trial/compile_probe_test.dart`: fails to compile (the errors above).
+- `test_screens/` not run, and no `--update-goldens`.
+
 ## The checklist
 
 | # | Check | Result | Evidence and notes |
@@ -97,7 +103,7 @@ The trial was told not to.
 **Keep our editor and add the rules ourselves.** Don't adopt `appflowy_editor` now.
 - It can't be used from pub.dev on our Flutter without forking it, which the trial's licence rule exists to avoid.
 - Its pins already clash with two of our packages, and the next upstream release would still clash (win32 5).
-- The parts we most need are already ours and tested, in EN and AR (about 1,950 app tests):
+- The parts we most need are already ours and tested, in EN and AR (1,935 app tests pass on this branch):
   - Arabic first, markers on the right;
   - review 93's numbering;
   - `notes.blocks` with nothing lost;

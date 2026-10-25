@@ -2,6 +2,25 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 25 Oct 2026 — review 97, the editor trial, on `claude/editor-trial` (from `slice2-app` bc269ec): it fails at check 1; nothing merged, nothing live
+
+- **Result:** `appflowy_editor` 6.2.0 (pub.dev, MPL 2.0, unchanged) **does not compile on our Flutter 3.44.9**.
+  - Its `DeltaTextInputService` lacks `TextInputClient.onFocusReceived`, a member Flutter 3.44 added. Every published version has the gap; the package's GitHub `main` fixes it, but that isn't released.
+  - It also clashes with our packages: `file_picker` ^10 against our ^13, and `device_info_plus` ^11 (win32 5) against `share_plus` 13 (win32 6). With overrides it resolves, but then fails on file_picker 13's API.
+  - Getting past either needs a change inside the package, which review 97 says to stop and report.
+- **So:**
+  - no "Editor trial" screen: importing the package would break every app test to compile;
+  - checks 2–12 and 15 are marked blocked, with what the package's API offers on paper;
+  - 7, 13 and 14 are "PC later".
+- **On the branch:**
+  - the exact pin and the two overrides (commented in `pubspec.yaml`);
+  - `assets/licences/appflowy_editor.md` (notice and LICENSE);
+  - `tool/editor_trial/compile_probe_test.dart` (reproduces the failure; outside `test/` so the app's tests still run);
+  - `docs/reviews/editor-trial-report.md`: the table, what would need changing inside the package, the size of adopting it, and the recommendation.
+- **Recommendation:** keep our editor and add the useful rules ourselves (the `>` quote shortcut, `/` filtering, one undo history, moves carrying children). Look again only when upstream releases a version that compiles on our Flutter and resolves without overrides.
+- **Checks:** `flutter analyze` clean; `flutter test test` 1,935 pass (1 fails, photo_privacy H1, which fails only as root in the cloud). `test_screens/` not run, no `--update-goldens`.
+- **Next:** the lead reviews the report; the founder decides. If it's no, the branch can be deleted: nothing depends on it.
+
 ## Cloud update: 25 Oct 2026 — review 91, the interim app icon and splash (`claude/app-icon`)
 
 - **Branch `claude/app-icon`** (from `slice2-app` 1a3cc00): the icon (`flutter_launcher_icons` 0.14.4), the native splash (`flutter_native_splash` 2.4.8) and the 350 ms fade from the splash once start-up decides. iOS label fixed to "BuildVibes". Nothing live, no migration.
