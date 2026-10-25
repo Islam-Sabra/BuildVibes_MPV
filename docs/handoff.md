@@ -2,6 +2,14 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 25 Oct 2026 — the live Check test is still blocked; nothing merged or installed
+
+- The founder signed **NST-025** "Lead test: debris on the walkway" as done.
+- Live (read-only) shows its author **and** its owner are Omar, and `may_check` is false for him. The owner never checks their own work, so Omar's Hold to check would be refused by the server.
+- The emulator test of Check did not run, and nothing was sent.
+- **Next:** the founder signs one of the Omar-authored items he owns as done (NST-023 "cracked tile at the stair", NST-024, NST-027 or NST-016). Then: Omar holds Check, Undo within 2 s, stays Done after 5 s; hold again, let it go through, and live shows Checked.
+- After that, with the founder's yes already given: merge `claude/hold-confirm` into `slice2-app`, run analyze and the tests, build 612, install on the founder's phone. **Not started.**
+
 ## PC update: 25 Oct 2026, 12:40 Kuwait — review 94 (Hold to confirm) on `claude/hold-confirm`, waiting for the founder
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
