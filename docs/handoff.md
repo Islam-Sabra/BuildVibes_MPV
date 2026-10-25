@@ -5,7 +5,8 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 ## Cloud update: 25 Oct 2026 — review 91, the interim app icon and splash (`claude/app-icon`)
 
 - **Branch `claude/app-icon`** (from `slice2-app` 1a3cc00): the icon (`flutter_launcher_icons` 0.14.4), the native splash (`flutter_native_splash` 2.4.8) and the 350 ms fade from the splash once start-up decides. iOS label fixed to "BuildVibes". Nothing live, no migration.
-- **Checks:** analyze clean, 1,811 app tests, 377 screenshots (none changed), debug APK builds.
+- **Addendum (25 Oct):** the cube traces itself while start-up is still running after 300 ms (at most 1.2 s, then the fade; none with Reduce motion). Frames and the emulator shots in `docs/screens/app-icon/`.
+- **Checks:** analyze clean, 1,817 app tests, 378 screenshots (1 new, none changed), debug APK builds. The lead checks before any merge.
 - **Next (PC):** merge `claude/app-icon` into `slice2-app`; with the founder's yes, install on the emulator and his phone; check the icon (round and squircle masks), the themed icon (Settings › Wallpaper › Themed icons) and the splash on a cold start; screenshots for the lead (review 91 §6).
 - **Regenerate** after a new logo: replace `assets/brand/`, then `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create` (the generator rewrites `Info.plist` indentation and the launcher-icons tool changes `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS` in `project.pbxproj`; both were kept out of the commits).
 
