@@ -482,6 +482,17 @@ Rules from review 33 A4. Written by the lead on 15 Oct (review 37), follow-ups i
 
 **Account:** `export_my_data` includes the notes and their file names. `accounts_due_for_purge` lists `notebook-files` too, and `purge_account` waits until they are gone; the notes go with the account.
 
+**F107, migration 44 (`20261105120000_notebook_blocks.sql`, branch `claude/f107`, not live, review 92):** a note is a page of blocks.
+- `notes.blocks` (jsonb): the page, in the same shape as a Work post's page (each block an object with its own uuid `id` and a `type`), with the notebook's kinds: `text`, `heading` (`level` 1 or 2), `todo` (`done`), `bullet`, `numbered`, `toggle` (`children`: words, tables, dividers; no toggle, no voice), `table` (`rows`, as Work's), `callout`, `quote`, `divider` and `voice` (`path`, `duration_ms`). Checked by `is_valid_note_blocks`: at most 200 blocks (a toggle's own included), a block's text ≤5,000, a cell ≤200, nothing a kind doesn't have. Only a `text` note has a page.
+- `notes.title` (≤200): a page's bold first line. A page's `body` is its words as plain text (title first), for My calendar and the reminders.
+- Old notes keep `body` and `points`; the app opens them as blocks and saves them as a page. Nothing is migrated in SQL.
+- A page may have a date (`due_at`); `done_at` stays a to-do's. My calendar lists a dated page as a `todo` row, by its title.
+- Location: `location_text` (≤120), `location_lat` (−90…90), `location_lng` (−180…180), `location_accuracy_m` (>0, only with a position). Both numbers or neither. Private, as the note is.
+- `note_files.kind` gains `'file'` (a PDF, with its `name`), at most 10 per note, with up to 10 photos and 10 recordings; same bucket, which now takes `application/pdf` (its 25 MB is the Library's). A page's recordings are exactly its voice blocks' paths.
+- `save_note(…, files, title, blocks, location, created_at)`: the 8-argument one is replaced. `location` is `{text?, lat?, lng?, accuracy_m?}`; `created_at` is the phone's time when it sent the note, kept if it is within the last week and not ahead.
+- `note_for_space(id, include_gps)`: yours only; what Put in a Space carries (kind, title, words, points, page, date, photos and the typed place). The GPS position only when `include_gps` ("Include my GPS position"). Nothing is posted by it.
+- `export_my_data` adds each note's title, page and location.
+
 ## 17. Pages, walk mode, meeting notes, templates, reports and search (migration 20, `20261016120000_post_pages.sql`, branch `post-pages-db`, live 16 Oct)
 Rules from review 33 A3 and its clarifications; choices confirmed in review 39. **Goes live after migration 21** (review 38 N1); its copy of `export_my_data` is 21's plus pages and templates.
 

@@ -131,3 +131,27 @@ Counts: **gone with F107: 4** (B1, B2, B4, B10). **fix anyway: 13** (B3, B5–B9
 - A voice note's slip reads "0, Voice note · 8:08 am" to TalkBack: the player's slider value comes first. Work's voice notes do the same; left for the voice player's own pass.
 - Arabic: the slip, the kind menu, the chips («موعده الخميس 29 أكتوبر»), the tools and Send mirror correctly, with Western digits. No bug found that is Arabic-only.
 - Logs (`logcat -s flutter`): only the photo clean-up line (`BV-PHOTO … result=cleaned`) and the DM live channel's status; no error from the notebook.
+
+---
+
+## On `claude/f107` (F107, 25 Oct)
+
+Every "fix anyway" bug is fixed there, each with a test (`test/features/notebook/note_page_test.dart` unless named):
+
+| | Fix | Test |
+|---|---|---|
+| B3 | the app going behind while the camera, the files or the mic's permission is in front doesn't put the slip down; back from it, the keyboard is on the line | B3 |
+| B5 | Remind me has its own picker words ("Remind me at…", "In the morning") and starts 15 minutes on | B5 |
+| B6 | a new note's time is when it is sent; `save_note` keeps the phone's time (`p_created_at`, migration 44) | `note_models_test`, pgTAP 44 |
+| B7 | a saved note keeps its place; a new one goes where its time puts it | `note_models_test` (B7) |
+| B8 | what waits goes when the signal is back, when the notebook opens, when the app comes back to the front, and on a timer (15 s, doubling to 5 min) | B8 |
+| B9 | the notebook opens with the end of today in view, and a sent note is shown | B9 |
+| B11 | Put in a Space carries the note's photos (copies for the card) and its typed place; the GPS only when "Include my GPS position" is ticked | B11, pgTAP 44 |
+| B12 | reminders are exact when the phone allows exact alarms (`SCHEDULE_EXACT_ALARM`, never asked for), inexact otherwise | not testable without the device |
+| B13 | Send keeps the note on the phone's list before the draft goes | B13 |
+| B14 | an edit keeps the pin the notebook has now | B14 |
+| B15 | a refused note says "Couldn't keep this note" and its words come back as the Draft | B15 |
+| B16 | a reminder whose time went by in the Draft is taken off at Send, and said | B16 |
+| B17 | the bar's mic is its own semantics node, read out as "Hold to record a voice note" | B17 (not re-checked on the device) |
+
+The "gone with F107" ones are gone with the page editor: B1 (Enter in the title goes on to the first line), B2 (Backspace on an empty line takes it out), B4 (Voice records a voice block in the note) and B10 (the slip's end is kept in view as it grows).

@@ -2,6 +2,19 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: F107, the notebook writes like Notion (review 92) — on `claude/f107`, not merged, not live
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Bug hunt (done first):** `docs/reviews/f106-bugs.md` on `claude/f106` (5ccfe16): 17 bugs on build 585, 4 gone with F107, 13 fix anyway (4 found in code). The emulator was left in English, airplane mode off, the 12 test notes deleted, and the test work item NST-032 in NBKCH SITE TEAM cancelled.
+- **Branch `claude/f107`** (local `f107`, worktree `BuildVibes-f107`), from `claude/f106` (so it carries F106 too): a note is a page of blocks on Work's page editor (block editing now shared in `page_block_editing.dart`); the + categories grid, the additions bar (Location, Image, File, Date, Remind me, Voice), the location sheet (typed, GPS or both), the saved slip's page, older notes opened as blocks, Put in a Space with the typed place and photos (GPS only when ticked). The 13 fix-anyway bugs are fixed with tests.
+- **Migration 44** `20261105120000_notebook_blocks.sql`, **not live**. It keeps the old `save_note` call working (the new arguments have defaults), so build 585 still saves after it goes live. **Live order:** migration 44 (founder's yes), then the build.
+- **New package:** `geolocator` 14.1.1 (pinned); Android `ACCESS_FINE/COARSE_LOCATION` and `SCHEDULE_EXACT_ALARM` (never asked for: reminders are exact when the phone allows it, B12); iOS `NSLocationWhenInUseUsageDescription`. A debug APK builds (not installed).
+- **Checks:** analyze clean; 1,830 app tests; 2,655 SQL checks in 43 files (local); Node 20; `test_screens/` 391.
+- **Shots:** `docs/screens/f107/` (NBX1–NBX4, EN and AR); F106's NBW1/3/4/5 shot again on the page, NBW2 (the kind menu) gone.
+- **Not checked on a device:** GPS permission and position, exact reminders (B12), the mic's spoken label (B17), PDF picking.
+- **Next (PC):** review against NBX1–NBX4; merge `claude/f107` (it includes `claude/f106`) into `slice2-app`; push migration 44 with the founder's yes; build and test on the emulator and the phone.
+
 ## PC update: F106, My notebook writes in place (review 90) — on `claude/f106`, not merged
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
