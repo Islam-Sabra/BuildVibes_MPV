@@ -493,6 +493,11 @@ Rules from review 33 A4. Written by the lead on 15 Oct (review 37), follow-ups i
 - `note_for_space(id, include_gps)`: yours only; what Put in a Space carries (kind, title, words, points, page, date, photos and the typed place). The GPS position only when `include_gps` ("Include my GPS position"). Nothing is posted by it.
 - `export_my_data` adds each note's title, page and location.
 
+**F108, migration 45 (`20261106120000_note_block_levels.sql`, branch `claude/f108`, not live, review 93):** a note's lines sit under each other.
+- Any line of a note's page may carry `indent`, its level: 0 to 3, left out at 0 (old notes have none). It is not called `level` because a heading's `level` is its size. The first line is at 0, and no line is more than one deeper than the line before it. A toggle's own lines stay inside it, at 0.
+- A `numbered` line may carry `start` (1 to 999): its count begins there ("Continue numbering" or "Restart at 1"). Numbers are never kept; the app works them out (1. 2. 3. → a. b. c. → i. ii. iii. → 1., Western digits and Latin letters in Arabic too).
+- Only `is_valid_note_blocks` changes; `notes.blocks`' check and `save_note` already call it. A heading, callout, quote, divider, table or voice note can't hold children; the app keeps that, and the server checks only the levels.
+
 ## 17. Pages, walk mode, meeting notes, templates, reports and search (migration 20, `20261016120000_post_pages.sql`, branch `post-pages-db`, live 16 Oct)
 Rules from review 33 A3 and its clarifications; choices confirmed in review 39. **Goes live after migration 21** (review 38 N1); its copy of `export_my_data` is 21's plus pages and templates.
 
