@@ -103,7 +103,18 @@ At the **start of a text line**, typing these and then a space turns the line in
 - NBY4: the bar on a heading line, with no ⇥ ⇤;
 - NBY5: Moved · Undo.
 
-## Not in this review
-- **Dates and reminders as chips inside the text.** The note keeps its date and reminder fields (migration 44). A chip inside the text would need a new block kind and a migration, so it comes later if the pilot asks.
-- **Pages inside pages, databases, columns, colours.** Out of the MVP (see the reference doc).
-- **Dragging lines on phones,** with a drop line at its indent and the group shaded (Notion's way), if crews ask for it after the pilot.
+## Founder, 25 Oct 22:32: nothing left out — four steps
+The founder wants everything in: dates and reminders inside the text, dragging on phones, pages inside pages, databases and colours. They come in four steps, each with its own rules, Figma frames and the founder's yes, so the pilot (1 Feb 2027) is never blocked by the bigger ones.
+
+| Step | Review | What | Database change |
+|---|---|---|---|
+| 1 | 98 (this one) | The rules above | None |
+| 2 | 99 | **Dates and reminders as chips inside a line** (`@` menu: Today, Tomorrow, a date, Remind me), each chip tapped to change; **dragging lines on phones** the Notion way (hold the marker with the keyboard closed, the line lifts, a drop line shows its landing place and indent, the group it joins is shaded, a click at each slot) | Yes: a date chip inside a text run, and reminders per chip (one migration) |
+| 3 | 100 | **Pages inside pages:** a line can be a sub-page of the note ("Pour checklist ›"), opened in place, with a back path, any depth. The notebook list shows top pages only | Yes: a parent link between notes (one migration) |
+| 4 | 101 | **Databases and colours:** a simple table can be turned into a small database (a few field types: text, number, date, person, select, checkbox), shown as a grid or a board; text and background colours from a fixed palette in the tokens (no free colour picker) | Yes (one migration) |
+
+Rules that still hold in every step:
+- **Personal notebook only.** Work in a Space stays as work items: they already are the Space's database (rule 8).
+- **No unnecessary settings:** a database starts from a table and offers few field types, never a settings page.
+- **Colours** come from tokens, with a fixed short palette, the same in EN and AR.
+- **Arabic, one-minute rule, Western digits, no hard-coded strings,** as always.
