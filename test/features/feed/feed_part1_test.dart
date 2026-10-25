@@ -329,8 +329,14 @@ void main() {
       await _feed(tester, lang, posts: posts);
       expect(find.text(l10n.feedCouldntLoad), findsOneWidget);
       expect(find.text(l10n.feedCouldntLoadBody), findsOneWidget);
+      // The signal comes back only at the tap: Riverpod's own retry of the
+      // failed load may land while the test scrolls (review 91).
+      const tryAgain = Key('feed-try-again');
+      await tester.ensureVisible(find.byKey(tryAgain));
+      await tester.pumpAndSettle();
       posts.feedOffline = false;
-      await _tap(tester, 'feed-try-again');
+      await tester.tap(find.byKey(tryAgain));
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('post-p1')), findsOneWidget);
     });
 

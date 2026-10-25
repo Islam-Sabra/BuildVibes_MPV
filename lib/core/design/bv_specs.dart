@@ -461,3 +461,11 @@ abstract final class BvMessageBannerSpec {
   static const slide = BvMotion.base;
   static const from = Offset(0, -1.5);
 }
+
+/// Review 91: the handover from the native splash. Once start-up knows the
+/// first screen, that screen fades in from the splash colour: a plain fade
+/// with no text and no extra wait, on every start.
+abstract final class BvSplashSpec {
+  static const colour = BvColors.brandSplash;
+  static const fade = Duration(milliseconds: 350);
+}

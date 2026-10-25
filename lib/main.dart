@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,7 +10,10 @@ import 'core/l10n/locale_controller.dart';
 import 'data/supabase/supabase_provider.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Review 91: the native splash stays until start-up knows the first
+  // screen; SplashHandover (app.dart) then removes it.
+  final binding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: binding);
   await initSupabase();
   await initPush();
   // Crash reports in release builds only, with no personal text.

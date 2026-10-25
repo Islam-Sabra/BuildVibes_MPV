@@ -92,6 +92,10 @@ abstract final class BvColors {
   static const brandInk = BvPrimitive.ink;
   static const brandEnergy = BvPrimitive.energy;
   static const brandEnergySoft = BvPrimitive.energySoft;
+
+  /// The app icon's and the native splash's terracotta (review 91); the
+  /// first screen fades in from it.
+  static const brandSplash = BvPrimitive.energyStrong;
 }
 
 /// Accent colours for project and Space avatars ("Color / Project").
