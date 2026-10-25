@@ -465,7 +465,30 @@ abstract final class BvMessageBannerSpec {
 /// Review 91: the handover from the native splash. Once start-up knows the
 /// first screen, that screen fades in from the splash colour: a plain fade
 /// with no text and no extra wait, on every start.
+///
+/// Addendum (25 Oct): while start-up is still running after [traceAfter],
+/// the cube traces itself ([trace], then [fill], then [letters]); never
+/// longer than [loaderMax] after the native splash goes. Reduce motion: no
+/// trace.
 abstract final class BvSplashSpec {
   static const colour = BvColors.brandSplash;
   static const fade = Duration(milliseconds: 350);
+
+  /// Decided before this, there's no trace.
+  static const traceAfter = Duration(milliseconds: 300);
+  static const trace = Duration(milliseconds: 600);
+  static const fill = Duration(milliseconds: 200);
+  static const letters = Duration(milliseconds: 150);
+  static const loader = Duration(milliseconds: 950); // trace + fill + letters
+
+  /// Decided mid-trace: the rest plays in this time.
+  static const finishIn = Duration(milliseconds: 150);
+  static const loaderMax = Duration(milliseconds: 1200);
+  static const traceCurve = Curves.easeInOutCubic;
+  static const stroke = 2.5;
+
+  /// Where the native splash draws the cube: its image is 288 dp across
+  /// for the SVG's 108 units, centred, with the cube at 0.72 scale
+  /// (assets/brand/bv_splash.svg). One cube unit in dp.
+  static const cubeUnit = 288 / 108 * 0.72;
 }

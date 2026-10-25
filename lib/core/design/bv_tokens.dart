@@ -34,6 +34,9 @@ abstract final class BvPrimitive {
   static const destructive = Color(0xFFC23B3B);
   static const ink48 = Color(0x7A141B33);
   static const ink38 = Color(0x61141B33);
+  // The app icon's cube (review 91): its left and right faces.
+  static const cubeLeft = Color(0xFFF8F1E8);
+  static const cubeRight = Color(0xFFE6DACA);
 }
 
 /// Semantic colours ("Color / Semantic", Light mode).
@@ -96,6 +99,14 @@ abstract final class BvColors {
   /// The app icon's and the native splash's terracotta (review 91); the
   /// first screen fades in from it.
   static const brandSplash = BvPrimitive.energyStrong;
+
+  /// The cube on the splash (review 91 addendum): its outline while it
+  /// traces itself, its three faces, and the B and V.
+  static const brandCubeOutline = BvPrimitive.elevated;
+  static const brandCubeTop = BvPrimitive.elevated;
+  static const brandCubeLeft = BvPrimitive.cubeLeft;
+  static const brandCubeRight = BvPrimitive.cubeRight;
+  static const brandCubeLetters = BvPrimitive.energyStrong;
 }
 
 /// Accent colours for project and Space avatars ("Color / Project").
