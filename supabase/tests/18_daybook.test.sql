@@ -72,6 +72,8 @@ select ok((select relrowsecurity from pg_class where oid = 'public.post_files'::
 
 -- Replay the migration's backfill on an item made the old way (no post).
 alter table public.work_items drop constraint work_items_post_fkey;
+-- (migration 46) an item from before had no post to take its number from.
+alter table public.work_items disable trigger work_items_number_is_post;
 insert into public.work_items (id, space_id, number, ref, title, owner_id, created_by, team_id,
                                place_text, due_date)
 values (pg_temp.item('b001'), pg_temp.sp(), 900, 'DS-900', 'Old item from before', pg_temp.uid('e2'),
@@ -85,6 +87,7 @@ where not exists (select 1 from public.space_posts p where p.id = w.id);
 alter table public.work_items
   add constraint work_items_post_fkey
   foreign key (id) references public.space_posts (id) on delete cascade;
+alter table public.work_items enable trigger work_items_number_is_post;
 select is((select row(p.kind, p.title, p.place_text, p.due_date, p.team_id, p.author_id)::text
            from public.space_posts p where p.id = pg_temp.item('b001')),
   row('work_item', 'Old item from before', 'Gate 2', '2026-11-02'::date,

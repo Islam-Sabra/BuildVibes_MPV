@@ -61,8 +61,10 @@ begin
   when 'work_items' then
     -- (migration 18) its space_posts row is made in setup, so this checks the
     -- work_items guard itself.
+    -- (migration 46) with its post's number.
     insert into public.work_items (id, space_id, number, ref, title)
-    values (pg_temp.id('c09' || p_n), v_space, 90 + p_n::int, 'ZZ-09' || p_n, 'Hidden test');
+    select p.id, p.space_id, p.number, p.ref, 'Hidden test'
+    from public.space_posts p where p.id = pg_temp.id('c09' || p_n);
   when 'space_posts' then
     insert into public.space_posts (id, space_id, kind, author_id, title)
     values (pg_temp.id('c19' || p_n), v_space, 'announcement', v_me, 'Hidden test');
@@ -131,9 +133,11 @@ insert into public.space_posts (id, space_id, kind, author_id, title) values
   (pg_temp.id('c080'), current_setting('test.space')::uuid, 'work_item', null, 'Rebar check level 3'),
   (pg_temp.id('c091'), current_setting('test.space')::uuid, 'work_item', null, 'Hidden test'),
   (pg_temp.id('c092'), current_setting('test.space')::uuid, 'work_item', null, 'Hidden test');
+-- (migration 46) a work item has its post's number.
 insert into public.work_items (id, space_id, number, ref, title)
-values (pg_temp.id('c080'), current_setting('test.space')::uuid, 80, 'ZZ-080', 'Rebar check level 3');
-select set_config('test.item', (select id from public.work_items where ref = 'ZZ-080')::text, true);
+select p.id, p.space_id, p.number, p.ref, 'Rebar check level 3'
+from public.space_posts p where p.id = pg_temp.id('c080');
+select set_config('test.item', pg_temp.id('c080')::text, true);
 select set_config('test.thread', (select id from public.threads
   where space_id = current_setting('test.space')::uuid and team_id is null)::text, true);
 select set_config('test.code',

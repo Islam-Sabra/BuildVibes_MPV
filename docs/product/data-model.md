@@ -493,6 +493,14 @@ Rules from review 33 A4. Written by the lead on 15 Oct (review 37), follow-ups i
 - `note_for_space(id, include_gps)`: yours only; what Put in a Space carries (kind, title, words, points, page, date, photos and the typed place). The GPS position only when `include_gps` ("Include my GPS position"). Nothing is posted by it.
 - `export_my_data` adds each note's title, page and location.
 
+**Review 95, migration 46 (`20261107120000_post_numbers.sql`, branch `claude/r95`, not live):** one number for every post.
+- `space_posts.number` (not null, unique per Space) and `space_posts.ref` ("NST-031": the Space's `ref_prefix`, a dash, at least three digits, from `post_ref`). Every kind takes the Space's next number (`spaces.next_item_number`) as it goes in, in one before-insert trigger (`number_space_post`) that locks the Space row; a number given at insert is replaced. Never a draft; a retried post id returns before it inserts.
+- A work item's `work_items.number` and `ref` are its post's: `create_work_item` no longer counts on its own, and a trigger (`work_item_number_is_post`) refuses any other.
+- Gaps stay possible (another Team's post, a cancelled one).
+- Backfill: work item posts keep theirs; every other post takes the next numbers in its Space in `created_at, id` order; the counter goes past the highest.
+- `space_post_json` returns `ref` for every kind (and `item.ref`, the same, for work items); `activity_rows` carries it for a row about any post.
+- `search_space` gains `exact`: "NST-023", "NST023", "nst 23", "023" or "23" (Arabic-Indic digits too) finds post 23 of this Space first, under the same reader rule; another Space's prefix finds none; a number alone searches from one digit.
+
 **F108, migration 45 (`20261106120000_note_block_levels.sql`, branch `claude/f108`, not live, review 93):** a note's lines sit under each other.
 - Any line of a note's page may carry `indent`, its level: 0 to 3, left out at 0 (old notes have none). It is not called `level` because a heading's `level` is its size. The first line is at 0, and no line is more than one deeper than the line before it. A toggle's own lines stay inside it, at 0.
 - A `numbered` line may carry `start` (1 to 999): its count begins there ("Continue numbering" or "Restart at 1"). Numbers are never kept; the app works them out (1. 2. 3. → a. b. c. → i. ii. iii. → 1., Western digits and Latin letters in Arabic too).
