@@ -9,6 +9,7 @@ import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/work/walk_saved.dart';
 import 'package:buildvibes/features/work/walk_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +17,7 @@ import 'package:go_router/go_router.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/hold.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -318,6 +320,62 @@ void main() {
         ),
         findsWidgets,
       );
+    });
+
+    testWidgets("review 94: a row's own card holds to check; CHECKED lands "
+        'there at once, Undo on its sheet takes it back, and a hold let go '
+        'through is sent [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      final done = _child(s);
+      app.daybook.cardsById[_hanger] = DaybookCard(
+        post: DaybookPost(
+          id: _hanger,
+          kind: DaybookPost.workItemKind,
+          createdAt: done.post.createdAt,
+          title: done.post.title,
+          authorId: DaybookSamples.islam,
+          authorName: s.islamName,
+          parentId: _walk,
+          item: DaybookItem(
+            status: WorkStatus.done,
+            ownerId: DaybookSamples.omar,
+            ownerName: s.omarName,
+            ref: 'KCT-031',
+          ),
+        ),
+        proof: DaybookProof(
+          at: DaybookSamples.thursday,
+          byId: DaybookSamples.omar,
+          byName: s.omarName,
+          note: 'Fixed',
+          outcome: DaybookOutcome(
+            kind: DaybookOutcomeKind.done,
+            at: DaybookSamples.thursday,
+            byId: DaybookSamples.omar,
+            byName: s.omarName,
+          ),
+        ),
+        lastActivityAt: DaybookSamples.thursday,
+        need: DaybookNeed.toCheck,
+      );
+      await _tap(tester, _key('target-row-$_hanger'));
+      final sheet = _key('daybook-child-$_hanger');
+      Finder inSheet(Finder f) => find.descendant(of: sheet, matching: f);
+      await hold(tester, inSheet(find.byKey(const Key('hold-check'))));
+      expect(inSheet(find.text(l10n.daybookStampChecked)), findsOneWidget);
+      expect(inSheet(find.text(l10n.daybookLineYouChecked)), findsOneWidget);
+      expect(find.byType(BvUndoBar), findsOneWidget);
+      // On the sheet, where it can be tapped.
+      await tester.tap(find.byKey(const Key('undo-bar-action')));
+      await tester.pumpAndSettle();
+      expect(inSheet(find.text(l10n.daybookStampDone)), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(app.work.calls, isEmpty);
+      await hold(tester, inSheet(find.byKey(const Key('hold-check'))));
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(app.work.calls.single, 'check $_hanger');
     });
 
     testWidgets('a link to a walk\'s work item opens the walk and its card '

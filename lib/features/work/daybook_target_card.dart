@@ -10,6 +10,7 @@ import '../../data/models/daybook.dart';
 import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/daybook_repository.dart';
+import '../../data/repositories/space_repository.dart' show spacePeopleProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_checklist_point.dart' show BvChecklistProgress;
@@ -267,16 +268,50 @@ class _ChildSheet extends ConsumerWidget {
     final now = ref.watch(clockProvider)();
     // What this phone did and hasn't sent yet shows at once, so the same
     // action isn't offered twice.
-    final pending = [
+    final held = {
       for (final i in ref.watch(workOutboxProvider))
-        if (i.id == childId && !i.refused) i.kind,
-    ];
+        if (i.id == childId && !i.refused) i.kind: i,
+    };
+    final pending = held.keys;
+    final outbox = ref.read(workOutboxProvider.notifier);
+    final myName = ref
+        .watch(spacePeopleProvider(loop.space.id))
+        .value
+        ?.member(me ?? '')
+        ?.person
+        .fullName;
     var c = card.value;
-    if (c != null && pending.contains(PendingKind.check)) {
+    var landing = false;
+    // Review 94: a check or a cancel made here shows at once, as on the
+    // daybook: the CHECKED stamp lands, or the card is cancelled.
+    final check = held[PendingKind.check];
+    if (c != null && check != null) {
+      final at = check.madeAt ?? now;
       c = c.copyWith(
         post: c.post.shownAs(status: WorkStatus.checked),
+        proof: c.proof?.withOutcome(
+          DaybookOutcome(
+            kind: DaybookOutcomeKind.checked,
+            at: at,
+            byId: me,
+            byName: myName,
+          ),
+        ),
+        history: [
+          DaybookEvent(
+            id: 'check_item-$childId',
+            kind: DaybookEventKind.checked,
+            at: at,
+            byId: me,
+            byName: myName,
+          ),
+          ...c.history,
+        ],
         clearNeed: true,
       );
+      landing = outbox.isHeld(PendingKind.check, childId);
+    } else if (c != null && held.containsKey(PendingKind.cancel)) {
+      c = c.copyWith(post: c.post.shownAs(cancelled: true), clearNeed: true);
     } else if (c != null &&
         pending.contains(PendingKind.signOff) &&
         c.post.isOpen) {
@@ -307,14 +342,19 @@ class _ChildSheet extends ConsumerWidget {
         now: now,
         activityAt: c.lastActivityAt,
         viewer: loop.space.myPass == SpacePass.viewer,
+        landing: landing,
       );
-      body = Padding(
-        padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-        child: loop.withActions(
-          context,
-          view,
-          me: me,
-          signing: {if (pending.contains(PendingKind.signOff)) childId},
+      // Under the sheet's own messenger, so its undo bar shows on the
+      // sheet, where it can be tapped.
+      body = Builder(
+        builder: (sheet) => Padding(
+          padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+          child: loop.withActions(
+            sheet,
+            view,
+            me: me,
+            signing: {if (pending.contains(PendingKind.signOff)) childId},
+          ),
         ),
       );
     }
