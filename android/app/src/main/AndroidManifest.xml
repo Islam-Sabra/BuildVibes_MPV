@@ -4,8 +4,14 @@
     <!-- F67: the tick and the strong haptic as the phone's own effects. -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Remind me (slice 10): a note's reminder is set again after the
-         phone restarts. Inexact, so no exact-alarm permission. -->
+         phone restarts. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- F107 (B12): on time when the phone allows exact alarms (no prompt;
+         inexact otherwise). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- F107 (NBX4): a note's GPS position, asked the first time. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <application
         android:label="BuildVibes"
         android:name="${applicationName}"

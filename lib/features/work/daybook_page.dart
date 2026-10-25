@@ -491,7 +491,12 @@ class PageBlockView extends ConsumerWidget {
         pointIds: pointIds,
         me: me,
       ),
-      PageChildItem() || PageOtherBlock() => const SizedBox.shrink(),
+      // A note's own blocks (F107) are never on a Space post's page.
+      PageChildItem() ||
+      PageOtherBlock() ||
+      PageLine() ||
+      PageDivider() ||
+      PageVoice() => const SizedBox.shrink(),
     };
   }
 }

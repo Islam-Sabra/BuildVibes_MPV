@@ -120,9 +120,7 @@ class LocalReminders implements PhoneReminders {
           ),
           iOS: const DarwinNotificationDetails(),
         ),
-        // Inexact: no exact-alarm permission to ask for; a few minutes
-        // late is fine for a note.
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: await _mode(),
         title: title,
         body: body,
         payload: noteId,
@@ -131,6 +129,22 @@ class LocalReminders implements PhoneReminders {
       // A reminder that can't be set never stops the note.
       debugPrint('reminder: $e');
     }
+  }
+
+  /// On time when the phone allows exact alarms (F107 B12: Android's
+  /// inexact window was up to an hour); never asked for, so inexact
+  /// otherwise.
+  Future<AndroidScheduleMode> _mode() async {
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    final exact =
+        android != null &&
+        (await android.canScheduleExactNotifications() ?? false);
+    return exact
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
   }
 
   @override
