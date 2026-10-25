@@ -14,6 +14,25 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Read-only check passed:** the new check accepts levels, start and folds, and refuses level 4, a start of 0 and a fold with nothing under it. Old pages still pass, and the one saved page on live is still valid. Signed-out can't run the check; RLS on notes is on.
 - **Build 610** (4ada8d9) is on the founder's Xiaomi and the emulator. Only BuildVibes was installed.
 - **To try on the phone:** Backspace at the start of a line that has words; dragging a line that has children; ⇥ ⇤ on the bar.
+- **Error during the migration 45 push (25 Oct, 11:30 Kuwait):** `echo Y | supabase db push --linked` (CLI v2.109.1) printed a stack trace before `Finished supabase db push.`. The output was cut to its last 6 lines (`| tail -6`), so any lines above the first frame below, including the error message itself, were not kept. Exact text kept:
+  ```
+      at getCertValue (file:///var/tmp/sb-compile-edge-runtime/node_modules/localhost/@supabase/pg-delta/1.0.0-alpha.27/dist/core/plan/ssl-config.js:44:27)
+      at async parseSslConfig (file:///var/tmp/sb-compile-edge-runtime/node_modules/localhost/@supabase/pg-delta/1.0.0-alpha.27/dist/core/plan/ssl-config.js:62:23)
+      at async createManagedPool (file:///var/tmp/sb-compile-edge-runtime/node_modules/localhost/@supabase/pg-delta/1.0.0-alpha.27/dist/core/postgres-config.js:340:23)
+      at async file:///var/tmp/sb-compile-edge-runtime/index.ts:10:25
+
+  Finished supabase db push.
+  ```
+  - **What produced it:**
+    - The trace comes from pg-delta (`@supabase/pg-delta` 1.0.0-alpha.27). That is the CLI's experimental schema engine, switched on by `[experimental.pgdelta] enabled = true` in `supabase/config.toml`; the CLI runs it in its edge-runtime container.
+    - It failed while reading the certificate for its SSL connection to the live database (`getCertValue`).
+    - That certificate is `supabase/.temp/pgdelta/pgdelta-target-ca.crt`, a public CA certificate, not a secret. When the throwaway push worktree was made, `cp supabase/.temp/*` skipped the `pgdelta/` folder (`cp: -r not specified; omitting directory 'supabase/.temp/pgdelta'`), so the file wasn't there.
+    - This cause is read from the stack and the missing file; the lost lines were not seen.
+  - **Effect:** none on the migration.
+    - The trace came at the end of the push, and the CLI still printed `Finished supabase db push.`.
+    - `supabase migration list --linked` shows `20261106120000` on live.
+    - The read-only check of 45 passed.
+  - **Before the next push:** copy the folder whole: `cp -r supabase/.temp/. ../BuildVibes-push/supabase/.temp/`. Keep `| tail` off the real push so any error is kept in full, and confirm the push with `supabase migration list --linked` as before.
 - **Who has which branch:** `claude/f108` is merged and done; the worktree `BuildVibes-f108` can be removed. PC keeps `slice2-app` (worktree `BuildVibes-slice1`).
 
 ## PC update: 25 Oct 2026 — F108 (review 93) built on `claude/f108`, waiting for the lead
