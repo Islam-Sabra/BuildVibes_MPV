@@ -7,34 +7,50 @@ import 'work_item.dart';
 /// checked by `validate_blocks`). Each has its own id, chosen by the app.
 @immutable
 sealed class PageBlock {
-  const PageBlock(this.id);
+  const PageBlock(this.id, {this.indent = 0});
 
   final String id;
 
+  /// A note's line under the line above it (review 93): 0 to [maxIndent],
+  /// never more than one deeper than the line before. Work's page keeps
+  /// every block at 0. Not `level`: a heading's `level` is its size.
+  final int indent;
+
+  /// Four levels: more is unreadable on a phone.
+  static const maxIndent = 3;
+
   String get type;
 
+  /// The same block at [indent] (a note's lines; Work's blocks stay at 0).
+  PageBlock atIndent(int indent) => this;
+
   Map<String, dynamic> toJson();
+
+  /// Kept only when deeper than 0: old notes have none.
+  Map<String, dynamic> get _indentJson => indent > 0 ? {'indent': indent} : {};
 
   /// A block from the server, or [PageOtherBlock] for a kind this page
   /// doesn't edit (a report's work item), kept as it came.
   static PageBlock fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String? ?? '';
     String text() => json['text'] as String? ?? '';
+    final indent = ((json['indent'] as num?)?.toInt() ?? 0).clamp(0, maxIndent);
     return switch (json['type']) {
-      PageText.kind => PageText(id, text()),
+      PageText.kind => PageText(id, text(), indent: indent),
       PageHeading.kind => PageHeading(
         id,
         text(),
         level: (json['level'] as num?)?.toInt() == 2 ? 2 : 1,
+        indent: indent,
       ),
       PageToggle.kind => PageToggle(id, text(), [
         for (final c in json['children'] as List? ?? const [])
           PageBlock.fromJson(c as Map<String, dynamic>),
-      ]),
+      ], indent: indent),
       PageTable.kind => PageTable(id, [
         for (final r in json['rows'] as List? ?? const [])
           [for (final c in r as List) '${c ?? ''}'],
-      ]),
+      ], indent: indent),
       PagePhoto.kind => PagePhoto(
         id,
         json['path'] as String? ?? '',
@@ -49,17 +65,27 @@ sealed class PageBlock {
         id,
         text(),
         done: json['done'] as bool? ?? false,
+        indent: indent,
       ),
-      PageBullet.kind => PageBullet(id, text()),
-      PageNumbered.kind => PageNumbered(id, text()),
-      PageCallout.kind => PageCallout(id, text()),
-      PageQuote.kind => PageQuote(id, text()),
-      PageDivider.kind => PageDivider(id),
+      PageBullet.kind => PageBullet(id, text(), indent: indent),
+      PageNumbered.kind => PageNumbered(
+        id,
+        text(),
+        indent: indent,
+        start: switch ((json['start'] as num?)?.toInt()) {
+          final n? when n >= 1 && n <= PageNumbered.startMax => n,
+          _ => null,
+        },
+      ),
+      PageCallout.kind => PageCallout(id, text(), indent: indent),
+      PageQuote.kind => PageQuote(id, text(), indent: indent),
+      PageDivider.kind => PageDivider(id, indent: indent),
       PageVoice.kind => PageVoice(
         id,
         path: json['path'] as String?,
         local: json['local'] as String?,
         durationMs: (json['duration_ms'] as num?)?.toInt() ?? 0,
+        indent: indent,
       ),
       _ => PageOtherBlock(id, Map.unmodifiable(json)),
     };
@@ -67,7 +93,7 @@ sealed class PageBlock {
 }
 
 class PageText extends PageBlock {
-  const PageText(super.id, this.text);
+  const PageText(super.id, this.text, {super.indent});
 
   static const kind = 'text';
 
@@ -80,11 +106,19 @@ class PageText extends PageBlock {
   String get type => kind;
 
   @override
-  Map<String, dynamic> toJson() => {'id': id, 'type': kind, 'text': text};
+  PageText atIndent(int indent) => PageText(id, text, indent: indent);
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': kind,
+    'text': text,
+    ..._indentJson,
+  };
 }
 
 class PageHeading extends PageBlock {
-  const PageHeading(super.id, this.text, {this.level = 1});
+  const PageHeading(super.id, this.text, {this.level = 1, super.indent});
 
   static const kind = 'heading';
   static const max = 200;
@@ -96,17 +130,22 @@ class PageHeading extends PageBlock {
   String get type => kind;
 
   @override
+  PageHeading atIndent(int indent) =>
+      PageHeading(id, text, level: level, indent: indent);
+
+  @override
   Map<String, dynamic> toJson() => {
     'id': id,
     'type': kind,
     'text': text,
     'level': level,
+    ..._indentJson,
   };
 }
 
 /// Closed until tapped; holds text, headings, tables, photos and files.
 class PageToggle extends PageBlock {
-  const PageToggle(super.id, this.text, this.children);
+  const PageToggle(super.id, this.text, this.children, {super.indent});
 
   static const kind = 'toggle';
   static const max = 200;
@@ -127,18 +166,23 @@ class PageToggle extends PageBlock {
   String get type => kind;
 
   @override
+  PageToggle atIndent(int indent) =>
+      PageToggle(id, text, children, indent: indent);
+
+  @override
   Map<String, dynamic> toJson() => {
     'id': id,
     'type': kind,
     'text': text,
     'children': [for (final c in children) c.toJson()],
+    ..._indentJson,
   };
 }
 
 /// The first row is the header. 1–20 rows of 1–8 cells, every row as
 /// wide; a cell up to 200 characters.
 class PageTable extends PageBlock {
-  const PageTable(super.id, this.rows);
+  const PageTable(super.id, this.rows, {super.indent});
 
   static const kind = 'table';
   static const maxRows = 20;
@@ -153,7 +197,15 @@ class PageTable extends PageBlock {
   String get type => kind;
 
   @override
-  Map<String, dynamic> toJson() => {'id': id, 'type': kind, 'rows': rows};
+  PageTable atIndent(int indent) => PageTable(id, rows, indent: indent);
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': kind,
+    'rows': rows,
+    ..._indentJson,
+  };
 }
 
 /// One of the post's own photos (post_files).
@@ -244,7 +296,7 @@ class PageChildItem extends PageBlock {
 /// One line of words: a to-do, a bullet, a numbered line, a callout or a
 /// quote.
 sealed class PageLine extends PageBlock {
-  const PageLine(super.id, this.text);
+  const PageLine(super.id, this.text, {super.indent});
 
   /// is_valid_note_blocks: up to 5,000 characters.
   static const max = 5000;
@@ -255,12 +307,20 @@ sealed class PageLine extends PageBlock {
   PageLine withText(String text);
 
   @override
-  Map<String, dynamic> toJson() => {'id': id, 'type': type, 'text': text};
+  PageLine atIndent(int indent);
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type,
+    'text': text,
+    ..._indentJson,
+  };
 }
 
 /// A to-do: ticked or not, by its owner, on the note.
 class PageTodo extends PageLine {
-  const PageTodo(super.id, super.text, {this.done = false});
+  const PageTodo(super.id, super.text, {this.done = false, super.indent});
 
   static const kind = 'todo';
 
@@ -270,16 +330,21 @@ class PageTodo extends PageLine {
   String get type => kind;
 
   @override
-  PageTodo withText(String text) => PageTodo(id, text, done: done);
+  PageTodo withText(String text) =>
+      PageTodo(id, text, done: done, indent: indent);
 
-  PageTodo ticked() => PageTodo(id, text, done: !done);
+  @override
+  PageTodo atIndent(int indent) =>
+      PageTodo(id, text, done: done, indent: indent);
+
+  PageTodo ticked() => PageTodo(id, text, done: !done, indent: indent);
 
   @override
   Map<String, dynamic> toJson() => {...super.toJson(), 'done': done};
 }
 
 class PageBullet extends PageLine {
-  const PageBullet(super.id, super.text);
+  const PageBullet(super.id, super.text, {super.indent});
 
   static const kind = 'bullet';
 
@@ -287,24 +352,48 @@ class PageBullet extends PageLine {
   String get type => kind;
 
   @override
-  PageBullet withText(String text) => PageBullet(id, text);
+  PageBullet withText(String text) => PageBullet(id, text, indent: indent);
+
+  @override
+  PageBullet atIndent(int indent) => PageBullet(id, text, indent: indent);
 }
 
-/// Numbered by its place in a run of numbered lines.
+/// Numbered by its place in a run of numbered lines at its level (review
+/// 93); the number is never kept, only worked out when shown.
 class PageNumbered extends PageLine {
-  const PageNumbered(super.id, super.text);
+  const PageNumbered(super.id, super.text, {super.indent, this.start});
 
   static const kind = 'numbered';
+
+  /// "Continue numbering" or "Restart at 1": the count starts here at
+  /// [start] (1 to [startMax]); null counts on by itself.
+  final int? start;
+  static const startMax = 999;
 
   @override
   String get type => kind;
 
   @override
-  PageNumbered withText(String text) => PageNumbered(id, text);
+  PageNumbered withText(String text) =>
+      PageNumbered(id, text, indent: indent, start: start);
+
+  @override
+  PageNumbered atIndent(int indent) =>
+      PageNumbered(id, text, indent: indent, start: start);
+
+  /// The count starting here at [start], or by itself (null).
+  PageNumbered startingAt(int? start) =>
+      PageNumbered(id, text, indent: indent, start: start);
+
+  @override
+  Map<String, dynamic> toJson() => {
+    ...super.toJson(),
+    if (start != null) 'start': start,
+  };
 }
 
 class PageCallout extends PageLine {
-  const PageCallout(super.id, super.text);
+  const PageCallout(super.id, super.text, {super.indent});
 
   static const kind = 'callout';
 
@@ -312,11 +401,14 @@ class PageCallout extends PageLine {
   String get type => kind;
 
   @override
-  PageCallout withText(String text) => PageCallout(id, text);
+  PageCallout withText(String text) => PageCallout(id, text, indent: indent);
+
+  @override
+  PageCallout atIndent(int indent) => PageCallout(id, text, indent: indent);
 }
 
 class PageQuote extends PageLine {
-  const PageQuote(super.id, super.text);
+  const PageQuote(super.id, super.text, {super.indent});
 
   static const kind = 'quote';
 
@@ -324,12 +416,15 @@ class PageQuote extends PageLine {
   String get type => kind;
 
   @override
-  PageQuote withText(String text) => PageQuote(id, text);
+  PageQuote withText(String text) => PageQuote(id, text, indent: indent);
+
+  @override
+  PageQuote atIndent(int indent) => PageQuote(id, text, indent: indent);
 }
 
 /// A thin line between parts of a note.
 class PageDivider extends PageBlock {
-  const PageDivider(super.id);
+  const PageDivider(super.id, {super.indent});
 
   static const kind = 'divider';
 
@@ -337,13 +432,22 @@ class PageDivider extends PageBlock {
   String get type => kind;
 
   @override
-  Map<String, dynamic> toJson() => {'id': id, 'type': kind};
+  PageDivider atIndent(int indent) => PageDivider(id, indent: indent);
+
+  @override
+  Map<String, dynamic> toJson() => {'id': id, 'type': kind, ..._indentJson};
 }
 
 /// A voice recording inside a note: in `notebook-files` once sent
 /// ([path], one of the note's files), on the phone until then ([local]).
 class PageVoice extends PageBlock {
-  const PageVoice(super.id, {this.path, this.local, this.durationMs = 0});
+  const PageVoice(
+    super.id, {
+    this.path,
+    this.local,
+    this.durationMs = 0,
+    super.indent,
+  });
 
   static const kind = 'voice';
 
@@ -353,8 +457,22 @@ class PageVoice extends PageBlock {
 
   Duration get duration => Duration(milliseconds: durationMs);
 
-  PageVoice uploaded(String path) =>
-      PageVoice(id, path: path, local: local, durationMs: durationMs);
+  PageVoice uploaded(String path) => PageVoice(
+    id,
+    path: path,
+    local: local,
+    durationMs: durationMs,
+    indent: indent,
+  );
+
+  @override
+  PageVoice atIndent(int indent) => PageVoice(
+    id,
+    path: path,
+    local: local,
+    durationMs: durationMs,
+    indent: indent,
+  );
 
   @override
   String get type => kind;
@@ -367,6 +485,7 @@ class PageVoice extends PageBlock {
     'path': path,
     if (local != null) 'local': local,
     'duration_ms': durationMs,
+    ..._indentJson,
   };
 
   /// As save_note takes it.
@@ -375,6 +494,7 @@ class PageVoice extends PageBlock {
     'type': kind,
     'path': path,
     'duration_ms': durationMs,
+    ..._indentJson,
   };
 }
 
