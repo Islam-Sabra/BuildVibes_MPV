@@ -49,3 +49,25 @@ A designer delivers the real logo, the icon, and an opening animation as a Lotti
 - "Stay connected".
 
 Timings: a first open under 4 s, a daily open under 1 s. The lead writes that brief when the founder says go.
+
+## Addendum, 25 Oct: the cube traces itself while loading (founder: "if it fits, use it")
+**The idea** is a logo trace loader, as in dqnamo's "Kitchen" (dqnamo.com/kitchen): a showcase with no code to take, so we only borrow the idea and draw it natively.
+
+**What happens after the native splash** (same terracotta, same cube position, so the handover is seamless):
+1. **The trace (≈ 600 ms):**
+   - the cube's outline draws itself in white, 2.5 px, round caps, as one continuous pen line: the hexagon, then the inner "Y" where the three faces meet;
+   - easing `easeInOutCubic`.
+2. **The fill (≈ 200 ms):** the three faces fill (white / `#F8F1E8` / `#E6DACA`) and the outline fades into them.
+3. **The letters (≈ 150 ms):** B and V fade in, orange.
+4. **The hand-over:** Home fades in over 350 ms, as already built.
+
+**Rules:**
+- **It plays only while the app is really loading** (session restore and the first screen's data). If loading ends before the trace has begun (under about 300 ms), there's no trace: straight to the fade. If loading ends mid-trace, the trace finishes quickly (to 1.0 in 150 ms), and then Home comes.
+- **Never longer than 1.2 s in total** after the native splash, whatever happens.
+- **Reduce motion** (the phone's accessibility setting): no trace, just the fade.
+- **Built with no new package:** a `CustomPainter` with `PathMetric.extractPath` for the trace, the same geometry as `assets/brand/bv_splash.svg` (the cube at 0.72 scale), and the letters as paths from the SVG.
+- **Tests:**
+  - the loader never runs over 1.2 s;
+  - it's skipped when loading is fast and when reduce motion is on;
+  - it finishes early when loading ends mid-trace.
+- **Screenshots:** three frames, at the half-traced outline, the filled cube, and the letters.
