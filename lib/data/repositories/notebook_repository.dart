@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/note.dart';
+import '../models/post_page.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
 import 'space_repository.dart';
@@ -20,8 +22,8 @@ abstract class NotebookRepository {
   /// same note). False when the note was deleted: the app drops its edit.
   Future<bool> save(Note note);
 
-  /// delete_note, then its recording from Storage (the cleanup takes any
-  /// file left behind).
+  /// delete_note, then its recording or photos from Storage (the cleanup
+  /// takes any file left behind).
   Future<void> delete(Note note);
 
   /// set_note_done: a to-do only.
@@ -36,8 +38,26 @@ abstract class NotebookRepository {
   /// A recording into `notebook-files`, at `<me>/<note>/<file>`.
   Future<String> uploadRecording(String noteId, NoteRecording recording);
 
-  /// A short link to play a recording.
+  /// A photo into `notebook-files`, at `<me>/<note>/<file>` (F106); made
+  /// safe to leave the phone when it was picked (cleanPhoto).
+  Future<String> uploadPhoto(String noteId, NotePhoto photo);
+
+  /// A PDF into `notebook-files`, at `<me>/<note>/<file>.pdf` (F107).
+  Future<String> uploadFile(String noteId, NoteFile file);
+
+  /// A short link to play a recording or show a photo.
   Future<String> recordingUrl(String path);
+
+  /// A file of mine from `notebook-files` (a photo going into a Space,
+  /// F107 B11).
+  Future<Uint8List> download(String path);
+
+  /// note_for_space (F107): what Put in a Space carries from a note: its
+  /// words, page and typed location; the GPS only when [includeGps].
+  Future<Map<String, dynamic>> forSpace(
+    String noteId, {
+    required bool includeGps,
+  });
 
   /// my_calendar: from [from] to [to] (the phone's days, both in; up to
   /// 62), every Space I'm in and my to-dos.
@@ -85,7 +105,7 @@ class SupabaseNotebookRepository implements NotebookRepository {
     final rows = await _client
         .from('notes')
         .select(
-          '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort)',
+          '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort, name)',
         )
         .order('created_at', ascending: false)
         .limit(_limit);
@@ -94,6 +114,44 @@ class SupabaseNotebookRepository implements NotebookRepository {
 
   @override
   Future<bool> save(Note note) => _guard(() async {
+    final blocks = note.blocks;
+    if (blocks != null) {
+      // F107: a page, with its title, blocks, date, location, photos,
+      // PDFs and voice blocks' recordings, and the phone's time.
+      final id = await _client.rpc<String?>(
+        'save_note',
+        params: {
+          'p_id': note.id,
+          'p_kind': NoteKind.text.json,
+          'p_body': note.body.trim().isEmpty ? null : note.body.trim(),
+          'p_title': note.title.trim().isEmpty ? null : note.title.trim(),
+          'p_blocks': [
+            for (final b in blocks) b is PageVoice ? b.toServer() : b.toJson(),
+          ],
+          'p_due_at': note.dueAt == null ? null : _instant(note.dueAt!),
+          'p_remind_at': note.remindAt == null
+              ? null
+              : _instant(note.remindAt!),
+          'p_pinned': note.pinned,
+          'p_location': note.location?.toJson(),
+          'p_created_at': _instant(note.createdAt),
+          'p_files': [
+            for (final p in note.photos)
+              if (p.path != null) p.toServer(),
+            for (final f in note.files)
+              if (f.path != null) f.toServer(),
+            for (final b in blocks)
+              if (b case PageVoice(:final path?))
+                {
+                  'path': path,
+                  'mime': 'audio/mp4',
+                  'duration_ms': b.durationMs,
+                },
+          ],
+        },
+      );
+      return id != null;
+    }
     final id = await _client.rpc<String?>(
       'save_note',
       params: {
@@ -108,10 +166,17 @@ class SupabaseNotebookRepository implements NotebookRepository {
             : null,
         'p_remind_at': note.remindAt == null ? null : _instant(note.remindAt!),
         'p_pinned': note.pinned,
-        // Null keeps the files; a voice note sends its one recording.
-        'p_files': note.kind == NoteKind.voice && note.recording?.path != null
-            ? [note.recording!.toServer()]
-            : null,
+        // A voice note sends its one recording (null keeps it until it is
+        // uploaded); any other note its photos, all of them each time
+        // (F106: set_note_files replaces them).
+        'p_files': note.kind == NoteKind.voice
+            ? (note.recording?.path == null
+                  ? null
+                  : [note.recording!.toServer()])
+            : [
+                for (final p in note.photos)
+                  if (p.path != null) p.toServer(),
+              ],
       },
     );
     return id != null;
@@ -120,10 +185,16 @@ class SupabaseNotebookRepository implements NotebookRepository {
   @override
   Future<void> delete(Note note) => _guard(() async {
     await _client.rpc<void>('delete_note', params: {'p_id': note.id});
-    final path = note.recording?.path;
-    if (path == null) return;
+    final paths = [
+      ?note.recording?.path,
+      for (final p in note.photos) ?p.path,
+      for (final f in note.files) ?f.path,
+      for (final b in note.blocks ?? const <PageBlock>[])
+        if (b case PageVoice(:final path?)) path,
+    ];
+    if (paths.isEmpty) return;
     try {
-      await _client.storage.from(notebookBucket).remove([path]);
+      await _client.storage.from(notebookBucket).remove(paths);
     } on StorageException {
       // The cleanup takes it.
     }
@@ -161,6 +232,51 @@ class SupabaseNotebookRepository implements NotebookRepository {
             );
         return path;
       });
+
+  @override
+  Future<String> uploadPhoto(String noteId, NotePhoto photo) =>
+      _guard(() async {
+        final me = _client.auth.currentUser!.id;
+        final path = '$me/$noteId/${newUuid()}.jpg';
+        await _client.storage
+            .from(notebookBucket)
+            .upload(
+              path,
+              File(photo.local!),
+              fileOptions: FileOptions(contentType: photo.mime),
+            );
+        return path;
+      });
+
+  @override
+  Future<String> uploadFile(String noteId, NoteFile file) => _guard(() async {
+    final me = _client.auth.currentUser!.id;
+    final path = '$me/$noteId/${newUuid()}.pdf';
+    await _client.storage
+        .from(notebookBucket)
+        .upload(
+          path,
+          File(file.local!),
+          fileOptions: FileOptions(contentType: file.mime),
+        );
+    return path;
+  });
+
+  @override
+  Future<Uint8List> download(String path) =>
+      _guard(() => _client.storage.from(notebookBucket).download(path));
+
+  @override
+  Future<Map<String, dynamic>> forSpace(
+    String noteId, {
+    required bool includeGps,
+  }) => _guard(() async {
+    final row = await _client.rpc<Map<String, dynamic>>(
+      'note_for_space',
+      params: {'p_id': noteId, 'p_include_gps': includeGps},
+    );
+    return row;
+  });
 
   @override
   Future<String> recordingUrl(String path) => _guard(

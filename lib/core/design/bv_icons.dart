@@ -282,6 +282,20 @@ abstract final class BvIcons {
   // Phosphor: square (a point not ticked, while the page is edited)
   static const checkbox = IconData(0xe45e, fontFamily: _family);
 
+  // A note's categories (F107 NBX2 2619:36808), in the grid's order.
+  // Phosphor: text-h-one, text-h-two
+  static const headingOne = IconData(0xe6bc, fontFamily: _family);
+  static const headingTwo = IconData(0xe6be, fontFamily: _family);
+  // Phosphor: check-square (a to-do list)
+  static const todoList = IconData(0xe186, fontFamily: _family);
+  // Phosphor: list-bullets, list-numbers
+  static const bulletList = IconData(0xe2f2, fontFamily: _family);
+  static const numberList = IconData(0xe2f6, fontFamily: _family);
+  // Phosphor: quotes
+  static const quote = IconData(0xe660, fontFamily: _family);
+  // Phosphor: minus (a divider)
+  static const divider = IconData(0xe32a, fontFamily: _family);
+
   // Planning (slice 8)
   // Phosphor: notebook. My notebook: Home's way in (review 84 N1;
   // list-checks is the work item), the empty notebook, and Save to my

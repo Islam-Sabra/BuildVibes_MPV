@@ -69,6 +69,8 @@
 	<!-- Profile photo (Edit profile). -->
 	<key>NSCameraUsageDescription</key>
 	<string>Take photos of the work on site for your Space.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Add where you are to a note in your notebook. Only you see it.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Record voice notes for your Space chat.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

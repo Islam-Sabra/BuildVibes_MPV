@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/network/signal_state.dart';
 import '../../data/models/note.dart';
+import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../entry/entry_state.dart';
@@ -70,13 +71,11 @@ class NoteChange {
     'at': at?.toUtc().toIso8601String(),
   };
 
-  /// What [notes] look like with this change.
+  /// What [notes] (newest first) look like with this change. A saved
+  /// note keeps its place, or a new one goes where its time puts it (F107
+  /// B7: an edit no longer jumps to the end of its day).
   List<Note> applyTo(List<Note> notes) => switch (op) {
-    'save' => [
-      note!.copyWith(waiting: true),
-      for (final n in notes)
-        if (n.id != note!.id) n,
-    ],
+    'save' => _placed(note!.copyWith(waiting: true), notes),
     'delete' => [
       for (final n in notes)
         if (n.id != note!.id) n,
@@ -93,6 +92,31 @@ class NoteChange {
               ),
     ],
   };
+
+  static List<Note> _placed(Note saved, List<Note> notes) {
+    if (notes.any((n) => n.id == saved.id)) {
+      return [for (final n in notes) n.id == saved.id ? saved : n];
+    }
+    final at = notes.indexWhere((n) => !n.createdAt.isAfter(saved.createdAt));
+    return [...notes]..insert(at < 0 ? notes.length : at, saved);
+  }
+}
+
+/// A note the server refused (not for want of a signal): the screen says
+/// so and puts its words back as the Draft (F107 B15). Each refusal is a
+/// new value.
+final noteRefusedProvider = NotifierProvider<NoteRefused, Note?>(
+  NoteRefused.new,
+);
+
+class NoteRefused extends Notifier<Note?> {
+  @override
+  Note? build() => null;
+
+  void refused(Note note) => state = note;
+
+  /// The screen has dealt with it.
+  void seen() => state = null;
 }
 
 /// My notebook (slice 8): my notes, newest first, with the changes still
@@ -109,10 +133,21 @@ class Notebook extends AsyncNotifier<List<Note>> {
   List<NoteChange> _waiting = const [];
   bool _sending = false;
 
+  /// Another try after a lost signal (F107 B8), sooner at first.
+  Timer? _retry;
+  int _tries = 0;
+  static const _retryFirst = Duration(seconds: 15);
+  static const _retryMost = Duration(minutes: 5);
+
   NotebookRepository get _repo => ref.read(notebookRepositoryProvider);
 
   @override
   Future<List<Note>> build() async {
+    ref.onDispose(() => _retry?.cancel());
+    // Something got through again (B8): what waits goes now.
+    ref.listen(signalProvider, (was, has) {
+      if (has && was == false) unawaited(_send());
+    });
     final prefs = ref.watch(sharedPreferencesProvider);
     final userId = ref.watch(authUserIdProvider).value;
     _key = userId == null ? null : 'notebook_waiting:$userId';
@@ -185,8 +220,26 @@ class Notebook extends AsyncNotifier<List<Note>> {
     ),
   );
 
+  /// A page's to-do ticked or unticked on its slip (F107): the note is
+  /// saved again.
+  Future<void> tickBlock(Note note, String blockId) => save(
+    note.copyWith(
+      blocks: [
+        for (final b in note.blocks ?? const <PageBlock>[])
+          b is PageTodo && b.id == blockId ? b.ticked() : b,
+      ],
+    ),
+  );
+
   Future<void> pin(Note note, {required bool on}) =>
       _change(NoteChange.pin(note.id, on: on));
+
+  /// What waits goes now, if it can: the notebook opened, or the app came
+  /// back to the front (F107 B8).
+  Future<void> retry() => _send();
+
+  /// The waiting change for [id], if one is still on the phone.
+  bool waits(String id) => _waiting.any((c) => c.noteId == id);
 
   Future<void> delete(Note note) => _change(NoteChange.delete(note));
 
@@ -212,10 +265,18 @@ class Notebook extends AsyncNotifier<List<Note>> {
         } on SpaceException catch (e) {
           if (e.failure == SpaceFailure.network) {
             ref.read(signalProvider.notifier).lost();
+            _again();
             return;
           }
           refused = true;
+          // B15: said, and its words kept as the Draft.
+          final lost = change.note;
+          if (change.op == 'save' && lost != null) {
+            ref.read(noteRefusedProvider.notifier).refused(lost);
+          }
         }
+        _tries = 0;
+        _retry?.cancel();
         ref.read(signalProvider.notifier).back();
         _waiting = _waiting.skip(1).toList();
         await _store();
@@ -227,20 +288,82 @@ class Notebook extends AsyncNotifier<List<Note>> {
     }
   }
 
-  /// A voice note's recording goes to Storage first, once.
+  /// The next try after a lost signal: 15 s, then twice as long each
+  /// time, up to 5 minutes.
+  void _again() {
+    _retry?.cancel();
+    final wait = _retryFirst * (1 << _tries.clamp(0, 5));
+    _tries++;
+    _retry = Timer(wait > _retryMost ? _retryMost : wait, () {
+      if (_waiting.isNotEmpty) unawaited(_send());
+    });
+  }
+
+  /// A voice note's recording, a note's photos (F106), its PDFs and its
+  /// voice blocks' recordings (F107) go to Storage first, once each.
   Future<NoteChange> _upload(NoteChange change) async {
-    final note = change.note;
-    final recording = note?.recording;
-    if (change.op != 'save' || recording == null || recording.path != null) {
+    var note = change.note;
+    if (change.op != 'save' || note == null) return change;
+    note = await _uploadPage(note);
+    change = NoteChange.save(note);
+    final recording = note.recording;
+    final photos = note.photos;
+    final waitingRecording = recording != null && recording.path == null;
+    if (!waitingRecording && photos.every((p) => p.path != null)) {
       return change;
     }
-    final path = await _repo.uploadRecording(note!.id, recording);
-    final uploaded = NoteChange.save(
-      note.copyWith(recording: recording.uploaded(path)),
-    );
-    _waiting = [uploaded, ..._waiting.skip(1)];
+    var uploaded = note;
+    if (waitingRecording) {
+      final path = await _repo.uploadRecording(note.id, recording);
+      uploaded = uploaded.copyWith(recording: recording.uploaded(path));
+    }
+    final sent = <NotePhoto>[];
+    for (final p in photos) {
+      sent.add(
+        p.path != null ? p : p.uploaded(await _repo.uploadPhoto(note.id, p)),
+      );
+      // Each one kept as it goes, so a lost signal sends only the rest.
+      _waiting = [
+        NoteChange.save(
+          uploaded.copyWith(photos: [...sent, ...photos.skip(sent.length)]),
+        ),
+        ..._waiting.skip(1),
+      ];
+      await _store();
+    }
+    final done = NoteChange.save(uploaded.copyWith(photos: sent));
+    _waiting = [done, ..._waiting.skip(1)];
     await _store();
-    return uploaded;
+    return done;
+  }
+
+  /// A page's PDFs and voice blocks, each kept on the phone's list as it
+  /// goes, so a lost signal sends only the rest.
+  Future<Note> _uploadPage(Note note) async {
+    var sent = note;
+    Future<void> keep() async {
+      _waiting = [NoteChange.save(sent), ..._waiting.skip(1)];
+      await _store();
+    }
+
+    for (final (i, f) in note.files.indexed) {
+      if (f.path != null || f.local == null) continue;
+      final path = await _repo.uploadFile(note.id, f);
+      sent = sent.copyWith(files: [...sent.files]..[i] = f.uploaded(path));
+      await keep();
+    }
+    final blocks = note.blocks;
+    if (blocks == null) return sent;
+    for (final (i, b) in blocks.indexed) {
+      if (b is! PageVoice || b.path != null || b.local == null) continue;
+      final path = await _repo.uploadRecording(
+        note.id,
+        NoteRecording(local: b.local, durationMs: b.durationMs),
+      );
+      sent = sent.copyWith(blocks: [...sent.blocks!]..[i] = b.uploaded(path));
+      await keep();
+    }
+    return sent;
   }
 
   /// False when the note was deleted elsewhere.

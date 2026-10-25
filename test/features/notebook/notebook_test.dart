@@ -4,12 +4,12 @@ import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
 import 'package:buildvibes/data/models/note.dart';
+import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_target.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_button.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
@@ -39,6 +39,10 @@ Future<void> _go(WidgetTester tester, String path) async {
   GoRouter.of(tester.element(find.byType(Navigator).first)).push(path);
   await tester.pumpAndSettle();
 }
+
+/// Send is on: the action colour (F106).
+bool _sendOn(WidgetTester tester) =>
+    tester.widget<GestureDetector>(_key('writing-post')).onTap != null;
 
 /// The to-do's day and time, chosen with the phone's pickers.
 final _pickFour = pickDueProvider.overrideWithValue(
@@ -129,7 +133,8 @@ void main() {
       expect(top('note-sleeves'), lessThan(top('note-walk')));
       expect(top('note-walk'), lessThan(top('note-voice')));
       expect(top('note-voice'), lessThan(top('note-yesterday')));
-      expect(find.byType(BvDayDivider), findsOneWidget);
+      // F106: Today's divider, and yesterday's.
+      expect(find.byType(BvDayDivider), findsNWidgets(2));
       // The to-do's due, in the action colour's words.
       expect(
         find.descendant(
@@ -142,42 +147,53 @@ void main() {
       expect(_key('chat-voice-note-voice'), findsOneWidget);
     });
 
-    testWidgets('write a note, a checklist and a to-do: one choice of kind, '
-        'each sent by save_note [$lang]', (tester) async {
+    testWidgets('F107: write a note, a to-do list and a dated note in '
+        'place, each sent by save_note as a page [$lang]', (tester) async {
       final app = await _open(tester, lang);
       final kept = app.notebook.kept;
 
       await _tap(tester, _key('post-bar-notepad'));
-      expect(_key('note-writer'), findsOneWidget);
-      await tester.enterText(_key('note-body'), 'Check the pump hose');
+      expect(_key('note-writing-card'), findsOneWidget);
+      await tester.enterText(_key('note-title'), 'Check the pump hose');
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-save'));
-      expect(kept.values.single.body, 'Check the pump hose');
-      expect(kept.values.single.kind, NoteKind.text);
+      await _tap(tester, _key('writing-post'));
+      final note = kept.values.single;
+      expect(note.title, 'Check the pump hose');
+      expect(note.kind, NoteKind.text);
+      expect(note.isPage, isTrue);
+      expect(note.body, 'Check the pump hose');
 
       await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('note-kind-checklist'));
-      // Save waits for a point.
-      await tester.enterText(_key('note-body'), n.walkTitle);
-      await tester.pumpAndSettle();
-      expect(tester.widget<BvButton>(_key('note-save')).onPressed, isNull);
-      await tester.enterText(_key('note-point-0'), n.walkPoints[0]);
-      await tester.pumpAndSettle();
-      await tester.enterText(_key('note-point-1'), n.walkPoints[1]);
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('note-save'));
-      final list = kept.values.firstWhere((x) => x.kind == NoteKind.checklist);
-      expect(list.body, n.walkTitle);
-      expect([for (final p in list.points) p.text], n.walkPoints.take(2));
+      await tester.enterText(_key('note-title'), n.walkTitle);
+      await _tap(tester, _key('note-tool-categories'));
+      await _tap(tester, _key('note-category-todo'));
+      for (final (i, p) in n.walkPoints.take(2).indexed) {
+        final line = find.descendant(
+          of: _key('note-page'),
+          matching: find.byType(TextField),
+        );
+        await tester.enterText(line.last, p);
+        await tester.pumpAndSettle();
+        if (i == 0) {
+          await tester.testTextInput.receiveAction(TextInputAction.next);
+          await tester.pumpAndSettle();
+        }
+      }
+      expect(_sendOn(tester), isTrue);
+      await _tap(tester, _key('writing-post'));
+      final list = kept.values.firstWhere((x) => x.title == n.walkTitle);
+      expect([
+        for (final b in list.blocks!)
+          if (b is PageTodo) b.text,
+      ], n.walkPoints.take(2));
 
       await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('note-kind-todo'));
-      await tester.enterText(_key('note-body'), n.sleevesTodo);
+      await tester.enterText(_key('note-title'), n.sleevesTodo);
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-when'));
-      await _tap(tester, _key('note-save'));
-      final todo = kept.values.firstWhere((x) => x.kind == NoteKind.todo);
-      expect(todo.dueAt, DateTime(2026, 10, 15, 16));
+      await _tap(tester, _key('note-tool-date'));
+      await _tap(tester, _key('writing-post'));
+      final dated = kept.values.firstWhere((x) => x.title == n.sleevesTodo);
+      expect(dated.dueAt, DateTime(2026, 10, 15, 16));
       expect(
         app.notebook.calls.where((c) => c.startsWith('save:')),
         hasLength(3),
@@ -215,12 +231,12 @@ void main() {
       expect(_key('note-note-yesterday'), findsOneWidget);
 
       await _tap(tester, _key('note-note-yesterday'));
-      expect(_key('note-writer'), findsOneWidget);
-      await tester.enterText(_key('note-body'), 'Door schedule from Lina');
+      expect(_key('note-writing-card'), findsOneWidget);
+      await tester.enterText(_key('note-title'), 'Door schedule from Lina');
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-save'));
+      await _tap(tester, _key('writing-post'));
       expect(
-        app.notebook.kept['note-yesterday']!.body,
+        app.notebook.kept['note-yesterday']!.title,
         'Door schedule from Lina',
       );
 
@@ -243,9 +259,9 @@ void main() {
       final app = await _open(tester, lang);
       app.notebook.offline = true;
       await _tap(tester, _key('post-bar-notepad'));
-      await tester.enterText(_key('note-body'), 'Rebar delivery 3 pm');
+      await tester.enterText(_key('note-title'), 'Rebar delivery 3 pm');
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-save'));
+      await _tap(tester, _key('writing-post'));
       expect(find.text('Rebar delivery 3 pm'), findsOneWidget);
       expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
       expect(app.notebook.kept, isEmpty);
@@ -253,9 +269,9 @@ void main() {
 
       app.notebook.offline = false;
       await _tap(tester, _key('post-bar-notepad'));
-      await tester.enterText(_key('note-body'), 'Crane at 6');
+      await tester.enterText(_key('note-title'), 'Crane at 6');
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-save'));
+      await _tap(tester, _key('writing-post'));
       expect(app.notebook.kept, hasLength(2));
       expect(find.text(l10n.daybookWaitingToSend), findsNothing);
       expect(app.prefs.getString('notebook_waiting:user-1'), isNull);
@@ -268,9 +284,9 @@ void main() {
         ..kept.remove('note-yesterday')
         ..deleted.add('note-yesterday');
       await _tap(tester, _key('note-note-yesterday'));
-      await tester.enterText(_key('note-body'), 'Changed');
+      await tester.enterText(_key('note-title'), 'Changed');
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-save'));
+      await _tap(tester, _key('writing-post'));
       expect(app.notebook.calls, contains('save:note-yesterday'));
       expect(_key('note-note-yesterday'), findsNothing);
       expect(app.prefs.getString('notebook_waiting:user-1'), isNull);

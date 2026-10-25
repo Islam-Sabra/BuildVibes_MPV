@@ -9,7 +9,6 @@ import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_page_specs.dart';
-import '../../core/l10n/bidi.dart';
 import '../../core/network/signal_state.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/library.dart';
@@ -33,6 +32,7 @@ import 'daybook_loop.dart';
 import 'daybook_marks.dart' show checklistPointsProvider, postFilesProvider;
 import 'daybook_page.dart';
 import 'daybook_writing.dart' show assignablePeople;
+import 'page_block_editing.dart';
 import 'work_outbox.dart';
 
 /// What "/" and + offer (N3), in the frame's order.
@@ -286,12 +286,12 @@ class DaybookPageEditor extends ConsumerStatefulWidget {
   ConsumerState<DaybookPageEditor> createState() => DaybookPageEditorState();
 }
 
-class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
+class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
+    with PageBlockEditing<DaybookPageEditor> {
   /// post_files: 10 on a post.
   static const _filesMax = 10;
 
   late PostPage _page = widget.page;
-  late List<PageBlock> _blocks = withReadyToggles(withRealIds(_page.shown));
   late final Map<String, String> _points = {
     for (final p in _page.points) p.id: p.text,
   };
@@ -299,8 +299,9 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   late final _body = TextEditingController(text: _page.post.body ?? '');
   final _add = TextEditingController();
   final _addFocus = FocusNode();
-  final _fields = <String, TextEditingController>{};
-  final _focus = <String, FocusNode>{};
+
+  /// A point's Backspace listener, one per point.
+  final _pointKeys = <String, FocusNode>{};
 
   /// Photos and files added here, sent with the save (post_files).
   final _addFiles = <Map<String, Object?>>[];
@@ -314,61 +315,33 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   String get _spaceId => widget.space.id;
 
   @override
+  int get blockTextMax => PageText.max;
+
+  @override
+  void initState() {
+    super.initState();
+    editBlocks = withReadyToggles(withRealIds(_page.shown));
+  }
+
+  @override
   void dispose() {
     _title.dispose();
     _body.dispose();
     _add.dispose();
     _addFocus.dispose();
-    for (final c in _fields.values) {
-      c.dispose();
-    }
-    for (final f in [..._focus.values, ..._keyNodes.values]) {
+    for (final f in _pointKeys.values) {
       f.dispose();
     }
+    disposeBlockEditing();
     super.dispose();
   }
 
-  TextEditingController _field(String key, String text) =>
-      _fields.putIfAbsent(key, () => TextEditingController(text: text));
-
-  FocusNode _node(String key) => _focus.putIfAbsent(key, FocusNode.new);
-
-  void _focusLater(String key) => WidgetsBinding.instance.addPostFrameCallback(
-    (_) => _focus[key]?.requestFocus(),
-  );
-
-  /// The words in the fields, back on the blocks.
+  /// The words in the fields, back on the blocks and the points.
   List<PageBlock> _collect() {
-    PageBlock one(PageBlock b) => switch (b) {
-      PageText() => PageText(b.id, _fields['t:${b.id}']?.text ?? b.text),
-      PageHeading(:final level) => PageHeading(
-        b.id,
-        _fields['t:${b.id}']?.text ?? b.text,
-        level: level,
-      ),
-      PageToggle(:final children) => PageToggle(
-        b.id,
-        _fields['t:${b.id}']?.text ?? b.text,
-        [for (final c in children) one(c)],
-      ),
-      PageTable(:final rows) => PageTable(b.id, [
-        for (final (r, row) in rows.indexed)
-          [
-            for (final (c, text) in row.indexed)
-              _fields['c:${b.id}:$r:$c']?.text ?? text,
-          ],
-      ]),
-      PagePhoto(:final path) => PagePhoto(
-        b.id,
-        path,
-        caption: _fields['p:${b.id}']?.text ?? b.caption,
-      ),
-      _ => b,
-    };
-    for (final e in _fields.entries) {
-      if (e.key.startsWith('pt:')) _points[e.key.substring(3)] = e.value.text;
+    for (final e in fieldsStartingWith('pt:')) {
+      _points[e.key.substring(3)] = e.value.text;
     }
-    return [for (final b in _blocks) one(b)];
+    return collectBlocks();
   }
 
   int get _filesLeft => _filesMax - _page.files.length - _addFiles.length;
@@ -390,7 +363,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     return plan.before.isNotEmpty ||
         plan.after.isNotEmpty ||
         _addFiles.isNotEmpty ||
-        _blocksChanged(plan.blocks);
+        editBlocksChanged(plan.blocks);
   }
 
   Future<_Saved> _save() async {
@@ -414,12 +387,12 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         plan.before.isEmpty &&
         plan.after.isEmpty &&
         _addFiles.isEmpty &&
-        !_blocksChanged(plan.blocks);
+        !editBlocksChanged(plan.blocks);
     if (unchanged) return _Saved.nothing;
     setState(() => _saving = true);
     try {
       if (plan.before.isNotEmpty) await repo.edit(_post.id, plan.before);
-      if (_blocksChanged(plan.blocks) || _addFiles.isNotEmpty) {
+      if (editBlocksChanged(plan.blocks) || _addFiles.isNotEmpty) {
         await repo.save(
           _post.id,
           plan.blocks,
@@ -462,7 +435,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   /// Whether [blocks] differ from the page as it opened. A post with no
   /// page yet opens on its points, photos and files: the same again saves
   /// nothing (no "Page edited", no "Open the page").
-  bool _blocksChanged(List<PageBlock> blocks) =>
+  bool editBlocksChanged(List<PageBlock> blocks) =>
       !_sameBlocks(blocks, _page.blocks) &&
       !(_page.blocks.isEmpty && _sameShape(blocks, _page.shown));
 
@@ -551,7 +524,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
 
   // Adding ------------------------------------------------------------------
 
-  /// What a toggle may hold (validate_blocks), for "/" inside one (F90).
+  /// What a toggle may hold (validateeditBlocks), for "/" inside one (F90).
   static const _insideToggle = {
     PageAdd.text,
     PageAdd.heading,
@@ -574,36 +547,14 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
           a,
     ];
     if (adds.isEmpty) return;
-    final picked = await showBvSheet<PageAdd>(
-      context: context,
+    final picked = await showPageBlockMenu<PageAdd>(
+      context,
       title: l10n.pageMenuTitle,
-      builder: (sheet) => Column(
-        key: const Key('page-add-menu'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final a in adds)
-            BvListRow(
-              key: Key('page-add-${a.name}'),
-              leading: Container(
-                width: BvPageSpec.menuTile,
-                height: BvPageSpec.menuTile,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: BvColors.surfaceSubtle,
-                  borderRadius: BvRadius.smallAll,
-                ),
-                child: Icon(
-                  pageAddIcon(a),
-                  size: BvSize.iconSm,
-                  color: BvColors.iconPrimary,
-                ),
-              ),
-              title: pageAddName(l10n, a),
-              trailing: const BvRowTrailing.none(),
-              onTap: () => Navigator.of(sheet).pop(a),
-            ),
-        ],
-      ),
+      items: [
+        for (final a in adds)
+          (value: a, label: pageAddName(l10n, a), icon: pageAddIcon(a)),
+      ],
+      keyOf: (a) => a.name,
     );
     _add.clear();
     if (picked == null || !mounted) return;
@@ -615,7 +566,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     int? at,
     (int, String)? intoToggle,
   }) async {
-    _blocks = _collect();
+    editBlocks = _collect();
     final id = newUuid();
     PageBlock? block;
     String? focus;
@@ -652,28 +603,28 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       // F90: in the empty line's place, inside the toggle; its ready line
       // follows it.
       final (index, childId) = intoToggle;
-      _blocks = _collect();
-      final t = _blocks[index] as PageToggle;
+      editBlocks = _collect();
+      final t = editBlocks[index] as PageToggle;
       setState(
-        () => _blocks = withReadyToggles([
-          ..._blocks.take(index),
+        () => editBlocks = withReadyToggles([
+          ...editBlocks.take(index),
           PageToggle(t.id, t.text, [
             for (final c in t.children) c.id == childId ? block! : c,
           ]),
-          ..._blocks.skip(index + 1),
+          ...editBlocks.skip(index + 1),
         ]),
       );
-      if (focus != null) _focusLater(focus);
+      if (focus != null) focusBlockLater(focus);
       return;
     }
     setState(() {
-      if (at != null && at < _blocks.length) {
-        _blocks[at] = block!;
+      if (at != null && at < editBlocks.length) {
+        editBlocks[at] = block!;
       } else {
-        _blocks.add(block!);
+        editBlocks.add(block!);
       }
     });
-    if (focus != null) _focusLater(focus);
+    if (focus != null) focusBlockLater(focus);
   }
 
   bool _roomForFile() {
@@ -806,12 +757,19 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     );
   }
 
+  @override
+  void slashAt(String filter, {int? replace, (int, String)? intoToggle}) =>
+      unawaited(
+        _openAdd(filter: filter, replace: replace, intoToggle: intoToggle),
+      );
+
   // A block's menu ------------------------------------------------------------
 
-  Future<void> _blockMenu(int index) async {
+  @override
+  Future<void> blockMenu(int index) async {
     final l10n = AppLocalizations.of(context);
-    _blocks = _collect();
-    final b = _blocks[index];
+    editBlocks = _collect();
+    final b = editBlocks[index];
     // Only what the server takes: a point's or a title's length.
     final words = b is PageText ? b.text.trim().length : 0;
     final turns = <_BlockAction>[
@@ -865,10 +823,10 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       case _BlockAction.point when b is PageText:
         final point = newUuid();
         _points[point] = b.text.trim();
-        setState(() => _blocks[index] = PageChecklist(newUuid(), [point]));
+        setState(() => editBlocks[index] = PageChecklist(newUuid(), [point]));
       case _BlockAction.item when b is PageText:
         final block = await _item(newUuid(), text: b.text.trim());
-        if (block != null && mounted) setState(() => _blocks[index] = block);
+        if (block != null && mounted) setState(() => editBlocks[index] = block);
       default:
         break;
     }
@@ -876,7 +834,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
 
   void _delete(int index) {
     final l10n = AppLocalizations.of(context);
-    final gone = _blocks[index];
+    final gone = editBlocks[index];
     // A ticked point is a record: its block stays.
     if (gone is PageChecklist &&
         gone.pointIds.any(
@@ -885,45 +843,28 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       showSpaceMessage(context, l10n.pageTickedStays);
       return;
     }
-    setState(() => _blocks.removeAt(index));
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(l10n.pageDeleted),
-          action: SnackBarAction(
-            key: const Key('page-undo'),
-            label: l10n.spacesUndo,
-            onPressed: () {
-              if (!mounted) return;
-              setState(
-                () => _blocks.insert(index.clamp(0, _blocks.length), gone),
-              );
-            },
-          ),
-        ),
-      );
+    deleteBlock(index);
   }
 
   /// One point out of its checklist (F92), with Undo; an empty checklist
   /// goes. A saved point leaves the post when the page is saved.
   void _deletePoint(int index, String pointId) {
     final l10n = AppLocalizations.of(context);
-    _blocks = _collect();
-    final before = [..._blocks];
+    editBlocks = _collect();
+    final before = [...editBlocks];
     final text = _points[pointId];
-    final list = _blocks[index] as PageChecklist;
+    final list = editBlocks[index] as PageChecklist;
     final ids = [
       for (final x in list.pointIds)
         if (x != pointId) x,
     ];
     setState(() {
       _points.remove(pointId);
-      _fields.remove('pt:$pointId')?.dispose();
+      dropField('pt:$pointId');
       if (ids.isEmpty) {
-        _blocks.removeAt(index);
+        editBlocks.removeAt(index);
       } else {
-        _blocks[index] = PageChecklist(list.id, ids);
+        editBlocks[index] = PageChecklist(list.id, ids);
       }
     });
     ScaffoldMessenger.of(context)
@@ -937,7 +878,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
             onPressed: () {
               if (!mounted) return;
               setState(() {
-                _blocks = before;
+                editBlocks = before;
                 if (text != null) _points[pointId] = text;
               });
             },
@@ -998,7 +939,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
       return;
     }
     if (picked == null || picked == PageTurn.point || !mounted) return;
-    _blocks = _collect();
+    editBlocks = _collect();
     final text = (_points[pointId] ?? '').trim();
     if (picked == PageTurn.text) {
       setState(() => _splitPoint(index, pointId, PageText(newUuid(), text)));
@@ -1024,7 +965,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     // so the point is never edited on the way.
     final words = _page.points.firstWhere((p) => p.id == pointId).text;
     _points[pointId] = words;
-    _fields['pt:$pointId']?.text = words;
+    existingField('pt:$pointId')?.text = words;
     // Anything else written so far is saved first; with nothing else, the
     // turn is the one call.
     switch (await _save()) {
@@ -1080,26 +1021,23 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   /// The editor over [page], as the server has it now.
   void _reload(PostPage page) {
     _page = page;
-    _blocks = withReadyToggles(withRealIds(page.shown));
+    editBlocks = withReadyToggles(withRealIds(page.shown));
     _points
       ..clear()
       ..addAll({for (final p in page.points) p.id: p.text});
-    for (final c in _fields.values) {
-      c.dispose();
-    }
-    _fields.clear();
+    resetBlockFields();
   }
 
   /// [pointId] leaves its checklist at [index]; [into] takes its place,
   /// splitting the checklist around it.
   void _splitPoint(int index, String pointId, PageBlock into) {
-    final list = _blocks[index] as PageChecklist;
+    final list = editBlocks[index] as PageChecklist;
     final at = list.pointIds.indexOf(pointId);
     final head = list.pointIds.sublist(0, at);
     final tail = list.pointIds.sublist(at + 1);
     _points.remove(pointId);
-    _fields.remove('pt:$pointId')?.dispose();
-    _blocks
+    dropField('pt:$pointId');
+    editBlocks
       ..removeAt(index)
       ..insertAll(index, [
         if (head.isNotEmpty) PageChecklist(list.id, head),
@@ -1111,49 +1049,22 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
   // Points --------------------------------------------------------------------
 
   /// Enter at the end of a point adds the next one.
-  /// F90: Enter inside a toggle starts a new line after this one; on the
-  /// empty last line it leaves the toggle and starts a line after it.
-  void _enterInToggle(int index, String childId) {
-    _blocks = _collect();
-    final t = _blocks[index] as PageToggle;
-    final at = t.children.indexWhere((c) => c.id == childId);
-    if (at < 0) return;
-    final child = t.children[at];
-    final id = newUuid();
-    final leave =
-        at == t.children.length - 1 &&
-        child is PageText &&
-        child.text.trim().isEmpty;
-    setState(() {
-      if (leave) {
-        _blocks.insert(index + 1, PageText(id, ''));
-      } else {
-        _blocks[index] = PageToggle(t.id, t.text, [
-          ...t.children.take(at + 1),
-          PageText(id, ''),
-          ...t.children.skip(at + 1),
-        ]);
-      }
-    });
-    _focusLater('t:$id');
-  }
-
   void _nextPoint(int index, String after) {
-    _blocks = _collect();
-    final list = _blocks[index] as PageChecklist;
+    editBlocks = _collect();
+    final list = editBlocks[index] as PageChecklist;
     final point = newUuid();
     _points[point] = '';
     final ids = [...list.pointIds]
       ..insert(list.pointIds.indexOf(after) + 1, point);
-    setState(() => _blocks[index] = PageChecklist(list.id, ids));
-    _focusLater('pt:$point');
+    setState(() => editBlocks[index] = PageChecklist(list.id, ids));
+    focusBlockLater('pt:$point');
   }
 
   /// Backspace on an empty new point takes it away.
   void _dropPoint(int index, String id) {
     if (_page.points.any((p) => p.id == id)) return;
-    _blocks = _collect();
-    final list = _blocks[index] as PageChecklist;
+    editBlocks = _collect();
+    final list = editBlocks[index] as PageChecklist;
     final ids = [
       for (final x in list.pointIds)
         if (x != id) x,
@@ -1162,63 +1073,12 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     setState(() {
       _points.remove(id);
       if (ids.isEmpty) {
-        _blocks.removeAt(index);
+        editBlocks.removeAt(index);
       } else {
-        _blocks[index] = PageChecklist(list.id, ids);
+        editBlocks[index] = PageChecklist(list.id, ids);
       }
     });
-    if (before >= 0) _focusLater('pt:${list.pointIds[before]}');
-  }
-
-  // Tables --------------------------------------------------------------------
-
-  void _table(int index, PageTable Function(PageTable t) change) {
-    _blocks = _collect();
-    final t = _blocks[index] as PageTable;
-    for (final k in [..._fields.keys]) {
-      if (k.startsWith('c:${t.id}:')) _fields.remove(k)?.dispose();
-    }
-    setState(() => _blocks[index] = change(t));
-  }
-
-  Future<void> _cellMenu(int index, int row, int column) async {
-    final l10n = AppLocalizations.of(context);
-    final t = _collect()[index] as PageTable;
-    final picked = await showBvSheet<int>(
-      context: context,
-      builder: (sheet) => Column(
-        key: const Key('page-cell-menu'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (t.rows.length > 1)
-            BvListRow(
-              key: const Key('page-delete-row'),
-              title: l10n.pageDeleteRow,
-              trailing: const BvRowTrailing.none(),
-              onTap: () => Navigator.of(sheet).pop(0),
-            ),
-          if (t.columns > 1)
-            BvListRow(
-              key: const Key('page-delete-column'),
-              title: l10n.pageDeleteColumn,
-              trailing: const BvRowTrailing.none(),
-              onTap: () => Navigator.of(sheet).pop(1),
-            ),
-        ],
-      ),
-    );
-    if (picked == null || !mounted) return;
-    _table(
-      index,
-      (t) => PageTable(t.id, [
-        for (final (r, cells) in t.rows.indexed)
-          if (picked != 0 || r != row)
-            [
-              for (final (c, text) in cells.indexed)
-                if (picked != 1 || c != column) text,
-            ],
-      ]),
-    );
+    if (before >= 0) focusBlockLater('pt:${list.pointIds[before]}');
   }
 
   // Building ------------------------------------------------------------------
@@ -1279,12 +1139,12 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
                 ),
               ),
               footer: _addLine(l10n, type),
-              itemCount: _blocks.length,
+              itemCount: editBlocks.length,
               onReorderItem: (from, to) {
-                _blocks = _collect();
-                setState(() => _blocks.insert(to, _blocks.removeAt(from)));
+                _collect();
+                moveBlock(from, to);
               },
-              itemBuilder: (context, i) => _row(i),
+              itemBuilder: (context, i) => blockRow(i),
             ),
           ),
         ),
@@ -1322,11 +1182,11 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
               } else if (v.isNotEmpty) {
                 // Words typed here are a new text block.
                 final id = newUuid();
-                _blocks = _collect();
-                _field('t:$id', v);
+                editBlocks = _collect();
+                blockField('t:$id', v);
                 _add.clear();
-                setState(() => _blocks.add(PageText(id, v)));
-                _focusLater('t:$id');
+                setState(() => editBlocks.add(PageText(id, v)));
+                focusBlockLater('t:$id');
               }
             },
           ),
@@ -1335,177 +1195,16 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     ),
   );
 
-  Widget _row(int i) {
-    final l10n = AppLocalizations.of(context);
-    final b = _blocks[i];
-    return Padding(
-      key: ValueKey('page-edit-${b.id}'),
-      padding: const EdgeInsetsDirectional.only(top: BvPageSpec.blockGap),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: BvSpace.s8,
-        children: [
-          ReorderableDelayedDragStartListener(
-            index: i,
-            child: Semantics(
-              button: true,
-              label: l10n.pageMove,
-              hint: l10n.pageBlockMenu,
-              child: GestureDetector(
-                key: Key('page-handle-${b.id}'),
-                behavior: HitTestBehavior.opaque,
-                onTap: () => unawaited(_blockMenu(i)),
-                child: const SizedBox(
-                  width: BvPageSpec.handleWidth,
-                  height: BvSize.controlMd,
-                  child: Icon(
-                    BvIcons.dragHandle,
-                    size: BvPageSpec.handleIcon,
-                    color: BvColors.iconSecondary,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(child: _block(i, b)),
-        ],
-      ),
-    );
-  }
-
-  Widget _text(
-    String key,
-    String text, {
-    required TextStyle style,
-    required String hint,
-    int? maxLength,
-    ValueChanged<String>? onSlash,
-    VoidCallback? onEnter,
-  }) {
-    final c = _field(key, text);
-    return TextField(
-      key: Key('page-field-$key'),
-      controller: c,
-      focusNode: _node(key),
-      maxLines: null,
-      // F90: inside a toggle, Enter is a new line of its own.
-      textInputAction: onEnter == null ? null : TextInputAction.next,
-      onSubmitted: onEnter == null ? null : (_) => onEnter(),
-      maxLength: maxLength,
-      style: style,
-      textDirection: c.text.isEmpty ? null : directionOf(c.text),
-      decoration: bvBareField(
-        hint: hint,
-        style: style,
-      ).copyWith(counterText: ''),
-      onChanged: onSlash == null
-          ? null
-          : (v) {
-              // Only on a line that was empty: "/" typed before existing
-              // words is just a character.
-              final was = _lastText[key] ?? text;
-              _lastText[key] = v;
-              if (v.startsWith('/') && was.isEmpty) onSlash(v.substring(1));
-            },
-    );
-  }
-
-  /// One key listener's node per point, kept and disposed with the editor.
-  FocusNode _keyNode(String id) =>
-      _keyNodes.putIfAbsent(id, () => FocusNode(skipTraversal: true));
-  final _keyNodes = <String, FocusNode>{};
-
-  /// Each "/" field's text before its latest change.
-  final _lastText = <String, String>{};
-
-  Widget _block(int i, PageBlock b) {
+  @override
+  Widget hostBlock(int i, PageBlock b) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     switch (b) {
-      case PageText(:final text):
-        return _text(
-          't:${b.id}',
-          text,
-          style: type.bodyMd,
-          hint: l10n.pageAddBlock,
-          maxLength: PageText.max,
-          // "/" at the start of an empty line: this line becomes the block.
-          onSlash: (f) {
-            _fields['t:${b.id}']?.text = '';
-            _lastText['t:${b.id}'] = '';
-            unawaited(_openAdd(filter: f, replace: i));
-          },
-        );
-      case PageHeading(:final text, :final level):
-        return _text(
-          't:${b.id}',
-          text,
-          style: level == 1 ? type.titleMd : type.emphasis,
-          hint: l10n.pageHeading,
-          maxLength: PageHeading.max,
-        );
-      case PageToggle(:final text, :final children):
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              spacing: BvPageSpec.caretGap,
-              children: [
-                const Icon(
-                  BvIcons.caretDown,
-                  size: BvPageSpec.caret,
-                  color: BvColors.iconPrimary,
-                ),
-                Expanded(
-                  child: _text(
-                    't:${b.id}',
-                    text,
-                    style: type.bodyMd,
-                    hint: l10n.pageToggle,
-                    maxLength: PageToggle.max,
-                  ),
-                ),
-              ],
-            ),
-            for (final (n, c) in children.indexed)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  start: BvPageSpec.toggleIndent,
-                  top: BvSpace.s8,
-                ),
-                child: c is PageText
-                    ? _text(
-                        't:${c.id}',
-                        c.text,
-                        style: type.bodyMd,
-                        // The last, empty line is ready to type inside.
-                        hint: n == children.length - 1 && c.text.isEmpty
-                            ? l10n.pageTypeInside
-                            : l10n.pageText,
-                        maxLength: PageText.max,
-                        onEnter: () => _enterInToggle(i, c.id),
-                        onSlash: (f) {
-                          _fields['t:${c.id}']?.text = '';
-                          _lastText['t:${c.id}'] = '';
-                          unawaited(_openAdd(filter: f, intoToggle: (i, c.id)));
-                        },
-                      )
-                    : PageBlockView(
-                        space: widget.space,
-                        page: _page,
-                        block: c,
-                        me: null,
-                      ),
-              ),
-          ],
-        );
       case PageChecklist(:final pointIds):
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [for (final id in pointIds) _pointRow(i, id)],
         );
-      case PageTable():
-        return _tableEditor(i, b);
       case PagePhoto(:final caption):
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1517,7 +1216,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
               block: PagePhoto(b.id, b.path),
               me: null,
             ),
-            _text(
+            blockText(
               'p:${b.id}',
               caption ?? '',
               style: type.metadata,
@@ -1526,16 +1225,17 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
             ),
           ],
         );
-      case PageFile() || PageOtherBlock():
+      case PageChildItem(:final postId):
+        final u = _page.under.where((u) => u.id == postId).firstOrNull;
+        return u == null ? const SizedBox.shrink() : PageUnderRow(item: u);
+      default:
+        // A file, a block this page doesn't edit, or a toggle's own block.
         return PageBlockView(
           space: widget.space,
           page: _page,
           block: b,
           me: null,
         );
-      case PageChildItem(:final postId):
-        final u = _page.under.where((u) => u.id == postId).firstOrNull;
-        return u == null ? const SizedBox.shrink() : PageUnderRow(item: u);
     }
   }
 
@@ -1543,8 +1243,8 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final ticked = _page.points.any((p) => p.id == id && p.ticked);
-    final c = _field('pt:$id', _points[id] ?? '');
-    final node = _node('pt:$id');
+    final c = blockField('pt:$id', _points[id] ?? '');
+    final node = blockNode('pt:$id');
     return Row(
       key: Key('page-point-$id'),
       spacing: BvSpace.s8,
@@ -1574,7 +1274,10 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
         ),
         Expanded(
           child: KeyboardListener(
-            focusNode: _keyNode(id),
+            focusNode: _pointKeys.putIfAbsent(
+              id,
+              () => FocusNode(skipTraversal: true),
+            ),
             onKeyEvent: (e) {
               if (e is KeyDownEvent &&
                   e.logicalKey == LogicalKeyboardKey.backspace &&
@@ -1600,57 +1303,6 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor> {
               onSubmitted: (_) => _nextPoint(index, id),
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _tableEditor(int i, PageTable t) {
-    final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: BvSpace.s4,
-      children: [
-        PageTableView(
-          rows: t.rows,
-          cell: (r, c) => GestureDetector(
-            onLongPress: () => unawaited(_cellMenu(i, r, c)),
-            child: _text(
-              'c:${t.id}:$r:$c',
-              t.rows[r][c],
-              style: r == 0 ? type.metadata : type.bodySm,
-              hint: '',
-              maxLength: PageTable.cellMax,
-            ),
-          ),
-        ),
-        Wrap(
-          children: [
-            if (t.rows.length < PageTable.maxRows)
-              TextButton.icon(
-                key: Key('page-add-row-${t.id}'),
-                onPressed: () => _table(
-                  i,
-                  (t) =>
-                      PageTable(t.id, [...t.rows, List.filled(t.columns, '')]),
-                ),
-                icon: const Icon(BvIcons.create, size: BvSize.iconSm),
-                label: Text(l10n.pageAddRow),
-              ),
-            if (t.columns < PageTable.maxColumns)
-              TextButton.icon(
-                key: Key('page-add-column-${t.id}'),
-                onPressed: () => _table(
-                  i,
-                  (t) => PageTable(t.id, [
-                    for (final row in t.rows) [...row, ''],
-                  ]),
-                ),
-                icon: const Icon(BvIcons.create, size: BvSize.iconSm),
-                label: Text(l10n.pageAddColumn),
-              ),
-          ],
         ),
       ],
     );

@@ -4339,24 +4339,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep notes, checklists and to-dos for your work. Only you can see them.';
 
   @override
-  String get notebookWriteHint => 'Write a note';
-
-  @override
-  String get notebookChecklistHint => 'What is the checklist for?';
-
-  @override
-  String get notebookTodoHint => 'What to do';
-
-  @override
-  String get notebookPointHint => 'Add a point';
-
-  @override
-  String get notebookWhen => 'When';
-
-  @override
-  String get notebookNoTime => 'Any time';
-
-  @override
   String get notebookPinTop => 'Pin to the top';
 
   @override
@@ -4565,6 +4547,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookRemindPast => 'Pick a time still to come.';
 
   @override
+  String get notebookNow => 'Now';
+
+  @override
+  String get notebookDraftKept => 'Kept as you left it. Tap to go on writing.';
+
+  @override
+  String get notebookRemoveReminder => 'Remove reminder';
+
+  @override
+  String get notebookDraftFirst => 'Finish or clear your draft first.';
+
+  @override
   String get reminderTitle => 'Reminder';
 
   @override
@@ -4653,4 +4647,163 @@ class AppLocalizationsEn extends AppLocalizations {
   String daybookFacesMore(int count) {
     return '+$count';
   }
+
+  @override
+  String get notebookCategories => 'Categories';
+
+  @override
+  String get notebookOrTypeSlash => 'or type /';
+
+  @override
+  String get notebookSubheading => 'Subheading';
+
+  @override
+  String get notebookTodoList => 'To-do list';
+
+  @override
+  String get notebookBullets => 'Bulleted list';
+
+  @override
+  String get notebookNumbers => 'Numbered list';
+
+  @override
+  String get notebookCallout => 'Callout';
+
+  @override
+  String get notebookQuote => 'Quote';
+
+  @override
+  String get notebookDivider => 'Divider';
+
+  @override
+  String get notebookTodoHint => 'To-do';
+
+  @override
+  String get notebookListHint => 'List';
+
+  @override
+  String get notebookCalloutHint => 'Something to stand out';
+
+  @override
+  String get notebookQuoteHint => 'Quote';
+
+  @override
+  String get notebookHoldVoice => 'Hold Voice on the bar to record.';
+
+  @override
+  String get notebookVoiceTool => 'Voice';
+
+  @override
+  String get notebookLocation => 'Location';
+
+  @override
+  String get notebookImage => 'Image';
+
+  @override
+  String get notebookFile => 'File';
+
+  @override
+  String get notebookDate => 'Date';
+
+  @override
+  String get notebookWhereHint => 'Where';
+
+  @override
+  String get notebookAddGps => 'Add my GPS position';
+
+  @override
+  String get notebookGpsAdded => 'My GPS position added';
+
+  @override
+  String notebookGpsLine(String lat, String lng, String metres) {
+    return '$lat, $lng · ±$metres m';
+  }
+
+  @override
+  String get notebookGpsFinding => 'Finding your position…';
+
+  @override
+  String get notebookGpsDenied =>
+      'Allow location for BuildVibes in your phone\'s settings to add your position.';
+
+  @override
+  String get notebookGpsOff =>
+      'Turn on your phone\'s location to add your position.';
+
+  @override
+  String get notebookGpsFailed =>
+      'Couldn\'t find your position. Try again outside.';
+
+  @override
+  String get notebookLocationHelp =>
+      'Type where, add the phone\'s GPS, or both.';
+
+  @override
+  String notebookGpsChip(String metres) {
+    return 'GPS ±$metres m';
+  }
+
+  @override
+  String get notebookRemoveLocation => 'Remove location';
+
+  @override
+  String get notebookRemoveGps => 'Remove my GPS position';
+
+  @override
+  String get notebookRemoveFile => 'Remove file';
+
+  @override
+  String get notebookRemoveDate => 'Remove date';
+
+  @override
+  String get notebookFilesFull => 'A note holds up to 10 files.';
+
+  @override
+  String get notebookPhotosFull => 'A note holds up to 10 photos.';
+
+  @override
+  String notebookPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files',
+      one: '1 file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookIncludeGps => 'Include my GPS position';
+
+  @override
+  String get notebookRemindTime => 'Remind me at…';
+
+  @override
+  String get notebookRemindMorning => 'In the morning';
+
+  @override
+  String get notebookCouldntKeep =>
+      'Couldn\'t keep this note. It\'s back as a draft.';
+
+  @override
+  String get notebookReminderGone =>
+      'The reminder\'s time had passed, so it was taken off.';
+
+  @override
+  String get notebookPhotosStay =>
+      'The photos stay in your notebook: they couldn\'t be added.';
+
+  @override
+  String get notebookTitleHint => 'Title';
 }

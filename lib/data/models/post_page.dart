@@ -45,6 +45,22 @@ sealed class PageBlock {
         for (final p in json['point_ids'] as List? ?? const []) '$p',
       ]),
       PageChildItem.kind => PageChildItem(id, json['post_id'] as String? ?? ''),
+      PageTodo.kind => PageTodo(
+        id,
+        text(),
+        done: json['done'] as bool? ?? false,
+      ),
+      PageBullet.kind => PageBullet(id, text()),
+      PageNumbered.kind => PageNumbered(id, text()),
+      PageCallout.kind => PageCallout(id, text()),
+      PageQuote.kind => PageQuote(id, text()),
+      PageDivider.kind => PageDivider(id),
+      PageVoice.kind => PageVoice(
+        id,
+        path: json['path'] as String?,
+        local: json['local'] as String?,
+        durationMs: (json['duration_ms'] as num?)?.toInt() ?? 0,
+      ),
       _ => PageOtherBlock(id, Map.unmodifiable(json)),
     };
   }
@@ -220,6 +236,146 @@ class PageChildItem extends PageBlock {
 
   @override
   Map<String, dynamic> toJson() => {'id': id, 'type': kind, 'post_id': postId};
+}
+
+// My notebook's own blocks (F107, review 92; migration 44's
+// is_valid_note_blocks). A Work post's page doesn't take them.
+
+/// One line of words: a to-do, a bullet, a numbered line, a callout or a
+/// quote.
+sealed class PageLine extends PageBlock {
+  const PageLine(super.id, this.text);
+
+  /// is_valid_note_blocks: up to 5,000 characters.
+  static const max = 5000;
+
+  final String text;
+
+  /// The same kind of line, with other words.
+  PageLine withText(String text);
+
+  @override
+  Map<String, dynamic> toJson() => {'id': id, 'type': type, 'text': text};
+}
+
+/// A to-do: ticked or not, by its owner, on the note.
+class PageTodo extends PageLine {
+  const PageTodo(super.id, super.text, {this.done = false});
+
+  static const kind = 'todo';
+
+  final bool done;
+
+  @override
+  String get type => kind;
+
+  @override
+  PageTodo withText(String text) => PageTodo(id, text, done: done);
+
+  PageTodo ticked() => PageTodo(id, text, done: !done);
+
+  @override
+  Map<String, dynamic> toJson() => {...super.toJson(), 'done': done};
+}
+
+class PageBullet extends PageLine {
+  const PageBullet(super.id, super.text);
+
+  static const kind = 'bullet';
+
+  @override
+  String get type => kind;
+
+  @override
+  PageBullet withText(String text) => PageBullet(id, text);
+}
+
+/// Numbered by its place in a run of numbered lines.
+class PageNumbered extends PageLine {
+  const PageNumbered(super.id, super.text);
+
+  static const kind = 'numbered';
+
+  @override
+  String get type => kind;
+
+  @override
+  PageNumbered withText(String text) => PageNumbered(id, text);
+}
+
+class PageCallout extends PageLine {
+  const PageCallout(super.id, super.text);
+
+  static const kind = 'callout';
+
+  @override
+  String get type => kind;
+
+  @override
+  PageCallout withText(String text) => PageCallout(id, text);
+}
+
+class PageQuote extends PageLine {
+  const PageQuote(super.id, super.text);
+
+  static const kind = 'quote';
+
+  @override
+  String get type => kind;
+
+  @override
+  PageQuote withText(String text) => PageQuote(id, text);
+}
+
+/// A thin line between parts of a note.
+class PageDivider extends PageBlock {
+  const PageDivider(super.id);
+
+  static const kind = 'divider';
+
+  @override
+  String get type => kind;
+
+  @override
+  Map<String, dynamic> toJson() => {'id': id, 'type': kind};
+}
+
+/// A voice recording inside a note: in `notebook-files` once sent
+/// ([path], one of the note's files), on the phone until then ([local]).
+class PageVoice extends PageBlock {
+  const PageVoice(super.id, {this.path, this.local, this.durationMs = 0});
+
+  static const kind = 'voice';
+
+  final String? path;
+  final String? local;
+  final int durationMs;
+
+  Duration get duration => Duration(milliseconds: durationMs);
+
+  PageVoice uploaded(String path) =>
+      PageVoice(id, path: path, local: local, durationMs: durationMs);
+
+  @override
+  String get type => kind;
+
+  /// As the phone keeps it: with its copy on the phone until it is sent.
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': kind,
+    'path': path,
+    if (local != null) 'local': local,
+    'duration_ms': durationMs,
+  };
+
+  /// As save_note takes it.
+  Map<String, dynamic> toServer() => {
+    'id': id,
+    'type': kind,
+    'path': path,
+    'duration_ms': durationMs,
+  };
 }
 
 /// A block this page shows nothing for and keeps as it came.

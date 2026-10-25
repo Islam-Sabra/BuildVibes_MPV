@@ -7310,42 +7310,6 @@ abstract class AppLocalizations {
   /// **'Keep notes, checklists and to-dos for your work. Only you can see them.'**
   String get notebookEmptyBody;
 
-  /// The words box when writing a note.
-  ///
-  /// In en, this message translates to:
-  /// **'Write a note'**
-  String get notebookWriteHint;
-
-  /// A checklist note's title box.
-  ///
-  /// In en, this message translates to:
-  /// **'What is the checklist for?'**
-  String get notebookChecklistHint;
-
-  /// A to-do note's words box.
-  ///
-  /// In en, this message translates to:
-  /// **'What to do'**
-  String get notebookTodoHint;
-
-  /// A new point on a checklist note.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a point'**
-  String get notebookPointHint;
-
-  /// A to-do's day and time, while writing it.
-  ///
-  /// In en, this message translates to:
-  /// **'When'**
-  String get notebookWhen;
-
-  /// A to-do with no time yet.
-  ///
-  /// In en, this message translates to:
-  /// **'Any time'**
-  String get notebookNoTime;
-
   /// A note's menu: it shows above the others.
   ///
   /// In en, this message translates to:
@@ -7670,6 +7634,30 @@ abstract class AppLocalizations {
   /// **'Pick a time still to come.'**
   String get notebookRemindPast;
 
+  /// A note being written in My notebook: its time, at the end of its first line (F106 NBW1).
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get notebookNow;
+
+  /// A note left unsent in My notebook, under its words (F106 NBW5).
+  ///
+  /// In en, this message translates to:
+  /// **'Kept as you left it. Tap to go on writing.'**
+  String get notebookDraftKept;
+
+  /// The × on a note's reminder chip while writing it; read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove reminder'**
+  String get notebookRemoveReminder;
+
+  /// A note is edited while another is left as a draft: one at a time (F106).
+  ///
+  /// In en, this message translates to:
+  /// **'Finish or clear your draft first.'**
+  String get notebookDraftFirst;
+
   /// The phone's notification for a note's reminder: its title (the note's words under it).
   ///
   /// In en, this message translates to:
@@ -7813,6 +7801,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+{count}'**
   String daybookFacesMore(int count);
+
+  /// F107 NBX2: the + on the bar and the grid's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get notebookCategories;
+
+  /// F107 NBX2: in the grid's corner.
+  ///
+  /// In en, this message translates to:
+  /// **'or type /'**
+  String get notebookOrTypeSlash;
+
+  /// F107: a level-2 heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Subheading'**
+  String get notebookSubheading;
+
+  /// F107 NBX2: a tile.
+  ///
+  /// In en, this message translates to:
+  /// **'To-do list'**
+  String get notebookTodoList;
+
+  /// F107 NBX2: a tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulleted list'**
+  String get notebookBullets;
+
+  /// F107 NBX2: a tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbered list'**
+  String get notebookNumbers;
+
+  /// F107 NBX2: a tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Callout'**
+  String get notebookCallout;
+
+  /// F107 NBX2: a tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Quote'**
+  String get notebookQuote;
+
+  /// F107 NBX2: a tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Divider'**
+  String get notebookDivider;
+
+  /// F107: an empty to-do line.
+  ///
+  /// In en, this message translates to:
+  /// **'To-do'**
+  String get notebookTodoHint;
+
+  /// F107: an empty bullet or numbered line.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get notebookListHint;
+
+  /// F107: an empty callout.
+  ///
+  /// In en, this message translates to:
+  /// **'Something to stand out'**
+  String get notebookCalloutHint;
+
+  /// F107: an empty quote.
+  ///
+  /// In en, this message translates to:
+  /// **'Quote'**
+  String get notebookQuoteHint;
+
+  /// F107: the grid's Voice note tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold Voice on the bar to record.'**
+  String get notebookHoldVoice;
+
+  /// F107: the bar's Voice, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get notebookVoiceTool;
+
+  /// F107 NBX4: the bar's Location and its sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get notebookLocation;
+
+  /// F107: the bar's Image, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get notebookImage;
+
+  /// F107: the bar's File, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get notebookFile;
+
+  /// F107: the bar's Date, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get notebookDate;
+
+  /// F107 NBX4: the typed field's placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get notebookWhereHint;
+
+  /// F107 NBX4.
+  ///
+  /// In en, this message translates to:
+  /// **'Add my GPS position'**
+  String get notebookAddGps;
+
+  /// F107 NBX4.
+  ///
+  /// In en, this message translates to:
+  /// **'My GPS position added'**
+  String get notebookGpsAdded;
+
+  /// F107 NBX4: the position under it.
+  ///
+  /// In en, this message translates to:
+  /// **'{lat}, {lng} · ±{metres} m'**
+  String notebookGpsLine(String lat, String lng, String metres);
+
+  /// F107 NBX4.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your position…'**
+  String get notebookGpsFinding;
+
+  /// F107 NBX4.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow location for BuildVibes in your phone\'s settings to add your position.'**
+  String get notebookGpsDenied;
+
+  /// F107 NBX4.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on your phone\'s location to add your position.'**
+  String get notebookGpsOff;
+
+  /// F107 NBX4.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find your position. Try again outside.'**
+  String get notebookGpsFailed;
+
+  /// F107 NBX4.
+  ///
+  /// In en, this message translates to:
+  /// **'Type where, add the phone\'s GPS, or both.'**
+  String get notebookLocationHelp;
+
+  /// F107 NBX3: the location chip's GPS part.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS ±{metres} m'**
+  String notebookGpsChip(String metres);
+
+  /// F107: the location chip's ×.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove location'**
+  String get notebookRemoveLocation;
+
+  /// F107 NBX4: the GPS row's ×.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove my GPS position'**
+  String get notebookRemoveGps;
+
+  /// F107: a file row's ×.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove file'**
+  String get notebookRemoveFile;
+
+  /// F107: the date chip's ×.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove date'**
+  String get notebookRemoveDate;
+
+  /// F107.
+  ///
+  /// In en, this message translates to:
+  /// **'A note holds up to 10 files.'**
+  String get notebookFilesFull;
+
+  /// F107.
+  ///
+  /// In en, this message translates to:
+  /// **'A note holds up to 10 photos.'**
+  String get notebookPhotosFull;
+
+  /// F107: on a saved slip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String notebookPhotoCount(int count);
+
+  /// F107: on a saved slip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file} other{{count} files}}'**
+  String notebookFileCount(int count);
+
+  /// F107: Put in a Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Include my GPS position'**
+  String get notebookIncludeGps;
+
+  /// F107 B5: the reminder's time step.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me at…'**
+  String get notebookRemindTime;
+
+  /// F107 B5: no time picked, the morning.
+  ///
+  /// In en, this message translates to:
+  /// **'In the morning'**
+  String get notebookRemindMorning;
+
+  /// F107 B15.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t keep this note. It\'s back as a draft.'**
+  String get notebookCouldntKeep;
+
+  /// F107 B16.
+  ///
+  /// In en, this message translates to:
+  /// **'The reminder\'s time had passed, so it was taken off.'**
+  String get notebookReminderGone;
+
+  /// F107 B11.
+  ///
+  /// In en, this message translates to:
+  /// **'The photos stay in your notebook: they couldn\'t be added.'**
+  String get notebookPhotosStay;
+
+  /// F107: a note's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notebookTitleHint;
 }
 
 class _AppLocalizationsDelegate

@@ -85,11 +85,37 @@ typedef PickDue =
 
 final pickDueProvider = Provider<PickDue>((ref) => _pickDue);
 
+/// A note's Remind me (F107 B5): the same day picker, then the time in
+/// the reminder's own words ("Remind me at…"; no time is the morning),
+/// starting a quarter of an hour on so OK at once isn't already gone. A
+/// stand-in for [pickDueProvider] (tests) stands in here too.
+final pickReminderProvider = Provider<PickDue>((ref) {
+  final due = ref.watch(pickDueProvider);
+  return identical(due, _pickDue) ? _pickReminder : due;
+});
+
+Future<PickedDue?> _pickReminder(
+  BuildContext context, {
+  required DateTime now,
+  DateTime? day,
+  DateTime? at,
+}) => _pickDue(
+  context,
+  now: now,
+  day: day,
+  at: at ?? now.add(const Duration(minutes: _reminderAhead)),
+  reminder: true,
+);
+
+/// How far on a new reminder's time starts.
+const _reminderAhead = 15;
+
 Future<PickedDue?> _pickDue(
   BuildContext context, {
   required DateTime now,
   DateTime? day,
   DateTime? at,
+  bool reminder = false,
 }) async {
   final l10n = AppLocalizations.of(context);
   final today = DateTime(now.year, now.month, now.day);
@@ -105,8 +131,8 @@ Future<PickedDue?> _pickDue(
   final time = await showTimePicker(
     context: context,
     initialTime: TimeOfDay.fromDateTime(at ?? now),
-    helpText: l10n.daybookDueTimeHelp,
-    cancelText: l10n.daybookNoTime,
+    helpText: reminder ? l10n.notebookRemindTime : l10n.daybookDueTimeHelp,
+    cancelText: reminder ? l10n.notebookRemindMorning : l10n.daybookNoTime,
   );
   return (day: pickedDay, at: time == null ? null : _on(pickedDay, time));
 }

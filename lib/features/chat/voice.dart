@@ -312,7 +312,10 @@ class RecordButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // Its own node, so the mic is read out (F107 B17: it went missing
+    // from My notebook's bar on Android).
     return Semantics(
+      container: true,
       button: true,
       label: l10n.chatRecord,
       // The raw pointer too: a lifted or cancelled thumb (a permission

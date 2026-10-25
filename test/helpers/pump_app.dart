@@ -258,6 +258,9 @@ Future<TestApp> pumpApp(
   /// While this waits, the gallery's photos are still being prepared
   /// (review 74 H2).
   Future<void>? galleryPreparing,
+
+  /// While this waits, the camera is in front of the app (F107 B3).
+  Future<void>? cameraOpen,
   void Function(FakeProfilePageRepository, FakeProjectRepository)? setUp,
   List<Override> overrides = const [],
 }) async {
@@ -410,6 +413,7 @@ Future<TestApp> pumpApp(
           onPreparing,
         }) async {
           cameraAsks.add(camera);
+          await cameraOpen;
           return (photos: [XFile(testPhotoPath)], refused: 0);
         }),
         // The gallery gives [galleryPhotos] (K4: up to the room left).

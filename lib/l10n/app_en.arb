@@ -6261,30 +6261,6 @@
   "@notebookEmptyBody": {
     "description": "The empty notebook's words (N2)."
   },
-  "notebookWriteHint": "Write a note",
-  "@notebookWriteHint": {
-    "description": "The words box when writing a note."
-  },
-  "notebookChecklistHint": "What is the checklist for?",
-  "@notebookChecklistHint": {
-    "description": "A checklist note's title box."
-  },
-  "notebookTodoHint": "What to do",
-  "@notebookTodoHint": {
-    "description": "A to-do note's words box."
-  },
-  "notebookPointHint": "Add a point",
-  "@notebookPointHint": {
-    "description": "A new point on a checklist note."
-  },
-  "notebookWhen": "When",
-  "@notebookWhen": {
-    "description": "A to-do's day and time, while writing it."
-  },
-  "notebookNoTime": "Any time",
-  "@notebookNoTime": {
-    "description": "A to-do with no time yet."
-  },
   "notebookPinTop": "Pin to the top",
   "@notebookPinTop": {
     "description": "A note's menu: it shows above the others."
@@ -6595,6 +6571,22 @@
   "@notebookRemindPast": {
     "description": "Remind me: the time picked has passed."
   },
+  "notebookNow": "Now",
+  "@notebookNow": {
+    "description": "A note being written in My notebook: its time, at the end of its first line (F106 NBW1)."
+  },
+  "notebookDraftKept": "Kept as you left it. Tap to go on writing.",
+  "@notebookDraftKept": {
+    "description": "A note left unsent in My notebook, under its words (F106 NBW5)."
+  },
+  "notebookRemoveReminder": "Remove reminder",
+  "@notebookRemoveReminder": {
+    "description": "The × on a note's reminder chip while writing it; read out."
+  },
+  "notebookDraftFirst": "Finish or clear your draft first.",
+  "@notebookDraftFirst": {
+    "description": "A note is edited while another is left as a draft: one at a time (F106)."
+  },
   "reminderTitle": "Reminder",
   "@reminderTitle": {
     "description": "The phone's notification for a note's reminder: its title (the note's words under it)."
@@ -6718,5 +6710,207 @@
         "type": "int"
       }
     }
+  },
+  "notebookCategories": "Categories",
+  "@notebookCategories": {
+    "description": "F107 NBX2: the + on the bar and the grid's title."
+  },
+  "notebookOrTypeSlash": "or type /",
+  "@notebookOrTypeSlash": {
+    "description": "F107 NBX2: in the grid's corner."
+  },
+  "notebookSubheading": "Subheading",
+  "@notebookSubheading": {
+    "description": "F107: a level-2 heading."
+  },
+  "notebookTodoList": "To-do list",
+  "@notebookTodoList": {
+    "description": "F107 NBX2: a tile."
+  },
+  "notebookBullets": "Bulleted list",
+  "@notebookBullets": {
+    "description": "F107 NBX2: a tile."
+  },
+  "notebookNumbers": "Numbered list",
+  "@notebookNumbers": {
+    "description": "F107 NBX2: a tile."
+  },
+  "notebookCallout": "Callout",
+  "@notebookCallout": {
+    "description": "F107 NBX2: a tile."
+  },
+  "notebookQuote": "Quote",
+  "@notebookQuote": {
+    "description": "F107 NBX2: a tile."
+  },
+  "notebookDivider": "Divider",
+  "@notebookDivider": {
+    "description": "F107 NBX2: a tile."
+  },
+  "notebookTodoHint": "To-do",
+  "@notebookTodoHint": {
+    "description": "F107: an empty to-do line."
+  },
+  "notebookListHint": "List",
+  "@notebookListHint": {
+    "description": "F107: an empty bullet or numbered line."
+  },
+  "notebookCalloutHint": "Something to stand out",
+  "@notebookCalloutHint": {
+    "description": "F107: an empty callout."
+  },
+  "notebookQuoteHint": "Quote",
+  "@notebookQuoteHint": {
+    "description": "F107: an empty quote."
+  },
+  "notebookHoldVoice": "Hold Voice on the bar to record.",
+  "@notebookHoldVoice": {
+    "description": "F107: the grid's Voice note tile."
+  },
+  "notebookVoiceTool": "Voice",
+  "@notebookVoiceTool": {
+    "description": "F107: the bar's Voice, read out."
+  },
+  "notebookLocation": "Location",
+  "@notebookLocation": {
+    "description": "F107 NBX4: the bar's Location and its sheet."
+  },
+  "notebookImage": "Image",
+  "@notebookImage": {
+    "description": "F107: the bar's Image, read out."
+  },
+  "notebookFile": "File",
+  "@notebookFile": {
+    "description": "F107: the bar's File, read out."
+  },
+  "notebookDate": "Date",
+  "@notebookDate": {
+    "description": "F107: the bar's Date, read out."
+  },
+  "notebookWhereHint": "Where",
+  "@notebookWhereHint": {
+    "description": "F107 NBX4: the typed field's placeholder."
+  },
+  "notebookAddGps": "Add my GPS position",
+  "@notebookAddGps": {
+    "description": "F107 NBX4."
+  },
+  "notebookGpsAdded": "My GPS position added",
+  "@notebookGpsAdded": {
+    "description": "F107 NBX4."
+  },
+  "notebookGpsLine": "{lat}, {lng} · ±{metres} m",
+  "@notebookGpsLine": {
+    "description": "F107 NBX4: the position under it.",
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lng": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookGpsFinding": "Finding your position…",
+  "@notebookGpsFinding": {
+    "description": "F107 NBX4."
+  },
+  "notebookGpsDenied": "Allow location for BuildVibes in your phone's settings to add your position.",
+  "@notebookGpsDenied": {
+    "description": "F107 NBX4."
+  },
+  "notebookGpsOff": "Turn on your phone's location to add your position.",
+  "@notebookGpsOff": {
+    "description": "F107 NBX4."
+  },
+  "notebookGpsFailed": "Couldn't find your position. Try again outside.",
+  "@notebookGpsFailed": {
+    "description": "F107 NBX4."
+  },
+  "notebookLocationHelp": "Type where, add the phone's GPS, or both.",
+  "@notebookLocationHelp": {
+    "description": "F107 NBX4."
+  },
+  "notebookGpsChip": "GPS ±{metres} m",
+  "@notebookGpsChip": {
+    "description": "F107 NBX3: the location chip's GPS part.",
+    "placeholders": {
+      "metres": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookRemoveLocation": "Remove location",
+  "@notebookRemoveLocation": {
+    "description": "F107: the location chip's ×."
+  },
+  "notebookRemoveGps": "Remove my GPS position",
+  "@notebookRemoveGps": {
+    "description": "F107 NBX4: the GPS row's ×."
+  },
+  "notebookRemoveFile": "Remove file",
+  "@notebookRemoveFile": {
+    "description": "F107: a file row's ×."
+  },
+  "notebookRemoveDate": "Remove date",
+  "@notebookRemoveDate": {
+    "description": "F107: the date chip's ×."
+  },
+  "notebookFilesFull": "A note holds up to 10 files.",
+  "@notebookFilesFull": {
+    "description": "F107."
+  },
+  "notebookPhotosFull": "A note holds up to 10 photos.",
+  "@notebookPhotosFull": {
+    "description": "F107."
+  },
+  "notebookPhotoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "@notebookPhotoCount": {
+    "description": "F107: on a saved slip.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookFileCount": "{count, plural, =1{1 file} other{{count} files}}",
+  "@notebookFileCount": {
+    "description": "F107: on a saved slip.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookIncludeGps": "Include my GPS position",
+  "@notebookIncludeGps": {
+    "description": "F107: Put in a Space."
+  },
+  "notebookRemindTime": "Remind me at…",
+  "@notebookRemindTime": {
+    "description": "F107 B5: the reminder's time step."
+  },
+  "notebookRemindMorning": "In the morning",
+  "@notebookRemindMorning": {
+    "description": "F107 B5: no time picked, the morning."
+  },
+  "notebookCouldntKeep": "Couldn't keep this note. It's back as a draft.",
+  "@notebookCouldntKeep": {
+    "description": "F107 B15."
+  },
+  "notebookReminderGone": "The reminder's time had passed, so it was taken off.",
+  "@notebookReminderGone": {
+    "description": "F107 B16."
+  },
+  "notebookPhotosStay": "The photos stay in your notebook: they couldn't be added.",
+  "@notebookPhotosStay": {
+    "description": "F107 B11."
+  },
+  "notebookTitleHint": "Title",
+  "@notebookTitleHint": {
+    "description": "F107: a note's title."
   }
 }
