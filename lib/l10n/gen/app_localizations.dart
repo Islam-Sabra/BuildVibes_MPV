@@ -7640,12 +7640,6 @@ abstract class AppLocalizations {
   /// **'Continue numbering ({n})'**
   String notebookContinueNumbering(int n);
 
-  /// A numbered line's menu: a new count starts at 1 from this line.
-  ///
-  /// In en, this message translates to:
-  /// **'Restart at 1'**
-  String get notebookRestartNumbering;
-
   /// Read out on a list line's fold arrow while its children show.
   ///
   /// In en, this message translates to:
@@ -8204,12 +8198,6 @@ abstract class AppLocalizations {
   /// **'Enter picks it'**
   String get pageSlashEnter;
 
-  /// Review 98 NBY2: the line menu's first row; opens the kinds the line can become.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn into'**
-  String get notebookLineTurnInto;
-
   /// Review 98 NBY2: the line, with the lines under it, goes above the group before it.
   ///
   /// In en, this message translates to:
@@ -8240,11 +8228,11 @@ abstract class AppLocalizations {
   /// **'Restart at 1'**
   String get notebookLineRestart;
 
-  /// Review 98 NBY2: the line menu's last row, in the destructive colour.
+  /// Review 98 C1: Delete as a menu row (the line menu, Work's ⋮⋮ sheet and a point's sheet), in the destructive colour. A dialog's confirm button says pageDelete.
   ///
   /// In en, this message translates to:
   /// **'Delete'**
-  String get notebookLineDelete;
+  String get pageMenuDelete;
 
   /// Review 98: the Undo bar after a line changed kind (Turn into, or a typed shortcut such as "1. "). kind is the kind's name, e.g. Numbered list.
   ///

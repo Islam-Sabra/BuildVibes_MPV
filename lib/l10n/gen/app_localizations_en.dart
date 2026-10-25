@@ -4550,9 +4550,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookRestartNumbering => 'Restart at 1';
-
-  @override
   String get notebookFoldHide => 'Hide the lines under it';
 
   @override
@@ -4887,9 +4884,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pageSlashEnter => 'Enter picks it';
 
   @override
-  String get notebookLineTurnInto => 'Turn into';
-
-  @override
   String get notebookMoveUp => 'Move up';
 
   @override
@@ -4905,7 +4899,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookLineRestart => 'Restart at 1';
 
   @override
-  String get notebookLineDelete => 'Delete';
+  String get pageMenuDelete => 'Delete';
 
   @override
   String notebookUndoTurned(String kind) {

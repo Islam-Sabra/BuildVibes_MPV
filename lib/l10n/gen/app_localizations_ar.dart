@@ -3932,7 +3932,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pagePoint => 'نقطة في قائمة التحقق';
 
   @override
-  String get pageTurnInto => 'حوّلها إلى';
+  String get pageTurnInto => 'تحويل إلى';
 
   @override
   String get pageTickedStays => 'النقطة المؤشَّر عليها تبقى كما هي.';
@@ -4558,9 +4558,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookRestartNumbering => 'البدء من 1 من جديد';
-
-  @override
   String get notebookFoldHide => 'إخفاء الأسطر التي تحته';
 
   @override
@@ -4900,9 +4897,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pageSlashEnter => 'Enter لاختياره';
 
   @override
-  String get notebookLineTurnInto => 'تحويل إلى';
-
-  @override
   String get notebookMoveUp => 'نقل لأعلى';
 
   @override
@@ -4918,7 +4912,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookLineRestart => 'ابدأ من 1';
 
   @override
-  String get notebookLineDelete => 'حذف';
+  String get pageMenuDelete => 'حذف';
 
   @override
   String notebookUndoTurned(String kind) {

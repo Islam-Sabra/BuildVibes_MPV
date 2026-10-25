@@ -737,6 +737,36 @@ void main() {
       );
     });
 
+    testWidgets('review 98 C1: the ⋮⋮ sheet says the line menu\'s words: '
+        'Turn into, Move down, Delete [$lang]', (tester) async {
+      await _open(tester, lang);
+      await _edit(tester, l10n);
+      await _tap(tester, _key('page-handle-$_text'));
+      expect(find.text(l10n.pageTurnInto), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _key('page-block-delete'),
+          matching: find.text(l10n.pageMenuDelete),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _key('page-move-down'),
+          matching: find.text(l10n.notebookMoveDown),
+        ),
+        findsOneWidget,
+      );
+      if (lang == 'ar') {
+        expect(l10n.pageTurnInto, 'تحويل إلى');
+        expect(l10n.pageMenuDelete, 'حذف');
+        expect(l10n.notebookMoveUp, 'نقل لأعلى');
+        expect(l10n.notebookMoveDown, 'نقل لأسفل');
+        // A dialog's confirm button keeps the imperative.
+        expect(l10n.pageDelete, 'احذف');
+      }
+    });
+
     testWidgets('review 98: no drag on a phone; ⋮⋮ moves a block down and '
         'up [$lang]', (tester) async {
       final app = await _open(tester, lang);

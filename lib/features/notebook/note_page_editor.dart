@@ -827,7 +827,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
           BvMenuItem(
             key: const Key('page-turn-into'),
             value: _turnInto,
-            label: l10n.notebookLineTurnInto,
+            label: l10n.pageTurnInto,
             icon: BvIcons.turnInto,
             more: true,
           ),
@@ -884,7 +884,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         BvMenuItem(
           key: const Key('page-block-delete'),
           value: _delete,
-          label: l10n.notebookLineDelete,
+          label: l10n.pageMenuDelete,
           icon: BvIcons.delete,
           destructive: true,
         ),

@@ -399,7 +399,8 @@ void main() {
         // Level 0 can't come out; no list before it to continue.
         expect(_key('page-outdent'), findsNothing);
         expect(_key('page-continue-numbering'), findsNothing);
-        expect(find.text(l10n.notebookLineDelete), findsOneWidget);
+        expect(find.text(l10n.pageMenuDelete), findsOneWidget);
+        expect(find.text(l10n.pageTurnInto), findsOneWidget);
         // Its end lined up with the line's, under it.
         final line = tester.getRect(_key('page-marked-${_id(2)}'));
         final menu = tester.getRect(_key('page-block-menu'));

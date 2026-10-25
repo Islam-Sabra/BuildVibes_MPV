@@ -886,7 +886,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
             BvListRow(
               key: const Key('page-block-delete'),
               leading: const BvRowIcon(BvIcons.delete, destructive: true),
-              title: l10n.pageDelete,
+              title: l10n.pageMenuDelete,
               destructive: true,
               trailing: const BvRowTrailing.none(),
               onTap: () => Navigator.of(sheet).pop(_BlockAction.delete),
@@ -1008,7 +1008,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
           BvListRow(
             key: const Key('page-point-delete'),
             leading: const BvRowIcon(BvIcons.delete, destructive: true),
-            title: l10n.pageDelete,
+            title: l10n.pageMenuDelete,
             destructive: true,
             trailing: const BvRowTrailing.none(),
             onTap: () => Navigator.of(sheet).pop(_BlockAction.delete),

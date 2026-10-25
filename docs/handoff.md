@@ -4,6 +4,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 
 ## Cloud update: 25 Oct 2026 — review 98, the notebook writes like Notion (`claude/r98`)
 
+- **C1 done (lead's check, 25 Oct late):** one Arabic word per menu row in the notebook's line menu and Work's ⋮⋮ sheets: Turn into «تحويل إلى» (`pageTurnInto`, now also the sheets' title), Delete «حذف» (`pageMenuDelete`, new, on every Delete row), Move up «نقل لأعلى», Move down «نقل لأسفل». A dialog's confirm button keeps «احذف» (`pageDelete`). Removed, as unused: `notebookLineTurnInto`, `notebookLineDelete` (renamed `pageMenuDelete`), `notebookRestartNumbering`; no other string is unused. A test checks both places. Analyze clean; `flutter test test`: 2,022 pass, 1 fails (photo_privacy H1, root-only in the cloud). The lead approved the branch after C1; the PC's next steps are in the lead's check (NBY1–NBY5 and F108 L3 shots, the emulator checks, then the merge with the founder's yes after review 96's).
 - **Branch `claude/r98`** (from `slice2-app` bc269ec): review 98 rules 1–8 in our own editor (`note_page_editor.dart`, the shared `page_block_editing.dart`, and Work's `daybook_page_editor.dart` where the code is shared). App only: **no database change**, nothing live, nothing installed, not merged.
 - **What it does:**
   - typed shortcuts at the start of a text line (`1.` `1)` `١.`, `-` `*`, `[]` `[ ]`, `#` `##`, `>`, `"`, `---`), with a light click and the Undo bar, which gives the characters back;

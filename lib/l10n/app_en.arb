@@ -6575,10 +6575,6 @@
       }
     }
   },
-  "notebookRestartNumbering": "Restart at 1",
-  "@notebookRestartNumbering": {
-    "description": "A numbered line's menu: a new count starts at 1 from this line."
-  },
   "notebookFoldHide": "Hide the lines under it",
   "@notebookFoldHide": {
     "description": "Read out on a list line's fold arrow while its children show."
@@ -7010,10 +7006,6 @@
   "@pageSlashEnter": {
     "description": "Review 98 NBY1: under the \"/\" card; the keyboard's Enter picks the tinted kind."
   },
-  "notebookLineTurnInto": "Turn into",
-  "@notebookLineTurnInto": {
-    "description": "Review 98 NBY2: the line menu's first row; opens the kinds the line can become."
-  },
   "notebookMoveUp": "Move up",
   "@notebookMoveUp": {
     "description": "Review 98 NBY2: the line, with the lines under it, goes above the group before it."
@@ -7034,9 +7026,9 @@
   "@notebookLineRestart": {
     "description": "Review 98 NBY2: a numbered line counts from 1 again."
   },
-  "notebookLineDelete": "Delete",
-  "@notebookLineDelete": {
-    "description": "Review 98 NBY2: the line menu's last row, in the destructive colour."
+  "pageMenuDelete": "Delete",
+  "@pageMenuDelete": {
+    "description": "Review 98 C1: Delete as a menu row (the line menu, Work's ⋮⋮ sheet and a point's sheet), in the destructive colour. A dialog's confirm button says pageDelete."
   },
   "notebookUndoTurned": "Turned into {kind}",
   "@notebookUndoTurned": {
