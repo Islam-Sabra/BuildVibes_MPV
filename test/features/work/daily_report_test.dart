@@ -12,7 +12,6 @@ import 'package:buildvibes/features/work/daybook_report_pdf.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
-import 'package:buildvibes/features/work/daybook_writing.dart' show kindWord;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -435,10 +434,7 @@ void main() {
       );
       final card = _key('report-$_report');
       expect(card, findsOneWidget);
-      expect(
-        find.text(kindWord(l10n, DaybookPost.reportKind)!),
-        findsOneWidget,
-      );
+      expect(find.text(l10n.daybookKindReportWord), findsOneWidget);
       expect(_key('report-ref-$_sleeves'), findsOneWidget);
       expect(_key('report-ref-$_paint'), findsOneWidget);
       expect(_key('report-ref-$_hidden'), findsNothing);

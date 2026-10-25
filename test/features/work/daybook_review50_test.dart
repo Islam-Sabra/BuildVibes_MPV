@@ -13,7 +13,6 @@ import 'package:buildvibes/shared/widgets/bv_card_history.dart';
 import 'package:buildvibes/shared/widgets/bv_photo_strip.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
 import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
-import 'package:buildvibes/features/work/daybook_writing.dart' show kindWord;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -312,16 +311,13 @@ void main() {
           find.descendant(
             of: _card(DaybookSamples.m201Id),
             matching: find.textContaining(
-              kindWord(l10n, DaybookPost.fileKind)!,
+              l10n.daybookKindFileWord,
               findRichText: true,
             ),
           ),
           findsWidgets,
         );
-        expect(
-          kindWord(l10n, DaybookPost.fileKind)!,
-          lang == 'en' ? '· file' : '· ملف',
-        );
+        expect(l10n.daybookKindFileWord, lang == 'en' ? '· file' : '· ملف');
         final lines = _lines(tester, DaybookSamples.m201Id);
         expect(lines, isNot(contains('rcv-${DaybookSamples.omar}')));
         expect(lines, isNot(contains('rcv-${DaybookSamples.rakesh}')));

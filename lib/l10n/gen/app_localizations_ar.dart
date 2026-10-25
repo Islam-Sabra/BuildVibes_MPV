@@ -3240,6 +3240,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookLineYouPosted => 'أنت · نشر';
 
   @override
+  String get daybookKindChecklistWord => '· قائمة تحقق';
+
+  @override
+  String get daybookKindActivityWord => '· مُجدول';
+
+  @override
+  String get daybookKindFileWord => '· ملف';
+
+  @override
   String get daybookToEveryone => '· للجميع';
 
   @override
@@ -3545,6 +3554,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookKindNote => 'ملاحظة';
 
   @override
+  String get daybookKindNoteWord => '· ملاحظة';
+
+  @override
   String get daybookForChoose => 'لـ: اختر';
 
   @override
@@ -3846,6 +3858,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get searchClear => 'امسح';
+
+  @override
+  String get searchPosts => 'المنشورات';
 
   @override
   String get searchFiles => 'الملفات';
@@ -4166,6 +4181,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookKindReport => 'تقرير يومي';
+
+  @override
+  String get daybookKindReportWord => '· تقرير يومي';
 
   @override
   String get dailyReportMenu => 'تقرير يومي';
@@ -4882,12 +4900,4 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get searchExactNumber => 'رقم مطابق';
-
-  @override
-  String daybookCardKindWord(String kind) {
-    return '· $kind';
-  }
-
-  @override
-  String get searchPosts => 'المنشورات';
 }

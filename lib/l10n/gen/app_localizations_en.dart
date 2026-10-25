@@ -3248,6 +3248,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookLineYouPosted => 'You posted it';
 
   @override
+  String get daybookKindChecklistWord => '· checklist';
+
+  @override
+  String get daybookKindActivityWord => '· scheduled';
+
+  @override
+  String get daybookKindFileWord => '· file';
+
+  @override
   String get daybookToEveryone => '· to everyone';
 
   @override
@@ -3541,6 +3550,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookKindNote => 'Note';
+
+  @override
+  String get daybookKindNoteWord => '· note';
 
   @override
   String get daybookForChoose => 'For: Choose';
@@ -3841,6 +3853,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchClear => 'Clear';
+
+  @override
+  String get searchPosts => 'Posts';
 
   @override
   String get searchFiles => 'Files';
@@ -4160,6 +4175,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get daybookKindReport => 'Daily report';
+
+  @override
+  String get daybookKindReportWord => '· daily report';
 
   @override
   String get dailyReportMenu => 'Daily report';
@@ -4869,12 +4887,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchExactNumber => 'Exact number';
-
-  @override
-  String daybookCardKindWord(String kind) {
-    return '· $kind';
-  }
-
-  @override
-  String get searchPosts => 'Posts';
 }

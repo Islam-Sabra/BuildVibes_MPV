@@ -4643,6 +4643,18 @@
   "@daybookLineYouPosted": {
     "description": "Daybook trace: you posted the work item that day."
   },
+  "daybookKindChecklistWord": "· checklist",
+  "@daybookKindChecklistWord": {
+    "description": "Daybook card header after the author: the post is a checklist."
+  },
+  "daybookKindActivityWord": "· scheduled",
+  "@daybookKindActivityWord": {
+    "description": "Daybook card header after the author: the post is a scheduled activity (K2 v13)."
+  },
+  "daybookKindFileWord": "· file",
+  "@daybookKindFileWord": {
+    "description": "A file post's kind word in its card header (F74)."
+  },
   "daybookToEveryone": "· to everyone",
   "@daybookToEveryone": {
     "description": "An announcement is for everyone in the Space (K1 v13)."
@@ -5122,6 +5134,10 @@
   "@daybookKindNote": {
     "description": "Kind menu: the plain post, for information (F58)."
   },
+  "daybookKindNoteWord": "· note",
+  "@daybookKindNoteWord": {
+    "description": "Card header after the author's name: a note (K5)."
+  },
   "daybookForChoose": "For: Choose",
   "@daybookForChoose": {
     "description": "Writing card: the who row before anyone is chosen, on a work item and a checklist (F56). The row's caret is an icon, never a character (review 79 A2)."
@@ -5552,6 +5568,10 @@
   "searchClear": "Clear",
   "@searchClear": {
     "description": "S: what a screen reader says for the ✕ in the field."
+  },
+  "searchPosts": "Posts",
+  "@searchPosts": {
+    "description": "Review 96 F1: Space search's group for every kind of post (a note, a work item, a checklist…)."
   },
   "searchFiles": "Files",
   "@searchFiles": {
@@ -6003,6 +6023,10 @@
   "daybookKindReport": "Daily report",
   "@daybookKindReport": {
     "description": "The daily report as a kind of post (slice 7, R2)."
+  },
+  "daybookKindReportWord": "· daily report",
+  "@daybookKindReportWord": {
+    "description": "A daily report's header after its author (R2)."
   },
   "dailyReportMenu": "Daily report",
   "@dailyReportMenu": {
@@ -6993,18 +7017,5 @@
   "searchExactNumber": "Exact number",
   "@searchExactNumber": {
     "description": "Review 95: on the search row of the post with the number searched for, shown first."
-  },
-  "daybookCardKindWord": "· {kind}",
-  "@daybookCardKindWord": {
-    "description": "Review 96 F2: a post's kind after its number in the card header (\"· note\"); {kind} is the kind chip's own word.",
-    "placeholders": {
-      "kind": {
-        "type": "String"
-      }
-    }
-  },
-  "searchPosts": "Posts",
-  "@searchPosts": {
-    "description": "Review 96 F1: Space search's group for every kind of post (a note, a work item, a checklist…)."
   }
 }

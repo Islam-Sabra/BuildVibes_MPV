@@ -28,7 +28,6 @@ import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
 import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
 import 'daybook_kinds.dart';
-import 'daybook_writing.dart' show kindWord;
 import 'daybook_marks.dart' show postFilesProvider;
 import 'daybook_photos.dart';
 import 'daybook_report.dart' show DaybookReportBody;
@@ -534,14 +533,12 @@ class DaybookCardView extends StatelessWidget {
             name: personName(l10n, post.authorName),
             label: authorId != null && authorId == me ? l10n.daybookYou : null,
             // Review 95: every kind has its number, before its kind word.
-            // Review 96 F2: the kind chip's own word.
-            ref: switch ((post.ref, kindWord(l10n, post.kind))) {
-              (final ref?, final word?) => l10n.daybookCardRefKind(
+            ref: switch (post.ref) {
+              final ref? => l10n.daybookCardRefKind(
                 ltrRun(ref),
-                word,
+                _kindWord(l10n),
               ),
-              (final ref?, null) => l10n.daybookCardRef(ref),
-              (null, final word) => word,
+              null => _kindWord(l10n),
             },
             time: words.time.clock(activityAt),
             tint: authorId == null
@@ -559,6 +556,17 @@ class DaybookCardView extends StatelessWidget {
       ),
     );
   }
+
+  /// "· note", "· checklist", "· scheduled", "· for receipt", "· to
+  /// everyone".
+  String _kindWord(AppLocalizations l10n) => switch (_post.kind) {
+    DaybookPost.noteKind => l10n.daybookKindNoteWord,
+    DaybookPost.checklistKind => l10n.daybookKindChecklistWord,
+    DaybookPost.activityKind => l10n.daybookKindActivityWord,
+    DaybookPost.fileKind => l10n.daybookKindFileWord,
+    DaybookPost.reportKind => l10n.daybookKindReportWord,
+    _ => l10n.daybookToEveryone,
+  };
 
   List<Widget> _kindBody(BuildContext context, AppLocalizations l10n) {
     final post = _post;

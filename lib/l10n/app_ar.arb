@@ -901,6 +901,9 @@
   "daybookLineYouCancelled": "أنت · إلغاء",
   "daybookLinePosted": "{name} · نشر",
   "daybookLineYouPosted": "أنت · نشر",
+  "daybookKindChecklistWord": "· قائمة تحقق",
+  "daybookKindActivityWord": "· مُجدول",
+  "daybookKindFileWord": "· ملف",
   "daybookToEveryone": "· للجميع",
   "daybookToTeam": "· لـ {team}",
   "daybookTicked": "تم تأشير {ticked} من {total}",
@@ -981,6 +984,7 @@
   "daybookKindDocument": "ملف",
   "daybookUnpin": "إلغاء التثبيت",
   "daybookKindNote": "ملاحظة",
+  "daybookKindNoteWord": "· ملاحظة",
   "daybookForChoose": "لـ: اختر",
   "daybookComingChoose": "من سيحضر: اختر",
   "daybookChooseWho": "اختر لمن",
@@ -1059,6 +1063,7 @@
   "searchMenu": "بحث",
   "searchHint": "ابحث بكلمة أو رقم، مثل 23",
   "searchClear": "امسح",
+  "searchPosts": "المنشورات",
   "searchFiles": "الملفات",
   "searchChat": "المحادثة",
   "searchNothing": "لا شيء عن «{query}»",
@@ -1150,6 +1155,7 @@
   "daybookPinTimeHelp": "مثبّت حتى أي وقت؟",
   "daybookPinLater": "اختر وقتًا لاحقًا",
   "daybookKindReport": "تقرير يومي",
+  "daybookKindReportWord": "· تقرير يومي",
   "dailyReportMenu": "تقرير يومي",
   "dailyReportOnSite": "في الموقع",
   "dailyReportDoneToday": "أنجز اليوم",
@@ -1344,7 +1350,5 @@
   "spacesRemovedUndo": "أُزيل",
   "spacesCouldNotRemove": "تعذّرت الإزالة",
   "daybookCardRefKind": "· {ref} {kind}",
-  "searchExactNumber": "رقم مطابق",
-  "daybookCardKindWord": "· {kind}",
-  "searchPosts": "المنشورات"
+  "searchExactNumber": "رقم مطابق"
 }

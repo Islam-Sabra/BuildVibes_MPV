@@ -401,17 +401,6 @@ String kindName(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
   DaybookKind.report => l10n.daybookKindReport,
 };
 
-/// A post's kind after its number in its card's header, "· note": the
-/// kind chip's own word (review 96 F2). Null for a work item, whose
-/// header shows its number only.
-String? kindWord(AppLocalizations l10n, String postKind) {
-  final kind = DaybookKind.fromJson(postKind);
-  if (kind == DaybookKind.workItem) return null;
-  // Mid-line, the chip's word in small letters ("Scheduled activity" →
-  // "scheduled activity"); Arabic has no capitals, so it is the same.
-  return l10n.daybookCardKindWord(kindName(l10n, kind).toLowerCase());
-}
-
 /// The kind menu's icon for [kind] (E6 v14 2598:36360).
 IconData kindIcon(DaybookKind kind) => switch (kind) {
   DaybookKind.note => BvIcons.edit,

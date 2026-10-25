@@ -137,10 +137,7 @@ void main() {
           lang,
           posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
         );
-        expect(
-          _in(_noteId, find.text(kindWord(l10n, DaybookPost.noteKind)!)),
-          findsOne,
-        );
+        expect(_in(_noteId, find.text(l10n.daybookKindNoteWord)), findsOne);
         expect(_in(_noteId, find.text(post.title)), findsOneWidget);
         expect(_in(_noteId, find.text(post.body!)), findsOneWidget);
         expect(_in(_noteId, find.byKey(const Key('ack-got_it'))), findsNothing);
