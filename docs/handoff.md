@@ -2,6 +2,57 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 25 Oct 2026, 12:40 Kuwait — review 94 (Hold to confirm) on `claude/hold-confirm`, waiting for the founder
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**Not done (they wait for the founder):** no merge; nothing pushed to the database or deployed; nothing installed on his phone. No server change is needed.
+
+**Built, on `claude/hold-confirm`** (ec477b0, from `slice2-app` 4ada8d9):
+- **`BvHoldButton`** (`lib/shared/widgets/bv_hold_button.dart`):
+  - a 600 ms hold acts; the fill runs from the start side (right to left in Arabic);
+  - a light tick starts the hold and a firm one ends it;
+  - let go early, the fill runs back in 150 ms, and the first two times on a phone it says "Keep holding to confirm";
+  - it takes the finger at once, so a card's long-press menu (500 ms) or the page's scroll can't cut a hold short;
+  - with TalkBack or VoiceOver on, a double-tap asks first ("Check this work item? It can't be changed after." · Check / Not now);
+  - with Reduce motion on, nothing moves, and the button turns solid at 600 ms.
+- The colours, 600 ms and 150 ms are tokens in `bv_tokens`.
+- **Check:**
+  - "Hold to check" on the card replaces the double-tap on the proof photo; a double-tap is still two taps that can happen by accident;
+  - a proof with only a note gets the button too;
+  - the menu's Check opens a short sheet answered by holding.
+- **Cancel work item** (from the card's menu): a sheet ("Cancel this work item?") answered by "Hold to cancel", in red. Cancel on other kinds of post is unchanged.
+- **Remove from Space** (People tab and a member's pass):
+  - "Hold to remove" on the sheet;
+  - the person leaves the list at once, and "Removed · Undo" shows for 5 seconds;
+  - only then does `remove_member` go, through the outbox (new kind `remove`);
+  - if the server refuses, the person comes back and a line says "Couldn't remove".
+- **Undo through the outbox:**
+  - the existing 5-second hold for Check and Cancel is reused (a `holdFor` didn't need adding; it is `hold(item, duration)`);
+  - leaving the Space, or hiding the app, sends what an undo bar still holds and hides the bar;
+  - an Undo after that changes nothing (`undo` now returns false).
+- Unchanged, one tap as before: Sign as done, Send back, ticks, Got it and the rest.
+- **Checks:** analyze clean; 1,934 app tests; 2,696 SQL checks in 44 files; 404 screenshots.
+- **Screenshots** in EN and AR, in `docs/screens/hold-confirm/`: H1 at rest, H2 half held, H3 Checked · Undo.
+- Re-shot because the card's hint became the button: 40 frames in `slice1/` and 12 in `slice2/`. Only the card's button and the layout below it moved.
+
+**Tried for real on the emulator** (build 611, ec477b0; Omar on live; emulator only):
+- **Let go early once** (on Hold to cancel): nothing happened, and "Keep holding to confirm" showed. A screenshot mid-hold showed the red fill from the start side.
+- **Hold, and let it go through:** NST-033 "Hold test - delete me" was cancelled at once on the card, with "Cancelled · Undo". The tap on Undo came after the 5 seconds (my screenshot round trip was too slow), so it went to the server. Live shows it cancelled.
+- **Hold, then Undo:** NST-034 "Hold test 2 - delete me": hold, then Undo within a second. The card came back open with Sign as done, and stayed open past the 5 seconds.
+- **Leave the screen:** NST-034 held to cancel, then Back at once. The bar went with the screen, and the Space's last activity reads 12:36, the minute it was left. Live shows it cancelled.
+- **Clean-up:** both test items are cancelled, the only clean-up the app has. They stay on NBKCH's daybook stamped CANCELLED, like the earlier test items.
+- **Blocked: Check on live.**
+  - Check needs someone other than the owner to check an item that is Done.
+  - On live, Omar is Crew in NBKCH SITE TEAM, with the founder's account as the only other member, and a Viewer in "test site 2".
+  - No item authored by Omar is Done (the four "Lead test" items are Open).
+  - So Omar can't hold Check without the founder signing an item as done, and I didn't use the founder's account.
+  - Hold to check, Undo, leaving and the screen-reader dialog are covered by the widget tests.
+  - **To finish it:** the founder signs one of Omar's test items as done on his phone, then Omar holds Check on the emulator: Undo once, then let it go through.
+- **Not tried for real:** Remove from Space, because Omar isn't an admin anywhere on live and it would remove a real member. Covered by the widget tests.
+
+**Who has which branch:** PC has `claude/hold-confirm` (worktree `BuildVibes-hold`) and `slice2-app` (worktree `BuildVibes-slice1`). The emulator has build 611 (hold-confirm); the founder's phone still has 610.
+
 ## PC update: 25 Oct 2026, 11:30 Kuwait — F108 merged, migration 45 live, build 610
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
