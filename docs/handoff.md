@@ -2,6 +2,20 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 25 Oct 2026, 11:30 Kuwait — F108 merged, migration 45 live, build 610
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **The lead's two changes**, on `claude/f108` (4ada8d9):
+  - folds are kept (`folded` on text, to-do, bulleted and numbered lines with children), so a note reopens as it was left;
+  - the line's ⋮⋮ menu fits one screen: Continue numbering, Restart at 1, Turn into › (the kinds on their own sheet), then Delete. L3 was shot again.
+- **`slice2-app`** is fast-forwarded to 4ada8d9. Checks: analyze clean, 1,913 app tests, 2,696 SQL checks in 44 files, 398 screenshots.
+- **Live** is at `20261106120000` (migration 45). The push listed only that file.
+- **Read-only check passed:** the new check accepts levels, start and folds, and refuses level 4, a start of 0 and a fold with nothing under it. Old pages still pass, and the one saved page on live is still valid. Signed-out can't run the check; RLS on notes is on.
+- **Build 610** (4ada8d9) is on the founder's Xiaomi and the emulator. Only BuildVibes was installed.
+- **To try on the phone:** Backspace at the start of a line that has words; dragging a line that has children; ⇥ ⇤ on the bar.
+- **Who has which branch:** `claude/f108` is merged and done; the worktree `BuildVibes-f108` can be removed. PC keeps `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 25 Oct 2026 — F108 (review 93) built on `claude/f108`, waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

@@ -627,6 +627,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **25 Oct, F106, F107 and the icon in `slice2-app`; migration 44 live** (founder's yes): `claude/f106`, `claude/f107` and `claude/app-icon` merged (db16f35). Migration 44 (`20261105120000_notebook_blocks.sql`) live, the only file in the push, with a read-only check: notes blocks, title and location columns; `note_files` takes files with a name; RLS on; PDFs up to 25 MB. Exact reminders: the first Remind me on an inexact phone asks once and opens the phone's setting; refused, reminders stay inexact. Analyze clean, 1,872 app tests, 392 screenshot checks. **Build 605** on the founder's phone and the emulator.
 
+- **25 Oct, F108 (review 93): a note's lines under each other** (`claude/f108` merged into `slice2-app`, 4ada8d9):
+  - levels 0–3 with ⇥ ⇤ on the bar;
+  - numbering by level (1. → a. → i.), with Continue numbering and Restart at 1;
+  - list items fold, and the folds are kept;
+  - Turn into, move and delete keep the children;
+  - the ⋮⋮ menu fits one screen.
+  
+  Migration 45 (`20261106120000_note_block_levels.sql`) is live, the only file in the push, with a read-only check. Analyze clean, 1,913 app tests, 2,696 SQL checks, 398 screenshot checks. **Build 610** is on the founder's phone and the emulator.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
