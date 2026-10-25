@@ -2,6 +2,13 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 25 Oct 2026 — review 91, the interim app icon and splash (`claude/app-icon`)
+
+- **Branch `claude/app-icon`** (from `slice2-app` 1a3cc00): the icon (`flutter_launcher_icons` 0.14.4), the native splash (`flutter_native_splash` 2.4.8) and the 350 ms fade from the splash once start-up decides. iOS label fixed to "BuildVibes". Nothing live, no migration.
+- **Checks:** analyze clean, 1,811 app tests, 377 screenshots (none changed), debug APK builds.
+- **Next (PC):** merge `claude/app-icon` into `slice2-app`; with the founder's yes, install on the emulator and his phone; check the icon (round and squircle masks), the themed icon (Settings › Wallpaper › Themed icons) and the splash on a cold start; screenshots for the lead (review 91 §6).
+- **Regenerate** after a new logo: replace `assets/brand/`, then `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create` (the generator rewrites `Info.plist` indentation and the launcher-icons tool changes `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS` in `project.pbxproj`; both were kept out of the commits).
+
 ## PC update: 24 Oct 2026, end of day — every F-item passed, build 579
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
