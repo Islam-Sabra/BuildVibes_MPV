@@ -2,6 +2,21 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 25 Oct 2026 — F108 (review 93) built on `claude/f108`, waiting for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **`claude/f108`** (0d31b83, from `slice2-app` db16f35):
+  - levels 0–3 with ⇥ ⇤ on the bar;
+  - numbering by level, with Continue numbering and Restart at 1;
+  - folding list items;
+  - Turn into, move and delete keeping the children;
+  - migration 45, `20261106120000_note_block_levels.sql`, **not live**.
+- **Checks:** analyze clean; 1,907 app tests; 2,688 SQL checks in 44 files (local); 398 screenshots. The new shots are in `docs/screens/f108/`; NBW4, NBX3 and NBX4 were shot again because their bar now shows ⇥ ⇤.
+- **Storage:** the line level is kept as `indent`, not `level`, because a heading's `level` is already its size.
+- **Nothing is live or installed.** Next comes the lead's check. After that, with the founder's yes: merge into `slice2-app`, push migration 45 as the only file, then one build.
+- **Who has which branch:** PC has `claude/f108` (worktree `BuildVibes-f108`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 25 Oct 2026 — F106, F107 and the icon merged; migration 44 live; build 605
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
