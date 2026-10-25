@@ -262,4 +262,91 @@ void main() {
       expect(((h as PageHeading).level, h.indent), (2, 1));
     });
   });
+
+  // Review 98: Move up and Move down jump a whole group; Duplicate copies
+  // the children.
+  group('move up, move down and duplicate carry the children', () {
+    // 1. Clean; 2. Check (two to-dos under it); 3. Confirm (NBY2).
+    final page = <PageBlock>[
+      _n(1),
+      _n(2),
+      PageTodo(_id(3), 'Cover', indent: 1),
+      PageTodo(_id(4), 'Spacers', indent: 1),
+      _n(5),
+    ];
+    List<String> ids(List<PageBlock> b) => [for (final x in b) x.id];
+
+    test('Move down jumps the next group; the children go along', () {
+      expect(canMoveDown(page, 1), isTrue);
+      final down = movedDown(page, 1);
+      expect(ids(down), [_id(1), _id(5), _id(2), _id(3), _id(4)]);
+      expect(_levels(down), [0, 0, 0, 1, 1]);
+      expect(_labels(down), ['1.', '2.', '3.', '', '']);
+    });
+
+    test('Move up jumps the whole group before it, children and all', () {
+      expect(canMoveUp(page, 4), isTrue);
+      final up = movedUp(page, 4);
+      expect(ids(up), [_id(1), _id(5), _id(2), _id(3), _id(4)]);
+      expect(_levels(up), [0, 0, 0, 1, 1]);
+      // And back down over it.
+      expect(ids(movedDown(up, 1)), ids(page));
+    });
+
+    test('the first line under its parent has no Move up; the last no '
+        'Move down', () {
+      expect(canMoveUp(page, 0), isFalse);
+      expect(canMoveUp(page, 2), isFalse);
+      expect(canMoveUp(page, 3), isTrue);
+      expect(canMoveDown(page, 3), isFalse);
+      expect(canMoveDown(page, 4), isFalse);
+      expect(movedUp(page, 0), same(page));
+      expect(movedDown(page, 4), same(page));
+    });
+
+    test('Duplicate copies the line and its children right after them, '
+        'under new ids', () {
+      var n = 100;
+      final copy = duplicated(page, 1, () => _id(n++));
+      expect(ids(copy), [
+        _id(1),
+        _id(2),
+        _id(3),
+        _id(4),
+        _id(100),
+        _id(101),
+        _id(102),
+        _id(5),
+      ]);
+      expect(_levels(copy), [0, 0, 1, 1, 0, 1, 1, 0]);
+      expect([for (final b in copy) b.type], [
+        'numbered',
+        'numbered',
+        'todo',
+        'todo',
+        'numbered',
+        'todo',
+        'todo',
+        'numbered',
+      ]);
+      expect((copy[5] as PageTodo).text, 'Cover');
+      expect(_labels(copy), ['1.', '2.', '', '', '3.', '', '', '4.']);
+    });
+
+    test("a toggle's own lines get new ids too; a voice note isn't copied",
+        () {
+      var n = 200;
+      final blocks = <PageBlock>[
+        PageToggle(_id(1), 'Pour', [PageText(_id(2), 'Slump')]),
+        PageVoice(_id(3), path: 'u/n/v.m4a', durationMs: 1000),
+      ];
+      final copy = duplicated(blocks, 0, () => _id(n++));
+      final t = copy[1] as PageToggle;
+      expect(t.id, _id(200));
+      expect(t.children.single.id, _id(201));
+      expect((t.children.single as PageText).text, 'Slump');
+      expect(canDuplicate(blocks, 1), isFalse);
+      expect(duplicated(blocks, 1, () => _id(n++)), same(blocks));
+    });
+  });
 }

@@ -705,6 +705,65 @@ void main() {
       );
     });
 
+    testWidgets('review 98: "/" after a space opens the card next to the '
+        'line; the words stay and the kind goes after them [$lang]', (
+      tester,
+    ) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      final field = _key('page-field-t:$_text');
+      final c = tester.widget<TextField>(field).controller!;
+      final words = c.text;
+      final sheets = find.byType(BottomSheet).evaluate().length;
+      // One character at a time, as typed.
+      await _type(tester, 'page-field-t:$_text', '$words ');
+      await _type(tester, 'page-field-t:$_text', '$words /');
+      expect(_key('page-add-menu'), findsOneWidget);
+      // A card, not another sheet over the page.
+      expect(find.byType(BottomSheet).evaluate(), hasLength(sheets));
+      await _type(tester, 'page-field-t:$_text', '$words /h');
+      expect(_key('page-add-heading'), findsOneWidget);
+      expect(_key('page-add-table'), findsNothing);
+      await _tap(tester, _key('page-add-heading'));
+      expect(_key('page-add-menu'), findsNothing);
+      expect(c.text, '$words ');
+      // The new heading has the keyboard (an empty one is dropped at Done).
+      tester.testTextInput.enterText(s.t('Cover', 'الغطاء'));
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('page-done'));
+      expect(
+        app.postPages.calls.last,
+        startsWith('save $_post v4 [text, heading, toggle,'),
+      );
+    });
+
+    testWidgets('review 98: no drag on a phone; ⋮⋮ moves a block down and '
+        'up [$lang]', (tester) async {
+      final app = await _open(tester, lang);
+      await _edit(tester, l10n);
+      expect(
+        find.ancestor(
+          of: _key('page-handle-$_text'),
+          matching: find.byType(ReorderableDelayedDragStartListener),
+        ),
+        findsNothing,
+      );
+      await _tap(tester, _key('page-handle-$_text'));
+      // The first block: no Move up.
+      expect(_key('page-move-up'), findsNothing);
+      await _tap(tester, _key('page-move-down'));
+      await _tap(tester, _key('page-handle-$_text'));
+      expect(_key('page-move-up'), findsOneWidget);
+      await _tap(tester, _key('page-move-up'));
+      await _tap(tester, _key('page-handle-$_text'));
+      await _tap(tester, _key('page-move-down'));
+      await _tap(tester, _key('page-done'));
+      expect(
+        app.postPages.calls.last,
+        startsWith('save $_post v4 [toggle, text, checklist_ref,'),
+      );
+    });
+
     testWidgets('N2: no signal: the edit stays open to send again [$lang]', (
       tester,
     ) async {
