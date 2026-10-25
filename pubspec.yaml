@@ -58,6 +58,9 @@ dependencies:
   http: ^1.6.0
   http_parser: ^4.1.2
   pdf: ^3.13.1
+  # Review 97 trial only (claude/editor-trial): AppFlowy's editor, MPL 2.0,
+  # used as published, never edited (assets/licences/appflowy_editor.md).
+  appflowy_editor: 6.2.0
   # F107: a note's GPS position (NBX4), pinned (review 92).
   geolocator: 14.1.1
   flutter_local_notifications: ^22.3.2
@@ -89,6 +92,13 @@ dev_dependencies:
 dependency_overrides:
   path_provider_android: ">=2.2.0 <2.3.0"
   path_provider_foundation: ">=2.4.0 <2.5.0"
+  # Review 97 trial: appflowy_editor 6.2.0 asks for file_picker ^10; the app
+  # is on 13. The editor only uses it for its desktop image/file pickers,
+  # which the trial doesn't turn on.
+  file_picker: ^13.1.0
+  # Its device_info_plus ^11 needs win32 5; share_plus 13 needs win32 6.
+  # The editor reads the device only to tell desktop from phone.
+  device_info_plus: 13.3.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
