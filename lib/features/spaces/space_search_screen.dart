@@ -63,7 +63,7 @@ class _SpaceSearchScreenState extends ConsumerState<SpaceSearchScreen> {
         .characters
         .take(SearchRepository.maxLength)
         .toString();
-    if (q.length < SearchRepository.minLength) {
+    if (!SearchRepository.searchable(q)) {
       setState(() => _query = '');
       return;
     }
@@ -284,10 +284,12 @@ class _HitRow extends ConsumerWidget {
     final title = (hit.title ?? '').trim();
 
     final (IconData icon, String main, String line) = switch (hit.kind) {
+      // Review 95: its number first; the post with the number searched
+      // for says so.
       SpaceSearchKind.post => (
         BvIcons.workItems,
         title.isEmpty ? snippet : title,
-        joinMeta([who, day]),
+        joinMeta([?hit.ref, if (hit.exact) l10n.searchExactNumber, who, day]),
       ),
       // A point, under its post.
       SpaceSearchKind.point => (

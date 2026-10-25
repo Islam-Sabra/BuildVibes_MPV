@@ -6464,10 +6464,10 @@ abstract class AppLocalizations {
   /// **'Search'**
   String get searchMenu;
 
-  /// S: the field's placeholder. It searches after 2 characters.
+  /// S: the field's placeholder (review 95). It searches after 2 characters, or a number alone. The example stays in Western digits in Arabic.
   ///
   /// In en, this message translates to:
-  /// **'Search this Space'**
+  /// **'Search words or a number, e.g. 23'**
   String get searchHint;
 
   /// S: what a screen reader says for the ✕ in the field.
@@ -8191,6 +8191,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t remove'**
   String get spacesCouldNotRemove;
+
+  /// Review 95: a note's, checklist's or other kind's header: its number, then its kind word (daybookKindNoteWord, '· note').
+  ///
+  /// In en, this message translates to:
+  /// **'· {ref} {kind}'**
+  String daybookCardRefKind(String ref, String kind);
+
+  /// Review 95: on the search row of the post with the number searched for, shown first.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact number'**
+  String get searchExactNumber;
 }
 
 class _AppLocalizationsDelegate

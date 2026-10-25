@@ -1061,7 +1061,7 @@
   "libraryFileMenu": "المزيد لهذا الملف",
   "libraryOpenFull": "افتح بملء الشاشة",
   "searchMenu": "بحث",
-  "searchHint": "ابحث في هذه المساحة",
+  "searchHint": "ابحث بكلمة أو رقم، مثل 23",
   "searchClear": "امسح",
   "searchWorkItems": "بنود العمل",
   "searchFiles": "الملفات",
@@ -1348,5 +1348,7 @@
   "holdCancelTitle": "إلغاء بند العمل؟",
   "holdCancelBody": "يبقى في الدفتر بعلامة الإلغاء، ولا يمكن توقيعه كمنجز أو التحقق منه.",
   "spacesRemovedUndo": "أُزيل",
-  "spacesCouldNotRemove": "تعذّرت الإزالة"
+  "spacesCouldNotRemove": "تعذّرت الإزالة",
+  "daybookCardRefKind": "· {ref} {kind}",
+  "searchExactNumber": "رقم مطابق"
 }

@@ -8,6 +8,7 @@ import '../../core/design/bv_specs.dart' show BvStroke;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
+import '../../core/l10n/bidi.dart' show ltrRun;
 import '../../data/models/daybook.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_quote_block.dart';
@@ -322,7 +323,7 @@ class DaybookCardView extends StatelessWidget {
           label: l10n.daybookPoints(post.pointsTotal),
         ),
     ];
-    final ref = post.item?.ref;
+    final ref = post.ref;
     final authorId = post.authorId;
     final noteOnly = proof != null && !hasPhoto;
     final action = lifted ? null : _action(context, l10n, hasPhoto);
@@ -531,7 +532,14 @@ class DaybookCardView extends StatelessWidget {
           BvSlipHeader(
             name: personName(l10n, post.authorName),
             label: authorId != null && authorId == me ? l10n.daybookYou : null,
-            ref: _kindWord(l10n),
+            // Review 95: every kind has its number, before its kind word.
+            ref: switch (post.ref) {
+              final ref? => l10n.daybookCardRefKind(
+                ltrRun(ref),
+                _kindWord(l10n),
+              ),
+              null => _kindWord(l10n),
+            },
             time: words.time.clock(activityAt),
             tint: authorId == null
                 ? BvAvatarTints.plain

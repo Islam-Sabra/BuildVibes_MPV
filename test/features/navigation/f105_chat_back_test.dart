@@ -296,8 +296,7 @@ void main() {
       );
     await _pump(tester, search: search);
     await _push(tester, '/spaces/$_space');
-    await _tapKey(tester, 'space-more');
-    await _tap(tester, find.text(_l10n.searchMenu));
+    await _tapKey(tester, 'space-search');
     await tester.enterText(
       find.descendant(
         of: find.byKey(const Key('search-field')),

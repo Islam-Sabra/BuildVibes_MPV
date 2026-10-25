@@ -3849,7 +3849,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchMenu => 'Search';
 
   @override
-  String get searchHint => 'Search this Space';
+  String get searchHint => 'Search words or a number, e.g. 23';
 
   @override
   String get searchClear => 'Clear';
@@ -4879,4 +4879,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesCouldNotRemove => 'Couldn\'t remove';
+
+  @override
+  String daybookCardRefKind(String ref, String kind) {
+    return '· $ref $kind';
+  }
+
+  @override
+  String get searchExactNumber => 'Exact number';
 }

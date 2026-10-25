@@ -3854,7 +3854,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchMenu => 'بحث';
 
   @override
-  String get searchHint => 'ابحث في هذه المساحة';
+  String get searchHint => 'ابحث بكلمة أو رقم، مثل 23';
 
   @override
   String get searchClear => 'امسح';
@@ -4892,4 +4892,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get spacesCouldNotRemove => 'تعذّرت الإزالة';
+
+  @override
+  String daybookCardRefKind(String ref, String kind) {
+    return '· $ref $kind';
+  }
+
+  @override
+  String get searchExactNumber => 'رقم مطابق';
 }

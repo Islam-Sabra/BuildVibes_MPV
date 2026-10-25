@@ -5561,9 +5561,9 @@
   "@searchMenu": {
     "description": "The Space menu's first item (MN1): opens Search inside the Space."
   },
-  "searchHint": "Search this Space",
+  "searchHint": "Search words or a number, e.g. 23",
   "@searchHint": {
-    "description": "S: the field's placeholder. It searches after 2 characters."
+    "description": "S: the field's placeholder (review 95). It searches after 2 characters, or a number alone. The example stays in Western digits in Arabic."
   },
   "searchClear": "Clear",
   "@searchClear": {
@@ -7001,5 +7001,21 @@
   "spacesCouldNotRemove": "Couldn't remove",
   "@spacesCouldNotRemove": {
     "description": "A Remove from Space the server refused, when the undo bar has gone."
+  },
+  "daybookCardRefKind": "· {ref} {kind}",
+  "@daybookCardRefKind": {
+    "description": "Review 95: a note's, checklist's or other kind's header: its number, then its kind word (daybookKindNoteWord, '· note').",
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      },
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "searchExactNumber": "Exact number",
+  "@searchExactNumber": {
+    "description": "Review 95: on the search row of the post with the number searched for, shown first."
   }
 }

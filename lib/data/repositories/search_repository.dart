@@ -12,8 +12,14 @@ import 'space_repository.dart';
 /// Search inside a Space (S, search_space): what the caller may read,
 /// newest first, 30 at most.
 abstract class SearchRepository {
-  /// Nothing under [minLength] characters (the server says the same).
+  /// Nothing under [minLength] characters (the server says the same),
+  /// except a number: "5" finds post 5 (review 95).
   static const minLength = 2;
+
+  /// Long enough to search: [minLength] characters, or digits alone (in
+  /// any script the phone types).
+  static bool searchable(String q) =>
+      q.length >= minLength || RegExp(r'^\p{Nd}+$', unicode: true).hasMatch(q);
 
   /// The server refuses longer.
   static const maxLength = 100;
@@ -29,7 +35,7 @@ class SupabaseSearchRepository implements SearchRepository {
   @override
   Future<List<SpaceSearchHit>> search(String spaceId, String query) async {
     final q = query.trim();
-    if (q.length < SearchRepository.minLength) return const [];
+    if (!SearchRepository.searchable(q)) return const [];
     try {
       final rows = await _client.rpc<List<dynamic>>(
         'search_space',
@@ -42,7 +48,7 @@ class SupabaseSearchRepository implements SearchRepository {
       // A work item's stamp: its status, read under its own rule.
       final ids = {
         for (final h in hits)
-          if (h.isWork && h.ref != null) h.postId!,
+          if (h.isWork && h.postKind == 'work_item') h.postId!,
       };
       if (ids.isEmpty) return hits;
       final items = await _client

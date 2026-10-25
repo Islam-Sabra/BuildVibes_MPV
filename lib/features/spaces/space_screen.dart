@@ -29,7 +29,7 @@ import 'people_tab.dart';
 import 'spaces_state.dart';
 
 /// What the Space menu offers now (MN1).
-enum _SpaceMenu { walk, search, week, report, info }
+enum _SpaceMenu { walk, week, report, info }
 
 /// How a Space opens: on its People tab, with the invite screen on top
 /// right after it was created (review 06, S5), or on its daybook with the
@@ -211,11 +211,6 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
             icon: BvIcons.camera,
           ),
         BvMenuItem(
-          value: _SpaceMenu.search,
-          label: l10n.searchMenu,
-          icon: BvIcons.search,
-        ),
-        BvMenuItem(
           value: _SpaceMenu.week,
           label: l10n.weekReportTitle,
           icon: BvIcons.month,
@@ -244,16 +239,20 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         });
       case _SpaceMenu.week:
         await context.push(AppRoutes.spaceWeekReport(widget.spaceId));
-      case _SpaceMenu.search:
-        final replaces = await context.push<LibraryFile>(
-          AppRoutes.spaceSearch(widget.spaceId),
-        );
-        if (replaces != null && mounted) _addFile(replaces: replaces);
       case _SpaceMenu.info:
         await _openInfo();
       case null:
         break;
     }
+  }
+
+  /// Search (review 95: in the header). A Library file found there can come
+  /// back to be replaced by a file post.
+  Future<void> _openSearch() async {
+    final replaces = await context.push<LibraryFile>(
+      AppRoutes.spaceSearch(widget.spaceId),
+    );
+    if (replaces != null && mounted) _addFile(replaces: replaces);
   }
 
   /// Space info (SI1).
@@ -289,6 +288,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         moreLabel: l10n.spacesMenu,
         onOpen: _openInfo,
         onMore: _openMenu,
+        searchLabel: l10n.searchMenu,
+        onSearch: () => unawaited(_openSearch()),
       ),
       body: switch (_tab) {
         SpaceScreen.workTab => DaybookTab(

@@ -46,6 +46,7 @@ void main() {
     ) async {
       var opened = 0;
       var more = 0;
+      var search = 0;
       await pumpComponent(
         tester,
         BvSpaceHeader(
@@ -55,6 +56,8 @@ void main() {
           moreLabel: 'Space menu',
           onOpen: () => opened++,
           onMore: () => more++,
+          searchLabel: 'Search',
+          onSearch: () => search++,
         ),
         lang: lang,
         scroll: false,
@@ -66,10 +69,30 @@ void main() {
       expect(find.byType(BvSpaceEmblem), findsOneWidget);
       await tester.tap(find.text('Kuwait City Tower — Site team'));
       await tester.tap(find.byKey(const Key('space-more')));
-      expect((opened, more), (1, 1));
-      // ⋯ is at the end side: right in English, left in Arabic.
+      await tester.tap(find.byKey(const Key('space-search')));
+      expect((opened, more, search), (1, 1, 1));
+      // ⋯ is at the end side: right in English, left in Arabic; Search
+      // (review 95) just before it, a 48 square with a 24 glass.
       final x = tester.getCenter(find.byKey(const Key('space-more'))).dx;
+      final glass = tester.getCenter(find.byKey(const Key('space-search'))).dx;
       expect(isRtl(lang) ? x < 100 : x > 290, isTrue);
+      expect(isRtl(lang) ? glass > x : glass < x, isTrue);
+      expect(
+        tester.getSize(find.byKey(const Key('space-search'))),
+        const Size(48, 48),
+      );
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(
+                of: find.byKey(const Key('space-search')),
+                matching: find.byType(Icon),
+              ),
+            )
+            .size,
+        24,
+      );
+      expect(find.bySemanticsLabel('Search'), findsOneWidget);
     });
   });
 

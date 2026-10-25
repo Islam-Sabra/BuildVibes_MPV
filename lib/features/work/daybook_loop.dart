@@ -1029,7 +1029,7 @@ class DaybookItemQuote extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final post = card.post;
-    final itemRef = post.item?.ref;
+    final itemRef = post.ref;
     final title = inOwnDirection(post.title);
     final local = localPhoto;
     final path = card.proof?.photos.firstOrNull?.path ?? post.coverPath;

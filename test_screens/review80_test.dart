@@ -69,6 +69,46 @@ Future<void> _snap(WidgetTester tester, String name, String lang) async {
   }
 }
 
+/// Review 95's shots, to `docs/screens/r95/<name>_<lang>.png`.
+Future<void> _snapR95(WidgetTester tester, String name, String lang) async {
+  tester.view.physicalSize = shotSize * shotPixelRatio;
+  tester.view.devicePixelRatio = shotPixelRatio;
+  debugDisableShadows = false;
+  ContextMenuController.removeAny();
+  try {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await expectLater(
+      find.byType(MaterialApp).first,
+      matchesGoldenFile('../docs/screens/r95/${name}_$lang.png'),
+    );
+  } finally {
+    debugDisableShadows = true;
+  }
+}
+
+/// Review 95: a note and a checklist with their numbers, beside a work
+/// item's.
+List<DaybookCard> _numbered(DaybookSamples s) => [
+  s.rebar(needsMe: false),
+  s.handover(ref: 'KCT-015'),
+  DaybookCard(
+    post: DaybookPost(
+      id: 'post-gate-note',
+      ownRef: 'KCT-017',
+      kind: DaybookPost.noteKind,
+      createdAt: DateTime(2026, 10, 15, 10, 40),
+      title: s.t(
+        'Gate 2 closed for the crane until noon',
+        'البوابة 2 مغلقة للرافعة حتى الظهر',
+      ),
+      authorId: DaybookSamples.sara,
+      authorName: s.saraName,
+    ),
+    lastActivityAt: DateTime(2026, 10, 15, 10, 40),
+  ),
+];
+
 /// The sample Space, as Islam (its admin) unless [me] says otherwise.
 Future<TestApp> _space(
   WidgetTester tester,
@@ -538,8 +578,7 @@ void main() {
           ),
         ]);
       await _space(tester, lang, search: search);
-      await _tap(tester, _key('space-more'));
-      await _tap(tester, find.text(l10n.searchMenu));
+      await _tap(tester, _key('space-search'));
       await tester.enterText(
         find.descendant(
           of: _key('search-field'),
@@ -550,6 +589,77 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
       await _snap(tester, 'search-you', lang);
+    });
+
+    // Review 95 ------------------------------------------------------------
+
+    testWidgets('R1 every post has its number [$lang]', (tester) async {
+      await _space(
+        tester,
+        lang,
+        posts: _numbered(s),
+        now: DateTime(2026, 10, 15, 11),
+      );
+      await tester.drag(find.byKey(const Key('daybook')), const Offset(0, 420));
+      await tester.pumpAndSettle();
+      await _snapR95(tester, 'R1-numbers', lang);
+    });
+
+    testWidgets('R2 the Space header with Search; the Space menu without it '
+        '[$lang]', (tester) async {
+      await _space(
+        tester,
+        lang,
+        posts: _numbered(s),
+        now: DateTime(2026, 10, 15, 11),
+      );
+      await _tap(tester, _key('space-more'));
+      await _snapR95(tester, 'R2-header-search', lang);
+    });
+
+    testWidgets('R3 search "23": the number first [$lang]', (tester) async {
+      final search = FakeSearchRepository()
+        ..byNumber[23] = SpaceSearchHit(
+          kind: SpaceSearchKind.post,
+          id: 'post-23',
+          postId: 'post-23',
+          postKind: 'note',
+          ref: 'KCT-023',
+          title: s.t(
+            'Gate 2 closed for the crane until noon',
+            'البوابة 2 مغلقة للرافعة حتى الظهر',
+          ),
+          authorName: s.saraName,
+          createdAt: DaybookSamples.thursday,
+          exact: true,
+        )
+        ..hits.add(
+          SpaceSearchHit(
+            kind: SpaceSearchKind.post,
+            id: 'post-c23',
+            postId: 'post-c23',
+            postKind: 'work_item',
+            ref: 'KCT-031',
+            title: s.t(
+              'Cable trays for 23 panels, level 2',
+              'حوامل الكابلات لـ 23 لوحة، الدور 2',
+            ),
+            authorName: s.omarName,
+            createdAt: DaybookSamples.thursday,
+          ),
+        );
+      await _space(tester, lang, search: search);
+      await _tap(tester, _key('space-search'));
+      await tester.enterText(
+        find.descendant(
+          of: _key('search-field'),
+          matching: find.byType(TextField),
+        ),
+        '23',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      await _snapR95(tester, 'R3-search-23', lang);
     });
   }
 }

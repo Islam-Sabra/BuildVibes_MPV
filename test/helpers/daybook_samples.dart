@@ -619,7 +619,7 @@ class DaybookSamples {
 
   /// K1's checklist card: Islam's, for Sara and Omar, by Sun 18 Oct, "2 of
   /// 5 ticked"; [need] the clip for one of its people.
-  DaybookCard handover({DaybookNeed? need}) {
+  DaybookCard handover({DaybookNeed? need, String? ref}) {
     final points = handoverPoints();
     final ticks = [
       for (final p in points)
@@ -637,6 +637,7 @@ class DaybookSamples {
     return DaybookCard(
       post: DaybookPost(
         id: handoverId,
+        ownRef: ref,
         kind: DaybookPost.checklistKind,
         createdAt: DateTime(2026, 10, 15, 9, 30),
         title: handoverTitle,
@@ -685,6 +686,7 @@ class DaybookSamples {
   /// at the gate office, for Omar, Sara and Lina; posted Thursday 7:30.
   /// [onTheWay] are the On my way lines the author sees on the day.
   DaybookCard siteWalkCard({
+    String? ref,
     Set<DaybookAck> myAcks = const {},
     List<(String, DateTime)> onTheWay = const [],
   }) {
@@ -702,6 +704,7 @@ class DaybookSamples {
     return DaybookCard(
       post: DaybookPost(
         id: siteWalkId,
+        ownRef: ref,
         kind: DaybookPost.activityKind,
         createdAt: posted,
         title: siteWalk,
@@ -724,11 +727,12 @@ class DaybookSamples {
 
   /// K2's file post: Lina's M-201 Rev D at 11:05, a new version of Rev C,
   /// received by Omar and Rakesh.
-  DaybookCard m201({Set<DaybookAck> myAcks = const {}}) {
+  DaybookCard m201({Set<DaybookAck> myAcks = const {}, String? ref}) {
     final at = DateTime(2026, 10, 15, 11, 5);
     return DaybookCard(
       post: DaybookPost(
         id: m201Id,
+        ownRef: ref,
         kind: DaybookPost.fileKind,
         createdAt: at,
         title: t('M-201 Ground floor plan', 'M-201 مخطط الدور الأرضي'),

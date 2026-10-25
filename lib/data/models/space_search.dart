@@ -35,6 +35,7 @@ class SpaceSearchHit {
     this.authorName,
     this.mine = false,
     this.status,
+    this.exact = false,
   });
 
   /// A row, or null for a kind this app doesn't know yet.
@@ -55,6 +56,7 @@ class SpaceSearchHit {
       snippet: json['snippet'] as String?,
       authorName: json['author_name'] as String?,
       mine: json['mine'] as bool? ?? false,
+      exact: json['exact'] as bool? ?? false,
     );
   }
 
@@ -75,6 +77,9 @@ class SpaceSearchHit {
   final bool mine;
   final WorkStatus? status;
 
+  /// The post with the number searched for (review 95): first, and said so.
+  final bool exact;
+
   /// A post or one of its points: the Work items group.
   bool get isWork =>
       kind == SpaceSearchKind.post || kind == SpaceSearchKind.point;
@@ -94,5 +99,6 @@ class SpaceSearchHit {
     authorName: authorName,
     mine: mine,
     status: status,
+    exact: exact,
   );
 }

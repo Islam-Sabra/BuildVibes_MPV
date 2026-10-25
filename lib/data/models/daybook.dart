@@ -353,6 +353,7 @@ class DaybookPost {
     required this.kind,
     required this.createdAt,
     required this.title,
+    this.ownRef,
     this.body,
     this.cancelled = false,
     this.authorId,
@@ -395,6 +396,7 @@ class DaybookPost {
       kind: json['kind'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       title: json['title'] as String? ?? '',
+      ownRef: json['ref'] as String?,
       body: json['body'] as String?,
       cancelled: json['status'] == 'cancelled',
       authorId: json['author_id'] as String?,
@@ -506,6 +508,14 @@ class DaybookPost {
   final DateTime? dueAt;
   final DaybookItem? item;
 
+  /// Its number in the Space, as "NST-031" (review 95): every kind has
+  /// one once it is on the server; none while it waits on the phone. A
+  /// work item's is its item's.
+  String? get ref => ownRef ?? item?.ref;
+
+  /// The server's post ref ([ref] says it for every kind).
+  final String? ownRef;
+
   /// Checklist points, and how many are ticked ("2 of 5 ticked").
   final int pointsTotal;
   final int pointsTicked;
@@ -608,6 +618,7 @@ class DaybookPost {
     kind: kind,
     createdAt: createdAt,
     title: title,
+    ownRef: ownRef,
     body: body,
     cancelled: cancelled || this.cancelled,
     authorId: authorId,

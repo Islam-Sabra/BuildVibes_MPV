@@ -13,16 +13,26 @@ class FakeSearchRepository implements SearchRepository {
   /// language).
   bool matchAll = false;
 
+  /// The post with each number (review 95), as search_space finds it:
+  /// first, marked exact.
+  final byNumber = <int, SpaceSearchHit>{};
+
   @override
   Future<List<SpaceSearchHit>> search(String spaceId, String query) async {
     final q = query.trim().toLowerCase();
-    if (q.length < SearchRepository.minLength) return const [];
+    if (!SearchRepository.searchable(q)) return const [];
     queries.add(q);
     if (offline) throw const SpaceException(SpaceFailure.network);
+    final number = RegExp(r'^(?:[a-z]{2,4}[ -]?)?0*(\d{1,9})$').firstMatch(q);
+    final exact = number == null ? null : byNumber[int.parse(number[1]!)];
     return [
+      ?exact,
       for (final h in hits)
-        if (matchAll ||
-            '${h.title ?? ''} ${h.snippet ?? ''}'.toLowerCase().contains(q))
+        if (h != exact &&
+            (matchAll ||
+                '${h.title ?? ''} ${h.snippet ?? ''}'.toLowerCase().contains(
+                  q,
+                )))
           h,
     ];
   }

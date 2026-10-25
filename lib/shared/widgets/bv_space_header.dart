@@ -7,9 +7,10 @@ import '../../core/design/bv_tokens.dart';
 import 'bv_space_emblem.dart';
 
 /// The top of a Space (Figma "Space header" 2080:11849): back, the Space
-/// emblem, its name and line, and ⋯, 60 high on the app surface with a line
-/// under it. Tapping the name opens Space info ([onOpen]); ⋯ opens the
-/// Space menu ([onMore]).
+/// emblem, its name and line, Search and ⋯, 60 high on the app surface with
+/// a line under it. Tapping the name opens Space info ([onOpen]); Search
+/// opens the Space's search ([onSearch], review 95: no longer behind ⋯);
+/// ⋯ opens the Space menu ([onMore]). The name ends in "…" when it must.
 class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
   const BvSpaceHeader({
     super.key,
@@ -19,6 +20,8 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
     required this.moreLabel,
     required this.onMore,
     required this.onOpen,
+    required this.searchLabel,
+    required this.onSearch,
     this.onBack,
   });
 
@@ -30,6 +33,8 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
   final String moreLabel;
   final VoidCallback onMore;
   final VoidCallback onOpen;
+  final String searchLabel;
+  final VoidCallback onSearch;
 
   /// Null: back closes the Space's route, when there is one.
   final VoidCallback? onBack;
@@ -109,6 +114,12 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 ),
+              ),
+              _Square(
+                key: const Key('space-search'),
+                icon: BvIcons.search,
+                label: searchLabel,
+                onTap: onSearch,
               ),
               _Square(
                 key: const Key('space-more'),

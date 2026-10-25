@@ -89,9 +89,8 @@ Future<TestApp> _openSearch(WidgetTester tester, String lang) async {
   );
   _router(tester).push('/spaces/$_space');
   await tester.pumpAndSettle();
-  await _tap(tester, 'space-more');
-  await tester.tap(find.text(_l10n(lang).searchMenu));
-  await tester.pumpAndSettle();
+  // Review 95: Search is in the header.
+  await _tap(tester, 'space-search');
   return app;
 }
 
@@ -110,6 +109,113 @@ Future<void> _type(WidgetTester tester, String text) async {
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
+
+    testWidgets('review 95: Search is in the header, not in the Space menu; '
+        'the hint asks for words or a number [$lang]', (tester) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        spaces: _spaces(),
+        search: _search(),
+      );
+      _router(tester).push('/spaces/$_space');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('space-search')), findsOneWidget);
+      await _tap(tester, 'space-more');
+      expect(find.text(l10n.searchMenu), findsNothing);
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
+      await _tap(tester, 'space-search');
+      expect(find.byType(SpaceSearchScreen), findsOneWidget);
+      expect(find.text(l10n.searchHint), findsOneWidget);
+      // The example in Western digits, in Arabic too.
+      expect(l10n.searchHint, contains('23'));
+    });
+
+    testWidgets('review 95: "23" puts post 23 first, marked exact, with its '
+        'ref; one digit searches too [$lang]', (tester) async {
+      final search = _search()
+        ..byNumber[23] = SpaceSearchHit(
+          kind: SpaceSearchKind.post,
+          id: 'post-23',
+          postId: 'post-23',
+          postKind: 'note',
+          ref: 'KCT-023',
+          title: 'Gate 2 closed for the crane',
+          authorName: 'Omar Haddad',
+          createdAt: testNow,
+          exact: true,
+        )
+        ..byNumber[5] = SpaceSearchHit(
+          kind: SpaceSearchKind.post,
+          id: 'post-5',
+          postId: 'post-5',
+          postKind: 'checklist',
+          ref: 'KCT-005',
+          title: 'Before the pour',
+          createdAt: testNow,
+          exact: true,
+        )
+        ..hits.add(
+          SpaceSearchHit(
+            kind: SpaceSearchKind.post,
+            id: 'post-c23',
+            postId: 'post-c23',
+            postKind: 'work_item',
+            ref: 'KCT-031',
+            title: 'Cables for 23 panels',
+            createdAt: testNow,
+          ),
+        );
+      final app = await pumpApp(
+        tester,
+        language: lang,
+        spaces: _spaces(),
+        search: search,
+      );
+      _router(tester).push('/spaces/$_space');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'space-search');
+      await _type(tester, '23');
+      final rows = find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('search-post-'),
+      );
+      expect(
+        [
+          for (final e in rows.evaluate())
+            (e.widget.key! as ValueKey<String>).value,
+        ],
+        ['search-post-post-23', 'search-post-post-c23'],
+      );
+      final first = find.byKey(const Key('search-post-post-23'));
+      expect(
+        find.descendant(of: first, matching: find.textContaining('KCT-023')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: first,
+          matching: find.textContaining(l10n.searchExactNumber),
+        ),
+        findsOneWidget,
+      );
+      // The other row has its ref but isn't the number.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('search-post-post-c23')),
+          matching: find.textContaining(l10n.searchExactNumber),
+        ),
+        findsNothing,
+      );
+      await _type(tester, '5');
+      expect(app.search.queries.last, '5');
+      expect(find.byKey(const Key('search-post-post-5')), findsOneWidget);
+      // One letter still waits.
+      await _type(tester, 'g');
+      expect(app.search.queries.last, '5');
+    });
 
     testWidgets('S: from the Space menu; after 2 characters, three groups '
         '[$lang]', (tester) async {
