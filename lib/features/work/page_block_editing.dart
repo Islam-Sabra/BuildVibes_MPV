@@ -91,6 +91,10 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// Something was typed or changed (a note keeps its Draft, F106).
   void blocksEdited() {}
 
+  /// The cursor moved to another block (a note's ⋮⋮ follows it, and the
+  /// grid outlines its kind).
+  void currentBlockChanged() {}
+
   /// The block's ⋮⋮ was tapped.
   Future<void> blockMenu(int index);
 
@@ -122,7 +126,9 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     node.addListener(() {
       if (!node.hasFocus) return;
       final id = blockIdOfKey(key);
-      if (id != null) currentBlockId = id;
+      if (id == null || id == currentBlockId) return;
+      currentBlockId = id;
+      currentBlockChanged();
     });
     return node;
   });
@@ -265,41 +271,52 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     _lastText[key] = '';
   }
 
-  /// A block on its row: ⋮⋮ at the start (hold to move, tap for its
-  /// menu), then the block.
+  /// Above each block (Work's page: 12).
+  double get blockGap => BvPageSpec.blockGap;
+
+  /// Where the ⋮⋮ is: at the start of every block (Work's page, N2), or
+  /// at the end of the block being written only (a note's slip, F107:
+  /// its lines start where its title does, as NBX1–NBX4 draw them).
+  bool get handleOnlyWhileWriting => false;
+
+  /// A block on its row: ⋮⋮ (hold to move, tap for its menu), and the
+  /// block.
   Widget blockRow(int i) {
     final l10n = AppLocalizations.of(context);
     final b = editBlocks[i];
+    final handle = ReorderableDelayedDragStartListener(
+      index: i,
+      child: Semantics(
+        button: true,
+        label: l10n.pageMove,
+        hint: l10n.pageBlockMenu,
+        child: GestureDetector(
+          key: Key('page-handle-${b.id}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => unawaited(blockMenu(i)),
+          child: const SizedBox(
+            width: BvPageSpec.handleWidth,
+            height: BvSize.controlMd,
+            child: Icon(
+              BvIcons.dragHandle,
+              size: BvPageSpec.handleIcon,
+              color: BvColors.iconSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+    final at = handleOnlyWhileWriting;
     return Padding(
       key: ValueKey('page-edit-${b.id}'),
-      padding: const EdgeInsetsDirectional.only(top: BvPageSpec.blockGap),
+      padding: EdgeInsetsDirectional.only(top: i == 0 && at ? 0 : blockGap),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: BvSpace.s8,
         children: [
-          ReorderableDelayedDragStartListener(
-            index: i,
-            child: Semantics(
-              button: true,
-              label: l10n.pageMove,
-              hint: l10n.pageBlockMenu,
-              child: GestureDetector(
-                key: Key('page-handle-${b.id}'),
-                behavior: HitTestBehavior.opaque,
-                onTap: () => unawaited(blockMenu(i)),
-                child: const SizedBox(
-                  width: BvPageSpec.handleWidth,
-                  height: BvSize.controlMd,
-                  child: Icon(
-                    BvIcons.dragHandle,
-                    size: BvPageSpec.handleIcon,
-                    color: BvColors.iconSecondary,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          if (!at) handle,
           Expanded(child: blockEditor(i, b)),
+          if (at && currentBlockId == b.id) handle,
         ],
       ),
     );

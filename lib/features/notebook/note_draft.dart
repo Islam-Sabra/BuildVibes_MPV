@@ -6,67 +6,57 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/locale_controller.dart';
 import '../../data/models/note.dart';
-import '../../data/repositories/work_repository.dart' show newUuid;
+import '../../data/models/post_page.dart';
 import '../entry/entry_state.dart';
-import '../work/daybook_draft.dart' show DaybookDraft, DraftPoint;
+import '../work/daybook_draft.dart' show DaybookDraft;
 
 /// The note being written in place in My notebook (F106, review 90), or
-/// left unsent as its Draft. One at a time. A new note's words, or an
-/// edit of [editing]'s.
+/// left unsent as its Draft. One at a time. A new note, or an edit of
+/// [editing].
 ///
-/// The words are kept the same way whatever the kind, so changing the
-/// kind keeps what was typed: [title] is a note's first line, a
-/// checklist's title and a to-do's line; [body] a note's other lines; and
-/// [points] a checklist's points.
+/// F107 (review 92): a page. Its bold [title], its [blocks] (Work's page
+/// format, with the notebook's own kinds), and what is attached to the
+/// note itself: a date, a reminder, a location, photos and PDFs. An older
+/// note opens as blocks ([Note.pageBlocks]) and is saved as a page.
 @immutable
 class NoteDraft {
   const NoteDraft({
     required this.id,
     required this.startedAt,
-    this.kind = NoteKind.text,
     this.editing,
     this.title = '',
-    this.body = '',
-    this.points = const [],
+    this.blocks = const [],
     this.dueAt,
     this.remindAt,
     this.photos = const [],
+    this.files = const [],
+    this.location,
   });
 
   /// An edit of [note], filled with what it says.
-  factory NoteDraft.of(Note note) {
-    final words = note.body.trim();
-    final newline = words.indexOf('\n');
-    final text = note.kind == NoteKind.text;
-    return NoteDraft(
-      id: note.id,
-      startedAt: note.createdAt,
-      kind: note.kind,
-      editing: note,
-      title: text && newline >= 0 ? words.substring(0, newline).trim() : words,
-      body: text && newline >= 0 ? words.substring(newline + 1).trim() : '',
-      points: [for (final p in note.points) (id: newUuid(), text: p.text)],
-      dueAt: note.kind == NoteKind.todo ? note.dueAt : null,
-      remindAt: note.remindAt,
-      photos: note.photos,
-    );
-  }
+  factory NoteDraft.of(Note note) => NoteDraft(
+    id: note.id,
+    startedAt: note.createdAt,
+    editing: note,
+    title: note.pageTitle,
+    blocks: note.pageBlocks,
+    dueAt: note.dueAt,
+    remindAt: note.remindAt,
+    photos: note.photos,
+    files: note.files,
+    location: note.location,
+  );
 
   factory NoteDraft.fromJson(Map<String, dynamic> json) => NoteDraft(
     id: json['id'] as String,
     startedAt: DateTime.parse(json['started_at'] as String).toLocal(),
-    kind: NoteKind.fromJson(json['kind']),
     editing: json['editing'] == null
         ? null
         : Note.fromJson(json['editing'] as Map<String, dynamic>),
     title: json['title'] as String? ?? '',
-    body: json['body'] as String? ?? '',
-    points: [
-      for (final p in json['points'] as List? ?? const [])
-        (
-          id: (p as Map<String, dynamic>)['id'] as String,
-          text: p['text'] as String? ?? '',
-        ),
+    blocks: [
+      for (final b in json['blocks'] as List? ?? const [])
+        PageBlock.fromJson(b as Map<String, dynamic>),
     ],
     dueAt: _time(json['due_at']),
     remindAt: _time(json['remind_at']),
@@ -74,6 +64,13 @@ class NoteDraft {
       for (final p in json['photos'] as List? ?? const [])
         NotePhoto.fromJson(p as Map<String, dynamic>),
     ],
+    files: [
+      for (final f in json['files'] as List? ?? const [])
+        NoteFile.fromJson(f as Map<String, dynamic>),
+    ],
+    location: json['location'] == null
+        ? null
+        : NoteLocation.fromJson(json['location'] as Map<String, dynamic>),
   );
 
   static DateTime? _time(Object? value) =>
@@ -84,172 +81,131 @@ class NoteDraft {
 
   /// When the slip opened; it sits there among today's notes.
   final DateTime startedAt;
-  final NoteKind kind;
 
   /// The note as it was, when this is an edit.
   final Note? editing;
   final String title;
-  final String body;
-  final List<DraftPoint> points;
+  final List<PageBlock> blocks;
 
-  /// A to-do's by when.
+  /// The note's date (Date, F107; a to-do's by when before it).
   final DateTime? dueAt;
   final DateTime? remindAt;
   final List<NotePhoto> photos;
+  final List<NoteFile> files;
+  final NoteLocation? location;
 
-  List<DraftPoint> get writtenPoints => [
-    for (final p in points)
-      if (p.text.trim().isNotEmpty) p,
+  /// The blocks worth keeping: an empty line goes.
+  List<PageBlock> get keptBlocks => [
+    for (final b in blocks)
+      if (!_empty(b)) b,
   ];
 
-  /// Nothing to keep: no words and no photo. An empty slip leaves no
-  /// draft.
-  bool get isEmpty =>
-      title.trim().isEmpty &&
-      body.trim().isEmpty &&
-      writtenPoints.isEmpty &&
-      photos.isEmpty;
-
-  /// Send turns on: what save_note takes for the kind.
-  bool get ready => switch (kind) {
-    NoteKind.checklist => writtenPoints.isNotEmpty,
-    NoteKind.todo => title.trim().isNotEmpty,
-    _ => title.trim().isNotEmpty || body.trim().isNotEmpty || photos.isNotEmpty,
+  static bool _empty(PageBlock b) => switch (b) {
+    PageText(:final text) ||
+    PageHeading(:final text) ||
+    PageLine(:final text) => text.trim().isEmpty,
+    PageToggle(:final text, :final children) =>
+      text.trim().isEmpty && children.every(_empty),
+    PageTable(:final rows) => rows.every(
+      (r) => r.every((c) => c.trim().isEmpty),
+    ),
+    _ => false,
   };
 
-  /// Another kind, keeping what was typed (review 90 §3): a note's lines
-  /// become a checklist's points, a checklist's points a note's lines, and
-  /// a to-do takes the first line.
-  NoteDraft asKind(NoteKind to) {
-    if (to == kind) return this;
-    final lines = [
-      for (final l in body.split('\n'))
-        if (l.trim().isNotEmpty) l.trim(),
-    ];
-    switch (to) {
-      case NoteKind.checklist:
-        return _with(
-          kind: to,
-          body: '',
-          points: [
-            ...writtenPoints,
-            for (final l in lines.take(Note.pointsMax - writtenPoints.length))
-              (id: newUuid(), text: l),
-          ],
-        );
-      case NoteKind.todo:
-        // The first line is the to-do; the rest waits, hidden, for another
-        // kind.
-        if (title.trim().isNotEmpty) return _with(kind: to);
-        final written = writtenPoints;
-        if (lines.isNotEmpty) {
-          return _with(
-            kind: to,
-            title: lines.first,
-            body: lines.skip(1).join('\n'),
-          );
-        }
-        if (written.isNotEmpty) {
-          return _with(
-            kind: to,
-            title: written.first.text.trim(),
-            points: written.skip(1).toList(),
-          );
-        }
-        return _with(kind: to);
-      case NoteKind.text:
-      case NoteKind.voice:
-        return _with(
-          kind: NoteKind.text,
-          body: [
-            ...lines,
-            for (final p in writtenPoints) p.text.trim(),
-          ].join('\n'),
-          points: const [],
-        );
-    }
-  }
+  /// Nothing to keep: no words, no voice, no photo, no file and no typed
+  /// place. An empty slip leaves no draft.
+  bool get isEmpty =>
+      title.trim().isEmpty &&
+      keptBlocks.every((b) => b is PageDivider) &&
+      photos.isEmpty &&
+      files.isEmpty &&
+      !(location?.hasText ?? false);
 
-  /// The note to save: a note's first line and the rest, a checklist's
-  /// title and points, a to-do's line and by when. [now] for a new one
-  /// left from another day.
+  /// Send turns on: there is something to keep.
+  bool get ready => !isEmpty;
+
+  /// The note to save: a page (kind text) with its words as the body.
+  /// [now] is when it is sent (F107 B6: the server keeps the phone's
+  /// time, so it reads the same before and after).
   Note toNote(DateTime now) {
     final was = editing;
-    final createdAt =
-        was?.createdAt ?? (_sameDay(startedAt, now) ? startedAt : now);
-    final words = switch (kind) {
-      NoteKind.text => [
-        title.trim(),
-        body.trim(),
-      ].where((w) => w.isNotEmpty).join('\n'),
-      _ => title.trim(),
-    };
-    final note = was ?? Note(id: id, kind: kind, createdAt: createdAt);
+    final kept = keptBlocks;
+    final note =
+        was ?? Note(id: id, kind: NoteKind.text, createdAt: now, blocks: kept);
     return note.copyWith(
-      kind: kind,
-      body: words,
-      points: kind == NoteKind.checklist
-          ? [
-              for (final p in writtenPoints.take(Note.pointsMax))
-                NotePoint(p.text.trim(), done: _wasDone(p.text.trim())),
-            ]
-          : const [],
-      dueAt: () => kind == NoteKind.todo ? dueAt : null,
-      doneAt: () => kind == NoteKind.todo ? note.doneAt : null,
+      kind: NoteKind.text,
+      title: title.trim(),
+      blocks: kept,
+      body: pageDigest(title, kept),
+      points: const [],
+      dueAt: () => dueAt,
+      doneAt: () => null,
       remindAt: () => remindAt,
       photos: photos,
+      files: files,
+      location: () => (location?.isEmpty ?? true) ? null : location,
     );
   }
 
-  /// An edited checklist keeps the ticks of the points still there.
-  bool _wasDone(String text) =>
-      editing?.points.any((p) => p.done && p.text == text) ?? false;
-
-  static bool _sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  NoteDraft _with({
-    NoteKind? kind,
-    String? title,
-    String? body,
-    List<DraftPoint>? points,
-  }) => copyWith(kind: kind, title: title, body: body, points: points);
-
   NoteDraft copyWith({
-    NoteKind? kind,
     String? title,
-    String? body,
-    List<DraftPoint>? points,
+    List<PageBlock>? blocks,
     DateTime? Function()? dueAt,
     DateTime? Function()? remindAt,
     List<NotePhoto>? photos,
+    List<NoteFile>? files,
+    NoteLocation? Function()? location,
   }) => NoteDraft(
     id: id,
     startedAt: startedAt,
     editing: editing,
-    kind: kind ?? this.kind,
     title: title ?? this.title,
-    body: body ?? this.body,
-    points: points ?? this.points,
+    blocks: blocks ?? this.blocks,
     dueAt: dueAt == null ? this.dueAt : dueAt(),
     remindAt: remindAt == null ? this.remindAt : remindAt(),
     photos: photos ?? this.photos,
+    files: files ?? this.files,
+    location: location == null ? this.location : location(),
   );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'started_at': startedAt.toUtc().toIso8601String(),
-    'kind': kind.json,
     'editing': editing?.toJson(),
     'title': title,
-    'body': body,
-    'points': [
-      for (final p in points) {'id': p.id, 'text': p.text},
-    ],
+    'blocks': [for (final b in blocks) b.toJson()],
     'due_at': dueAt?.toUtc().toIso8601String(),
     'remind_at': remindAt?.toUtc().toIso8601String(),
     'photos': [for (final p in photos) p.toJson()],
+    'files': [for (final f in files) f.toJson()],
+    'location': location?.toJson(),
   };
+}
+
+/// The phone's copies a draft holds that the note it edits doesn't: its
+/// own photos, PDFs and recordings.
+List<String> draftLocals(NoteDraft d) {
+  final was = d.editing;
+  final kept = <String>{
+    for (final p in was?.photos ?? const <NotePhoto>[]) ?p.local,
+    for (final f in was?.files ?? const <NoteFile>[]) ?f.local,
+    for (final b in was?.blocks ?? const <PageBlock>[])
+      if (b case PageVoice(:final local?)) local,
+  };
+  return [
+    for (final p in d.photos)
+      if (p.path == null && p.local != null && !kept.contains(p.local))
+        p.local!,
+    for (final f in d.files)
+      if (f.path == null && f.local != null && !kept.contains(f.local))
+        f.local!,
+    for (final b in d.blocks)
+      if (b case PageVoice(
+        path: null,
+        :final local?,
+      ) when !kept.contains(local))
+        local,
+  ];
 }
 
 /// The one note being written, or its Draft, per account. Saved on the
@@ -296,21 +252,17 @@ class NoteDraftNotifier extends Notifier<NoteDraft?> {
     if (draft != null && draft.isEmpty) await discard();
   }
 
-  /// Gone: sent ([keepPhotos], the note has them now), or emptied.
-  Future<void> discard({bool keepPhotos = false}) async {
+  /// Gone: sent ([keepFiles], the note has them now), or emptied.
+  Future<void> discard({bool keepFiles = false}) async {
     final draft = state;
     state = null;
     final key = _key;
     if (key != null) {
       await ref.read(sharedPreferencesProvider).remove(key);
     }
-    if (keepPhotos || draft == null) return;
-    final kept = draft.editing?.photos ?? const <NotePhoto>[];
-    for (final p in draft.photos) {
-      final local = p.local;
-      if (local != null && p.path == null && !kept.contains(p)) {
-        unawaited(DaybookDraft.deleteKept(local));
-      }
+    if (keepFiles || draft == null) return;
+    for (final local in draftLocals(draft)) {
+      unawaited(DaybookDraft.deleteKept(local));
     }
   }
 }

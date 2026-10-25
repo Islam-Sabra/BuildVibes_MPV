@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
@@ -101,9 +103,55 @@ class FakeNotebookRepository implements NotebookRepository {
     return 'user-1/$noteId/photo-${_photos++}.jpg';
   }
 
+  /// Each PDF's server path, in the order they went (F107).
+  int _files = 0;
+
+  @override
+  Future<String> uploadFile(String noteId, NoteFile file) async {
+    _check();
+    calls.add('file:$noteId');
+    return 'user-1/$noteId/file-${_files++}.pdf';
+  }
+
   @override
   Future<String> recordingUrl(String path) async =>
       'https://example.test/$path';
+
+  @override
+  Future<Uint8List> download(String path) async {
+    _check();
+    calls.add('download:$path');
+    return Uint8List(0);
+  }
+
+  /// note_for_space as the server answers it: the typed location, and the
+  /// GPS only when asked (F107).
+  @override
+  Future<Map<String, dynamic>> forSpace(
+    String noteId, {
+    required bool includeGps,
+  }) async {
+    _check();
+    calls.add('for-space:$noteId:$includeGps');
+    final n = kept[noteId]!;
+    final l = n.location;
+    return {
+      'id': n.id,
+      'kind': n.kind.json,
+      'title': n.title,
+      'body': n.body,
+      if (n.kind == NoteKind.checklist)
+        'points': [for (final p in n.points) p.toJson()],
+      if (n.blocks != null) 'blocks': [for (final b in n.blocks!) b.toJson()],
+      'due_at': n.dueAt?.toUtc().toIso8601String(),
+      'location_text': ?l?.text,
+      if (includeGps && l != null && l.hasGps) ...{
+        'location_lat': l.lat,
+        'location_lng': l.lng,
+        'location_accuracy_m': l.accuracyM,
+      },
+    };
+  }
 
   @override
   Future<List<CalendarRow>> calendar(DateTime from, DateTime to) async {

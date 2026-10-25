@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/note.dart';
+import '../../data/models/post_page.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../data/models/template.dart';
 import '../entry/entry_state.dart';
@@ -624,7 +625,17 @@ class DaybookDraft extends DaybookWritingNotifier {
   /// words (a to-do's time its due); a checklist a checklist with its
   /// points. A card already half-written keeps its words; the note's are
   /// added under them.
-  Future<void> fromNote(String id, Note note) {
+  ///
+  /// F107 (review 92): a page with to-dos becomes a checklist of them (its
+  /// other lines its words), else a work item; its date is the due. Its
+  /// location is the place: the typed words, and the GPS only when the
+  /// note carries it (note_for_space: "Include my GPS position"). Its
+  /// [photos], the phone's copies made for the card, go with it (B11).
+  Future<void> fromNote(
+    String id,
+    Note note, {
+    List<String> photos = const [],
+  }) {
     final current = state;
     if (current != null && !current.isEmpty) {
       final words = [
@@ -638,11 +649,56 @@ class DaybookDraft extends DaybookWritingNotifier {
             words,
           ].where((w) => w.isNotEmpty).join('\n\n'),
           noteId: () => note.id,
+          photos: [...current.photos, ...photos],
         ),
       );
     }
-    final fresh = DaybookPostDraft(id: id, noteId: note.id);
+    final fresh = DaybookPostDraft(
+      id: id,
+      noteId: note.id,
+      place: notePlace(note.location),
+      photos: photos,
+    );
     _fromNote = true;
+    final blocks = note.blocks;
+    if (blocks != null) {
+      final todos = [
+        for (final b in blocks)
+          if (b is PageTodo && b.text.trim().isNotEmpty) b.text.trim(),
+      ];
+      final others = [
+        for (final b in blocks)
+          if (b is! PageTodo) ...blockWords(b),
+      ];
+      final due = note.dueAt;
+      final dated = fresh.copyWith(
+        dueDate: () =>
+            due == null ? null : DateTime(due.year, due.month, due.day),
+        dueAt: () => due,
+      );
+      if (todos.isNotEmpty) {
+        final named = note.title.trim();
+        final title = named.isNotEmpty
+            ? named
+            : others.isNotEmpty
+            ? others.first
+            : todos.first;
+        return put(
+          dated.copyWith(
+            kind: DaybookKind.checklist,
+            title: _cut(title, DaybookPostDraft.postTitleMax).$1,
+            body: (named.isEmpty && others.isNotEmpty ? others.skip(1) : others)
+                .join('\n'),
+            points: [
+              for (final t in todos.take(Note.pointsMax))
+                (id: newUuid(), text: t),
+            ],
+          ),
+        );
+      }
+      final (title, rest) = _split(note.body.trim());
+      return put(dated.copyWith(title: title, body: rest));
+    }
     if (note.kind == NoteKind.checklist) {
       return put(
         fresh.copyWith(
@@ -666,6 +722,19 @@ class DaybookDraft extends DaybookWritingNotifier {
         dueAt: () => due,
       ),
     );
+  }
+
+  /// A note's location as a post's place: the typed words, then the GPS
+  /// position when it is there ("Level 3, grid C7 · 29.37594, 47.97740"),
+  /// within the place's length.
+  static String? notePlace(NoteLocation? l) {
+    if (l == null || l.isEmpty) return null;
+    final text = [
+      if (l.hasText) l.text!.trim(),
+      if (l.hasGps)
+        '${l.lat!.toStringAsFixed(5)}, ${l.lng!.toStringAsFixed(5)}',
+    ].join(' · ');
+    return _cut(text, DaybookPostDraft.placeMax).$1;
   }
 
   /// A work item's title from a note: its first line, cut at a word when

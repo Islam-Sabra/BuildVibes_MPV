@@ -108,6 +108,18 @@ abstract final class BvWritingToolbarSpec {
   static const toolIcon = BvSize.iconLg; // 24
   static const post = BvSize.avatarMd; // 40
   static const postIcon = BvSize.iconMd; // 20
+
+  /// My notebook's additions bar (F107 NBX1 2619:36779): the + is a 40
+  /// square, radius 12, its icon 22; a 24-high hairline after it; the
+  /// additions 40 wide, 2 apart.
+  static const categories = BvSize.avatarMd; // 40
+  static const categoriesRadius = BorderRadius.all(
+    Radius.circular(BvRadius.toast),
+  );
+  static const categoriesIcon = 22.0;
+  static const divider = BvSpace.s24;
+  static const denseTool = BvSize.avatarMd; // 40
+  static const denseGap = 2.0;
 }
 
 /// The More menu (2527:33433) and the kind picker (2535:34374).
