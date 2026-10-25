@@ -4,6 +4,7 @@
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/features/work/daybook_writing.dart' show kindWord;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -87,12 +88,12 @@ void main() {
       ];
       await _open(tester, lang, cards);
       for (final (c, word) in [
-        (cards[0], l10n.daybookKindNoteWord),
-        (cards[1], l10n.daybookKindChecklistWord),
-        (cards[2], l10n.daybookToEveryone),
-        (cards[3], l10n.daybookKindActivityWord),
-        (cards[4], l10n.daybookKindFileWord),
-        (cards[5], l10n.daybookKindReportWord),
+        (cards[0], kindWord(l10n, DaybookPost.noteKind)!),
+        (cards[1], kindWord(l10n, DaybookPost.checklistKind)!),
+        (cards[2], kindWord(l10n, DaybookPost.announcementKind)!),
+        (cards[3], kindWord(l10n, DaybookPost.activityKind)!),
+        (cards[4], kindWord(l10n, DaybookPost.fileKind)!),
+        (cards[5], kindWord(l10n, DaybookPost.reportKind)!),
       ]) {
         final card = _card(c.id);
         await tester.scrollUntilVisible(

@@ -19,6 +19,8 @@ import '../../shared/widgets/bv_search_field.dart';
 import '../../shared/widgets/bv_stamp.dart';
 import '../../shared/widgets/bv_tap_target.dart';
 import '../library/library_parts.dart' show libraryDay;
+import '../work/daybook_draft.dart' show DaybookKind;
+import '../work/daybook_writing.dart' show kindIcon;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import 'former_member.dart';
@@ -212,8 +214,10 @@ class _Results extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final groups = [
+      // Review 96 F1: every kind of post has a number now, so the group
+      // is Posts, each row with its own kind's icon.
       (
-        l10n.searchWorkItems,
+        l10n.searchPosts,
         [
           for (final h in hits)
             if (h.isWork) h,
@@ -287,7 +291,7 @@ class _HitRow extends ConsumerWidget {
       // Review 95: its number first; the post with the number searched
       // for says so.
       SpaceSearchKind.post => (
-        BvIcons.workItems,
+        kindIcon(DaybookKind.fromJson(hit.postKind)),
         title.isEmpty ? snippet : title,
         joinMeta([?hit.ref, if (hit.exact) l10n.searchExactNumber, who, day]),
       ),

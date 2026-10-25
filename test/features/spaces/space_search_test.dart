@@ -6,6 +6,8 @@ import 'package:buildvibes/features/chat/thread_screen.dart';
 import 'package:buildvibes/features/library/library_file_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/spaces/space_search_screen.dart';
+import 'package:buildvibes/features/work/daybook_draft.dart' show DaybookKind;
+import 'package:buildvibes/features/work/daybook_writing.dart' show kindIcon;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -217,6 +219,77 @@ void main() {
       expect(app.search.queries.last, '5');
     });
 
+    testWidgets('review 96 F1: a number search finds a note and a work item, '
+        'both under "Posts", each with its own kind\'s icon [$lang]', (
+      tester,
+    ) async {
+      final search = _search()
+        ..byNumber[23] = SpaceSearchHit(
+          kind: SpaceSearchKind.post,
+          id: 'post-23',
+          postId: 'post-23',
+          postKind: 'note',
+          ref: 'KCT-023',
+          title: 'Gate 2 closed for the crane until noon',
+          authorName: 'Omar Haddad',
+          createdAt: testNow,
+          exact: true,
+        )
+        ..hits.add(
+          SpaceSearchHit(
+            kind: SpaceSearchKind.post,
+            id: 'post-c23',
+            postId: 'post-c23',
+            postKind: 'work_item',
+            ref: 'KCT-031',
+            title: 'Cables for 23 panels',
+            createdAt: testNow,
+          ),
+        );
+      await pumpApp(tester, language: lang, spaces: _spaces(), search: search);
+      _router(tester).push('/spaces/$_space');
+      await tester.pumpAndSettle();
+      await _tap(tester, 'space-search');
+      await _type(tester, '23');
+      expect(find.text(l10n.searchPosts), findsOneWidget);
+      expect(find.text(lang == 'en' ? 'Posts' : 'المنشورات'), findsOneWidget);
+      expect(
+        find.text(lang == 'en' ? 'Work items' : 'بنود العمل'),
+        findsNothing,
+      );
+      IconData? iconOf(String key) => tester
+          .widget<Icon>(
+            find.descendant(
+              of: find.byKey(Key(key)),
+              matching: find.byType(Icon),
+            ),
+          )
+          .icon;
+      // The same icon as each kind's chip.
+      expect(iconOf('search-post-post-23'), kindIcon(DaybookKind.note));
+      expect(iconOf('search-post-post-c23'), kindIcon(DaybookKind.workItem));
+      expect(
+        iconOf('search-post-post-23'),
+        isNot(iconOf('search-post-post-c23')),
+      );
+      // Both under the one heading, the number first.
+      final heading = tester.getTopLeft(find.text(l10n.searchPosts)).dy;
+      final note = tester
+          .getTopLeft(find.byKey(const Key('search-post-post-23')))
+          .dy;
+      final item = tester
+          .getTopLeft(find.byKey(const Key('search-post-post-c23')))
+          .dy;
+      expect(heading, lessThan(note));
+      expect(note, lessThan(item));
+    });
+
+    test('review 96 F1: every kind has its own icon in search, the chip\'s '
+        '[$lang]', () {
+      final icons = {for (final k in DaybookKind.values) kindIcon(k)};
+      expect(icons, hasLength(DaybookKind.values.length));
+    });
+
     testWidgets('S: from the Space menu; after 2 characters, three groups '
         '[$lang]', (tester) async {
       final app = await _openSearch(tester, lang);
@@ -228,7 +301,7 @@ void main() {
 
       await _type(tester, 'sleeves');
       expect(app.search.queries, ['sleeves']);
-      expect(find.text(l10n.searchWorkItems), findsOneWidget);
+      expect(find.text(l10n.searchPosts), findsOneWidget);
       expect(find.text(l10n.searchFiles), findsOneWidget);
       expect(find.text(l10n.searchChat), findsOneWidget);
       // A work item's stamp; a point under its post.

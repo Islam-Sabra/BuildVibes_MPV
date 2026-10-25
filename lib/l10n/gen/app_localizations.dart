@@ -5504,24 +5504,6 @@ abstract class AppLocalizations {
   /// **'You posted it'**
   String get daybookLineYouPosted;
 
-  /// Daybook card header after the author: the post is a checklist.
-  ///
-  /// In en, this message translates to:
-  /// **'· checklist'**
-  String get daybookKindChecklistWord;
-
-  /// Daybook card header after the author: the post is a scheduled activity (K2 v13).
-  ///
-  /// In en, this message translates to:
-  /// **'· scheduled'**
-  String get daybookKindActivityWord;
-
-  /// A file post's kind word in its card header (F74).
-  ///
-  /// In en, this message translates to:
-  /// **'· file'**
-  String get daybookKindFileWord;
-
   /// An announcement is for everyone in the Space (K1 v13).
   ///
   /// In en, this message translates to:
@@ -6002,12 +5984,6 @@ abstract class AppLocalizations {
   /// **'Note'**
   String get daybookKindNote;
 
-  /// Card header after the author's name: a note (K5).
-  ///
-  /// In en, this message translates to:
-  /// **'· note'**
-  String get daybookKindNoteWord;
-
   /// Writing card: the who row before anyone is chosen, on a work item and a checklist (F56). The row's caret is an icon, never a character (review 79 A2).
   ///
   /// In en, this message translates to:
@@ -6475,12 +6451,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get searchClear;
-
-  /// S: the group of posts and checklist points.
-  ///
-  /// In en, this message translates to:
-  /// **'Work items'**
-  String get searchWorkItems;
 
   /// S: the group of Library files (only the version in use).
   ///
@@ -7027,12 +6997,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily report'**
   String get daybookKindReport;
-
-  /// A daily report's header after its author (R2).
-  ///
-  /// In en, this message translates to:
-  /// **'· daily report'**
-  String get daybookKindReportWord;
 
   /// Space menu: write today's daily report (Lead and Crew).
   ///
@@ -8203,6 +8167,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exact number'**
   String get searchExactNumber;
+
+  /// Review 96 F2: a post's kind after its number in the card header ("· note"); {kind} is the kind chip's own word.
+  ///
+  /// In en, this message translates to:
+  /// **'· {kind}'**
+  String daybookCardKindWord(String kind);
+
+  /// Review 96 F1: Space search's group for every kind of post (a note, a work item, a checklist…).
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get searchPosts;
 }
 
 class _AppLocalizationsDelegate

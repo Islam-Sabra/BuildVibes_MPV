@@ -80,7 +80,7 @@ class SpaceSearchHit {
   /// The post with the number searched for (review 95): first, and said so.
   final bool exact;
 
-  /// A post or one of its points: the Work items group.
+  /// A post of any kind, or one of its points: the Posts group (review 96).
   bool get isWork =>
       kind == SpaceSearchKind.post || kind == SpaceSearchKind.point;
 
