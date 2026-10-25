@@ -7634,6 +7634,54 @@ abstract class AppLocalizations {
   /// **'Pick a time still to come.'**
   String get notebookRemindPast;
 
+  /// The additions bar: moves the line the cursor is in one level deeper, under the line above (review 93). Read out; the button shows an icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Indent'**
+  String get notebookIndent;
+
+  /// The additions bar: moves the line the cursor is in one level out.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdent'**
+  String get notebookOutdent;
+
+  /// A numbered line's menu: go on from the list before it; n is the number it would show. Western digits in Arabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue numbering ({n})'**
+  String notebookContinueNumbering(int n);
+
+  /// A numbered line's menu: a new count starts at 1 from this line.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart at 1'**
+  String get notebookRestartNumbering;
+
+  /// Read out on a list line's fold arrow while its children show.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the lines under it'**
+  String get notebookFoldHide;
+
+  /// Read out on a list line's fold arrow while its children are hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the lines under it'**
+  String get notebookFoldShow;
+
+  /// Asked before deleting a folded line with the lines hidden under it.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this line and the line under it?} other{Delete this line and the {count} lines under it?}}'**
+  String notebookDeleteLines(int count);
+
+  /// Under the question before deleting a folded line.
+  ///
+  /// In en, this message translates to:
+  /// **'You can undo it right after.'**
+  String get notebookDeleteLinesUndo;
+
   /// Asked once, at the first Remind me, when the phone keeps alarms inexact (Android 12+).
   ///
   /// In en, this message translates to:

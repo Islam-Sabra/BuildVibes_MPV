@@ -4555,6 +4555,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemindPast => 'اختر وقتًا لم يأتِ بعد.';
 
   @override
+  String get notebookIndent => 'إزاحة للداخل';
+
+  @override
+  String get notebookOutdent => 'إزاحة للخارج';
+
+  @override
+  String notebookContinueNumbering(int n) {
+    return 'متابعة الترقيم ($n)';
+  }
+
+  @override
+  String get notebookRestartNumbering => 'البدء من 1 من جديد';
+
+  @override
+  String get notebookFoldHide => 'إخفاء الأسطر التي تحته';
+
+  @override
+  String get notebookFoldShow => 'إظهار الأسطر التي تحته';
+
+  @override
+  String notebookDeleteLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف هذا السطر و$count سطر تحته؟',
+      many: 'حذف هذا السطر و$count سطرًا تحته؟',
+      few: 'حذف هذا السطر و$count أسطر تحته؟',
+      two: 'حذف هذا السطر والسطرين اللذين تحته؟',
+      one: 'حذف هذا السطر والسطر الذي تحته؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookDeleteLinesUndo => 'يمكنك التراجع عن ذلك بعدها مباشرة.';
+
+  @override
   String get notebookExactTitle => 'تذكيرات في موعدها';
 
   @override

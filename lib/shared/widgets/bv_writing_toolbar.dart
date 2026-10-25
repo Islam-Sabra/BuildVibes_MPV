@@ -45,6 +45,10 @@ class BvWritingTool {
 /// open), a thin divider, then the additions, 40 wide and 2 apart, a tool
 /// in use tinted; Send keeps the note. While [field] is there (recording a
 /// voice note) it takes the place of the tools that don't hold.
+///
+/// Review 93: [beside] (⇥ ⇤ while a line can move) stand right after the
+/// +; the additions then scroll sideways when they no longer fit, with
+/// the mic kept in sight.
 class BvWritingToolbar extends StatelessWidget {
   const BvWritingToolbar({
     super.key,
@@ -62,7 +66,8 @@ class BvWritingToolbar extends StatelessWidget {
   }) : tools = null,
        field = null,
        categories = null,
-       categoriesOpen = false;
+       categoriesOpen = false,
+       beside = const [];
 
   const BvWritingToolbar.tools({
     super.key,
@@ -72,6 +77,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.field,
     this.categories,
     this.categoriesOpen = false,
+    this.beside = const [],
   }) : cameraLabel = null,
        onCamera = null,
        attachLabel = null,
@@ -87,6 +93,9 @@ class BvWritingToolbar extends StatelessWidget {
 
   /// The grid is open: the + is solid.
   final bool categoriesOpen;
+
+  /// Right after the + (a note's ⇥ and ⇤).
+  final List<BvWritingTool> beside;
 
   /// The notebook's own tools, in order.
   final List<BvWritingTool>? tools;
@@ -154,19 +163,52 @@ class BvWritingToolbar extends StatelessWidget {
                 _Post(label: postLabel, onTap: onPost, ready: postReady),
               ]
             : [
-                if (field != null)
-                  Expanded(child: field!)
-                else ...[
+                if (field != null) ...[
+                  Expanded(child: field!),
+                  for (final t in tools!)
+                    if (t.holds) _tool(t),
+                ] else ...[
                   if (categories case final c?) ...[
                     _Categories(tool: c, open: categoriesOpen),
+                    for (final t in beside) _tool(t),
                     const _Divider(),
                   ],
-                  for (final t in tools!)
-                    if (!t.holds) _tool(t),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, box) {
+                        final taps = [
+                          for (final t in tools!)
+                            if (!t.holds) _tool(t),
+                        ];
+                        final holds = [
+                          for (final t in tools!)
+                            if (t.holds) _tool(t),
+                        ];
+                        final width = categories != null
+                            ? BvWritingToolbarSpec.denseTool +
+                                  BvWritingToolbarSpec.denseGap
+                            : BvWritingToolbarSpec.touch;
+                        if (tools!.length * width <= box.maxWidth) {
+                          return Row(children: [...taps, ...holds]);
+                        }
+                        // Too many to fit: the taps scroll, and a tool
+                        // that holds (the mic) stays in sight.
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                key: const Key('writing-tools-scroll'),
+                                scrollDirection: Axis.horizontal,
+                                child: Row(children: taps),
+                              ),
+                            ),
+                            ...holds,
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ],
-                for (final t in tools!)
-                  if (t.holds) _tool(t),
-                if (field == null) const Spacer(),
                 _Post(label: postLabel, onTap: onPost, ready: true),
               ],
       ),

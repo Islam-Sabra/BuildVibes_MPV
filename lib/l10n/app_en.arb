@@ -6571,6 +6571,48 @@
   "@notebookRemindPast": {
     "description": "Remind me: the time picked has passed."
   },
+  "notebookIndent": "Indent",
+  "@notebookIndent": {
+    "description": "The additions bar: moves the line the cursor is in one level deeper, under the line above (review 93). Read out; the button shows an icon."
+  },
+  "notebookOutdent": "Outdent",
+  "@notebookOutdent": {
+    "description": "The additions bar: moves the line the cursor is in one level out."
+  },
+  "notebookContinueNumbering": "Continue numbering ({n})",
+  "@notebookContinueNumbering": {
+    "description": "A numbered line's menu: go on from the list before it; n is the number it would show. Western digits in Arabic.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookRestartNumbering": "Restart at 1",
+  "@notebookRestartNumbering": {
+    "description": "A numbered line's menu: a new count starts at 1 from this line."
+  },
+  "notebookFoldHide": "Hide the lines under it",
+  "@notebookFoldHide": {
+    "description": "Read out on a list line's fold arrow while its children show."
+  },
+  "notebookFoldShow": "Show the lines under it",
+  "@notebookFoldShow": {
+    "description": "Read out on a list line's fold arrow while its children are hidden."
+  },
+  "notebookDeleteLines": "{count, plural, =1{Delete this line and the line under it?} other{Delete this line and the {count} lines under it?}}",
+  "@notebookDeleteLines": {
+    "description": "Asked before deleting a folded line with the lines hidden under it.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookDeleteLinesUndo": "You can undo it right after.",
+  "@notebookDeleteLinesUndo": {
+    "description": "Under the question before deleting a folded line."
+  },
   "notebookExactTitle": "On-time reminders",
   "@notebookExactTitle": {
     "description": "Asked once, at the first Remind me, when the phone keeps alarms inexact (Android 12+)."

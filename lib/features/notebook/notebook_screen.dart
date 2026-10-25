@@ -46,6 +46,7 @@ import '../work/daybook_writing.dart'
 import '../work/work_outbox.dart' show keepPhotoProvider, pickPhotoProvider;
 import 'note_draft.dart';
 import 'note_location.dart';
+import 'note_outline.dart' show numberAt, numberLabel;
 import 'note_page_editor.dart';
 import 'note_reminders.dart' show remindsAt;
 import 'note_writing.dart';
@@ -835,7 +836,8 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
         onLocation: _toggleLocation,
         editorKey: _editorKey,
         titleFocus: _titleFocus,
-        onCurrentKind: (k) => _kind = k,
+        // The bar's ⇥ ⇤ follow the line being written.
+        onCurrentKind: (k) => setState(() => _kind = k),
       ),
     );
 
@@ -1025,74 +1027,95 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     );
   }
 
-  /// The additions bar (NBX1 2619:36779): + for the categories, a thin
-  /// line, then Location, Image, File, Date, Remind me and Voice, then
-  /// Send. An addition in use is tinted; Send is grey until there is
-  /// something to keep.
-  Widget _tools(AppLocalizations l10n, NoteDraft draft) =>
-      BvWritingToolbar.tools(
-        key: const Key('note-tools'),
-        categories: BvWritingTool(
-          key: const Key('note-tool-categories'),
-          icon: BvIcons.create,
-          label: l10n.notebookCategories,
-          onTap: _toggleCategories,
-        ),
-        categoriesOpen: _panel == _Panel.categories,
-        tools: [
+  /// The additions bar (NBX1 2619:36779): + for the categories, ⇥ and ⇤
+  /// while the line being written can move (review 93), a thin line, then
+  /// Location, Image, File, Date, Remind me and Voice, then Send. An
+  /// addition in use is tinted; Send is grey until there is something to
+  /// keep.
+  Widget _tools(AppLocalizations l10n, NoteDraft draft) {
+    final editor = _editorKey.currentState;
+    final deeper = editor?.canIndentCurrent ?? false;
+    final out = editor?.canOutdentCurrent ?? false;
+    return BvWritingToolbar.tools(
+      key: const Key('note-tools'),
+      categories: BvWritingTool(
+        key: const Key('note-tool-categories'),
+        icon: BvIcons.create,
+        label: l10n.notebookCategories,
+        onTap: _toggleCategories,
+      ),
+      categoriesOpen: _panel == _Panel.categories,
+      beside: [
+        if (deeper || out) ...[
           BvWritingTool(
-            key: const Key('note-tool-location'),
-            icon: BvIcons.place,
-            label: l10n.notebookLocation,
-            active:
-                _panel == _Panel.location || !(draft.location?.isEmpty ?? true),
-            onTap: _toggleLocation,
+            key: const Key('note-tool-indent'),
+            icon: BvIcons.indent,
+            label: l10n.notebookIndent,
+            onTap: deeper ? () => editor!.indentCurrent() : null,
           ),
           BvWritingTool(
-            key: const Key('note-tool-image'),
-            icon: BvIcons.image,
-            label: l10n.notebookImage,
-            active: draft.photos.isNotEmpty,
-            onTap: () => unawaited(_addPhoto()),
-          ),
-          BvWritingTool(
-            key: const Key('note-tool-file'),
-            icon: BvIcons.attach,
-            label: l10n.notebookFile,
-            active: draft.files.isNotEmpty,
-            onTap: () => unawaited(_addFile()),
-          ),
-          BvWritingTool(
-            key: const Key('note-tool-date'),
-            icon: BvIcons.due,
-            label: l10n.notebookDate,
-            active: draft.dueAt != null,
-            onTap: () => unawaited(_pickDue()),
-          ),
-          BvWritingTool(
-            key: const Key('note-tool-remind'),
-            icon: BvIcons.remind,
-            label: l10n.notebookRemindMe,
-            active: draft.remindAt != null,
-            onTap: () => unawaited(_pickRemind()),
-          ),
-          // F107: hold for a voice block inside the note.
-          BvWritingTool(
-            key: const Key('note-tool-voice'),
-            icon: BvIcons.microphone,
-            label: l10n.notebookVoiceTool,
-            onTap: () => _toast(l10n.chatRecord),
-            onHoldStart: _startRecording,
-            onHoldMove: _slide,
-            onHoldEnd: _endRecording,
+            key: const Key('note-tool-outdent'),
+            icon: BvIcons.outdent,
+            label: l10n.notebookOutdent,
+            onTap: out ? () => editor!.outdentCurrent() : null,
           ),
         ],
-        field: _recording
-            ? RecordingBar(elapsed: _elapsed, cancelling: _cancelling)
-            : null,
-        postLabel: l10n.chatSend,
-        onPost: draft.ready ? () => unawaited(_send()) : null,
-      );
+      ],
+      tools: [
+        BvWritingTool(
+          key: const Key('note-tool-location'),
+          icon: BvIcons.place,
+          label: l10n.notebookLocation,
+          active:
+              _panel == _Panel.location || !(draft.location?.isEmpty ?? true),
+          onTap: _toggleLocation,
+        ),
+        BvWritingTool(
+          key: const Key('note-tool-image'),
+          icon: BvIcons.image,
+          label: l10n.notebookImage,
+          active: draft.photos.isNotEmpty,
+          onTap: () => unawaited(_addPhoto()),
+        ),
+        BvWritingTool(
+          key: const Key('note-tool-file'),
+          icon: BvIcons.attach,
+          label: l10n.notebookFile,
+          active: draft.files.isNotEmpty,
+          onTap: () => unawaited(_addFile()),
+        ),
+        BvWritingTool(
+          key: const Key('note-tool-date'),
+          icon: BvIcons.due,
+          label: l10n.notebookDate,
+          active: draft.dueAt != null,
+          onTap: () => unawaited(_pickDue()),
+        ),
+        BvWritingTool(
+          key: const Key('note-tool-remind'),
+          icon: BvIcons.remind,
+          label: l10n.notebookRemindMe,
+          active: draft.remindAt != null,
+          onTap: () => unawaited(_pickRemind()),
+        ),
+        // F107: hold for a voice block inside the note.
+        BvWritingTool(
+          key: const Key('note-tool-voice'),
+          icon: BvIcons.microphone,
+          label: l10n.notebookVoiceTool,
+          onTap: () => _toast(l10n.chatRecord),
+          onHoldStart: _startRecording,
+          onHoldMove: _slide,
+          onHoldEnd: _endRecording,
+        ),
+      ],
+      field: _recording
+          ? RecordingBar(elapsed: _elapsed, cancelling: _cancelling)
+          : null,
+      postLabel: l10n.chatSend,
+      onPost: draft.ready ? () => unawaited(_send()) : null,
+    );
+  }
 }
 
 /// "Only you" (2557:35400): a quiet pill; a tap says what it means.
@@ -1453,7 +1476,7 @@ class NotePageSummary extends ConsumerWidget {
       PageNumbered(:final text) => Row(
         spacing: BvNoteBlocksSpec.lineGap,
         children: [
-          NoteNumber(_number(blocks, i)),
+          NoteNumber(numberLabel(numberAt(blocks, i), b.indent)),
           Expanded(child: line(text, main)),
         ],
       ),
@@ -1509,7 +1532,13 @@ class NotePageSummary extends ConsumerWidget {
             textDirection: directionOf(note.title),
             style: type.headingMd.copyWith(color: BvColors.textPrimary),
           ),
-        for (final (i, b) in shown.indexed) block(i, b),
+        for (final (i, b) in shown.indexed)
+          Padding(
+            padding: EdgeInsetsDirectional.only(
+              start: b.indent * BvNoteBlocksSpec.indent,
+            ),
+            child: block(i, b),
+          ),
         if (more) Text('…', style: quiet),
         if (chips.isNotEmpty)
           Wrap(
@@ -1520,14 +1549,6 @@ class NotePageSummary extends ConsumerWidget {
           ),
       ],
     );
-  }
-
-  static int _number(List<PageBlock> blocks, int index) {
-    var n = 1;
-    for (var i = index - 1; i >= 0 && blocks[i] is PageNumbered; i--) {
-      n++;
-    }
-    return n;
   }
 }
 

@@ -14,12 +14,14 @@ import '../../data/models/post_page.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../chat/voice.dart' show VoiceNote;
 import '../work/daybook_page_editor.dart' show withReadyToggles;
 import '../work/page_block_editing.dart';
+import 'note_outline.dart';
 
 /// What a note's line can be (F107 NBX2 2619:36808): the categories grid's
 /// twelve tiles, in its order, and what "/" lists.
@@ -103,30 +105,55 @@ String? lineWords(PageBlock b) => switch (b) {
   _ => null,
 };
 
-/// A line of [kind] with [words], under [id]; null for a kind that isn't
-/// a line (a table, a divider, a voice note).
-PageBlock? lineOf(NoteBlockKind kind, String id, String words) =>
-    switch (kind) {
-      NoteBlockKind.text => PageText(id, words),
-      NoteBlockKind.heading => PageHeading(id, words),
-      NoteBlockKind.subheading => PageHeading(id, words, level: 2),
-      NoteBlockKind.todo => PageTodo(id, words),
-      NoteBlockKind.bullets => PageBullet(id, words),
-      NoteBlockKind.numbers => PageNumbered(id, words),
-      NoteBlockKind.callout => PageCallout(id, words),
-      NoteBlockKind.quote => PageQuote(id, words),
-      NoteBlockKind.toggle => PageToggle(id, words, [PageText(newUuid(), '')]),
-      _ => null,
-    };
+/// A line of [kind] with [words], under [id], at [indent]; null for a kind
+/// that isn't a line (a table, a divider, a voice note).
+PageBlock? lineOf(
+  NoteBlockKind kind,
+  String id,
+  String words, {
+  int indent = 0,
+}) => switch (kind) {
+  NoteBlockKind.text => PageText(id, words, indent: indent),
+  NoteBlockKind.heading => PageHeading(id, words, indent: indent),
+  NoteBlockKind.subheading => PageHeading(id, words, level: 2, indent: indent),
+  NoteBlockKind.todo => PageTodo(id, words, indent: indent),
+  NoteBlockKind.bullets => PageBullet(id, words, indent: indent),
+  NoteBlockKind.numbers => PageNumbered(id, words, indent: indent),
+  NoteBlockKind.callout => PageCallout(id, words, indent: indent),
+  NoteBlockKind.quote => PageQuote(id, words, indent: indent),
+  NoteBlockKind.toggle => PageToggle(id, words, [
+    PageText(newUuid(), ''),
+  ], indent: indent),
+  _ => null,
+};
+
+/// [b] with other [words], when it has a line of them.
+PageBlock? withWords(PageBlock b, String words) => switch (b) {
+  PageText() => PageText(b.id, words, indent: b.indent),
+  PageHeading(:final level) => PageHeading(
+    b.id,
+    words,
+    level: level,
+    indent: b.indent,
+  ),
+  PageLine() => b.withText(words),
+  _ => null,
+};
 
 /// A note's page being written in its slip (F107, review 92): the bold
 /// title, then the blocks on Work's page editor (PageBlockEditing): "/"
 /// at the start of an empty line, ⋮⋮ on the line being written (hold to
 /// move, tap to turn it into another kind or delete it), toggles and
 /// tables. Enter starts the next line: a to-do, a bullet or a number goes
-/// on as one, and an empty one turns back into text; Backspace on an
-/// empty line takes it out. The categories grid inserts through
+/// on as one, and an empty one steps out a level, then turns back into
+/// text; Backspace at the start of a line turns it into text, then joins
+/// it to the line above. The categories grid inserts through
 /// [NotePageEditorState.insertKind].
+///
+/// Review 93: lines sit under each other (note_outline.dart), moved with
+/// ⇥ ⇤ on the bar ([NotePageEditorState.indentCurrent]); a line with
+/// children folds; numbered lines count by level; moving, turning and
+/// deleting keep the children.
 ///
 /// Read only while not [writing] (the Draft, NBW5).
 class NotePageEditor extends ConsumerStatefulWidget {
@@ -160,10 +187,15 @@ class NotePageEditor extends ConsumerStatefulWidget {
 
 class NotePageEditorState extends ConsumerState<NotePageEditor>
     with PageBlockEditing<NotePageEditor> {
-  /// The block menu's Delete.
+  /// The block menu's Delete, Continue numbering and Restart at 1.
   static const _delete = #delete;
+  static const _continue = #goOn;
+  static const _restart = #restart;
 
   late final _title = TextEditingController(text: widget.title);
+
+  /// The lines folded shut, by id (while the note is open).
+  final _folded = <String>{};
 
   @override
   int get blockTextMax => Note.lineMax;
@@ -183,9 +215,25 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   @override
   void initState() {
     super.initState();
-    editBlocks = withReadyToggles(
-      widget.blocks.isEmpty ? [PageText(newUuid(), '')] : [...widget.blocks],
+    editBlocks = normalized(
+      withReadyToggles(
+        widget.blocks.isEmpty ? [PageText(newUuid(), '')] : [...widget.blocks],
+      ),
     );
+  }
+
+  /// The page as [blocks], put where its lines may be; a fold with
+  /// nothing left under it opens.
+  void _set(List<PageBlock> blocks) {
+    setState(() {
+      editBlocks = normalized(blocks);
+      _folded.removeWhere((id) {
+        final at = editBlocks.indexWhere((b) => b.id == id);
+        return at < 0 || !folds(editBlocks, at);
+      });
+    });
+    blocksEdited();
+    widget.onCurrentKind?.call(currentKind);
   }
 
   @override
@@ -228,6 +276,45 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     return at < 0 ? editBlocks.length - 1 : at;
   }
 
+  /// The line the cursor is in, on the page itself (not inside a toggle).
+  int? get _here {
+    final at = editBlocks.indexWhere((b) => b.id == currentBlockId);
+    return at < 0 ? null : at;
+  }
+
+  /// ⇥ and ⇤ on the bar: the line the cursor is in can go deeper, or out.
+  bool get canIndentCurrent =>
+      widget.writing && _here != null && canIndent(editBlocks, _here!);
+  bool get canOutdentCurrent =>
+      widget.writing && _here != null && canOutdent(editBlocks, _here!);
+
+  /// ⇥: the line the cursor is in goes under the line before it, its
+  /// children with it.
+  void indentCurrent() {
+    final at = _here;
+    if (at == null) return;
+    editBlocks = collectBlocks();
+    _set(indented(editBlocks, at));
+    focusCurrent();
+  }
+
+  /// ⇤: the line the cursor is in comes out a level.
+  void outdentCurrent() {
+    final at = _here;
+    if (at != null) _outdent(at);
+    focusCurrent();
+  }
+
+  void _outdent(int index) {
+    editBlocks = collectBlocks();
+    _set(outdented(editBlocks, index));
+  }
+
+  /// A fold arrow tapped: the lines under [id] hide or show.
+  void _fold(String id) => setState(
+    () => _folded.contains(id) ? _folded.remove(id) : _folded.add(id),
+  );
+
   /// The field a block's cursor goes to.
   static String _focusKey(PageBlock b) => switch (b) {
     PageTable() => 'c:${b.id}:0:0',
@@ -246,8 +333,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   }
 
   /// A tile in the grid (NBX2): an empty line turns into [kind]; otherwise
-  /// the new block goes after the line being written. The keyboard comes
-  /// back on it.
+  /// the new block goes after the line being written and the lines under
+  /// it, at its level (review 93: a numbered line right under a numbered
+  /// list goes on with its count). The keyboard comes back on it.
   void insertKind(NoteBlockKind kind) {
     editBlocks = collectBlocks();
     final at = _current;
@@ -255,49 +343,50 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final words = here == null ? null : lineWords(here);
     final empty =
         here != null && words != null && words.isEmpty && here is! PageToggle;
+    final level = here?.indent ?? 0;
     // A new id even for the empty line it turns: a fresh field takes the
     // keyboard, with nothing of the "/" typed there.
     final id = newUuid();
     final block =
-        lineOf(kind, id, '') ??
+        lineOf(kind, id, '', indent: level) ??
         switch (kind) {
           NoteBlockKind.table => PageTable(id, const [
             ['', ''],
             ['', ''],
-          ]),
-          _ => PageDivider(id),
+          ], indent: level),
+          _ => PageDivider(id, indent: level),
         };
-    final next = block is PageDivider ? PageText(newUuid(), '') : null;
-    setState(() {
-      if (empty) {
-        dropField('t:${here.id}');
-        editBlocks[at] = block;
-      } else {
-        editBlocks.insert(at + 1, block);
-      }
-      if (next != null) {
-        editBlocks.insert(editBlocks.indexOf(block) + 1, next);
-      }
-    });
+    final next = block is PageDivider
+        ? PageText(newUuid(), '', indent: level)
+        : null;
+    final blocks = [...editBlocks];
+    if (empty) {
+      dropField('t:${here.id}');
+      blocks[at] = block;
+    } else {
+      blocks.insert(here == null ? 0 : subtreeEnd(blocks, at), block);
+    }
+    if (next != null) blocks.insert(blocks.indexOf(block) + 1, next);
     final focus = next ?? block;
     currentBlockId = focus.id;
+    _set(blocks);
     focusBlockLater(_focusKey(focus));
-    blocksEdited();
   }
 
-  /// A voice note, recorded: a block after the line being written.
+  /// A voice note, recorded: a block after the line being written, at its
+  /// level.
   void insertVoice(PageVoice voice) {
     editBlocks = collectBlocks();
     final at = _current;
     final here = editBlocks.isEmpty ? null : editBlocks[at];
-    setState(() {
-      if (here is PageText && here.text.isEmpty && editBlocks.length > 1) {
-        editBlocks[at] = voice;
-      } else {
-        editBlocks.insert(at + 1, voice);
-      }
-    });
-    blocksEdited();
+    final blocks = [...editBlocks];
+    final placed = voice.atIndent(here?.indent ?? 0);
+    if (here is PageText && here.text.isEmpty && blocks.length > 1) {
+      blocks[at] = placed;
+    } else {
+      blocks.insert(here == null ? 0 : subtreeEnd(blocks, at), placed);
+    }
+    _set(blocks);
   }
 
   @override
@@ -362,13 +451,45 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final b = editBlocks[index];
     final words = lineWords(b);
     final now = NoteBlockKind.of(b);
+    // Review 93: a numbered line can go on from the list before it, or
+    // start again at 1; those come first, and Turn into is named under
+    // them.
+    final goOn = continueAt(editBlocks, index);
+    final numbered = b is PageNumbered;
     final picked = await showBvSheet<Object>(
       context: context,
-      title: words == null ? null : l10n.pageTurnInto,
+      title: words == null || numbered ? null : l10n.pageTurnInto,
       builder: (sheet) => Column(
         key: const Key('page-block-menu'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (goOn != null)
+            BvListRow(
+              key: const Key('page-continue-numbering'),
+              leading: const BvRowIcon(BvIcons.numberList),
+              title: l10n.notebookContinueNumbering(goOn),
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheet).pop(_continue),
+            ),
+          if (numbered) ...[
+            BvListRow(
+              key: const Key('page-restart-numbering'),
+              leading: const BvRowIcon(BvIcons.restartNumbering),
+              title: l10n.notebookRestartNumbering,
+              trailing: const BvRowTrailing.none(),
+              onTap: () => Navigator.of(sheet).pop(_restart),
+            ),
+            const NoteDividerLine(),
+            Padding(
+              padding: BvNoteBlocksSpec.menuLabelPadding,
+              child: Text(
+                l10n.pageTurnInto,
+                style: BvType.of(
+                  context,
+                ).metadata.copyWith(color: BvColors.textSecondary),
+              ),
+            ),
+          ],
           if (words != null)
             for (final k in NoteBlockKind.words)
               BvListRow(
@@ -391,22 +512,94 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     );
     if (picked == null || !mounted) return;
     if (picked == _delete) {
-      deleteBlock(index);
+      unawaited(_deleteLine(index));
+      return;
+    }
+    if (picked == _continue || picked == _restart) {
+      editBlocks = collectBlocks();
+      final line = editBlocks[index];
+      if (line is! PageNumbered) return;
+      _set([
+        ...editBlocks.take(index),
+        picked == _restart
+            ? line.startingAt(1)
+            : continued(editBlocks, index, goOn!),
+        ...editBlocks.skip(index + 1),
+      ]);
       return;
     }
     if (words == null || picked is! NoteBlockKind || picked == now) return;
     _turn(index, picked);
   }
 
-  /// The line at [index] becomes [kind], keeping its words and its id.
+  /// The line at [index] becomes [kind], keeping its words, its id, its
+  /// level and its children: a kind that can't hold them lets them out one
+  /// level, right below it (review 93). A to-do's tick doesn't carry over.
   void _turn(int index, NoteBlockKind kind) {
     editBlocks = collectBlocks();
     final b = editBlocks[index];
-    final block = lineOf(kind, b.id, lineWords(b) ?? '');
+    final block = lineOf(kind, b.id, lineWords(b) ?? '', indent: b.indent);
     if (block == null) return;
-    setState(() => editBlocks[index] = block);
+    if (!holdsChildren(block)) _folded.remove(b.id);
+    _set([...editBlocks]..[index] = block);
     focusBlockLater('t:${b.id}');
-    blocksEdited();
+  }
+
+  /// Delete on ⋮⋮: the line goes and its children move up a level; a
+  /// folded line asks first, then goes with the lines under it. Undo puts
+  /// it all back.
+  Future<void> _deleteLine(int index) async {
+    final l10n = AppLocalizations.of(context);
+    editBlocks = collectBlocks();
+    final under = childCount(editBlocks, index);
+    final whole = under > 0 && _folded.contains(editBlocks[index].id);
+    if (whole) {
+      final yes = await showBvDialog(
+        context: context,
+        title: l10n.notebookDeleteLines(under),
+        body: l10n.notebookDeleteLinesUndo,
+        cancelLabel: l10n.commonCancel,
+        confirmLabel: l10n.pageDelete,
+        destructive: true,
+      );
+      if (!yes || !mounted) return;
+      editBlocks = collectBlocks();
+    }
+    final before = [...editBlocks];
+    final folded = {..._folded};
+    _set(
+      whole
+          ? withoutSubtree(editBlocks, index)
+          : withoutLifting(editBlocks, index),
+    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.pageDeleted),
+          action: SnackBarAction(
+            key: const Key('page-undo'),
+            label: l10n.spacesUndo,
+            onPressed: () {
+              if (!mounted) return;
+              _folded.addAll(folded);
+              _set(before);
+            },
+          ),
+        ),
+      );
+  }
+
+  /// A drag on ⋮⋮ ([from] and [to] count the lines shown): the line moves
+  /// with its children, to the level of the line it lands before.
+  @override
+  void moveBlock(int from, int to) {
+    editBlocks = collectBlocks();
+    final shown = visibleLines(editBlocks, _folded);
+    final rest = [...shown]..removeAt(from);
+    final before = to < rest.length ? editBlocks[rest[to]].id : null;
+    final next = moved(editBlocks, shown[from], before);
+    if (next != null) _set(next);
   }
 
   @override
@@ -417,34 +610,40 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   VoidCallback? textBack(int index) =>
       () => _back(index);
 
-  /// Enter: the next line. A list goes on as the same kind; an empty
-  /// list line turns back into text (leaving the list).
+  /// Enter: the next line, at this one's level, after the lines under it.
+  /// A list goes on as the same kind; an empty list line steps out a
+  /// level, and at the first level turns back into text (ending the list).
   void _enter(int index) {
     editBlocks = collectBlocks();
     final b = editBlocks[index];
     final words = lineWords(b) ?? '';
-    if (b is PageLine &&
-        b is! PageCallout &&
-        b is! PageQuote &&
+    if ((b is PageTodo || b is PageBullet || b is PageNumbered) &&
         words.isEmpty) {
-      _turn(index, NoteBlockKind.text);
+      if (b.indent > 0) {
+        _outdent(index);
+        focusBlockLater('t:${b.id}');
+      } else {
+        _turn(index, NoteBlockKind.text);
+      }
       return;
     }
     final id = newUuid();
+    final level = b.indent;
     final next = switch (b) {
-      PageTodo() => PageTodo(id, ''),
-      PageBullet() => PageBullet(id, ''),
-      PageNumbered() => PageNumbered(id, ''),
-      _ => PageText(id, ''),
+      PageTodo() => PageTodo(id, '', indent: level),
+      PageBullet() => PageBullet(id, '', indent: level),
+      PageNumbered() => PageNumbered(id, '', indent: level),
+      _ => PageText(id, '', indent: level),
     };
-    setState(() => editBlocks.insert(index + 1, next));
     currentBlockId = id;
+    _set([...editBlocks]..insert(subtreeEnd(editBlocks, index), next));
     focusBlockLater('t:$id');
-    blocksEdited();
   }
 
-  /// Backspace on an empty line: a list line turns back into text; a text
-  /// line goes, and the line before takes the cursor.
+  /// Backspace at the start of a line: any other kind turns into text,
+  /// keeping its level and children; an empty text line goes; a text line
+  /// with words joins the line shown above it. The line above takes the
+  /// cursor.
   void _back(int index) {
     editBlocks = collectBlocks();
     final b = editBlocks[index];
@@ -452,15 +651,35 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       _turn(index, NoteBlockKind.text);
       return;
     }
-    if (index == 0) return;
-    final before = editBlocks[index - 1];
-    dropField('t:${b.id}');
-    setState(() => editBlocks.removeAt(index));
-    if (lineWords(before) != null) {
-      currentBlockId = before.id;
-      focusBlockLater('t:${before.id}');
+    final shown = visibleLines(editBlocks, _folded);
+    final at = shown.indexOf(index);
+    if (at <= 0) return;
+    final above = editBlocks[shown[at - 1]];
+    final words = lineWords(above);
+    // A toggle's own lines stand between it and this one.
+    if (above is PageToggle) return;
+    final blocks = [...editBlocks];
+    final field = existingField('t:${above.id}');
+    if (b.text.isNotEmpty) {
+      final joined = words == null ? null : withWords(above, words + b.text);
+      if (joined == null || words!.length + b.text.length > Note.lineMax) {
+        return;
+      }
+      blocks[shown[at - 1]] = joined;
+      // The cursor where the two meet.
+      field?.value = TextEditingValue(
+        text: words + b.text,
+        selection: TextSelection.collapsed(offset: words.length),
+      );
+    } else if (field != null) {
+      field.selection = TextSelection.collapsed(offset: field.text.length);
     }
-    blocksEdited();
+    dropField('t:${b.id}');
+    blocks.removeAt(index);
+    _set(blocks);
+    if (words == null) return;
+    currentBlockId = above.id;
+    focusBlockLater('t:${above.id}');
   }
 
   /// A to-do ticked or unticked while writing.
@@ -472,13 +691,61 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     blocksEdited();
   }
 
-  /// The number a numbered line shows: its place in its run.
-  int _number(int index) {
-    var n = 1;
-    for (var i = index - 1; i >= 0 && editBlocks[i] is PageNumbered; i--) {
-      n++;
+  /// What a numbered line [b] shows: its count at its level, on the page
+  /// or inside the toggle at [index].
+  String _label(int index, PageNumbered b) {
+    final host = editBlocks[index];
+    if (host case PageToggle(:final children) when host.id != b.id) {
+      final at = children.indexWhere((c) => c.id == b.id);
+      return numberLabel(numberAt(children, at), b.indent);
     }
-    return n;
+    return numberLabel(numberAt(editBlocks, index), b.indent);
+  }
+
+  /// Each line at its level, with room for a fold arrow when a line of
+  /// its list has children (review 93).
+  @override
+  Widget decorateBlock(int index, PageBlock b, Widget child) {
+    final l10n = AppLocalizations.of(context);
+    final arrow = folds(editBlocks, index);
+    final open = !_folded.contains(b.id);
+    return Padding(
+      padding: EdgeInsetsDirectional.only(
+        start: b.indent * BvNoteBlocksSpec.indent,
+      ),
+      child: !foldSlot(editBlocks, index)
+          ? child
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: BvNoteBlocksSpec.fold,
+                  height: BvNoteBlocksSpec.handleHeight,
+                  child: arrow
+                      ? Semantics(
+                          button: true,
+                          expanded: open,
+                          label: open
+                              ? l10n.notebookFoldHide
+                              : l10n.notebookFoldShow,
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            key: Key('note-fold-${b.id}'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _fold(b.id),
+                            child: Icon(
+                              open ? BvIcons.caretDown : BvIcons.caretForward,
+                              size: BvNoteBlocksSpec.foldIcon,
+                              color: BvColors.iconSecondary,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                Expanded(child: child),
+              ],
+            ),
+    );
   }
 
   @override
@@ -494,7 +761,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       maxLength: Note.lineMax,
       readOnly: !widget.writing,
       onEnter: () => _enter(index),
-      onEmptyBack: () => _back(index),
+      onStartBack: () => _back(index),
     );
     switch (b) {
       case PageTodo(:final done):
@@ -534,7 +801,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         return Row(
           spacing: BvNoteBlocksSpec.lineGap,
           children: [
-            NoteNumber(_number(index)),
+            NoteNumber(_label(index, b)),
             Expanded(child: line(b, l10n.notebookListHint)),
           ],
         );
@@ -564,6 +831,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final style = type.headingMd;
+    final shown = visibleLines(editBlocks, _folded);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -599,9 +867,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
           physics: const NeverScrollableScrollPhysics(),
           buildDefaultDragHandles: false,
           padding: const EdgeInsets.only(top: BvNoteBlocksSpec.blockGap),
-          itemCount: editBlocks.length,
+          itemCount: shown.length,
           onReorderItem: moveBlock,
-          itemBuilder: (context, i) => blockRow(i),
+          itemBuilder: (context, i) => blockRow(shown[i], listIndex: i),
         ),
       ],
     );
@@ -671,15 +939,16 @@ class NoteBullet extends StatelessWidget {
 
 /// A numbered line's number, in Western digits.
 class NoteNumber extends StatelessWidget {
-  const NoteNumber(this.n, {super.key});
+  const NoteNumber(this.label, {super.key});
 
-  final int n;
+  /// "1.", "a." or "i." (numberLabel); wider ones ("12.", "iii.") grow.
+  final String label;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: BvNoteBlocksSpec.numberWidth,
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minWidth: BvNoteBlocksSpec.numberWidth),
     child: Text(
-      '$n.',
+      label,
       textAlign: TextAlign.end,
       style: BvType.of(context).bodyMd.copyWith(color: BvColors.textPrimary),
     ),

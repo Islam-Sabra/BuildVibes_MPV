@@ -4547,6 +4547,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookRemindPast => 'Pick a time still to come.';
 
   @override
+  String get notebookIndent => 'Indent';
+
+  @override
+  String get notebookOutdent => 'Outdent';
+
+  @override
+  String notebookContinueNumbering(int n) {
+    return 'Continue numbering ($n)';
+  }
+
+  @override
+  String get notebookRestartNumbering => 'Restart at 1';
+
+  @override
+  String get notebookFoldHide => 'Hide the lines under it';
+
+  @override
+  String get notebookFoldShow => 'Show the lines under it';
+
+  @override
+  String notebookDeleteLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete this line and the $count lines under it?',
+      one: 'Delete this line and the line under it?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookDeleteLinesUndo => 'You can undo it right after.';
+
+  @override
   String get notebookExactTitle => 'On-time reminders';
 
   @override

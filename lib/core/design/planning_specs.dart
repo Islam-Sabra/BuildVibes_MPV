@@ -140,6 +140,21 @@ abstract final class BvNoteBlocksSpec {
   /// A line's ⋮⋮ (the line being written's only): as high as the line.
   static const handleHeight = BvSize.iconLg;
 
+  /// Review 93: each level 24 further in; a fold arrow (16) on a 20 slot
+  /// before the line's number, bullet or words.
+  static const indent = BvSpace.s24;
+  static const fold = 20.0;
+  static const foldIcon = BvSize.iconSm;
+
+  /// A numbered line's ⋮⋮ menu: "Turn into" named under Continue and
+  /// Restart, at the rows' own start.
+  static const menuLabelPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.gutter,
+    BvSpace.s4,
+    BvSpace.gutter,
+    BvSpace.s4,
+  );
+
   /// The saved slip: the title, then the first three lines of the page.
   static const slipLines = 3;
   static const chipIcon = 14.0;

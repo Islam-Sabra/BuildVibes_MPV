@@ -232,6 +232,19 @@ abstract final class BvIcons {
     matchTextDirection: true,
   );
 
+  /// text-indent and text-outdent: a note's line in or out a level
+  /// (review 93); in Arabic, in is to the left.
+  static const indent = IconData(
+    0xea1e,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+  static const outdent = IconData(
+    0xea1c,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+
   // The Daybook.
   /// arrow-counter-clockwise: Send back. A turning arrow, so it mirrors.
   static const sendBack = IconData(
@@ -239,6 +252,9 @@ abstract final class BvIcons {
     fontFamily: _family,
     matchTextDirection: true,
   );
+
+  /// arrow-counter-clockwise again: a numbered list's Restart at 1.
+  static const restartNumbering = sendBack;
 
   /// plus: add an update (the bottom bar's Create is the same glyph).
   static const add = create;

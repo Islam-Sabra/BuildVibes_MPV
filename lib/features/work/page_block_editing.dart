@@ -184,16 +184,18 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   PageBlock collectBlock(PageBlock b) {
     String words(String fallback) => _fields['t:${b.id}']?.text ?? fallback;
     return switch (b) {
-      PageText(:final text) => PageText(b.id, words(text)),
+      PageText(:final text) => PageText(b.id, words(text), indent: b.indent),
       PageHeading(:final text, :final level) => PageHeading(
         b.id,
         words(text),
         level: level,
+        indent: b.indent,
       ),
       PageToggle(:final text, :final children) => PageToggle(
         b.id,
         words(text),
         [for (final c in children) collectBlock(c)],
+        indent: b.indent,
       ),
       PageTable(:final rows) => PageTable(b.id, [
         for (final (r, row) in rows.indexed)
@@ -201,7 +203,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
             for (final (c, text) in row.indexed)
               _fields['c:${b.id}:$r:$c']?.text ?? text,
           ],
-      ]),
+      ], indent: b.indent),
       PagePhoto(:final path, :final caption) => PagePhoto(
         b.id,
         path,
@@ -219,8 +221,8 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
 
   /// A block's field: bare, growing with its words, in their own
   /// direction. [onSlash]: "/" typed on a line that was empty. [onEnter]:
-  /// Enter is a new line of its own (a toggle's, a note's). [onEmptyBack]:
-  /// Backspace on an empty line.
+  /// Enter is a new line of its own (a toggle's, a note's). [onStartBack]:
+  /// Backspace with the cursor at the very start (an empty line too).
   Widget blockText(
     String key,
     String text, {
@@ -229,7 +231,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     int? maxLength,
     ValueChanged<String>? onSlash,
     VoidCallback? onEnter,
-    VoidCallback? onEmptyBack,
+    VoidCallback? onStartBack,
     bool readOnly = false,
   }) {
     final c = blockField(key, text);
@@ -264,14 +266,15 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         blocksEdited();
       },
     );
-    if (onEmptyBack != null) {
+    if (onStartBack != null) {
       field = KeyboardListener(
         focusNode: _keyNode(key),
         onKeyEvent: (e) {
+          final at = c.selection;
           if (e is KeyDownEvent &&
               e.logicalKey == LogicalKeyboardKey.backspace &&
-              c.text.isEmpty) {
-            onEmptyBack();
+              (c.text.isEmpty || (at.isCollapsed && at.baseOffset == 0))) {
+            onStartBack();
           }
         },
         child: field,
@@ -300,13 +303,18 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// The ⋮⋮'s height (Work's page: a 44 row; a note's lines are lower).
   double get handleHeight => BvSize.controlMd;
 
+  /// The block at [index] as its row shows it (a note: at its level, with
+  /// room for a fold arrow, review 93).
+  Widget decorateBlock(int index, PageBlock block, Widget child) => child;
+
   /// A block on its row: ⋮⋮ (hold to move, tap for its menu), and the
-  /// block.
-  Widget blockRow(int i) {
+  /// block. [listIndex]: its place among the rows shown, when some are
+  /// folded away (a note).
+  Widget blockRow(int i, {int? listIndex}) {
     final l10n = AppLocalizations.of(context);
     final b = editBlocks[i];
     final handle = ReorderableDelayedDragStartListener(
-      index: i,
+      index: listIndex ?? i,
       child: Semantics(
         button: true,
         label: l10n.pageMove,
@@ -336,7 +344,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         spacing: BvSpace.s8,
         children: [
           if (!at && handlesShown) handle,
-          Expanded(child: blockEditor(i, b)),
+          Expanded(child: decorateBlock(i, b, blockEditor(i, b))),
           if (at && handlesShown && currentBlockId == b.id) handle,
         ],
       ),
@@ -368,7 +376,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
             slashAt(f, replace: i);
           },
           onEnter: textEnter(i),
-          onEmptyBack: textBack(i),
+          onStartBack: textBack(i),
         );
       case PageHeading(:final text, :final level):
         return blockText(
@@ -378,7 +386,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
           hint: level == 1 ? l10n.pageHeading : l10n.notebookSubheading,
           maxLength: PageHeading.max,
           onEnter: textEnter(i),
-          onEmptyBack: textBack(i),
+          onStartBack: textBack(i),
         );
       case PageToggle(:final text, :final children):
         return Column(
