@@ -299,6 +299,7 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
     );
     if (widget.onMenu == null) return draftCard;
     // Its ⋯ over the card, where taps reach it (review 100 B2).
+    // TEMPORARY (D13): the redesign's swipe to Discard replaces it.
     return Stack(
       children: [
         draftCard,

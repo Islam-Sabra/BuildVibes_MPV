@@ -249,6 +249,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   }
 
   /// A Draft's ⋯ (review 100 B2): Discard, with Undo.
+  ///
+  /// TEMPORARY (review 100 D13, accepted by the lead): a one-row sheet
+  /// until the redesign's swipe to Discard (Part 3b) replaces it.
   Future<void> _draftMenu(NoteDraft draft) =>
       _oneMenu(() => _openDraftMenu(draft));
 
