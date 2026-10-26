@@ -6,6 +6,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:buildvibes/core/design/bv_tokens.dart';
+import 'package:buildvibes/core/design/daybook_writing_specs.dart'
+    show BvLineMenuSpec;
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -15,6 +18,8 @@ import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_line_popover.dart'
+    show visibleTop;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -383,8 +388,92 @@ void main() {
             tester.view.viewInsets.bottom / tester.view.devicePixelRatio;
         final menu = tester.getRect(_key('page-block-menu'));
         expect(menu.bottom, lessThanOrEqualTo(keyboardTop));
-        expect(menu.top, greaterThanOrEqualTo(kToolbarHeight));
+        expect(menu.top, greaterThanOrEqualTo(BvSize.topBar));
       });
+    });
+
+    group('D5, D6 room for a card, with the keyboard up [$lang]', () {
+      /// 30 lines, the keyboard 300 high, and line [n] in the middle of the
+      /// room left: a card fits neither under it nor over it.
+      Future<double> middle(WidgetTester tester, int n) async {
+        await _open(
+          tester,
+          lang,
+          draft: _draft([
+            for (var i = 0; i < 30; i++) PageText('t-$i', 'Line $i'),
+          ]),
+        );
+        await _tap(tester, _key('note-draft'));
+        tester.view.viewInsets = FakeViewPadding(
+          bottom: 300 * tester.view.devicePixelRatio,
+        );
+        addTearDown(tester.view.resetViewInsets);
+        await tester.pumpAndSettle();
+        _editor(tester).focusBlock('t:t-$n');
+        await tester.pumpAndSettle();
+        await Scrollable.ensureVisible(
+          tester.element(_key('page-field-t:t-$n')),
+          alignment: 0.5,
+        );
+        await tester.pumpAndSettle();
+        final screen =
+            tester.view.physicalSize.height / tester.view.devicePixelRatio;
+        return screen - 300;
+      }
+
+      void beside(WidgetTester tester, String card, int n, double floor) {
+        final line = tester.getRect(_key('page-field-t:t-$n'));
+        final rect = tester.getRect(_key(card));
+        // Never on the line, never under the keyboard or the top bar.
+        expect(
+          rect.top >= line.bottom || rect.bottom <= line.top,
+          isTrue,
+          reason: 'card $rect, line $line',
+        );
+        expect(rect.bottom, lessThanOrEqualTo(floor));
+        expect(rect.top, greaterThanOrEqualTo(BvSize.topBar));
+        // Every row shows: the card doesn't scroll inside.
+        final inner = tester.state<ScrollableState>(
+          find
+              .ancestor(of: _key(card), matching: find.byType(Scrollable))
+              .first,
+        );
+        expect(inner.position.maxScrollExtent, 0);
+      }
+
+      testWidgets('D5: the line menu: the line scrolls up first, though the '
+          'Scaffold takes the keyboard out of its insets', (tester) async {
+        final floor = await middle(tester, 14);
+        await tester.tap(_key('page-handle-t-14'));
+        await tester.pumpAndSettle();
+        beside(tester, 'page-block-menu', 14, floor);
+      });
+
+      testWidgets('D6: the "/" card makes room for its real height', (
+        tester,
+      ) async {
+        final floor = await middle(tester, 14);
+        final c = tester.widget<TextField>(_key('page-field-t:t-14'));
+        final words = c.controller!.text;
+        tester.testTextInput.enterText('$words ');
+        await tester.pumpAndSettle();
+        tester.testTextInput.enterText('$words /');
+        await tester.pumpAndSettle();
+        expect(_key('page-add-menu'), findsOneWidget);
+        beside(tester, 'page-add-menu', 14, floor);
+      });
+    });
+
+    testWidgets('D7: the top bar and the room under it read one BV token '
+        '[$lang]', (tester) async {
+      await _open(tester, lang);
+      final bar = tester.getRect(find.byType(AppBar).first);
+      expect(bar.height, BvSize.topBar);
+      final media = MediaQuery.of(tester.element(find.byType(AppBar).first));
+      expect(
+        visibleTop(media),
+        media.padding.top + BvSize.topBar + BvLineMenuSpec.screenMargin,
+      );
     });
 
     group('B5 ⋯ opens at once, one menu at a time [$lang]', () {

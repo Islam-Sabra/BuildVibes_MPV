@@ -216,6 +216,10 @@ abstract final class BvSize {
   static const touchMin = 48.0;
   static const controlMd = 44.0;
   static const controlLg = 52.0;
+
+  /// A screen's top bar (the theme's app bar; review 100 D7: what a card
+  /// next to a line stays under).
+  static const topBar = 56.0;
   static const iconSm = 16.0;
   static const iconMd = 20.0;
   static const iconLg = 24.0;

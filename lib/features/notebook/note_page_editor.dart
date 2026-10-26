@@ -793,8 +793,6 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     closeSlash();
     editBlocks = collectBlocks();
     final id = editBlocks[index].id;
-    await _roomForMenu(id);
-    if (!mounted) return;
     setState(() {
       _marked = id;
       _turning = false;
@@ -806,52 +804,10 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       barrier: true,
       gap: BvLineMenuSpec.menuGap,
       onDismiss: _closeMenu,
+      // D5, D6: room for the menu as it really is, the keyboard counted.
+      makeRoom: scrollForCard,
       builder: (context) => _menuCard(context, id),
     );
-  }
-
-  /// The line menu shows every row (lead, 26 Oct): with no room for it
-  /// under the line nor over it, inside what the top bar and the keyboard
-  /// leave (review 100 B4), the note first scrolls the line up until the
-  /// menu fits under it; failing that, down for room over it, as far as
-  /// the list goes. A card still taller than the room scrolls inside.
-  Future<void> _roomForMenu(String id) async {
-    final row = _rows[id]?.currentContext;
-    final box = row?.findRenderObject() as RenderBox?;
-    final position = Scrollable.maybeOf(context)?.position;
-    if (row == null || box == null || !box.attached || position == null) {
-      return;
-    }
-    final media = MediaQuery.of(context);
-    final top = box.localToGlobal(Offset.zero).dy;
-    final bottom = top + box.size.height;
-    const need =
-        BvLineMenuSpec.menuMostRows * BvLineMenuSpec.rowHeight +
-        2 * BvLineMenuSpec.padding +
-        BvLineMenuSpec.menuGap;
-    // B4: the room the top bar and the keyboard leave.
-    final floor = media.size.height - visibleBottom(media);
-    final ceiling = visibleTop(media);
-    final up = bottom + need - floor;
-    final down = ceiling + need - top;
-    if (up <= 0 || down <= 0) return;
-    final pixels = position.pixels;
-    final ways = [
-      if (pixels + up <= position.maxScrollExtent) pixels + up,
-      if (pixels - down >= position.minScrollExtent) pixels - down,
-    ];
-    final to = ways.isNotEmpty
-        ? ways.first
-        : (up < down ? position.maxScrollExtent : position.minScrollExtent);
-    if (_still) {
-      position.jumpTo(to);
-    } else {
-      await position.animateTo(
-        to,
-        duration: BvMotion.fast,
-        curve: BvMotion.standard,
-      );
-    }
   }
 
   /// Back while writing (review 100 B5): the line menu or the "/" card

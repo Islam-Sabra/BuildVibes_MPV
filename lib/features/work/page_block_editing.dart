@@ -217,6 +217,30 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   void focusBlockLater(String key) =>
       WidgetsBinding.instance.addPostFrameCallback((_) => focusBlock(key));
 
+  /// Room for a card next to a line (review 100 B4, D5, D6): the page
+  /// scrolls the line [up] so the card fits under it, or, when the page
+  /// can't go that far, [down] so it fits over it; failing both, as far as
+  /// the page goes the shorter way.
+  Future<void> scrollForCard({required double up, required double down}) async {
+    final position = Scrollable.maybeOf(context)?.position;
+    if (position == null || !position.hasPixels) return;
+    final pixels = position.pixels;
+    final to = pixels + up <= position.maxScrollExtent
+        ? pixels + up
+        : pixels - down >= position.minScrollExtent
+        ? pixels - down
+        : (up < down ? position.maxScrollExtent : position.minScrollExtent);
+    if (MediaQuery.disableAnimationsOf(context)) {
+      position.jumpTo(to);
+    } else {
+      await position.animateTo(
+        to,
+        duration: BvMotion.fast,
+        curve: BvMotion.standard,
+      );
+    }
+  }
+
   /// The cursor to [key] now, before the page is drawn again (review 100
   /// B1): the line it leaves never lets go of the focus first, so the
   /// keyboard stays up. A line not drawn yet takes the focus as it comes.
@@ -433,7 +457,9 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     _slashShown = items;
     _slashCard.show(
       context,
-      anchor: () => _focus[key]?.context,
+      makeRoom: scrollForCard,
+      // The whole field: a line of more than one row is all the line.
+      anchor: () => _fieldPlaces[key]?.currentContext,
       builder: (context) {
         final shown = _slashShown;
         if (shown.isEmpty) return const SizedBox.shrink();

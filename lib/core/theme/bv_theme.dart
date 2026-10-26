@@ -103,6 +103,7 @@ abstract final class BvTheme {
         surfaceTintColor: BvColors.surfaceApp,
         elevation: 0,
         scrolledUnderElevation: 0,
+        toolbarHeight: BvSize.topBar,
         centerTitle: false,
         titleTextStyle: type.titleLg,
         iconTheme: const IconThemeData(
