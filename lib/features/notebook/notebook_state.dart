@@ -757,8 +757,10 @@ class Notebook extends AsyncNotifier<NotebookData> {
   Future<NoteChange> _upload(NoteChange change) async {
     var note = change.note;
     if (change.op != 'save' || note == null) return change;
-    note = await _uploadPage(note);
-    change = NoteChange.save(note);
+    // A new page made with it stays with each kept step.
+    final title = change.newPageTitle;
+    note = await _uploadPage(note, title);
+    change = NoteChange.save(note, newPageTitle: title);
     final recording = note.recording;
     final photos = note.photos;
     final waitingRecording = recording != null && recording.path == null;
@@ -779,12 +781,16 @@ class Notebook extends AsyncNotifier<NotebookData> {
       _waiting = [
         NoteChange.save(
           uploaded.copyWith(photos: [...sent, ...photos.skip(sent.length)]),
+          newPageTitle: title,
         ),
         ..._waiting.skip(1),
       ];
       await _store();
     }
-    final done = NoteChange.save(uploaded.copyWith(photos: sent));
+    final done = NoteChange.save(
+      uploaded.copyWith(photos: sent),
+      newPageTitle: title,
+    );
     _waiting = [done, ..._waiting.skip(1)];
     await _store();
     return done;
@@ -792,10 +798,13 @@ class Notebook extends AsyncNotifier<NotebookData> {
 
   /// A page's PDFs and voice blocks, each kept on the phone's list as it
   /// goes, so a lost signal sends only the rest.
-  Future<Note> _uploadPage(Note note) async {
+  Future<Note> _uploadPage(Note note, String? newPageTitle) async {
     var sent = note;
     Future<void> keep() async {
-      _waiting = [NoteChange.save(sent), ..._waiting.skip(1)];
+      _waiting = [
+        NoteChange.save(sent, newPageTitle: newPageTitle),
+        ..._waiting.skip(1),
+      ];
       await _store();
     }
 

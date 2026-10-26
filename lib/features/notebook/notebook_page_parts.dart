@@ -244,10 +244,14 @@ class NotebookPageRow extends StatelessWidget {
                               size: BvNotebookPagesSpec.todosIcon,
                               color: BvColors.textAction,
                             ),
-                            Text(
-                              l10n.notebookTodosOpen(openTodos),
-                              style: type.metadata.copyWith(
-                                color: BvColors.textAction,
+                            Flexible(
+                              child: Text(
+                                l10n.notebookTodosOpen(openTodos),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: type.metadata.copyWith(
+                                  color: BvColors.textAction,
+                                ),
                               ),
                             ),
                           ],
