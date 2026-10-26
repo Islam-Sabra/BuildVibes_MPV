@@ -514,3 +514,12 @@ abstract final class BvHoldSpec {
   /// lets-go on a phone, then no more.
   static const hintTimes = 2;
 }
+
+/// Back by swipe on an iPhone (review 100 B6): a swipe in from the leading
+/// edge, as wide as the iPhone's own, goes back once it has crossed a
+/// third of the screen or was flung.
+abstract final class BvBackSwipeSpec {
+  static const edge = BvSpace.s20;
+  static const distance = 1 / 3;
+  static const fling = 300.0;
+}

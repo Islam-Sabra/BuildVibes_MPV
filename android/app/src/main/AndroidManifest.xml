@@ -12,7 +12,10 @@
     <!-- F107 (NBX4): a note's GPS position, asked the first time. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Review 100 B6: Android's predictive back (the screen under shows
+         while swiping back). -->
     <application
+        android:enableOnBackInvokedCallback="true"
         android:label="BuildVibes"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

@@ -24,6 +24,7 @@ import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_list_row.dart';
@@ -1656,93 +1657,98 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         }
         _leave();
       },
-      child: Scaffold(
-        backgroundColor: BvColors.surfaceApp,
-        appBar: AppBar(
+      // B6 (D12): the iPhone's swipe from the edge does what ← does here
+      // too, while writing or selecting.
+      child: BvBackSwipe(
+        holding: _writing || selecting,
+        child: Scaffold(
           backgroundColor: BvColors.surfaceApp,
-          leading: selecting
-              ? IconButton(
-                  key: const Key('selection-close'),
-                  tooltip: l10n.notebookCloseSelection,
-                  icon: const Icon(BvIcons.close),
-                  onPressed: () => setState(_selected.clear),
+          appBar: AppBar(
+            backgroundColor: BvColors.surfaceApp,
+            leading: selecting
+                ? IconButton(
+                    key: const Key('selection-close'),
+                    tooltip: l10n.notebookCloseSelection,
+                    icon: const Icon(BvIcons.close),
+                    onPressed: () => setState(_selected.clear),
+                  )
+                : null,
+            title: selecting
+                ? Text(l10n.notebookSelected(_selected.length))
+                : writingNow
+                ? Text(writingTitle, key: const Key('writing-page-title'))
+                : null,
+            actions: [
+              if (!selecting && !writingNow && page != null) ...[
+                IconButton(
+                  key: const Key('page-search'),
+                  tooltip: l10n.notebookSearchTip,
+                  icon: const Icon(BvIcons.search),
+                  onPressed: () => context.push(AppRoutes.notebookSearch),
+                ),
+                IconButton(
+                  key: const Key('page-more'),
+                  tooltip: l10n.daybookMore,
+                  icon: const Icon(BvIcons.more),
+                  onPressed: () => _pageMenu(page),
+                ),
+              ],
+            ],
+          ),
+          floatingActionButton: !writingNow && !selecting && page != null
+              ? WriteHereButton(onTap: () => unawaited(_write()))
+              : null,
+          body: Column(
+            children: [
+              Expanded(child: body()),
+              if (writingNow)
+                SafeArea(
+                  top: false,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _tools(l10n, draft),
+                      if (_panel == _Panel.categories)
+                        SizedBox(
+                          height: BvNoteBlocksSpec.panelHeight,
+                          child: NoteCategoriesGrid(
+                            current: _kind,
+                            onPick: _pickKind,
+                          ),
+                        ),
+                      if (_panel == _Panel.location)
+                        NoteLocationPanel(
+                          location: draft.location,
+                          onChanged: (l) => unawaited(
+                            _change((d) => d.copyWith(location: () => l)),
+                          ),
+                          onDone: _closeLocation,
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          bottomNavigationBar: selecting
+              ? SelectionBar(
+                  actions: [
+                    SelectionAction(
+                      key: const Key('select-move'),
+                      icon: BvIcons.moveInto,
+                      label: l10n.notebookMoveToPage,
+                      onTap: () => _moveEntries(chosen),
+                    ),
+                    SelectionAction(
+                      key: const Key('select-delete'),
+                      icon: BvIcons.delete,
+                      label: l10n.delete,
+                      destructive: true,
+                      onTap: () => _deleteSelected(chosen),
+                    ),
+                  ],
                 )
               : null,
-          title: selecting
-              ? Text(l10n.notebookSelected(_selected.length))
-              : writingNow
-              ? Text(writingTitle, key: const Key('writing-page-title'))
-              : null,
-          actions: [
-            if (!selecting && !writingNow && page != null) ...[
-              IconButton(
-                key: const Key('page-search'),
-                tooltip: l10n.notebookSearchTip,
-                icon: const Icon(BvIcons.search),
-                onPressed: () => context.push(AppRoutes.notebookSearch),
-              ),
-              IconButton(
-                key: const Key('page-more'),
-                tooltip: l10n.daybookMore,
-                icon: const Icon(BvIcons.more),
-                onPressed: () => _pageMenu(page),
-              ),
-            ],
-          ],
         ),
-        floatingActionButton: !writingNow && !selecting && page != null
-            ? WriteHereButton(onTap: () => unawaited(_write()))
-            : null,
-        body: Column(
-          children: [
-            Expanded(child: body()),
-            if (writingNow)
-              SafeArea(
-                top: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _tools(l10n, draft),
-                    if (_panel == _Panel.categories)
-                      SizedBox(
-                        height: BvNoteBlocksSpec.panelHeight,
-                        child: NoteCategoriesGrid(
-                          current: _kind,
-                          onPick: _pickKind,
-                        ),
-                      ),
-                    if (_panel == _Panel.location)
-                      NoteLocationPanel(
-                        location: draft.location,
-                        onChanged: (l) => unawaited(
-                          _change((d) => d.copyWith(location: () => l)),
-                        ),
-                        onDone: _closeLocation,
-                      ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-        bottomNavigationBar: selecting
-            ? SelectionBar(
-                actions: [
-                  SelectionAction(
-                    key: const Key('select-move'),
-                    icon: BvIcons.moveInto,
-                    label: l10n.notebookMoveToPage,
-                    onTap: () => _moveEntries(chosen),
-                  ),
-                  SelectionAction(
-                    key: const Key('select-delete'),
-                    icon: BvIcons.delete,
-                    label: l10n.delete,
-                    destructive: true,
-                    onTap: () => _deleteSelected(chosen),
-                  ),
-                ],
-              )
-            : null,
       ),
     );
   }

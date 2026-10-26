@@ -74,6 +74,11 @@ class BvLinePopover {
                   key: const Key('line-popover-barrier'),
                   behavior: HitTestBehavior.opaque,
                   onTap: onDismiss,
+                  // A swipe behind it (an iPhone's back, B6) only closes it,
+                  // as a tap does.
+                  onHorizontalDragEnd: onDismiss == null
+                      ? null
+                      : (_) => onDismiss(),
                 ),
               ),
             Positioned.fill(

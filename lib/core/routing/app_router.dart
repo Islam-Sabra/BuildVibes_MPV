@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show MaterialPage;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -118,6 +119,33 @@ String? redirectForGate(AppGate gate, String location) {
 /// Entry and onboarding sit outside the tabs. Each tab keeps its own
 /// history (an indexed stack of branches). Create is not a tab: it writes
 /// a post in place on Home.
+/// A screen (review 100 B6): its [builder] is Flutter's [MaterialPage].
+/// go_router looks for its own `material_ui` MaterialApp, another class
+/// than the app's, so left to itself it built every screen with no
+/// transition at all: no predictive back on Android, no edge swipe on an
+/// iPhone. As a MaterialPage, a screen moves with the theme's transitions.
+class _Screen extends GoRoute {
+  _Screen({
+    required super.path,
+    GoRouterWidgetBuilder? builder,
+    super.redirect,
+    super.routes,
+  }) : super(
+         pageBuilder: builder == null
+             ? null
+             : (context, state) => MaterialPage<void>(
+                 key: state.pageKey,
+                 name: state.name ?? state.path,
+                 arguments: <String, String>{
+                   ...state.pathParameters,
+                   ...state.uri.queryParameters,
+                 },
+                 restorationId: state.pageKey.value,
+                 child: builder(context, state),
+               ),
+       );
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   // The router re-checks where it may be whenever the gate changes.
   final gate = ValueNotifier<AppGate>(ref.read(appGateProvider));
@@ -129,63 +157,63 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) =>
         redirectForGate(gate.value, state.matchedLocation),
     routes: [
-      GoRoute(
+      _Screen(
         path: AppRoutes.loading,
         builder: (context, state) => const LoadingScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.welcome,
         builder: (context, state) => const WelcomeScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.scheduled,
         builder: (context, state) => const DeletionScheduledScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.join,
         builder: (context, state) => const JoinScreen(),
         routes: [
-          GoRoute(
+          _Screen(
             path: 'phone',
             redirect: (context, state) =>
                 ref.read(phoneSignInProvider) ? null : AppRoutes.joinEmail,
             builder: (context, state) => const PhoneScreen(),
           ),
-          GoRoute(
+          _Screen(
             path: 'email',
             builder: (context, state) => const EmailScreen(),
           ),
-          GoRoute(
+          _Screen(
             path: 'code',
             builder: (context, state) => const CodeScreen(),
           ),
         ],
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.onboardingAbout,
         builder: (context, state) => const AboutYouScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.onboardingRole,
         builder: (context, state) =>
             RolePickerScreen(args: state.extra! as RolePickerArgs),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.onboardingPeople,
         builder: (context, state) => const PeopleScreen(),
       ),
       // Before ":id" (F78).
-      GoRoute(
+      _Screen(
         path: AppRoutes.peopleSearch,
         builder: (context, state) =>
             const PeopleSearchScreen(purpose: PeopleSearchFor.profile),
       ),
-      GoRoute(
+      _Screen(
         path: '${AppRoutes.people}/:id',
         builder: (context, state) =>
             PersonProfileScreen(profileId: state.pathParameters['id']!),
         routes: [
-          GoRoute(
+          _Screen(
             path: 'work/:itemId',
             builder: (context, state) => DeliveredPublicScreen(
               profileId: state.pathParameters['id']!,
@@ -195,48 +223,48 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       // "add" and "new" before ":id".
-      GoRoute(
+      _Screen(
         path: AppRoutes.projectsAdd,
         builder: (context, state) => const AddProjectScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.projectsNew,
         builder: (context, state) =>
             NewProjectScreen(initialName: state.extra as String?),
       ),
-      GoRoute(
+      _Screen(
         path: '${AppRoutes.posts}/:id',
         builder: (context, state) => PostScreen(
           postId: state.pathParameters['id']!,
           replyId: state.uri.queryParameters['reply'],
         ),
       ),
-      GoRoute(
+      _Screen(
         path: '${AppRoutes.projects}/:id',
         builder: (context, state) =>
             ProjectSheetScreen(projectId: state.pathParameters['id']!),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.spaces,
         builder: (context, state) => const MySpacesScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.needs,
         builder: (context, state) => const NeedsYouScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.notebook,
         builder: (context, state) => const NotebookScreen(),
         routes: [
-          GoRoute(
+          _Screen(
             path: 'calendar',
             builder: (context, state) => const CalendarScreen(),
           ),
-          GoRoute(
+          _Screen(
             path: 'write',
             builder: (context, state) => const NotebookPageScreen.write(),
           ),
-          GoRoute(
+          _Screen(
             path: 'pages/:id',
             builder: (context, state) => NotebookPageScreen(
               key: ValueKey(state.pathParameters['id']),
@@ -244,46 +272,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               entry: state.uri.queryParameters['entry'],
             ),
           ),
-          GoRoute(
+          _Screen(
             path: 'search',
             builder: (context, state) => const NotebookSearchScreen(),
           ),
         ],
       ),
-      GoRoute(
+      _Screen(
         path: AppRoutes.messages,
         builder: (context, state) => const MessagesScreen(),
         routes: [
           // "requests", "new" and "with" before ":thread".
-          GoRoute(
+          _Screen(
             path: 'new',
             builder: (context, state) =>
                 const PeopleSearchScreen(purpose: PeopleSearchFor.message),
           ),
-          GoRoute(
+          _Screen(
             path: 'requests',
             builder: (context, state) => const MessageRequestsScreen(),
           ),
-          GoRoute(
+          _Screen(
             path: 'with/:profileId',
             builder: (context, state) => DmThreadScreen.withPerson(
               profileId: state.pathParameters['profileId']!,
               person: state.extra as DmPerson?,
             ),
           ),
-          GoRoute(
+          _Screen(
             path: ':thread',
             builder: (context, state) =>
                 DmThreadScreen(threadId: state.pathParameters['thread']!),
           ),
         ],
       ),
-      GoRoute(
+      _Screen(
         path: '${AppRoutes.removals}/:id',
         builder: (context, state) =>
             RemovedScreen(removalId: state.pathParameters['id']!),
         routes: [
-          GoRoute(
+          _Screen(
             path: 'appeal',
             builder: (context, state) =>
                 AppealScreen(removalId: state.pathParameters['id']!),
@@ -291,11 +319,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       // "new" before ":id".
-      GoRoute(
+      _Screen(
         path: AppRoutes.spacesNew,
         builder: (context, state) => const NewSpaceScreen(),
       ),
-      GoRoute(
+      _Screen(
         path: '${AppRoutes.spaces}/:id',
         builder: (context, state) => SpaceScreen(
           spaceId: state.pathParameters['id']!,
@@ -306,36 +334,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               AppRoutes.spaceChatTab,
         ),
         routes: [
-          GoRoute(
+          _Screen(
             path: 'invite',
             builder: (context, state) =>
                 InviteScreen(spaceId: state.pathParameters['id']!),
           ),
-          GoRoute(
+          _Screen(
             path: 'info',
             builder: (context, state) =>
                 SpaceInfoScreen(spaceId: state.pathParameters['id']!),
           ),
-          GoRoute(
+          _Screen(
             path: 'transfer',
             builder: (context, state) =>
                 TransferScreen(spaceId: state.pathParameters['id']!),
           ),
-          GoRoute(
+          _Screen(
             path: 'library/:fileId/page',
             builder: (context, state) => LibraryFileScreen(
               spaceId: state.pathParameters['id']!,
               fileId: state.pathParameters['fileId']!,
             ),
           ),
-          GoRoute(
+          _Screen(
             path: 'library/:fileId',
             builder: (context, state) => FilePreviewScreen(
               spaceId: state.pathParameters['id']!,
               fileId: state.pathParameters['fileId']!,
             ),
           ),
-          GoRoute(
+          _Screen(
             path: 'week',
             builder: (context, state) => WeekReportScreen(
               spaceId: state.pathParameters['id']!,
@@ -344,7 +372,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ),
           ),
-          GoRoute(
+          _Screen(
             path: 'chat/:threadId',
             builder: (context, state) => ThreadScreen(
               spaceId: state.pathParameters['id']!,
@@ -357,7 +385,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   : null,
             ),
             routes: [
-              GoRoute(
+              _Screen(
                 path: 'meeting',
                 redirect: (context, state) =>
                     state.extra is ChatMessage ? null : AppRoutes.home,
@@ -369,35 +397,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          GoRoute(
+          _Screen(
             path: 'walk',
             builder: (context, state) =>
                 WalkScreen(spaceId: state.pathParameters['id']!),
           ),
-          GoRoute(
+          _Screen(
             path: 'search',
             builder: (context, state) =>
                 SpaceSearchScreen(spaceId: state.pathParameters['id']!),
           ),
-          GoRoute(
+          _Screen(
             path: 'templates',
             builder: (context, state) =>
                 SpaceTemplatesScreen(spaceId: state.pathParameters['id']!),
           ),
           // "new" before ":teamId".
-          GoRoute(
+          _Screen(
             path: 'teams/new',
             builder: (context, state) =>
                 NewTeamScreen(spaceId: state.pathParameters['id']!),
           ),
-          GoRoute(
+          _Screen(
             path: 'teams/:teamId',
             builder: (context, state) => TeamScreen(
               spaceId: state.pathParameters['id']!,
               teamId: state.pathParameters['teamId']!,
             ),
           ),
-          GoRoute(
+          _Screen(
             path: 'members/:profileId',
             builder: (context, state) => MemberPassScreen(
               spaceId: state.pathParameters['id']!,
@@ -412,7 +440,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(
+              _Screen(
                 path: AppRoutes.home,
                 builder: (context, state) => const HomeScreen(),
               ),
@@ -420,7 +448,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
+              _Screen(
                 path: AppRoutes.explore,
                 builder: (context, state) => const ExploreScreen(),
               ),
@@ -428,7 +456,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
+              _Screen(
                 path: AppRoutes.activity,
                 builder: (context, state) => const ActivityScreen(),
               ),
@@ -436,58 +464,58 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
+              _Screen(
                 path: AppRoutes.profile,
                 builder: (context, state) => const ProfileScreen(),
                 routes: [
-                  GoRoute(
+                  _Screen(
                     path: 'delivered',
                     builder: (context, state) => const DeliveredScreen(),
                   ),
-                  GoRoute(
+                  _Screen(
                     path: 'settings',
                     builder: (context, state) => const SettingsScreen(),
                     routes: [
-                      GoRoute(
+                      _Screen(
                         path: 'notifications',
                         builder: (context, state) =>
                             const NotificationsScreen(),
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'blocked',
                         builder: (context, state) => const BlockedScreen(),
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'privacy',
                         builder: (context, state) =>
                             const PrivacySafetyScreen(),
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'region',
                         builder: (context, state) =>
                             const LanguageRegionScreen(),
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'account',
                         builder: (context, state) =>
                             const AccountSecurityScreen(),
                         routes: [
-                          GoRoute(
+                          _Screen(
                             path: 'download',
                             builder: (context, state) =>
                                 const DownloadDataScreen(),
                           ),
-                          GoRoute(
+                          _Screen(
                             path: 'delete',
                             builder: (context, state) =>
                                 const DeleteAccountScreen(),
                             routes: [
-                              GoRoute(
+                              _Screen(
                                 path: 'blocked',
                                 builder: (context, state) =>
                                     const DeleteBlockedScreen(),
                               ),
-                              GoRoute(
+                              _Screen(
                                 path: 'confirm',
                                 builder: (context, state) =>
                                     const DeleteConfirmScreen(),
@@ -497,31 +525,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         ],
                       ),
                       if (kDebugMode)
-                        GoRoute(
+                        _Screen(
                           path: 'components',
                           builder: (context, state) =>
                               const ComponentsGalleryScreen(),
                         ),
                     ],
                   ),
-                  GoRoute(
+                  _Screen(
                     path: 'edit',
                     builder: (context, state) => const EditProfileScreen(),
                     routes: [
-                      GoRoute(
+                      _Screen(
                         path: 'basics',
                         builder: (context, state) => const BasicsScreen(),
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'about',
                         builder: (context, state) => const AboutScreen(),
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'experience',
                         builder: (context, state) =>
                             const ExperienceListScreen(),
                         routes: [
-                          GoRoute(
+                          _Screen(
                             path: 'form',
                             builder: (context, state) => ExperienceFormScreen(
                               entry: state.extra as ExperienceEntry?,
@@ -529,11 +557,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                           ),
                         ],
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'open-to',
                         builder: (context, state) => const OpenToScreen(),
                       ),
-                      GoRoute(
+                      _Screen(
                         path: 'projects',
                         builder: (context, state) => const CvProjectsScreen(),
                       ),
