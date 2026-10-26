@@ -13,6 +13,7 @@ import '../../data/repositories/daybook_repository.dart' show NewWalk;
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_dialog.dart';
@@ -349,16 +350,21 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) unawaited(_leave());
-      },
-      child: Scaffold(
-        key: const Key('walk-screen'),
-        backgroundColor: BvColors.brandInk,
-        body: SafeArea(
-          child: _shots.isEmpty ? _start(context) : _walking(context),
+    // Review 100 B6: an iPhone's swipe from the edge does what ← does,
+    // also while this screen holds Back for itself.
+    return BvBackSwipe(
+      holding: true,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) unawaited(_leave());
+        },
+        child: Scaffold(
+          key: const Key('walk-screen'),
+          backgroundColor: BvColors.brandInk,
+          body: SafeArea(
+            child: _shots.isEmpty ? _start(context) : _walking(context),
+          ),
         ),
       ),
     );

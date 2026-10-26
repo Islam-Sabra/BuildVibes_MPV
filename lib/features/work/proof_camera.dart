@@ -11,6 +11,7 @@ import '../../core/haptics.dart';
 import '../../data/models/daybook.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_photo_preparing.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
@@ -264,178 +265,183 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
       textAlign: TextAlign.center,
       style: type.labelMd.copyWith(color: inverse),
     );
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        if (_switching) {
-          setState(() => _switching = false);
-        } else {
-          unawaited(_leave());
-        }
-      },
-      child: Scaffold(
-        key: const Key('proof-camera'),
-        backgroundColor: BvColors.brandInk,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) => Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (photo) ...[
-                      Image(
-                        image: ref.watch(
-                          localPhotoProvider(_photos.last.local),
+    // Review 100 B6: an iPhone's swipe from the edge does what ← does,
+    // also while this screen holds Back for itself.
+    return BvBackSwipe(
+      holding: true,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          if (_switching) {
+            setState(() => _switching = false);
+          } else {
+            unawaited(_leave());
+          }
+        },
+        child: Scaffold(
+          key: const Key('proof-camera'),
+          backgroundColor: BvColors.brandInk,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (photo) ...[
+                        Image(
+                          image: ref.watch(
+                            localPhotoProvider(_photos.last.local),
+                          ),
+                          fit: BoxFit.cover,
                         ),
-                        fit: BoxFit.cover,
-                      ),
-                      PositionedDirectional(
-                        start: BvProofCameraSpec.labelInset,
-                        end: BvProofCameraSpec.labelInset,
-                        bottom: BvProofCameraSpec.labelInset,
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: _Label(
-                            words.photoLabel(
-                              place: _post.place,
-                              at: _photos.first.takenAt,
-                              name: name,
+                        PositionedDirectional(
+                          start: BvProofCameraSpec.labelInset,
+                          end: BvProofCameraSpec.labelInset,
+                          bottom: BvProofCameraSpec.labelInset,
+                          child: Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: _Label(
+                              words.photoLabel(
+                                place: _post.place,
+                                at: _photos.first.takenAt,
+                                name: name,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ] else if (_preparing > 0)
-                      BvPhotoPreparing(
-                        key: const Key('proof-preparing'),
-                        label: l10n.photoPreparing,
-                        inverse: true,
-                      )
-                    else
-                      // Camera only (founder, review 47), one tap away.
-                      Center(
-                        child: _Shutter(
-                          label: l10n.daybookCamera,
-                          onTap: _addPhoto,
-                        ),
-                      ),
-                    if (_switching)
-                      Positioned.fill(
-                        child: GestureDetector(
-                          key: const Key('proof-switch-away'),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => setState(() => _switching = false),
-                        ),
-                      ),
-                    SafeArea(
-                      bottom: false,
-                      child: Align(
-                        alignment: AlignmentDirectional.topCenter,
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(
-                            top: BvProofCameraSpec.linkTop,
-                            start: BvSpace.gutter,
-                            end: BvSpace.gutter,
+                      ] else if (_preparing > 0)
+                        BvPhotoPreparing(
+                          key: const Key('proof-preparing'),
+                          label: l10n.photoPreparing,
+                          inverse: true,
+                        )
+                      else
+                        // Camera only (founder, review 47), one tap away.
+                        Center(
+                          child: _Shutter(
+                            label: l10n.daybookCamera,
+                            onTap: _addPhoto,
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: BvProofCameraSpec.switchGap,
-                            children: [
-                              _Link(
-                                title: _post.title,
-                                closeLabel: l10n.daybookCloseProof,
-                                onClose: () => unawaited(_leave()),
-                                switchLabel: l10n.daybookSwitchItem,
-                                onSwitch: choices.length < 2
-                                    ? null
-                                    : () => setState(
-                                        () => _switching = !_switching,
+                        ),
+                      if (_switching)
+                        Positioned.fill(
+                          child: GestureDetector(
+                            key: const Key('proof-switch-away'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => setState(() => _switching = false),
+                          ),
+                        ),
+                      SafeArea(
+                        bottom: false,
+                        child: Align(
+                          alignment: AlignmentDirectional.topCenter,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              top: BvProofCameraSpec.linkTop,
+                              start: BvSpace.gutter,
+                              end: BvSpace.gutter,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: BvProofCameraSpec.switchGap,
+                              children: [
+                                _Link(
+                                  title: _post.title,
+                                  closeLabel: l10n.daybookCloseProof,
+                                  onClose: () => unawaited(_leave()),
+                                  switchLabel: l10n.daybookSwitchItem,
+                                  onSwitch: choices.length < 2
+                                      ? null
+                                      : () => setState(
+                                          () => _switching = !_switching,
+                                        ),
+                                ),
+                                if (_switching)
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxHeight:
+                                          constraints.maxHeight *
+                                          BvProofCameraSpec.switchMaxHeight,
+                                    ),
+                                    child: SingleChildScrollView(
+                                      child: BvPopoverMenu<String>.picker(
+                                        key: const Key('proof-switch'),
+                                        selected: _post.id,
+                                        items: [
+                                          for (final c in choices)
+                                            BvMenuItem(
+                                              value: c.id,
+                                              label: c.title,
+                                              icon: BvIcons.workItems,
+                                            ),
+                                        ],
+                                        onSelected: (id) => setState(() {
+                                          _post = choices.firstWhere(
+                                            (c) => c.id == id,
+                                          );
+                                          _switching = false;
+                                        }),
                                       ),
-                              ),
-                              if (_switching)
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxHeight:
-                                        constraints.maxHeight *
-                                        BvProofCameraSpec.switchMaxHeight,
-                                  ),
-                                  child: SingleChildScrollView(
-                                    child: BvPopoverMenu<String>.picker(
-                                      key: const Key('proof-switch'),
-                                      selected: _post.id,
-                                      items: [
-                                        for (final c in choices)
-                                          BvMenuItem(
-                                            value: c.id,
-                                            label: c.title,
-                                            icon: BvIcons.workItems,
-                                          ),
-                                      ],
-                                      onSelected: (id) => setState(() {
-                                        _post = choices.firstWhere(
-                                          (c) => c.id == id,
-                                        );
-                                        _switching = false;
-                                      }),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.all(
-                  BvProofCameraSpec.controlsPadding,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: BvProofCameraSpec.controlsGap,
-                  children: [
-                    if (photo) ...[
-                      noteField,
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: _Thumbs(
-                                photos: [for (final p in _photos) p.local],
-                                preparing: _preparing,
-                                preparingLabel: l10n.photoPreparing,
-                                addLabel: l10n.daybookAddAnotherPhoto,
-                                onAdd: _addPhoto,
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.all(
+                    BvProofCameraSpec.controlsPadding,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: BvProofCameraSpec.controlsGap,
+                    children: [
+                      if (photo) ...[
+                        noteField,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: _Thumbs(
+                                  photos: [for (final p in _photos) p.local],
+                                  preparing: _preparing,
+                                  preparingLabel: l10n.photoPreparing,
+                                  addLabel: l10n.daybookAddAnotherPhoto,
+                                  onAdd: _addPhoto,
+                                ),
                               ),
                             ),
-                          ),
-                          send,
-                          const Spacer(),
-                        ],
-                      ),
-                      sendLabel,
-                    ] else if (_noPhoto) ...[
-                      noteField,
-                      Center(child: send),
-                      sendLabel,
-                    ] else
-                      _WithoutPhoto(
-                        label: l10n.daybookWithoutPhoto,
-                        onTap: () => setState(() => _noPhoto = true),
-                      ),
-                  ],
+                            send,
+                            const Spacer(),
+                          ],
+                        ),
+                        sendLabel,
+                      ] else if (_noPhoto) ...[
+                        noteField,
+                        Center(child: send),
+                        sendLabel,
+                      ] else
+                        _WithoutPhoto(
+                          label: l10n.daybookWithoutPhoto,
+                          onTap: () => setState(() => _noPhoto = true),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -26,6 +26,7 @@ import '../../data/models/template.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/template_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
 import '../../shared/widgets/bv_due_today_strip.dart';
@@ -1274,194 +1275,201 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final atToday = _writing || !_wasAway || shown == today;
     final day = atToday ? today : shown;
 
-    return PopScope(
-      canPop: !_writing,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        _menu != null ? _setMenu(null) : _stopWriting();
-      },
-      child: ColoredBox(
-        color: BvColors.surfaceApp,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            BvDaybookMasthead(
-              key: _mastheadKey,
-              weekday: atToday ? l10n.daybookTodayDivider : words.weekday(day),
-              date: atToday
-                  ? l10n.daybookMastheadToday(words.compactDate(today))
-                  : words.dayMonth(day),
-              onTap: _writing ? null : () => _openMonth(today, shown),
-            ),
-            // OF: the last try to reach the server failed for want of a
-            // signal; it goes as soon as something gets through.
-            if (!ref.watch(signalProvider))
-              BvNoSignalStrip(
-                key: const Key('no-signal'),
-                text: l10n.noSignalStrip,
+    // Review 100 B6: an iPhone's swipe from the edge does what ← does,
+    // also while this screen holds Back for itself.
+    return BvBackSwipe(
+      holding: _writing,
+      child: PopScope(
+        canPop: !_writing,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          _menu != null ? _setMenu(null) : _stopWriting();
+        },
+        child: ColoredBox(
+          color: BvColors.surfaceApp,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              BvDaybookMasthead(
+                key: _mastheadKey,
+                weekday: atToday
+                    ? l10n.daybookTodayDivider
+                    : words.weekday(day),
+                date: atToday
+                    ? l10n.daybookMastheadToday(words.compactDate(today))
+                    : words.dayMonth(day),
+                onTap: _writing ? null : () => _openMonth(today, shown),
               ),
-            if (due.isNotEmpty && !_writing)
-              BvDueTodayStrip(
-                key: const Key('to-do-strip'),
-                title: l10n.daybookDocketTitle(due.length),
-                oldest: inOwnDirection(due.first.title),
-                rest: _docketRest(due, words, now),
-                // Review 73 A1: every item, each opening its card.
-                onTap: () => showBvToDoSheet(
-                  context,
-                  title: l10n.daybookToDo,
-                  items: strip,
-                  onOpen: (n) {
-                    if (!mounted) return;
-                    setState(() => _target = DaybookTarget(due[n].postId));
-                  },
+              // OF: the last try to reach the server failed for want of a
+              // signal; it goes as soon as something gets through.
+              if (!ref.watch(signalProvider))
+                BvNoSignalStrip(
+                  key: const Key('no-signal'),
+                  text: l10n.noSignalStrip,
                 ),
-              ),
-            // Pinned announcements stay under the masthead while pinned
-            // (K1 v13), whatever their last activity.
-            if (!_writing)
-              for (final p in _pinned(cards, now))
-                Padding(
-                  padding: BvPinnedSpec.outer,
-                  child: _pinnedNote(p, words, cards, me: me, now: now),
+              if (due.isNotEmpty && !_writing)
+                BvDueTodayStrip(
+                  key: const Key('to-do-strip'),
+                  title: l10n.daybookDocketTitle(due.length),
+                  oldest: inOwnDirection(due.first.title),
+                  rest: _docketRest(due, words, now),
+                  // Review 73 A1: every item, each opening its card.
+                  onTap: () => showBvToDoSheet(
+                    context,
+                    title: l10n.daybookToDo,
+                    items: strip,
+                    onOpen: (n) {
+                      if (!mounted) return;
+                      setState(() => _target = DaybookTarget(due[n].postId));
+                    },
+                  ),
                 ),
-            Expanded(
-              key: _viewportKey,
-              child: LayoutBuilder(
-                builder: (context, constraints) => Stack(
-                  children: [
-                    Positioned.fill(child: body),
-                    if (_newBelow && !_writing)
-                      PositionedDirectional(
-                        start: 0,
-                        end: 0,
-                        bottom: BvNewChipSpec.offset,
-                        child: Center(
-                          child: BvNewChip(
-                            key: const Key('daybook-new'),
-                            label: l10n.daybookNew,
-                            onTap: _toNow,
-                          ),
-                        ),
-                      )
-                    // Up in older days: back to Today (F59).
-                    else if (_wasAway && !_writing)
-                      PositionedDirectional(
-                        start: 0,
-                        end: 0,
-                        bottom: BvNewChipSpec.offset,
-                        child: Center(
-                          child: BvNewChip(
-                            key: const Key('daybook-today'),
-                            label: l10n.daybookTodayDivider,
-                            onTap: _toNow,
-                          ),
-                        ),
-                      ),
-                    if (_menu != null) ...[
-                      // No dim: a tap anywhere else closes it (E2).
-                      Positioned.fill(
-                        child: GestureDetector(
-                          key: const Key('writing-menu-away'),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _setMenu(null),
-                        ),
-                      ),
-                      PositionedDirectional(
-                        start: BvPopoverMenuSpec.writingStart,
-                        bottom: BvPopoverMenuSpec.writingGap,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxHeight: math.max(
-                              0,
-                              constraints.maxHeight -
-                                  2 * BvPopoverMenuSpec.writingGap,
+              // Pinned announcements stay under the masthead while pinned
+              // (K1 v13), whatever their last activity.
+              if (!_writing)
+                for (final p in _pinned(cards, now))
+                  Padding(
+                    padding: BvPinnedSpec.outer,
+                    child: _pinnedNote(p, words, cards, me: me, now: now),
+                  ),
+              Expanded(
+                key: _viewportKey,
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Stack(
+                    children: [
+                      Positioned.fill(child: body),
+                      if (_newBelow && !_writing)
+                        PositionedDirectional(
+                          start: 0,
+                          end: 0,
+                          bottom: BvNewChipSpec.offset,
+                          child: Center(
+                            child: BvNewChip(
+                              key: const Key('daybook-new'),
+                              label: l10n.daybookNew,
+                              onTap: _toNow,
                             ),
                           ),
-                          child: DaybookWritingPopover(
-                            key: ValueKey((_menu, _editing)),
-                            spaceId: _spaceId,
-                            menu: _menu!,
-                            me: me,
-                            editing: _editing,
-                            onMenu: _setMenu,
-                            onPickDue: _pickDue,
-                            onPickPin: () => unawaited(_pickPin()),
-                            onPickStart: () => unawaited(_pickStart()),
-                            onPickFile: () => unawaited(_pickFile()),
-                            onClose: () => _setMenu(null),
-                            onAssigned: _assigned,
-                            onPickPeople: () => unawaited(_pickPeople()),
-                            onPickTemplate: () => unawaited(_pickTemplate()),
+                        )
+                      // Up in older days: back to Today (F59).
+                      else if (_wasAway && !_writing)
+                        PositionedDirectional(
+                          start: 0,
+                          end: 0,
+                          bottom: BvNewChipSpec.offset,
+                          child: Center(
+                            child: BvNewChip(
+                              key: const Key('daybook-today'),
+                              label: l10n.daybookTodayDivider,
+                              onTap: _toNow,
+                            ),
                           ),
                         ),
-                      ),
+                      if (_menu != null) ...[
+                        // No dim: a tap anywhere else closes it (E2).
+                        Positioned.fill(
+                          child: GestureDetector(
+                            key: const Key('writing-menu-away'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _setMenu(null),
+                          ),
+                        ),
+                        PositionedDirectional(
+                          start: BvPopoverMenuSpec.writingStart,
+                          bottom: BvPopoverMenuSpec.writingGap,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: math.max(
+                                0,
+                                constraints.maxHeight -
+                                    2 * BvPopoverMenuSpec.writingGap,
+                              ),
+                            ),
+                            child: DaybookWritingPopover(
+                              key: ValueKey((_menu, _editing)),
+                              spaceId: _spaceId,
+                              menu: _menu!,
+                              me: me,
+                              editing: _editing,
+                              onMenu: _setMenu,
+                              onPickDue: _pickDue,
+                              onPickPin: () => unawaited(_pickPin()),
+                              onPickStart: () => unawaited(_pickStart()),
+                              onPickFile: () => unawaited(_pickFile()),
+                              onClose: () => _setMenu(null),
+                              onAssigned: _assigned,
+                              onPickPeople: () => unawaited(_pickPeople()),
+                              onPickTemplate: () => unawaited(_pickTemplate()),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-            if (!canPost)
-              BvPostBar.viewer(
-                passLabel: passName(l10n, space.myPass),
-                passTone: passTone(space.myPass),
-                // "Read only" is a Viewer's; a locked Crew pass is just
-                // the pass (review 67, V1).
-                readOnly: space.myPass == SpacePass.viewer
-                    ? l10n.daybookReadOnly
-                    : null,
-              )
-            else if (_writing)
-              BvWritingToolbar(
-                cameraLabel: l10n.daybookCamera,
-                // An edit keeps its photos (slice 5 opens a post in place).
-                onCamera: _editing
-                    ? null
-                    : () => unawaited(_photos(_writer.addPhoto())),
-                attachLabel: l10n.daybookAttachTitle,
-                onAttach: _editing ? null : () => unawaited(_attach()),
-                moreLabel: l10n.daybookMore,
-                // A note has nothing more to set (F58).
-                onMore: cardDraft?.kind == DaybookKind.note
-                    ? null
-                    : () => _setMenu(
-                        _menu == DaybookWritingMenu.more
-                            ? null
-                            : DaybookWritingMenu.more,
-                      ),
-                moreActive: _menu == DaybookWritingMenu.more,
-                postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
-                // Post turns on with what the kind can't go without (a
-                // title, a checklist's points, a file; review 46); what it
-                // still needs opens first.
-                onPost: _editing
-                    ? (cardDraft?.titleFits ?? false ? _save : null)
-                    : (cardDraft?.readyToTry ?? false
-                          ? () => unawaited(_postOrAsk(myName))
-                          : null),
-                // F56: grey until the "who" is chosen too; a tap asks.
-                postReady:
-                    _editing ||
-                    (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false),
-              )
-            // A Draft on the page takes the post bar's place until it is
-            // posted or emptied (E4).
-            else if (!card)
-              BvPostBar(
-                placeholder: l10n.daybookWorkItem,
-                onWrite: _startWriting,
-                cameraLabel: l10n.daybookHoldToProve,
-                // A tap writes a work item with a photo; holding proves
-                // your open work item (O1 → O2).
-                onCamera: () {
-                  _startWriting();
-                  unawaited(_photos(_writer.addPhoto()));
-                },
-                onProve: prove == null
-                    ? null
-                    : () => unawaited(_loop.signDone(context, prove)),
-              ),
-          ],
+              if (!canPost)
+                BvPostBar.viewer(
+                  passLabel: passName(l10n, space.myPass),
+                  passTone: passTone(space.myPass),
+                  // "Read only" is a Viewer's; a locked Crew pass is just
+                  // the pass (review 67, V1).
+                  readOnly: space.myPass == SpacePass.viewer
+                      ? l10n.daybookReadOnly
+                      : null,
+                )
+              else if (_writing)
+                BvWritingToolbar(
+                  cameraLabel: l10n.daybookCamera,
+                  // An edit keeps its photos (slice 5 opens a post in place).
+                  onCamera: _editing
+                      ? null
+                      : () => unawaited(_photos(_writer.addPhoto())),
+                  attachLabel: l10n.daybookAttachTitle,
+                  onAttach: _editing ? null : () => unawaited(_attach()),
+                  moreLabel: l10n.daybookMore,
+                  // A note has nothing more to set (F58).
+                  onMore: cardDraft?.kind == DaybookKind.note
+                      ? null
+                      : () => _setMenu(
+                          _menu == DaybookWritingMenu.more
+                              ? null
+                              : DaybookWritingMenu.more,
+                        ),
+                  moreActive: _menu == DaybookWritingMenu.more,
+                  postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
+                  // Post turns on with what the kind can't go without (a
+                  // title, a checklist's points, a file; review 46); what it
+                  // still needs opens first.
+                  onPost: _editing
+                      ? (cardDraft?.titleFits ?? false ? _save : null)
+                      : (cardDraft?.readyToTry ?? false
+                            ? () => unawaited(_postOrAsk(myName))
+                            : null),
+                  // F56: grey until the "who" is chosen too; a tap asks.
+                  postReady:
+                      _editing ||
+                      (cardDraft?.canPost(ref.watch(clockProvider)()) ?? false),
+                )
+              // A Draft on the page takes the post bar's place until it is
+              // posted or emptied (E4).
+              else if (!card)
+                BvPostBar(
+                  placeholder: l10n.daybookWorkItem,
+                  onWrite: _startWriting,
+                  cameraLabel: l10n.daybookHoldToProve,
+                  // A tap writes a work item with a photo; holding proves
+                  // your open work item (O1 → O2).
+                  onCamera: () {
+                    _startWriting();
+                    unawaited(_photos(_writer.addPhoto()));
+                  },
+                  onProve: prove == null
+                      ? null
+                      : () => unawaited(_loop.signDone(context, prove)),
+                ),
+            ],
+          ),
         ),
       ),
     );

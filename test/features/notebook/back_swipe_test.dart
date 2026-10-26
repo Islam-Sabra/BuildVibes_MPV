@@ -11,7 +11,10 @@ import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
+import 'package:buildvibes/features/notebook/notebook_page_parts.dart'
+    show SelectionBar;
 import 'package:buildvibes/features/notebook/notebook_page_screen.dart';
+import 'package:buildvibes/features/notebook/notebook_screen.dart';
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -176,6 +179,28 @@ void main() {
         expect(find.byType(NotebookPageScreen), findsNothing);
       }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
     });
+
+    testWidgets('iPhone: the pages list while selecting: the selection goes '
+        'first, then the screen [$lang]', (tester) async {
+      await pumpApp(
+        tester,
+        language: lang,
+        now: NotebookSamples.now,
+        notebook: FakeNotebookRepository(notes: [_saved()]),
+      );
+      GoRouter.of(tester.element(find.byType(Navigator).first)).push(
+        '/notebook',
+      );
+      await tester.pumpAndSettle();
+      await tester.longPress(_key('page-${FakeNotebookRepository.myNotesId}'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SelectionBar), findsOneWidget);
+      await _swipeBack(tester, lang);
+      expect(find.byType(SelectionBar), findsNothing);
+      expect(find.byType(NotebookScreen), findsOneWidget);
+      await _swipeBack(tester, lang);
+      expect(find.byType(NotebookScreen), findsNothing);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
     group('Android: the system back does what ← does [$lang]', () {
       testWidgets('the selection goes first, then the screen', (tester) async {

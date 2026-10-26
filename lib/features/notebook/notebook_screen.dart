@@ -10,6 +10,7 @@ import '../../core/design/planning_specs.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/notebook_page.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
@@ -174,140 +175,145 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       ),
     );
 
-    return PopScope(
-      canPop: !selecting,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) setState(_selected.clear);
-      },
-      child: Scaffold(
-        backgroundColor: BvColors.surfaceApp,
-        appBar: AppBar(
+    // Review 100 B6: an iPhone's swipe from the edge does what ← does,
+    // also while this screen holds Back for itself.
+    return BvBackSwipe(
+      holding: selecting,
+      child: PopScope(
+        canPop: !selecting,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) setState(_selected.clear);
+        },
+        child: Scaffold(
           backgroundColor: BvColors.surfaceApp,
-          leading: selecting
-              ? IconButton(
-                  key: const Key('selection-close'),
-                  tooltip: l10n.notebookCloseSelection,
-                  icon: const Icon(BvIcons.close),
-                  onPressed: () => setState(_selected.clear),
+          appBar: AppBar(
+            backgroundColor: BvColors.surfaceApp,
+            leading: selecting
+                ? IconButton(
+                    key: const Key('selection-close'),
+                    tooltip: l10n.notebookCloseSelection,
+                    icon: const Icon(BvIcons.close),
+                    onPressed: () => setState(_selected.clear),
+                  )
+                : null,
+            title: Text(
+              selecting
+                  ? l10n.notebookSelected(_selected.length)
+                  : l10n.notebookTitle,
+            ),
+            actions: selecting
+                ? null
+                : [
+                    IconButton(
+                      key: const Key('notebook-search'),
+                      tooltip: l10n.notebookSearchTip,
+                      icon: const Icon(BvIcons.search),
+                      onPressed: () => context.push(AppRoutes.notebookSearch),
+                    ),
+                    IconButton(
+                      key: const Key('notebook-calendar'),
+                      tooltip: l10n.calendarTitle,
+                      icon: const Icon(BvIcons.calendar),
+                      onPressed: () => context.push(AppRoutes.calendar),
+                    ),
+                  ],
+          ),
+          body: notebook.hasError && data.pages.isEmpty
+              ? Padding(
+                  padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+                  child: EmptyNote(l10n.notebookCouldntLoad),
+                )
+              : ListView(
+                  key: const Key('notebook-pages'),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    BvSpace.gutter,
+                    BvNotebookPagesSpec.actionTop,
+                    BvSpace.gutter,
+                    BvSpace.s32,
+                  ),
+                  children: [
+                    if (!selecting)
+                      BvButton(
+                        key: const Key('notebook-new-entry'),
+                        label: l10n.notebookNewEntry,
+                        icon: BvIcons.edit,
+                        expand: true,
+                        onPressed: () => context.push(AppRoutes.notebookWrite),
+                      ),
+                    if (pinned.isNotEmpty) ...[
+                      NotebookLabel(l10n.notebookPinnedLabel),
+                      for (final p in pinned) row(p),
+                    ],
+                    if (others.isNotEmpty) ...[
+                      NotebookLabel(l10n.notebookPagesLabel),
+                      for (final p in others) row(p),
+                    ],
+                    if (top.isEmpty && notebook.hasValue)
+                      Padding(
+                        key: const Key('notebook-empty'),
+                        padding: const EdgeInsetsDirectional.symmetric(
+                          vertical: BvSpace.s24,
+                        ),
+                        child: Column(
+                          spacing: BvSpace.s8,
+                          children: [
+                            const Icon(
+                              BvIcons.notebook,
+                              size: BvNotebookSpec.emptyIcon,
+                              color: BvColors.iconSecondary,
+                            ),
+                            Text(
+                              l10n.notebookEmptyTitle,
+                              textAlign: TextAlign.center,
+                              style: type.titleMd.copyWith(
+                                color: BvColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              l10n.notebookEmptyBody,
+                              textAlign: TextAlign.center,
+                              style: type.bodyMd.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (!selecting) NewPageRow(onTap: _newPage),
+                  ],
+                ),
+          bottomNavigationBar: selecting
+              ? SelectionBar(
+                  actions: [
+                    SelectionAction(
+                      key: const Key('select-merge'),
+                      icon: BvIcons.merge,
+                      label: l10n.notebookMerge,
+                      onTap: _selected.length > 1 ? () => _merge(data) : null,
+                    ),
+                    SelectionAction(
+                      key: const Key('select-move'),
+                      icon: BvIcons.moveInto,
+                      label: l10n.notebookMoveInto,
+                      onTap: () => _moveInto(data),
+                    ),
+                    SelectionAction(
+                      key: const Key('select-pin'),
+                      icon: BvIcons.pin,
+                      label: allPinned ? l10n.daybookUnpin : l10n.notebookPin,
+                      onTap: () => _pin(!allPinned),
+                    ),
+                    SelectionAction(
+                      key: const Key('select-delete'),
+                      icon: BvIcons.delete,
+                      label: l10n.delete,
+                      destructive: true,
+                      onTap: _delete,
+                    ),
+                  ],
                 )
               : null,
-          title: Text(
-            selecting
-                ? l10n.notebookSelected(_selected.length)
-                : l10n.notebookTitle,
-          ),
-          actions: selecting
-              ? null
-              : [
-                  IconButton(
-                    key: const Key('notebook-search'),
-                    tooltip: l10n.notebookSearchTip,
-                    icon: const Icon(BvIcons.search),
-                    onPressed: () => context.push(AppRoutes.notebookSearch),
-                  ),
-                  IconButton(
-                    key: const Key('notebook-calendar'),
-                    tooltip: l10n.calendarTitle,
-                    icon: const Icon(BvIcons.calendar),
-                    onPressed: () => context.push(AppRoutes.calendar),
-                  ),
-                ],
         ),
-        body: notebook.hasError && data.pages.isEmpty
-            ? Padding(
-                padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-                child: EmptyNote(l10n.notebookCouldntLoad),
-              )
-            : ListView(
-                key: const Key('notebook-pages'),
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  BvSpace.gutter,
-                  BvNotebookPagesSpec.actionTop,
-                  BvSpace.gutter,
-                  BvSpace.s32,
-                ),
-                children: [
-                  if (!selecting)
-                    BvButton(
-                      key: const Key('notebook-new-entry'),
-                      label: l10n.notebookNewEntry,
-                      icon: BvIcons.edit,
-                      expand: true,
-                      onPressed: () => context.push(AppRoutes.notebookWrite),
-                    ),
-                  if (pinned.isNotEmpty) ...[
-                    NotebookLabel(l10n.notebookPinnedLabel),
-                    for (final p in pinned) row(p),
-                  ],
-                  if (others.isNotEmpty) ...[
-                    NotebookLabel(l10n.notebookPagesLabel),
-                    for (final p in others) row(p),
-                  ],
-                  if (top.isEmpty && notebook.hasValue)
-                    Padding(
-                      key: const Key('notebook-empty'),
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        vertical: BvSpace.s24,
-                      ),
-                      child: Column(
-                        spacing: BvSpace.s8,
-                        children: [
-                          const Icon(
-                            BvIcons.notebook,
-                            size: BvNotebookSpec.emptyIcon,
-                            color: BvColors.iconSecondary,
-                          ),
-                          Text(
-                            l10n.notebookEmptyTitle,
-                            textAlign: TextAlign.center,
-                            style: type.titleMd.copyWith(
-                              color: BvColors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            l10n.notebookEmptyBody,
-                            textAlign: TextAlign.center,
-                            style: type.bodyMd.copyWith(
-                              color: BvColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (!selecting) NewPageRow(onTap: _newPage),
-                ],
-              ),
-        bottomNavigationBar: selecting
-            ? SelectionBar(
-                actions: [
-                  SelectionAction(
-                    key: const Key('select-merge'),
-                    icon: BvIcons.merge,
-                    label: l10n.notebookMerge,
-                    onTap: _selected.length > 1 ? () => _merge(data) : null,
-                  ),
-                  SelectionAction(
-                    key: const Key('select-move'),
-                    icon: BvIcons.moveInto,
-                    label: l10n.notebookMoveInto,
-                    onTap: () => _moveInto(data),
-                  ),
-                  SelectionAction(
-                    key: const Key('select-pin'),
-                    icon: BvIcons.pin,
-                    label: allPinned ? l10n.daybookUnpin : l10n.notebookPin,
-                    onTap: () => _pin(!allPinned),
-                  ),
-                  SelectionAction(
-                    key: const Key('select-delete'),
-                    icon: BvIcons.delete,
-                    label: l10n.delete,
-                    destructive: true,
-                    onTap: _delete,
-                  ),
-                ],
-              )
-            : null,
       ),
     );
   }
