@@ -34,8 +34,14 @@ class FakeSpaceRepository implements SpaceRepository {
 
   static const newSpaceId = 'space-new';
 
+  /// Holds my_spaces until it completes (a slow signal).
+  Future<void>? spacesGate;
+
   @override
-  Future<List<SpaceSummary>> mySpaces() async => List.of(spaces);
+  Future<List<SpaceSummary>> mySpaces() async {
+    await spacesGate;
+    return List.of(spaces);
+  }
 
   @override
   Future<List<MyJoinRequest>> myJoinRequests() async => List.of(requests);

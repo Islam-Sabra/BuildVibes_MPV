@@ -217,6 +217,17 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   void focusBlockLater(String key) =>
       WidgetsBinding.instance.addPostFrameCallback((_) => focusBlock(key));
 
+  /// The cursor to [key] now, before the page is drawn again (review 100
+  /// B1): the line it leaves never lets go of the focus first, so the
+  /// keyboard stays up. A line not drawn yet takes the focus as it comes.
+  void focusBlockNow(String key) {
+    final c = _fields[key];
+    if (c != null && !c.selection.isValid) {
+      c.selection = TextSelection.collapsed(offset: c.text.length);
+    }
+    blockNode(key).requestFocus();
+  }
+
   /// The cursor at the end of [key]'s words, then the focus: a field
   /// focused with no cursor of its own would show its selection handle,
   /// as after a tap.
@@ -325,7 +336,10 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       maxLines: null,
       // F90: inside a toggle, Enter is a new line of its own.
       textInputAction: onEnter == null ? null : TextInputAction.next,
-      // With the "/" card open, Enter picks its first kind.
+      // With the "/" card open, Enter picks its first kind. Enter itself
+      // keeps the focus (review 100 B1): Flutter's own "next" would hand it
+      // to whatever comes next for a moment, and the keyboard would drop.
+      onEditingComplete: onEnter == null ? null : () {},
       onSubmitted: onEnter == null
           ? null
           : (_) => _slashKey == key ? _pickSlash() : onEnter(),
@@ -694,7 +708,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         ]);
       }
     });
-    focusBlockLater('t:$id');
+    focusBlockNow('t:$id');
     blocksEdited();
   }
 

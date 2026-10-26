@@ -276,6 +276,29 @@ class NoteDraftNotifier extends Notifier<NoteDraft?> {
     }
   }
 
+  /// The slip is put aside as its own Draft card (review 100 B3): another
+  /// entry is started, or another Draft goes on. An empty one is gone; an
+  /// edit of a saved entry is never put aside (it is saved in place, B2).
+  Future<void> park() async {
+    final draft = state;
+    if (draft == null) return;
+    if (draft.isEmpty || draft.editing != null) return discard();
+    await ref.read(parkedDraftsProvider.notifier).keep(draft);
+    state = null;
+    final key = _key;
+    if (key != null) await ref.read(sharedPreferencesProvider).remove(key);
+  }
+
+  /// The Draft [id] put aside goes on, the one in hand put aside first.
+  Future<void> resume(String id) async {
+    final parked = ref.read(parkedDraftsProvider.notifier);
+    final draft = parked.find(id);
+    if (draft == null) return;
+    await park();
+    await parked.drop(id);
+    await put(draft);
+  }
+
   /// The slip is put down: an empty one is gone; anything else stays as
   /// the Draft.
   Future<void> close() async {
@@ -294,6 +317,64 @@ class NoteDraftNotifier extends Notifier<NoteDraft?> {
     if (keepFiles || draft == null) return;
     for (final local in draftLocals(draft)) {
       unawaited(DaybookDraft.deleteKept(local));
+    }
+  }
+}
+
+/// The Drafts of new entries put aside (review 100 B3): one per entry
+/// started and not sent, each its own card at the top of its page. Kept
+/// on the phone, per account.
+final parkedDraftsProvider = NotifierProvider<ParkedDrafts, List<NoteDraft>>(
+  ParkedDrafts.new,
+);
+
+class ParkedDrafts extends Notifier<List<NoteDraft>> {
+  String? _key;
+
+  @override
+  List<NoteDraft> build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final userId = ref.watch(authUserIdProvider).value;
+    _key = userId == null ? null : 'notebook_drafts:$userId';
+    final raw = _key == null ? null : prefs.getString(_key!);
+    if (raw == null) return const [];
+    try {
+      return [
+        for (final d in jsonDecode(raw) as List)
+          NoteDraft.fromJson(d as Map<String, dynamic>),
+      ];
+    } on Object {
+      return const [];
+    }
+  }
+
+  NoteDraft? find(String id) => state.where((d) => d.id == id).firstOrNull;
+
+  /// [draft] kept, in place of one with its id.
+  Future<void> keep(NoteDraft draft) => _store([
+    for (final d in state)
+      if (d.id != draft.id) d,
+    draft,
+  ]);
+
+  /// Taken off the list (it goes on, or it was discarded); its files stay.
+  Future<void> drop(String id) => _store([
+    for (final d in state)
+      if (d.id != id) d,
+  ]);
+
+  Future<void> _store(List<NoteDraft> drafts) async {
+    state = drafts;
+    final key = _key;
+    if (key == null) return;
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (drafts.isEmpty) {
+      await prefs.remove(key);
+    } else {
+      await prefs.setString(
+        key,
+        jsonEncode([for (final d in drafts) d.toJson()]),
+      );
     }
   }
 }

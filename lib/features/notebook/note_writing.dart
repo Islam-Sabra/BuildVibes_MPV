@@ -142,6 +142,8 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
     this.onCurrentKind,
     this.chip,
     this.onMoveLine,
+    this.shown,
+    this.onMenu,
   });
 
   final bool writing;
@@ -160,12 +162,19 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
   /// The line menu's Move to page… (review 99 A4).
   final Future<bool> Function(List<PageBlock> lines)? onMoveLine;
 
+  /// A Draft put aside, shown read only (review 100 B3); null: the one in
+  /// hand.
+  final NoteDraft? shown;
+
+  /// A Draft's ⋯ (review 100 B2: Discard).
+  final VoidCallback? onMenu;
+
   @override
   ConsumerState<NoteWritingSlip> createState() => _NoteWritingSlipState();
 }
 
 class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
-  late final NoteDraft _first = ref.read(noteDraftProvider)!;
+  late final NoteDraft _first = widget.shown ?? ref.read(noteDraftProvider)!;
 
   /// The card takes a body field; a page has none.
   final _noBody = TextEditingController();
@@ -211,7 +220,7 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
-    final draft = ref.watch(noteDraftProvider);
+    final draft = widget.shown ?? ref.watch(noteDraftProvider);
     if (draft == null) return const SizedBox.shrink();
     final writing = widget.writing;
     final words = widget.words;
@@ -235,6 +244,8 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
               Text(when, key: const Key('note-writing-now'), style: quiet),
               const Spacer(),
               if (!writing) _DraftPill(label: l10n.daybookDraft),
+              if (!writing && widget.onMenu != null)
+                const SizedBox(width: BvSize.iconLg),
             ],
           ),
           NotePageEditor(
@@ -277,7 +288,7 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
         child: card,
       );
     }
-    return Semantics(
+    final draftCard = Semantics(
       button: true,
       child: GestureDetector(
         key: const Key('note-draft'),
@@ -285,6 +296,35 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
         onTap: widget.onOpen,
         child: AbsorbPointer(child: card),
       ),
+    );
+    if (widget.onMenu == null) return draftCard;
+    // Its ⋯ over the card, where taps reach it (review 100 B2).
+    return Stack(
+      children: [
+        draftCard,
+        PositionedDirectional(
+          top: BvNoteWritingSpec.slipPadding.top,
+          end: BvNoteWritingSpec.slipPadding.end,
+          child: Semantics(
+            button: true,
+            label: l10n.daybookMore,
+            excludeSemantics: true,
+            child: InkResponse(
+              key: Key('note-draft-menu-${draft.id}'),
+              onTap: widget.onMenu,
+              radius: BvSize.iconLg,
+              child: const SizedBox.square(
+                dimension: BvSize.iconLg,
+                child: Icon(
+                  BvIcons.more,
+                  size: BvSize.iconSm,
+                  color: BvColors.iconSecondary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

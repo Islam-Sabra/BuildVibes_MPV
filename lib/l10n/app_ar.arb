@@ -1426,5 +1426,8 @@
   "notebookIconRuler": "مسطرة",
   "notebookIconNotebook": "دفتر",
   "notebookSavedIn": "حُفظت في {page}",
-  "notebookOpen": "فتح"
+  "notebookOpen": "فتح",
+  "notebookSavedEdit": "حُفظت",
+  "notebookDiscardDraft": "تجاهل",
+  "notebookDraftDiscarded": "تم تجاهل المسودة"
 }

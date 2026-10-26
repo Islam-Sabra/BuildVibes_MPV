@@ -810,10 +810,11 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     );
   }
 
-  /// The line menu shows every row, never scrolled (lead, 26 Oct): with no
-  /// room for it under the line nor over it, the note first scrolls the
-  /// line the shorter way that makes room (up for room under it, down for
-  /// room over it), as far as the list goes.
+  /// The line menu shows every row (lead, 26 Oct): with no room for it
+  /// under the line nor over it, inside what the top bar and the keyboard
+  /// leave (review 100 B4), the note first scrolls the line up until the
+  /// menu fits under it; failing that, down for room over it, as far as
+  /// the list goes. A card still taller than the room scrolls inside.
   Future<void> _roomForMenu(String id) async {
     final row = _rows[id]?.currentContext;
     final box = row?.findRenderObject() as RenderBox?;
@@ -828,9 +829,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         BvLineMenuSpec.menuMostRows * BvLineMenuSpec.rowHeight +
         2 * BvLineMenuSpec.padding +
         BvLineMenuSpec.menuGap;
-    final floor =
-        media.size.height - media.padding.bottom - BvLineMenuSpec.screenMargin;
-    final ceiling = media.padding.top + BvLineMenuSpec.screenMargin;
+    // B4: the room the top bar and the keyboard leave.
+    final floor = media.size.height - visibleBottom(media);
+    final ceiling = visibleTop(media);
     final up = bottom + need - floor;
     final down = ceiling + need - top;
     if (up <= 0 || down <= 0) return;
@@ -838,7 +839,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final ways = [
       if (pixels + up <= position.maxScrollExtent) pixels + up,
       if (pixels - down >= position.minScrollExtent) pixels - down,
-    ]..sort((a, b) => (a - pixels).abs().compareTo((b - pixels).abs()));
+    ];
     final to = ways.isNotEmpty
         ? ways.first
         : (up < down ? position.maxScrollExtent : position.minScrollExtent);
@@ -851,6 +852,20 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         curve: BvMotion.standard,
       );
     }
+  }
+
+  /// Back while writing (review 100 B5): the line menu or the "/" card
+  /// closes first; true when one was open.
+  bool closeMenus() {
+    if (_menu.isOpen) {
+      _closeMenu();
+      return true;
+    }
+    if (slashOpen) {
+      closeSlash();
+      return true;
+    }
+    return false;
   }
 
   void _closeMenu({bool keepMark = false}) {
@@ -1167,7 +1182,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         words.isEmpty) {
       if (b.indent > 0) {
         _outdent(index);
-        focusBlockLater('t:${b.id}');
+        focusBlockNow('t:${b.id}');
       } else {
         _turn(index, NoteBlockKind.text);
       }
@@ -1183,7 +1198,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     };
     currentBlockId = id;
     _set([...editBlocks]..insert(subtreeEnd(editBlocks, index), next));
-    focusBlockLater('t:$id');
+    focusBlockNow('t:$id');
   }
 
   /// Backspace at the start of a line: any other kind turns into text,
@@ -1220,12 +1235,14 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     } else if (field != null) {
       field.selection = TextSelection.collapsed(offset: field.text.length);
     }
+    if (words != null) {
+      // The line above takes the cursor before this one goes (B1).
+      currentBlockId = above.id;
+      focusBlockNow('t:${above.id}');
+    }
     dropField('t:${b.id}');
     blocks.removeAt(index);
     _set(blocks);
-    if (words == null) return;
-    currentBlockId = above.id;
-    focusBlockLater('t:${above.id}');
   }
 
   /// A to-do ticked or unticked while writing.

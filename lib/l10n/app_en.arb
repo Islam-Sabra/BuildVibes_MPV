@@ -7366,5 +7366,17 @@
   "notebookOpen": "Open",
   "@notebookOpen": {
     "description": "Review 99 C5: opens the page it was saved in."
+  },
+  "notebookSavedEdit": "Saved",
+  "@notebookSavedEdit": {
+    "description": "Review 100 B2: Back from a saved entry that changed; with Undo."
+  },
+  "notebookDiscardDraft": "Discard",
+  "@notebookDiscardDraft": {
+    "description": "Review 100 B2: a Draft's ⋯, its one row."
+  },
+  "notebookDraftDiscarded": "Draft discarded",
+  "@notebookDraftDiscarded": {
+    "description": "Review 100 B2: after Discard, with Undo."
   }
 }

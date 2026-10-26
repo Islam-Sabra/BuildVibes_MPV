@@ -8659,6 +8659,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get notebookOpen;
+
+  /// Review 100 B2: Back from a saved entry that changed; with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get notebookSavedEdit;
+
+  /// Review 100 B2: a Draft's ⋯, its one row.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get notebookDiscardDraft;
+
+  /// Review 100 B2: after Discard, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft discarded'**
+  String get notebookDraftDiscarded;
 }
 
 class _AppLocalizationsDelegate

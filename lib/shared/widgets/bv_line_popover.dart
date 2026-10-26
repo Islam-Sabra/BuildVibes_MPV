@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../core/design/bv_tokens.dart';
@@ -5,9 +7,10 @@ import '../../core/design/daybook_writing_specs.dart';
 
 /// A small card next to a line being written (review 98): the "/" card
 /// (NBY1) and the line menu (NBY2). It floats in the overlay, so the line
-/// keeps the keyboard and stays in sight: under the line, over the bar and
-/// the keyboard, as the frames draw it, when it fits on the screen;
-/// otherwise over the line. The "/" card lines up with the
+/// keeps the keyboard and stays in sight: under the line when it fits in
+/// what the top bar and the keyboard leave, otherwise over the line; never
+/// under the keyboard (review 100 B4), and a card taller than that room
+/// scrolls inside it. The "/" card lines up with the
 /// line's start; the line menu with its end. It opens in 150 ms from the
 /// line, and at once with Reduce motion.
 ///
@@ -61,13 +64,16 @@ class BvLinePopover {
                   above: above,
                   gap: gap,
                   textDirection: Directionality.of(context),
-                  top: media.padding.top + BvLineMenuSpec.screenMargin,
-                  // Over the keyboard too (lead, 26 Oct).
-                  bottom: media.padding.bottom + BvLineMenuSpec.screenMargin,
+                  // Review 100 B4: inside what the top bar and the keyboard
+                  // leave, never under the keyboard.
+                  top: visibleTop(media),
+                  bottom: visibleBottom(media),
                 ),
                 child: _PopIn(
                   atEnd: atEnd,
-                  child: Builder(builder: builder),
+                  child: SingleChildScrollView(
+                    child: Builder(builder: builder),
+                  ),
                 ),
               ),
             ),
@@ -88,6 +94,15 @@ class BvLinePopover {
     _entry = null;
   }
 }
+
+/// Where a card may stand (review 100 B4): under the top bar, and above the
+/// keyboard (or the phone's own bar), with [BvLineMenuSpec.screenMargin].
+double visibleTop(MediaQueryData media) =>
+    media.padding.top + kToolbarHeight + BvLineMenuSpec.screenMargin;
+
+double visibleBottom(MediaQueryData media) =>
+    math.max(media.viewInsets.bottom, media.padding.bottom) +
+    BvLineMenuSpec.screenMargin;
 
 /// Under the line if it fits on the screen, else over it; its start
 /// (or, [atEnd], its end) lined up with the line's.
@@ -111,8 +126,14 @@ class _NextToLine extends SingleChildLayoutDelegate {
   final double bottom;
 
   @override
+  /// Never taller than the room; a taller card scrolls inside it.
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
-      constraints.loosen();
+      constraints.loosen().copyWith(
+        maxHeight: (constraints.maxHeight - top - bottom).clamp(
+          0,
+          constraints.maxHeight,
+        ),
+      );
 
   @override
   Offset getPositionForChild(Size size, Size child) {

@@ -5151,4 +5151,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookOpen => 'Open';
+
+  @override
+  String get notebookSavedEdit => 'Saved';
+
+  @override
+  String get notebookDiscardDraft => 'Discard';
+
+  @override
+  String get notebookDraftDiscarded => 'Draft discarded';
 }

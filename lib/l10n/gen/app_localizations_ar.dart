@@ -5166,4 +5166,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookOpen => 'فتح';
+
+  @override
+  String get notebookSavedEdit => 'حُفظت';
+
+  @override
+  String get notebookDiscardDraft => 'تجاهل';
+
+  @override
+  String get notebookDraftDiscarded => 'تم تجاهل المسودة';
 }
