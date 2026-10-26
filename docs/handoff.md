@@ -2,6 +2,38 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 26 Oct 2026, 10:40 Kuwait — review 99A on `claude/r99a` (from `slice2-app` de29fa9); stopped for the lead: 42 older notebook shots change
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch `claude/r99a` is pushed.** It is not merged, not live and not installed anywhere.
+- **Server: migration 47 `20261108120000_notebook_pages.sql`, not live.**
+  - `notebook_pages`, owner only (RLS read; every write goes through a function).
+  - `notes.page_id` is not null. The backfill puts every note into one "My notes" page per person, in date order.
+  - `save_entry` (save_note plus its page, or a new page titled from the entry and marked new). Old builds keep calling `save_note`: their new notes go into the latest page.
+  - Functions: create, update (title and icon), open, pin, move pages, move notes, merge (all or nothing; emptied pages get `deleted_at`), delete (with sub-pages), `search_notebook` (Arabic letters and digits folded).
+  - My calendar leaves out entries of a deleted page.
+  - 86 SQL checks. They cover: the owner can do everything; another person can't read, write into, move into or out of, merge, rename, delete or search someone else's pages; the backfill keeps every note; a failed merge changes nothing.
+- **App:**
+  - **PG1** pages list: New entry, Search, My calendar and Deleted items (empty placeholder until 99B), pinned then latest activity, + New page.
+  - **PG2/PG3** New entry: opens at once with the chip on the last page used ("New page" on a fresh notebook); the picker with search, recent and + New page.
+  - **PG4** a page: path, title and icon edited in place (12 icons), sub-pages, entries newest first by day, "Write in this page" with no chip.
+  - **PG5/PG5b**: select pages, then Merge, Move into…, Pin or Delete; Undo for 5 s.
+  - Move to page… for one entry (⋯), several entries (long-press, then tap), and a line from the line menu (with its children).
+  - Search screen.
+- **Checks:**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,089 pass (42 of them are new 99A tests).
+  - `supabase test db`: 2,825 pass in 46 files.
+  - `test_screens/pg_test.dart`: 12 shots in `docs/screens/r99/`.
+- **Stopped here (as asked):**
+  - `flutter test test_screens` without updating: 390 shots unchanged, and **42 older notebook shots change**. These are f106 NBW1–5, f107 NBX1–4, f108 L1–L3, nby NBY1–5, slice8 NB1 / empty / menu / Put in a Space, and slice10 Remind me, in EN and AR.
+  - They show the notebook as one daybook list. 99A replaces that list with pages: the masthead, the post bar and "Only you" are gone, entries are newest first, and the line menu has one more row, "Move to page…".
+  - Nothing in them is accepted or committed. Those tests still open the old way (`/notebook`, the post bar).
+  - Needed from the lead: retire the NB1/NBW/NBX frames, or point them at a page and re-shoot.
+- **Differences from Figma for the lead:** see the 26 Oct log entry in `progress.md`.
+- **Who has which branch:** PC has `claude/r99a` (worktree `BuildVibes-r99a`) and `slice2-app` (worktree `BuildVibes-slice1`). The worktrees `BuildVibes-r95` and `BuildVibes-hold` can be removed.
+
 ## Cloud update: 25 Oct 2026 — review 96 on `claude/r96-fix` (from `claude/r95` 1599922), not merged, not live
 
 - **F1:**

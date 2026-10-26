@@ -627,6 +627,19 @@ What is set on the live project today. The source of truth is `supabase/config.t
 
 - **25 Oct, review 98, the notebook writes like Notion** (cloud; branch `claude/r98`, from `slice2-app` bc269ec; no database change, not merged): typed shortcuts with Undo and a click; `/` at the start or after a space as a card next to the line, filtered by English, Arabic and simple words, with each kind's shortcut; + adds a line below; ⇥ ⇤ only when they can act; the line menu as a popover from ⋮⋮ or a held marker (Turn into, Move up, Move down, Indent, Outdent, Duplicate, numbering, Delete; rows that can't act hidden); Move up/down and Duplicate carry the children; the Undo bar after each line action; moves and folds slide (none with Reduce motion); no drag on a phone (Work's page: Move up/down in its menu). Analyze clean; 2,020 app tests pass (photo_privacy H1 fails only as root in the cloud); 85 new tests. NBY1–NBY5 shots on the PC.
 
+- **26 Oct, review 99A, the notebook becomes pages** (PC; branch `claude/r99a` from `slice2-app` de29fa9; migration 47 **not live**; not merged):
+  - **Server:** migration 47 adds pages (owner only), `notes.page_id` with the "My notes" backfill, and `save_entry`. It also adds functions for page create, update, open, pin, move, merge (all or nothing) and delete, plus `search_notebook`. My calendar leaves out entries of a deleted page. 86 SQL checks.
+  - **App:** the pages list (PG1), New entry with the page chip and its picker (PG2, PG3), a page (PG4), page selection with Merge, Move into…, Pin and Delete, and Undo for 5 s (PG5, PG5b). Move to page… works for one entry, several entries, or a line with its children. There is a search screen and a Deleted items placeholder. Each change waits on the phone with no signal.
+  - **Checks:** analyze clean; 2,089 app tests (42 new); 2,825 SQL checks; PG1–PG5b shots in EN and AR in `docs/screens/r99/`. 42 older notebook shots change (NB1, NBW, NBX, L1–L3, NBY1–NBY5, slice 10 Remind me); not accepted, waiting for the lead.
+  - **Differences from Figma:**
+    - PG1: the top bar keeps My calendar, the only way into it now. The hard hat is Phosphor hard-hat; the frame draws crane-tower, which isn't one of the twelve.
+    - PG1, PG3: rows follow latest activity, so Pump booked (today) is above Site B (yesterday). "Recent" in the picker also lists sub-pages and new pages.
+    - PG2: no ⋯ while writing. The bar keeps Remind me and ⇥ from review 98.
+    - PG4: the page title is at the main size (15 bold); the two-size rule and its test allow the large heading only on the named screens. Each entry keeps a small ⋯ (its menu: Put in a Space, Pin, Remind me, Edit, Move to page…, Delete) until 99B's PG6. Long-press selects (A4); B1 says long-press opens the menu, so 99B must choose. "Posted to …" is 99B. Times follow the phone's 12/24-hour setting.
+    - PG5b: one choice for each selected page, then "Into a new page"; the frame shows only the first. A new page from a merge is "Untitled" until renamed. The sheet is the app's standard sheet.
+    - Arabic: «البحث عن صفحة» and «الكتابة في هذه الصفحة», not the frame's «ابحث…» and «اكتب…», to keep the Arabic gender-neutral.
+  - **For 99B:** Download my data doesn't list pages yet; there is no Restore or purge of deleted pages yet.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
