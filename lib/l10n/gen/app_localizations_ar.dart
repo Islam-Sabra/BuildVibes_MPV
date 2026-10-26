@@ -4988,7 +4988,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookDeletedEmpty => 'ستظهر هنا الصفحات المحذوفة أو المدموجة.';
 
   @override
-  String get notebookPinnedLabel => 'المثبّتة';
+  String get notebookPinnedLabel => 'مثبّتة';
 
   @override
   String get notebookPagesLabel => 'الصفحات';
@@ -5041,7 +5041,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookFindPage => 'البحث عن صفحة';
 
   @override
-  String get notebookRecent => 'الأحدث';
+  String get notebookRecent => 'الأخيرة';
 
   @override
   String get notebookNoPageFound => 'لا توجد صفحة بهذا الاسم.';
@@ -5066,7 +5066,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String notebookSelected(int count) {
-    return 'المحدد: $count';
+    return 'تم تحديد $count';
   }
 
   @override
@@ -5095,7 +5095,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookMergeBody =>
-      'تنتقل كل التدوينات إلى صفحة واحدة بترتيب تاريخها. وتذهب الصفحة الفارغة إلى المحذوفات.';
+      'تنتقل كل التدوينات إلى صفحة واحدة بترتيب التاريخ، وتذهب الصفحة الفارغة إلى المحذوفات.';
 
   @override
   String notebookMergeInto(String page) {

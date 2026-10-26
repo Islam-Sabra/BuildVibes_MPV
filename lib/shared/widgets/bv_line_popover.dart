@@ -12,7 +12,8 @@ import '../../core/design/daybook_writing_specs.dart';
 /// line, and at once with Reduce motion.
 ///
 /// [barrier]: a tap anywhere else closes it ([onDismiss]); the "/" card has
-/// none, as typing goes on in the line under it.
+/// none, as typing goes on in the line under it. [above]: over the line
+/// when it fits there, else under it (the notebook's page picker, PG3).
 class BvLinePopover {
   OverlayEntry? _entry;
 
@@ -24,6 +25,7 @@ class BvLinePopover {
     required WidgetBuilder builder,
     bool atEnd = false,
     bool barrier = false,
+    bool above = false,
     double gap = BvLineMenuSpec.cardGap,
     VoidCallback? onDismiss,
   }) {
@@ -56,6 +58,7 @@ class BvLinePopover {
                 delegate: _NextToLine(
                   line: rect,
                   atEnd: atEnd,
+                  above: above,
                   gap: gap,
                   textDirection: Directionality.of(context),
                   top: media.padding.top + BvLineMenuSpec.screenMargin,
@@ -92,6 +95,7 @@ class _NextToLine extends SingleChildLayoutDelegate {
   _NextToLine({
     required this.line,
     required this.atEnd,
+    required this.above,
     required this.gap,
     required this.textDirection,
     required this.top,
@@ -100,6 +104,7 @@ class _NextToLine extends SingleChildLayoutDelegate {
 
   final Rect line;
   final bool atEnd;
+  final bool above;
   final double gap;
   final TextDirection textDirection;
   final double top;
@@ -113,11 +118,11 @@ class _NextToLine extends SingleChildLayoutDelegate {
   Offset getPositionForChild(Size size, Size child) {
     final below = line.bottom + gap;
     final above = line.top - gap - child.height;
-    final y = below + child.height <= size.height - bottom
-        ? below
-        : above >= top
-        ? above
-        : top;
+    final fitsBelow = below + child.height <= size.height - bottom;
+    final fitsAbove = above >= top;
+    final y = this.above
+        ? (fitsAbove ? above : (fitsBelow ? below : top))
+        : (fitsBelow ? below : (fitsAbove ? above : top));
     final rtl = textDirection == TextDirection.rtl;
     final x = rtl != atEnd ? line.right - child.width : line.left;
     final most = size.width - child.width - BvLineMenuSpec.screenMargin;
@@ -128,6 +133,7 @@ class _NextToLine extends SingleChildLayoutDelegate {
   bool shouldRelayout(_NextToLine old) =>
       old.line != line ||
       old.atEnd != atEnd ||
+      old.above != above ||
       old.gap != gap ||
       old.textDirection != textDirection ||
       old.top != top ||

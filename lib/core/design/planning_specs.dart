@@ -237,9 +237,20 @@ abstract final class BvNotebookPagesSpec {
   static const titleGap = 10.0;
   static const titleBottom = BvSpace.s8;
 
-  /// An entry's card (PG4).
+  /// An entry's card (PG4): white, 8 round, 14 in at the sides and 12
+  /// at the top and bottom; its ⋯ a 24 target.
   static const entryGap = BvSpace.s8;
   static const dayTop = BvSpace.s8;
+  static const entryRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+  static const entryPadding = EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12);
+  static const entryLinesGap = BvSpace.s4;
+  static const entryMenu = BvSize.iconLg;
+
+  /// "Write in this page" (PG4): a round pill, 48 high, 20 to the sides.
+  static const writeHereHeight = 48.0;
+  static const writeHerePadding = BvSpace.s20;
+  static const writeHereIcon = BvSize.iconMd;
+  static const writeHereGap = BvSpace.s8;
 
   /// The page chip (PG2): 32 high, a 16 icon, a 14 caret.
   static const chipHeight = 32.0;

@@ -140,6 +140,13 @@ class NotebookPageSamples {
       ],
     ),
     _entry(
+      'entry-cubes',
+      siteA,
+      DateTime(2026, 10, 13, 14),
+      t('Cube tests', 'اختبارات المكعبات'),
+      [PageTodo('b-12', t('Collect the 7-day results', 'استلام نتائج 7 أيام'))],
+    ),
+    _entry(
       'entry-spacers',
       level3,
       DateTime(2026, 10, 15, 8),
@@ -154,7 +161,7 @@ class NotebookPageSamples {
       pourDay,
       DateTime(2026, 10, 15, 7),
       t('Pump at gate 2', 'المضخة عند البوابة 2'),
-      [PageTodo('b-7', t('Tell the guard', 'إبلاغ الحارس'))],
+      [PageText('b-7', t('Tell the guard', 'إبلاغ الحارس'))],
     ),
     _entry(
       'entry-ali',

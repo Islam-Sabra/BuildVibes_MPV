@@ -339,6 +339,8 @@ abstract final class BvIcons {
   // Phosphor: building-office
   static const pageBuilding = IconData(0xe0ff, fontFamily: _family);
   static const pageList = workItems;
+  // Phosphor: phone (a handset; BvIcons.phone is the mobile phone).
+  static const pagePhone = IconData(0xe3b8, fontFamily: _family);
   // Phosphor: star
   static const pageStar = IconData(0xe46a, fontFamily: _family);
   // Phosphor: wrench

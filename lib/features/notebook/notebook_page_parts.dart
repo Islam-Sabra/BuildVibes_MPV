@@ -16,6 +16,7 @@ import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_controls.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
+import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../work/daybook_words.dart';
 import 'notebook_state.dart';
 
@@ -24,7 +25,7 @@ IconData pageIconData(PageIcon icon) => switch (icon) {
   PageIcon.folder => BvIcons.pageFolder,
   PageIcon.hardHat => BvIcons.pageHardHat,
   PageIcon.building => BvIcons.pageBuilding,
-  PageIcon.phone => BvIcons.phone,
+  PageIcon.phone => BvIcons.pagePhone,
   PageIcon.list => BvIcons.pageList,
   PageIcon.calendar => BvIcons.calendar,
   PageIcon.camera => BvIcons.camera,
@@ -200,7 +201,7 @@ class NotebookPageRow extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textDirection: directionOf(name),
-                              style: type.labelMd.copyWith(
+                              style: type.emphasis.copyWith(
                                 color: BvColors.textPrimary,
                               ),
                             ),
@@ -514,11 +515,9 @@ class _PagePickerState extends State<PagePicker> {
                   controller: _query,
                   onChanged: (_) => setState(() {}),
                   style: type.bodyMd.copyWith(color: BvColors.textPrimary),
-                  decoration: InputDecoration.collapsed(
-                    hintText: l10n.notebookFindPage,
-                    hintStyle: type.bodyMd.copyWith(
-                      color: BvColors.textSecondary,
-                    ),
+                  decoration: bvBareField(
+                    hint: l10n.notebookFindPage,
+                    style: type.bodyMd,
                   ),
                 ),
               ),
@@ -933,6 +932,55 @@ class NotePageChip extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// "Write in this page" (PG4): the action colour on a round pill, the
+/// pencil first.
+class WriteHereButton extends StatelessWidget {
+  const WriteHereButton({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    child: Material(
+      key: const Key('page-write'),
+      color: BvColors.actionPrimary,
+      borderRadius: BvRadius.roundAll,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: BvNotebookPagesSpec.writeHereHeight,
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: BvNotebookPagesSpec.writeHerePadding,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: BvNotebookPagesSpec.writeHereGap,
+            children: [
+              const Icon(
+                BvIcons.edit,
+                size: BvNotebookPagesSpec.writeHereIcon,
+                color: BvColors.actionPrimaryForeground,
+              ),
+              Flexible(
+                child: Text(
+                  AppLocalizations.of(context).notebookWriteHere,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: BvType.of(
+                    context,
+                  ).button.copyWith(color: BvColors.actionPrimaryForeground),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -23,13 +23,12 @@ import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart';
-import '../../shared/widgets/bv_torn_edge.dart';
+import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../chat/thread_screen.dart' show ChatActionRow;
 import '../chat/chat_state.dart' show keepFileProvider;
@@ -1034,6 +1033,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       context,
       anchor: () => _chipKey.currentContext,
       barrier: true,
+      above: true,
       onDismiss: _picker.hide,
       builder: (_) => PagePickerCard(
         child: PagePicker(
@@ -1242,14 +1242,19 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                     }
                   },
                   style: type.headingMd.copyWith(color: BvColors.textPrimary),
-                  decoration: InputDecoration.collapsed(
-                    hintText: pageName(l10n, page),
-                    hintStyle: type.headingMd.copyWith(
-                      color: page.title.isEmpty && page.myNotes
-                          ? BvColors.textPrimary
-                          : BvColors.textSecondary,
-                    ),
-                  ).copyWith(counterText: ''),
+                  decoration:
+                      bvBareField(
+                        hint: pageName(l10n, page),
+                        style: type.headingMd,
+                      ).copyWith(
+                        counterText: '',
+                        // "My notes" is its name, not a hint.
+                        hintStyle: page.myNotes && page.title.isEmpty
+                            ? type.headingMd.copyWith(
+                                color: BvColors.textPrimary,
+                              )
+                            : null,
+                      ),
                 ),
               ),
             ],
@@ -1378,12 +1383,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           ],
         ),
         floatingActionButton: !writingNow && !selecting && page != null
-            ? BvButton(
-                key: const Key('page-write'),
-                label: l10n.notebookWriteHere,
-                icon: BvIcons.edit,
-                onPressed: () => unawaited(_write()),
-              )
+            ? WriteHereButton(onTap: () => unawaited(_write()))
             : null,
         body: Column(
           children: [
@@ -1603,138 +1603,160 @@ class NoteSlip extends ConsumerWidget {
     );
     final due = note.dueAt;
     final title = note.isPage ? note.title.trim() : '';
-    final slip = BvSlip(
-      key: Key('note-${note.id}'),
-      tear: BvSlipBorder.forId(note.id).variant,
-      lifted: selected,
-      menu: BvSlipCornerMenu(
-        key: Key('note-menu-${note.id}'),
-        label: l10n.daybookMore,
-        onTap: onMenu,
-      ),
-      onTap: onEdit,
-      onLongPress: onLongPress ?? onMenu,
-      children: [
-        // PG4: the title, or the kind, with the time at the end.
-        Padding(
-          padding: const EdgeInsetsDirectional.only(
-            end: BvSlipCornerMenu.reserve,
+    final children = <Widget>[
+      // PG4: the title, or the kind, with the time at the end, then ⋯.
+      Row(
+        key: Key('note-head-${note.id}'),
+        spacing: BvSpace.s8,
+        children: [
+          Expanded(
+            child: title.isEmpty
+                ? BvSlipQuiet(kind)
+                : Text(
+                    title,
+                    textDirection: directionOf(title),
+                    style: type.headingMd.copyWith(color: BvColors.textPrimary),
+                  ),
           ),
-          child: Row(
-            key: Key('note-head-${note.id}'),
+          Text(
+            words.time.clock(note.createdAt),
+            style: type.metadata.copyWith(color: BvColors.textSecondary),
+          ),
+          Semantics(
+            button: true,
+            label: l10n.daybookMore,
+            excludeSemantics: true,
+            child: InkResponse(
+              key: Key('note-menu-${note.id}'),
+              onTap: onMenu,
+              radius: BvNotebookPagesSpec.entryMenu,
+              child: const SizedBox.square(
+                dimension: BvNotebookPagesSpec.entryMenu,
+                child: Icon(
+                  BvIcons.more,
+                  size: BvSize.iconSm,
+                  color: BvColors.iconSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      if (note.isPage)
+        NotePageSummary(note: note, words: words, now: now, showTitle: false)
+      else
+        switch (note.kind) {
+          NoteKind.text => BvSlipNote(note.body),
+          NoteKind.todo => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             spacing: BvSpace.s8,
             children: [
-              Expanded(
-                child: title.isEmpty
-                    ? BvSlipQuiet(kind)
-                    : Text(
-                        title,
-                        textDirection: directionOf(title),
-                        style: type.labelMd.copyWith(
-                          color: BvColors.textPrimary,
+              NoteBox(
+                key: Key('note-done-${note.id}'),
+                ticked: note.done,
+                onTap: () => notebook.setDone(note, on: !note.done),
+                child: Text(note.body, style: note.done ? struck : main),
+              ),
+              if (due != null)
+                Row(
+                  spacing: BvNotebookSpec.dueGap,
+                  children: [
+                    const Icon(
+                      BvIcons.due,
+                      size: BvNotebookSpec.dueIcon,
+                      color: BvColors.textAction,
+                    ),
+                    Flexible(
+                      child: Text(
+                        todoDue(words, due, now),
+                        style: type.metadata.copyWith(
+                          color: note.done
+                              ? BvColors.textSecondary
+                              : BvColors.textAction,
                         ),
                       ),
-              ),
-              Text(
-                words.time.clock(note.createdAt),
-                style: type.metadata.copyWith(color: BvColors.textSecondary),
-              ),
+                    ),
+                  ],
+                ),
             ],
           ),
-        ),
-        if (note.isPage)
-          NotePageSummary(note: note, words: words, now: now, showTitle: false)
-        else
-          switch (note.kind) {
-            NoteKind.text => BvSlipNote(note.body),
-            NoteKind.todo => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: BvSpace.s8,
-              children: [
-                NoteBox(
-                  key: Key('note-done-${note.id}'),
-                  ticked: note.done,
-                  onTap: () => notebook.setDone(note, on: !note.done),
-                  child: Text(note.body, style: note.done ? struck : main),
+          NoteKind.checklist => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: BvNotebookSpec.pointGap,
+            children: [
+              if (note.body.isNotEmpty)
+                Text(
+                  note.body,
+                  style: type.labelMd.copyWith(color: BvColors.textPrimary),
                 ),
-                if (due != null)
-                  Row(
-                    spacing: BvNotebookSpec.dueGap,
-                    children: [
-                      const Icon(
-                        BvIcons.due,
-                        size: BvNotebookSpec.dueIcon,
-                        color: BvColors.textAction,
-                      ),
-                      Flexible(
-                        child: Text(
-                          todoDue(words, due, now),
-                          style: type.metadata.copyWith(
-                            color: note.done
-                                ? BvColors.textSecondary
-                                : BvColors.textAction,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-            NoteKind.checklist => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: BvNotebookSpec.pointGap,
-              children: [
-                if (note.body.isNotEmpty)
-                  Text(
-                    note.body,
-                    style: type.labelMd.copyWith(color: BvColors.textPrimary),
-                  ),
-                for (final (i, p) in note.points.indexed)
-                  NoteBox(
-                    key: Key('note-point-${note.id}-$i'),
-                    ticked: p.done,
-                    onTap: () => notebook.tick(note, i),
-                    child: Text(p.text, style: p.done ? struck : main),
-                  ),
-              ],
-            ),
-            NoteKind.voice => VoiceNote(
-              id: note.id,
-              duration: note.recording?.duration ?? Duration.zero,
-              path: note.recording?.path,
-              local: note.recording?.path == null
-                  ? note.recording?.local
-                  : null,
-              linkOf: (ref, path) =>
-                  ref.read(notebookRepositoryProvider).recordingUrl(path),
-            ),
-          },
-        if (note.photos.isNotEmpty && !note.isPage)
-          NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
-        if (remindsAt(note, now))
-          BvSlipQuiet(
-            key: Key('note-reminder-${note.id}'),
-            l10n.notebookReminderLine(
-              reminderWhen(l10n, words, note.remindAt!, now),
+              for (final (i, p) in note.points.indexed)
+                NoteBox(
+                  key: Key('note-point-${note.id}-$i'),
+                  ticked: p.done,
+                  onTap: () => notebook.tick(note, i),
+                  child: Text(p.text, style: p.done ? struck : main),
+                ),
+            ],
+          ),
+          NoteKind.voice => VoiceNote(
+            id: note.id,
+            duration: note.recording?.duration ?? Duration.zero,
+            path: note.recording?.path,
+            local: note.recording?.path == null ? note.recording?.local : null,
+            linkOf: (ref, path) =>
+                ref.read(notebookRepositoryProvider).recordingUrl(path),
+          ),
+        },
+      if (note.photos.isNotEmpty && !note.isPage)
+        NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
+      if (remindsAt(note, now))
+        BvSlipQuiet(
+          key: Key('note-reminder-${note.id}'),
+          l10n.notebookReminderLine(
+            reminderWhen(l10n, words, note.remindAt!, now),
+          ),
+        ),
+      if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
+      if (note.putInPostId != null && !note.waiting)
+        BvSlipQuiet(l10n.notebookPut),
+    ];
+    // PG4: a plain white card; selected (A4), lifted with the selected edge.
+    return DecoratedBox(
+      key: Key('note-${note.id}'),
+      decoration: BoxDecoration(
+        color: BvColors.surfaceElevated,
+        borderRadius: BvNotebookPagesSpec.entryRadius,
+        boxShadow: selected ? BvShadow.slipLifted : BvShadow.slip,
+      ),
+      child: DecoratedBox(
+        key: selected ? Key('note-selected-${note.id}') : null,
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          border: selected
+              ? Border.all(
+                  color: BvColors.borderSelected,
+                  width: BvStroke.thick,
+                )
+              : null,
+          borderRadius: BvNotebookPagesSpec.entryRadius,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            borderRadius: BvNotebookPagesSpec.entryRadius,
+            onTap: onEdit,
+            onLongPress: onLongPress ?? onMenu,
+            child: Padding(
+              padding: BvNotebookPagesSpec.entryPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: BvNotebookPagesSpec.entryLinesGap,
+                children: children,
+              ),
             ),
           ),
-        if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
-        if (note.putInPostId != null && !note.waiting)
-          BvSlipQuiet(l10n.notebookPut),
-      ],
-    );
-    if (!selected) return slip;
-    return DecoratedBox(
-      key: Key('note-selected-${note.id}'),
-      position: DecorationPosition.foreground,
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: BvColors.borderSelected,
-          width: BvStroke.thick,
         ),
-        borderRadius: BvRadius.cardAll,
       ),
-      child: slip,
     );
   }
 }
