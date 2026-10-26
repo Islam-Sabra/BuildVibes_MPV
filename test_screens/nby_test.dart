@@ -88,9 +88,11 @@ Future<void> _open(
     bottom: shotKeyboard * shotPixelRatio,
   );
   addTearDown(tester.view.reset);
-  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook');
+  GoRouter.of(
+    tester.element(find.byType(Navigator).first),
+  ).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
-  await _tap(tester, _key('post-bar-notepad'));
+  await _tap(tester, _key('page-write'));
 }
 
 NotePageEditorState _editor(WidgetTester tester) =>

@@ -1,9 +1,8 @@
-// Slice 8, My notebook and My calendar (review 83), against NB1 (EN
-// 2557:35384, AR 2564:549), Put a note in a Space (2557:35481) and CAL1
-// (EN 2557:35587, AR 2564:653). The notebook is on v13 paper, with no
-// hour spine (review 83, question 1); the empty states and Delete have
-// no prototype frames (N2, N7 and PL14 give their words). Writing a note
-// in place is F106's (test_screens/f106_test.dart).
+// Slice 8, My calendar (review 83), Put an entry in a Space (2557:35481)
+// and CAL1 (EN 2557:35587, AR 2564:653). NB1's one notebook list, its
+// empty state and its menu are retired (review 99: PG1 and PG4 replace
+// them, test_screens/pg_test.dart); Put in a Space opens from an entry's
+// ⋯ inside a page. Writing an entry is F106's (test_screens/f106_test.dart).
 // English and Arabic, at 390 × 844 on a 12-hour phone, in the app's fonts.
 // Run:
 //   flutter test test_screens/slice8_test.dart --update-goldens
@@ -143,35 +142,12 @@ void main() {
       await _snap(tester, 'H1-notebook-icon', lang);
     });
 
-    testWidgets('NB1 My notebook [$lang]', (tester) async {
-      await _open(tester, lang);
-      await _snap(tester, 'NB1-notebook', lang);
-      await tester.drag(_key('notebook-list'), const Offset(0, -400));
-      await tester.pumpAndSettle();
-      await _snap(tester, 'NB1-notebook-earlier', lang);
-    });
-
-    testWidgets('NB1 empty (N2\'s words) and Only you [$lang]', (tester) async {
-      await _open(tester, lang, empty: true);
-      await _tap(tester, _key('notebook-only-you'));
-      await _snap(tester, 'NB1-empty', lang);
-    });
-
-    testWidgets('the note\'s menu: Put in a Space, Pin, Edit, Delete; '
-        'Delete asks first [$lang]', (tester) async {
-      await _open(tester, lang);
-      await tester.longPress(_key('note-note-sleeves'));
-      await tester.pumpAndSettle();
-      await _snap(tester, 'NB-menu', lang);
-      await _tap(tester, _key('note-delete'));
-      await _snap(tester, 'NB-delete', lang);
-    });
-
     testWidgets('Put in a Space: the Space writing the to-do [$lang]', (
       tester,
     ) async {
-      await _open(tester, lang);
-      await tester.longPress(_key('note-note-sleeves'));
+      // Review 99: from an entry's ⋯ in its page (PG4).
+      await _open(tester, lang, path: '/notebook/pages/page-my-notes');
+      await tester.tap(_key('note-menu-note-sleeves'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('note-space-${DaybookSamples.space}'));
       FocusManager.instance.primaryFocus?.unfocus();

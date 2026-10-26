@@ -342,11 +342,12 @@ void main() {
           ),
         ],
       );
-      await _go(tester, '/notebook');
+      // Review 99: an entry inside "My notes"; its ⋯ opens the menu.
+      await _go(tester, '/notebook/pages/page-my-notes');
       await tester.ensureVisible(_key('note-note-sleeves'));
       await tester.pumpAndSettle();
       await _snap(tester, 'NB-reminder-slip', lang);
-      await tester.longPress(_key('note-note-walk'));
+      await tester.tap(_key('note-menu-note-walk'));
       await tester.pumpAndSettle();
       await _snap(tester, 'NB-remind-menu', lang);
     });

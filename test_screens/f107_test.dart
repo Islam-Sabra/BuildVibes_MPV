@@ -138,12 +138,14 @@ Future<void> _open(WidgetTester tester, String lang, NoteDraft draft) async {
   tester.view.devicePixelRatio = shotPixelRatio;
   addTearDown(tester.view.reset);
   await warmSamplePhoto(tester);
-  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook');
+  GoRouter.of(
+    tester.element(find.byType(Navigator).first),
+  ).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
   // The Draft, opened again from the bar's Note (a tap on the slip's
   // text would show the selection handle): being written, the keyboard on
   // its last line.
-  await _tap(tester, _key('post-bar-notepad'));
+  await _tap(tester, _key('page-write'));
 }
 
 void main() {

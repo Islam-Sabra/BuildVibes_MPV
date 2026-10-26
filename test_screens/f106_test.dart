@@ -76,14 +76,16 @@ Future<TestApp> _open(
   tester.view.physicalSize = shotSize * shotPixelRatio;
   tester.view.devicePixelRatio = shotPixelRatio;
   addTearDown(tester.view.reset);
-  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook');
+  GoRouter.of(
+    tester.element(find.byType(Navigator).first),
+  ).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
   return app;
 }
 
 /// NBW3 on F107's page: a to-do line, its date and Remind me as chips.
 Future<void> _todo(WidgetTester tester, String w) async {
-  await _tap(tester, _key('post-bar-notepad'));
+  await _tap(tester, _key('page-write'));
   await tester.testTextInput.receiveAction(TextInputAction.next);
   await tester.pumpAndSettle();
   await _tap(tester, _key('note-tool-categories'));
@@ -104,7 +106,7 @@ void main() {
       tester,
     ) async {
       await _open(tester, lang, [n.checklist()]);
-      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('page-write'));
       await _snap(tester, 'NBW1-slip', lang);
     });
 
@@ -118,7 +120,7 @@ void main() {
 
     testWidgets('NBW4 A checklist typed in place [$lang]', (tester) async {
       await _open(tester, lang, [n.todo()]);
-      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('page-write'));
       await tester.enterText(_key('note-title'), n.walkTitle);
       await tester.testTextInput.receiveAction(TextInputAction.next);
       await tester.pumpAndSettle();
