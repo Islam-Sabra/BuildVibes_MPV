@@ -152,6 +152,13 @@ In English, "toward the end" means toward the right, and "toward the start" towa
 | **Toward the end** | 📌 Pin / Unpin · 🔔 Reminder ("Change reminder" when set), as buttons behind the card | none: tap a button |
 | **Toward the start** | 🗄 **Archive** (Unarchive on an archived entry; Discard on a draft) | archives at once, then "Archived · Undo" for 5 s |
 
+- **How it looks** (founder, 26 Oct 16:41: no flat coloured blocks):
+  - **The card lifts** as it moves: its shadow grows and it follows the finger.
+  - **Under it, round buttons** sit on the page's own background, 48 round, each with its label under it: Pin in ink, Reminder in the warning colour (tokens).
+  - **The buttons follow the swipe:** they grow from 60% to 100% size and fade in as the swipe uncovers them, the second one 40 ms after the first.
+  - **Archive starts as one round button.** Past the full-swipe point, it stretches into a pill that follows the finger, with a haptic tick.
+  - **On release past that point,** the card flies off in 200 ms, the row closes in 180 ms, and "Archived · Undo" shows.
+  - **Released before that point,** the pill shrinks back to the round button.
 - **Behaviour:**
   - a swipe counts only when it starts on the card, at least 24 from the screen's edge, so the system back gesture keeps the edges (B6);
   - half a swipe (past 25% of the card) opens the buttons, and they stay open until a tap elsewhere or a scroll;
