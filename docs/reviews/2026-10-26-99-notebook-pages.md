@@ -7,7 +7,18 @@
 - "Deleted goes to deleted items, cleaned after 30 days by default; the user can make it more or less."
 - "It's huge work, but this is the added value of that part."
 
-**Status:** the rules, for the founder's approval. Figma frames follow his yes, then the build. It comes in **two parts**, each built, checked and merged on its own:
+**Status:** rules approved by the founder (26 Oct, 09:00). Figma frames on "PROTOTYPE · Full app v1 · EN", named "… · R99 · PROPOSAL", for his look before the build:
+
+| Frame | EN | AR |
+|---|---|---|
+| PG1 · Pages list | `2634:37503` | `2634:38318` |
+| PG2 · Writing, page chip under the note | `2634:37604` | `2634:38419` |
+| PG3 · Page picker from the chip | `2634:37697` | `2634:38512` |
+| PG4 · A page: path, sub-pages, notes by day, "Posted to" mark | `2634:37831` | `2634:38646` |
+| PG5 · Merge 2 selected pages | `2634:37924` | `2634:38739` |
+| PG6 · A note's menu | `2634:38042` | `2634:38857` |
+| PG7 · Post to feed: preview first, GPS off | `2634:38187` | `2634:39002` |
+| PG8 · Deleted items, keep 7 · 30 · 90 days | `2634:38247` | `2634:39062` | It comes in **two parts**, each built, checked and merged on its own:
 - **99A:** pages, the page chip, auto-pages, move, merge, search, pin, sub-pages.
 - **99B:** note actions to the outside (Post to feed, Put in a Space from a line), and Deleted items with its retention choice.
 
