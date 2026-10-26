@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
+import 'package:buildvibes/data/models/space.dart'
+    show SpaceException, SpaceFailure;
 import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
@@ -41,12 +43,13 @@ Future<TestApp> _open(
   List<Note> notes = const [],
   NoteDraft? draft,
   FakeSpaceRepository? spaces,
+  FakeNotebookRepository? notebook,
 }) async {
   final app = await pumpApp(
     tester,
     language: lang,
     now: NotebookSamples.now,
-    notebook: FakeNotebookRepository(notes: notes),
+    notebook: notebook ?? FakeNotebookRepository(notes: notes),
     spaces: spaces,
     stored: {
       if (draft != null) 'notebook_draft:user-1': jsonEncode(draft.toJson()),
@@ -283,6 +286,40 @@ void main() {
         expect(app.notebook.kept['entry-1']!.title, 'Pour');
       });
 
+      testWidgets('D4: a refused edit stays an edit of that entry: one card, '
+          'its words back in the editor', (tester) async {
+        final app = await _open(
+          tester,
+          lang,
+          notes: [_saved()],
+          notebook: _RefusingEdits(notes: [_saved()]),
+        );
+        await _tap(tester, _key('note-entry-1'));
+        await tester.enterText(_key('note-title'), 'Pour, level 3');
+        await tester.pumpAndSettle();
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.notebookCouldntKeep), findsOneWidget);
+        // No Draft card beside the entry: the edit is back in the editor.
+        expect(_key('note-draft'), findsNothing);
+        expect(_key('note-tools'), findsOneWidget);
+        expect(_drafted(tester)!.editing?.id, 'entry-1');
+        expect(_drafted(tester)!.title, 'Pour, level 3');
+        expect(app.notebook.kept['entry-1']!.title, 'Pour');
+        // Back again with no new change leaves: never a loop of refusals.
+        final saves = app.notebook.calls.where((c) => c.startsWith('save:'));
+        final tries = saves.length;
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(_key('note-tools'), findsNothing);
+        expect(_key('note-draft'), findsNothing);
+        expect(_key('note-entry-1'), findsOneWidget);
+        expect(
+          app.notebook.calls.where((c) => c.startsWith('save:')),
+          hasLength(tries),
+        );
+      });
+
       testWidgets('a Draft\'s ⋯: Discard, with Undo', (tester) async {
         await _open(tester, lang, draft: _draft([PageText('t-1', 'Rebar')]));
         await _tap(tester, _key('note-draft-menu-draft-1'));
@@ -385,5 +422,16 @@ void main() {
         expect(_key('note-tools'), findsOneWidget);
       });
     });
+  }
+}
+
+/// The server refuses every save (D4).
+class _RefusingEdits extends FakeNotebookRepository {
+  _RefusingEdits({super.notes});
+
+  @override
+  Future<bool> save(Note note, {String? newPageTitle}) async {
+    calls.add('save:${note.id}');
+    throw const SpaceException(SpaceFailure.badInput);
   }
 }

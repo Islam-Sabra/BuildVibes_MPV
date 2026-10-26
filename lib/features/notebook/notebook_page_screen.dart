@@ -334,6 +334,43 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
   }
 
+  /// A refused note's words back (B15). D4: a refused edit of an entry
+  /// the server still has stays an edit of it, back in the editor with its
+  /// link; only a new entry comes back as its own Draft card (beside the
+  /// one in hand, if any, B3).
+  Future<void> _takeBack(Note lost) async {
+    NotebookData? data;
+    try {
+      data = await ref.read(notebookProvider.future);
+    } on Object {
+      data = null;
+    }
+    if (!mounted) return;
+    final saved = data?.all.where((n) => n.id == lost.id).firstOrNull;
+    if (saved != null) {
+      final hand = ref.read(noteDraftProvider);
+      if (hand != null && hand.id != lost.id) {
+        if (hand.editing != null) {
+          await _finishEdit(quiet: true);
+        } else {
+          await _drafts.park();
+        }
+      }
+      final back = NoteDraft.back(lost, editing: saved);
+      await _drafts.put(back);
+      // Back with no new change leaves it as the server has it: never a
+      // loop of refusals. Undo still gives back the saved entry.
+      _editOpened = _shape(back);
+      return _goOn();
+    }
+    final back = NoteDraft.back(
+      lost,
+    ).copyWith(photos: const [], files: const [], location: () => null);
+    await (ref.read(noteDraftProvider) == null
+        ? _drafts.put(back)
+        : ref.read(parkedDraftsProvider.notifier).keep(back));
+  }
+
   /// The entry to save from [draft]: in its page, with the pin as the
   /// notebook has it now (B14) and no reminder whose time went by (B16).
   Note _noteOf(NoteDraft draft) {
@@ -1305,15 +1342,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       if (lost == null) return;
       ref.read(noteRefusedProvider.notifier).seen();
       _toast(l10n.notebookCouldntKeep);
-      final back = NoteDraft.back(
-        lost,
-      ).copyWith(photos: const [], files: const [], location: () => null);
-      // Its own Draft card; beside the one in hand if there is one (B3).
-      unawaited(
-        ref.read(noteDraftProvider) == null
-            ? _drafts.put(back)
-            : ref.read(parkedDraftsProvider.notifier).keep(back),
-      );
+      unawaited(_takeBack(lost));
     });
     final page = data.page(widget.pageId ?? draft?.intoPage ?? data.latest?.id);
     if (page != null && widget.pageId != null && notebook.hasValue) {

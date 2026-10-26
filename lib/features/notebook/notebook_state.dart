@@ -789,6 +789,9 @@ class Notebook extends AsyncNotifier<NotebookData> {
     if (_sending) return;
     _sending = true;
     var refused = false;
+    // Said once the notebook reads again (D4: the screen then tells a
+    // refused edit of a saved entry from a refused new one).
+    Note? lost;
     try {
       while (_waiting.isNotEmpty) {
         var change = _waiting.first;
@@ -803,11 +806,8 @@ class Notebook extends AsyncNotifier<NotebookData> {
             return;
           }
           refused = true;
-          // B15: said, and its words kept as the Draft.
-          final lost = change.note;
-          if (change.op == 'save' && lost != null) {
-            ref.read(noteRefusedProvider.notifier).refused(lost);
-          }
+          // B15: said, and its words kept.
+          if (change.op == 'save') lost = change.note ?? lost;
         }
         _tries = 0;
         _retry?.cancel();
@@ -819,6 +819,7 @@ class Notebook extends AsyncNotifier<NotebookData> {
     } finally {
       _sending = false;
       if (refused) ref.invalidateSelf();
+      if (lost != null) ref.read(noteRefusedProvider.notifier).refused(lost);
     }
   }
 
