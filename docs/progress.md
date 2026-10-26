@@ -636,6 +636,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   
   Migration 45 (`20261106120000_note_block_levels.sql`) is live, the only file in the push, with a read-only check. Analyze clean, 1,913 app tests, 2,696 SQL checks, 398 screenshot checks. **Build 610** is on the founder's phone and the emulator.
 
+- **26 Oct, reviews 96 and 98 in `slice2-app` (de29fa9):**
+  - **Review 96:** search groups every post under "Posts", with each kind's icon. Migration 46 (`20261107120000_post_numbers.sql`) went live at 07:25 Kuwait, the only file in the push. The read-only check passed: no post without a number, no duplicates, work items equal to their posts, NST-023 to NST-025 unchanged, counters ahead, no search signed out.
+  - **Review 98:** the notebook writes like Notion: typed shortcuts, `/` anywhere, the line menu next to the line with Move up and down, Duplicate and Undo. The lead's fixes: the cards open under the line and the line menu is never cut; the title shows no bar tools.
+  - NBY1–NBY5 shot in EN and AR. The emulator checks passed: the keyboard stays up, shortcuts tick, moves slide, Undo restores.
+  - Analyze clean; 2,047 app tests; 420 screenshots; SQL checks pass. Build 630 is built and waits for the phone.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
