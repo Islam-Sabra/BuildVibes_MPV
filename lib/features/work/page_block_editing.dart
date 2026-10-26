@@ -41,8 +41,7 @@ typedef PageSlashItem = ({
 /// The app's words in each of its languages: "/" finds a kind by its name
 /// in any of them.
 final slashLanguages = [
-  for (final l in AppLocalizations.supportedLocales)
-    lookupAppLocalizations(l),
+  for (final l in AppLocalizations.supportedLocales) lookupAppLocalizations(l),
 ];
 
 bool slashMatches(PageSlashItem item, String filter) {
@@ -429,6 +428,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
           key: const Key('page-add-menu'),
           title: l10n.pageSlashTitle,
           hint: l10n.pageSlashEnter,
+          scrolls: true,
           selected: shown.first.value,
           items: [
             for (final i in shown)

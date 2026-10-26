@@ -5,8 +5,9 @@ import '../../core/design/daybook_writing_specs.dart';
 
 /// A small card next to a line being written (review 98): the "/" card
 /// (NBY1) and the line menu (NBY2). It floats in the overlay, so the line
-/// keeps the keyboard and stays in sight: under the line when there is room
-/// above the keyboard, otherwise over it. The "/" card lines up with the
+/// keeps the keyboard and stays in sight: under the line, over the bar and
+/// the keyboard, as the frames draw it, when it fits on the screen;
+/// otherwise over the line. The "/" card lines up with the
 /// line's start; the line menu with its end. It opens in 150 ms from the
 /// line, and at once with Reduce motion.
 ///
@@ -38,8 +39,7 @@ class BvLinePopover {
         if (box == null || line == null || !line.attached) {
           return const SizedBox.shrink();
         }
-        final rect =
-            line.localToGlobal(Offset.zero, ancestor: box) & line.size;
+        final rect = line.localToGlobal(Offset.zero, ancestor: box) & line.size;
         final media = MediaQuery.of(overlayContext);
         return Stack(
           children: [
@@ -59,10 +59,8 @@ class BvLinePopover {
                   gap: gap,
                   textDirection: Directionality.of(context),
                   top: media.padding.top + BvLineMenuSpec.screenMargin,
-                  bottom:
-                      media.viewInsets.bottom +
-                      media.padding.bottom +
-                      BvLineMenuSpec.screenMargin,
+                  // Over the keyboard too (lead, 26 Oct).
+                  bottom: media.padding.bottom + BvLineMenuSpec.screenMargin,
                 ),
                 child: _PopIn(
                   atEnd: atEnd,
@@ -88,7 +86,7 @@ class BvLinePopover {
   }
 }
 
-/// Under the line if it fits above the keyboard, else over it; its start
+/// Under the line if it fits on the screen, else over it; its start
 /// (or, [atEnd], its end) lined up with the line's.
 class _NextToLine extends SingleChildLayoutDelegate {
   _NextToLine({
@@ -123,10 +121,7 @@ class _NextToLine extends SingleChildLayoutDelegate {
     final rtl = textDirection == TextDirection.rtl;
     final x = rtl != atEnd ? line.right - child.width : line.left;
     final most = size.width - child.width - BvLineMenuSpec.screenMargin;
-    return Offset(
-      x.clamp(BvLineMenuSpec.screenMargin, most < 0 ? 0 : most),
-      y,
-    );
+    return Offset(x.clamp(BvLineMenuSpec.screenMargin, most < 0 ? 0 : most), y);
   }
 
   @override

@@ -57,6 +57,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
        screen = false,
        wide = false,
        line = false,
+       scrolls = false,
        title = null,
        hint = null;
 
@@ -71,6 +72,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
   }) : picker = true,
        screen = false,
        line = false,
+       scrolls = false,
        title = null,
        hint = null;
 
@@ -83,6 +85,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
        screen = true,
        wide = false,
        line = false,
+       scrolls = false,
        title = null,
        hint = null;
 
@@ -96,6 +99,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
     this.selected,
     this.title,
     this.hint,
+    this.scrolls = false,
   }) : picker = false,
        screen = false,
        wide = false,
@@ -112,6 +116,10 @@ class BvPopoverMenu<T> extends StatelessWidget {
   /// The line card's small grey words over its rows, and under them.
   final String? title;
   final String? hint;
+
+  /// The "/" card: past [BvLineMenuSpec.rowsShown] rows it scrolls. The
+  /// line menu never does: every row is always in sight.
+  final bool scrolls;
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +184,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
                   padding: BvLineMenuSpec.titlePadding,
                   child: Text(title, style: quiet),
                 ),
-              if (items.length > BvLineMenuSpec.rowsShown)
+              if (scrolls && items.length > BvLineMenuSpec.rowsShown)
                 ConstrainedBox(
                   constraints: const BoxConstraints(
                     maxHeight:

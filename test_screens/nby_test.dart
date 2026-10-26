@@ -2,7 +2,7 @@
 // 2629:37317, 2629:37448, 2629:37610, 2629:37729, 2629:37841; AR
 // 2629:37961, 2629:38092, 2629:38254, 2629:38373, 2629:38485). English
 // and Arabic, at 390 × 844 on a 12-hour phone, in the app's fonts; the
-// frames draw a keyboard under the bar, a test has none.
+// frames draw a keyboard under the bar: the test keeps its room, blank.
 // Run:
 //   flutter test test_screens/nby_test.dart --update-goldens
 import 'dart:convert';
@@ -82,6 +82,11 @@ Future<void> _open(
   );
   tester.view.physicalSize = shotSize * shotPixelRatio;
   tester.view.devicePixelRatio = shotPixelRatio;
+  // The frames draw the keyboard: its room is kept (left blank), so the
+  // slip and the cards stand where they do on a phone.
+  tester.view.viewInsets = const FakeViewPadding(
+    bottom: shotKeyboard * shotPixelRatio,
+  );
   addTearDown(tester.view.reset);
   GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook');
   await tester.pumpAndSettle();

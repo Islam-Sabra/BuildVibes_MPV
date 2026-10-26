@@ -614,12 +614,7 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
           ...editBlocks.take(index),
           PageToggle(t.id, t.text, [
             for (final c in t.children)
-              if (c.id != childId)
-                c
-              else ...[
-                if (keep) c,
-                block!,
-              ],
+              if (c.id != childId) c else ...[if (keep) c, block!],
           ]),
           ...editBlocks.skip(index + 1),
         ]),
@@ -777,8 +772,9 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     final id = PageBlockEditing.blockIdOfKey(key);
     for (final (i, b) in editBlocks.indexed) {
       if (b.id == id) return (i, null);
-      if (b case PageToggle(:final children)
-          when children.any((c) => c.id == id)) {
+      if (b case PageToggle(
+        :final children,
+      ) when children.any((c) => c.id == id)) {
         return (i, id);
       }
     }

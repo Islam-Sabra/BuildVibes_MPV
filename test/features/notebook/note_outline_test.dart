@@ -319,22 +319,24 @@ void main() {
         _id(5),
       ]);
       expect(_levels(copy), [0, 0, 1, 1, 0, 1, 1, 0]);
-      expect([for (final b in copy) b.type], [
-        'numbered',
-        'numbered',
-        'todo',
-        'todo',
-        'numbered',
-        'todo',
-        'todo',
-        'numbered',
-      ]);
+      expect(
+        [for (final b in copy) b.type],
+        [
+          'numbered',
+          'numbered',
+          'todo',
+          'todo',
+          'numbered',
+          'todo',
+          'todo',
+          'numbered',
+        ],
+      );
       expect((copy[5] as PageTodo).text, 'Cover');
       expect(_labels(copy), ['1.', '2.', '', '', '3.', '', '', '4.']);
     });
 
-    test("a toggle's own lines get new ids too; a voice note isn't copied",
-        () {
+    test("a toggle's own lines get new ids too; a voice note isn't copied", () {
       var n = 200;
       final blocks = <PageBlock>[
         PageToggle(_id(1), 'Pour', [PageText(_id(2), 'Slump')]),

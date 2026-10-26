@@ -172,6 +172,10 @@ abstract final class BvLineMenuSpec {
   /// The "/" card with every kind shows five and a half rows, so it keeps
   /// clear of the line and the keyboard; the rest scroll.
   static const rowsShown = 5.5;
+
+  /// The line menu's most rows (Turn into to Delete, with Continue
+  /// numbering): it is never cut, so the note makes room for this many.
+  static const menuMostRows = 8;
   static const tile = BvSize.avatarSm; // 32
   static const icon = 18.0;
   static const caret = BvSize.iconSm; // 16

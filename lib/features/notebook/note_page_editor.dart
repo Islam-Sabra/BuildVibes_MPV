@@ -291,7 +291,17 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   bool get handleOnlyWhileWriting => true;
 
   @override
-  bool get handlesShown => widget.writing;
+  bool get handlesShown => widget.writing && !_inTitle;
+
+  /// The cursor is in the title: no line is being written, so no ⋮⋮ and no
+  /// ⇥ ⇤ (NBY4).
+  bool get _inTitle => widget.titleFocus?.hasFocus ?? false;
+
+  void _titleFocusChanged() {
+    if (!mounted) return;
+    setState(() {});
+    widget.onCurrentKind?.call(currentKind);
+  }
 
   @override
   double get handleHeight => BvNoteBlocksSpec.handleHeight;
@@ -310,6 +320,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         widget.blocks.isEmpty ? [PageText(newUuid(), '')] : [...widget.blocks],
       ),
     );
+    widget.titleFocus?.addListener(_titleFocusChanged);
     // The note opens folded as it was left.
     for (final (i, b) in editBlocks.indexed) {
       if (b.folded && folds(editBlocks, i)) _folded.add(b.id);
@@ -336,6 +347,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
 
   @override
   void dispose() {
+    widget.titleFocus?.removeListener(_titleFocusChanged);
     _menu.hide();
     _slide.dispose();
     _foldMotion.dispose();
@@ -391,9 +403,15 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
 
   /// ⇥ and ⇤ on the bar: the line the cursor is in can go deeper, or out.
   bool get canIndentCurrent =>
-      widget.writing && _here != null && canIndent(editBlocks, _here!);
+      widget.writing &&
+      !_inTitle &&
+      _here != null &&
+      canIndent(editBlocks, _here!);
   bool get canOutdentCurrent =>
-      widget.writing && _here != null && canOutdent(editBlocks, _here!);
+      widget.writing &&
+      !_inTitle &&
+      _here != null &&
+      canOutdent(editBlocks, _here!);
 
   /// ⇥: the line the cursor is in goes under the line before it, its
   /// children with it.
@@ -420,11 +438,8 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   // Undo (review 98) ----------------------------------------------------------
 
   /// The whole note as it is: its lines, its folds and the line written in.
-  ({List<PageBlock> blocks, Set<String> folded, String? current}) _snap() => (
-    blocks: collectBlocks(),
-    folded: {..._folded},
-    current: currentBlockId,
-  );
+  ({List<PageBlock> blocks, Set<String> folded, String? current}) _snap() =>
+      (blocks: collectBlocks(), folded: {..._folded}, current: currentBlockId);
 
   /// The Undo bar for 5 s after a line's action ("Moved · Undo"); Undo
   /// puts [before] back, children and folds and all. [mark]: the line
@@ -646,8 +661,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   (int, String)? _toggleOf(String key) {
     final id = PageBlockEditing.blockIdOfKey(key);
     for (final (i, b) in editBlocks.indexed) {
-      if (b case PageToggle(:final children)
-          when b.id != id && children.any((c) => c.id == id)) {
+      if (b case PageToggle(
+        :final children,
+      ) when b.id != id && children.any((c) => c.id == id)) {
         return (i, id!);
       }
     }
@@ -742,10 +758,12 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       final line = PageText(newUuid(), after, indent: b.indent);
       dropField(key);
       currentBlockId = line.id;
-      _set([...editBlocks]..replaceRange(index, index + 1, [
+      _set(
+        [...editBlocks]..replaceRange(index, index + 1, [
           PageDivider(b.id, indent: b.indent),
           line,
-        ]));
+        ]),
+      );
       focusBlockLater('t:${line.id}');
     } else {
       setField(key, after, 0);
@@ -768,6 +786,8 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     closeSlash();
     editBlocks = collectBlocks();
     final id = editBlocks[index].id;
+    await _roomForMenu(id);
+    if (!mounted) return;
     setState(() {
       _marked = id;
       _turning = false;
@@ -781,6 +801,49 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       onDismiss: _closeMenu,
       builder: (context) => _menuCard(context, id),
     );
+  }
+
+  /// The line menu shows every row, never scrolled (lead, 26 Oct): with no
+  /// room for it under the line nor over it, the note first scrolls the
+  /// line the shorter way that makes room (up for room under it, down for
+  /// room over it), as far as the list goes.
+  Future<void> _roomForMenu(String id) async {
+    final row = _rows[id]?.currentContext;
+    final box = row?.findRenderObject() as RenderBox?;
+    final position = Scrollable.maybeOf(context)?.position;
+    if (row == null || box == null || !box.attached || position == null) {
+      return;
+    }
+    final media = MediaQuery.of(context);
+    final top = box.localToGlobal(Offset.zero).dy;
+    final bottom = top + box.size.height;
+    const need =
+        BvLineMenuSpec.menuMostRows * BvLineMenuSpec.rowHeight +
+        2 * BvLineMenuSpec.padding +
+        BvLineMenuSpec.menuGap;
+    final floor =
+        media.size.height - media.padding.bottom - BvLineMenuSpec.screenMargin;
+    final ceiling = media.padding.top + BvLineMenuSpec.screenMargin;
+    final up = bottom + need - floor;
+    final down = ceiling + need - top;
+    if (up <= 0 || down <= 0) return;
+    final pixels = position.pixels;
+    final ways = [
+      if (pixels + up <= position.maxScrollExtent) pixels + up,
+      if (pixels - down >= position.minScrollExtent) pixels - down,
+    ]..sort((a, b) => (a - pixels).abs().compareTo((b - pixels).abs()));
+    final to = ways.isNotEmpty
+        ? ways.first
+        : (up < down ? position.maxScrollExtent : position.minScrollExtent);
+    if (_still) {
+      position.jumpTo(to);
+    } else {
+      await position.animateTo(
+        to,
+        duration: BvMotion.fast,
+        curve: BvMotion.standard,
+      );
+    }
   }
 
   void _closeMenu({bool keepMark = false}) {

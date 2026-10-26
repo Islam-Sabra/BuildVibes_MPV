@@ -173,8 +173,9 @@ void main() {
         });
       }
 
-      testWidgets('"--- " is a divider, then a new text line with the cursor',
-          (tester) async {
+      testWidgets('"--- " is a divider, then a new text line with the cursor', (
+        tester,
+      ) async {
         await _open(tester, lang, [PageText(_id(1), '')]);
         await _cursor(tester, 1);
         await _type(tester, '--- Next');
@@ -223,10 +224,7 @@ void main() {
         final line = tester.getRect(_line(1));
         final card = tester.getRect(_key('page-add-menu'));
         // Under the line, or over it when the line is low on the screen.
-        expect(
-          card.top >= line.bottom || card.bottom <= line.top,
-          isTrue,
-        );
+        expect(card.top >= line.bottom || card.bottom <= line.top, isTrue);
         expect(
           lang == 'ar'
               ? (card.right - line.right).abs()
@@ -419,10 +417,7 @@ void main() {
 
       testWidgets('the first line has no Move up; the last no Move down; a '
           'heading no Indent', (tester) async {
-        await _open(tester, lang, [
-          PageHeading(_id(9), 'Level 3'),
-          ..._pour(),
-        ]);
+        await _open(tester, lang, [PageHeading(_id(9), 'Level 3'), ..._pour()]);
         await _menu(tester, 9);
         expect(_key('page-move-up'), findsNothing);
         expect(_key('page-move-down'), findsOneWidget);
@@ -625,6 +620,135 @@ void main() {
         await tester.tap(_key('note-fold-${_id(2)}'));
         await tester.pump();
         expect(_line(3), findsNothing);
+      });
+    });
+
+    // Lead, 26 Oct: the cards open under the line (over the bar and the
+    // keyboard), over it only when there is no room; the line menu is
+    // never cut; the title has no ⇥ ⇤ and no ⋮⋮.
+    group('where the cards open [$lang]', () {
+      /// A phone of [height]: 390 wide.
+      void phone(WidgetTester tester, double height) {
+        tester.view.physicalSize = Size(390, height) * 3;
+        tester.view.devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+      }
+
+      /// Twelve lines: the first stands high on the screen, the last low.
+      List<PageBlock> long() => [
+        for (var n = 1; n <= 12; n++) PageNumbered(_id(n), 'Line $n'),
+      ];
+
+      Rect menu(WidgetTester tester) => tester.getRect(_key('page-block-menu'));
+
+      void everyRowShows(WidgetTester tester) {
+        expect(
+          find.descendant(
+            of: _key('page-block-menu'),
+            matching: find.byType(Scrollable),
+          ),
+          findsNothing,
+        );
+        final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+        final rows = find.descendant(
+          of: _key('page-block-menu'),
+          matching: find.byType(InkWell),
+        );
+        expect(rows, findsAtLeastNWidgets(5));
+        // Delete, the last, too.
+        expect(_key('page-block-delete'), findsOneWidget);
+        for (final e in rows.evaluate()) {
+          final r = tester.getRect(find.byWidget(e.widget));
+          expect(r.top >= 0 && r.bottom <= screen.height, isTrue);
+        }
+      }
+
+      testWidgets('the line menu opens under a line with room under it, every '
+          'row in sight', (tester) async {
+        await _open(tester, lang, long());
+        phone(tester, 844);
+        await tester.pumpAndSettle();
+        await _menu(tester, 1);
+        expect(menu(tester).top, greaterThan(tester.getRect(_line(1)).bottom));
+        everyRowShows(tester);
+      });
+
+      testWidgets('near the bottom, over the line, every row in sight', (
+        tester,
+      ) async {
+        await _open(tester, lang, long());
+        phone(tester, 844);
+        await tester.pumpAndSettle();
+        await _menu(tester, 12);
+        expect(menu(tester).bottom, lessThan(tester.getRect(_line(12)).top));
+        everyRowShows(tester);
+      });
+
+      testWidgets('no room either way: the note scrolls first, and the menu '
+          'is never cut', (tester) async {
+        // Long enough to scroll.
+        await _open(tester, lang, [
+          for (var n = 1; n <= 30; n++) PageNumbered(_id(n), 'Line $n'),
+        ]);
+        phone(tester, 600);
+        await tester.pumpAndSettle();
+        // A line in the middle: room for the menu neither under it nor
+        // over it.
+        const need = 8 * 44 + 2 * 6 + 4;
+        final n = [
+          for (var n = 1; n <= 20; n++)
+            if (_line(n).evaluate().isNotEmpty &&
+                tester.getRect(_line(n)).top - 16 < need &&
+                600 - 16 - tester.getRect(_line(n)).bottom < need)
+              n,
+        ].first;
+        await _cursor(tester, n);
+        final before = tester.getRect(_line(n)).top;
+        await _tap(tester, _key('page-handle-${_id(n)}'));
+        expect(tester.getRect(_line(n)).top, isNot(before));
+        everyRowShows(tester);
+        final line = tester.getRect(_line(n));
+        final card = menu(tester);
+        expect(card.top >= line.bottom || card.bottom <= line.top, isTrue);
+      });
+
+      testWidgets('the "/" card opens under the line when it fits', (
+        tester,
+      ) async {
+        await _open(tester, lang, [
+          PageText(_id(1), ''),
+          for (var n = 2; n <= 8; n++) PageNumbered(_id(n), 'Line $n'),
+        ]);
+        phone(tester, 844);
+        await tester.pumpAndSettle();
+        await _cursor(tester, 1);
+        await _type(tester, '/num');
+        // Under the line's words (the card lines up with the text, not the
+        // field's padding).
+        expect(
+          tester.getRect(_key('page-add-menu')).top,
+          greaterThan(tester.getRect(_line(1)).center.dy),
+        );
+      });
+
+      testWidgets('the cursor in the title: no ⇥ ⇤, no ⋮⋮ (NBY4)', (
+        tester,
+      ) async {
+        await _open(tester, lang, [
+          PageNumbered(_id(1), 'Clean the formwork'),
+          PageNumbered(_id(2), 'Check the rebar'),
+        ]);
+        await _cursor(tester, 2);
+        expect(_key('note-tool-indent'), findsOneWidget);
+        expect(_key('page-handle-${_id(2)}'), findsOneWidget);
+        await _tap(tester, _key('note-title'));
+        expect(_key('note-tool-indent'), findsNothing);
+        expect(_key('note-tool-outdent'), findsNothing);
+        expect(find.byKey(Key('page-handle-${_id(2)}')), findsNothing);
+        // Back on the line, they come back.
+        await _cursor(tester, 2);
+        expect(_key('note-tool-indent'), findsOneWidget);
+        expect(_key('page-handle-${_id(2)}'), findsOneWidget);
       });
     });
   }

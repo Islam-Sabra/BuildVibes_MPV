@@ -158,9 +158,7 @@ PageBlock _copy(PageBlock b, String Function() newId) {
     ...json,
     'id': newId(),
     if (json['children'] case final List children)
-      'children': [
-        for (final c in children) fresh(c as Map<String, dynamic>),
-      ],
+      'children': [for (final c in children) fresh(c as Map<String, dynamic>)],
   };
   return PageBlock.fromJson(fresh(b.toJson()));
 }
