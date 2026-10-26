@@ -2,6 +2,32 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+
+## PC update: 26 Oct 2026, 14:15 Kuwait — review 99A in `slice2-app`; migration 47 live; build 640 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Merge:** `claude/r99a` merged into `slice2-app` (a fast-forward to 5e025c2) and pushed. Checks on the merged branch:
+  - `flutter analyze`: no issues;
+  - `flutter test`: 2,100 pass;
+  - `supabase db reset` + `supabase test db`: 2,863 pass in 46 files.
+- **Migration 47 is live** (founder's yes, 26 Oct). The push ran from a throwaway worktree with `supabase/.temp` copied whole.
+  - The dry run and the push both listed only `20261108120000_notebook_pages.sql`. The push exited 0.
+  - After it applied, the CLI printed the harmless pg-delta "failed to cache migrations catalog" warning.
+- **Read-only check on live:**
+  - before the push: 7 notes, 1 person with notes;
+  - after: 7 notes;
+  - 0 notes without a page;
+  - 0 people with notes who don't have exactly one "My notes";
+  - 0 notes on someone else's page;
+  - 1 page in all;
+  - RLS is on `notebook_pages`;
+  - signed out, `search_notebook` can't be called (no grant), and as a signed-in role with no user it refuses ("not allowed").
+  - The last live migration is `20261108120000`.
+- **Build 640** (5e025c2, versionCode 640, versionName 0.9.0) is **installed on the founder's phone** (192.168.8.24:43367, BuildVibes only). It covers reviews 94, 95, 98 and 99A.
+- **Next:** the founder's test of the notebook pages on build 640; then review 99B (the entry menu's Put in a Space / Post to feed, Deleted items, the purge).
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`). `claude/r99a` is merged. The worktrees `BuildVibes-r99a`, `BuildVibes-r95` and `BuildVibes-hold` can be removed.
+
 ## PC update: 26 Oct 2026, 08:45 Kuwait — reviews 96 and 98 in `slice2-app` (pushed); build 630 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
