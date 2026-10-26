@@ -7250,22 +7250,10 @@ abstract class AppLocalizations {
   /// **'My notebook'**
   String get notebookTitle;
 
-  /// The pill in My notebook's header: nobody else sees it.
-  ///
-  /// In en, this message translates to:
-  /// **'Only you'**
-  String get notebookOnlyYou;
-
-  /// What the Only you pill says when tapped.
-  ///
-  /// In en, this message translates to:
-  /// **'Only you can see your notebook. Nothing here goes to a Space until you put it there.'**
-  String get notebookOnlyYouBody;
-
   /// The notebook's post bar, and the plain kind of note.
   ///
   /// In en, this message translates to:
-  /// **'Note'**
+  /// **'Entry'**
   String get notebookNote;
 
   /// A to-do note: its kind, and its label in My calendar.
@@ -7280,12 +7268,6 @@ abstract class AppLocalizations {
   /// **'Voice note'**
   String get notebookVoice;
 
-  /// A note's first line: its kind and the time it was written.
-  ///
-  /// In en, this message translates to:
-  /// **'{kind} · {time}'**
-  String notebookSlipHead(String kind, String time);
-
   /// The empty notebook (N2).
   ///
   /// In en, this message translates to:
@@ -7295,7 +7277,7 @@ abstract class AppLocalizations {
   /// The empty notebook's words (N2).
   ///
   /// In en, this message translates to:
-  /// **'Keep notes, checklists and to-dos for your work. Only you can see them.'**
+  /// **'Keep entries, checklists and to-dos for your work. Only you can see them.'**
   String get notebookEmptyBody;
 
   /// A note's menu: it shows above the others.
@@ -7307,7 +7289,7 @@ abstract class AppLocalizations {
   /// Delete asks first (N7).
   ///
   /// In en, this message translates to:
-  /// **'Delete this note?'**
+  /// **'Delete this entry?'**
   String get notebookDeleteTitle;
 
   /// Delete asks first (N7).
@@ -7643,19 +7625,19 @@ abstract class AppLocalizations {
   /// Read out on a list line's fold arrow while its children show.
   ///
   /// In en, this message translates to:
-  /// **'Hide the lines under it'**
+  /// **'Hide what\'s under it'**
   String get notebookFoldHide;
 
   /// Read out on a list line's fold arrow while its children are hidden.
   ///
   /// In en, this message translates to:
-  /// **'Show the lines under it'**
+  /// **'Show what\'s under it'**
   String get notebookFoldShow;
 
   /// Asked before deleting a folded line with the lines hidden under it.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Delete this line and the line under it?} other{Delete this line and the {count} lines under it?}}'**
+  /// **'{count, plural, other{Delete this and the {count} under it?}}'**
   String notebookDeleteLines(int count);
 
   /// Under the question before deleting a folded line.
@@ -8057,13 +8039,13 @@ abstract class AppLocalizations {
   /// F107.
   ///
   /// In en, this message translates to:
-  /// **'A note holds up to 10 files.'**
+  /// **'An entry holds up to 10 files.'**
   String get notebookFilesFull;
 
   /// F107.
   ///
   /// In en, this message translates to:
-  /// **'A note holds up to 10 photos.'**
+  /// **'An entry holds up to 10 photos.'**
   String get notebookPhotosFull;
 
   /// F107: on a saved slip.
@@ -8099,7 +8081,7 @@ abstract class AppLocalizations {
   /// F107 B15.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t keep this note. It\'s back as a draft.'**
+  /// **'Couldn\'t keep this entry. It\'s back as a draft.'**
   String get notebookCouldntKeep;
 
   /// F107 B16.
@@ -8359,18 +8341,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search my notebook'**
   String get notebookSearchTip;
-
-  /// Review 99 A1: the top bar's Deleted items and its screen.
-  ///
-  /// In en, this message translates to:
-  /// **'Deleted items'**
-  String get notebookDeletedItems;
-
-  /// Review 99A: Deleted items, until review 99B.
-  ///
-  /// In en, this message translates to:
-  /// **'Pages you delete or merge away will show here.'**
-  String get notebookDeletedEmpty;
 
   /// Review 99 A1: the pinned pages' label.
   ///
@@ -8677,6 +8647,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notebook'**
   String get notebookIconNotebook;
+
+  /// Review 99 C5: after Send from New entry, back on the pages list.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved in {page}'**
+  String notebookSavedIn(String page);
+
+  /// Review 99 C5: opens the page it was saved in.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get notebookOpen;
 }
 
 class _AppLocalizationsDelegate

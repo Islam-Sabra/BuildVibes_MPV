@@ -4303,14 +4303,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookTitle => 'My notebook';
 
   @override
-  String get notebookOnlyYou => 'Only you';
-
-  @override
-  String get notebookOnlyYouBody =>
-      'Only you can see your notebook. Nothing here goes to a Space until you put it there.';
-
-  @override
-  String get notebookNote => 'Note';
+  String get notebookNote => 'Entry';
 
   @override
   String get notebookTodo => 'To-do';
@@ -4319,22 +4312,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookVoice => 'Voice note';
 
   @override
-  String notebookSlipHead(String kind, String time) {
-    return '$kind · $time';
-  }
-
-  @override
   String get notebookEmptyTitle => 'Your private working area';
 
   @override
   String get notebookEmptyBody =>
-      'Keep notes, checklists and to-dos for your work. Only you can see them.';
+      'Keep entries, checklists and to-dos for your work. Only you can see them.';
 
   @override
   String get notebookPinTop => 'Pin to the top';
 
   @override
-  String get notebookDeleteTitle => 'Delete this note?';
+  String get notebookDeleteTitle => 'Delete this entry?';
 
   @override
   String get notebookDeleteBody =>
@@ -4550,18 +4538,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookFoldHide => 'Hide the lines under it';
+  String get notebookFoldHide => 'Hide what\'s under it';
 
   @override
-  String get notebookFoldShow => 'Show the lines under it';
+  String get notebookFoldShow => 'Show what\'s under it';
 
   @override
   String notebookDeleteLines(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Delete this line and the $count lines under it?',
-      one: 'Delete this line and the line under it?',
+      other: 'Delete this and the $count under it?',
     );
     return '$_temp0';
   }
@@ -4792,10 +4779,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookRemoveDate => 'Remove date';
 
   @override
-  String get notebookFilesFull => 'A note holds up to 10 files.';
+  String get notebookFilesFull => 'An entry holds up to 10 files.';
 
   @override
-  String get notebookPhotosFull => 'A note holds up to 10 photos.';
+  String get notebookPhotosFull => 'An entry holds up to 10 photos.';
 
   @override
   String notebookPhotoCount(int count) {
@@ -4830,7 +4817,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookCouldntKeep =>
-      'Couldn\'t keep this note. It\'s back as a draft.';
+      'Couldn\'t keep this entry. It\'s back as a draft.';
 
   @override
   String get notebookReminderGone =>
@@ -4967,13 +4954,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookSearchTip => 'Search my notebook';
-
-  @override
-  String get notebookDeletedItems => 'Deleted items';
-
-  @override
-  String get notebookDeletedEmpty =>
-      'Pages you delete or merge away will show here.';
 
   @override
   String get notebookPinnedLabel => 'Pinned';
@@ -5163,4 +5143,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookIconNotebook => 'Notebook';
+
+  @override
+  String notebookSavedIn(String page) {
+    return 'Saved in $page';
+  }
+
+  @override
+  String get notebookOpen => 'Open';
 }

@@ -28,6 +28,7 @@ import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart';
+import '../../shared/widgets/bv_undo_bar.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../chat/thread_screen.dart' show ChatActionRow;
@@ -285,7 +286,23 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         .save(note, newPageTitle: made ? draft.firstLine : null);
     await _drafts.discard(keepFiles: true);
     if (widget.pageId == null && into != null && mounted) {
-      context.pushReplacement(AppRoutes.notebookPage(into));
+      // Review 99 C5: back to the pages list, where the page shows at the
+      // top (with its new mark), and "Saved in {page} · Open".
+      final router = GoRouter.of(context);
+      final into0 = data?.page(into);
+      final name = made
+          ? (draft.firstLine.isEmpty ? l10n.notebookUntitled : draft.firstLine)
+          : into0 == null
+          ? l10n.notebookMyNotes
+          : pageName(l10n, into0);
+      showBvUndoBar(
+        context,
+        message: l10n.notebookSavedIn(name),
+        actionLabel: l10n.notebookOpen,
+        onAction: () => router.push(AppRoutes.notebookPage(into)),
+        bottom: 0,
+      );
+      Navigator.of(context).pop();
     }
     await saving;
   }
@@ -893,6 +910,34 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       ),
       newPageTitle: newTitle,
     );
+    // Review 99 C6: the entry it left is saved as it now stands, so a
+    // discard can't leave the part in both pages. A brand-new entry has
+    // nothing saved yet: the part only leaves the draft.
+    final draft = ref.read(noteDraftProvider);
+    final was = draft?.editing;
+    if (draft != null && was != null) {
+      final gone = {for (final b in lines) b.id};
+      final left = draft
+          .copyWith(
+            blocks: [
+              for (final b in draft.blocks)
+                if (!gone.contains(b.id)) b,
+            ],
+          )
+          .toNote(was.createdAt);
+      final current = ref
+          .read(notebookProvider)
+          .value
+          ?.all
+          .where((n) => n.id == was.id)
+          .firstOrNull;
+      await notebook.save(
+        left.copyWith(
+          pageId: draft.intoPage ?? was.pageId,
+          pinned: current?.pinned ?? was.pinned,
+        ),
+      );
+    }
     if (!mounted) return true;
     final page = ref.read(notebookProvider).value?.page(to);
     _toast(
@@ -1201,13 +1246,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           BvSpace.s64 + BvSpace.s32,
         ),
         children: [
-          Text(
-            [
-              l10n.notebookTitle,
-              for (final p in path.take(path.length - 1)) pageName(l10n, p),
-            ].map((n) => '$n ›').join(' '),
+          Wrap(
             key: const Key('page-path'),
-            style: type.metadata.copyWith(color: BvColors.textSecondary),
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: BvNotebookPagesSpec.pathGap,
+            children: [
+              for (final (i, name) in [
+                l10n.notebookTitle,
+                for (final p in path.take(path.length - 1)) pageName(l10n, p),
+              ].indexed) ...[
+                Text(
+                  name,
+                  textDirection: directionOf(name),
+                  style: type.metadata.copyWith(color: BvColors.textSecondary),
+                ),
+                Icon(
+                  BvIcons.caretForward,
+                  key: ValueKey(('page-path-caret', i)),
+                  size: BvNotebookPagesSpec.pathCaret,
+                  color: BvColors.iconSecondary,
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: BvNotebookPagesSpec.pathBottom),
           Row(

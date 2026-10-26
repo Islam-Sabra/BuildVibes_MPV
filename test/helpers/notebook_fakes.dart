@@ -164,6 +164,15 @@ class FakeNotebookRepository implements NotebookRepository {
   }) async {
     _check();
     calls.add('merge:${pages.join(',')}:${notes.join(',')}:$into');
+    if (newTitle != null && pageKept[into] == null) {
+      pageKept[into] = NotebookPage(
+        id: into,
+        title: newTitle,
+        isNew: true,
+        createdAt: DateTime(2026, 10, 15, 12),
+        lastActivityAt: DateTime(2026, 10, 15, 12),
+      );
+    }
     final gone = {
       for (final id in pages)
         if (id != into) id,

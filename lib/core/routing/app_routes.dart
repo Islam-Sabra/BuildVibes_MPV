@@ -42,15 +42,14 @@ abstract final class AppRoutes {
   static const notebook = '/notebook';
   static const calendar = '/notebook/calendar';
 
-  /// Review 99A: "New entry" (its page chip under it), a page, the
-  /// notebook's search and Deleted items.
+  /// Review 99A: "New entry" (its page chip under it), a page and the
+  /// notebook's search.
   static const notebookWrite = '/notebook/write';
   static String notebookPage(String id, {String? entry}) => Uri(
     path: '/notebook/pages/$id',
     queryParameters: entry == null ? null : {'entry': entry},
   ).toString();
   static const notebookSearch = '/notebook/search';
-  static const notebookDeleted = '/notebook/deleted';
 
   /// Direct messages (slice 3): the list, the requests, a thread, and a
   /// new conversation with a person (its thread is made by the first

@@ -232,6 +232,8 @@ abstract final class BvNotebookPagesSpec {
 
   /// A page's top (PG4): the path, then the icon and title.
   static const pathBottom = BvSpace.s8;
+  static const pathGap = BvSpace.s2;
+  static const pathCaret = 12.0;
   static const titleBox = 40.0;
   static const titleGlyph = 22.0;
   static const titleGap = 10.0;

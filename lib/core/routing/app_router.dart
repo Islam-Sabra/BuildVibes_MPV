@@ -248,10 +248,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'search',
             builder: (context, state) => const NotebookSearchScreen(),
           ),
-          GoRoute(
-            path: 'deleted',
-            builder: (context, state) => const NotebookDeletedScreen(),
-          ),
         ],
       ),
       GoRoute(

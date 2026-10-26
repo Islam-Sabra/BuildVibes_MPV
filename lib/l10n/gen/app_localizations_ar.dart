@@ -4309,14 +4309,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookTitle => 'دفتري';
 
   @override
-  String get notebookOnlyYou => 'أنت فقط';
-
-  @override
-  String get notebookOnlyYouBody =>
-      'لا يرى دفترك أحد غيرك. لا يذهب شيء منه إلى مساحة حتى تضعه فيها.';
-
-  @override
-  String get notebookNote => 'ملاحظة';
+  String get notebookNote => 'تدوينة';
 
   @override
   String get notebookTodo => 'مهمة';
@@ -4325,22 +4318,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookVoice => 'ملاحظة صوتية';
 
   @override
-  String notebookSlipHead(String kind, String time) {
-    return '$kind · $time';
-  }
-
-  @override
   String get notebookEmptyTitle => 'مكان عملك الخاص';
 
   @override
   String get notebookEmptyBody =>
-      'احتفظ بملاحظاتك وقوائم التحقق والمهام لعملك. لا يراها أحد غيرك.';
+      'احتفظ بتدويناتك وقوائم التحقق والمهام لعملك. لا يراها أحد غيرك.';
 
   @override
   String get notebookPinTop => 'ثبّت في الأعلى';
 
   @override
-  String get notebookDeleteTitle => 'حذف هذه الملاحظة؟';
+  String get notebookDeleteTitle => 'حذف هذه التدوينة؟';
 
   @override
   String get notebookDeleteBody =>
@@ -4558,21 +4546,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookFoldHide => 'إخفاء الأسطر التي تحته';
+  String get notebookFoldHide => 'إخفاء ما تحته';
 
   @override
-  String get notebookFoldShow => 'إظهار الأسطر التي تحته';
+  String get notebookFoldShow => 'إظهار ما تحته';
 
   @override
   String notebookDeleteLines(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'حذف هذا السطر و$count سطر تحته؟',
-      many: 'حذف هذا السطر و$count سطرًا تحته؟',
-      few: 'حذف هذا السطر و$count أسطر تحته؟',
-      two: 'حذف هذا السطر والسطرين اللذين تحته؟',
-      one: 'حذف هذا السطر والسطر الذي تحته؟',
+      other: 'حذف هذا مع $count تحته؟',
     );
     return '$_temp0';
   }
@@ -4804,10 +4788,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemoveDate => 'إزالة التاريخ';
 
   @override
-  String get notebookFilesFull => 'تتسع الملاحظة لـ 10 ملفات كحد أقصى.';
+  String get notebookFilesFull => 'تتسع التدوينة لـ 10 ملفات.';
 
   @override
-  String get notebookPhotosFull => 'تتسع الملاحظة لـ 10 صور كحد أقصى.';
+  String get notebookPhotosFull => 'تتسع التدوينة لـ 10 صور.';
 
   @override
   String notebookPhotoCount(int count) {
@@ -4845,7 +4829,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemindMorning => 'في الصباح';
 
   @override
-  String get notebookCouldntKeep => 'تعذّر حفظ هذه الملاحظة. عادت كمسودة.';
+  String get notebookCouldntKeep => 'تعذّر حفظ هذه التدوينة، وعادت مسودة.';
 
   @override
   String get notebookReminderGone => 'مضى وقت التذكير، فأُزيل.';
@@ -4980,12 +4964,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookSearchTip => 'البحث في دفتري';
-
-  @override
-  String get notebookDeletedItems => 'المحذوفات';
-
-  @override
-  String get notebookDeletedEmpty => 'ستظهر هنا الصفحات المحذوفة أو المدموجة.';
 
   @override
   String get notebookPinnedLabel => 'مثبّتة';
@@ -5180,4 +5158,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookIconNotebook => 'دفتر';
+
+  @override
+  String notebookSavedIn(String page) {
+    return 'حُفظت في $page';
+  }
+
+  @override
+  String get notebookOpen => 'فتح';
 }

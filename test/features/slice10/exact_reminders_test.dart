@@ -41,7 +41,9 @@ Future<TestApp> _open(
       ),
     ],
   );
-  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook/pages/page-my-notes');
+  GoRouter.of(
+    tester.element(find.byType(Navigator).first),
+  ).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
   return app;
 }

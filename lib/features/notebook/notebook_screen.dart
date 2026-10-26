@@ -19,7 +19,8 @@ import 'notebook_page_parts.dart';
 import 'notebook_state.dart';
 
 /// My notebook (review 99A, PG1 2635:37785): the pages list. "New entry"
-/// on top; Search, My calendar and Deleted items in the top bar; pinned
+/// on top; Search and My calendar in the top bar (Deleted items comes
+/// with review 99B); pinned
 /// pages first, then by latest activity, each with the date and first line
 /// of its latest entry and its open to-dos; "+ New page" under the list.
 /// Only its owner reads it.
@@ -210,12 +211,6 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                     icon: const Icon(BvIcons.calendar),
                     onPressed: () => context.push(AppRoutes.calendar),
                   ),
-                  IconButton(
-                    key: const Key('notebook-deleted'),
-                    tooltip: l10n.notebookDeletedItems,
-                    icon: const Icon(BvIcons.delete),
-                    onPressed: () => context.push(AppRoutes.notebookDeleted),
-                  ),
                 ],
         ),
         body: notebook.hasError && data.pages.isEmpty
@@ -313,29 +308,6 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                 ],
               )
             : null,
-      ),
-    );
-  }
-}
-
-/// Deleted items (A1's top bar): what review 99B fills; for now, what it
-/// will hold.
-class NotebookDeletedScreen extends StatelessWidget {
-  const NotebookDeletedScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      backgroundColor: BvColors.surfaceApp,
-      appBar: AppBar(
-        backgroundColor: BvColors.surfaceApp,
-        title: Text(l10n.notebookDeletedItems),
-      ),
-      body: Padding(
-        key: const Key('notebook-deleted-empty'),
-        padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
-        child: EmptyNote(l10n.notebookDeletedEmpty),
       ),
     );
   }

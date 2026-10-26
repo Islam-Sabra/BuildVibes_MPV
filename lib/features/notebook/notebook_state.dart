@@ -124,11 +124,10 @@ class NotebookData {
 /// [target]).
 @immutable
 class NoteChange {
-  const NoteChange.save(Note this.note, {this.newPageTitle})
+  const NoteChange.save(Note this.note, {this.newPageTitle, this.at})
     : op = 'save',
       id = null,
       on = false,
-      at = null,
       page = null,
       ids = const [],
       noteIds = const [],
@@ -218,12 +217,11 @@ class NoteChange {
       noteIds = const [];
 
   /// Move to page….
-  const NoteChange.moveNotes(this.noteIds, String this.target)
+  const NoteChange.moveNotes(this.noteIds, String this.target, {this.at})
     : op = 'notes_move',
       note = null,
       id = null,
       on = false,
-      at = null,
       newPageTitle = null,
       page = null,
       ids = const [];
@@ -234,11 +232,11 @@ class NoteChange {
     this.noteIds,
     String this.target, {
     this.page,
+    this.at,
   }) : op = 'merge',
        note = null,
        id = null,
        on = false,
-       at = null,
        newPageTitle = null;
   const NoteChange.deletePages(this.ids)
     : op = 'page_delete',
@@ -260,17 +258,14 @@ class NoteChange {
         : NotebookPage.fromJson(json['page'] as Map<String, dynamic>);
     final on = json['on'] as bool? ?? false;
     final target = json['target'] as String?;
+    final at = json['at'] == null
+        ? null
+        : DateTime.parse(json['at'] as String).toLocal();
     List<String> list(String key) => [
       for (final v in json[key] as List? ?? const []) v as String,
     ];
     return switch (json['op']) {
-      'done' => NoteChange.done(
-        json['id'] as String,
-        on: on,
-        at: json['at'] == null
-            ? null
-            : DateTime.parse(json['at'] as String).toLocal(),
-      ),
+      'done' => NoteChange.done(json['id'] as String, on: on, at: at),
       'pin' => NoteChange.pin(json['id'] as String, on: on),
       'delete' => NoteChange.delete(note!),
       'page' => NoteChange.newPage(page!),
@@ -278,17 +273,19 @@ class NoteChange {
       'page_open' => NoteChange.openPage(target!),
       'page_pin' => NoteChange.pinPages(list('ids'), on: on),
       'page_move' => NoteChange.movePages(list('ids'), target),
-      'notes_move' => NoteChange.moveNotes(list('note_ids'), target!),
+      'notes_move' => NoteChange.moveNotes(list('note_ids'), target!, at: at),
       'merge' => NoteChange.merge(
         list('ids'),
         list('note_ids'),
         target!,
         page: page,
+        at: at,
       ),
       'page_delete' => NoteChange.deletePages(list('ids')),
       _ => NoteChange.save(
         note!,
         newPageTitle: json['new_page_title'] as String?,
+        at: at,
       ),
     };
   }
@@ -298,7 +295,8 @@ class NoteChange {
   final String? id;
   final bool on;
 
-  /// When a to-do was marked done, on the phone.
+  /// When it was made, on the phone: a to-do marked done, an entry saved,
+  /// moved or merged (a page's latest activity, as the server sets it).
   final DateTime? at;
 
   /// A save into a page made with it, titled from the entry (A2).
@@ -337,13 +335,16 @@ class NoteChange {
         final title = newPageTitle;
         final made =
             saved.pageId != null && title != null && data.page(into) == null;
+        final was = notes.where((n) => n.id == saved.id).firstOrNull;
+        // Activity as the server counts it: written, its words or to-dos
+        // changed, or moved in; never a pin or a reminder (review 99 C4).
+        final active = was == null || _wordsChanged(was, saved);
+        final when = at ?? saved.createdAt;
         return NotebookData(
           notes: _placed(saved, notes),
           pages: [
             for (final p in pages)
-              p.id == into && saved.createdAt.isAfter(p.lastActivityAt)
-                  ? p.copyWith(lastActivityAt: saved.createdAt)
-                  : p,
+              active && p.id == into ? _stamped(p, when) : p,
             if (made)
               NotebookPage(
                 id: into!,
@@ -362,7 +363,12 @@ class NoteChange {
           ],
         );
       case 'done' || 'pin':
-        return data.copyWith(
+        final ticked = notes.where((n) => n.id == id).firstOrNull;
+        final page = op == 'done' && ticked != null && at != null
+            ? data.pageOf(ticked)
+            : null;
+        return NotebookData(
+          pages: [for (final p in pages) p.id == page ? _stamped(p, at!) : p],
           notes: [
             for (final n in notes)
               n.id != id
@@ -416,7 +422,11 @@ class NoteChange {
           ],
         );
       case 'notes_move':
-        return data.copyWith(
+        return NotebookData(
+          pages: [
+            for (final p in pages)
+              p.id == target && at != null ? _stamped(p, at!) : p,
+          ],
           notes: [
             for (final n in notes)
               noteIds.contains(n.id) ? n.copyWith(pageId: target) : n,
@@ -434,9 +444,11 @@ class NoteChange {
         ];
         NotebookPage? find(String? id) =>
             all.where((p) => p.id == id).firstOrNull;
-        // The page that stays climbs out of any page that goes.
+        // The page that stays climbs out of the whole tree of every page
+        // that goes (review 99 C1).
+        final trees = {for (final g in gone) ...data.tree(g)};
         var up = find(into)?.parentId;
-        while (up != null && gone.contains(up)) {
+        while (up != null && trees.contains(up)) {
           up = find(up)?.parentId;
         }
         final stays = up;
@@ -450,7 +462,12 @@ class NoteChange {
           pages: [
             for (final p in all)
               if (p.id == into)
-                p.copyWith(parentId: () => stays, isNew: false)
+                p.copyWith(
+                  parentId: () => stays,
+                  // A page the merge made keeps its new mark (ruling 7).
+                  isNew: page != null && data.page(into) == null,
+                  lastActivityAt: at,
+                )
               else if (!gone.contains(p.id))
                 gone.contains(p.parentId)
                     ? p.copyWith(parentId: () => into)
@@ -468,6 +485,23 @@ class NoteChange {
     }
     return data;
   }
+
+  /// [page] with [at] as its latest activity, if later.
+  static NotebookPage _stamped(NotebookPage page, DateTime at) =>
+      at.isAfter(page.lastActivityAt)
+      ? page.copyWith(lastActivityAt: at)
+      : page;
+
+  /// Its words or to-dos changed, or it moved (the server's rule).
+  static bool _wordsChanged(Note was, Note now) =>
+      was.title != now.title ||
+      was.body != now.body ||
+      was.pageId != now.pageId ||
+      was.doneAt != now.doneAt ||
+      jsonEncode([for (final p in was.points) p.toJson()]) !=
+          jsonEncode([for (final p in now.points) p.toJson()]) ||
+      jsonEncode([for (final b in was.blocks ?? const []) b.toJson()]) !=
+          jsonEncode([for (final b in now.blocks ?? const []) b.toJson()]);
 
   static List<Note> _placed(Note saved, List<Note> notes) {
     if (notes.any((n) => n.id == saved.id)) {
@@ -516,9 +550,11 @@ class Notebook extends AsyncNotifier<NotebookData> {
   static const _retryMost = Duration(minutes: 5);
 
   /// A merge or a delete shown at once but sent only after its 5 s Undo
-  /// (A4), and the notebook as it was before it.
+  /// (A4), and the notebook as it was before it. Kept on the phone too
+  /// (review 99 C7): an app closed during the Undo sends it next time.
   NoteChange? _held;
   NotebookData? _beforeHeld;
+  String? _heldKey;
 
   NotebookRepository get _repo => ref.read(notebookRepositoryProvider);
 
@@ -533,8 +569,16 @@ class Notebook extends AsyncNotifier<NotebookData> {
     final userId = ref.watch(authUserIdProvider).value;
     _key = userId == null ? null : 'notebook_waiting:$userId';
     _waiting = _read(prefs.getString(_key ?? ''));
+    _heldKey = userId == null ? null : 'notebook_held:$userId';
     _held = null;
     _beforeHeld = null;
+    // A change held when the app closed: its Undo is gone, so it goes.
+    final held = _read('[${prefs.getString(_heldKey ?? '') ?? ''}]');
+    if (held.isNotEmpty) {
+      _waiting = [..._waiting, ...held];
+      await _store();
+      await prefs.remove(_heldKey!);
+    }
     NotebookData server;
     try {
       final (notes, pages) = await (_repo.notes(), _repo.pages()).wait;
@@ -612,6 +656,12 @@ class Notebook extends AsyncNotifier<NotebookData> {
     _beforeHeld = state.value ?? NotebookData();
     _held = change;
     state = AsyncData(change.applyTo(_beforeHeld!));
+    final key = _heldKey;
+    if (key != null) {
+      await ref
+          .read(sharedPreferencesProvider)
+          .setString(key, jsonEncode(change.toJson()));
+    }
   }
 
   /// The held change goes.
@@ -620,23 +670,37 @@ class Notebook extends AsyncNotifier<NotebookData> {
     if (held == null) return;
     _held = null;
     _beforeHeld = null;
-    await _queue(held);
+    _waiting = [..._waiting, held];
+    await _store();
+    await _forgetHeld();
+    await _send();
   }
 
   /// The held change is taken back: false when it had already gone.
-  bool undoHeld() {
+  Future<bool> undoHeld() async {
     final before = _beforeHeld;
     if (_held == null || before == null) return false;
     _held = null;
     _beforeHeld = null;
     state = AsyncData(before);
+    await _forgetHeld();
     return true;
+  }
+
+  Future<void> _forgetHeld() async {
+    final key = _heldKey;
+    if (key != null) await ref.read(sharedPreferencesProvider).remove(key);
   }
 
   /// A new note, or an edit of one; [newPageTitle] makes its page with it
   /// (A2: "New page", titled from the entry).
-  Future<void> save(Note note, {String? newPageTitle}) =>
-      _change(NoteChange.save(note, newPageTitle: newPageTitle));
+  Future<void> save(Note note, {String? newPageTitle}) => _change(
+    NoteChange.save(
+      note,
+      newPageTitle: newPageTitle,
+      at: ref.read(clockProvider)(),
+    ),
+  );
 
   /// "+ New page", or a sub-page of [NotebookPage.parentId].
   Future<void> newPage(NotebookPage page) => _change(NoteChange.newPage(page));
@@ -659,7 +723,7 @@ class Notebook extends AsyncNotifier<NotebookData> {
 
   /// Move to page….
   Future<void> moveNotes(List<String> ids, String page) =>
-      _change(NoteChange.moveNotes(ids, page));
+      _change(NoteChange.moveNotes(ids, page, at: ref.read(clockProvider)()));
 
   Future<void> setDone(Note note, {required bool on}) =>
       _change(NoteChange.done(note.id, on: on, at: ref.read(clockProvider)()));
@@ -853,9 +917,13 @@ class Notebook extends AsyncNotifier<NotebookData> {
       case 'notes_move':
         await _repo.moveNotes(change.noteIds, change.target!);
       case 'merge':
-        final made = change.page;
-        if (made != null) await _repo.createPage(made);
-        await _repo.merge(change.ids, change.noteIds, change.target!);
+        // One call: a new page is made by the merge itself (C2).
+        await _repo.merge(
+          change.ids,
+          change.noteIds,
+          change.target!,
+          newTitle: change.page?.title,
+        );
       case 'page_delete':
         await _repo.deletePages(change.ids);
     }

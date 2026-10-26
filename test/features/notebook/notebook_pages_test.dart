@@ -1,6 +1,7 @@
 // Review 99A: the notebook becomes pages (A1–A6), in English and Arabic.
 import 'dart:convert';
 
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/notebook_page.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -57,6 +58,12 @@ NoteDraft? _draft(WidgetTester tester) => ProviderScope.containerOf(
   tester.element(find.byType(Scaffold).first),
 ).read(noteDraftProvider);
 
+/// The path's carets (they flip in Arabic).
+Finder _carets() => find.descendant(
+  of: _key('page-path'),
+  matching: find.byIcon(BvIcons.caretForward),
+);
+
 /// The vertical place of each finder's first widget.
 double _top(WidgetTester tester, Finder f) => tester.getTopLeft(f.first).dy;
 
@@ -74,7 +81,6 @@ void main() {
         expect(_key('notebook-new-entry'), findsOneWidget);
         expect(find.text(l10n.notebookNewEntry), findsOneWidget);
         expect(_key('notebook-search'), findsOneWidget);
-        expect(_key('notebook-deleted'), findsOneWidget);
         final order = [
           NotebookPageSamples.siteA,
           NotebookPageSamples.phones,
@@ -154,11 +160,11 @@ void main() {
         expect(find.text(l10n.notebookUntitled), findsOneWidget);
       });
 
-      testWidgets('Deleted items opens, empty until 99B', (tester) async {
+      testWidgets('no Deleted items button until 99B (ruling 9)', (
+        tester,
+      ) async {
         await _open(tester, lang);
-        await _tap(tester, _key('notebook-deleted'));
-        expect(_key('notebook-deleted-empty'), findsOneWidget);
-        expect(find.text(l10n.notebookDeletedEmpty), findsOneWidget);
+        expect(_key('notebook-deleted'), findsNothing);
       });
     });
 
@@ -195,9 +201,27 @@ void main() {
         expect(saved, endsWith(':new:Pump booked 2 pm'));
         final page = app.notebook.pageKept.values.single;
         expect(page.title, 'Pump booked 2 pm');
-        // Send shows the page it went into; opening it takes the mark off.
+        // C5: back on the list, the page on top with its mark, and
+        // "Saved in … · Open"; nothing opened it.
+        expect(_key('notebook-new-entry'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: _key('page-${page.id}'),
+            matching: _key('page-new-dot'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          app.notebook.calls.where((c) => c.startsWith('page-open')),
+          isEmpty,
+        );
+        expect(
+          find.text(l10n.notebookSavedIn('Pump booked 2 pm')),
+          findsOneWidget,
+        );
+        await tester.tap(find.text(l10n.notebookOpen));
+        await tester.pumpAndSettle();
         expect(_key('page-title'), findsOneWidget);
-        expect(app.notebook.calls, contains('page-open:${page.id}'));
       });
 
       testWidgets('the chip\'s picker: search, recent pages, + New page; a '
@@ -269,10 +293,16 @@ void main() {
           lang,
           path: '/notebook/pages/${NotebookPageSamples.siteA}',
         );
+        // C9: the path's names with a caret after each, no › typed.
         expect(
-          tester.widget<Text>(_key('page-path')).data,
-          '${l10n.notebookTitle} ›',
+          find.descendant(
+            of: _key('page-path'),
+            matching: find.text(l10n.notebookTitle),
+          ),
+          findsOneWidget,
         );
+        expect(_carets(), findsOneWidget);
+        expect(find.textContaining('›'), findsNothing);
         expect(
           _top(tester, _key('page-${NotebookPageSamples.level3}')),
           lessThan(_top(tester, _key('note-entry-pour'))),
@@ -307,9 +337,13 @@ void main() {
         // A sub-page's path.
         await _tap(tester, _key('page-${NotebookPageSamples.level3}'));
         expect(
-          tester.widget<Text>(_key('page-path')).data,
-          '${l10n.notebookTitle} › Tower A ›',
+          find.descendant(
+            of: _key('page-path'),
+            matching: find.text('Tower A'),
+          ),
+          findsOneWidget,
         );
+        expect(_carets(), findsNWidgets(2));
       });
 
       testWidgets('opening a new page takes its mark off', (tester) async {
@@ -401,6 +435,71 @@ void main() {
           NotebookPageSamples.siteB,
         );
         expect(app.notebook.pageKept[NotebookPageSamples.pump], isNull);
+      });
+
+      testWidgets('C2: a merge into a new page is one call, and the page '
+          'shows its new mark', (tester) async {
+        final app = await _open(tester, lang);
+        await tester.longPress(_key('page-${NotebookPageSamples.siteB}'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('page-${NotebookPageSamples.meetings}'));
+        await _tap(tester, _key('select-merge'));
+        await _tap(tester, _key('merge-into-new'));
+        await _tap(tester, _key('merge-go'));
+        await tester.pump(const Duration(seconds: 6));
+        await tester.pumpAndSettle();
+        expect(app.notebook.calls.where((c) => c.startsWith('page:')), isEmpty);
+        expect(
+          app.notebook.calls.where((c) => c.startsWith('merge:')),
+          hasLength(1),
+        );
+        final made = app.notebook.pageKept.values.singleWhere(
+          (p) => !s.pages().any((q) => q.id == p.id),
+        );
+        expect(
+          find.descendant(
+            of: _key('page-${made.id}'),
+            matching: _key('page-new-dot'),
+          ),
+          findsOneWidget,
+        );
+        expect(find.text(l10n.notebookUntitled), findsOneWidget);
+      });
+
+      testWidgets('C7: a merge waiting for its Undo is kept on the phone; '
+          'Undo takes it off', (tester) async {
+        final app = await _open(tester, lang);
+        await tester.longPress(_key('page-${NotebookPageSamples.siteB}'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('page-${NotebookPageSamples.pump}'));
+        await _tap(tester, _key('select-merge'));
+        await _tap(tester, _key('merge-go'));
+        expect(app.prefs.getString('notebook_held:user-1'), isNotNull);
+        await tester.tap(find.text(l10n.daybookUndo));
+        await tester.pumpAndSettle();
+        expect(app.prefs.getString('notebook_held:user-1'), isNull);
+      });
+
+      testWidgets('C7: one held when the app closed goes when it opens '
+          'again', (tester) async {
+        final held = NoteChange.merge(
+          [NotebookPageSamples.siteB, NotebookPageSamples.pump],
+          const [],
+          NotebookPageSamples.siteB,
+        );
+        final app = await _open(
+          tester,
+          lang,
+          stored: {'notebook_held:user-1': jsonEncode(held.toJson())},
+        );
+        expect(
+          app.notebook.calls,
+          contains(
+            'merge:${NotebookPageSamples.siteB},${NotebookPageSamples.pump}:'
+            ':${NotebookPageSamples.siteB}',
+          ),
+        );
+        expect(app.prefs.getString('notebook_held:user-1'), isNull);
       });
 
       testWidgets('Move into… never offers a page under itself; Pin; '
@@ -523,6 +622,50 @@ void main() {
         );
         expect([for (final b in moved.blocks!) b.indent], [0, 1]);
         expect([for (final b in _draft(tester)!.blocks) b.id], ['l-1']);
+      });
+
+      testWidgets('C6: a line moved from a saved entry, then discarded: the '
+          'part is in the target page only', (tester) async {
+        final entry = Note(
+          id: 'entry-walk',
+          kind: NoteKind.text,
+          title: 'Walk',
+          blocks: [
+            PageText('w-1', 'Keep'),
+            PageBullet('w-2', 'Rebar'),
+            PageBullet('w-3', 'Cover', indent: 1),
+          ],
+          body: 'Walk',
+          createdAt: DateTime(2026, 10, 15, 8),
+          pageId: NotebookPageSamples.siteA,
+        );
+        final repo = s.repository()..kept[entry.id] = entry;
+        final app = await _open(
+          tester,
+          lang,
+          notebook: repo,
+          path: '/notebook/pages/${NotebookPageSamples.siteA}',
+        );
+        await _tap(tester, _key('note-entry-walk'));
+        await tester.longPress(_key('note-marker-w-2'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('page-move-to-page'));
+        await tester.enterText(_key('page-picker-search'), s.siteBTitle);
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('page-pick-${NotebookPageSamples.siteB}'));
+        await ProviderScope.containerOf(
+          tester.element(find.byType(Scaffold).first),
+        ).read(noteDraftProvider.notifier).discard();
+        await tester.pumpAndSettle();
+        final withPart = [
+          for (final n in app.notebook.kept.values)
+            if ((n.blocks ?? const []).any((b) => b.id == 'w-2')) n.pageId,
+        ];
+        expect(withPart, [NotebookPageSamples.siteB]);
+        expect(
+          [for (final b in app.notebook.kept['entry-walk']!.blocks!) b.id],
+          ['w-1'],
+        );
       });
     });
 
@@ -658,6 +801,95 @@ void main() {
       expect(merged.page('a'), isNull);
       expect(merged.page('b')!.parentId, isNull);
       expect(merged.page('sub')!.parentId, 'b');
+    });
+
+    test('C1: merged into a page deeper inside the one that goes', () {
+      NotebookPage p(String id, {String? parent}) => NotebookPage(
+        id: id,
+        parentId: parent,
+        createdAt: DateTime(2026, 10, 1),
+        lastActivityAt: DateTime(2026, 10, 1),
+      );
+      final data = NotebookData(
+        pages: [
+          p('g'),
+          p('x', parent: 'g'),
+          p('i', parent: 'x'),
+        ],
+      );
+      final merged = const NoteChange.merge(['g'], [], 'i').applyTo(data);
+      expect(merged.page('i')!.parentId, isNull);
+      expect(merged.page('x')!.parentId, 'i');
+      expect(merged.page('g'), isNull);
+    });
+
+    test('C4: activity is an entry written, its words or to-dos changed, '
+        'or moved in; never a pin or a reminder', () {
+      final day = DateTime(2026, 10, 1);
+      final later = DateTime(2026, 10, 15, 12);
+      NotebookPage p(String id) =>
+          NotebookPage(id: id, createdAt: day, lastActivityAt: day);
+      final n = Note(
+        id: 'n',
+        kind: NoteKind.text,
+        body: 'Words',
+        createdAt: day,
+        pageId: 'a',
+      );
+      final data = NotebookData(notes: [n], pages: [p('a'), p('b')]);
+      DateTime at(NotebookData d, String id) => d.page(id)!.lastActivityAt;
+      expect(at(NoteChange.pin('n', on: true).applyTo(data), 'a'), day);
+      expect(
+        at(
+          NoteChange.save(
+            n.copyWith(remindAt: () => later),
+            at: later,
+          ).applyTo(data),
+          'a',
+        ),
+        day,
+      );
+      expect(
+        at(
+          NoteChange.save(n.copyWith(body: 'New'), at: later).applyTo(data),
+          'a',
+        ),
+        later,
+      );
+      expect(
+        at(NoteChange.done('n', on: true, at: later).applyTo(data), 'a'),
+        later,
+      );
+      final moved = NoteChange.moveNotes(['n'], 'b', at: later).applyTo(data);
+      expect(at(moved, 'b'), later);
+      expect(at(moved, 'a'), day);
+    });
+
+    test('C8: the notebook says page and entry, never note or line', () {
+      for (final lang in ['en', 'ar']) {
+        final l = lookupAppLocalizations(Locale(lang));
+        final words = [
+          l.notebookNote,
+          l.notebookEmptyBody,
+          l.notebookDeleteTitle,
+          l.notebookCouldntKeep,
+          l.notebookFilesFull,
+          l.notebookPhotosFull,
+          l.notebookDeleteLines(3),
+          l.notebookFoldHide,
+          l.notebookFoldShow,
+        ];
+        for (final w in words) {
+          expect(
+            w,
+            isNot(
+              matches(
+                RegExp(r'notes?|lines?|ملاحظ|سطر', caseSensitive: false),
+              ),
+            ),
+          );
+        }
+      }
     });
 
     test('Move into never puts a page under itself', () {

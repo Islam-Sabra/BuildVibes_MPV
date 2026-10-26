@@ -6208,15 +6208,7 @@
   "@notebookTitle": {
     "description": "My notebook's header and Home's list-checks icon (NB1)."
   },
-  "notebookOnlyYou": "Only you",
-  "@notebookOnlyYou": {
-    "description": "The pill in My notebook's header: nobody else sees it."
-  },
-  "notebookOnlyYouBody": "Only you can see your notebook. Nothing here goes to a Space until you put it there.",
-  "@notebookOnlyYouBody": {
-    "description": "What the Only you pill says when tapped."
-  },
-  "notebookNote": "Note",
+  "notebookNote": "Entry",
   "@notebookNote": {
     "description": "The notebook's post bar, and the plain kind of note."
   },
@@ -6228,23 +6220,11 @@
   "@notebookVoice": {
     "description": "A voice note's kind on its slip."
   },
-  "notebookSlipHead": "{kind} · {time}",
-  "@notebookSlipHead": {
-    "description": "A note's first line: its kind and the time it was written.",
-    "placeholders": {
-      "kind": {
-        "type": "String"
-      },
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "notebookEmptyTitle": "Your private working area",
   "@notebookEmptyTitle": {
     "description": "The empty notebook (N2)."
   },
-  "notebookEmptyBody": "Keep notes, checklists and to-dos for your work. Only you can see them.",
+  "notebookEmptyBody": "Keep entries, checklists and to-dos for your work. Only you can see them.",
   "@notebookEmptyBody": {
     "description": "The empty notebook's words (N2)."
   },
@@ -6252,7 +6232,7 @@
   "@notebookPinTop": {
     "description": "A note's menu: it shows above the others."
   },
-  "notebookDeleteTitle": "Delete this note?",
+  "notebookDeleteTitle": "Delete this entry?",
   "@notebookDeleteTitle": {
     "description": "Delete asks first (N7)."
   },
@@ -6575,15 +6555,15 @@
       }
     }
   },
-  "notebookFoldHide": "Hide the lines under it",
+  "notebookFoldHide": "Hide what's under it",
   "@notebookFoldHide": {
     "description": "Read out on a list line's fold arrow while its children show."
   },
-  "notebookFoldShow": "Show the lines under it",
+  "notebookFoldShow": "Show what's under it",
   "@notebookFoldShow": {
     "description": "Read out on a list line's fold arrow while its children are hidden."
   },
-  "notebookDeleteLines": "{count, plural, =1{Delete this line and the line under it?} other{Delete this line and the {count} lines under it?}}",
+  "notebookDeleteLines": "{count, plural, other{Delete this and the {count} under it?}}",
   "@notebookDeleteLines": {
     "description": "Asked before deleting a folded line with the lines hidden under it.",
     "placeholders": {
@@ -6900,11 +6880,11 @@
   "@notebookRemoveDate": {
     "description": "F107: the date chip's ×."
   },
-  "notebookFilesFull": "A note holds up to 10 files.",
+  "notebookFilesFull": "An entry holds up to 10 files.",
   "@notebookFilesFull": {
     "description": "F107."
   },
-  "notebookPhotosFull": "A note holds up to 10 photos.",
+  "notebookPhotosFull": "An entry holds up to 10 photos.",
   "@notebookPhotosFull": {
     "description": "F107."
   },
@@ -6938,7 +6918,7 @@
   "@notebookRemindMorning": {
     "description": "F107 B5: no time picked, the morning."
   },
-  "notebookCouldntKeep": "Couldn't keep this note. It's back as a draft.",
+  "notebookCouldntKeep": "Couldn't keep this entry. It's back as a draft.",
   "@notebookCouldntKeep": {
     "description": "F107 B15."
   },
@@ -7126,14 +7106,6 @@
   "notebookSearchTip": "Search my notebook",
   "@notebookSearchTip": {
     "description": "Review 99 A1: the top bar's Search, read out."
-  },
-  "notebookDeletedItems": "Deleted items",
-  "@notebookDeletedItems": {
-    "description": "Review 99 A1: the top bar's Deleted items and its screen."
-  },
-  "notebookDeletedEmpty": "Pages you delete or merge away will show here.",
-  "@notebookDeletedEmpty": {
-    "description": "Review 99A: Deleted items, until review 99B."
   },
   "notebookPinnedLabel": "Pinned",
   "@notebookPinnedLabel": {
@@ -7381,5 +7353,18 @@
   "notebookIconNotebook": "Notebook",
   "@notebookIconNotebook": {
     "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookSavedIn": "Saved in {page}",
+  "@notebookSavedIn": {
+    "description": "Review 99 C5: after Send from New entry, back on the pages list.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookOpen": "Open",
+  "@notebookOpen": {
+    "description": "Review 99 C5: opens the page it was saved in."
   }
 }
