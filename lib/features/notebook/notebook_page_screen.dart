@@ -507,7 +507,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     // Review 98: the grid is for a new line below this one (an empty text
     // line is turned itself).
     _editorKey.currentState?.lineForGrid();
-    FocusManager.instance.primaryFocus?.unfocus();
+    // D8 (B4.5): the keyboard stays up, the cursor kept.
     setState(() {
       _kind = _editorKey.currentState?.currentKind ?? _kind;
       _panel = _Panel.categories;
@@ -531,7 +531,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       _closeLocation();
       return;
     }
-    FocusManager.instance.primaryFocus?.unfocus();
+    // D8 (B4.5): the keyboard stays up, the cursor kept.
     setState(() => _panel = _Panel.location);
   }
 

@@ -18,8 +18,7 @@ import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_line_popover.dart'
-    show visibleTop;
+import 'package:buildvibes/shared/widgets/bv_line_popover.dart' show visibleTop;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -86,12 +85,15 @@ bool _focused(WidgetTester tester, String key) =>
 /// Records every moment the focus was on something other than a line's
 /// field (nothing, a scope, a button): on a phone the keyboard drops then.
 /// Moving from one field straight to another keeps it up.
-List<Object?> _watchFocus(WidgetTester tester) {
+/// [anyField]: a field outside the page counts too (the Location
+/// panel's place field, NBX4).
+List<Object?> _watchFocus(WidgetTester tester, {bool anyField = false}) {
   final gaps = <Object?>[];
   bool field(FocusNode? f) {
     final ctx = f?.context;
     return ctx != null &&
-        ctx.findAncestorWidgetOfExactType<NotePageEditor>() != null &&
+        (anyField ||
+            ctx.findAncestorWidgetOfExactType<NotePageEditor>() != null) &&
         ctx.findAncestorWidgetOfExactType<EditableText>() != null;
   }
 
@@ -274,8 +276,9 @@ void main() {
         expect(app.notebook.kept['entry-1'], isNull);
       });
 
-      testWidgets('D3: emptied, Back, then Undo: the entry is back as it was',
-          (tester) async {
+      testWidgets('D3: emptied, Back, then Undo: the entry is back as it was', (
+        tester,
+      ) async {
         final app = await _open(tester, lang, notes: [_saved()]);
         await _tap(tester, _key('note-entry-1'));
         await tester.enterText(_key('note-title'), '');
@@ -474,6 +477,38 @@ void main() {
         visibleTop(media),
         media.padding.top + BvSize.topBar + BvLineMenuSpec.screenMargin,
       );
+    });
+
+    group('D8 the keyboard stays up under + and Location [$lang]', () {
+      for (final tool in ['note-tool-categories', 'note-tool-location']) {
+        testWidgets('$tool opens with the keyboard up and the cursor kept', (
+          tester,
+        ) async {
+          await _open(tester, lang, draft: _draft([PageText('t-1', 'Rebar')]));
+          await _tap(tester, _key('note-draft'));
+          _editor(tester).focusBlock('t:t-1');
+          await tester.pumpAndSettle();
+          // Location puts the cursor in its place field (NBX4): from field
+          // to field, the keyboard stays up.
+          final gaps = _watchFocus(
+            tester,
+            anyField: tool == 'note-tool-location',
+          );
+          await tester.tap(_key(tool));
+          await tester.pumpAndSettle();
+          expect(
+            _key(
+              tool == 'note-tool-categories'
+                  ? 'note-categories'
+                  : 'note-location-panel',
+            ),
+            findsOneWidget,
+          );
+          expect(_hidden(tester), isFalse);
+          expect(gaps, isEmpty);
+          expect(tester.testTextInput.isVisible, isTrue);
+        });
+      }
     });
 
     group('B5 ⋯ opens at once, one menu at a time [$lang]', () {

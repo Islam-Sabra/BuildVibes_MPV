@@ -173,7 +173,7 @@ void main() {
       expect(lang == 'ar' ? plus > send : plus < send, isTrue);
     });
 
-    testWidgets('NBX2: + opens the grid in place of the keyboard; each tile '
+    testWidgets('NBX2: + opens the grid, the keyboard kept (D8); each tile '
         'inserts its block, and the keyboard comes back [$lang]', (
       tester,
     ) async {
@@ -197,7 +197,8 @@ void main() {
       for (final MapEntry(key: kind, value: type) in kinds.entries) {
         await _tap(tester, _key('note-tool-categories'));
         expect(_key('note-categories'), findsOneWidget);
-        expect(tester.testTextInput.isVisible, isFalse);
+        // Review 100 D8: the keyboard stays up under the grid.
+        expect(tester.testTextInput.isVisible, isTrue);
         expect(find.text(l10n.notebookCategories), findsOneWidget);
         expect(find.text(l10n.notebookOrTypeSlash), findsOneWidget);
         await _tap(tester, _key('note-category-${kind.name}'));
