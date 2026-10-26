@@ -31,6 +31,8 @@ class NoteDraft {
     this.photos = const [],
     this.files = const [],
     this.location,
+    this.pageId,
+    this.newPageId,
   });
 
   /// An edit of [note], filled with what it says.
@@ -45,6 +47,7 @@ class NoteDraft {
     photos: note.photos,
     files: note.files,
     location: note.location,
+    pageId: note.pageId,
   );
 
   factory NoteDraft.fromJson(Map<String, dynamic> json) => NoteDraft(
@@ -71,6 +74,8 @@ class NoteDraft {
     location: json['location'] == null
         ? null
         : NoteLocation.fromJson(json['location'] as Map<String, dynamic>),
+    pageId: json['page_id'] as String?,
+    newPageId: json['new_page_id'] as String?,
   );
 
   static DateTime? _time(Object? value) =>
@@ -93,6 +98,25 @@ class NoteDraft {
   final List<NotePhoto> photos;
   final List<NoteFile> files;
   final NoteLocation? location;
+
+  /// The page it goes into (review 99 A2): one of mine ([pageId]), or a
+  /// new one made with it ([newPageId], the page chip's "New page"). Both
+  /// null: the page the chip starts on.
+  final String? pageId;
+  final String? newPageId;
+
+  /// The page it goes into, as chosen.
+  String? get intoPage => newPageId ?? pageId;
+
+  /// A new page's title: the entry's first line (A2).
+  String get firstLine {
+    if (title.trim().isNotEmpty) return title.trim();
+    for (final b in keptBlocks) {
+      final words = blockWords(b);
+      if (words.isNotEmpty) return words.first;
+    }
+    return '';
+  }
 
   /// The blocks worth keeping: an empty line goes.
   List<PageBlock> get keptBlocks => [
@@ -144,6 +168,7 @@ class NoteDraft {
       photos: photos,
       files: files,
       location: () => (location?.isEmpty ?? true) ? null : location,
+      pageId: intoPage,
     );
   }
 
@@ -155,6 +180,8 @@ class NoteDraft {
     List<NotePhoto>? photos,
     List<NoteFile>? files,
     NoteLocation? Function()? location,
+    String? Function()? pageId,
+    String? Function()? newPageId,
   }) => NoteDraft(
     id: id,
     startedAt: startedAt,
@@ -166,6 +193,8 @@ class NoteDraft {
     photos: photos ?? this.photos,
     files: files ?? this.files,
     location: location == null ? this.location : location(),
+    pageId: pageId == null ? this.pageId : pageId(),
+    newPageId: newPageId == null ? this.newPageId : newPageId(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -179,6 +208,8 @@ class NoteDraft {
     'photos': [for (final p in photos) p.toJson()],
     'files': [for (final f in files) f.toJson()],
     'location': location?.toJson(),
+    'page_id': ?pageId,
+    'new_page_id': ?newPageId,
   };
 }
 

@@ -11,7 +11,9 @@ import '../../features/chat/meeting_notes_screen.dart';
 import '../../features/messages/dm_thread_screen.dart';
 import '../../features/spaces/week_report_screen.dart';
 import '../../features/notebook/calendar_screen.dart';
+import '../../features/notebook/notebook_page_screen.dart';
 import '../../features/notebook/notebook_screen.dart';
+import '../../features/notebook/notebook_search_screen.dart';
 import '../../features/messages/messages_screen.dart';
 import '../../features/messages/people_search_screen.dart';
 import '../../features/dev/components_gallery_screen.dart';
@@ -229,6 +231,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'calendar',
             builder: (context, state) => const CalendarScreen(),
+          ),
+          GoRoute(
+            path: 'write',
+            builder: (context, state) => const NotebookPageScreen.write(),
+          ),
+          GoRoute(
+            path: 'pages/:id',
+            builder: (context, state) => NotebookPageScreen(
+              key: ValueKey(state.pathParameters['id']),
+              pageId: state.pathParameters['id']!,
+              entry: state.uri.queryParameters['entry'],
+            ),
+          ),
+          GoRoute(
+            path: 'search',
+            builder: (context, state) => const NotebookSearchScreen(),
+          ),
+          GoRoute(
+            path: 'deleted',
+            builder: (context, state) => const NotebookDeletedScreen(),
           ),
         ],
       ),

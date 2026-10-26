@@ -275,6 +275,7 @@ class Note {
     this.blocks,
     this.location,
     this.files = const [],
+    this.pageId,
   });
 
   /// A row of `notes`, with its `note_files` embedded.
@@ -337,6 +338,7 @@ class Note {
           for (final f in json['files'] as List? ?? const [])
             NoteFile.fromJson(f as Map<String, dynamic>),
       ],
+      pageId: json['page_id'] as String?,
     );
   }
 
@@ -391,6 +393,10 @@ class Note {
   final List<PageBlock>? blocks;
   final NoteLocation? location;
   final List<NoteFile> files;
+
+  /// The page it is in (review 99A, migration 47). Null only on an entry
+  /// kept on the phone by an older version: it goes into the latest page.
+  final String? pageId;
 
   bool get done => doneAt != null;
 
@@ -459,6 +465,7 @@ class Note {
     List<PageBlock>? blocks,
     NoteLocation? Function()? location,
     List<NoteFile>? files,
+    String? pageId,
   }) => Note(
     id: id,
     kind: kind ?? this.kind,
@@ -477,6 +484,7 @@ class Note {
     blocks: blocks ?? this.blocks,
     location: location == null ? this.location : location(),
     files: files ?? this.files,
+    pageId: pageId ?? this.pageId,
   );
 
   /// As this phone keeps it while it waits to be sent.
@@ -498,7 +506,23 @@ class Note {
     if (blocks != null) 'blocks': [for (final b in blocks!) b.toJson()],
     'location': location?.toJson(),
     'files': [for (final f in files) f.toJson()],
+    'page_id': pageId,
   };
+
+  /// Its to-dos not yet ticked: a to-do note's one, a page's to-do lines
+  /// (inside toggles too).
+  int get openTodos {
+    if (kind == NoteKind.todo) return done ? 0 : 1;
+    int open(List<PageBlock> blocks) => blocks.fold(
+      0,
+      (n, b) => switch (b) {
+        PageTodo(:final done) => n + (done ? 0 : 1),
+        PageToggle(:final children) => n + open(children),
+        _ => n,
+      },
+    );
+    return open(blocks ?? const []);
+  }
 }
 
 /// A page's words as plain text, a line a block, the title first: a

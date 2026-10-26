@@ -7,7 +7,7 @@ import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/notebook/calendar_screen.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
-import 'package:buildvibes/features/notebook/notebook_screen.dart';
+import 'package:buildvibes/features/notebook/notebook_page_screen.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
@@ -17,6 +17,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/notebook_fakes.dart';
 
 Future<ProviderContainer> _container() async {
   SharedPreferences.setMockInitialValues({});
@@ -479,16 +481,21 @@ void main() {
         body: id,
         createdAt: DateTime(2026, 10, 15, hour),
       );
-      final notes = [at('c', 10), at('b', 9), at('a', 8)];
+      final notes = NotebookData(
+        notes: [at('c', 10), at('b', 9), at('a', 8)],
+        pages: [FakeNotebookRepository.myNotes()],
+      );
       final edited = NoteChange.save(at('b', 9).copyWith(body: 'B'));
-      expect([for (final n in edited.applyTo(notes)) n.id], ['c', 'b', 'a']);
+      expect([
+        for (final n in edited.applyTo(notes).notes) n.id,
+      ], ['c', 'b', 'a']);
       final early = NoteChange.save(at('x', 8).copyWith());
       expect(
-        [for (final n in NoteChange.save(at('y', 9)).applyTo(notes)) n.id],
+        [for (final n in NoteChange.save(at('y', 9)).applyTo(notes).notes) n.id],
         ['c', 'y', 'b', 'a'],
       );
       expect(
-        [for (final n in early.applyTo(notes)) n.id],
+        [for (final n in early.applyTo(notes).notes) n.id],
         ['c', 'b', 'x', 'a'],
       );
     });

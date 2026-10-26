@@ -329,4 +329,24 @@ abstract final class BvIcons {
   // list-checks is the work item), the empty notebook, and Save to my
   // notebook on a held message.
   static const notebook = IconData(0xe34e, fontFamily: _family);
+
+  // Notebook pages (review 99A). A page's icon is one of twelve: folder
+  // (folder-simple), hard hat, building (building-office), phone, list
+  // (list-checks), calendar, camera, warning, star, wrench, ruler and
+  // notebook.
+  static const pageFolder = library;
+  static const pageHardHat = trade;
+  // Phosphor: building-office
+  static const pageBuilding = IconData(0xe0ff, fontFamily: _family);
+  static const pageList = workItems;
+  // Phosphor: star
+  static const pageStar = IconData(0xe46a, fontFamily: _family);
+  // Phosphor: wrench
+  static const pageWrench = IconData(0xe5d4, fontFamily: _family);
+  // Phosphor: tree-structure. Merge pages (PG5).
+  static const merge = IconData(0xe67c, fontFamily: _family);
+  // Move into… a page (PG5): folder-simple.
+  static const moveInto = library;
+  // A page's open to-dos (PG1): list-checks.
+  static const openTodos = workItems;
 }

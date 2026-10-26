@@ -8347,6 +8347,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'divider line separator'**
   String get notebookFindDivider;
+
+  /// Review 99 A1 (PG1): the pages list's main action.
+  ///
+  /// In en, this message translates to:
+  /// **'New entry'**
+  String get notebookNewEntry;
+
+  /// Review 99 A1: the top bar's Search, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Search my notebook'**
+  String get notebookSearchTip;
+
+  /// Review 99 A1: the top bar's Deleted items and its screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted items'**
+  String get notebookDeletedItems;
+
+  /// Review 99A: Deleted items, until review 99B.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages you delete or merge away will show here.'**
+  String get notebookDeletedEmpty;
+
+  /// Review 99 A1: the pinned pages' label.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get notebookPinnedLabel;
+
+  /// Review 99 A1: the other pages' label.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get notebookPagesLabel;
+
+  /// Review 99 A1, A2: + New page, and the page chip's New page.
+  ///
+  /// In en, this message translates to:
+  /// **'New page'**
+  String get notebookNewPage;
+
+  /// Review 99 A6: the page every older note went into.
+  ///
+  /// In en, this message translates to:
+  /// **'My notes'**
+  String get notebookMyNotes;
+
+  /// Review 99A: a page with no title.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get notebookUntitled;
+
+  /// Review 99 A1: a page row's date.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get notebookToday;
+
+  /// Review 99 A1: a page row's date.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get notebookYesterday;
+
+  /// Review 99 A1: a page row's second line: the date and the first line of its latest entry.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {line}'**
+  String notebookPageLine(String date, String line);
+
+  /// Review 99 A2: a new page's row, after the date.
+  ///
+  /// In en, this message translates to:
+  /// **'new page'**
+  String get notebookNewPageMark;
+
+  /// Review 99 A2: the new dot, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get notebookNewMark;
+
+  /// Review 99 A1: a page's open to-dos, with its sub-pages'; only when there are any.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 to-do open} other{{count} to-dos open}}'**
+  String notebookTodosOpen(int count);
+
+  /// Review 99 A2 (PG2): the chip under the entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Page: {page}'**
+  String notebookPageChip(String page);
+
+  /// Review 99 A2 (PG3): the picker's search.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a page'**
+  String get notebookFindPage;
+
+  /// Review 99 A2 (PG3): the picker's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get notebookRecent;
+
+  /// Review 99 A2: the picker's search found nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No page by that name.'**
+  String get notebookNoPageFound;
+
+  /// Review 99 A3 (PG4): a page's main action.
+  ///
+  /// In en, this message translates to:
+  /// **'Write in this page'**
+  String get notebookWriteHere;
+
+  /// Review 99 A3: the title, edited in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Page title'**
+  String get notebookPageTitleHint;
+
+  /// Review 99 A3: the icon, tapped to change it, and its sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Page icon'**
+  String get notebookPageIcon;
+
+  /// Review 99 A3: a page's menu.
+  ///
+  /// In en, this message translates to:
+  /// **'New page inside'**
+  String get notebookNewSubPage;
+
+  /// Review 99 A3: a page's menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to the top'**
+  String get notebookPinPage;
+
+  /// Review 99 A4: a page's menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete page'**
+  String get notebookDeletePage;
+
+  /// Review 99 A4 (PG5): the top bar while selecting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String notebookSelected(int count);
+
+  /// Review 99 A4: the top bar's ×, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop selecting'**
+  String get notebookCloseSelection;
+
+  /// Review 99 A4 (PG5, PG5b).
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get notebookMerge;
+
+  /// Review 99 A4 (PG5): pages into another page.
+  ///
+  /// In en, this message translates to:
+  /// **'Move into…'**
+  String get notebookMoveInto;
+
+  /// Review 99 A4 (PG5).
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get notebookPin;
+
+  /// Review 99 A4 (PG5b): the merge sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{Merge {count} pages}}'**
+  String notebookMergeTitle(int count);
+
+  /// Review 99 A4 (PG5b).
+  ///
+  /// In en, this message translates to:
+  /// **'Every entry moves into one page, in date order. The emptied page goes to Deleted items.'**
+  String get notebookMergeBody;
+
+  /// Review 99 A4 (PG5b): the page that stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Into {page}'**
+  String notebookMergeInto(String page);
+
+  /// Review 99 A4 (PG5b).
+  ///
+  /// In en, this message translates to:
+  /// **'Into a new page'**
+  String get notebookMergeNew;
+
+  /// Review 99 A4: the Undo bar after a merge.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages merged'**
+  String get notebookMerged;
+
+  /// Review 99 A4: the Undo bar after Delete.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Page deleted} other{{count} pages deleted}}'**
+  String notebookPagesDeleted(int count);
+
+  /// Review 99 A4: an entry's, entries' or a line's Move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to page…'**
+  String get notebookMoveToPage;
+
+  /// Review 99 A4: after Move.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to {page}'**
+  String notebookMovedTo(String page);
+
+  /// Review 99 A4: Move into…, out of every page.
+  ///
+  /// In en, this message translates to:
+  /// **'Top of My notebook'**
+  String get notebookTopOfNotebook;
+
+  /// Review 99 A5: the search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search pages and entries'**
+  String get notebookSearchHint;
+
+  /// Review 99 A5.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found.'**
+  String get notebookSearchNone;
+
+  /// Review 99 A5.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t search. Check your signal and try again.'**
+  String get notebookSearchFailed;
+
+  /// Review 99A: a page deleted or merged away.
+  ///
+  /// In en, this message translates to:
+  /// **'This page isn\'t in your notebook any more.'**
+  String get notebookPageNotFound;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get notebookIconFolder;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard hat'**
+  String get notebookIconHardHat;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Building'**
+  String get notebookIconBuilding;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get notebookIconPhone;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get notebookIconList;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get notebookIconCalendar;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get notebookIconCamera;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get notebookIconWarning;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Star'**
+  String get notebookIconStar;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrench'**
+  String get notebookIconWrench;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Ruler'**
+  String get notebookIconRuler;
+
+  /// Review 99 A1: a page icon, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Notebook'**
+  String get notebookIconNotebook;
 }
 
 class _AppLocalizationsDelegate

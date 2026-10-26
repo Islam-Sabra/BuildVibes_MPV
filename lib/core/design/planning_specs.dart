@@ -189,3 +189,87 @@ abstract final class BvCalendarSpec {
   /// The calendar's colour for the notebook's own rows (the frame's slate).
   static const notebookColor = BvProjectColors.slate;
 }
+
+/// My notebook's pages (review 99A, PG1–PG5b): a page's row, its icon box,
+/// the page chip and its picker, a page's title, the selection bar.
+abstract final class BvNotebookPagesSpec {
+  /// A row (PG1): 60 high, 73 with its open to-dos; the icon box 4 in.
+  static const rowPaddingStart = 4.0;
+  static const rowPaddingEnd = 4.0;
+  static const rowPaddingVertical = 10.0;
+  static const rowGap = BvSpace.s12;
+  static const rowsGap = BvSpace.s4;
+  static const rowRadius = BvRadius.controlAll;
+  static const linesGap = BvSpace.s2;
+  static const caret = BvSize.iconSm;
+
+  /// The icon box: 40 with a 20 glyph; 32 with 18 in the picker.
+  static const box = 40.0;
+  static const boxGlyph = 20.0;
+  static const boxRadius = BvRadius.controlAll;
+  static const pickBox = BvSize.avatarSm; // 32
+  static const pickGlyph = 18.0;
+
+  /// The pin after a title, and the new dot.
+  static const titleMarkGap = 6.0;
+  static const pin = 14.0;
+  static const newDot = 8.0;
+
+  /// The open to-dos' icon.
+  static const todosIcon = 13.0;
+  static const todosGap = BvSpace.s4;
+
+  /// A list's label ("Pinned", "Pages", a day): 8 above its words.
+  static const labelTop = BvSpace.s8;
+  static const labelBottom = BvSpace.s4;
+
+  /// The checkbox while selecting (PG5).
+  static const checkGap = BvSpace.s12;
+
+  /// "New entry" (PG1) and "Write in this page" (PG4).
+  static const actionTop = BvSpace.s8;
+  static const writeHereBottom = BvSpace.s32;
+
+  /// A page's top (PG4): the path, then the icon and title.
+  static const pathBottom = BvSpace.s8;
+  static const titleBox = 40.0;
+  static const titleGlyph = 22.0;
+  static const titleGap = 10.0;
+  static const titleBottom = BvSpace.s8;
+
+  /// An entry's card (PG4).
+  static const entryGap = BvSpace.s8;
+  static const dayTop = BvSpace.s8;
+
+  /// The page chip (PG2): 32 high, a 16 icon, a 14 caret.
+  static const chipHeight = 32.0;
+  static const chipPaddingStart = 13.0;
+  static const chipPaddingEnd = BvSpace.s12;
+  static const chipIcon = BvSize.iconSm;
+  static const chipCaret = 14.0;
+  static const chipGap = BvSpace.s6;
+
+  /// The picker (PG3): 300 wide, 9 in, its rows 44 high.
+  static const pickerWidth = 300.0;
+  static const pickerPadding = 9.0;
+  static const pickerRow = 44.0;
+  static const pickerRowPadding = 6.0;
+  static const pickerRowGap = 10.0;
+  static const pickerRadius = BvRadius.cardAll;
+  static const pickerSearchHeight = 39.0;
+  static const pickerMostRows = 5;
+
+  /// The icon sheet: four to a row.
+  static const iconColumns = 4;
+  static const iconTile = 64.0;
+  static const iconGlyph = BvSize.iconLg;
+
+  /// The selection bar (PG5): 78 high, each action an icon over its word.
+  static const barHeight = 78.0;
+  static const barTop = 11.0;
+  static const barIcon = 22.0;
+  static const barGap = BvSpace.s4;
+
+  /// The merge sheet's choices (PG5b): 44 high.
+  static const choiceHeight = 44.0;
+}

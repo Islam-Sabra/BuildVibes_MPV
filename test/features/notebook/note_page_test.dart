@@ -795,7 +795,7 @@ void main() {
 /// save_note refuses every note (not for want of a signal).
 class _RefusingNotebook extends FakeNotebookRepository {
   @override
-  Future<bool> save(Note note) async {
+  Future<bool> save(Note note, {String? newPageTitle}) async {
     calls.add('save:${note.id}');
     throw const SpaceException(SpaceFailure.badInput);
   }

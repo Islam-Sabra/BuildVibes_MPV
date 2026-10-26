@@ -4974,4 +4974,210 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookFindDivider => 'فاصل خط';
+
+  @override
+  String get notebookNewEntry => 'تدوينة جديدة';
+
+  @override
+  String get notebookSearchTip => 'البحث في دفتري';
+
+  @override
+  String get notebookDeletedItems => 'المحذوفات';
+
+  @override
+  String get notebookDeletedEmpty => 'ستظهر هنا الصفحات المحذوفة أو المدموجة.';
+
+  @override
+  String get notebookPinnedLabel => 'المثبّتة';
+
+  @override
+  String get notebookPagesLabel => 'الصفحات';
+
+  @override
+  String get notebookNewPage => 'صفحة جديدة';
+
+  @override
+  String get notebookMyNotes => 'ملاحظاتي';
+
+  @override
+  String get notebookUntitled => 'بلا عنوان';
+
+  @override
+  String get notebookToday => 'اليوم';
+
+  @override
+  String get notebookYesterday => 'أمس';
+
+  @override
+  String notebookPageLine(String date, String line) {
+    return '$date · $line';
+  }
+
+  @override
+  String get notebookNewPageMark => 'صفحة جديدة';
+
+  @override
+  String get notebookNewMark => 'جديدة';
+
+  @override
+  String notebookTodosOpen(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مهمة مفتوحة',
+      few: '$count مهام مفتوحة',
+      two: 'مهمتان مفتوحتان',
+      one: 'مهمة واحدة مفتوحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookPageChip(String page) {
+    return 'الصفحة: $page';
+  }
+
+  @override
+  String get notebookFindPage => 'البحث عن صفحة';
+
+  @override
+  String get notebookRecent => 'الأحدث';
+
+  @override
+  String get notebookNoPageFound => 'لا توجد صفحة بهذا الاسم.';
+
+  @override
+  String get notebookWriteHere => 'الكتابة في هذه الصفحة';
+
+  @override
+  String get notebookPageTitleHint => 'عنوان الصفحة';
+
+  @override
+  String get notebookPageIcon => 'أيقونة الصفحة';
+
+  @override
+  String get notebookNewSubPage => 'صفحة جديدة بداخلها';
+
+  @override
+  String get notebookPinPage => 'تثبيت في الأعلى';
+
+  @override
+  String get notebookDeletePage => 'حذف الصفحة';
+
+  @override
+  String notebookSelected(int count) {
+    return 'المحدد: $count';
+  }
+
+  @override
+  String get notebookCloseSelection => 'إنهاء التحديد';
+
+  @override
+  String get notebookMerge => 'دمج';
+
+  @override
+  String get notebookMoveInto => 'نقل إلى…';
+
+  @override
+  String get notebookPin => 'تثبيت';
+
+  @override
+  String notebookMergeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'دمج $count صفحة',
+      few: 'دمج $count صفحات',
+      two: 'دمج صفحتين',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookMergeBody =>
+      'تنتقل كل التدوينات إلى صفحة واحدة بترتيب تاريخها. وتذهب الصفحة الفارغة إلى المحذوفات.';
+
+  @override
+  String notebookMergeInto(String page) {
+    return 'إلى $page';
+  }
+
+  @override
+  String get notebookMergeNew => 'إلى صفحة جديدة';
+
+  @override
+  String get notebookMerged => 'تم دمج الصفحات';
+
+  @override
+  String notebookPagesDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حُذفت $count صفحة',
+      few: 'حُذفت $count صفحات',
+      two: 'حُذفت صفحتان',
+      one: 'حُذفت الصفحة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookMoveToPage => 'نقل إلى صفحة…';
+
+  @override
+  String notebookMovedTo(String page) {
+    return 'نُقل إلى $page';
+  }
+
+  @override
+  String get notebookTopOfNotebook => 'أعلى دفتري';
+
+  @override
+  String get notebookSearchHint => 'البحث في الصفحات والتدوينات';
+
+  @override
+  String get notebookSearchNone => 'لا نتائج.';
+
+  @override
+  String get notebookSearchFailed =>
+      'تعذّر البحث. تحقّق من الإشارة وحاول مجددًا.';
+
+  @override
+  String get notebookPageNotFound => 'لم تعد هذه الصفحة في دفترك.';
+
+  @override
+  String get notebookIconFolder => 'مجلد';
+
+  @override
+  String get notebookIconHardHat => 'خوذة';
+
+  @override
+  String get notebookIconBuilding => 'مبنى';
+
+  @override
+  String get notebookIconPhone => 'هاتف';
+
+  @override
+  String get notebookIconList => 'قائمة';
+
+  @override
+  String get notebookIconCalendar => 'تقويم';
+
+  @override
+  String get notebookIconCamera => 'كاميرا';
+
+  @override
+  String get notebookIconWarning => 'تنبيه';
+
+  @override
+  String get notebookIconStar => 'نجمة';
+
+  @override
+  String get notebookIconWrench => 'مفتاح ربط';
+
+  @override
+  String get notebookIconRuler => 'مسطرة';
+
+  @override
+  String get notebookIconNotebook => 'دفتر';
 }

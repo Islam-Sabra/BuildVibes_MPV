@@ -7118,5 +7118,268 @@
   "notebookFindDivider": "divider line separator",
   "@notebookFindDivider": {
     "description": "Review 98: words that also find Divider in the \"/\" card (never shown)."
+  },
+  "notebookNewEntry": "New entry",
+  "@notebookNewEntry": {
+    "description": "Review 99 A1 (PG1): the pages list's main action."
+  },
+  "notebookSearchTip": "Search my notebook",
+  "@notebookSearchTip": {
+    "description": "Review 99 A1: the top bar's Search, read out."
+  },
+  "notebookDeletedItems": "Deleted items",
+  "@notebookDeletedItems": {
+    "description": "Review 99 A1: the top bar's Deleted items and its screen."
+  },
+  "notebookDeletedEmpty": "Pages you delete or merge away will show here.",
+  "@notebookDeletedEmpty": {
+    "description": "Review 99A: Deleted items, until review 99B."
+  },
+  "notebookPinnedLabel": "Pinned",
+  "@notebookPinnedLabel": {
+    "description": "Review 99 A1: the pinned pages' label."
+  },
+  "notebookPagesLabel": "Pages",
+  "@notebookPagesLabel": {
+    "description": "Review 99 A1: the other pages' label."
+  },
+  "notebookNewPage": "New page",
+  "@notebookNewPage": {
+    "description": "Review 99 A1, A2: + New page, and the page chip's New page."
+  },
+  "notebookMyNotes": "My notes",
+  "@notebookMyNotes": {
+    "description": "Review 99 A6: the page every older note went into."
+  },
+  "notebookUntitled": "Untitled",
+  "@notebookUntitled": {
+    "description": "Review 99A: a page with no title."
+  },
+  "notebookToday": "Today",
+  "@notebookToday": {
+    "description": "Review 99 A1: a page row's date."
+  },
+  "notebookYesterday": "Yesterday",
+  "@notebookYesterday": {
+    "description": "Review 99 A1: a page row's date."
+  },
+  "notebookPageLine": "{date} · {line}",
+  "@notebookPageLine": {
+    "description": "Review 99 A1: a page row's second line: the date and the first line of its latest entry.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "line": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookNewPageMark": "new page",
+  "@notebookNewPageMark": {
+    "description": "Review 99 A2: a new page's row, after the date."
+  },
+  "notebookNewMark": "New",
+  "@notebookNewMark": {
+    "description": "Review 99 A2: the new dot, read out."
+  },
+  "notebookTodosOpen": "{count, plural, =1{1 to-do open} other{{count} to-dos open}}",
+  "@notebookTodosOpen": {
+    "description": "Review 99 A1: a page's open to-dos, with its sub-pages'; only when there are any.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookPageChip": "Page: {page}",
+  "@notebookPageChip": {
+    "description": "Review 99 A2 (PG2): the chip under the entry.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookFindPage": "Find a page",
+  "@notebookFindPage": {
+    "description": "Review 99 A2 (PG3): the picker's search."
+  },
+  "notebookRecent": "Recent",
+  "@notebookRecent": {
+    "description": "Review 99 A2 (PG3): the picker's label."
+  },
+  "notebookNoPageFound": "No page by that name.",
+  "@notebookNoPageFound": {
+    "description": "Review 99 A2: the picker's search found nothing."
+  },
+  "notebookWriteHere": "Write in this page",
+  "@notebookWriteHere": {
+    "description": "Review 99 A3 (PG4): a page's main action."
+  },
+  "notebookPageTitleHint": "Page title",
+  "@notebookPageTitleHint": {
+    "description": "Review 99 A3: the title, edited in place."
+  },
+  "notebookPageIcon": "Page icon",
+  "@notebookPageIcon": {
+    "description": "Review 99 A3: the icon, tapped to change it, and its sheet."
+  },
+  "notebookNewSubPage": "New page inside",
+  "@notebookNewSubPage": {
+    "description": "Review 99 A3: a page's menu."
+  },
+  "notebookPinPage": "Pin to the top",
+  "@notebookPinPage": {
+    "description": "Review 99 A3: a page's menu."
+  },
+  "notebookDeletePage": "Delete page",
+  "@notebookDeletePage": {
+    "description": "Review 99 A4: a page's menu."
+  },
+  "notebookSelected": "{count} selected",
+  "@notebookSelected": {
+    "description": "Review 99 A4 (PG5): the top bar while selecting.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookCloseSelection": "Stop selecting",
+  "@notebookCloseSelection": {
+    "description": "Review 99 A4: the top bar's ×, read out."
+  },
+  "notebookMerge": "Merge",
+  "@notebookMerge": {
+    "description": "Review 99 A4 (PG5, PG5b)."
+  },
+  "notebookMoveInto": "Move into…",
+  "@notebookMoveInto": {
+    "description": "Review 99 A4 (PG5): pages into another page."
+  },
+  "notebookPin": "Pin",
+  "@notebookPin": {
+    "description": "Review 99 A4 (PG5)."
+  },
+  "notebookMergeTitle": "{count, plural, other{Merge {count} pages}}",
+  "@notebookMergeTitle": {
+    "description": "Review 99 A4 (PG5b): the merge sheet's title.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookMergeBody": "Every entry moves into one page, in date order. The emptied page goes to Deleted items.",
+  "@notebookMergeBody": {
+    "description": "Review 99 A4 (PG5b)."
+  },
+  "notebookMergeInto": "Into {page}",
+  "@notebookMergeInto": {
+    "description": "Review 99 A4 (PG5b): the page that stays.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookMergeNew": "Into a new page",
+  "@notebookMergeNew": {
+    "description": "Review 99 A4 (PG5b)."
+  },
+  "notebookMerged": "Pages merged",
+  "@notebookMerged": {
+    "description": "Review 99 A4: the Undo bar after a merge."
+  },
+  "notebookPagesDeleted": "{count, plural, =1{Page deleted} other{{count} pages deleted}}",
+  "@notebookPagesDeleted": {
+    "description": "Review 99 A4: the Undo bar after Delete.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookMoveToPage": "Move to page…",
+  "@notebookMoveToPage": {
+    "description": "Review 99 A4: an entry's, entries' or a line's Move."
+  },
+  "notebookMovedTo": "Moved to {page}",
+  "@notebookMovedTo": {
+    "description": "Review 99 A4: after Move.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookTopOfNotebook": "Top of My notebook",
+  "@notebookTopOfNotebook": {
+    "description": "Review 99 A4: Move into…, out of every page."
+  },
+  "notebookSearchHint": "Search pages and entries",
+  "@notebookSearchHint": {
+    "description": "Review 99 A5: the search field."
+  },
+  "notebookSearchNone": "Nothing found.",
+  "@notebookSearchNone": {
+    "description": "Review 99 A5."
+  },
+  "notebookSearchFailed": "Couldn't search. Check your signal and try again.",
+  "@notebookSearchFailed": {
+    "description": "Review 99 A5."
+  },
+  "notebookPageNotFound": "This page isn't in your notebook any more.",
+  "@notebookPageNotFound": {
+    "description": "Review 99A: a page deleted or merged away."
+  },
+  "notebookIconFolder": "Folder",
+  "@notebookIconFolder": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconHardHat": "Hard hat",
+  "@notebookIconHardHat": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconBuilding": "Building",
+  "@notebookIconBuilding": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconPhone": "Phone",
+  "@notebookIconPhone": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconList": "List",
+  "@notebookIconList": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconCalendar": "Calendar",
+  "@notebookIconCalendar": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconCamera": "Camera",
+  "@notebookIconCamera": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconWarning": "Warning",
+  "@notebookIconWarning": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconStar": "Star",
+  "@notebookIconStar": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconWrench": "Wrench",
+  "@notebookIconWrench": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconRuler": "Ruler",
+  "@notebookIconRuler": {
+    "description": "Review 99 A1: a page icon, read out."
+  },
+  "notebookIconNotebook": "Notebook",
+  "@notebookIconNotebook": {
+    "description": "Review 99 A1: a page icon, read out."
   }
 }

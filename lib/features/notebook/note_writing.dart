@@ -20,7 +20,7 @@ import '../work/daybook_photos.dart' show localPhotoProvider;
 import '../work/daybook_words.dart';
 import 'note_draft.dart';
 import 'note_page_editor.dart';
-import 'notebook_screen.dart' show reminderWhen, todoDue;
+import 'notebook_page_screen.dart' show reminderWhen, todoDue;
 
 /// The card the notebook's photos are prepared for ("Preparing…" slots).
 const notePhotosCard = 'notebook';
@@ -139,6 +139,7 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
     required this.editorKey,
     required this.titleFocus,
     this.onCurrentKind,
+    this.chip,
   });
 
   final bool writing;
@@ -150,6 +151,9 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
   final GlobalKey<NotePageEditorState> editorKey;
   final FocusNode titleFocus;
   final ValueChanged<NoteBlockKind>? onCurrentKind;
+
+  /// The page chip at its foot (review 99 A2, PG2), on New entry.
+  final Widget? chip;
 
   @override
   ConsumerState<NoteWritingSlip> createState() => _NoteWritingSlipState();
@@ -248,6 +252,7 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
             onPickRemind: widget.onPickRemind,
             onChange: _put,
           ),
+          ?widget.chip,
         ],
       ),
       footer: writing

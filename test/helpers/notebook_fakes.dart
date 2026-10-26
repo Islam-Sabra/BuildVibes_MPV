@@ -1,21 +1,48 @@
 import 'dart:typed_data';
 
 import 'package:buildvibes/data/models/note.dart';
+import 'package:buildvibes/data/models/notebook_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
 
-/// My notebook and My calendar with no network (slice 8). [offline] makes
-/// every call fail as a lost signal; [deleted] are ids deleted elsewhere
-/// (save_note returns null for them).
+/// My notebook and My calendar with no network (slice 8; pages, review
+/// 99A). [offline] makes every call fail as a lost signal; [deleted] are
+/// ids deleted elsewhere (save_note returns null for them). With no
+/// [pages], notes go into one "My notes" ([myNotesId]), as the backfill
+/// put them.
 class FakeNotebookRepository implements NotebookRepository {
-  FakeNotebookRepository({List<Note> notes = const [], this.rows = const []}) {
+  FakeNotebookRepository({
+    List<Note> notes = const [],
+    List<NotebookPage>? pages,
+    this.rows = const [],
+  }) {
+    for (final p in pages ?? [myNotes()]) {
+      pageKept[p.id] = p;
+    }
     for (final n in notes) {
-      kept[n.id] = n;
+      kept[n.id] = n.pageId == null && pages == null
+          ? n.copyWith(pageId: myNotesId)
+          : n;
     }
   }
 
-  /// The server's notes, by id.
+  static const myNotesId = 'page-my-notes';
+
+  /// "My notes", the page every older note went into.
+  static NotebookPage myNotes() => NotebookPage(
+    id: myNotesId,
+    myNotes: true,
+    createdAt: DateTime(2026, 10, 1),
+    lastActivityAt: DateTime(2026, 10, 1),
+  );
+
+  /// The server's notes and pages that aren't deleted, by id.
   final Map<String, Note> kept = {};
+  final Map<String, NotebookPage> pageKept = {};
+
+  /// The last search's query, and what it answers.
+  String? searched;
+  List<NotebookHit> hits = const [];
 
   /// my_calendar's rows, every day; [calendar] gives those in its days.
   List<CalendarRow> rows;
@@ -41,16 +68,132 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
-  Future<bool> save(Note note) async {
+  Future<bool> save(Note note, {String? newPageTitle}) async {
     _check();
-    calls.add('save:${note.id}');
+    calls.add(
+      newPageTitle == null
+          ? 'save:${note.id}'
+          : 'save:${note.id}:new:$newPageTitle',
+    );
     if (deleted.contains(note.id)) return false;
+    final into = note.pageId;
+    if (into != null && newPageTitle != null && pageKept[into] == null) {
+      pageKept[into] = NotebookPage(
+        id: into,
+        title: newPageTitle,
+        isNew: true,
+        createdAt: note.createdAt,
+        lastActivityAt: note.createdAt,
+      );
+    }
     if (note.kind != NoteKind.voice) {
       files[note.id] = [for (final p in note.photos) ?p.path];
     }
     final before = kept[note.id];
     kept[note.id] = note.copyWith(waiting: false, doneAt: () => before?.doneAt);
     return true;
+  }
+
+  @override
+  Future<List<NotebookPage>> pages() async {
+    _check();
+    return pageKept.values.toList();
+  }
+
+  @override
+  Future<void> createPage(NotebookPage page) async {
+    _check();
+    calls.add('page:${page.id}');
+    pageKept.putIfAbsent(page.id, () => page);
+  }
+
+  @override
+  Future<void> updatePage(String id, String title, PageIcon icon) async {
+    _check();
+    calls.add('page-edit:$id:$title:${icon.json}');
+    final p = pageKept[id];
+    if (p != null) {
+      pageKept[id] = p.copyWith(title: title, icon: icon, isNew: false);
+    }
+  }
+
+  @override
+  Future<void> openPage(String id) async {
+    _check();
+    calls.add('page-open:$id');
+    final p = pageKept[id];
+    if (p != null) pageKept[id] = p.copyWith(isNew: false);
+  }
+
+  @override
+  Future<void> pinPages(List<String> ids, {required bool on}) async {
+    _check();
+    calls.add('page-pin:${ids.join(',')}:$on');
+    for (final id in ids) {
+      final p = pageKept[id];
+      if (p != null) pageKept[id] = p.copyWith(pinned: on);
+    }
+  }
+
+  @override
+  Future<void> movePages(List<String> ids, String? parent) async {
+    _check();
+    calls.add('page-move:${ids.join(',')}:$parent');
+    for (final id in ids) {
+      final p = pageKept[id];
+      if (p != null) pageKept[id] = p.copyWith(parentId: () => parent);
+    }
+  }
+
+  @override
+  Future<void> moveNotes(List<String> ids, String page) async {
+    _check();
+    calls.add('notes-move:${ids.join(',')}:$page');
+    for (final id in ids) {
+      final n = kept[id];
+      if (n != null) kept[id] = n.copyWith(pageId: page);
+    }
+  }
+
+  @override
+  Future<void> merge(
+    List<String> pages,
+    List<String> notes,
+    String into, {
+    String? newTitle,
+  }) async {
+    _check();
+    calls.add('merge:${pages.join(',')}:${notes.join(',')}:$into');
+    final gone = {
+      for (final id in pages)
+        if (id != into) id,
+    };
+    for (final n in [...kept.values]) {
+      if (gone.contains(n.pageId) || notes.contains(n.id)) {
+        kept[n.id] = n.copyWith(pageId: into);
+      }
+    }
+    for (final p in [...pageKept.values]) {
+      if (gone.contains(p.parentId) && p.id != into) {
+        pageKept[p.id] = p.copyWith(parentId: () => into);
+      }
+    }
+    gone.forEach(pageKept.remove);
+  }
+
+  @override
+  Future<void> deletePages(List<String> ids) async {
+    _check();
+    calls.add('page-delete:${ids.join(',')}');
+    ids.forEach(pageKept.remove);
+  }
+
+  @override
+  Future<List<NotebookHit>> search(String query) async {
+    _check();
+    searched = query;
+    calls.add('search:$query');
+    return hits;
   }
 
   @override

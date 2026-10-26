@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/note.dart';
+import '../models/notebook_page.dart';
 import '../models/post_page.dart';
 import '../models/space.dart';
 import '../supabase/supabase_provider.dart';
@@ -18,9 +19,46 @@ abstract class NotebookRepository {
   /// My notes, newest first (`notes` under its owner-only policy).
   Future<List<Note>> notes();
 
-  /// save_note: new or mine, under the id the app chose (a retry is the
-  /// same note). False when the note was deleted: the app drops its edit.
-  Future<bool> save(Note note);
+  /// save_entry (review 99A): new or mine, under the id the app chose (a
+  /// retry is the same note), into its page; [newPageTitle] makes that page
+  /// with it, titled from it and marked new. False when the note was
+  /// deleted: the app drops its edit.
+  Future<bool> save(Note note, {String? newPageTitle});
+
+  /// My pages that aren't deleted (notebook_pages, owner only).
+  Future<List<NotebookPage>> pages();
+
+  /// create_notebook_page: "+ New page" or a sub-page; a retry is the same.
+  Future<void> createPage(NotebookPage page);
+
+  /// update_notebook_page: the title and icon (no longer new).
+  Future<void> updatePage(String id, String title, PageIcon icon);
+
+  /// open_notebook_page: no longer new.
+  Future<void> openPage(String id);
+
+  /// pin_notebook_pages.
+  Future<void> pinPages(List<String> ids, {required bool on});
+
+  /// move_notebook_pages: Move into… ([parent] null: the top).
+  Future<void> movePages(List<String> ids, String? parent);
+
+  /// move_notes: Move to page….
+  Future<void> moveNotes(List<String> ids, String page);
+
+  /// merge_notebook_pages: all or nothing; [newTitle] makes [into].
+  Future<void> merge(
+    List<String> pages,
+    List<String> notes,
+    String into, {
+    String? newTitle,
+  });
+
+  /// delete_notebook_pages: with every page under them.
+  Future<void> deletePages(List<String> ids);
+
+  /// search_notebook (A5): pages first, then entries, newest first.
+  Future<List<NotebookHit>> search(String query);
 
   /// delete_note, then its recording or photos from Storage (the cleanup
   /// takes any file left behind).
@@ -113,14 +151,19 @@ class SupabaseNotebookRepository implements NotebookRepository {
   });
 
   @override
-  Future<bool> save(Note note) => _guard(() async {
+  Future<bool> save(Note note, {String? newPageTitle}) => _guard(() async {
+    final page = {
+      'p_page': note.pageId,
+      'p_new_page_title': newPageTitle,
+    };
     final blocks = note.blocks;
     if (blocks != null) {
       // F107: a page, with its title, blocks, date, location, photos,
       // PDFs and voice blocks' recordings, and the phone's time.
       final id = await _client.rpc<String?>(
-        'save_note',
+        'save_entry',
         params: {
+          ...page,
           'p_id': note.id,
           'p_kind': NoteKind.text.json,
           'p_body': note.body.trim().isEmpty ? null : note.body.trim(),
@@ -153,8 +196,9 @@ class SupabaseNotebookRepository implements NotebookRepository {
       return id != null;
     }
     final id = await _client.rpc<String?>(
-      'save_note',
+      'save_entry',
       params: {
+        ...page,
         'p_id': note.id,
         'p_kind': note.kind.json,
         'p_body': note.body.trim().isEmpty ? null : note.body.trim(),
@@ -180,6 +224,103 @@ class SupabaseNotebookRepository implements NotebookRepository {
       },
     );
     return id != null;
+  });
+
+  @override
+  Future<List<NotebookPage>> pages() => _guard(() async {
+    final rows = await _client
+        .from('notebook_pages')
+        .select()
+        .isFilter('deleted_at', null)
+        .order('last_activity_at', ascending: false)
+        .limit(_limit);
+    return [for (final r in rows) NotebookPage.fromJson(r)];
+  });
+
+  @override
+  Future<void> createPage(NotebookPage page) => _guard(
+    () => _client.rpc<void>(
+      'create_notebook_page',
+      params: {
+        'p_id': page.id,
+        'p_title': page.title,
+        'p_parent': page.parentId,
+        'p_icon': page.icon.json,
+      },
+    ),
+  );
+
+  @override
+  Future<void> updatePage(String id, String title, PageIcon icon) => _guard(
+    () => _client.rpc<void>(
+      'update_notebook_page',
+      params: {'p_id': id, 'p_title': title, 'p_icon': icon.json},
+    ),
+  );
+
+  @override
+  Future<void> openPage(String id) => _guard(
+    () => _client.rpc<void>('open_notebook_page', params: {'p_id': id}),
+  );
+
+  @override
+  Future<void> pinPages(List<String> ids, {required bool on}) => _guard(
+    () => _client.rpc<void>(
+      'pin_notebook_pages',
+      params: {'p_ids': ids, 'p_on': on},
+    ),
+  );
+
+  @override
+  Future<void> movePages(List<String> ids, String? parent) => _guard(
+    () => _client.rpc<void>(
+      'move_notebook_pages',
+      params: {'p_ids': ids, 'p_parent': parent},
+    ),
+  );
+
+  @override
+  Future<void> moveNotes(List<String> ids, String page) => _guard(
+    () => _client.rpc<void>(
+      'move_notes',
+      params: {'p_ids': ids, 'p_page': page},
+    ),
+  );
+
+  @override
+  Future<void> merge(
+    List<String> pages,
+    List<String> notes,
+    String into, {
+    String? newTitle,
+  }) => _guard(
+    () => _client.rpc<void>(
+      'merge_notebook_pages',
+      params: {
+        'p_pages': pages,
+        'p_notes': notes,
+        'p_into': into,
+        'p_new_title': newTitle,
+      },
+    ),
+  );
+
+  @override
+  Future<void> deletePages(List<String> ids) => _guard(
+    () => _client.rpc<void>('delete_notebook_pages', params: {'p_ids': ids}),
+  );
+
+  @override
+  Future<List<NotebookHit>> search(String query) => _guard(() async {
+    final rows =
+        (await _client.rpc<List<dynamic>>(
+                      'search_notebook',
+                      params: {'p_q': query},
+                    )
+                    as List? ??
+                const [])
+            .cast<Map<String, dynamic>>();
+    return [for (final r in rows) NotebookHit.fromJson(r)];
   });
 
   @override

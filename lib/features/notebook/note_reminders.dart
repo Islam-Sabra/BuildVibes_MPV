@@ -86,7 +86,7 @@ class _ReminderHostState extends ConsumerState<ReminderHost> {
     _ready = true;
     final launched = await reminders.launchedBy();
     if (launched != null) _open();
-    final notes = ref.read(notebookProvider).value;
+    final notes = ref.read(notebookProvider).value?.notes;
     if (notes != null) _queue(notes);
   }
 
@@ -154,7 +154,7 @@ class _ReminderHostState extends ConsumerState<ReminderHost> {
   Widget build(BuildContext context) {
     if (ref.watch(appGateProvider) == AppGate.ready) {
       ref.listen(notebookProvider, (_, next) {
-        final notes = next.value;
+        final notes = next.value?.notes;
         if (notes != null) _queue(notes);
       });
       if (!_started) {

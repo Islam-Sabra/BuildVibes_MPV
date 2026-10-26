@@ -4961,4 +4961,206 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookFindDivider => 'divider line separator';
+
+  @override
+  String get notebookNewEntry => 'New entry';
+
+  @override
+  String get notebookSearchTip => 'Search my notebook';
+
+  @override
+  String get notebookDeletedItems => 'Deleted items';
+
+  @override
+  String get notebookDeletedEmpty =>
+      'Pages you delete or merge away will show here.';
+
+  @override
+  String get notebookPinnedLabel => 'Pinned';
+
+  @override
+  String get notebookPagesLabel => 'Pages';
+
+  @override
+  String get notebookNewPage => 'New page';
+
+  @override
+  String get notebookMyNotes => 'My notes';
+
+  @override
+  String get notebookUntitled => 'Untitled';
+
+  @override
+  String get notebookToday => 'Today';
+
+  @override
+  String get notebookYesterday => 'Yesterday';
+
+  @override
+  String notebookPageLine(String date, String line) {
+    return '$date · $line';
+  }
+
+  @override
+  String get notebookNewPageMark => 'new page';
+
+  @override
+  String get notebookNewMark => 'New';
+
+  @override
+  String notebookTodosOpen(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count to-dos open',
+      one: '1 to-do open',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookPageChip(String page) {
+    return 'Page: $page';
+  }
+
+  @override
+  String get notebookFindPage => 'Find a page';
+
+  @override
+  String get notebookRecent => 'Recent';
+
+  @override
+  String get notebookNoPageFound => 'No page by that name.';
+
+  @override
+  String get notebookWriteHere => 'Write in this page';
+
+  @override
+  String get notebookPageTitleHint => 'Page title';
+
+  @override
+  String get notebookPageIcon => 'Page icon';
+
+  @override
+  String get notebookNewSubPage => 'New page inside';
+
+  @override
+  String get notebookPinPage => 'Pin to the top';
+
+  @override
+  String get notebookDeletePage => 'Delete page';
+
+  @override
+  String notebookSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get notebookCloseSelection => 'Stop selecting';
+
+  @override
+  String get notebookMerge => 'Merge';
+
+  @override
+  String get notebookMoveInto => 'Move into…';
+
+  @override
+  String get notebookPin => 'Pin';
+
+  @override
+  String notebookMergeTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Merge $count pages',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookMergeBody =>
+      'Every entry moves into one page, in date order. The emptied page goes to Deleted items.';
+
+  @override
+  String notebookMergeInto(String page) {
+    return 'Into $page';
+  }
+
+  @override
+  String get notebookMergeNew => 'Into a new page';
+
+  @override
+  String get notebookMerged => 'Pages merged';
+
+  @override
+  String notebookPagesDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pages deleted',
+      one: 'Page deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookMoveToPage => 'Move to page…';
+
+  @override
+  String notebookMovedTo(String page) {
+    return 'Moved to $page';
+  }
+
+  @override
+  String get notebookTopOfNotebook => 'Top of My notebook';
+
+  @override
+  String get notebookSearchHint => 'Search pages and entries';
+
+  @override
+  String get notebookSearchNone => 'Nothing found.';
+
+  @override
+  String get notebookSearchFailed =>
+      'Couldn\'t search. Check your signal and try again.';
+
+  @override
+  String get notebookPageNotFound =>
+      'This page isn\'t in your notebook any more.';
+
+  @override
+  String get notebookIconFolder => 'Folder';
+
+  @override
+  String get notebookIconHardHat => 'Hard hat';
+
+  @override
+  String get notebookIconBuilding => 'Building';
+
+  @override
+  String get notebookIconPhone => 'Phone';
+
+  @override
+  String get notebookIconList => 'List';
+
+  @override
+  String get notebookIconCalendar => 'Calendar';
+
+  @override
+  String get notebookIconCamera => 'Camera';
+
+  @override
+  String get notebookIconWarning => 'Warning';
+
+  @override
+  String get notebookIconStar => 'Star';
+
+  @override
+  String get notebookIconWrench => 'Wrench';
+
+  @override
+  String get notebookIconRuler => 'Ruler';
+
+  @override
+  String get notebookIconNotebook => 'Notebook';
 }
