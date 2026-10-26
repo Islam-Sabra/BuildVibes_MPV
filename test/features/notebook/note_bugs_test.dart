@@ -246,6 +246,43 @@ void main() {
         await tester.pumpAndSettle();
       });
 
+      testWidgets('D3: emptied, then Back: "Deleted · Undo"; it goes when the '
+          'bar closes', (tester) async {
+        final app = await _open(tester, lang, notes: [_saved()]);
+        await _tap(tester, _key('note-entry-1'));
+        await tester.enterText(_key('note-title'), '');
+        await tester.enterText(_key('page-field-t:s-1'), '');
+        await tester.pumpAndSettle();
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.text(l10n.notebookUndoDeleted), findsOneWidget);
+        expect(_key('note-entry-1'), findsNothing);
+        expect(_drafted(tester), isNull);
+        // Sent only once the Undo bar has gone.
+        expect(app.notebook.calls, isNot(contains('delete:entry-1')));
+        await tester.pump(const Duration(seconds: 6));
+        await tester.pumpAndSettle();
+        expect(app.notebook.calls, contains('delete:entry-1'));
+        expect(app.notebook.kept['entry-1'], isNull);
+      });
+
+      testWidgets('D3: emptied, Back, then Undo: the entry is back as it was',
+          (tester) async {
+        final app = await _open(tester, lang, notes: [_saved()]);
+        await _tap(tester, _key('note-entry-1'));
+        await tester.enterText(_key('note-title'), '');
+        await tester.enterText(_key('page-field-t:s-1'), '');
+        await tester.pumpAndSettle();
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10n.daybookUndo));
+        await tester.pump(const Duration(seconds: 6));
+        await tester.pumpAndSettle();
+        expect(_key('note-entry-1'), findsOneWidget);
+        expect(app.notebook.calls, isNot(contains('delete:entry-1')));
+        expect(app.notebook.kept['entry-1']!.title, 'Pour');
+      });
+
       testWidgets('a Draft\'s ⋯: Discard, with Undo', (tester) async {
         await _open(tester, lang, draft: _draft([PageText('t-1', 'Rebar')]));
         await _tap(tester, _key('note-draft-menu-draft-1'));

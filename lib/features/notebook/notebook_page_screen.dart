@@ -298,7 +298,22 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     if (draft == null || was == null) return;
     final changed = _editOpened == null || _editOpened != _shape(draft);
     _editOpened = null;
-    if (!changed || !draft.ready) {
+    if (!changed) {
+      await _drafts.discard();
+      return;
+    }
+    if (!draft.ready) {
+      // D3: emptied and left, it is deleted, with Undo (the Delete rules:
+      // it goes when the bar closes). Held on the phone first, then the
+      // Draft goes (D2).
+      if (mounted) {
+        await holdWithUndo(
+          context,
+          ref,
+          NoteChange.delete(was),
+          AppLocalizations.of(context).notebookUndoDeleted,
+        );
+      }
       await _drafts.discard();
       return;
     }
