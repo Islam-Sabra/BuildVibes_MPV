@@ -366,3 +366,86 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 - **Shortcuts stay left to right.** The shortcuts at the end of the block list's rows (`#`, `[]`, `>`, `---`) are always laid out left to right, also in Arabic. Without that, `>` shows mirrored as `<`.
 - **The pages keep the DS icons.** The design system has no hard hat icon, so BH1 keeps the crane for Site A, as the app's own 12-icon set does.
 - **No mockup for hold-to-record.** The 🎤 hold-to-record follows WhatsApp, as Part 5 describes; its states aren't drawn.
+
+## Lead's check of `claude/r100-bugs` (26 Oct, 17:10)
+**Branch:** `claude/r100-bugs` at `aa1ec48`.
+**Verdict:** not yet. Fix D1–D13 on the same branch, then stop again.
+
+**What I checked:**
+- The diff, read against Part 1 (⋯), Part 2 (B1–B4) and CLAUDE.md. Two separate reviews ran in parallel, one for each.
+- The main claims are confirmed in the code.
+- There's no database change, so there was no SQL run.
+
+**What holds:**
+- Enter keeps the keyboard up.
+- Each unsent draft is its own card.
+- "Write in this page" starts a new entry.
+- ⋯ opens at once, one menu at a time.
+- The ARB keys are in both languages.
+- The old single draft on the phone isn't lost.
+
+### Fixes
+**D1. An edit left open is never saved without the user.**
+- **The problem:** `initState` calls `_finishEdit(quiet: true)` with nothing to compare against, so a leftover edit is sent whole. `save_note` keeps the last write, so an older edit can overwrite a newer version.
+- **The fix:** when the page opens with a leftover edit of a saved entry, reopen it in the editor, where it was. Nothing is sent until the user goes Back (B2).
+- **A note for 99B:** the 99B migration adds a base version to `save_note`. A save based on an older version is then refused, and the user's words come back as a Draft marked "Changed on another phone".
+
+**D2. Never drop the draft before the save is stored.**
+- `_finishEdit` must `await` the save, until it is written in the phone's outbox, before `discard()`.
+- **Test:** Back while offline, with a delete waiting on its Undo bar. Kill and restart: the edit is still there.
+
+**D3. Emptying a saved entry and going Back is a delete, with Undo.**
+- Today the change is dropped without a word.
+- **The rule:** it shows "Deleted · Undo" and follows the Delete rules.
+
+**D4. Only a new entry comes back as a Draft when refused.**
+- A refused **edit** stays an edit of that entry, with its link kept. The words come back in the editor, with the existing refused message.
+- `NoteDraft.back(lost)` must keep `editing`. Otherwise the entry shows twice, which is the bug B2 fixed.
+- **Test:** a refused edit leaves one card.
+
+**D5. The keyboard inset is read where it is real.**
+- `_roomForMenu` reads `MediaQuery.of(context)` under the Scaffold, where `viewInsets.bottom` is 0.
+- Read the insets above the Scaffold (`MediaQuery.viewInsetsOf` on the route's context, or the overlay's), the same as the popover does.
+- **Test:** with a Scaffold that removes the inset, the line still scrolls up before the card would have to scroll inside.
+
+**D6. Scroll for the real card, for every card.**
+- Step 3 of B4 uses `menuMostRows` for every card. Measure the real height of the card being opened (`/`, `+`, 📎, line menu).
+- **Tests:** the above case, and the scroll-first case, not only the bottom edge.
+
+**D7. No Material number for the top bar.**
+- `bv_line_popover.dart` uses `kToolbarHeight` (56). Use the BV top bar's height token.
+
+**D8. The keyboard stays up under `+` and 📎 (B4.5).**
+- `_toggleCategories()` and Location still call `unfocus()` (`notebook_page_screen.dart` around lines 381–477). Remove those calls, so the card opens over the keyboard's space with the cursor kept.
+- **Test:** `+` opens with the keyboard up.
+
+**D9. B1 on every path.**
+- These still use `focusBlockLater` after dropping the old field: the typed `---` (a divider, then a new line) and a toggle's new child line. Use `focusBlockNow`.
+- **Tests:** both paths.
+
+**D10. ⋯ is its own button.**
+- The entry's ⋯ sits inside the card's `InkWell`, so a long-press on ⋯ selects the card.
+- Take it out of the card's gesture, as Part 1 says.
+- This is temporary, because the redesign removes ⋯ from entries. It still has to be right until then.
+
+**D11. Housekeeping:**
+- dispose the removed line's `FocusNode` in `dropField`;
+- prune `_draftFocus` and `_draftKeys` when a draft is resumed or discarded;
+- put `_menu`'s comment back on its own field;
+- remove `notebookDraftFirst` (unused);
+- make `notebookSavedEdit` Arabic «تم الحفظ».
+
+**D12. B6, back by swipe (Part 2).** It isn't in the branch:
+- add predictive back for Android in the manifest and the page transitions;
+- the page screen's `PopScope(canPop: !_writing && !selecting)` turns the iPhone swipe off while writing. It must instead handle the gesture the way ← does, in the order: close the menu, leave the selection, save and leave the entry (B2), then leave the screen;
+- tests as Part 2 says.
+
+**D13. The Draft card's ⋯ sheet** (one row, Discard) is accepted as temporary, until the redesign's swipe to Discard (Part 3b). Mark it so in the code.
+
+**Accepted extras:**
+- "New entry" on the pages list always starts fresh, as B3 says. Empty drafts are thrown away.
+
+### Then
+1. Run analyze, test and `test_screens`, and report the results.
+2. Push `claude/r100-bugs` and stop for the lead.
+3. With the founder's yes: merge into `slice2-app` and build for his phone. There's no database change.
