@@ -2,6 +2,26 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 26 Oct 2026, 08:00 Kuwait — review 98: NBY shots taken, emulator checks pass, three differences from Figma; nothing pushed or built
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Accepted frames committed:** the 12 frames that follow rules 3, 4 and C1, plus F108 L3 (ff3bc33).
+- **NBY test:** `test_screens/nby_test.dart` writes NBY1–NBY5 to `docs/screens/r98/` in EN and AR (0d527ef). The PC's `slice2-app` is at 0d527ef, **local, not pushed**.
+- **Against the Figma frames, three real differences** (also on the emulator, so not a test artifact):
+  1. **NBY2:** the line menu opens **above** the line, not below it as in the frame. Above it it doesn't fit, so it scrolls: "Restart at 1" is cut off and **Delete is out of sight**. The frame shows all seven rows.
+  2. **NBY1:** the `/` card opens above the line too, over the list, not below it.
+  3. **NBY4:** with the cursor in the **title**, the bar still shows **⇥**, and the last line keeps its ⋮⋮, as if the cursor were still there. The frame shows no ⇥ ⇤ (rule 4).
+  - Small: in NBY5 the Undo bar sits a little lower than in the frame.
+- **Emulator** (build 629, the commit count, = 0d527ef; Omar; a draft only, never sent):
+  - the keyboard stays up under the `/` card and under the line menu;
+  - the shortcuts "1. " and "[] " turn the line and show "Turned into … · Undo";
+  - BuildVibes plays a light tick (TEXTURE_TICK) on each shortcut (the vibrator log; it can't be felt on an emulator);
+  - Move down and Move up carry the line's to-dos and renumber; a screen recording shows the line at in-between places, so it slides;
+  - Undo after a move restores the note exactly.
+  - The emulator's Gboard was collapsed to its floating button; "Show on-screen keyboard" brought it back. No setting was changed.
+- **Not done:** step 3 (analyze, tests, SQL and the push of `slice2-app`) and step 4 (build 613; the next build will be versionCode 629 or more, the commit count). Waiting for the lead on the three differences.
+
 ## PC update: 26 Oct 2026, 07:40 Kuwait — review 96 done and migration 46 live; review 98 stopped at the screenshots
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
