@@ -20,6 +20,10 @@
 -- - search_notebook: page titles, entry titles and the words of every
 --   line, with Arabic letter forms and digits folded as in Space search.
 -- - My calendar leaves out the entries of a deleted page.
+-- - What counts as a page's activity: an entry written, its words or to-dos
+--   changed, or an entry moved in; never a pin or a reminder.
+-- - Merge, delete and pin are safe to send twice (a lost reply is sent
+--   again); a deleted or merged page keeps its pin, for 99B's Restore.
 
 -- ---------------------------------------------------------------------------
 -- Pages
@@ -46,6 +50,9 @@ create table public.notebook_pages (
 );
 create index notebook_pages_owner_idx on public.notebook_pages (owner_id, last_activity_at desc);
 create index notebook_pages_parent_idx on public.notebook_pages (parent_id);
+-- One "My notes" a person (the one in force).
+create unique index notebook_pages_my_notes on public.notebook_pages (owner_id)
+  where named = 'my_notes' and deleted_at is null;
 
 -- A page's parent is the same person's, and never the page itself or one
 -- of its own sub-pages.
@@ -135,8 +142,10 @@ select public.notes_into_my_notes();
 
 alter table public.notes alter column page_id set not null;
 
--- A note from a build that sends no page goes into the owner's latest page,
--- or a new "My notes"; a note's page is always the owner's own.
+-- A note saved by save_entry goes straight into its page (bv.note_page, set
+-- for that call); one from a build that sends no page into the owner's
+-- latest page, or their "My notes", made if need be. A note's page is
+-- always the owner's own.
 create or replace function public.note_page_ok()
 returns trigger
 language plpgsql
@@ -145,6 +154,9 @@ set search_path = ''
 as $$
 begin
   if new.page_id is null then
+    new.page_id := nullif(current_setting('bv.note_page', true), '')::uuid;
+  end if;
+  if new.page_id is null then
     select p.id into new.page_id from public.notebook_pages p
     where p.owner_id = new.owner_id and p.deleted_at is null
     order by p.last_activity_at desc, p.id desc
@@ -152,7 +164,12 @@ begin
     if new.page_id is null then
       insert into public.notebook_pages (owner_id, named, icon)
       values (new.owner_id, 'my_notes', 'notebook')
+      on conflict (owner_id) where named = 'my_notes' and deleted_at is null do nothing
       returning id into new.page_id;
+    end if;
+    if new.page_id is null then
+      select p.id into new.page_id from public.notebook_pages p
+      where p.owner_id = new.owner_id and p.named = 'my_notes' and p.deleted_at is null;
     end if;
   end if;
   if not exists (select 1 from public.notebook_pages p
@@ -167,7 +184,8 @@ create trigger notes_page_ok
   before insert or update of page_id, owner_id on public.notes
   for each row execute function public.note_page_ok();
 
--- A page's latest activity: an entry written, changed or moved into it.
+-- A page's latest activity: an entry written, its words or to-dos changed,
+-- or an entry moved into it. A pin or a reminder isn't activity.
 create or replace function public.note_page_activity()
 returns trigger
 language plpgsql
@@ -183,8 +201,15 @@ end;
 $$;
 
 create trigger notes_page_activity
-  after insert or update on public.notes
+  after insert on public.notes
   for each row execute function public.note_page_activity();
+create trigger notes_page_activity_change
+  after update of title, body, blocks, points, done_at, page_id on public.notes
+  for each row
+  when (old.title is distinct from new.title or old.body is distinct from new.body
+        or old.blocks is distinct from new.blocks or old.points is distinct from new.points
+        or old.done_at is distinct from new.done_at or old.page_id is distinct from new.page_id)
+  execute function public.note_page_activity();
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -223,6 +248,27 @@ begin
     raise exception 'not allowed' using errcode = '42501';
   end if;
   return v_page;
+end;
+$$;
+
+-- [p_id] is one of my pages, deleted or not (a change sent again); or
+-- refused. True when it is deleted.
+create or replace function public.my_page_was_deleted(p_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_deleted timestamptz;
+  v_found boolean;
+begin
+  select true, p.deleted_at into v_found, v_deleted from public.notebook_pages p
+  where p.id = p_id and p.owner_id = auth.uid();
+  if v_found is null then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return v_deleted is not null;
 end;
 $$;
 
@@ -325,18 +371,30 @@ set search_path = ''
 as $$
 declare
   v_saved uuid;
+  v_made boolean := false;
 begin
   perform public.notebook_writer();
   if p_page is not null then
     if p_new_page_title is not null
        and not exists (select 1 from public.notebook_pages p where p.id = p_page) then
       perform public.new_notebook_page(p_page, left(trim(p_new_page_title), 120), null, null, true);
+      v_made := true;
     end if;
     perform public.my_notebook_page(p_page);
   end if;
+  -- A new entry goes in straight into its page (note_page_ok).
+  perform set_config('bv.note_page', coalesce(p_page::text, ''), true);
   v_saved := public.save_note(p_id, p_kind, p_body, p_points, p_due_at, p_remind_at, p_pinned,
                               p_files, p_title, p_blocks, p_location, p_created_at);
-  if v_saved is not null and p_page is not null then
+  perform set_config('bv.note_page', '', true);
+  if v_saved is null then
+    -- The entry was deleted: no page is made for it.
+    if v_made then
+      delete from public.notebook_pages p where p.id = p_page;
+    end if;
+    return null;
+  end if;
+  if p_page is not null then
     update public.notes n set page_id = p_page
     where n.id = v_saved and n.page_id is distinct from p_page;
   end if;
@@ -387,8 +445,9 @@ set search_path = ''
 as $$
 begin
   perform public.notebook_writer();
+  perform public.my_page_was_deleted(p_id);
   update public.notebook_pages p set is_new = false
-  where p.id = p_id and p.owner_id = auth.uid() and p.is_new;
+  where p.id = p_id and p.is_new;
 end;
 $$;
 
@@ -469,14 +528,19 @@ declare
   v_me uuid := public.notebook_writer();
   v_id uuid;
   v_into public.notebook_pages;
-  v_gone uuid[];
+  v_gone uuid[] := '{}';
+  v_trees uuid[];
   v_up uuid;
+  v_made boolean := false;
 begin
   if p_into is null then
     raise exception 'choose the page that stays' using errcode = '22023';
   end if;
+  -- A page already gone (this merge sent again) is skipped.
   foreach v_id in array coalesce(p_pages, '{}') loop
-    perform public.my_notebook_page(v_id);
+    if v_id <> p_into and not public.my_page_was_deleted(v_id) then
+      v_gone := v_gone || v_id;
+    end if;
   end loop;
   if exists (select 1 from unnest(coalesce(p_notes, '{}')) i(id)
              where not exists (select 1 from public.notes n
@@ -484,14 +548,19 @@ begin
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if p_new_title is not null and not exists (select 1 from public.notebook_pages p where p.id = p_into) then
-    perform public.new_notebook_page(p_into, left(trim(p_new_title), 120), null, null, false);
+    perform public.new_notebook_page(p_into, left(trim(p_new_title), 120), null, null, true);
+    v_made := true;
   end if;
   v_into := public.my_notebook_page(p_into);
-  v_gone := array(select x from unnest(coalesce(p_pages, '{}')) x where x <> p_into);
+  if cardinality(v_gone) = 0 and coalesce(cardinality(p_notes), 0) = 0 then
+    return p_into;
+  end if;
 
-  -- The page that stays climbs out of any page that goes.
+  -- The page that stays climbs out of the whole tree of every page that
+  -- goes: its parent is the nearest page above it in none of them.
+  v_trees := array(select t from unnest(v_gone) g(id), public.notebook_page_tree(g.id) t);
   v_up := v_into.parent_id;
-  while v_up = any (v_gone) loop
+  while v_up = any (v_trees) loop
     select p.parent_id into v_up from public.notebook_pages p where p.id = v_up;
   end loop;
   update public.notebook_pages p set parent_id = v_up
@@ -502,9 +571,11 @@ begin
     and n.owner_id = v_me and n.page_id is distinct from p_into;
   update public.notebook_pages p set parent_id = p_into
   where p.parent_id = any (v_gone) and p.id <> p_into and not (p.id = any (v_gone));
-  update public.notebook_pages p set deleted_at = now(), pinned = false
+  -- They keep their pin, for Restore (99B).
+  update public.notebook_pages p set deleted_at = now()
   where p.id = any (v_gone);
-  update public.notebook_pages p set is_new = false, last_activity_at = now()
+  -- A new page made by the merge keeps its new mark.
+  update public.notebook_pages p set is_new = v_made, last_activity_at = now()
   where p.id = p_into;
   return p_into;
 end;
@@ -522,10 +593,11 @@ declare
   v_id uuid;
 begin
   perform public.notebook_writer();
+  -- One already deleted (this delete sent again) is skipped.
   foreach v_id in array coalesce(p_ids, '{}') loop
-    perform public.my_notebook_page(v_id);
+    perform public.my_page_was_deleted(v_id);
   end loop;
-  update public.notebook_pages p set deleted_at = now(), pinned = false
+  update public.notebook_pages p set deleted_at = now()
   where p.deleted_at is null
     and p.id in (select t from unnest(p_ids) i(id), public.notebook_page_tree(i.id) t);
 end;
@@ -692,6 +764,7 @@ revoke execute on function
   public.note_page_activity(),
   public.notebook_writer(),
   public.my_notebook_page(uuid),
+  public.my_page_was_deleted(uuid),
   public.notebook_page_tree(uuid),
   public.new_notebook_page(uuid, text, uuid, text, boolean),
   public.notebook_page_in_force(uuid)
