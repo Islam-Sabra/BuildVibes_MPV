@@ -2,6 +2,60 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 26 Oct 2026, 17:00 Kuwait — review 100 bugs B1–B5 on `claude/r100-bugs` (from `slice2-app` 2371559); stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch `claude/r100-bugs` is pushed.** It is not merged, not live, and not installed. No database change. The redesign (review 100, Parts 3–8) is not built.
+- **The bugs, each with its cause:**
+  - **B1 — the keyboard dropped between lines.**
+    - Cause: a line's field handled Enter in `onSubmitted` but had no `onEditingComplete`. Flutter's default for "next" first handed the focus to the next focusable thing, and the new line took it only a frame later (`focusBlockLater`).
+    - Fix: Enter keeps the focus, and the next line (or, on Backspace, the line above) takes it at once (`focusBlockNow`).
+    - Test: the focus is never outside a line's field, and the keyboard is never hidden. It fails without the fix.
+  - **B2 — a saved entry showed twice after Back.**
+    - Cause: Back from an edit kept the edit as the Draft, beside the saved entry.
+    - Fix:
+      - Back from a saved entry saves it in place when it changed, with "Saved · Undo" for 5 s; Undo puts back the entry as it was opened;
+      - with no change, nothing is saved or shown;
+      - an edit left open when the app closed is saved in place when the page opens again;
+      - a refused entry comes back as a new-entry Draft;
+      - a Draft's ⋯ has Discard, with Undo.
+  - **B3 — "Write in this page" opened an old draft.**
+    - Cause: there was one draft per account, and Write reopened it.
+    - Fix:
+      - Write always starts a new entry;
+      - each unsent Draft is kept as its own card at the top of its page (`parkedDraftsProvider`, `notebook_drafts:<user>`);
+      - a tap on a card goes on with that Draft;
+      - New entry on the pages list does the same.
+  - **B4 — the line menu went under the keyboard.**
+    - Cause: the popover allowed itself over the keyboard (it used only the safe-area insets), and so did the editor's "make room" scroll.
+    - Fix:
+      - the area a card may stand in is the screen minus the top bar and the keyboard, with 8 of margin (`visibleTop`, `visibleBottom`);
+      - a card opens under the line if it fits, else over it;
+      - if it fits neither way, the line menu first scrolls the page up;
+      - a card taller than the room scrolls inside it.
+    - Test: the menu ends above the keyboard. It fails without the fix (772 > 544).
+  - **B5 — ⋯ was slow and opened two menus.**
+    - Cause: ⋯ waited for the Spaces list to load before showing anything, and nothing stopped a second one.
+    - Fix:
+      - the menu opens at once and its Spaces come in as they load;
+      - one menu at a time (entry, page and Draft menus);
+      - Back closes the page picker, the line menu or the "/" card first.
+- **Tests:** `test/features/notebook/note_bugs_test.dart` (20, EN and AR). Older tests were moved to the new rules:
+  - stored Drafts are continued from their card;
+  - B14 now pins during the edit, then Back.
+- **Shots:**
+  - PG2 and PG3 are now typed on New entry; the results are identical to before.
+  - 6 shots changed, as the fixes mean; before/after in `docs/screens/r100/before-after/`:
+    - NBY1: the "/" card opens over the line, since the keyboard is under it;
+    - NBY2: the line menu opens over the line;
+    - NBW5: the Draft card has its ⋯.
+- **Checks:**
+  - `flutter analyze`: no issues;
+  - `flutter test`: 2,120 pass;
+  - `flutter test test_screens`: 426 pass.
+- **Who has which branch:** PC has `claude/r100-bugs` (worktree `BuildVibes-r100`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 26 Oct 2026, 14:15 Kuwait — review 99A in `slice2-app`; migration 47 live; build 640 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

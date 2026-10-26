@@ -1285,15 +1285,15 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       if (lost == null) return;
       ref.read(noteRefusedProvider.notifier).seen();
       _toast(l10n.notebookCouldntKeep);
-      if (ref.read(noteDraftProvider) == null) {
-        unawaited(
-          _drafts.put(
-            NoteDraft.of(
-              lost,
-            ).copyWith(photos: const [], files: const [], location: () => null),
-          ),
-        );
-      }
+      final back = NoteDraft.back(
+        lost,
+      ).copyWith(photos: const [], files: const [], location: () => null);
+      // Its own Draft card; beside the one in hand if there is one (B3).
+      unawaited(
+        ref.read(noteDraftProvider) == null
+            ? _drafts.put(back)
+            : ref.read(parkedDraftsProvider.notifier).keep(back),
+      );
     });
     final page = data.page(widget.pageId ?? draft?.intoPage ?? data.latest?.id);
     if (page != null && widget.pageId != null && notebook.hasValue) {

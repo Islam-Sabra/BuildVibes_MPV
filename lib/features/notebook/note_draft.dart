@@ -36,10 +36,15 @@ class NoteDraft {
   });
 
   /// An edit of [note], filled with what it says.
-  factory NoteDraft.of(Note note) => NoteDraft(
+  factory NoteDraft.of(Note note) => NoteDraft.back(note, editing: note);
+
+  /// [note]'s words as a Draft of a new entry (review 100 B2): a note the
+  /// server refused comes back this way, its own card at the top of its
+  /// page.
+  factory NoteDraft.back(Note note, {Note? editing}) => NoteDraft(
     id: note.id,
     startedAt: note.createdAt,
-    editing: note,
+    editing: editing,
     title: note.pageTitle,
     blocks: note.pageBlocks,
     dueAt: note.dueAt,

@@ -145,7 +145,7 @@ Future<void> _open(WidgetTester tester, String lang, NoteDraft draft) async {
   // The Draft, opened again from the bar's Note (a tap on the slip's
   // text would show the selection handle): being written, the keyboard on
   // its last line.
-  await _tap(tester, _key('page-write'));
+  await _tap(tester, _key('note-draft'));
 }
 
 void main() {

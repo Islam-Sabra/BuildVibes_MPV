@@ -666,6 +666,14 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - signed out, `search_notebook` can't be used.
   - **Build 640** is on the founder's phone.
 
+- **26 Oct, review 100 bugs B1–B5** (founder's test of build 640; branch `claude/r100-bugs`; no database change; not merged):
+  - B1: the keyboard stays up between lines (Enter keeps the focus, the next line takes it at once).
+  - B2: a saved entry is saved in place on Back ("Saved · Undo"); Drafts are only for new entries; a Draft's ⋯ has Discard.
+  - B3: "Write in this page" always starts a new entry, and each unsent Draft is its own card.
+  - B4: menus stand inside what the top bar and the keyboard leave.
+  - B5: ⋯ opens at once, one menu at a time; Back closes a card first.
+  - Checks: analyze clean; 2,120 app tests; 426 screenshot checks (NBY1, NBY2 and NBW5 changed as the fixes mean).
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

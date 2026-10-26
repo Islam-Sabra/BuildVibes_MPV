@@ -111,7 +111,7 @@ Future<void> _open(
     tester.element(find.byType(Navigator).first),
   ).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
-  await _tap(tester, _key('page-write'));
+  await _tap(tester, _key('note-draft'));
 }
 
 /// The cursor at the end of line [n] (as the keyboard puts it there; a

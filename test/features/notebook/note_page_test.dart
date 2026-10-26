@@ -744,13 +744,13 @@ void main() {
       final app = await _open(tester, lang, notes: [n.yesterday()]);
       await _tap(tester, _key('note-note-yesterday'));
       await tester.enterText(_key('note-title'), 'Door schedule');
-      await _back(tester);
-      // Pinned (another phone, or the menu) while the edit waits.
+      await tester.pumpAndSettle();
+      // Pinned (another phone) while the edit is open; Back saves it in
+      // place (review 100 B2).
       final notebook = _container(tester).read(notebookProvider.notifier);
       await notebook.pin(n.yesterday(), on: true);
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-draft'));
-      await _tap(tester, _key('writing-post'));
+      await _back(tester);
       expect(app.notebook.kept['note-yesterday']!.pinned, isTrue);
       expect(app.notebook.kept['note-yesterday']!.title, 'Door schedule');
     });

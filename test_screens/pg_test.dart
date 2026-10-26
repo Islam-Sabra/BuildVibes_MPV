@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
-import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -87,12 +86,43 @@ NoteDraft _pour(String lang) {
   );
 }
 
-/// The cursor at the end of the last line, as the keyboard puts it there.
-Future<void> _cursorLast(WidgetTester tester) async {
-  tester
-      .state<NotePageEditorState>(find.byType(NotePageEditor))
-      .focusBlock('t:pg-2');
+/// [chars] typed one by one in the field with the cursor.
+Future<void> _type(WidgetTester tester, String chars) async {
+  for (final ch in chars.characters) {
+    final field = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .firstWhere((t) => t.focusNode?.hasFocus ?? false);
+    tester.testTextInput.enterText(field.controller!.text + ch);
+    await tester.pumpAndSettle();
+  }
+}
+
+/// PG2's entry typed on New entry (review 100 B3: it always starts a new
+/// entry): its title, then "1. " and two numbered lines, into Site A (the
+/// page the chip starts on).
+Future<void> _typePour(WidgetTester tester, String lang) async {
+  final pour = _pour(lang);
+  await tester.enterText(_key('note-title'), pour.title);
+  await tester.testTextInput.receiveAction(TextInputAction.next);
   await tester.pumpAndSettle();
+  await _type(tester, '1. ');
+  // The shortcut's Undo bar goes before the shot.
+  ScaffoldMessenger.of(
+    tester.element(find.byType(Scaffold).first),
+  ).removeCurrentSnackBar();
+  for (final (i, b) in pour.blocks.indexed) {
+    final field = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .firstWhere((t) => t.focusNode?.hasFocus ?? false);
+    tester.testTextInput.enterText(
+      field.controller!.text + (b as PageNumbered).text,
+    );
+    await tester.pumpAndSettle();
+    if (i < pour.blocks.length - 1) {
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pumpAndSettle();
+    }
+  }
 }
 
 void main() {
@@ -107,26 +137,14 @@ void main() {
     testWidgets('PG2 writing an entry, the page chip under it [$lang]', (
       tester,
     ) async {
-      await _open(
-        tester,
-        lang,
-        '/notebook/write',
-        draft: _pour(lang),
-        keyboard: true,
-      );
-      await _cursorLast(tester);
+      await _open(tester, lang, '/notebook/write', keyboard: true);
+      await _typePour(tester, lang);
       await _snap(tester, 'PG2-writing-chip', lang);
     });
 
     testWidgets('PG3 the page picker from the chip [$lang]', (tester) async {
-      await _open(
-        tester,
-        lang,
-        '/notebook/write',
-        draft: _pour(lang),
-        keyboard: true,
-      );
-      await _cursorLast(tester);
+      await _open(tester, lang, '/notebook/write', keyboard: true);
+      await _typePour(tester, lang);
       await _tap(tester, _key('note-page-chip'));
       await _snap(tester, 'PG3-page-picker', lang);
     });
