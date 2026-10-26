@@ -640,7 +640,8 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final focus = next ?? block;
     currentBlockId = focus.id;
     _set(blocks);
-    focusBlockLater(_focusKey(focus));
+    // B1, D9: the cursor straight to the new field.
+    focusBlockNow(_focusKey(focus));
   }
 
   /// A voice note, recorded: a block after the line being written, at its
@@ -741,7 +742,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         for (final c in t.children) c.id == childId ? block : c,
       ], indent: t.indent),
     );
-    if (block is! PageDivider) focusBlockLater('t:$childId');
+    if (block is! PageDivider) focusBlockNow('t:$childId');
     blocksEdited();
   }
 
@@ -771,7 +772,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
           line,
         ]),
       );
-      focusBlockLater('t:${line.id}');
+      focusBlockNow('t:${line.id}');
     } else {
       setField(key, after, 0);
       final block = lineOf(kind, b.id, after, indent: b.indent)!;

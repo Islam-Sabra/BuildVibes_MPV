@@ -166,6 +166,100 @@ void main() {
       });
     });
 
+    group('D9 B1 on every path [$lang]', () {
+      /// [chars] typed one by one on the line with the cursor.
+      Future<void> type(WidgetTester tester, String chars) async {
+        for (final ch in chars.characters) {
+          final c = tester
+              .widgetList<TextField>(find.byType(TextField))
+              .firstWhere((t) => t.focusNode?.hasFocus ?? false)
+              .controller!;
+          tester.testTextInput.enterText(c.text + ch);
+          await tester.pump();
+        }
+      }
+
+      testWidgets('"--- ": the line after the divider has the cursor in the '
+          'same pump; the keyboard never drops', (tester) async {
+        await _open(tester, lang, draft: _draft([PageText('t-1', '')]));
+        await _tap(tester, _key('note-draft'));
+        _editor(tester).focusBlock('t:t-1');
+        await tester.pumpAndSettle();
+        final gaps = _watchFocus(tester);
+        await type(tester, '---');
+        tester.testTextInput.enterText('--- ');
+        await tester.pump();
+        final blocks = _drafted(tester)!.blocks;
+        expect(blocks.first, isA<PageDivider>());
+        expect(_focused(tester, 't:${blocks.last.id}'), isTrue);
+        await tester.pumpAndSettle();
+        expect(gaps, isEmpty);
+        expect(_hidden(tester), isFalse);
+      });
+
+      testWidgets('"/" on an empty line: the turned line has the cursor in '
+          'the same pump', (tester) async {
+        await _open(tester, lang, draft: _draft([PageText('t-1', '')]));
+        await _tap(tester, _key('note-draft'));
+        _editor(tester).focusBlock('t:t-1');
+        await tester.pumpAndSettle();
+        final gaps = _watchFocus(tester);
+        await type(tester, '/todo');
+        await tester.testTextInput.receiveAction(TextInputAction.next);
+        await tester.pump();
+        final todo = _drafted(tester)!.blocks.single;
+        expect(todo, isA<PageTodo>());
+        expect(_focused(tester, 't:${todo.id}'), isTrue);
+        await tester.pumpAndSettle();
+        expect(gaps, isEmpty);
+        expect(_hidden(tester), isFalse);
+      });
+
+      testWidgets("Enter on a toggle's line: its new line has the cursor in "
+          'the same pump', (tester) async {
+        await _open(
+          tester,
+          lang,
+          draft: _draft([
+            PageToggle('g-1', 'Pour', [PageText('c-1', 'Slump')]),
+          ]),
+        );
+        await _tap(tester, _key('note-draft'));
+        _editor(tester).focusBlock('t:c-1');
+        await tester.pumpAndSettle();
+        final gaps = _watchFocus(tester);
+        await tester.testTextInput.receiveAction(TextInputAction.next);
+        await tester.pump();
+        final t = _editor(tester).editBlocks.single as PageToggle;
+        expect(_focused(tester, 't:${t.children[1].id}'), isTrue);
+        await tester.pumpAndSettle();
+        expect(gaps, isEmpty);
+        expect(_hidden(tester), isFalse);
+      });
+
+      testWidgets("\"/\" on a toggle's line: the line keeps the cursor as it "
+          'turns', (tester) async {
+        await _open(
+          tester,
+          lang,
+          draft: _draft([
+            PageToggle('g-1', 'Pour', [PageText('c-1', '')]),
+          ]),
+        );
+        await _tap(tester, _key('note-draft'));
+        _editor(tester).focusBlock('t:c-1');
+        await tester.pumpAndSettle();
+        final gaps = _watchFocus(tester);
+        await type(tester, '/todo');
+        await tester.testTextInput.receiveAction(TextInputAction.next);
+        await tester.pump();
+        expect(_focused(tester, 't:c-1'), isTrue);
+        await tester.pumpAndSettle();
+        expect(gaps, isEmpty);
+        expect(_hidden(tester), isFalse);
+      });
+    });
+
     group('B2 a saved entry is edited in place [$lang]', () {
       testWidgets('changed, then Back: one card with the new words, "Saved '
           '· Undo"; Undo gives the old words back', (tester) async {
