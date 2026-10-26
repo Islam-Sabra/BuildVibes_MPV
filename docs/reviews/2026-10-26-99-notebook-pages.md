@@ -11,25 +11,28 @@
 
 | Frame | EN | AR |
 |---|---|---|
-| PG1 · Pages list | `2634:37503` | `2634:38318` |
-| PG2 · Writing, page chip under the note | `2634:37604` | `2634:38419` |
-| PG3 · Page picker from the chip | `2634:37697` | `2634:38512` |
-| PG4 · A page: path, sub-pages, notes by day, "Posted to" mark | `2634:37831` | `2634:38646` |
-| PG5 · Merge 2 selected pages | `2634:37924` | `2634:38739` |
-| PG6 · A note's menu | `2634:38042` | `2634:38857` |
-| PG7 · Post to feed: preview first, GPS off | `2634:38187` | `2634:39002` |
-| PG8 · Deleted items, keep 7 · 30 · 90 days | `2634:38247` | `2634:39062` | It comes in **two parts**, each built, checked and merged on its own:
-- **99A:** pages, the page chip, auto-pages, move, merge, search, pin, sub-pages.
-- **99B:** note actions to the outside (Post to feed, Put in a Space from a line), and Deleted items with its retention choice.
+| PG1 · Pages list | `2635:37785` | `2635:38736` |
+| PG2 · Writing an entry, page chip under it | `2635:37894` | `2635:38845` |
+| PG3 · Page picker from the chip | `2635:37987` | `2635:38938` |
+| PG4 · A page: path, sub-pages, entries by day, "Posted to" mark | `2635:38121` | `2635:39072` |
+| PG5 · Pages selected: Merge · Move into · Pin · Delete | `2635:38216` | `2635:39167` |
+| PG5b · Merge sheet | `2635:38336` | `2635:39287` |
+| PG6 · An entry's menu | `2635:38471` | `2635:39422` |
+| PG7 · Post to feed: preview, GPS off, share check | `2635:38604` | `2635:39555` |
+| PG8 · Deleted items, keep 7 · 30 · 90 days | `2635:38668` | `2635:39619` |
 
-Words: a **page** is a container; a **note** is one written entry (the slip, with its blocks); a **line** is one block inside a note.
+Words (founder's audit, 26 Oct 09:06):
+- Users see two words only: a **page** (a container) and an **entry** («تدوينة»), meaning what is written at one time, dated (the slip, with its blocks).
+- "Line" is the code's word for one block of an entry and never appears in the app. A deleted line group reads "Part of an entry" («جزء من تدوينة»).
+- Below, "note" in older wording means an entry.
 
 ## 99A: pages
 
 ### A1. The notebook opens on the pages list
-- **Each row:** the page's icon, title, the date of the latest note and a count of its notes. The count describes the user's own content; it isn't a quality signal, so it's allowed.
+- **Each row:** the page's icon and title; then the date and the first line of its latest entry ("Today · Before the pour, level 3"); then, only if there are any, its open to-dos ("3 to-dos open"), counted across the page and its sub-pages.
+- **No count of entries.** It tells the user nothing (founder's audit).
 - **Order:** pinned pages first, then by latest activity.
-- **Above the list:** "Write a note" (the main action), and Search.
+- **Above the list:** "New entry" («تدوينة جديدة», the main action); Search and Deleted items in the top bar. **Under the list:** "+ New page", which creates an empty page and opens it.
 - **Icons** come from a fixed set of about 12 Phosphor line icons: folder, hard hat, building, phone, list, calendar, camera, warning, star, wrench, ruler, notebook. No emoji, and no upload.
 - Pages are **personal**. Nobody else can read them (row-level security, as for notes today).
 
@@ -50,6 +53,7 @@ Words: a **page** is a container; a **note** is one written entry (the slip, wit
 
 ### A4. Move and merge
 - **Move to page…** works on a note, or on several selected notes (long-press one, then tap others). The picker is the same as the page chip's.
+- **Selecting pages** (long-press one, then tap others) shows a bar: **Merge · Move into… · Pin · Delete** (PG5).
 - **Merge into one page:**
   - select pages, or notes from different pages;
   - choose the page that stays, or "New page";
@@ -69,12 +73,11 @@ Words: a **page** is a container; a **note** is one written entry (the slip, wit
 
 ### B1. A note's menu (long-press a note, or its ⋯)
 1. Edit
-2. Turn into
-3. Move to page…
-4. Merge into a page…
-5. Put in a Space
-6. Post to feed
-7. Delete
+2. Move to page…
+3. Put in a Space
+4. Post to feed
+5. Delete
+- **Not on an entry's menu:** Merge (it's for several pages) and Turn into (lines have it in their own menu).
 - **Rows that can't act are hidden**, for example Put in a Space for someone in no Space.
 - **The line menu (review 98) gains** Move to page…, Put in a Space and Post to feed, for one line with its children.
 
@@ -86,9 +89,10 @@ Words: a **page** is a container; a **note** is one written entry (the slip, wit
   - the rules of the Space and the pass apply on the server;
   - **Work stays in Spaces:** a work item is created only in a Space.
 - **Post to feed:**
+  - the preview carries a share check: "Check it has nothing your client or company wouldn't share.";
   - a public post on Home, with an optional project tag;
   - the existing feed rules apply: report and block, and no misleading numbers.
-- **The original stays** in its page with a small mark, "Posted to Site A · 08:45" or "Posted to the feed · 08:45". It isn't moved or deleted unless the user chooses.
+- **The original stays** in its page with a small mark, "Posted to NBKCH Site team · 08:45" (the Space's real name) or "Posted to the feed · 08:45". It isn't moved or deleted unless the user chooses.
 
 ### B3. Deleted items
 - **Deleting** a note, a line group, a page (with everything inside) or a merge's emptied pages shows **Undo for 5 s**, then moves them to **My notebook → Deleted items**. They aren't drafts.
