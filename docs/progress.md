@@ -640,6 +640,22 @@ What is set on the live project today. The source of truth is `supabase/config.t
     - Arabic: «البحث عن صفحة» and «الكتابة في هذه الصفحة», not the frame's «ابحث…» and «اكتب…», to keep the Arabic gender-neutral.
   - **For 99B:** Download my data doesn't list pages yet; there is no Restore or purge of deleted pages yet.
 
+- **26 Oct, review 99A, the lead's check** (`claude/r99a`; migration 47 still **not live**):
+  - **Fixes:**
+    - C1: a merge into a page deeper inside one that goes.
+    - C2: a merge is one call.
+    - C3: merge, delete and pin are safe twice.
+    - C4: an entry goes straight into its page; activity is words, to-dos or a move, never a pin or a reminder; one "My notes" per person.
+    - C5: New entry stays on the list, with "Saved in · Open".
+    - C6: a moved line never leaves a copy.
+    - C7: a held merge or delete survives a closed app.
+    - C8: the words "page" and "entry".
+    - C9: the path has carets.
+    - C10: tests for someone else.
+  - **Rulings:** pins are kept on deleted pages; Deleted items is hidden until 99B; a merge's new page is marked new.
+  - **Shots:** NB1, its empty state and its menu retired; the other older shots re-pointed at an entry in "My notes"; PG1–PG5b committed; before/after pictures in `docs/screens/r99/before-after/`.
+  - **Checks:** analyze clean; 2,100 app tests; 2,863 SQL checks; 426 screenshot checks.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

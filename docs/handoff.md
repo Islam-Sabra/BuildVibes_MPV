@@ -2,6 +2,63 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 26 Oct 2026, 13:30 Kuwait — review 99A: the lead's check applied on `claude/r99a`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **`claude/r99a` is pushed.** It is not merged, not live, and not installed anywhere.
+- **Done:**
+  - C1–C10.
+  - The rulings: long-press selects and ⋯ opens the menu; a deleted or merged page keeps its pin; the Deleted items button is hidden until 99B; a merge's new page carries the new mark.
+  - The 42 older shots, as the table says.
+- **Migration 47** (still `20261108120000_notebook_pages.sql`, still not live) now has:
+  - **C1:** the page that stays climbs out of the whole tree of every page that goes.
+  - **C3:** merge, delete and pin are safe to send twice.
+  - **C4:**
+    - `save_entry` puts an entry straight into its page (`bv.note_page`).
+    - If the save comes back empty, no page is made.
+    - Activity is an entry written, its words or to-dos changed, or moved in; a pin or a reminder doesn't count.
+    - One "My notes" per person (a unique index).
+  - **C10:** tests for someone else.
+  - 124 checks for migration 47.
+- **App:**
+  - **C2:** a merge is one call.
+  - **C4:** the same activity rule on the phone.
+  - **C5:** Send from New entry stays on the list, with "Saved in {page} · Open".
+  - **C6:** Move to page… on a line saves both sides.
+  - **C7:** a held merge or delete is kept on the phone, and goes when the app opens again.
+  - **C8:** the words "page" and "entry"; unused keys removed.
+  - **C9:** the path is drawn with caret icons.
+- **Shots:**
+  - NB1, its empty state and its menu are retired (10 goldens deleted).
+  - The rest are re-pointed at an entry in "My notes".
+  - PG1–PG5b are shot again. `docs/screens/r99/` was git-ignored and is now committed.
+  - Before and after pictures of the 36 changed older shots are in `docs/screens/r99/before-after/`.
+- **Changes beyond the top bar, the path and the line menu's Move to page… row** (for the lead):
+  1. **Writing shots** (NBW1, 3, 4, NBX1–4, L1–L3, NBY1–5):
+     - the entry being written is shown alone, as in PG2, so the day's other entries are no longer above it;
+     - the "Today" divider is gone, so the slip sits 12 points lower.
+  2. **Shots of the page** (NBW5, slice 10 NB-reminder-slip) are now PG4:
+     - plain cards;
+     - the kind or title, then the time and ⋯;
+     - newest first;
+     - pinned entries under "Pinned" instead of the band;
+     - "Draft" above the draft;
+     - "Write in this page" instead of the post bar;
+     - "Note" now reads "Entry" (C8).
+  3. **The entry's ⋯ menu** (slice 10 NB-remind-menu) has Move to page… before Delete.
+- **Checks:**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,100 pass.
+  - `supabase test db`: 2,863 pass in 46 files.
+  - `flutter test test_screens`: 426 pass, none changed.
+- **Next, with the founder's yes:**
+  1. Merge into `slice2-app`.
+  2. `supabase db push` with migration 47 as the only file. Copy `supabase/.temp` whole and keep `| tail` off.
+  3. The read-only live check from review 99.
+  4. One build.
+- **Who has which branch:** PC has `claude/r99a` (worktree `BuildVibes-r99a`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 26 Oct 2026, 10:40 Kuwait — review 99A on `claude/r99a` (from `slice2-app` de29fa9); stopped for the lead: 42 older notebook shots change
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
