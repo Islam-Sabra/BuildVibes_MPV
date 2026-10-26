@@ -93,13 +93,20 @@ His rule for this review: **behaviour first, then Figma, then the build.**
 
 ## Part 3: selecting entries (long-press)
 
-- **Long-press** selects the entry, with a haptic. The top bar becomes the selection bar:
+- **Long-press** selects the entry, with a haptic (founder, 26 Oct 16:32: the actions sit at the **bottom**, within thumb reach, the same as the pages selection in PG5):
+  - the top bar shows ✕ and "1 selected" only;
+  - a bar at the bottom of the screen has the actions:
 
   ```
-  ✕  1 selected                ↗       📁       ⧉        🗑
-                             Share    Move   Duplicate  Delete
+  ✕  1 selected
+  …
+  ┌───────────────────────────────────────────┐
+  │   ↗        📁         ⧉          🗑       │
+  │  Share    Move    Duplicate    Delete     │
+  └───────────────────────────────────────────┘
   ```
 
+  - **Why a bar, and not a menu under the entry:** several entries can be selected; a menu under one entry would cover the next ones to tap and would move on scroll.
 - **Adding and removing:** tap other entries to add them, and tap a selected one to remove it.
   - Unselecting the last one, or ✕, or Back, leaves selection mode.
   - Scrolling still works.
@@ -117,7 +124,8 @@ His rule for this review: **behaviour first, then Figma, then the build.**
   - Undo shows for 5 s;
   - the change is kept in the phone's outbox, as in review 99 C7;
   - the entries go to Deleted items (99B).
-- **Arabic:** the bar mirrors. ✕ and the count sit on the right, and the actions run from the left.
+- **Arabic:** both bars mirror. ✕ and the count sit on the right, and the actions run from the right (Share first).
+- **Share** opens its card upward, from the bottom bar.
 
 ## Part 4: the compact menu card (one design everywhere)
 
@@ -258,7 +266,7 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 | Frame | EN | AR |
 |---|---|---|
 | BH1 · Pages list: round New entry, "7 entries · today" | `2638:37859` | `2638:37957` |
-| BH2 · An entry selected: Share · Move · Duplicate · Delete | `2639:37911` | `2639:38261` |
+| BH2 · An entry selected: ✕ · 1 selected on top; Share · Move · Duplicate · Delete at the bottom | `2639:37911` | `2639:38261` |
 | BH3 · An entry's ⋯ card: header, Pin, Reminder | `2639:38016` | `2639:38366` |
 | BH4 · Share › Feed · Space · Message (same card, no stacking) | `2639:38132` | `2639:38482` |
 | BH5 · Share → Message: preview, GPS off, Cancel / Send | `2642:38161` | `2642:38410` |
