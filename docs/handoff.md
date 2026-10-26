@@ -2,6 +2,43 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 26 Oct 2026, 07:40 Kuwait — review 96 done and migration 46 live; review 98 stopped at the screenshots
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**Review 96, done:**
+- `claude/r96-fix` (with `claude/r95`) is merged into `slice2-app`.
+- Re-shot: only R3 and the two search shots changed (search-you, S-search, EN and AR).
+- Analyze clean; 1,950 app tests; 2,739 SQL checks (`supabase test db` on the PC).
+- Pushed: `slice2-app` 80a81cd.
+- **Migration 46 is live** (26 Oct, 07:25 Kuwait), the only file in the dry run and the push. `.temp` was copied whole with `cp -r`, and the full output was kept.
+- **Read-only check passed:**
+  - 53 posts, none without a number, no duplicates in a Space;
+  - every work item's number and ref equal its post's;
+  - NST-023, NST-024 and NST-025 are unchanged;
+  - no counter is behind its highest number;
+  - both triggers and the unique constraint exist;
+  - signed out, `search_space` can't run;
+  - the 18 posts that aren't work items are numbered.
+- **The pg-delta trace, explained this time:** the full output says "Warning: failed to cache migrations catalog: error exporting pg-delta catalog … Failed to read certificate file '/workspace/supabase/.temp/pgdelta/pgdelta-target-ca.crt': ENOENT".
+  - It is a caching step after the migration, and it doesn't stop the push.
+  - It happened again although the certificate was copied (the CLI's container doesn't see it at `/workspace/...`). So the 25 Oct note's cause, a missing copy, was wrong.
+  - It needs no action before a push. Updating the CLI (2.109.1 → 2.121.0) may clear it.
+
+**Review 98, stopped at step 7:**
+- `claude/r98` is merged into the PC's `slice2-app` (eb144e5), **local only, not pushed**.
+  - The ARB conflicts were merged key by key against the base. No key was changed on both sides; the removals are the intended `searchWorkItems` (review 96) and `notebookRestartNumbering` (review 98 C1).
+  - The handoff keeps both sides. Analyze is clean.
+- **Stopped:** the re-shoot changed 12 frames besides F108 L3:
+  - NBW4 (EN, AR), NBX3 (EN, AR), NBX4 (EN, AR), L2 (EN, AR): the bar's ⇤, which can't act on those lines, is now hidden instead of greyed (rule 4);
+  - NBX2 (EN, AR): the grid's tiles are 64 high with each shortcut under the name (rule 3);
+  - F92 (AR) and N4 (AR): Work's sheet reads «تحويل إلى» and «حذف» (C1).
+  - The new frames are kept on the PC; `docs/screens` is back as committed.
+- **Also:** NBY1–NBY5 have no screenshot test on `claude/r98`, so nothing produced them; they still have to be written.
+- **Not done:** steps 8–10 (the emulator checks, the tests and push of `slice2-app`, build 613).
+
+**Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`, local eb144e5, 8 commits ahead of origin) and `claude/r95` (worktree `BuildVibes-r95`, merged).
+
 ## PC update: 25 Oct 2026 — build 612 on the founder's phone; review 95 on `claude/r95`, waiting for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
