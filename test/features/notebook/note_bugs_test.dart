@@ -262,6 +262,31 @@ void main() {
       });
     });
 
+    group('D11 housekeeping [$lang]', () {
+      testWidgets("a line that goes takes its field's focus node with it", (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          lang,
+          draft: _draft([PageText('t-1', 'Rebar'), PageText('t-2', '')]),
+        );
+        await _tap(tester, _key('note-draft'));
+        _editor(tester).focusBlock('t:t-2');
+        await tester.pumpAndSettle();
+        expect(_editor(tester).existingNode('t:t-2'), isNotNull);
+        await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+        await tester.pumpAndSettle();
+        expect(_drafted(tester)!.blocks, hasLength(1));
+        expect(_editor(tester).existingNode('t:t-2'), isNull);
+        expect(_focused(tester, 't:t-1'), isTrue);
+      });
+
+      test('"Saved" in Arabic is «تم الحفظ»', () {
+        if (lang == 'ar') expect(l10n.notebookSavedEdit, 'تم الحفظ');
+      });
+    });
+
     group('B2 a saved entry is edited in place [$lang]', () {
       testWidgets('changed, then Back: one card with the new words, "Saved '
           '· Undo"; Undo gives the old words back', (tester) async {

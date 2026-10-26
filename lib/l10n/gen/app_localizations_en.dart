@@ -4579,9 +4579,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookRemoveReminder => 'Remove reminder';
 
   @override
-  String get notebookDraftFirst => 'Finish or clear your draft first.';
-
-  @override
   String get reminderTitle => 'Reminder';
 
   @override

@@ -1265,7 +1265,6 @@
   "notebookNow": "الآن",
   "notebookDraftKept": "محفوظة كما تركتها. اضغط لتكمل الكتابة.",
   "notebookRemoveReminder": "إزالة التذكير",
-  "notebookDraftFirst": "أكمل المسودة أو امسحها أولًا.",
   "reminderTitle": "تذكير",
   "reminderChannel": "التذكيرات",
   "reminderChannelAbout": "التذكيرات التي تضبطها في دفتري.",
@@ -1427,7 +1426,7 @@
   "notebookIconNotebook": "دفتر",
   "notebookSavedIn": "حُفظت في {page}",
   "notebookOpen": "فتح",
-  "notebookSavedEdit": "حُفظت",
+  "notebookSavedEdit": "تم الحفظ",
   "notebookDiscardDraft": "تجاهل",
   "notebookDraftDiscarded": "تم تجاهل المسودة"
 }

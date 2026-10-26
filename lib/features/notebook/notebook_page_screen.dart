@@ -234,7 +234,18 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// A Draft's card tapped: the one put aside [id] goes on.
   Future<void> _resume(String id) async {
     if (ref.read(noteDraftProvider)?.id != id) await _drafts.resume(id);
+    _forgetCard(id);
     return _goOn();
+  }
+
+  /// A Draft's card is gone (it goes on in the slip, or it was discarded):
+  /// its editor key and title focus too (D11), once the frame is drawn.
+  void _forgetCard(String id) {
+    _draftKeys.remove(id);
+    final focus = _draftFocus.remove(id);
+    if (focus != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => focus.dispose());
+    }
   }
 
   /// A Draft's ⋯ (review 100 B2): Discard, with Undo.
@@ -261,6 +272,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       await _drafts.park();
     }
     await parked.drop(draft.id);
+    _forgetCard(draft.id);
     if (!mounted) return;
     final bar = showBvUndoBar(
       context,
@@ -802,9 +814,6 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         );
   }
 
-  /// The note's menu (2557:35481): Put in a Space with the Spaces (and,
-  /// for a note with a GPS position, "Include my GPS position", off), Pin
-  /// to the top, Remind me (not for a voice note), Edit and Delete.
   /// A menu is open (review 100 B5): nothing opens a second one behind it.
   bool _menuOpen = false;
 
@@ -820,6 +829,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
   }
 
+  /// The note's menu (2557:35481): Put in a Space with the Spaces (and,
+  /// for a note with a GPS position, "Include my GPS position", off), Pin
+  /// to the top, Remind me (not for a voice note), Edit and Delete.
   Future<void> _menu(Note note) => _oneMenu(() => _entryMenu(note));
 
   /// The entry's menu opens at once (review 100 B5); its Spaces come in

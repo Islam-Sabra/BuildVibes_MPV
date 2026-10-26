@@ -183,8 +183,21 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
 
   TextEditingController? existingField(String key) => _fields[key];
 
-  /// Takes the field of [key] away (its block went).
-  void dropField(String key) => _fields.remove(key)?.dispose();
+  /// Takes the field of [key] away (its block went), with its focus nodes
+  /// (review 100 D11). The nodes go once the frame is drawn: the field may
+  /// still be on screen until then.
+  void dropField(String key) {
+    _fields.remove(key)?.dispose();
+    _lastText.remove(key);
+    _fieldPlaces.remove(key);
+    final nodes = [_focus.remove(key), _keyNodes.remove(key)].nonNulls;
+    if (nodes.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final n in nodes) {
+        n.dispose();
+      }
+    });
+  }
 
   /// Every field whose key starts with [prefix].
   Iterable<MapEntry<String, TextEditingController>> fieldsStartingWith(

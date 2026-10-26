@@ -4587,9 +4587,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemoveReminder => 'إزالة التذكير';
 
   @override
-  String get notebookDraftFirst => 'أكمل المسودة أو امسحها أولًا.';
-
-  @override
   String get reminderTitle => 'تذكير';
 
   @override
@@ -5168,7 +5165,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookOpen => 'فتح';
 
   @override
-  String get notebookSavedEdit => 'حُفظت';
+  String get notebookSavedEdit => 'تم الحفظ';
 
   @override
   String get notebookDiscardDraft => 'تجاهل';

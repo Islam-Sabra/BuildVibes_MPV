@@ -7688,12 +7688,6 @@ abstract class AppLocalizations {
   /// **'Remove reminder'**
   String get notebookRemoveReminder;
 
-  /// A note is edited while another is left as a draft: one at a time (F106).
-  ///
-  /// In en, this message translates to:
-  /// **'Finish or clear your draft first.'**
-  String get notebookDraftFirst;
-
   /// The phone's notification for a note's reminder: its title (the note's words under it).
   ///
   /// In en, this message translates to:

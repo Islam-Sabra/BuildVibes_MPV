@@ -6604,10 +6604,6 @@
   "@notebookRemoveReminder": {
     "description": "The × on a note's reminder chip while writing it; read out."
   },
-  "notebookDraftFirst": "Finish or clear your draft first.",
-  "@notebookDraftFirst": {
-    "description": "A note is edited while another is left as a draft: one at a time (F106)."
-  },
   "reminderTitle": "Reminder",
   "@reminderTitle": {
     "description": "The phone's notification for a note's reminder: its title (the note's words under it)."
