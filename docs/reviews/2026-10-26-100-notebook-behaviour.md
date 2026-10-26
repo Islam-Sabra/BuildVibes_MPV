@@ -219,22 +219,28 @@ Share opens on one selected entry, or on a line from the line menu (the line wit
 - **Each row:**
   - the icon and title;
   - under it, "{n} entries · {when}" (for example "7 entries · today", «7 تدوينات · اليوم»), where "when" is the date of the latest entry or change, which is also the list's order;
-  - "{n} to-dos open" in the accent colour, only when there are any.
+  - **no to-dos count** (founder, 26 Oct 16:27: the number of entries replaces it, it isn't shown beside it). Sub-page rows inside a page follow the same rule.
   - The latest entry's first line goes (founder: it adds nothing).
   - Counts use the Arabic plural rules: 1, 2, 3–10, 11+.
 - The founder allowed counting entries: it's the user's own count, not a quality signal, so product rule 3 isn't touched. This reverses review 99's "no count of entries".
 
-## Part 8: search with filters
-
-- **Inside the notebook's search,** a row of chips sits under the field: To-dos open · Photos · Files · Voice · Dates · Places · Pages.
-  - **One chip at a time;** tap it again to clear it.
-  - **With nothing typed,** a chip lists every entry of that kind.
-  - **With words typed,** the results must match both the words and the chip.
-  - **Pages** lists pages only.
-- **Results** are grouped by page, newest first. A tap opens the entry in its page.
-- **Inside a page,** a Search icon in its top bar opens the same screen, limited to that page and its sub-pages, with a "In {page}" chip that can be removed.
-- **Server:** `search_notebook` gains a kind and a page. To-dos open come from the unticked to-do lines; Photos, Files and Voice from the entry's files and blocks; Dates from a due date or date block; Places from the location.
-  - This goes in the 99B migration, with tests in EN and AR and for someone else's pages.
+## Part 8: a Filter button next to Search and Calendar (founder, 26 Oct)
+- **The notebook's top bar** reads Filter · Search · Calendar. **A page's top bar** reads Filter · Search · ⋯.
+- **Filter** opens a compact card (Part 4) with two parts:
+  - **Show** is one single choice (rule 6): All entries · To-dos open · Photos · Files · Voice notes · Dates · Places;
+  - **In** is All pages ›, which opens the page list, so you can pick one page (with its sub-pages).
+- **With a filter on:**
+  - the list shows the matching entries, grouped by page, newest first;
+  - under the top bar, chips show what's on ("To-dos open ✕", "All pages ▾"), and ✕ clears it;
+  - the Filter button stays highlighted.
+- **Inside a page,** the filter starts with that page chosen.
+- **Search** is for words, and it keeps the filter that is on.
+- **Server:** `search_notebook` gains a kind and a page.
+  - To-dos open come from the unticked to-do lines.
+  - Photos, Files and Voice come from the entry's files and blocks.
+  - Dates come from a due date or a date block.
+  - Places come from the location.
+  - This goes in the 99B migration, with tests in EN and AR, and a test for someone else's pages.
 
 ## Part 9: what this changes in review 99B
 - **B1 is replaced** by Parts 3, 4 and 6. Edit isn't a menu row: tapping an entry edits it.
@@ -259,7 +265,8 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 | BH6 · The bar: + · Photo · Add · Voice · Send | `2640:38023` | `2640:38551` |
 | BH7 · 📎 Add: File, Location (set), Date, Reminder (set) | `2640:38122` | `2640:38650` |
 | BH8 · `+` opens the block list (same card as `/`), scrolls inside | `2640:38248` | `2640:38776` |
-| BH9 · Search with kind chips, results by page | `2642:38280` | `2642:38529` |
+| BH9 · Filter card from the top bar: Show (one choice) · In (page) | `2647:38235` | `2647:38391` |
+| BH11 · Filtered list: "To-dos open ✕" · "All pages ▾", results by page | `2642:38280` | `2642:38529` |
 | BH10 · The line menu opens above the line (no room below), never under the keyboard | `2640:38416` | `2640:38944` |
 
 **Notes for the build:**
