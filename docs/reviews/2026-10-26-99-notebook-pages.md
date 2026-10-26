@@ -264,3 +264,23 @@ List anything else that changed in the report, with before and after side by sid
    - the number of notes before the push equals the number after;
    - signed out, `search_notebook` returns nothing.
 5. **One build** on the founder's phone, BuildVibes only. It covers reviews 94, 95, 98 and 99A.
+
+## Lead's second check (26 Oct, 11:00): approved
+**Branch:** `claude/r99a` at `5e025c2`.
+
+**What I checked:**
+- Migration 47 on the SQL stand-in: all 2,863 checks in 46 files pass.
+- The fixes:
+  - C1: the merge climbs out of every tree being merged away;
+  - C3: delete and merge, sent again, skip pages already gone;
+  - C4: `bv.note_page` puts a new entry straight into its page (transaction-local and checked by ownership), the activity trigger fires only on the listed columns, and there is one "My notes";
+  - C5: Send goes back to the list with "Saved in · Open";
+  - C6: both sides are saved;
+  - C9: carets.
+- PG1–PG5b in EN and AR: Arabic is right to left, the chevrons and carets flip, Arabic duals are right («مهمتان مفتوحتان»), and digits are Western.
+
+**Two notes for 99B (no change now):**
+1. A merge sent again **with entries listed** clears the new mark of a page that the first call made. It has no effect in the app today, because entries aren't merged across pages.
+2. The merge sheet says "The emptied page goes to Deleted items" while that screen is hidden. The page is kept on the server, and 99B shows it. Keep the sentence.
+
+**Next, with the founder's yes:** the steps in "Then, in this order", from step 3 on.
