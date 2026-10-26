@@ -6575,10 +6575,6 @@
       }
     }
   },
-  "notebookRestartNumbering": "Restart at 1",
-  "@notebookRestartNumbering": {
-    "description": "A numbered line's menu: a new count starts at 1 from this line."
-  },
   "notebookFoldHide": "Hide the lines under it",
   "@notebookFoldHide": {
     "description": "Read out on a list line's fold arrow while its children show."
@@ -7017,5 +7013,110 @@
   "searchExactNumber": "Exact number",
   "@searchExactNumber": {
     "description": "Review 95: on the search row of the post with the number searched for, shown first."
+  },
+  "pageSlashTitle": "Blocks",
+  "@pageSlashTitle": {
+    "description": "Review 98 NBY1: the small title over the \"/\" card's kinds."
+  },
+  "pageSlashEnter": "Enter picks it",
+  "@pageSlashEnter": {
+    "description": "Review 98 NBY1: under the \"/\" card; the keyboard's Enter picks the tinted kind."
+  },
+  "notebookMoveUp": "Move up",
+  "@notebookMoveUp": {
+    "description": "Review 98 NBY2: the line, with the lines under it, goes above the group before it."
+  },
+  "notebookMoveDown": "Move down",
+  "@notebookMoveDown": {
+    "description": "Review 98 NBY2: the line, with the lines under it, goes below the group after it."
+  },
+  "notebookLineIndent": "Indent",
+  "@notebookLineIndent": {
+    "description": "Review 98 NBY2: the line menu's row that puts the line one level deeper."
+  },
+  "notebookDuplicate": "Duplicate",
+  "@notebookDuplicate": {
+    "description": "Review 98 NBY2: a copy of the line and the lines under it, right after them."
+  },
+  "notebookLineRestart": "Restart at 1",
+  "@notebookLineRestart": {
+    "description": "Review 98 NBY2: a numbered line counts from 1 again."
+  },
+  "pageMenuDelete": "Delete",
+  "@pageMenuDelete": {
+    "description": "Review 98 C1: Delete as a menu row (the line menu, Work's ⋮⋮ sheet and a point's sheet), in the destructive colour. A dialog's confirm button says pageDelete."
+  },
+  "notebookUndoTurned": "Turned into {kind}",
+  "@notebookUndoTurned": {
+    "description": "Review 98: the Undo bar after a line changed kind (Turn into, or a typed shortcut such as \"1. \"). kind is the kind's name, e.g. Numbered list.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookUndoMoved": "Moved",
+  "@notebookUndoMoved": {
+    "description": "Review 98 NBY5: the Undo bar after Move up or Move down."
+  },
+  "notebookUndoIndented": "Indented",
+  "@notebookUndoIndented": {
+    "description": "Review 98: the Undo bar after the line menu's Indent."
+  },
+  "notebookUndoOutdented": "Outdented",
+  "@notebookUndoOutdented": {
+    "description": "Review 98: the Undo bar after the line menu's Outdent."
+  },
+  "notebookUndoDuplicated": "Duplicated",
+  "@notebookUndoDuplicated": {
+    "description": "Review 98: the Undo bar after Duplicate."
+  },
+  "notebookUndoDeleted": "Deleted",
+  "@notebookUndoDeleted": {
+    "description": "Review 98: the Undo bar after a line was deleted."
+  },
+  "notebookFindText": "text plain paragraph",
+  "@notebookFindText": {
+    "description": "Review 98: words that also find Text in the \"/\" card (never shown; space between words)."
+  },
+  "notebookFindHeading": "heading title h1",
+  "@notebookFindHeading": {
+    "description": "Review 98: words that also find Heading in the \"/\" card (never shown)."
+  },
+  "notebookFindSubheading": "subheading subtitle h2",
+  "@notebookFindSubheading": {
+    "description": "Review 98: words that also find Subheading in the \"/\" card (never shown)."
+  },
+  "notebookFindTodo": "todo to-do task check checklist",
+  "@notebookFindTodo": {
+    "description": "Review 98: words that also find To-do list in the \"/\" card (never shown)."
+  },
+  "notebookFindBullets": "bullet bulleted list dot",
+  "@notebookFindBullets": {
+    "description": "Review 98: words that also find Bulleted list in the \"/\" card (never shown)."
+  },
+  "notebookFindNumbers": "num number numbered ordered list",
+  "@notebookFindNumbers": {
+    "description": "Review 98: words that also find Numbered list in the \"/\" card (never shown)."
+  },
+  "notebookFindToggle": "toggle fold collapse",
+  "@notebookFindToggle": {
+    "description": "Review 98: words that also find Toggle in the \"/\" card (never shown)."
+  },
+  "notebookFindTable": "table grid",
+  "@notebookFindTable": {
+    "description": "Review 98: words that also find Table in the \"/\" card (never shown)."
+  },
+  "notebookFindCallout": "callout note info box",
+  "@notebookFindCallout": {
+    "description": "Review 98: words that also find Callout in the \"/\" card (never shown)."
+  },
+  "notebookFindQuote": "quote quotation",
+  "@notebookFindQuote": {
+    "description": "Review 98: words that also find Quote in the \"/\" card (never shown)."
+  },
+  "notebookFindDivider": "divider line separator",
+  "@notebookFindDivider": {
+    "description": "Review 98: words that also find Divider in the \"/\" card (never shown)."
   }
 }

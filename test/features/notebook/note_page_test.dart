@@ -245,9 +245,11 @@ void main() {
       await _tap(tester, _key('note-category-todo'));
       // The empty line turned: one block, a to-do.
       expect(_draft(tester)!.blocks.single, isA<PageTodo>());
+      // Review 98: + on any other line is for a new text line below it.
       await _tap(tester, _key('note-tool-categories'));
-      expect(outlined('todo'), isTrue);
-      expect(outlined('text'), isFalse);
+      expect(outlined('text'), isTrue);
+      expect(outlined('todo'), isFalse);
+      expect(_draft(tester)!.blocks, [isA<PageTodo>(), isA<PageText>()]);
       // + again: the keyboard back.
       await _tap(tester, _key('note-tool-categories'));
       expect(_key('note-categories'), findsNothing);

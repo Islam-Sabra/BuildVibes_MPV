@@ -4550,9 +4550,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookRestartNumbering => 'Restart at 1';
-
-  @override
   String get notebookFoldHide => 'Hide the lines under it';
 
   @override
@@ -4887,4 +4884,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchExactNumber => 'Exact number';
+
+  @override
+  String get pageSlashTitle => 'Blocks';
+
+  @override
+  String get pageSlashEnter => 'Enter picks it';
+
+  @override
+  String get notebookMoveUp => 'Move up';
+
+  @override
+  String get notebookMoveDown => 'Move down';
+
+  @override
+  String get notebookLineIndent => 'Indent';
+
+  @override
+  String get notebookDuplicate => 'Duplicate';
+
+  @override
+  String get notebookLineRestart => 'Restart at 1';
+
+  @override
+  String get pageMenuDelete => 'Delete';
+
+  @override
+  String notebookUndoTurned(String kind) {
+    return 'Turned into $kind';
+  }
+
+  @override
+  String get notebookUndoMoved => 'Moved';
+
+  @override
+  String get notebookUndoIndented => 'Indented';
+
+  @override
+  String get notebookUndoOutdented => 'Outdented';
+
+  @override
+  String get notebookUndoDuplicated => 'Duplicated';
+
+  @override
+  String get notebookUndoDeleted => 'Deleted';
+
+  @override
+  String get notebookFindText => 'text plain paragraph';
+
+  @override
+  String get notebookFindHeading => 'heading title h1';
+
+  @override
+  String get notebookFindSubheading => 'subheading subtitle h2';
+
+  @override
+  String get notebookFindTodo => 'todo to-do task check checklist';
+
+  @override
+  String get notebookFindBullets => 'bullet bulleted list dot';
+
+  @override
+  String get notebookFindNumbers => 'num number numbered ordered list';
+
+  @override
+  String get notebookFindToggle => 'toggle fold collapse';
+
+  @override
+  String get notebookFindTable => 'table grid';
+
+  @override
+  String get notebookFindCallout => 'callout note info box';
+
+  @override
+  String get notebookFindQuote => 'quote quotation';
+
+  @override
+  String get notebookFindDivider => 'divider line separator';
 }

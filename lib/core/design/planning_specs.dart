@@ -80,12 +80,13 @@ abstract final class BvNoteBlocksSpec {
   );
   static const gridGap = BvSpace.s12;
   static const gridColumns = 3;
-  static const tileHeight = 58.0;
+  // Review 98: 64, for each kind's shortcut under its name.
+  static const tileHeight = 64.0;
   static const tileGap = BvSpace.s8;
   static const tileRadius = BorderRadius.all(Radius.circular(BvRadius.toast));
   static const tileBorder = 1.25;
   static const tileIcon = 24.0;
-  static const tileLabelGap = BvSpace.s6;
+  static const tileLabelGap = BvSpace.s4;
 
   /// The sheet in place of the keyboard when the phone hasn't said how
   /// tall its keyboard is (NBX2: 334).
@@ -145,6 +146,9 @@ abstract final class BvNoteBlocksSpec {
   static const indent = BvSpace.s24;
   static const fold = 20.0;
   static const foldIcon = BvSize.iconSm;
+
+  /// Review 98: shut, the arrow turns a quarter, to point forward.
+  static const foldTurn = 0.25;
 
   /// The saved slip: the title, then the first three lines of the page.
   static const slipLines = 3;

@@ -133,9 +133,11 @@ void main() {
       // On the first line nothing can move: no ⇥ ⇤.
       await _cursor(tester, 1);
       expect(_key('note-tool-indent'), findsNothing);
+      expect(_key('note-tool-outdent'), findsNothing);
+      // Review 98: each shows only when it can act (⇤ hidden at level 0).
       await _cursor(tester, 3);
       expect(_key('note-tool-indent'), findsOneWidget);
-      expect(_key('note-tool-outdent'), findsOneWidget);
+      expect(_key('note-tool-outdent'), findsNothing);
       expect(BvIcons.indent.matchTextDirection, isTrue);
       // Right after the +, before the thin line and the additions.
       final plus = tester.getCenter(_key('note-tool-categories')).dx;
@@ -153,9 +155,10 @@ void main() {
       } else {
         expect(after.left, greaterThan(before.left));
       }
-      // The first child can't go deeper; Cure can take Strip in.
-      await _tap(tester, _key('note-tool-indent'));
-      expect(_levels(tester), [0, 0, 1]);
+      // The first child can't go deeper (no ⇥ now), but can come out.
+      expect(_key('note-tool-indent'), findsNothing);
+      expect(_key('note-tool-outdent'), findsOneWidget);
+      // Cure can take Strip in.
       await _cursor(tester, 2);
       await _tap(tester, _key('note-tool-indent'));
       expect(_levels(tester), [0, 1, 2]);
@@ -256,7 +259,7 @@ void main() {
         ['Rebar', 'Ties', 'Cure'],
       );
       expect(_levels(tester), [0, 1, 0]);
-      await _tap(tester, _key('page-undo'));
+      await _tap(tester, _key('undo-bar-action'));
       expect(_levels(tester), [0, 1, 2, 0]);
       // Folded: asked first, then the three go together.
       await _tap(tester, _key('note-fold-${_id(1)}'));
@@ -368,8 +371,10 @@ void main() {
       }
       expect(_key('page-turn-heading'), findsNothing);
       await _tap(tester, _key('page-turn-into'));
+      // Review 98: the kinds in the same card, next to the line.
       expect(_key('page-turn-menu'), findsOneWidget);
-      expect(find.text(l10n.pageTurnInto), findsOneWidget);
+      expect(_key('page-block-menu'), findsNothing);
+      expect(_key('page-turn-heading'), findsOneWidget);
       await _tap(tester, _key('page-turn-bullets'));
       expect(_blocks(tester)[2], isA<PageBullet>());
       // A callout: no numbering rows.

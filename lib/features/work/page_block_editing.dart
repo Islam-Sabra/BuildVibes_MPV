@@ -7,11 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_page_specs.dart';
+import '../../core/design/daybook_writing_specs.dart' show BvLineMenuSpec;
 import '../../core/l10n/bidi.dart';
 import '../../data/models/post_page.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import 'daybook_page.dart' show PageTableView;
@@ -19,6 +22,41 @@ import 'daybook_page.dart' show PageTableView;
 /// One choice in a page's block menu ("/" or +): its value, words and
 /// icon.
 typedef PageMenuItem<T> = ({T value, String label, IconData icon});
+
+/// One kind in the "/" card (review 98): its value, its key's end
+/// (`page-add-<key>`), words and icon, the [shortcut] typed for it, and
+/// every word that finds it ([words]: its name in English and Arabic, and
+/// a few simple ones such as "num", "todo", «مهام»).
+typedef PageSlashItem = ({
+  Object value,
+  String key,
+  String label,
+  IconData icon,
+  String? shortcut,
+  List<String> words,
+});
+
+/// Whether [item] is found by [filter] (what follows the "/"): one of its
+/// words, or a word inside one, starts with it; nothing typed finds all.
+/// The app's words in each of its languages: "/" finds a kind by its name
+/// in any of them.
+final slashLanguages = [
+  for (final l in AppLocalizations.supportedLocales)
+    lookupAppLocalizations(l),
+];
+
+bool slashMatches(PageSlashItem item, String filter) {
+  final f = filter.trim().toLowerCase();
+  if (f.isEmpty) return true;
+  for (final w in item.words) {
+    final word = w.toLowerCase();
+    if (word.startsWith(f)) return true;
+    if (word.split(RegExp(r'\s+')).any((part) => part.startsWith(f))) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /// The block menu (N3): a sheet of rows, each with its icon on a small
 /// tile. Work's page and My notebook's note (F107: "/" opens the same
@@ -78,8 +116,24 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   final _focus = <String, FocusNode>{};
   final _keyNodes = <String, FocusNode>{};
 
+  /// Each field's place, kept when its line changes kind (review 98: a
+  /// shortcut, "/" or Turn into moves the field into another row, and it
+  /// keeps the keyboard).
+  final _fieldPlaces = <String, GlobalKey>{};
+
   /// Each "/" field's text before its latest change.
   final _lastText = <String, String>{};
+
+  /// The "/" card (review 98): open on [_slashKey]'s field, its "/" at
+  /// [_slashAt]; every kind it lists, and those found by what follows.
+  final _slashCard = BvLinePopover();
+  String? _slashKey;
+  var _slashAt = 0;
+  var _slashAll = const <PageSlashItem>[];
+  var _slashShown = const <PageSlashItem>[];
+
+  /// More than this after the "/" and it was never a kind.
+  static const _slashMax = 24;
 
   /// The block whose field the cursor was in last (F107: + inserts after
   /// it, and its kind is outlined in the grid).
@@ -102,9 +156,26 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// and work items; a note's lines and voice).
   Widget hostBlock(int index, PageBlock block);
 
-  /// "/" at the start of an empty line: [filter] is what follows it; the
-  /// line is [replace] (a block's index) or one inside a toggle.
-  void slashAt(String filter, {int? replace, (int, String)? intoToggle});
+  /// What "/" lists on the field [key] (review 98: at the start of any
+  /// line, or after a space); none, and "/" is only a character.
+  List<PageSlashItem> slashItems(String key);
+
+  /// [value] picked from "/" on [key]: the "/" and what was typed after it
+  /// are already gone from the field.
+  void slashPicked(String key, Object value);
+
+  /// A space typed on [key] right after [before], with [after] still on
+  /// the line (review 98: "1. " at the start of a text line); true when
+  /// the line took it as a shortcut.
+  bool typedShortcut(String key, String before, String after) => false;
+
+  /// The line the open line menu is for, tinted (review 98 NBY2).
+  String? get markedBlockId => null;
+
+  /// Lines drag on ⋮⋮ only on a wide screen: never on a phone (review 98;
+  /// Move up and Move down in the line's menu instead).
+  bool get dragsLines =>
+      MediaQuery.sizeOf(context).shortestSide >= BvPageSpec.dragMinSide;
 
   /// The field under [key]: `t:<id>` a block's words, `c:<id>:<row>:<col>`
   /// a table's cell, `p:<id>` a photo's caption, `pt:<id>` a point.
@@ -124,7 +195,10 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   FocusNode blockNode(String key) => _focus.putIfAbsent(key, () {
     final node = FocusNode();
     node.addListener(() {
-      if (!node.hasFocus) return;
+      if (!node.hasFocus) {
+        if (_slashKey == key) closeSlash();
+        return;
+      }
       final id = blockIdOfKey(key);
       if (id == null || id == currentBlockId) return;
       currentBlockId = id;
@@ -172,6 +246,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   }
 
   void disposeBlockEditing() {
+    _slashCard.hide();
     for (final c in _fields.values) {
       c.dispose();
     }
@@ -225,22 +300,25 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   ];
 
   /// A block's field: bare, growing with its words, in their own
-  /// direction. [onSlash]: "/" typed on a line that was empty. [onEnter]:
-  /// Enter is a new line of its own (a toggle's, a note's). [onStartBack]:
-  /// Backspace with the cursor at the very start (an empty line too).
+  /// direction. [slash]: "/" at the start or after a space opens the "/"
+  /// card ([slashItems]). [shortcuts]: a space after "1." and the like at
+  /// the start is offered to [typedShortcut]. [onEnter]: Enter is a new
+  /// line of its own (a toggle's, a note's). [onStartBack]: Backspace with
+  /// the cursor at the very start (an empty line too).
   Widget blockText(
     String key,
     String text, {
     required TextStyle style,
     required String hint,
     int? maxLength,
-    ValueChanged<String>? onSlash,
+    bool slash = false,
+    bool shortcuts = false,
     VoidCallback? onEnter,
     VoidCallback? onStartBack,
     bool readOnly = false,
   }) {
     final c = blockField(key, text);
-    Widget field = TextField(
+    final field = TextField(
       key: Key('page-field-$key'),
       controller: c,
       focusNode: blockNode(key),
@@ -248,7 +326,10 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       maxLines: null,
       // F90: inside a toggle, Enter is a new line of its own.
       textInputAction: onEnter == null ? null : TextInputAction.next,
-      onSubmitted: onEnter == null ? null : (_) => onEnter(),
+      // With the "/" card open, Enter picks its first kind.
+      onSubmitted: onEnter == null
+          ? null
+          : (_) => _slashKey == key ? _pickSlash() : onEnter(),
       maxLength: maxLength,
       style: style,
       cursorColor: BvColors.actionPrimary,
@@ -258,40 +339,163 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         style: style,
       ).copyWith(counterText: ''),
       onChanged: (v) {
-        if (onSlash != null) {
-          // Only on a line that was empty: "/" typed before existing
-          // words is just a character.
-          final was = _lastText[key] ?? text;
-          _lastText[key] = v;
-          if (v.startsWith('/') && was.isEmpty) {
-            onSlash(v.substring(1));
-            return;
-          }
+        if (!slash && !shortcuts) {
+          blocksEdited();
+          return;
+        }
+        final was = _lastText[key] ?? text;
+        _lastText[key] = v;
+        if (_slashKey == key) {
+          _followSlash(c);
+          blocksEdited();
+          return;
+        }
+        // One character typed, just before the cursor.
+        final at = c.selection.baseOffset;
+        final one = v.length == was.length + 1 && at > 0 && at <= v.length;
+        if (one &&
+            shortcuts &&
+            v[at - 1] == ' ' &&
+            typedShortcut(key, v.substring(0, at - 1), v.substring(at))) {
+          return;
+        }
+        if (one &&
+            slash &&
+            v[at - 1] == '/' &&
+            (at == 1 || v[at - 2].trim().isEmpty)) {
+          _openSlash(key, at - 1);
         }
         blocksEdited();
       },
     );
-    if (onStartBack != null) {
-      field = KeyboardListener(
+    // Always the same widgets around the field, so it can move.
+    return KeyedSubtree(
+      key: _fieldPlaces.putIfAbsent(key, GlobalKey.new),
+      child: KeyboardListener(
         focusNode: _keyNode(key),
         onKeyEvent: (e) {
+          if (e is! KeyDownEvent) return;
+          // Escape closes the "/" card and leaves the "/" as typed.
+          if (e.logicalKey == LogicalKeyboardKey.escape && _slashKey == key) {
+            closeSlash();
+            return;
+          }
           final at = c.selection;
-          if (e is KeyDownEvent &&
+          if (onStartBack != null &&
               e.logicalKey == LogicalKeyboardKey.backspace &&
               (c.text.isEmpty || (at.isCollapsed && at.baseOffset == 0))) {
             onStartBack();
           }
         },
         child: field,
-      );
-    }
-    return field;
+      ),
+    );
   }
 
-  /// "/" opened the menu from this line: its "/" goes.
-  void clearSlash(String key) {
-    _fields[key]?.text = '';
-    _lastText[key] = '';
+  /// The field under [key] holds [text], the cursor at [cursor] (a line
+  /// that changed under its field, as a shortcut does).
+  void setField(String key, String text, int cursor) {
+    final c = _fields[key];
+    _lastText[key] = text;
+    c?.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: cursor),
+    );
+  }
+
+  // The "/" card ---------------------------------------------------------------
+
+  /// Whether the "/" card is open.
+  bool get slashOpen => _slashKey != null;
+
+  /// The kinds the "/" card shows now (the first is Enter's).
+  List<PageSlashItem> get slashShown => _slashShown;
+
+  void _openSlash(String key, int at) {
+    final items = slashItems(key);
+    if (items.isEmpty) return;
+    _slashKey = key;
+    _slashAt = at;
+    _slashAll = items;
+    _slashShown = items;
+    _slashCard.show(
+      context,
+      anchor: () => _focus[key]?.context,
+      builder: (context) {
+        final shown = _slashShown;
+        if (shown.isEmpty) return const SizedBox.shrink();
+        final l10n = AppLocalizations.of(context);
+        return BvPopoverMenu<Object>.line(
+          key: const Key('page-add-menu'),
+          title: l10n.pageSlashTitle,
+          hint: l10n.pageSlashEnter,
+          selected: shown.first.value,
+          items: [
+            for (final i in shown)
+              BvMenuItem(
+                key: Key('page-add-${i.key}'),
+                value: i.value,
+                label: i.label,
+                icon: i.icon,
+                shortcut: i.shortcut,
+              ),
+          ],
+          onSelected: _pickSlash,
+        );
+      },
+    );
+  }
+
+  /// What follows the "/" filters the card; the cursor before the "/", or
+  /// the "/" gone, closes it; so does a space when nothing is found. Enter
+  /// on a field that keeps its own lines picks the first kind.
+  void _followSlash(TextEditingController c) {
+    final v = c.text;
+    final at = c.selection.baseOffset;
+    if (_slashAt >= v.length || v[_slashAt] != '/' || at <= _slashAt) {
+      closeSlash();
+      return;
+    }
+    final filter = v.substring(_slashAt + 1, at);
+    if (filter.endsWith('\n')) {
+      setField(_slashKey!, v.substring(0, at - 1) + v.substring(at), at - 1);
+      _pickSlash();
+      return;
+    }
+    final shown = [
+      for (final i in _slashAll)
+        if (slashMatches(i, filter)) i,
+    ];
+    if (shown.isEmpty && (filter.endsWith(' ') || filter.length > _slashMax)) {
+      closeSlash();
+      return;
+    }
+    _slashShown = shown;
+    _slashCard.rebuild();
+  }
+
+  /// [value] picked (the first kind found, with none given): the "/" and
+  /// what follows it leave the line, then the host turns it.
+  void _pickSlash([Object? value]) {
+    final key = _slashKey;
+    final picked = value ?? _slashShown.firstOrNull?.value;
+    final c = key == null ? null : _fields[key];
+    if (key == null || c == null || picked == null) {
+      closeSlash();
+      return;
+    }
+    final v = c.text;
+    final end = c.selection.baseOffset.clamp(_slashAt + 1, v.length);
+    final at = _slashAt;
+    setField(key, v.substring(0, at) + v.substring(end), at);
+    closeSlash();
+    slashPicked(key, picked);
+  }
+
+  /// The "/" card closes; what was typed stays.
+  void closeSlash() {
+    _slashKey = null;
+    _slashCard.hide();
   }
 
   /// Above each block (Work's page: 12).
@@ -318,41 +522,55 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   Widget blockRow(int i, {int? listIndex}) {
     final l10n = AppLocalizations.of(context);
     final b = editBlocks[i];
-    final handle = ReorderableDelayedDragStartListener(
-      index: listIndex ?? i,
-      child: Semantics(
-        button: true,
-        label: l10n.pageMove,
-        hint: l10n.pageBlockMenu,
-        child: GestureDetector(
-          key: Key('page-handle-${b.id}'),
-          behavior: HitTestBehavior.opaque,
-          onTap: () => unawaited(blockMenu(i)),
-          child: SizedBox(
-            width: BvPageSpec.handleWidth,
-            height: handleHeight,
-            child: const Icon(
-              BvIcons.dragHandle,
-              size: BvPageSpec.handleIcon,
-              color: BvColors.iconSecondary,
-            ),
+    final drags = dragsLines;
+    Widget handle = Semantics(
+      button: true,
+      label: drags ? l10n.pageMove : l10n.pageBlockMenu,
+      hint: drags ? l10n.pageBlockMenu : null,
+      child: GestureDetector(
+        key: Key('page-handle-${b.id}'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () => unawaited(blockMenu(i)),
+        child: SizedBox(
+          width: BvPageSpec.handleWidth,
+          height: handleHeight,
+          child: const Icon(
+            BvIcons.dragHandle,
+            size: BvPageSpec.handleIcon,
+            color: BvColors.iconSecondary,
           ),
         ),
       ),
     );
+    if (drags) {
+      handle = ReorderableDelayedDragStartListener(
+        index: listIndex ?? i,
+        child: handle,
+      );
+    }
     final at = handleOnlyWhileWriting;
+    final row = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: BvSpace.s8,
+      children: [
+        if (!at && handlesShown) handle,
+        Expanded(child: decorateBlock(i, b, blockEditor(i, b))),
+        if (at && handlesShown && currentBlockId == b.id) handle,
+      ],
+    );
     return Padding(
       key: ValueKey('page-edit-${b.id}'),
       padding: EdgeInsetsDirectional.only(top: i == 0 && at ? 0 : blockGap),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: BvSpace.s8,
-        children: [
-          if (!at && handlesShown) handle,
-          Expanded(child: decorateBlock(i, b, blockEditor(i, b))),
-          if (at && handlesShown && currentBlockId == b.id) handle,
-        ],
-      ),
+      child: markedBlockId == b.id
+          ? DecoratedBox(
+              key: Key('page-marked-${b.id}'),
+              decoration: const BoxDecoration(
+                color: BvColors.surfaceBrandSoft,
+                borderRadius: BvLineMenuSpec.lineRadius,
+              ),
+              child: row,
+            )
+          : row,
     );
   }
 
@@ -375,11 +593,8 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
           style: type.bodyMd,
           hint: l10n.pageAddBlock,
           maxLength: blockTextMax,
-          // "/" at the start of an empty line: this line becomes the block.
-          onSlash: (f) {
-            clearSlash('t:${b.id}');
-            slashAt(f, replace: i);
-          },
+          slash: true,
+          shortcuts: true,
           onEnter: textEnter(i),
           onStartBack: textBack(i),
         );
@@ -390,6 +605,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
           style: level == 1 ? type.titleMd : type.emphasis,
           hint: level == 1 ? l10n.pageHeading : l10n.notebookSubheading,
           maxLength: PageHeading.max,
+          slash: true,
           onEnter: textEnter(i),
           onStartBack: textBack(i),
         );
@@ -433,10 +649,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
                             : l10n.pageText,
                         maxLength: blockTextMax,
                         onEnter: () => enterInToggle(i, c.id),
-                        onSlash: (f) {
-                          clearSlash('t:${c.id}');
-                          slashAt(f, intoToggle: (i, c.id));
-                        },
+                        slash: true,
                       )
                     : hostBlock(i, c),
               ),

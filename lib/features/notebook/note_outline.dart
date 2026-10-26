@@ -105,6 +105,66 @@ List<PageBlock>? moved(List<PageBlock> blocks, int i, String? beforeId) {
   return normalized([...rest.take(at), ...placed, ...rest.skip(at)]);
 }
 
+/// Move up (review 98): [i] can go above the line before it at its level
+/// under the same parent, and that line's children.
+bool canMoveUp(List<PageBlock> blocks, int i) =>
+    i > 0 && i < blocks.length && _previousSibling(blocks, i) != null;
+
+/// Move down: a line follows [i]'s group at its level, under its parent.
+bool canMoveDown(List<PageBlock> blocks, int i) {
+  if (i < 0 || i >= blocks.length) return false;
+  final end = subtreeEnd(blocks, i);
+  return end < blocks.length && blocks[end].indent == blocks[i].indent;
+}
+
+/// [i] and its children above the whole group before them (the line
+/// before at its level, with its own children).
+List<PageBlock> movedUp(List<PageBlock> blocks, int i) {
+  if (!canMoveUp(blocks, i)) return blocks;
+  final before = _previousSibling(blocks, i)!;
+  return moved(blocks, i, blocks[before].id) ?? blocks;
+}
+
+/// [i] and its children below the whole group after them: that group
+/// goes up over them instead.
+List<PageBlock> movedDown(List<PageBlock> blocks, int i) {
+  if (!canMoveDown(blocks, i)) return blocks;
+  final next = subtreeEnd(blocks, i);
+  return moved(blocks, next, blocks[i].id) ?? blocks;
+}
+
+/// Duplicate (review 98): a copy of [i] and its children, right after
+/// them, each line (and each of a toggle's own lines) under an id from
+/// [newId]. A voice note isn't copied: it is one recording.
+bool canDuplicate(List<PageBlock> blocks, int i) =>
+    i >= 0 && i < blocks.length && blocks[i] is! PageVoice;
+
+List<PageBlock> duplicated(
+  List<PageBlock> blocks,
+  int i,
+  String Function() newId,
+) {
+  if (!canDuplicate(blocks, i)) return blocks;
+  final end = subtreeEnd(blocks, i);
+  final copies = [
+    for (final b in blocks.sublist(i, end))
+      if (b is! PageVoice) _copy(b, newId),
+  ];
+  return normalized([...blocks.take(end), ...copies, ...blocks.skip(end)]);
+}
+
+PageBlock _copy(PageBlock b, String Function() newId) {
+  Map<String, dynamic> fresh(Map<String, dynamic> json) => {
+    ...json,
+    'id': newId(),
+    if (json['children'] case final List children)
+      'children': [
+        for (final c in children) fresh(c as Map<String, dynamic>),
+      ],
+  };
+  return PageBlock.fromJson(fresh(b.toJson()));
+}
+
 /// The lines shown while [folded] lines hide what is under them.
 List<int> visibleLines(List<PageBlock> blocks, Set<String> folded) {
   final shown = <int>[];

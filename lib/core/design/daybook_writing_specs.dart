@@ -152,6 +152,56 @@ abstract final class BvPopoverMenuSpec {
   static const placePadding = BvSpace.s12;
 }
 
+/// The line menu and the "/" card next to a line (review 98, NBY1
+/// 2629:37434, NBY2 2629:37564): 272 wide, white, a hairline edge, radius
+/// 12, 6 inside; 44-high rows, 8 × 6 inside, radius 8, the kind's icon (18)
+/// on a 32 tile, 10 before the words; the shortcut or › at the end. The
+/// "/" card's title 8 × 4 (6 under) and its hint 6 over.
+abstract final class BvLineMenuSpec {
+  static const width = 272.0;
+  static const padding = BvSpace.s6;
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.toast));
+  static const rowPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s8,
+    vertical: BvSpace.s6,
+  );
+  static const rowGap = 10.0;
+  static const rowHeight = 44.0;
+  static const rowRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+
+  /// The "/" card with every kind shows five and a half rows, so it keeps
+  /// clear of the line and the keyboard; the rest scroll.
+  static const rowsShown = 5.5;
+  static const tile = BvSize.avatarSm; // 32
+  static const icon = 18.0;
+  static const caret = BvSize.iconSm; // 16
+  static const titlePadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s8,
+    BvSpace.s4,
+    BvSpace.s8,
+    BvSpace.s6,
+  );
+  static const hintPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s8,
+    BvSpace.s6,
+    BvSpace.s8,
+    0,
+  );
+
+  /// Under the line: the menu 4 below its row, the "/" card 10 below its
+  /// words; kept 16 clear of the screen's edges and the keyboard.
+  static const menuGap = BvSpace.s4;
+  static const cardGap = 10.0;
+  static const screenMargin = BvSpace.s16;
+
+  /// It opens from 96 % of its size.
+  static const openScale = 0.96;
+
+  /// The line the menu is for, tinted while it is open (NBY2) and while
+  /// its Undo shows after a move (NBY5).
+  static const lineRadius = BvRadius.smallAll;
+}
+
 /// The long-press menu on a slip (2530:33626, 2530:34246).
 abstract final class BvSlipMenuSpec {
   static const width = 230.0;
