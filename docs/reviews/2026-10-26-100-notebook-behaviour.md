@@ -126,6 +126,7 @@ His rule for this review: **behaviour first, then Figma, then the build.**
   - the entries go to Deleted items (99B).
 - **Arabic:** both bars mirror. ✕ and the count sit on the right, and the actions run from the right (Share first).
 - **Share** opens its card upward, from the bottom bar.
+- **⋯ on each entry** sits after its time, at the end of the title line (BH3, BH5). In selection mode, ⋯ hides on every entry, because the bottom bar holds the actions (BH2, BH4).
 
 ## Part 4: the compact menu card (one design everywhere)
 
