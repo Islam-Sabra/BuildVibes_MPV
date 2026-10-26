@@ -111,7 +111,7 @@ The founder's PC, cloud sessions and the lead's chat in the Claude project all w
 - **The lead's branch checks:** `mattpocock-skills:code-review`, which checks the branch against the repo's rules and against the review that asked for it.
 - **Arabic/RTL and UX checks:** `ux-ui-audit` on prototypes and web builds before a review is signed off.
 - **Big decisions:** `mattpocock-skills:grilling` before a review is written. Specs: `product-management:write-spec`.
-- **Notion is a mirror for the founder only:** the review board and change notes. GitHub stays the one source of truth, and nothing is decided only in Notion.
+- **Notion is a design reference only** (the connector reads the founder's pages when designing). GitHub is the only record: no boards or status in Notion.
 - **Not for routine messages:** `superpowers:using-superpowers` and `superpowers:brainstorming`. The founder wants direct work, and a bare "ok" means go.
 
 ## Definition of done for every task
