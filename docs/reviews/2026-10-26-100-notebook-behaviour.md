@@ -314,7 +314,7 @@ Share opens on one selected entry, or on one selected line (BH12; the line with 
 ## Part 8: a Filter button next to Search and Calendar (founder, 26 Oct)
 - **The notebook's top bar** reads Filter · Search · Calendar. **A page's top bar** reads Filter · Search · ⋯.
 - **Filter** opens a compact card (Part 4) with two parts:
-  - **Show** is one single choice (rule 6): All entries · To-dos open · Photos · Files · Voice notes · Dates · Places;
+  - **Show** is one single choice (rule 6): **To-dos open · Photos · Files · Voice notes · Reminders · Archived** (founder, 26 Oct 16:53). "All entries" is gone because the ✕ on the active chip turns the filter off. "Places" is gone because Search finds a typed place;
   - **In** is All pages ›, which opens the page list, so you can pick one page (with its sub-pages).
 - **With a filter on:**
   - the list shows the matching entries, grouped by page, newest first;
@@ -325,8 +325,7 @@ Share opens on one selected entry, or on one selected line (BH12; the line with 
 - **Server:** `search_notebook` gains a kind and a page.
   - To-dos open come from the unticked to-do lines.
   - Photos, Files and Voice come from the entry's files and blocks.
-  - Dates come from a due date or a date block.
-  - Places come from the location.
+  - Reminders come from an entry with a reminder still to ring. Dated entries show on My calendar.
   - This goes in the 99B migration, with tests in EN and AR, and a test for someone else's pages.
 
 ## Part 9: what this changes in review 99B
