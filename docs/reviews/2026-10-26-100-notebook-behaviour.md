@@ -274,6 +274,10 @@ Share opens on one selected entry, or on one selected line (BH12; the line with 
 💬 Message    to one person
 ```
 
+- **Two kinds of place (founder's question, 26 Oct 16:48):**
+  - **The place typed** in the entry (📍 "Gate 2", from 📎 Location) is part of the entry, so it goes with it, and the preview shows it.
+  - **The phone's exact map location** (GPS) never goes unless ticked. The tick reads **"Send the exact map location"** / «أرسل الموقع الدقيق على الخريطة», and it shows only when the entry has one.
+  - The ARB key `notebookIncludeGps` («أرفق إحداثيات GPS») changes to these words everywhere it's used: Put in a Space, Feed, Message. No "GPS" in the app's words.
 - **Every choice shows a preview first,** exactly as the other side will see it, with Post / Send and Cancel. Nothing leaves in one tap.
   - The GPS position never goes unless "Include my GPS position" is ticked on the preview.
 - **Feed:**
