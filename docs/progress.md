@@ -656,6 +656,16 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - **Shots:** NB1, its empty state and its menu retired; the other older shots re-pointed at an entry in "My notes"; PG1–PG5b committed; before/after pictures in `docs/screens/r99/before-after/`.
   - **Checks:** analyze clean; 2,100 app tests; 2,863 SQL checks; 426 screenshot checks.
 
+- **26 Oct, review 99A live** (founder's yes):
+  - **Merge:** `claude/r99a` merged into `slice2-app` (5e025c2). On the merged branch: analyze clean, 2,100 app tests, 2,863 SQL checks.
+  - **Live:** migration 47 pushed as the only file. Read-only check on live:
+    - every note has a page;
+    - the one person with notes has exactly one "My notes";
+    - no note is on someone else's page;
+    - 7 notes before and after;
+    - signed out, `search_notebook` can't be used.
+  - **Build 640** is on the founder's phone.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
