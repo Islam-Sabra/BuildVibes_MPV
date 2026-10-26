@@ -18,7 +18,9 @@ His rule for this review: **behaviour first, then Figma, then the build.**
 
 **Decisions taken (founder, 26 Oct):**
 - long-press = select, with Share · Move · Duplicate · Delete;
-- ⋯ = the entry's own settings, Pin and Reminder;
+- **swipe** an entry (founder, 26 Oct 16:37–16:38): toward the end it shows Pin · Reminder, toward the start it shows Archive (new). There is no ⋯ on entries;
+- **Archive** is approved: an entry is kept but leaves the page's list;
+- **back by swipe** everywhere (B6);
 - tap = edit;
 - Share = Feed · Space · **Message** (Message approved 14:59);
 - compact menu cards, not tall rows;
@@ -44,7 +46,8 @@ His rule for this review: **behaviour first, then Figma, then the build.**
 |---|---|---|---|
 | **Tap** | Opens it to edit, with the cursor where you tapped (or at the end) | Opens the page | Puts the cursor there |
 | **Long-press** (500 ms, with a light haptic) | Selects it (Part 3) | Selects it (pages' bar) | Opens the line menu (review 98) |
-| **⋯** | The entry's settings card (Part 4) | The page's settings card: Rename, Icon, Pin | — |
+| **Swipe** | Toward the end: Pin · Reminder. Toward the start: Archive (Part 3b) | — | — |
+| **⋯** | — (no ⋯ on entries) | The page's settings card: Rename, Icon, Pin | — |
 
 - **⋯ never waits.** It is its own button, outside the card's long-press, so a tap opens it at once (B5).
 - **One menu at a time.** While a menu is open:
@@ -76,8 +79,21 @@ His rule for this review: **behaviour first, then Figma, then the build.**
     - with no changes, nothing is saved and nothing is shown.
 - **Drafts are only for a new entry that was never sent.**
   - A draft shows as its own card at the top of its page, marked "Draft", and a tap continues it.
-  - Its ⋯ has one row: Discard, with Undo.
+  - Swiping it toward the start shows Discard, with Undo, in place of Archive.
 - **Test:** open a saved entry, change it, go Back. The page has one card, with the new words. Then Undo gives back the old words.
+
+**B6. Back by swipe, everywhere (founder, 26 Oct 16:38).**
+- **Android:** the system back gesture (swipe in from either edge) does exactly what the ← button does, on every screen.
+  - It uses Android's predictive back, so the screen underneath shows as you swipe.
+  - It isn't swallowed by the app.
+- **iPhone:** swipe from the left edge goes back (the right edge in Arabic), on every pushed screen.
+- **What Back does is the same for the button and the gesture:**
+  1. close the open menu or card;
+  2. leave selection mode;
+  3. save and leave an entry (B2);
+  4. leave the screen.
+- **Where Back asks first:** screens that ask before leaving (an unsent draft with words) use the same question for the gesture.
+- **Test:** a widget test sends the system back on each screen with a menu open, while selecting, and while editing, and checks each step above.
 
 **B3. "Write in this page" always starts a new entry.**
 - It never opens a draft or the last entry. An unsent draft in that page stays as its Draft card.
@@ -126,12 +142,43 @@ His rule for this review: **behaviour first, then Figma, then the build.**
   - the entries go to Deleted items (99B).
 - **Arabic:** both bars mirror. ✕ and the count sit on the right, and the actions run from the right (Share first).
 - **Share** opens its card upward, from the bottom bar.
-- **⋯ on each entry** sits after its time, at the end of the title line (BH3, BH5). In selection mode, ⋯ hides on every entry, because the bottom bar holds the actions (BH2, BH4).
+- **Entries have no ⋯** (Part 3b). In selection mode, swiping is off, because the bottom bar holds the actions (BH2, BH4).
+
+## Part 3b: swipe an entry (replaces the entry's ⋯; founder, 26 Oct)
+In English, "toward the end" means toward the right, and "toward the start" toward the left. In Arabic both mirror.
+
+| Swipe | Shows | Full swipe |
+|---|---|---|
+| **Toward the end** | 📌 Pin / Unpin · 🔔 Reminder ("Change reminder" when set), as buttons behind the card | none: tap a button |
+| **Toward the start** | 🗄 **Archive** (Unarchive on an archived entry; Discard on a draft) | archives at once, then "Archived · Undo" for 5 s |
+
+- **Behaviour:**
+  - a swipe counts only when it starts on the card, at least 24 from the screen's edge, so the system back gesture keeps the edges (B6);
+  - half a swipe (past 25% of the card) opens the buttons, and they stay open until a tap elsewhere or a scroll;
+  - only one card is open at a time;
+  - a light haptic fires when the buttons open, and again at the full-swipe point;
+  - with Reduce motion on, the card moves without the springing animation.
+- **Teaching it:** the first time a page with entries opens, its top card slides open by a third, shows Pin · Reminder, and closes after 1 s. This happens once per person, kept on the phone.
+- **Screen readers:** TalkBack and VoiceOver offer Pin, Reminder and Archive as custom actions on the card. A test checks this.
+- **Off during selection:** swiping does nothing while entries are selected.
+
+### Archive (new, founder's yes, 26 Oct)
+- **What an archived entry does:**
+  - it leaves the page's list but is kept, unlike Delete;
+  - it isn't counted in the page row's "{n} entries";
+  - it doesn't show on My calendar;
+  - its reminders don't ring.
+- **Where it is:** a quiet row "Archived ›" («المؤرشفة») at the end of each page that has any. It opens that page's archived entries, newest first.
+- **The Filter** gets "Archived" under Show, for all pages or one.
+- **Unarchive** (by swipe, or from the archived list) puts the entry back in its place by its date.
+- **Server, in the 99B migration:**
+  - `notes.archived_at`, set and cleared only through a function;
+  - the owner only;
+  - tests for archive, unarchive, the reminder not ringing, and someone else's entry.
 
 ## Part 4: the compact menu card (one design everywhere)
 
 Used for:
-- an entry's ⋯;
 - a page's ⋯;
 - the line menu;
 - `/` and `+`;
@@ -164,11 +211,6 @@ Used for:
   - with Reduce motion on, it only fades.
 - **A row that leads on** (›) turns the same card into its next level, with a ‹ back row at the top. It never stacks a second card.
 - **Rows that can't act are hidden,** as in review 98.
-- **The entry's ⋯ card:**
-  - the header (title, page · time);
-  - Pin / Unpin;
-  - Reminder, showing its time when set, which opens the Remind me sheet.
-  - More rows can come later, as the founder said.
 - **The page's ⋯ card:** Rename, Icon ›, Pin / Unpin.
 
 ## Part 5: the bar above the keyboard, and `+`
@@ -257,7 +299,7 @@ Share opens on one selected entry, or on a line from the line menu (the line wit
 - **B3 Deleted items** is unchanged. The Deleted items button comes back with 99B.
 
 ## Bugs are fixed first, test-first
-- B1–B5 are bugs on build 640. Each gets a failing test first (`superpowers:systematic-debugging`, then `test-driven-development`), then the fix.
+- B1–B6 are bugs on build 640 (B6: back by swipe). Each gets a failing test first (`superpowers:systematic-debugging`, then `test-driven-development`), then the fix.
 - They ship before the redesign, so the founder's next build is usable while the frames are reviewed.
 - **B5 is ⋯:** it opens at once and only ever opens one menu (Part 1).
 
@@ -268,7 +310,7 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 |---|---|---|
 | BH1 · Pages list: round New entry, "7 entries · today" | `2638:37859` | `2638:37957` |
 | BH2 · An entry selected: ✕ · 1 selected on top; Share · Move · Duplicate · Delete at the bottom | `2639:37911` | `2639:38261` |
-| BH3 · An entry's ⋯ card: header, Pin, Reminder | `2639:38016` | `2639:38366` |
+| BH3 · Swipe an entry: → Pin · Reminder, ← Archive; "Archived ›" at the page's end | `2639:38016` | `2639:38366` |
 | BH4 · Share › Feed · Space · Message (same card, no stacking) | `2639:38132` | `2639:38482` |
 | BH5 · Share → Message: preview, GPS off, Cancel / Send | `2642:38161` | `2642:38410` |
 | BH6 · The bar: + · Photo · Add · Voice · Send | `2640:38023` | `2640:38551` |
