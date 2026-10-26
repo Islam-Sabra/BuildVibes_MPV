@@ -187,12 +187,25 @@ void main() {
         expect(_drafted(tester), isNull);
       });
 
-      testWidgets('an edit left open when the app was closed is saved in '
-          'place when the page opens again, not a Draft', (tester) async {
+      testWidgets('D1: an edit left open when the app was closed opens '
+          'again in the editor; nothing is sent until Back', (tester) async {
         final edit = NoteDraft.of(_saved()).copyWith(title: 'Pour, edited');
         final app = await _open(tester, lang, notes: [_saved()], draft: edit);
+        // Back in the editor, where it was, not a Draft card.
         expect(_key('note-draft'), findsNothing);
+        expect(_key('note-tools'), findsOneWidget);
+        expect(find.text('Pour, edited'), findsOneWidget);
+        // Nothing sent without the person.
+        expect(app.notebook.calls.where((c) => c.startsWith('save:')), isEmpty);
+        expect(app.notebook.kept['entry-1']!.title, 'Pour');
+        // Back saves it in place, as any edit (B2), with Undo.
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
         expect(app.notebook.kept['entry-1']!.title, 'Pour, edited');
+        expect(find.text(l10n.notebookSavedEdit), findsOneWidget);
+        await tester.tap(find.text(l10n.daybookUndo));
+        await tester.pumpAndSettle();
+        expect(app.notebook.kept['entry-1']!.title, 'Pour');
       });
 
       testWidgets('a Draft\'s ⋯: Discard, with Undo', (tester) async {

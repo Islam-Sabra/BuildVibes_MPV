@@ -133,11 +133,16 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(ref.read(notebookProvider.notifier).retry());
-      // B2: an edit left open when the app closed is saved in place.
-      if (ref.read(noteDraftProvider)?.editing != null) {
-        unawaited(_finishEdit(quiet: true));
+      // D1: an edit left open when the app closed opens again in the
+      // editor, as the entry was when it was opened; nothing is sent until
+      // the person goes Back (B2).
+      final left = ref.read(noteDraftProvider)?.editing;
+      if (left != null) {
+        _editOpened = _shape(NoteDraft.of(left));
+        unawaited(_goOn());
+      } else if (widget.pageId == null) {
+        unawaited(_write());
       }
-      if (widget.pageId == null) unawaited(_write());
     });
   }
 
