@@ -1915,24 +1915,8 @@ class NoteSlip extends ConsumerWidget {
             words.time.clock(note.createdAt),
             style: type.metadata.copyWith(color: BvColors.textSecondary),
           ),
-          Semantics(
-            button: true,
-            label: l10n.daybookMore,
-            excludeSemantics: true,
-            child: InkResponse(
-              key: Key('note-menu-${note.id}'),
-              onTap: onMenu,
-              radius: BvNotebookPagesSpec.entryMenu,
-              child: const SizedBox.square(
-                dimension: BvNotebookPagesSpec.entryMenu,
-                child: Icon(
-                  BvIcons.more,
-                  size: BvSize.iconSm,
-                  color: BvColors.iconSecondary,
-                ),
-              ),
-            ),
-          ),
+          // ⋯'s place: the button itself stands over the card (D10).
+          const SizedBox.square(dimension: BvNotebookPagesSpec.entryMenu),
         ],
       ),
       if (note.isPage)
@@ -2035,18 +2019,48 @@ class NoteSlip extends ConsumerWidget {
         ),
         child: Material(
           type: MaterialType.transparency,
-          child: InkWell(
-            borderRadius: BvNotebookPagesSpec.entryRadius,
-            onTap: onEdit,
-            onLongPress: onLongPress ?? onMenu,
-            child: Padding(
-              padding: BvNotebookPagesSpec.entryPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: BvNotebookPagesSpec.entryLinesGap,
-                children: children,
+          child: Stack(
+            children: [
+              InkWell(
+                borderRadius: BvNotebookPagesSpec.entryRadius,
+                onTap: onEdit,
+                onLongPress: onLongPress ?? onMenu,
+                child: Padding(
+                  padding: BvNotebookPagesSpec.entryPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: BvNotebookPagesSpec.entryLinesGap,
+                    children: children,
+                  ),
+                ),
               ),
-            ),
+              // Review 100 D10: ⋯ is its own button, outside the card's
+              // gestures (Part 1): a tap opens it at once, and holding it
+              // never selects the card. For now only: the redesign takes
+              // ⋯ off entries (Part 3b).
+              PositionedDirectional(
+                top: BvNotebookPagesSpec.entryPadding.top,
+                end: BvNotebookPagesSpec.entryPadding.end,
+                child: Semantics(
+                  button: true,
+                  label: l10n.daybookMore,
+                  excludeSemantics: true,
+                  child: InkResponse(
+                    key: Key('note-menu-${note.id}'),
+                    onTap: onMenu,
+                    radius: BvNotebookPagesSpec.entryMenu,
+                    child: const SizedBox.square(
+                      dimension: BvNotebookPagesSpec.entryMenu,
+                      child: Icon(
+                        BvIcons.more,
+                        size: BvSize.iconSm,
+                        color: BvColors.iconSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
