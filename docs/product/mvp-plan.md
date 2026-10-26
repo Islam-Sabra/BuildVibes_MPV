@@ -90,3 +90,25 @@ Weeks start on Sunday. The live status is in `docs/progress.md`.
 1. **Scope pressure.** If the plan slips, Library preview and voice notes are cut first. Work items are never cut.
 2. **Store review timing in December.** That's why submission is early and the last week is buffer.
 3. **Some foremen and labour may not use email** (decision 04, risk accepted by the founder). Mitigations: most Android phones already have a Google account, so Google sign-in can be switched on; the Space admin can help people join on site; phone sign-in returns after the pilot if email proves to be a barrier.
+
+## 7. The lead's queue to the pilot (updated 26 Oct)
+In order. Each step is a review with Figma frames, then the founder's yes, then the build, a lead's check, and a test on his phone. The live status is in `docs/progress.md`.
+
+| # | Step | Review | State |
+|---|---|---|---|
+| 1 | Notebook bugs B1–B6 (keyboard, edit in place, drafts, menus over the keyboard, ⋯, back by swipe), then one build on the founder's phone with 99A | 100 (D1–D13) | Claude Code is fixing them on `claude/r100-bugs` |
+| 2 | The notebook redesign: one product language (tap, hold, swipe, ⋮⋮, ⋯), the selection bars, swipe for Pin · Reminder / Archive, compact cards, the new bar and `+` list, Filter, Share → Feed · Space · Message. With 99B's server work: Archive, Deleted items 7 · 30 · 90, the purge, share from an entry, filter kinds, a base version on `save_note` | 100 (Parts 0, 3–8) + 99B | Frames BH1–BH12 are waiting for the founder's ok |
+| 3 | Figma tidy-up: the PG frames (title size, Arabic words, calendar icon) | — | Lead |
+| 4 | **Scan documents** (founder, 26 Oct): the phone's own scanner (Google's on Android, Apple's on iPhone), with a normal photo as the fallback (Huawei); multi-page PDF. In the notebook's 📎, as a work item's proof, as a file post, in the Library. No text reading (OCR) yet | new | To write |
+| 5 | Dates and reminders as chips inside a line; drag lines on phones (hold and move; hold and let go selects) | new | To write |
+| 6 | **One gesture map for the whole app** (founder, 26 Oct), proved on the notebook first, then rolled out in order: Messages (swipe to reply, hold to select, as WhatsApp) → the Spaces list → work item cards → the feed last, or not at all. A swipe never does a formal or shared action: signing, Checked and Send back stay on Hold to confirm | new | To write |
+| 7 | The Space's feel: tap a card to open it full screen and swipe item by item; Needs you one at a time; a long-press card popover; Discard with Undo | new | To write |
+| 8 | Databases and colours in the notebook (review 98's step 4) | later | Only if 1–7 are done by mid-December; otherwise after the pilot starts |
+| 9 | Sentry crash reports, about 2 weeks before the pilot (mid-January), with the app review | — | Planned |
+| 10 | The stores: Apple enrolment, Codemagic, exact alarm and data safety forms; first Play closed test and TestFlight by 15 December | — | The founder's enrolment is open |
+| 11 | Test week with 3–5 real people (18–24 January), then the freeze (25–31 January) | — | Planned |
+
+**Parked (not before the pilot):**
+- the celebration feature;
+- the promo motion reel and the designer brief;
+- reading the text in scans (OCR) for Arabic.
