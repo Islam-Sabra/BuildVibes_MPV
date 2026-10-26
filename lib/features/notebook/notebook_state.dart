@@ -335,7 +335,8 @@ class NoteChange {
         final saved = note!.copyWith(waiting: true);
         final into = saved.pageId ?? data.latest?.id;
         final title = newPageTitle;
-        final made = saved.pageId != null && title != null && data.page(into) == null;
+        final made =
+            saved.pageId != null && title != null && data.page(into) == null;
         return NotebookData(
           notes: _placed(saved, notes),
           pages: [
@@ -538,8 +539,10 @@ class Notebook extends AsyncNotifier<NotebookData> {
     try {
       final (notes, pages) = await (_repo.notes(), _repo.pages()).wait;
       server = NotebookData(notes: notes, pages: pages);
-    } on ParallelWaitError<(List<Note>?, List<NotebookPage>?),
-        (AsyncError?, AsyncError?)> catch (e) {
+    } on ParallelWaitError<
+      (List<Note>?, List<NotebookPage>?),
+      (AsyncError?, AsyncError?)
+    > catch (e) {
       final error = e.errors.$1?.error ?? e.errors.$2!.error;
       // No signal: what the phone still holds shows.
       if (error is! SpaceException ||
@@ -859,8 +862,7 @@ class Notebook extends AsyncNotifier<NotebookData> {
     state = AsyncData(
       data.copyWith(
         notes: [
-          for (final n in data.all)
-            n.id == id ? n.copyWith(waiting: false) : n,
+          for (final n in data.all) n.id == id ? n.copyWith(waiting: false) : n,
         ],
       ),
     );

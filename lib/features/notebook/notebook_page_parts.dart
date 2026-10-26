@@ -185,10 +185,7 @@ class NotebookPageRow extends StatelessWidget {
                   IgnorePointer(
                     child: BvCheckbox(value: selected, onChanged: (_) {}),
                   ),
-                PageIconBox(
-                  icon: pageIconData(page.icon),
-                  brand: page.isNew,
-                ),
+                PageIconBox(icon: pageIconData(page.icon), brand: page.isNew),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,15 +422,12 @@ class _PagePickerState extends State<PagePicker> {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final q = foldForSearch(_query.text);
-    final pages =
-        [
-          for (final p in widget.data.pages)
-            if (!widget.hidden.contains(p.id) &&
-                (q.isEmpty || foldForSearch(pageName(l10n, p)).contains(q)))
-              p,
-        ]..sort(
-          (a, b) => b.lastActivityAt.compareTo(a.lastActivityAt),
-        );
+    final pages = [
+      for (final p in widget.data.pages)
+        if (!widget.hidden.contains(p.id) &&
+            (q.isEmpty || foldForSearch(pageName(l10n, p)).contains(q)))
+          p,
+    ]..sort((a, b) => b.lastActivityAt.compareTo(a.lastActivityAt));
     final shown = pages.take(BvNotebookPagesSpec.pickerMostRows - 1);
     Widget row({
       required Key key,

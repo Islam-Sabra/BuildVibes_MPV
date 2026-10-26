@@ -486,12 +486,16 @@ void main() {
         pages: [FakeNotebookRepository.myNotes()],
       );
       final edited = NoteChange.save(at('b', 9).copyWith(body: 'B'));
-      expect([
-        for (final n in edited.applyTo(notes).notes) n.id,
-      ], ['c', 'b', 'a']);
+      expect(
+        [for (final n in edited.applyTo(notes).notes) n.id],
+        ['c', 'b', 'a'],
+      );
       final early = NoteChange.save(at('x', 8).copyWith());
       expect(
-        [for (final n in NoteChange.save(at('y', 9)).applyTo(notes).notes) n.id],
+        [
+          for (final n in NoteChange.save(at('y', 9)).applyTo(notes).notes)
+            n.id,
+        ],
         ['c', 'y', 'b', 'a'],
       );
       expect(

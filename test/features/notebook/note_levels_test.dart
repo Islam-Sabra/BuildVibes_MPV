@@ -55,9 +55,11 @@ Future<void> _open(
     notebook: FakeNotebookRepository(),
     stored: {'notebook_draft:user-1': jsonEncode(draft.toJson())},
   );
-  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook');
+  GoRouter.of(
+    tester.element(find.byType(Navigator).first),
+  ).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
-  await _tap(tester, _key('post-bar-notepad'));
+  await _tap(tester, _key('page-write'));
 }
 
 List<PageBlock> _blocks(WidgetTester tester) => ProviderScope.containerOf(
@@ -338,7 +340,7 @@ void main() {
       );
       GoRouter.of(
         tester.element(find.byType(Navigator).first),
-      ).push('/notebook');
+      ).push('/notebook/pages/page-my-notes');
       await tester.pumpAndSettle();
       expect(find.text('Rebar'), findsNothing);
       expect(find.text('Cure'), findsOneWidget);

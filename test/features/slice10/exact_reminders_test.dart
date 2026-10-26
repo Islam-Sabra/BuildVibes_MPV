@@ -41,13 +41,13 @@ Future<TestApp> _open(
       ),
     ],
   );
-  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook');
+  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
   return app;
 }
 
 Future<void> _remind(WidgetTester tester, String id) async {
-  await tester.longPress(_key('note-$id'));
+  await tester.tap(_key('note-menu-$id'));
   await tester.pumpAndSettle();
   await _tap(tester, _key('note-remind'));
 }

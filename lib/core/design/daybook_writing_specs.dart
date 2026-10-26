@@ -174,8 +174,9 @@ abstract final class BvLineMenuSpec {
   static const rowsShown = 5.5;
 
   /// The line menu's most rows (Turn into to Delete, with Continue
-  /// numbering): it is never cut, so the note makes room for this many.
-  static const menuMostRows = 8;
+  /// numbering and, review 99A, Move to page…): it is never cut, so the
+  /// note makes room for this many.
+  static const menuMostRows = 9;
   static const tile = BvSize.avatarSm; // 32
   static const icon = 18.0;
   static const caret = BvSize.iconSm; // 16

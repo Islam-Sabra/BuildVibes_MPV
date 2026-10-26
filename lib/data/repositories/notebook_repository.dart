@@ -152,10 +152,7 @@ class SupabaseNotebookRepository implements NotebookRepository {
 
   @override
   Future<bool> save(Note note, {String? newPageTitle}) => _guard(() async {
-    final page = {
-      'p_page': note.pageId,
-      'p_new_page_title': newPageTitle,
-    };
+    final page = {'p_page': note.pageId, 'p_new_page_title': newPageTitle};
     final blocks = note.blocks;
     if (blocks != null) {
       // F107: a page, with its title, blocks, date, location, photos,
@@ -281,10 +278,8 @@ class SupabaseNotebookRepository implements NotebookRepository {
 
   @override
   Future<void> moveNotes(List<String> ids, String page) => _guard(
-    () => _client.rpc<void>(
-      'move_notes',
-      params: {'p_ids': ids, 'p_page': page},
-    ),
+    () =>
+        _client.rpc<void>('move_notes', params: {'p_ids': ids, 'p_page': page}),
   );
 
   @override

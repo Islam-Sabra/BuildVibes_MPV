@@ -82,7 +82,9 @@ Future<TestApp> _open(
     cameraOpen: cameraOpen,
     overrides: [picks ?? _picks(), gps ?? _gps(), ...overrides],
   );
-  GoRouter.of(tester.element(find.byType(Navigator).first)).push('/notebook');
+  GoRouter.of(
+    tester.element(find.byType(Navigator).first),
+  ).push('/notebook/pages/page-my-notes');
   await tester.pumpAndSettle();
   return app;
 }
@@ -93,8 +95,7 @@ ProviderContainer _container(WidgetTester tester) =>
 NoteDraft? _draft(WidgetTester tester) =>
     _container(tester).read(noteDraftProvider);
 
-Future<void> _note(WidgetTester tester) =>
-    _tap(tester, _key('post-bar-notepad'));
+Future<void> _note(WidgetTester tester) => _tap(tester, _key('page-write'));
 
 /// The page's text fields, in order.
 Finder _lines() =>
@@ -605,7 +606,7 @@ void main() {
       );
       GoRouter.of(
         tester.element(find.byType(Navigator).first),
-      ).push('/notebook');
+      ).push('/notebook/pages/page-my-notes');
       await tester.pumpAndSettle();
       await _note(tester);
       await _tap(tester, _key('note-tool-remind'));
@@ -651,7 +652,7 @@ void main() {
       await tester.pumpAndSettle();
       GoRouter.of(
         tester.element(find.byType(Navigator).first),
-      ).push('/notebook');
+      ).push('/notebook/pages/page-my-notes');
       await tester.pumpAndSettle();
       expect(app.notebook.kept, hasLength(2));
     });
@@ -699,7 +700,7 @@ void main() {
       DaybookPostDraft card() =>
           _container(tester).read(daybookDraftProvider(DaybookSamples.space))!;
 
-      await tester.longPress(_key('note-note-page'));
+      await tester.tap(_key('note-menu-note-page'));
       await tester.pumpAndSettle();
       expect(_key('note-include-gps'), findsOneWidget);
       await _tap(tester, _key('note-space-${DaybookSamples.space}'));
@@ -715,7 +716,7 @@ void main() {
       ).read(daybookDraftProvider(DaybookSamples.space).notifier).discard();
       GoRouter.of(tester.element(find.byType(Navigator).first)).pop();
       await tester.pumpAndSettle();
-      await tester.longPress(_key('note-note-page'));
+      await tester.tap(_key('note-menu-note-page'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('note-include-gps'));
       await _tap(tester, _key('note-space-${DaybookSamples.space}'));
@@ -786,7 +787,8 @@ void main() {
     testWidgets('B17: the bar\'s mic is read out [$lang]', (tester) async {
       final handle = tester.ensureSemantics();
       await _open(tester, lang);
-      expect(find.bySemanticsLabel(l10n.chatRecord), findsOneWidget);
+      await _note(tester);
+      expect(find.bySemanticsLabel(l10n.notebookVoiceTool), findsOneWidget);
       handle.dispose();
     });
   }

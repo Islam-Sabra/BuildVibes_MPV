@@ -60,12 +60,12 @@ Future<TestApp> _open(
       ),
     ],
   );
-  if (openNotebook) await _go(tester, '/notebook');
+  if (openNotebook) await _go(tester, '/notebook/pages/page-my-notes');
   return app;
 }
 
 Future<void> _menu(WidgetTester tester, String id) async {
-  await tester.longPress(_key('note-$id'));
+  await tester.tap(_key('note-menu-$id'));
   await tester.pumpAndSettle();
 }
 

@@ -81,8 +81,7 @@ class NotebookPageScreen extends ConsumerStatefulWidget {
   final String? entry;
 
   @override
-  ConsumerState<NotebookPageScreen> createState() =>
-      _NotebookPageScreenState();
+  ConsumerState<NotebookPageScreen> createState() => _NotebookPageScreenState();
 }
 
 /// What stands in place of the keyboard while writing (F107).
@@ -192,6 +191,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           newPageId: page == null ? ref.read(newPostIdProvider)() : null,
         ),
       );
+    } else if (ref.read(noteDraftProvider)!.intoPage == null &&
+        widget.pageId != null) {
+      // A Draft from before pages: it goes on in this page.
+      await _change((d) => d.copyWith(pageId: () => widget.pageId));
     }
     if (!mounted) return;
     setState(() => _writing = true);
@@ -594,8 +597,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               bytes: file.existsSync() ? file.lengthSync() : null,
               durationMs: length.inMilliseconds,
             ),
-            pageId:
-                widget.pageId ?? ref.read(noteDraftProvider)?.intoPage,
+            pageId: widget.pageId ?? ref.read(noteDraftProvider)?.intoPage,
           ),
         );
   }
@@ -856,6 +858,52 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     );
   }
 
+  /// A line with its children, from the line menu (A4): a new entry of
+  /// its own in the page picked (or a new page titled from it).
+  Future<bool> _moveLine(List<PageBlock> lines) async {
+    final l10n = AppLocalizations.of(context);
+    final data = ref.read(notebookProvider).value;
+    if (data == null || lines.isEmpty) return false;
+    final from = ref.read(noteDraftProvider)?.intoPage ?? widget.pageId;
+    final pick = await showPagePickerSheet(
+      context,
+      data: data,
+      title: l10n.notebookMoveToPage,
+      current: from,
+    );
+    if (pick == null || !mounted) return false;
+    final notebook = ref.read(notebookProvider.notifier);
+    final at = ref.read(clockProvider)();
+    final words = blockWords(lines.first);
+    String? newTitle;
+    final String to;
+    if (pick.kind == PagePickKind.newPage) {
+      to = ref.read(newPostIdProvider)();
+      newTitle = words.isEmpty ? '' : words.first;
+    } else {
+      to = pick.id!;
+    }
+    await notebook.save(
+      Note(
+        id: ref.read(newPostIdProvider)(),
+        kind: NoteKind.text,
+        createdAt: at,
+        blocks: lines,
+        body: pageDigest('', lines),
+        pageId: to,
+      ),
+      newPageTitle: newTitle,
+    );
+    if (!mounted) return true;
+    final page = ref.read(notebookProvider).value?.page(to);
+    _toast(
+      l10n.notebookMovedTo(
+        page == null ? l10n.notebookNewPage : pageName(l10n, page),
+      ),
+    );
+    return true;
+  }
+
   /// Delete the selected entries, after one confirm.
   Future<void> _deleteSelected(List<Note> notes) async {
     final l10n = AppLocalizations.of(context);
@@ -1002,10 +1050,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                         newPageId: () =>
                             d.newPageId ?? ref.read(newPostIdProvider)(),
                       )
-                    : d.copyWith(
-                        pageId: () => pick.id,
-                        newPageId: () => null,
-                      ),
+                    : d.copyWith(pageId: () => pick.id, newPageId: () => null),
               ),
             );
             _editorKey.currentState?.focusCurrent();
@@ -1043,14 +1088,14 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         );
       }
     });
-    final page = data.page(
-      widget.pageId ?? draft?.intoPage ?? data.latest?.id,
-    );
+    final page = data.page(widget.pageId ?? draft?.intoPage ?? data.latest?.id);
     if (page != null && widget.pageId != null && notebook.hasValue) {
       if (!_opened) {
         _opened = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) unawaited(ref.read(notebookProvider.notifier).openPage(page));
+          if (mounted) {
+            unawaited(ref.read(notebookProvider.notifier).openPage(page));
+          }
         });
       }
       if (_titleOf != page.id ||
@@ -1095,12 +1140,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           titleFocus: _titleFocus,
           // The bar's ⇥ ⇤ follow the line being written.
           onCurrentKind: (k) => setState(() => _kind = k),
+          onMoveLine: writing ? _moveLine : null,
           chip: writing && _chip(draft)
               ? NotePageChip(
                   key: _chipKey,
-                  icon: into == null
-                      ? BvIcons.add
-                      : pageIconData(into.icon),
+                  icon: into == null ? BvIcons.add : pageIconData(into.icon),
                   label: l10n.notebookPageChip(
                     into == null ? l10n.notebookNewPage : pageName(l10n, into),
                   ),
@@ -1141,7 +1185,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       if (!n.pinned) byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
     }
     final draftHere =
-        draft != null && !writingNow && page != null && draft.intoPage == page.id;
+        draft != null &&
+        !writingNow &&
+        page != null &&
+        (draft.intoPage ?? data.latest?.id) == page.id;
 
     Widget browse(NotebookPage page) {
       final path = data.path(page.id);
@@ -1194,10 +1241,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                       _keepTitle(page);
                     }
                   },
-                  style: type.headingLg.copyWith(color: BvColors.textPrimary),
+                  style: type.headingMd.copyWith(color: BvColors.textPrimary),
                   decoration: InputDecoration.collapsed(
                     hintText: pageName(l10n, page),
-                    hintStyle: type.headingLg.copyWith(
+                    hintStyle: type.headingMd.copyWith(
                       color: page.title.isEmpty && page.myNotes
                           ? BvColors.textPrimary
                           : BvColors.textSecondary,
@@ -1560,7 +1607,11 @@ class NoteSlip extends ConsumerWidget {
       key: Key('note-${note.id}'),
       tear: BvSlipBorder.forId(note.id).variant,
       lifted: selected,
-      menu: BvSlipCornerMenu(label: l10n.daybookMore, onTap: onMenu),
+      menu: BvSlipCornerMenu(
+        key: Key('note-menu-${note.id}'),
+        label: l10n.daybookMore,
+        onTap: onMenu,
+      ),
       onTap: onEdit,
       onLongPress: onLongPress ?? onMenu,
       children: [
@@ -1592,12 +1643,7 @@ class NoteSlip extends ConsumerWidget {
           ),
         ),
         if (note.isPage)
-          NotePageSummary(
-            note: note,
-            words: words,
-            now: now,
-            showTitle: false,
-          )
+          NotePageSummary(note: note, words: words, now: now, showTitle: false)
         else
           switch (note.kind) {
             NoteKind.text => BvSlipNote(note.body),

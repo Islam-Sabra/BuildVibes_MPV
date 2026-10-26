@@ -9,6 +9,7 @@ import '../../core/l10n/bidi.dart';
 import '../../core/photo_privacy.dart' show photosPreparingProvider;
 import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/note.dart';
+import '../../data/models/post_page.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_photo_preparing.dart';
@@ -140,6 +141,7 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
     required this.titleFocus,
     this.onCurrentKind,
     this.chip,
+    this.onMoveLine,
   });
 
   final bool writing;
@@ -154,6 +156,9 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
 
   /// The page chip at its foot (review 99 A2, PG2), on New entry.
   final Widget? chip;
+
+  /// The line menu's Move to page… (review 99 A4).
+  final Future<bool> Function(List<PageBlock> lines)? onMoveLine;
 
   @override
   ConsumerState<NoteWritingSlip> createState() => _NoteWritingSlipState();
@@ -241,6 +246,7 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
             onTitleChanged: (t) => _put((d) => d.copyWith(title: t)),
             onChanged: (blocks) => _put((d) => d.copyWith(blocks: blocks)),
             onCurrentKind: widget.onCurrentKind,
+            onMoveLine: widget.onMoveLine,
           ),
           NoteAdditions(
             draft: draft,

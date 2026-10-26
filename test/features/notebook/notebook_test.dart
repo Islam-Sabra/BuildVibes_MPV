@@ -9,6 +9,7 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_target.dart';
+import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
@@ -58,7 +59,7 @@ Future<TestApp> _open(
   FakeSpaceRepository? spaces,
   FakeDaybookRepository? daybook,
   FakeDmRepository? dm,
-  String path = '/notebook',
+  String path = '/notebook/pages/page-my-notes',
 }) async {
   final app = await pumpApp(
     tester,
@@ -97,13 +98,15 @@ void main() {
     final l10n = _l10n(lang);
     final n = NotebookSamples(lang);
 
-    testWidgets('Home\'s notebook icon opens My notebook: empty, and Only '
-        'you says what it means [$lang]', (tester) async {
+    testWidgets('Home\'s notebook icon opens My notebook: an empty one '
+        'shows New entry, what it is for and + New page [$lang]', (
+      tester,
+    ) async {
       await pumpApp(
         tester,
         language: lang,
         now: NotebookSamples.now,
-        notebook: FakeNotebookRepository(),
+        notebook: FakeNotebookRepository(pages: const []),
       );
       // Review 84 N1: the notebook glyph, never the work item's list-checks.
       final icon = tester.widget<Icon>(
@@ -113,33 +116,46 @@ void main() {
       expect(icon.icon, isNot(BvIcons.workItems));
       await _tap(tester, _key('home-notebook'));
       expect(find.text(l10n.notebookTitle), findsOneWidget);
+      expect(_key('notebook-new-entry'), findsOneWidget);
       expect(_key('notebook-empty'), findsOneWidget);
       expect(find.text(l10n.notebookEmptyTitle), findsOneWidget);
-      await _tap(tester, _key('notebook-only-you'));
-      expect(find.text(l10n.notebookOnlyYouBody), findsOneWidget);
+      expect(_key('notebook-new-page'), findsOneWidget);
     });
 
-    testWidgets('NB1: the pinned band; today\'s to-do, checklist and voice '
-        'note, oldest first, each with its kind and time; yesterday under '
-        'its divider [$lang]', (tester) async {
+    testWidgets('PG4: pinned entries first; then today\'s, newest first, '
+        'each with its kind and time; yesterday under its day [$lang]', (
+      tester,
+    ) async {
       await _open(tester, lang, notes: n.notes());
-      expect(_key('note-pinned-note-pump'), findsOneWidget);
+      final words = DaybookWords(
+        l10n,
+        Localizations.localeOf(
+          tester.element(find.byType(Scaffold).first),
+        ).toLanguageTag(),
+        use24: false,
+      );
+      expect(find.text(l10n.notebookPinnedLabel), findsOneWidget);
       expect(find.text(n.pumpWords), findsOneWidget);
-      // Pinned notes sit on the band only.
-      expect(_key('note-note-pump'), findsNothing);
       double top(String id) => tester.getTopLeft(_key('note-$id')).dy;
-      await tester.drag(_key('notebook-list'), const Offset(0, -300));
+      expect(top('note-pump'), lessThan(top('note-voice')));
+      expect(top('note-voice'), lessThan(top('note-walk')));
+      expect(top('note-walk'), lessThan(top('note-sleeves')));
+      expect(
+        find.text(words.compactDate(DateTime(2026, 10, 15))),
+        findsOneWidget,
+      );
+      await tester.drag(_key('notebook-list'), const Offset(0, -400));
       await tester.pumpAndSettle();
-      expect(top('note-sleeves'), lessThan(top('note-walk')));
-      expect(top('note-walk'), lessThan(top('note-voice')));
-      expect(top('note-voice'), lessThan(top('note-yesterday')));
-      // F106: Today's divider, and yesterday's.
-      expect(find.byType(BvDayDivider), findsNWidgets(2));
-      // The to-do's due, in the action colour's words.
+      expect(top('note-sleeves'), lessThan(top('note-yesterday')));
+      expect(
+        find.text(words.compactDate(DateTime(2026, 10, 14))),
+        findsOneWidget,
+      );
+      // The to-do's kind on its head.
       expect(
         find.descendant(
-          of: _key('note-note-sleeves'),
-          matching: find.textContaining(l10n.notebookTodo),
+          of: _key('note-head-note-sleeves'),
+          matching: find.text(l10n.notebookTodo),
         ),
         findsOneWidget,
       );
@@ -152,7 +168,7 @@ void main() {
       final app = await _open(tester, lang);
       final kept = app.notebook.kept;
 
-      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('page-write'));
       expect(_key('note-writing-card'), findsOneWidget);
       await tester.enterText(_key('note-title'), 'Check the pump hose');
       await tester.pumpAndSettle();
@@ -163,7 +179,7 @@ void main() {
       expect(note.isPage, isTrue);
       expect(note.body, 'Check the pump hose');
 
-      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('page-write'));
       await tester.enterText(_key('note-title'), n.walkTitle);
       await _tap(tester, _key('note-tool-categories'));
       await _tap(tester, _key('note-category-todo'));
@@ -187,7 +203,7 @@ void main() {
           if (b is PageTodo) b.text,
       ], n.walkPoints.take(2));
 
-      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('page-write'));
       await tester.enterText(_key('note-title'), n.sleevesTodo);
       await tester.pumpAndSettle();
       await _tap(tester, _key('note-tool-date'));
@@ -217,17 +233,19 @@ void main() {
     testWidgets('the menu: pin to the top and unpin, edit, and delete asks '
         'first [$lang]', (tester) async {
       final app = await _open(tester, lang, notes: [n.yesterday()]);
-      await tester.longPress(_key('note-note-yesterday'));
+      await tester.tap(_key('note-menu-note-yesterday'));
       await tester.pumpAndSettle();
       expect(_key('note-menu'), findsOneWidget);
       expect(find.text(l10n.notebookPinTop), findsOneWidget);
       await _tap(tester, _key('note-pin'));
       expect(app.notebook.calls, contains('pin:note-yesterday:true'));
-      expect(_key('note-pinned-note-yesterday'), findsOneWidget);
-      await _tap(tester, _key('note-pinned-note-yesterday'));
+      expect(find.text(l10n.notebookPinnedLabel), findsOneWidget);
+      await tester.tap(_key('note-menu-note-yesterday'));
+      await tester.pumpAndSettle();
       expect(find.text(l10n.daybookUnpin), findsOneWidget);
       await _tap(tester, _key('note-pin'));
       expect(app.notebook.calls, contains('pin:note-yesterday:false'));
+      expect(find.text(l10n.notebookPinnedLabel), findsNothing);
       expect(_key('note-note-yesterday'), findsOneWidget);
 
       await _tap(tester, _key('note-note-yesterday'));
@@ -240,13 +258,13 @@ void main() {
         'Door schedule from Lina',
       );
 
-      await tester.longPress(_key('note-note-yesterday'));
+      await tester.tap(_key('note-menu-note-yesterday'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('note-delete'));
       expect(find.text(l10n.notebookDeleteTitle), findsOneWidget);
       await _tap(tester, find.text(l10n.commonCancel));
       expect(_key('note-note-yesterday'), findsOneWidget);
-      await tester.longPress(_key('note-note-yesterday'));
+      await tester.tap(_key('note-menu-note-yesterday'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('note-delete'));
       await _tap(tester, find.text(l10n.delete).last);
@@ -258,7 +276,7 @@ void main() {
         'goes with the next change [$lang]', (tester) async {
       final app = await _open(tester, lang);
       app.notebook.offline = true;
-      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('page-write'));
       await tester.enterText(_key('note-title'), 'Rebar delivery 3 pm');
       await tester.pumpAndSettle();
       await _tap(tester, _key('writing-post'));
@@ -268,7 +286,7 @@ void main() {
       expect(app.prefs.getString('notebook_waiting:user-1'), isNotNull);
 
       app.notebook.offline = false;
-      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('page-write'));
       await tester.enterText(_key('note-title'), 'Crane at 6');
       await tester.pumpAndSettle();
       await _tap(tester, _key('writing-post'));
@@ -292,26 +310,31 @@ void main() {
       expect(app.prefs.getString('notebook_waiting:user-1'), isNull);
     });
 
-    testWidgets('hold the mic: a voice note goes to Storage, then save_note '
-        '[$lang]', (tester) async {
+    testWidgets('hold Voice while writing: a voice block in the entry, its '
+        'recording to Storage, then save_entry [$lang]', (tester) async {
       final app = await _open(tester, lang);
+      await _tap(tester, _key('page-write'));
+      await tester.enterText(_key('note-title'), 'Pump hose');
+      await tester.pumpAndSettle();
       final gesture = await tester.startGesture(
-        tester.getCenter(_key('chat-record')),
+        tester.getCenter(_key('note-tool-voice')),
       );
       await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
       await tester.pump(const Duration(seconds: 3));
       expect(_key('chat-recording'), findsOneWidget);
       await gesture.up();
       await tester.pumpAndSettle();
+      await _tap(tester, _key('writing-post'));
       final upload = app.notebook.calls.firstWhere(
         (c) => c.startsWith('upload:'),
       );
       final id = upload.substring('upload:'.length);
       expect(app.notebook.calls, contains('save:$id'));
-      final voice = app.notebook.kept[id]!;
-      expect(voice.kind, NoteKind.voice);
-      expect(voice.recording?.path, 'user-1/$id/voice.m4a');
-      expect(voice.recording!.durationMs, greaterThanOrEqualTo(3000));
+      final entry = app.notebook.kept[id]!;
+      final voice = entry.blocks!.whereType<PageVoice>().single;
+      expect(voice.path, 'user-1/$id/voice.m4a');
+      expect(voice.durationMs, greaterThanOrEqualTo(3000));
+      expect(entry.pageId, FakeNotebookRepository.myNotesId);
     });
 
     testWidgets('Put in a Space: the Space opens writing a work item from the '
@@ -327,7 +350,7 @@ void main() {
         spaces: _spaces(s),
         daybook: daybook,
       );
-      await tester.longPress(_key('note-note-sleeves'));
+      await tester.tap(_key('note-menu-note-sleeves'));
       await tester.pumpAndSettle();
       expect(find.text(s.spaceName), findsOneWidget);
       // A Viewer can't post work there.
@@ -367,7 +390,7 @@ void main() {
         daybook: FakeDaybookRepository()
           ..posts[DaybookSamples.space] = const [],
       );
-      await tester.longPress(_key('note-note-sleeves'));
+      await tester.tap(_key('note-menu-note-sleeves'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('note-space-${DaybookSamples.space}'));
       expect(find.text(l10n.daybookDraft), findsNothing);
@@ -383,7 +406,7 @@ void main() {
       tester,
     ) async {
       await _open(tester, lang, notes: [n.voice()]);
-      await tester.longPress(_key('note-note-voice'));
+      await tester.tap(_key('note-menu-note-voice'));
       await tester.pumpAndSettle();
       expect(find.text(l10n.dmPutInSpace), findsNothing);
       expect(_key('note-edit'), findsNothing);
@@ -421,7 +444,7 @@ void main() {
     testWidgets('My calendar from the notebook: the week from Sunday with '
         'dots, today\'s rows then Friday\'s, labels, the clip, a Space\'s '
         'colour [$lang]', (tester) async {
-      final app = await _open(tester, lang, rows: n.rows());
+      final app = await _open(tester, lang, rows: n.rows(), path: '/notebook');
       await _tap(tester, _key('notebook-calendar'));
       expect(find.text(l10n.calendarTitle), findsOneWidget);
       expect(find.text(l10n.calendarSubtitle), findsOneWidget);
@@ -454,7 +477,7 @@ void main() {
 
     testWidgets('My calendar: swipe for the next week; an empty week says so '
         '[$lang]', (tester) async {
-      final app = await _open(tester, lang, rows: n.rows());
+      final app = await _open(tester, lang, rows: n.rows(), path: '/notebook');
       await _tap(tester, _key('notebook-calendar'));
       await tester.fling(
         _key('calendar-week'),
@@ -477,6 +500,7 @@ void main() {
         spaces: _spaces(s),
         daybook: FakeDaybookRepository()
           ..posts[DaybookSamples.space] = const [],
+        path: '/notebook',
       );
       await _tap(tester, _key('notebook-calendar'));
       await _tap(tester, _key('calendar-row-note-sleeves'));

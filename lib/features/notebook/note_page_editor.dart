@@ -215,6 +215,7 @@ class NotePageEditor extends ConsumerStatefulWidget {
     required this.onChanged,
     this.onCurrentKind,
     this.titleFocus,
+    this.onMoveLine,
   });
 
   final String title;
@@ -229,6 +230,11 @@ class NotePageEditor extends ConsumerStatefulWidget {
 
   /// The title's focus: the keyboard comes up on it.
   final FocusNode? titleFocus;
+
+  /// Move to page… on the line menu (review 99 A4): a line with its
+  /// children, its level made 0, to become an entry of its own in another
+  /// page; true once it went, and it leaves this note.
+  final Future<bool> Function(List<PageBlock> lines)? onMoveLine;
 
   @override
   ConsumerState<NotePageEditor> createState() => NotePageEditorState();
@@ -245,6 +251,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   static const _duplicate = #duplicate;
   static const _continue = #goOn;
   static const _restart = #restart;
+  static const _movePage = #movePage;
   static const _delete = #delete;
 
   late final _title = TextEditingController(text: widget.title);
@@ -944,6 +951,13 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
             label: l10n.notebookLineRestart,
             icon: BvIcons.restartNumbering,
           ),
+        if (widget.onMoveLine != null)
+          BvMenuItem(
+            key: const Key('page-move-to-page'),
+            value: _movePage,
+            label: l10n.notebookMoveToPage,
+            icon: BvIcons.moveInto,
+          ),
         BvMenuItem(
           key: const Key('page-block-delete'),
           value: _delete,
@@ -1006,11 +1020,36 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
               : continued(editBlocks, index, goOn!),
           ...editBlocks.skip(index + 1),
         ]);
+      case _movePage:
+        _closeMenu();
+        unawaited(_moveToPage(index));
+        return;
       case _delete:
         _closeMenu();
         unawaited(_deleteLine(index));
     }
     focusCurrent();
+  }
+
+  /// Move to page… (A4): the line and its children go, as an entry of
+  /// their own, into the page picked; they leave this note.
+  Future<void> _moveToPage(int index) async {
+    final move = widget.onMoveLine;
+    if (move == null) return;
+    final end = subtreeEnd(editBlocks, index);
+    final group = editBlocks.sublist(index, end);
+    final base = group.first.indent;
+    final moved = await move([
+      for (final b in group) b.atIndent(b.indent - base),
+    ]);
+    if (!mounted || !moved) return;
+    editBlocks = collectBlocks();
+    final at = _indexOf(group.first.id);
+    if (at < 0) return;
+    _set([
+      ...editBlocks.take(at),
+      ...editBlocks.skip(subtreeEnd(editBlocks, at)),
+    ]);
   }
 
   /// Move up or Move down: the line and its children over the whole group

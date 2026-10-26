@@ -192,9 +192,7 @@ class _Hit extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textDirection: directionOf(title),
-                      style: type.labelMd.copyWith(
-                        color: BvColors.textPrimary,
-                      ),
+                      style: type.labelMd.copyWith(color: BvColors.textPrimary),
                     ),
                     if (snippet != null && snippet.isNotEmpty)
                       Text(
