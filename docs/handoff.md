@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 26 Oct 2026, 08:45 Kuwait — reviews 96 and 98 in `slice2-app` (pushed); build 630 waits for the phone's address
+## PC update: 26 Oct 2026, 08:45 Kuwait — reviews 96 and 98 in `slice2-app` (pushed); build 630 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -19,7 +19,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   - Tests: the menu under a line with room; over the line near the bottom; every row in sight; the note scrolling first on a 600-high phone; the `/` card under the line; the title. EN and AR.
 - **NBY1–NBY5** shot again with the keyboard's room kept (left blank, as no test draws a keyboard). They now match the frames: the cards open under the line, all seven rows show, and the title shows no tools. F108 L3 was shot again (menu over a line near the bottom, every row in sight). No other frame changed.
 - **Checks:** analyze clean; 2,047 app tests; 420 screenshots; SQL checks pass (`supabase test db`).
-- **Build 630** (de29fa9; the commit count is 630, one more than the 629 named, because of the fixes' commit) is built. **Not on the founder's phone yet:** 192.168.8.24:35509 refused the connection. The emulator still has the 629 test build.
+- **Build 630** (de29fa9; the commit count is 630, one more than the 629 named, because of the fixes' commit) is **installed on the founder's phone** (192.168.8.24:43367, versionCode 630, BuildVibes only). The emulator still has the 629 test build.
 - **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`); `claude/r96-fix` and `claude/r98` are merged. The worktrees `BuildVibes-r95` and `BuildVibes-hold` can be removed.
 
 ## PC update: 26 Oct 2026, 08:00 Kuwait — review 98: NBY shots taken, emulator checks pass, three differences from Figma; nothing pushed or built
