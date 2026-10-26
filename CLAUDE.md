@@ -105,6 +105,15 @@ The founder's PC, cloud sessions and the lead's chat in the Claude project all w
 - **A cloud session** pushes only to its own `claude/...` branch. The PC merges that branch into the work branch next time.
 - **Live changes** (`supabase db push`, function deploys, project settings) happen only from the PC, with the founder's yes.
 
+## Skills (founder, 26 Oct)
+- **Building (cloud or PC sessions):** use `superpowers:test-driven-development` and `superpowers:verification-before-completion`. Every "done" carries the commands run and their results.
+- **Bugs:** `superpowers:systematic-debugging` before proposing a fix.
+- **The lead's branch checks:** `mattpocock-skills:code-review`, which checks the branch against the repo's rules and against the review that asked for it.
+- **Arabic/RTL and UX checks:** `ux-ui-audit` on prototypes and web builds before a review is signed off.
+- **Big decisions:** `mattpocock-skills:grilling` before a review is written. Specs: `product-management:write-spec`.
+- **Notion is a mirror for the founder only:** the review board and change notes. GitHub stays the one source of truth, and nothing is decided only in Notion.
+- **Not for routine messages:** `superpowers:using-superpowers` and `superpowers:brainstorming`. The founder wants direct work, and a bare "ok" means go.
+
 ## Definition of done for every task
 1. `flutter analyze` shows no issues, and `flutter test` passes.
 2. New logic has tests. Every new table has row-level security, and a test proves a non-member can't read or write it.
