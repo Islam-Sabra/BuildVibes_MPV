@@ -2,6 +2,33 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 26 Oct 2026 — the lead's D1–D13 on `claude/r100-bugs` (from aa1ec48); stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch `claude/r100-bugs` is pushed** (`37462a2`). Not merged, not live, nothing installed. No database change, no migration. The redesign (Parts 0 and 3–8) is not built.
+- **Each fix, test first (EN and AR); each test failed before its fix unless said:**
+  - **D1:** `initState` saved a leftover edit with nothing to compare against. It now opens again in the editor, as the entry was; nothing is sent until Back. Test: `D1: an edit left open …`.
+  - **D2:** `save` first waited for a held change to go out (`releaseHeld` → `_send`), and the Draft was dropped without waiting. Now the held change joins the outbox unsent, the edit is stored, and `saveOnPhone` ends there; the Draft goes after. Test: a delete held on its Undo bar and a call that hangs; the phone's outbox holds the edit.
+  - **D3:** an emptied saved entry was dropped silently. It is now a held delete with "Deleted · Undo", sent when the bar closes. Two tests (it goes; Undo brings it back).
+  - **D4:** a refused edit came back as a new-entry Draft beside its entry. The refusal is now said after the notebook reads again: an entry the server still has comes back as an edit in the editor, with its link; only a new entry comes back as a Draft. A second Back with no change leaves (no loop of refusals). Test: one card, the words in the editor.
+  - **D5:** the room was read under the Scaffold, where the keyboard inset is 0. It is now worked out in the overlay. Test: the line menu on a line in the middle, the keyboard up.
+  - **D6:** room was made for 9 rows, for the line menu only. Now the card as laid out: a card that fits neither under nor over the line stands off the screen while the page scrolls, then shows. Also found and fixed: the card didn't follow the page when it scrolled (it listened to a field's own scrolling), and the "/" card stood by the first line of its field, not the whole field. Test: the "/" card with every kind, on a line in the middle.
+  - **D7:** `kToolbarHeight` is gone: `BvSize.topBar` (56), also the theme's app bar height. Nothing moves. Test (a guard; equal numbers): the bar and the room under it read the token. The frames draw the bar 48: not changed.
+  - **D8:** `+` and Location called `unfocus()`. Removed. Tests: both open with the keyboard up. NBX2's old check (keyboard hidden under the grid) is turned round.
+  - **D9:** `focusBlockNow` on the typed `---`, a kind from "/" or the grid on an empty line, and a toggle's line. **The cause was not reproduced:** the four tests passed before the change too (the late focus still landed before the keyboard could drop). They stay as guards.
+  - **D10:** the entry's ⋯ was inside the card's `InkWell`; it now stands over the card, outside its gestures (holding it is a press, never a selection). Temporary until the redesign.
+  - **D11:** a removed line's focus nodes are disposed (after the frame); Draft cards' keys and title focus are pruned on resume and Discard; the menu's comment is back on its own method; `notebookDraftFirst` removed; «تم الحفظ». Tests for the nodes and the word; the pruning is private and has no test.
+  - **D12 (B6):** the root cause was bigger than the manifest. go_router 18 checks for `material_ui`'s `MaterialApp`, another class than the app's, so every screen was a `NoTransitionPage`: no predictive back and no iPhone edge swipe anywhere. Every route is now Flutter's `MaterialPage` (`_Screen` in `app_router.dart`) and moves with the theme's transitions (Android: predictive back, the Flutter default; iPhone: Cupertino with its swipe). Android: `enableOnBackInvokedCallback`. iPhone: `BvBackSwipe`: where a screen holds Back (the notebook page while writing or selecting, the pages list while selecting, walk, a Space's daybook while writing, the proof camera), a swipe from the leading edge (the right in Arabic) does what ← does; a menu's barrier closes on a swipe as on a tap. Tests (`back_swipe_test.dart`): the order menu → selection → entry (saved in place) → screen, by iPhone swipe and Android system back, and the pages list.
+  - **D13:** the Draft card's ⋯ sheet is marked TEMPORARY in the code.
+- **Found, not fixed (outside this branch):** a heading picked with "/" inside a toggle isn't drawn (the toggle draws only text lines; `hostBlock` has no heading).
+- **Checks (cloud):**
+  - `flutter analyze`: no issues;
+  - `flutter test`: 2,166 pass, 1 fails (photo_privacy H1, root-only in the cloud). The run now takes about 11½ minutes (6½ before): screens have transitions;
+  - screenshots: PC later. Expect changes where a shot shows a moved card (D6's anchor) or the entry's ⋯ (D10, same place).
+- **Next (PC):** `flutter test test_screens` without updating; put before/after in `docs/screens/r100/before-after/` and list them. Check on the emulator: back by swipe with the screen underneath showing, the keyboard under `+` and Location, the "/" card near the keyboard. Then the lead.
+- **Who has which branch:** this cloud session had `claude/r100-bugs` (done, pushed). PC: `slice2-app`.
+
 ## PC update: 26 Oct 2026, 17:00 Kuwait — review 100 bugs B1–B5 on `claude/r100-bugs` (from `slice2-app` 2371559); stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

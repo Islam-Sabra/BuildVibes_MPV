@@ -674,6 +674,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - B5: ⋯ opens at once, one menu at a time; Back closes a card first.
   - Checks: analyze clean; 2,120 app tests; 426 screenshot checks (NBY1, NBY2 and NBW5 changed as the fixes mean).
 
+- **26 Oct, review 100, the lead's D1–D13** (cloud; `claude/r100-bugs`; no database change; not merged):
+  - D1–D4 saving: a leftover edit opens again, nothing sent; the edit is in the outbox before its Draft goes; emptied is a delete with Undo; a refused edit stays an edit.
+  - D5–D9 the keyboard: room for a card worked out with the keyboard counted, for its real height; the card follows its line; `BvSize.topBar`; the keyboard stays up under `+` and Location; the cursor moves at once on every path (D9's cause not reproduced; guarded).
+  - D10–D13: ⋯ its own button; housekeeping; back by swipe everywhere (every route is a MaterialPage: go_router had made them all NoTransitionPage; predictive back; the iPhone's edge swipe where a screen holds Back); the Draft ⋯ marked temporary.
+  - Checks: analyze clean; 2,166 app tests (photo_privacy H1 root-only); screenshots on the PC.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).
