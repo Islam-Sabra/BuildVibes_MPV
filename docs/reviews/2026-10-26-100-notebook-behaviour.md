@@ -14,7 +14,7 @@
 
 His rule for this review: **behaviour first, then Figma, then the build.**
 
-**Status:** draft. These rules come before the Figma frames. The frames follow and need the founder's look; nothing is built until he says yes. The founder is still testing, so more findings may be added.
+**Status:** draft, waiting for the founder's look at frames BH1–BH10 (drawn 26 Oct). Bugs B1–B5 are with Cursor on `claude/r100-bugs`; nothing in Parts 3–8 is built until he says yes.
 
 **Decisions taken (founder, 26 Oct):**
 - long-press = select, with Share · Move · Duplicate · Delete;
@@ -246,15 +246,23 @@ Share opens on one selected entry, or on a line from the line menu (the line wit
 - They ship before the redesign, so the founder's next build is usable while the frames are reviewed.
 - **B5 is ⋯:** it opens at once and only ever opens one menu (Part 1).
 
-## Figma frames (to draw; ids added when drawn)
-EN and AR, 390×844, on "PROTOTYPE · Full app v1 · EN", named "… · R100 · PROPOSAL":
-- BH1 pages list (round New entry, new row text);
-- BH2 an entry selected (selection bar);
-- BH3 an entry's ⋯ card;
-- BH4 Share › with three choices;
-- BH5 the Message preview;
-- BH6 the bar above the keyboard;
-- BH7 the 📎 card;
-- BH8 the `+` block list;
-- BH9 search with chips;
-- BH10 the line menu, placed above the keyboard.
+## Figma frames
+On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL". The EN row is at y 58400 and the AR row at y 59400.
+
+| Frame | EN | AR |
+|---|---|---|
+| BH1 · Pages list: round New entry, "7 entries · today" | `2638:37859` | `2638:37957` |
+| BH2 · An entry selected: Share · Move · Duplicate · Delete | `2639:37911` | `2639:38261` |
+| BH3 · An entry's ⋯ card: header, Pin, Reminder | `2639:38016` | `2639:38366` |
+| BH4 · Share › Feed · Space · Message (same card, no stacking) | `2639:38132` | `2639:38482` |
+| BH5 · Share → Message: preview, GPS off, Cancel / Send | `2642:38161` | `2642:38410` |
+| BH6 · The bar: + · Photo · Add · Voice · Send | `2640:38023` | `2640:38551` |
+| BH7 · 📎 Add: File, Location (set), Date, Reminder (set) | `2640:38122` | `2640:38650` |
+| BH8 · `+` opens the block list (same card as `/`), scrolls inside | `2640:38248` | `2640:38776` |
+| BH9 · Search with kind chips, results by page | `2642:38280` | `2642:38529` |
+| BH10 · The line menu opens above the line (no room below), never under the keyboard | `2640:38416` | `2640:38944` |
+
+**Notes for the build:**
+- **Shortcuts stay left to right.** The shortcuts at the end of the block list's rows (`#`, `[]`, `>`, `---`) are always laid out left to right, also in Arabic. Without that, `>` shows mirrored as `<`.
+- **The pages keep the DS icons.** The design system has no hard hat icon, so BH1 keeps the crane for Site A, as the app's own 12-icon set does.
+- **No mockup for hold-to-record.** The 🎤 hold-to-record follows WhatsApp, as Part 5 describes; its states aren't drawn.
