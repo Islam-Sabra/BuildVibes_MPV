@@ -638,15 +638,18 @@ class Notebook extends AsyncNotifier<NotebookData> {
   }
 
   Future<void> _change(NoteChange change) async {
-    await releaseHeld();
-    state = AsyncData(change.applyTo(state.value ?? NotebookData()));
-    await _queue(change);
+    await _put(change);
+    await _send();
   }
 
-  Future<void> _queue(NoteChange change) async {
+  /// [change] shown and written in the phone's outbox, after a held change
+  /// (which goes first); nothing is sent yet (review 100 D2).
+  Future<void> _put(NoteChange change) async {
+    _releaseHeldUnsent();
+    state = AsyncData(change.applyTo(state.value ?? NotebookData()));
     _waiting = [..._waiting, change];
     await _store();
-    await _send();
+    await _forgetHeld();
   }
 
   /// [change] shows at once but goes only on [releaseHeld] (its Undo bar
@@ -666,14 +669,20 @@ class Notebook extends AsyncNotifier<NotebookData> {
 
   /// The held change goes.
   Future<void> releaseHeld() async {
-    final held = _held;
-    if (held == null) return;
-    _held = null;
-    _beforeHeld = null;
-    _waiting = [..._waiting, held];
+    if (!_releaseHeldUnsent()) return;
     await _store();
     await _forgetHeld();
     await _send();
+  }
+
+  /// The held change joins what waits, not sent yet; false with none.
+  bool _releaseHeldUnsent() {
+    final held = _held;
+    if (held == null) return false;
+    _held = null;
+    _beforeHeld = null;
+    _waiting = [..._waiting, held];
+    return true;
   }
 
   /// The held change is taken back: false when it had already gone.
@@ -701,6 +710,14 @@ class Notebook extends AsyncNotifier<NotebookData> {
       at: ref.read(clockProvider)(),
     ),
   );
+
+  /// [note] saved (an edit left with Back, review 100 D2): the future
+  /// ends once it is written in the phone's outbox, so the Draft may go;
+  /// the sending goes on after.
+  Future<void> saveOnPhone(Note note) async {
+    await _put(NoteChange.save(note, at: ref.read(clockProvider)()));
+    unawaited(_send());
+  }
 
   /// "+ New page", or a sub-page of [NotebookPage.parentId].
   Future<void> newPage(NotebookPage page) => _change(NoteChange.newPage(page));

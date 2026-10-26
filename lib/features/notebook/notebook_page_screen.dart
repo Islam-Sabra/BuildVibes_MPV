@@ -304,7 +304,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
     final note = _noteOf(draft);
     final notebook = ref.read(notebookProvider.notifier);
-    final saving = notebook.save(note);
+    // D2: the Draft goes only once the edit is in the phone's outbox.
+    await notebook.saveOnPhone(note);
     await _drafts.discard(keepFiles: true);
     if (!quiet && mounted) {
       final l10n = AppLocalizations.of(context);
@@ -316,7 +317,6 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         bottom: 0,
       );
     }
-    await saving;
   }
 
   /// The entry to save from [draft]: in its page, with the pin as the

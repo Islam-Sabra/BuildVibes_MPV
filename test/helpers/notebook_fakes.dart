@@ -52,6 +52,10 @@ class FakeNotebookRepository implements NotebookRepository {
   final Map<String, List<String>> files = {};
   bool offline = false;
 
+  /// A call that hangs until it opens (a weak signal): deletePages waits
+  /// for it (review 100 D2).
+  Future<void>? gate;
+
   /// Each call, in order: `save:id`, `delete:id`, `done:id:on`,
   /// `pin:id:on`, `put:note:post`, `upload:id`, `photo:id`, `calendar:month-day`.
   final List<String> calls = [];
@@ -192,6 +196,7 @@ class FakeNotebookRepository implements NotebookRepository {
 
   @override
   Future<void> deletePages(List<String> ids) async {
+    if (gate case final open?) await open;
     _check();
     calls.add('page-delete:${ids.join(',')}');
     ids.forEach(pageKept.remove);

@@ -6,10 +6,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
+import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -206,6 +208,42 @@ void main() {
         await tester.tap(find.text(l10n.daybookUndo));
         await tester.pumpAndSettle();
         expect(app.notebook.kept['entry-1']!.title, 'Pour');
+      });
+
+      testWidgets('D2: Back with a delete on its Undo bar and a call that '
+          'hangs: the edit is in the outbox before the Draft goes', (
+        tester,
+      ) async {
+        final gate = Completer<void>();
+        final app = await _open(tester, lang, notes: [_saved()]);
+        await _tap(tester, _key('note-entry-1'));
+        await tester.enterText(_key('note-title'), 'Pour, level 3');
+        await tester.pumpAndSettle();
+        // A page delete waits on its Undo bar; its call will hang.
+        final c = ProviderScope.containerOf(
+          tester.element(find.byType(Scaffold).first),
+        );
+        await c
+            .read(notebookProvider.notifier)
+            .hold(const NoteChange.deletePages(['page-x']));
+        app.notebook
+          ..gate = gate.future
+          ..offline = true;
+        await tester.binding.handlePopRoute();
+        await tester.pump();
+        await tester.pump();
+        // The app is killed now: what the phone holds must have the edit.
+        final prefs = c.read(sharedPreferencesProvider);
+        final draft = prefs.getString('notebook_draft:user-1');
+        final waiting = prefs.getString('notebook_waiting:user-1') ?? '';
+        expect(
+          waiting.contains('Pour, level 3') ||
+              (draft?.contains('Pour, level 3') ?? false),
+          isTrue,
+          reason: 'waiting: $waiting, draft: $draft',
+        );
+        gate.complete();
+        await tester.pumpAndSettle();
       });
 
       testWidgets('a Draft\'s ⋯: Discard, with Undo', (tester) async {
