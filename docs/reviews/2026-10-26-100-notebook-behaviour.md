@@ -274,12 +274,15 @@ Share opens on one selected entry, or on one selected line (BH12; the line with 
 💬 Message    to one person
 ```
 
-- **Two kinds of place (founder's question, 26 Oct 16:48):**
-  - **The place typed** in the entry (📍 "Gate 2", from 📎 Location) is part of the entry, so it goes with it, and the preview shows it.
-  - **The phone's exact map location** (GPS) never goes unless ticked. The tick reads **"Send the exact map location"** / «أرسل الموقع الدقيق على الخريطة», and it shows only when the entry has one.
-  - The ARB key `notebookIncludeGps` («أرفق إحداثيات GPS») changes to these words everywhere it's used: Put in a Space, Feed, Message. No "GPS" in the app's words.
+- **One location, shown once (founder, 26 Oct 16:50):**
+  - The entry's location is whatever the user added with 📎 Location: typed words, a map pin, or both. Nothing is captured without the user adding it.
+  - **The preview shows it as one line:** "📍 Gate 2 · on the map", where "· on the map" appears only when it includes a pin. A ✕ on that line leaves it out of this share only; the entry keeps it.
+  - There is **no separate GPS tick**, and "GPS" is never in the app's words. Remove `notebookIncludeGps` wherever it's used: Put in a Space, Feed, Message.
+- **The preview's buttons are words with an icon, not boxes:**
+  - "✕ Cancel" in grey at the start, "➤ Send" (or "Post") in the action colour at the end;
+  - the arrow flips in Arabic;
+  - there's no second ✕ in the header.
 - **Every choice shows a preview first,** exactly as the other side will see it, with Post / Send and Cancel. Nothing leaves in one tap.
-  - The GPS position never goes unless "Include my GPS position" is ticked on the preview.
 - **Feed:**
   - the share check "Check it has nothing your client or company wouldn't share.";
   - an optional project tag;
