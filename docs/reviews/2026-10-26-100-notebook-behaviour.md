@@ -348,7 +348,7 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 | BH2 · An entry selected: ✕ · 1 selected on top; Share · Move · Duplicate · Delete at the bottom | `2639:37911` | `2639:38261` |
 | BH3 · Swipe an entry: → Pin · Reminder, ← Archive; "Archived ›" at the page's end | `2639:38016` | `2639:38366` |
 | BH4 · Share › Feed · Space · Message (same card, no stacking) | `2639:38132` | `2639:38482` |
-| BH5 · Share → Message: preview, GPS off, Cancel / Send | `2642:38161` | `2642:38410` |
+| BH5 · Share → Message: preview with one removable location line; ✕ Cancel · ➤ Send as words | `2642:38161` | `2642:38410` |
 | BH6 · The bar: + · Photo · Add · Voice · Send | `2640:38023` | `2640:38551` |
 | BH7 · 📎 Add: File, Location (set), Date, Reminder (set) | `2640:38122` | `2640:38650` |
 | BH8 · `+` opens the block list (same card as `/`), scrolls inside | `2640:38248` | `2640:38776` |
