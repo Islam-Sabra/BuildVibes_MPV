@@ -14,7 +14,7 @@
 
 His rule for this review: **behaviour first, then Figma, then the build.**
 
-**Status:** draft, waiting for the founder's look at frames BH1–BH10 (drawn 26 Oct). Bugs B1–B5 are with Cursor on `claude/r100-bugs`; nothing in Parts 3–8 is built until he says yes.
+**Status:** draft, waiting for the founder's look at frames BH1–BH12 (drawn 26 Oct). Bugs B1–B5 are with Cursor on `claude/r100-bugs`; nothing in Parts 3–8 is built until he says yes.
 
 **Decisions taken (founder, 26 Oct):**
 - long-press = select, with Share · Move · Duplicate · Delete;
@@ -40,12 +40,34 @@ His rule for this review: **behaviour first, then Figma, then the build.**
 
 ---
 
+## Part 0: one product language (founder, 26 Oct 16:45: "maintain the product language and relations")
+Each gesture means one thing, on everything it can act on.
+
+| Gesture | Means | Entry | Line (while writing) | Page |
+|---|---|---|---|---|
+| **Tap** | open or edit | edit it | put the cursor | open it |
+| **Hold** | select, then act from one bar | bottom bar: **Share · Move · Duplicate · Delete** | the bar above the keyboard: **Share · Move · Duplicate · Delete** | bottom bar: Merge · Move · Pin · Delete |
+| **Swipe** | quick personal marks | Pin · Reminder / Archive | — | — |
+| **⋮⋮** | the line's structure | — | Turn into ›, Move up, Move down, Indent, Outdent | — |
+| **⋯** | this screen's own settings | — | — | in a page's top bar: Rename, Icon ›; the notebook has none |
+
+- **No action shows in two places.**
+  - Duplicate, Move and Delete live in the selection bars only. Review 98's line menu loses Duplicate, Delete and Move to page….
+  - Pin lives in the swipe (entries) or the pages' bar (pages).
+- **The same four actions, with the same icons and the same order,** appear wherever one or more things are selected: Share · Move · Duplicate · Delete, Delete last in red.
+- **Discard:**
+  - **While writing a new entry** that was never sent, the top bar's end reads **Discard** («تجاهل», in red), and tapping it shows "Discarded · Undo" for 5 s.
+  - **While editing a saved entry,** there is no Discard: Back saves, and "Saved · Undo" gives the old version back (B2).
+  - **A draft's card** on the page swipes to Discard (Part 3b).
+- **Not in the app:** a bottom sheet of tall rows, or an action hidden behind two menus.
+
 ## Part 1: what each touch does (one rule for the whole notebook)
 
 | Touch | On an entry card | On a page row | While writing, on a line's marker or ⋮⋮ |
 |---|---|---|---|
 | **Tap** | Opens it to edit, with the cursor where you tapped (or at the end) | Opens the page | Puts the cursor there |
-| **Long-press** (500 ms, with a light haptic) | Selects it (Part 3) | Selects it (pages' bar) | Opens the line menu (review 98) |
+| **Long-press** (500 ms, with a light haptic) | Selects it (Part 3) | Selects it (pages' bar) | **On the marker:** selects the line with its children, and the bar above the keyboard becomes Share · Move · Duplicate · Delete (BH12) |
+| **⋮⋮** (tap) | — | — | The line's structure card: Turn into ›, Move up, Move down, Indent, Outdent (BH10) |
 | **Swipe** | Toward the end: Pin · Reminder. Toward the start: Archive (Part 3b) | — | — |
 | **⋯** | — (no ⋯ on entries) | The page's settings card: Rename, Icon, Pin | — |
 
@@ -218,7 +240,7 @@ Used for:
   - with Reduce motion on, it only fades.
 - **A row that leads on** (›) turns the same card into its next level, with a ‹ back row at the top. It never stacks a second card.
 - **Rows that can't act are hidden,** as in review 98.
-- **The page's ⋯ card:** Rename, Icon ›, Pin / Unpin.
+- **The page's ⋯ card:** Rename, Icon ›. Pin is in the pages' selection bar (PG5), so it isn't repeated here.
 
 ## Part 5: the bar above the keyboard, and `+`
 
@@ -243,7 +265,7 @@ Used for:
 
 ## Part 6: Share (replaces review 99 B1's menu)
 
-Share opens on one selected entry, or on a line from the line menu (the line with the lines under it). The card turns into its three choices:
+Share opens on one selected entry, or on one selected line (BH12; the line with the lines under it). The card turns into its three choices:
 
 ```
 ‹ Share
@@ -324,8 +346,9 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 | BH7 · 📎 Add: File, Location (set), Date, Reminder (set) | `2640:38122` | `2640:38650` |
 | BH8 · `+` opens the block list (same card as `/`), scrolls inside | `2640:38248` | `2640:38776` |
 | BH9 · Filter card from the top bar: Show (one choice) · In (page) | `2647:38235` | `2647:38391` |
+| BH12 · Hold a line's marker: the line is selected; the bar above the keyboard becomes ✕ · Share · Move · Duplicate · Delete | `2654:38281` | `2654:38447` |
 | BH11 · Filtered list: "To-dos open ✕" · "All pages ▾", results by page | `2642:38280` | `2642:38529` |
-| BH10 · The line menu opens above the line (no room below), never under the keyboard | `2640:38416` | `2640:38944` |
+| BH10 · Tap ⋮⋮: Turn into · Move up/down · Indent/Outdent only; opens above the line, never under the keyboard | `2640:38416` | `2640:38944` |
 
 **Notes for the build:**
 - **Shortcuts stay left to right.** The shortcuts at the end of the block list's rows (`#`, `[]`, `>`, `---`) are always laid out left to right, also in Arabic. Without that, `>` shows mirrored as `<`.
