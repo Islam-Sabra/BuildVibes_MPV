@@ -46,11 +46,17 @@ Each gesture means one thing, on everything it can act on.
 | Gesture | Means | Entry | Line (while writing) | Page |
 |---|---|---|---|---|
 | **Tap** | open or edit | edit it | put the cursor | open it |
-| **Hold** | select, then act from one bar | bottom bar: **Share · Move · Duplicate · Delete** | the bar above the keyboard: **Share · Move · Duplicate · Delete** | bottom bar: Merge · Move · Pin · Delete |
+| **Hold** | select, then act from one bar | bottom bar: **Share · Move · Duplicate · Delete** | **the line's start** (its number, bullet, box, or the empty start strip on a plain line): the keyboard goes down on purpose, and the same bottom bar shows **Share · Move · Duplicate · Delete** | bottom bar: Merge · Move · Pin · Delete |
 | **Swipe** | quick personal marks | Pin · Reminder / Archive | — | — |
 | **⋮⋮** | the line's structure | — | Turn into ›, Move up, Move down, Indent, Outdent | — |
 | **⋯** | this screen's own settings | — | — | in a page's top bar: Rename, Icon ›; the notebook has none |
 
+- **Lines: the start versus the words** (founder, 26 Oct 16:55–16:58):
+  - **Holding the words** opens the phone's own text menu (Select, Select All, Copy, Paste, Look Up…), unchanged. Nothing is added to it or removed from it.
+  - **Holding a line's start** selects the line with its children. The start is a strip about a finger wide: the marker, or, on a plain line or heading, an empty strip that shows a faint dot under the finger.
+  - **A text selection** dragged across several lines stays a text selection; it never turns into a line selection under the finger.
+  - **More lines:** tap other lines' starts to add them. ✕ ends the selection and brings the keyboard back on the line you were writing.
+  - **Hold and let go** selects. **Hold and move** will lift the line to drag it, in the drag review later; the rule is fixed now, so the two never clash.
 - **No action shows in two places.**
   - Duplicate, Move and Delete live in the selection bars only. Review 98's line menu loses Duplicate, Delete and Move to page….
   - Pin lives in the swipe (entries) or the pages' bar (pages).
@@ -352,7 +358,7 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 | BH7 · 📎 Add: File, Location (set), Date, Reminder (set) | `2640:38122` | `2640:38650` |
 | BH8 · `+` opens the block list (same card as `/`), scrolls inside | `2640:38248` | `2640:38776` |
 | BH9 · Filter card from the top bar: Show (one choice) · In (page) | `2647:38235` | `2647:38391` |
-| BH12 · Hold a line's marker: the line is selected; the bar above the keyboard becomes ✕ · Share · Move · Duplicate · Delete | `2654:38281` | `2654:38447` |
+| BH12 · Hold a line's start: the line is selected, the keyboard goes down, ✕ · 1 line selected on top, Share · Move · Duplicate · Delete at the bottom; the start strip on a plain line | `2654:38281` | `2654:38447` |
 | BH11 · Filtered list: "To-dos open ✕" · "All pages ▾", results by page | `2642:38280` | `2642:38529` |
 | BH10 · Tap ⋮⋮: Turn into · Move up/down · Indent/Outdent only; opens above the line, never under the keyboard | `2640:38416` | `2640:38944` |
 
