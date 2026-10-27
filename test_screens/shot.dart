@@ -193,3 +193,10 @@ class _Keyboard extends StatelessWidget {
     ),
   );
 }
+
+/// The text cursor drawn the same way on every run, never caught mid-blink
+/// (review 100, the lead's third check), for this test only.
+void steadyCursor() {
+  EditableText.debugDeterministicCursor = true;
+  addTearDown(() => EditableText.debugDeterministicCursor = false);
+}

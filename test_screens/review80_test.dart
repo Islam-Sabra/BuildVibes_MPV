@@ -317,6 +317,7 @@ void main() {
     });
 
     testWidgets('F78 New message from Messages [$lang]', (tester) async {
+      steadyCursor();
       await pumpApp(
         tester,
         language: lang,

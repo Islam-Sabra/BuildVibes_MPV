@@ -160,6 +160,7 @@ void main() {
     });
 
     testWidgets('NBX2 categories: a grid, like Notion [$lang]', (tester) async {
+      steadyCursor();
       await _open(tester, lang, _pump(lang));
       await _tap(tester, _key('note-tool-categories'));
       await _snap(tester, 'NBX2-categories', lang);
