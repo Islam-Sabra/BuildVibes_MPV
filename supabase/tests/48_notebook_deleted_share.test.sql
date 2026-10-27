@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(131);
+select plan(149);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000048' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -366,6 +366,91 @@ select throws_ok($$select pg_temp.found('', 'todos_open', pg_temp.id('e001'))$$,
 select is(pg_temp.found('', 'todos_open'), '{}', 'his own Filter has none of Omar''s');
 select throws_ok($$select public.purge_notebook()$$, '42501', null, 'nor run the purge');
 
+reset role;
+
+-- Download my data (F1) --------------------------------------------------------------------------
+
+-- Omar's export: archive b003 so it appears under archived.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select lives_ok($$select public.archive_note(pg_temp.id('b003'))$$, 'b003 archived for the export');
+select set_config('test.req48', public.request_my_data()::text, true);
+reset role;
+
+-- F1: pages
+select ok(public.export_my_data(current_setting('test.req48')::uuid) ? 'notebook_pages',
+  'the export has pages');
+select ok(jsonb_array_length(public.export_my_data(current_setting('test.req48')::uuid) -> 'notebook_pages') >= 2,
+  'at least two pages (Site A and the Arabic one)');
+select ok(exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'notebook_pages') p
+  where p ->> 'title' = 'Site A – Tower' and p ? 'icon' and p ? 'pinned'),
+  'each page has its title, icon and pinned');
+select ok(exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'notebook_pages') p
+  where p ->> 'parent_id' is not null),
+  'and its parent when it has one');
+
+-- F1: each entry's page
+select ok(exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'notes') n
+  where n ->> 'page_id' is not null),
+  'each entry carries its page');
+
+-- F1: Deleted items, with when each was deleted
+select ok(exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'notes') n
+  where n ->> 'deleted_at' is not null),
+  'deleted entries carry deleted_at');
+
+-- F1: archived entries
+select ok(exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'notes') n
+  where n ->> 'archived_at' is not null),
+  'archived entries carry archived_at');
+
+-- F1: keep-days choice
+select is(public.export_my_data(current_setting('test.req48')::uuid)
+          -> 'private' ->> 'notebook_keep_days', '7',
+  'the keep-days choice is in the export');
+
+-- F1: share records
+select ok(public.export_my_data(current_setting('test.req48')::uuid) ? 'note_shares',
+  'the export has share records');
+select ok(jsonb_array_length(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'note_shares') >= 1,
+  'with at least one share');
+select ok(exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'note_shares') s
+  where s ? 'target' and s ? 'created_at'),
+  'each share has its target and when');
+select ok(exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48')::uuid) -> 'note_shares') s
+  where s ->> 'target_name' is not null),
+  'and the Space or person''s name');
+
+-- F1: none of anyone else's
+select pg_temp.as_user('b2');
+set local role authenticated;
+select set_config('test.req48b', public.request_my_data()::text, true);
+reset role;
+select ok(public.export_my_data(current_setting('test.req48b')::uuid) ? 'notebook_pages',
+  'Rakesh''s export has the pages key');
+select is(jsonb_array_length(
+    public.export_my_data(current_setting('test.req48b')::uuid) -> 'notebook_pages'), 1,
+  'only his own page (My notes)');
+select is(jsonb_array_length(
+    public.export_my_data(current_setting('test.req48b')::uuid) -> 'note_shares'), 0,
+  'none of Omar''s shares');
+select ok(not exists (select 1 from jsonb_array_elements(
+    public.export_my_data(current_setting('test.req48b')::uuid) -> 'notes') n
+  where (n ->> 'page_id')::uuid in (pg_temp.id('e001'), pg_temp.id('e003'))),
+  'none of Omar''s entries');
+
+-- Undo the archive so the state is left clean.
+select pg_temp.as_user('a1');
+set local role authenticated;
+select lives_ok($$select public.unarchive_note(pg_temp.id('b003'))$$, 'b003 unarchived');
 reset role;
 
 select * from finish();

@@ -1223,6 +1223,164 @@ end;
 $function$;
 
 -- ---------------------------------------------------------------------------
+-- Download my data (F1): pages, each entry's page, Deleted items, archived
+-- entries, the keep-days choice and share records.
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.export_my_data(p_request uuid)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select jsonb_build_object(
+    'exported_at', now(),
+    'profile', (select to_jsonb(p) - 'follower_count' - 'following_count'
+                from public.profiles p where p.id = r.profile_id),
+    'private', (select to_jsonb(pp) from public.profile_private pp where pp.id = r.profile_id),
+    'experience', coalesce((select jsonb_agg(to_jsonb(e)) from public.experience e
+                            where e.profile_id = r.profile_id), '[]'),
+    'open_to', coalesce((select jsonb_agg(to_jsonb(o)) from public.profile_open_to o
+                         where o.profile_id = r.profile_id), '[]'),
+    'cv_projects', coalesce((select jsonb_agg(to_jsonb(c)) from public.cv_projects c
+                             where c.profile_id = r.profile_id), '[]'),
+    'following', coalesce((select jsonb_agg(f.followee_id) from public.follows f
+                           where f.follower_id = r.profile_id), '[]'),
+    'posts', coalesce((select jsonb_agg(jsonb_build_object(
+                         'id', po.id, 'body', po.body, 'lang', po.lang,
+                         'created_at', po.created_at, 'deleted_at', po.deleted_at))
+                       from public.posts po where po.author_id = r.profile_id), '[]'),
+    'replies', coalesce((select jsonb_agg(jsonb_build_object(
+                           'id', pr.id, 'post_id', pr.post_id, 'body', pr.body,
+                           'created_at', pr.created_at))
+                         from public.post_replies pr where pr.author_id = r.profile_id), '[]'),
+    'spaces', coalesce((select jsonb_agg(jsonb_build_object(
+                          'space', s.name, 'pass', m.pass, 'admin', m.is_admin,
+                          'joined_at', m.confirmed_at, 'left_at', m.left_at))
+                        from public.space_members m join public.spaces s on s.id = m.space_id
+                        where m.profile_id = r.profile_id), '[]'),
+    'work_items_raised', coalesce((select jsonb_agg(jsonb_build_object(
+                                     'ref', w.ref, 'title', w.title, 'status', w.status,
+                                     'created_at', w.created_at))
+                                   from public.work_items w where w.created_by = r.profile_id), '[]'),
+    'work_items_owned', coalesce((select jsonb_agg(jsonb_build_object(
+                                    'ref', w.ref, 'title', w.title, 'status', w.status,
+                                    'checked_at', w.checked_at))
+                                  from public.work_items w where w.owner_id = r.profile_id), '[]'),
+    'messages', coalesce((select jsonb_agg(jsonb_build_object(
+                            'id', ms.id, 'kind', ms.kind, 'body', ms.body,
+                            'created_at', ms.created_at))
+                          from public.messages ms where ms.author_id = r.profile_id), '[]'),
+    'work_item_notes', coalesce((select jsonb_agg(jsonb_build_object(
+                                   'ref', w.ref, 'kind', e.kind, 'note', e.note,
+                                   'created_at', e.created_at))
+                                 from public.work_item_events e
+                                 join public.work_items w on w.id = e.work_item_id
+                                 where e.actor_id = r.profile_id and e.note is not null), '[]'),
+    'library_files', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'space', s.name, 'name', f.name, 'created_at', f.created_at,
+                                 'deleted_at', f.deleted_at))
+                               from public.library_files f join public.spaces s on s.id = f.space_id
+                               where f.uploaded_by = r.profile_id), '[]'),
+    'blocked', coalesce((select jsonb_agg(jsonb_build_object(
+                           'profile_id', b.blocked_id, 'created_at', b.created_at))
+                         from public.blocks b where b.blocker_id = r.profile_id), '[]'),
+    'muted', coalesce((select jsonb_agg(jsonb_build_object(
+                         'profile_id', mu.muted_id, 'created_at', mu.created_at))
+                       from public.mutes mu where mu.muter_id = r.profile_id), '[]'),
+    'useful_marks', coalesce((select jsonb_agg(jsonb_build_object(
+                                'target_kind', u.target_kind, 'target_id', u.target_id,
+                                'created_at', u.created_at))
+                              from public.useful_marks u where u.profile_id = r.profile_id), '[]'),
+    'reports_made', coalesce((select jsonb_agg(jsonb_build_object(
+                                'target_kind', rp.target_kind, 'reason', rp.reason, 'note', rp.note,
+                                'status', rp.status, 'created_at', rp.created_at))
+                              from public.reports rp where rp.reporter_id = r.profile_id), '[]'),
+    'join_requests', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'space', s.name, 'via', j.via, 'status', j.status,
+                                 'created_at', j.created_at))
+                               from public.space_join_requests j join public.spaces s on s.id = j.space_id
+                               where j.profile_id = r.profile_id), '[]'),
+    'space_posts', coalesce((select jsonb_agg(jsonb_build_object(
+                              'kind', p.kind, 'title', p.title, 'body', p.body,
+                              'place', p.place_text, 'due_date', p.due_date, 'due_at', p.due_at,
+                              'quote', p.quote, 'status', p.status,
+                              'pinned_until', p.pinned_until, 'starts_at', p.starts_at,
+                              'ends_at', p.ends_at,
+                              'file', (select f.name from public.library_files f
+                                       where f.id = p.library_file_id),
+                              'blocks', p.blocks, 'template_id', p.template_id,
+                              'created_at', p.created_at, 'deleted_at', p.deleted_at))
+                            from public.space_posts p where p.author_id = r.profile_id), '[]'),
+    'post_edits', coalesce((select jsonb_agg(jsonb_build_object(
+                             'changes', e.changes, 'created_at', e.created_at))
+                           from public.post_edits e where e.editor_id = r.profile_id), '[]'),
+    'post_acks', coalesce((select jsonb_agg(jsonb_build_object(
+                            'post', p.title, 'kind', a.kind, 'created_at', a.created_at))
+                          from public.post_acks a join public.space_posts p on p.id = a.post_id
+                          where a.profile_id = r.profile_id), '[]'),
+    'checklist_ticks', coalesce((select jsonb_agg(jsonb_build_object(
+                                  'point', c.text, 'ticked_at', c.ticked_at))
+                                from public.checklist_points c where c.ticked_by = r.profile_id), '[]'),
+    'tick_log', coalesce((select jsonb_agg(jsonb_build_object(
+                           'post', p.title, 'kind', t.kind, 'point', t.point_text,
+                           'created_at', t.created_at) order by t.created_at, t.id)
+                         from public.post_point_events t join public.space_posts p on p.id = t.post_id
+                         where t.actor_id = r.profile_id), '[]'),
+    'post_people', coalesce((select jsonb_agg(jsonb_build_object(
+                              'post', p.title, 'created_at', pp.created_at))
+                            from public.post_people pp join public.space_posts p on p.id = pp.post_id
+                            where pp.profile_id = r.profile_id), '[]'),
+    'notebook_pages', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'id', np.id, 'title', np.title, 'icon', np.icon,
+                                 'parent_id', np.parent_id, 'pinned', np.pinned,
+                                 'deleted_at', np.deleted_at,
+                                 'created_at', np.created_at))
+                               from public.notebook_pages np where np.owner_id = r.profile_id), '[]'),
+    'notes', coalesce((select jsonb_agg(jsonb_build_object(
+                        'kind', n.kind, 'title', n.title, 'body', n.body, 'points', n.points,
+                        'blocks', n.blocks, 'location_text', n.location_text,
+                        'location_lat', n.location_lat, 'location_lng', n.location_lng,
+                        'due_at', n.due_at, 'done_at', n.done_at, 'pinned', n.pinned,
+                        'remind_at', n.remind_at,
+                        'page_id', n.page_id,
+                        'deleted_at', n.deleted_at,
+                        'archived_at', n.archived_at,
+                        'created_at', n.created_at,
+                        'files', (select jsonb_agg(f.storage_path order by f.sort)
+                                  from public.note_files f where f.note_id = n.id)))
+                      from public.notes n where n.owner_id = r.profile_id), '[]'),
+    'note_shares', coalesce((select jsonb_agg(jsonb_build_object(
+                              'note_id', ns.note_id, 'target', ns.target,
+                              'target_name', ns.target_name,
+                              'space_post_id', ns.space_post_id,
+                              'feed_post_id', ns.feed_post_id,
+                              'dm_thread_id', ns.dm_thread_id,
+                              'created_at', ns.created_at))
+                            from public.note_shares ns where ns.owner_id = r.profile_id), '[]'),
+    'post_templates', coalesce((select jsonb_agg(jsonb_build_object(
+                                 'name', t.name, 'kind', t.kind, 'blocks', t.blocks,
+                                 'fields', t.fields, 'created_at', t.created_at,
+                                 'deleted_at', t.deleted_at))
+                               from public.post_templates t where t.created_by = r.profile_id), '[]'),
+    'dm_messages', coalesce((select jsonb_agg(jsonb_build_object(
+                              'thread_id', d.thread_id, 'kind', d.kind, 'body', d.body,
+                              'created_at', d.created_at, 'deleted_at', d.deleted_at,
+                              'files', (select jsonb_agg(a.name) from public.dm_attachments a
+                                        where a.message_id = d.id)))
+                            from public.dm_messages d where d.author_id = r.profile_id), '[]'),
+    'dm_threads', coalesce((select jsonb_agg(jsonb_build_object(
+                             'thread_id', m.thread_id, 'state', m.state,
+                             'created_at', t.created_at))
+                           from public.dm_members m join public.dm_threads t on t.id = m.thread_id
+                           where m.profile_id = r.profile_id), '[]'),
+    'push_settings', (select to_jsonb(ps) from public.push_settings ps where ps.profile_id = r.profile_id)
+  )
+  from public.data_requests r
+  where r.id = p_request;
+$function$;
+
+-- ---------------------------------------------------------------------------
 -- Grants
 -- ---------------------------------------------------------------------------
 
