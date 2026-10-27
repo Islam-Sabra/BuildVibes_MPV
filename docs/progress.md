@@ -684,6 +684,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The theme names Android's predictive back and the iPhone's swipe transitions; a test checks both. They were already Flutter 3.44's defaults.
   - **Checks:** analyze clean; 2,168 app tests; test_screens 420 pass and 6 change (cursor caught in F78 and NBX2, a pixel in NBY1 ar and PG4 ar, from D5/D6/D10); not accepted, before/after in `docs/screens/r100/before-after/`.
 
+- **27 Oct, review 100 bugs merged** (founder's yes):
+  - The text cursor is drawn steadily in the F78 and NBX2 shots; those four and NBY1 (AR) / PG4 (AR) are accepted.
+  - `claude/r100-bugs` merged into `slice2-app` (68af86d): analyze clean; 2,168 app tests; 426 screenshot checks.
+  - Build 659 (versionCode 659) is made, with a copy on the PC's Desktop; the install on the founder's phone waits for its wireless-debugging address.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

@@ -2,6 +2,24 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 27 Oct 2026 — review 100 bugs merged into `slice2-app`; build 659 made; the install waits for the phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **The lead's third check is applied on `claude/r100-bugs`:**
+  - **The text cursor:** F78-new-message (EN, AR) and NBX2-categories (EN, AR) now draw it steadily (`steadyCursor()` in `test_screens/shot.dart`, which sets `EditableText.debugDeterministicCursor`). Their shots came out identical on two runs and are accepted.
+  - **NBY1-slash-num (AR) and PG4-page (AR)** are accepted as they are.
+  - **Not done as written:** the setting is scoped to those two tests. In `test_screens`' test config it would change **58 shots**, because every shot with a focused field would draw its cursor. That is for the lead to decide.
+- **Merge:** `claude/r100-bugs` merged into `slice2-app` (a fast-forward to 68af86d) and pushed. Checks on the merged branch:
+  - `flutter analyze`: no issues;
+  - `flutter test`: 2,168 pass;
+  - `flutter test test_screens` (not updating): 426 pass.
+  - No database change.
+- **Build 659** (68af86d, versionCode 659, versionName 0.9.0) is built.
+  - **A copy is on the PC's Desktop:** `C:\Users\PathFinder\Desktop\BuildVibes-659-test.apk`. Same file (hash checked); not uploaded or emailed.
+  - **Not yet installed on the founder's phone.** It isn't connected: the last address, 192.168.8.24:43367, refuses. The only other device the PC sees, 192.168.8.2:5555 (serial 0123456789ABCDEF), isn't his phone and wasn't touched. It needs the phone's new wireless-debugging address.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`). `claude/r100-bugs` is merged; the worktree `BuildVibes-r100` can be removed.
+
 ## PC update: 27 Oct 2026 — review 100 E1 on `claude/r100-bugs`; shots run, 6 change, none accepted; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
