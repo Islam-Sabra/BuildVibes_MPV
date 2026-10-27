@@ -5172,4 +5172,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookDraftDiscarded => 'تم تجاهل المسودة';
+
+  @override
+  String get notebookCopyMark => 'نسخة';
+
+  @override
+  String notebookLinesSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count سطرًا',
+      few: 'تم تحديد $count أسطر',
+      two: 'تم تحديد سطرين',
+      one: 'تم تحديد سطر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookShare => 'مشاركة';
+
+  @override
+  String get notebookMove => 'نقل';
 }

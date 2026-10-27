@@ -5157,4 +5157,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookDraftDiscarded => 'Draft discarded';
+
+  @override
+  String get notebookCopyMark => 'Copy';
+
+  @override
+  String notebookLinesSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lines selected',
+      one: '1 line selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookShare => 'Share';
+
+  @override
+  String get notebookMove => 'Move';
 }

@@ -65,6 +65,13 @@ abstract final class BvNoteWritingSpec {
 /// 2619:37151), the additions at the slip's end (NBX3) and the saved
 /// slip's lines.
 abstract final class BvNoteBlocksSpec {
+  /// A line's start (review 100 Part 0, BH12): a strip a finger wide held
+  /// to select the line, its faint dot under the finger; a selected line
+  /// tinted on 6 round.
+  static const startStrip = BvSize.iconLg;
+  static const startDot = 6.0;
+  static const pickedRadius = BorderRadius.all(Radius.circular(BvRadius.small));
+
   /// The slip's parts stand 10 apart (NBX1 "Slip · Being written").
   static const slipGap = 10.0;
 

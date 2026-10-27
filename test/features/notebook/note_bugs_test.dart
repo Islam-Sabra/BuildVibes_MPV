@@ -692,7 +692,7 @@ class _RefusingEdits extends FakeNotebookRepository {
   _RefusingEdits({super.notes});
 
   @override
-  Future<bool> save(Note note, {String? newPageTitle}) async {
+  Future<bool> save(Note note, {String? newPageTitle, int? baseVersion}) async {
     calls.add('save:${note.id}');
     throw const SpaceException(SpaceFailure.badInput);
   }

@@ -187,10 +187,11 @@ class NoteDraft {
     NoteLocation? Function()? location,
     String? Function()? pageId,
     String? Function()? newPageId,
+    Note? Function()? editing,
   }) => NoteDraft(
     id: id,
     startedAt: startedAt,
-    editing: editing,
+    editing: editing == null ? this.editing : editing(),
     title: title ?? this.title,
     blocks: blocks ?? this.blocks,
     dueAt: dueAt == null ? this.dueAt : dueAt(),

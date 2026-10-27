@@ -142,6 +142,8 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
     this.onCurrentKind,
     this.chip,
     this.onMoveLine,
+    this.onLinesSelected,
+    this.onLinesDeleted,
     this.shown,
     this.onMenu,
   });
@@ -161,6 +163,10 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
 
   /// The line menu's Move to page… (review 99 A4).
   final Future<bool> Function(List<PageBlock> lines)? onMoveLine;
+
+  /// Lines selected and deleted while writing (review 100 BH12).
+  final ValueChanged<int>? onLinesSelected;
+  final void Function(List<String> lines, Future<bool> kept)? onLinesDeleted;
 
   /// A Draft put aside, shown read only (review 100 B3); null: the one in
   /// hand.
@@ -258,6 +264,8 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
             onChanged: (blocks) => _put((d) => d.copyWith(blocks: blocks)),
             onCurrentKind: widget.onCurrentKind,
             onMoveLine: widget.onMoveLine,
+            onLinesSelected: widget.onLinesSelected,
+            onLinesDeleted: widget.onLinesDeleted,
           ),
           NoteAdditions(
             draft: draft,

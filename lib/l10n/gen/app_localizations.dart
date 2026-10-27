@@ -8671,6 +8671,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draft discarded'**
   String get notebookDraftDiscarded;
+
+  /// Review 100 Part 3: the mark on an entry made by Duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get notebookCopyMark;
+
+  /// Review 100 BH12: the top bar while lines of the entry being written are selected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 line selected} other{{count} lines selected}}'**
+  String notebookLinesSelected(int count);
+
+  /// Review 100 Part 0: the selection bar's first action.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get notebookShare;
+
+  /// Review 100 Part 0: the selection bar's Move (to another page).
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get notebookMove;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/notebook_page.dart';
+import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
 
@@ -71,9 +72,19 @@ class FakeNotebookRepository implements NotebookRepository {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
+  /// The version each entry's last save started from (an edit's).
+  final Map<String, int> bases = {};
+
   @override
-  Future<bool> save(Note note, {String? newPageTitle}) async {
+  Future<bool> save(Note note, {String? newPageTitle, int? baseVersion}) async {
     _check();
+    if (baseVersion != null) {
+      bases[note.id] = baseVersion;
+      final now = kept[note.id];
+      if (now != null && now.version != baseVersion) {
+        throw const SpaceException(SpaceFailure.conflict);
+      }
+    }
     calls.add(
       newPageTitle == null
           ? 'save:${note.id}'
@@ -94,7 +105,11 @@ class FakeNotebookRepository implements NotebookRepository {
       files[note.id] = [for (final p in note.photos) ?p.path];
     }
     final before = kept[note.id];
-    kept[note.id] = note.copyWith(waiting: false, doneAt: () => before?.doneAt);
+    kept[note.id] = note.copyWith(
+      waiting: false,
+      doneAt: () => before?.doneAt,
+      version: (before?.version ?? 0) + 1,
+    );
     return true;
   }
 
@@ -216,6 +231,50 @@ class FakeNotebookRepository implements NotebookRepository {
     calls.add('delete:${note.id}');
     kept.remove(note.id);
     deleted.add(note.id);
+  }
+
+  @override
+  Future<void> deleteEntries(List<String> ids) async {
+    _check();
+    calls.add('delete-entries:${ids.join(',')}');
+    for (final id in ids) {
+      final n = kept[id];
+      if (n != null && n.deletedAt == null) {
+        kept[id] = n.copyWith(deletedAt: () => DateTime(2026, 10, 15, 12));
+      }
+    }
+  }
+
+  @override
+  Future<void> deleteLines(
+    String noteId,
+    List<String> lines,
+    String part,
+  ) async {
+    _check();
+    calls.add('delete-lines:$noteId:${lines.join(',')}:$part');
+    final n = kept[noteId];
+    if (n == null) return;
+    final gone = lines.toSet();
+    final blocks = n.blocks ?? const <PageBlock>[];
+    kept[noteId] = n.copyWith(
+      blocks: [
+        for (final b in blocks)
+          if (!gone.contains(b.id)) b,
+      ],
+      version: n.version + 1,
+    );
+    kept[part] = Note(
+      id: part,
+      kind: NoteKind.text,
+      createdAt: n.createdAt,
+      blocks: [
+        for (final b in blocks)
+          if (gone.contains(b.id)) b,
+      ],
+      pageId: n.pageId,
+      deletedAt: DateTime(2026, 10, 15, 12),
+    );
   }
 
   @override

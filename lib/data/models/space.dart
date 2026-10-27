@@ -446,6 +446,10 @@ enum SpaceFailure {
 
   /// 54000: a Space has all it may hold (50 templates).
   limit,
+
+  /// 40001: changed elsewhere since this phone read it (an entry edited on
+  /// another phone, migration 48).
+  conflict,
   network,
   unknown,
 }

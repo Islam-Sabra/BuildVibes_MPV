@@ -22,8 +22,10 @@ abstract class NotebookRepository {
   /// save_entry (review 99A): new or mine, under the id the app chose (a
   /// retry is the same note), into its page; [newPageTitle] makes that page
   /// with it, titled from it and marked new. False when the note was
-  /// deleted: the app drops its edit.
-  Future<bool> save(Note note, {String? newPageTitle});
+  /// deleted: the app drops its edit. [baseVersion]: the version an edit
+  /// of a saved entry started from (migration 48); an older one is refused
+  /// ("changed on another phone").
+  Future<bool> save(Note note, {String? newPageTitle, int? baseVersion});
 
   /// My pages that aren't deleted (notebook_pages, owner only).
   Future<List<NotebookPage>> pages();
@@ -61,8 +63,17 @@ abstract class NotebookRepository {
   Future<List<NotebookHit>> search(String query);
 
   /// delete_note, then its recording or photos from Storage (the cleanup
-  /// takes any file left behind).
+  /// takes any file left behind). Only an older phone's outbox still sends
+  /// it; a delete now goes to Deleted items ([deleteEntries]).
   Future<void> delete(Note note);
+
+  /// delete_entries (99B B3): my entries to Deleted items; sent again, the
+  /// same.
+  Future<void> deleteEntries(List<String> ids);
+
+  /// delete_note_lines (99B B3): [lines] of my entry [noteId] (a line with
+  /// the lines under it) to Deleted items as "Part of an entry", [part].
+  Future<void> deleteLines(String noteId, List<String> lines, String part);
 
   /// set_note_done: a to-do only.
   Future<void> setDone(String id, {required bool on});
@@ -151,8 +162,16 @@ class SupabaseNotebookRepository implements NotebookRepository {
   });
 
   @override
-  Future<bool> save(Note note, {String? newPageTitle}) => _guard(() async {
-    final page = {'p_page': note.pageId, 'p_new_page_title': newPageTitle};
+  Future<bool> save(
+    Note note, {
+    String? newPageTitle,
+    int? baseVersion,
+  }) => _guard(() async {
+    final page = {
+      'p_page': note.pageId,
+      'p_new_page_title': newPageTitle,
+      'p_base_version': ?baseVersion,
+    };
     final blocks = note.blocks;
     if (blocks != null) {
       // F107: a page, with its title, blocks, date, location, photos,
@@ -335,6 +354,19 @@ class SupabaseNotebookRepository implements NotebookRepository {
       // The cleanup takes it.
     }
   });
+
+  @override
+  Future<void> deleteEntries(List<String> ids) =>
+      _guard(() => _client.rpc<void>('delete_entries', params: {'p_ids': ids}));
+
+  @override
+  Future<void> deleteLines(String noteId, List<String> lines, String part) =>
+      _guard(
+        () => _client.rpc<void>(
+          'delete_note_lines',
+          params: {'p_note': noteId, 'p_lines': lines, 'p_part': part},
+        ),
+      );
 
   @override
   Future<void> setDone(String id, {required bool on}) => _guard(

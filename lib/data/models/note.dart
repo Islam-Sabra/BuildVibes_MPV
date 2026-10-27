@@ -276,6 +276,9 @@ class Note {
     this.location,
     this.files = const [],
     this.pageId,
+    this.deletedAt,
+    this.archivedAt,
+    this.version = 1,
   });
 
   /// A row of `notes`, with its `note_files` embedded.
@@ -339,6 +342,9 @@ class Note {
             NoteFile.fromJson(f as Map<String, dynamic>),
       ],
       pageId: json['page_id'] as String?,
+      deletedAt: _time(json['deleted_at']),
+      archivedAt: _time(json['archived_at']),
+      version: json['version'] as int? ?? 1,
     );
   }
 
@@ -397,6 +403,18 @@ class Note {
   /// The page it is in (review 99A, migration 47). Null only on an entry
   /// kept on the phone by an older version: it goes into the latest page.
   final String? pageId;
+
+  /// In Deleted items since (99B B3), or archived since (review 100 Part
+  /// 3b): either way it leaves every list, count, calendar and reminder.
+  final DateTime? deletedAt;
+  final DateTime? archivedAt;
+
+  /// The server's version of it (migration 48): an edit says which one it
+  /// started from, so an older one is refused.
+  final int version;
+
+  /// In the page's list: not deleted, not archived.
+  bool get shown => deletedAt == null && archivedAt == null;
 
   bool get done => doneAt != null;
 
@@ -466,6 +484,9 @@ class Note {
     NoteLocation? Function()? location,
     List<NoteFile>? files,
     String? pageId,
+    DateTime? Function()? deletedAt,
+    DateTime? Function()? archivedAt,
+    int? version,
   }) => Note(
     id: id,
     kind: kind ?? this.kind,
@@ -485,6 +506,9 @@ class Note {
     location: location == null ? this.location : location(),
     files: files ?? this.files,
     pageId: pageId ?? this.pageId,
+    deletedAt: deletedAt == null ? this.deletedAt : deletedAt(),
+    archivedAt: archivedAt == null ? this.archivedAt : archivedAt(),
+    version: version ?? this.version,
   );
 
   /// As this phone keeps it while it waits to be sent.
@@ -507,6 +531,9 @@ class Note {
     'location': location?.toJson(),
     'files': [for (final f in files) f.toJson()],
     'page_id': pageId,
+    'deleted_at': deletedAt?.toUtc().toIso8601String(),
+    'archived_at': archivedAt?.toUtc().toIso8601String(),
+    'version': version,
   };
 
   /// Its to-dos not yet ticked: a to-do note's one, a page's to-do lines

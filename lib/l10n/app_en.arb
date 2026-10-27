@@ -7374,5 +7374,26 @@
   "notebookDraftDiscarded": "Draft discarded",
   "@notebookDraftDiscarded": {
     "description": "Review 100 B2: after Discard, with Undo."
+  },
+  "notebookCopyMark": "Copy",
+  "@notebookCopyMark": {
+    "description": "Review 100 Part 3: the mark on an entry made by Duplicate."
+  },
+  "notebookLinesSelected": "{count, plural, =1{1 line selected} other{{count} lines selected}}",
+  "@notebookLinesSelected": {
+    "description": "Review 100 BH12: the top bar while lines of the entry being written are selected.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookShare": "Share",
+  "@notebookShare": {
+    "description": "Review 100 Part 0: the selection bar's first action."
+  },
+  "notebookMove": "Move",
+  "@notebookMove": {
+    "description": "Review 100 Part 0: the selection bar's Move (to another page)."
   }
 }

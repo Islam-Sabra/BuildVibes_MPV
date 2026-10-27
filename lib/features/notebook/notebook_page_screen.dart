@@ -48,7 +48,8 @@ import '../work/daybook_writing.dart'
 import '../work/work_outbox.dart' show keepPhotoProvider, pickPhotoProvider;
 import 'note_draft.dart';
 import 'note_location.dart';
-import 'note_outline.dart' show numberAt, numberLabel, visibleLines;
+import 'note_outline.dart'
+    show copiedBlock, numberAt, numberLabel, visibleLines;
 import 'note_page_editor.dart';
 import 'note_reminders.dart' show remindsAt;
 import 'note_writing.dart';
@@ -309,6 +310,12 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// changed, with "Saved · Undo" (Undo puts back the entry as it was
   /// opened); nothing at all when it didn't. Never a Draft.
   Future<void> _finishEdit({bool quiet = false}) async {
+    // Lines deleted and still on their Undo bar go to Deleted items first.
+    final lines = _pendingLines;
+    if (lines != null) {
+      _pendingLines = null;
+      await _sendLines(lines);
+    }
     final draft = ref.read(noteDraftProvider);
     final was = draft?.editing;
     if (draft == null || was == null) return;
@@ -336,7 +343,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final note = _noteOf(draft);
     final notebook = ref.read(notebookProvider.notifier);
     // D2: the Draft goes only once the edit is in the phone's outbox.
-    await notebook.saveOnPhone(note);
+    await notebook.saveOnPhone(note, baseVersion: was.version);
     await _drafts.discard(keepFiles: true);
     if (!quiet && mounted) {
       final l10n = AppLocalizations.of(context);
@@ -348,6 +355,65 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         bottom: 0,
       );
     }
+  }
+
+  /// Lines deleted from a saved entry, on their Undo bar (99B B3).
+  ({String note, List<String> lines, String part})? _pendingLines;
+
+  /// Lines deleted from the entry being written (review 100 BH12): from a
+  /// saved entry, once their Undo bar has gone, they go to Deleted items as
+  /// "Part of an entry". Lines it never had (written in this edit) just go.
+  void _linesDeleted(List<String> lines, Future<bool> kept) {
+    final was = ref.read(noteDraftProvider)?.editing;
+    if (was == null) return;
+    final saved = {for (final b in was.blocks ?? const <PageBlock>[]) b.id};
+    if (!lines.every(saved.contains)) return;
+    final pending = (
+      note: was.id,
+      lines: lines,
+      part: ref.read(newPostIdProvider)(),
+    );
+    _pendingLines = pending;
+    unawaited(
+      kept.then((yes) async {
+        // Sent already, before the entry's save.
+        if (!identical(_pendingLines, pending)) return;
+        _pendingLines = null;
+        if (yes) await _sendLines(pending);
+      }),
+    );
+  }
+
+  /// [p] to Deleted items; the edit then starts from the version the
+  /// server makes of it.
+  Future<void> _sendLines(
+    ({String note, List<String> lines, String part}) p,
+  ) async {
+    await ref
+        .read(notebookProvider.notifier)
+        .deleteLines(p.note, p.lines, p.part);
+    _editMoved(p.note, gone: p.lines.toSet());
+  }
+
+  /// The entry being edited was saved meanwhile (lines went to Deleted
+  /// items, or to another page): the edit goes on from the next version.
+  void _editMoved(String id, {Set<String> gone = const {}}) {
+    final d = ref.read(noteDraftProvider);
+    final was = d?.editing;
+    if (d == null || was == null || was.id != id) return;
+    unawaited(
+      _drafts.put(
+        d.copyWith(
+          editing: () => was.copyWith(
+            version: was.version + 1,
+            blocks: [
+              for (final b in was.blocks ?? const <PageBlock>[])
+                if (!gone.contains(b.id)) b,
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// A refused note's words back (B15). D4: a refused edit of an entry
@@ -1099,11 +1165,104 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     if (!mounted) return;
     setState(_selected.clear);
     final page = ref.read(notebookProvider).value?.page(to);
-    _toast(
-      l10n.notebookMovedTo(
+    // Review 100 Part 3: "Moved to {page} · Open".
+    final router = GoRouter.of(context);
+    showBvUndoBar(
+      context,
+      message: l10n.notebookMovedTo(
         page == null ? l10n.notebookNewPage : pageName(l10n, page),
       ),
+      actionLabel: l10n.notebookOpen,
+      onAction: () => router.push(AppRoutes.notebookPage(to)),
+      bottom: 0,
     );
+  }
+
+  /// Duplicate (review 100 Part 3): a copy right under each, with the same
+  /// time and marked "Copy"; its reminder isn't copied, so nobody gets two
+  /// alarms. Undo for 5 s.
+  Future<void> _duplicateSelected(List<Note> notes) async {
+    final l10n = AppLocalizations.of(context);
+    setState(_selected.clear);
+    final copies = [for (final n in notes) await _copyOf(n)];
+    if (!mounted) return;
+    await ref.read(noteCopiesProvider.notifier).add([
+      for (final c in copies) c.id,
+    ]);
+    if (!mounted) return;
+    await holdWithUndo(
+      context,
+      ref,
+      NoteChange.duplicate([for (final n in notes) n.id], copies),
+      l10n.notebookUndoDuplicated,
+    );
+  }
+
+  /// [note] as a new entry: its lines with new ids, no reminder; its
+  /// photos, files and recordings as copies of their own (each file
+  /// belongs to its entry on the server), those that can be had.
+  Future<Note> _copyOf(Note note) async {
+    String id() => ref.read(newPostIdProvider)();
+    final photos = <NotePhoto>[];
+    for (final p in note.photos) {
+      final local = await _photoCopy(p);
+      if (local != null) photos.add(NotePhoto(local: local));
+    }
+    final blocks = <PageBlock>[];
+    for (final b in note.blocks ?? const <PageBlock>[]) {
+      if (b case PageVoice(:final path?)) {
+        final local = await _fileCopy(path, b.local, 'm4a');
+        if (local != null) {
+          blocks.add(PageVoice(id(), local: local, durationMs: b.durationMs));
+        }
+        continue;
+      }
+      blocks.add(copiedBlock(b, id));
+    }
+    final files = <NoteFile>[];
+    for (final f in note.files) {
+      final local = await _fileCopy(f.path, f.local, 'pdf');
+      if (local != null) {
+        files.add(NoteFile(local: local, name: f.name, bytes: f.bytes));
+      }
+    }
+    return Note(
+      id: id(),
+      kind: note.kind,
+      createdAt: note.createdAt,
+      body: note.body,
+      points: note.points,
+      dueAt: note.dueAt,
+      title: note.title,
+      blocks: note.blocks == null ? null : blocks,
+      location: note.location,
+      photos: photos,
+      files: files,
+      pageId: note.pageId,
+    );
+  }
+
+  /// A file of an entry as a copy of its own on the phone; null when it
+  /// can't be had (no signal).
+  Future<String?> _fileCopy(
+    String? path,
+    String? local,
+    String extension,
+  ) async {
+    try {
+      if (local != null && File(local).existsSync()) {
+        return await ref.read(keepFileProvider)(local, extension);
+      }
+      if (path == null) return null;
+      final bytes = await ref.read(notebookRepositoryProvider).download(path);
+      final temp = File(
+        '${Directory.systemTemp.path}/${ref.read(newPostIdProvider)()}.$extension',
+      );
+      await temp.writeAsBytes(bytes);
+      return await ref.read(keepFileProvider)(temp.path, extension);
+    } on Object {
+      return null;
+    }
   }
 
   /// A line with its children, from the line menu (A4): a new entry of
@@ -1169,6 +1328,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           pinned: current?.pinned ?? was.pinned,
         ),
       );
+      _editMoved(was.id);
     }
     if (!mounted) return true;
     final page = ref.read(notebookProvider).value?.page(to);
@@ -1180,23 +1340,32 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     return true;
   }
 
-  /// Delete the selected entries, after one confirm.
+  /// Delete the selected entries (review 100 Part 3): gone at once with
+  /// Undo for 5 s, kept in the phone's outbox, then in Deleted items (99B).
   Future<void> _deleteSelected(List<Note> notes) async {
     final l10n = AppLocalizations.of(context);
-    final yes = await showBvDialog(
-      context: context,
-      title: l10n.notebookDeleteTitle,
-      body: l10n.notebookDeleteBody,
-      cancelLabel: l10n.commonCancel,
-      confirmLabel: l10n.delete,
-      destructive: true,
-    );
-    if (!yes || !mounted) return;
-    final notebook = ref.read(notebookProvider.notifier);
     setState(_selected.clear);
-    for (final n in notes) {
-      await notebook.delete(n);
-    }
+    await holdWithUndo(
+      context,
+      ref,
+      NoteChange.deleteEntries([
+        for (final n in notes) n.id,
+      ], at: ref.read(clockProvider)()),
+      l10n.notebookUndoDeleted,
+    );
+  }
+
+  /// How many lines of the entry being written are selected (BH12).
+  int _linesPicked = 0;
+
+  /// Move (BH12): the selected lines, with the lines under them, become
+  /// an entry of their own in the page picked; they leave this one.
+  Future<void> _moveLines() async {
+    final editor = _editorKey.currentState;
+    if (editor == null) return;
+    final ids = editor.selectedLineIds;
+    final moved = await _moveLine(editor.selectedLines());
+    if (moved && mounted) _editorKey.currentState?.removeLines(ids);
   }
 
   /// A long-press selects an entry; while selecting, a tap adds or
@@ -1378,6 +1547,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
     final writingNow = _writing && draft != null;
     final selecting = _selected.isNotEmpty;
+    // BH12: lines of the entry being written are selected.
+    final picking = writingNow && _linesPicked > 0;
     final entries = page == null ? const <Note>[] : data.entries(page.id);
     final chosen = [
       for (final n in entries)
@@ -1420,6 +1591,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           // The bar's ⇥ ⇤ follow the line being written.
           onCurrentKind: (k) => setState(() => _kind = k),
           onMoveLine: writing ? _moveLine : null,
+          onLinesSelected: writing
+              ? (n) => setState(() => _linesPicked = n)
+              : null,
+          onLinesDeleted: writing ? _linesDeleted : null,
           chip: writing && _chip(draft)
               ? NotePageChip(
                   key: _chipKey,
@@ -1647,6 +1822,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           return;
         }
         if (_editorKey.currentState?.closeMenus() ?? false) return;
+        if (picking) {
+          _editorKey.currentState?.endLineSelection();
+          return;
+        }
         if (selecting) {
           setState(_selected.clear);
           return;
@@ -1665,15 +1844,19 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           backgroundColor: BvColors.surfaceApp,
           appBar: AppBar(
             backgroundColor: BvColors.surfaceApp,
-            leading: selecting
+            leading: selecting || picking
                 ? IconButton(
                     key: const Key('selection-close'),
                     tooltip: l10n.notebookCloseSelection,
                     icon: const Icon(BvIcons.close),
-                    onPressed: () => setState(_selected.clear),
+                    onPressed: picking
+                        ? () => _editorKey.currentState?.endLineSelection()
+                        : () => setState(_selected.clear),
                   )
                 : null,
-            title: selecting
+            title: picking
+                ? Text(l10n.notebookLinesSelected(_linesPicked))
+                : selecting
                 ? Text(l10n.notebookSelected(_selected.length))
                 : writingNow
                 ? Text(writingTitle, key: const Key('writing-page-title'))
@@ -1701,7 +1884,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           body: Column(
             children: [
               Expanded(child: body()),
-              if (writingNow)
+              if (writingNow && !picking)
                 SafeArea(
                   top: false,
                   child: Column(
@@ -1729,14 +1912,48 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                 ),
             ],
           ),
-          bottomNavigationBar: selecting
+          // Review 100 Part 0: one bar for what is selected, entries or
+          // lines, with the same actions in the same order (BH2, BH12).
+          bottomNavigationBar: picking
               ? SelectionBar(
                   actions: [
                     SelectionAction(
                       key: const Key('select-move'),
-                      icon: BvIcons.moveInto,
-                      label: l10n.notebookMoveToPage,
+                      icon: BvIcons.pageFolder,
+                      label: l10n.notebookMove,
+                      onTap: () => unawaited(_moveLines()),
+                    ),
+                    SelectionAction(
+                      key: const Key('select-duplicate'),
+                      icon: BvIcons.duplicate,
+                      label: l10n.notebookDuplicate,
+                      onTap: () =>
+                          _editorKey.currentState?.duplicateSelectedLines(),
+                    ),
+                    SelectionAction(
+                      key: const Key('select-delete'),
+                      icon: BvIcons.delete,
+                      label: l10n.delete,
+                      destructive: true,
+                      onTap: () =>
+                          _editorKey.currentState?.deleteSelectedLines(),
+                    ),
+                  ],
+                )
+              : selecting
+              ? SelectionBar(
+                  actions: [
+                    SelectionAction(
+                      key: const Key('select-move'),
+                      icon: BvIcons.pageFolder,
+                      label: l10n.notebookMove,
                       onTap: () => _moveEntries(chosen),
+                    ),
+                    SelectionAction(
+                      key: const Key('select-duplicate'),
+                      icon: BvIcons.duplicate,
+                      label: l10n.notebookDuplicate,
+                      onTap: () => unawaited(_duplicateSelected(chosen)),
                     ),
                     SelectionAction(
                       key: const Key('select-delete'),
@@ -2014,6 +2231,8 @@ class NoteSlip extends ConsumerWidget {
             reminderWhen(l10n, words, note.remindAt!, now),
           ),
         ),
+      if (ref.watch(noteCopiesProvider).contains(note.id))
+        BvSlipQuiet(key: Key('note-copy-${note.id}'), l10n.notebookCopyMark),
       if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
       if (note.putInPostId != null && !note.waiting)
         BvSlipQuiet(l10n.notebookPut),

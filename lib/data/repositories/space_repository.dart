@@ -582,6 +582,7 @@ SpaceFailure spaceFailureFor(String? code) => switch (code) {
   '22023' || '23514' || '22001' => SpaceFailure.badInput,
   '23505' => SpaceFailure.duplicate,
   '54000' => SpaceFailure.limit,
+  '40001' => SpaceFailure.conflict,
   _ => SpaceFailure.unknown,
 };
 

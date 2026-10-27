@@ -385,9 +385,7 @@ void main() {
           'page-move-up',
           'page-move-down',
           'page-indent',
-          'page-duplicate',
           'page-restart-numbering',
-          'page-block-delete',
         ];
         var top = 0.0;
         for (final row in rows) {
@@ -399,7 +397,9 @@ void main() {
         // Level 0 can't come out; no list before it to continue.
         expect(_key('page-outdent'), findsNothing);
         expect(_key('page-continue-numbering'), findsNothing);
-        expect(find.text(l10n.pageMenuDelete), findsOneWidget);
+        // Review 100 BH10: the line's structure only.
+        expect(_key('page-duplicate'), findsNothing);
+        expect(_key('page-block-delete'), findsNothing);
         expect(find.text(l10n.pageTurnInto), findsOneWidget);
         // Its end lined up with the line's, under it.
         final line = tester.getRect(_key('page-marked-${_id(2)}'));
@@ -437,19 +437,19 @@ void main() {
         expect(_key('page-outdent'), findsOneWidget);
       });
 
-      testWidgets('holding the marker opens it; holding the words selects '
-          'them', (tester) async {
+      testWidgets('holding the marker selects the line (review 100 BH12); '
+          'holding the words selects them', (tester) async {
         await _open(tester, lang, _pour());
         await _cursor(tester, 1);
         await tester.longPress(_key('note-marker-${_id(4)}'));
         await tester.pumpAndSettle();
-        expect(_key('page-block-menu'), findsOneWidget);
-        expect(_key('page-marked-${_id(4)}'), findsOneWidget);
-        await _away(tester);
+        expect(_key('page-block-menu'), findsNothing);
+        expect(_key('line-selected-${_id(4)}'), findsOneWidget);
+        await _tap(tester, _key('selection-close'));
         await tester.longPress(_key('note-marker-${_id(2)}'));
         await tester.pumpAndSettle();
-        expect(_key('page-marked-${_id(2)}'), findsOneWidget);
-        await _away(tester);
+        expect(_key('line-selected-${_id(2)}'), findsOneWidget);
+        await _tap(tester, _key('selection-close'));
         // The words: a selection, no menu.
         final words = tester.getRect(_line(5));
         await tester.longPressAt(
@@ -496,11 +496,13 @@ void main() {
         ]);
       });
 
-      testWidgets('Duplicate copies the line with its children, right after '
-          'them', (tester) async {
+      testWidgets('Duplicate (the selection bar, review 100 BH12) copies the '
+          'line with its children, right after them', (tester) async {
         await _open(tester, lang, _pour());
-        await _menu(tester, 2);
-        await _tap(tester, _key('page-duplicate'));
+        await _cursor(tester, 1);
+        await tester.longPress(_key('note-marker-${_id(2)}'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('select-duplicate'));
         expect(_words(tester), [
           'Clean the formwork',
           'Check the rebar',
@@ -522,15 +524,22 @@ void main() {
         ('page-move-down', 1, l10n.notebookUndoMoved),
         ('page-indent', 5, l10n.notebookUndoIndented),
         ('page-outdent', 4, l10n.notebookUndoOutdented),
-        ('page-duplicate', 2, l10n.notebookUndoDuplicated),
-        ('page-block-delete', 2, l10n.notebookUndoDeleted),
+        // The selection bar's (review 100 BH12).
+        ('select-duplicate', 2, l10n.notebookUndoDuplicated),
+        ('select-delete', 2, l10n.notebookUndoDeleted),
       ]) {
         testWidgets('Undo after $row restores the note exactly', (
           tester,
         ) async {
           await _open(tester, lang, _pour());
           final before = _json(tester);
-          await _menu(tester, n);
+          if (row.startsWith('select-')) {
+            await _cursor(tester, 1);
+            await tester.longPress(_key('note-marker-${_id(n)}'));
+            await tester.pumpAndSettle();
+          } else {
+            await _menu(tester, n);
+          }
           await _tap(tester, _key(row));
           if (row == 'page-turn-into') {
             await _tap(tester, _key('page-turn-bullets'));
@@ -656,9 +665,7 @@ void main() {
           of: _key('page-block-menu'),
           matching: find.byType(InkWell),
         );
-        expect(rows, findsAtLeastNWidgets(5));
-        // Delete, the last, too.
-        expect(_key('page-block-delete'), findsOneWidget);
+        expect(rows, findsAtLeastNWidgets(3));
         for (final e in rows.evaluate()) {
           final r = tester.getRect(find.byWidget(e.widget));
           expect(r.top >= 0 && r.bottom <= screen.height, isTrue);
@@ -692,16 +699,16 @@ void main() {
         await _open(tester, lang, [
           for (var n = 1; n <= 30; n++) PageNumbered(_id(n), 'Line $n'),
         ]);
-        phone(tester, 600);
+        phone(tester, 420);
         await tester.pumpAndSettle();
-        // A line in the middle: room for the menu neither under it nor
-        // over it.
-        const need = 8 * 44 + 2 * 6 + 4;
+        // A line in the middle: room for the menu (its five rows) neither
+        // under it nor over it.
+        const need = 5 * 44 + 2 * 6 + 4;
         final n = [
           for (var n = 1; n <= 20; n++)
             if (_line(n).evaluate().isNotEmpty &&
                 tester.getRect(_line(n)).top - 16 < need &&
-                600 - 16 - tester.getRect(_line(n)).bottom < need)
+                420 - 16 - tester.getRect(_line(n)).bottom < need)
               n,
         ].first;
         await _cursor(tester, n);

@@ -611,7 +611,7 @@ void main() {
         await _tap(tester, _key('note-draft'));
         await tester.longPress(_key('note-marker-l-2'));
         await tester.pumpAndSettle();
-        await _tap(tester, _key('page-move-to-page'));
+        await _tap(tester, _key('select-move'));
         await tester.enterText(_key('page-picker-search'), s.siteBTitle);
         await tester.pumpAndSettle();
         await _tap(tester, _key('page-pick-${NotebookPageSamples.siteB}'));
@@ -649,7 +649,7 @@ void main() {
         await _tap(tester, _key('note-entry-walk'));
         await tester.longPress(_key('note-marker-w-2'));
         await tester.pumpAndSettle();
-        await _tap(tester, _key('page-move-to-page'));
+        await _tap(tester, _key('select-move'));
         await tester.enterText(_key('page-picker-search'), s.siteBTitle);
         await tester.pumpAndSettle();
         await _tap(tester, _key('page-pick-${NotebookPageSamples.siteB}'));
