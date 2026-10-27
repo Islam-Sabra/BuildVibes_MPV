@@ -1,6 +1,7 @@
 // The app theme. Built only from bv_tokens.dart: no raw colours, sizes or
 // font values here. Light mode only in V1.
 
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import '../design/bv_specs.dart';
@@ -86,6 +87,15 @@ abstract final class BvTheme {
       dividerColor: BvColors.borderSubtle,
       disabledColor: BvColors.actionDisabled,
       splashFactory: InkSparkle.splashFactory,
+      // Review 100 E1: going back shows the screen underneath, Android's
+      // predictive back and the iPhone's edge swipe. Flutter 3.44's own
+      // defaults; named here so a new default can't take them away.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       materialTapTargetSize: MaterialTapTargetSize.padded,
       visualDensity: VisualDensity.standard,
       iconTheme: const IconThemeData(

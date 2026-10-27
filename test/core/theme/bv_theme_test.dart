@@ -1,5 +1,6 @@
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/theme/bv_theme.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -30,6 +31,21 @@ void main() {
       expect(theme.colorScheme.surface, BvColors.surfaceElevated);
       expect(theme.colorScheme.error, BvColors.feedbackError);
       expect(theme.brightness, Brightness.light);
+    });
+
+    test('review 100 E1: Android shows the screen underneath while going '
+        'back (predictive back); the iPhone keeps its edge swipe', () {
+      final builders = BvTheme.light(
+        BvType.latin,
+      ).pageTransitionsTheme.builders;
+      expect(
+        builders[TargetPlatform.android],
+        isA<PredictiveBackPageTransitionsBuilder>(),
+      );
+      expect(
+        builders[TargetPlatform.iOS],
+        isA<CupertinoPageTransitionsBuilder>(),
+      );
     });
   });
 }
