@@ -14,7 +14,7 @@
 
 His rule for this review: **behaviour first, then Figma, then the build.**
 
-**Status:** draft, waiting for the founder's look at frames BH1–BH12 (drawn 26 Oct). Bugs B1–B5 are with Cursor on `claude/r100-bugs`; nothing in Parts 3–8 is built until he says yes.
+**Status:** approved by the founder (27 Oct, 14:30), with frames BH1–BH12. Bugs B1–B6 are merged (build 659). The 99B server work is merged into `slice2-app` and isn't live yet.
 
 **Decisions taken (founder, 26 Oct):**
 - long-press = select, with Share · Move · Duplicate · Delete;
@@ -502,3 +502,39 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 1. merge into `slice2-app`;
 2. one release APK on his phone;
 3. a copy of the same APK, named for sharing with a test user, on his PC.
+
+
+## Build of the redesign (27 Oct): scope for the session
+**Branch:** `claude/r100-redesign` from `slice2-app`.
+**Builds:**
+- Parts 0 and 3–8 of this review;
+- the app side of review 99B (B1–B3, as replaced here): Deleted items (frame PG8), Archive, Share → Feed · Space · Message with the preview, the Filter, and the base version on save.
+
+**Frames:**
+- BH1–BH12 (EN `…` / AR ids in the table above);
+- PG8 for Deleted items;
+- the preview rules from Part 6. PG6 and PG7 are replaced by BH3–BH5.
+
+**Not in it:**
+- the top bar height (48 in the frames, 56 in the app), which the lead decides separately;
+- scan documents;
+- dates inside a line;
+- drag.
+
+**Order inside the branch:**
+1. Part 0 and the selection bars;
+2. swipe and Archive;
+3. the compact card, the bar and `+`;
+4. Filter and search;
+5. Share and the previews;
+6. Deleted items;
+7. the screenshot tests BH1–BH12 and PG8, EN and AR, shot on the PC.
+
+Each step: tests first, in EN and AR.
+
+**Live, at the end, with the founder's yes:**
+- migration 48 alone;
+- a read-only check;
+- `deno check` on the Edge Function, then the function and its secret;
+- the cron job;
+- then one build on his phone.
