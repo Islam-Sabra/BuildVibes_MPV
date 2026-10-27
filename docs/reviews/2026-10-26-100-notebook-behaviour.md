@@ -449,3 +449,39 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 1. Run analyze, test and `test_screens`, and report the results.
 2. Push `claude/r100-bugs` and stop for the lead.
 3. With the founder's yes: merge into `slice2-app` and build for his phone. There's no database change.
+
+## Lead's second check of `claude/r100-bugs` (27 Oct)
+**Branch:** `claude/r100-bugs` at `b79fc38`.
+**Verdict:** approved, after one small fix (E1) and the PC's screenshot run.
+
+**What I checked:**
+- The diff since `aa1ec48` (28 files).
+- **The router.** Every route is now a `MaterialPage` through `_Screen`. That is sound:
+  - go_router's default page ignored the app's `MaterialApp`;
+  - with `MaterialPage`, the iPhone gets its native edge swipe on every screen that can pop;
+  - `BvBackSwipe` covers the screens that hold Back (writing, selecting, walk, a Space's daybook while writing, the proof camera), through `Navigator.maybePop`. Back's order holds, and the strip sits on the start edge in Arabic.
+- **The longer test run** (about 11½ minutes) comes from real transitions now running in the tests. Accepted.
+- **D9:** the paths kept the cursor already, so its four tests are guards. Accepted as guards.
+
+### E1. Android shows the screen underneath as you swipe back
+- `enableOnBackInvokedCallback` is on, so the gesture reaches the app. But nothing sets the theme's page transitions, so Android doesn't draw the predictive preview that Part 2 asks for.
+- **The fix:** set `pageTransitionsTheme` in `bv_theme.dart`:
+  - Android: `PredictiveBackPageTransitionsBuilder`;
+  - iOS: `CupertinoPageTransitionsBuilder`.
+- **Test:** the theme carries both builders.
+
+### Found on the way (queued, not in this branch)
+- **A heading picked with `/` inside a toggle isn't drawn.** It's a bug for the redesign build (step 2 of the queue). It gets a test first.
+- **The top bar's height:** the frames draw it 48 high, while the app's `AppBar` theme uses 56 (`BvSize.topBar`). The frames win (CLAUDE.md). The lead lists which screens use the themed `AppBar` and decides in the redesign review. Nothing changes in this branch.
+- **`photo_privacy` H1** fails only when run as root in the cloud. The PC run is the one that counts.
+
+### Then, on the PC
+1. Do E1 (test first) on `claude/r100-bugs`.
+2. Run `flutter analyze`, `flutter test`, and `flutter test test_screens` without updating.
+   - Any changed shot gets before/after in `docs/screens/r100/before-after/`, one line each on why.
+   - Expected changes: shots with a menu card (placed by D5/D6) or the entry's ⋯ (D10).
+3. Stop for the lead with the shot list.
+4. **With the founder's yes:**
+   - merge into `slice2-app`;
+   - one release build on his phone, BuildVibes only.
+   - There's no database change.
