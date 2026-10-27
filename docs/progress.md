@@ -689,6 +689,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `claude/r100-bugs` merged into `slice2-app` (68af86d): analyze clean; 2,168 app tests; 426 screenshot checks.
   - Build 659 (versionCode 659) is installed on the founder's phone, with a copy on the PC's Desktop.
 
+- **27 Oct, review 99B server** (`claude/r99b-server`; migration 48 **not live**; not merged):
+  - **Deleted items:** entries, line groups and pages with Restore, Delete forever and Empty now; keep 7, 30 or 90 days; a daily purge (the notebook-purge job and its cron, not deployed or run).
+  - **Archive.**
+  - **Share** to a Space, the feed or a person, the location only when included.
+  - **The Filter:** `search_notebook` gains a kind and a page.
+  - **A base version on save_note:** 40001 "changed on another phone".
+  - **App fix:** a heading picked with "/" inside a toggle is drawn.
+  - **Checks:** 2,994 SQL checks (131 new); analyze clean; 2,170 app tests.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

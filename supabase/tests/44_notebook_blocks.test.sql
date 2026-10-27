@@ -59,7 +59,7 @@ select has_column('public', 'notes', 'location_lng', 'and a longitude');
 select has_column('public', 'notes', 'location_accuracy_m', 'and its accuracy');
 select has_column('public', 'note_files', 'name', 'a file keeps its name');
 select ok(not has_function_privilege('anon',
-  'public.save_note(uuid, text, text, jsonb, timestamptz, timestamptz, boolean, jsonb, text, jsonb, jsonb, timestamptz)',
+  'public.save_note(uuid, text, text, jsonb, timestamptz, timestamptz, boolean, jsonb, text, jsonb, jsonb, timestamptz, integer)',
   'execute'), 'signed out: no save_note');
 select ok(not has_function_privilege('anon', 'public.note_for_space(uuid, boolean)', 'execute'),
   'signed out: no note_for_space');

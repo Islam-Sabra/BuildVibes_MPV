@@ -32,9 +32,9 @@ select ok(not has_table_privilege('anon', 'public.notebook_pages', 'select'), 's
 select ok(not has_table_privilege('authenticated', 'public.notebook_pages', 'insert'),
   'pages are written only through the functions');
 select ok(not has_function_privilege('anon', 'public.save_entry(uuid, text, uuid, text, text, jsonb,
-  timestamptz, timestamptz, boolean, jsonb, text, jsonb, jsonb, timestamptz)', 'execute'),
+  timestamptz, timestamptz, boolean, jsonb, text, jsonb, jsonb, timestamptz, integer)', 'execute'),
   'signed out: no save_entry');
-select ok(not has_function_privilege('anon', 'public.search_notebook(text)', 'execute'),
+select ok(not has_function_privilege('anon', 'public.search_notebook(text, text, uuid)', 'execute'),
   'signed out: no search');
 select ok(not has_function_privilege('authenticated', 'public.notes_into_my_notes()', 'execute'),
   'nobody runs the backfill');
@@ -47,6 +47,7 @@ select ok(has_function_privilege('authenticated', 'public.merge_notebook_pages(u
 
 -- Old notes with no page, as before the migration.
 alter table public.notes alter column page_id drop not null;
+alter table public.notes drop constraint if exists notes_page_or_deleted;
 alter table public.notes disable trigger notes_page_ok;
 alter table public.notes disable trigger notes_page_activity;
 alter table public.notes disable trigger notes_page_activity_change;
@@ -59,7 +60,9 @@ select is(public.notes_into_my_notes(), 4, 'every note without a page is moved')
 alter table public.notes enable trigger notes_page_ok;
 alter table public.notes enable trigger notes_page_activity;
 alter table public.notes enable trigger notes_page_activity_change;
-alter table public.notes alter column page_id set not null;
+alter table public.notes drop constraint if exists notes_page_or_deleted;
+alter table public.notes
+  add constraint notes_page_or_deleted check (page_id is not null or deleted_at is not null);
 select is((select count(*)::integer from public.notes where page_id is null), 0, 'no note is left out');
 select is((select count(*)::integer from public.notebook_pages
            where owner_id = pg_temp.uid('a1') and named = 'my_notes'), 1,

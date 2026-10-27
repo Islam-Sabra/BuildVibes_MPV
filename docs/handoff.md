@@ -2,6 +2,45 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 27 Oct 2026 — review 99B server: migration 48 on `claude/r99b-server` (from `slice2-app` 27701db); not live; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch `claude/r99b-server` is pushed.** It is not merged, not live, and not installed. There is no app redesign (BH1–BH12 are not approved).
+- **Migration 48, `20261109120000_notebook_deleted_share.sql` (not live).** Every new function is security definer with `search_path = ''` and checks the caller.
+  - **Deleted items (99B B3):**
+    - `notes.deleted_at`.
+    - `delete_entries`.
+    - `delete_note_lines`: a line with its lines becomes an entry of its own, `part_of` ("Part of an entry"), with its levels from 0 and its recordings.
+    - `my_deleted_items` lists an item once, with its page, when it was deleted and when it goes.
+    - `restore_items`: back in its page, or a new page with the old title (`notes.page_title`); a page comes back with what was deleted with it, at the top if its parent is gone.
+    - `delete_forever` and `empty_deleted_items` return the Storage paths to remove; `deleted_notes` keeps the id.
+    - `notes.page_id` may be empty only for an entry in Deleted items whose page was purged (the foreign key sets null).
+  - **Keep for 7 / 30 / 90 days:** `profile_private.notebook_keep_days` (default 30), set by `set_notebook_keep_days`.
+  - **Daily purge:** `purge_notebook()`, the service role's only. The Edge Function `supabase/functions/notebook-purge` runs it, then deletes the freed files through the Storage API (`orphan_note_files`, then `forget_cleanup_claims`). The cron is in `supabase/ops/notebook_purge_cron.sql`, NOT RUN; the function is NOT deployed. Deno isn't on the PC, so the function hasn't been type-checked.
+  - **Archive:** `notes.archived_at`, set through `archive_note` and `unarchive_note`. An archived entry leaves search and My calendar and shows under the Filter's Archived.
+  - **Share:**
+    - `note_share_text` (the preview's words: to-dos as ☐ / ☑, the location as one line only when included, with the pin only then);
+    - `share_note_to_space` (`note` / `checklist` / `work_item`, through `create_space_post` and `create_work_item`, the Space's rules and passes);
+    - `share_note_to_feed` (`create_post`);
+    - `share_note_to_person` (`start_dm`: block, hidden account, request, spam guard);
+    - each share leaves a mark in `note_shares` (owner only).
+  - **Filter:** `search_notebook(p_q, p_kind, p_page)` with `todos_open`, `photos`, `files`, `voice`, `reminders`, `archived` and a page with its sub-pages. Nothing deleted shows; archived only under `archived`.
+  - **Base version:** `notes.version`. `save_note` and `save_entry` take `p_base_version`; a save from an older one is refused with 40001 "changed on another phone". Without it (old builds) it saves as before. A save of an entry in Deleted items returns null.
+- **For the lead (choices made at build):**
+  1. A Space post takes a place only on an activity. So on a shared post or checklist, the location is its last line ("📍 Gate 2 · …"); a work item gets it as its place.
+  2. A shared checklist needs its people (`p_people`), as the Space requires.
+  3. A restored line group is an entry of its own in its page; it isn't put back inside the entry it came from.
+  4. Files for Space, feed and message are copied by the app into those buckets, as Put in a Space does today. The share functions take their paths.
+  5. `notes` reads still return entries in Deleted items or archived. The 99B app must leave them out of the page lists and the phone's reminders. Build 659 never makes them, so it isn't affected.
+  6. Download my data doesn't list pages, Deleted items or Archived yet.
+- **App fix, test first:** a heading picked with "/" inside a toggle wasn't drawn (`hostBlock` has no heading). It is now drawn and written in, as on the page (`test/features/notebook/toggle_heading_test.dart`, EN and AR).
+- **Checks:**
+  - `supabase test db`: 2,994 pass in 47 files, 131 of them new in `48_notebook_deleted_share.test.sql`, EN and AR data, someone else included. The grant checks in tests 20, 44 and 47 moved to the new signatures.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,170 pass.
+- **Who has which branch:** PC has `claude/r99b-server` (worktree `BuildVibes-r99b`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 27 Oct 2026 — review 100 bugs merged into `slice2-app`; build 659 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

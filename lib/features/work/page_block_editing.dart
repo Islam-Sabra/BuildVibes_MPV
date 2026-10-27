@@ -704,6 +704,20 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
                         onEnter: () => enterInToggle(i, c.id),
                         slash: true,
                       )
+                    // A heading inside a toggle is drawn as on the page
+                    // (hostBlock draws the kinds of the host's own).
+                    : c is PageHeading
+                    ? blockText(
+                        't:${c.id}',
+                        c.text,
+                        style: c.level == 1 ? type.titleMd : type.emphasis,
+                        hint: c.level == 1
+                            ? l10n.pageHeading
+                            : l10n.notebookSubheading,
+                        maxLength: PageHeading.max,
+                        onEnter: () => enterInToggle(i, c.id),
+                        slash: true,
+                      )
                     : hostBlock(i, c),
               ),
           ],

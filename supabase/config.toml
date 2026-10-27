@@ -461,3 +461,6 @@ verify_jwt = false
 # shared secret, not by a signed-in user.
 [functions.account-purge]
 verify_jwt = false
+
+[functions.notebook-purge]
+verify_jwt = false
