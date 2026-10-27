@@ -689,14 +689,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `claude/r100-bugs` merged into `slice2-app` (68af86d): analyze clean; 2,168 app tests; 426 screenshot checks.
   - Build 659 (versionCode 659) is installed on the founder's phone, with a copy on the PC's Desktop.
 
-- **27 Oct, review 99B server** (`claude/r99b-server`; migration 48 **not live**; not merged):
-  - **Deleted items:** entries, line groups and pages with Restore, Delete forever and Empty now; keep 7, 30 or 90 days; a daily purge (the notebook-purge job and its cron, not deployed or run).
-  - **Archive.**
-  - **Share** to a Space, the feed or a person, the location only when included.
-  - **The Filter:** `search_notebook` gains a kind and a page.
-  - **A base version on save_note:** 40001 "changed on another phone".
-  - **App fix:** a heading picked with "/" inside a toggle is drawn.
-  - **Checks:** 2,994 SQL checks (131 new); analyze clean; 2,170 app tests.
+- **27 Oct, review 99B server merged into slice2-app** (`claude/r99b-server` merged; migration 48 **not live**):
+  - **F1 completed:** Download my data (`export_my_data`) includes `notebook_pages`, `notes` carrying each entry's `page_id`, `deleted_at`, and `archived_at`, `note_shares`, and retention keep-days in `profile_private`.
+  - **Deleted items, Archive, Share, Filter, Base version:** migration 48 complete with 149 pgTAP tests in `48_notebook_deleted_share.test.sql`.
+  - **Checks:** `supabase test db`: 3,012 SQL checks pass across 47 files; `flutter analyze`: no issues; `flutter test`: 2,170 pass.
+  - Migration 48 is not live; `notebook-purge` function not deployed; cron not run.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
