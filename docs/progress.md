@@ -680,6 +680,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - D10–D13: ⋯ its own button; housekeeping; back by swipe everywhere (every route is a MaterialPage: go_router had made them all NoTransitionPage; predictive back; the iPhone's edge swipe where a screen holds Back); the Draft ⋯ marked temporary.
   - Checks: analyze clean; 2,166 app tests (photo_privacy H1 root-only); screenshots on the PC.
 
+- **27 Oct, review 100 E1** (`claude/r100-bugs`):
+  - The theme names Android's predictive back and the iPhone's swipe transitions; a test checks both. They were already Flutter 3.44's defaults.
+  - **Checks:** analyze clean; 2,168 app tests; test_screens 420 pass and 6 change (cursor caught in F78 and NBX2, a pixel in NBY1 ar and PG4 ar, from D5/D6/D10); not accepted, before/after in `docs/screens/r100/before-after/`.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

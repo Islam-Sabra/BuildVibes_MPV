@@ -2,6 +2,31 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 27 Oct 2026 — review 100 E1 on `claude/r100-bugs`; shots run, 6 change, none accepted; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch `claude/r100-bugs` is pushed.** It is not merged and not live; nothing is installed and nothing changes in the database.
+- **E1:**
+  - `bv_theme.dart` now sets `pageTransitionsTheme`: Android `PredictiveBackPageTransitionsBuilder`, iOS `CupertinoPageTransitionsBuilder`. A test checks the theme carries both.
+  - **Note for the lead:** the test passed before the change too. These two builders are already Flutter 3.44.2's defaults, so Android's predictive preview should already show. Naming them guards against a future default.
+  - If the phone still doesn't show the screen underneath, the next suspect is the phone itself: on Android 14, predictive back animations sit behind a developer option.
+- **Checks:**
+  - `flutter analyze`: no issues;
+  - `flutter test`: 2,168 pass;
+  - `flutter test test_screens`, not updating: 420 pass and 6 change.
+- **The six changed shots:**
+  - F78-new-message (en, ar) and NBX2-categories (en, ar): the text cursor is caught visible;
+  - NBY1-slash-num (ar): the "/" card sits about a pixel off (D5/D6);
+  - PG4-page (ar): each entry's ⋯ sits about a pixel off (D10).
+  - The same six change at `b79fc38`, before E1.
+  - None is accepted. Before/after pictures and one line each are in `docs/screens/r100/before-after/E1-run*.png` and `E1-run.md`.
+- **Next, with the founder's yes:**
+  1. Accept the shots (or the lead's call).
+  2. Merge into `slice2-app`.
+  3. One release build on his phone.
+- **Who has which branch:** PC has `claude/r100-bugs` (worktree `BuildVibes-r100`) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## Cloud update: 26 Oct 2026 — the lead's D1–D13 on `claude/r100-bugs` (from aa1ec48); stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
