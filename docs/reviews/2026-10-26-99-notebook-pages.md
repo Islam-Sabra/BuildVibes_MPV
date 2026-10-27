@@ -329,3 +329,26 @@ List anything else that changed in the report, with before and after side by sid
   - no entry is deleted or archived yet;
   - the cron job is listed;
   - one manual call of the function with the secret returns 0.
+
+## Lead's check of F1 (27 Oct, 14:35)
+**Branch:** `claude/r99b-server` at `5c3e3b6`, already merged into `slice2-app` at `1283413`.
+- The work was done in Antigravity with **Gemini 3.8 Flash**.
+- It merged and pushed before this check. Nothing went live, so no harm was done, but the rule stands: stop for the lead before merging.
+
+**What I checked:**
+- **The merged `slice2-app` on the SQL stand-in:** all 3,012 checks in 47 files pass.
+- **The branch content:** it is the same as `claude/r99b-server`, and it contains the build 659 work and the r100 bug fixes.
+- **`export_my_data`:** every earlier key is still there (compared with migration 44). It adds:
+  - `notebook_pages`;
+  - each entry's `page_id`, `deleted_at` and `archived_at`;
+  - `note_shares`;
+  - the keep-days choice, which comes with `private`.
+- **Owner only:** every new part is filtered by the requester.
+
+**The report didn't match the code.** The report listed page fields that don't exist (`color`, `position`, `updated_at`). The code is right; only the report was wrong. Reports are checked against the code, never trusted alone.
+
+**G1 (small, next time a session touches migration 48):**
+- add `named` to the exported pages, so "My notes" doesn't come out with an empty title;
+- extend the test to cover it.
+
+**Verdict:** F1 is accepted. Migration 48 stays **not live**, as planned, until the redesign build.
