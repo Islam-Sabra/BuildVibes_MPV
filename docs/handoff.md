@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 27 Oct 2026 — review 100 bugs merged into `slice2-app`; build 659 made; the install waits for the phone
+## PC update: 27 Oct 2026 — review 100 bugs merged into `slice2-app`; build 659 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -17,7 +17,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   - No database change.
 - **Build 659** (68af86d, versionCode 659, versionName 0.9.0) is built.
   - **A copy is on the PC's Desktop:** `C:\Users\PathFinder\Desktop\BuildVibes-659-test.apk`. Same file (hash checked); not uploaded or emailed.
-  - **Not yet installed on the founder's phone.** It isn't connected: the last address, 192.168.8.24:43367, refuses. The only other device the PC sees, 192.168.8.2:5555 (serial 0123456789ABCDEF), isn't his phone and wasn't touched. It needs the phone's new wireless-debugging address.
+  - **Installed on the founder's phone** (27 Oct, 09:22): the phone was paired again (wireless debugging with a pairing code) and connected at 192.168.8.24:35403. Model 22120RN86G; versionCode 659, versionName 0.9.0; BuildVibes only.
 - **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`). `claude/r100-bugs` is merged; the worktree `BuildVibes-r100` can be removed.
 
 ## PC update: 27 Oct 2026 — review 100 E1 on `claude/r100-bugs`; shots run, 6 change, none accepted; stopped for the lead

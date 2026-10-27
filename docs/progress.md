@@ -687,7 +687,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **27 Oct, review 100 bugs merged** (founder's yes):
   - The text cursor is drawn steadily in the F78 and NBX2 shots; those four and NBY1 (AR) / PG4 (AR) are accepted.
   - `claude/r100-bugs` merged into `slice2-app` (68af86d): analyze clean; 2,168 app tests; 426 screenshot checks.
-  - Build 659 (versionCode 659) is made, with a copy on the PC's Desktop; the install on the founder's phone waits for its wireless-debugging address.
+  - Build 659 (versionCode 659) is installed on the founder's phone, with a copy on the PC's Desktop.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
