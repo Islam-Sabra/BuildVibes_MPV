@@ -284,3 +284,48 @@ List anything else that changed in the report, with before and after side by sid
 2. The merge sheet says "The emptied page goes to Deleted items" while that screen is hidden. The page is kept on the server, and 99B shows it. Keep the sentence.
 
 **Next, with the founder's yes:** the steps in "Then, in this order", from step 3 on.
+
+## Lead's check of `claude/r99b-server` (27 Oct)
+**Branch:** `claude/r99b-server` at `66173e1`.
+**Verdict:** approved after F1. It merges into `slice2-app` but **stays off the live database** until the redesign app that uses it is built and checked. Then the migration, the Edge Function and the cron job go live together, with the founder's yes.
+
+**What I checked:**
+- **Migration 48 on the SQL stand-in:** all 2,994 checks in 47 files pass (131 new).
+- **Security:**
+  - every new function is `security definer` with `search_path = ''` and checks the caller;
+  - `notebook_remove` and `purge_notebook` can't be called by users; only the service role runs the purge;
+  - `delete_forever` takes only my items that are already in Deleted items.
+- **Old builds keep working.** `save_note`, `save_entry` and `search_notebook` were dropped and made again with new parameters that have defaults, so build 659's calls by name still resolve.
+- **The conflict code** `40001` ("changed on another phone") matches the code `save_blocks` already uses for pages, so the app's handling is the same.
+- **Files:** the purge leaves files without a row, and the existing `orphan_note_files` claims those for the Edge Function to delete. `delete_forever` and Empty now return the paths, so the app can delete them at once.
+- **The toggle heading:** it is now drawn, and its test failed before the fix.
+
+**Rulings on the six choices:**
+1. On a post or checklist, the location becomes the last line ("📍 Gate 2 · …"); on a work item it is its place: accepted.
+2. A shared checklist asks who it's for: accepted. The preview asks for it, as Put in a Space does.
+3. A restored line group comes back as its own entry: accepted. It's clearer than merging back, and Deleted items already calls it "Part of an entry".
+4. The app copies photos and files before sharing: accepted, as today.
+5. The notes table still returns deleted and archived entries: accepted. The 99B app must filter them out of every list, count and on-phone reminder, with tests.
+6. Download my data lacks pages, Deleted items, archived entries and shares: **not accepted** (F1).
+
+### F1. Download my data includes everything the notebook keeps
+- `export_my_data` adds:
+  - pages (title, icon, parent, pinned);
+  - each entry's page;
+  - Deleted items, with when each was deleted;
+  - archived entries;
+  - the person's keep-days choice;
+  - the share records (where to, and when).
+- This is in the same migration 48, which isn't live.
+- **Test:** the export contains each kind, and none of anyone else's.
+
+### Before 48 goes live (later, from the PC, with the founder's yes)
+- Install Deno on the PC and `deno check supabase/functions/notebook-purge/index.ts`.
+- Push migration 48 as the only file.
+- Deploy `notebook-purge` with its secret, both in Supabase and in Vault, never in the repo.
+- Run `supabase/ops/notebook_purge_cron.sql`.
+- **Read-only check:**
+  - the note count is unchanged;
+  - no entry is deleted or archived yet;
+  - the cron job is listed;
+  - one manual call of the function with the secret returns 0.
