@@ -48,8 +48,7 @@ class BvLinePopover {
     bool above = false,
     double gap = BvLineMenuSpec.cardGap,
     VoidCallback? onDismiss,
-    Future<void> Function({required double up, required double down})?
-    makeRoom,
+    Future<void> Function({required double up, required double down})? makeRoom,
   }) {
     hide();
     final overlay = Overlay.of(context);
@@ -137,8 +136,7 @@ class BvLinePopover {
   bool _noRoom(
     double up,
     double down,
-    Future<void> Function({required double up, required double down})
-    makeRoom,
+    Future<void> Function({required double up, required double down}) makeRoom,
   ) {
     if (_asked) return _making;
     _asked = true;

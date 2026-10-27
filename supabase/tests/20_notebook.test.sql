@@ -77,7 +77,7 @@ select ok((select relrowsecurity from pg_class where oid = 'public.note_files'::
   'note_files has row-level security');
 select ok(not has_table_privilege('anon', 'public.notes', 'select'), 'signed out: no notes');
 select ok(not has_table_privilege('anon', 'public.note_files', 'select'), 'signed out: no note files');
-select ok(not has_function_privilege('anon', 'public.save_note(uuid, text, text, jsonb, timestamptz, timestamptz, boolean, jsonb, text, jsonb, jsonb, timestamptz)', 'execute'),
+select ok(not has_function_privilege('anon', 'public.save_note(uuid, text, text, jsonb, timestamptz, timestamptz, boolean, jsonb, text, jsonb, jsonb, timestamptz, integer)', 'execute'),
   'signed out: no save_note');
 select ok(not has_function_privilege('anon', 'public.my_calendar(date, date, timestamptz, timestamptz)', 'execute'),
   'signed out: no my_calendar');

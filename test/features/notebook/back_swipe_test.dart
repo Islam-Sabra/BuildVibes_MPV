@@ -188,9 +188,9 @@ void main() {
         now: NotebookSamples.now,
         notebook: FakeNotebookRepository(notes: [_saved()]),
       );
-      GoRouter.of(tester.element(find.byType(Navigator).first)).push(
-        '/notebook',
-      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/notebook');
       await tester.pumpAndSettle();
       await tester.longPress(_key('page-${FakeNotebookRepository.myNotesId}'));
       await tester.pumpAndSettle();
