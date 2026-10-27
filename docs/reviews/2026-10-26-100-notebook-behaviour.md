@@ -485,3 +485,20 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
    - merge into `slice2-app`;
    - one release build on his phone, BuildVibes only.
    - There's no database change.
+
+## Lead's third check (27 Oct, 08:15): approved for merge and build
+**Branch:** `claude/r100-bugs` at `8c5426b`.
+
+**E1:** done. Flutter 3.44 already used these two transitions by default, so the test is a guard: it stops a later Flutter release from changing them silently. Accepted.
+
+**The six shots** (before/after in `docs/screens/r100/before-after/E1-run_*`):
+- **NBY1 (AR), the `/` card:** about 1 px lower, from D5/D6. Accepted.
+- **PG4 (AR), each entry's ⋯:** about 1 px, from D10. Accepted.
+- **F78 (EN, AR) and NBX2 (EN, AR):** the only change is the text cursor, caught mid-blink now that real transitions run. **Not accepted as is.** A blinking cursor in a golden makes the shot depend on timing.
+  - **The fix:** set `EditableText.debugDeterministicCursor = true` in `test_screens`' test config, so the cursor is always drawn the same way.
+  - Then shoot those four again, and accept them only if they're stable over two runs.
+
+**Then, with the founder's yes (given, 27 Oct 08:08):**
+1. merge into `slice2-app`;
+2. one release APK on his phone;
+3. a copy of the same APK, named for sharing with a test user, on his PC.
