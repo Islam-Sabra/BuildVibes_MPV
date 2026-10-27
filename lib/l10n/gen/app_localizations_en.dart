@@ -5177,4 +5177,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookMove => 'Move';
+
+  @override
+  String get notebookReminder => 'Reminder';
+
+  @override
+  String get notebookChangeReminder => 'Change reminder';
+
+  @override
+  String get notebookArchive => 'Archive';
+
+  @override
+  String get notebookUnarchive => 'Unarchive';
+
+  @override
+  String get notebookArchivedUndo => 'Archived';
+
+  @override
+  String get notebookUnarchivedUndo => 'Back in its page';
+
+  @override
+  String get notebookArchivedRow => 'Archived';
+
+  @override
+  String get notebookArchivedEmpty => 'Nothing archived in this page.';
 }

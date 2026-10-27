@@ -21,26 +21,24 @@ import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/note.dart';
 import '../../data/models/notebook_page.dart';
 import '../../data/models/post_page.dart';
-import '../../data/models/space.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_line_popover.dart';
-import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart';
+import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../chat/thread_screen.dart' show ChatActionRow;
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../chat/voice.dart';
-import '../create/create_sheet.dart' show workItemSpacesProvider;
+import '../entry/entry_state.dart' show authUserIdProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
-import '../spaces/space_screen.dart' show SpaceOpen;
-import '../work/daybook_draft.dart' show DaybookDraft, daybookDraftProvider;
+import '../work/daybook_draft.dart' show DaybookDraft;
 import '../work/daybook_words.dart';
 import '../library/library_parts.dart' show maxFileBytes, pickDocumentProvider;
 import '../work/daybook_writing.dart'
@@ -69,19 +67,27 @@ import 'notebook_state.dart';
 /// once, the page chip under the entry (PG3: the page picker); Send goes
 /// to the page it went into.
 class NotebookPageScreen extends ConsumerStatefulWidget {
-  const NotebookPageScreen({
-    super.key,
-    required String this.pageId,
-    this.entry,
-  });
+  const NotebookPageScreen({super.key, required String this.pageId, this.entry})
+    : archived = false;
 
-  const NotebookPageScreen.write({super.key}) : pageId = null, entry = null;
+  const NotebookPageScreen.write({super.key})
+    : pageId = null,
+      entry = null,
+      archived = false;
+
+  /// "Archived ›" (review 100 Part 3b): the page's archived entries,
+  /// newest first; swiped toward the start, Unarchive.
+  const NotebookPageScreen.archived({super.key, required String this.pageId})
+    : entry = null,
+      archived = true;
 
   /// Null: "New entry".
   final String? pageId;
 
   /// An entry to show (a search hit, A5).
   final String? entry;
+
+  final bool archived;
 
   @override
   ConsumerState<NotebookPageScreen> createState() => _NotebookPageScreenState();
@@ -145,6 +151,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       } else if (widget.pageId == null) {
         unawaited(_write());
       }
+      if (widget.archived) return;
     });
   }
 
@@ -250,26 +257,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
   }
 
-  /// A Draft's ⋯ (review 100 B2): Discard, with Undo.
-  ///
-  /// TEMPORARY (review 100 D13, accepted by the lead): a one-row sheet
-  /// until the redesign's swipe to Discard (Part 3b) replaces it.
-  Future<void> _draftMenu(NoteDraft draft) =>
-      _oneMenu(() => _openDraftMenu(draft));
-
-  Future<void> _openDraftMenu(NoteDraft draft) async {
+  /// A Draft's card swiped toward the start (review 100 Part 3b): Discard,
+  /// with Undo.
+  Future<void> _discardDraft(NoteDraft draft) async {
     final l10n = AppLocalizations.of(context);
-    final discard = await showBvSheet<bool>(
-      context: context,
-      builder: (sheet) => ChatActionRow(
-        key: const Key('note-draft-discard'),
-        icon: BvIcons.delete,
-        label: l10n.notebookDiscardDraft,
-        destructive: true,
-        onTap: () => Navigator.of(sheet).pop(true),
-      ),
-    );
-    if (discard != true || !mounted) return;
     final parked = ref.read(parkedDraftsProvider.notifier);
     final inHand = ref.read(noteDraftProvider)?.id == draft.id;
     if (inHand) {
@@ -899,143 +890,6 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
   }
 
-  /// The note's menu (2557:35481): Put in a Space with the Spaces (and,
-  /// for a note with a GPS position, "Include my GPS position", off), Pin
-  /// to the top, Remind me (not for a voice note), Edit and Delete.
-  Future<void> _menu(Note note) => _oneMenu(() => _entryMenu(note));
-
-  /// The entry's menu opens at once (review 100 B5); its Spaces come in
-  /// as they load.
-  Future<void> _entryMenu(Note note) async {
-    final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    final gps = note.location?.hasGps ?? false;
-    var includeGps = false;
-    final choice = await showBvSheet<Object>(
-      context: context,
-      builder: (sheet) => StatefulBuilder(
-        builder: (sheet, setSheet) => Consumer(
-          builder: (sheet, ref, _) {
-            final loaded = note.canPut
-                ? ref.watch(workItemSpacesProvider)
-                : const AsyncData(<SpaceSummary>[]);
-            final spaces = loaded.value ?? const <SpaceSummary>[];
-            return Column(
-              key: const Key('note-menu'),
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (note.canPut) ...[
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      bottom: BvSpace.s8,
-                    ),
-                    child: Text(
-                      l10n.dmPutInSpace,
-                      style: type.metadata.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  if (!loaded.hasValue && !loaded.hasError)
-                    const SizedBox.shrink()
-                  else if (spaces.isEmpty)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(
-                        bottom: BvSpace.s8,
-                      ),
-                      child: Text(
-                        l10n.notebookPutNone,
-                        style: type.bodyMd.copyWith(
-                          color: BvColors.textSecondary,
-                        ),
-                      ),
-                    )
-                  else ...[
-                    if (gps)
-                      BvListRow(
-                        key: const Key('note-include-gps'),
-                        leading: const BvRowIcon(BvIcons.place),
-                        title: l10n.notebookIncludeGps,
-                        trailing: BvRowTrailing.check(selected: includeGps),
-                        onTap: () => setSheet(() => includeGps = !includeGps),
-                      ),
-                    for (final space in spaces)
-                      BvListRow(
-                        key: Key('note-space-${space.id}'),
-                        title: space.name,
-                        leading: SpaceChip(id: space.id, name: space.name),
-                        trailing: const BvRowTrailing.none(),
-                        onTap: () => Navigator.of(sheet).pop(space),
-                      ),
-                  ],
-                  const Divider(),
-                ],
-                ChatActionRow(
-                  key: const Key('note-pin'),
-                  icon: BvIcons.pin,
-                  label: note.pinned ? l10n.daybookUnpin : l10n.notebookPinTop,
-                  onTap: () => Navigator.of(sheet).pop('pin'),
-                ),
-                if (note.kind != NoteKind.voice)
-                  ChatActionRow(
-                    key: const Key('note-remind'),
-                    icon: BvIcons.remind,
-                    label: l10n.notebookRemindMe,
-                    onTap: () => Navigator.of(sheet).pop('remind'),
-                  ),
-                if (note.kind != NoteKind.voice)
-                  ChatActionRow(
-                    key: const Key('note-edit'),
-                    icon: BvIcons.edit,
-                    label: l10n.daybookEdit,
-                    onTap: () => Navigator.of(sheet).pop('edit'),
-                  ),
-                ChatActionRow(
-                  key: const Key('note-move'),
-                  icon: BvIcons.moveInto,
-                  label: l10n.notebookMoveToPage,
-                  onTap: () => Navigator.of(sheet).pop('move'),
-                ),
-                ChatActionRow(
-                  key: const Key('note-delete'),
-                  icon: BvIcons.delete,
-                  label: l10n.delete,
-                  destructive: true,
-                  onTap: () => Navigator.of(sheet).pop('delete'),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-    if (!mounted || choice == null) return;
-    final notebook = ref.read(notebookProvider.notifier);
-    switch (choice) {
-      case SpaceSummary space:
-        await _putIn(note, space, includeGps: includeGps);
-      case 'pin':
-        await notebook.pin(note, on: !note.pinned);
-      case 'remind':
-        await _remind(note);
-      case 'move':
-        await _moveEntries([note]);
-      case 'edit':
-        await _edit(note);
-      case 'delete':
-        final yes = await showBvDialog(
-          context: context,
-          title: l10n.notebookDeleteTitle,
-          body: l10n.notebookDeleteBody,
-          cancelLabel: l10n.commonCancel,
-          confirmLabel: l10n.delete,
-          destructive: true,
-        );
-        if (yes) await notebook.delete(note);
-    }
-  }
-
   /// Remind me: a day and a time (the reminder's picker; no time is 9 am),
   /// or Remove. Saved as the note's remind_at; this phone sets the
   /// reminder (ReminderHost).
@@ -1047,52 +901,29 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         .save(note.copyWith(remindAt: () => at.value));
   }
 
+  /// Archive or Unarchive (review 100 Part 3b): at once, with Undo for
+  /// 5 s; then it goes.
+  Future<void> _archive(Note note, {required bool on}) {
+    final l10n = AppLocalizations.of(context);
+    return holdWithUndo(
+      context,
+      ref,
+      NoteChange.archive(note.id, on: on, at: ref.read(clockProvider)()),
+      on ? l10n.notebookArchivedUndo : l10n.notebookUnarchivedUndo,
+    );
+  }
+
+  /// The swipe's one-time hint (review 100 Part 3b), kept on the phone,
+  /// and whether this page has shown it.
+  String get _hintKey =>
+      'notebook_swipe_hint:${ref.read(authUserIdProvider).value ?? ''}';
+  bool _hinted = false;
+
   /// A reminder picked with no time: that morning.
   static const _morningHour = 9;
 
-  /// The Space's writing card opens with the note's words; nothing is
-  /// posted until Post. The note stays here, private. F107: what goes is
-  /// note_for_space's (the typed location; the GPS only when
-  /// [includeGps]), with the note's photos (B11: copies for the card);
-  /// with no signal, the same from the phone's note.
-  Future<void> _putIn(
-    Note note,
-    SpaceSummary space, {
-    required bool includeGps,
-  }) async {
-    final repo = ref.read(notebookRepositoryProvider);
-    var carried = note.copyWith(
-      location: () {
-        final l = note.location;
-        return l == null || includeGps ? l : l.withoutGps();
-      },
-    );
-    try {
-      final row = await repo.forSpace(note.id, includeGps: includeGps);
-      carried = Note.fromJson({
-        ...row,
-        'created_at': note.createdAt.toUtc().toIso8601String(),
-      }).copyWith(photos: note.photos);
-    } on SpaceException {
-      // No signal: the note as the phone has it, with the same rule.
-    }
-    final photos = <String>[];
-    var missed = 0;
-    for (final p in carried.photos) {
-      final copy = await _photoCopy(p);
-      copy == null ? missed++ : photos.add(copy);
-    }
-    if (!mounted) return;
-    if (missed > 0) _toast(AppLocalizations.of(context).notebookPhotosStay);
-    await ref
-        .read(daybookDraftProvider(space.id).notifier)
-        .fromNote(ref.read(newPostIdProvider)(), carried, photos: photos);
-    if (!mounted) return;
-    unawaited(context.push(AppRoutes.space(space.id), extra: SpaceOpen.write));
-  }
-
-  /// A copy of a note's photo for a Space's card (its own file, which the
-  /// card may delete once posted); null when it can't be had.
+  /// A copy of an entry's photo of its own (a copy, or a share), which
+  /// may be deleted once sent; null when it can't be had.
   Future<String?> _photoCopy(NotePhoto p) async {
     try {
       final local = p.local;
@@ -1549,7 +1380,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final selecting = _selected.isNotEmpty;
     // BH12: lines of the entry being written are selected.
     final picking = writingNow && _linesPicked > 0;
-    final entries = page == null ? const <Note>[] : data.entries(page.id);
+    final entries = page == null
+        ? const <Note>[]
+        : widget.archived
+        ? data.archived(page.id)
+        : data.entries(page.id);
     final chosen = [
       for (final n in entries)
         if (_selected.contains(n.id)) n,
@@ -1578,7 +1413,6 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           words: words,
           onOpen: () => unawaited(_resume(draft.id)),
           shown: inHand ? null : draft,
-          onMenu: writing ? null : () => unawaited(_draftMenu(draft)),
           onPickDue: () => unawaited(_pickDue()),
           onPickRemind: () => unawaited(_pickRemind()),
           onLocation: _toggleLocation,
@@ -1609,23 +1443,72 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       );
     }
 
-    Widget entry(Note n) => Padding(
+    // The swipe's hint, on the top card, the first time a page with
+    // entries opens (review 100 Part 3b).
+    final prefs = ref.read(sharedPreferencesProvider);
+    final hintFirst =
+        !widget.archived && !_hinted && !(prefs.getBool(_hintKey) ?? false);
+
+    Widget entry(Note n, {bool first = false}) => Padding(
       key: n.id == widget.entry ? _entryKey : null,
       padding: const EdgeInsetsDirectional.only(
         bottom: BvNotebookPagesSpec.entryGap,
       ),
-      child: NoteSlip(
-        note: n,
-        words: words,
-        now: now,
-        selected: _selected.contains(n.id),
-        onMenu: () => _menu(n),
-        onEdit: selecting
-            ? () => _select(n)
-            : n.kind == NoteKind.voice
-            ? null
-            : () => _edit(n),
-        onLongPress: () => _select(n),
+      child: BvSwipeCard(
+        key: ValueKey(('swipe', n.id)),
+        id: n.id,
+        enabled: !selecting,
+        hint: first && hintFirst,
+        onHinted: () {
+          _hinted = true;
+          unawaited(prefs.setBool(_hintKey, true));
+        },
+        endActions: widget.archived
+            ? const []
+            : [
+                BvSwipeAction(
+                  key: Key('swipe-pin-${n.id}'),
+                  icon: BvIcons.pin,
+                  label: n.pinned ? l10n.daybookUnpin : l10n.notebookPin,
+                  color: BvColors.textPrimary,
+                  onTap: () => unawaited(
+                    ref.read(notebookProvider.notifier).pin(n, on: !n.pinned),
+                  ),
+                ),
+                if (n.kind != NoteKind.voice)
+                  BvSwipeAction(
+                    key: Key('swipe-remind-${n.id}'),
+                    icon: BvIcons.remind,
+                    label: remindsAt(n, now)
+                        ? l10n.notebookChangeReminder
+                        : l10n.notebookReminder,
+                    color: BvColors.textWarning,
+                    onTap: () => unawaited(_remind(n)),
+                  ),
+              ],
+        startAction: BvSwipeAction(
+          key: Key('swipe-archive-${n.id}'),
+          icon: BvIcons.archive,
+          label: widget.archived
+              ? l10n.notebookUnarchive
+              : l10n.notebookArchive,
+          color: BvColors.actionPrimary,
+          onTap: () => unawaited(_archive(n, on: !widget.archived)),
+        ),
+        child: NoteSlip(
+          note: n,
+          words: words,
+          now: now,
+          selected: _selected.contains(n.id),
+          onEdit: widget.archived
+              ? null
+              : selecting
+              ? () => _select(n)
+              : n.kind == NoteKind.voice
+              ? null
+              : () => _edit(n),
+          onLongPress: widget.archived ? null : () => _select(n),
+        ),
       ),
     );
 
@@ -1643,10 +1526,15 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     bool here(NoteDraft d) =>
         page != null && (d.intoPage ?? data.latest?.id) == page.id;
     final drafts = [
-      if (draft != null && !writingNow && draft.editing == null && here(draft))
-        draft,
-      for (final d in ref.watch(parkedDraftsProvider))
-        if (here(d) && d.id != draft?.id) d,
+      if (!widget.archived)
+        if (draft != null &&
+            !writingNow &&
+            draft.editing == null &&
+            here(draft))
+          draft,
+      if (!widget.archived)
+        for (final d in ref.watch(parkedDraftsProvider))
+          if (here(d) && d.id != draft?.id) d,
     ];
 
     Widget browse(NotebookPage page) {
@@ -1734,7 +1622,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
             ],
           ),
           const SizedBox(height: BvNotebookPagesSpec.titleBottom),
-          for (final sub in data.children(page.id))
+          for (final sub
+              in widget.archived
+                  ? const <NotebookPage>[]
+                  : data.children(page.id))
             Padding(
               padding: const EdgeInsetsDirectional.only(
                 bottom: BvNotebookPagesSpec.rowsGap,
@@ -1751,14 +1642,23 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           if (drafts.isNotEmpty) ...[
             NotebookLabel(l10n.daybookDraft),
             for (final d in drafts)
-              KeyedSubtree(
+              BvSwipeCard(
                 key: Key('note-draft-card-${d.id}'),
+                id: d.id,
+                enabled: !selecting,
+                startAction: BvSwipeAction(
+                  key: Key('swipe-archive-${d.id}'),
+                  icon: BvIcons.delete,
+                  label: l10n.notebookDiscardDraft,
+                  color: BvColors.textDestructive,
+                  onTap: () => unawaited(_discardDraft(d)),
+                ),
                 child: writingSlip(d, writing: false),
               ),
           ],
           if (pinned.isNotEmpty) ...[
             NotebookLabel(l10n.notebookPinnedLabel),
-            for (final n in pinned) entry(n),
+            for (final n in pinned) entry(n, first: n == entries.first),
           ],
           for (final day in byDay.keys) ...[
             Padding(
@@ -1767,8 +1667,21 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               ),
               child: NotebookLabel(words.compactDate(day)),
             ),
-            for (final n in byDay[day]!) entry(n),
+            for (final n in byDay[day]!)
+              entry(
+                n,
+                first:
+                    pinned.isEmpty &&
+                    n == byDay[day]!.first &&
+                    day == byDay.keys.first,
+              ),
           ],
+          if (widget.archived && entries.isEmpty && notebook.hasValue)
+            EmptyNote(l10n.notebookArchivedEmpty),
+          if (!widget.archived && data.archived(page.id).isNotEmpty)
+            ArchivedRow(
+              onTap: () => context.push(AppRoutes.notebookArchived(page.id)),
+            ),
         ],
       );
     }
@@ -1792,7 +1705,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           ),
         );
       }
-      if (page != null) return browse(page);
+      if (page != null) return BvSwipeGroup(child: browse(page));
       if (notebook.isLoading) return const SizedBox.shrink();
       return Padding(
         padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
@@ -1854,7 +1767,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                         : () => setState(_selected.clear),
                   )
                 : null,
-            title: picking
+            title: widget.archived
+                ? Text(l10n.notebookArchivedRow)
+                : picking
                 ? Text(l10n.notebookLinesSelected(_linesPicked))
                 : selecting
                 ? Text(l10n.notebookSelected(_selected.length))
@@ -1862,7 +1777,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                 ? Text(writingTitle, key: const Key('writing-page-title'))
                 : null,
             actions: [
-              if (!selecting && !writingNow && page != null) ...[
+              if (!selecting &&
+                  !writingNow &&
+                  page != null &&
+                  !widget.archived) ...[
                 IconButton(
                   key: const Key('page-search'),
                   tooltip: l10n.notebookSearchTip,
@@ -1878,7 +1796,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               ],
             ],
           ),
-          floatingActionButton: !writingNow && !selecting && page != null
+          floatingActionButton:
+              !writingNow && !selecting && page != null && !widget.archived
               ? WriteHereButton(onTap: () => unawaited(_write()))
               : null,
           body: Column(
@@ -2097,7 +2016,6 @@ class NoteSlip extends ConsumerWidget {
     required this.note,
     required this.words,
     required this.now,
-    required this.onMenu,
     this.onEdit,
     this.onLongPress,
     this.selected = false,
@@ -2106,10 +2024,10 @@ class NoteSlip extends ConsumerWidget {
   final Note note;
   final DaybookWords words;
   final DateTime now;
-  final VoidCallback onMenu;
   final VoidCallback? onEdit;
 
-  /// A long-press: select it (review 99 A4); the ⋯ opens [onMenu].
+  /// A long-press: select it (review 99 A4); its other actions are on its
+  /// swipe (review 100 Part 3b).
   final VoidCallback? onLongPress;
 
   /// Selected for Move to page…: lifted, with the selected edge.
@@ -2153,8 +2071,6 @@ class NoteSlip extends ConsumerWidget {
             words.time.clock(note.createdAt),
             style: type.metadata.copyWith(color: BvColors.textSecondary),
           ),
-          // ⋯'s place: the button itself stands over the card (D10).
-          const SizedBox.square(dimension: BvNotebookPagesSpec.entryMenu),
         ],
       ),
       if (note.isPage)
@@ -2259,48 +2175,18 @@ class NoteSlip extends ConsumerWidget {
         ),
         child: Material(
           type: MaterialType.transparency,
-          child: Stack(
-            children: [
-              InkWell(
-                borderRadius: BvNotebookPagesSpec.entryRadius,
-                onTap: onEdit,
-                onLongPress: onLongPress ?? onMenu,
-                child: Padding(
-                  padding: BvNotebookPagesSpec.entryPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: BvNotebookPagesSpec.entryLinesGap,
-                    children: children,
-                  ),
-                ),
+          child: InkWell(
+            borderRadius: BvNotebookPagesSpec.entryRadius,
+            onTap: onEdit,
+            onLongPress: onLongPress,
+            child: Padding(
+              padding: BvNotebookPagesSpec.entryPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: BvNotebookPagesSpec.entryLinesGap,
+                children: children,
               ),
-              // Review 100 D10: ⋯ is its own button, outside the card's
-              // gestures (Part 1): a tap opens it at once, and holding it
-              // never selects the card. For now only: the redesign takes
-              // ⋯ off entries (Part 3b).
-              PositionedDirectional(
-                top: BvNotebookPagesSpec.entryPadding.top,
-                end: BvNotebookPagesSpec.entryPadding.end,
-                child: Semantics(
-                  button: true,
-                  label: l10n.daybookMore,
-                  excludeSemantics: true,
-                  child: InkResponse(
-                    key: Key('note-menu-${note.id}'),
-                    onTap: onMenu,
-                    radius: BvNotebookPagesSpec.entryMenu,
-                    child: const SizedBox.square(
-                      dimension: BvNotebookPagesSpec.entryMenu,
-                      child: Icon(
-                        BvIcons.more,
-                        size: BvSize.iconSm,
-                        color: BvColors.iconSecondary,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

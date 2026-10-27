@@ -189,6 +189,10 @@ class NoteChange {
   const NoteChange.deleteLines(String id, List<String> lines, String part)
     : this._('delete_lines', id: id, ids: lines, target: part);
 
+  /// Archive or Unarchive (review 100 Part 3b), with Undo first.
+  const NoteChange.archive(String id, {required bool on, DateTime? at})
+    : this._('archive', id: id, on: on, at: at);
+
   /// "+ New page", or a sub-page.
   const NoteChange.newPage(NotebookPage page) : this._('page', page: page);
 
@@ -265,6 +269,7 @@ class NoteChange {
       ),
       'page_delete' => NoteChange.deletePages(list('ids')),
       'delete_entries' => NoteChange.deleteEntries(list('ids'), at: at),
+      'archive' => NoteChange.archive(json['id'] as String, on: on, at: at),
       'duplicate' => NoteChange.duplicate(list('ids'), [
         for (final c in json['copies'] as List? ?? const [])
           Note.fromJson(c as Map<String, dynamic>),
@@ -362,6 +367,18 @@ class NoteChange {
           notes: [
             for (final n in notes)
               if (n.id != note!.id) n,
+          ],
+        );
+      case 'archive':
+        return data.copyWith(
+          notes: [
+            for (final n in notes)
+              n.id == id
+                  ? n.copyWith(
+                      archivedAt: () =>
+                          on ? (n.archivedAt ?? at ?? DateTime.now()) : null,
+                    )
+                  : n,
           ],
         );
       case 'delete_entries':
@@ -1001,6 +1018,8 @@ class Notebook extends AsyncNotifier<NotebookData> {
         await _repo.deletePages(change.ids);
       case 'delete_entries':
         await _repo.deleteEntries(change.ids);
+      case 'archive':
+        await _repo.archive(change.id!, on: change.on);
       case 'duplicate':
         for (final c in change.copies) {
           await _repo.save(c);

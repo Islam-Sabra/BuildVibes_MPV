@@ -64,10 +64,30 @@ Future<TestApp> _open(
   return app;
 }
 
-Future<void> _menu(WidgetTester tester, String id) async {
-  await tester.tap(_key('note-menu-$id'));
+/// Review 100 Part 3b: an entry's Pin · Reminder are on its swipe toward
+/// the end (mirrored in Arabic).
+Future<void> _swipeOpen(WidgetTester tester, String id) async {
+  final card = find.byKey(Key('note-$id'));
+  await tester.ensureVisible(card);
+  await tester.pumpAndSettle();
+  final rtl = Directionality.of(tester.element(card)) == TextDirection.rtl;
+  // On its head row: a voice note's player keeps its own drag.
+  final head =
+      tester.getTopLeft(card) + Offset(tester.getSize(card).width / 2, 16);
+  await tester.timedDragFrom(
+    head,
+    Offset(rtl ? -160 : 160, 0),
+    const Duration(milliseconds: 300),
+  );
   await tester.pumpAndSettle();
 }
+
+/// The open card's Reminder.
+final _remindButton = find.byWidgetPredicate(
+  (w) => '${w.key}'.contains('swipe-remind-'),
+);
+
+Future<void> _menu(WidgetTester tester, String id) => _swipeOpen(tester, id);
 
 void main() {
   setUp(
@@ -83,24 +103,24 @@ void main() {
         'this phone; the slip says when [$lang]', (tester) async {
       final app = await _open(tester, lang, notes: [s.todo()]);
       await _menu(tester, 'note-sleeves');
-      expect(_key('note-remind'), findsOneWidget);
-      expect(find.text(l10n.notebookRemindMe), findsOneWidget);
+      expect(_remindButton, findsOneWidget);
+      expect(find.text(l10n.notebookReminder), findsOneWidget);
       // A bell, not My calendar's glyph (review 88 S3).
       expect(
         find.descendant(
-          of: _key('note-remind'),
+          of: _remindButton,
           matching: find.byIcon(BvIcons.remind),
         ),
         findsOneWidget,
       );
       expect(
         find.descendant(
-          of: _key('note-remind'),
+          of: _remindButton,
           matching: find.byIcon(BvIcons.calendar),
         ),
         findsNothing,
       );
-      await _tap(tester, _key('note-remind'));
+      await _tap(tester, _remindButton);
       expect(
         app.notebook.kept['note-sleeves']!.remindAt,
         DateTime(2026, 10, 15, 16),
@@ -127,7 +147,7 @@ void main() {
       _picked = (day: DateTime(2026, 10, 16), at: null);
       final app = await _open(tester, lang, notes: [s.todo()]);
       await _menu(tester, 'note-sleeves');
-      await _tap(tester, _key('note-remind'));
+      await _tap(tester, _remindButton);
       expect(
         app.reminders.onPhone['note-sleeves']!.at,
         DateTime(2026, 10, 16, 9),
@@ -136,7 +156,7 @@ void main() {
 
       _picked = (day: DateTime(2026, 10, 15), at: DateTime(2026, 10, 15, 8));
       await _menu(tester, 'note-sleeves');
-      await _tap(tester, _key('note-remind'));
+      await _tap(tester, _remindButton);
       expect(find.text(l10n.notebookRemindPast), findsOneWidget);
       expect(
         app.reminders.onPhone['note-sleeves']!.at,
@@ -154,7 +174,7 @@ void main() {
       expect(_key('note-reminder-note-sleeves'), findsOneWidget);
       _picked = (day: null, at: null);
       await _menu(tester, 'note-sleeves');
-      await _tap(tester, _key('note-remind'));
+      await _tap(tester, _remindButton);
       expect(app.notebook.kept['note-sleeves']!.remindAt, isNull);
       expect(app.reminders.onPhone, isEmpty);
       expect(app.reminders.calls.last, 'cancel note-sleeves');
@@ -175,9 +195,10 @@ void main() {
       await _tap(tester, _key('note-done-note-sleeves'));
       expect(app.reminders.onPhone.keys, {'note-yesterday'});
       expect(_key('note-reminder-note-sleeves'), findsNothing);
-      await _menu(tester, 'note-yesterday');
-      await _tap(tester, _key('note-delete'));
-      await _tap(tester, find.text(l10n.delete).last);
+      // Review 100 Part 3: held, then Delete on the selection bar.
+      await tester.longPress(_key('note-note-yesterday'));
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('select-delete'));
       expect(app.reminders.onPhone, isEmpty);
     });
 
@@ -254,11 +275,11 @@ void main() {
       expect(find.byType(NotebookScreen), findsOneWidget);
     });
 
-    testWidgets("a voice note's menu has no Remind me [$lang]", (tester) async {
+    testWidgets("a voice note's swipe has no Reminder [$lang]", (tester) async {
       await _open(tester, lang, notes: [s.voice()]);
       await _menu(tester, s.voice().id);
-      expect(_key('note-menu'), findsOneWidget);
-      expect(_key('note-remind'), findsNothing);
+      expect(_key('swipe-pin-${s.voice().id}'), findsOneWidget);
+      expect(_remindButton, findsNothing);
     });
   }
 

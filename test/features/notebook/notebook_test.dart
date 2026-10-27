@@ -230,48 +230,6 @@ void main() {
       );
     });
 
-    testWidgets('the menu: pin to the top and unpin, edit, and delete asks '
-        'first [$lang]', (tester) async {
-      final app = await _open(tester, lang, notes: [n.yesterday()]);
-      await tester.tap(_key('note-menu-note-yesterday'));
-      await tester.pumpAndSettle();
-      expect(_key('note-menu'), findsOneWidget);
-      expect(find.text(l10n.notebookPinTop), findsOneWidget);
-      await _tap(tester, _key('note-pin'));
-      expect(app.notebook.calls, contains('pin:note-yesterday:true'));
-      expect(find.text(l10n.notebookPinnedLabel), findsOneWidget);
-      await tester.tap(_key('note-menu-note-yesterday'));
-      await tester.pumpAndSettle();
-      expect(find.text(l10n.daybookUnpin), findsOneWidget);
-      await _tap(tester, _key('note-pin'));
-      expect(app.notebook.calls, contains('pin:note-yesterday:false'));
-      expect(find.text(l10n.notebookPinnedLabel), findsNothing);
-      expect(_key('note-note-yesterday'), findsOneWidget);
-
-      await _tap(tester, _key('note-note-yesterday'));
-      expect(_key('note-writing-card'), findsOneWidget);
-      await tester.enterText(_key('note-title'), 'Door schedule from Lina');
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('writing-post'));
-      expect(
-        app.notebook.kept['note-yesterday']!.title,
-        'Door schedule from Lina',
-      );
-
-      await tester.tap(_key('note-menu-note-yesterday'));
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('note-delete'));
-      expect(find.text(l10n.notebookDeleteTitle), findsOneWidget);
-      await _tap(tester, find.text(l10n.commonCancel));
-      expect(_key('note-note-yesterday'), findsOneWidget);
-      await tester.tap(_key('note-menu-note-yesterday'));
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('note-delete'));
-      await _tap(tester, find.text(l10n.delete).last);
-      expect(app.notebook.calls, contains('delete:note-yesterday'));
-      expect(_key('note-note-yesterday'), findsNothing);
-    });
-
     testWidgets('no signal: a note shows at once, waits on the phone, and '
         'goes with the next change [$lang]', (tester) async {
       final app = await _open(tester, lang);
@@ -335,82 +293,6 @@ void main() {
       expect(voice.path, 'user-1/$id/voice.m4a');
       expect(voice.durationMs, greaterThanOrEqualTo(3000));
       expect(entry.pageId, FakeNotebookRepository.myNotesId);
-    });
-
-    testWidgets('Put in a Space: the Space opens writing a work item from the '
-        'to-do; nothing posts by itself; mark_note_put once the server took '
-        'it [$lang]', (tester) async {
-      final s = DaybookSamples(lang);
-      final daybook = FakeDaybookRepository()
-        ..posts[DaybookSamples.space] = const [];
-      final app = await _open(
-        tester,
-        lang,
-        notes: [n.todo()],
-        spaces: _spaces(s),
-        daybook: daybook,
-      );
-      await tester.tap(_key('note-menu-note-sleeves'));
-      await tester.pumpAndSettle();
-      expect(find.text(s.spaceName), findsOneWidget);
-      // A Viewer can't post work there.
-      expect(find.text('Khiran villas'), findsNothing);
-      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
-      final title = tester.widget<EditableText>(
-        find.descendant(
-          of: _key('writing-title'),
-          matching: find.byType(EditableText),
-        ),
-      );
-      expect(title.controller.text, n.sleevesTodo);
-      // Review 84 N2: just made from the note, not a Draft from before.
-      expect(find.text(l10n.daybookDraft), findsNothing);
-      expect(daybook.created, isEmpty, reason: 'nothing posts by itself');
-      expect(app.notebook.calls.where((c) => c.startsWith('put:')), isEmpty);
-      await _tap(tester, _key('writing-who'));
-      await _tap(tester, find.text(s.omarName).last);
-      await _tap(tester, _key('writing-post'));
-      await tester.pumpAndSettle();
-      final made = daybook.created.single;
-      expect(made.title, n.sleevesTodo);
-      expect(made.dueAt, DateTime(2026, 10, 15, 16));
-      expect(app.notebook.calls, contains('put:note-sleeves:${made.id}'));
-      // The note stays in the notebook.
-      expect(app.notebook.kept['note-sleeves'], isNotNull);
-    });
-
-    testWidgets('a card made from a note and left unsent is the Draft when '
-        'the Space opens again [$lang]', (tester) async {
-      final s = DaybookSamples(lang);
-      await _open(
-        tester,
-        lang,
-        notes: [n.todo()],
-        spaces: _spaces(s),
-        daybook: FakeDaybookRepository()
-          ..posts[DaybookSamples.space] = const [],
-      );
-      await tester.tap(_key('note-menu-note-sleeves'));
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
-      expect(find.text(l10n.daybookDraft), findsNothing);
-      final router = GoRouter.of(tester.element(find.byType(Navigator).first));
-      router.pop();
-      await tester.pumpAndSettle();
-      router.push('/spaces/${DaybookSamples.space}');
-      await tester.pumpAndSettle();
-      expect(find.text(l10n.daybookDraft), findsOneWidget);
-    });
-
-    testWidgets('a voice note has no words to put in a Space [$lang]', (
-      tester,
-    ) async {
-      await _open(tester, lang, notes: [n.voice()]);
-      await tester.tap(_key('note-menu-note-voice'));
-      await tester.pumpAndSettle();
-      expect(find.text(l10n.dmPutInSpace), findsNothing);
-      expect(_key('note-edit'), findsNothing);
-      expect(_key('note-pin'), findsOneWidget);
     });
 
     testWidgets('Save to my notebook on a held direct message [$lang]', (

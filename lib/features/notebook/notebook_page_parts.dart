@@ -987,3 +987,52 @@ class WriteHereButton extends StatelessWidget {
     ),
   );
 }
+
+/// "Archived ›" (review 100 Part 3b, BH3): a quiet row at a page's end,
+/// when it has any; it opens them.
+class ArchivedRow extends StatelessWidget {
+  const ArchivedRow({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    child: InkWell(
+      key: const Key('page-archived'),
+      onTap: onTap,
+      borderRadius: BvNotebookPagesSpec.rowRadius,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          BvNotebookPagesSpec.rowPaddingStart,
+          BvNotebookPagesSpec.rowPaddingVertical,
+          BvNotebookPagesSpec.rowPaddingEnd,
+          BvNotebookPagesSpec.rowPaddingVertical,
+        ),
+        child: Row(
+          spacing: BvNotebookPagesSpec.rowGap,
+          children: [
+            const Icon(
+              BvIcons.archive,
+              size: BvSize.iconMd,
+              color: BvColors.iconSecondary,
+            ),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context).notebookArchivedRow,
+                style: BvType.of(
+                  context,
+                ).bodyMd.copyWith(color: BvColors.textSecondary),
+              ),
+            ),
+            const Icon(
+              BvIcons.caretForward,
+              size: BvNotebookPagesSpec.caret,
+              color: BvColors.iconSecondary,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

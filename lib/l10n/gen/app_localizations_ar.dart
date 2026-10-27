@@ -5194,4 +5194,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookMove => 'نقل';
+
+  @override
+  String get notebookReminder => 'تذكير';
+
+  @override
+  String get notebookChangeReminder => 'تغيير التذكير';
+
+  @override
+  String get notebookArchive => 'أرشفة';
+
+  @override
+  String get notebookUnarchive => 'إلغاء الأرشفة';
+
+  @override
+  String get notebookArchivedUndo => 'تمت الأرشفة';
+
+  @override
+  String get notebookUnarchivedUndo => 'عادت إلى صفحتها';
+
+  @override
+  String get notebookArchivedRow => 'المؤرشفة';
+
+  @override
+  String get notebookArchivedEmpty => 'لا شيء مؤرشف في هذه الصفحة.';
 }

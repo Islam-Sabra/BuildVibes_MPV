@@ -15,7 +15,6 @@ import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_location.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
@@ -27,7 +26,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
-import '../../helpers/daybook_samples.dart';
 import '../../helpers/notebook_fakes.dart';
 import '../../helpers/notebook_samples.dart';
 import '../../helpers/pump_app.dart';
@@ -113,32 +111,6 @@ Future<void> _back(WidgetTester tester) async {
   await tester.binding.handlePopRoute();
   await tester.pumpAndSettle();
 }
-
-FakeSpaceRepository _spaces(DaybookSamples s) => FakeSpaceRepository()
-  ..spaces.add(
-    SpaceSummary(
-      id: DaybookSamples.space,
-      name: s.spaceName,
-      pass: SpacePass.lead,
-      isAdmin: true,
-    ),
-  )
-  ..details[DaybookSamples.space] = s.detail()
-  ..spacePeople[DaybookSamples.space] = s.people();
-
-/// A page note saved before, with its location and a photo.
-Note _page({NoteLocation? location}) => Note(
-  id: 'note-page',
-  kind: NoteKind.text,
-  title: 'Before the pour, level 3',
-  body: 'Before the pour, level 3\nCheck the sleeves',
-  blocks: const [
-    PageTodo('a0000000-0000-4000-8000-000000000001', 'Check the sleeves'),
-  ],
-  location: location,
-  photos: [NotePhoto(local: testPhotoPath)],
-  createdAt: DateTime(2026, 10, 15, 9),
-);
 
 void main() {
   for (final lang in ['en', 'ar']) {
@@ -675,54 +647,6 @@ void main() {
       await tester.enterText(_key('note-title'), 'The newest');
       await _tap(tester, _key('writing-post'));
       expect(find.text('The newest').hitTestable(), findsOneWidget);
-    });
-
-    testWidgets('B11: Put in a Space carries the photos and the typed place, '
-        'and the GPS only when ticked [$lang]', (tester) async {
-      final s = DaybookSamples(lang);
-      final daybook = FakeDaybookRepository()
-        ..posts[DaybookSamples.space] = const [];
-      final app = await _open(
-        tester,
-        lang,
-        notes: [
-          _page(
-            location: const NoteLocation(
-              text: 'Level 3, grid C7',
-              lat: 29.37594,
-              lng: 47.9774,
-              accuracyM: 8,
-            ),
-          ),
-        ],
-        spaces: _spaces(s),
-        daybook: daybook,
-      );
-      DaybookPostDraft card() =>
-          _container(tester).read(daybookDraftProvider(DaybookSamples.space))!;
-
-      await tester.tap(_key('note-menu-note-page'));
-      await tester.pumpAndSettle();
-      expect(_key('note-include-gps'), findsOneWidget);
-      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
-      expect(app.notebook.calls, contains('for-space:note-page:false'));
-      expect(card().place, 'Level 3, grid C7');
-      expect(card().photos, hasLength(1));
-      expect(card().kind, DaybookKind.checklist);
-      expect(card().points.single.text, 'Check the sleeves');
-
-      // Again, with "Include my GPS position" ticked.
-      await _container(
-        tester,
-      ).read(daybookDraftProvider(DaybookSamples.space).notifier).discard();
-      GoRouter.of(tester.element(find.byType(Navigator).first)).pop();
-      await tester.pumpAndSettle();
-      await tester.tap(_key('note-menu-note-page'));
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('note-include-gps'));
-      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
-      expect(app.notebook.calls, contains('for-space:note-page:true'));
-      expect(card().place, 'Level 3, grid C7 · 29.37594, 47.97740');
     });
 
     testWidgets('B13: Send keeps the note on the phone before the draft '

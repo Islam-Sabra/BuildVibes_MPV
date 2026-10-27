@@ -8,6 +8,7 @@ import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/notebook/calendar_screen.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
+import 'package:buildvibes/features/notebook/note_reminders.dart';
 import 'package:buildvibes/features/notebook/notebook_page_screen.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
@@ -597,5 +598,20 @@ void main() {
       expect(data.archived('p-1').map((n) => n.id), ['kept']);
       expect(data.all, hasLength(3));
     });
+  });
+
+  test('99B ruling 5 and review 100 Part 3b: an archived or deleted '
+      "entry's reminder never rings on the phone", () {
+    final n = Note(
+      id: 'n-1',
+      kind: NoteKind.text,
+      body: 'Pour',
+      createdAt: DateTime(2026, 10, 15, 9),
+      remindAt: DateTime(2026, 10, 16, 9),
+    );
+    final now = DateTime(2026, 10, 15, 12);
+    expect(remindsAt(n, now), isTrue);
+    expect(remindsAt(n.copyWith(archivedAt: () => now), now), isFalse);
+    expect(remindsAt(n.copyWith(deletedAt: () => now), now), isFalse);
   });
 }

@@ -19,10 +19,12 @@ import 'notebook_state.dart';
 /// are taken off first.
 const remindersSetKey = 'reminders_set';
 
-/// Whether [note] has a reminder still to come.
+/// Whether [note] has a reminder still to come: never one archived or in
+/// Deleted items (99B ruling 5).
 bool remindsAt(Note note, DateTime now) {
   final at = note.remindAt;
   return at != null &&
+      note.shown &&
       !note.done &&
       note.kind != NoteKind.voice &&
       at.isAfter(now);

@@ -13,8 +13,6 @@ import '../../helpers/reminder_fakes.dart';
 /// On-time reminders (founder, 25 Oct): on a phone that keeps alarms
 /// inexact, the first Remind me asks once, with one line why, to open the
 /// phone's exact alarms setting; refused, reminders stay inexact.
-Finder _key(String k) => find.byKey(Key(k));
-
 Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.ensureVisible(f.first);
   await tester.pumpAndSettle();
@@ -48,10 +46,32 @@ Future<TestApp> _open(
   return app;
 }
 
-Future<void> _remind(WidgetTester tester, String id) async {
-  await tester.tap(_key('note-menu-$id'));
+/// Review 100 Part 3b: an entry's Pin · Reminder are on its swipe toward
+/// the end (mirrored in Arabic).
+Future<void> _swipeOpen(WidgetTester tester, String id) async {
+  final card = find.byKey(Key('note-$id'));
+  await tester.ensureVisible(card);
   await tester.pumpAndSettle();
-  await _tap(tester, _key('note-remind'));
+  final rtl = Directionality.of(tester.element(card)) == TextDirection.rtl;
+  // On its head row: a voice note's player keeps its own drag.
+  final head =
+      tester.getTopLeft(card) + Offset(tester.getSize(card).width / 2, 16);
+  await tester.timedDragFrom(
+    head,
+    Offset(rtl ? -160 : 160, 0),
+    const Duration(milliseconds: 300),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// The open card's Reminder.
+final _remindButton = find.byWidgetPredicate(
+  (w) => '${w.key}'.contains('swipe-remind-'),
+);
+
+Future<void> _remind(WidgetTester tester, String id) async {
+  await _swipeOpen(tester, id);
+  await _tap(tester, _remindButton);
 }
 
 void main() {

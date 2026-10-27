@@ -571,16 +571,16 @@ void main() {
         expect(find.text(l10n.notebookMovedTo(s.siteBTitle)), findsOneWidget);
       });
 
-      testWidgets('an entry\'s ⋯: Move to page…, into a new page', (
-        tester,
-      ) async {
+      testWidgets('an entry held, then Move (review 100 Part 3): into a new '
+          'page', (tester) async {
         final app = await _open(
           tester,
           lang,
           path: '/notebook/pages/${NotebookPageSamples.siteA}',
         );
-        await _tap(tester, _key('note-menu-entry-gate'));
-        await _tap(tester, _key('note-move'));
+        await tester.longPress(_key('note-entry-gate'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('select-move'));
         await _tap(tester, _key('page-pick-new'));
         final made = app.notebook.pageKept.values.singleWhere(
           (p) => !s.pages().any((q) => q.id == p.id),

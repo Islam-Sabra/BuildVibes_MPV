@@ -1432,5 +1432,13 @@
   "notebookCopyMark": "نسخة",
   "notebookLinesSelected": "{count, plural, =1{تم تحديد سطر} =2{تم تحديد سطرين} few{تم تحديد {count} أسطر} other{تم تحديد {count} سطرًا}}",
   "notebookShare": "مشاركة",
-  "notebookMove": "نقل"
+  "notebookMove": "نقل",
+  "notebookReminder": "تذكير",
+  "notebookChangeReminder": "تغيير التذكير",
+  "notebookArchive": "أرشفة",
+  "notebookUnarchive": "إلغاء الأرشفة",
+  "notebookArchivedUndo": "تمت الأرشفة",
+  "notebookUnarchivedUndo": "عادت إلى صفحتها",
+  "notebookArchivedRow": "المؤرشفة",
+  "notebookArchivedEmpty": "لا شيء مؤرشف في هذه الصفحة."
 }

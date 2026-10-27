@@ -75,6 +75,10 @@ abstract class NotebookRepository {
   /// the lines under it) to Deleted items as "Part of an entry", [part].
   Future<void> deleteLines(String noteId, List<String> lines, String part);
 
+  /// archive_note or unarchive_note (review 100 Part 3b): kept, out of
+  /// the page's list, its count, My calendar and the reminders.
+  Future<void> archive(String id, {required bool on});
+
   /// set_note_done: a to-do only.
   Future<void> setDone(String id, {required bool on});
 
@@ -367,6 +371,14 @@ class SupabaseNotebookRepository implements NotebookRepository {
           params: {'p_note': noteId, 'p_lines': lines, 'p_part': part},
         ),
       );
+
+  @override
+  Future<void> archive(String id, {required bool on}) => _guard(
+    () => _client.rpc<void>(
+      on ? 'archive_note' : 'unarchive_note',
+      params: {'p_id': id},
+    ),
+  );
 
   @override
   Future<void> setDone(String id, {required bool on}) => _guard(

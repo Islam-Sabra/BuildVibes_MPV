@@ -51,6 +51,9 @@ abstract final class AppRoutes {
   ).toString();
   static const notebookSearch = '/notebook/search';
 
+  /// Review 100 Part 3b: a page's archived entries ("Archived ›").
+  static String notebookArchived(String id) => '/notebook/pages/$id/archived';
+
   /// Direct messages (slice 3): the list, the requests, a thread, and a
   /// new conversation with a person (its thread is made by the first
   /// message). A push opens `/messages/<thread>`.

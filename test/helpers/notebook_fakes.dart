@@ -278,6 +278,19 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
+  Future<void> archive(String id, {required bool on}) async {
+    _check();
+    calls.add('archive:$id:$on');
+    final n = kept[id];
+    if (n != null) {
+      kept[id] = n.copyWith(
+        archivedAt: () =>
+            on ? (n.archivedAt ?? DateTime(2026, 10, 15, 12)) : null,
+      );
+    }
+  }
+
+  @override
   Future<void> setDone(String id, {required bool on}) async {
     _check();
     calls.add('done:$id:$on');

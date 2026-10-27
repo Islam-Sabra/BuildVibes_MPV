@@ -8695,6 +8695,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move'**
   String get notebookMove;
+
+  /// Review 100 Part 3b: an entry's swipe toward the end, its second button.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get notebookReminder;
+
+  /// Review 100 Part 3b: the swipe's Reminder when one is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Change reminder'**
+  String get notebookChangeReminder;
+
+  /// Review 100 Part 3b: an entry's swipe toward the start.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get notebookArchive;
+
+  /// Review 100 Part 3b: the swipe on an archived entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get notebookUnarchive;
+
+  /// Review 100 Part 3b: after Archive, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get notebookArchivedUndo;
+
+  /// Review 100 Part 3b: after Unarchive, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Back in its page'**
+  String get notebookUnarchivedUndo;
+
+  /// Review 100 Part 3b: the quiet row at a page's end that opens its archived entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get notebookArchivedRow;
+
+  /// Review 100 Part 3b: the archived list once its last entry went back.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing archived in this page.'**
+  String get notebookArchivedEmpty;
 }
 
 class _AppLocalizationsDelegate

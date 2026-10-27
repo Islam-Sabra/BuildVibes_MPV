@@ -16,8 +16,6 @@ import 'package:buildvibes/data/models/space.dart'
     show SpaceException, SpaceFailure;
 import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
-import 'package:buildvibes/features/notebook/notebook_page_parts.dart'
-    show SelectionBar;
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_line_popover.dart' show visibleTop;
@@ -449,10 +447,16 @@ void main() {
         );
       });
 
-      testWidgets('a Draft\'s ⋯: Discard, with Undo', (tester) async {
+      testWidgets('a Draft swiped toward the start: Discard, with Undo '
+          '(review 100 Part 3b)', (tester) async {
         await _open(tester, lang, draft: _draft([PageText('t-1', 'Rebar')]));
-        await _tap(tester, _key('note-draft-menu-draft-1'));
-        await _tap(tester, _key('note-draft-discard'));
+        await tester.timedDrag(
+          _key('swipe-card-draft-1'),
+          Offset(lang == 'ar' ? 120 : -120, 0),
+          const Duration(milliseconds: 300),
+        );
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('swipe-archive-draft-1'));
         expect(_key('note-draft'), findsNothing);
         await tester.tap(find.text(l10n.daybookUndo));
         await tester.pumpAndSettle();
@@ -633,41 +637,6 @@ void main() {
     });
 
     group('B5 ⋯ opens at once, one menu at a time [$lang]', () {
-      testWidgets('⋯ opens before the Spaces have come; a second tap opens '
-          'no second menu', (tester) async {
-        final gate = Completer<void>();
-        await _open(
-          tester,
-          lang,
-          notes: [_saved()],
-          spaces: FakeSpaceRepository()..spacesGate = gate.future,
-        );
-        await tester.tap(_key('note-menu-entry-1'));
-        await tester.tap(_key('note-menu-entry-1'), warnIfMissed: false);
-        await tester.pump(const Duration(milliseconds: 400));
-        expect(_key('note-menu'), findsOneWidget);
-        gate.complete();
-        await tester.pumpAndSettle();
-        expect(_key('note-menu'), findsOneWidget);
-      });
-
-      testWidgets("D10: ⋯ is its own button: holding it doesn't select the "
-          'entry; a tap opens its menu', (tester) async {
-        await _open(tester, lang, notes: [_saved()]);
-        await tester.longPress(_key('note-menu-entry-1'));
-        await tester.pumpAndSettle();
-        expect(_key('note-selected-entry-1'), findsNothing);
-        expect(find.byType(SelectionBar), findsNothing);
-        // Held, it is pressed like a tap: its menu, and only that.
-        expect(_key('note-menu'), findsOneWidget);
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-        // Holding the card itself still selects it.
-        await tester.longPress(_key('note-head-entry-1'));
-        await tester.pumpAndSettle();
-        expect(_key('note-selected-entry-1'), findsOneWidget);
-      });
-
       testWidgets('Back closes the line menu first, and writing goes on', (
         tester,
       ) async {

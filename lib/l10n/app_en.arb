@@ -7395,5 +7395,37 @@
   "notebookMove": "Move",
   "@notebookMove": {
     "description": "Review 100 Part 0: the selection bar's Move (to another page)."
+  },
+  "notebookReminder": "Reminder",
+  "@notebookReminder": {
+    "description": "Review 100 Part 3b: an entry's swipe toward the end, its second button."
+  },
+  "notebookChangeReminder": "Change reminder",
+  "@notebookChangeReminder": {
+    "description": "Review 100 Part 3b: the swipe's Reminder when one is set."
+  },
+  "notebookArchive": "Archive",
+  "@notebookArchive": {
+    "description": "Review 100 Part 3b: an entry's swipe toward the start."
+  },
+  "notebookUnarchive": "Unarchive",
+  "@notebookUnarchive": {
+    "description": "Review 100 Part 3b: the swipe on an archived entry."
+  },
+  "notebookArchivedUndo": "Archived",
+  "@notebookArchivedUndo": {
+    "description": "Review 100 Part 3b: after Archive, with Undo."
+  },
+  "notebookUnarchivedUndo": "Back in its page",
+  "@notebookUnarchivedUndo": {
+    "description": "Review 100 Part 3b: after Unarchive, with Undo."
+  },
+  "notebookArchivedRow": "Archived",
+  "@notebookArchivedRow": {
+    "description": "Review 100 Part 3b: the quiet row at a page's end that opens its archived entries."
+  },
+  "notebookArchivedEmpty": "Nothing archived in this page.",
+  "@notebookArchivedEmpty": {
+    "description": "Review 100 Part 3b: the archived list once its last entry went back."
   }
 }
