@@ -34,6 +34,7 @@ import '../messages/people_search_screen.dart' show peopleSearchProvider;
 import '../spaces/space_errors.dart';
 import '../work/daybook_writing.dart' show newPostIdProvider;
 import 'note_outline.dart' show numberAt, numberLabel;
+import 'note_page_editor.dart' show NoteTick;
 import 'note_writing.dart' show NotePhotos;
 import 'notebook_state.dart';
 
@@ -373,8 +374,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     final voices = [if (person != null) ...blocks.whereType<PageVoice>()];
     final files = [if (person != null && whole) ...widget.note.files];
     String lineOf(int i, PageBlock b) => switch (b) {
-      PageTodo(:final text, :final done) =>
-        '${done ? noteTodoDoneMark : noteTodoOpenMark} $text',
+      PageTodo(:final text) => text,
       PageNumbered(:final text) =>
         '${numberLabel(numberAt(blocks, i), b.indent)} $text',
       PageBullet(:final text) => '$noteBulletMark $text',
@@ -522,11 +522,27 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
                 ),
               for (final (i, b) in blocks.indexed)
                 if (lineOf(i, b).trim().isNotEmpty)
-                  Text(
-                    lineOf(i, b),
-                    textDirection: directionOf(lineOf(i, b)),
-                    style: main,
-                  ),
+                  // A to-do as the app draws one (BH5): its box.
+                  if (b case PageTodo(:final done))
+                    Row(
+                      spacing: BvNoteBlocksSpec.lineGap,
+                      children: [
+                        NoteTick(ticked: done),
+                        Expanded(
+                          child: Text(
+                            lineOf(i, b),
+                            textDirection: directionOf(lineOf(i, b)),
+                            style: main,
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      lineOf(i, b),
+                      textDirection: directionOf(lineOf(i, b)),
+                      style: main,
+                    ),
               if (whole && widget.note.photos.isNotEmpty)
                 NotePhotos(photos: widget.note.photos),
               for (final f in files)

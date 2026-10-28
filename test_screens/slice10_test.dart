@@ -342,12 +342,22 @@ void main() {
           ),
         ],
       );
-      // Review 99: an entry inside "My notes"; its ⋯ opens the menu.
+      // Review 99: an entry inside "My notes"; review 100 H22: its
+      // Reminder is on its swipe toward the end.
       await _go(tester, '/notebook/pages/page-my-notes');
       await tester.ensureVisible(_key('note-note-sleeves'));
       await tester.pumpAndSettle();
       await _snap(tester, 'NB-reminder-slip', lang);
-      await tester.tap(_key('note-menu-note-walk'));
+      final card = _key('note-note-walk');
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
+      final head =
+          tester.getTopLeft(card) + Offset(tester.getSize(card).width / 2, 16);
+      await tester.timedDragFrom(
+        head,
+        Offset(lang == 'ar' ? -160 : 160, 0),
+        const Duration(milliseconds: 300),
+      );
       await tester.pumpAndSettle();
       await _snap(tester, 'NB-remind-menu', lang);
     });

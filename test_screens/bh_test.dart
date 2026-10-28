@@ -59,7 +59,8 @@ FakeNotebookRepository _notebook(String lang) {
   final d = DaybookSamples(lang);
   final repo = s.repository();
   repo.kept['entry-pour'] = repo.kept['entry-pour']!.copyWith(
-    location: () => const NoteLocation(text: 'Gate 2', lat: 29.37, lng: 47.97),
+    location: () =>
+        NoteLocation(text: s.t('Gate 2', 'البوابة 2'), lat: 29.37, lng: 47.97),
     shares: [
       NoteShare(
         target: NoteShareTarget.space,
@@ -85,6 +86,17 @@ FakeNotebookRepository _notebook(String lang) {
       at: DateTime(2026, 10, 14, 16, 20),
     ),
   ];
+  // The deleted voice note the phone holds (H21: its icon and length).
+  repo.kept['gone-voice'] = Note(
+    id: 'gone-voice',
+    kind: NoteKind.text,
+    createdAt: DateTime(2026, 10, 12, 8),
+    blocks: const [
+      PageVoice('gone-v', path: 'user-1/gone-voice/v.m4a', durationMs: 42000),
+    ],
+    pageId: NotebookPageSamples.siteB,
+    deletedAt: DateTime(2026, 10, 12, 8),
+  );
   repo.deletedList = [
     DeletedItem(
       kind: DeletedKind.entry,
@@ -106,7 +118,6 @@ FakeNotebookRepository _notebook(String lang) {
     DeletedItem(
       kind: DeletedKind.part,
       id: 'gone-voice',
-      title: s.t('Voice note, 0:42', 'تسجيل صوتي، 0:42'),
       pageId: NotebookPageSamples.siteB,
       pageTitle: s.siteBTitle,
       deletedAt: DateTime(2026, 10, 12, 8),
@@ -195,7 +206,13 @@ Future<void> _write(
   String lang, {
   NoteDraft? draft,
 }) async {
-  await _open(tester, lang, _siteA, draft: draft ?? _pour(lang), keyboard: true);
+  await _open(
+    tester,
+    lang,
+    _siteA,
+    draft: draft ?? _pour(lang),
+    keyboard: true,
+  );
   await _tap(tester, _key('note-draft-card-${(draft ?? _pour(lang)).id}'));
   final last = find.byKey(const Key('page-field-t:bh-2'));
   await tester.tap(last);
@@ -262,7 +279,7 @@ void main() {
         lang,
         draft: _pour(
           lang,
-          location: const NoteLocation(text: 'Gate 2'),
+          location: NoteLocation(text: s.t('Gate 2', 'البوابة 2')),
           remind: DateTime(2026, 10, 16, 7),
         ),
       );

@@ -176,7 +176,9 @@ void main() {
       tester,
     ) async {
       await _open(tester, lang, _pour(lang, all: false));
-      await _tap(tester, _key('note-tool-location'));
+      // Review 100 H22: Location is a row of 📎 Add.
+      await _tap(tester, _key('note-tool-add'));
+      await _tap(tester, _key('note-add-location'));
       await _tap(tester, _key('note-gps-add'));
       await _snap(tester, 'NBX4-location', lang);
     });

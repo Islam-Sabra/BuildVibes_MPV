@@ -10,6 +10,8 @@ import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/spaces/space_errors.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/features/notebook/note_page_editor.dart'
+    show NoteTick;
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,6 +85,8 @@ Future<void> _share(
   String choice, {
   String id = 'entry-pour',
 }) async {
+  await tester.ensureVisible(_key('note-$id'));
+  await tester.pumpAndSettle();
   await tester.longPress(_key('note-$id'));
   await tester.pumpAndSettle();
   await _tap(tester, _key('select-share'));
@@ -282,6 +286,22 @@ void main() {
         await _tap(tester, _key('share-person-p-sara'));
         await _tap(tester, _key('share-send'));
         expect(repo.personShares.last['person'], 'p-sara');
+      });
+    });
+
+    group('the preview\'s to-dos [$lang]', () {
+      testWidgets('are drawn as the app\'s boxes (BH5), never as a mark the '
+          'fonts lack', (tester) async {
+        await _open(tester, lang);
+        await _share(tester, 'feed', id: 'entry-cubes');
+        expect(
+          find.descendant(
+            of: _key('share-preview'),
+            matching: find.byType(NoteTick),
+          ),
+          findsOneWidget,
+        );
+        expect(find.textContaining(noteTodoOpenMark), findsNothing);
       });
     });
 
