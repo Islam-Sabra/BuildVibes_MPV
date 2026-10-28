@@ -683,3 +683,19 @@ Each step: tests first, in EN and AR.
 8. Call the function once by hand with the secret. It should return a purge of 0.
 9. Build one release APK from `slice2-app` and install it on the founder's phone (BuildVibes only). Put a copy for testers on the Desktop.
 10. Report each step with its result, update handoff and progress, push, and stop.
+
+## Lead's third check (28 Oct, 08:10): ready to go live
+**Branch:** `claude/r100-redesign` at `624470d`.
+
+**What I checked:**
+- **J1–J3 in migration 48:**
+  - the message cut is at 3,000;
+  - to-dos are written as `[ ]` and `[x]` in every share text, and the title strip matches;
+  - `named` is in the exported pages.
+- **The SQL stand-in:** all 3,019 checks in 47 files pass.
+- **The shots:** every PNG in the branch (826) opens as a valid image after the line-ending repair.
+- **J4:** Restore as words with ↺ is accepted. The PG8 frame changes to match.
+
+**Worktree `-db29`:** line endings only, with not one word changed. Remove it.
+
+**Next:** the founder's yes, then the live steps 1–10 of "Lead's second check".
