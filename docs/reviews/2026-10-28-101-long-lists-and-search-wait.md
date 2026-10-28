@@ -36,3 +36,20 @@ Five searches each wait 300 ms after typing: people, inside a Space, notebook, c
 - Make one token, `BvMotion.searchWait` (300 ms), and use it in all five. Remove the local constants.
 - Add a guard test that no `Duration(milliseconds: 300)` used as a search wait remains outside the token.
 - Behaviour is unchanged.
+
+## Lead's check (28 Oct, 11:20)
+**B, `claude/r101-search-wait` at `d116b5e`: approved.**
+- There is one token, `BvMotion.searchWait`, used by the five searches, and the local constants are gone.
+- The guard test failed first, and no shot changed.
+- It merges into `slice2-app` with the next build. There's no database change.
+
+**A, `claude/r101-lists` at `20b13fc`: stopped correctly. The lead takes option 1, with a precise rule for the paper clip.**
+- **The 47 tests** check behaviour, not how many widgets are built. Change them to work with a lazy list:
+  - scroll to the card they check (`scrollUntilVisible`, or jump the way the app does);
+  - read cards in screen order, not tree order.
+  - Every changed test must still assert the same thing. **List each changed test** in the report, with one line on what it asserts before and after, and don't remove an assertion. The lead checks the list.
+- **The paper clip:** it must sit on top of the card above, exactly as now.
+  - **Don't move or redraw the clip.** Keep the painting order: build the Daybook so the newer card is painted after the older one, as before.
+  - For example, use a `CustomScrollView` with a `center` sliver: older days grow upward from the centre, and the newest (at "Now") is painted last. Don't use a `reverse: true` list.
+  - The 60 shots must then pass without updating. If any still changes, stop and report it again.
+- **Then do the notebook page the same way, and add the seed** (`supabase/dev/seed_busy_space.sql`, local only).
