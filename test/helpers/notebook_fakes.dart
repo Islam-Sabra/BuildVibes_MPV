@@ -234,14 +234,6 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
-  Future<void> delete(Note note) async {
-    _check();
-    calls.add('delete:${note.id}');
-    kept.remove(note.id);
-    deleted.add(note.id);
-  }
-
-  @override
   Future<void> deleteEntries(List<String> ids) async {
     _check();
     calls.add('delete-entries:${ids.join(',')}');

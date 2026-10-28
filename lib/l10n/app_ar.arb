@@ -1417,7 +1417,6 @@
   "notebookSavedEdit": "تم الحفظ",
   "notebookDiscardDraft": "تجاهل",
   "notebookDraftDiscarded": "تم تجاهل المسودة",
-  "notebookCopyMark": "نسخة",
   "notebookLinesSelected": "{count, plural, =1{تم تحديد سطر} =2{تم تحديد سطرين} few{تم تحديد {count} أسطر} other{تم تحديد {count} سطرًا}}",
   "notebookShare": "مشاركة",
   "notebookMove": "نقل",

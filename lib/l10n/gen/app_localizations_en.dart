@@ -5111,9 +5111,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookDraftDiscarded => 'Draft discarded';
 
   @override
-  String get notebookCopyMark => 'Copy';
-
-  @override
   String notebookLinesSelected(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

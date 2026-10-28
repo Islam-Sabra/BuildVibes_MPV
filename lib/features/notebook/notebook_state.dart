@@ -174,7 +174,8 @@ class NoteChange {
   const NoteChange.pin(String id, {required bool on})
     : this._('pin', id: id, on: on);
 
-  /// An older phone's delete, still in its outbox.
+  /// An older phone's delete, still in its outbox: it goes to Deleted
+  /// items too (review 100 H5).
   const NoteChange.delete(Note note) : this._('delete', note: note);
 
   /// Entries to Deleted items (99B B3), with Undo first.
@@ -630,7 +631,7 @@ class Notebook extends AsyncNotifier<NotebookData> {
     // A change held when the app closed: its Undo is gone, so it goes.
     final held = _read('[${prefs.getString(_heldKey ?? '') ?? ''}]');
     if (held.isNotEmpty) {
-      _waiting = [..._waiting, ...held];
+      _waiting = [..._waiting, for (final h in held) ..._sendable(h)];
       await _store();
       await prefs.remove(_heldKey!);
     }
@@ -736,9 +737,17 @@ class Notebook extends AsyncNotifier<NotebookData> {
     if (held == null) return false;
     _held = null;
     _beforeHeld = null;
-    _waiting = [..._waiting, held];
+    _waiting = [..._waiting, ..._sendable(held)];
     return true;
   }
+
+  /// What a held change sends: a Duplicate is a save of each copy, so its
+  /// photos, files and recordings go up as any entry's do, and each copy
+  /// stops waiting once it went (review 100 H3).
+  static List<NoteChange> _sendable(NoteChange change) =>
+      change.op == 'duplicate'
+      ? [for (final c in change.copies) NoteChange.save(c)]
+      : [change];
 
   /// The held change is taken back: false when it had already gone.
   Future<bool> undoHeld() async {
@@ -779,11 +788,6 @@ class Notebook extends AsyncNotifier<NotebookData> {
     );
     unawaited(_send());
   }
-
-  /// Lines of a saved entry to Deleted items (99B B3), once their Undo
-  /// bar has gone.
-  Future<void> deleteLines(String noteId, List<String> lines, String part) =>
-      _change(NoteChange.deleteLines(noteId, lines, part));
 
   /// "+ New page", or a sub-page of [NotebookPage.parentId].
   Future<void> newPage(NotebookPage page) => _change(NoteChange.newPage(page));
@@ -849,8 +853,6 @@ class Notebook extends AsyncNotifier<NotebookData> {
     await _send();
     return !waits(id);
   }
-
-  Future<void> delete(Note note) => _change(NoteChange.delete(note));
 
   /// "Saved to your notebook" (a held message): a note with its words.
   Future<void> keep(String id, String words, DateTime now) => save(
@@ -1005,7 +1007,7 @@ class Notebook extends AsyncNotifier<NotebookData> {
       case 'pin':
         await _repo.pin(change.id!, on: change.on);
       case 'delete':
-        await _repo.delete(change.note!);
+        await _repo.deleteEntries([change.note!.id]);
       case 'page':
         await _repo.createPage(change.page!);
       case 'page_edit':
@@ -1033,10 +1035,6 @@ class Notebook extends AsyncNotifier<NotebookData> {
         await _repo.deleteEntries(change.ids);
       case 'archive':
         await _repo.archive(change.id!, on: change.on);
-      case 'duplicate':
-        for (final c in change.copies) {
-          await _repo.save(c);
-        }
       case 'delete_lines':
         await _repo.deleteLines(change.id!, change.ids, change.target!);
     }
@@ -1056,34 +1054,6 @@ class Notebook extends AsyncNotifier<NotebookData> {
         ],
       ),
     );
-  }
-}
-
-/// The entries made by Duplicate (review 100 Part 3), kept on this phone
-/// for their "Copy" mark.
-final noteCopiesProvider = NotifierProvider<NoteCopies, Set<String>>(
-  NoteCopies.new,
-);
-
-class NoteCopies extends Notifier<Set<String>> {
-  String? _key;
-
-  @override
-  Set<String> build() {
-    final userId = ref.watch(authUserIdProvider).value;
-    _key = userId == null ? null : 'notebook_copies:$userId';
-    final kept = ref.watch(sharedPreferencesProvider).getStringList(_key ?? '');
-    return {...?kept};
-  }
-
-  Future<void> add(Iterable<String> ids) async {
-    state = {...state, ...ids};
-    final key = _key;
-    if (key != null) {
-      await ref
-          .read(sharedPreferencesProvider)
-          .setStringList(key, state.toList());
-    }
   }
 }
 

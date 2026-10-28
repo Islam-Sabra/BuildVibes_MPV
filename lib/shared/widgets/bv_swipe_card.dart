@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +19,7 @@ class BvSwipeAction {
     required this.label,
     required this.color,
     required this.onTap,
+    this.confirm,
   });
 
   final Key key;
@@ -25,6 +27,10 @@ class BvSwipeAction {
   final String label;
   final Color color;
   final VoidCallback onTap;
+
+  /// Asked before the full swipe acts (Delete forever, review 100 H8):
+  /// false, and the card goes back where it was.
+  final Future<bool> Function()? confirm;
 }
 
 /// The cards of one list: only one is open at a time, and a scroll closes
@@ -200,14 +206,16 @@ class _BvSwipeCardState extends State<BvSwipeCard>
     );
   }
 
-  void _start(DragStartDetails d) {
+  /// Where a finger went down is far enough from the screen's edges to be
+  /// the card's (review 100 H7): one down at an edge is the back gesture's,
+  /// and the card's drag never takes it.
+  bool _offEdge(Offset down) {
     final screen = MediaQuery.sizeOf(context).width;
-    final x = d.globalPosition.dx;
-    _tracking =
-        widget.enabled &&
-        !_gone &&
-        x >= BvSwipeSpec.edge &&
-        x <= screen - BvSwipeSpec.edge;
+    return down.dx >= BvSwipeSpec.edge && down.dx <= screen - BvSwipeSpec.edge;
+  }
+
+  void _start(DragStartDetails d) {
+    _tracking = widget.enabled && !_gone;
     if (!_tracking) return;
     _offset.stop();
     _group?.value = widget.id;
@@ -255,6 +263,15 @@ class _BvSwipeCardState extends State<BvSwipeCard>
     final action = widget.startAction;
     if (action == null || _gone) return;
     _gone = true;
+    if (action.confirm case final ask?) {
+      final yes = await ask();
+      if (!mounted) return;
+      if (!yes) {
+        _gone = false;
+        await _settle(0);
+        return;
+      }
+    }
     if (!_still) {
       await _offset.animateTo(
         -_width * BvSwipeSpec.flyPast,
@@ -443,15 +460,27 @@ class _BvSwipeCardState extends State<BvSwipeCard>
                 : null,
             child: TapRegion(
               onTapOutside: open && !_gone ? (_) => _settle(0) : null,
-              child: GestureDetector(
+              child: RawGestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onHorizontalDragStart: widget.enabled ? _start : null,
-                onHorizontalDragUpdate: widget.enabled ? _update : null,
-                onHorizontalDragEnd: widget.enabled ? _end : null,
-                onTap: open && !_gone ? () => _settle(0) : null,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [...behind, card],
+                gestures: {
+                  if (widget.enabled)
+                    _OffEdgeDrag:
+                        GestureRecognizerFactoryWithHandlers<_OffEdgeDrag>(
+                          () => _OffEdgeDrag(_offEdge),
+                          (drag) => drag
+                            ..dragStartBehavior = DragStartBehavior.down
+                            ..onStart = _start
+                            ..onUpdate = _update
+                            ..onEnd = _end,
+                        ),
+                },
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: open && !_gone ? () => _settle(0) : null,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [...behind, card],
+                  ),
                 ),
               ),
             ),
@@ -460,4 +489,17 @@ class _BvSwipeCardState extends State<BvSwipeCard>
       ),
     );
   }
+}
+
+/// The card's sideways drag, for a finger that went down off the screen's
+/// edges only: one at an edge never enters the arena, so the system's
+/// back gesture (B6) has it (review 100 H7).
+class _OffEdgeDrag extends HorizontalDragGestureRecognizer {
+  _OffEdgeDrag(this.offEdge);
+
+  final bool Function(Offset down) offEdge;
+
+  @override
+  bool isPointerAllowed(PointerEvent event) =>
+      offEdge(event.position) && super.isPointerAllowed(event);
 }

@@ -64,11 +64,6 @@ abstract class NotebookRepository {
   /// 'voice', 'reminders', 'archived') and [page], with its sub-pages.
   Future<List<NotebookHit>> search(String query, {String? kind, String? page});
 
-  /// delete_note, then its recording or photos from Storage (the cleanup
-  /// takes any file left behind). Only an older phone's outbox still sends
-  /// it; a delete now goes to Deleted items ([deleteEntries]).
-  Future<void> delete(Note note);
-
   /// delete_entries (99B B3): my entries to Deleted items; sent again, the
   /// same.
   Future<void> deleteEntries(List<String> ids);
@@ -397,24 +392,6 @@ class SupabaseNotebookRepository implements NotebookRepository {
                 const [])
             .cast<Map<String, dynamic>>();
     return [for (final r in rows) NotebookHit.fromJson(r)];
-  });
-
-  @override
-  Future<void> delete(Note note) => _guard(() async {
-    await _client.rpc<void>('delete_note', params: {'p_id': note.id});
-    final paths = [
-      ?note.recording?.path,
-      for (final p in note.photos) ?p.path,
-      for (final f in note.files) ?f.path,
-      for (final b in note.blocks ?? const <PageBlock>[])
-        if (b case PageVoice(:final path?)) path,
-    ];
-    if (paths.isEmpty) return;
-    try {
-      await _client.storage.from(notebookBucket).remove(paths);
-    } on StorageException {
-      // The cleanup takes it.
-    }
   });
 
   @override

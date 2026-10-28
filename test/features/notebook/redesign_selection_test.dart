@@ -176,13 +176,6 @@ void main() {
           copy.blocks!.map((b) => b.id).toSet().intersection({'b-1', 'b-2'}),
           isEmpty,
         );
-        expect(
-          find.descendant(
-            of: _key('note-${copy.id}'),
-            matching: find.text(l10n.notebookCopyMark),
-          ),
-          findsOneWidget,
-        );
         // Right under the one it copies.
         expect(
           tester.getTopLeft(_key('note-${copy.id}')).dy,

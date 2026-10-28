@@ -8600,12 +8600,6 @@ abstract class AppLocalizations {
   /// **'Draft discarded'**
   String get notebookDraftDiscarded;
 
-  /// Review 100 Part 3: the mark on an entry made by Duplicate.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy'**
-  String get notebookCopyMark;
-
   /// Review 100 BH12: the top bar while lines of the entry being written are selected.
   ///
   /// In en, this message translates to:

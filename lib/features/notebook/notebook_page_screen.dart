@@ -81,9 +81,11 @@ class NotebookPageScreen extends ConsumerStatefulWidget {
 
   /// "Archived ›" (review 100 Part 3b): the page's archived entries,
   /// newest first; swiped toward the start, Unarchive.
-  const NotebookPageScreen.archived({super.key, required String this.pageId})
-    : entry = null,
-      archived = true;
+  const NotebookPageScreen.archived({
+    super.key,
+    required String this.pageId,
+    this.entry,
+  }) : archived = true;
 
   /// Null: "New entry".
   final String? pageId;
@@ -333,12 +335,6 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// changed, with "Saved · Undo" (Undo puts back the entry as it was
   /// opened); nothing at all when it didn't. Never a Draft.
   Future<void> _finishEdit({bool quiet = false}) async {
-    // Lines deleted and still on their Undo bar go to Deleted items first.
-    final lines = _pendingLines;
-    if (lines != null) {
-      _pendingLines = null;
-      await _sendLines(lines);
-    }
     final draft = ref.read(noteDraftProvider);
     final was = draft?.editing;
     if (draft == null || was == null) return;
@@ -356,7 +352,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         await holdWithUndo(
           context,
           ref,
-          NoteChange.delete(was),
+          // H5: to Deleted items, as every delete is (99B B3).
+          NoteChange.deleteEntries([was.id], at: ref.read(clockProvider)()),
           AppLocalizations.of(context).notebookUndoDeleted,
         );
       }
@@ -380,42 +377,42 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
   }
 
-  /// Lines deleted from a saved entry, on their Undo bar (99B B3).
-  ({String note, List<String> lines, String part})? _pendingLines;
-
   /// Lines deleted from the entry being written (review 100 BH12): from a
-  /// saved entry, once their Undo bar has gone, they go to Deleted items as
-  /// "Part of an entry". Lines it never had (written in this edit) just go.
+  /// saved entry they go to Deleted items as "Part of an entry", held in
+  /// the phone's outbox while their Undo bar shows (H6: an app closed then
+  /// loses nothing), and sent when it goes; the edit then starts from the
+  /// version that makes. Lines it never had (written in this edit) just go.
   void _linesDeleted(List<String> lines, Future<bool> kept) {
-    final was = ref.read(noteDraftProvider)?.editing;
-    if (was == null) return;
+    final draft = ref.read(noteDraftProvider);
+    final was = draft?.editing;
+    if (draft == null || was == null) return;
     final saved = {for (final b in was.blocks ?? const <PageBlock>[]) b.id};
     if (!lines.every(saved.contains)) return;
-    final pending = (
-      note: was.id,
-      lines: lines,
-      part: ref.read(newPostIdProvider)(),
-    );
-    _pendingLines = pending;
+    final notebook = ref.read(notebookProvider.notifier);
     unawaited(
-      kept.then((yes) async {
-        // Sent already, before the entry's save.
-        if (!identical(_pendingLines, pending)) return;
-        _pendingLines = null;
-        if (yes) await _sendLines(pending);
-      }),
+      notebook
+          .hold(
+            NoteChange.deleteLines(
+              was.id,
+              lines,
+              ref.read(newPostIdProvider)(),
+            ),
+          )
+          .then((_) {
+            _editMoved(was.id, gone: lines.toSet());
+            return kept;
+          })
+          .then((yes) async {
+            if (yes) return notebook.releaseHeld();
+            // Undo: off the phone, and the edit starts where it was.
+            if (await notebook.undoHeld()) {
+              final d = ref.read(noteDraftProvider);
+              if (d != null && d.editing?.id == was.id) {
+                await _drafts.put(d.copyWith(editing: () => was));
+              }
+            }
+          }),
     );
-  }
-
-  /// [p] to Deleted items; the edit then starts from the version the
-  /// server makes of it.
-  Future<void> _sendLines(
-    ({String note, List<String> lines, String part}) p,
-  ) async {
-    await ref
-        .read(notebookProvider.notifier)
-        .deleteLines(p.note, p.lines, p.part);
-    _editMoved(p.note, gone: p.lines.toSet());
   }
 
   /// The entry being edited was saved meanwhile (lines went to Deleted
@@ -1193,16 +1190,12 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   }
 
   /// Duplicate (review 100 Part 3): a copy right under each, with the same
-  /// time and marked "Copy"; its reminder isn't copied, so nobody gets two
+  /// time (ruling 6: no "Copy" mark); its reminder isn't copied, so nobody gets two
   /// alarms. Undo for 5 s.
   Future<void> _duplicateSelected(List<Note> notes) async {
     final l10n = AppLocalizations.of(context);
     setState(_selected.clear);
     final copies = [for (final n in notes) await _copyOf(n)];
-    if (!mounted) return;
-    await ref.read(noteCopiesProvider.notifier).add([
-      for (final c in copies) c.id,
-    ]);
     if (!mounted) return;
     await holdWithUndo(
       context,
@@ -1415,11 +1408,6 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// The edit in hand saved in place, writing going on (review 100 H2):
   /// the entry as it now is, the edit then starting from its next version.
   Future<Note?> _saveInPlace() async {
-    final lines = _pendingLines;
-    if (lines != null) {
-      _pendingLines = null;
-      await _sendLines(lines);
-    }
     final draft = ref.read(noteDraftProvider);
     final was = draft?.editing;
     if (draft == null || was == null) return null;
@@ -2429,8 +2417,6 @@ class NoteSlip extends ConsumerWidget {
             reminderWhen(l10n, words, note.remindAt!, now),
           ),
         ),
-      if (ref.watch(noteCopiesProvider).contains(note.id))
-        BvSlipQuiet(key: Key('note-copy-${note.id}'), l10n.notebookCopyMark),
       if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
       if (note.shares.lastOrNull case final share?)
         BvSlipQuiet(

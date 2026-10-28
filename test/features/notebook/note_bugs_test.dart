@@ -388,11 +388,15 @@ void main() {
         expect(_key('note-entry-1'), findsNothing);
         expect(_drafted(tester), isNull);
         // Sent only once the Undo bar has gone.
-        expect(app.notebook.calls, isNot(contains('delete:entry-1')));
+        expect(
+          app.notebook.calls.where((c) => c.startsWith('delete')),
+          isEmpty,
+        );
         await tester.pump(const Duration(seconds: 6));
         await tester.pumpAndSettle();
-        expect(app.notebook.calls, contains('delete:entry-1'));
-        expect(app.notebook.kept['entry-1'], isNull);
+        // Review 100 H5: to Deleted items, never for good.
+        expect(app.notebook.calls, contains('delete-entries:entry-1'));
+        expect(app.notebook.kept['entry-1']!.deletedAt, isNotNull);
       });
 
       testWidgets('D3: emptied, Back, then Undo: the entry is back as it was', (

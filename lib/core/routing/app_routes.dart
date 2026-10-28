@@ -61,7 +61,10 @@ abstract final class AppRoutes {
   ).toString();
 
   /// Review 100 Part 3b: a page's archived entries ("Archived ›").
-  static String notebookArchived(String id) => '/notebook/pages/$id/archived';
+  static String notebookArchived(String id, {String? entry}) => Uri(
+    path: '/notebook/pages/$id/archived',
+    queryParameters: entry == null ? null : {'entry': entry},
+  ).toString();
 
   /// Direct messages (slice 3): the list, the requests, a thread, and a
   /// new conversation with a person (its thread is made by the first

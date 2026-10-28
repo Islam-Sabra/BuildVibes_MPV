@@ -384,9 +384,20 @@ class NoteFilterResults extends ConsumerWidget {
     );
     final now = ref.watch(clockProvider)();
     final found = ref.watch(noteFilterHitsProvider(filter));
+    // H4: checked against what the phone holds: an entry deleted or
+    // archived here (its Undo still showing, or no signal) leaves the
+    // results; an Archived hit brought back leaves them too.
+    final archived = filter.kind == NoteFilter.archived;
+    bool still(NotebookHit h) {
+      final here = data.all.where((n) => n.id == h.noteId).firstOrNull;
+      if (here == null) return true;
+      if (here.deletedAt != null) return false;
+      return archived == (here.archivedAt != null);
+    }
+
     final hits = [
       for (final h in found.value ?? const <NotebookHit>[])
-        if (!h.isPage) h,
+        if (!h.isPage && still(h)) h,
     ]..sort((a, b) => b.at.compareTo(a.at));
     if (found.isLoading && !found.hasValue) return const SizedBox.shrink();
     if (found.hasError && !found.hasValue) {
@@ -453,8 +464,11 @@ class NoteFilterResults extends ConsumerWidget {
                 borderRadius: BvNotebookPagesSpec.entryRadius,
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
+                  // An Archived hit opens its page's archived list on it.
                   onTap: () => context.push(
-                    AppRoutes.notebookPage(h.pageId, entry: h.noteId),
+                    archived
+                        ? AppRoutes.notebookArchived(h.pageId, entry: h.noteId)
+                        : AppRoutes.notebookPage(h.pageId, entry: h.noteId),
                   ),
                   child: Padding(
                     padding: BvNotebookPagesSpec.entryPadding,

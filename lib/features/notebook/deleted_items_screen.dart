@@ -78,9 +78,10 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
     if (mounted) _toast(l10n.notebookRestoredTo(_from(l10n, item)));
   }
 
-  Future<void> _forever(DeletedItem item) async {
+  /// Delete forever's one confirm, asked before the card moves (H8).
+  Future<bool> _sureForever() {
     final l10n = AppLocalizations.of(context);
-    final yes = await showBvDialog(
+    return showBvDialog(
       context: context,
       title: l10n.notebookDeleteForeverTitle,
       body: l10n.notebookCantUndo,
@@ -88,12 +89,10 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
       confirmLabel: l10n.notebookDeleteForever,
       destructive: true,
     );
-    if (!yes || !mounted) {
-      ref.invalidate(deletedItemsProvider);
-      return;
-    }
-    await _run((repo) => repo.deleteForever([item.id]));
   }
+
+  Future<void> _forever(DeletedItem item) =>
+      _run((repo) => repo.deleteForever([item.id]));
 
   Future<void> _empty() async {
     final l10n = AppLocalizations.of(context);
@@ -156,6 +155,7 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
             icon: BvIcons.delete,
             label: l10n.notebookDeleteForever,
             color: BvColors.textDestructive,
+            confirm: _sureForever,
             onTap: () => unawaited(_forever(i)),
           ),
           child: ColoredBox(

@@ -5125,9 +5125,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookDraftDiscarded => 'تم تجاهل المسودة';
 
   @override
-  String get notebookCopyMark => 'نسخة';
-
-  @override
   String notebookLinesSelected(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

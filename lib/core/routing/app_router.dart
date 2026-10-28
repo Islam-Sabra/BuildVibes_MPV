@@ -270,6 +270,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => NotebookPageScreen.archived(
               key: ValueKey(('archived', state.pathParameters['id'])),
               pageId: state.pathParameters['id']!,
+              entry: state.uri.queryParameters['entry'],
             ),
           ),
           _Screen(
