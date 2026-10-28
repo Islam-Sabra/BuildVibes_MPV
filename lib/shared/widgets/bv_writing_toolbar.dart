@@ -18,6 +18,7 @@ class BvWritingTool {
     this.onHoldMove,
     this.onHoldEnd,
     this.key,
+    this.dot,
   });
 
   final IconData icon;
@@ -31,6 +32,10 @@ class BvWritingTool {
   final VoidCallback? onHoldEnd;
   final Key? key;
 
+  /// Review 100 Part 5: something is attached with it (📷, 📎): a small dot
+  /// at its corner, with this key.
+  final Key? dot;
+
   bool get holds => onHoldStart != null;
 }
 
@@ -41,10 +46,14 @@ class BvWritingTool {
 ///
 /// [BvWritingToolbar.tools] is the same bar with its own tools: My
 /// notebook's additions bar (F107 NBX1 2619:36779): the + for the
-/// categories at the start ([categories], soft; solid while the grid is
-/// open), a thin divider, then the additions, 40 wide and 2 apart, a tool
-/// in use tinted; Send keeps the note. While [field] is there (recording a
+/// block list at the start ([categories]), then the additions; Send keeps
+/// the note. While [field] is there (recording a
 /// voice note) it takes the place of the tools that don't hold.
+///
+/// Review 100 Part 5 (BH6): + · Photo · Add, then [beside] (⇥ ⇤ while a
+/// list line can move), then the voice (a tool that holds) and Send at the
+/// far end; a tool whose card is open shows on a grey square, and one in
+/// use has a dot.
 ///
 /// Review 93: [beside] (⇥ ⇤ while a line can move) stand right after the
 /// +; the additions then scroll sideways when they no longer fit, with
@@ -168,46 +177,14 @@ class BvWritingToolbar extends StatelessWidget {
                   for (final t in tools!)
                     if (t.holds) _tool(t),
                 ] else ...[
-                  if (categories case final c?) ...[
+                  if (categories case final c?)
                     _Categories(tool: c, open: categoriesOpen),
-                    for (final t in beside) _tool(t),
-                    const _Divider(),
-                  ],
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, box) {
-                        final taps = [
-                          for (final t in tools!)
-                            if (!t.holds) _tool(t),
-                        ];
-                        final holds = [
-                          for (final t in tools!)
-                            if (t.holds) _tool(t),
-                        ];
-                        final width = categories != null
-                            ? BvWritingToolbarSpec.denseTool +
-                                  BvWritingToolbarSpec.denseGap
-                            : BvWritingToolbarSpec.touch;
-                        if (tools!.length * width <= box.maxWidth) {
-                          return Row(children: [...taps, ...holds]);
-                        }
-                        // Too many to fit: the taps scroll, and a tool
-                        // that holds (the mic) stays in sight.
-                        return Row(
-                          children: [
-                            Expanded(
-                              child: SingleChildScrollView(
-                                key: const Key('writing-tools-scroll'),
-                                scrollDirection: Axis.horizontal,
-                                child: Row(children: taps),
-                              ),
-                            ),
-                            ...holds,
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                  for (final t in tools!)
+                    if (!t.holds) _tool(t),
+                  for (final t in beside) _tool(t),
+                  const Spacer(),
+                  for (final t in tools!)
+                    if (t.holds) _tool(t),
                 ],
                 _Post(label: postLabel, onTap: onPost, ready: true),
               ],
@@ -221,8 +198,7 @@ class BvWritingToolbar extends StatelessWidget {
     label: t.label,
     onTap: t.onTap,
     active: t.active,
-    tinted: true,
-    dense: categories != null,
+    dot: t.dot,
     onHoldStart: t.onHoldStart,
     onHoldMove: t.onHoldMove,
     onHoldEnd: t.onHoldEnd,
@@ -236,27 +212,22 @@ class _Tool extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.active = false,
-    this.tinted = false,
-    this.dense = false,
+    this.dot,
     this.onHoldStart,
     this.onHoldMove,
     this.onHoldEnd,
   });
 
-  /// The additions bar's: 40 wide, 2 apart (F107).
-  final bool dense;
-
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
-  final bool active;
 
-  /// In use shows in the soft action colour (the notebook's tools, F106);
-  /// the Daybook's open More menu is grey.
-  final bool tinted;
+  /// Its card or menu is open: a grey square under it.
+  final bool active;
   final VoidCallback? onHoldStart;
   final ValueChanged<Offset>? onHoldMove;
   final VoidCallback? onHoldEnd;
+  final Key? dot;
 
   @override
   Widget build(BuildContext context) {
@@ -273,22 +244,14 @@ class _Tool extends StatelessWidget {
           : (d) => move(d.offsetFromOrigin),
       onLongPressEnd: end == null ? null : (_) => end(),
       child: SizedBox(
-        width: dense
-            ? BvWritingToolbarSpec.denseTool + BvWritingToolbarSpec.denseGap
-            : BvWritingToolbarSpec.touch,
+        width: BvWritingToolbarSpec.touch,
         height: BvWritingToolbarSpec.touch,
         child: Center(
           child: Container(
-            width: dense
-                ? BvWritingToolbarSpec.denseTool
-                : BvWritingToolbarSpec.tool,
+            width: BvWritingToolbarSpec.tool,
             height: BvWritingToolbarSpec.tool,
             decoration: BoxDecoration(
-              color: active
-                  ? (tinted
-                        ? BvColors.surfaceBrandSoft
-                        : BvColors.surfaceSubtle)
-                  : null,
+              color: active ? BvColors.surfaceSubtle : null,
               borderRadius: BvWritingToolbarSpec.toolRadius,
             ),
             child: Icon(
@@ -296,14 +259,32 @@ class _Tool extends StatelessWidget {
               size: BvWritingToolbarSpec.toolIcon,
               color: !enabled
                   ? BvColors.actionDisabledForeground
-                  : active && tinted
-                  ? BvColors.iconAction
                   : BvColors.iconPrimary,
             ),
           ),
         ),
       ),
     );
+    if (dot case final dot?) {
+      tool = Stack(
+        children: [
+          tool,
+          PositionedDirectional(
+            top: BvWritingToolbarSpec.dotInset,
+            end: BvWritingToolbarSpec.dotInset,
+            child: Container(
+              key: dot,
+              width: BvWritingToolbarSpec.dot,
+              height: BvWritingToolbarSpec.dot,
+              decoration: const BoxDecoration(
+                color: BvColors.iconAction,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
     if (end != null) {
       // The raw pointer too: a lifted or cancelled thumb (a permission
       // dialog takes the pointer) always ends the hold.
@@ -323,8 +304,8 @@ class _Tool extends StatelessWidget {
   }
 }
 
-/// The + for the categories (NBX1): a 40 square, radius 12, soft action
-/// colour with the action-colour +; solid while the grid is open (NBX2).
+/// The + for the block list (review 100 BH6, BH8): a plain +, on a grey
+/// square while its card is open.
 class _Categories extends StatelessWidget {
   const _Categories({required this.tool, required this.open});
 
@@ -342,45 +323,26 @@ class _Categories extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: tool.onTap,
       child: SizedBox(
-        width: BvWritingToolbarSpec.categories + BvWritingToolbarSpec.denseGap,
+        width: BvWritingToolbarSpec.touch,
         height: BvWritingToolbarSpec.touch,
         child: Center(
           child: AnimatedContainer(
             duration: BvMotion.fast,
             curve: BvMotion.standard,
-            width: BvWritingToolbarSpec.categories,
-            height: BvWritingToolbarSpec.categories,
+            width: BvWritingToolbarSpec.tool,
+            height: BvWritingToolbarSpec.tool,
             decoration: BoxDecoration(
-              color: open ? BvColors.actionPrimary : BvColors.surfaceBrandSoft,
-              borderRadius: BvWritingToolbarSpec.categoriesRadius,
+              color: open ? BvColors.surfaceSubtle : null,
+              borderRadius: BvWritingToolbarSpec.toolRadius,
             ),
             child: Icon(
               tool.icon,
-              size: BvWritingToolbarSpec.categoriesIcon,
-              color: open
-                  ? BvColors.actionPrimaryForeground
-                  : BvColors.iconAction,
+              size: BvWritingToolbarSpec.toolIcon,
+              color: BvColors.iconPrimary,
             ),
           ),
         ),
       ),
-    ),
-  );
-}
-
-/// The thin line between the + and the additions.
-class _Divider extends StatelessWidget {
-  const _Divider();
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsetsDirectional.only(
-      end: BvWritingToolbarSpec.denseGap,
-    ),
-    child: Container(
-      width: BvStroke.thin,
-      height: BvWritingToolbarSpec.divider,
-      color: BvColors.borderDefault,
     ),
   );
 }

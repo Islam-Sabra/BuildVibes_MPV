@@ -94,6 +94,11 @@ abstract final class BvWritingCardSpec {
 
 /// The bar on the keyboard while writing (2527:33399).
 abstract final class BvWritingToolbarSpec {
+  /// Review 100 Part 5: a tool in use has a dot, 6 wide, 8 in from its
+  /// corner.
+  static const dot = 6.0;
+  static const dotInset = BvSpace.s8;
+
   static const height = 56.0;
 
   /// Each tool and Post sit centred in a 48 square touch area (review 44,
@@ -108,18 +113,7 @@ abstract final class BvWritingToolbarSpec {
   static const toolIcon = BvSize.iconLg; // 24
   static const post = BvSize.avatarMd; // 40
   static const postIcon = BvSize.iconMd; // 20
-
-  /// My notebook's additions bar (F107 NBX1 2619:36779): the + is a 40
-  /// square, radius 12, its icon 22; a 24-high hairline after it; the
-  /// additions 40 wide, 2 apart.
-  static const categories = BvSize.avatarMd; // 40
-  static const categoriesRadius = BorderRadius.all(
-    Radius.circular(BvRadius.toast),
-  );
-  static const categoriesIcon = 22.0;
-  static const divider = BvSpace.s24;
-  static const denseTool = BvSize.avatarMd; // 40
-  static const denseGap = 2.0;
+  // 40 // 40
 }
 
 /// The More menu (2527:33433) and the kind picker (2535:34374).
@@ -158,7 +152,8 @@ abstract final class BvPopoverMenuSpec {
 /// on a 32 tile, 10 before the words; the shortcut or › at the end. The
 /// "/" card's title 8 × 4 (6 under) and its hint 6 over.
 abstract final class BvLineMenuSpec {
-  static const width = 272.0;
+  /// Review 100 Part 4: the one compact card, 260 wide.
+  static const width = 260.0;
   static const padding = BvSpace.s6;
   static const radius = BorderRadius.all(Radius.circular(BvRadius.toast));
   static const rowPadding = EdgeInsetsDirectional.symmetric(
@@ -174,6 +169,17 @@ abstract final class BvLineMenuSpec {
   static const rowsShown = 5.5;
 
   static const tile = BvSize.avatarSm; // 32
+
+  /// A group's small caps label (review 100 Part 5), the line between two
+  /// groups, and a set row's ✕.
+  static const groupPadding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s8,
+    BvSpace.s6,
+    BvSpace.s8,
+    BvSpace.s2,
+  );
+  static const groupGap = BvSpace.s8;
+  static const clear = BvSize.iconSm;
   static const icon = 18.0;
   static const caret = BvSize.iconSm; // 16
   static const titlePadding = EdgeInsetsDirectional.fromSTEB(

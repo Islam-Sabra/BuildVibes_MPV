@@ -39,6 +39,21 @@ enum NoteBlockKind {
   divider,
   voice;
 
+  /// The block list of + and "/" (review 100 Part 5), in its order:
+  /// TEXT, LISTS, INSERT.
+  static const blockList = [
+    text,
+    heading,
+    subheading,
+    quote,
+    todo,
+    numbers,
+    bullets,
+    toggle,
+    table,
+    divider,
+  ];
+
   /// The kinds a line's words can be turned into (⋮⋮ → Turn into).
   static const words = [
     text,
@@ -853,10 +868,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final l10n = AppLocalizations.of(context);
     final inToggle = _toggleOf(key) != null;
     return [
-      for (final k in NoteBlockKind.values)
-        if (k != NoteBlockKind.voice &&
-            !(inToggle &&
-                (k == NoteBlockKind.toggle || k == NoteBlockKind.table)))
+      for (final k in NoteBlockKind.blockList)
+        if (!(inToggle &&
+            (k == NoteBlockKind.toggle || k == NoteBlockKind.table)))
           (
             value: k,
             key: k.name,
@@ -868,6 +882,58 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
             ],
           ),
     ];
+  }
+
+  /// Review 100 Part 5: the block list's groups, shared by + and "/".
+  @override
+  String? slashGroup(Object value) {
+    if (value is! NoteBlockKind) return null;
+    final l10n = AppLocalizations.of(context);
+    return switch (value) {
+      NoteBlockKind.text ||
+      NoteBlockKind.heading ||
+      NoteBlockKind.subheading ||
+      NoteBlockKind.quote ||
+      NoteBlockKind.callout => l10n.notebookGroupText,
+      NoteBlockKind.todo ||
+      NoteBlockKind.numbers ||
+      NoteBlockKind.bullets ||
+      NoteBlockKind.toggle => l10n.notebookGroupLists,
+      NoteBlockKind.table ||
+      NoteBlockKind.divider ||
+      NoteBlockKind.voice => l10n.notebookGroupInsert,
+    };
+  }
+
+  @override
+  Object? get slashChecked => currentKind;
+
+  /// + on the bar (review 100 BH8): the block list, the same card as
+  /// "/", for the line being written (an empty one is turned, else a new
+  /// line goes under it). Each row: its icon, its name, its shortcut; the
+  /// current kind ticked.
+  Widget blockList({required ValueChanged<NoteBlockKind> onPick}) {
+    final l10n = AppLocalizations.of(context);
+    final inToggle = currentBlockId != null && _indexOf(currentBlockId!) < 0;
+    return BvPopoverMenu<NoteBlockKind>.line(
+      key: const Key('page-add-menu'),
+      scrolls: true,
+      checked: currentKind,
+      items: [
+        for (final k in NoteBlockKind.blockList)
+          if (!(inToggle &&
+              (k == NoteBlockKind.toggle || k == NoteBlockKind.table)))
+            BvMenuItem(
+              key: Key('page-add-${k.name}'),
+              value: k,
+              label: k.label(l10n),
+              icon: k.icon,
+              shortcut: k.shortcut,
+              group: slashGroup(k),
+            ),
+      ],
+      onSelected: onPick,
+    );
   }
 
   /// A kind from "/": an empty line becomes it; a line with words turns
@@ -1013,6 +1079,11 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       return BvPopoverMenu<Object>.line(
         key: const Key('page-turn-menu'),
         selected: now,
+        back: l10n.pageTurnInto,
+        onBack: () {
+          setState(() => _turning = false);
+          _menu.rebuild();
+        },
         items: [
           for (final k in NoteBlockKind.words)
             BvMenuItem(

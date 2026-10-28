@@ -144,9 +144,12 @@ void main() {
       // Right after the +, before the thin line and the additions.
       final plus = tester.getCenter(_key('note-tool-categories')).dx;
       final tab = tester.getCenter(_key('note-tool-indent')).dx;
-      final place = tester.getCenter(_key('note-tool-location')).dx;
-      expect(lang == 'ar' ? plus > tab && tab > place : plus < tab, isTrue);
-      expect(lang == 'ar' ? true : tab < place, isTrue);
+      // Review 100 BH6: + · 📷 · 📎, then ⇥.
+      final add = tester.getCenter(_key('note-tool-add')).dx;
+      expect(
+        lang == 'ar' ? plus > add && add > tab : plus < add && add < tab,
+        isTrue,
+      );
       final before = tester.getRect(_line(3));
       await _tap(tester, _key('note-tool-indent'));
       expect(_levels(tester), [0, 0, 1]);
@@ -377,7 +380,7 @@ void main() {
       await _open(tester, lang, [_n(1, 'Pour'), _n(2, 'Cure')]);
       await _cursor(tester, 2);
       await _tap(tester, _key('note-tool-categories'));
-      await _tap(tester, _key('note-category-numbers'));
+      await _tap(tester, _key('page-add-numbers'));
       expect(find.text('3.'), findsOneWidget);
     });
   }

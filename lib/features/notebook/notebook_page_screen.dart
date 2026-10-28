@@ -26,6 +26,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_line_popover.dart';
+import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_swipe_card.dart';
@@ -93,8 +94,13 @@ class NotebookPageScreen extends ConsumerStatefulWidget {
   ConsumerState<NotebookPageScreen> createState() => _NotebookPageScreenState();
 }
 
-/// What stands in place of the keyboard while writing (F107).
-enum _Panel { none, categories, location }
+/// What stands in place of the keyboard while writing (F107): the
+/// location sheet; the block list and 📎 are cards over the bar (review
+/// 100 Part 5).
+enum _Panel { none, location }
+
+/// The card open over the bar (review 100 Part 5): +, 📷 or 📎.
+enum _BarCard { blocks, photo, add }
 
 class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   static const _tick = Duration(milliseconds: 200);
@@ -110,9 +116,15 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// keyboard up and the tools above it.
   bool _writing = false;
 
-  /// F107: the categories grid (NBX2) or the location sheet (NBX4) in
-  /// place of the keyboard, and the kind the cursor's line is.
+  /// F107: the location sheet (NBX4) in place of the keyboard, and the
+  /// kind the cursor's line is.
   _Panel _panel = _Panel.none;
+
+  /// Review 100 Part 5: the bar's card that is open, over the bar, the
+  /// keyboard kept up under it.
+  final _barCard = BvLinePopover();
+  _BarCard? _barOpen;
+  final _barKey = GlobalKey();
   NoteBlockKind _kind = NoteBlockKind.text;
 
   /// B3: the camera, the files or a permission prompt is in front: the
@@ -163,6 +175,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   @override
   void dispose() {
     _picker.hide();
+    _barCard.hide();
     for (final f in _draftFocus.values) {
       f.dispose();
     }
@@ -257,9 +270,24 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
   }
 
-  /// A Draft's card swiped toward the start (review 100 Part 3b): Discard,
-  /// with Undo.
-  Future<void> _discardDraft(NoteDraft draft) async {
+  /// Discard at the top bar's end (review 100 Part 0): the new entry
+  /// being written is put down and thrown away, with "Discarded · Undo".
+  Future<void> _discardWriting() async {
+    final draft = ref.read(noteDraftProvider);
+    if (draft == null || draft.editing != null) return;
+    _closeBar();
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _writing = false;
+      _panel = _Panel.none;
+    });
+    await _discardDraft(draft, writing: true);
+    if (widget.pageId == null && mounted) Navigator.of(context).maybePop();
+  }
+
+  /// A Draft's card swiped toward the start (review 100 Part 3b), or the
+  /// entry being written discarded: gone, with Undo.
+  Future<void> _discardDraft(NoteDraft draft, {bool writing = false}) async {
     final l10n = AppLocalizations.of(context);
     final parked = ref.read(parkedDraftsProvider.notifier);
     final inHand = ref.read(noteDraftProvider)?.id == draft.id;
@@ -272,7 +300,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     if (!mounted) return;
     final bar = showBvUndoBar(
       context,
-      message: l10n.notebookDraftDiscarded,
+      message: writing ? l10n.notebookDiscarded : l10n.notebookDraftDiscarded,
       actionLabel: l10n.daybookUndo,
       onAction: () => unawaited(parked.keep(draft)),
       bottom: 0,
@@ -569,33 +597,160 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     if (draft != null) await _drafts.put(change(draft));
   }
 
-  /// + (NBX1): the categories in place of the keyboard, or the keyboard
-  /// back.
-  void _toggleCategories() {
-    if (_panel == _Panel.categories) {
-      setState(() => _panel = _Panel.none);
-      _editorKey.currentState?.focusCurrent();
-      return;
+  /// One of the bar's cards (review 100 Part 5): it opens over its tool,
+  /// the keyboard and the cursor kept (B4.5); a second tap on the tool, a
+  /// tap elsewhere or Back closes it.
+  void _openBar(_BarCard card) {
+    if (_barOpen == card) return _closeBar();
+    _closeBar();
+    if (card == _BarCard.blocks) {
+      // Review 98: the list is for a new line below this one (an empty text
+      // line is turned itself).
+      _editorKey.currentState?.lineForGrid();
     }
-    // Review 98: the grid is for a new line below this one (an empty text
-    // line is turned itself).
-    _editorKey.currentState?.lineForGrid();
-    // D8 (B4.5): the keyboard stays up, the cursor kept.
     setState(() {
       _kind = _editorKey.currentState?.currentKind ?? _kind;
-      _panel = _Panel.categories;
+      _barOpen = card;
     });
+    _barCard.show(
+      context,
+      // Over the bar, from its start (BH7, BH8).
+      anchor: () => _barKey.currentContext,
+      above: true,
+      barrier: true,
+      onDismiss: _closeBar,
+      builder: (context) => switch (card) {
+        _BarCard.blocks =>
+          _editorKey.currentState?.blockList(onPick: _pickKind) ??
+              const SizedBox.shrink(),
+        _BarCard.photo => _photoCard(context),
+        _BarCard.add => _addCard(context),
+      },
+    );
   }
 
-  /// A tile: inserted, or the empty line turned; the keyboard comes back.
-  /// The Voice note tile says how to record.
+  void _closeBar() {
+    if (_barOpen == null && !_barCard.isOpen) return;
+    _barCard.hide();
+    if (mounted) setState(() => _barOpen = null);
+  }
+
+  /// A kind from the block list: inserted, or the empty line turned; the
+  /// keyboard stays.
   void _pickKind(NoteBlockKind kind) {
-    if (kind == NoteBlockKind.voice) {
-      _toast(AppLocalizations.of(context).notebookHoldVoice);
-      return;
-    }
-    setState(() => _panel = _Panel.none);
+    _closeBar();
     _editorKey.currentState?.insertKind(kind);
+  }
+
+  /// 📷 (review 100 Part 5): Camera or Gallery, as today's Image.
+  Widget _photoCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BvPopoverMenu<bool>.line(
+      key: const Key('note-image-menu'),
+      items: [
+        BvMenuItem(
+          key: const Key('note-image-camera'),
+          value: true,
+          label: l10n.daybookCamera,
+          icon: BvIcons.camera,
+        ),
+        BvMenuItem(
+          key: const Key('note-image-gallery'),
+          value: false,
+          label: l10n.daybookAttachPhotos,
+          icon: BvIcons.image,
+        ),
+      ],
+      onSelected: (camera) {
+        _closeBar();
+        unawaited(_addPhoto(camera: camera));
+      },
+    );
+  }
+
+  /// 📎 Add (review 100 BH7): File · Location · Date · Reminder; a row
+  /// with a value shows it at its end, with a ✕ that takes it off.
+  Widget _addCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final draft = ref.watch(noteDraftProvider);
+    if (draft == null) return const SizedBox.shrink();
+    final words = _words();
+    final now = ref.read(clockProvider)();
+    final location = draft.location;
+    final due = draft.dueAt;
+    final remind = draft.remindAt;
+    void clear(NoteDraft Function(NoteDraft d) change) {
+      _closeBar();
+      unawaited(_change(change));
+    }
+
+    return BvPopoverMenu<String>.line(
+      key: const Key('note-add-menu'),
+      items: [
+        BvMenuItem(
+          key: const Key('note-add-file'),
+          value: 'file',
+          label: l10n.notebookFile,
+          icon: BvIcons.document,
+          detail: draft.files.isEmpty
+              ? null
+              : l10n.notebookFileCount(draft.files.length),
+        ),
+        BvMenuItem(
+          key: const Key('note-add-location'),
+          value: 'location',
+          label: l10n.notebookLocation,
+          icon: BvIcons.place,
+          detail: location == null || location.isEmpty
+              ? null
+              : locationLabel(l10n, location),
+          onClear: location == null || location.isEmpty
+              ? null
+              : () => clear((d) => d.copyWith(location: () => null)),
+          clearKey: const Key('note-add-location-clear'),
+          clearLabel: l10n.notebookRemove,
+        ),
+        BvMenuItem(
+          key: const Key('note-add-date'),
+          value: 'date',
+          label: l10n.notebookDate,
+          icon: BvIcons.due,
+          detail: due == null ? null : todoDue(words, due, now),
+          onClear: due == null
+              ? null
+              : () => clear((d) => d.copyWith(dueAt: () => null)),
+          clearKey: const Key('note-add-date-clear'),
+          clearLabel: l10n.notebookRemove,
+        ),
+        BvMenuItem(
+          key: const Key('note-add-remind'),
+          value: 'remind',
+          label: l10n.notebookReminder,
+          icon: BvIcons.remind,
+          detail: remind == null
+              ? null
+              : reminderChip(l10n, words, remind, now),
+          onClear: remind == null
+              ? null
+              : () => clear((d) => d.copyWith(remindAt: () => null)),
+          clearKey: const Key('note-add-remind-clear'),
+          clearLabel: l10n.notebookRemove,
+        ),
+      ],
+      onSelected: (row) {
+        _closeBar();
+        switch (row) {
+          case 'file':
+            unawaited(_addFile());
+          case 'location':
+            _toggleLocation();
+          case 'date':
+            unawaited(_pickDue());
+          case 'remind':
+            unawaited(_pickRemind());
+        }
+      },
+    );
   }
 
   /// Location (NBX4): its sheet, or closed again.
@@ -692,7 +847,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// Image (NBX3): the camera or the gallery, made safe to leave the
   /// phone (cleanPhoto, F60) and kept in the app's folder until it is
   /// sent; at most 10 on a note.
-  Future<void> _addPhoto() async {
+  Future<void> _addPhoto({required bool camera}) async {
     final l10n = AppLocalizations.of(context);
     final draft = ref.read(noteDraftProvider);
     if (draft == null) return;
@@ -700,29 +855,6 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       _toast(l10n.notebookPhotosFull);
       return;
     }
-    final camera = await showBvSheet<bool>(
-      context: context,
-      builder: (sheet) => Column(
-        key: const Key('note-image-menu'),
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ChatActionRow(
-            key: const Key('note-image-camera'),
-            icon: BvIcons.camera,
-            label: l10n.daybookCamera,
-            onTap: () => Navigator.of(sheet).pop(true),
-          ),
-          ChatActionRow(
-            key: const Key('note-image-gallery'),
-            icon: BvIcons.image,
-            label: l10n.daybookAttachPhotos,
-            onTap: () => Navigator.of(sheet).pop(false),
-          ),
-        ],
-      ),
-    );
-    if (camera == null || !mounted) return;
     final picked = await _awayFor(
       () => ref.read(pickPhotoProvider)(
         camera: camera,
@@ -1734,6 +1866,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           _picker.hide();
           return;
         }
+        if (_barCard.isOpen) {
+          _closeBar();
+          return;
+        }
         if (_editorKey.currentState?.closeMenus() ?? false) return;
         if (picking) {
           _editorKey.currentState?.endLineSelection();
@@ -1777,6 +1913,20 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                 ? Text(writingTitle, key: const Key('writing-page-title'))
                 : null,
             actions: [
+              if (writingNow && !picking && draft.editing == null)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: BvSpace.s8),
+                  child: TextButton(
+                    key: const Key('writing-discard'),
+                    onPressed: () => unawaited(_discardWriting()),
+                    child: Text(
+                      l10n.notebookDiscardDraft,
+                      style: type.labelMd.copyWith(
+                        color: BvColors.textDestructive,
+                      ),
+                    ),
+                  ),
+                ),
               if (!selecting &&
                   !writingNow &&
                   page != null &&
@@ -1809,15 +1959,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _tools(l10n, draft),
-                      if (_panel == _Panel.categories)
-                        SizedBox(
-                          height: BvNoteBlocksSpec.panelHeight,
-                          child: NoteCategoriesGrid(
-                            current: _kind,
-                            onPick: _pickKind,
-                          ),
-                        ),
+                      KeyedSubtree(key: _barKey, child: _tools(l10n, draft)),
                       if (_panel == _Panel.location)
                         NoteLocationPanel(
                           location: draft.location,
@@ -1889,25 +2031,31 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     );
   }
 
-  /// The additions bar (NBX1 2619:36779): + for the categories, ⇥ and ⇤
-  /// each only while the line being written can move that way (review 93;
-  /// review 98 NBY3, NBY4: hidden, not greyed), a thin line, then
-  /// Location, Image, File, Date, Remind me and Voice, then Send. An
-  /// addition in use is tinted; Send is grey until there is something to
-  /// keep.
+  /// The bar above the keyboard (review 100 BH6): + for the block list,
+  /// 📷 Photo, 📎 Add, then ⇥ and ⇤ each only while the line being written
+  /// can move that way (review 98: hidden, not greyed); at the far end the
+  /// 🎤 (hold to record a voice block) and Send. A tool whose card is open
+  /// is on a grey square; 📷 or 📎 has a dot when something is attached.
+  /// Inside a saved entry Send reads Done and saves it in place (B2).
   Widget _tools(AppLocalizations l10n, NoteDraft draft) {
     final editor = _editorKey.currentState;
     final deeper = editor?.canIndentCurrent ?? false;
     final out = editor?.canOutdentCurrent ?? false;
+    final added =
+        draft.files.isNotEmpty ||
+        !(draft.location?.isEmpty ?? true) ||
+        draft.dueAt != null ||
+        draft.remindAt != null;
+    final saved = draft.editing != null;
     return BvWritingToolbar.tools(
       key: const Key('note-tools'),
       categories: BvWritingTool(
         key: const Key('note-tool-categories'),
-        icon: BvIcons.create,
-        label: l10n.notebookCategories,
-        onTap: _toggleCategories,
+        icon: BvIcons.add,
+        label: l10n.notebookBlocks,
+        onTap: () => _openBar(_BarCard.blocks),
       ),
-      categoriesOpen: _panel == _Panel.categories,
+      categoriesOpen: _barOpen == _BarCard.blocks,
       beside: [
         if (deeper)
           BvWritingTool(
@@ -1926,40 +2074,20 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       ],
       tools: [
         BvWritingTool(
-          key: const Key('note-tool-location'),
-          icon: BvIcons.place,
-          label: l10n.notebookLocation,
-          active:
-              _panel == _Panel.location || !(draft.location?.isEmpty ?? true),
-          onTap: _toggleLocation,
-        ),
-        BvWritingTool(
           key: const Key('note-tool-image'),
-          icon: BvIcons.image,
-          label: l10n.notebookImage,
-          active: draft.photos.isNotEmpty,
-          onTap: () => unawaited(_addPhoto()),
+          icon: BvIcons.camera,
+          label: l10n.notebookPhoto,
+          active: _barOpen == _BarCard.photo,
+          dot: draft.photos.isEmpty ? null : const Key('note-tool-image-dot'),
+          onTap: () => _openBar(_BarCard.photo),
         ),
         BvWritingTool(
-          key: const Key('note-tool-file'),
+          key: const Key('note-tool-add'),
           icon: BvIcons.attach,
-          label: l10n.notebookFile,
-          active: draft.files.isNotEmpty,
-          onTap: () => unawaited(_addFile()),
-        ),
-        BvWritingTool(
-          key: const Key('note-tool-date'),
-          icon: BvIcons.due,
-          label: l10n.notebookDate,
-          active: draft.dueAt != null,
-          onTap: () => unawaited(_pickDue()),
-        ),
-        BvWritingTool(
-          key: const Key('note-tool-remind'),
-          icon: BvIcons.remind,
-          label: l10n.notebookRemindMe,
-          active: draft.remindAt != null,
-          onTap: () => unawaited(_pickRemind()),
+          label: l10n.notebookAdd,
+          active: _barOpen == _BarCard.add || _panel == _Panel.location,
+          dot: added ? const Key('note-tool-add-dot') : null,
+          onTap: () => _openBar(_BarCard.add),
         ),
         // F107: hold for a voice block inside the note.
         BvWritingTool(
@@ -1975,8 +2103,12 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       field: _recording
           ? RecordingBar(elapsed: _elapsed, cancelling: _cancelling)
           : null,
-      postLabel: l10n.chatSend,
-      onPost: draft.ready ? () => unawaited(_send()) : null,
+      postLabel: saved ? l10n.notebookDone : l10n.chatSend,
+      onPost: saved
+          ? _putDown
+          : draft.ready
+          ? () => unawaited(_send())
+          : null,
     );
   }
 }

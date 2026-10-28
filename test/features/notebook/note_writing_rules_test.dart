@@ -324,8 +324,8 @@ void main() {
         ]);
         await _cursor(tester, 1);
         await _tap(tester, _key('note-tool-categories'));
-        expect(_key('note-categories'), findsOneWidget);
-        await _tap(tester, _key('note-category-bullets'));
+        expect(_key('page-add-menu'), findsOneWidget);
+        await _tap(tester, _key('page-add-bullets'));
         expect(_blocks(tester).map((b) => b.runtimeType), [
           PageNumbered,
           PageTodo,
@@ -336,13 +336,17 @@ void main() {
         expect(_words(tester), ['Pour', 'Slump', '', 'End']);
         // Each tile says what to type for it.
         await _tap(tester, _key('note-tool-categories'));
-        final quote = _key('note-category-shortcut-quote');
-        expect(tester.widget<Text>(quote).data, '"');
+        // Its shortcut at the row's end, left to right in Arabic too.
+        final quote = find.descendant(
+          of: _key('page-add-quote'),
+          matching: find.text('"'),
+        );
+        expect(tester.widget<Text>(quote).textDirection, TextDirection.ltr);
         // On the empty bullet + adds a line; on an empty text line it turns.
-        await _tap(tester, _key('note-category-text'));
+        await _tap(tester, _key('page-add-text'));
         expect(_blocks(tester), hasLength(5));
         await _tap(tester, _key('note-tool-categories'));
-        await _tap(tester, _key('note-category-todo'));
+        await _tap(tester, _key('page-add-todo'));
         expect(_blocks(tester), hasLength(5));
         expect(_blocks(tester)[3], isA<PageTodo>());
       });
@@ -367,7 +371,7 @@ void main() {
         expect(_key('note-tool-indent'), findsNothing);
         expect(_key('note-tool-outdent'), findsOneWidget);
         // Location and the others stay where they are.
-        expect(_key('note-tool-location'), findsOneWidget);
+        expect(_key('note-tool-add'), findsOneWidget);
         expect(_key('writing-post'), findsOneWidget);
       });
     });

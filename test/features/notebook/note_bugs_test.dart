@@ -619,12 +619,19 @@ void main() {
             tester,
             anyField: tool == 'note-tool-location',
           );
-          await tester.tap(_key(tool));
+          // Review 100 Part 5: Location is a row of 📎 Add.
+          if (tool == 'note-tool-location') {
+            await tester.tap(_key('note-tool-add'));
+            await tester.pumpAndSettle();
+            await tester.tap(_key('note-add-location'));
+          } else {
+            await tester.tap(_key(tool));
+          }
           await tester.pumpAndSettle();
           expect(
             _key(
               tool == 'note-tool-categories'
-                  ? 'note-categories'
+                  ? 'page-add-menu'
                   : 'note-location-panel',
             ),
             findsOneWidget,

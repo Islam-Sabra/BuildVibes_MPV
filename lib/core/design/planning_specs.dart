@@ -75,30 +75,6 @@ abstract final class BvNoteBlocksSpec {
   /// The slip's parts stand 10 apart (NBX1 "Slip · Being written").
   static const slipGap = 10.0;
 
-  /// The grid: white, 16 at the sides, 12 on top and 28 under, its title
-  /// line 12 above the tiles; 3 columns of 58-high tiles, 8 apart, radius
-  /// 12, the current one outlined (1.25) on the soft action colour; a
-  /// 26 glyph 6 above its 12 label.
-  static const gridPadding = EdgeInsetsDirectional.fromSTEB(
-    BvSpace.gutter,
-    BvSpace.s12,
-    BvSpace.gutter,
-    28.0,
-  );
-  static const gridGap = BvSpace.s12;
-  static const gridColumns = 3;
-  // Review 98: 64, for each kind's shortcut under its name.
-  static const tileHeight = 64.0;
-  static const tileGap = BvSpace.s8;
-  static const tileRadius = BorderRadius.all(Radius.circular(BvRadius.toast));
-  static const tileBorder = 1.25;
-  static const tileIcon = 24.0;
-  static const tileLabelGap = BvSpace.s4;
-
-  /// The sheet in place of the keyboard when the phone hasn't said how
-  /// tall its keyboard is (NBX2: 334).
-  static const panelHeight = 334.0;
-
   /// The location sheet: 16 at the sides, 14 on top, 16 under, its parts
   /// 12 apart; the typed field 12 × 11 inside, radius 10; the GPS row 12 ×
   /// 10, its pin on a 32 circle, its words 2 apart, × 14.

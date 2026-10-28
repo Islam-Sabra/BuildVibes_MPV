@@ -4319,14 +4319,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep entries, checklists and to-dos for your work. Only you can see them.';
 
   @override
-  String get notebookPinTop => 'Pin to the top';
-
-  @override
   String get notebookDeleteTitle => 'Delete this entry?';
-
-  @override
-  String get notebookDeleteBody =>
-      'It goes from your notebook. A post you put in a Space stays there.';
 
   @override
   String get notebookPut => 'Went into a Space';
@@ -4336,10 +4329,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookSaveMessage => 'Save to my notebook';
-
-  @override
-  String get notebookPutNone =>
-      'You\'re not yet in a Space where you can add work.';
 
   @override
   String get notebookTooShort => 'Hold longer to record';
@@ -4511,9 +4500,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dmStartLine => 'The start of your conversation';
 
   @override
-  String get notebookRemindMe => 'Remind me';
-
-  @override
   String notebookReminderLine(String when) {
     return 'Reminder · $when';
   }
@@ -4552,9 +4538,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookDeleteLinesUndo => 'You can undo it right after.';
 
   @override
   String get notebookExactTitle => 'On-time reminders';
@@ -4669,12 +4652,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookCategories => 'Categories';
-
-  @override
-  String get notebookOrTypeSlash => 'or type /';
-
-  @override
   String get notebookSubheading => 'Subheading';
 
   @override
@@ -4715,9 +4692,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookLocation => 'Location';
-
-  @override
-  String get notebookImage => 'Image';
 
   @override
   String get notebookFile => 'File';
@@ -4802,9 +4776,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookIncludeGps => 'Include my GPS position';
 
   @override
   String get notebookRemindTime => 'Remind me at…';
@@ -5201,4 +5172,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookArchivedEmpty => 'Nothing archived in this page.';
+
+  @override
+  String get notebookGroupText => 'TEXT';
+
+  @override
+  String get notebookGroupLists => 'LISTS';
+
+  @override
+  String get notebookGroupInsert => 'INSERT';
+
+  @override
+  String get notebookAdd => 'Add';
+
+  @override
+  String get notebookPhoto => 'Photo';
+
+  @override
+  String get notebookBlocks => 'Add a block';
+
+  @override
+  String get notebookDiscarded => 'Discarded';
+
+  @override
+  String get notebookDone => 'Done';
+
+  @override
+  String get notebookRemove => 'Remove';
+
+  @override
+  String get notebookBack => 'Back';
 }

@@ -6228,16 +6228,8 @@
   "@notebookEmptyBody": {
     "description": "The empty notebook's words (N2)."
   },
-  "notebookPinTop": "Pin to the top",
-  "@notebookPinTop": {
-    "description": "A note's menu: it shows above the others."
-  },
   "notebookDeleteTitle": "Delete this entry?",
   "@notebookDeleteTitle": {
-    "description": "Delete asks first (N7)."
-  },
-  "notebookDeleteBody": "It goes from your notebook. A post you put in a Space stays there.",
-  "@notebookDeleteBody": {
     "description": "Delete asks first (N7)."
   },
   "notebookPut": "Went into a Space",
@@ -6251,10 +6243,6 @@
   "notebookSaveMessage": "Save to my notebook",
   "@notebookSaveMessage": {
     "description": "Holding a message: keep its words as a note."
-  },
-  "notebookPutNone": "You're not yet in a Space where you can add work.",
-  "@notebookPutNone": {
-    "description": "Put in a Space with no Space to post in."
   },
   "notebookTooShort": "Hold longer to record",
   "@notebookTooShort": {
@@ -6509,10 +6497,6 @@
   "@dmStartLine": {
     "description": "F98: under the person card at the start of a conversation."
   },
-  "notebookRemindMe": "Remind me",
-  "@notebookRemindMe": {
-    "description": "A note's menu (2557:35481): set, change or remove the phone's reminder."
-  },
   "notebookReminderLine": "Reminder · {when}",
   "@notebookReminderLine": {
     "description": "A note's slip: when this phone will remind you.",
@@ -6571,10 +6555,6 @@
         "type": "int"
       }
     }
-  },
-  "notebookDeleteLinesUndo": "You can undo it right after.",
-  "@notebookDeleteLinesUndo": {
-    "description": "Under the question before deleting a folded line."
   },
   "notebookExactTitle": "On-time reminders",
   "@notebookExactTitle": {
@@ -6728,14 +6708,6 @@
       }
     }
   },
-  "notebookCategories": "Categories",
-  "@notebookCategories": {
-    "description": "F107 NBX2: the + on the bar and the grid's title."
-  },
-  "notebookOrTypeSlash": "or type /",
-  "@notebookOrTypeSlash": {
-    "description": "F107 NBX2: in the grid's corner."
-  },
   "notebookSubheading": "Subheading",
   "@notebookSubheading": {
     "description": "F107: a level-2 heading."
@@ -6791,10 +6763,6 @@
   "notebookLocation": "Location",
   "@notebookLocation": {
     "description": "F107 NBX4: the bar's Location and its sheet."
-  },
-  "notebookImage": "Image",
-  "@notebookImage": {
-    "description": "F107: the bar's Image, read out."
   },
   "notebookFile": "File",
   "@notebookFile": {
@@ -6901,10 +6869,6 @@
         "type": "int"
       }
     }
-  },
-  "notebookIncludeGps": "Include my GPS position",
-  "@notebookIncludeGps": {
-    "description": "F107: Put in a Space."
   },
   "notebookRemindTime": "Remind me at…",
   "@notebookRemindTime": {
@@ -7427,5 +7391,45 @@
   "notebookArchivedEmpty": "Nothing archived in this page.",
   "@notebookArchivedEmpty": {
     "description": "Review 100 Part 3b: the archived list once its last entry went back."
+  },
+  "notebookGroupText": "TEXT",
+  "@notebookGroupText": {
+    "description": "Review 100 Part 5: the block list's first group (+ and /), small caps."
+  },
+  "notebookGroupLists": "LISTS",
+  "@notebookGroupLists": {
+    "description": "Review 100 Part 5: the block list's lists."
+  },
+  "notebookGroupInsert": "INSERT",
+  "@notebookGroupInsert": {
+    "description": "Review 100 Part 5: the block list's table and divider."
+  },
+  "notebookAdd": "Add",
+  "@notebookAdd": {
+    "description": "Review 100 Part 5: the bar's 📎, read out: File, Location, Date, Reminder."
+  },
+  "notebookPhoto": "Photo",
+  "@notebookPhoto": {
+    "description": "Review 100 Part 5: the bar's 📷, read out."
+  },
+  "notebookBlocks": "Add a block",
+  "@notebookBlocks": {
+    "description": "Review 100 Part 5: the bar's +, read out: it opens the block list."
+  },
+  "notebookDiscarded": "Discarded",
+  "@notebookDiscarded": {
+    "description": "Review 100 Part 0: after Discard while writing a new entry, with Undo."
+  },
+  "notebookDone": "Done",
+  "@notebookDone": {
+    "description": "Review 100 Part 5: Send inside a saved entry: it saves it in place."
+  },
+  "notebookRemove": "Remove",
+  "@notebookRemove": {
+    "description": "Review 100 Part 5: the ✕ at the end of a set row in 📎, read out."
+  },
+  "notebookBack": "Back",
+  "@notebookBack": {
+    "description": "Review 100 Part 4: the ‹ row at the top of a card's next level."
   }
 }

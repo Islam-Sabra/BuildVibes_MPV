@@ -36,6 +36,12 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
+/// Review 100 Part 5: Location, File, Date and Reminder are in 📎 Add.
+Future<void> _add(WidgetTester tester, String row) async {
+  await _tap(tester, find.byKey(const Key('note-tool-add')));
+  await _tap(tester, find.byKey(Key('note-add-$row')));
+}
+
 Future<void> _go(WidgetTester tester, String path) async {
   GoRouter.of(tester.element(find.byType(Navigator).first)).push(path);
   await tester.pumpAndSettle();
@@ -182,7 +188,7 @@ void main() {
       await _tap(tester, _key('page-write'));
       await tester.enterText(_key('note-title'), n.walkTitle);
       await _tap(tester, _key('note-tool-categories'));
-      await _tap(tester, _key('note-category-todo'));
+      await _tap(tester, _key('page-add-todo'));
       for (final (i, p) in n.walkPoints.take(2).indexed) {
         final line = find.descendant(
           of: _key('note-page'),
@@ -206,7 +212,7 @@ void main() {
       await _tap(tester, _key('page-write'));
       await tester.enterText(_key('note-title'), n.sleevesTodo);
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-tool-date'));
+      await _add(tester, 'date');
       await _tap(tester, _key('writing-post'));
       final dated = kept.values.firstWhere((x) => x.title == n.sleevesTodo);
       expect(dated.dueAt, DateTime(2026, 10, 15, 16));

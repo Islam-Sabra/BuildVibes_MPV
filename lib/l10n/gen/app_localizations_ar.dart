@@ -4325,14 +4325,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتفظ بتدويناتك وقوائم التحقق والمهام لعملك. لا يراها أحد غيرك.';
 
   @override
-  String get notebookPinTop => 'ثبّت في الأعلى';
-
-  @override
   String get notebookDeleteTitle => 'حذف هذه التدوينة؟';
-
-  @override
-  String get notebookDeleteBody =>
-      'ستُحذف من دفترك. ما وضعته في مساحة يبقى فيها.';
 
   @override
   String get notebookPut => 'وُضعت في مساحة';
@@ -4342,9 +4335,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookSaveMessage => 'احفظ في دفتري';
-
-  @override
-  String get notebookPutNone => 'لست بعد في مساحة يمكنك إضافة عمل فيها.';
 
   @override
   String get notebookTooShort => 'اضغط مدة أطول للتسجيل';
@@ -4519,9 +4509,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dmStartLine => 'بداية محادثتكما';
 
   @override
-  String get notebookRemindMe => 'ذكّرني';
-
-  @override
   String notebookReminderLine(String when) {
     return 'تذكير · $when';
   }
@@ -4560,9 +4547,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookDeleteLinesUndo => 'يمكنك التراجع عن ذلك بعدها مباشرة.';
 
   @override
   String get notebookExactTitle => 'تذكيرات في موعدها';
@@ -4679,12 +4663,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookCategories => 'الأنواع';
-
-  @override
-  String get notebookOrTypeSlash => 'أو اكتب /';
-
-  @override
   String get notebookSubheading => 'عنوان فرعي';
 
   @override
@@ -4725,9 +4703,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookLocation => 'المكان';
-
-  @override
-  String get notebookImage => 'صورة';
 
   @override
   String get notebookFile => 'ملف';
@@ -4815,9 +4790,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookIncludeGps => 'أرفق إحداثيات GPS';
 
   @override
   String get notebookRemindTime => 'ذكّرني الساعة…';
@@ -5218,4 +5190,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookArchivedEmpty => 'لا شيء مؤرشف في هذه الصفحة.';
+
+  @override
+  String get notebookGroupText => 'النصوص';
+
+  @override
+  String get notebookGroupLists => 'القوائم';
+
+  @override
+  String get notebookGroupInsert => 'الإدراج';
+
+  @override
+  String get notebookAdd => 'إضافة';
+
+  @override
+  String get notebookPhoto => 'صورة';
+
+  @override
+  String get notebookBlocks => 'إضافة عنصر';
+
+  @override
+  String get notebookDiscarded => 'تم التجاهل';
+
+  @override
+  String get notebookDone => 'تم';
+
+  @override
+  String get notebookRemove => 'إزالة';
+
+  @override
+  String get notebookBack => 'رجوع';
 }

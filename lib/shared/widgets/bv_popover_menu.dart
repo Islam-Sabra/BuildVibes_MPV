@@ -18,6 +18,11 @@ class BvMenuItem<T> {
     this.shortcut,
     this.more = false,
     this.destructive = false,
+    this.group,
+    this.detail,
+    this.onClear,
+    this.clearKey,
+    this.clearLabel,
   });
 
   final T value;
@@ -40,6 +45,17 @@ class BvMenuItem<T> {
 
   /// The line menu: in the destructive colour (Delete).
   final bool destructive;
+
+  /// The compact card (review 100 Part 4): the small caps label of the
+  /// group this row starts or belongs to ("TEXT", "LISTS").
+  final String? group;
+
+  /// Its value once set, at the row's end ("Gate 2", "Fri 7:00"), and the
+  /// ✕ after it that takes it off ([clearLabel] read out).
+  final String? detail;
+  final VoidCallback? onClear;
+  final Key? clearKey;
+  final String? clearLabel;
 }
 
 /// The small menus: a leading icon and a label per row. While writing
@@ -59,7 +75,10 @@ class BvPopoverMenu<T> extends StatelessWidget {
        line = false,
        scrolls = false,
        title = null,
-       hint = null;
+       hint = null,
+       checked = null,
+       back = null,
+       onBack = null;
 
   /// [wide]: the kind menu (E6 v14 2598:36413), whose small lines fit on
   /// one line.
@@ -74,7 +93,10 @@ class BvPopoverMenu<T> extends StatelessWidget {
        line = false,
        scrolls = false,
        title = null,
-       hint = null;
+       hint = null,
+       checked = null,
+       back = null,
+       onBack = null;
 
   const BvPopoverMenu.screen({
     super.key,
@@ -87,7 +109,10 @@ class BvPopoverMenu<T> extends StatelessWidget {
        line = false,
        scrolls = false,
        title = null,
-       hint = null;
+       hint = null,
+       checked = null,
+       back = null,
+       onBack = null;
 
   /// The card next to a line (review 98): the line menu (NBY2), and the
   /// "/" card (NBY1) with its [title], the [selected] row tinted (Enter
@@ -100,6 +125,9 @@ class BvPopoverMenu<T> extends StatelessWidget {
     this.title,
     this.hint,
     this.scrolls = false,
+    this.checked,
+    this.back,
+    this.onBack,
   }) : picker = false,
        screen = false,
        wide = false,
@@ -120,6 +148,13 @@ class BvPopoverMenu<T> extends StatelessWidget {
   /// The "/" card: past [BvLineMenuSpec.rowsShown] rows it scrolls. The
   /// line menu never does: every row is always in sight.
   final bool scrolls;
+
+  /// The compact card (review 100 Part 4): the row ticked as the current
+  /// one (the line's kind), and a ‹ [back] row on top of a card's next
+  /// level (Turn into ›): the same card, never a second one.
+  final T? checked;
+  final String? back;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +214,40 @@ class BvPopoverMenu<T> extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (back case final back?)
+                Semantics(
+                  button: true,
+                  child: InkWell(
+                    key: const Key('menu-back'),
+                    canRequestFocus: false,
+                    borderRadius: BvLineMenuSpec.rowRadius,
+                    onTap: onBack,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minHeight: BvLineMenuSpec.rowHeight,
+                      ),
+                      padding: BvLineMenuSpec.rowPadding,
+                      child: Row(
+                        spacing: BvLineMenuSpec.rowGap,
+                        children: [
+                          const Icon(
+                            BvIcons.caretBack,
+                            size: BvLineMenuSpec.caret,
+                            color: BvColors.iconSecondary,
+                          ),
+                          Expanded(
+                            child: Text(
+                              back,
+                              style: type.labelMd.copyWith(
+                                color: BvColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               if (title case final title?)
                 Padding(
                   padding: BvLineMenuSpec.titlePadding,
@@ -193,16 +262,12 @@ class BvPopoverMenu<T> extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final item in items)
-                          _lineRow(type, item, item.value == selected),
-                      ],
+                      children: _lineRows(type),
                     ),
                   ),
                 )
               else
-                for (final item in items)
-                  _lineRow(type, item, item.value == selected),
+                ..._lineRows(type),
               if (hint case final hint?)
                 Padding(
                   padding: BvLineMenuSpec.hintPadding,
@@ -213,6 +278,36 @@ class BvPopoverMenu<T> extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Every row of the card, each group under its label, a line between
+  /// the groups.
+  List<Widget> _lineRows(BvTypeSet type) {
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final out = <Widget>[];
+    String? group;
+    for (final item in items) {
+      if (item.group != null && item.group != group) {
+        if (group != null) {
+          out.add(
+            const Divider(
+              height: BvLineMenuSpec.groupGap,
+              thickness: BvStroke.thin,
+              color: BvColors.borderSubtle,
+            ),
+          );
+        }
+        group = item.group;
+        out.add(
+          Padding(
+            padding: BvLineMenuSpec.groupPadding,
+            child: Text(item.group!, style: quiet),
+          ),
+        );
+      }
+      out.add(_lineRow(type, item, item.value == selected));
+    }
+    return out;
   }
 
   Widget _lineRow(BvTypeSet type, BvMenuItem<T> item, bool tinted) {
@@ -272,6 +367,41 @@ class BvPopoverMenu<T> extends StatelessWidget {
                     style: type.metadata.copyWith(
                       color: BvColors.textSecondary,
                     ),
+                  ),
+                if (item.detail case final detail?)
+                  Flexible(
+                    child: Text(
+                      detail,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: type.metadata.copyWith(
+                        color: BvColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                if (item.onClear case final clear?)
+                  Semantics(
+                    button: true,
+                    label: item.clearLabel,
+                    excludeSemantics: true,
+                    child: InkResponse(
+                      key: item.clearKey,
+                      canRequestFocus: false,
+                      onTap: clear,
+                      radius: BvLineMenuSpec.clear,
+                      child: const Icon(
+                        BvIcons.declined,
+                        size: BvLineMenuSpec.clear,
+                        color: BvColors.iconSecondary,
+                      ),
+                    ),
+                  ),
+                if (checked != null && item.value == checked)
+                  const Icon(
+                    BvIcons.check,
+                    key: Key('menu-checked'),
+                    size: BvLineMenuSpec.caret,
+                    color: BvColors.iconAction,
                   ),
                 if (item.more)
                   const Icon(

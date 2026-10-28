@@ -7280,23 +7280,11 @@ abstract class AppLocalizations {
   /// **'Keep entries, checklists and to-dos for your work. Only you can see them.'**
   String get notebookEmptyBody;
 
-  /// A note's menu: it shows above the others.
-  ///
-  /// In en, this message translates to:
-  /// **'Pin to the top'**
-  String get notebookPinTop;
-
   /// Delete asks first (N7).
   ///
   /// In en, this message translates to:
   /// **'Delete this entry?'**
   String get notebookDeleteTitle;
-
-  /// Delete asks first (N7).
-  ///
-  /// In en, this message translates to:
-  /// **'It goes from your notebook. A post you put in a Space stays there.'**
-  String get notebookDeleteBody;
 
   /// A note's quiet line once it was put in a Space.
   ///
@@ -7315,12 +7303,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save to my notebook'**
   String get notebookSaveMessage;
-
-  /// Put in a Space with no Space to post in.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re not yet in a Space where you can add work.'**
-  String get notebookPutNone;
 
   /// A recording shorter than a second.
   ///
@@ -7580,12 +7562,6 @@ abstract class AppLocalizations {
   /// **'The start of your conversation'**
   String get dmStartLine;
 
-  /// A note's menu (2557:35481): set, change or remove the phone's reminder.
-  ///
-  /// In en, this message translates to:
-  /// **'Remind me'**
-  String get notebookRemindMe;
-
   /// A note's slip: when this phone will remind you.
   ///
   /// In en, this message translates to:
@@ -7639,12 +7615,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, other{Delete this and the {count} under it?}}'**
   String notebookDeleteLines(int count);
-
-  /// Under the question before deleting a folded line.
-  ///
-  /// In en, this message translates to:
-  /// **'You can undo it right after.'**
-  String get notebookDeleteLinesUndo;
 
   /// Asked once, at the first Remind me, when the phone keeps alarms inexact (Android 12+).
   ///
@@ -7832,18 +7802,6 @@ abstract class AppLocalizations {
   /// **'+{count}'**
   String daybookFacesMore(int count);
 
-  /// F107 NBX2: the + on the bar and the grid's title.
-  ///
-  /// In en, this message translates to:
-  /// **'Categories'**
-  String get notebookCategories;
-
-  /// F107 NBX2: in the grid's corner.
-  ///
-  /// In en, this message translates to:
-  /// **'or type /'**
-  String get notebookOrTypeSlash;
-
   /// F107: a level-2 heading.
   ///
   /// In en, this message translates to:
@@ -7927,12 +7885,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location'**
   String get notebookLocation;
-
-  /// F107: the bar's Image, read out.
-  ///
-  /// In en, this message translates to:
-  /// **'Image'**
-  String get notebookImage;
 
   /// F107: the bar's File, read out.
   ///
@@ -8053,12 +8005,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 file} other{{count} files}}'**
   String notebookFileCount(int count);
-
-  /// F107: Put in a Space.
-  ///
-  /// In en, this message translates to:
-  /// **'Include my GPS position'**
-  String get notebookIncludeGps;
 
   /// F107 B5: the reminder's time step.
   ///
@@ -8743,6 +8689,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing archived in this page.'**
   String get notebookArchivedEmpty;
+
+  /// Review 100 Part 5: the block list's first group (+ and /), small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'TEXT'**
+  String get notebookGroupText;
+
+  /// Review 100 Part 5: the block list's lists.
+  ///
+  /// In en, this message translates to:
+  /// **'LISTS'**
+  String get notebookGroupLists;
+
+  /// Review 100 Part 5: the block list's table and divider.
+  ///
+  /// In en, this message translates to:
+  /// **'INSERT'**
+  String get notebookGroupInsert;
+
+  /// Review 100 Part 5: the bar's 📎, read out: File, Location, Date, Reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get notebookAdd;
+
+  /// Review 100 Part 5: the bar's 📷, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get notebookPhoto;
+
+  /// Review 100 Part 5: the bar's +, read out: it opens the block list.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a block'**
+  String get notebookBlocks;
+
+  /// Review 100 Part 0: after Discard while writing a new entry, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Discarded'**
+  String get notebookDiscarded;
+
+  /// Review 100 Part 5: Send inside a saved entry: it saves it in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get notebookDone;
+
+  /// Review 100 Part 5: the ✕ at the end of a set row in 📎, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get notebookRemove;
+
+  /// Review 100 Part 4: the ‹ row at the top of a card's next level.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get notebookBack;
 }
 
 class _AppLocalizationsDelegate
