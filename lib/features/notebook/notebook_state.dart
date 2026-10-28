@@ -93,6 +93,16 @@ class NotebookData {
       if (pageOf(n) == id) n,
   ];
 
+  /// The latest activity in [id] and the pages under it (review 100 Part
+  /// 7: a row's "when").
+  DateTime activityIn(String id) {
+    final ids = tree(id);
+    return pages
+        .where((p) => ids.contains(p.id))
+        .map((p) => p.lastActivityAt)
+        .reduce((a, b) => b.isAfter(a) ? b : a);
+  }
+
   /// How many entries [id] and the pages under it hold (review 100 Part 7).
   int entryCount(String id) {
     final ids = tree(id);
@@ -109,14 +119,6 @@ class NotebookData {
   Note? latestIn(String id) {
     final ids = tree(id);
     return notes.where((n) => ids.contains(pageOf(n))).firstOrNull;
-  }
-
-  /// To-dos not yet ticked in [id] and the pages under it (A1).
-  int openTodos(String id) {
-    final ids = tree(id);
-    return notes
-        .where((n) => ids.contains(pageOf(n)))
-        .fold(0, (sum, n) => sum + n.openTodos);
   }
 
   /// [id]'s pages from the top down to it, itself last (A3's path).

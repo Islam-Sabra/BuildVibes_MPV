@@ -73,10 +73,8 @@ void main() {
     final s = NotebookPageSamples(lang);
 
     group('A1 the pages list [$lang]', () {
-      testWidgets('New entry on top; pinned first, then by latest activity; '
-          'each row its latest entry and open to-dos, never a count', (
-        tester,
-      ) async {
+      testWidgets('pinned first, then by latest activity; each row "{n} '
+          'entries · {when}" (review 100 Part 7)', (tester) async {
         await _open(tester, lang);
         expect(_key('notebook-new-entry'), findsOneWidget);
         expect(find.text(l10n.notebookNewEntry), findsOneWidget);
@@ -98,35 +96,20 @@ void main() {
         // Sub-pages are inside their page, not on the list.
         expect(_key('page-${NotebookPageSamples.level3}'), findsNothing);
         expect(
-          _top(tester, find.text(l10n.notebookNewEntry)),
-          lessThan(_top(tester, find.text(l10n.notebookPinnedLabel))),
-        );
-        expect(
           _top(tester, find.text(l10n.notebookPinnedLabel)),
           lessThan(_top(tester, find.text(l10n.notebookPagesLabel))),
         );
-        // Site A: today and its latest entry; 3 to-dos open with its
-        // sub-pages'.
-        expect(
-          find.text(l10n.notebookPageLine(l10n.notebookToday, s.beforePour)),
-          findsOneWidget,
-        );
+        // Review 100 Part 7: "{n} entries · {when}", no to-dos, no first
+        // line (redesign_filter_test.dart has the rest).
         expect(
           find.descendant(
             of: _key('page-${NotebookPageSamples.siteA}'),
-            matching: find.text(l10n.notebookTodosOpen(3)),
+            matching: find.text(l10n.notebookRowLine(6, l10n.notebookRowToday)),
           ),
           findsOneWidget,
         );
-        // No to-dos: no line for them.
-        expect(
-          find.descendant(
-            of: _key('page-${NotebookPageSamples.meetings}'),
-            matching: _key('page-todos'),
-          ),
-          findsNothing,
-        );
-        // A new page: its dot and "new page".
+        expect(_key('page-todos'), findsNothing);
+        // A new page: its dot, and its one entry.
         expect(
           find.descendant(
             of: _key('page-${NotebookPageSamples.pump}'),
@@ -135,8 +118,9 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.text(
-            l10n.notebookPageLine(l10n.notebookToday, l10n.notebookNewPageMark),
+          find.descendant(
+            of: _key('page-${NotebookPageSamples.pump}'),
+            matching: find.text(l10n.notebookRowLine(1, l10n.notebookRowToday)),
           ),
           findsOneWidget,
         );
@@ -909,11 +893,12 @@ void main() {
       expect(after.page('a')!.parentId, isNull);
     });
 
-    test('open to-dos count the page and every page under it', () {
+    test('a row counts the entries of the page and every page under it '
+        '(review 100 Part 7)', () {
       final data = NotebookPageSamples('en');
       final view = NotebookData(notes: data.notes(), pages: data.pages());
-      expect(view.openTodos(NotebookPageSamples.siteA), 3);
-      expect(view.openTodos(NotebookPageSamples.meetings), 0);
+      expect(view.entryCount(NotebookPageSamples.siteA), 6);
+      expect(view.entryCount(NotebookPageSamples.meetings), 1);
     });
   });
 }

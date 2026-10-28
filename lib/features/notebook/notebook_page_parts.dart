@@ -129,16 +129,14 @@ class NotebookLabel extends StatelessWidget {
   );
 }
 
-/// A page's row (PG1, PG4's sub-pages, PG5): its icon, its name with a pin
-/// or the new dot, the date and first line of its latest entry (or "new
-/// page"), its open to-dos only when there are any, and ›. While
+/// A page's row (PG1, PG4's sub-pages, PG5; review 100 BH1): its icon, its
+/// name with a pin or the new dot, "{n} entries · {when}", and ›. While
 /// [selecting], a checkbox at its start; [selected] tints it.
 class NotebookPageRow extends StatelessWidget {
   const NotebookPageRow({
     super.key,
     required this.page,
     required this.line,
-    required this.openTodos,
     required this.onTap,
     this.onLongPress,
     this.selecting = false,
@@ -147,9 +145,8 @@ class NotebookPageRow extends StatelessWidget {
 
   final NotebookPage page;
 
-  /// "Today · Before the pour, level 3"; null: none.
+  /// "7 entries · today"; null: none.
   final String? line;
-  final int openTodos;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final bool selecting;
@@ -235,28 +232,6 @@ class NotebookPageRow extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: quiet,
                         ),
-                      if (openTodos > 0)
-                        Row(
-                          key: const Key('page-todos'),
-                          spacing: BvNotebookPagesSpec.todosGap,
-                          children: [
-                            const Icon(
-                              BvIcons.openTodos,
-                              size: BvNotebookPagesSpec.todosIcon,
-                              color: BvColors.textAction,
-                            ),
-                            Flexible(
-                              child: Text(
-                                l10n.notebookTodosOpen(openTodos),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: type.metadata.copyWith(
-                                  color: BvColors.textAction,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                     ],
                   ),
                 ),
@@ -274,8 +249,9 @@ class NotebookPageRow extends StatelessWidget {
   }
 }
 
-/// A page's row for [page] in [data]: the latest entry's date and first
-/// line (with its sub-pages'), or "new page".
+/// A page's row for [page] in [data] (review 100 Part 7): how many
+/// entries it and its sub-pages hold, and when the latest was written or
+/// changed, which is also the list's order. No to-dos and no first line.
 NotebookPageRow pageRowFor(
   BuildContext context,
   NotebookData data,
@@ -288,18 +264,17 @@ NotebookPageRow pageRowFor(
   bool selected = false,
 }) {
   final l10n = AppLocalizations.of(context);
-  final latest = data.latestIn(page.id);
-  final at = latest?.createdAt ?? page.lastActivityAt;
-  final first = latest == null ? '' : entryFirstLine(latest);
-  final date = pageRowDate(l10n, words, at, now);
+  final at = data.activityIn(page.id);
+  final day = dayOf(at);
+  final today = dayOf(now);
+  final when = day == today
+      ? l10n.notebookRowToday
+      : day == today.subtract(const Duration(days: 1))
+      ? l10n.notebookRowYesterday
+      : words.shortDate(day);
   return NotebookPageRow(
     page: page,
-    line: page.isNew
-        ? l10n.notebookPageLine(date, l10n.notebookNewPageMark)
-        : first.isEmpty
-        ? date
-        : l10n.notebookPageLine(date, first),
-    openTodos: data.openTodos(page.id),
+    line: l10n.notebookRowLine(data.entryCount(page.id), when),
     onTap: onTap,
     onLongPress: onLongPress,
     selecting: selecting,
@@ -942,15 +917,18 @@ class NotePageChip extends StatelessWidget {
 /// "Write in this page" (PG4): the action colour on a round pill, the
 /// pencil first.
 class WriteHereButton extends StatelessWidget {
-  const WriteHereButton({super.key, required this.onTap});
+  const WriteHereButton({super.key, required this.onTap, this.label});
 
   final VoidCallback onTap;
+
+  /// Its words: "Write in this page" by default.
+  final String? label;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
     child: Material(
-      key: const Key('page-write'),
+      key: label == null ? const Key('page-write') : null,
       color: BvColors.actionPrimary,
       borderRadius: BvRadius.roundAll,
       clipBehavior: Clip.antiAlias,
@@ -972,7 +950,7 @@ class WriteHereButton extends StatelessWidget {
               ),
               Flexible(
                 child: Text(
-                  AppLocalizations.of(context).notebookWriteHere,
+                  label ?? AppLocalizations.of(context).notebookWriteHere,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: BvType.of(
@@ -1034,5 +1012,20 @@ class ArchivedRow extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+/// "New entry" on the pages list (review 100 BH1), like "Write in this
+/// page": a round button at the bottom end, the pencil first.
+class NewEntryButton extends StatelessWidget {
+  const NewEntryButton({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => WriteHereButton(
+    key: const Key('notebook-new-entry'),
+    label: AppLocalizations.of(context).notebookNewEntry,
+    onTap: onTap,
   );
 }

@@ -24,7 +24,11 @@ import 'notebook_state.dart';
 /// Arabic letter forms and digits folded, as in Space search). Each hit
 /// shows its page and date; a tap opens the entry in its page.
 class NotebookSearchScreen extends ConsumerStatefulWidget {
-  const NotebookSearchScreen({super.key});
+  const NotebookSearchScreen({super.key, this.kind, this.page});
+
+  /// The Filter that is on (review 100 Part 8): search keeps it.
+  final String? kind;
+  final String? page;
 
   @override
   ConsumerState<NotebookSearchScreen> createState() =>
@@ -64,7 +68,9 @@ class _NotebookSearchScreenState extends ConsumerState<NotebookSearchScreen> {
       return;
     }
     try {
-      final hits = await ref.read(notebookRepositoryProvider).search(q);
+      final hits = await ref
+          .read(notebookRepositoryProvider)
+          .search(q, kind: widget.kind, page: widget.page);
       if (!mounted || _asked != q) return;
       setState(() {
         _hits = hits;

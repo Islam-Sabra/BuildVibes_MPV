@@ -51,6 +51,12 @@ abstract final class AppRoutes {
   ).toString();
   static const notebookSearch = '/notebook/search';
 
+  /// Search with the Filter that is on (review 100 Part 8).
+  static String notebookSearchIn({String? kind, String? page}) => Uri(
+    path: notebookSearch,
+    queryParameters: {'kind': ?kind, 'page': ?page},
+  ).toString();
+
   /// Review 100 Part 3b: a page's archived entries ("Archived ›").
   static String notebookArchived(String id) => '/notebook/pages/$id/archived';
 

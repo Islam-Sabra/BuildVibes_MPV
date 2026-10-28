@@ -218,10 +218,18 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
-  Future<List<NotebookHit>> search(String query) async {
+  Future<List<NotebookHit>> search(
+    String query, {
+    String? kind,
+    String? page,
+  }) async {
     _check();
     searched = query;
-    calls.add('search:$query');
+    calls.add(
+      kind == null && page == null
+          ? 'search:$query'
+          : 'search:$query:${kind ?? ''}:${page ?? ''}',
+    );
     return hits;
   }
 

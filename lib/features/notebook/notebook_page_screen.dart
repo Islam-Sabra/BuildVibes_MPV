@@ -46,6 +46,7 @@ import '../work/daybook_writing.dart'
     show newPostIdProvider, pickDueProvider, pickReminderProvider;
 import '../work/work_outbox.dart' show keepPhotoProvider, pickPhotoProvider;
 import 'note_draft.dart';
+import 'note_filter.dart';
 import 'note_location.dart';
 import 'note_outline.dart'
     show copiedBlock, numberAt, numberLabel, visibleLines;
@@ -176,6 +177,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   void dispose() {
     _picker.hide();
     _barCard.hide();
+    _filterCard.hide();
     for (final f in _draftFocus.values) {
       f.dispose();
     }
@@ -1090,6 +1092,53 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   bool _shownEntry = false;
   final _entryKey = GlobalKey();
 
+  /// The page a Filter starts with: this one (review 100 Part 8).
+  String? get _filterHome => widget.pageId;
+
+  /// The Filter (review 100 Part 8), its card and its button.
+  late NoteFilterState _filter = NoteFilterState(page: widget.pageId);
+  final _filterCard = BvLinePopover();
+  final _filterKey = GlobalKey();
+
+  void _openFilter(NotebookData data, {bool pages = false}) {
+    if (_filterCard.isOpen) return _filterCard.hide();
+    showNoteFilter(
+      context,
+      _filterCard,
+      anchor: () => _filterKey.currentContext,
+      data: data,
+      filter: _filter,
+      pages: pages,
+      onChanged: (f) => setState(() => _filter = f),
+    );
+  }
+
+  Widget _filterButton(NotebookData data, String key) => KeyedSubtree(
+    key: _filterKey,
+    child: NoteFilterButton(
+      key: Key(key),
+      on: _filter.on,
+      onPressed: () => _openFilter(data),
+    ),
+  );
+
+  /// The chips and the entries found, while the Filter is on.
+  Widget _filtered(NotebookData data) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      NoteFilterChips(
+        data: data,
+        filter: _filter,
+        onClear: () =>
+            setState(() => _filter = NoteFilterState(page: _filterHome)),
+        onPage: () => _openFilter(data, pages: true),
+      ),
+      Expanded(
+        child: NoteFilterResults(data: data, filter: _filter),
+      ),
+    ],
+  );
+
   /// The page chip's picker (PG3), over the slip.
   final _picker = BvLinePopover();
   final _chipKey = GlobalKey();
@@ -1837,6 +1886,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           ),
         );
       }
+      if (page != null && _filter.on && !widget.archived) {
+        return _filtered(data);
+      }
       if (page != null) return BvSwipeGroup(child: browse(page));
       if (notebook.isLoading) return const SizedBox.shrink();
       return Padding(
@@ -1931,11 +1983,18 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                   !writingNow &&
                   page != null &&
                   !widget.archived) ...[
+                _filterButton(data, 'page-filter'),
                 IconButton(
                   key: const Key('page-search'),
                   tooltip: l10n.notebookSearchTip,
                   icon: const Icon(BvIcons.search),
-                  onPressed: () => context.push(AppRoutes.notebookSearch),
+                  // Search keeps the Filter that is on (Part 8).
+                  onPressed: () => context.push(
+                    AppRoutes.notebookSearchIn(
+                      kind: _filter.kind?.json,
+                      page: _filter.on ? _filter.page : null,
+                    ),
+                  ),
                 ),
                 IconButton(
                   key: const Key('page-more'),
@@ -1947,7 +2006,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
             ],
           ),
           floatingActionButton:
-              !writingNow && !selecting && page != null && !widget.archived
+              !writingNow &&
+                  !selecting &&
+                  page != null &&
+                  !widget.archived &&
+                  !_filter.on
               ? WriteHereButton(onTap: () => unawaited(_write()))
               : null,
           body: Column(

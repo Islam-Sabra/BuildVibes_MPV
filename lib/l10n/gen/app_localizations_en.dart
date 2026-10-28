@@ -4950,21 +4950,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookNewPageMark => 'new page';
-
-  @override
   String get notebookNewMark => 'New';
-
-  @override
-  String notebookTodosOpen(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count to-dos open',
-      one: '1 to-do open',
-    );
-    return '$_temp0';
-  }
 
   @override
   String notebookPageChip(String page) {
@@ -5202,4 +5188,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookBack => 'Back';
+
+  @override
+  String notebookRowLine(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries · $when',
+      one: '1 entry · $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookRowToday => 'today';
+
+  @override
+  String get notebookRowYesterday => 'yesterday';
+
+  @override
+  String get notebookFilter => 'Filter';
+
+  @override
+  String get notebookFilterOff => 'Turn the filter off';
+
+  @override
+  String get notebookFilterShow => 'SHOW';
+
+  @override
+  String get notebookFilterIn => 'IN';
+
+  @override
+  String get notebookAllPages => 'All pages';
+
+  @override
+  String get notebookFilterTodos => 'To-dos open';
+
+  @override
+  String get notebookFilterPhotos => 'Photos';
+
+  @override
+  String get notebookFilterFiles => 'Files';
+
+  @override
+  String get notebookFilterVoice => 'Voice notes';
+
+  @override
+  String get notebookFilterReminders => 'Reminders';
+
+  @override
+  String get notebookFilterArchived => 'Archived';
+
+  @override
+  String get notebookFilterNone => 'Nothing matches.';
 }

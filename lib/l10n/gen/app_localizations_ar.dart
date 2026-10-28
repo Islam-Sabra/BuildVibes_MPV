@@ -4961,23 +4961,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookNewPageMark => 'صفحة جديدة';
-
-  @override
   String get notebookNewMark => 'جديدة';
-
-  @override
-  String notebookTodosOpen(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count مهمة مفتوحة',
-      few: '$count مهام مفتوحة',
-      two: 'مهمتان مفتوحتان',
-      one: 'مهمة واحدة مفتوحة',
-    );
-    return '$_temp0';
-  }
 
   @override
   String notebookPageChip(String page) {
@@ -5220,4 +5204,59 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookBack => 'رجوع';
+
+  @override
+  String notebookRowLine(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تدوينة · $when',
+      few: '$count تدوينات · $when',
+      two: 'تدوينتان · $when',
+      one: 'تدوينة واحدة · $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookRowToday => 'اليوم';
+
+  @override
+  String get notebookRowYesterday => 'أمس';
+
+  @override
+  String get notebookFilter => 'تصفية';
+
+  @override
+  String get notebookFilterOff => 'إلغاء التصفية';
+
+  @override
+  String get notebookFilterShow => 'العرض';
+
+  @override
+  String get notebookFilterIn => 'في';
+
+  @override
+  String get notebookAllPages => 'كل الصفحات';
+
+  @override
+  String get notebookFilterTodos => 'مهام مفتوحة';
+
+  @override
+  String get notebookFilterPhotos => 'صور';
+
+  @override
+  String get notebookFilterFiles => 'ملفات';
+
+  @override
+  String get notebookFilterVoice => 'تسجيلات صوتية';
+
+  @override
+  String get notebookFilterReminders => 'تذكيرات';
+
+  @override
+  String get notebookFilterArchived => 'المؤرشفة';
+
+  @override
+  String get notebookFilterNone => 'لا شيء يطابق.';
 }

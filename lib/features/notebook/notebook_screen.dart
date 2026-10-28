@@ -11,19 +11,20 @@ import '../../core/routing/app_routes.dart';
 import '../../data/models/notebook_page.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_back_swipe.dart';
-import '../../shared/widgets/bv_button.dart';
+import '../../shared/widgets/bv_line_popover.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../work/daybook_words.dart';
 import '../work/daybook_writing.dart' show newPostIdProvider;
+import 'note_filter.dart';
 import 'notebook_page_parts.dart';
 import 'notebook_state.dart';
 
-/// My notebook (review 99A, PG1 2635:37785): the pages list. "New entry"
-/// on top; Search and My calendar in the top bar (Deleted items comes
-/// with review 99B); pinned
-/// pages first, then by latest activity, each with the date and first line
-/// of its latest entry and its open to-dos; "+ New page" under the list.
+/// My notebook (review 99A, PG1 2635:37785; review 100 BH1): the pages
+/// list. Filter, Search and My calendar in the top bar; pinned pages first,
+/// then by latest activity, each with "{n} entries · {when}"; "+ New page"
+/// under the list; "New entry", a round button at the bottom end. With the
+/// Filter on (BH9, BH11), its chips and the entries it finds, by page.
 /// Only its owner reads it.
 ///
 /// Long-press a page, then tap others (PG5): Merge (PG5b), Move into…, Pin
@@ -38,6 +39,59 @@ class NotebookScreen extends ConsumerStatefulWidget {
 class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   /// Pages selected, in the order they were picked.
   final List<String> _selected = [];
+
+  /// The page a Filter starts with: none here (all pages).
+  String? get _filterHome => null;
+
+  /// The Filter (review 100 Part 8), its card and its button.
+  NoteFilterState _filter = const NoteFilterState();
+  final _filterCard = BvLinePopover();
+  final _filterKey = GlobalKey();
+
+  void _openFilter(NotebookData data, {bool pages = false}) {
+    if (_filterCard.isOpen) return _filterCard.hide();
+    showNoteFilter(
+      context,
+      _filterCard,
+      anchor: () => _filterKey.currentContext,
+      data: data,
+      filter: _filter,
+      pages: pages,
+      onChanged: (f) => setState(() => _filter = f),
+    );
+  }
+
+  Widget _filterButton(NotebookData data, String key) => KeyedSubtree(
+    key: _filterKey,
+    child: NoteFilterButton(
+      key: Key(key),
+      on: _filter.on,
+      onPressed: () => _openFilter(data),
+    ),
+  );
+
+  /// The chips and the entries found, while the Filter is on.
+  Widget _filtered(NotebookData data) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      NoteFilterChips(
+        data: data,
+        filter: _filter,
+        onClear: () =>
+            setState(() => _filter = NoteFilterState(page: _filterHome)),
+        onPage: () => _openFilter(data, pages: true),
+      ),
+      Expanded(
+        child: NoteFilterResults(data: data, filter: _filter),
+      ),
+    ],
+  );
+
+  @override
+  void dispose() {
+    _filterCard.hide();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -204,11 +258,18 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
             actions: selecting
                 ? null
                 : [
+                    _filterButton(data, 'notebook-filter'),
                     IconButton(
                       key: const Key('notebook-search'),
                       tooltip: l10n.notebookSearchTip,
                       icon: const Icon(BvIcons.search),
-                      onPressed: () => context.push(AppRoutes.notebookSearch),
+                      // Search keeps the Filter that is on (Part 8).
+                      onPressed: () => context.push(
+                        AppRoutes.notebookSearchIn(
+                          kind: _filter.kind?.json,
+                          page: _filter.on ? _filter.page : null,
+                        ),
+                      ),
                     ),
                     IconButton(
                       key: const Key('notebook-calendar'),
@@ -218,7 +279,14 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                     ),
                   ],
           ),
-          body: notebook.hasError && data.pages.isEmpty
+          floatingActionButton: selecting || _filter.on
+              ? null
+              : NewEntryButton(
+                  onTap: () => context.push(AppRoutes.notebookWrite),
+                ),
+          body: _filter.on
+              ? _filtered(data)
+              : notebook.hasError && data.pages.isEmpty
               ? Padding(
                   padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
                   child: EmptyNote(l10n.notebookCouldntLoad),
@@ -232,14 +300,6 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                     BvSpace.s32,
                   ),
                   children: [
-                    if (!selecting)
-                      BvButton(
-                        key: const Key('notebook-new-entry'),
-                        label: l10n.notebookNewEntry,
-                        icon: BvIcons.edit,
-                        expand: true,
-                        onPressed: () => context.push(AppRoutes.notebookWrite),
-                      ),
                     if (pinned.isNotEmpty) ...[
                       NotebookLabel(l10n.notebookPinnedLabel),
                       for (final p in pinned) row(p),

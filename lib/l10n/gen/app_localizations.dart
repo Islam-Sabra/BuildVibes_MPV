@@ -8330,23 +8330,11 @@ abstract class AppLocalizations {
   /// **'{date} · {line}'**
   String notebookPageLine(String date, String line);
 
-  /// Review 99 A2: a new page's row, after the date.
-  ///
-  /// In en, this message translates to:
-  /// **'new page'**
-  String get notebookNewPageMark;
-
   /// Review 99 A2: the new dot, read out.
   ///
   /// In en, this message translates to:
   /// **'New'**
   String get notebookNewMark;
-
-  /// Review 99 A1: a page's open to-dos, with its sub-pages'; only when there are any.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 to-do open} other{{count} to-dos open}}'**
-  String notebookTodosOpen(int count);
 
   /// Review 99 A2 (PG2): the chip under the entry.
   ///
@@ -8749,6 +8737,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get notebookBack;
+
+  /// Review 100 Part 7 (BH1): a page row's line: its entries (with its sub-pages') and when the latest was written or changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entry · {when}} other{{count} entries · {when}}}'**
+  String notebookRowLine(int count, String when);
+
+  /// Review 100 Part 7: 'when' on a page row.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get notebookRowToday;
+
+  /// Review 100 Part 7: 'when' on a page row.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get notebookRowYesterday;
+
+  /// Review 100 Part 8: the top bar's Filter, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get notebookFilter;
+
+  /// Review 100 Part 8: the ✕ on the active chip, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the filter off'**
+  String get notebookFilterOff;
+
+  /// Review 100 Part 8 (BH9): the Filter card's single choice, small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'SHOW'**
+  String get notebookFilterShow;
+
+  /// Review 100 Part 8 (BH9): the Filter card's page, small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'IN'**
+  String get notebookFilterIn;
+
+  /// Review 100 Part 8: the Filter's In when no page is picked.
+  ///
+  /// In en, this message translates to:
+  /// **'All pages'**
+  String get notebookAllPages;
+
+  /// Review 100 Part 8: Show: entries with an unticked to-do.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos open'**
+  String get notebookFilterTodos;
+
+  /// Review 100 Part 8: Show: entries with photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get notebookFilterPhotos;
+
+  /// Review 100 Part 8: Show: entries with files.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get notebookFilterFiles;
+
+  /// Review 100 Part 8: Show: entries with a voice recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice notes'**
+  String get notebookFilterVoice;
+
+  /// Review 100 Part 8: Show: entries with a reminder still to ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get notebookFilterReminders;
+
+  /// Review 100 Part 8: Show: archived entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get notebookFilterArchived;
+
+  /// Review 100 Part 8: the filtered list with no entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches.'**
+  String get notebookFilterNone;
 }
 
 class _AppLocalizationsDelegate

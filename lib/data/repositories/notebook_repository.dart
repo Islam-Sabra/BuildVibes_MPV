@@ -59,8 +59,10 @@ abstract class NotebookRepository {
   /// delete_notebook_pages: with every page under them.
   Future<void> deletePages(List<String> ids);
 
-  /// search_notebook (A5): pages first, then entries, newest first.
-  Future<List<NotebookHit>> search(String query);
+  /// search_notebook (A5): pages first, then entries, newest first. The
+  /// Filter (review 100 Part 8): [kind] ('todos_open', 'photos', 'files',
+  /// 'voice', 'reminders', 'archived') and [page], with its sub-pages.
+  Future<List<NotebookHit>> search(String query, {String? kind, String? page});
 
   /// delete_note, then its recording or photos from Storage (the cleanup
   /// takes any file left behind). Only an older phone's outbox still sends
@@ -329,11 +331,15 @@ class SupabaseNotebookRepository implements NotebookRepository {
   );
 
   @override
-  Future<List<NotebookHit>> search(String query) => _guard(() async {
+  Future<List<NotebookHit>> search(
+    String query, {
+    String? kind,
+    String? page,
+  }) => _guard(() async {
     final rows =
         (await _client.rpc<List<dynamic>>(
                       'search_notebook',
-                      params: {'p_q': query},
+                      params: {'p_q': query, 'p_kind': kind, 'p_page': page},
                     )
                     as List? ??
                 const [])

@@ -593,7 +593,6 @@ void main() {
       );
       expect(data.notes.map((n) => n.id), ['live']);
       expect(data.entries('p-1').map((n) => n.id), ['live']);
-      expect(data.openTodos('p-1'), 1);
       expect(data.entryCount('p-1'), 1);
       expect(data.archived('p-1').map((n) => n.id), ['kept']);
       expect(data.all, hasLength(3));
