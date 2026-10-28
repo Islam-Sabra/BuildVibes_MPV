@@ -268,6 +268,9 @@ abstract final class BvMotion {
   static const menu = Duration(milliseconds: 150);
   static const slide = Duration(milliseconds: 180);
 
+  /// Review 101 B: every search waits this long after the last key.
+  static const searchWait = Duration(milliseconds: 300);
+
   static const standard = Cubic(0.2, 0, 0, 1);
   static const enter = Cubic(0.05, 0.7, 0.1, 1);
   static const exit = Cubic(0.3, 0, 1, 1);
