@@ -104,3 +104,26 @@ Build 701 (`slice2-app` at `25bc211`) is on the founder's phone. Its behaviour i
    - or the custom paint order drawing rows outside the screen (check that `remainingPaintExtent` and the cache area aren't drawn).
 3. **Fix the cause.** The target: slow drawing frames **no worse than on `slice2-app` before review 101**, on the same device and seed. The shots stay unchanged.
 4. **If that isn't met before 10 January:** the Daybook goes back to the old way of building rows. The notebook keeps its lazy list, which has no paper clip. The lead decides then.
+
+## L1 result (28 Oct, 19:50): no regression on the emulator; confirm on the phone
+**Branch:** `claude/r101-l1` at `d3434ee`. No app code changed, and no shot changed.
+
+**The measure:** the Pixel 8 emulator in profile mode, the busy seed, 20 flings, with the before and after builds made from the same settings.
+
+| | Before | After |
+|---|---|---|
+| Frames that missed a vsync (gap over 25 ms) | 55 of 254 | 1 of 254 |
+| Frames that missed two vsyncs | 8 | 0 |
+
+**The cause is found and accepted:**
+- Raster time now includes the wait for the next vsync, because every frame is ready on time. Preparing the drawing commands takes about 5 ms.
+- Render passes are the same before and after (16 per frame), which rules out shadows, stamps, `saveLayer` and off-screen rows.
+- **What the user sees improved.**
+
+**Open:** confirm on the founder's phone (the phone was locked). It takes about 15 minutes with him there, using `tool/perf/record_timeline.dart` on his Space NBKCH SITE TEAM.
+- **If his phone also shows few missed vsyncs:** L1 closes.
+- **If not:** L1 reopens with the phone's numbers.
+
+**Accepted:** the recorder tool, with `flutter_driver` and `vm_service` as dev dependencies only. It merges with the next build.
+
+**Rule for profile builds:** a profile build signed with the upload key may go on the founder's phone only while he is there, and release goes back on right after. The signing change is never committed.
