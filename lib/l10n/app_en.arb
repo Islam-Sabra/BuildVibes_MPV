@@ -7555,18 +7555,6 @@
   "@notebookPost": {
     "description": "Review 100 Part 6: the Feed and Space previews' send."
   },
-  "notebookShareKindPost": "Post",
-  "@notebookShareKindPost": {
-    "description": "Review 100 Part 6: Space: what it goes in as."
-  },
-  "notebookShareKindWork": "Work item",
-  "@notebookShareKindWork": {
-    "description": "Review 100 Part 6: Space: a work item, for you."
-  },
-  "notebookShareKindChecklist": "Checklist",
-  "@notebookShareKindChecklist": {
-    "description": "Review 100 Part 6: Space: a checklist of its to-dos, for you."
-  },
   "notebookShareFind": "Find a person",
   "@notebookShareFind": {
     "description": "Review 100 Part 6: Message: search among people you can message."
@@ -7913,5 +7901,35 @@
   "notebookTypeText": "Text",
   "@notebookTypeText": {
     "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookShareTeamRow": "Team: {team}",
+  "@notebookShareTeamRow": {
+    "description": "Review 104 N10: Share → Space's Team row; a tap opens the Space's Teams.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareForRow": "For: {name}",
+  "@notebookShareForRow": {
+    "description": "Review 104 N10: Share → Space's For row; a tap opens the Give to picker.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareForMore": "{name} + {count}",
+  "@notebookShareForMore": {
+    "description": "Review 104 N10: several people a checklist is for: the first, and how many more.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

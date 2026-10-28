@@ -8918,24 +8918,6 @@ abstract class AppLocalizations {
   /// **'Post'**
   String get notebookPost;
 
-  /// Review 100 Part 6: Space: what it goes in as.
-  ///
-  /// In en, this message translates to:
-  /// **'Post'**
-  String get notebookShareKindPost;
-
-  /// Review 100 Part 6: Space: a work item, for you.
-  ///
-  /// In en, this message translates to:
-  /// **'Work item'**
-  String get notebookShareKindWork;
-
-  /// Review 100 Part 6: Space: a checklist of its to-dos, for you.
-  ///
-  /// In en, this message translates to:
-  /// **'Checklist'**
-  String get notebookShareKindChecklist;
-
   /// Review 100 Part 6: Message: search among people you can message.
   ///
   /// In en, this message translates to:
@@ -9307,6 +9289,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Text'**
   String get notebookTypeText;
+
+  /// Review 104 N10: Share → Space's Team row; a tap opens the Space's Teams.
+  ///
+  /// In en, this message translates to:
+  /// **'Team: {team}'**
+  String notebookShareTeamRow(String team);
+
+  /// Review 104 N10: Share → Space's For row; a tap opens the Give to picker.
+  ///
+  /// In en, this message translates to:
+  /// **'For: {name}'**
+  String notebookShareForRow(String name);
+
+  /// Review 104 N10: several people a checklist is for: the first, and how many more.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} + {count}'**
+  String notebookShareForMore(String name, int count);
 }
 
 class _AppLocalizationsDelegate

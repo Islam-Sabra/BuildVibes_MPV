@@ -32,7 +32,12 @@ import '../create/create_sheet.dart' show workItemSpacesProvider;
 import '../entry/entry_state.dart' show authUserIdProvider;
 import '../messages/people_search_screen.dart' show peopleSearchProvider;
 import '../spaces/space_errors.dart';
-import '../work/daybook_writing.dart' show newPostIdProvider;
+import '../../shared/widgets/bv_give_to_picker.dart';
+import '../../shared/widgets/bv_list_row.dart';
+import '../work/daybook_draft.dart' show DaybookKind;
+import '../work/daybook_writing.dart'
+    show assignablePeople, kindIcon, kindName, newPostIdProvider;
+import 'note_filter.dart' show byName;
 import 'note_outline.dart' show numberAt, numberLabel;
 import 'note_page_editor.dart' show NoteTick;
 import 'note_writing.dart' show NotePhotos;
@@ -41,14 +46,18 @@ import 'notebook_state.dart';
 /// Where Share sends an entry (review 100 Part 6).
 enum _ShareTo { feed, space, message }
 
-/// What a Space share goes in as.
+/// What a Space share goes in as (review 104 N9): the Space's own kinds,
+/// with its words and icons.
 enum ShareKind {
-  note('note'),
-  workItem('work_item'),
-  checklist('checklist');
+  note('note', DaybookKind.note),
+  workItem('work_item', DaybookKind.workItem),
+  checklist('checklist', DaybookKind.checklist);
 
-  const ShareKind(this.json);
+  const ShareKind(this.json, this.space);
   final String json;
+
+  /// The Space's kind it is.
+  final DaybookKind space;
 }
 
 /// The most files a message carries (dm_post: at most 10), and the most
@@ -395,6 +404,132 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
   var _sending = false;
   SpaceException? _refused;
 
+  /// Team (review 104 N10): one choice of the Space's Teams, or the whole
+  /// Space.
+  Future<void> _pickTeam(SpacePeople people) async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showBvSheet<({String? id})>(
+      context: context,
+      title: l10n.notebookShareTeam,
+      builder: (sheet) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (id, name) in [
+            (null, l10n.notebookShareWholeSpace),
+            for (final t in people.teams) (t.id, t.name),
+          ])
+            BvListRow(
+              key: Key('share-team-${id ?? 'none'}'),
+              title: name,
+              trailing: BvRowTrailing.check(selected: _team == id),
+              onTap: () => Navigator.of(sheet).pop((id: id)),
+            ),
+        ],
+      ),
+    );
+    if (picked != null && mounted) setState(() => _team = picked.id);
+  }
+
+  /// Who it is for, as the Space's Give to picker lists them: the chosen
+  /// Team's people first, then the rest A–Z (I come first, as You).
+  List<BvGiveToPerson> _forList(SpacePeople people, String? me) {
+    final lang = Localizations.localeOf(context).languageCode;
+    final team = people.teams.where((t) => t.id == _team).firstOrNull;
+    final all = assignablePeople(people, me: me)
+      ..sort((a, b) => byName(lang)(a.name, b.name));
+    bool inTeam(BvGiveToPerson p) => team?.memberIds.contains(p.id) ?? false;
+    return [
+      for (final p in all)
+        if (p.id == me) p,
+      for (final p in all)
+        if (p.id != me && inTeam(p)) p,
+      for (final p in all)
+        if (p.id != me && !inTeam(p)) p,
+    ];
+  }
+
+  /// For (N10): a work item takes exactly one person, and a pick closes
+  /// the picker; a checklist several, picked and unpicked until Done.
+  Future<void> _pickFor(
+    SpacePeople people,
+    String? me,
+    Set<String> forWhom,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final list = _forList(people, me);
+    if (_kind == ShareKind.workItem) {
+      final picked = await showBvSheet<BvGiveToPerson>(
+        context: context,
+        title: l10n.notebookShareFor,
+        builder: (sheet) => BvGiveToPicker(
+          key: const Key('share-for-picker'),
+          people: list,
+          currentOwnerId: forWhom.firstOrNull,
+          meId: me,
+          meLabel: l10n.daybookYou,
+          searchPlaceholder: l10n.daybookAssignSearch,
+          inSheet: true,
+          onPick: (p) => Navigator.of(sheet).pop(p),
+        ),
+      );
+      if (picked != null && mounted) setState(() => _people = {picked.id});
+      return;
+    }
+    var chosen = {...forWhom};
+    await showBvSheet<void>(
+      context: context,
+      title: l10n.notebookShareFor,
+      builder: (sheet) => StatefulBuilder(
+        builder: (sheet, setSheet) => BvGiveToPicker(
+          key: const Key('share-for-picker'),
+          people: list,
+          currentOwnerId: null,
+          chosenIds: chosen,
+          meId: me,
+          meLabel: l10n.daybookYou,
+          searchPlaceholder: l10n.daybookPeopleSearch,
+          inSheet: true,
+          onPick: (p) {
+            final next = chosen.contains(p.id)
+                ? ({...chosen}..remove(p.id))
+                : {...chosen, p.id};
+            // It is for someone: the last one stays.
+            if (next.isEmpty) return;
+            chosen = next;
+            setSheet(() {});
+            setState(() => _people = next);
+          },
+        ),
+      ),
+      foot: (sheet) => BvButton(
+        key: const Key('share-for-done'),
+        label: l10n.notebookDone,
+        size: BvButtonSize.medium,
+        expand: true,
+        onPressed: () => Navigator.of(sheet).pop(),
+      ),
+    );
+  }
+
+  /// The For row's words: me as You, a member by name; "Omar Haddad + 2"
+  /// for several.
+  String _forLabel(SpacePeople people, String? me, Set<String> forWhom) {
+    final l10n = AppLocalizations.of(context);
+    String name(String id) => id == me
+        ? l10n.daybookYou
+        : people.members
+                  .where((m) => m.person.id == id)
+                  .firstOrNull
+                  ?.person
+                  .fullName ??
+              '';
+    final first = forWhom.contains(me) ? me! : forWhom.first;
+    return forWhom.length == 1
+        ? name(first)
+        : l10n.notebookShareForMore(name(first), forWhom.length - 1);
+  }
+
   Future<void> _go(_Sent sent) async {
     setState(() {
       _sending = true;
@@ -500,14 +635,11 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
             spacing: BvSpace.s8,
             runSpacing: BvSpace.s8,
             children: [
-              for (final (k, label) in [
-                (ShareKind.note, l10n.notebookShareKindPost),
-                (ShareKind.workItem, l10n.notebookShareKindWork),
-                (ShareKind.checklist, l10n.notebookShareKindChecklist),
-              ])
+              for (final k in ShareKind.values)
                 BvChip(
                   key: Key('share-kind-${k.json}'),
-                  label: label,
+                  label: kindName(l10n, k.space),
+                  icon: kindIcon(k.space),
                   selected: _kind == k,
                   onTap: () => setState(() {
                     _kind = k;
@@ -516,52 +648,22 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
                 ),
             ],
           ),
-          if (people != null && people.teams.isNotEmpty) ...[
-            Text(l10n.notebookShareTeam, style: quiet),
-            Wrap(
-              spacing: BvSpace.s8,
-              runSpacing: BvSpace.s8,
-              children: [
-                BvChip(
-                  key: const Key('share-team-none'),
-                  label: l10n.notebookShareWholeSpace,
-                  selected: _team == null,
-                  onTap: () => setState(() => _team = null),
-                ),
-                for (final t in people.teams)
-                  BvChip(
-                    key: Key('share-team-${t.id}'),
-                    label: t.name,
-                    selected: _team == t.id,
-                    onTap: () => setState(() => _team = t.id),
-                  ),
-              ],
+          // N10: one row each, never a chip per Team or member.
+          if (people != null && people.teams.isNotEmpty)
+            BvListRow(
+              key: const Key('share-team'),
+              title: l10n.notebookShareTeamRow(
+                people.teams.where((t) => t.id == _team).firstOrNull?.name ??
+                    l10n.notebookShareWholeSpace,
+              ),
+              onTap: () => unawaited(_pickTeam(people)),
             ),
-          ],
-          if (_kind != ShareKind.note && people != null) ...[
-            Text(l10n.notebookShareFor, style: quiet),
-            Wrap(
-              spacing: BvSpace.s8,
-              runSpacing: BvSpace.s8,
-              children: [
-                for (final m in people.members)
-                  if (m.pass != SpacePass.viewer)
-                    BvChip(
-                      key: Key('share-for-${m.person.id}'),
-                      label: m.person.fullName,
-                      selected: forWhom.contains(m.person.id),
-                      onTap: () => setState(() {
-                        final id = m.person.id;
-                        _people = _kind == ShareKind.workItem
-                            ? {id}
-                            : (forWhom.contains(id)
-                                  ? ({...forWhom}..remove(id))
-                                  : {...forWhom, id});
-                      }),
-                    ),
-              ],
+          if (_kind != ShareKind.note && people != null && forWhom.isNotEmpty)
+            BvListRow(
+              key: const Key('share-for'),
+              title: l10n.notebookShareForRow(_forLabel(people, me, forWhom)),
+              onTap: () => unawaited(_pickFor(people, me, forWhom)),
             ),
-          ],
         ],
         Text(
           person != null

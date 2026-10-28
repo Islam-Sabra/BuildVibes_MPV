@@ -5290,15 +5290,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookPost => 'Post';
 
   @override
-  String get notebookShareKindPost => 'Post';
-
-  @override
-  String get notebookShareKindWork => 'Work item';
-
-  @override
-  String get notebookShareKindChecklist => 'Checklist';
-
-  @override
   String get notebookShareFind => 'Find a person';
 
   @override
@@ -5550,4 +5541,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookTypeText => 'Text';
+
+  @override
+  String notebookShareTeamRow(String team) {
+    return 'Team: $team';
+  }
+
+  @override
+  String notebookShareForRow(String name) {
+    return 'For: $name';
+  }
+
+  @override
+  String notebookShareForMore(String name, int count) {
+    return '$name + $count';
+  }
 }

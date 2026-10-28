@@ -1470,9 +1470,6 @@
   "notebookOnMapOnly": "على الخريطة",
   "notebookShareLeaveOut": "عدم إرفاق المكان",
   "notebookPost": "نشر",
-  "notebookShareKindPost": "منشور",
-  "notebookShareKindWork": "بند عمل",
-  "notebookShareKindChecklist": "قائمة تحقق",
   "notebookShareFind": "البحث عن شخص",
   "notebookShareRecent": "الأحدث",
   "notebookShareNoSpace": "لا توجد مساحة يمكنك النشر فيها.",
@@ -1501,7 +1498,7 @@
   "notebookDeletedNone": "تظهر هنا الصفحات والتدوينات التي تحذفها.",
   "notebookShareOffline": "لم تصل هذه التدوينة إلى الخادم بعد. شاركها عند عودة الاتصال.",
   "notebookShareTeam": "الفريق",
-  "notebookShareWholeSpace": "المساحة كلها",
+  "notebookShareWholeSpace": "كل المساحة",
   "notebookShareFor": "لمن",
   "notebookShortWhen": "{day} {time}",
   "notebookTomorrow": "غدًا",
@@ -1534,5 +1531,8 @@
   "notebookTypePhotos": "صور",
   "notebookTypeFiles": "ملفات",
   "notebookTypeVoice": "ملاحظات صوتية",
-  "notebookTypeText": "نص"
+  "notebookTypeText": "نص",
+  "notebookShareTeamRow": "الفريق: {team}",
+  "notebookShareForRow": "إلى: {name}",
+  "notebookShareForMore": "{name} + {count}"
 }

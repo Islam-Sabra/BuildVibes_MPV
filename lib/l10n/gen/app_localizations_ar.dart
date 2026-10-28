@@ -5309,15 +5309,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookPost => 'نشر';
 
   @override
-  String get notebookShareKindPost => 'منشور';
-
-  @override
-  String get notebookShareKindWork => 'بند عمل';
-
-  @override
-  String get notebookShareKindChecklist => 'قائمة تحقق';
-
-  @override
   String get notebookShareFind => 'البحث عن شخص';
 
   @override
@@ -5447,7 +5438,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookShareTeam => 'الفريق';
 
   @override
-  String get notebookShareWholeSpace => 'المساحة كلها';
+  String get notebookShareWholeSpace => 'كل المساحة';
 
   @override
   String get notebookShareFor => 'لمن';
@@ -5585,4 +5576,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookTypeText => 'نص';
+
+  @override
+  String notebookShareTeamRow(String team) {
+    return 'الفريق: $team';
+  }
+
+  @override
+  String notebookShareForRow(String name) {
+    return 'إلى: $name';
+  }
+
+  @override
+  String notebookShareForMore(String name, int count) {
+    return '$name + $count';
+  }
 }
