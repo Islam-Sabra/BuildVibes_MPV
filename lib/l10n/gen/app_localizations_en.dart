@@ -4733,11 +4733,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Type where, add the phone\'s GPS, or both.';
 
   @override
-  String notebookGpsChip(String metres) {
-    return 'GPS ±$metres m';
-  }
-
-  @override
   String get notebookRemoveLocation => 'Remove location';
 
   @override
@@ -5241,4 +5236,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookFilterNone => 'Nothing matches.';
+
+  @override
+  String get notebookShareFeed => 'Feed';
+
+  @override
+  String get notebookShareFeedNote => 'A public post on Home';
+
+  @override
+  String get notebookShareSpace => 'Space';
+
+  @override
+  String get notebookShareSpaceNote => 'A post, work item or checklist';
+
+  @override
+  String get notebookShareMessage => 'Message';
+
+  @override
+  String get notebookShareMessageNote => 'To one person';
+
+  @override
+  String get notebookShareFeedTitle => 'Post to the feed';
+
+  @override
+  String get notebookShareSpaceTitle => 'Put in a Space';
+
+  @override
+  String get notebookShareMessageTitle => 'Send entry';
+
+  @override
+  String get notebookShareTo => 'To';
+
+  @override
+  String notebookShareWhatSees(String name) {
+    return 'What $name will see';
+  }
+
+  @override
+  String get notebookShareWhatOthers => 'What others will see';
+
+  @override
+  String get notebookShareCheck =>
+      'Check it has nothing your client or company wouldn\'t share.';
+
+  @override
+  String notebookShareLocation(String place, String map) {
+    return '$place · $map';
+  }
+
+  @override
+  String get notebookOnMap => 'on the map';
+
+  @override
+  String get notebookOnMapOnly => 'On the map';
+
+  @override
+  String get notebookShareLeaveOut => 'Leave the location out';
+
+  @override
+  String get notebookPost => 'Post';
+
+  @override
+  String get notebookShareKindPost => 'Post';
+
+  @override
+  String get notebookShareKindWork => 'Work item';
+
+  @override
+  String get notebookShareKindChecklist => 'Checklist';
+
+  @override
+  String get notebookShareFind => 'Find a person';
+
+  @override
+  String get notebookShareRecent => 'RECENT';
+
+  @override
+  String get notebookShareNoSpace => 'No Space where you can post.';
+
+  @override
+  String get notebookSharedFeed => 'Shared to the feed';
+
+  @override
+  String notebookSharedTo(String name) {
+    return 'Shared to $name';
+  }
+
+  @override
+  String notebookSentTo(String name) {
+    return 'Sent to $name';
+  }
+
+  @override
+  String notebookMarkFeed(String time) {
+    return 'Shared to the feed · $time';
+  }
+
+  @override
+  String notebookMarkTo(String name, String time) {
+    return 'Shared to $name · $time';
+  }
+
+  @override
+  String notebookMarkSent(String name, String time) {
+    return 'Sent to $name · $time';
+  }
 }

@@ -96,12 +96,13 @@ void main() {
         expect(_key('selection-close'), findsOneWidget);
         expect(find.text(l10n.notebookSelected(1)), findsOneWidget);
         expect(_actions(tester), [
+          'select-share',
           'select-move',
           'select-duplicate',
           'select-delete',
         ]);
         expect(_key('page-write'), findsNothing);
-        // A tap on another adds it.
+        // A tap on another adds it; Share is for one entry only.
         await _tap(tester, _key('note-entry-gate'));
         expect(find.text(l10n.notebookSelected(2)), findsOneWidget);
         expect(_actions(tester), [

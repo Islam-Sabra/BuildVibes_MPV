@@ -4743,11 +4743,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'اكتب المكان، أو أضف GPS الهاتف، أو كليهما.';
 
   @override
-  String notebookGpsChip(String metres) {
-    return 'GPS ±$metres م';
-  }
-
-  @override
   String get notebookRemoveLocation => 'إزالة المكان';
 
   @override
@@ -5259,4 +5254,109 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookFilterNone => 'لا شيء يطابق.';
+
+  @override
+  String get notebookShareFeed => 'المنشورات';
+
+  @override
+  String get notebookShareFeedNote => 'منشور عام في الرئيسية';
+
+  @override
+  String get notebookShareSpace => 'مساحة';
+
+  @override
+  String get notebookShareSpaceNote => 'منشور أو بند عمل أو قائمة تحقق';
+
+  @override
+  String get notebookShareMessage => 'رسالة';
+
+  @override
+  String get notebookShareMessageNote => 'إلى شخص واحد';
+
+  @override
+  String get notebookShareFeedTitle => 'النشر في المنشورات';
+
+  @override
+  String get notebookShareSpaceTitle => 'وضع في مساحة';
+
+  @override
+  String get notebookShareMessageTitle => 'إرسال التدوينة';
+
+  @override
+  String get notebookShareTo => 'إلى';
+
+  @override
+  String notebookShareWhatSees(String name) {
+    return 'ما سيراه $name';
+  }
+
+  @override
+  String get notebookShareWhatOthers => 'ما سيراه الآخرون';
+
+  @override
+  String get notebookShareCheck =>
+      'تأكد أنها لا تحوي ما لا يشاركه عميلك أو شركتك.';
+
+  @override
+  String notebookShareLocation(String place, String map) {
+    return '$place · $map';
+  }
+
+  @override
+  String get notebookOnMap => 'على الخريطة';
+
+  @override
+  String get notebookOnMapOnly => 'على الخريطة';
+
+  @override
+  String get notebookShareLeaveOut => 'عدم إرفاق المكان';
+
+  @override
+  String get notebookPost => 'نشر';
+
+  @override
+  String get notebookShareKindPost => 'منشور';
+
+  @override
+  String get notebookShareKindWork => 'بند عمل';
+
+  @override
+  String get notebookShareKindChecklist => 'قائمة تحقق';
+
+  @override
+  String get notebookShareFind => 'البحث عن شخص';
+
+  @override
+  String get notebookShareRecent => 'الأحدث';
+
+  @override
+  String get notebookShareNoSpace => 'لا توجد مساحة يمكنك النشر فيها.';
+
+  @override
+  String get notebookSharedFeed => 'نُشرت في المنشورات';
+
+  @override
+  String notebookSharedTo(String name) {
+    return 'نُشرت في $name';
+  }
+
+  @override
+  String notebookSentTo(String name) {
+    return 'أُرسلت إلى $name';
+  }
+
+  @override
+  String notebookMarkFeed(String time) {
+    return 'نُشرت في المنشورات · $time';
+  }
+
+  @override
+  String notebookMarkTo(String name, String time) {
+    return 'نُشرت في $name · $time';
+  }
+
+  @override
+  String notebookMarkSent(String name, String time) {
+    return 'أُرسلت إلى $name · $time';
+  }
 }

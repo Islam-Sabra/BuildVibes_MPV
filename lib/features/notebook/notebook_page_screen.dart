@@ -47,6 +47,7 @@ import '../work/daybook_writing.dart'
 import '../work/work_outbox.dart' show keepPhotoProvider, pickPhotoProvider;
 import 'note_draft.dart';
 import 'note_filter.dart';
+import 'note_share.dart';
 import 'note_location.dart';
 import 'note_outline.dart'
     show copiedBlock, numberAt, numberLabel, visibleLines;
@@ -1370,6 +1371,51 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// How many lines of the entry being written are selected (BH12).
   int _linesPicked = 0;
 
+  /// The selection bar, where Share's card opens (BH4).
+  final _selectionBarKey = GlobalKey();
+
+  /// Share (review 100 Part 6) on one entry.
+  void _shareEntry(Note note) => unawaited(
+    shareEntry(
+      context,
+      ref,
+      note: note,
+      card: _barCard,
+      anchor: () => _selectionBarKey.currentContext,
+      onDone: () {
+        if (mounted) setState(_selected.clear);
+      },
+    ),
+  );
+
+  /// The saved entry the selected lines are shared from: only when every
+  /// one of them is on the server already (an edit not yet saved can't be
+  /// shared in part).
+  Note? _linesSaved() {
+    final was = ref.read(noteDraftProvider)?.editing;
+    final editor = _editorKey.currentState;
+    if (was == null || editor == null) return null;
+    final saved = {for (final b in was.blocks ?? const <PageBlock>[]) b.id};
+    return editor.selectedLineIds.every(saved.contains) ? was : null;
+  }
+
+  /// Share on selected lines (BH12): the line with the lines under it.
+  void _shareLines(Note saved) {
+    final editor = _editorKey.currentState;
+    if (editor == null) return;
+    unawaited(
+      shareEntry(
+        context,
+        ref,
+        note: saved,
+        lines: editor.selectedLines(),
+        card: _barCard,
+        anchor: () => _selectionBarKey.currentContext,
+        onDone: () => _editorKey.currentState?.endLineSelection(),
+      ),
+    );
+  }
+
   /// Move (BH12): the selected lines, with the lines under them, become
   /// an entry of their own in the page picked; they leave this one.
   Future<void> _moveLines() async {
@@ -2040,7 +2086,15 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           // lines, with the same actions in the same order (BH2, BH12).
           bottomNavigationBar: picking
               ? SelectionBar(
+                  key: _selectionBarKey,
                   actions: [
+                    if (_linesSaved() case final saved?)
+                      SelectionAction(
+                        key: const Key('select-share'),
+                        icon: BvIcons.shareEntry,
+                        label: l10n.notebookShare,
+                        onTap: () => _shareLines(saved),
+                      ),
                     SelectionAction(
                       key: const Key('select-move'),
                       icon: BvIcons.pageFolder,
@@ -2066,7 +2120,16 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                 )
               : selecting
               ? SelectionBar(
+                  key: _selectionBarKey,
                   actions: [
+                    // Share is for one entry (Part 3).
+                    if (chosen.length == 1)
+                      SelectionAction(
+                        key: const Key('select-share'),
+                        icon: BvIcons.shareEntry,
+                        label: l10n.notebookShare,
+                        onTap: () => _shareEntry(chosen.single),
+                      ),
                     SelectionAction(
                       key: const Key('select-move'),
                       icon: BvIcons.pageFolder,
@@ -2345,7 +2408,24 @@ class NoteSlip extends ConsumerWidget {
       if (ref.watch(noteCopiesProvider).contains(note.id))
         BvSlipQuiet(key: Key('note-copy-${note.id}'), l10n.notebookCopyMark),
       if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
-      if (note.putInPostId != null && !note.waiting)
+      if (note.shares.lastOrNull case final share?)
+        BvSlipQuiet(
+          key: Key('note-share-mark-${note.id}'),
+          switch (share.target) {
+            NoteShareTarget.feed => l10n.notebookMarkFeed(
+              words.time.clock(share.at),
+            ),
+            NoteShareTarget.space => l10n.notebookMarkTo(
+              share.name ?? '',
+              words.time.clock(share.at),
+            ),
+            NoteShareTarget.message => l10n.notebookMarkSent(
+              share.name ?? '',
+              words.time.clock(share.at),
+            ),
+          },
+        )
+      else if (note.putInPostId != null && !note.waiting)
         BvSlipQuiet(l10n.notebookPut),
     ];
     // PG4: a plain white card; selected (A4), lifted with the selected edge.

@@ -6819,15 +6819,6 @@
   "@notebookLocationHelp": {
     "description": "F107 NBX4."
   },
-  "notebookGpsChip": "GPS ±{metres} m",
-  "@notebookGpsChip": {
-    "description": "F107 NBX3: the location chip's GPS part.",
-    "placeholders": {
-      "metres": {
-        "type": "String"
-      }
-    }
-  },
   "notebookRemoveLocation": "Remove location",
   "@notebookRemoveLocation": {
     "description": "F107: the location chip's ×."
@@ -7486,5 +7477,169 @@
   "notebookFilterNone": "Nothing matches.",
   "@notebookFilterNone": {
     "description": "Review 100 Part 8: the filtered list with no entry."
+  },
+  "notebookShareFeed": "Feed",
+  "@notebookShareFeed": {
+    "description": "Review 100 Part 6 (BH4): Share's first choice."
+  },
+  "notebookShareFeedNote": "A public post on Home",
+  "@notebookShareFeedNote": {
+    "description": "Review 100 BH4: under Feed."
+  },
+  "notebookShareSpace": "Space",
+  "@notebookShareSpace": {
+    "description": "Review 100 BH4: Share's second choice."
+  },
+  "notebookShareSpaceNote": "A post, work item or checklist",
+  "@notebookShareSpaceNote": {
+    "description": "Review 100 BH4: under Space."
+  },
+  "notebookShareMessage": "Message",
+  "@notebookShareMessage": {
+    "description": "Review 100 BH4: Share's third choice."
+  },
+  "notebookShareMessageNote": "To one person",
+  "@notebookShareMessageNote": {
+    "description": "Review 100 BH4: under Message."
+  },
+  "notebookShareFeedTitle": "Post to the feed",
+  "@notebookShareFeedTitle": {
+    "description": "Review 100 Part 6: the Feed preview's title."
+  },
+  "notebookShareSpaceTitle": "Put in a Space",
+  "@notebookShareSpaceTitle": {
+    "description": "Review 100 Part 6: the Space preview's title."
+  },
+  "notebookShareMessageTitle": "Send entry",
+  "@notebookShareMessageTitle": {
+    "description": "Review 100 BH5: the Message preview's title."
+  },
+  "notebookShareTo": "To",
+  "@notebookShareTo": {
+    "description": "Review 100 BH5: the preview's row with who or where it goes."
+  },
+  "notebookShareWhatSees": "What {name} will see",
+  "@notebookShareWhatSees": {
+    "description": "Review 100 BH5: over the Message preview; the person's first name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareWhatOthers": "What others will see",
+  "@notebookShareWhatOthers": {
+    "description": "Review 100 Part 6: over the Feed and Space previews."
+  },
+  "notebookShareCheck": "Check it has nothing your client or company wouldn't share.",
+  "@notebookShareCheck": {
+    "description": "Review 99B B2 / 100 Part 6: the Feed preview's share check."
+  },
+  "notebookShareLocation": "{place} · {map}",
+  "@notebookShareLocation": {
+    "description": "Review 100 Part 6: the preview's one location line: the typed place, then 'on the map' when it has a pin.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "map": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookOnMap": "on the map",
+  "@notebookOnMap": {
+    "description": "Review 100 Part 6: the location line, when it has a map pin."
+  },
+  "notebookOnMapOnly": "On the map",
+  "@notebookOnMapOnly": {
+    "description": "Review 100 Part 6: the location line with a pin and no typed place."
+  },
+  "notebookShareLeaveOut": "Leave the location out",
+  "@notebookShareLeaveOut": {
+    "description": "Review 100 Part 6: the ✕ on the location line, read out."
+  },
+  "notebookPost": "Post",
+  "@notebookPost": {
+    "description": "Review 100 Part 6: the Feed and Space previews' send."
+  },
+  "notebookShareKindPost": "Post",
+  "@notebookShareKindPost": {
+    "description": "Review 100 Part 6: Space: what it goes in as."
+  },
+  "notebookShareKindWork": "Work item",
+  "@notebookShareKindWork": {
+    "description": "Review 100 Part 6: Space: a work item, for you."
+  },
+  "notebookShareKindChecklist": "Checklist",
+  "@notebookShareKindChecklist": {
+    "description": "Review 100 Part 6: Space: a checklist of its to-dos, for you."
+  },
+  "notebookShareFind": "Find a person",
+  "@notebookShareFind": {
+    "description": "Review 100 Part 6: Message: search among people you can message."
+  },
+  "notebookShareRecent": "RECENT",
+  "@notebookShareRecent": {
+    "description": "Review 100 Part 6: Message: recent conversations first, small caps."
+  },
+  "notebookShareNoSpace": "No Space where you can post.",
+  "@notebookShareNoSpace": {
+    "description": "Review 100 Part 6: Space, when you can post in none."
+  },
+  "notebookSharedFeed": "Shared to the feed",
+  "@notebookSharedFeed": {
+    "description": "Review 100 Part 6: after Post to the feed."
+  },
+  "notebookSharedTo": "Shared to {name}",
+  "@notebookSharedTo": {
+    "description": "Review 100 Part 6: after Put in a Space; the Space's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookSentTo": "Sent to {name}",
+  "@notebookSentTo": {
+    "description": "Review 100 Part 6: after Send to a person.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookMarkFeed": "Shared to the feed · {time}",
+  "@notebookMarkFeed": {
+    "description": "Review 100 Part 6: the entry's mark.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookMarkTo": "Shared to {name} · {time}",
+  "@notebookMarkTo": {
+    "description": "Review 100 Part 6: the entry's mark, a Space's real name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookMarkSent": "Sent to {name} · {time}",
+  "@notebookMarkSent": {
+    "description": "Review 100 Part 6: the entry's mark, a person's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

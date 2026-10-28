@@ -7952,12 +7952,6 @@ abstract class AppLocalizations {
   /// **'Type where, add the phone\'s GPS, or both.'**
   String get notebookLocationHelp;
 
-  /// F107 NBX3: the location chip's GPS part.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS ±{metres} m'**
-  String notebookGpsChip(String metres);
-
   /// F107: the location chip's ×.
   ///
   /// In en, this message translates to:
@@ -8827,6 +8821,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing matches.'**
   String get notebookFilterNone;
+
+  /// Review 100 Part 6 (BH4): Share's first choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get notebookShareFeed;
+
+  /// Review 100 BH4: under Feed.
+  ///
+  /// In en, this message translates to:
+  /// **'A public post on Home'**
+  String get notebookShareFeedNote;
+
+  /// Review 100 BH4: Share's second choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get notebookShareSpace;
+
+  /// Review 100 BH4: under Space.
+  ///
+  /// In en, this message translates to:
+  /// **'A post, work item or checklist'**
+  String get notebookShareSpaceNote;
+
+  /// Review 100 BH4: Share's third choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get notebookShareMessage;
+
+  /// Review 100 BH4: under Message.
+  ///
+  /// In en, this message translates to:
+  /// **'To one person'**
+  String get notebookShareMessageNote;
+
+  /// Review 100 Part 6: the Feed preview's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Post to the feed'**
+  String get notebookShareFeedTitle;
+
+  /// Review 100 Part 6: the Space preview's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Put in a Space'**
+  String get notebookShareSpaceTitle;
+
+  /// Review 100 BH5: the Message preview's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Send entry'**
+  String get notebookShareMessageTitle;
+
+  /// Review 100 BH5: the preview's row with who or where it goes.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get notebookShareTo;
+
+  /// Review 100 BH5: over the Message preview; the person's first name.
+  ///
+  /// In en, this message translates to:
+  /// **'What {name} will see'**
+  String notebookShareWhatSees(String name);
+
+  /// Review 100 Part 6: over the Feed and Space previews.
+  ///
+  /// In en, this message translates to:
+  /// **'What others will see'**
+  String get notebookShareWhatOthers;
+
+  /// Review 99B B2 / 100 Part 6: the Feed preview's share check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it has nothing your client or company wouldn\'t share.'**
+  String get notebookShareCheck;
+
+  /// Review 100 Part 6: the preview's one location line: the typed place, then 'on the map' when it has a pin.
+  ///
+  /// In en, this message translates to:
+  /// **'{place} · {map}'**
+  String notebookShareLocation(String place, String map);
+
+  /// Review 100 Part 6: the location line, when it has a map pin.
+  ///
+  /// In en, this message translates to:
+  /// **'on the map'**
+  String get notebookOnMap;
+
+  /// Review 100 Part 6: the location line with a pin and no typed place.
+  ///
+  /// In en, this message translates to:
+  /// **'On the map'**
+  String get notebookOnMapOnly;
+
+  /// Review 100 Part 6: the ✕ on the location line, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the location out'**
+  String get notebookShareLeaveOut;
+
+  /// Review 100 Part 6: the Feed and Space previews' send.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get notebookPost;
+
+  /// Review 100 Part 6: Space: what it goes in as.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get notebookShareKindPost;
+
+  /// Review 100 Part 6: Space: a work item, for you.
+  ///
+  /// In en, this message translates to:
+  /// **'Work item'**
+  String get notebookShareKindWork;
+
+  /// Review 100 Part 6: Space: a checklist of its to-dos, for you.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get notebookShareKindChecklist;
+
+  /// Review 100 Part 6: Message: search among people you can message.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a person'**
+  String get notebookShareFind;
+
+  /// Review 100 Part 6: Message: recent conversations first, small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'RECENT'**
+  String get notebookShareRecent;
+
+  /// Review 100 Part 6: Space, when you can post in none.
+  ///
+  /// In en, this message translates to:
+  /// **'No Space where you can post.'**
+  String get notebookShareNoSpace;
+
+  /// Review 100 Part 6: after Post to the feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to the feed'**
+  String get notebookSharedFeed;
+
+  /// Review 100 Part 6: after Put in a Space; the Space's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to {name}'**
+  String notebookSharedTo(String name);
+
+  /// Review 100 Part 6: after Send to a person.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name}'**
+  String notebookSentTo(String name);
+
+  /// Review 100 Part 6: the entry's mark.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to the feed · {time}'**
+  String notebookMarkFeed(String time);
+
+  /// Review 100 Part 6: the entry's mark, a Space's real name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to {name} · {time}'**
+  String notebookMarkTo(String name, String time);
+
+  /// Review 100 Part 6: the entry's mark, a person's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name} · {time}'**
+  String notebookMarkSent(String name, String time);
 }
 
 class _AppLocalizationsDelegate

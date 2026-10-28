@@ -361,33 +361,72 @@ class FakeNotebookRepository implements NotebookRepository {
     return Uint8List(0);
   }
 
-  /// note_for_space as the server answers it: the typed location, and the
-  /// GPS only when asked (F107).
+  void _shared(String noteId, NoteShareTarget target, String? name) {
+    final n = kept[noteId];
+    if (n == null) return;
+    kept[noteId] = n.copyWith(
+      shares: [
+        ...n.shares,
+        NoteShare(target: target, name: name, at: DateTime(2026, 10, 15, 12)),
+      ],
+    );
+  }
+
+  /// The names the server gives a Space or a person's share mark.
+  final Map<String, String> names = {};
+
   @override
-  Future<Map<String, dynamic>> forSpace(
-    String noteId, {
-    required bool includeGps,
+  Future<void> shareToFeed(
+    String noteId,
+    String postId,
+    String lang, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> media = const [],
   }) async {
     _check();
-    calls.add('for-space:$noteId:$includeGps');
-    final n = kept[noteId]!;
-    final l = n.location;
-    return {
-      'id': n.id,
-      'kind': n.kind.json,
-      'title': n.title,
-      'body': n.body,
-      if (n.kind == NoteKind.checklist)
-        'points': [for (final p in n.points) p.toJson()],
-      if (n.blocks != null) 'blocks': [for (final b in n.blocks!) b.toJson()],
-      'due_at': n.dueAt?.toUtc().toIso8601String(),
-      'location_text': ?l?.text,
-      if (includeGps && l != null && l.hasGps) ...{
-        'location_lat': l.lat,
-        'location_lng': l.lng,
-        'location_accuracy_m': l.accuracyM,
-      },
-    };
+    calls.add(
+      'share-feed:$noteId:$lang:$includeLocation:${(lines ?? []).join(',')}',
+    );
+    _shared(noteId, NoteShareTarget.feed, null);
+  }
+
+  @override
+  Future<void> shareToSpace(
+    String noteId,
+    String postId,
+    String spaceId,
+    String kind, {
+    List<String>? lines,
+    String? owner,
+    List<String> people = const [],
+    required bool includeLocation,
+    List<Map<String, dynamic>> files = const [],
+  }) async {
+    _check();
+    calls.add(
+      'share-space:$noteId:$spaceId:$kind:$includeLocation:'
+      '${(lines ?? []).join(',')}',
+    );
+    _shared(noteId, NoteShareTarget.space, names[spaceId]);
+  }
+
+  @override
+  Future<void> shareToPerson(
+    String noteId,
+    String messageId,
+    String personId,
+    String threadId, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> attachments = const [],
+  }) async {
+    _check();
+    calls.add(
+      'share-person:$noteId:$personId:$threadId:$includeLocation:'
+      '${(lines ?? []).join(',')}',
+    );
+    _shared(noteId, NoteShareTarget.message, names[personId]);
   }
 
   @override

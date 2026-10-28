@@ -107,11 +107,45 @@ abstract class NotebookRepository {
   /// F107 B11).
   Future<Uint8List> download(String path);
 
-  /// note_for_space (F107): what Put in a Space carries from a note: its
-  /// words, page and typed location; the GPS only when [includeGps].
-  Future<Map<String, dynamic>> forSpace(
-    String noteId, {
-    required bool includeGps,
+  /// share_note_to_feed (review 100 Part 6): a public post [postId] in
+  /// [lang] from the entry, or [lines] of it; the location only with
+  /// [includeLocation]; [media] the copies already in post-media.
+  Future<void> shareToFeed(
+    String noteId,
+    String postId,
+    String lang, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> media = const [],
+  });
+
+  /// share_note_to_space: a post, work item or checklist ([kind]: 'note',
+  /// 'work_item', 'checklist') in [spaceId], for [owner] (a work item) or
+  /// [people] (a checklist); [files] the copies already in the Space's
+  /// bucket. The Space's rules and passes are the server's.
+  Future<void> shareToSpace(
+    String noteId,
+    String postId,
+    String spaceId,
+    String kind, {
+    List<String>? lines,
+    String? owner,
+    List<String> people = const [],
+    required bool includeLocation,
+    List<Map<String, dynamic>> files = const [],
+  });
+
+  /// share_note_to_person: a message to [personId] in [threadId] (new
+  /// when they have none), with start_dm's rules; [attachments] the copies
+  /// already in dm-files.
+  Future<void> shareToPerson(
+    String noteId,
+    String messageId,
+    String personId,
+    String threadId, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> attachments = const [],
   });
 
   /// my_calendar: from [from] to [to] (the phone's days, both in; up to
@@ -160,7 +194,8 @@ class SupabaseNotebookRepository implements NotebookRepository {
     final rows = await _client
         .from('notes')
         .select(
-          '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort, name)',
+          '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort, name), '
+          'note_shares(target, target_name, created_at)',
         )
         .order('created_at', ascending: false)
         .limit(_limit);
@@ -453,22 +488,84 @@ class SupabaseNotebookRepository implements NotebookRepository {
       _guard(() => _client.storage.from(notebookBucket).download(path));
 
   @override
-  Future<Map<String, dynamic>> forSpace(
-    String noteId, {
-    required bool includeGps,
-  }) => _guard(() async {
-    final row = await _client.rpc<Map<String, dynamic>>(
-      'note_for_space',
-      params: {'p_id': noteId, 'p_include_gps': includeGps},
-    );
-    return row;
-  });
-
-  @override
   Future<String> recordingUrl(String path) => _guard(
     () => _client.storage
         .from(notebookBucket)
         .createSignedUrl(path, _linkSeconds),
+  );
+
+  @override
+  Future<void> shareToFeed(
+    String noteId,
+    String postId,
+    String lang, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> media = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'share_note_to_feed',
+      params: {
+        'p_note': noteId,
+        'p_post': postId,
+        'p_lang': lang,
+        'p_lines': lines,
+        'p_include_location': includeLocation,
+        'p_media': media,
+      },
+    ),
+  );
+
+  @override
+  Future<void> shareToSpace(
+    String noteId,
+    String postId,
+    String spaceId,
+    String kind, {
+    List<String>? lines,
+    String? owner,
+    List<String> people = const [],
+    required bool includeLocation,
+    List<Map<String, dynamic>> files = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'share_note_to_space',
+      params: {
+        'p_note': noteId,
+        'p_post': postId,
+        'p_space': spaceId,
+        'p_kind': kind,
+        'p_lines': lines,
+        'p_owner': owner,
+        'p_people': people,
+        'p_include_location': includeLocation,
+        'p_files': files,
+      },
+    ),
+  );
+
+  @override
+  Future<void> shareToPerson(
+    String noteId,
+    String messageId,
+    String personId,
+    String threadId, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> attachments = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'share_note_to_person',
+      params: {
+        'p_note': noteId,
+        'p_message': messageId,
+        'p_person': personId,
+        'p_thread': threadId,
+        'p_lines': lines,
+        'p_include_location': includeLocation,
+        'p_attachments': attachments,
+      },
+    ),
   );
 
   @override

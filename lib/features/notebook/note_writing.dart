@@ -114,12 +114,14 @@ String reminderChip(
 /// A position's accuracy in whole metres, Western digits.
 String gpsMetres(double? metres) => metres == null ? '' : '${metres.round()}';
 
-/// The location chip's words (NBX3): "Level 3, grid C7 · GPS ±8 m", the
-/// place alone, or the GPS alone.
-String locationLabel(AppLocalizations l10n, NoteLocation l) => [
-  if (l.hasText) l.text!.trim(),
-  if (l.hasGps) l10n.notebookGpsChip(gpsMetres(l.accuracyM)),
-].join(' · ');
+/// The location's one line (NBX3; review 100 Part 6: "GPS" is never in
+/// the app's words): "Gate 2 · on the map", the place alone, or "On the
+/// map" for a pin alone.
+String locationLabel(AppLocalizations l10n, NoteLocation l) => l.hasText
+    ? (l.hasGps
+          ? l10n.notebookShareLocation(l.text!.trim(), l10n.notebookOnMap)
+          : l.text!.trim())
+    : l10n.notebookOnMapOnly;
 
 /// The note being written in place at the end of today (F106 NBW1, F107
 /// NBX1–NBX4), on Work's writing card: white, a dashed action-colour edge,

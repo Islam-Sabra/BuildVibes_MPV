@@ -253,6 +253,44 @@ class NoteLocation {
   int get hashCode => Object.hash(text, lat, lng, accuracyM);
 }
 
+/// Where an entry was shared (review 100 Part 6, note_shares).
+enum NoteShareTarget {
+  feed,
+  space,
+  message;
+
+  static NoteShareTarget fromJson(Object? v) => switch (v) {
+    'space' => space,
+    'message' => message,
+    _ => feed,
+  };
+
+  String get json => name;
+}
+
+/// One share of an entry: where to (a Space's or a person's name as it
+/// was) and when. The entry stays; this is its mark.
+@immutable
+class NoteShare {
+  const NoteShare({required this.target, required this.at, this.name});
+
+  factory NoteShare.fromJson(Map<String, dynamic> json) => NoteShare(
+    target: NoteShareTarget.fromJson(json['target']),
+    name: json['target_name'] as String?,
+    at: DateTime.parse(json['created_at'] as String).toLocal(),
+  );
+
+  final NoteShareTarget target;
+  final String? name;
+  final DateTime at;
+
+  Map<String, dynamic> toJson() => {
+    'target': target.json,
+    'target_name': name,
+    'created_at': at.toUtc().toIso8601String(),
+  };
+}
+
 /// A note in My notebook (migration 21): only its owner ever reads it.
 /// The app chose its [id], so saving it again is the same note.
 @immutable
@@ -279,6 +317,7 @@ class Note {
     this.deletedAt,
     this.archivedAt,
     this.version = 1,
+    this.shares = const [],
   });
 
   /// A row of `notes`, with its `note_files` embedded.
@@ -345,6 +384,10 @@ class Note {
       deletedAt: _time(json['deleted_at']),
       archivedAt: _time(json['archived_at']),
       version: json['version'] as int? ?? 1,
+      shares: [
+        for (final s in json['note_shares'] as List? ?? const [])
+          NoteShare.fromJson(s as Map<String, dynamic>),
+      ]..sort((a, b) => a.at.compareTo(b.at)),
     );
   }
 
@@ -412,6 +455,9 @@ class Note {
   /// The server's version of it (migration 48): an edit says which one it
   /// started from, so an older one is refused.
   final int version;
+
+  /// Where it was shared, oldest first (review 100 Part 6).
+  final List<NoteShare> shares;
 
   /// In the page's list: not deleted, not archived.
   bool get shown => deletedAt == null && archivedAt == null;
@@ -487,6 +533,7 @@ class Note {
     DateTime? Function()? deletedAt,
     DateTime? Function()? archivedAt,
     int? version,
+    List<NoteShare>? shares,
   }) => Note(
     id: id,
     kind: kind ?? this.kind,
@@ -509,6 +556,7 @@ class Note {
     deletedAt: deletedAt == null ? this.deletedAt : deletedAt(),
     archivedAt: archivedAt == null ? this.archivedAt : archivedAt(),
     version: version ?? this.version,
+    shares: shares ?? this.shares,
   );
 
   /// As this phone keeps it while it waits to be sent.
@@ -534,6 +582,7 @@ class Note {
     'deleted_at': deletedAt?.toUtc().toIso8601String(),
     'archived_at': archivedAt?.toUtc().toIso8601String(),
     'version': version,
+    'note_shares': [for (final s in shares) s.toJson()],
   };
 
   /// Its to-dos not yet ticked: a to-do note's one, a page's to-do lines

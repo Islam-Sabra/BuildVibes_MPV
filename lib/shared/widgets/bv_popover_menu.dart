@@ -352,11 +352,27 @@ class BvPopoverMenu<T> extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: type.labelMd.copyWith(color: ink),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: type.labelMd.copyWith(color: ink),
+                      ),
+                      // What the row does (Share's "A public post on Home").
+                      if (item.note case final note?)
+                        Text(
+                          note,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: type.metadata.copyWith(
+                            color: BvColors.textSecondary,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 if (item.shortcut case final shortcut?)

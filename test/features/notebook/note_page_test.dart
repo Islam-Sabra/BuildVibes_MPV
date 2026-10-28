@@ -379,9 +379,9 @@ void main() {
       expect((both!.text, both.lng), ('Level 3, grid C7', 47.9774));
       expect(asks, hasLength(2));
       expect(
-        find.textContaining(l10n.notebookGpsChip('8')),
+        find.textContaining(l10n.notebookOnMap),
         findsWidgets,
-        reason: 'the saved slip\'s chip says GPS ±8 m',
+        reason: 'the saved slip shows on the map (review 100 Part 6)',
       );
 
       // × on the GPS row takes the position off, keeping the words.
