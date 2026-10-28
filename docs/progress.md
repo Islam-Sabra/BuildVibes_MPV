@@ -746,6 +746,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migration 49 live as the only file: notes 11 before and after; `day_position` null everywhere; `arrange_day` refuses signed out.
   - Build 712 on the Desktop and on the founder's phone.
 
+- **28 Oct (cloud): review 104, the founder's notebook findings on build 712 (N6–N12)** on `claude/r104`, for the lead; nothing merged, live or installed, no migration:
+  - N8 (first, a bug): a saved entry's card drew a table as its first row only; it now shows the whole table.
+  - N6: a confirm before every delete (entries, pages, selected lines, a Draft's Discard), with the person's days; Undo stays.
+  - N7: the sort lists complete (Oldest created; Name A–Z and Type inside a page); day headers and hold-and-move only in date sorts.
+  - N9 + N10: Share → Space speaks the Space's kinds; Team and For are rows opening pickers (`BvGiveToPicker`); tested with 120 members.
+  - N11: `BvTimePicker`, clock face by default, wheels as its second mode, the last mode kept.
+  - N12: status icons in the entry's top line instead of text marks.
+  - Checks: analyze clean; 2,473 app tests pass, 1 fails (photo_privacy H1, root-only in the cloud); 3,038 SQL checks. Shots: PC later.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

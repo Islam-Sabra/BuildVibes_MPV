@@ -19,7 +19,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **Tests changed on purpose** (the old rule they checked was replaced by this review): every test that deleted without a question now taps Delete in the confirm (N6; one title read "Delete: no question"); review 102 N5's sort tests now expect four choices each (N7); H11's Team/For chips are now rows (N10); the wheel tests open the picker on its wheels, and `note_page_test`'s reminder expects the clock (N11); the reminder line and share-mark tests now read the icons and their card (N12).
 - **Checks (cloud):**
   - `flutter analyze`: no issues.
-  - `flutter test`: the full run is in progress; its count follows in the next commit.
+  - `flutter test`: 2,473 pass, 1 fails: photo_privacy H1, which fails only when run as root (the cloud), as on every cloud branch; the PC runs it as a user.
   - SQL stand-in (`bash supabase/dev/standin/run.sh .`): all migrations apply; 3,038 checks in 48 files pass.
   - Screenshots: PC later. `test_screens` not run, no `--update-goldens`.
 - **The PC still has to:**
