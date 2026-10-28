@@ -372,6 +372,55 @@ class FakeNotebookRepository implements NotebookRepository {
     );
   }
 
+  /// my_deleted_items as the server answers it, and the days kept.
+  List<DeletedItem> deletedList = [];
+  int keep = 30;
+
+  @override
+  Future<List<DeletedItem>> deletedItems() async {
+    _check();
+    return [...deletedList];
+  }
+
+  @override
+  Future<int> keepDays() async {
+    _check();
+    return keep;
+  }
+
+  @override
+  Future<void> setKeepDays(int days) async {
+    _check();
+    calls.add('keep:$days');
+    keep = days;
+  }
+
+  @override
+  Future<void> restore(List<String> ids) async {
+    _check();
+    calls.add('restore:${ids.join(',')}');
+    deletedList.removeWhere((d) => ids.contains(d.id));
+    for (final id in ids) {
+      final n = kept[id];
+      if (n != null) kept[id] = n.copyWith(deletedAt: () => null);
+    }
+  }
+
+  @override
+  Future<void> deleteForever(List<String> ids) async {
+    _check();
+    calls.add('forever:${ids.join(',')}');
+    deletedList.removeWhere((d) => ids.contains(d.id));
+    ids.forEach(kept.remove);
+  }
+
+  @override
+  Future<void> emptyDeleted() async {
+    _check();
+    calls.add('empty');
+    deletedList.clear();
+  }
+
   /// The names the server gives a Space or a person's share mark.
   final Map<String, String> names = {};
 

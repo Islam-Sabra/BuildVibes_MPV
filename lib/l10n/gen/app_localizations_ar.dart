@@ -5359,4 +5359,89 @@ class AppLocalizationsAr extends AppLocalizations {
   String notebookMarkSent(String name, String time) {
     return 'أُرسلت إلى $name · $time';
   }
+
+  @override
+  String get notebookDeletedItems => 'المحذوفات';
+
+  @override
+  String get notebookKeepFor => 'الاحتفاظ بالمحذوفات لمدة';
+
+  @override
+  String notebookKeepDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يومًا',
+      few: '$days أيام',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookKeepNote(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'تُحذف نهائيًا بعد $days يومًا، ويمكنك استعادتها قبل ذلك.',
+      few: 'تُحذف نهائيًا بعد $days أيام، ويمكنك استعادتها قبل ذلك.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'قبل $days يومًا',
+      few: 'قبل $days أيام',
+      two: 'قبل يومين',
+      one: 'قبل يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookDeletedEntry(String page) {
+    return 'تدوينة · من $page';
+  }
+
+  @override
+  String notebookDeletedPage(String page) {
+    return 'صفحة بكل ما فيها · من $page';
+  }
+
+  @override
+  String get notebookDeletedPageTop => 'صفحة بكل ما فيها';
+
+  @override
+  String notebookDeletedPart(String page) {
+    return 'جزء من تدوينة · من $page';
+  }
+
+  @override
+  String get notebookRestore => 'استعادة';
+
+  @override
+  String notebookRestoredTo(String page) {
+    return 'استُعيدت إلى $page';
+  }
+
+  @override
+  String get notebookDeleteForever => 'حذف نهائي';
+
+  @override
+  String get notebookDeleteForeverTitle => 'حذف هذا نهائيًا؟';
+
+  @override
+  String get notebookEmptyNow => 'إفراغ الآن';
+
+  @override
+  String get notebookEmptyNowTitle => 'حذف كل ما هنا نهائيًا؟';
+
+  @override
+  String get notebookCantUndo => 'لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get notebookDeletedNone => 'تظهر هنا الصفحات والتدوينات التي تحذفها.';
 }

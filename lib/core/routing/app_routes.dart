@@ -51,6 +51,9 @@ abstract final class AppRoutes {
   ).toString();
   static const notebookSearch = '/notebook/search';
 
+  /// Deleted items (review 99B B3, PG8).
+  static const notebookDeleted = '/notebook/deleted';
+
   /// Search with the Filter that is on (review 100 Part 8).
   static String notebookSearchIn({String? kind, String? page}) => Uri(
     path: notebookSearch,

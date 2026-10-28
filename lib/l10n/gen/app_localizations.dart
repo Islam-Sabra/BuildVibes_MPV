@@ -9001,6 +9001,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sent to {name} · {time}'**
   String notebookMarkSent(String name, String time);
+
+  /// Review 99B B3 (PG8): the screen, and its row at the pages list's end.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted items'**
+  String get notebookDeletedItems;
+
+  /// PG8: over the one choice of 7, 30 or 90 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep deleted items for'**
+  String get notebookKeepFor;
+
+  /// PG8: one of the choices.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String notebookKeepDays(int days);
+
+  /// PG8: under the choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Items go for good after {days} days. Until then you can restore them.'**
+  String notebookKeepNote(int days);
+
+  /// PG8: a day's label, past yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day ago} other{{days} days ago}}'**
+  String notebookDaysAgo(int days);
+
+  /// PG8: what a deleted item was, and its page.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry · from {page}'**
+  String notebookDeletedEntry(String page);
+
+  /// PG8: a deleted page inside another.
+  ///
+  /// In en, this message translates to:
+  /// **'Page and everything in it · from {page}'**
+  String notebookDeletedPage(String page);
+
+  /// PG8: a deleted page at the notebook's top.
+  ///
+  /// In en, this message translates to:
+  /// **'Page and everything in it'**
+  String get notebookDeletedPageTop;
+
+  /// PG8: lines deleted out of an entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of an entry · from {page}'**
+  String notebookDeletedPart(String page);
+
+  /// PG8: an item's button.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get notebookRestore;
+
+  /// PG8: after Restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored to {page}'**
+  String notebookRestoredTo(String page);
+
+  /// PG8: an item swiped toward the start, and its confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete forever'**
+  String get notebookDeleteForever;
+
+  /// PG8: Delete forever's one confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this for good?'**
+  String get notebookDeleteForeverTitle;
+
+  /// PG8: everything in Deleted items for good, and its confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty now'**
+  String get notebookEmptyNow;
+
+  /// PG8: Empty now's one confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything here for good?'**
+  String get notebookEmptyNowTitle;
+
+  /// PG8: under the confirms.
+  ///
+  /// In en, this message translates to:
+  /// **'This can\'t be undone.'**
+  String get notebookCantUndo;
+
+  /// PG8: with nothing in Deleted items.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages and entries you delete show here.'**
+  String get notebookDeletedNone;
 }
 
 class _AppLocalizationsDelegate

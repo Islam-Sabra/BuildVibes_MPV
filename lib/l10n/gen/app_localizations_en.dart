@@ -5341,4 +5341,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String notebookMarkSent(String name, String time) {
     return 'Sent to $name · $time';
   }
+
+  @override
+  String get notebookDeletedItems => 'Deleted items';
+
+  @override
+  String get notebookKeepFor => 'Keep deleted items for';
+
+  @override
+  String notebookKeepDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String notebookKeepNote(int days) {
+    return 'Items go for good after $days days. Until then you can restore them.';
+  }
+
+  @override
+  String notebookDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookDeletedEntry(String page) {
+    return 'Entry · from $page';
+  }
+
+  @override
+  String notebookDeletedPage(String page) {
+    return 'Page and everything in it · from $page';
+  }
+
+  @override
+  String get notebookDeletedPageTop => 'Page and everything in it';
+
+  @override
+  String notebookDeletedPart(String page) {
+    return 'Part of an entry · from $page';
+  }
+
+  @override
+  String get notebookRestore => 'Restore';
+
+  @override
+  String notebookRestoredTo(String page) {
+    return 'Restored to $page';
+  }
+
+  @override
+  String get notebookDeleteForever => 'Delete forever';
+
+  @override
+  String get notebookDeleteForeverTitle => 'Delete this for good?';
+
+  @override
+  String get notebookEmptyNow => 'Empty now';
+
+  @override
+  String get notebookEmptyNowTitle => 'Delete everything here for good?';
+
+  @override
+  String get notebookCantUndo => 'This can\'t be undone.';
+
+  @override
+  String get notebookDeletedNone => 'Pages and entries you delete show here.';
 }

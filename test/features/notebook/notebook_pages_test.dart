@@ -144,11 +144,14 @@ void main() {
         expect(find.text(l10n.notebookUntitled), findsOneWidget);
       });
 
-      testWidgets('no Deleted items button until 99B (ruling 9)', (
-        tester,
-      ) async {
+      testWidgets("99B: Deleted items at the list's end, under + New page "
+          '(ruling 9)', (tester) async {
         await _open(tester, lang);
-        expect(_key('notebook-deleted'), findsNothing);
+        expect(_key('notebook-deleted'), findsOneWidget);
+        expect(
+          _top(tester, _key('notebook-new-page')),
+          lessThan(_top(tester, _key('notebook-deleted'))),
+        );
       });
     });
 

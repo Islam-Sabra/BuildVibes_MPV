@@ -16,6 +16,7 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../work/daybook_words.dart';
 import '../work/daybook_writing.dart' show newPostIdProvider;
+import 'deleted_items_screen.dart' show DeletedItemsRow;
 import 'note_filter.dart';
 import 'notebook_page_parts.dart';
 import 'notebook_state.dart';
@@ -340,6 +341,11 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                         ),
                       ),
                     if (!selecting) NewPageRow(onTap: _newPage),
+                    // Review 99B B3: Deleted items, at the list's end.
+                    if (!selecting)
+                      DeletedItemsRow(
+                        onTap: () => context.push(AppRoutes.notebookDeleted),
+                      ),
                   ],
                 ),
           bottomNavigationBar: selecting

@@ -7641,5 +7641,108 @@
         "type": "String"
       }
     }
+  },
+  "notebookDeletedItems": "Deleted items",
+  "@notebookDeletedItems": {
+    "description": "Review 99B B3 (PG8): the screen, and its row at the pages list's end."
+  },
+  "notebookKeepFor": "Keep deleted items for",
+  "@notebookKeepFor": {
+    "description": "PG8: over the one choice of 7, 30 or 90 days."
+  },
+  "notebookKeepDays": "{days} days",
+  "@notebookKeepDays": {
+    "description": "PG8: one of the choices.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookKeepNote": "Items go for good after {days} days. Until then you can restore them.",
+  "@notebookKeepNote": {
+    "description": "PG8: under the choice.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookDaysAgo": "{days, plural, =1{1 day ago} other{{days} days ago}}",
+  "@notebookDaysAgo": {
+    "description": "PG8: a day's label, past yesterday.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookDeletedEntry": "Entry · from {page}",
+  "@notebookDeletedEntry": {
+    "description": "PG8: what a deleted item was, and its page.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookDeletedPage": "Page and everything in it · from {page}",
+  "@notebookDeletedPage": {
+    "description": "PG8: a deleted page inside another.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookDeletedPageTop": "Page and everything in it",
+  "@notebookDeletedPageTop": {
+    "description": "PG8: a deleted page at the notebook's top."
+  },
+  "notebookDeletedPart": "Part of an entry · from {page}",
+  "@notebookDeletedPart": {
+    "description": "PG8: lines deleted out of an entry.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookRestore": "Restore",
+  "@notebookRestore": {
+    "description": "PG8: an item's button."
+  },
+  "notebookRestoredTo": "Restored to {page}",
+  "@notebookRestoredTo": {
+    "description": "PG8: after Restore.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookDeleteForever": "Delete forever",
+  "@notebookDeleteForever": {
+    "description": "PG8: an item swiped toward the start, and its confirm."
+  },
+  "notebookDeleteForeverTitle": "Delete this for good?",
+  "@notebookDeleteForeverTitle": {
+    "description": "PG8: Delete forever's one confirm."
+  },
+  "notebookEmptyNow": "Empty now",
+  "@notebookEmptyNow": {
+    "description": "PG8: everything in Deleted items for good, and its confirm."
+  },
+  "notebookEmptyNowTitle": "Delete everything here for good?",
+  "@notebookEmptyNowTitle": {
+    "description": "PG8: Empty now's one confirm."
+  },
+  "notebookCantUndo": "This can't be undone.",
+  "@notebookCantUndo": {
+    "description": "PG8: under the confirms."
+  },
+  "notebookDeletedNone": "Pages and entries you delete show here.",
+  "@notebookDeletedNone": {
+    "description": "PG8: with nothing in Deleted items."
   }
 }

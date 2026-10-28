@@ -1483,5 +1483,22 @@
   "notebookSentTo": "أُرسلت إلى {name}",
   "notebookMarkFeed": "نُشرت في المنشورات · {time}",
   "notebookMarkTo": "نُشرت في {name} · {time}",
-  "notebookMarkSent": "أُرسلت إلى {name} · {time}"
+  "notebookMarkSent": "أُرسلت إلى {name} · {time}",
+  "notebookDeletedItems": "المحذوفات",
+  "notebookKeepFor": "الاحتفاظ بالمحذوفات لمدة",
+  "notebookKeepDays": "{days, plural, few{{days} أيام} other{{days} يومًا}}",
+  "notebookKeepNote": "{days, plural, few{تُحذف نهائيًا بعد {days} أيام، ويمكنك استعادتها قبل ذلك.} other{تُحذف نهائيًا بعد {days} يومًا، ويمكنك استعادتها قبل ذلك.}}",
+  "notebookDaysAgo": "{days, plural, =1{قبل يوم} =2{قبل يومين} few{قبل {days} أيام} other{قبل {days} يومًا}}",
+  "notebookDeletedEntry": "تدوينة · من {page}",
+  "notebookDeletedPage": "صفحة بكل ما فيها · من {page}",
+  "notebookDeletedPageTop": "صفحة بكل ما فيها",
+  "notebookDeletedPart": "جزء من تدوينة · من {page}",
+  "notebookRestore": "استعادة",
+  "notebookRestoredTo": "استُعيدت إلى {page}",
+  "notebookDeleteForever": "حذف نهائي",
+  "notebookDeleteForeverTitle": "حذف هذا نهائيًا؟",
+  "notebookEmptyNow": "إفراغ الآن",
+  "notebookEmptyNowTitle": "حذف كل ما هنا نهائيًا؟",
+  "notebookCantUndo": "لا يمكن التراجع عن ذلك.",
+  "notebookDeletedNone": "تظهر هنا الصفحات والتدوينات التي تحذفها."
 }

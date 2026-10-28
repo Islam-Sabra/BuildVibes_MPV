@@ -12,6 +12,7 @@ import '../../features/chat/meeting_notes_screen.dart';
 import '../../features/messages/dm_thread_screen.dart';
 import '../../features/spaces/week_report_screen.dart';
 import '../../features/notebook/calendar_screen.dart';
+import '../../features/notebook/deleted_items_screen.dart';
 import '../../features/notebook/notebook_page_screen.dart';
 import '../../features/notebook/notebook_screen.dart';
 import '../../features/notebook/notebook_search_screen.dart';
@@ -278,6 +279,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               pageId: state.pathParameters['id']!,
               entry: state.uri.queryParameters['entry'],
             ),
+          ),
+          _Screen(
+            path: 'deleted',
+            builder: (context, state) => const DeletedItemsScreen(),
           ),
           _Screen(
             path: 'search',

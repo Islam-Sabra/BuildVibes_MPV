@@ -107,6 +107,22 @@ abstract class NotebookRepository {
   /// F107 B11).
   Future<Uint8List> download(String path);
 
+  /// Deleted items (99B B3, PG8): my_deleted_items, newest first.
+  Future<List<DeletedItem>> deletedItems();
+
+  /// How many days Deleted items are kept: 7, 30 (by default) or 90.
+  Future<int> keepDays();
+  Future<void> setKeepDays(int days);
+
+  /// restore_items: back in its page, or a new page with the old title.
+  Future<void> restore(List<String> ids);
+
+  /// delete_forever, then the files it held from Storage.
+  Future<void> deleteForever(List<String> ids);
+
+  /// empty_deleted_items, then the files they held from Storage.
+  Future<void> emptyDeleted();
+
   /// share_note_to_feed (review 100 Part 6): a public post [postId] in
   /// [lang] from the entry, or [lines] of it; the location only with
   /// [includeLocation]; [media] the copies already in post-media.
@@ -493,6 +509,61 @@ class SupabaseNotebookRepository implements NotebookRepository {
         .from(notebookBucket)
         .createSignedUrl(path, _linkSeconds),
   );
+
+  @override
+  Future<List<DeletedItem>> deletedItems() => _guard(() async {
+    final rows =
+        (await _client.rpc<List<dynamic>>('my_deleted_items') as List? ??
+                const [])
+            .cast<Map<String, dynamic>>();
+    return [for (final r in rows) DeletedItem.fromJson(r)];
+  });
+
+  @override
+  Future<int> keepDays() => _guard(() async {
+    final row = await _client
+        .from('profile_private')
+        .select('notebook_keep_days')
+        .eq('id', _client.auth.currentUser!.id)
+        .maybeSingle();
+    return row?['notebook_keep_days'] as int? ?? 30;
+  });
+
+  @override
+  Future<void> setKeepDays(int days) => _guard(
+    () => _client.rpc<void>('set_notebook_keep_days', params: {'p_days': days}),
+  );
+
+  @override
+  Future<void> restore(List<String> ids) =>
+      _guard(() => _client.rpc<void>('restore_items', params: {'p_ids': ids}));
+
+  /// The files a delete for good freed, out of Storage (the purge job
+  /// takes any left behind).
+  Future<void> _removeFiles(Object? rows) async {
+    final paths = [
+      for (final r in (rows as List? ?? const []).cast<Map<String, dynamic>>())
+        ?r['path'] as String?,
+    ];
+    if (paths.isEmpty) return;
+    try {
+      await _client.storage.from(notebookBucket).remove(paths);
+    } on StorageException {
+      // The purge job takes it.
+    }
+  }
+
+  @override
+  Future<void> deleteForever(List<String> ids) => _guard(() async {
+    await _removeFiles(
+      await _client.rpc<dynamic>('delete_forever', params: {'p_ids': ids}),
+    );
+  });
+
+  @override
+  Future<void> emptyDeleted() => _guard(() async {
+    await _removeFiles(await _client.rpc<dynamic>('empty_deleted_items'));
+  });
 
   @override
   Future<void> shareToFeed(
