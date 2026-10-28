@@ -99,15 +99,7 @@ In order. Each step is a review with Figma frames, then the founder's yes, then 
 | 1 | Notebook bugs B1–B6 (keyboard, edit in place, drafts, menus over the keyboard, ⋯, back by swipe), then one build on the founder's phone with 99A | 100 (D1–D13) | Claude Code is fixing them on `claude/r100-bugs` |
 | 2 | The notebook redesign: one product language (tap, hold, swipe, ⋮⋮, ⋯), the selection bars, swipe for Pin · Reminder / Archive, compact cards, the new bar and `+` list, Filter, Share → Feed · Space · Message. With 99B's server work: Archive, Deleted items 7 · 30 · 90, the purge, share from an entry, filter kinds, a base version on `save_note` | 100 (Parts 0, 3–8) + 99B | Frames BH1–BH12 are waiting for the founder's ok |
 | 3 | Figma tidy-up: the PG frames (title size, Arabic words, calendar icon) | — | Lead |
-| 3b | **Linked folders in a Space's Library** (founder, 28 Oct: **before the pilot**).
-- **Linking:** a member links a folder from their own account. It is visible only to them, and opens through their own sign-in.
-- **Sharing:** they share a folder or single files with the Space when their pass allows adding files. Shared files open directly from the source, with no copy in our database.
-- **Records:** a work item pins the version it used. Unshare at any time. "Unavailable" shows when the sharer's access ends; files already opened are cached on the phone.
-- **Services, in order:**
-  1. OneDrive/SharePoint (Microsoft Graph, a Microsoft app registration);
-  2. ACC (Autodesk Platform Services);
-  3. Google Drive, only if Google's security review for folder access passes in time; otherwise file-by-file picking.
-- A company's IT or ACC admin may have to allow BuildVibes once on their side. | new (103) | Lead writes the review and frames; the founder asks the pilot company which service they use |
+| 3b | **Linked folders in a Space's Library** (founder, 28 Oct: before the pilot). Details are below the table. | new (103) | Lead writes the review and frames; the founder asks the pilot company which service they use |
 | 4 | **Scan documents** (founder, 26 Oct): the phone's own scanner (Google's on Android, Apple's on iPhone), with a normal photo as the fallback (Huawei); multi-page PDF. In the notebook's 📎, as a work item's proof, as a file post, in the Library. No text reading (OCR) yet | new | To write |
 | 5 | Dates and reminders as chips inside a line; drag lines on phones (hold and move; hold and let go selects) | new | To write |
 | 6 | **One gesture map for the whole app** (founder, 26 Oct), proved on the notebook first, then rolled out in order: Messages (swipe to reply, hold to select, as WhatsApp) → the Spaces list → work item cards → the feed last, or not at all. A swipe never does a formal or shared action: signing, Checked and Send back stay on Hold to confirm | new | To write |
@@ -116,6 +108,16 @@ In order. Each step is a review with Figma frames, then the founder's yes, then 
 | 9 | Sentry crash reports, about 2 weeks before the pilot (mid-January), with the app review | — | Planned |
 | 10 | The stores: Apple enrolment, Codemagic, exact alarm and data safety forms; first Play closed test and TestFlight by 15 December | — | The founder's enrolment is open |
 | 11 | Test week with 3–5 real people (18–24 January), then the freeze (25–31 January) | — | Planned |
+
+**3b. Linked folders, the details:**
+- **Linking:** a member links a folder from their own account. It is visible only to them and opens through their own sign-in.
+- **Sharing:** they share a folder or single files with the Space when their pass allows adding files. Shared files open directly from the source; nothing is copied into our database.
+- **Records:** a work item pins the version it used. Unshare is possible at any time. "Unavailable" shows when the sharer's access ends, and files already opened stay cached on the phone.
+- **Services, in order:**
+  1. OneDrive/SharePoint (Microsoft Graph);
+  2. ACC (Autodesk Platform Services);
+  3. Google Drive, only if Google's security review for folder access passes in time; otherwise picking file by file.
+- A company's IT or ACC admin may have to allow BuildVibes once on their side.
 
 **Ideas the founder raised, for after the pilot (28 Oct, no decision yet):**
 - **Shimmer loading** on the feed's placeholder cards.
