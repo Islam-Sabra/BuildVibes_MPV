@@ -75,6 +75,7 @@ Don't build out-of-scope features, even partly, without the founder's yes.
   - `lib/features/<feature>/` (screens and widgets)
   - `lib/shared/widgets/` (BV components: buttons, list rows, chips, site tag, stamp, sign-off strip, pass card, sheets)
 - **Components first:** build each Figma component once in `lib/shared/widgets/`, then compose screens from them.
+- **Flutter upgrades:** after any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).
 
 ## Glossary (use these exact words)
 | English | Arabic |
