@@ -7207,9 +7207,9 @@
       }
     }
   },
-  "notebookMoveToPage": "Move to page…",
+  "notebookMoveToPage": "Move to…",
   "@notebookMoveToPage": {
-    "description": "Review 99 A4: an entry's, entries' or a line's Move."
+    "description": "Review 99 A4, review 102 N4: the page picker's title for an entry's, entries' or a line's Move."
   },
   "notebookMovedTo": "Moved to {page}",
   "@notebookMovedTo": {
@@ -7326,9 +7326,9 @@
   "@notebookShare": {
     "description": "Review 100 Part 0: the selection bar's first action."
   },
-  "notebookMove": "Move",
+  "notebookMove": "Move to…",
   "@notebookMove": {
-    "description": "Review 100 Part 0: the selection bar's Move (to another page)."
+    "description": "Review 100 Part 0, review 102 N4: the selection bar's Move (to another page), for entries and lines."
   },
   "notebookReminder": "Reminder",
   "@notebookReminder": {

@@ -5029,7 +5029,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookMoveToPage => 'Move to page…';
+  String get notebookMoveToPage => 'Move to…';
 
   @override
   String notebookMovedTo(String page) {
@@ -5121,7 +5121,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookShare => 'Share';
 
   @override
-  String get notebookMove => 'Move';
+  String get notebookMove => 'Move to…';
 
   @override
   String get notebookReminder => 'Reminder';

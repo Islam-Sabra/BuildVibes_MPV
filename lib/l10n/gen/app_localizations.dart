@@ -8450,10 +8450,10 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Page deleted} other{{count} pages deleted}}'**
   String notebookPagesDeleted(int count);
 
-  /// Review 99 A4: an entry's, entries' or a line's Move.
+  /// Review 99 A4, review 102 N4: the page picker's title for an entry's, entries' or a line's Move.
   ///
   /// In en, this message translates to:
-  /// **'Move to page…'**
+  /// **'Move to…'**
   String get notebookMoveToPage;
 
   /// Review 99 A4: after Move.
@@ -8606,10 +8606,10 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get notebookShare;
 
-  /// Review 100 Part 0: the selection bar's Move (to another page).
+  /// Review 100 Part 0, review 102 N4: the selection bar's Move (to another page), for entries and lines.
   ///
   /// In en, this message translates to:
-  /// **'Move'**
+  /// **'Move to…'**
   String get notebookMove;
 
   /// Review 100 Part 3b: an entry's swipe toward the end, its second button.
