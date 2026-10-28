@@ -1,6 +1,6 @@
 # Review 105: the Space in the notebook's language — 28 Oct 2026
 
-**Founder, 28 Oct 21:27–21:30.** He approved the direction with "ok". **Status: the frames are waiting for his ok** before any build. The build starts after r104 is merged.
+**Founder, 28 Oct 21:27–21:30.** He approved the direction with "ok". **Status: frames approved by the founder (28 Oct 22:11, "ok").** Build in three slices: 105A, 105B, 105C.
 
 **Aim:** make the Space as easy as the notebook without turning it into office software. Every change either makes a site action faster or turns the work into proof for the person who did it. **Out:** Gantt charts, custom statuses or fields, dashboards with counts, permission matrices, settings pages, attendance.
 
