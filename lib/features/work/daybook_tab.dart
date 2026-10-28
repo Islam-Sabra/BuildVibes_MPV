@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show precisionErrorTolerance;
+import 'package:flutter/rendering.dart' show RenderSliverEdgeInsetsPadding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/bidi.dart';
+import '../../core/design/daybook_loop_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
@@ -44,6 +47,7 @@ import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_trace_row.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
+import '../../shared/widgets/lazy_rows.dart';
 import '../account/account_parts.dart' show myMarketProvider;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -166,6 +170,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   final _dayKeys = <DateTime, GlobalKey>{};
   final _cardKeys = <String, GlobalKey>{};
   final _lineKeys = <String, GlobalKey>{};
+
+  /// The page's rows, built only on screen (review 101 A): those built now,
+  /// each row's day, and where each card and each day's divider is.
+  final _built = <int, BuildContext>{};
+  var _rowDays = <DateTime>[];
+  final _cardRow = <String, int>{};
+  final _dayRow = <DateTime, int>{};
+
+  /// Ends the highlight once its ring is gone, so a card built again on
+  /// scrolling back doesn't flash again.
+  Timer? _unflash;
 
   /// Cards whose whole history is open (Show earlier, or a trace).
   final _expanded = <String>{};
@@ -361,15 +376,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         if (parentId != null) {
           setState(() => _newBelow = false);
           await WidgetsBinding.instance.endOfFrame;
+          await _buildCard(parentId);
           final at = _cardKeys[parentId]?.currentContext;
           if (at != null && at.mounted) {
             await Scrollable.ensureVisible(at, alignment: 0.5);
           }
           if (!mounted) return;
-          setState(() {
-            _highlighted = parentId;
-            _flashes++;
-          });
+          _flash(parentId);
         }
         if (mounted) await _loop.openChild(context, child);
         return;
@@ -390,6 +403,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       });
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
+      await _buildCard(target.postId);
+      if (!mounted) return;
       final at =
           (line == null ? null : _lineKeys[line]?.currentContext) ??
           _cardKeys[target.postId]?.currentContext;
@@ -397,14 +412,30 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         await Scrollable.ensureVisible(at, alignment: 0.5);
       }
       if (!mounted) return;
-      setState(() {
-        _highlighted = target.postId;
-        _flashes++;
-      });
+      _flash(target.postId);
       _updateShownDay();
     } finally {
       _revealing = false;
     }
+  }
+
+  /// Takes the page to [postId]'s card until it is built (review 101 A).
+  Future<void> _buildCard(String postId) async {
+    final row = _cardRow[postId];
+    if (row != null) await scrollUntilBuilt(_scroll, _built, row);
+  }
+
+  /// Highlights [postId]'s card (F20), for as long as its ring shows.
+  void _flash(String postId) {
+    setState(() {
+      _highlighted = postId;
+      _flashes++;
+    });
+    final flashes = _flashes;
+    _unflash?.cancel();
+    _unflash = Timer(BvCardHighlightSpec.hold + BvCardHighlightSpec.fade, () {
+      if (mounted && _flashes == flashes) setState(() => _highlighted = null);
+    });
   }
 
   @override
@@ -419,6 +450,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   @override
   void dispose() {
     _unpin?.cancel();
+    _unflash?.cancel();
     _liveRead?.cancel();
     unawaited(_live?.cancel());
     _life.dispose();
@@ -556,19 +588,26 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       if (_shownDay != null) setState(() => _shownDay = null);
       return;
     }
-    final top = viewport.localToGlobal(Offset.zero).dy;
-    DateTime? shown;
-    for (final day in _days) {
-      final box =
-          _dayKeys[day]?.currentContext?.findRenderObject() as RenderBox?;
+    final line =
+        viewport.localToGlobal(Offset.zero).dy + BvMastheadSpec.readingLine;
+    // Review 101 A: only the rows on screen are built, so a day is read off
+    // its rows: one at or above the reading line has its divider there too.
+    // With none, the first day laid out is the top one, even below the top
+    // edge.
+    DateTime? reached;
+    DateTime? first;
+    for (final MapEntry(key: i, value: row) in _built.entries) {
+      if (i >= _rowDays.length || !row.mounted) continue;
+      final box = row.findRenderObject() as RenderBox?;
       if (box == null || !box.attached || !box.hasSize) continue;
-      // The first day laid out is the top one, even below the top edge.
-      shown ??= day;
-      if (box.localToGlobal(Offset.zero).dy <=
-          top + BvMastheadSpec.readingLine) {
-        shown = day;
+      final day = _rowDays[i];
+      if (first == null || day.isBefore(first)) first = day;
+      if (box.localToGlobal(Offset.zero).dy <= line &&
+          (reached == null || day.isAfter(reached))) {
+        reached = day;
       }
     }
+    final shown = reached ?? first;
     if (shown != _shownDay) setState(() => _shownDay = shown);
   }
 
@@ -615,6 +654,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       (d) => !d.isAfter(day),
       orElse: () => _days.first,
     );
+    final row = _dayRow[target];
+    if (row != null) await scrollUntilBuilt(_scroll, _built, row);
+    if (!mounted) return;
     final context = _dayKeys[target]?.currentContext;
     if (context == null || !context.mounted) return;
     // The list runs bottom up: 1 puts the day's top at the page's top.
@@ -626,6 +668,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   Future<void> _openAt(_Trace trace) async {
     setState(() => _expanded.add(trace.card.id));
     await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    await _buildCard(trace.card.id);
     if (!mounted) return;
     final context =
         (trace.event.shown ? _lineKeys[trace.event.id] : null)
@@ -2361,101 +2405,178 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       );
     }
 
+    // Review 101 A: a row at a time, newest first, as the page runs bottom
+    // up; each day's divider is its top row. The writing card stays built
+    // under them all.
+    final rows = <({DateTime day, Widget child})>[];
+    _rowDays = [];
+    _cardRow.clear();
+    _dayRow.clear();
+    void add(DateTime day, Widget child) {
+      rows.add((day: day, child: child));
+      _rowDays.add(day);
+    }
+
+    for (final day in _days.reversed) {
+      for (final (_, _, row) in byDay[day]!.reversed) {
+        if (row is _Shown) _cardRow[row.card.id] = rows.length;
+        add(day, switch (row) {
+          _Shown s => cardOf(s),
+          _ => traceOf(row as _Trace),
+        });
+      }
+      if (day == today && byDay[day]!.isEmpty) {
+        add(
+          day,
+          Text(
+            l10n.daybookNothingYetToday,
+            key: const Key('daybook-nothing-today'),
+            textAlign: TextAlign.center,
+            style: BvType.of(
+              context,
+            ).labelSm.copyWith(color: BvColors.textSecondary),
+          ),
+        );
+      }
+      _dayRow[day] = rows.length;
+      add(
+        day,
+        KeyedSubtree(
+          key: _dayKeys.putIfAbsent(day, GlobalKey.new),
+          // Under a masthead naming the same day, it keeps its place but
+          // doesn't show (F23).
+          child: Visibility(
+            key: Key('daybook-divider-${day.toIso8601String()}'),
+            visible: !_dividerHidden(day, today),
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: BvDayDivider(
+              label: day == today
+                  ? l10n.daybookTodayDivider
+                  : words.compactDate(day),
+            ),
+          ),
+        ),
+      );
+    }
+
     return GestureDetector(
       // While writing, a tap off the card puts it down.
       behavior: HitTestBehavior.opaque,
       onTap: _writing ? _stopWriting : null,
       // Pull down to read again; it always pulls, however short the page
       // (F11). The list runs bottom up: the pull is at its top.
-      child: LayoutBuilder(
-        builder: (context, constraints) => RefreshIndicator(
-          onRefresh: _refresh,
-          child: SingleChildScrollView(
-            key: const Key('daybook'),
-            controller: _scroll,
-            reverse: true,
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  start: BvCardSpec.paddingSide,
-                  end: BvCardSpec.paddingSide,
-                  top: BvCardSpec.paddingTop,
-                  bottom: BvCardSpec.paddingBottom,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: BvCardSpec.gap,
-                  children: [
-                    for (final day in _days)
-                      Column(
-                        key: _dayKeys.putIfAbsent(day, GlobalKey.new),
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        spacing: BvCardSpec.gap,
-                        children: [
-                          // Under a masthead naming the same day, it keeps
-                          // its place but doesn't show (F23).
-                          Visibility(
-                            key: Key(
-                              'daybook-divider-${day.toIso8601String()}',
-                            ),
-                            visible: !_dividerHidden(day, today),
-                            maintainSize: true,
-                            maintainAnimation: true,
-                            maintainState: true,
-                            child: BvDayDivider(
-                              label: day == today
-                                  ? l10n.daybookTodayDivider
-                                  : words.compactDate(day),
-                            ),
+      child: RefreshIndicator(
+        onRefresh: _refresh,
+        child: _DaybookScroll(
+          key: const Key('daybook'),
+          controller: _scroll,
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsetsDirectional.only(
+                start: BvCardSpec.paddingSide,
+                end: BvCardSpec.paddingSide,
+                top: BvCardSpec.paddingTop,
+                bottom: BvCardSpec.paddingBottom,
+              ),
+              sliver: SliverMainAxisGroup(
+                slivers: [
+                  if (card)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          top: BvCardSpec.gap,
+                        ),
+                        child: KeyedSubtree(
+                          key: const Key('daybook-now'),
+                          child: DaybookWritingCard(
+                            // An edit's card is its own.
+                            key: ValueKey(_editing),
+                            spaceId: _spaceId,
+                            writing: _writing,
+                            editing: _editing,
+                            words: words,
+                            fromBefore: _fromBefore && !_editing,
+                            onOpen: _startWriting,
+                            onMenu: _setMenu,
+                            onPickDue: _pickDue,
+                            onPickPin: () => unawaited(_pickPin()),
+                            onPickPinTime: () => unawaited(_pickPinTime()),
+                            onPickStart: () => unawaited(_pickStart()),
+                            onPickFile: () => unawaited(_pickFile()),
+                            onPickPeople: () => unawaited(_pickPeople()),
+                            askWho: _askWho,
                           ),
-                          if (day == today && byDay[day]!.isEmpty)
-                            Text(
-                              l10n.daybookNothingYetToday,
-                              key: const Key('daybook-nothing-today'),
-                              textAlign: TextAlign.center,
-                              style: BvType.of(
-                                context,
-                              ).labelSm.copyWith(color: BvColors.textSecondary),
-                            ),
-                          for (final (_, _, row) in byDay[day]!)
-                            switch (row) {
-                              _Shown s => cardOf(s),
-                              _ => traceOf(row as _Trace),
-                            },
-                          if (card && day == today)
-                            KeyedSubtree(
-                              key: const Key('daybook-now'),
-                              child: DaybookWritingCard(
-                                // An edit's card is its own.
-                                key: ValueKey(_editing),
-                                spaceId: _spaceId,
-                                writing: _writing,
-                                editing: _editing,
-                                words: words,
-                                fromBefore: _fromBefore && !_editing,
-                                onOpen: _startWriting,
-                                onMenu: _setMenu,
-                                onPickDue: _pickDue,
-                                onPickPin: () => unawaited(_pickPin()),
-                                onPickPinTime: () => unawaited(_pickPinTime()),
-                                onPickStart: () => unawaited(_pickStart()),
-                                onPickFile: () => unawaited(_pickFile()),
-                                onPickPeople: () => unawaited(_pickPeople()),
-                                askWho: _askWho,
-                              ),
-                            ),
-                        ],
+                        ),
                       ),
-                  ],
-                ),
+                    ),
+                  SliverList.builder(
+                    itemCount: rows.length,
+                    itemBuilder: (context, i) => LazyRow(
+                      index: i,
+                      built: _built,
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          bottom: i == 0 ? 0 : BvCardSpec.gap,
+                        ),
+                        child: rows[i].child,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
+  }
+}
+
+/// The Daybook's page (review 101 A): bottom up, at Now, building only the
+/// rows on screen and a small margin.
+class _DaybookScroll extends CustomScrollView {
+  _DaybookScroll({super.key, super.controller, required List<Widget> slivers})
+    : super(
+        reverse: true,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          _SliverFromTop(sliver: SliverMainAxisGroup(slivers: slivers)),
+        ],
+      );
+}
+
+/// A page shorter than the screen sits at its top, as it always has: the
+/// page runs bottom up, so the gap goes under it.
+class _SliverFromTop extends SingleChildRenderObjectWidget {
+  const _SliverFromTop({required Widget sliver}) : super(child: sliver);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderFromTop();
+}
+
+class _RenderFromTop extends RenderSliverEdgeInsetsPadding {
+  var _gap = 0.0;
+
+  @override
+  EdgeInsets get resolvedPadding => EdgeInsets.only(bottom: _gap);
+
+  @override
+  void performLayout() {
+    _gap = 0;
+    super.performLayout();
+    // A page that ends before the screen does was laid out whole: its
+    // length is exact.
+    final short =
+        constraints.viewportMainAxisExtent -
+        constraints.precedingScrollExtent -
+        geometry!.scrollExtent;
+    if (short > precisionErrorTolerance &&
+        geometry!.scrollOffsetCorrection == null) {
+      _gap = short;
+      super.performLayout();
+    }
   }
 }
 
