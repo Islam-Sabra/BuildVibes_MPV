@@ -740,6 +740,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - N5: SORT in the Filter card, kept on the phone, with a chip.
   - N3: hold and move within a day (migration 49, local only).
   - Checks: analyze clean; 2,389 app tests; 3,038 SQL checks; 446 shots pass. 6 fail from N4's label and are not accepted; BH9 and the new r102 shots are made.
+- **28 Oct (PC): review 102 live** (founder's yes):
+  - The six N4 label shots accepted.
+  - `claude/r102-notebook` (N1–N5 and the cloud's P1) merged into `slice2-app` (7a24f55). Analyze clean; 2,391 app tests; 3,038 SQL checks; 452 shots, not updating.
+  - Migration 49 live as the only file: notes 11 before and after; `day_position` null everywhere; `arrange_day` refuses signed out.
+  - Build 712 on the Desktop and on the founder's phone.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

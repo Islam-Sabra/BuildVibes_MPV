@@ -2,6 +2,34 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 102 live: merged into `slice2-app`, migration 49 live, build 712 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (28 Oct), after the lead's check (16:10) and the cloud's P1 (80d9be7):**
+  1. **The six N4 label shots accepted** on `claude/r102-notebook` (cd4aaf6): BH2-entry-selected, BH4-share and BH12-line-selected, EN and AR. Each differs only in one label-sized box in the selection bar.
+  2. **Checks on the branch:**
+     - `flutter analyze`: no issues.
+     - `flutter test`: 2,391 pass, photo_privacy H1 included.
+     - `supabase test db`: 3,038 checks in 48 files pass.
+     - `flutter test test_screens`, not updating: 452 pass. P1 changed no shot.
+  3. **Merged into `slice2-app`** (7a24f55, no conflicts) and pushed. The same checks on the merge: analyze clean; 2,391; 3,038; 452.
+  4. **Migration 49 live** (`20261110120000_note_day_position.sql`). It was the only file in the dry run and in the push, from a throwaway worktree at 7a24f55 with `supabase/.temp` copied whole.
+     - The push exited 0, and the remote migration list now ends at 20261110120000.
+     - After it, the known pg-delta certificate warning: harmless.
+     - Read-only check:
+       - notes 11 and notebook pages 5, before and after;
+       - `day_position` set on 0 notes;
+       - `arrange_day` is `security definer` with `search_path=""`, and anon can't execute it;
+       - signed out, the REST call refuses (401, 42501).
+     - The push worktree is removed.
+  5. **Build 712** (7a24f55, release, upload key, prod env): on the Desktop as `BuildVibes-712.apk`. Installed on the founder's Xiaomi 22120RN86G over 701 (versionCode 712); BuildVibes is the only package of ours on it.
+- **No deploy.** No edge function changed.
+- **Next:** the founder's test of build 712 (the time wheels, Move to…, SORT, hold and move); review 102's N6 and later, if he adds them.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`), and `claude/r102-notebook` (worktree `BuildVibes-r102`, merged); the review 100 and 101 branches are merged too.
+
 ## Cloud update: 28 Oct 2026 — review 102 P1 on `claude/r102-notebook` (from 728bece); stopped
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
