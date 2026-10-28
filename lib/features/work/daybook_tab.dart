@@ -3,7 +3,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
-import 'package:flutter/rendering.dart' show RenderSliverEdgeInsetsPadding;
+import 'package:flutter/rendering.dart'
+    show
+        applyGrowthDirectionToAxisDirection,
+        BoxHitTestResult,
+        RenderSliverEdgeInsetsPadding,
+        RenderSliver,
+        RenderSliverList,
+        RenderViewport,
+        RevealedOffset,
+        RenderSliverMainAxisGroup,
+        SliverHitTestResult,
+        SliverPhysicalParentData,
+        ViewportOffset;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -410,6 +422,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           _cardKeys[target.postId]?.currentContext;
       if (at != null && at.mounted) {
         await Scrollable.ensureVisible(at, alignment: 0.5);
+        // Laid out where it scrolled to, for the masthead's day.
+        await WidgetsBinding.instance.endOfFrame;
       }
       if (!mounted) return;
       _flash(target.postId);
@@ -422,7 +436,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Takes the page to [postId]'s card until it is built (review 101 A).
   Future<void> _buildCard(String postId) async {
     final row = _cardRow[postId];
-    if (row != null) await scrollUntilBuilt(_scroll, _built, row);
+    if (row != null) await scrollUntilBuilt(_scroll, _built, row, up: true);
   }
 
   /// Highlights [postId]'s card (F20), for as long as its ring shows.
@@ -482,7 +496,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   /// The reader is up in older days, away from Now.
   bool get _away =>
-      _scroll.hasClients && _scroll.offset > BvNewChipSpec.awayFromNow;
+      _scroll.hasClients && -_scroll.offset > BvNewChipSpec.awayFromNow;
 
   /// [_away] as last drawn: the masthead says Today at Now, and the
   /// "Today ↓" chip shows away from it (F59).
@@ -523,7 +537,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       if (shift == 0) return;
       final position = _scroll.position;
       _scroll.jumpTo(
-        (_scroll.offset + shift).clamp(
+        (_scroll.offset - shift).clamp(
           position.minScrollExtent,
           position.maxScrollExtent,
         ),
@@ -562,7 +576,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
   void _onScroll() {
     if (_away != _wasAway) setState(() => _wasAway = _away);
-    _updateShownDay();
+    _shownDayAfterLayout();
     _loadOlderIfNear();
     if (_newBelow && !_away) setState(() => _newBelow = false);
   }
@@ -570,11 +584,25 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Older days hang above today on the same page (review 45 B1): load
   /// them while the top is near, including when the page isn't full yet.
   void _loadOlderIfNear() {
-    if (!_scroll.hasClients || _scroll.position.extentAfter >= _loadAhead) {
+    if (!_scroll.hasClients || _scroll.position.extentBefore >= _loadAhead) {
       return;
     }
     unawaited(ref.read(daybookCardsProvider(_spaceId).notifier).loadOlder());
   }
+
+  /// [_updateShownDay] once the page is laid out where it now scrolls to:
+  /// a row's place on screen is only known then (review 101 A).
+  void _shownDayAfterLayout() {
+    if (_shownDayQueued) return;
+    _shownDayQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _shownDayQueued = false;
+      if (mounted) _updateShownDay();
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  var _shownDayQueued = false;
 
   /// The masthead names the day of what is at the top of the page (F23),
   /// at Now too: the latest day whose divider has reached the reading line
@@ -655,13 +683,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       orElse: () => _days.first,
     );
     final row = _dayRow[target];
-    if (row != null) await scrollUntilBuilt(_scroll, _built, row);
+    if (row != null) await scrollUntilBuilt(_scroll, _built, row, up: true);
     if (!mounted) return;
     final context = _dayKeys[target]?.currentContext;
     if (context == null || !context.mounted) return;
-    // The list runs bottom up: 1 puts the day's top at the page's top.
+    // 1 puts the day's top at the page's top ([_RenderNowViewport]).
     await Scrollable.ensureVisible(context, alignment: 1);
-    _updateShownDay();
+    _shownDayAfterLayout();
   }
 
   /// A trace's ›: the card, with its history open at that event.
@@ -2405,9 +2433,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       );
     }
 
-    // Review 101 A: a row at a time, newest first, as the page runs bottom
-    // up; each day's divider is its top row. The writing card stays built
-    // under them all.
+    // Review 101 A: a row at a time, newest first, as older days grow up
+    // from Now; each day's divider is its top row. The writing card stays
+    // built under them all.
     final rows = <({DateTime day, Widget child})>[];
     _rowDays = [];
     _cardRow.clear();
@@ -2466,89 +2494,317 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       behavior: HitTestBehavior.opaque,
       onTap: _writing ? _stopWriting : null,
       // Pull down to read again; it always pulls, however short the page
-      // (F11). The list runs bottom up: the pull is at its top.
+      // (F11).
       child: RefreshIndicator(
         onRefresh: _refresh,
         child: _DaybookScroll(
           key: const Key('daybook'),
           controller: _scroll,
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsetsDirectional.only(
-                start: BvCardSpec.paddingSide,
-                end: BvCardSpec.paddingSide,
-                top: BvCardSpec.paddingTop,
-                bottom: BvCardSpec.paddingBottom,
-              ),
-              sliver: SliverMainAxisGroup(
-                slivers: [
-                  if (card)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          top: BvCardSpec.gap,
-                        ),
-                        child: KeyedSubtree(
-                          key: const Key('daybook-now'),
-                          child: DaybookWritingCard(
-                            // An edit's card is its own.
-                            key: ValueKey(_editing),
-                            spaceId: _spaceId,
-                            writing: _writing,
-                            editing: _editing,
-                            words: words,
-                            fromBefore: _fromBefore && !_editing,
-                            onOpen: _startWriting,
-                            onMenu: _setMenu,
-                            onPickDue: _pickDue,
-                            onPickPin: () => unawaited(_pickPin()),
-                            onPickPinTime: () => unawaited(_pickPinTime()),
-                            onPickStart: () => unawaited(_pickStart()),
-                            onPickFile: () => unawaited(_pickFile()),
-                            onPickPeople: () => unawaited(_pickPeople()),
-                            askWho: _askWho,
-                          ),
-                        ),
-                      ),
+          page: SliverPadding(
+            padding: const EdgeInsetsDirectional.only(
+              start: BvCardSpec.paddingSide,
+              end: BvCardSpec.paddingSide,
+              top: BvCardSpec.paddingTop,
+            ),
+            sliver: _SliverListTopDown(
+              delegate: SliverChildBuilderDelegate(
+                childCount: rows.length,
+                // Drawn in one picture with the page, as it always was.
+                addRepaintBoundaries: false,
+                (context, i) => LazyRow(
+                  index: i,
+                  built: _built,
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      bottom: i == 0 ? 0 : BvCardSpec.gap,
                     ),
-                  SliverList.builder(
-                    itemCount: rows.length,
-                    itemBuilder: (context, i) => LazyRow(
-                      index: i,
-                      built: _built,
-                      child: Padding(
-                        padding: EdgeInsetsDirectional.only(
-                          bottom: i == 0 ? 0 : BvCardSpec.gap,
-                        ),
-                        child: rows[i].child,
-                      ),
-                    ),
+                    child: rows[i].child,
                   ),
-                ],
+                ),
               ),
             ),
-          ],
+          ),
+          now: SliverPadding(
+            padding: const EdgeInsetsDirectional.only(
+              start: BvCardSpec.paddingSide,
+              end: BvCardSpec.paddingSide,
+              bottom: BvCardSpec.paddingBottom,
+            ),
+            sliver: card
+                ? SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        top: BvCardSpec.gap,
+                      ),
+                      child: KeyedSubtree(
+                        key: const Key('daybook-now'),
+                        child: DaybookWritingCard(
+                          // An edit's card is its own.
+                          key: ValueKey(_editing),
+                          spaceId: _spaceId,
+                          writing: _writing,
+                          editing: _editing,
+                          words: words,
+                          fromBefore: _fromBefore && !_editing,
+                          onOpen: _startWriting,
+                          onMenu: _setMenu,
+                          onPickDue: _pickDue,
+                          onPickPin: () => unawaited(_pickPin()),
+                          onPickPinTime: () => unawaited(_pickPinTime()),
+                          onPickStart: () => unawaited(_pickStart()),
+                          onPickFile: () => unawaited(_pickFile()),
+                          onPickPeople: () => unawaited(_pickPeople()),
+                          askWho: _askWho,
+                        ),
+                      ),
+                    ),
+                  )
+                : const SliverToBoxAdapter(),
+          ),
         ),
       ),
     );
   }
 }
 
-/// The Daybook's page (review 101 A): bottom up, at Now, building only the
-/// rows on screen and a small margin.
+/// The Daybook's page (review 101 A), building only the rows on screen and
+/// a small margin. Now is its centre, at the foot of the screen, and older
+/// days grow up from it: offset 0 is Now, older days are below 0.
 class _DaybookScroll extends CustomScrollView {
-  _DaybookScroll({super.key, super.controller, required List<Widget> slivers})
-    : super(
-        reverse: true,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          _SliverFromTop(sliver: SliverMainAxisGroup(slivers: slivers)),
-        ],
+  _DaybookScroll({
+    super.key,
+    super.controller,
+    required Widget page,
+    required Widget now,
+  }) : super(
+         center: _now,
+         anchor: 1,
+         physics: const AlwaysScrollableScrollPhysics(),
+         slivers: [
+           _SliverFromTop(sliver: _PageGroup(slivers: [page, now])),
+           const SliverToBoxAdapter(key: _now),
+         ],
+       );
+
+  static const _now = Key('daybook-centre');
+
+  @override
+  Widget buildViewport(
+    BuildContext context,
+    ViewportOffset offset,
+    AxisDirection axisDirection,
+    List<Widget> slivers,
+  ) => _NowViewport(
+    axisDirection: axisDirection,
+    offset: offset,
+    center: center,
+    anchor: anchor,
+    clipBehavior: clipBehavior,
+    slivers: slivers,
+  );
+}
+
+/// Bringing a card, a line or a field into view (Flutter's reveal), on a
+/// page that grows up from Now:
+/// - its leading edge is Now's, at the foot, as the page always had it: an
+///   alignment of 0 is the foot and 1 the top;
+/// - Flutter's reveal leaves out the anchor, so with Now at the foot it
+///   would land a screen off; this puts the anchor back.
+class _NowViewport extends Viewport {
+  _NowViewport({
+    super.axisDirection,
+    required super.offset,
+    super.center,
+    super.anchor,
+    super.clipBehavior,
+    super.slivers,
+  });
+
+  @override
+  RenderViewport createRenderObject(BuildContext context) => _RenderNowViewport(
+    axisDirection: axisDirection,
+    crossAxisDirection:
+        crossAxisDirection ??
+        Viewport.getDefaultCrossAxisDirection(context, axisDirection),
+    anchor: anchor,
+    offset: offset,
+    clipBehavior: clipBehavior,
+  );
+}
+
+class _RenderNowViewport extends RenderViewport {
+  _RenderNowViewport({
+    super.axisDirection,
+    required super.crossAxisDirection,
+    required super.offset,
+    super.anchor,
+    super.clipBehavior,
+  });
+
+  @override
+  RevealedOffset getOffsetToReveal(
+    RenderObject target,
+    double alignment, {
+    Rect? rect,
+    Axis? axis,
+  }) {
+    final revealed = super.getOffsetToReveal(
+      target,
+      1 - alignment,
+      rect: rect,
+      axis: axis,
+    );
+    if (!revealed.offset.isFinite) return revealed;
+    final shift = anchor * size.height;
+    return RevealedOffset(
+      offset: revealed.offset + shift,
+      rect: revealed.rect.translate(0, -shift),
+    );
+  }
+}
+
+/// The page of rows, then the writing card at Now, under it. Laid out as
+/// [SliverMainAxisGroup] does, but painted top to bottom as the page always
+/// was, though it grows up from Now: a card's paper clip reaches over the
+/// card above it, so the one below is painted after it, and is hit first.
+class _PageGroup extends SliverMainAxisGroup {
+  const _PageGroup({required super.slivers});
+
+  @override
+  RenderSliverMainAxisGroup createRenderObject(BuildContext context) =>
+      _RenderPageGroup();
+}
+
+class _RenderPageGroup extends RenderSliverMainAxisGroup {
+  bool get _up => constraints.growthDirection == GrowthDirection.reverse;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (!_up) return super.paint(context, offset);
+    for (var child = firstChild; child != null; child = childAfter(child)) {
+      if (child.geometry!.visible) {
+        final data = child.parentData! as SliverPhysicalParentData;
+        context.paintChild(child, offset + data.paintOffset);
+      }
+    }
+  }
+
+  @override
+  bool hitTestChildren(
+    SliverHitTestResult result, {
+    required double mainAxisPosition,
+    required double crossAxisPosition,
+  }) {
+    if (!_up) {
+      return super.hitTestChildren(
+        result,
+        mainAxisPosition: mainAxisPosition,
+        crossAxisPosition: crossAxisPosition,
+      );
+    }
+    for (var child = lastChild; child != null; child = childBefore(child)) {
+      final data = child.parentData! as SliverPhysicalParentData;
+      if (result.addWithAxisOffset(
+        mainAxisPosition: mainAxisPosition,
+        crossAxisPosition: crossAxisPosition,
+        paintOffset: data.paintOffset,
+        mainAxisOffset: childMainAxisPosition(child),
+        crossAxisOffset: childCrossAxisPosition(child),
+        hitTest: child.hitTest,
+      )) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Growing up, a child starts past the ones under it, nearer Now: their
+  /// length, counted forward (Flutter's group counts it back).
+  @override
+  double? childScrollOffset(RenderObject child) {
+    if (!_up) return super.childScrollOffset(child);
+    var offset = 0.0;
+    for (
+      var current = childAfter(child as RenderSliver);
+      current != null;
+      current = childAfter(current)
+    ) {
+      offset += current.geometry!.scrollExtent;
+    }
+    return offset;
+  }
+}
+
+/// The rows, painted top to bottom as the page always was, though they grow
+/// up from Now: a card's paper clip reaches over the card above it, so the
+/// card below is painted after it, and is hit first.
+class _SliverListTopDown extends SliverList {
+  const _SliverListTopDown({required super.delegate});
+
+  @override
+  RenderSliverList createRenderObject(BuildContext context) =>
+      _RenderSliverListTopDown(
+        childManager: context as SliverMultiBoxAdaptorElement,
       );
 }
 
+class _RenderSliverListTopDown extends RenderSliverList {
+  _RenderSliverListTopDown({required super.childManager});
+
+  bool get _up =>
+      applyGrowthDirectionToAxisDirection(
+        constraints.axisDirection,
+        constraints.growthDirection,
+      ) ==
+      AxisDirection.up;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (!_up) return super.paint(context, offset);
+    // As [RenderSliverMultiBoxAdaptor.paint] does growing up, last row first.
+    final origin = offset + Offset(0, geometry!.paintExtent);
+    for (var child = lastChild; child != null; child = childBefore(child)) {
+      final along = childMainAxisPosition(child);
+      final extent = paintExtentOf(child);
+      if (along < constraints.remainingPaintExtent && along + extent > 0) {
+        context.paintChild(
+          child,
+          origin + Offset(childCrossAxisPosition(child), -along - extent),
+        );
+      }
+    }
+  }
+
+  @override
+  bool hitTestChildren(
+    SliverHitTestResult result, {
+    required double mainAxisPosition,
+    required double crossAxisPosition,
+  }) {
+    if (!_up) {
+      return super.hitTestChildren(
+        result,
+        mainAxisPosition: mainAxisPosition,
+        crossAxisPosition: crossAxisPosition,
+      );
+    }
+    final boxResult = BoxHitTestResult.wrap(result);
+    for (var child = firstChild; child != null; child = childAfter(child)) {
+      if (hitTestBoxChild(
+        boxResult,
+        child,
+        mainAxisPosition: mainAxisPosition,
+        crossAxisPosition: crossAxisPosition,
+      )) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 /// A page shorter than the screen sits at its top, as it always has: the
-/// page runs bottom up, so the gap goes under it.
+/// page grows up from Now, so the gap goes under it.
 class _SliverFromTop extends SingleChildRenderObjectWidget {
   const _SliverFromTop({required Widget sliver}) : super(child: sliver);
 

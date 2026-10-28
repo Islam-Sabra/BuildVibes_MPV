@@ -17,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -190,9 +191,11 @@ void main() {
           findsNothing,
         );
         // At Now: under the rebar card.
+        final cards = await pageKeys(tester, 'daybook-card-');
+        expect(cards, contains('daybook-card-post-rebar'));
         expect(
-          tester.getTopLeft(_card(id)).dy,
-          greaterThan(tester.getTopLeft(_card('post-rebar')).dy),
+          cards.indexOf('daybook-card-$id'),
+          greaterThan(cards.indexOf('daybook-card-post-rebar')),
         );
         hold.complete();
         await tester.pumpAndSettle();

@@ -54,13 +54,15 @@ class _LazyRowState extends State<LazyRow> {
 
 /// Scrolls [controller]'s list until row [index] is built, a jump a frame:
 /// each jump is worked out from how far apart the built rows are. Rows run
-/// the way the list scrolls (a higher index further on). False when the row
-/// can't be reached.
+/// the way the list scrolls (a higher index further on), or, with [up],
+/// against it (rows growing up from a centre: a higher index at a lower
+/// offset). False when the row can't be reached.
 Future<bool> scrollUntilBuilt(
   ScrollController controller,
   Map<int, BuildContext> built,
-  int index,
-) async {
+  int index, {
+  bool up = false,
+}) async {
   for (var i = 0; i < 60; i++) {
     if (built.containsKey(index)) return true;
     if (!controller.hasClients || built.isEmpty) return false;
@@ -71,7 +73,8 @@ Future<bool> scrollUntilBuilt(
     final perRow =
         (position.viewportDimension + 2 * _margin) / (last - first + 1);
     final middle = (first + last) / 2;
-    final to = (position.pixels + (index - middle) * perRow).clamp(
+    final step = (index - middle) * perRow;
+    final to = (position.pixels + (up ? -step : step)).clamp(
       position.minScrollExtent,
       position.maxScrollExtent,
     );

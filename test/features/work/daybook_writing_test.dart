@@ -23,6 +23,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
@@ -411,8 +412,14 @@ void main() {
       expect(find.byType(BvPostBar), findsOneWidget);
       expect(app.prefs.getString(_draftKey), isNull);
       // The card became a normal slip at the posting time, sent.
-      expect(find.byKey(Key('daybook-card-$id')), findsOneWidget);
-      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      expect(
+        await readPage<Widget>(tester, find.byKey(Key('daybook-card-$id'))),
+        hasLength(1),
+      );
+      expect(
+        await readPage<Widget>(tester, find.text(l10n.daybookWaitingToSend)),
+        isEmpty,
+      );
       expect(_read(tester, workOutboxProvider), isEmpty);
     });
 
@@ -535,8 +542,14 @@ void main() {
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       // On the page at the time Post was tapped, waiting.
-      expect(find.text(s.cableTraysTitle), findsOneWidget);
-      expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
+      expect(
+        await readPage<Widget>(tester, find.text(s.cableTraysTitle)),
+        hasLength(1),
+      );
+      expect(
+        await readPage<Widget>(tester, find.text(l10n.daybookWaitingToSend)),
+        hasLength(1),
+      );
       expect(daybook.created, isEmpty);
       // F5: no sound while it only waits.
       expect(app.chimes, isEmpty);

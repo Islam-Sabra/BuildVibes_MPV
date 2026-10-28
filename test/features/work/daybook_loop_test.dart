@@ -37,6 +37,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
 import '../../helpers/hold.dart';
@@ -101,6 +102,7 @@ Finder _entry(String id) => find.byKey(Key('daybook-card-$id'));
 Finder _in(String id, Finder f) => find.descendant(of: _entry(id), matching: f);
 
 Future<void> _longPress(WidgetTester tester, String id) async {
+  await scrollToRow(tester, _entry(id));
   await tester.ensureVisible(_entry(id));
   await tester.pumpAndSettle();
   await tester.longPress(_in(id, find.byType(BvSlip)).first);
@@ -1221,6 +1223,7 @@ void main() {
         me: DaybookSamples.mona,
         pass: SpacePass.viewer,
       );
+      await scrollToRow(tester, _entry('post-rebar'));
       await tester.ensureVisible(_entry('post-rebar'));
       await tester.pumpAndSettle();
       await tester.tap(_in('post-rebar', find.byType(BvSlip)).first);
