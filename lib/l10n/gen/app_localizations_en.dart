@@ -5556,4 +5556,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String notebookShareForMore(String name, int count) {
     return '$name + $count';
   }
+
+  @override
+  String get timePickerToWheels => 'Use the wheels';
+
+  @override
+  String get timePickerToClock => 'Use the clock';
 }

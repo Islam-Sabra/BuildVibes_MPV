@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../l10n/gen/app_localizations.dart';
-import 'bv_segmented.dart';
 
 /// Where a new time starts (review 102 N2): the next 5-minute mark after an
 /// hour from [now].
@@ -19,103 +18,12 @@ DateTime nextFiveMinutesAfterAnHour(DateTime now) {
   ).add(Duration(minutes: (later.minute ~/ step + 1) * step));
 }
 
-/// The time picker of the whole app (review 102 N1, N2): the time on two
-/// wheels, in a dialog with [title]. [cancelLabel]'s button (Cancel by
-/// default, or the picker's own "No time") gives back null. With [after],
-/// a time at or before it, already passed today, can't be chosen.
-Future<TimeOfDay?> showBvTimeWheel(
-  BuildContext context, {
-  required TimeOfDay initial,
-  required String title,
-  String? cancelLabel,
-  TimeOfDay? after,
-}) => showDialog<TimeOfDay>(
-  context: context,
-  builder: (_) => _TimeWheelDialog(
-    initial: initial,
-    title: title,
-    cancelLabel: cancelLabel,
-    after: after,
-  ),
-);
-
-class _TimeWheelDialog extends StatefulWidget {
-  const _TimeWheelDialog({
-    required this.initial,
-    required this.title,
-    required this.cancelLabel,
-    required this.after,
-  });
-
-  final TimeOfDay initial;
-  final String title;
-  final String? cancelLabel;
-  final TimeOfDay? after;
-
-  @override
-  State<_TimeWheelDialog> createState() => _TimeWheelDialogState();
-}
-
-class _TimeWheelDialogState extends State<_TimeWheelDialog> {
-  late var _time = BvTimeWheel.opening(widget.initial, after: widget.after);
-
-  @override
-  Widget build(BuildContext context) {
-    final material = MaterialLocalizations.of(context);
-    final type = BvType.of(context);
-    return Dialog(
-      key: const Key('time-wheel-dialog'),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.only(
-          top: BvTimeWheelSpec.padding,
-          start: BvTimeWheelSpec.padding,
-          end: BvTimeWheelSpec.padding,
-          bottom: BvSpace.s8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.title,
-              style: type.titleMd.copyWith(color: BvColors.textPrimary),
-            ),
-            const SizedBox(height: BvTimeWheelSpec.padding),
-            BvTimeWheel(
-              value: _time,
-              after: widget.after,
-              onChanged: (t) => setState(() => _time = t),
-            ),
-            const SizedBox(height: BvSpace.s8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  key: const Key('time-wheel-cancel'),
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(widget.cancelLabel ?? material.cancelButtonLabel),
-                ),
-                TextButton(
-                  key: const Key('time-wheel-ok'),
-                  onPressed: BvTimeWheel.allows(_time, widget.after)
-                      ? () => Navigator.of(context).pop(_time)
-                      : null,
-                  child: Text(material.okButtonLabel),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// The time on two wheels, the hour (1–12) and the minutes in 5-minute
-/// steps, with AM / PM as one single choice above (review 102 N2). Only a
-/// valid time can be chosen; nothing is typed. With [after], a time at or
-/// before it (passed today) is greyed, and a wheel turned onto one goes on
-/// to the first time still to come.
+/// steps (review 102 N2): the wheel mode of [showBvTimePicker], which puts
+/// AM / PM above it as one choice (review 104 N11). Only a valid time can
+/// be chosen; nothing is typed. With [after], a time at or before it
+/// (passed today) is greyed, and a wheel turned onto one goes on to the
+/// first time still to come.
 class BvTimeWheel extends StatefulWidget {
   const BvTimeWheel({
     super.key,
@@ -153,6 +61,26 @@ class BvTimeWheel extends StatefulWidget {
     return null;
   }
 
+  /// [time] in [period] (AM / PM), or the first time to come from there
+  /// when that has passed; null with none left today.
+  static TimeOfDay? withPeriod(
+    TimeOfDay time,
+    DayPeriod period,
+    TimeOfDay? after,
+  ) {
+    final t = compose(hourOf(time), time.minute, period);
+    return allows(t, after) ? t : firstFrom(t, after);
+  }
+
+  /// The hour as the wheel and the clock show it, 1–12.
+  static int hourOf(TimeOfDay t) => t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
+
+  /// [hour] (1–12) and [minute] in [period].
+  static TimeOfDay compose(int hour, int minute, DayPeriod period) => TimeOfDay(
+    hour: hour % 12 + (period == DayPeriod.pm ? 12 : 0),
+    minute: minute,
+  );
+
   /// Where the wheels open for [initial]: on its step, or the next one,
   /// never a time passed.
   static TimeOfDay opening(TimeOfDay initial, {TimeOfDay? after}) =>
@@ -177,13 +105,10 @@ class _BvTimeWheelState extends State<BvTimeWheel> {
   /// change sent.
   var _jumping = false;
 
-  static int _hourOf(TimeOfDay t) => t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
+  static int _hourOf(TimeOfDay t) => BvTimeWheel.hourOf(t);
 
   static TimeOfDay _compose(int hour, int minute, DayPeriod period) =>
-      TimeOfDay(
-        hour: hour % 12 + (period == DayPeriod.pm ? 12 : 0),
-        minute: minute,
-      );
+      BvTimeWheel.compose(hour, minute, period);
 
   TimeOfDay get _value => widget.value;
 
@@ -225,14 +150,6 @@ class _BvTimeWheelState extends State<BvTimeWheel> {
     if (BvTimeWheel.allows(_value, widget.after)) return;
     final next = BvTimeWheel.firstFrom(_value, widget.after);
     if (next != null && next != _value) widget.onChanged(next);
-  }
-
-  void _period(DayPeriod p) {
-    final t = _compose(_hourOf(_value), _value.minute, p);
-    final next = BvTimeWheel.allows(t, widget.after)
-        ? t
-        : BvTimeWheel.firstFrom(t, widget.after);
-    if (next != null) widget.onChanged(next);
   }
 
   /// A screen reader's swipe up or down: one row on.
@@ -320,23 +237,6 @@ class _BvTimeWheelState extends State<BvTimeWheel> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        BvSegmented<DayPeriod>(
-          segments: [
-            BvSegment(
-              value: DayPeriod.am,
-              label: l10n.timeWheelAm,
-              key: const Key('time-wheel-am'),
-            ),
-            BvSegment(
-              value: DayPeriod.pm,
-              label: l10n.timeWheelPm,
-              key: const Key('time-wheel-pm'),
-            ),
-          ],
-          value: period,
-          onChanged: _period,
-        ),
-        const SizedBox(height: BvTimeWheelSpec.padding),
         SizedBox(
           height: BvTimeWheelSpec.rowHeight * BvTimeWheelSpec.rows,
           child: Stack(

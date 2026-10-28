@@ -9307,6 +9307,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} + {count}'**
   String notebookShareForMore(String name, int count);
+
+  /// Review 104 N11: the time picker's mode switch, on the clock.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the wheels'**
+  String get timePickerToWheels;
+
+  /// Review 104 N11: the time picker's mode switch, on the wheels.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the clock'**
+  String get timePickerToClock;
 }
 
 class _AppLocalizationsDelegate

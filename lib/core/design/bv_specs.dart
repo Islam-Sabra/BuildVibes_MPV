@@ -569,3 +569,20 @@ abstract final class BvTimeWheelSpec {
   static const minuteStep = 5;
   static const padding = BvSpace.s16;
 }
+
+/// The clock face of the time picker (review 104 N11): a round dial of 12
+/// places, the chosen one on a filled circle with a hand from the middle.
+abstract final class BvTimePickerSpec {
+  static const dial = 256.0;
+
+  /// Each number's circle; the hand reaches its middle.
+  static const number = BvSpace.s40;
+  static const hand = BvStroke.medium;
+  static const centre = BvSpace.s8;
+
+  /// The places round the dial: 12 hours, or the minutes in 5s.
+  static const places = 12;
+
+  /// Between the time shown on top and the dial.
+  static const headGap = BvSpace.s12;
+}

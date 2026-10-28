@@ -1,17 +1,20 @@
-// Review 102 N1, N2: one time picker for the whole app. Scroll wheels for
-// the hour (1–12) and the minutes in 5-minute steps, AM / PM as one single
-// choice above, no clock face and nothing typed; times already passed today
-// greyed and never chosen. In English and Arabic.
+// Review 102 N1, N2: the time wheels, now the second mode of the one time
+// picker (review 104 N11, whose own test is bv_time_picker_test.dart).
+// Scroll wheels for the hour (1–12) and the minutes in 5-minute steps,
+// AM / PM as one single choice above, nothing typed; times already passed
+// today greyed and never chosen. In English and Arabic.
 import 'dart:io';
 
 import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_segmented.dart';
+import 'package:buildvibes/shared/widgets/bv_time_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_time_wheel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show SemanticsAction;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/pump_component.dart';
 
@@ -26,6 +29,10 @@ Future<List<TimeOfDay?>> _open(
   TimeOfDay? after,
   String? cancelLabel,
 }) async {
+  // The wheels, as last used.
+  SharedPreferences.setMockInitialValues({
+    timePickerModeKey: BvTimeMode.wheels.name,
+  });
   final picked = <TimeOfDay?>[];
   await pumpComponent(
     tester,
@@ -33,7 +40,7 @@ Future<List<TimeOfDay?>> _open(
       builder: (context) => TextButton(
         key: const Key('open'),
         onPressed: () async => picked.add(
-          await showBvTimeWheel(
+          await showBvTimePicker(
             context,
             initial: initial,
             title: 'When',
@@ -61,16 +68,20 @@ Future<void> _turn(WidgetTester tester, String wheel, int steps) async {
 }
 
 Future<void> _ok(WidgetTester tester) async {
-  await tester.tap(find.byKey(const Key('time-wheel-ok')));
+  await tester.tap(find.byKey(const Key('time-picker-ok')));
   await tester.pumpAndSettle();
 }
 
 void main() {
   testBoth('hours 1 to 12 and minutes in 5-minute steps; AM / PM one '
-      'choice above; no clock face, nothing typed', (tester, lang) async {
+      'choice above; no clock face in this mode, nothing typed', (
+    tester,
+    lang,
+  ) async {
     final l10n = lookupAppLocalizations(Locale(lang));
     await _open(tester, lang, initial: const TimeOfDay(hour: 9, minute: 5));
     expect(find.byType(TimePickerDialog), findsNothing);
+    expect(find.byKey(const Key('time-clock')), findsNothing);
     expect(find.byType(EditableText), findsNothing);
     // Every row of each wheel (a wheel builds only those near its middle).
     List<Object?> rows(String wheel) => [

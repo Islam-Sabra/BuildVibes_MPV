@@ -379,4 +379,9 @@ abstract final class BvIcons {
   // shapes).
   static const sortOldestCreated = IconData(0xe10a, fontFamily: _family);
   static const sortType = IconData(0xec5e, fontFamily: _family);
+
+  // Review 104 N11: the time picker's mode switch (Phosphor clock,
+  // list-numbers).
+  static const timeClock = scheduled;
+  static const timeWheels = IconData(0xe2f6, fontFamily: _family);
 }

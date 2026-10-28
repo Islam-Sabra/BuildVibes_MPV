@@ -26,6 +26,7 @@ import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_time_wheel.dart';
+import '../../shared/widgets/bv_time_picker.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_tap_target.dart';
@@ -121,7 +122,7 @@ Future<PickedDue?> _pickDue(
   if (picked == null || !context.mounted) return null;
   final pickedDay = picked.day;
   if (pickedDay == null) return (day: null, at: null);
-  final time = await showBvTimeWheel(
+  final time = await showBvTimePicker(
     context,
     initial: TimeOfDay.fromDateTime(at ?? nextFiveMinutesAfterAnHour(now)),
     title: reminder ? l10n.notebookRemindTime : l10n.daybookDueTimeHelp,
@@ -185,7 +186,7 @@ final pickPinTimeProvider = Provider<PickPinTime>((ref) => _pickPinTime);
 Future<TimeOfDay?> _pickPinTime(
   BuildContext context, {
   required TimeOfDay initial,
-}) => showBvTimeWheel(
+}) => showBvTimePicker(
   context,
   initial: initial,
   title: AppLocalizations.of(context).daybookPinTimeHelp,
@@ -225,14 +226,14 @@ Future<({DateTime start, DateTime? end})?> _pickStart(
   );
   final day = picked?.day;
   if (day == null || !context.mounted) return null;
-  final from = await showBvTimeWheel(
+  final from = await showBvTimePicker(
     context,
     initial: TimeOfDay.fromDateTime(start ?? nextFiveMinutesAfterAnHour(now)),
     title: l10n.daybookStartsAtHelp,
   );
   if (from == null || !context.mounted) return null;
   final startsAt = _on(day, from);
-  final to = await showBvTimeWheel(
+  final to = await showBvTimePicker(
     context,
     initial: TimeOfDay.fromDateTime(end ?? startsAt.add(_nextHour)),
     title: l10n.daybookEndsAtHelp,

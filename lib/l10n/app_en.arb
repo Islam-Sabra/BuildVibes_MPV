@@ -7931,5 +7931,13 @@
         "type": "int"
       }
     }
+  },
+  "timePickerToWheels": "Use the wheels",
+  "@timePickerToWheels": {
+    "description": "Review 104 N11: the time picker's mode switch, on the clock."
+  },
+  "timePickerToClock": "Use the clock",
+  "@timePickerToClock": {
+    "description": "Review 104 N11: the time picker's mode switch, on the wheels."
   }
 }

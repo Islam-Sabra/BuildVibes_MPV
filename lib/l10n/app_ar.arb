@@ -1534,5 +1534,7 @@
   "notebookTypeText": "نص",
   "notebookShareTeamRow": "الفريق: {team}",
   "notebookShareForRow": "إلى: {name}",
-  "notebookShareForMore": "{name} + {count}"
+  "notebookShareForMore": "{name} + {count}",
+  "timePickerToWheels": "استخدام العجلات",
+  "timePickerToClock": "استخدام الساعة"
 }
