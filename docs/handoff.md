@@ -2,6 +2,29 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 100 H1–H22 done on `claude/r100-redesign`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r100-redesign` (worktree `BuildVibes-r100r`), pushed. **Not merged, no database push, no deploy, nothing installed.** No new migration; the Copy mark is dropped (ruling 6).
+- **Done:** H1–H8 (bugs, each with a failing test first, EN and AR), H9–H21, and H22 (the shots). The commits: e5adaa0 (Share: H1, H2, H11, H13, H14, H20), 99f06fe (H3–H8), da497d3 (H9, H10, H12, H15–H19, H21), 7cdb212 (the shots).
+- **Checks:** analyze clean; 2,309 app tests; 3,012 SQL checks in 47 files; test_screens 446 pass after the re-shoot, the same on a second run.
+- **H22, the older shots:** before/after for each changed one in `docs/screens/r100/before-after/` (`<folder>_<shot>_before.png` / `_after.png`). Beyond the bar, rows and cards:
+  1. every new entry's top bar now has Discard (Part 0);
+  2. the location line reads "on the map", and the NBX4 panel's words have no GPS (H12);
+X
+  4. slice 10's two shots start a little lower on the page (the page's title row now shows above the list);
+  5. slice 8's shot is now Share → Space's preview (re-pointed).
+  Retired: NBW3, NBW4, NBW5 (tests and goldens).
+- **Found on the way (fixed, test first):** the Share preview drew a to-do as ☐, which the app's fonts lack (it showed as "≡"); it now draws the app's box, as BH5 does. The server still sends ☐ / ☑ in the shared text; the receiving app draws them in the same fonts, so the lead may want the server text checked.
+- **Also for the lead:**
+  1. Restore in Deleted items is the BV secondary button (bordered), larger than PG8's small grey pill (H19).
+  2. `share_note_to_person` cuts the text at 4,000 characters, while `dm_post` refuses past 3,000: a long entry sent to a person is refused (said in the preview, H1). Server-side; no migration made.
+  3. H17's Arabic words were changed before their test first ran, so that test never failed first.
+- **Housekeeping (founder, 28 Oct):** worktrees removed (clean, on GitHub): BuildVibes-build, -f106, -f108, -hold, -r100, -r95, -r99a, -r99b, -rejoin, -slice10, -store. Kept with uncommitted changes: -db29 (a review doc), -f100, -f100b, -f102, -f105, -phone (generated l10n files). `BuildVibes-f107` and `BuildVibes-icon` are unregistered but their folders are left on disk (Windows' path length stopped the delete). No branch deleted, on GitHub or locally.
+- **Next:** the lead's check. Then, with the founder's yes, the live steps in "Build of the redesign (27 Oct)".
+- **Who has which branch:** PC has `claude/r100-redesign` (worktree `BuildVibes-r100r`) and `slice2-app` (worktree `BuildVibes-slice1`). The local branch `r100-lf` can be deleted.
+
 ## PC update: 28 Oct 2026 — review 100's redesign built on `claude/r100-redesign`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
