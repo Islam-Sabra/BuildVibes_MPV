@@ -84,3 +84,23 @@ Five searches each wait 300 ms after typing: people, inside a Space, notebook, c
 1. Merge `claude/r101-search-wait` and `claude/r101-lists` into `slice2-app`.
 2. Run every check on the merged branch.
 3. Make one build on his phone. There's no database change.
+
+## Lead's note on K3 (28 Oct, 15:20): drawing got slower; investigate before the test week
+Build 701 (`slice2-app` at `25bc211`) is on the founder's phone. Its behaviour is right, and every shot is unchanged.
+
+**The emulator measure:**
+- **Building frames got much cheaper:** 0 slow frames instead of about 500.
+- **Opening got faster.**
+- **Drawing got slower:** about half the frames went over budget while flinging (1,903 of 3,900), against about 10% before (286 of 2,689). The average draw time is 16 ms, against 10.9 ms.
+- The emulator draws through a translation layer, so this isn't proof. But it's a real warning.
+
+**L1. Find the drawing cost** (`superpowers:systematic-debugging`, PC):
+1. **Measure on a real phone, without wiping data.** Build a **profile** build signed with the **upload key**, the same signature as the release, so it installs over the release and keeps the data. Measure the busy seed on the local stack, or the founder's own Spaces, then put release 701 back.
+   - If a second Android phone is available, use that instead.
+2. **Open DevTools on the raster thread** for a few slow frames, and name what costs:
+   - the cards' shadows (`BoxShadow` blur);
+   - a `saveLayer` (an opacity, a clip with antialiasing, or a `ShaderMask`);
+   - the tilted ink stamps;
+   - or the custom paint order drawing rows outside the screen (check that `remainingPaintExtent` and the cache area aren't drawn).
+3. **Fix the cause.** The target: slow drawing frames **no worse than on `slice2-app` before review 101**, on the same device and seed. The shots stay unchanged.
+4. **If that isn't met before 10 January:** the Daybook goes back to the old way of building rows. The notebook keeps its lazy list, which has no paper clip. The lead decides then.
