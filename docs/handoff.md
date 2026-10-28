@@ -2,6 +2,21 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 28 Oct 2026 — review 102 P1 on `claude/r102-notebook` (from 728bece); stopped
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Done (the lead's check, 28 Oct 16:10, only P1):** on a one-line entry the swipe buttons overflowed by 2 px. A round button with its word needs 48 + 4 + 16 = 68 in English; the one-line card is 66 (in Arabic the line is 18 and the card 72, so it fitted). The button and its word are now made smaller only on a card shorter than they are (`BvSwipeCard`, a `FittedBox` that only scales down); every taller card is laid out as before.
+- **Test first:** `review 102 P1: on a one-line entry the round buttons and their words fit inside the card, both ways` (`redesign_swipe_test.dart`). English failed before the fix ("A RenderFlex overflowed by 2.0 pixels"); Arabic passed before and after (a guard).
+- **Checks (cloud):** `flutter analyze`: no issues. `flutter test`: 2,390 pass, 1 fails (photo_privacy H1, root-only in the cloud). Screenshots: PC later. No shot accepted, nothing merged, no database push, no deploy, nothing installed.
+- **The PC still has to:**
+  1. accept the six shots changed by N4's label (BH2, BH4, BH12, EN and AR), as the lead approved;
+  2. run `flutter test test_screens` without updating; only a one-line card's swipe state may change (P1);
+  3. with the founder's yes, merge `claude/r102-notebook` into `slice2-app` and run every check;
+  4. `supabase db push` with migration 49 as the only file listed, then the read-only check (note count unchanged, `day_position` null everywhere, `arrange_day` refuses signed out);
+  5. one build on his phone, plus a Desktop copy.
+- **Who has which branch:** this cloud session had `claude/r102-notebook` (P1 done, pushed). PC: worktree `BuildVibes-r102`.
+
 ## PC update: 28 Oct 2026 — review 102 (N1–N5) on `claude/r102-notebook`; for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
