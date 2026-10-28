@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
+import '../../core/l10n/locale_controller.dart' show sharedPreferencesProvider;
 import '../../core/routing/app_routes.dart';
 import '../../data/models/notebook_page.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -50,6 +51,21 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   final _filterCard = BvLinePopover();
   final _filterKey = GlobalKey();
 
+  /// The pages list's sort (review 102 N5), kept on the phone.
+  late var _sort = PageSort.of(
+    ref.read(sharedPreferencesProvider).getString(pageSortKey),
+  );
+
+  void _setSort(PageSort sort) {
+    setState(() => _sort = sort);
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (sort == PageSort.activity) {
+      unawaited(prefs.remove(pageSortKey));
+    } else {
+      unawaited(prefs.setString(pageSortKey, sort.json));
+    }
+  }
+
   void _openFilter(NotebookData data, {bool pages = false}) {
     if (_filterCard.isOpen) return _filterCard.hide();
     showNoteFilter(
@@ -60,6 +76,9 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       filter: _filter,
       pages: pages,
       onChanged: (f) => setState(() => _filter = f),
+      sorts: PageSort.values,
+      sort: _sort,
+      onSort: (s) => _setSort(s as PageSort),
     );
   }
 
@@ -198,7 +217,13 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     // A page merged or deleted elsewhere is no longer selected.
     _selected.removeWhere((id) => data.page(id) == null);
     final selecting = _selected.isNotEmpty;
-    final top = data.children(null);
+    final top = data.children(null)
+      ..sort(
+        _sort.order(
+          Localizations.localeOf(context).languageCode,
+          (p) => pageName(l10n, p),
+        ),
+      );
     final pinned = [
       for (final p in top)
         if (p.pinned) p,
@@ -293,60 +318,73 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                   padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
                   child: EmptyNote(l10n.notebookCouldntLoad),
                 )
-              : ListView(
-                  key: const Key('notebook-pages'),
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                    BvSpace.gutter,
-                    BvNotebookPagesSpec.actionTop,
-                    BvSpace.gutter,
-                    BvSpace.s32,
-                  ),
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (pinned.isNotEmpty) ...[
-                      NotebookLabel(l10n.notebookPinnedLabel),
-                      for (final p in pinned) row(p),
-                    ],
-                    if (others.isNotEmpty) ...[
-                      NotebookLabel(l10n.notebookPagesLabel),
-                      for (final p in others) row(p),
-                    ],
-                    if (top.isEmpty && notebook.hasValue)
-                      Padding(
-                        key: const Key('notebook-empty'),
-                        padding: const EdgeInsetsDirectional.symmetric(
-                          vertical: BvSpace.s24,
+                    if (_sort != PageSort.activity)
+                      NoteSortChip(
+                        sort: _sort,
+                        onClear: () => _setSort(PageSort.activity),
+                      ),
+                    Expanded(
+                      child: ListView(
+                        key: const Key('notebook-pages'),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          BvSpace.gutter,
+                          BvNotebookPagesSpec.actionTop,
+                          BvSpace.gutter,
+                          BvSpace.s32,
                         ),
-                        child: Column(
-                          spacing: BvSpace.s8,
-                          children: [
-                            const Icon(
-                              BvIcons.notebook,
-                              size: BvNotebookSpec.emptyIcon,
-                              color: BvColors.iconSecondary,
-                            ),
-                            Text(
-                              l10n.notebookEmptyTitle,
-                              textAlign: TextAlign.center,
-                              style: type.titleMd.copyWith(
-                                color: BvColors.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              l10n.notebookEmptyBody,
-                              textAlign: TextAlign.center,
-                              style: type.bodyMd.copyWith(
-                                color: BvColors.textSecondary,
-                              ),
-                            ),
+                        children: [
+                          if (pinned.isNotEmpty) ...[
+                            NotebookLabel(l10n.notebookPinnedLabel),
+                            for (final p in pinned) row(p),
                           ],
-                        ),
+                          if (others.isNotEmpty) ...[
+                            NotebookLabel(l10n.notebookPagesLabel),
+                            for (final p in others) row(p),
+                          ],
+                          if (top.isEmpty && notebook.hasValue)
+                            Padding(
+                              key: const Key('notebook-empty'),
+                              padding: const EdgeInsetsDirectional.symmetric(
+                                vertical: BvSpace.s24,
+                              ),
+                              child: Column(
+                                spacing: BvSpace.s8,
+                                children: [
+                                  const Icon(
+                                    BvIcons.notebook,
+                                    size: BvNotebookSpec.emptyIcon,
+                                    color: BvColors.iconSecondary,
+                                  ),
+                                  Text(
+                                    l10n.notebookEmptyTitle,
+                                    textAlign: TextAlign.center,
+                                    style: type.titleMd.copyWith(
+                                      color: BvColors.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    l10n.notebookEmptyBody,
+                                    textAlign: TextAlign.center,
+                                    style: type.bodyMd.copyWith(
+                                      color: BvColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (!selecting) NewPageRow(onTap: _newPage),
+                          // Review 99B B3: Deleted items, at the list's end.
+                          if (!selecting)
+                            DeletedItemsRow(
+                              onTap: () =>
+                                  context.push(AppRoutes.notebookDeleted),
+                            ),
+                        ],
                       ),
-                    if (!selecting) NewPageRow(onTap: _newPage),
-                    // Review 99B B3: Deleted items, at the list's end.
-                    if (!selecting)
-                      DeletedItemsRow(
-                        onTap: () => context.push(AppRoutes.notebookDeleted),
-                      ),
+                    ),
                   ],
                 ),
           bottomNavigationBar: selecting

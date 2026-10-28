@@ -9175,6 +9175,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PM'**
   String get timeWheelPm;
+
+  /// Review 102 N5: the Filter card's third part, after SHOW and IN.
+  ///
+  /// In en, this message translates to:
+  /// **'SORT'**
+  String get notebookSortLabel;
+
+  /// Review 102 N5: the pages list's sort, the default.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest activity'**
+  String get notebookSortActivity;
+
+  /// Review 102 N5: the pages list's sort by name, each alphabet together.
+  ///
+  /// In en, this message translates to:
+  /// **'Name A–Z'**
+  String get notebookSortName;
+
+  /// Review 102 N5: the pages list's sort by when each page was made.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest created'**
+  String get notebookSortCreated;
+
+  /// Review 102 N5: a page's sort, the default.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get notebookSortNewest;
+
+  /// Review 102 N5: a page's sort, oldest entries at the top.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get notebookSortOldest;
+
+  /// Review 102 N5: for screen readers, the sort chip's ✕.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the usual order'**
+  String get notebookSortOff;
 }
 
 class _AppLocalizationsDelegate

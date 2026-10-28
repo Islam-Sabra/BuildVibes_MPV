@@ -5453,4 +5453,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeWheelPm => 'PM';
+
+  @override
+  String get notebookSortLabel => 'SORT';
+
+  @override
+  String get notebookSortActivity => 'Latest activity';
+
+  @override
+  String get notebookSortName => 'Name A–Z';
+
+  @override
+  String get notebookSortCreated => 'Newest created';
+
+  @override
+  String get notebookSortNewest => 'Newest first';
+
+  @override
+  String get notebookSortOldest => 'Oldest first';
+
+  @override
+  String get notebookSortOff => 'Back to the usual order';
 }

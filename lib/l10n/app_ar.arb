@@ -1512,5 +1512,12 @@
   "timeWheelHour": "الساعة",
   "timeWheelMinutes": "الدقائق",
   "timeWheelAm": "ص",
-  "timeWheelPm": "م"
+  "timeWheelPm": "م",
+  "notebookSortLabel": "ترتيب",
+  "notebookSortActivity": "آخر نشاط",
+  "notebookSortName": "الاسم أ–ي",
+  "notebookSortCreated": "الأحدث إنشاءً",
+  "notebookSortNewest": "الأحدث أولًا",
+  "notebookSortOldest": "الأقدم أولًا",
+  "notebookSortOff": "العودة إلى الترتيب المعتاد"
 }

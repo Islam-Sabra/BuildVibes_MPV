@@ -1168,6 +1168,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   final _filterCard = BvLinePopover();
   final _filterKey = GlobalKey();
 
+  /// This page's sort (review 102 N5), kept on the phone for it alone; an
+  /// archive shows newest first.
+  late var _sort = widget.pageId == null || widget.archived
+      ? EntrySort.newest
+      : EntrySort.of(
+          ref
+              .read(sharedPreferencesProvider)
+              .getString(entrySortKey(widget.pageId!)),
+        );
+
+  void _setSort(EntrySort sort) {
+    final page = widget.pageId;
+    if (page == null) return;
+    setState(() => _sort = sort);
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (sort == EntrySort.newest) {
+      unawaited(prefs.remove(entrySortKey(page)));
+    } else {
+      unawaited(prefs.setString(entrySortKey(page), sort.json));
+    }
+  }
+
   void _openFilter(NotebookData data, {bool pages = false}) {
     if (_filterCard.isOpen) return _filterCard.hide();
     showNoteFilter(
@@ -1178,6 +1200,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       filter: _filter,
       pages: pages,
       onChanged: (f) => setState(() => _filter = f),
+      sorts: widget.archived ? const [] : EntrySort.values,
+      sort: _sort,
+      onSort: (s) => _setSort(s as EntrySort),
     );
   }
 
@@ -1681,11 +1706,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final selecting = _selected.isNotEmpty;
     // BH12: lines of the entry being written are selected.
     final picking = writingNow && _linesPicked > 0;
-    final entries = page == null
+    final kept = page == null
         ? const <Note>[]
         : widget.archived
         ? data.archived(page.id)
         : data.entries(page.id);
+    // Newest first as kept, or oldest first (review 102 N5).
+    final entries = _sort == EntrySort.oldest ? kept.reversed.toList() : kept;
     final chosen = [
       for (final n in entries)
         if (_selected.contains(n.id)) n,
@@ -2055,7 +2082,20 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       if (page != null && _filter.on && !widget.archived) {
         return _filtered(data);
       }
-      if (page != null) return BvSwipeGroup(child: browse(page));
+      if (page != null) {
+        final list = BvSwipeGroup(child: browse(page));
+        if (_sort == EntrySort.newest) return list;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            NoteSortChip(
+              sort: _sort,
+              onClear: () => _setSort(EntrySort.newest),
+            ),
+            Expanded(child: list),
+          ],
+        );
+      }
       if (notebook.isLoading) return const SizedBox.shrink();
       return Padding(
         padding: const EdgeInsetsDirectional.all(BvSpace.gutter),

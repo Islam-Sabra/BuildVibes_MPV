@@ -7805,5 +7805,33 @@
   "timeWheelPm": "PM",
   "@timeWheelPm": {
     "description": "Review 102 N1: after noon, in the time picker's single choice above the wheels."
+  },
+  "notebookSortLabel": "SORT",
+  "@notebookSortLabel": {
+    "description": "Review 102 N5: the Filter card's third part, after SHOW and IN."
+  },
+  "notebookSortActivity": "Latest activity",
+  "@notebookSortActivity": {
+    "description": "Review 102 N5: the pages list's sort, the default."
+  },
+  "notebookSortName": "Name A–Z",
+  "@notebookSortName": {
+    "description": "Review 102 N5: the pages list's sort by name, each alphabet together."
+  },
+  "notebookSortCreated": "Newest created",
+  "@notebookSortCreated": {
+    "description": "Review 102 N5: the pages list's sort by when each page was made."
+  },
+  "notebookSortNewest": "Newest first",
+  "@notebookSortNewest": {
+    "description": "Review 102 N5: a page's sort, the default."
+  },
+  "notebookSortOldest": "Oldest first",
+  "@notebookSortOldest": {
+    "description": "Review 102 N5: a page's sort, oldest entries at the top."
+  },
+  "notebookSortOff": "Back to the usual order",
+  "@notebookSortOff": {
+    "description": "Review 102 N5: for screen readers, the sort chip's ✕."
   }
 }
