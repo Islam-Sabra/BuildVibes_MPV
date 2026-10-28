@@ -636,3 +636,50 @@ Each step: tests first, in EN and AR.
    - the purge function and its secret;
    - the cron job;
    - one build.
+
+## Lead's second check of `claude/r100-redesign` (28 Oct, 07:45)
+**Branch:** `claude/r100-redesign` at `73060f2`.
+**Verdict:** approved, after J1–J4. They are small, and J1–J3 are in migration 48, which isn't live yet.
+
+**What I checked:**
+- H1–H22 as reported.
+- **Code spot checks:**
+  - **H7:** the swipe measures where the finger went down (`DragStartBehavior.down`) and ignores the edges;
+  - **H5:** no app call to the permanent `delete_note` is left;
+  - **H1:** Share catches the refusal where it is sent.
+- **Shot runs:** 446 shots pass twice without updating.
+- **Accepted:** the extra changes in the older shots (Discard, "on the map", the block list in NBX2, slice 10 sitting a little lower).
+
+### Fixes before going live
+- **J1. Messages are limited to 3,000 characters on both sides.**
+  - In migration 48, `share_note_to_person` cuts at **3,000**, the same as `dm_post`, instead of 4,000.
+  - The preview shows "Too long for a message: share it to a Space, or shorten it." when the entry is longer, and Send is off.
+  - A pgTAP test covers it.
+- **J2. Shared text uses characters every phone's font has.**
+  - The fonts don't have ☐ and ☑, so `note_share_text` writes a to-do as `[ ]` and `[x]`, in every share kind.
+  - A Space checklist still becomes real checklist points, as now.
+  - A pgTAP test covers it, plus a widget test that the received message shows no "≡".
+- **J3 (G1 from review 99).** Export the page's `named` with the pages, so "My notes" doesn't come out untitled. A pgTAP test covers it.
+- **J4. Restore in Deleted items is a quiet text button with an icon** ("↺ Restore"), as PG8 draws it. It isn't the boxed secondary button, which goes against the founder's "words with an icon, not boxes" (BH5).
+
+### Worktrees
+- **Delete the two half-removed folders,** `BuildVibes-f107` and `-icon`, which are no longer registered. Use the long-path form, e.g. `cmd /c rmdir /s /q "\\?\D:\Projects\00 AECOX Technology\BuildVibes-f107"`.
+- **`-f100`, `-f100b`, `-f102`, `-f105`, `-phone`:** the only changes are generated files (`lib/l10n/gen`). Throw those changes away (`git checkout -- lib/l10n/gen`), then `git worktree remove`.
+- **`-db29`:** don't remove it yet. Show the lead the diff of its edited review doc first.
+- **Delete the local branch `r100-lf`.**
+
+### Then, with the founder's yes, the live steps
+1. Merge `claude/r100-redesign` into `slice2-app`. Run analyze, test, `supabase test db` and `test_screens` (not updating) on the merged branch.
+2. **Note before the push:** the count of notes, and of notebook pages.
+3. `supabase db push` with **migration 48 as the only file listed**. Copy `supabase/.temp/` whole with `cp -r`, and keep `| tail` off the push.
+4. **Read-only check:**
+   - the counts are the same as before;
+   - no note has `deleted_at` or `archived_at` set yet;
+   - every new function is `security definer` with an empty `search_path`;
+   - signed out, `search_notebook` and `my_deleted_items` refuse.
+5. Install Deno, then `deno check supabase/functions/notebook-purge/index.ts`.
+6. Create the secret `NOTEBOOK_PURGE_SECRET`, in Supabase's function secrets and in Vault as `notebook_purge_secret`. It is never in the repo or a chat.
+7. Deploy `notebook-purge`, then run `supabase/ops/notebook_purge_cron.sql`. Check the cron job is listed.
+8. Call the function once by hand with the secret. It should return a purge of 0.
+9. Build one release APK from `slice2-app` and install it on the founder's phone (BuildVibes only). Put a copy for testers on the Desktop.
+10. Report each step with its result, update handoff and progress, push, and stop.
