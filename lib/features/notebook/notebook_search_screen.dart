@@ -36,8 +36,6 @@ class NotebookSearchScreen extends ConsumerStatefulWidget {
 }
 
 class _NotebookSearchScreenState extends ConsumerState<NotebookSearchScreen> {
-  static const _wait = Duration(milliseconds: 300);
-
   final _query = TextEditingController();
   Timer? _timer;
   List<NotebookHit>? _hits;
@@ -55,7 +53,7 @@ class _NotebookSearchScreenState extends ConsumerState<NotebookSearchScreen> {
 
   void _changed(String text) {
     _timer?.cancel();
-    _timer = Timer(_wait, () => unawaited(_search(text.trim())));
+    _timer = Timer(BvMotion.searchWait, () => unawaited(_search(text.trim())));
   }
 
   Future<void> _search(String q) async {

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
-import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 import '../../data/models/people.dart';
 import '../../data/repositories/profile_repository.dart';
@@ -75,7 +74,7 @@ class _CompanySearchState extends ConsumerState<_CompanySearch> {
   void _onChanged(String value) {
     setState(() {});
     _debounce?.cancel();
-    _debounce = Timer(BvAuthSpec.searchDebounce, () => _search(value));
+    _debounce = Timer(BvMotion.searchWait, () => _search(value));
   }
 
   Future<void> _search(String value) async {

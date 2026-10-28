@@ -1,6 +1,7 @@
 // F105: every way into a chat gives the same Back. From a Space thread,
 // Back goes to that Space's Chat tab, then where the person came from;
 // from a direct message, to Messages, then where they came from.
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/activity.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/dm.dart';
@@ -304,7 +305,7 @@ void main() {
       ),
       'podium',
     );
-    await tester.pump(SpaceSearchScreen.pause);
+    await tester.pump(BvMotion.searchWait);
     await tester.pumpAndSettle();
     await _tapKey(tester, 'search-message-msg-1');
     expect(

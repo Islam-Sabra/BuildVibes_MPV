@@ -2,6 +2,27 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 101: Part B done on `claude/r101-search-wait`; Part A stopped on `claude/r101-lists`; for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Nothing merged, nothing live, nothing installed.** Both branches are from `slice2-app` 510b834 and pushed.
+- **Part B, done (`claude/r101-search-wait`, worktree `BuildVibes-r101b`):**
+  - one token, `BvMotion.searchWait` (300 ms), used by all five searches (people, inside a Space, notebook, company picker, add project);
+  - gone: `PeopleSearchScreen.pause`, `SpaceSearchScreen.pause`, the notebook's `_wait`, `BvAuthSpec.searchDebounce`;
+  - three tests that pumped `SpaceSearchScreen.pause` now pump the token;
+  - the guard test (`test/core/design/search_wait_test.dart`) failed first on all five files and `bv_specs.dart`, and passes now;
+  - commits 4070d20 (token and guard), 4f43d5f (the five searches).
+  - Checks: `flutter analyze` no issues; `flutter test` 2,319 pass; `flutter test test_screens` 446 pass, not updating, no shot changed.
+- **Part A, stopped (`claude/r101-lists`, worktree `BuildVibes-r101`):**
+  - The Daybook builds lazily, and the new 500-post test failed first and passes now.
+  - But 47 existing work tests fail (they read cards off screen, or in tree order). 60 shots change by about 30 pixels: the tip of a card's paper clip is now covered by the card above.
+  - The notebook page and the seed are not started.
+  - The full write-up and the lead's two options are in that branch's handoff (commit 20b13fc).
+  - Checks there: `flutter analyze` no issues; `flutter test` 2,273 pass, 47 fail; `flutter test test_screens` 386 pass, 60 fail (not updated).
+- **Next:** the lead's check of Part B, and the lead's choice for Part A.
+- **Who has which branch:** PC has `claude/r101-search-wait` (worktree `BuildVibes-r101b`), `claude/r101-lists` (worktree `BuildVibes-r101`), `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r100-redesign` (worktree `BuildVibes-r100r`, merged).
+
 ## PC update: 28 Oct 2026 — review 100 live (migration 48, notebook-purge, build 686 on the phone)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

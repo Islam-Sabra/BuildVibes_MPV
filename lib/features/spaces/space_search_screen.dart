@@ -37,9 +37,6 @@ class SpaceSearchScreen extends ConsumerStatefulWidget {
 
   final String spaceId;
 
-  /// The pause after the last key before it searches.
-  static const pause = Duration(milliseconds: 300);
-
   @override
   ConsumerState<SpaceSearchScreen> createState() => _SpaceSearchScreenState();
 }
@@ -69,7 +66,7 @@ class _SpaceSearchScreenState extends ConsumerState<SpaceSearchScreen> {
       setState(() => _query = '');
       return;
     }
-    _wait = Timer(SpaceSearchScreen.pause, () {
+    _wait = Timer(BvMotion.searchWait, () {
       if (mounted) setState(() => _query = q);
     });
     // The ✕ shows as soon as there is text.

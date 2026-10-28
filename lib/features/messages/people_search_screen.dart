@@ -61,9 +61,6 @@ class PeopleSearchScreen extends ConsumerStatefulWidget {
 
   final PeopleSearchFor purpose;
 
-  /// A pause in typing before the search goes.
-  static const pause = Duration(milliseconds: 300);
-
   @override
   ConsumerState<PeopleSearchScreen> createState() => _PeopleSearchScreenState();
 }
@@ -87,7 +84,7 @@ class _PeopleSearchScreenState extends ConsumerState<PeopleSearchScreen> {
       setState(() => _query = '');
       return;
     }
-    _wait = Timer(PeopleSearchScreen.pause, () {
+    _wait = Timer(BvMotion.searchWait, () {
       if (mounted) setState(() => _query = q);
     });
   }

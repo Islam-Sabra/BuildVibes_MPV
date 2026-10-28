@@ -720,6 +720,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Deno 2.9.8 installed (winget); `deno check` on `notebook-purge` clean. `NOTEBOOK_PURGE_SECRET` set in the function secrets and Vault's `notebook_purge_secret` (the two match by SHA-256; the value is in neither the repo nor the chat, and its local copies were deleted). `notebook-purge` deployed (v1, verify_jwt off); `notebook_purge_cron.sql` run with the project's ref: cron job `notebook-purge`, 03:15 UTC nightly, active. Called once by hand: "purged 0, files 1, waiting 0" (one stored notebook file that no entry used, a day old at least, removed as designed; notes, pages and `note_files` rows unchanged).
   - **Build 686** (15b7932, release, signed with the upload key) on the Desktop as `BuildVibes-686.apk`. Installed on the founder's Xiaomi (versionCode 686).
   - Worktrees -db29 (line endings only) and the throwaway push worktree removed.
+- **28 Oct (PC): review 101** (founder away; nothing merged, live or installed):
+  - **Part B done** on `claude/r101-search-wait`: one search-wait token, `BvMotion.searchWait`, in all five searches, the local 300s gone, a guard test (failed first). Analyze clean; 2,319 app tests; 446 shots, not updating.
+  - **Part A stopped** on `claude/r101-lists`: the Daybook built lazily (its 500-post test failed first, passes now), but 47 existing work tests read cards off screen or in tree order, and 60 shots change by a paper clip's tip covered by the card above. The notebook page and the seed are not started; it waits for the lead's choice.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

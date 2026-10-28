@@ -58,7 +58,7 @@ class _AddProjectScreenState extends ConsumerState<AddProjectScreen> {
 
   void _onChanged(String value) {
     _debounce?.cancel();
-    _debounce = Timer(BvAuthSpec.searchDebounce, () => _search(value));
+    _debounce = Timer(BvMotion.searchWait, () => _search(value));
   }
 
   Future<void> _search(String value) async {
