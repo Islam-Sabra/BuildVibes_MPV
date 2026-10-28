@@ -52,23 +52,22 @@ class _LazyRowState extends State<LazyRow> {
   Widget build(BuildContext context) => widget.child;
 }
 
-/// Scrolls [controller]'s list until row [index] is built, a jump a frame:
-/// each jump is worked out from how far apart the built rows are. Rows run
-/// the way the list scrolls (a higher index further on), or, with [up],
-/// against it (rows growing up from a centre: a higher index at a lower
-/// offset). False when the row can't be reached.
+/// Scrolls the list at [position] until row [index] is built, a jump a
+/// frame: each jump is worked out from how far apart the built rows are.
+/// Rows run the way the list scrolls (a higher index further on), or, with
+/// [up], against it (rows growing up from a centre: a higher index at a
+/// lower offset). False when the row can't be reached.
 Future<bool> scrollUntilBuilt(
-  ScrollController controller,
+  ScrollPosition position,
   Map<int, BuildContext> built,
   int index, {
   bool up = false,
 }) async {
   for (var i = 0; i < 60; i++) {
     if (built.containsKey(index)) return true;
-    if (!controller.hasClients || built.isEmpty) return false;
+    if (!position.hasContentDimensions || built.isEmpty) return false;
     final first = built.keys.reduce(math.min);
     final last = built.keys.reduce(math.max);
-    final position = controller.position;
     // What is built covers the screen and the margin both sides.
     final perRow =
         (position.viewportDimension + 2 * _margin) / (last - first + 1);
@@ -79,7 +78,7 @@ Future<bool> scrollUntilBuilt(
       position.maxScrollExtent,
     );
     if (to == position.pixels) return false;
-    controller.jumpTo(to);
+    position.jumpTo(to);
     await WidgetsBinding.instance.endOfFrame;
   }
   return built.containsKey(index);

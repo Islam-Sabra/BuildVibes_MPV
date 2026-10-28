@@ -436,7 +436,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Takes the page to [postId]'s card until it is built (review 101 A).
   Future<void> _buildCard(String postId) async {
     final row = _cardRow[postId];
-    if (row != null) await scrollUntilBuilt(_scroll, _built, row, up: true);
+    if (row != null && _scroll.hasClients) {
+      await scrollUntilBuilt(_scroll.position, _built, row, up: true);
+    }
   }
 
   /// Highlights [postId]'s card (F20), for as long as its ring shows.
@@ -683,7 +685,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       orElse: () => _days.first,
     );
     final row = _dayRow[target];
-    if (row != null) await scrollUntilBuilt(_scroll, _built, row, up: true);
+    if (row != null && _scroll.hasClients) {
+      await scrollUntilBuilt(_scroll.position, _built, row, up: true);
+    }
     if (!mounted) return;
     final context = _dayKeys[target]?.currentContext;
     if (context == null || !context.mounted) return;
