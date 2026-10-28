@@ -11,7 +11,7 @@
   - dates and times in Spaces (due, scheduled activity, pin until).
 - AM / PM stays above the time, as one single choice (rule 6). In Arabic it reads «ص / م».
 
-## N2. Time by scroll wheels, never typed
+## N2. Time by scroll wheels, never typed (**corrected by review 104 N11: the clock face stays, and the wheels replace only the typed mode**)
 - The clock face, and its switch to typed boxes, both go. Typing allowed impossible times ("111", "75").
 - **One control:** scroll wheels for the **hour (1–12)** and the **minutes, in 5-minute steps** (00, 05, … 55), with AM / PM (N1) above. Only valid times can be chosen.
 - **The wheels:**
@@ -46,7 +46,7 @@
 - The selection bar's label (entries and lines) becomes **"Move to…" / «نقل إلى…»**, with the same icon.
 - The page picker's title becomes "Move to…" too.
 
-## N5. Sorting, inside the Filter card
+## N5. Sorting, inside the Filter card (**completed by review 104 N7**)
 - **The Filter card gets a third part, SORT** (one single choice):
   - **on the pages list:** Latest activity (default) · Name A–Z · Newest created. **Pinned pages always stay on top.**
   - **inside a page:** Newest first (default) · Oldest first. N3's hand order is kept inside each day in both directions.
