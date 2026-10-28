@@ -714,6 +714,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Found: 7cdb212 had stored 56 shots with their `\r` bytes stripped, so test_screens could not read them. Shot again: the 44 older ones match their before/after copies pixel for pixel; the 12 r100 ones carry J4.
   - Checks: `flutter analyze` no issues; `flutter test` 2,316 pass; `supabase test db` 3,019 pass in 47 files; `flutter test test_screens` 446 pass, not updating.
   - Housekeeping: worktrees -f100, -f100b, -f102, -f105, -phone removed after `git checkout -- lib/l10n/gen`; folders -f107, -icon, -f102 and -phone deleted with the long-path form; local branch `r100-lf` deleted; -db29 kept (its diff is line endings only).
+- **28 Oct (PC, founder's yes): review 100 live, steps 1-9 of the lead's second check.**
+  - `claude/r100-redesign` merged into `slice2-app` (15b7932). On the merge: analyze clean; 2,316 app tests; 3,019 SQL checks in 47 files; test_screens 446 pass, not updating.
+  - **Migration 48 live** (`20261109120000_notebook_deleted_share.sql`, the only file in the dry run and the push; the same file as 624470d). The pg-delta certificate warning after it, as for migration 46. Read-only check: 10 notes and 4 notebook pages before and after; no note deleted or archived; all 24 new functions `security definer` with `search_path=""`; signed out, `search_notebook` and `my_deleted_items` refuse (401, 42501).
+  - Deno 2.9.8 installed (winget); `deno check` on `notebook-purge` clean. `NOTEBOOK_PURGE_SECRET` set in the function secrets and Vault's `notebook_purge_secret` (the two match by SHA-256; the value is in neither the repo nor the chat, and its local copies were deleted). `notebook-purge` deployed (v1, verify_jwt off); `notebook_purge_cron.sql` run with the project's ref: cron job `notebook-purge`, 03:15 UTC nightly, active. Called once by hand: "purged 0, files 1, waiting 0" (one stored notebook file that no entry used, a day old at least, removed as designed; notes, pages and `note_files` rows unchanged).
+  - **Build 686** (15b7932, release, signed with the upload key) on the Desktop as `BuildVibes-686.apk`. **Not yet on the founder's phone:** it wasn't on the network for adb.
+  - Worktrees -db29 (line endings only) and the throwaway push worktree removed.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
