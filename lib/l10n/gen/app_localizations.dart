@@ -8006,12 +8006,6 @@ abstract class AppLocalizations {
   /// **'Remind me at…'**
   String get notebookRemindTime;
 
-  /// F107 B5: no time picked, the morning.
-  ///
-  /// In en, this message translates to:
-  /// **'In the morning'**
-  String get notebookRemindMorning;
-
   /// F107 B15.
   ///
   /// In en, this message translates to:
@@ -9157,6 +9151,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too long for a message: share it to a Space, or shorten it.'**
   String get notebookShareTooLong;
+
+  /// Review 102 N2: the time picker's hour wheel, for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Hour'**
+  String get timeWheelHour;
+
+  /// Review 102 N2: the time picker's minutes wheel, for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get timeWheelMinutes;
+
+  /// Review 102 N1: before noon, in the time picker's single choice above the wheels.
+  ///
+  /// In en, this message translates to:
+  /// **'AM'**
+  String get timeWheelAm;
+
+  /// Review 102 N1: after noon, in the time picker's single choice above the wheels.
+  ///
+  /// In en, this message translates to:
+  /// **'PM'**
+  String get timeWheelPm;
 }
 
 class _AppLocalizationsDelegate

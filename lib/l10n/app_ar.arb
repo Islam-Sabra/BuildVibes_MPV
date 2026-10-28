@@ -1318,7 +1318,6 @@
   "notebookPhotoCount": "{count, plural, =1{صورة واحدة} =2{صورتان} few{{count} صور} other{{count} صورة}}",
   "notebookFileCount": "{count, plural, =1{ملف واحد} =2{ملفان} few{{count} ملفات} other{{count} ملف}}",
   "notebookRemindTime": "ذكّرني الساعة…",
-  "notebookRemindMorning": "في الصباح",
   "notebookCouldntKeep": "تعذّر حفظ هذه التدوينة، وعادت مسودة.",
   "notebookReminderGone": "مضى وقت التذكير، فأُزيل.",
   "notebookPhotosStay": "بقيت الصور في دفترك: تعذّرت إضافتها.",
@@ -1509,5 +1508,9 @@
   "notebookChangedElsewhere": "تغيّرت على هاتف آخر",
   "notebookHoldToRecord": "اضغط مطولًا لتسجيل ملاحظة صوتية",
   "notebookVoiceTitle": "تسجيل صوتي، {length}",
-  "notebookShareTooLong": "أطول من أن تُرسل في رسالة: شاركها في مساحة، أو اختصرها."
+  "notebookShareTooLong": "أطول من أن تُرسل في رسالة: شاركها في مساحة، أو اختصرها.",
+  "timeWheelHour": "الساعة",
+  "timeWheelMinutes": "الدقائق",
+  "timeWheelAm": "ص",
+  "timeWheelPm": "م"
 }

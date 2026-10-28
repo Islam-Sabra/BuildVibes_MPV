@@ -25,6 +25,7 @@ import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
+import '../../shared/widgets/bv_time_wheel.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_tap_target.dart';
@@ -86,9 +87,10 @@ typedef PickDue =
 final pickDueProvider = Provider<PickDue>((ref) => _pickDue);
 
 /// A note's Remind me (F107 B5): the same day picker, then the time in
-/// the reminder's own words ("Remind me at…"; no time is the morning),
-/// starting a quarter of an hour on so OK at once isn't already gone. A
-/// stand-in for [pickDueProvider] (tests) stands in here too.
+/// the reminder's own words ("Remind me at…"). Review 102 N1, N2: a time
+/// must be chosen (Cancel cancels), starting at the next 5-minute mark an
+/// hour on, and one already passed today is greyed. A stand-in for
+/// [pickDueProvider] (tests) stands in here too.
 final pickReminderProvider = Provider<PickDue>((ref) {
   final due = ref.watch(pickDueProvider);
   return identical(due, _pickDue) ? _pickReminder : due;
@@ -99,16 +101,7 @@ Future<PickedDue?> _pickReminder(
   required DateTime now,
   DateTime? day,
   DateTime? at,
-}) => _pickDue(
-  context,
-  now: now,
-  day: day,
-  at: at ?? now.add(const Duration(minutes: _reminderAhead)),
-  reminder: true,
-);
-
-/// How far on a new reminder's time starts.
-const _reminderAhead = 15;
+}) => _pickDue(context, now: now, day: day, at: at, reminder: true);
 
 Future<PickedDue?> _pickDue(
   BuildContext context, {
@@ -128,12 +121,15 @@ Future<PickedDue?> _pickDue(
   if (picked == null || !context.mounted) return null;
   final pickedDay = picked.day;
   if (pickedDay == null) return (day: null, at: null);
-  final time = await showTimePicker(
-    context: context,
-    initialTime: TimeOfDay.fromDateTime(at ?? now),
-    helpText: reminder ? l10n.notebookRemindTime : l10n.daybookDueTimeHelp,
-    cancelText: reminder ? l10n.notebookRemindMorning : l10n.daybookNoTime,
+  final time = await showBvTimeWheel(
+    context,
+    initial: TimeOfDay.fromDateTime(at ?? nextFiveMinutesAfterAnHour(now)),
+    title: reminder ? l10n.notebookRemindTime : l10n.daybookDueTimeHelp,
+    cancelLabel: reminder ? null : l10n.daybookNoTime,
+    after: reminder && pickedDay == today ? TimeOfDay.fromDateTime(now) : null,
   );
+  // A reminder has a time: its Cancel cancels.
+  if (time == null && reminder) return null;
   return (day: pickedDay, at: time == null ? null : _on(pickedDay, time));
 }
 
@@ -176,9 +172,8 @@ Future<({DateTime? until})?> _pickPin(
   );
 }
 
-/// The time an announcement's pin ends (F82, "+ Time"): the phone's own
-/// 12- or 24-hour picker. Null when cancelled. A provider so tests can
-/// stand in.
+/// The time an announcement's pin ends (F82, "+ Time"): the time wheels
+/// (review 102 N2). Null when cancelled. A provider so tests can stand in.
 typedef PickPinTime =
     Future<TimeOfDay?> Function(
       BuildContext context, {
@@ -190,18 +185,19 @@ final pickPinTimeProvider = Provider<PickPinTime>((ref) => _pickPinTime);
 Future<TimeOfDay?> _pickPinTime(
   BuildContext context, {
   required TimeOfDay initial,
-}) => showTimePicker(
-  context: context,
-  initialTime: initial,
-  helpText: AppLocalizations.of(context).daybookPinTimeHelp,
+}) => showBvTimeWheel(
+  context,
+  initial: initial,
+  title: AppLocalizations.of(context).daybookPinTimeHelp,
 );
 
 /// An announcement pins for at most this many days (create_space_post).
 const pinDaysMax = 90;
 
 /// When an activity starts and, if chosen, ends: the day, the start time,
-/// then an optional end time ("No end time"), all the phone's own. Null
-/// when cancelled. A provider so tests can stand in for the pickers.
+/// then an optional end time ("No end time"), the times on the wheels
+/// (review 102 N2). Null when cancelled. A provider so tests can stand in
+/// for the pickers.
 typedef PickStart =
     Future<({DateTime start, DateTime? end})?> Function(
       BuildContext context, {
@@ -229,18 +225,18 @@ Future<({DateTime start, DateTime? end})?> _pickStart(
   );
   final day = picked?.day;
   if (day == null || !context.mounted) return null;
-  final from = await showTimePicker(
-    context: context,
-    initialTime: TimeOfDay.fromDateTime(start ?? now.add(_nextHour)),
-    helpText: l10n.daybookStartsAtHelp,
+  final from = await showBvTimeWheel(
+    context,
+    initial: TimeOfDay.fromDateTime(start ?? nextFiveMinutesAfterAnHour(now)),
+    title: l10n.daybookStartsAtHelp,
   );
   if (from == null || !context.mounted) return null;
   final startsAt = _on(day, from);
-  final to = await showTimePicker(
-    context: context,
-    initialTime: TimeOfDay.fromDateTime(end ?? startsAt.add(_nextHour)),
-    helpText: l10n.daybookEndsAtHelp,
-    cancelText: l10n.daybookNoEndTime,
+  final to = await showBvTimeWheel(
+    context,
+    initial: TimeOfDay.fromDateTime(end ?? startsAt.add(_nextHour)),
+    title: l10n.daybookEndsAtHelp,
+    cancelLabel: l10n.daybookNoEndTime,
   );
   if (to == null) return (start: startsAt, end: null);
   var endsAt = _on(day, to);

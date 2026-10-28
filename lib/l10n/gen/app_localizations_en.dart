@@ -4775,9 +4775,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookRemindTime => 'Remind me at…';
 
   @override
-  String get notebookRemindMorning => 'In the morning';
-
-  @override
   String get notebookCouldntKeep =>
       'Couldn\'t keep this entry. It\'s back as a draft.';
 
@@ -5444,4 +5441,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notebookShareTooLong =>
       'Too long for a message: share it to a Space, or shorten it.';
+
+  @override
+  String get timeWheelHour => 'Hour';
+
+  @override
+  String get timeWheelMinutes => 'Minutes';
+
+  @override
+  String get timeWheelAm => 'AM';
+
+  @override
+  String get timeWheelPm => 'PM';
 }

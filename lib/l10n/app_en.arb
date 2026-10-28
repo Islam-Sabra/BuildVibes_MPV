@@ -6865,10 +6865,6 @@
   "@notebookRemindTime": {
     "description": "F107 B5: the reminder's time step."
   },
-  "notebookRemindMorning": "In the morning",
-  "@notebookRemindMorning": {
-    "description": "F107 B5: no time picked, the morning."
-  },
   "notebookCouldntKeep": "Couldn't keep this entry. It's back as a draft.",
   "@notebookCouldntKeep": {
     "description": "F107 B15."
@@ -7793,5 +7789,21 @@
   "notebookShareTooLong": "Too long for a message: share it to a Space, or shorten it.",
   "@notebookShareTooLong": {
     "description": "Review 100 J1: the Message preview, when the entry's words pass the 3,000 a message holds; Send is off."
+  },
+  "timeWheelHour": "Hour",
+  "@timeWheelHour": {
+    "description": "Review 102 N2: the time picker's hour wheel, for screen readers."
+  },
+  "timeWheelMinutes": "Minutes",
+  "@timeWheelMinutes": {
+    "description": "Review 102 N2: the time picker's minutes wheel, for screen readers."
+  },
+  "timeWheelAm": "AM",
+  "@timeWheelAm": {
+    "description": "Review 102 N1: before noon, in the time picker's single choice above the wheels."
+  },
+  "timeWheelPm": "PM",
+  "@timeWheelPm": {
+    "description": "Review 102 N1: after noon, in the time picker's single choice above the wheels."
   }
 }

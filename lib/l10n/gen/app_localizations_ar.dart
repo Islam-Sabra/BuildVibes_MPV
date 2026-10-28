@@ -4790,9 +4790,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemindTime => 'ذكّرني الساعة…';
 
   @override
-  String get notebookRemindMorning => 'في الصباح';
-
-  @override
   String get notebookCouldntKeep => 'تعذّر حفظ هذه التدوينة، وعادت مسودة.';
 
   @override
@@ -5477,4 +5474,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notebookShareTooLong =>
       'أطول من أن تُرسل في رسالة: شاركها في مساحة، أو اختصرها.';
+
+  @override
+  String get timeWheelHour => 'الساعة';
+
+  @override
+  String get timeWheelMinutes => 'الدقائق';
+
+  @override
+  String get timeWheelAm => 'ص';
+
+  @override
+  String get timeWheelPm => 'م';
 }
