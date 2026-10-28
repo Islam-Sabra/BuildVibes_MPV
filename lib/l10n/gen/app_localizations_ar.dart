@@ -5444,4 +5444,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookDeletedNone => 'تظهر هنا الصفحات والتدوينات التي تحذفها.';
+
+  @override
+  String get notebookShareOffline =>
+      'لم تصل هذه التدوينة إلى الخادم بعد. شاركها عند عودة الاتصال.';
+
+  @override
+  String get notebookShareTeam => 'الفريق';
+
+  @override
+  String get notebookShareWholeSpace => 'المساحة كلها';
+
+  @override
+  String get notebookShareFor => 'لمن';
 }

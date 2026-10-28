@@ -14,7 +14,7 @@
 
 His rule for this review: **behaviour first, then Figma, then the build.**
 
-**Status:** draft, waiting for the founder's look at frames BH1–BH12 (drawn 26 Oct). Bugs B1–B5 are with Cursor on `claude/r100-bugs`; nothing in Parts 3–8 is built until he says yes.
+**Status:** approved by the founder (27 Oct, 14:30), with frames BH1–BH12. Bugs B1–B6 are merged (build 659). The 99B server work is merged into `slice2-app` and isn't live yet.
 
 **Decisions taken (founder, 26 Oct):**
 - long-press = select, with Share · Move · Duplicate · Delete;
@@ -502,3 +502,137 @@ On "PROTOTYPE · Full app v1 · EN", at 390×844, named "… · R100 · PROPOSAL
 1. merge into `slice2-app`;
 2. one release APK on his phone;
 3. a copy of the same APK, named for sharing with a test user, on his PC.
+
+
+## Build of the redesign (27 Oct): scope for the session
+**Branch:** `claude/r100-redesign` from `slice2-app`.
+**Builds:**
+- Parts 0 and 3–8 of this review;
+- the app side of review 99B (B1–B3, as replaced here): Deleted items (frame PG8), Archive, Share → Feed · Space · Message with the preview, the Filter, and the base version on save.
+
+**Frames:**
+- BH1–BH12 (EN `…` / AR ids in the table above);
+- PG8 for Deleted items;
+- the preview rules from Part 6. PG6 and PG7 are replaced by BH3–BH5.
+
+**Not in it:**
+- the top bar height (48 in the frames, 56 in the app), which the lead decides separately;
+- scan documents;
+- dates inside a line;
+- drag.
+
+**Order inside the branch:**
+1. Part 0 and the selection bars;
+2. swipe and Archive;
+3. the compact card, the bar and `+`;
+4. Filter and search;
+5. Share and the previews;
+6. Deleted items;
+7. the screenshot tests BH1–BH12 and PG8, EN and AR, shot on the PC.
+
+Each step: tests first, in EN and AR.
+
+**Live, at the end, with the founder's yes:**
+- migration 48 alone;
+- a read-only check;
+- `deno check` on the Edge Function, then the function and its secret;
+- the cron job;
+- then one build on his phone.
+
+## Lead's check of `claude/r100-redesign` (28 Oct)
+**Branch:** `claude/r100-redesign` at `e210d98`.
+**Verdict:** not yet. Fix H1–H22 on the same branch, then stop again.
+
+**What I checked:**
+- The diff, read against this review and against CLAUDE.md, by two separate reviews.
+- The 26 new shots (BH1–BH12 and PG8, EN and AR), compared with the frames by eye.
+- The work itself is close to the frames in both languages.
+- These all hold:
+  - the selection bars;
+  - the swipe states;
+  - Filter;
+  - Deleted items with 7 · 30 · 90;
+  - Discard and Done;
+  - one removable location line;
+  - counts without to-dos;
+  - deleted and archived entries hidden from lists, counts, reminders and the calendar;
+  - every server call matches migration 48.
+
+### Bugs (must fix, each with a test that fails first)
+- **H1. Share never reports success after a refusal.**
+  - `_send` in `note_share.dart` swallows the error, and `shareEntry` then shows "Sent to …".
+  - On any refusal (blocked, no pass, spam guard, not allowed), show the refusal and keep the preview open.
+  - Errors inside `unawaited` must be caught.
+- **H2. Share sends what the preview shows.**
+  - Before sharing, flush that entry's waiting changes from the outbox and wait for them. If that isn't possible (offline), Share is hidden for that entry.
+  - Lines being edited are shared only after their entry is saved.
+- **H3. Duplicate keeps attachments.**
+  - The `duplicate` change goes through `_upload` like a save, or copies the stored files on the server path.
+  - `_sent` gets the copies' ids, so they don't show as waiting.
+- **H4. The Filter's results** are checked against what the phone holds. An entry deleted or archived during its Undo, or offline, doesn't show. An Archived hit opens that page's "Archived" list on that entry.
+- **H5. Emptying a saved entry and going Back** sends it to Deleted items through the 99B function, not the old permanent `delete_note`.
+- **H6. Deleted lines** waiting on their Undo are kept in the phone's outbox (the `notebook_held:` store), like entries, so closing the app loses nothing.
+- **H7. The swipe never takes the edge.**
+  - Use `dragStartBehavior: DragStartBehavior.down` and measure where the finger went down.
+  - A drag that starts within the edge is released at once, so the back gesture wins.
+- **H8. Delete forever:** confirm first, then animate. Cancel leaves the card in place. Add a test for Cancel.
+
+### Differences from the frames: rulings
+| # | Ruling |
+|---|---|
+| 1 | Add the person's avatar to the "To" row, as BH5 draws it. No "From …" line, since the message doesn't carry one: accepted. |
+| 2 | **H9:** the reminder value uses the short form ("Fri 7:00", "Tomorrow 7:00"), never cut. If space is short, the label gives way first. |
+| 3 | **H10:** plain icons in the 📎 and Filter cards, as BH7 and BH9 draw them. The Filter card sits where BH9 draws it, with the dim background. Grey tiles stay only for the block list's glyphs (BH8). |
+| 4 | Restart at 1 in ⋮⋮ on a numbered line: accepted. |
+| 5 | Share only for a saved entry's lines: accepted (see H2). |
+| 6 | **The "Copy" mark is dropped altogether.** A copy sits right under its original, and that's enough. No column, no mark. |
+| 7 | Callout left out of `+` and `/`, and kept in Turn into: accepted. |
+| 8 | **H11:** Share → Space gets the **Team** choice, and a checklist asks who it's for (99B ruling 2). A work item defaults to me. The Feed's project tag is **deferred** to the app-wide gesture and feed review. |
+| 9 | Deleted items as a quiet row at the end of the pages list: accepted. |
+| 10 | **H12:** no "GPS" in the location panel's words, in English or Arabic. Use "on the map" / «على الخريطة» (`notebookAddGps`, `notebookGpsAdded`, `notebookLocationHelp`, `notebookRemoveGps`). |
+| 11 | The Arabic group names «النصوص · القوائم · الإدراج»: accepted. |
+
+### Missing parts
+- **H13.** Message sends files and voice as attachments within the DM limits, and the preview lists them.
+- **H14. "To":** recent conversations first, then search **only among people you can already message**. It stays inside the same card, with no second sheet.
+- **H15.** A `40001` refusal brings the words back as a Draft marked "Changed on another phone" («تغيّرت على هاتف آخر»).
+- **H16.** The 📎 File row shows ✕ to remove the file, like Location and Reminder.
+
+### Words and standards
+- **H17.** The feed in Arabic is «الأخبار», as in the rest of the app: `notebookShareFeed`, `notebookShareFeedTitle`, `notebookSharedFeed`, `notebookMarkFeed`.
+- **H18.** A short tap on 🎤 in the notebook gets its own string: "Hold to record a voice note" / «اضغط مطولًا لتسجيل ملاحظة صوتية». It no longer reuses the chat's.
+- **H19.** Standards:
+  - the `shareEntry` icon gets `matchTextDirection: true`;
+  - no magic `2` in `note_share.dart` (a named constant);
+  - `☐` `☑` `•` come from one constant, not typed in widgets;
+  - `ChoiceChip`, `TextField` and `TextButton.icon` become the BV components;
+  - `Curves.easeOut` becomes a `BvMotion` token;
+  - the draft's Discard button has its own key and icon (not `swipe-archive-…`).
+- **H20.** A feed post's language is the entry's language, the way the feed composer decides it, not the app's language (rule 7).
+- **H21.** The test data in the Arabic shots uses an Arabic place («البوابة 2»). A deleted voice note in PG8 shows the voice icon, not "T".
+
+### The 48 older shots
+- **H22.** The 40 that change from the new bar, rows and cards:
+  - shoot them again on the PC;
+  - put before/after in `docs/screens/r100/before-after/`;
+  - list any change beyond the bar, rows and cards. The lead accepts them after looking.
+- The 8 that can't run:
+
+| Shots | Ruling |
+|---|---|
+| NBW3, NBW4, NBW5 | Retired. BH6, BH7 and BH3 replace them. |
+| NBX4 (the location panel) | Re-pointed: open it from 📎 → Location, and shoot it again (with H12's words). |
+| Slice 10's Remind me | Re-pointed through swipe → Reminder. |
+| Slice 8's Put in a Space | Re-pointed through Share → Space and its preview. |
+
+### Then
+1. Run `flutter analyze`, `flutter test`, `supabase test db`, and on the PC `test_screens`.
+2. Report each with its result.
+3. Push `claude/r100-redesign` and stop for the lead.
+4. **After that, with the founder's yes,** the live steps in "Build of the redesign (27 Oct)":
+   - the merge;
+   - migration 48 alone, with a read-only check;
+   - `deno check`;
+   - the purge function and its secret;
+   - the cron job;
+   - one build.

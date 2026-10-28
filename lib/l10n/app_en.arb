@@ -7744,5 +7744,21 @@
   "notebookDeletedNone": "Pages and entries you delete show here.",
   "@notebookDeletedNone": {
     "description": "PG8: with nothing in Deleted items."
+  },
+  "notebookShareOffline": "This entry hasn't reached the server yet. Share it once there's a signal.",
+  "@notebookShareOffline": {
+    "description": "Review 100 H2: Share on an entry still waiting on the phone with no signal."
+  },
+  "notebookShareTeam": "Team",
+  "@notebookShareTeam": {
+    "description": "Review 100 H11: Share → Space: which Team it goes in."
+  },
+  "notebookShareWholeSpace": "Whole Space",
+  "@notebookShareWholeSpace": {
+    "description": "Review 100 H11: Share → Space: no Team."
+  },
+  "notebookShareFor": "For",
+  "@notebookShareFor": {
+    "description": "Review 100 H11: Share → Space: who a work item or a checklist is for."
   }
 }

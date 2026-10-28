@@ -14,6 +14,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
 import '../../core/photo_privacy.dart' show photosPreparingProvider;
 import '../../core/l10n/bidi.dart';
+import '../../core/network/signal_state.dart';
 import '../../core/l10n/locale_controller.dart' show sharedPreferencesProvider;
 import '../../core/push/reminders.dart' show phoneRemindersProvider;
 import '../../core/routing/app_routes.dart';
@@ -1388,18 +1389,12 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     ),
   );
 
-  /// The saved entry the selected lines are shared from: only when every
-  /// one of them is on the server already (an edit not yet saved can't be
-  /// shared in part).
-  Note? _linesSaved() {
-    final was = ref.read(noteDraftProvider)?.editing;
-    final editor = _editorKey.currentState;
-    if (was == null || editor == null) return null;
-    final saved = {for (final b in was.blocks ?? const <PageBlock>[]) b.id};
-    return editor.selectedLineIds.every(saved.contains) ? was : null;
-  }
+  /// The saved entry the selected lines are shared from: a new entry,
+  /// not sent yet, has nothing on the server to share in part.
+  Note? _linesSaved() => ref.read(noteDraftProvider)?.editing;
 
-  /// Share on selected lines (BH12): the line with the lines under it.
+  /// Share on selected lines (BH12): the line with the lines under it,
+  /// once the edit in hand is saved in place (H2).
   void _shareLines(Note saved) {
     final editor = _editorKey.currentState;
     if (editor == null) return;
@@ -1411,9 +1406,33 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         lines: editor.selectedLines(),
         card: _barCard,
         anchor: () => _selectionBarKey.currentContext,
+        saved: _saveInPlace,
         onDone: () => _editorKey.currentState?.endLineSelection(),
       ),
     );
+  }
+
+  /// The edit in hand saved in place, writing going on (review 100 H2):
+  /// the entry as it now is, the edit then starting from its next version.
+  Future<Note?> _saveInPlace() async {
+    final lines = _pendingLines;
+    if (lines != null) {
+      _pendingLines = null;
+      await _sendLines(lines);
+    }
+    final draft = ref.read(noteDraftProvider);
+    final was = draft?.editing;
+    if (draft == null || was == null) return null;
+    if (_editOpened == _shape(draft)) return was;
+    final note = _noteOf(draft);
+    await ref
+        .read(notebookProvider.notifier)
+        .saveOnPhone(note, baseVersion: was.version);
+    final now = note.copyWith(version: was.version + 1);
+    final kept = draft.copyWith(editing: () => now);
+    await _drafts.put(kept);
+    _editOpened = _shape(kept);
+    return now;
   }
 
   /// Move (BH12): the selected lines, with the lines under them, become
@@ -2122,8 +2141,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               ? SelectionBar(
                   key: _selectionBarKey,
                   actions: [
-                    // Share is for one entry (Part 3).
-                    if (chosen.length == 1)
+                    // Share is for one entry (Part 3), once the server can
+                    // have it (H2: not while it waits with no signal).
+                    if (chosen.length == 1 &&
+                        !(ref
+                                .read(notebookProvider.notifier)
+                                .waits(chosen.single.id) &&
+                            !ref.watch(signalProvider)))
                       SelectionAction(
                         key: const Key('select-share'),
                         icon: BvIcons.shareEntry,

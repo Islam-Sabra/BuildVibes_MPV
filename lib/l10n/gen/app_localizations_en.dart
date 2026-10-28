@@ -5412,4 +5412,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookDeletedNone => 'Pages and entries you delete show here.';
+
+  @override
+  String get notebookShareOffline =>
+      'This entry hasn\'t reached the server yet. Share it once there\'s a signal.';
+
+  @override
+  String get notebookShareTeam => 'Team';
+
+  @override
+  String get notebookShareWholeSpace => 'Whole Space';
+
+  @override
+  String get notebookShareFor => 'For';
 }

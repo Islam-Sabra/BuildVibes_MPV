@@ -44,10 +44,13 @@ class NotePoint {
 /// ([path]), on the phone until then ([local]).
 @immutable
 class NoteRecording {
+  /// What the phone records a voice note as.
+  static const voiceMime = 'audio/mp4';
+
   const NoteRecording({
     this.path,
     this.local,
-    this.mime = 'audio/mp4',
+    this.mime = voiceMime,
     this.bytes,
     this.durationMs = 0,
   });
@@ -55,7 +58,7 @@ class NoteRecording {
   factory NoteRecording.fromJson(Map<String, dynamic> json) => NoteRecording(
     path: json['storage_path'] as String? ?? json['path'] as String?,
     local: json['local'] as String?,
-    mime: json['mime'] as String? ?? 'audio/mp4',
+    mime: json['mime'] as String? ?? voiceMime,
     bytes: json['bytes'] as int?,
     durationMs: json['duration_ms'] as int? ?? 0,
   );
@@ -252,6 +255,12 @@ class NoteLocation {
   @override
   int get hashCode => Object.hash(text, lat, lng, accuracyM);
 }
+
+/// An entry's lines as plain text (review 100 Part 6, as the server's
+/// note_words writes them): an open to-do, a ticked one, a bullet.
+const noteTodoOpenMark = '☐';
+const noteTodoDoneMark = '☑';
+const noteBulletMark = '•';
 
 /// Where an entry was shared (review 100 Part 6, note_shares).
 enum NoteShareTarget {

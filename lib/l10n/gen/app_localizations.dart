@@ -9103,6 +9103,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pages and entries you delete show here.'**
   String get notebookDeletedNone;
+
+  /// Review 100 H2: Share on an entry still waiting on the phone with no signal.
+  ///
+  /// In en, this message translates to:
+  /// **'This entry hasn\'t reached the server yet. Share it once there\'s a signal.'**
+  String get notebookShareOffline;
+
+  /// Review 100 H11: Share → Space: which Team it goes in.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get notebookShareTeam;
+
+  /// Review 100 H11: Share → Space: no Team.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole Space'**
+  String get notebookShareWholeSpace;
+
+  /// Review 100 H11: Share → Space: who a work item or a checklist is for.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get notebookShareFor;
 }
 
 class _AppLocalizationsDelegate

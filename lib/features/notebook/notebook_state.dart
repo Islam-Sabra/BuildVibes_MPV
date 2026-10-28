@@ -597,7 +597,6 @@ final notebookProvider = AsyncNotifierProvider<Notebook, NotebookData>(
 class Notebook extends AsyncNotifier<NotebookData> {
   String? _key;
   List<NoteChange> _waiting = const [];
-  bool _sending = false;
 
   /// Another try after a lost signal (F107 B8), sooner at first.
   Timer? _retry;
@@ -842,6 +841,15 @@ class Notebook extends AsyncNotifier<NotebookData> {
   /// The waiting change for [id], if one is still on the phone.
   bool waits(String id) => _waiting.any((c) => c.noteId == id);
 
+  /// What waits goes now, and the future ends once it has (review 100 H2:
+  /// Share sends what the server has); false while [id] still waits (no
+  /// signal).
+  Future<bool> flush(String id) async {
+    await releaseHeld();
+    await _send();
+    return !waits(id);
+  }
+
   Future<void> delete(Note note) => _change(NoteChange.delete(note));
 
   /// "Saved to your notebook" (a held message): a note with its words.
@@ -849,12 +857,16 @@ class Notebook extends AsyncNotifier<NotebookData> {
     Note(id: id, kind: NoteKind.text, body: words.trim(), createdAt: now),
   );
 
+  /// The send going on now: a second call waits for it.
+  Future<void>? _sendingNow;
+
+  Future<void> _send() =>
+      _sendingNow ??= _sendAll().whenComplete(() => _sendingNow = null);
+
   /// Sends what waits, in order. A lost signal stops it, to go on the next
   /// change or when the notebook opens again; a refusal drops the change
   /// and reads the notebook again.
-  Future<void> _send() async {
-    if (_sending) return;
-    _sending = true;
+  Future<void> _sendAll() async {
     var refused = false;
     // Said once the notebook reads again (D4: the screen then tells a
     // refused edit of a saved entry from a refused new one).
@@ -884,7 +896,6 @@ class Notebook extends AsyncNotifier<NotebookData> {
         _sent(change);
       }
     } finally {
-      _sending = false;
       if (refused) ref.invalidateSelf();
       if (lost != null) ref.read(noteRefusedProvider.notifier).refused(lost);
     }

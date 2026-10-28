@@ -145,6 +145,7 @@ abstract class NotebookRepository {
     String spaceId,
     String kind, {
     List<String>? lines,
+    String? team,
     String? owner,
     List<String> people = const [],
     required bool includeLocation,
@@ -594,6 +595,7 @@ class SupabaseNotebookRepository implements NotebookRepository {
     String spaceId,
     String kind, {
     List<String>? lines,
+    String? team,
     String? owner,
     List<String> people = const [],
     required bool includeLocation,
@@ -607,6 +609,7 @@ class SupabaseNotebookRepository implements NotebookRepository {
         'p_space': spaceId,
         'p_kind': kind,
         'p_lines': lines,
+        'p_team': team,
         'p_owner': owner,
         'p_people': people,
         'p_include_location': includeLocation,

@@ -421,6 +421,11 @@ class FakeNotebookRepository implements NotebookRepository {
     deletedList.clear();
   }
 
+  /// A refusal every share meets (H1), and what each share carried.
+  SpaceException? shareError;
+  final List<Map<String, Object?>> spaceShares = [];
+  final List<Map<String, Object?>> personShares = [];
+
   /// The names the server gives a Space or a person's share mark.
   final Map<String, String> names = {};
 
@@ -434,6 +439,7 @@ class FakeNotebookRepository implements NotebookRepository {
     List<Map<String, dynamic>> media = const [],
   }) async {
     _check();
+    if (shareError case final e?) throw e;
     calls.add(
       'share-feed:$noteId:$lang:$includeLocation:${(lines ?? []).join(',')}',
     );
@@ -447,12 +453,22 @@ class FakeNotebookRepository implements NotebookRepository {
     String spaceId,
     String kind, {
     List<String>? lines,
+    String? team,
     String? owner,
     List<String> people = const [],
     required bool includeLocation,
     List<Map<String, dynamic>> files = const [],
   }) async {
     _check();
+    if (shareError case final e?) throw e;
+    spaceShares.add({
+      'space': spaceId,
+      'kind': kind,
+      'team': team,
+      'owner': owner,
+      'people': people,
+      'files': files,
+    });
     calls.add(
       'share-space:$noteId:$spaceId:$kind:$includeLocation:'
       '${(lines ?? []).join(',')}',
@@ -471,6 +487,12 @@ class FakeNotebookRepository implements NotebookRepository {
     List<Map<String, dynamic>> attachments = const [],
   }) async {
     _check();
+    if (shareError case final e?) throw e;
+    personShares.add({
+      'person': personId,
+      'thread': threadId,
+      'attachments': attachments,
+    });
     calls.add(
       'share-person:$noteId:$personId:$threadId:$includeLocation:'
       '${(lines ?? []).join(',')}',

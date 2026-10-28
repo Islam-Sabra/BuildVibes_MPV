@@ -78,7 +78,9 @@ class BvPopoverMenu<T> extends StatelessWidget {
        hint = null,
        checked = null,
        back = null,
-       onBack = null;
+       onBack = null,
+       field = null,
+       tiles = true;
 
   /// [wide]: the kind menu (E6 v14 2598:36413), whose small lines fit on
   /// one line.
@@ -96,7 +98,9 @@ class BvPopoverMenu<T> extends StatelessWidget {
        hint = null,
        checked = null,
        back = null,
-       onBack = null;
+       onBack = null,
+       field = null,
+       tiles = true;
 
   const BvPopoverMenu.screen({
     super.key,
@@ -112,7 +116,9 @@ class BvPopoverMenu<T> extends StatelessWidget {
        hint = null,
        checked = null,
        back = null,
-       onBack = null;
+       onBack = null,
+       field = null,
+       tiles = true;
 
   /// The card next to a line (review 98): the line menu (NBY2), and the
   /// "/" card (NBY1) with its [title], the [selected] row tinted (Enter
@@ -128,6 +134,8 @@ class BvPopoverMenu<T> extends StatelessWidget {
     this.checked,
     this.back,
     this.onBack,
+    this.field,
+    this.tiles = true,
   }) : picker = false,
        screen = false,
        wide = false,
@@ -155,6 +163,13 @@ class BvPopoverMenu<T> extends StatelessWidget {
   final T? checked;
   final String? back;
   final VoidCallback? onBack;
+
+  /// A field under the ‹ row (Share's "To": a search, review 100 H14).
+  final Widget? field;
+
+  /// Each row's icon on a grey tile (the block list's glyphs, BH8), or
+  /// plain (📎 and the Filter, BH7, BH9; review 100 H10).
+  final bool tiles;
 
   @override
   Widget build(BuildContext context) {
@@ -248,6 +263,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
                     ),
                   ),
                 ),
+              ?field,
               if (title case final title?)
                 Padding(
                   padding: BvLineMenuSpec.titlePadding,
@@ -337,12 +353,14 @@ class BvPopoverMenu<T> extends StatelessWidget {
                   width: BvLineMenuSpec.tile,
                   height: BvLineMenuSpec.tile,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: item.destructive
-                        ? BvColors.surfaceDestructiveSoft
-                        : BvColors.surfaceSubtle,
-                    borderRadius: BvLineMenuSpec.rowRadius,
-                  ),
+                  decoration: !tiles
+                      ? null
+                      : BoxDecoration(
+                          color: item.destructive
+                              ? BvColors.surfaceDestructiveSoft
+                              : BvColors.surfaceSubtle,
+                          borderRadius: BvLineMenuSpec.rowRadius,
+                        ),
                   child: Icon(
                     item.icon,
                     size: BvLineMenuSpec.icon,
