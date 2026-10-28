@@ -2,6 +2,34 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 101 merged into `slice2-app`; build 701 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (28 Oct), the lead's second check (K1–K3), then:**
+  - **K1** (bf414b3): a tap on a card's paper clip never goes to the card above, and on its own card goes to that card. The middle of each of three stacked cards hits that card. EN and AR.
+    - Measured: the clip reaches out of its card over the 12 px gap and the card above's shadow. It stops 4 px short of that card's slip.
+    - A tap on the tip lands in the gap, as on the old page; tap areas are unchanged.
+  - **K2** (bf414b3): a guard test fails if the Daybook stops using `_RenderNowViewport`, `_RenderPageGroup` or `_RenderSliverListTopDown`. It failed on the old Daybook and passes now. The upgrade line is in `CLAUDE.md` and above.
+  - **K3** (23ef4a5, `integration_test/busy_space_perf_test.dart`, local only). Setup:
+    - `flutter drive --profile` on the Pixel 8 emulator (x86_64, Impeller on OpenGLES), against the local stack with `seed_busy_space.sql`.
+    - Not on the founder's phone: a profile build is signed with the debug key, so it can't install over his release app without uninstalling it and wiping his data.
+    - Two runs each. Opening = from opening the Space to its first card. Fling = up through all 500 posts, to the oldest.
+    - **slice2-app 510b834:** open 789 / 743 ms. Fling: 2,689 / 2,740 frames; build over budget 516 / 502; raster over budget 286 / 276. Average build 9.4 / 8.9 ms (90th 19.5 / 18.9, worst 208 / 89). Average raster 10.9 / 10.7 ms.
+    - **claude/r101-lists:** open 677 / 185 ms. Fling: 3,900 / 3,867 frames; build over budget 0 / 0; raster over budget 1,903 / 1,901. Average build 0.75 / 0.82 ms (90th 1.3 / 1.4, worst 9.3 / 12.9). Average raster 16.0 / 16.0 ms.
+    - Build work fell to almost nothing. Raster time per frame rose to about the frame budget on this emulator.
+    - With the per-row repaint boundaries put back, raster was the same (2,017 over budget), so those aren't the cause.
+    - Emulator raster runs on this PC's GPU through OpenGLES translation: a phone reading is still to come.
+- **Merged into `slice2-app`:** `claude/r101-search-wait` (89d90af), then `claude/r101-lists` (25bc211; handoff and progress resolved by hand). Pushed.
+  - On the merge: `flutter analyze` no issues; `flutter test` 2,332 pass; `flutter test test_screens` 446 pass, not updating.
+- **Build 701** (25bc211, release, signed with the upload key, prod env): on the Desktop as `BuildVibes-701.apk`, and installed on the founder's Xiaomi 22120RN86G over 686 (versionCode 701). BuildVibes is the only package of ours on it.
+- **No database push, no deploy.** There's no database change in review 101.
+- **On the local stack only:** the busy seed is loaded, and its lead (`busy.lead@example.com`) has the local test phone 96550000002 for K3's sign-in.
+- **Next:** the lead's check of build 701; a phone reading of K3 when a phone without the release app is at hand.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`), `claude/r101-lists` and `claude/r101-search-wait` (worktrees `BuildVibes-r101`, `BuildVibes-r101b`; both merged), and `claude/r100-redesign` (worktree `BuildVibes-r100r`, merged).
+
 ## PC update: 28 Oct 2026 — review 101 Part A done on `claude/r101-lists` (option 1); for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

@@ -729,6 +729,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - **The notebook page:** a builder list; opened at an entry, the page scrolls until the entry is built. The 300-entry test failed first and passes now.
   - **The seed:** `supabase/dev/seed_busy_space.sql`, local only.
   - Checks: analyze clean; 2,324 app tests; 446 shots, not updating, none changed.
+- **28 Oct (PC): review 101 merged and built** (founder's yes):
+  - K1 (taps go to the card on top) and K2 (a guard on the Daybook's render classes; the Flutter-upgrade line in `CLAUDE.md`).
+  - K3 measured in profile mode on the Pixel 8 emulator; the numbers are in the handoff. Build work while flinging fell from about 510 frames over budget to 0; raster time rose to about the budget on the emulator.
+  - `claude/r101-search-wait` and `claude/r101-lists` merged into `slice2-app` (25bc211). Analyze clean; 2,332 app tests; 446 shots, not updating.
+  - Build 701 on the Desktop and on the founder's phone. No database push, no deploy.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
