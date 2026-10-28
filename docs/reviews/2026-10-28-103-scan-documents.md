@@ -53,11 +53,16 @@ Site paperwork reaches the phone today as crooked photos with shadows: a deliver
 - No location data is kept in the pages.
 - Proof by scan: Photo/Scan as one choice, the proof shows the thumbnail, and CHECKED stamps it.
 
-## Frames (to draw)
-- SC1: the notebook's 📎 card with Scan a document;
-- SC3: the review sheet;
-- SC4: an entry with a scanned file block;
-- SC5: a Space's "Add to this post" with Scan;
-- SC6: sign as done, Photo/Scan.
+## Frames
+On "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". The EN row is at y 60400 and the AR row at y 61400.
 
-Each in EN and AR, 390×844, on "PROTOTYPE · Full app v1 · EN", named "… · R103 · PROPOSAL". SC2 is the phone's own scanner, so it isn't drawn.
+| Frame | EN | AR |
+|---|---|---|
+| SC1 · The notebook's 📎 card with Scan a document | `2662:38293` | `2662:38677` |
+| SC3 · After scanning: page strip, Scan more pages, Name, ✕ Cancel · + Add | `2662:38420` | `2662:38804` |
+| SC4 · An entry with a scanned file block ("Scanned · 3 pages · PDF") | `2662:38569` | `2662:38953` |
+| SC5 · A Space's "Add to this post" with Scan a document | `2662:39131` | (code's AR shot, mirrored by the usual rules) |
+| SC6 · Sign as done: Photo \| Scan, one choice above the shutter | `2662:39295` | (code's AR shot, mirrored by the usual rules) |
+
+- **SC2** is the phone's own scanner, so it isn't drawn.
+- **The Library's "Add a file → Scan a document"** and **the chat's attach sheet** get the same row as SC5.
