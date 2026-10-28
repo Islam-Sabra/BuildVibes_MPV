@@ -2428,11 +2428,12 @@ class NoteSlip extends ConsumerWidget {
       else if (note.putInPostId != null && !note.waiting)
         BvSlipQuiet(l10n.notebookPut),
     ];
-    // PG4: a plain white card; selected (A4), lifted with the selected edge.
+    // PG4: a plain white card; selected (A4, BH2), tinted and lifted with
+    // the selected edge.
     return DecoratedBox(
       key: Key('note-${note.id}'),
       decoration: BoxDecoration(
-        color: BvColors.surfaceElevated,
+        color: selected ? BvColors.surfaceBrandSoft : BvColors.surfaceElevated,
         borderRadius: BvNotebookPagesSpec.entryRadius,
         boxShadow: selected ? BvShadow.slipLifted : BvShadow.slip,
       ),

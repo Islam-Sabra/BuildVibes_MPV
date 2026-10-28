@@ -421,7 +421,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
                 Text(
                   title,
                   textDirection: directionOf(title),
-                  style: type.emphasis.copyWith(color: BvColors.textPrimary),
+                  style: type.headingMd.copyWith(color: BvColors.textPrimary),
                 ),
               for (final (i, b) in blocks.indexed)
                 if (lineOf(i, b).trim().isNotEmpty)
