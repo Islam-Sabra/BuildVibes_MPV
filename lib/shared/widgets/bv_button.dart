@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
-/// [quiet]: words in grey with no box, a choice that does nothing (a
-/// preview's Cancel, review 100 Part 6).
+/// [quiet]: words in grey with no box, for a choice that does nothing (a
+/// preview's Cancel, review 100 Part 6) or a calm one in a list (Deleted
+/// items' Restore, J4).
 enum BvButtonStyle { primary, secondary, tertiary, quiet, destructive }
 
 enum BvButtonSize { large, medium }

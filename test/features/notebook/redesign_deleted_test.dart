@@ -3,9 +3,11 @@
 // when it was deleted; Restore puts it back; swiped toward the start,
 // Delete forever after one confirm; Empty now after one confirm. In
 // English and Arabic.
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/notebook_page.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -116,6 +118,17 @@ void main() {
         await _tap(tester, _key('keep-7'));
         expect(repo.calls, contains('keep:7'));
         expect(find.text(l10n.notebookKeepNote(7)), findsOneWidget);
+      });
+
+      testWidgets('J4: Restore is words with an icon, no box (PG8)', (
+        tester,
+      ) async {
+        await _open(tester, lang);
+        final restore = tester.widget<BvButton>(
+          _key('deleted-restore-gone-pump'),
+        );
+        expect(restore.style, BvButtonStyle.quiet);
+        expect(restore.icon, BvIcons.sendBack);
       });
 
       testWidgets('Restore puts it back in its page', (tester) async {

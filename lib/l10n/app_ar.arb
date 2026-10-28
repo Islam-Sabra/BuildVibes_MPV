@@ -1508,5 +1508,6 @@
   "notebookTomorrow": "غدًا",
   "notebookChangedElsewhere": "تغيّرت على هاتف آخر",
   "notebookHoldToRecord": "اضغط مطولًا لتسجيل ملاحظة صوتية",
-  "notebookVoiceTitle": "تسجيل صوتي، {length}"
+  "notebookVoiceTitle": "تسجيل صوتي، {length}",
+  "notebookShareTooLong": "أطول من أن تُرسل في رسالة: شاركها في مساحة، أو اختصرها."
 }

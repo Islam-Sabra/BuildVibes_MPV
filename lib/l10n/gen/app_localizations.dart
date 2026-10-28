@@ -9151,6 +9151,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Voice note, {length}'**
   String notebookVoiceTitle(String length);
+
+  /// Review 100 J1: the Message preview, when the entry's words pass the 3,000 a message holds; Send is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Too long for a message: share it to a Space, or shorten it.'**
+  String get notebookShareTooLong;
 }
 
 class _AppLocalizationsDelegate

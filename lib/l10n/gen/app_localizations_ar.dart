@@ -5473,4 +5473,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String notebookVoiceTitle(String length) {
     return 'تسجيل صوتي، $length';
   }
+
+  @override
+  String get notebookShareTooLong =>
+      'أطول من أن تُرسل في رسالة: شاركها في مساحة، أو اختصرها.';
 }

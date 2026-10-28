@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(149);
+select plan(156);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000048' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -245,19 +245,19 @@ select is(pg_temp.found(''), '{}', 'no words and no kind: nothing');
 -- Share -------------------------------------------------------------------------------------------
 
 select is(public.note_share_text(pg_temp.id('b001'), null, false),
-  E'Before the pour\n☐ Clean the formwork\n☑ Check the cover',
-  'the words to share: the title, to-dos as ☐ and ☑');
+  E'Before the pour\n[ ] Clean the formwork\n[x] Check the cover',
+  'the words to share: the title, to-dos as [ ] and [x] (J2)');
 select is(public.note_share_text(pg_temp.id('b001'), null, true),
-  E'Before the pour\n☐ Clean the formwork\n☑ Check the cover\n📍 Gate 2 · 29.375900, 47.977400',
+  E'Before the pour\n[ ] Clean the formwork\n[x] Check the cover\n📍 Gate 2 · 29.375900, 47.977400',
   'the location only when included, as one line');
-select is(public.note_share_text(pg_temp.id('b003'), array['c0000000-0000-4000-8000-000000000c02'], false), '☐ إبلاغ الحارس',
+select is(public.note_share_text(pg_temp.id('b003'), array['c0000000-0000-4000-8000-000000000c02'], false), '[ ] إبلاغ الحارس',
   'a line group: only its lines, Arabic kept');
 
 select is(public.share_note_to_space(pg_temp.id('b001'), pg_temp.id('d001'), pg_temp.sp(), 'note'),
   pg_temp.id('d001'), 'to a Space as a post');
 select is((select title || '|' || coalesce(place_text, '-') || '|' || body from public.space_posts
            where id = pg_temp.id('d001')),
-  E'Before the pour|-|☐ Clean the formwork\n☑ Check the cover', 'its words, no place, no position');
+  E'Before the pour|-|[ ] Clean the formwork\n[x] Check the cover', 'its words, no place, no position');
 select is(public.share_note_to_space(pg_temp.id('b001'), pg_temp.id('d002'), pg_temp.sp(), 'note',
   p_include_location => true), pg_temp.id('d002'), 'again, with the location');
 select is((select split_part(body, E'
@@ -276,20 +276,43 @@ select is((select owner_id from public.work_items where id = pg_temp.id('d004'))
   'Rakesh owns it');
 select is((select place_text from public.space_posts where id = pg_temp.id('d004')), 'Gate 2',
   'its place is the typed location');
+select is(public.share_note_to_space(pg_temp.id('b003'), pg_temp.id('d006'), pg_temp.sp(), 'note',
+  p_lines => array['c0000000-0000-4000-8000-000000000c02']), pg_temp.id('d006'),
+  'a to-do line as a post');
+select is((select title from public.space_posts where id = pg_temp.id('d006')), 'إبلاغ الحارس',
+  'its title without the [ ] (J2)');
 select throws_ok($$select public.share_note_to_space(pg_temp.id('b001'), pg_temp.id('d005'),
   pg_temp.sp(), 'diary')$$, '22023', null, 'a post, a work item or a checklist');
 
 select is(public.share_note_to_feed(pg_temp.id('b003'), pg_temp.id('d101'), 'ar'), pg_temp.id('d101'),
   'to the feed');
 select is((select body || '|' || lang from public.posts where id = pg_temp.id('d101')),
-  E'الصب\nغطاء الحديد ٥٠ مم\n☐ إبلاغ الحارس|ar', 'its words, in Arabic');
+  E'الصب\nغطاء الحديد ٥٠ مم\n[ ] إبلاغ الحارس|ar', 'its words, in Arabic');
 
 select ok((public.share_note_to_person(pg_temp.id('b001'), pg_temp.id('d201'), pg_temp.uid('b2'),
   pg_temp.id('d2f1')) ->> 'thread') is not null, 'to Rakesh by message');
 select is((select body from public.dm_messages where id = pg_temp.id('d201')),
-  E'Before the pour\n☐ Clean the formwork\n☑ Check the cover', 'the message: a copy of its words');
+  E'Before the pour\n[ ] Clean the formwork\n[x] Check the cover', 'the message: a copy of its words');
 select throws_ok($$select public.share_note_to_person(pg_temp.id('b001'), pg_temp.id('d202'),
   pg_temp.uid('c3'), pg_temp.id('d2f2'))$$, '42501', null, 'never to someone blocked');
+
+-- J1: a message holds 3,000 characters, as dm_post does: a longer entry is
+-- cut there, never refused.
+select lives_ok($$select public.save_note(pg_temp.id('b0f1'), 'text', repeat('x', 3500))$$,
+  'a long entry');
+select ok((public.share_note_to_person(pg_temp.id('b0f1'), pg_temp.id('d203'), pg_temp.uid('b2'),
+  pg_temp.id('d2f1')) ->> 'thread') is not null, 'it goes to Rakesh by message');
+select is((select char_length(body) from public.dm_messages where id = pg_temp.id('d203')), 3000,
+  'cut at 3,000 characters');
+-- J2: no share kind writes a mark the fonts lack.
+select ok(not exists (
+    select 1 from public.space_posts where id in (pg_temp.id('d001'), pg_temp.id('d002'))
+      and body ~ '[☐☑]'
+    union all
+    select 1 from public.posts where id = pg_temp.id('d101') and body ~ '[☐☑]'
+    union all
+    select 1 from public.dm_messages where id = pg_temp.id('d201') and body ~ '[☐☑]'),
+  'no ☐ or ☑ in a post, a feed post or a message');
 
 select is((select array_agg(target order by target) from public.note_shares
            where note_id = pg_temp.id('b001')),
@@ -439,6 +462,10 @@ select ok(public.export_my_data(current_setting('test.req48b')::uuid) ? 'noteboo
 select is(jsonb_array_length(
     public.export_my_data(current_setting('test.req48b')::uuid) -> 'notebook_pages'), 1,
   'only his own page (My notes)');
+-- J3 (G1): "My notes" comes out named, not untitled.
+select is((public.export_my_data(current_setting('test.req48b')::uuid)
+           -> 'notebook_pages' -> 0 ->> 'named'), 'my_notes',
+  'the page''s named goes with it');
 select is(jsonb_array_length(
     public.export_my_data(current_setting('test.req48b')::uuid) -> 'note_shares'), 0,
   'none of Omar''s shares');

@@ -51,8 +51,65 @@ enum ShareKind {
   final String json;
 }
 
-/// The most files a message carries (dm_post: at most 10).
+/// The most files a message carries (dm_post: at most 10), and the most
+/// characters (dm_post and share_note_to_person: 3,000, J1).
 const _messageFilesMax = 10;
+const _messageMax = 3000;
+
+/// What Share sends as words, as the server's note_words writes them
+/// (migration 48): the title (not for [lines]), a line each, at its level,
+/// to-dos as [ ] and [x], bullets as •, numbered lines counted, a toggle's
+/// lines under it, a table a row a line, a divider as —; the location as
+/// its last line when [location].
+String shareText(Note note, List<PageBlock>? lines, {required bool location}) {
+  final out = <String>[];
+  final title = note.pageTitle.trim();
+  if (lines == null && title.isNotEmpty) out.add(title);
+  var count = 0;
+  String mark(bool done) => done ? noteTodoDoneMark : noteTodoOpenMark;
+  for (final b in lines ?? note.pageBlocks) {
+    final pad = '  ' * b.indent;
+    if (b is PageNumbered) {
+      count++;
+    } else if (b.indent == 0) {
+      count = 0;
+    }
+    switch (b) {
+      case PageTodo(:final text, :final done):
+        out.add('$pad${mark(done)} $text');
+      case PageBullet(:final text):
+        out.add('$pad$noteBulletMark $text');
+      case PageNumbered(:final text):
+        out.add('$pad$count. $text');
+      case PageToggle(:final text, :final children):
+        out.add('$pad$text');
+        for (final c in children) {
+          final words = c is PageLine ? c.text : '';
+          out.add(
+            c is PageTodo ? '$pad  ${mark(c.done)} $words' : '$pad  $words',
+          );
+        }
+      case PageTable(:final rows):
+        for (final r in rows) {
+          out.add('$pad${r.join(' · ')}');
+        }
+      case PageDivider():
+        out.add('$pad—');
+      case PageVoice():
+        break;
+      default:
+        final words = blockWords(b).join(' ');
+        if (words.trim().isNotEmpty) out.add('$pad$words');
+    }
+  }
+  final place = note.location;
+  if (location && place != null && (place.hasText || place.hasGps)) {
+    out.add(
+      '📍 ${[if (place.hasText) place.text!, if (place.hasGps) '${place.lat!.toStringAsFixed(6)}, ${place.lng!.toStringAsFixed(6)}'].join(' · ')}',
+    );
+  }
+  return out.join('\n');
+}
 
 /// A search for a person starts from this many letters.
 const _findFrom = 2;
@@ -373,6 +430,16 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
     final hasPlace = place != null && !place.isEmpty;
     final voices = [if (person != null) ...blocks.whereType<PageVoice>()];
     final files = [if (person != null && whole) ...widget.note.files];
+    // J1: a message holds 3,000 characters; a longer entry goes to a Space
+    // or is shortened first.
+    final tooLong =
+        person != null &&
+        shareText(
+              widget.note,
+              widget.lines,
+              location: hasPlace && _location,
+            ).length >
+            _messageMax;
     String lineOf(int i, PageBlock b) => switch (b) {
       PageTodo(:final text) => text,
       PageNumbered(:final text) =>
@@ -605,6 +672,12 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
         ),
         if (person == null && space == null)
           Text(l10n.notebookShareCheck, style: quiet),
+        if (tooLong)
+          Text(
+            l10n.notebookShareTooLong,
+            key: const Key('share-too-long'),
+            style: type.metadata.copyWith(color: BvColors.textDestructive),
+          ),
         if (_refused case final e?)
           Text(
             spaceErrorText(l10n, e),
@@ -628,7 +701,7 @@ class _SharePreviewState extends ConsumerState<_SharePreview> {
               icon: BvIcons.send,
               style: BvButtonStyle.tertiary,
               size: BvButtonSize.medium,
-              onPressed: _sending
+              onPressed: _sending || tooLong
                   ? null
                   : () => unawaited(
                       _go(

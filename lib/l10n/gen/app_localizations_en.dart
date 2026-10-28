@@ -5440,4 +5440,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String notebookVoiceTitle(String length) {
     return 'Voice note, $length';
   }
+
+  @override
+  String get notebookShareTooLong =>
+      'Too long for a message: share it to a Space, or shorten it.';
 }

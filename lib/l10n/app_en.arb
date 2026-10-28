@@ -7789,5 +7789,9 @@
         "type": "String"
       }
     }
+  },
+  "notebookShareTooLong": "Too long for a message: share it to a Space, or shorten it.",
+  "@notebookShareTooLong": {
+    "description": "Review 100 J1: the Message preview, when the entry's words pass the 3,000 a message holds; Send is off."
   }
 }

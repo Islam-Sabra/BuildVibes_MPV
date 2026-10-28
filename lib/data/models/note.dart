@@ -257,9 +257,10 @@ class NoteLocation {
 }
 
 /// An entry's lines as plain text (review 100 Part 6, as the server's
-/// note_words writes them): an open to-do, a ticked one, a bullet.
-const noteTodoOpenMark = '☐';
-const noteTodoDoneMark = '☑';
+/// note_words writes them): an open to-do, a ticked one, a bullet. J2:
+/// characters every phone's font has (no ☐ or ☑).
+const noteTodoOpenMark = '[ ]';
+const noteTodoDoneMark = '[x]';
 const noteBulletMark = '•';
 
 /// Where an entry was shared (review 100 Part 6, note_shares).

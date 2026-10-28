@@ -220,8 +220,9 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
                   BvButton(
                     key: Key('deleted-restore-${i.id}'),
                     label: l10n.notebookRestore,
-                    icon: BvIcons.restartNumbering,
-                    style: BvButtonStyle.secondary,
+                    icon: BvIcons.sendBack,
+                    // J4: words with an icon, no box (PG8, BH5).
+                    style: BvButtonStyle.quiet,
                     size: BvButtonSize.medium,
                     onPressed: () => unawaited(_restore(i)),
                   ),
