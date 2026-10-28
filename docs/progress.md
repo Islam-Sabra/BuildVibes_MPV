@@ -694,6 +694,15 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - **Deleted items, Archive, Share, Filter, Base version:** migration 48 complete with 149 pgTAP tests in `48_notebook_deleted_share.test.sql`.
   - **Checks:** `supabase test db`: 3,012 SQL checks pass across 47 files; `flutter analyze`: no issues; `flutter test`: 2,170 pass.
   - Migration 48 is not live; `notebook-purge` function not deployed; cron not run.
+- **28 Oct (PC): review 100's redesign on `claude/r100-redesign`** (from `slice2-app` 1283413; pushed at the commit below this entry; not merged, nothing live, nothing installed):
+  1. Part 0 and the selection bars (BH2, BH12): hold an entry → ✕ · n selected, Share · Move · Duplicate · Delete at the bottom; hold a line's start (its marker, or a finger-wide strip on a plain line or heading) → the line with its children, the keyboard down, ✕ · n line(s) selected, the same bar. Delete goes to Deleted items with Undo (delete_entries; lines of a saved entry via delete_note_lines); Duplicate copies right under, same time, no reminder, marked Copy (on the phone); ⋮⋮ keeps the line's structure only. An edit's save sends its base version.
+  2. Swipe and Archive (Part 3b, BH3): `BvSwipeCard` (round Pin · Reminder toward the end, Archive toward the start with the full-swipe pill), never from the screen's edges, one open at a time, off while selecting, screen-reader actions, a one-time hint; entries have no ⋯; Archived › per page; a Draft swipes to Discard.
+  3. The compact card, the bar + · 📷 · 📎 · 🎤 · ➤ and the block list (Parts 4, 5; BH6–BH8, BH10); the grid (NBX2) retired; Discard while writing a new entry; Done in a saved one.
+  4. Pages rows "{n} entries · {when}", round New entry (Part 7, BH1); Filter with Show and In, its chips and results by page, kept by Search (Part 8, BH9, BH11).
+  5. Share → Feed · Space · Message with previews (Part 6, BH4, BH5): one removable location line, no GPS tick (note_for_space and the GPS chip wording gone), Cancel and Send as words; the share mark from note_shares.
+  6. Deleted items (99B B3, PG8): keep 7 · 30 · 90 days, Restore, Delete forever, Empty now.
+  - Also: one commit puts back LF line endings in the files steps 1–2 wrote with CRLF (no content change).
+  - Checks: `flutter analyze` no issues; `flutter test` 2,265 pass; local `supabase db reset` + `supabase test db` 3,012 pass in 47 files (no SQL change on the branch); `flutter test test_screens/bh_test.dart --update-goldens` 26 shots in `docs/screens/r100/`; `flutter test test_screens` without updating: 48 older notebook shots differ (left as they were for the lead).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

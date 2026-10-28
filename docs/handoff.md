@@ -2,6 +2,29 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 100's redesign built on `claude/r100-redesign`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r100-redesign` (worktree `BuildVibes-r100r`), from `slice2-app` 1283413, pushed. **Not merged, no database push, no deploy, nothing installed.** It uses migration 48's functions, which aren't live: the build only works against a database with 48.
+- **Built, in the review's order** (one commit per step, tests first, EN and AR): Part 0 and the selection bars (BH2, BH12); swipe and Archive (BH3); the compact card, the bar and `+` (BH6–BH8, BH10), Discard and Done; the pages rows and round New entry (BH1), Filter and search (BH9, BH11); Share with previews (BH4, BH5); Deleted items (PG8).
+- **Checks:** analyze clean; 2,265 app tests; 3,012 SQL checks (local reset); 26 new shots `docs/screens/r100/` (BH1–BH12, PG8; EN, AR).
+- **Older shots (not updated, for the lead):** 48 notebook shots differ. 40 are pixel changes from the new bar, rows and cards (NBW1, NBX1–NBX3, L1–L3, NBY1–NBY5, PG1–PG5b). 8 can't run because their scripts drive what the redesign removed: NBW3, NBW4, NBW5, NBX4 (the old bar's Date/Remind/Location), slice 10's Remind me (the entry ⋯), slice 8's Put in a Space.
+- **Differences from the frames and choices made (for the lead):**
+  1. BH5: the To row has no avatar or ▾, and there's no "From Islam's notebook · 10:40 am" line: the message the server sends has neither.
+  2. BH7: the reminder's value reads "tomorrow 7:00 am" and is cut ("tomorrow 7…"); the frame has "Fri 7:00".
+  3. BH7, BH9: the 📎 and Filter cards draw grey icon tiles (the review 98 card); those frames draw plain icons. BH9's card ends under the Filter button, not at the screen margin, and has no scrim.
+  4. BH10: a numbered line keeps Continue numbering / Restart at 1 in ⋮⋮ (Part 0's table lists only five rows; nothing else gives Restart).
+  5. BH12: Share shows only for lines of a saved entry whose lines are all on the server (the share functions work on a saved entry); the frame shows it on a new entry.
+  6. Duplicate's "Copy" mark is kept on the phone only (no column for it; no migration made).
+  7. Callout is left out of `+` and `/` (Part 5's groups don't list it); it stays in Turn into.
+  8. Space share: no Team picker; a work item or checklist is for me. No project tag on Feed.
+  9. Deleted items opens from a quiet row at the pages list's end (BH1 has no fourth top-bar icon).
+  10. The location panel (NBX4) still says GPS in its own rows; every other place reads "on the map".
+  11. Restore uses the counter-clockwise arrow; the notebook's Arabic groups read «النصوص · القوائم · الإدراج» («نص» was also the Text row).
+- **Next:** the lead's check of `claude/r100-redesign`. Then, with the founder's yes: merge into `slice2-app`; migration 48 alone, the read-only check, `deno check` and the `notebook-purge` function with its secret, the cron job; then one build.
+- **Who has which branch:** PC has `claude/r100-redesign` (worktree `BuildVibes-r100r`) and `slice2-app` (worktree `BuildVibes-slice1`). A local branch `r100-lf` (the same commits rewritten in LF, kept only because a force-push was refused) can be deleted.
+
 ## PC update: 27 Oct 2026 — review 99B server merged into `slice2-app`; migration 48 NOT live; F1 done
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
