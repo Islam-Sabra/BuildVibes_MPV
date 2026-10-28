@@ -47,6 +47,7 @@ import '../entry/entry_state.dart' show authUserIdProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../work/daybook_draft.dart' show DaybookDraft;
+import '../work/daybook_page.dart' show PageTableView;
 import '../work/daybook_words.dart';
 import '../library/library_parts.dart' show maxFileBytes, pickDocumentProvider;
 import '../work/daybook_writing.dart'
@@ -3005,9 +3006,11 @@ class NotePageSummary extends ConsumerWidget {
         linkOf: (ref, path) =>
             ref.read(notebookRepositoryProvider).recordingUrl(path),
       ),
-      PageTable(:final rows) => line(
-        [for (final r in rows.take(1)) r.join(' · ')].join(),
-        main,
+      // Review 104 N8: the whole table, every row and column; wider than
+      // the card, it scrolls sideways.
+      PageTable(:final rows) => PageTableView(
+        key: Key('note-summary-table-${b.id}'),
+        rows: rows,
       ),
       _ => line(blockWords(b).join(' · '), main),
     };
