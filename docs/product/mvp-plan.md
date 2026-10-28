@@ -108,6 +108,16 @@ In order. Each step is a review with Figma frames, then the founder's yes, then 
 | 10 | The stores: Apple enrolment, Codemagic, exact alarm and data safety forms; first Play closed test and TestFlight by 15 December | — | The founder's enrolment is open |
 | 11 | Test week with 3–5 real people (18–24 January), then the freeze (25–31 January) | — | Planned |
 
+**Ideas the founder raised, for after the pilot (28 Oct, no decision yet):**
+- **Linked folders in a Space's Library** (Google Drive, OneDrive/SharePoint, ACC):
+  - anyone may link a folder from their own account, and it is visible only to them;
+  - they may share a folder or files with the Space if their pass allows adding files;
+  - shared files open directly from the source, with no copy in our database; a work item pins the version it used.
+  - Ask the pilot company which service they use.
+- **Shimmer loading** on the feed's placeholder cards.
+- **Dark mode** that follows the phone's setting, with no switch.
+- **Hero animations** for photos and cards.
+
 **Parked (not before the pilot):**
 - the celebration feature;
 - the promo motion reel and the designer brief;

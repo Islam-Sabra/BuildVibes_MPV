@@ -86,3 +86,8 @@
    - `day_position` is null everywhere;
    - signed out, `arrange_day` refuses.
 4. One build on his phone, plus a Desktop copy.
+
+## Live (28 Oct, 18:20)
+- **Merge:** `slice2-app` at `7a24f55`.
+- **Migration 49 is live.** The lead checked the migration list read-only: it ends at `20261110120000_note_day_position`. 11 notes and 5 pages before and after, and `day_position` is null everywhere.
+- **Build 712** is on the founder's phone and on the Desktop.
