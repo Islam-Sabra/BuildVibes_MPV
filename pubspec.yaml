@@ -72,6 +72,10 @@ dev_dependencies:
   # The end-to-end journey on an emulator (integration_test/, local only).
   integration_test:
     sdk: flutter
+  # Review 101 L1: the host's timeline recorder (tool/perf/, local only).
+  flutter_driver:
+    sdk: flutter
+  vm_service: ^15.3.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
