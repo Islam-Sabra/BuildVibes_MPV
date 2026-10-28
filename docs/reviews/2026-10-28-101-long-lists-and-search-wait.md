@@ -53,3 +53,34 @@ Five searches each wait 300 ms after typing: people, inside a Space, notebook, c
   - For example, use a `CustomScrollView` with a `center` sliver: older days grow upward from the centre, and the newest (at "Now") is painted last. Don't use a `reverse: true` list.
   - The 60 shots must then pass without updating. If any still changes, stop and report it again.
 - **Then do the notebook page the same way, and add the seed** (`supabase/dev/seed_busy_space.sql`, local only).
+
+## Lead's second check (28 Oct, 14:45): A approved after K1–K3
+**Branch:** `claude/r101-lists` at `7b452c3`.
+
+**What I checked:**
+- All 446 shots pass without updating, and 2,324 tests pass.
+- **The list of 24 changed tests:** each still asserts what it did before, now in screen order or after scrolling. No assertion was removed, and two were added. Accepted.
+- **The Daybook's render code.** I read it:
+  - a viewport that corrects "bring into view" for the centre at the foot of the page;
+  - a sliver group and a sliver list that paint top to bottom while growing up from Now, and take taps in the reverse order;
+  - a padding sliver that keeps a short page at the top.
+  - These are custom `Render…` classes over Flutter internals. They keep the prototype's paper clip exactly. **The cost is that they can break on a Flutter upgrade,** so they need guards.
+- **The per-row `RepaintBoundary` is gone:** accepted. Only the visible rows paint, so it is cheap.
+- **The notebook page** now builds its rows lazily, keyed, so swipe and selection state stays with the right entry: accepted.
+
+### Fixes
+- **K1. Taps go to the card that is drawn on top.**
+  - A widget test: tap on the paper clip where it overlaps the card above. The newer card (the clip's own) gets the tap, not the card under it.
+  - Plus one tap in the middle of each of three stacked cards, each hitting its own card. EN and AR.
+- **K2. A guard for a Flutter upgrade:**
+  - a test that fails if `_RenderSliverListTopDown` or `_RenderPageGroup` stops being used by the Daybook;
+  - a line in `docs/handoff.md` and in `CLAUDE.md`'s technical section: *"After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101)."*
+- **K3. Measured on a phone, not only in tests (PC):**
+  - use the busy seed on the local stack, with a profile build on the founder's phone, or a mid-range emulator if the phone isn't reachable;
+  - report the time to open the busy Space, and dropped frames while flinging through 500 posts, on `slice2-app` and then on this branch;
+  - numbers only, no target. They give a base for the test week.
+
+### Then, with the founder's yes
+1. Merge `claude/r101-search-wait` and `claude/r101-lists` into `slice2-app`.
+2. Run every check on the merged branch.
+3. Make one build on his phone. There's no database change.
