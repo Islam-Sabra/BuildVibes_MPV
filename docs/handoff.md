@@ -2,6 +2,22 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 101 Part A STOPPED on `claude/r101-lists`; for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r101-lists` (worktree `BuildVibes-r101`), from `slice2-app` 510b834, pushed. **Not passing; not for merge.** Stopped by the founder's rule: a shot changed and existing tests can't pass unchanged.
+- **What was built (commit dd9c544):** the Daybook builds its rows lazily. It is a bottom-up `CustomScrollView` with one row per day divider, card or trace. The writing card stays built at the bottom. A page shorter than the screen still sits at its top (a small custom sliver puts the gap under it). Jumps to a card or a day scroll until that row is built (`lib/shared/widgets/lazy_rows.dart`). The highlight is cleared after its ring, so a card built again on scrolling back doesn't flash again.
+- **The new test** (`test/features/work/daybook_long_list_test.dart`, 500 posts over 30 days, EN and AR): failed first (30 cards built on opening, all 500 after a jump to post 450, against a bound of 20); passes now (4 of 4).
+- **Why it stopped:**
+  1. **47 existing work tests fail** (`flutter test`: 2,273 pass, 47 fail). They read cards that are off screen: a lazy list doesn't build those, and test finders skip the rows it builds in its margin as offstage. Others read rows in tree order, which a bottom-up list builds newest first. Screen readers aren't affected (Flutter orders them by position). Even a 20,000-pixel margin leaves the same 47, so this can't be solved by building more.
+  2. **60 shots change** (`flutter test test_screens`, not updating: 386 pass, 60 fail), each by about 30 pixels (0.01%). A card's paper clip reaches over the card above it. The old page painted the newer card last, so the clip showed; a bottom-up lazy list paints the older card above last, so it covers the clip's tip. A list can't change that order.
+- **For the lead, a choice:**
+  1. Accept test changes: those tests scroll to what they check and read rows in screen order. And move the clip so it doesn't depend on paint order (for example, the clip painted by the card above it, or the gap under each card owning the clip). The shots stay the same.
+  2. Build small pages as now and lazily only past a set number of rows. The old tests and shots stay as they are, but small pages aren't lazy.
+- **Not started:** the notebook page, and `supabase/dev/seed_busy_space.sql`.
+- `flutter analyze`: no issues.
+
 ## PC update: 28 Oct 2026 — review 100 live (migration 48, notebook-purge, build 686 on the phone)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
