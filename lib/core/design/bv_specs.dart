@@ -271,7 +271,6 @@ abstract final class BvEntrySpec {
 abstract final class BvAuthSpec {
   /// Matches the server's minimum time between codes (config.toml).
   static const resendAfter = Duration(seconds: 60);
-  static const searchDebounce = Duration(milliseconds: 300);
 }
 
 /// Title block (PJ1, P14): a drawing title block for a project record.

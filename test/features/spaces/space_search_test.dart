@@ -1,3 +1,4 @@
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/space_search.dart';
@@ -104,7 +105,7 @@ Future<void> _type(WidgetTester tester, String text) async {
     ),
     text,
   );
-  await tester.pump(SpaceSearchScreen.pause);
+  await tester.pump(BvMotion.searchWait);
   await tester.pumpAndSettle();
 }
 

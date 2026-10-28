@@ -4,6 +4,7 @@
 // the English frames mirrored, for the lead to check.
 // Run:
 //   flutter test test_screens/slice4_test.dart --update-goldens
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -491,7 +492,7 @@ void main() {
             ),
             lang == 'ar' ? 'الأكمام' : 'sleeves',
           );
-          await tester.pump(SpaceSearchScreen.pause);
+          await tester.pump(BvMotion.searchWait);
           await tester.pumpAndSettle();
         },
       );
