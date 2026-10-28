@@ -2,6 +2,22 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 100 J1–J4 done on `claude/r100-redesign`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r100-redesign` (worktree `BuildVibes-r100r`), pushed. **Not merged, no database push, no deploy, nothing installed.** No new migration: J1–J3 are edits inside migration 48, which isn't live.
+- **Done (commit 0ef35a2), each test seen failing first:**
+  1. J1: `share_note_to_person` cuts at 3,000. The preview says "Too long for a message: share it to a Space, or shorten it." and Send is off.
+  2. J2: to-dos are written as `[ ]` and `[x]` in a Space post, a feed post and a message (server `note_words`, and the app's `shareText`, which the preview's length check uses). A checklist is still real points. A received message shows no ☐, ☑ or ≡.
+  3. J3: `export_my_data`'s notebook pages carry `named`.
+  4. J4: Restore is `BvButtonStyle.quiet` (grey words, the ↺ arrow, no box), which mirrors in Arabic. The frame (`2635:38668`) draws a small grey pill; J4's "no box" is followed.
+- **Found and repaired (commit ed30a3c):** the shots commit 7cdb212 stored 56 PNGs with their `\r` bytes stripped (a line-ending fix run over binary files), so test_screens failed with "Invalid image data". They were shot again on the same code: the 44 older ones match their copies in `docs/screens/r100/before-after/` pixel for pixel; the 12 r100 ones (BH2–BH5, BH7, BH9 and PG8) had no other copy, and PG8 now shows J4. All 640 committed PNGs now start with the right header.
+- **Checks:** analyze clean; 2,316 app tests; 3,019 SQL checks in 47 files; test_screens 446 pass, not updating.
+- **Housekeeping (as review 100's second check wrote it):** -f100, -f100b, -f102, -f105, -phone: `git checkout -- lib/l10n/gen`, then `git worktree remove`. -f102 and -phone stopped on Windows' path length after git had unregistered them, so their folders went with the same long-path `rmdir` as -f107 and -icon (both gone). Local branch `r100-lf` deleted. -db29 kept: its diff is line endings only (CRLF in the working copy; empty with `--ignore-cr-at-eol`). The local branches f100, f100-broadcast, f102, f105, f60-photo-reencode are kept, and nothing on GitHub was deleted. `BuildVibes-apk` isn't a worktree, so it wasn't touched.
+- **Next:** the lead's check. Then, with the founder's yes, the live steps.
+- **Who has which branch:** PC has `claude/r100-redesign` (worktree `BuildVibes-r100r`), `slice2-app` (worktree `BuildVibes-slice1`) and `slice2-live-db` (worktree `BuildVibes-db29`).
+
 ## PC update: 28 Oct 2026 — review 100 H1–H22 done on `claude/r100-redesign`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

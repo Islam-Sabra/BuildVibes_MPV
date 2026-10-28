@@ -709,6 +709,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - H22: 40 older shots shot again with before/after in `docs/screens/r100/before-after/`; NBW3–NBW5 retired; NBX4, slice 10's Remind me and slice 8's Put in a Space re-pointed. Found on the way: the preview drew ☐, which the app's fonts lack; it now draws the app's box (test first).
   - Checks: `flutter analyze` no issues; `flutter test` 2,309 pass; `supabase test db` 3,012 pass in 47 files; `flutter test test_screens` 446 pass after the re-shoot (stable over two runs).
   - Housekeeping (founder's ask): 11 worktrees that were clean and on GitHub removed; 6 with uncommitted changes kept; `BuildVibes-f107` and `BuildVibes-icon` unregistered but left on disk (Windows' path length).
+- **28 Oct (PC): review 100's second lead check, J1–J4, on `claude/r100-redesign`** (pushed; not merged, nothing live, nothing installed):
+  - J1: `share_note_to_person` cuts at 3,000, as `dm_post`; the preview says an entry is too long for a message and Send is off. J2: to-dos are written as `[ ]` and `[x]` in every share kind (server `note_words` and the app's `shareText`); a received message shows no stray mark. J3: the export's notebook pages carry `named`. J4: Restore in Deleted items is grey words with the turning arrow, no box. Each test seen failing first (J1–J3 by undoing the fix).
+  - Found: 7cdb212 had stored 56 shots with their `\r` bytes stripped, so test_screens could not read them. Shot again: the 44 older ones match their before/after copies pixel for pixel; the 12 r100 ones carry J4.
+  - Checks: `flutter analyze` no issues; `flutter test` 2,316 pass; `supabase test db` 3,019 pass in 47 files; `flutter test test_screens` 446 pass, not updating.
+  - Housekeeping: worktrees -f100, -f100b, -f102, -f105, -phone removed after `git checkout -- lib/l10n/gen`; folders -f107, -icon, -f102 and -phone deleted with the long-path form; local branch `r100-lf` deleted; -db29 kept (its diff is line endings only).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
