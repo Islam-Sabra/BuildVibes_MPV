@@ -63,3 +63,26 @@
   - N4: the labels;
   - N5: each sort, pinned on top, the chip and reset, kept after a restart.
 - New shots: the time wheel (EN, AR), and the Filter card with SORT (BH9 again).
+
+## Lead's check of `claude/r102-notebook` (28 Oct, 16:10): approved
+**Branch:** `claude/r102-notebook` at `728bece`.
+
+**What I checked:**
+- **Migration 49 on the SQL stand-in:** all 3,038 checks in 48 files pass. `arrange_day` is owner-only, `security definer` with an empty `search_path`, and refuses anything but one page and one day. `day_position` isn't one of the columns that count as activity, so arranging doesn't reorder the pages list.
+  - **Note:** the server's "one day" check is "within 24 hours", because the server doesn't know the phone's time zone. The app enforces the calendar day, which is acceptable.
+- **The new shots:** N2 (the time wheel, EN and AR, with «ص / م» right to left) and N5 (SORT in the Filter card, and the sort chip): accepted.
+- **The six shots changed by N4's label** (BH2, BH4 and BH12, EN and AR) are expected: **accept them.**
+- **"In the morning" was really the reminder's no-time button** ("no time, 9 am"). Removing it is what the founder asked for, so Cancel now cancels: accepted.
+- **N3's limit:** a day longer than the screen can't be dragged past what's built, though Move up and Move down still work. Accepted for now; it's rare with notebook days.
+
+**One small fix on the same branch:**
+- **P1.** On a one-line entry, the swipe buttons overflow by 2 px (an existing bug). Fix it with a test, so the round buttons and labels fit inside the shortest card. No shot may change, apart from a one-line card's swipe state if one is shot.
+
+**Then, with the founder's yes:**
+1. Merge into `slice2-app` and run every check.
+2. `supabase db push` with **migration 49 as the only file listed**.
+3. **Read-only check:**
+   - the note count is unchanged;
+   - `day_position` is null everywhere;
+   - signed out, `arrange_day` refuses.
+4. One build on his phone, plus a Desktop copy.
