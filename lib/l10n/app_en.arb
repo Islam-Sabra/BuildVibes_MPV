@@ -6776,11 +6776,11 @@
   "@notebookWhereHint": {
     "description": "F107 NBX4: the typed field's placeholder."
   },
-  "notebookAddGps": "Add my GPS position",
+  "notebookAddGps": "Add where I am on the map",
   "@notebookAddGps": {
     "description": "F107 NBX4."
   },
-  "notebookGpsAdded": "My GPS position added",
+  "notebookGpsAdded": "Added on the map",
   "@notebookGpsAdded": {
     "description": "F107 NBX4."
   },
@@ -6815,7 +6815,7 @@
   "@notebookGpsFailed": {
     "description": "F107 NBX4."
   },
-  "notebookLocationHelp": "Type where, add the phone's GPS, or both.",
+  "notebookLocationHelp": "Type where, put it on the map, or both.",
   "@notebookLocationHelp": {
     "description": "F107 NBX4."
   },
@@ -6823,7 +6823,7 @@
   "@notebookRemoveLocation": {
     "description": "F107: the location chip's ×."
   },
-  "notebookRemoveGps": "Remove my GPS position",
+  "notebookRemoveGps": "Take it off the map",
   "@notebookRemoveGps": {
     "description": "F107 NBX4: the GPS row's ×."
   },
@@ -7756,5 +7756,38 @@
   "notebookShareFor": "For",
   "@notebookShareFor": {
     "description": "Review 100 H11: Share → Space: who a work item or a checklist is for."
+  },
+  "notebookShortWhen": "{day} {time}",
+  "@notebookShortWhen": {
+    "description": "Review 100 H9: a reminder's short value in 📎: 'Tomorrow 7:00 am', 'Fri 7:00 am'.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookTomorrow": "Tomorrow",
+  "@notebookTomorrow": {
+    "description": "Review 100 H9: the short value's day."
+  },
+  "notebookChangedElsewhere": "Changed on another phone",
+  "@notebookChangedElsewhere": {
+    "description": "Review 100 H15: the mark on a Draft whose edit the server refused because the entry changed elsewhere."
+  },
+  "notebookHoldToRecord": "Hold to record a voice note",
+  "@notebookHoldToRecord": {
+    "description": "Review 100 H18: a short tap on the notebook's 🎤."
+  },
+  "notebookVoiceTitle": "Voice note, {length}",
+  "@notebookVoiceTitle": {
+    "description": "Review 100 H21: a deleted voice note with no words, by its length.",
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
   }
 }

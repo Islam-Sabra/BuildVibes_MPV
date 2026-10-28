@@ -327,6 +327,15 @@ class BvPopoverMenu<T> extends StatelessWidget {
   }
 
   Widget _lineRow(BvTypeSet type, BvMenuItem<T> item, bool tinted) {
+    // The most a row's value may take: the row less its tile, its ✕ and
+    // the gaps between them, the label at nothing.
+    final valueMax =
+        BvLineMenuSpec.width -
+        2 * (BvLineMenuSpec.padding + BvStroke.thin) -
+        BvLineMenuSpec.rowPadding.horizontal -
+        BvLineMenuSpec.tile -
+        3 * BvLineMenuSpec.rowGap -
+        (item.onClear == null ? 0 : BvLineMenuSpec.clear);
     final ink = item.destructive
         ? BvColors.textDestructive
         : BvColors.textPrimary;
@@ -350,6 +359,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
               spacing: BvLineMenuSpec.rowGap,
               children: [
                 Container(
+                  key: tiles ? const Key('menu-tile') : null,
                   width: BvLineMenuSpec.tile,
                   height: BvLineMenuSpec.tile,
                   alignment: Alignment.center,
@@ -402,14 +412,22 @@ class BvPopoverMenu<T> extends StatelessWidget {
                       color: BvColors.textSecondary,
                     ),
                   ),
+                // Its value is never cut (H9): the label gives way first,
+                // and only if even that isn't room enough does it get
+                // smaller.
                 if (item.detail case final detail?)
-                  Flexible(
-                    child: Text(
-                      detail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: type.metadata.copyWith(
-                        color: BvColors.textSecondary,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: valueMax),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Text(
+                        detail,
+                        maxLines: 1,
+                        softWrap: false,
+                        style: type.metadata.copyWith(
+                          color: BvColors.textSecondary,
+                        ),
                       ),
                     ),
                   ),

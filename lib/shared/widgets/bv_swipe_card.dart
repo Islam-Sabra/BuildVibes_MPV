@@ -296,7 +296,7 @@ class _BvSwipeCardState extends State<BvSwipeCard>
     final start = widget.startAction;
 
     Widget round(BvSwipeAction a, double shown, {double? pill}) {
-      final grow = Curves.easeOut.transform(shown.clamp(0, 1));
+      final grow = BvMotion.enter.transform(shown.clamp(0, 1));
       return Opacity(
         opacity: grow,
         child: Transform.scale(

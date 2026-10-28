@@ -152,7 +152,7 @@ void main() {
       testWidgets('a short tap on the mic says to hold it', (tester) async {
         await _write(tester, lang);
         await _tap(tester, _key('note-tool-voice'));
-        expect(find.text(l10n.chatRecord), findsWidgets);
+        expect(find.text(l10n.notebookHoldToRecord), findsWidgets);
       });
     });
 

@@ -33,6 +33,7 @@ class NoteDraft {
     this.location,
     this.pageId,
     this.newPageId,
+    this.changedElsewhere = false,
   });
 
   /// An edit of [note], filled with what it says.
@@ -81,6 +82,7 @@ class NoteDraft {
         : NoteLocation.fromJson(json['location'] as Map<String, dynamic>),
     pageId: json['page_id'] as String?,
     newPageId: json['new_page_id'] as String?,
+    changedElsewhere: json['changed_elsewhere'] as bool? ?? false,
   );
 
   static DateTime? _time(Object? value) =>
@@ -94,6 +96,10 @@ class NoteDraft {
 
   /// The note as it was, when this is an edit.
   final Note? editing;
+
+  /// An edit the server refused because its entry changed on another
+  /// phone meanwhile (review 100 H15): back as a Draft of its own, marked.
+  final bool changedElsewhere;
   final String title;
   final List<PageBlock> blocks;
 
@@ -192,6 +198,7 @@ class NoteDraft {
     id: id,
     startedAt: startedAt,
     editing: editing == null ? this.editing : editing(),
+    changedElsewhere: changedElsewhere,
     title: title ?? this.title,
     blocks: blocks ?? this.blocks,
     dueAt: dueAt == null ? this.dueAt : dueAt(),
@@ -216,6 +223,7 @@ class NoteDraft {
     'location': location?.toJson(),
     'page_id': ?pageId,
     'new_page_id': ?newPageId,
+    if (changedElsewhere) 'changed_elsewhere': true,
   };
 }
 

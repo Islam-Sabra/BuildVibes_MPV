@@ -254,7 +254,7 @@ void main() {
         expect(_key('note-draft-card-draft-1'), findsOneWidget);
         await _swipe(tester, lang, _key('swipe-card-draft-1'), -120);
         expect(find.text(l10n.notebookDiscardDraft), findsOneWidget);
-        await tester.tap(_key('swipe-archive-draft-1'));
+        await tester.tap(_key('swipe-discard-draft-1'));
         await tester.pumpAndSettle();
         expect(_key('note-draft-card-draft-1'), findsNothing);
         expect(find.text(l10n.notebookDraftDiscarded), findsOneWidget);

@@ -440,7 +440,26 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// the server still has stays an edit of it, back in the editor with its
   /// link; only a new entry comes back as its own Draft card (beside the
   /// one in hand, if any, B3).
-  Future<void> _takeBack(Note lost) async {
+  Future<void> _takeBack(Note lost, {bool elsewhere = false}) async {
+    if (elsewhere) {
+      // H15: changed on another phone meanwhile: its words come back as a
+      // Draft of their own, marked; the entry stays as the server has it.
+      final back = NoteDraft(
+        id: ref.read(newPostIdProvider)(),
+        startedAt: ref.read(clockProvider)(),
+        title: lost.pageTitle,
+        blocks: lost.pageBlocks,
+        dueAt: lost.dueAt,
+        remindAt: lost.remindAt,
+        location: lost.location,
+        pageId: lost.pageId,
+        changedElsewhere: true,
+      );
+      await (ref.read(noteDraftProvider) == null
+          ? _drafts.put(back)
+          : ref.read(parkedDraftsProvider.notifier).keep(back));
+      return;
+    }
     NotebookData? data;
     try {
       data = await ref.read(notebookProvider.future);
@@ -643,6 +662,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     _editorKey.currentState?.insertKind(kind);
   }
 
+  /// A reminder's short value (review 100 H9): "7:00 am" today, "Tomorrow
+  /// 7:00 am", "Fri 7:00 am" within the week, else "Thu 29 Oct 7:00 am".
+  static String _shortWhen(
+    AppLocalizations l10n,
+    DaybookWords words,
+    DateTime at,
+    DateTime now,
+  ) {
+    final day = dayOf(at);
+    final today = dayOf(now);
+    final time = words.time.clock(at);
+    if (day == today) return time;
+    return l10n.notebookShortWhen(
+      day == today.add(const Duration(days: 1))
+          ? l10n.notebookTomorrow
+          : day.difference(today).inDays < DateTime.daysPerWeek
+          ? words.shortWeekday(day)
+          : words.shortDate(day),
+      time,
+    );
+  }
+
   /// 📷 (review 100 Part 5): Camera or Gallery, as today's Image.
   Widget _photoCard(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -687,6 +728,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
 
     return BvPopoverMenu<String>.line(
       key: const Key('note-add-menu'),
+      tiles: false,
       items: [
         BvMenuItem(
           key: const Key('note-add-file'),
@@ -696,6 +738,12 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           detail: draft.files.isEmpty
               ? null
               : l10n.notebookFileCount(draft.files.length),
+          // H16: its ✕ takes the files off, as Location's and Reminder's.
+          onClear: draft.files.isEmpty
+              ? null
+              : () => clear((d) => d.copyWith(files: const [])),
+          clearKey: const Key('note-add-file-clear'),
+          clearLabel: l10n.notebookRemove,
         ),
         BvMenuItem(
           key: const Key('note-add-location'),
@@ -728,9 +776,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           value: 'remind',
           label: l10n.notebookReminder,
           icon: BvIcons.remind,
-          detail: remind == null
-              ? null
-              : reminderChip(l10n, words, remind, now),
+          detail: remind == null ? null : _shortWhen(l10n, words, remind, now),
           onClear: remind == null
               ? null
               : () => clear((d) => d.copyWith(remindAt: () => null)),
@@ -1094,7 +1140,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// The page a Filter starts with: this one (review 100 Part 8).
   String? get _filterHome => widget.pageId;
 
-  /// The Filter (review 100 Part 8), its card and its button.
+  /// The Filter (review 100 Part 8), its card and its button; the card
+  /// ends where the top bar's last action does (H10, BH9).
   late NoteFilterState _filter = NoteFilterState(page: widget.pageId);
   final _filterCard = BvLinePopover();
   final _filterKey = GlobalKey();
@@ -1112,13 +1159,10 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     );
   }
 
-  Widget _filterButton(NotebookData data, String key) => KeyedSubtree(
-    key: _filterKey,
-    child: NoteFilterButton(
-      key: Key(key),
-      on: _filter.on,
-      onPressed: () => _openFilter(data),
-    ),
+  Widget _filterButton(NotebookData data, String key) => NoteFilterButton(
+    key: Key(key),
+    on: _filter.on,
+    onPressed: () => _openFilter(data),
   );
 
   /// The chips and the entries found, while the Filter is on.
@@ -1588,11 +1632,12 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       if (_writing) _showSlip();
     });
     // B15: a refused note is said, and its words come back as the Draft.
-    ref.listen(noteRefusedProvider, (_, lost) {
-      if (lost == null) return;
+    ref.listen(noteRefusedProvider, (_, refused) {
+      if (refused == null) return;
+      final (:note, :elsewhere) = refused;
       ref.read(noteRefusedProvider.notifier).seen();
       _toast(l10n.notebookCouldntKeep);
-      unawaited(_takeBack(lost));
+      unawaited(_takeBack(note, elsewhere: elsewhere));
     });
     final page = data.page(widget.pageId ?? draft?.intoPage ?? data.latest?.id);
     if (page != null && widget.pageId != null && notebook.hasValue) {
@@ -1881,8 +1926,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                 id: d.id,
                 enabled: !selecting,
                 startAction: BvSwipeAction(
-                  key: Key('swipe-archive-${d.id}'),
-                  icon: BvIcons.delete,
+                  key: Key('swipe-discard-${d.id}'),
+                  icon: BvIcons.discard,
                   label: l10n.notebookDiscardDraft,
                   color: BvColors.textDestructive,
                   onTap: () => unawaited(_discardDraft(d)),
@@ -2049,11 +2094,14 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                     ),
                   ),
                 ),
-                IconButton(
-                  key: const Key('page-more'),
-                  tooltip: l10n.daybookMore,
-                  icon: const Icon(BvIcons.more),
-                  onPressed: () => _pageMenu(page),
+                KeyedSubtree(
+                  key: _filterKey,
+                  child: IconButton(
+                    key: const Key('page-more'),
+                    tooltip: l10n.daybookMore,
+                    icon: const Icon(BvIcons.more),
+                    onPressed: () => _pageMenu(page),
+                  ),
                 ),
               ],
             ],
@@ -2232,7 +2280,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           key: const Key('note-tool-voice'),
           icon: BvIcons.microphone,
           label: l10n.notebookVoiceTool,
-          onTap: () => _toast(l10n.chatRecord),
+          onTap: () => _toast(l10n.notebookHoldToRecord),
           onHoldStart: _startRecording,
           onHoldMove: _slide,
           onHoldEnd: _endRecording,

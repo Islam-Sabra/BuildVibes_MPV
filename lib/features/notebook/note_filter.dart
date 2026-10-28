@@ -124,6 +124,7 @@ class _NoteFilterCardState extends State<NoteFilterCard> {
       return BvPopoverMenu<String?>.line(
         key: const Key('notebook-filter-menu'),
         scrolls: true,
+        tiles: false,
         back: l10n.notebookFilterIn,
         onBack: () => setState(() => _pages = false),
         checked: _filter.page,
@@ -156,6 +157,7 @@ class _NoteFilterCardState extends State<NoteFilterCard> {
     return BvPopoverMenu<Object>.line(
       key: const Key('notebook-filter-menu'),
       checked: _filter.kind,
+      tiles: false,
       items: [
         for (final k in NoteFilter.values)
           BvMenuItem(
@@ -199,6 +201,7 @@ void showNoteFilter(
   anchor: anchor,
   atEnd: true,
   barrier: true,
+  dim: true,
   onDismiss: card.hide,
   builder: (_) => NoteFilterCard(
     data: data,

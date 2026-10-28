@@ -44,7 +44,8 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
   /// The page a Filter starts with: none here (all pages).
   String? get _filterHome => null;
 
-  /// The Filter (review 100 Part 8), its card and its button.
+  /// The Filter (review 100 Part 8), its card and its button; the card
+  /// ends where the top bar's last action does (H10, BH9).
   NoteFilterState _filter = const NoteFilterState();
   final _filterCard = BvLinePopover();
   final _filterKey = GlobalKey();
@@ -62,13 +63,10 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     );
   }
 
-  Widget _filterButton(NotebookData data, String key) => KeyedSubtree(
-    key: _filterKey,
-    child: NoteFilterButton(
-      key: Key(key),
-      on: _filter.on,
-      onPressed: () => _openFilter(data),
-    ),
+  Widget _filterButton(NotebookData data, String key) => NoteFilterButton(
+    key: Key(key),
+    on: _filter.on,
+    onPressed: () => _openFilter(data),
   );
 
   /// The chips and the entries found, while the Filter is on.
@@ -272,11 +270,14 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                         ),
                       ),
                     ),
-                    IconButton(
-                      key: const Key('notebook-calendar'),
-                      tooltip: l10n.calendarTitle,
-                      icon: const Icon(BvIcons.calendar),
-                      onPressed: () => context.push(AppRoutes.calendar),
+                    KeyedSubtree(
+                      key: _filterKey,
+                      child: IconButton(
+                        key: const Key('notebook-calendar'),
+                        tooltip: l10n.calendarTitle,
+                        icon: const Icon(BvIcons.calendar),
+                        onPressed: () => context.push(AppRoutes.calendar),
+                      ),
                     ),
                   ],
           ),

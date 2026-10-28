@@ -4703,10 +4703,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookWhereHint => 'Where';
 
   @override
-  String get notebookAddGps => 'Add my GPS position';
+  String get notebookAddGps => 'Add where I am on the map';
 
   @override
-  String get notebookGpsAdded => 'My GPS position added';
+  String get notebookGpsAdded => 'Added on the map';
 
   @override
   String notebookGpsLine(String lat, String lng, String metres) {
@@ -4729,14 +4729,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t find your position. Try again outside.';
 
   @override
-  String get notebookLocationHelp =>
-      'Type where, add the phone\'s GPS, or both.';
+  String get notebookLocationHelp => 'Type where, put it on the map, or both.';
 
   @override
   String get notebookRemoveLocation => 'Remove location';
 
   @override
-  String get notebookRemoveGps => 'Remove my GPS position';
+  String get notebookRemoveGps => 'Take it off the map';
 
   @override
   String get notebookRemoveFile => 'Remove file';
@@ -5422,4 +5421,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookShareFor => 'For';
+
+  @override
+  String notebookShortWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookTomorrow => 'Tomorrow';
+
+  @override
+  String get notebookChangedElsewhere => 'Changed on another phone';
+
+  @override
+  String get notebookHoldToRecord => 'Hold to record a voice note';
+
+  @override
+  String notebookVoiceTitle(String length) {
+    return 'Voice note, $length';
+  }
 }

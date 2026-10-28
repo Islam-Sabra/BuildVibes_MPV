@@ -8,13 +8,17 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../data/models/daybook.dart' show dayOf;
+import '../../data/models/note.dart';
 import '../../data/models/notebook_page.dart';
+import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_segmented.dart';
 import '../../shared/widgets/bv_swipe_card.dart';
+import '../chat/voice.dart' show voiceTime;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../spaces/space_errors.dart';
@@ -127,6 +131,12 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
     final now = ref.watch(clockProvider)();
     final keep = _keep ?? ref.watch(keepDaysProvider).value ?? 30;
     final loaded = ref.watch(deletedItemsProvider);
+    // The phone holds the deleted entries too (99B ruling 5): what each
+    // one is made of (H21: a voice note shows the voice icon).
+    final held = {
+      for (final n in ref.watch(notebookProvider).value?.all ?? const <Note>[])
+        if (n.deletedAt != null) n.id: n,
+    };
     final items = loaded.value ?? const <DeletedItem>[];
     final byDay = <String, List<DeletedItem>>{};
     for (final i in items) {
@@ -135,6 +145,13 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
 
     Widget row(DeletedItem i) {
       final from = _from(l10n, i);
+      final blocks = held[i.id]?.pageBlocks ?? const <PageBlock>[];
+      final voice = blocks.isNotEmpty && blocks.every((b) => b is PageVoice);
+      final title = i.title.trim().isNotEmpty || !voice
+          ? i.title
+          : l10n.notebookVoiceTitle(
+              voiceTime((blocks.first as PageVoice).duration),
+            );
       final what = switch (i.kind) {
         DeletedKind.entry => l10n.notebookDeletedEntry(from),
         DeletedKind.part => l10n.notebookDeletedPart(from),
@@ -169,11 +186,13 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
                 spacing: BvNotebookPagesSpec.rowGap,
                 children: [
                   PageIconBox(
-                    icon: switch (i.kind) {
-                      DeletedKind.entry => BvIcons.pageList,
-                      DeletedKind.part => BvIcons.textBlock,
-                      DeletedKind.page => BvIcons.pageFolder,
-                    },
+                    icon: voice
+                        ? BvIcons.microphone
+                        : switch (i.kind) {
+                            DeletedKind.entry => BvIcons.pageList,
+                            DeletedKind.part => BvIcons.textBlock,
+                            DeletedKind.page => BvIcons.pageFolder,
+                          },
                   ),
                   Expanded(
                     child: Column(
@@ -181,10 +200,10 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
                       spacing: BvNotebookPagesSpec.linesGap,
                       children: [
                         Text(
-                          i.title,
+                          title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          textDirection: directionOf(i.title),
+                          textDirection: directionOf(title),
                           style: type.emphasis.copyWith(
                             color: BvColors.textPrimary,
                           ),
@@ -198,22 +217,13 @@ class _DeletedItemsScreenState extends ConsumerState<DeletedItemsScreen> {
                       ],
                     ),
                   ),
-                  TextButton.icon(
+                  BvButton(
                     key: Key('deleted-restore-${i.id}'),
-                    style: TextButton.styleFrom(
-                      backgroundColor: BvColors.surfaceSubtle,
-                      shape: const StadiumBorder(),
-                    ),
+                    label: l10n.notebookRestore,
+                    icon: BvIcons.restartNumbering,
+                    style: BvButtonStyle.secondary,
+                    size: BvButtonSize.medium,
                     onPressed: () => unawaited(_restore(i)),
-                    icon: const Icon(
-                      BvIcons.restartNumbering,
-                      size: BvSize.iconSm,
-                      color: BvColors.iconPrimary,
-                    ),
-                    label: Text(
-                      l10n.notebookRestore,
-                      style: type.labelSm.copyWith(color: BvColors.textPrimary),
-                    ),
                   ),
                 ],
               ),

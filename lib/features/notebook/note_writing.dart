@@ -256,6 +256,13 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
                 const SizedBox(width: BvSize.iconLg),
             ],
           ),
+          // H15: its own line under the head, never squeezed beside it.
+          if (!writing && draft.changedElsewhere)
+            Text(
+              l10n.notebookChangedElsewhere,
+              key: const Key('note-changed-elsewhere'),
+              style: quiet.copyWith(color: BvColors.textWarning),
+            ),
           NotePageEditor(
             key: widget.editorKey,
             title: _first.title,

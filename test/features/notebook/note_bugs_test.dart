@@ -460,7 +460,7 @@ void main() {
           const Duration(milliseconds: 300),
         );
         await tester.pumpAndSettle();
-        await _tap(tester, _key('swipe-archive-draft-1'));
+        await _tap(tester, _key('swipe-discard-draft-1'));
         expect(_key('note-draft'), findsNothing);
         await tester.tap(find.text(l10n.daybookUndo));
         await tester.pumpAndSettle();

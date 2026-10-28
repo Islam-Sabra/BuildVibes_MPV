@@ -572,15 +572,19 @@ class NoteChange {
 // A note the server refused (not for want of a signal): the screen says
 /// so and puts its words back as the Draft (F107 B15). Each refusal is a
 /// new value.
-final noteRefusedProvider = NotifierProvider<NoteRefused, Note?>(
-  NoteRefused.new,
-);
+final noteRefusedProvider =
+    NotifierProvider<NoteRefused, ({Note note, bool elsewhere})?>(
+      NoteRefused.new,
+    );
 
-class NoteRefused extends Notifier<Note?> {
+/// [elsewhere]: an edit refused because the entry changed on another phone
+/// meanwhile (40001, review 100 H15).
+class NoteRefused extends Notifier<({Note note, bool elsewhere})?> {
   @override
-  Note? build() => null;
+  ({Note note, bool elsewhere})? build() => null;
 
-  void refused(Note note) => state = note;
+  void refused(Note note, {bool elsewhere = false}) =>
+      state = (note: note, elsewhere: elsewhere);
 
   /// The screen has dealt with it.
   void seen() => state = null;
@@ -873,6 +877,7 @@ class Notebook extends AsyncNotifier<NotebookData> {
     // Said once the notebook reads again (D4: the screen then tells a
     // refused edit of a saved entry from a refused new one).
     Note? lost;
+    var elsewhere = false;
     try {
       while (_waiting.isNotEmpty) {
         var change = _waiting.first;
@@ -888,7 +893,10 @@ class Notebook extends AsyncNotifier<NotebookData> {
           }
           refused = true;
           // B15: said, and its words kept.
-          if (change.op == 'save') lost = change.note ?? lost;
+          if (change.op == 'save') {
+            lost = change.note ?? lost;
+            elsewhere = e.failure == SpaceFailure.conflict;
+          }
         }
         _tries = 0;
         _retry?.cancel();
@@ -899,7 +907,11 @@ class Notebook extends AsyncNotifier<NotebookData> {
       }
     } finally {
       if (refused) ref.invalidateSelf();
-      if (lost != null) ref.read(noteRefusedProvider.notifier).refused(lost);
+      if (lost != null) {
+        ref
+            .read(noteRefusedProvider.notifier)
+            .refused(lost, elsewhere: elsewhere);
+      }
     }
   }
 

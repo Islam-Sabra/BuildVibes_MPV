@@ -4714,10 +4714,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookWhereHint => 'أين';
 
   @override
-  String get notebookAddGps => 'أضف إحداثيات GPS';
+  String get notebookAddGps => 'إضافة مكاني على الخريطة';
 
   @override
-  String get notebookGpsAdded => 'أُضيفت إحداثيات GPS';
+  String get notebookGpsAdded => 'أُضيف على الخريطة';
 
   @override
   String notebookGpsLine(String lat, String lng, String metres) {
@@ -4740,13 +4740,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookLocationHelp =>
-      'اكتب المكان، أو أضف GPS الهاتف، أو كليهما.';
+      'اكتب المكان، أو ضعه على الخريطة، أو كليهما.';
 
   @override
   String get notebookRemoveLocation => 'إزالة المكان';
 
   @override
-  String get notebookRemoveGps => 'إزالة إحداثيات GPS';
+  String get notebookRemoveGps => 'إزالته من الخريطة';
 
   @override
   String get notebookRemoveFile => 'إزالة الملف';
@@ -5253,7 +5253,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookFilterNone => 'لا شيء يطابق.';
 
   @override
-  String get notebookShareFeed => 'المنشورات';
+  String get notebookShareFeed => 'الأخبار';
 
   @override
   String get notebookShareFeedNote => 'منشور عام في الرئيسية';
@@ -5271,7 +5271,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookShareMessageNote => 'إلى شخص واحد';
 
   @override
-  String get notebookShareFeedTitle => 'النشر في المنشورات';
+  String get notebookShareFeedTitle => 'النشر في الأخبار';
 
   @override
   String get notebookShareSpaceTitle => 'وضع في مساحة';
@@ -5330,7 +5330,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookShareNoSpace => 'لا توجد مساحة يمكنك النشر فيها.';
 
   @override
-  String get notebookSharedFeed => 'نُشرت في المنشورات';
+  String get notebookSharedFeed => 'نُشرت في الأخبار';
 
   @override
   String notebookSharedTo(String name) {
@@ -5344,7 +5344,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String notebookMarkFeed(String time) {
-    return 'نُشرت في المنشورات · $time';
+    return 'نُشرت في الأخبار · $time';
   }
 
   @override
@@ -5454,4 +5454,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookShareFor => 'لمن';
+
+  @override
+  String notebookShortWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookTomorrow => 'غدًا';
+
+  @override
+  String get notebookChangedElsewhere => 'تغيّرت على هاتف آخر';
+
+  @override
+  String get notebookHoldToRecord => 'اضغط مطولًا لتسجيل ملاحظة صوتية';
+
+  @override
+  String notebookVoiceTitle(String length) {
+    return 'تسجيل صوتي، $length';
+  }
 }

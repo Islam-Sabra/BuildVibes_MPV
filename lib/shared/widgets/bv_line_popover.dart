@@ -45,6 +45,7 @@ class BvLinePopover {
     required WidgetBuilder builder,
     bool atEnd = false,
     bool barrier = false,
+    bool dim = false,
     bool above = false,
     double gap = BvLineMenuSpec.cardGap,
     VoidCallback? onDismiss,
@@ -78,6 +79,13 @@ class BvLinePopover {
                   onHorizontalDragEnd: onDismiss == null
                       ? null
                       : (_) => onDismiss(),
+                  // [dim]: the screen behind is dimmed (the Filter, BH9).
+                  child: dim
+                      ? const ColoredBox(
+                          key: Key('line-popover-dim'),
+                          color: BvColors.overlayDim,
+                        )
+                      : null,
                 ),
               ),
             Positioned.fill(

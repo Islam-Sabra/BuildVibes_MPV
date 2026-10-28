@@ -7907,13 +7907,13 @@ abstract class AppLocalizations {
   /// F107 NBX4.
   ///
   /// In en, this message translates to:
-  /// **'Add my GPS position'**
+  /// **'Add where I am on the map'**
   String get notebookAddGps;
 
   /// F107 NBX4.
   ///
   /// In en, this message translates to:
-  /// **'My GPS position added'**
+  /// **'Added on the map'**
   String get notebookGpsAdded;
 
   /// F107 NBX4: the position under it.
@@ -7949,7 +7949,7 @@ abstract class AppLocalizations {
   /// F107 NBX4.
   ///
   /// In en, this message translates to:
-  /// **'Type where, add the phone\'s GPS, or both.'**
+  /// **'Type where, put it on the map, or both.'**
   String get notebookLocationHelp;
 
   /// F107: the location chip's ×.
@@ -7961,7 +7961,7 @@ abstract class AppLocalizations {
   /// F107 NBX4: the GPS row's ×.
   ///
   /// In en, this message translates to:
-  /// **'Remove my GPS position'**
+  /// **'Take it off the map'**
   String get notebookRemoveGps;
 
   /// F107: a file row's ×.
@@ -9121,6 +9121,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For'**
   String get notebookShareFor;
+
+  /// Review 100 H9: a reminder's short value in 📎: 'Tomorrow 7:00 am', 'Fri 7:00 am'.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {time}'**
+  String notebookShortWhen(String day, String time);
+
+  /// Review 100 H9: the short value's day.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get notebookTomorrow;
+
+  /// Review 100 H15: the mark on a Draft whose edit the server refused because the entry changed elsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed on another phone'**
+  String get notebookChangedElsewhere;
+
+  /// Review 100 H18: a short tap on the notebook's 🎤.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to record a voice note'**
+  String get notebookHoldToRecord;
+
+  /// Review 100 H21: a deleted voice note with no words, by its length.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note, {length}'**
+  String notebookVoiceTitle(String length);
 }
 
 class _AppLocalizationsDelegate
