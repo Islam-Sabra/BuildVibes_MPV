@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 28 Oct 2026 — review 100 live (migration 48, notebook-purge, build 686); the phone install waits
+## PC update: 28 Oct 2026 — review 100 live (migration 48, notebook-purge, build 686 on the phone)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -15,7 +15,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   6. `NOTEBOOK_PURGE_SECRET` in the function secrets and Vault (`notebook_purge_secret`); they match. Not in the repo or a chat.
   7. `notebook-purge` deployed (v1, verify_jwt off). Cron job `notebook-purge`, 03:15 UTC, active.
   8. By hand: "purged 0, files 1, waiting 0". The one file was a stored notebook file no entry used (a day old at least); notes, pages and `note_files` rows are unchanged.
-- **Step 9, half done:** build 686 (15b7932, release, upload key) is on the Desktop as `BuildVibes-686.apk` for testers. **It is not on the founder's phone:** adb found no phone at 192.168.8.24. The only device on the network was 192.168.8.2:5555 (serial 0123456789ABCDEF), which isn't his Xiaomi, so nothing was installed anywhere. Next: the founder turns on Wireless debugging, then `adb connect` and `adb install -r` of that APK, BuildVibes only.
+- **Step 9 done:** build 686 (15b7932, release, upload key) is **installed on the founder's Xiaomi** (22120RN86G, 192.168.8.33:33547, versionCode 686 over 659, BuildVibes only), and on the Desktop as `BuildVibes-686.apk` for testers.
 - **Worktrees:** -db29 removed (line endings only); the throwaway push worktree removed. Left: main, -r100r, -slice1.
 - **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r100-redesign` (worktree `BuildVibes-r100r`, merged).
 
