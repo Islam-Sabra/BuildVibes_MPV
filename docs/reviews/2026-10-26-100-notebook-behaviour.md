@@ -699,3 +699,13 @@ Each step: tests first, in EN and AR.
 **Worktree `-db29`:** line endings only, with not one word changed. Remove it.
 
 **Next:** the founder's yes, then the live steps 1–10 of "Lead's second check".
+
+## Live (28 Oct)
+- **The merge and the database:**
+  - `claude/r100-redesign` is merged into `slice2-app` at `15b7932`;
+  - migration 48 is live (the lead checked the migration list read-only);
+  - 10 notes and 4 pages before and after, none deleted or archived.
+- **The purge:**
+  - `notebook-purge` is active, and the nightly job runs at 03:15 UTC;
+  - the call by hand purged 0 items and removed 1 stored file, more than a day old, that no entry used.
+- **Build 686:** signed, and on the PC Desktop as `BuildVibes-686.apk`. It is waiting to be installed on the founder's phone.
