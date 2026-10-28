@@ -80,3 +80,35 @@
   - the N2 time shots (now the clock face, plus the wheels in a second shot);
   - the BH9 sort parts.
 - **Any other changed shot** is listed with before/after and not accepted.
+
+## The lead's check of `claude/r104` (29 Oct, at `226919b`)
+- **Runs:** SQL stand-in 3,038 checks, 0 files failing. The session reported analyze clean and 2,473 tests passing; the one failure is photo_privacy H1, which is cloud-only (root).
+- **Two reviewers** (standards, spec), reading the code:
+  - **Spec:** N7–N12 are as written.
+  - **Standards:** no hard violations.
+
+### Rulings on what Cursor/Claude added
+Accepted:
+- "It isn't kept in Deleted items." for a Draft or lines never saved;
+- the body without the number of days when the days don't arrive within 2 s;
+- the "Delete this draft?" title;
+- the plural titles;
+- Cancel keeping the selection;
+- the due-day dialog wrap fix;
+- the clock face drawn in LTR inside Arabic. A clock reads the same in both languages, so this is the agreed exception to "never left/right".
+
+Also accepted: the reminder detail uses Today / Tomorrow / the short date ("Fri 30 Oct · 7:00").
+
+### Fixes before merge
+- **F1 (N6 gap).** An entry left empty after editing is still deleted with only the Undo bar (`_finishEdit`).
+  - It must ask first, like every other delete: "Delete this empty entry?" with Cancel · Delete.
+  - Cancel brings back the editor with the empty entry.
+  - Test in EN and AR.
+- **F2 (accessibility).** The numbers on the dial are read as just "05" or "7".
+  - Label them "{n} o'clock" for hours and "{n} minutes" for minutes, in both languages through the ARB.
+  - Test with the semantics finder.
+- **F3 (small).**
+  - The "+N" badge gets its own key, `notebookStatusMore`, instead of reusing `daybookFacesMore`.
+  - A status whose Space or person has no name is left out rather than showing a blank name.
+
+Noted only, no change now: time maths as static methods on `BvTimeWheel`; the picker reading the phone's saved mode; `reminderWhen` living in the screen file. They go to the tidy list.
