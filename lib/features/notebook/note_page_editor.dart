@@ -14,7 +14,6 @@ import '../../data/models/post_page.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
-import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
@@ -39,6 +38,21 @@ enum NoteBlockKind {
   quote,
   divider,
   voice;
+
+  /// The block list of + and "/" (review 100 Part 5), in its order:
+  /// TEXT, LISTS, INSERT.
+  static const blockList = [
+    text,
+    heading,
+    subheading,
+    quote,
+    todo,
+    numbers,
+    bullets,
+    toggle,
+    table,
+    divider,
+  ];
 
   /// The kinds a line's words can be turned into (⋮⋮ → Turn into).
   static const words = [
@@ -216,6 +230,8 @@ class NotePageEditor extends ConsumerStatefulWidget {
     this.onCurrentKind,
     this.titleFocus,
     this.onMoveLine,
+    this.onLinesSelected,
+    this.onLinesDeleted,
   });
 
   final String title;
@@ -236,6 +252,15 @@ class NotePageEditor extends ConsumerStatefulWidget {
   /// page; true once it went, and it leaves this note.
   final Future<bool> Function(List<PageBlock> lines)? onMoveLine;
 
+  /// How many lines are selected (review 100 BH12: a line's start held),
+  /// each time it changes; 0 when the selection ends.
+  final ValueChanged<int>? onLinesSelected;
+
+  /// The selection bar's Delete: [lines] (ids, with the lines under them)
+  /// left the entry; [kept] completes true once their Undo bar has gone
+  /// without Undo (99B B3: then they go to Deleted items).
+  final void Function(List<String> lines, Future<bool> kept)? onLinesDeleted;
+
   @override
   ConsumerState<NotePageEditor> createState() => NotePageEditorState();
 }
@@ -248,11 +273,8 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   static const _down = #down;
   static const _indent = #indent;
   static const _out = #outdent;
-  static const _duplicate = #duplicate;
   static const _continue = #goOn;
   static const _restart = #restart;
-  static const _movePage = #movePage;
-  static const _delete = #delete;
 
   late final _title = TextEditingController(text: widget.title);
 
@@ -298,7 +320,158 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   bool get handleOnlyWhileWriting => true;
 
   @override
-  bool get handlesShown => widget.writing && !_inTitle;
+  bool get handlesShown => widget.writing && !_inTitle && _picked.isEmpty;
+
+  // Lines selected (review 100 Part 0, BH12) ---------------------------------
+
+  /// The lines selected by holding their start, by id (each with the lines
+  /// under it); the line written in before, for ✕; the start strip held.
+  final _picked = <String>{};
+  String? _pickedFrom;
+  String? _pressing;
+
+  bool get selectingLines => _picked.isNotEmpty;
+
+  /// [id] selected, or no longer; the first one takes the keyboard down
+  /// on purpose, with a light haptic.
+  void _pickLine(String id) {
+    final first = _picked.isEmpty;
+    if (first) {
+      closeMenus();
+      _pickedFrom = currentBlockId;
+      unawaited(HapticFeedback.selectionClick());
+    }
+    setState(() {
+      if (!_picked.remove(id)) _picked.add(id);
+    });
+    if (first) FocusManager.instance.primaryFocus?.unfocus();
+    widget.onLinesSelected?.call(_picked.length);
+    if (_picked.isEmpty) _backToWriting();
+  }
+
+  /// ✕ or Back: no line is selected, and the keyboard comes back on the
+  /// line being written.
+  void endLineSelection() {
+    if (_picked.isEmpty) return;
+    setState(_picked.clear);
+    widget.onLinesSelected?.call(0);
+    _backToWriting();
+  }
+
+  void _backToWriting() {
+    final from = _pickedFrom;
+    _pickedFrom = null;
+    if (from != null && _indexOf(from) >= 0) currentBlockId = from;
+    focusCurrent();
+  }
+
+  /// A field got the cursor (a tap on the words): the selection ends.
+  void _focusMoved() {
+    if (_picked.isEmpty || !mounted) return;
+    final ctx = FocusManager.instance.primaryFocus?.context;
+    if (ctx == null ||
+        ctx.findAncestorStateOfType<NotePageEditorState>() != this ||
+        ctx.findAncestorWidgetOfExactType<EditableText>() == null) {
+      return;
+    }
+    setState(_picked.clear);
+    _pickedFrom = null;
+    widget.onLinesSelected?.call(0);
+  }
+
+  /// Each selected line's index on the page, top down, leaving out one
+  /// under another selected line (it goes with it).
+  List<int> get _pickedHeads {
+    final out = <int>[];
+    var end = 0;
+    for (final (i, b) in editBlocks.indexed) {
+      if (i < end || !_picked.contains(b.id)) continue;
+      out.add(i);
+      end = subtreeEnd(editBlocks, i);
+    }
+    return out;
+  }
+
+  /// Every line selected, with the lines under them.
+  Set<String> get _pickedAll => {
+    for (final i in _pickedHeads)
+      for (final b in editBlocks.sublist(i, subtreeEnd(editBlocks, i))) b.id,
+  };
+
+  /// The selected lines with the lines under them, each group from level 0
+  /// (Move, Share).
+  List<PageBlock> selectedLines() {
+    editBlocks = collectBlocks();
+    return [
+      for (final i in _pickedHeads)
+        for (final b in editBlocks.sublist(i, subtreeEnd(editBlocks, i)))
+          b.atIndent(b.indent - editBlocks[i].indent),
+    ];
+  }
+
+  /// The ids of [selectedLines].
+  Set<String> get selectedLineIds => _pickedAll;
+
+  /// Duplicate: each selected line and the lines under it, copied right
+  /// under itself; Undo for 5 s.
+  void duplicateSelectedLines() {
+    final l10n = AppLocalizations.of(context);
+    editBlocks = collectBlocks();
+    final before = _snap();
+    var blocks = editBlocks;
+    for (final i in _pickedHeads.reversed) {
+      blocks = duplicated(blocks, i, newUuid);
+    }
+    _picked.clear();
+    widget.onLinesSelected?.call(0);
+    _set(blocks);
+    _undoBar(l10n.notebookUndoDuplicated, before);
+    _backToWriting();
+  }
+
+  /// Delete: the selected lines and the lines under them leave the entry;
+  /// Undo for 5 s ([NotePageEditor.onLinesDeleted]).
+  void deleteSelectedLines() {
+    final l10n = AppLocalizations.of(context);
+    editBlocks = collectBlocks();
+    final before = _snap();
+    final gone = _pickedAll;
+    final order = [
+      for (final b in editBlocks)
+        if (gone.contains(b.id)) b.id,
+    ];
+    final kept = Completer<bool>();
+    removeLines(gone);
+    _undoBar(l10n.notebookUndoDeleted, before, onClosed: kept.complete);
+    widget.onLinesDeleted?.call(order, kept.future);
+  }
+
+  /// [ids] leave the entry (Delete, or Move to another page); the
+  /// selection ends and the keyboard comes back.
+  void removeLines(Set<String> ids) {
+    editBlocks = collectBlocks();
+    if (ids.contains(_pickedFrom ?? currentBlockId)) {
+      final at = editBlocks.indexWhere((b) => ids.contains(b.id));
+      final left = [
+        for (final b in editBlocks.take(at < 0 ? 0 : at))
+          if (!ids.contains(b.id)) b,
+      ];
+      _pickedFrom =
+          left.lastOrNull?.id ??
+          editBlocks.where((b) => !ids.contains(b.id)).firstOrNull?.id;
+    }
+    _picked.clear();
+    widget.onLinesSelected?.call(0);
+    for (final id in ids) {
+      dropField('t:$id');
+    }
+    final left = [
+      for (final b in editBlocks)
+        if (!ids.contains(b.id)) b,
+    ];
+    _set(left.isEmpty ? [PageText(newUuid(), '')] : left);
+    _backToWriting();
+  }
 
   /// The cursor is in the title: no line is being written, so no ⋮⋮ and no
   /// ⇥ ⇤ (NBY4).
@@ -328,6 +501,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       ),
     );
     widget.titleFocus?.addListener(_titleFocusChanged);
+    FocusManager.instance.addListener(_focusMoved);
     // The note opens folded as it was left.
     for (final (i, b) in editBlocks.indexed) {
       if (b.folded && folds(editBlocks, i)) _folded.add(b.id);
@@ -355,6 +529,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   @override
   void dispose() {
     widget.titleFocus?.removeListener(_titleFocusChanged);
+    FocusManager.instance.removeListener(_focusMoved);
     _menu.hide();
     _slide.dispose();
     _foldMotion.dispose();
@@ -455,6 +630,7 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     String message,
     ({List<PageBlock> blocks, Set<String> folded, String? current}) before, {
     String? mark,
+    ValueChanged<bool>? onClosed,
   }) {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context);
@@ -467,6 +643,11 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         if (mounted) _restore(before);
       },
     );
+    if (onClosed != null) {
+      unawaited(
+        bar.closed.then((why) => onClosed(why != SnackBarClosedReason.action)),
+      );
+    }
     if (mark == null) return;
     unawaited(
       bar.closed.then((_) {
@@ -687,10 +868,9 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     final l10n = AppLocalizations.of(context);
     final inToggle = _toggleOf(key) != null;
     return [
-      for (final k in NoteBlockKind.values)
-        if (k != NoteBlockKind.voice &&
-            !(inToggle &&
-                (k == NoteBlockKind.toggle || k == NoteBlockKind.table)))
+      for (final k in NoteBlockKind.blockList)
+        if (!(inToggle &&
+            (k == NoteBlockKind.toggle || k == NoteBlockKind.table)))
           (
             value: k,
             key: k.name,
@@ -702,6 +882,58 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
             ],
           ),
     ];
+  }
+
+  /// Review 100 Part 5: the block list's groups, shared by + and "/".
+  @override
+  String? slashGroup(Object value) {
+    if (value is! NoteBlockKind) return null;
+    final l10n = AppLocalizations.of(context);
+    return switch (value) {
+      NoteBlockKind.text ||
+      NoteBlockKind.heading ||
+      NoteBlockKind.subheading ||
+      NoteBlockKind.quote ||
+      NoteBlockKind.callout => l10n.notebookGroupText,
+      NoteBlockKind.todo ||
+      NoteBlockKind.numbers ||
+      NoteBlockKind.bullets ||
+      NoteBlockKind.toggle => l10n.notebookGroupLists,
+      NoteBlockKind.table ||
+      NoteBlockKind.divider ||
+      NoteBlockKind.voice => l10n.notebookGroupInsert,
+    };
+  }
+
+  @override
+  Object? get slashChecked => currentKind;
+
+  /// + on the bar (review 100 BH8): the block list, the same card as
+  /// "/", for the line being written (an empty one is turned, else a new
+  /// line goes under it). Each row: its icon, its name, its shortcut; the
+  /// current kind ticked.
+  Widget blockList({required ValueChanged<NoteBlockKind> onPick}) {
+    final l10n = AppLocalizations.of(context);
+    final inToggle = currentBlockId != null && _indexOf(currentBlockId!) < 0;
+    return BvPopoverMenu<NoteBlockKind>.line(
+      key: const Key('page-add-menu'),
+      scrolls: true,
+      checked: currentKind,
+      items: [
+        for (final k in NoteBlockKind.blockList)
+          if (!(inToggle &&
+              (k == NoteBlockKind.toggle || k == NoteBlockKind.table)))
+            BvMenuItem(
+              key: Key('page-add-${k.name}'),
+              value: k,
+              label: k.label(l10n),
+              icon: k.icon,
+              shortcut: k.shortcut,
+              group: slashGroup(k),
+            ),
+      ],
+      onSelected: onPick,
+    );
   }
 
   /// A kind from "/": an empty line becomes it; a line with words turns
@@ -847,6 +1079,11 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
       return BvPopoverMenu<Object>.line(
         key: const Key('page-turn-menu'),
         selected: now,
+        back: l10n.pageTurnInto,
+        onBack: () {
+          setState(() => _turning = false);
+          _menu.rebuild();
+        },
         items: [
           for (final k in NoteBlockKind.words)
             BvMenuItem(
@@ -901,13 +1138,6 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
             label: l10n.notebookOutdent,
             icon: BvIcons.outdent,
           ),
-        if (canDuplicate(blocks, index))
-          BvMenuItem(
-            key: const Key('page-duplicate'),
-            value: _duplicate,
-            label: l10n.notebookDuplicate,
-            icon: BvIcons.duplicate,
-          ),
         if (goOn != null)
           BvMenuItem(
             key: const Key('page-continue-numbering'),
@@ -923,20 +1153,6 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
             label: l10n.notebookLineRestart,
             icon: BvIcons.restartNumbering,
           ),
-        if (widget.onMoveLine != null)
-          BvMenuItem(
-            key: const Key('page-move-to-page'),
-            value: _movePage,
-            label: l10n.notebookMoveToPage,
-            icon: BvIcons.moveInto,
-          ),
-        BvMenuItem(
-          key: const Key('page-block-delete'),
-          value: _delete,
-          label: l10n.pageMenuDelete,
-          icon: BvIcons.delete,
-          destructive: true,
-        ),
       ],
       onSelected: (v) => _menuPicked(id, v),
     );
@@ -974,10 +1190,6 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
         _closeMenu();
         _set(outdented(editBlocks, index));
         _undoBar(l10n.notebookUndoOutdented, before);
-      case _duplicate:
-        _closeMenu();
-        _set(duplicated(editBlocks, index, newUuid));
-        _undoBar(l10n.notebookUndoDuplicated, before);
       case _continue || _restart:
         _closeMenu();
         final line = editBlocks[index];
@@ -992,36 +1204,8 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
               : continued(editBlocks, index, goOn!),
           ...editBlocks.skip(index + 1),
         ]);
-      case _movePage:
-        _closeMenu();
-        unawaited(_moveToPage(index));
-        return;
-      case _delete:
-        _closeMenu();
-        unawaited(_deleteLine(index));
     }
     focusCurrent();
-  }
-
-  /// Move to page… (A4): the line and its children go, as an entry of
-  /// their own, into the page picked; they leave this note.
-  Future<void> _moveToPage(int index) async {
-    final move = widget.onMoveLine;
-    if (move == null) return;
-    final end = subtreeEnd(editBlocks, index);
-    final group = editBlocks.sublist(index, end);
-    final base = group.first.indent;
-    final moved = await move([
-      for (final b in group) b.atIndent(b.indent - base),
-    ]);
-    if (!mounted || !moved) return;
-    editBlocks = collectBlocks();
-    final at = _indexOf(group.first.id);
-    if (at < 0) return;
-    _set([
-      ...editBlocks.take(at),
-      ...editBlocks.skip(subtreeEnd(editBlocks, at)),
-    ]);
   }
 
   /// Move up or Move down: the line and its children over the whole group
@@ -1073,43 +1257,6 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     focusBlockLater('t:${b.id}');
   }
 
-  /// Delete: the line goes and its children move up a level; a folded line
-  /// asks first, then goes with the lines under it. Undo puts it all back.
-  Future<void> _deleteLine(int index) async {
-    final l10n = AppLocalizations.of(context);
-    editBlocks = collectBlocks();
-    final under = childCount(editBlocks, index);
-    final whole = under > 0 && _folded.contains(editBlocks[index].id);
-    if (whole) {
-      final yes = await showBvDialog(
-        context: context,
-        title: l10n.notebookDeleteLines(under),
-        body: l10n.notebookDeleteLinesUndo,
-        cancelLabel: l10n.commonCancel,
-        confirmLabel: l10n.pageDelete,
-        destructive: true,
-      );
-      if (!yes || !mounted) return;
-      editBlocks = collectBlocks();
-    }
-    final before = _snap();
-    final gone = editBlocks[index].id;
-    if (currentBlockId == gone) {
-      final shown = visibleLines(editBlocks, _folded);
-      final at = shown.indexOf(index);
-      currentBlockId = at > 0 ? editBlocks[shown[at - 1]].id : null;
-    }
-    _set(
-      whole
-          ? withoutSubtree(editBlocks, index)
-          : withoutLifting(editBlocks, index),
-    );
-    _undoBar(l10n.notebookUndoDeleted, before);
-  }
-
-  /// A drag on ⋮⋮ (a tablet; [from] and [to] count the lines shown): the
-  /// line moves with its children, to the level of the line it lands
-  /// before.
   @override
   void moveBlock(int from, int to) {
     editBlocks = collectBlocks();
@@ -1227,6 +1374,24 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
   /// shut or open (review 98).
   @override
   Widget decorateBlock(int index, PageBlock b, Widget child) {
+    final onPage = index < editBlocks.length && editBlocks[index].id == b.id;
+    if (widget.writing && onPage && (b is PageText || b is PageHeading)) {
+      child = _startStrip(b, child);
+    }
+    if (_pickedAll.contains(b.id)) {
+      child = DecoratedBox(
+        key: Key('line-selected-${b.id}'),
+        decoration: const BoxDecoration(
+          color: BvColors.surfaceBrandSoft,
+          borderRadius: BvNoteBlocksSpec.pickedRadius,
+        ),
+        child: child,
+      );
+    }
+    return _decorated(index, b, child);
+  }
+
+  Widget _decorated(int index, PageBlock b, Widget child) {
     final l10n = AppLocalizations.of(context);
     final arrow = folds(editBlocks, index);
     final open = !_folded.contains(b.id) && _closing != b.id;
@@ -1281,20 +1446,62 @@ class NotePageEditorState extends ConsumerState<NotePageEditor>
     );
   }
 
-  /// A list line's marker (number, bullet or box): held, it opens the line
-  /// menu (review 98); holding the words still selects them.
-  Widget _marker(int index, PageBlock b, Widget marker) =>
-      !widget.writing || editBlocks[index].id != b.id
-      ? marker
-      : GestureDetector(
-          key: Key('note-marker-${b.id}'),
-          behavior: HitTestBehavior.opaque,
-          onLongPress: () {
-            currentBlockId = b.id;
-            unawaited(blockMenu(index));
-          },
+  /// A list line's marker (number, bullet or box), the line's start
+  /// (review 100 Part 0): held, the line is selected with the lines under
+  /// it (BH12); while lines are selected, a tap adds it or takes it away.
+  /// Holding the words still selects them.
+  Widget _marker(int index, PageBlock b, Widget marker) {
+    if (!widget.writing || editBlocks[index].id != b.id) return marker;
+    final picked = _picked.contains(b.id);
+    return GestureDetector(
+      key: Key('note-marker-${b.id}'),
+      behavior: HitTestBehavior.opaque,
+      onLongPress: () => _pickLine(b.id),
+      onTap: _picked.isEmpty ? null : () => _pickLine(b.id),
+      child: IgnorePointer(
+        ignoring: _picked.isNotEmpty,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BvNoteBlocksSpec.pickedRadius,
+            border: picked
+                ? Border.all(
+                    color: BvColors.borderSelected,
+                    width: BvStroke.medium,
+                  )
+                : null,
+          ),
           child: marker,
-        );
+        ),
+      ),
+    );
+  }
+
+  /// A plain line's or a heading's start (review 100 Part 0): a strip a
+  /// finger wide over its first words, a faint dot under the finger.
+  Widget _startStrip(PageBlock b, Widget child) {
+    final shown = _pressing == b.id || _picked.contains(b.id);
+    return Stack(
+      children: [
+        child,
+        PositionedDirectional(
+          start: 0,
+          top: 0,
+          bottom: 0,
+          width: BvNoteBlocksSpec.startStrip,
+          child: GestureDetector(
+            key: Key('note-start-${b.id}'),
+            behavior: HitTestBehavior.translucent,
+            onLongPressDown: (_) => setState(() => _pressing = b.id),
+            onLongPressCancel: () => setState(() => _pressing = null),
+            onLongPressEnd: (_) => setState(() => _pressing = null),
+            onLongPress: () => _pickLine(b.id),
+            onTap: _picked.isEmpty ? null : () => _pickLine(b.id),
+            child: _StartDot(shown: shown),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget hostBlock(int index, PageBlock b) {
@@ -1630,6 +1837,31 @@ class NoteDividerLine extends StatelessWidget {
       height: BvStroke.thin,
       thickness: BvStroke.thin,
       color: BvColors.borderDefault,
+    ),
+  );
+}
+
+/// The dot a line's start strip shows under the finger, and while the line
+/// is selected (review 100 BH12).
+class _StartDot extends StatelessWidget {
+  const _StartDot({required this.shown});
+
+  final bool shown;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: AlignmentDirectional.centerStart,
+    child: AnimatedOpacity(
+      opacity: shown ? 1 : 0,
+      duration: BvMotion.fast,
+      child: Container(
+        width: BvNoteBlocksSpec.startDot,
+        height: BvNoteBlocksSpec.startDot,
+        decoration: const BoxDecoration(
+          color: BvColors.iconSecondary,
+          shape: BoxShape.circle,
+        ),
+      ),
     ),
   );
 }

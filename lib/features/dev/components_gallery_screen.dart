@@ -529,7 +529,7 @@ class _Samples {
   String buttonLabel(BvButtonStyle style) => switch (style) {
     BvButtonStyle.primary => primary,
     BvButtonStyle.secondary => secondary,
-    BvButtonStyle.tertiary => tertiary,
+    BvButtonStyle.tertiary || BvButtonStyle.quiet => tertiary,
     BvButtonStyle.destructive => destructive,
   };
   String badge(BvBadgeTone tone) => badges[tone.index];

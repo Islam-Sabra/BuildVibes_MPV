@@ -44,10 +44,13 @@ class NotePoint {
 /// ([path]), on the phone until then ([local]).
 @immutable
 class NoteRecording {
+  /// What the phone records a voice note as.
+  static const voiceMime = 'audio/mp4';
+
   const NoteRecording({
     this.path,
     this.local,
-    this.mime = 'audio/mp4',
+    this.mime = voiceMime,
     this.bytes,
     this.durationMs = 0,
   });
@@ -55,7 +58,7 @@ class NoteRecording {
   factory NoteRecording.fromJson(Map<String, dynamic> json) => NoteRecording(
     path: json['storage_path'] as String? ?? json['path'] as String?,
     local: json['local'] as String?,
-    mime: json['mime'] as String? ?? 'audio/mp4',
+    mime: json['mime'] as String? ?? voiceMime,
     bytes: json['bytes'] as int?,
     durationMs: json['duration_ms'] as int? ?? 0,
   );
@@ -253,6 +256,51 @@ class NoteLocation {
   int get hashCode => Object.hash(text, lat, lng, accuracyM);
 }
 
+/// An entry's lines as plain text (review 100 Part 6, as the server's
+/// note_words writes them): an open to-do, a ticked one, a bullet. J2:
+/// characters every phone's font has (no ☐ or ☑).
+const noteTodoOpenMark = '[ ]';
+const noteTodoDoneMark = '[x]';
+const noteBulletMark = '•';
+
+/// Where an entry was shared (review 100 Part 6, note_shares).
+enum NoteShareTarget {
+  feed,
+  space,
+  message;
+
+  static NoteShareTarget fromJson(Object? v) => switch (v) {
+    'space' => space,
+    'message' => message,
+    _ => feed,
+  };
+
+  String get json => name;
+}
+
+/// One share of an entry: where to (a Space's or a person's name as it
+/// was) and when. The entry stays; this is its mark.
+@immutable
+class NoteShare {
+  const NoteShare({required this.target, required this.at, this.name});
+
+  factory NoteShare.fromJson(Map<String, dynamic> json) => NoteShare(
+    target: NoteShareTarget.fromJson(json['target']),
+    name: json['target_name'] as String?,
+    at: DateTime.parse(json['created_at'] as String).toLocal(),
+  );
+
+  final NoteShareTarget target;
+  final String? name;
+  final DateTime at;
+
+  Map<String, dynamic> toJson() => {
+    'target': target.json,
+    'target_name': name,
+    'created_at': at.toUtc().toIso8601String(),
+  };
+}
+
 /// A note in My notebook (migration 21): only its owner ever reads it.
 /// The app chose its [id], so saving it again is the same note.
 @immutable
@@ -276,6 +324,10 @@ class Note {
     this.location,
     this.files = const [],
     this.pageId,
+    this.deletedAt,
+    this.archivedAt,
+    this.version = 1,
+    this.shares = const [],
   });
 
   /// A row of `notes`, with its `note_files` embedded.
@@ -339,6 +391,13 @@ class Note {
             NoteFile.fromJson(f as Map<String, dynamic>),
       ],
       pageId: json['page_id'] as String?,
+      deletedAt: _time(json['deleted_at']),
+      archivedAt: _time(json['archived_at']),
+      version: json['version'] as int? ?? 1,
+      shares: [
+        for (final s in json['note_shares'] as List? ?? const [])
+          NoteShare.fromJson(s as Map<String, dynamic>),
+      ]..sort((a, b) => a.at.compareTo(b.at)),
     );
   }
 
@@ -397,6 +456,21 @@ class Note {
   /// The page it is in (review 99A, migration 47). Null only on an entry
   /// kept on the phone by an older version: it goes into the latest page.
   final String? pageId;
+
+  /// In Deleted items since (99B B3), or archived since (review 100 Part
+  /// 3b): either way it leaves every list, count, calendar and reminder.
+  final DateTime? deletedAt;
+  final DateTime? archivedAt;
+
+  /// The server's version of it (migration 48): an edit says which one it
+  /// started from, so an older one is refused.
+  final int version;
+
+  /// Where it was shared, oldest first (review 100 Part 6).
+  final List<NoteShare> shares;
+
+  /// In the page's list: not deleted, not archived.
+  bool get shown => deletedAt == null && archivedAt == null;
 
   bool get done => doneAt != null;
 
@@ -466,6 +540,10 @@ class Note {
     NoteLocation? Function()? location,
     List<NoteFile>? files,
     String? pageId,
+    DateTime? Function()? deletedAt,
+    DateTime? Function()? archivedAt,
+    int? version,
+    List<NoteShare>? shares,
   }) => Note(
     id: id,
     kind: kind ?? this.kind,
@@ -485,6 +563,10 @@ class Note {
     location: location == null ? this.location : location(),
     files: files ?? this.files,
     pageId: pageId ?? this.pageId,
+    deletedAt: deletedAt == null ? this.deletedAt : deletedAt(),
+    archivedAt: archivedAt == null ? this.archivedAt : archivedAt(),
+    version: version ?? this.version,
+    shares: shares ?? this.shares,
   );
 
   /// As this phone keeps it while it waits to be sent.
@@ -507,6 +589,10 @@ class Note {
     'location': location?.toJson(),
     'files': [for (final f in files) f.toJson()],
     'page_id': pageId,
+    'deleted_at': deletedAt?.toUtc().toIso8601String(),
+    'archived_at': archivedAt?.toUtc().toIso8601String(),
+    'version': version,
+    'note_shares': [for (final s in shares) s.toJson()],
   };
 
   /// Its to-dos not yet ticked: a to-do note's one, a page's to-do lines

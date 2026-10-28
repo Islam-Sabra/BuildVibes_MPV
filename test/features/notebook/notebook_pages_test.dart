@@ -73,10 +73,8 @@ void main() {
     final s = NotebookPageSamples(lang);
 
     group('A1 the pages list [$lang]', () {
-      testWidgets('New entry on top; pinned first, then by latest activity; '
-          'each row its latest entry and open to-dos, never a count', (
-        tester,
-      ) async {
+      testWidgets('pinned first, then by latest activity; each row "{n} '
+          'entries · {when}" (review 100 Part 7)', (tester) async {
         await _open(tester, lang);
         expect(_key('notebook-new-entry'), findsOneWidget);
         expect(find.text(l10n.notebookNewEntry), findsOneWidget);
@@ -98,35 +96,20 @@ void main() {
         // Sub-pages are inside their page, not on the list.
         expect(_key('page-${NotebookPageSamples.level3}'), findsNothing);
         expect(
-          _top(tester, find.text(l10n.notebookNewEntry)),
-          lessThan(_top(tester, find.text(l10n.notebookPinnedLabel))),
-        );
-        expect(
           _top(tester, find.text(l10n.notebookPinnedLabel)),
           lessThan(_top(tester, find.text(l10n.notebookPagesLabel))),
         );
-        // Site A: today and its latest entry; 3 to-dos open with its
-        // sub-pages'.
-        expect(
-          find.text(l10n.notebookPageLine(l10n.notebookToday, s.beforePour)),
-          findsOneWidget,
-        );
+        // Review 100 Part 7: "{n} entries · {when}", no to-dos, no first
+        // line (redesign_filter_test.dart has the rest).
         expect(
           find.descendant(
             of: _key('page-${NotebookPageSamples.siteA}'),
-            matching: find.text(l10n.notebookTodosOpen(3)),
+            matching: find.text(l10n.notebookRowLine(6, l10n.notebookRowToday)),
           ),
           findsOneWidget,
         );
-        // No to-dos: no line for them.
-        expect(
-          find.descendant(
-            of: _key('page-${NotebookPageSamples.meetings}'),
-            matching: _key('page-todos'),
-          ),
-          findsNothing,
-        );
-        // A new page: its dot and "new page".
+        expect(_key('page-todos'), findsNothing);
+        // A new page: its dot, and its one entry.
         expect(
           find.descendant(
             of: _key('page-${NotebookPageSamples.pump}'),
@@ -135,8 +118,9 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.text(
-            l10n.notebookPageLine(l10n.notebookToday, l10n.notebookNewPageMark),
+          find.descendant(
+            of: _key('page-${NotebookPageSamples.pump}'),
+            matching: find.text(l10n.notebookRowLine(1, l10n.notebookRowToday)),
           ),
           findsOneWidget,
         );
@@ -160,11 +144,14 @@ void main() {
         expect(find.text(l10n.notebookUntitled), findsOneWidget);
       });
 
-      testWidgets('no Deleted items button until 99B (ruling 9)', (
-        tester,
-      ) async {
+      testWidgets("99B: Deleted items at the list's end, under + New page "
+          '(ruling 9)', (tester) async {
         await _open(tester, lang);
-        expect(_key('notebook-deleted'), findsNothing);
+        expect(_key('notebook-deleted'), findsOneWidget);
+        expect(
+          _top(tester, _key('notebook-new-page')),
+          lessThan(_top(tester, _key('notebook-deleted'))),
+        );
       });
     });
 
@@ -571,16 +558,16 @@ void main() {
         expect(find.text(l10n.notebookMovedTo(s.siteBTitle)), findsOneWidget);
       });
 
-      testWidgets('an entry\'s ⋯: Move to page…, into a new page', (
-        tester,
-      ) async {
+      testWidgets('an entry held, then Move (review 100 Part 3): into a new '
+          'page', (tester) async {
         final app = await _open(
           tester,
           lang,
           path: '/notebook/pages/${NotebookPageSamples.siteA}',
         );
-        await _tap(tester, _key('note-menu-entry-gate'));
-        await _tap(tester, _key('note-move'));
+        await tester.longPress(_key('note-entry-gate'));
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('select-move'));
         await _tap(tester, _key('page-pick-new'));
         final made = app.notebook.pageKept.values.singleWhere(
           (p) => !s.pages().any((q) => q.id == p.id),
@@ -611,7 +598,7 @@ void main() {
         await _tap(tester, _key('note-draft'));
         await tester.longPress(_key('note-marker-l-2'));
         await tester.pumpAndSettle();
-        await _tap(tester, _key('page-move-to-page'));
+        await _tap(tester, _key('select-move'));
         await tester.enterText(_key('page-picker-search'), s.siteBTitle);
         await tester.pumpAndSettle();
         await _tap(tester, _key('page-pick-${NotebookPageSamples.siteB}'));
@@ -649,7 +636,7 @@ void main() {
         await _tap(tester, _key('note-entry-walk'));
         await tester.longPress(_key('note-marker-w-2'));
         await tester.pumpAndSettle();
-        await _tap(tester, _key('page-move-to-page'));
+        await _tap(tester, _key('select-move'));
         await tester.enterText(_key('page-picker-search'), s.siteBTitle);
         await tester.pumpAndSettle();
         await _tap(tester, _key('page-pick-${NotebookPageSamples.siteB}'));
@@ -909,11 +896,12 @@ void main() {
       expect(after.page('a')!.parentId, isNull);
     });
 
-    test('open to-dos count the page and every page under it', () {
+    test('a row counts the entries of the page and every page under it '
+        '(review 100 Part 7)', () {
       final data = NotebookPageSamples('en');
       final view = NotebookData(notes: data.notes(), pages: data.pages());
-      expect(view.openTodos(NotebookPageSamples.siteA), 3);
-      expect(view.openTodos(NotebookPageSamples.meetings), 0);
+      expect(view.entryCount(NotebookPageSamples.siteA), 6);
+      expect(view.entryCount(NotebookPageSamples.meetings), 1);
     });
   });
 }

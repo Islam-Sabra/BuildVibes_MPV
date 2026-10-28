@@ -4319,14 +4319,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep entries, checklists and to-dos for your work. Only you can see them.';
 
   @override
-  String get notebookPinTop => 'Pin to the top';
-
-  @override
   String get notebookDeleteTitle => 'Delete this entry?';
-
-  @override
-  String get notebookDeleteBody =>
-      'It goes from your notebook. A post you put in a Space stays there.';
 
   @override
   String get notebookPut => 'Went into a Space';
@@ -4336,10 +4329,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookSaveMessage => 'Save to my notebook';
-
-  @override
-  String get notebookPutNone =>
-      'You\'re not yet in a Space where you can add work.';
 
   @override
   String get notebookTooShort => 'Hold longer to record';
@@ -4511,9 +4500,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dmStartLine => 'The start of your conversation';
 
   @override
-  String get notebookRemindMe => 'Remind me';
-
-  @override
   String notebookReminderLine(String when) {
     return 'Reminder · $when';
   }
@@ -4552,9 +4538,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookDeleteLinesUndo => 'You can undo it right after.';
 
   @override
   String get notebookExactTitle => 'On-time reminders';
@@ -4669,12 +4652,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookCategories => 'Categories';
-
-  @override
-  String get notebookOrTypeSlash => 'or type /';
-
-  @override
   String get notebookSubheading => 'Subheading';
 
   @override
@@ -4717,9 +4694,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookLocation => 'Location';
 
   @override
-  String get notebookImage => 'Image';
-
-  @override
   String get notebookFile => 'File';
 
   @override
@@ -4729,10 +4703,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookWhereHint => 'Where';
 
   @override
-  String get notebookAddGps => 'Add my GPS position';
+  String get notebookAddGps => 'Add where I am on the map';
 
   @override
-  String get notebookGpsAdded => 'My GPS position added';
+  String get notebookGpsAdded => 'Added on the map';
 
   @override
   String notebookGpsLine(String lat, String lng, String metres) {
@@ -4755,19 +4729,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t find your position. Try again outside.';
 
   @override
-  String get notebookLocationHelp =>
-      'Type where, add the phone\'s GPS, or both.';
-
-  @override
-  String notebookGpsChip(String metres) {
-    return 'GPS ±$metres m';
-  }
+  String get notebookLocationHelp => 'Type where, put it on the map, or both.';
 
   @override
   String get notebookRemoveLocation => 'Remove location';
 
   @override
-  String get notebookRemoveGps => 'Remove my GPS position';
+  String get notebookRemoveGps => 'Take it off the map';
 
   @override
   String get notebookRemoveFile => 'Remove file';
@@ -4802,9 +4770,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookIncludeGps => 'Include my GPS position';
 
   @override
   String get notebookRemindTime => 'Remind me at…';
@@ -4979,21 +4944,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookNewPageMark => 'new page';
-
-  @override
   String get notebookNewMark => 'New';
-
-  @override
-  String notebookTodosOpen(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count to-dos open',
-      one: '1 to-do open',
-    );
-    return '$_temp0';
-  }
 
   @override
   String notebookPageChip(String page) {
@@ -5157,4 +5108,340 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookDraftDiscarded => 'Draft discarded';
+
+  @override
+  String notebookLinesSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lines selected',
+      one: '1 line selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookShare => 'Share';
+
+  @override
+  String get notebookMove => 'Move';
+
+  @override
+  String get notebookReminder => 'Reminder';
+
+  @override
+  String get notebookChangeReminder => 'Change reminder';
+
+  @override
+  String get notebookArchive => 'Archive';
+
+  @override
+  String get notebookUnarchive => 'Unarchive';
+
+  @override
+  String get notebookArchivedUndo => 'Archived';
+
+  @override
+  String get notebookUnarchivedUndo => 'Back in its page';
+
+  @override
+  String get notebookArchivedRow => 'Archived';
+
+  @override
+  String get notebookArchivedEmpty => 'Nothing archived in this page.';
+
+  @override
+  String get notebookGroupText => 'TEXT';
+
+  @override
+  String get notebookGroupLists => 'LISTS';
+
+  @override
+  String get notebookGroupInsert => 'INSERT';
+
+  @override
+  String get notebookAdd => 'Add';
+
+  @override
+  String get notebookPhoto => 'Photo';
+
+  @override
+  String get notebookBlocks => 'Add a block';
+
+  @override
+  String get notebookDiscarded => 'Discarded';
+
+  @override
+  String get notebookDone => 'Done';
+
+  @override
+  String get notebookRemove => 'Remove';
+
+  @override
+  String get notebookBack => 'Back';
+
+  @override
+  String notebookRowLine(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries · $when',
+      one: '1 entry · $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookRowToday => 'today';
+
+  @override
+  String get notebookRowYesterday => 'yesterday';
+
+  @override
+  String get notebookFilter => 'Filter';
+
+  @override
+  String get notebookFilterOff => 'Turn the filter off';
+
+  @override
+  String get notebookFilterShow => 'SHOW';
+
+  @override
+  String get notebookFilterIn => 'IN';
+
+  @override
+  String get notebookAllPages => 'All pages';
+
+  @override
+  String get notebookFilterTodos => 'To-dos open';
+
+  @override
+  String get notebookFilterPhotos => 'Photos';
+
+  @override
+  String get notebookFilterFiles => 'Files';
+
+  @override
+  String get notebookFilterVoice => 'Voice notes';
+
+  @override
+  String get notebookFilterReminders => 'Reminders';
+
+  @override
+  String get notebookFilterArchived => 'Archived';
+
+  @override
+  String get notebookFilterNone => 'Nothing matches.';
+
+  @override
+  String get notebookShareFeed => 'Feed';
+
+  @override
+  String get notebookShareFeedNote => 'A public post on Home';
+
+  @override
+  String get notebookShareSpace => 'Space';
+
+  @override
+  String get notebookShareSpaceNote => 'A post, work item or checklist';
+
+  @override
+  String get notebookShareMessage => 'Message';
+
+  @override
+  String get notebookShareMessageNote => 'To one person';
+
+  @override
+  String get notebookShareFeedTitle => 'Post to the feed';
+
+  @override
+  String get notebookShareSpaceTitle => 'Put in a Space';
+
+  @override
+  String get notebookShareMessageTitle => 'Send entry';
+
+  @override
+  String get notebookShareTo => 'To';
+
+  @override
+  String notebookShareWhatSees(String name) {
+    return 'What $name will see';
+  }
+
+  @override
+  String get notebookShareWhatOthers => 'What others will see';
+
+  @override
+  String get notebookShareCheck =>
+      'Check it has nothing your client or company wouldn\'t share.';
+
+  @override
+  String notebookShareLocation(String place, String map) {
+    return '$place · $map';
+  }
+
+  @override
+  String get notebookOnMap => 'on the map';
+
+  @override
+  String get notebookOnMapOnly => 'On the map';
+
+  @override
+  String get notebookShareLeaveOut => 'Leave the location out';
+
+  @override
+  String get notebookPost => 'Post';
+
+  @override
+  String get notebookShareKindPost => 'Post';
+
+  @override
+  String get notebookShareKindWork => 'Work item';
+
+  @override
+  String get notebookShareKindChecklist => 'Checklist';
+
+  @override
+  String get notebookShareFind => 'Find a person';
+
+  @override
+  String get notebookShareRecent => 'RECENT';
+
+  @override
+  String get notebookShareNoSpace => 'No Space where you can post.';
+
+  @override
+  String get notebookSharedFeed => 'Shared to the feed';
+
+  @override
+  String notebookSharedTo(String name) {
+    return 'Shared to $name';
+  }
+
+  @override
+  String notebookSentTo(String name) {
+    return 'Sent to $name';
+  }
+
+  @override
+  String notebookMarkFeed(String time) {
+    return 'Shared to the feed · $time';
+  }
+
+  @override
+  String notebookMarkTo(String name, String time) {
+    return 'Shared to $name · $time';
+  }
+
+  @override
+  String notebookMarkSent(String name, String time) {
+    return 'Sent to $name · $time';
+  }
+
+  @override
+  String get notebookDeletedItems => 'Deleted items';
+
+  @override
+  String get notebookKeepFor => 'Keep deleted items for';
+
+  @override
+  String notebookKeepDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String notebookKeepNote(int days) {
+    return 'Items go for good after $days days. Until then you can restore them.';
+  }
+
+  @override
+  String notebookDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookDeletedEntry(String page) {
+    return 'Entry · from $page';
+  }
+
+  @override
+  String notebookDeletedPage(String page) {
+    return 'Page and everything in it · from $page';
+  }
+
+  @override
+  String get notebookDeletedPageTop => 'Page and everything in it';
+
+  @override
+  String notebookDeletedPart(String page) {
+    return 'Part of an entry · from $page';
+  }
+
+  @override
+  String get notebookRestore => 'Restore';
+
+  @override
+  String notebookRestoredTo(String page) {
+    return 'Restored to $page';
+  }
+
+  @override
+  String get notebookDeleteForever => 'Delete forever';
+
+  @override
+  String get notebookDeleteForeverTitle => 'Delete this for good?';
+
+  @override
+  String get notebookEmptyNow => 'Empty now';
+
+  @override
+  String get notebookEmptyNowTitle => 'Delete everything here for good?';
+
+  @override
+  String get notebookCantUndo => 'This can\'t be undone.';
+
+  @override
+  String get notebookDeletedNone => 'Pages and entries you delete show here.';
+
+  @override
+  String get notebookShareOffline =>
+      'This entry hasn\'t reached the server yet. Share it once there\'s a signal.';
+
+  @override
+  String get notebookShareTeam => 'Team';
+
+  @override
+  String get notebookShareWholeSpace => 'Whole Space';
+
+  @override
+  String get notebookShareFor => 'For';
+
+  @override
+  String notebookShortWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookTomorrow => 'Tomorrow';
+
+  @override
+  String get notebookChangedElsewhere => 'Changed on another phone';
+
+  @override
+  String get notebookHoldToRecord => 'Hold to record a voice note';
+
+  @override
+  String notebookVoiceTitle(String length) {
+    return 'Voice note, $length';
+  }
+
+  @override
+  String get notebookShareTooLong =>
+      'Too long for a message: share it to a Space, or shorten it.';
 }

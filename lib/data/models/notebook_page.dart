@@ -139,3 +139,51 @@ class NotebookHit {
 
   bool get isPage => noteId == null;
 }
+
+/// What a Deleted item is (99B B3): an entry, part of one (lines deleted
+/// out of it), or a page with everything in it.
+enum DeletedKind {
+  entry,
+  part,
+  page;
+
+  static DeletedKind fromJson(Object? v) => switch (v) {
+    'part' => part,
+    'page' => page,
+    _ => entry,
+  };
+}
+
+/// One row of my_deleted_items (migration 48): what it was, the page it
+/// came from (its title as it was), when it was deleted and when it goes
+/// for good.
+@immutable
+class DeletedItem {
+  const DeletedItem({
+    required this.kind,
+    required this.id,
+    required this.deletedAt,
+    required this.purgeAt,
+    this.title = '',
+    this.pageId,
+    this.pageTitle = '',
+  });
+
+  factory DeletedItem.fromJson(Map<String, dynamic> json) => DeletedItem(
+    kind: DeletedKind.fromJson(json['kind']),
+    id: json['id'] as String,
+    title: json['title'] as String? ?? '',
+    pageId: json['page_id'] as String?,
+    pageTitle: json['page_title'] as String? ?? '',
+    deletedAt: DateTime.parse(json['deleted_at'] as String).toLocal(),
+    purgeAt: DateTime.parse(json['purge_at'] as String).toLocal(),
+  );
+
+  final DeletedKind kind;
+  final String id;
+  final String title;
+  final String? pageId;
+  final String pageTitle;
+  final DateTime deletedAt;
+  final DateTime purgeAt;
+}

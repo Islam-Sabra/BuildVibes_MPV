@@ -114,12 +114,14 @@ String reminderChip(
 /// A position's accuracy in whole metres, Western digits.
 String gpsMetres(double? metres) => metres == null ? '' : '${metres.round()}';
 
-/// The location chip's words (NBX3): "Level 3, grid C7 · GPS ±8 m", the
-/// place alone, or the GPS alone.
-String locationLabel(AppLocalizations l10n, NoteLocation l) => [
-  if (l.hasText) l.text!.trim(),
-  if (l.hasGps) l10n.notebookGpsChip(gpsMetres(l.accuracyM)),
-].join(' · ');
+/// The location's one line (NBX3; review 100 Part 6: "GPS" is never in
+/// the app's words): "Gate 2 · on the map", the place alone, or "On the
+/// map" for a pin alone.
+String locationLabel(AppLocalizations l10n, NoteLocation l) => l.hasText
+    ? (l.hasGps
+          ? l10n.notebookShareLocation(l.text!.trim(), l10n.notebookOnMap)
+          : l.text!.trim())
+    : l10n.notebookOnMapOnly;
 
 /// The note being written in place at the end of today (F106 NBW1, F107
 /// NBX1–NBX4), on Work's writing card: white, a dashed action-colour edge,
@@ -142,6 +144,8 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
     this.onCurrentKind,
     this.chip,
     this.onMoveLine,
+    this.onLinesSelected,
+    this.onLinesDeleted,
     this.shown,
     this.onMenu,
   });
@@ -161,6 +165,10 @@ class NoteWritingSlip extends ConsumerStatefulWidget {
 
   /// The line menu's Move to page… (review 99 A4).
   final Future<bool> Function(List<PageBlock> lines)? onMoveLine;
+
+  /// Lines selected and deleted while writing (review 100 BH12).
+  final ValueChanged<int>? onLinesSelected;
+  final void Function(List<String> lines, Future<bool> kept)? onLinesDeleted;
 
   /// A Draft put aside, shown read only (review 100 B3); null: the one in
   /// hand.
@@ -248,6 +256,13 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
                 const SizedBox(width: BvSize.iconLg),
             ],
           ),
+          // H15: its own line under the head, never squeezed beside it.
+          if (!writing && draft.changedElsewhere)
+            Text(
+              l10n.notebookChangedElsewhere,
+              key: const Key('note-changed-elsewhere'),
+              style: quiet.copyWith(color: BvColors.textWarning),
+            ),
           NotePageEditor(
             key: widget.editorKey,
             title: _first.title,
@@ -258,6 +273,8 @@ class _NoteWritingSlipState extends ConsumerState<NoteWritingSlip> {
             onChanged: (blocks) => _put((d) => d.copyWith(blocks: blocks)),
             onCurrentKind: widget.onCurrentKind,
             onMoveLine: widget.onMoveLine,
+            onLinesSelected: widget.onLinesSelected,
+            onLinesDeleted: widget.onLinesDeleted,
           ),
           NoteAdditions(
             draft: draft,
@@ -685,148 +702,6 @@ class NoteChip extends StatelessWidget {
                   ),
                 ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The categories (F107 NBX2 2619:36869), in place of the keyboard: a
-/// 3-column grid of the twelve kinds, the line's own kind outlined, and
-/// "or type /" in the corner; under each name, small and grey, what to
-/// type for it (review 98). A tap turns the empty line + made into that
-/// kind; the keyboard comes back. In Arabic the tiles read right to left.
-class NoteCategoriesGrid extends StatelessWidget {
-  const NoteCategoriesGrid({
-    super.key,
-    required this.current,
-    required this.onPick,
-  });
-
-  final NoteBlockKind current;
-  final ValueChanged<NoteBlockKind> onPick;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    const columns = BvNoteBlocksSpec.gridColumns;
-    return ColoredBox(
-      key: const Key('note-categories'),
-      color: BvColors.surfaceElevated,
-      child: SingleChildScrollView(
-        padding: BvNoteBlocksSpec.gridPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: BvNoteBlocksSpec.gridGap,
-          children: [
-            Row(
-              children: [
-                Text(
-                  l10n.notebookCategories,
-                  style: type.labelSm.copyWith(color: BvColors.textSecondary),
-                ),
-                const Spacer(),
-                Text(
-                  l10n.notebookOrTypeSlash,
-                  key: const Key('note-or-slash'),
-                  style: type.metadata.copyWith(color: BvColors.textSecondary),
-                ),
-              ],
-            ),
-            LayoutBuilder(
-              builder: (context, box) {
-                final width =
-                    (box.maxWidth - BvNoteBlocksSpec.tileGap * (columns - 1)) /
-                    columns;
-                return Wrap(
-                  spacing: BvNoteBlocksSpec.tileGap,
-                  runSpacing: BvNoteBlocksSpec.tileGap,
-                  children: [
-                    for (final k in NoteBlockKind.values)
-                      SizedBox(
-                        width: width,
-                        child: _Tile(
-                          kind: k,
-                          selected: k == current,
-                          onTap: () => onPick(k),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Tile extends StatelessWidget {
-  const _Tile({
-    required this.kind,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final NoteBlockKind kind;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: Material(
-        key: Key('note-category-${kind.name}'),
-        color: selected ? BvColors.surfaceBrandSoft : BvColors.surfaceApp,
-        shape: RoundedRectangleBorder(
-          borderRadius: BvNoteBlocksSpec.tileRadius,
-          side: selected
-              ? const BorderSide(
-                  color: BvColors.borderSelected,
-                  width: BvNoteBlocksSpec.tileBorder,
-                )
-              : BorderSide.none,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: SizedBox(
-            height: BvNoteBlocksSpec.tileHeight,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  kind.icon,
-                  size: BvNoteBlocksSpec.tileIcon,
-                  color: BvColors.iconPrimary,
-                ),
-                const SizedBox(height: BvNoteBlocksSpec.tileLabelGap),
-                Text(
-                  kind.label(l10n),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: BvType.of(
-                    context,
-                  ).labelSm.copyWith(color: BvColors.textPrimary),
-                ),
-                // Every tile keeps the line, so the icons line up.
-                Text(
-                  kind.shortcut ?? '',
-                  key: Key('note-category-shortcut-${kind.name}'),
-                  maxLines: 1,
-                  textDirection: TextDirection.ltr,
-                  style: BvType.of(
-                    context,
-                  ).metadata.copyWith(color: BvColors.textSecondary),
-                ),
-              ],
-            ),
           ),
         ),
       ),

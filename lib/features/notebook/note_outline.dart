@@ -148,12 +148,13 @@ List<PageBlock> duplicated(
   final end = subtreeEnd(blocks, i);
   final copies = [
     for (final b in blocks.sublist(i, end))
-      if (b is! PageVoice) _copy(b, newId),
+      if (b is! PageVoice) copiedBlock(b, newId),
   ];
   return normalized([...blocks.take(end), ...copies, ...blocks.skip(end)]);
 }
 
-PageBlock _copy(PageBlock b, String Function() newId) {
+/// [b] with new ids, its children's too (Duplicate).
+PageBlock copiedBlock(PageBlock b, String Function() newId) {
   Map<String, dynamic> fresh(Map<String, dynamic> json) => {
     ...json,
     'id': newId(),

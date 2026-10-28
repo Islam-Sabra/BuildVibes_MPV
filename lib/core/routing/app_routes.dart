@@ -51,6 +51,21 @@ abstract final class AppRoutes {
   ).toString();
   static const notebookSearch = '/notebook/search';
 
+  /// Deleted items (review 99B B3, PG8).
+  static const notebookDeleted = '/notebook/deleted';
+
+  /// Search with the Filter that is on (review 100 Part 8).
+  static String notebookSearchIn({String? kind, String? page}) => Uri(
+    path: notebookSearch,
+    queryParameters: {'kind': ?kind, 'page': ?page},
+  ).toString();
+
+  /// Review 100 Part 3b: a page's archived entries ("Archived ›").
+  static String notebookArchived(String id, {String? entry}) => Uri(
+    path: '/notebook/pages/$id/archived',
+    queryParameters: entry == null ? null : {'entry': entry},
+  ).toString();
+
   /// Direct messages (slice 3): the list, the requests, a thread, and a
   /// new conversation with a person (its thread is made by the first
   /// message). A push opens `/messages/<thread>`.

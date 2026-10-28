@@ -2,6 +2,68 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 100 J1–J4 done on `claude/r100-redesign`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r100-redesign` (worktree `BuildVibes-r100r`), pushed. **Not merged, no database push, no deploy, nothing installed.** No new migration: J1–J3 are edits inside migration 48, which isn't live.
+- **Done (commit 0ef35a2), each test seen failing first:**
+  1. J1: `share_note_to_person` cuts at 3,000. The preview says "Too long for a message: share it to a Space, or shorten it." and Send is off.
+  2. J2: to-dos are written as `[ ]` and `[x]` in a Space post, a feed post and a message (server `note_words`, and the app's `shareText`, which the preview's length check uses). A checklist is still real points. A received message shows no ☐, ☑ or ≡.
+  3. J3: `export_my_data`'s notebook pages carry `named`.
+  4. J4: Restore is `BvButtonStyle.quiet` (grey words, the ↺ arrow, no box), which mirrors in Arabic. The frame (`2635:38668`) draws a small grey pill; J4's "no box" is followed.
+- **Found and repaired (commit ed30a3c):** the shots commit 7cdb212 stored 56 PNGs with their `\r` bytes stripped (a line-ending fix run over binary files), so test_screens failed with "Invalid image data". They were shot again on the same code: the 44 older ones match their copies in `docs/screens/r100/before-after/` pixel for pixel; the 12 r100 ones (BH2–BH5, BH7, BH9 and PG8) had no other copy, and PG8 now shows J4. All 640 committed PNGs now start with the right header.
+- **Checks:** analyze clean; 2,316 app tests; 3,019 SQL checks in 47 files; test_screens 446 pass, not updating.
+- **Housekeeping (as review 100's second check wrote it):** -f100, -f100b, -f102, -f105, -phone: `git checkout -- lib/l10n/gen`, then `git worktree remove`. -f102 and -phone stopped on Windows' path length after git had unregistered them, so their folders went with the same long-path `rmdir` as -f107 and -icon (both gone). Local branch `r100-lf` deleted. -db29 kept: its diff is line endings only (CRLF in the working copy; empty with `--ignore-cr-at-eol`). The local branches f100, f100-broadcast, f102, f105, f60-photo-reencode are kept, and nothing on GitHub was deleted. `BuildVibes-apk` isn't a worktree, so it wasn't touched.
+- **Next:** the lead's check. Then, with the founder's yes, the live steps.
+- **Who has which branch:** PC has `claude/r100-redesign` (worktree `BuildVibes-r100r`), `slice2-app` (worktree `BuildVibes-slice1`) and `slice2-live-db` (worktree `BuildVibes-db29`).
+
+## PC update: 28 Oct 2026 — review 100 H1–H22 done on `claude/r100-redesign`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r100-redesign` (worktree `BuildVibes-r100r`), pushed. **Not merged, no database push, no deploy, nothing installed.** No new migration; the Copy mark is dropped (ruling 6).
+- **Done:** H1–H8 (bugs, each with a failing test first, EN and AR), H9–H21, and H22 (the shots). The commits: e5adaa0 (Share: H1, H2, H11, H13, H14, H20), 99f06fe (H3–H8), da497d3 (H9, H10, H12, H15–H19, H21), 7cdb212 (the shots).
+- **Checks:** analyze clean; 2,309 app tests; 3,012 SQL checks in 47 files; test_screens 446 pass after the re-shoot, the same on a second run.
+- **H22, the older shots:** before/after for each changed one in `docs/screens/r100/before-after/` (`<folder>_<shot>_before.png` / `_after.png`). Beyond the bar, rows and cards:
+  1. every new entry's top bar now has Discard (Part 0);
+  2. the location line reads "on the map", and the NBX4 panel's words have no GPS (H12);
+X
+  4. slice 10's two shots start a little lower on the page (the page's title row now shows above the list);
+  5. slice 8's shot is now Share → Space's preview (re-pointed).
+  Retired: NBW3, NBW4, NBW5 (tests and goldens).
+- **Found on the way (fixed, test first):** the Share preview drew a to-do as ☐, which the app's fonts lack (it showed as "≡"); it now draws the app's box, as BH5 does. The server still sends ☐ / ☑ in the shared text; the receiving app draws them in the same fonts, so the lead may want the server text checked.
+- **Also for the lead:**
+  1. Restore in Deleted items is the BV secondary button (bordered), larger than PG8's small grey pill (H19).
+  2. `share_note_to_person` cuts the text at 4,000 characters, while `dm_post` refuses past 3,000: a long entry sent to a person is refused (said in the preview, H1). Server-side; no migration made.
+  3. H17's Arabic words were changed before their test first ran, so that test never failed first.
+- **Housekeeping (founder, 28 Oct):** worktrees removed (clean, on GitHub): BuildVibes-build, -f106, -f108, -hold, -r100, -r95, -r99a, -r99b, -rejoin, -slice10, -store. Kept with uncommitted changes: -db29 (a review doc), -f100, -f100b, -f102, -f105, -phone (generated l10n files). `BuildVibes-f107` and `BuildVibes-icon` are unregistered but their folders are left on disk (Windows' path length stopped the delete). No branch deleted, on GitHub or locally.
+- **Next:** the lead's check. Then, with the founder's yes, the live steps in "Build of the redesign (27 Oct)".
+- **Who has which branch:** PC has `claude/r100-redesign` (worktree `BuildVibes-r100r`) and `slice2-app` (worktree `BuildVibes-slice1`). The local branch `r100-lf` can be deleted.
+
+## PC update: 28 Oct 2026 — review 100's redesign built on `claude/r100-redesign`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r100-redesign` (worktree `BuildVibes-r100r`), from `slice2-app` 1283413, pushed. **Not merged, no database push, no deploy, nothing installed.** It uses migration 48's functions, which aren't live: the build only works against a database with 48.
+- **Built, in the review's order** (one commit per step, tests first, EN and AR): Part 0 and the selection bars (BH2, BH12); swipe and Archive (BH3); the compact card, the bar and `+` (BH6–BH8, BH10), Discard and Done; the pages rows and round New entry (BH1), Filter and search (BH9, BH11); Share with previews (BH4, BH5); Deleted items (PG8).
+- **Checks:** analyze clean; 2,265 app tests; 3,012 SQL checks (local reset); 26 new shots `docs/screens/r100/` (BH1–BH12, PG8; EN, AR).
+- **Older shots (not updated, for the lead):** 48 notebook shots differ. 40 are pixel changes from the new bar, rows and cards (NBW1, NBX1–NBX3, L1–L3, NBY1–NBY5, PG1–PG5b). 8 can't run because their scripts drive what the redesign removed: NBW3, NBW4, NBW5, NBX4 (the old bar's Date/Remind/Location), slice 10's Remind me (the entry ⋯), slice 8's Put in a Space.
+- **Differences from the frames and choices made (for the lead):**
+  1. BH5: the To row has no avatar or ▾, and there's no "From Islam's notebook · 10:40 am" line: the message the server sends has neither.
+  2. BH7: the reminder's value reads "tomorrow 7:00 am" and is cut ("tomorrow 7…"); the frame has "Fri 7:00".
+  3. BH7, BH9: the 📎 and Filter cards draw grey icon tiles (the review 98 card); those frames draw plain icons. BH9's card ends under the Filter button, not at the screen margin, and has no scrim.
+  4. BH10: a numbered line keeps Continue numbering / Restart at 1 in ⋮⋮ (Part 0's table lists only five rows; nothing else gives Restart).
+  5. BH12: Share shows only for lines of a saved entry whose lines are all on the server (the share functions work on a saved entry); the frame shows it on a new entry.
+  6. Duplicate's "Copy" mark is kept on the phone only (no column for it; no migration made).
+  7. Callout is left out of `+` and `/` (Part 5's groups don't list it); it stays in Turn into.
+  8. Space share: no Team picker; a work item or checklist is for me. No project tag on Feed.
+  9. Deleted items opens from a quiet row at the pages list's end (BH1 has no fourth top-bar icon).
+  10. The location panel (NBX4) still says GPS in its own rows; every other place reads "on the map".
+  11. Restore uses the counter-clockwise arrow; the notebook's Arabic groups read «النصوص · القوائم · الإدراج» («نص» was also the Text row).
+- **Next:** the lead's check of `claude/r100-redesign`. Then, with the founder's yes: merge into `slice2-app`; migration 48 alone, the read-only check, `deno check` and the `notebook-purge` function with its secret, the cron job; then one build.
+- **Who has which branch:** PC has `claude/r100-redesign` (worktree `BuildVibes-r100r`) and `slice2-app` (worktree `BuildVibes-slice1`). A local branch `r100-lf` (the same commits rewritten in LF, kept only because a force-push was refused) can be deleted.
+
 ## PC update: 27 Oct 2026 — review 99B server merged into `slice2-app`; migration 48 NOT live; F1 done
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

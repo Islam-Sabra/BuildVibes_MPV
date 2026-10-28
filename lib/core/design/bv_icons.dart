@@ -351,4 +351,19 @@ abstract final class BvIcons {
   static const moveInto = library;
   // A page's open to-dos (PG1): list-checks.
   static const openTodos = workItems;
+
+  // Review 100: Phosphor archive (an entry's swipe toward the start),
+  // funnel-simple (the notebook's Filter), arrow-bend-up-right (Share),
+  // megaphone (Share to the feed).
+  static const archive = IconData(0xe00c, fontFamily: _family);
+  static const filter = IconData(0xe268, fontFamily: _family);
+  static const shareEntry = IconData(
+    0xe026,
+    fontFamily: _family,
+    matchTextDirection: true,
+  );
+
+  // Review 100 H19: a Draft's Discard (Phosphor x-circle).
+  static const discard = declined;
+  static const feed = IconData(0xe324, fontFamily: _family);
 }

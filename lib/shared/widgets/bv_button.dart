@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
 
-enum BvButtonStyle { primary, secondary, tertiary, destructive }
+/// [quiet]: words in grey with no box, for a choice that does nothing (a
+/// preview's Cancel, review 100 Part 6) or a calm one in a list (Deleted
+/// items' Restore, J4).
+enum BvButtonStyle { primary, secondary, tertiary, quiet, destructive }
 
 enum BvButtonSize { large, medium }
 
@@ -101,7 +104,7 @@ class BvButton extends StatelessWidget {
             : pressed
             ? BvColors.surfaceSubtle
             : BvColors.actionSecondary,
-      BvButtonStyle.tertiary =>
+      BvButtonStyle.tertiary || BvButtonStyle.quiet =>
         !disabled && pressed ? BvColors.surfaceSubtle : Colors.transparent,
     };
   }
@@ -114,6 +117,7 @@ class BvButton extends StatelessWidget {
       BvButtonStyle.primary => BvColors.actionPrimaryForeground,
       BvButtonStyle.secondary => BvColors.textPrimary,
       BvButtonStyle.tertiary => BvColors.textAction,
+      BvButtonStyle.quiet => BvColors.textSecondary,
       BvButtonStyle.destructive => BvColors.textDestructive,
     };
   }

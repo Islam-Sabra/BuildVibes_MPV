@@ -523,3 +523,30 @@ abstract final class BvBackSwipeSpec {
   static const distance = 1 / 3;
   static const fling = 300.0;
 }
+
+/// A card that swipes (review 100 Part 3b, BH3): round 48 buttons on the
+/// page's background, each in a 72 slot; a quarter of the card's width
+/// opens them, 60% is the full swipe; the card flies off in 200 ms and its
+/// row closes in 180 ms; the buttons grow from 60%.
+abstract final class BvSwipeSpec {
+  static const button = 48.0;
+  static const icon = BvSize.iconMd;
+  static const slot = 72.0;
+  static const inset = BvSpace.s8;
+  static const pillPadding = BvSpace.s16;
+  static const halfSwipe = 0.25;
+  static const fullSwipe = 0.6;
+  static const flyPast = 1.1;
+  static const growFrom = 0.6;
+
+  /// The second button a step behind the first (40 ms of a swipe).
+  static const lag = BvSpace.s12;
+
+  /// Not from the screen's edges: the system's back gesture keeps them.
+  static const edge = 24.0;
+  static const fly = Duration(milliseconds: 200);
+  static const rowClose = Duration(milliseconds: 180);
+  static const settle = Duration(milliseconds: 220);
+  static const hintHold = Duration(seconds: 1);
+  static const cardRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
+}

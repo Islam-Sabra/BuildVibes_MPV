@@ -12,6 +12,7 @@ import '../../features/chat/meeting_notes_screen.dart';
 import '../../features/messages/dm_thread_screen.dart';
 import '../../features/spaces/week_report_screen.dart';
 import '../../features/notebook/calendar_screen.dart';
+import '../../features/notebook/deleted_items_screen.dart';
 import '../../features/notebook/notebook_page_screen.dart';
 import '../../features/notebook/notebook_screen.dart';
 import '../../features/notebook/notebook_search_screen.dart';
@@ -265,6 +266,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const NotebookPageScreen.write(),
           ),
           _Screen(
+            path: 'pages/:id/archived',
+            builder: (context, state) => NotebookPageScreen.archived(
+              key: ValueKey(('archived', state.pathParameters['id'])),
+              pageId: state.pathParameters['id']!,
+              entry: state.uri.queryParameters['entry'],
+            ),
+          ),
+          _Screen(
             path: 'pages/:id',
             builder: (context, state) => NotebookPageScreen(
               key: ValueKey(state.pathParameters['id']),
@@ -273,8 +282,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           _Screen(
+            path: 'deleted',
+            builder: (context, state) => const DeletedItemsScreen(),
+          ),
+          _Screen(
             path: 'search',
-            builder: (context, state) => const NotebookSearchScreen(),
+            builder: (context, state) => NotebookSearchScreen(
+              kind: state.uri.queryParameters['kind'],
+              page: state.uri.queryParameters['page'],
+            ),
           ),
         ],
       ),

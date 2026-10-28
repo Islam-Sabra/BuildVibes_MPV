@@ -145,13 +145,13 @@ void main() {
     testWidgets('Put in a Space: the Space writing the to-do [$lang]', (
       tester,
     ) async {
-      // Review 99: from an entry's ⋯ in its page (PG4).
+      // Review 100 H22: held, then Share → Space and its preview.
       await _open(tester, lang, path: '/notebook/pages/page-my-notes');
-      await tester.tap(_key('note-menu-note-sleeves'));
+      await tester.longPress(_key('note-note-sleeves'));
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
-      FocusManager.instance.primaryFocus?.unfocus();
-      await tester.pumpAndSettle();
+      await _tap(tester, _key('select-share'));
+      await _tap(tester, _key('share-space'));
+      await _tap(tester, _key('share-space-${DaybookSamples.space}'));
       await _snap(tester, 'NB-put-in-space', lang);
     });
 

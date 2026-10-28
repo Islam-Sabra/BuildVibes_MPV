@@ -144,9 +144,12 @@ void main() {
       // Right after the +, before the thin line and the additions.
       final plus = tester.getCenter(_key('note-tool-categories')).dx;
       final tab = tester.getCenter(_key('note-tool-indent')).dx;
-      final place = tester.getCenter(_key('note-tool-location')).dx;
-      expect(lang == 'ar' ? plus > tab && tab > place : plus < tab, isTrue);
-      expect(lang == 'ar' ? true : tab < place, isTrue);
+      // Review 100 BH6: + · 📷 · 📎, then ⇥.
+      final add = tester.getCenter(_key('note-tool-add')).dx;
+      expect(
+        lang == 'ar' ? plus > add && add > tab : plus < add && add < tab,
+        isTrue,
+      );
       final before = tester.getRect(_line(3));
       await _tap(tester, _key('note-tool-indent'));
       expect(_levels(tester), [0, 0, 1]);
@@ -246,31 +249,21 @@ void main() {
       expect(find.text('a.'), findsOneWidget);
     });
 
-    testWidgets('deleting a parent lifts its children; a folded one asks, '
-        'then goes with them; Undo puts it back [$lang]', (tester) async {
+    testWidgets('deleting a selected parent takes the lines under it '
+        '(review 100 BH12); Undo puts it back [$lang]', (tester) async {
       await _open(tester, lang, [
         _n(1, 'Pour'),
         _n(2, 'Rebar', indent: 1),
         _n(3, 'Ties', indent: 2),
         _n(4, 'Cure'),
       ]);
-      await _menu(tester, 1);
-      await _tap(tester, _key('page-block-delete'));
-      expect(
-        [for (final b in _blocks(tester)) lineWords(b)],
-        ['Rebar', 'Ties', 'Cure'],
-      );
-      expect(_levels(tester), [0, 1, 0]);
+      await _tap(tester, _line(4));
+      await tester.longPress(_key('note-marker-${_id(1)}'));
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('select-delete'));
+      expect([for (final b in _blocks(tester)) lineWords(b)], ['Cure']);
       await _tap(tester, _key('undo-bar-action'));
       expect(_levels(tester), [0, 1, 2, 0]);
-      // Folded: asked first, then the three go together.
-      await _tap(tester, _key('note-fold-${_id(1)}'));
-      expect(_line(2), findsNothing);
-      await _menu(tester, 1);
-      await _tap(tester, _key('page-block-delete'));
-      expect(find.text(l10n.notebookDeleteLines(2)), findsOneWidget);
-      await _tap(tester, find.text(l10n.pageDelete).last);
-      expect([for (final b in _blocks(tester)) lineWords(b)], ['Cure']);
     });
 
     testWidgets('a folded item hides the lines under it; the count goes on '
@@ -352,9 +345,7 @@ void main() {
     });
 
     testWidgets('the ⋮⋮ menu fits one screen: Continue, Restart, Turn into › '
-        'with the kinds on their own sheet, then Delete [$lang]', (
-      tester,
-    ) async {
+        'with the kinds on their own sheet [$lang]', (tester) async {
       await _open(tester, lang, [
         _n(1, 'Pour'),
         PageCallout(_id(2), 'Rain'),
@@ -365,7 +356,6 @@ void main() {
         'page-continue-numbering',
         'page-restart-numbering',
         'page-turn-into',
-        'page-block-delete',
       ]) {
         expect(_key(row), findsOneWidget, reason: row);
         // All in sight, on the phone's screen.
@@ -390,7 +380,7 @@ void main() {
       await _open(tester, lang, [_n(1, 'Pour'), _n(2, 'Cure')]);
       await _cursor(tester, 2);
       await _tap(tester, _key('note-tool-categories'));
-      await _tap(tester, _key('note-category-numbers'));
+      await _tap(tester, _key('page-add-numbers'));
       expect(find.text('3.'), findsOneWidget);
     });
   }

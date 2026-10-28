@@ -238,6 +238,10 @@ Future<TestApp> pumpApp(
   /// What this phone kept from before (an app opened again).
   Map<String, Object> stored = const {},
 
+  /// The notebook's one-time swipe hint (review 100 Part 3b) still to
+  /// come; by default it was seen, so the top card stays still.
+  bool swipeHint = false,
+
   /// The outbox's waits before it tries again by itself after a lost
   /// signal.
   List<Duration> retryLater = const [Duration(seconds: 30)],
@@ -275,6 +279,7 @@ Future<TestApp> pumpApp(
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
   SharedPreferences.setMockInitialValues({
+    if (!swipeHint) 'notebook_swipe_hint:user-1': true,
     ...stored,
     'app_language': ?language,
   });

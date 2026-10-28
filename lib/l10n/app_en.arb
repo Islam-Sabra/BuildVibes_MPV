@@ -6228,16 +6228,8 @@
   "@notebookEmptyBody": {
     "description": "The empty notebook's words (N2)."
   },
-  "notebookPinTop": "Pin to the top",
-  "@notebookPinTop": {
-    "description": "A note's menu: it shows above the others."
-  },
   "notebookDeleteTitle": "Delete this entry?",
   "@notebookDeleteTitle": {
-    "description": "Delete asks first (N7)."
-  },
-  "notebookDeleteBody": "It goes from your notebook. A post you put in a Space stays there.",
-  "@notebookDeleteBody": {
     "description": "Delete asks first (N7)."
   },
   "notebookPut": "Went into a Space",
@@ -6251,10 +6243,6 @@
   "notebookSaveMessage": "Save to my notebook",
   "@notebookSaveMessage": {
     "description": "Holding a message: keep its words as a note."
-  },
-  "notebookPutNone": "You're not yet in a Space where you can add work.",
-  "@notebookPutNone": {
-    "description": "Put in a Space with no Space to post in."
   },
   "notebookTooShort": "Hold longer to record",
   "@notebookTooShort": {
@@ -6509,10 +6497,6 @@
   "@dmStartLine": {
     "description": "F98: under the person card at the start of a conversation."
   },
-  "notebookRemindMe": "Remind me",
-  "@notebookRemindMe": {
-    "description": "A note's menu (2557:35481): set, change or remove the phone's reminder."
-  },
   "notebookReminderLine": "Reminder · {when}",
   "@notebookReminderLine": {
     "description": "A note's slip: when this phone will remind you.",
@@ -6571,10 +6555,6 @@
         "type": "int"
       }
     }
-  },
-  "notebookDeleteLinesUndo": "You can undo it right after.",
-  "@notebookDeleteLinesUndo": {
-    "description": "Under the question before deleting a folded line."
   },
   "notebookExactTitle": "On-time reminders",
   "@notebookExactTitle": {
@@ -6728,14 +6708,6 @@
       }
     }
   },
-  "notebookCategories": "Categories",
-  "@notebookCategories": {
-    "description": "F107 NBX2: the + on the bar and the grid's title."
-  },
-  "notebookOrTypeSlash": "or type /",
-  "@notebookOrTypeSlash": {
-    "description": "F107 NBX2: in the grid's corner."
-  },
   "notebookSubheading": "Subheading",
   "@notebookSubheading": {
     "description": "F107: a level-2 heading."
@@ -6792,10 +6764,6 @@
   "@notebookLocation": {
     "description": "F107 NBX4: the bar's Location and its sheet."
   },
-  "notebookImage": "Image",
-  "@notebookImage": {
-    "description": "F107: the bar's Image, read out."
-  },
   "notebookFile": "File",
   "@notebookFile": {
     "description": "F107: the bar's File, read out."
@@ -6808,11 +6776,11 @@
   "@notebookWhereHint": {
     "description": "F107 NBX4: the typed field's placeholder."
   },
-  "notebookAddGps": "Add my GPS position",
+  "notebookAddGps": "Add where I am on the map",
   "@notebookAddGps": {
     "description": "F107 NBX4."
   },
-  "notebookGpsAdded": "My GPS position added",
+  "notebookGpsAdded": "Added on the map",
   "@notebookGpsAdded": {
     "description": "F107 NBX4."
   },
@@ -6847,24 +6815,15 @@
   "@notebookGpsFailed": {
     "description": "F107 NBX4."
   },
-  "notebookLocationHelp": "Type where, add the phone's GPS, or both.",
+  "notebookLocationHelp": "Type where, put it on the map, or both.",
   "@notebookLocationHelp": {
     "description": "F107 NBX4."
-  },
-  "notebookGpsChip": "GPS ±{metres} m",
-  "@notebookGpsChip": {
-    "description": "F107 NBX3: the location chip's GPS part.",
-    "placeholders": {
-      "metres": {
-        "type": "String"
-      }
-    }
   },
   "notebookRemoveLocation": "Remove location",
   "@notebookRemoveLocation": {
     "description": "F107: the location chip's ×."
   },
-  "notebookRemoveGps": "Remove my GPS position",
+  "notebookRemoveGps": "Take it off the map",
   "@notebookRemoveGps": {
     "description": "F107 NBX4: the GPS row's ×."
   },
@@ -6901,10 +6860,6 @@
         "type": "int"
       }
     }
-  },
-  "notebookIncludeGps": "Include my GPS position",
-  "@notebookIncludeGps": {
-    "description": "F107: Put in a Space."
   },
   "notebookRemindTime": "Remind me at…",
   "@notebookRemindTime": {
@@ -7143,22 +7098,9 @@
       }
     }
   },
-  "notebookNewPageMark": "new page",
-  "@notebookNewPageMark": {
-    "description": "Review 99 A2: a new page's row, after the date."
-  },
   "notebookNewMark": "New",
   "@notebookNewMark": {
     "description": "Review 99 A2: the new dot, read out."
-  },
-  "notebookTodosOpen": "{count, plural, =1{1 to-do open} other{{count} to-dos open}}",
-  "@notebookTodosOpen": {
-    "description": "Review 99 A1: a page's open to-dos, with its sub-pages'; only when there are any.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
   },
   "notebookPageChip": "Page: {page}",
   "@notebookPageChip": {
@@ -7374,5 +7316,482 @@
   "notebookDraftDiscarded": "Draft discarded",
   "@notebookDraftDiscarded": {
     "description": "Review 100 B2: after Discard, with Undo."
+  },
+  "notebookLinesSelected": "{count, plural, =1{1 line selected} other{{count} lines selected}}",
+  "@notebookLinesSelected": {
+    "description": "Review 100 BH12: the top bar while lines of the entry being written are selected.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookShare": "Share",
+  "@notebookShare": {
+    "description": "Review 100 Part 0: the selection bar's first action."
+  },
+  "notebookMove": "Move",
+  "@notebookMove": {
+    "description": "Review 100 Part 0: the selection bar's Move (to another page)."
+  },
+  "notebookReminder": "Reminder",
+  "@notebookReminder": {
+    "description": "Review 100 Part 3b: an entry's swipe toward the end, its second button."
+  },
+  "notebookChangeReminder": "Change reminder",
+  "@notebookChangeReminder": {
+    "description": "Review 100 Part 3b: the swipe's Reminder when one is set."
+  },
+  "notebookArchive": "Archive",
+  "@notebookArchive": {
+    "description": "Review 100 Part 3b: an entry's swipe toward the start."
+  },
+  "notebookUnarchive": "Unarchive",
+  "@notebookUnarchive": {
+    "description": "Review 100 Part 3b: the swipe on an archived entry."
+  },
+  "notebookArchivedUndo": "Archived",
+  "@notebookArchivedUndo": {
+    "description": "Review 100 Part 3b: after Archive, with Undo."
+  },
+  "notebookUnarchivedUndo": "Back in its page",
+  "@notebookUnarchivedUndo": {
+    "description": "Review 100 Part 3b: after Unarchive, with Undo."
+  },
+  "notebookArchivedRow": "Archived",
+  "@notebookArchivedRow": {
+    "description": "Review 100 Part 3b: the quiet row at a page's end that opens its archived entries."
+  },
+  "notebookArchivedEmpty": "Nothing archived in this page.",
+  "@notebookArchivedEmpty": {
+    "description": "Review 100 Part 3b: the archived list once its last entry went back."
+  },
+  "notebookGroupText": "TEXT",
+  "@notebookGroupText": {
+    "description": "Review 100 Part 5: the block list's first group (+ and /), small caps."
+  },
+  "notebookGroupLists": "LISTS",
+  "@notebookGroupLists": {
+    "description": "Review 100 Part 5: the block list's lists."
+  },
+  "notebookGroupInsert": "INSERT",
+  "@notebookGroupInsert": {
+    "description": "Review 100 Part 5: the block list's table and divider."
+  },
+  "notebookAdd": "Add",
+  "@notebookAdd": {
+    "description": "Review 100 Part 5: the bar's 📎, read out: File, Location, Date, Reminder."
+  },
+  "notebookPhoto": "Photo",
+  "@notebookPhoto": {
+    "description": "Review 100 Part 5: the bar's 📷, read out."
+  },
+  "notebookBlocks": "Add a block",
+  "@notebookBlocks": {
+    "description": "Review 100 Part 5: the bar's +, read out: it opens the block list."
+  },
+  "notebookDiscarded": "Discarded",
+  "@notebookDiscarded": {
+    "description": "Review 100 Part 0: after Discard while writing a new entry, with Undo."
+  },
+  "notebookDone": "Done",
+  "@notebookDone": {
+    "description": "Review 100 Part 5: Send inside a saved entry: it saves it in place."
+  },
+  "notebookRemove": "Remove",
+  "@notebookRemove": {
+    "description": "Review 100 Part 5: the ✕ at the end of a set row in 📎, read out."
+  },
+  "notebookBack": "Back",
+  "@notebookBack": {
+    "description": "Review 100 Part 4: the ‹ row at the top of a card's next level."
+  },
+  "notebookRowLine": "{count, plural, =1{1 entry · {when}} other{{count} entries · {when}}}",
+  "@notebookRowLine": {
+    "description": "Review 100 Part 7 (BH1): a page row's line: its entries (with its sub-pages') and when the latest was written or changed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookRowToday": "today",
+  "@notebookRowToday": {
+    "description": "Review 100 Part 7: 'when' on a page row."
+  },
+  "notebookRowYesterday": "yesterday",
+  "@notebookRowYesterday": {
+    "description": "Review 100 Part 7: 'when' on a page row."
+  },
+  "notebookFilter": "Filter",
+  "@notebookFilter": {
+    "description": "Review 100 Part 8: the top bar's Filter, read out."
+  },
+  "notebookFilterOff": "Turn the filter off",
+  "@notebookFilterOff": {
+    "description": "Review 100 Part 8: the ✕ on the active chip, read out."
+  },
+  "notebookFilterShow": "SHOW",
+  "@notebookFilterShow": {
+    "description": "Review 100 Part 8 (BH9): the Filter card's single choice, small caps."
+  },
+  "notebookFilterIn": "IN",
+  "@notebookFilterIn": {
+    "description": "Review 100 Part 8 (BH9): the Filter card's page, small caps."
+  },
+  "notebookAllPages": "All pages",
+  "@notebookAllPages": {
+    "description": "Review 100 Part 8: the Filter's In when no page is picked."
+  },
+  "notebookFilterTodos": "To-dos open",
+  "@notebookFilterTodos": {
+    "description": "Review 100 Part 8: Show: entries with an unticked to-do."
+  },
+  "notebookFilterPhotos": "Photos",
+  "@notebookFilterPhotos": {
+    "description": "Review 100 Part 8: Show: entries with photos."
+  },
+  "notebookFilterFiles": "Files",
+  "@notebookFilterFiles": {
+    "description": "Review 100 Part 8: Show: entries with files."
+  },
+  "notebookFilterVoice": "Voice notes",
+  "@notebookFilterVoice": {
+    "description": "Review 100 Part 8: Show: entries with a voice recording."
+  },
+  "notebookFilterReminders": "Reminders",
+  "@notebookFilterReminders": {
+    "description": "Review 100 Part 8: Show: entries with a reminder still to ring."
+  },
+  "notebookFilterArchived": "Archived",
+  "@notebookFilterArchived": {
+    "description": "Review 100 Part 8: Show: archived entries."
+  },
+  "notebookFilterNone": "Nothing matches.",
+  "@notebookFilterNone": {
+    "description": "Review 100 Part 8: the filtered list with no entry."
+  },
+  "notebookShareFeed": "Feed",
+  "@notebookShareFeed": {
+    "description": "Review 100 Part 6 (BH4): Share's first choice."
+  },
+  "notebookShareFeedNote": "A public post on Home",
+  "@notebookShareFeedNote": {
+    "description": "Review 100 BH4: under Feed."
+  },
+  "notebookShareSpace": "Space",
+  "@notebookShareSpace": {
+    "description": "Review 100 BH4: Share's second choice."
+  },
+  "notebookShareSpaceNote": "A post, work item or checklist",
+  "@notebookShareSpaceNote": {
+    "description": "Review 100 BH4: under Space."
+  },
+  "notebookShareMessage": "Message",
+  "@notebookShareMessage": {
+    "description": "Review 100 BH4: Share's third choice."
+  },
+  "notebookShareMessageNote": "To one person",
+  "@notebookShareMessageNote": {
+    "description": "Review 100 BH4: under Message."
+  },
+  "notebookShareFeedTitle": "Post to the feed",
+  "@notebookShareFeedTitle": {
+    "description": "Review 100 Part 6: the Feed preview's title."
+  },
+  "notebookShareSpaceTitle": "Put in a Space",
+  "@notebookShareSpaceTitle": {
+    "description": "Review 100 Part 6: the Space preview's title."
+  },
+  "notebookShareMessageTitle": "Send entry",
+  "@notebookShareMessageTitle": {
+    "description": "Review 100 BH5: the Message preview's title."
+  },
+  "notebookShareTo": "To",
+  "@notebookShareTo": {
+    "description": "Review 100 BH5: the preview's row with who or where it goes."
+  },
+  "notebookShareWhatSees": "What {name} will see",
+  "@notebookShareWhatSees": {
+    "description": "Review 100 BH5: over the Message preview; the person's first name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareWhatOthers": "What others will see",
+  "@notebookShareWhatOthers": {
+    "description": "Review 100 Part 6: over the Feed and Space previews."
+  },
+  "notebookShareCheck": "Check it has nothing your client or company wouldn't share.",
+  "@notebookShareCheck": {
+    "description": "Review 99B B2 / 100 Part 6: the Feed preview's share check."
+  },
+  "notebookShareLocation": "{place} · {map}",
+  "@notebookShareLocation": {
+    "description": "Review 100 Part 6: the preview's one location line: the typed place, then 'on the map' when it has a pin.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "map": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookOnMap": "on the map",
+  "@notebookOnMap": {
+    "description": "Review 100 Part 6: the location line, when it has a map pin."
+  },
+  "notebookOnMapOnly": "On the map",
+  "@notebookOnMapOnly": {
+    "description": "Review 100 Part 6: the location line with a pin and no typed place."
+  },
+  "notebookShareLeaveOut": "Leave the location out",
+  "@notebookShareLeaveOut": {
+    "description": "Review 100 Part 6: the ✕ on the location line, read out."
+  },
+  "notebookPost": "Post",
+  "@notebookPost": {
+    "description": "Review 100 Part 6: the Feed and Space previews' send."
+  },
+  "notebookShareKindPost": "Post",
+  "@notebookShareKindPost": {
+    "description": "Review 100 Part 6: Space: what it goes in as."
+  },
+  "notebookShareKindWork": "Work item",
+  "@notebookShareKindWork": {
+    "description": "Review 100 Part 6: Space: a work item, for you."
+  },
+  "notebookShareKindChecklist": "Checklist",
+  "@notebookShareKindChecklist": {
+    "description": "Review 100 Part 6: Space: a checklist of its to-dos, for you."
+  },
+  "notebookShareFind": "Find a person",
+  "@notebookShareFind": {
+    "description": "Review 100 Part 6: Message: search among people you can message."
+  },
+  "notebookShareRecent": "RECENT",
+  "@notebookShareRecent": {
+    "description": "Review 100 Part 6: Message: recent conversations first, small caps."
+  },
+  "notebookShareNoSpace": "No Space where you can post.",
+  "@notebookShareNoSpace": {
+    "description": "Review 100 Part 6: Space, when you can post in none."
+  },
+  "notebookSharedFeed": "Shared to the feed",
+  "@notebookSharedFeed": {
+    "description": "Review 100 Part 6: after Post to the feed."
+  },
+  "notebookSharedTo": "Shared to {name}",
+  "@notebookSharedTo": {
+    "description": "Review 100 Part 6: after Put in a Space; the Space's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookSentTo": "Sent to {name}",
+  "@notebookSentTo": {
+    "description": "Review 100 Part 6: after Send to a person.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookMarkFeed": "Shared to the feed · {time}",
+  "@notebookMarkFeed": {
+    "description": "Review 100 Part 6: the entry's mark.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookMarkTo": "Shared to {name} · {time}",
+  "@notebookMarkTo": {
+    "description": "Review 100 Part 6: the entry's mark, a Space's real name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookMarkSent": "Sent to {name} · {time}",
+  "@notebookMarkSent": {
+    "description": "Review 100 Part 6: the entry's mark, a person's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookDeletedItems": "Deleted items",
+  "@notebookDeletedItems": {
+    "description": "Review 99B B3 (PG8): the screen, and its row at the pages list's end."
+  },
+  "notebookKeepFor": "Keep deleted items for",
+  "@notebookKeepFor": {
+    "description": "PG8: over the one choice of 7, 30 or 90 days."
+  },
+  "notebookKeepDays": "{days} days",
+  "@notebookKeepDays": {
+    "description": "PG8: one of the choices.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookKeepNote": "Items go for good after {days} days. Until then you can restore them.",
+  "@notebookKeepNote": {
+    "description": "PG8: under the choice.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookDaysAgo": "{days, plural, =1{1 day ago} other{{days} days ago}}",
+  "@notebookDaysAgo": {
+    "description": "PG8: a day's label, past yesterday.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookDeletedEntry": "Entry · from {page}",
+  "@notebookDeletedEntry": {
+    "description": "PG8: what a deleted item was, and its page.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookDeletedPage": "Page and everything in it · from {page}",
+  "@notebookDeletedPage": {
+    "description": "PG8: a deleted page inside another.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookDeletedPageTop": "Page and everything in it",
+  "@notebookDeletedPageTop": {
+    "description": "PG8: a deleted page at the notebook's top."
+  },
+  "notebookDeletedPart": "Part of an entry · from {page}",
+  "@notebookDeletedPart": {
+    "description": "PG8: lines deleted out of an entry.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookRestore": "Restore",
+  "@notebookRestore": {
+    "description": "PG8: an item's button."
+  },
+  "notebookRestoredTo": "Restored to {page}",
+  "@notebookRestoredTo": {
+    "description": "PG8: after Restore.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookDeleteForever": "Delete forever",
+  "@notebookDeleteForever": {
+    "description": "PG8: an item swiped toward the start, and its confirm."
+  },
+  "notebookDeleteForeverTitle": "Delete this for good?",
+  "@notebookDeleteForeverTitle": {
+    "description": "PG8: Delete forever's one confirm."
+  },
+  "notebookEmptyNow": "Empty now",
+  "@notebookEmptyNow": {
+    "description": "PG8: everything in Deleted items for good, and its confirm."
+  },
+  "notebookEmptyNowTitle": "Delete everything here for good?",
+  "@notebookEmptyNowTitle": {
+    "description": "PG8: Empty now's one confirm."
+  },
+  "notebookCantUndo": "This can't be undone.",
+  "@notebookCantUndo": {
+    "description": "PG8: under the confirms."
+  },
+  "notebookDeletedNone": "Pages and entries you delete show here.",
+  "@notebookDeletedNone": {
+    "description": "PG8: with nothing in Deleted items."
+  },
+  "notebookShareOffline": "This entry hasn't reached the server yet. Share it once there's a signal.",
+  "@notebookShareOffline": {
+    "description": "Review 100 H2: Share on an entry still waiting on the phone with no signal."
+  },
+  "notebookShareTeam": "Team",
+  "@notebookShareTeam": {
+    "description": "Review 100 H11: Share → Space: which Team it goes in."
+  },
+  "notebookShareWholeSpace": "Whole Space",
+  "@notebookShareWholeSpace": {
+    "description": "Review 100 H11: Share → Space: no Team."
+  },
+  "notebookShareFor": "For",
+  "@notebookShareFor": {
+    "description": "Review 100 H11: Share → Space: who a work item or a checklist is for."
+  },
+  "notebookShortWhen": "{day} {time}",
+  "@notebookShortWhen": {
+    "description": "Review 100 H9: a reminder's short value in 📎: 'Tomorrow 7:00 am', 'Fri 7:00 am'.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookTomorrow": "Tomorrow",
+  "@notebookTomorrow": {
+    "description": "Review 100 H9: the short value's day."
+  },
+  "notebookChangedElsewhere": "Changed on another phone",
+  "@notebookChangedElsewhere": {
+    "description": "Review 100 H15: the mark on a Draft whose edit the server refused because the entry changed elsewhere."
+  },
+  "notebookHoldToRecord": "Hold to record a voice note",
+  "@notebookHoldToRecord": {
+    "description": "Review 100 H18: a short tap on the notebook's 🎤."
+  },
+  "notebookVoiceTitle": "Voice note, {length}",
+  "@notebookVoiceTitle": {
+    "description": "Review 100 H21: a deleted voice note with no words, by its length.",
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareTooLong": "Too long for a message: share it to a Space, or shorten it.",
+  "@notebookShareTooLong": {
+    "description": "Review 100 J1: the Message preview, when the entry's words pass the 3,000 a message holds; Send is off."
   }
 }

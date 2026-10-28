@@ -7280,23 +7280,11 @@ abstract class AppLocalizations {
   /// **'Keep entries, checklists and to-dos for your work. Only you can see them.'**
   String get notebookEmptyBody;
 
-  /// A note's menu: it shows above the others.
-  ///
-  /// In en, this message translates to:
-  /// **'Pin to the top'**
-  String get notebookPinTop;
-
   /// Delete asks first (N7).
   ///
   /// In en, this message translates to:
   /// **'Delete this entry?'**
   String get notebookDeleteTitle;
-
-  /// Delete asks first (N7).
-  ///
-  /// In en, this message translates to:
-  /// **'It goes from your notebook. A post you put in a Space stays there.'**
-  String get notebookDeleteBody;
 
   /// A note's quiet line once it was put in a Space.
   ///
@@ -7315,12 +7303,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save to my notebook'**
   String get notebookSaveMessage;
-
-  /// Put in a Space with no Space to post in.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re not yet in a Space where you can add work.'**
-  String get notebookPutNone;
 
   /// A recording shorter than a second.
   ///
@@ -7580,12 +7562,6 @@ abstract class AppLocalizations {
   /// **'The start of your conversation'**
   String get dmStartLine;
 
-  /// A note's menu (2557:35481): set, change or remove the phone's reminder.
-  ///
-  /// In en, this message translates to:
-  /// **'Remind me'**
-  String get notebookRemindMe;
-
   /// A note's slip: when this phone will remind you.
   ///
   /// In en, this message translates to:
@@ -7639,12 +7615,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, other{Delete this and the {count} under it?}}'**
   String notebookDeleteLines(int count);
-
-  /// Under the question before deleting a folded line.
-  ///
-  /// In en, this message translates to:
-  /// **'You can undo it right after.'**
-  String get notebookDeleteLinesUndo;
 
   /// Asked once, at the first Remind me, when the phone keeps alarms inexact (Android 12+).
   ///
@@ -7832,18 +7802,6 @@ abstract class AppLocalizations {
   /// **'+{count}'**
   String daybookFacesMore(int count);
 
-  /// F107 NBX2: the + on the bar and the grid's title.
-  ///
-  /// In en, this message translates to:
-  /// **'Categories'**
-  String get notebookCategories;
-
-  /// F107 NBX2: in the grid's corner.
-  ///
-  /// In en, this message translates to:
-  /// **'or type /'**
-  String get notebookOrTypeSlash;
-
   /// F107: a level-2 heading.
   ///
   /// In en, this message translates to:
@@ -7928,12 +7886,6 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get notebookLocation;
 
-  /// F107: the bar's Image, read out.
-  ///
-  /// In en, this message translates to:
-  /// **'Image'**
-  String get notebookImage;
-
   /// F107: the bar's File, read out.
   ///
   /// In en, this message translates to:
@@ -7955,13 +7907,13 @@ abstract class AppLocalizations {
   /// F107 NBX4.
   ///
   /// In en, this message translates to:
-  /// **'Add my GPS position'**
+  /// **'Add where I am on the map'**
   String get notebookAddGps;
 
   /// F107 NBX4.
   ///
   /// In en, this message translates to:
-  /// **'My GPS position added'**
+  /// **'Added on the map'**
   String get notebookGpsAdded;
 
   /// F107 NBX4: the position under it.
@@ -7997,14 +7949,8 @@ abstract class AppLocalizations {
   /// F107 NBX4.
   ///
   /// In en, this message translates to:
-  /// **'Type where, add the phone\'s GPS, or both.'**
+  /// **'Type where, put it on the map, or both.'**
   String get notebookLocationHelp;
-
-  /// F107 NBX3: the location chip's GPS part.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS ±{metres} m'**
-  String notebookGpsChip(String metres);
 
   /// F107: the location chip's ×.
   ///
@@ -8015,7 +7961,7 @@ abstract class AppLocalizations {
   /// F107 NBX4: the GPS row's ×.
   ///
   /// In en, this message translates to:
-  /// **'Remove my GPS position'**
+  /// **'Take it off the map'**
   String get notebookRemoveGps;
 
   /// F107: a file row's ×.
@@ -8053,12 +7999,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 file} other{{count} files}}'**
   String notebookFileCount(int count);
-
-  /// F107: Put in a Space.
-  ///
-  /// In en, this message translates to:
-  /// **'Include my GPS position'**
-  String get notebookIncludeGps;
 
   /// F107 B5: the reminder's time step.
   ///
@@ -8384,23 +8324,11 @@ abstract class AppLocalizations {
   /// **'{date} · {line}'**
   String notebookPageLine(String date, String line);
 
-  /// Review 99 A2: a new page's row, after the date.
-  ///
-  /// In en, this message translates to:
-  /// **'new page'**
-  String get notebookNewPageMark;
-
   /// Review 99 A2: the new dot, read out.
   ///
   /// In en, this message translates to:
   /// **'New'**
   String get notebookNewMark;
-
-  /// Review 99 A1: a page's open to-dos, with its sub-pages'; only when there are any.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 to-do open} other{{count} to-dos open}}'**
-  String notebookTodosOpen(int count);
 
   /// Review 99 A2 (PG2): the chip under the entry.
   ///
@@ -8671,6 +8599,564 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draft discarded'**
   String get notebookDraftDiscarded;
+
+  /// Review 100 BH12: the top bar while lines of the entry being written are selected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 line selected} other{{count} lines selected}}'**
+  String notebookLinesSelected(int count);
+
+  /// Review 100 Part 0: the selection bar's first action.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get notebookShare;
+
+  /// Review 100 Part 0: the selection bar's Move (to another page).
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get notebookMove;
+
+  /// Review 100 Part 3b: an entry's swipe toward the end, its second button.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get notebookReminder;
+
+  /// Review 100 Part 3b: the swipe's Reminder when one is set.
+  ///
+  /// In en, this message translates to:
+  /// **'Change reminder'**
+  String get notebookChangeReminder;
+
+  /// Review 100 Part 3b: an entry's swipe toward the start.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get notebookArchive;
+
+  /// Review 100 Part 3b: the swipe on an archived entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get notebookUnarchive;
+
+  /// Review 100 Part 3b: after Archive, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get notebookArchivedUndo;
+
+  /// Review 100 Part 3b: after Unarchive, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Back in its page'**
+  String get notebookUnarchivedUndo;
+
+  /// Review 100 Part 3b: the quiet row at a page's end that opens its archived entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get notebookArchivedRow;
+
+  /// Review 100 Part 3b: the archived list once its last entry went back.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing archived in this page.'**
+  String get notebookArchivedEmpty;
+
+  /// Review 100 Part 5: the block list's first group (+ and /), small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'TEXT'**
+  String get notebookGroupText;
+
+  /// Review 100 Part 5: the block list's lists.
+  ///
+  /// In en, this message translates to:
+  /// **'LISTS'**
+  String get notebookGroupLists;
+
+  /// Review 100 Part 5: the block list's table and divider.
+  ///
+  /// In en, this message translates to:
+  /// **'INSERT'**
+  String get notebookGroupInsert;
+
+  /// Review 100 Part 5: the bar's 📎, read out: File, Location, Date, Reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get notebookAdd;
+
+  /// Review 100 Part 5: the bar's 📷, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get notebookPhoto;
+
+  /// Review 100 Part 5: the bar's +, read out: it opens the block list.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a block'**
+  String get notebookBlocks;
+
+  /// Review 100 Part 0: after Discard while writing a new entry, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Discarded'**
+  String get notebookDiscarded;
+
+  /// Review 100 Part 5: Send inside a saved entry: it saves it in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get notebookDone;
+
+  /// Review 100 Part 5: the ✕ at the end of a set row in 📎, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get notebookRemove;
+
+  /// Review 100 Part 4: the ‹ row at the top of a card's next level.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get notebookBack;
+
+  /// Review 100 Part 7 (BH1): a page row's line: its entries (with its sub-pages') and when the latest was written or changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entry · {when}} other{{count} entries · {when}}}'**
+  String notebookRowLine(int count, String when);
+
+  /// Review 100 Part 7: 'when' on a page row.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get notebookRowToday;
+
+  /// Review 100 Part 7: 'when' on a page row.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get notebookRowYesterday;
+
+  /// Review 100 Part 8: the top bar's Filter, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get notebookFilter;
+
+  /// Review 100 Part 8: the ✕ on the active chip, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the filter off'**
+  String get notebookFilterOff;
+
+  /// Review 100 Part 8 (BH9): the Filter card's single choice, small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'SHOW'**
+  String get notebookFilterShow;
+
+  /// Review 100 Part 8 (BH9): the Filter card's page, small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'IN'**
+  String get notebookFilterIn;
+
+  /// Review 100 Part 8: the Filter's In when no page is picked.
+  ///
+  /// In en, this message translates to:
+  /// **'All pages'**
+  String get notebookAllPages;
+
+  /// Review 100 Part 8: Show: entries with an unticked to-do.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos open'**
+  String get notebookFilterTodos;
+
+  /// Review 100 Part 8: Show: entries with photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get notebookFilterPhotos;
+
+  /// Review 100 Part 8: Show: entries with files.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get notebookFilterFiles;
+
+  /// Review 100 Part 8: Show: entries with a voice recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice notes'**
+  String get notebookFilterVoice;
+
+  /// Review 100 Part 8: Show: entries with a reminder still to ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get notebookFilterReminders;
+
+  /// Review 100 Part 8: Show: archived entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get notebookFilterArchived;
+
+  /// Review 100 Part 8: the filtered list with no entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches.'**
+  String get notebookFilterNone;
+
+  /// Review 100 Part 6 (BH4): Share's first choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get notebookShareFeed;
+
+  /// Review 100 BH4: under Feed.
+  ///
+  /// In en, this message translates to:
+  /// **'A public post on Home'**
+  String get notebookShareFeedNote;
+
+  /// Review 100 BH4: Share's second choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get notebookShareSpace;
+
+  /// Review 100 BH4: under Space.
+  ///
+  /// In en, this message translates to:
+  /// **'A post, work item or checklist'**
+  String get notebookShareSpaceNote;
+
+  /// Review 100 BH4: Share's third choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get notebookShareMessage;
+
+  /// Review 100 BH4: under Message.
+  ///
+  /// In en, this message translates to:
+  /// **'To one person'**
+  String get notebookShareMessageNote;
+
+  /// Review 100 Part 6: the Feed preview's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Post to the feed'**
+  String get notebookShareFeedTitle;
+
+  /// Review 100 Part 6: the Space preview's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Put in a Space'**
+  String get notebookShareSpaceTitle;
+
+  /// Review 100 BH5: the Message preview's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Send entry'**
+  String get notebookShareMessageTitle;
+
+  /// Review 100 BH5: the preview's row with who or where it goes.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get notebookShareTo;
+
+  /// Review 100 BH5: over the Message preview; the person's first name.
+  ///
+  /// In en, this message translates to:
+  /// **'What {name} will see'**
+  String notebookShareWhatSees(String name);
+
+  /// Review 100 Part 6: over the Feed and Space previews.
+  ///
+  /// In en, this message translates to:
+  /// **'What others will see'**
+  String get notebookShareWhatOthers;
+
+  /// Review 99B B2 / 100 Part 6: the Feed preview's share check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it has nothing your client or company wouldn\'t share.'**
+  String get notebookShareCheck;
+
+  /// Review 100 Part 6: the preview's one location line: the typed place, then 'on the map' when it has a pin.
+  ///
+  /// In en, this message translates to:
+  /// **'{place} · {map}'**
+  String notebookShareLocation(String place, String map);
+
+  /// Review 100 Part 6: the location line, when it has a map pin.
+  ///
+  /// In en, this message translates to:
+  /// **'on the map'**
+  String get notebookOnMap;
+
+  /// Review 100 Part 6: the location line with a pin and no typed place.
+  ///
+  /// In en, this message translates to:
+  /// **'On the map'**
+  String get notebookOnMapOnly;
+
+  /// Review 100 Part 6: the ✕ on the location line, read out.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the location out'**
+  String get notebookShareLeaveOut;
+
+  /// Review 100 Part 6: the Feed and Space previews' send.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get notebookPost;
+
+  /// Review 100 Part 6: Space: what it goes in as.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get notebookShareKindPost;
+
+  /// Review 100 Part 6: Space: a work item, for you.
+  ///
+  /// In en, this message translates to:
+  /// **'Work item'**
+  String get notebookShareKindWork;
+
+  /// Review 100 Part 6: Space: a checklist of its to-dos, for you.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get notebookShareKindChecklist;
+
+  /// Review 100 Part 6: Message: search among people you can message.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a person'**
+  String get notebookShareFind;
+
+  /// Review 100 Part 6: Message: recent conversations first, small caps.
+  ///
+  /// In en, this message translates to:
+  /// **'RECENT'**
+  String get notebookShareRecent;
+
+  /// Review 100 Part 6: Space, when you can post in none.
+  ///
+  /// In en, this message translates to:
+  /// **'No Space where you can post.'**
+  String get notebookShareNoSpace;
+
+  /// Review 100 Part 6: after Post to the feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to the feed'**
+  String get notebookSharedFeed;
+
+  /// Review 100 Part 6: after Put in a Space; the Space's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to {name}'**
+  String notebookSharedTo(String name);
+
+  /// Review 100 Part 6: after Send to a person.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name}'**
+  String notebookSentTo(String name);
+
+  /// Review 100 Part 6: the entry's mark.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to the feed · {time}'**
+  String notebookMarkFeed(String time);
+
+  /// Review 100 Part 6: the entry's mark, a Space's real name.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to {name} · {time}'**
+  String notebookMarkTo(String name, String time);
+
+  /// Review 100 Part 6: the entry's mark, a person's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name} · {time}'**
+  String notebookMarkSent(String name, String time);
+
+  /// Review 99B B3 (PG8): the screen, and its row at the pages list's end.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted items'**
+  String get notebookDeletedItems;
+
+  /// PG8: over the one choice of 7, 30 or 90 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep deleted items for'**
+  String get notebookKeepFor;
+
+  /// PG8: one of the choices.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String notebookKeepDays(int days);
+
+  /// PG8: under the choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Items go for good after {days} days. Until then you can restore them.'**
+  String notebookKeepNote(int days);
+
+  /// PG8: a day's label, past yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day ago} other{{days} days ago}}'**
+  String notebookDaysAgo(int days);
+
+  /// PG8: what a deleted item was, and its page.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry · from {page}'**
+  String notebookDeletedEntry(String page);
+
+  /// PG8: a deleted page inside another.
+  ///
+  /// In en, this message translates to:
+  /// **'Page and everything in it · from {page}'**
+  String notebookDeletedPage(String page);
+
+  /// PG8: a deleted page at the notebook's top.
+  ///
+  /// In en, this message translates to:
+  /// **'Page and everything in it'**
+  String get notebookDeletedPageTop;
+
+  /// PG8: lines deleted out of an entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of an entry · from {page}'**
+  String notebookDeletedPart(String page);
+
+  /// PG8: an item's button.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get notebookRestore;
+
+  /// PG8: after Restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored to {page}'**
+  String notebookRestoredTo(String page);
+
+  /// PG8: an item swiped toward the start, and its confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete forever'**
+  String get notebookDeleteForever;
+
+  /// PG8: Delete forever's one confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this for good?'**
+  String get notebookDeleteForeverTitle;
+
+  /// PG8: everything in Deleted items for good, and its confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty now'**
+  String get notebookEmptyNow;
+
+  /// PG8: Empty now's one confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete everything here for good?'**
+  String get notebookEmptyNowTitle;
+
+  /// PG8: under the confirms.
+  ///
+  /// In en, this message translates to:
+  /// **'This can\'t be undone.'**
+  String get notebookCantUndo;
+
+  /// PG8: with nothing in Deleted items.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages and entries you delete show here.'**
+  String get notebookDeletedNone;
+
+  /// Review 100 H2: Share on an entry still waiting on the phone with no signal.
+  ///
+  /// In en, this message translates to:
+  /// **'This entry hasn\'t reached the server yet. Share it once there\'s a signal.'**
+  String get notebookShareOffline;
+
+  /// Review 100 H11: Share → Space: which Team it goes in.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get notebookShareTeam;
+
+  /// Review 100 H11: Share → Space: no Team.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole Space'**
+  String get notebookShareWholeSpace;
+
+  /// Review 100 H11: Share → Space: who a work item or a checklist is for.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get notebookShareFor;
+
+  /// Review 100 H9: a reminder's short value in 📎: 'Tomorrow 7:00 am', 'Fri 7:00 am'.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} {time}'**
+  String notebookShortWhen(String day, String time);
+
+  /// Review 100 H9: the short value's day.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get notebookTomorrow;
+
+  /// Review 100 H15: the mark on a Draft whose edit the server refused because the entry changed elsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed on another phone'**
+  String get notebookChangedElsewhere;
+
+  /// Review 100 H18: a short tap on the notebook's 🎤.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to record a voice note'**
+  String get notebookHoldToRecord;
+
+  /// Review 100 H21: a deleted voice note with no words, by its length.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note, {length}'**
+  String notebookVoiceTitle(String length);
+
+  /// Review 100 J1: the Message preview, when the entry's words pass the 3,000 a message holds; Send is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Too long for a message: share it to a Space, or shorten it.'**
+  String get notebookShareTooLong;
 }
 
 class _AppLocalizationsDelegate

@@ -4325,14 +4325,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتفظ بتدويناتك وقوائم التحقق والمهام لعملك. لا يراها أحد غيرك.';
 
   @override
-  String get notebookPinTop => 'ثبّت في الأعلى';
-
-  @override
   String get notebookDeleteTitle => 'حذف هذه التدوينة؟';
-
-  @override
-  String get notebookDeleteBody =>
-      'ستُحذف من دفترك. ما وضعته في مساحة يبقى فيها.';
 
   @override
   String get notebookPut => 'وُضعت في مساحة';
@@ -4342,9 +4335,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookSaveMessage => 'احفظ في دفتري';
-
-  @override
-  String get notebookPutNone => 'لست بعد في مساحة يمكنك إضافة عمل فيها.';
 
   @override
   String get notebookTooShort => 'اضغط مدة أطول للتسجيل';
@@ -4519,9 +4509,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dmStartLine => 'بداية محادثتكما';
 
   @override
-  String get notebookRemindMe => 'ذكّرني';
-
-  @override
   String notebookReminderLine(String when) {
     return 'تذكير · $when';
   }
@@ -4560,9 +4547,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookDeleteLinesUndo => 'يمكنك التراجع عن ذلك بعدها مباشرة.';
 
   @override
   String get notebookExactTitle => 'تذكيرات في موعدها';
@@ -4679,12 +4663,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookCategories => 'الأنواع';
-
-  @override
-  String get notebookOrTypeSlash => 'أو اكتب /';
-
-  @override
   String get notebookSubheading => 'عنوان فرعي';
 
   @override
@@ -4727,9 +4705,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookLocation => 'المكان';
 
   @override
-  String get notebookImage => 'صورة';
-
-  @override
   String get notebookFile => 'ملف';
 
   @override
@@ -4739,10 +4714,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookWhereHint => 'أين';
 
   @override
-  String get notebookAddGps => 'أضف إحداثيات GPS';
+  String get notebookAddGps => 'إضافة مكاني على الخريطة';
 
   @override
-  String get notebookGpsAdded => 'أُضيفت إحداثيات GPS';
+  String get notebookGpsAdded => 'أُضيف على الخريطة';
 
   @override
   String notebookGpsLine(String lat, String lng, String metres) {
@@ -4765,18 +4740,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookLocationHelp =>
-      'اكتب المكان، أو أضف GPS الهاتف، أو كليهما.';
-
-  @override
-  String notebookGpsChip(String metres) {
-    return 'GPS ±$metres م';
-  }
+      'اكتب المكان، أو ضعه على الخريطة، أو كليهما.';
 
   @override
   String get notebookRemoveLocation => 'إزالة المكان';
 
   @override
-  String get notebookRemoveGps => 'إزالة إحداثيات GPS';
+  String get notebookRemoveGps => 'إزالته من الخريطة';
 
   @override
   String get notebookRemoveFile => 'إزالة الملف';
@@ -4815,9 +4785,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get notebookIncludeGps => 'أرفق إحداثيات GPS';
 
   @override
   String get notebookRemindTime => 'ذكّرني الساعة…';
@@ -4989,23 +4956,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookNewPageMark => 'صفحة جديدة';
-
-  @override
   String get notebookNewMark => 'جديدة';
-
-  @override
-  String notebookTodosOpen(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count مهمة مفتوحة',
-      few: '$count مهام مفتوحة',
-      two: 'مهمتان مفتوحتان',
-      one: 'مهمة واحدة مفتوحة',
-    );
-    return '$_temp0';
-  }
 
   @override
   String notebookPageChip(String page) {
@@ -5172,4 +5123,358 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookDraftDiscarded => 'تم تجاهل المسودة';
+
+  @override
+  String notebookLinesSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديد $count سطرًا',
+      few: 'تم تحديد $count أسطر',
+      two: 'تم تحديد سطرين',
+      one: 'تم تحديد سطر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookShare => 'مشاركة';
+
+  @override
+  String get notebookMove => 'نقل';
+
+  @override
+  String get notebookReminder => 'تذكير';
+
+  @override
+  String get notebookChangeReminder => 'تغيير التذكير';
+
+  @override
+  String get notebookArchive => 'أرشفة';
+
+  @override
+  String get notebookUnarchive => 'إلغاء الأرشفة';
+
+  @override
+  String get notebookArchivedUndo => 'تمت الأرشفة';
+
+  @override
+  String get notebookUnarchivedUndo => 'عادت إلى صفحتها';
+
+  @override
+  String get notebookArchivedRow => 'المؤرشفة';
+
+  @override
+  String get notebookArchivedEmpty => 'لا شيء مؤرشف في هذه الصفحة.';
+
+  @override
+  String get notebookGroupText => 'النصوص';
+
+  @override
+  String get notebookGroupLists => 'القوائم';
+
+  @override
+  String get notebookGroupInsert => 'الإدراج';
+
+  @override
+  String get notebookAdd => 'إضافة';
+
+  @override
+  String get notebookPhoto => 'صورة';
+
+  @override
+  String get notebookBlocks => 'إضافة عنصر';
+
+  @override
+  String get notebookDiscarded => 'تم التجاهل';
+
+  @override
+  String get notebookDone => 'تم';
+
+  @override
+  String get notebookRemove => 'إزالة';
+
+  @override
+  String get notebookBack => 'رجوع';
+
+  @override
+  String notebookRowLine(int count, String when) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تدوينة · $when',
+      few: '$count تدوينات · $when',
+      two: 'تدوينتان · $when',
+      one: 'تدوينة واحدة · $when',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookRowToday => 'اليوم';
+
+  @override
+  String get notebookRowYesterday => 'أمس';
+
+  @override
+  String get notebookFilter => 'تصفية';
+
+  @override
+  String get notebookFilterOff => 'إلغاء التصفية';
+
+  @override
+  String get notebookFilterShow => 'العرض';
+
+  @override
+  String get notebookFilterIn => 'في';
+
+  @override
+  String get notebookAllPages => 'كل الصفحات';
+
+  @override
+  String get notebookFilterTodos => 'مهام مفتوحة';
+
+  @override
+  String get notebookFilterPhotos => 'صور';
+
+  @override
+  String get notebookFilterFiles => 'ملفات';
+
+  @override
+  String get notebookFilterVoice => 'تسجيلات صوتية';
+
+  @override
+  String get notebookFilterReminders => 'تذكيرات';
+
+  @override
+  String get notebookFilterArchived => 'المؤرشفة';
+
+  @override
+  String get notebookFilterNone => 'لا شيء يطابق.';
+
+  @override
+  String get notebookShareFeed => 'الأخبار';
+
+  @override
+  String get notebookShareFeedNote => 'منشور عام في الرئيسية';
+
+  @override
+  String get notebookShareSpace => 'مساحة';
+
+  @override
+  String get notebookShareSpaceNote => 'منشور أو بند عمل أو قائمة تحقق';
+
+  @override
+  String get notebookShareMessage => 'رسالة';
+
+  @override
+  String get notebookShareMessageNote => 'إلى شخص واحد';
+
+  @override
+  String get notebookShareFeedTitle => 'النشر في الأخبار';
+
+  @override
+  String get notebookShareSpaceTitle => 'وضع في مساحة';
+
+  @override
+  String get notebookShareMessageTitle => 'إرسال التدوينة';
+
+  @override
+  String get notebookShareTo => 'إلى';
+
+  @override
+  String notebookShareWhatSees(String name) {
+    return 'ما سيراه $name';
+  }
+
+  @override
+  String get notebookShareWhatOthers => 'ما سيراه الآخرون';
+
+  @override
+  String get notebookShareCheck =>
+      'تأكد أنها لا تحوي ما لا يشاركه عميلك أو شركتك.';
+
+  @override
+  String notebookShareLocation(String place, String map) {
+    return '$place · $map';
+  }
+
+  @override
+  String get notebookOnMap => 'على الخريطة';
+
+  @override
+  String get notebookOnMapOnly => 'على الخريطة';
+
+  @override
+  String get notebookShareLeaveOut => 'عدم إرفاق المكان';
+
+  @override
+  String get notebookPost => 'نشر';
+
+  @override
+  String get notebookShareKindPost => 'منشور';
+
+  @override
+  String get notebookShareKindWork => 'بند عمل';
+
+  @override
+  String get notebookShareKindChecklist => 'قائمة تحقق';
+
+  @override
+  String get notebookShareFind => 'البحث عن شخص';
+
+  @override
+  String get notebookShareRecent => 'الأحدث';
+
+  @override
+  String get notebookShareNoSpace => 'لا توجد مساحة يمكنك النشر فيها.';
+
+  @override
+  String get notebookSharedFeed => 'نُشرت في الأخبار';
+
+  @override
+  String notebookSharedTo(String name) {
+    return 'نُشرت في $name';
+  }
+
+  @override
+  String notebookSentTo(String name) {
+    return 'أُرسلت إلى $name';
+  }
+
+  @override
+  String notebookMarkFeed(String time) {
+    return 'نُشرت في الأخبار · $time';
+  }
+
+  @override
+  String notebookMarkTo(String name, String time) {
+    return 'نُشرت في $name · $time';
+  }
+
+  @override
+  String notebookMarkSent(String name, String time) {
+    return 'أُرسلت إلى $name · $time';
+  }
+
+  @override
+  String get notebookDeletedItems => 'المحذوفات';
+
+  @override
+  String get notebookKeepFor => 'الاحتفاظ بالمحذوفات لمدة';
+
+  @override
+  String notebookKeepDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يومًا',
+      few: '$days أيام',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookKeepNote(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'تُحذف نهائيًا بعد $days يومًا، ويمكنك استعادتها قبل ذلك.',
+      few: 'تُحذف نهائيًا بعد $days أيام، ويمكنك استعادتها قبل ذلك.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'قبل $days يومًا',
+      few: 'قبل $days أيام',
+      two: 'قبل يومين',
+      one: 'قبل يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookDeletedEntry(String page) {
+    return 'تدوينة · من $page';
+  }
+
+  @override
+  String notebookDeletedPage(String page) {
+    return 'صفحة بكل ما فيها · من $page';
+  }
+
+  @override
+  String get notebookDeletedPageTop => 'صفحة بكل ما فيها';
+
+  @override
+  String notebookDeletedPart(String page) {
+    return 'جزء من تدوينة · من $page';
+  }
+
+  @override
+  String get notebookRestore => 'استعادة';
+
+  @override
+  String notebookRestoredTo(String page) {
+    return 'استُعيدت إلى $page';
+  }
+
+  @override
+  String get notebookDeleteForever => 'حذف نهائي';
+
+  @override
+  String get notebookDeleteForeverTitle => 'حذف هذا نهائيًا؟';
+
+  @override
+  String get notebookEmptyNow => 'إفراغ الآن';
+
+  @override
+  String get notebookEmptyNowTitle => 'حذف كل ما هنا نهائيًا؟';
+
+  @override
+  String get notebookCantUndo => 'لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get notebookDeletedNone => 'تظهر هنا الصفحات والتدوينات التي تحذفها.';
+
+  @override
+  String get notebookShareOffline =>
+      'لم تصل هذه التدوينة إلى الخادم بعد. شاركها عند عودة الاتصال.';
+
+  @override
+  String get notebookShareTeam => 'الفريق';
+
+  @override
+  String get notebookShareWholeSpace => 'المساحة كلها';
+
+  @override
+  String get notebookShareFor => 'لمن';
+
+  @override
+  String notebookShortWhen(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get notebookTomorrow => 'غدًا';
+
+  @override
+  String get notebookChangedElsewhere => 'تغيّرت على هاتف آخر';
+
+  @override
+  String get notebookHoldToRecord => 'اضغط مطولًا لتسجيل ملاحظة صوتية';
+
+  @override
+  String notebookVoiceTitle(String length) {
+    return 'تسجيل صوتي، $length';
+  }
+
+  @override
+  String get notebookShareTooLong =>
+      'أطول من أن تُرسل في رسالة: شاركها في مساحة، أو اختصرها.';
 }

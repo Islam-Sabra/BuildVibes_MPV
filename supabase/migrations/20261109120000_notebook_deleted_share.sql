@@ -20,7 +20,8 @@
 --   or create_work_item, with the Space's rules and passes), to the feed
 --   (create_post) or to a person by message (start_dm, with its rules:
 --   block, the hidden account, the request and spam guard). Its words go
---   as plain text, to-dos as ☐ and ☑; the location (typed words and its
+--   as plain text, to-dos as [ ] and [x] (J2: every phone's font has
+--   them); the location (typed words and its
 --   map pin) only when included. Each share leaves a mark (note_shares).
 -- - The Filter (100 Part 8): search_notebook gains a kind (todos_open,
 --   photos, files, voice, reminders, archived) and a page, with its
@@ -160,7 +161,7 @@ $$;
 
 -- An entry's words, and the words of [p_lines] only when given (a line
 -- group), as plain text to share: the title first (the whole entry), a
--- line each, to-dos as ☐ and ☑, numbered lines counted, bullets as •,
+-- line each, to-dos as [ ] and [x] (J2), numbered lines counted, bullets as •,
 -- each level two spaces in; a toggle's lines under it; a table's rows with
 -- " · "; then, when [p_include_location], the location as one line:
 -- "📍 Gate 2 · 29.375900, 47.977400" (the pin only when it has one).
@@ -196,10 +197,10 @@ begin
         end if;
         for v_point in select * from jsonb_array_elements(coalesce(p_note.points, '[]')) loop
           v_out := v_out || (case when coalesce((v_point ->> 'done')::boolean, false)
-                                  then '☑ ' else '☐ ' end || (v_point ->> 'text'));
+                                  then '[x] ' else '[ ] ' end || (v_point ->> 'text'));
         end loop;
       elsif p_note.kind = 'todo' then
-        v_out := v_out || (case when p_note.done_at is null then '☐ ' else '☑ ' end
+        v_out := v_out || (case when p_note.done_at is null then '[ ] ' else '[x] ' end
                            || coalesce(p_note.body, ''));
       elsif nullif(trim(coalesce(p_note.body, '')), '') is not null then
         v_out := v_out || trim(p_note.body);
@@ -220,7 +221,7 @@ begin
       case v_type
         when 'todo' then
           v_out := v_out || (v_pad || case when coalesce((v_block ->> 'done')::boolean, false)
-                                           then '☑ ' else '☐ ' end || (v_block ->> 'text'));
+                                           then '[x] ' else '[ ] ' end || (v_block ->> 'text'));
         when 'bullet' then
           v_out := v_out || (v_pad || '• ' || (v_block ->> 'text'));
         when 'numbered' then
@@ -230,7 +231,7 @@ begin
           for v_child in select * from jsonb_array_elements(coalesce(v_block -> 'children', '[]')) loop
             v_out := v_out || (v_pad || '  ' ||
               case when v_child ->> 'type' = 'todo' then
-                     case when coalesce((v_child ->> 'done')::boolean, false) then '☑ ' else '☐ ' end
+                     case when coalesce((v_child ->> 'done')::boolean, false) then '[x] ' else '[ ] ' end
                    else '' end || coalesce(v_child ->> 'text', ''));
           end loop;
         when 'table' then
@@ -672,7 +673,7 @@ begin
     v_title := split_part(v_body, E'\n', 1);
     v_body := nullif(substr(v_body, char_length(v_title) + 2), '');
   end if;
-  v_title := left(regexp_replace(v_title, '^[☐☑•] ', ''), 200);
+  v_title := left(regexp_replace(v_title, '^(\[ \]|\[x\]|•) ', ''), 200);
   if p_include_location and p_kind = 'work_item' then
     v_place := v_note.location_text;
   end if;
@@ -760,7 +761,8 @@ begin
   perform public.notebook_writer();
   v_note := public.my_live_note(p_note);
   v_sent := public.start_dm(p_thread, p_person, p_message,
-                            left(public.note_words(v_note, p_lines, p_include_location), 4000),
+                            -- J1: a message holds 3,000, as dm_post does.
+                            left(public.note_words(v_note, p_lines, p_include_location), 3000),
                             p_attachments);
   if v_sent ->> 'thread' is not null then
     insert into public.note_shares (note_id, owner_id, target, dm_thread_id, target_name)
@@ -1332,7 +1334,8 @@ AS $function$
                             from public.post_people pp join public.space_posts p on p.id = pp.post_id
                             where pp.profile_id = r.profile_id), '[]'),
     'notebook_pages', coalesce((select jsonb_agg(jsonb_build_object(
-                                 'id', np.id, 'title', np.title, 'icon', np.icon,
+                                 'id', np.id, 'title', np.title, 'named', np.named,
+                                 'icon', np.icon,
                                  'parent_id', np.parent_id, 'pinned', np.pinned,
                                  'deleted_at', np.deleted_at,
                                  'created_at', np.created_at))

@@ -163,6 +163,11 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// are already gone from the field.
   void slashPicked(String key, Object value);
 
+  /// The group a kind sits in on the "/" card (review 100 Part 5), and
+  /// the kind ticked as the current one; none by default.
+  String? slashGroup(Object value) => null;
+  Object? get slashChecked => null;
+
   /// A space typed on [key] right after [before], with [after] still on
   /// the line (review 98: "1. " at the start of a text line); true when
   /// the line took it as a shortcut.
@@ -477,12 +482,15 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         final shown = _slashShown;
         if (shown.isEmpty) return const SizedBox.shrink();
         final l10n = AppLocalizations.of(context);
+        // Grouped while nothing after the "/" has filtered it.
+        final all = shown.length == _slashAll.length;
         return BvPopoverMenu<Object>.line(
           key: const Key('page-add-menu'),
           title: l10n.pageSlashTitle,
           hint: l10n.pageSlashEnter,
           scrolls: true,
           selected: shown.first.value,
+          checked: slashChecked,
           items: [
             for (final i in shown)
               BvMenuItem(
@@ -491,6 +499,7 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
                 label: i.label,
                 icon: i.icon,
                 shortcut: i.shortcut,
+                group: all ? slashGroup(i.value) : null,
               ),
           ],
           onSelected: _pickSlash,

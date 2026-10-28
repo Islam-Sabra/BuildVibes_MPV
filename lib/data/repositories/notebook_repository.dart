@@ -22,8 +22,10 @@ abstract class NotebookRepository {
   /// save_entry (review 99A): new or mine, under the id the app chose (a
   /// retry is the same note), into its page; [newPageTitle] makes that page
   /// with it, titled from it and marked new. False when the note was
-  /// deleted: the app drops its edit.
-  Future<bool> save(Note note, {String? newPageTitle});
+  /// deleted: the app drops its edit. [baseVersion]: the version an edit
+  /// of a saved entry started from (migration 48); an older one is refused
+  /// ("changed on another phone").
+  Future<bool> save(Note note, {String? newPageTitle, int? baseVersion});
 
   /// My pages that aren't deleted (notebook_pages, owner only).
   Future<List<NotebookPage>> pages();
@@ -57,12 +59,22 @@ abstract class NotebookRepository {
   /// delete_notebook_pages: with every page under them.
   Future<void> deletePages(List<String> ids);
 
-  /// search_notebook (A5): pages first, then entries, newest first.
-  Future<List<NotebookHit>> search(String query);
+  /// search_notebook (A5): pages first, then entries, newest first. The
+  /// Filter (review 100 Part 8): [kind] ('todos_open', 'photos', 'files',
+  /// 'voice', 'reminders', 'archived') and [page], with its sub-pages.
+  Future<List<NotebookHit>> search(String query, {String? kind, String? page});
 
-  /// delete_note, then its recording or photos from Storage (the cleanup
-  /// takes any file left behind).
-  Future<void> delete(Note note);
+  /// delete_entries (99B B3): my entries to Deleted items; sent again, the
+  /// same.
+  Future<void> deleteEntries(List<String> ids);
+
+  /// delete_note_lines (99B B3): [lines] of my entry [noteId] (a line with
+  /// the lines under it) to Deleted items as "Part of an entry", [part].
+  Future<void> deleteLines(String noteId, List<String> lines, String part);
+
+  /// archive_note or unarchive_note (review 100 Part 3b): kept, out of
+  /// the page's list, its count, My calendar and the reminders.
+  Future<void> archive(String id, {required bool on});
 
   /// set_note_done: a to-do only.
   Future<void> setDone(String id, {required bool on});
@@ -90,11 +102,62 @@ abstract class NotebookRepository {
   /// F107 B11).
   Future<Uint8List> download(String path);
 
-  /// note_for_space (F107): what Put in a Space carries from a note: its
-  /// words, page and typed location; the GPS only when [includeGps].
-  Future<Map<String, dynamic>> forSpace(
-    String noteId, {
-    required bool includeGps,
+  /// Deleted items (99B B3, PG8): my_deleted_items, newest first.
+  Future<List<DeletedItem>> deletedItems();
+
+  /// How many days Deleted items are kept: 7, 30 (by default) or 90.
+  Future<int> keepDays();
+  Future<void> setKeepDays(int days);
+
+  /// restore_items: back in its page, or a new page with the old title.
+  Future<void> restore(List<String> ids);
+
+  /// delete_forever, then the files it held from Storage.
+  Future<void> deleteForever(List<String> ids);
+
+  /// empty_deleted_items, then the files they held from Storage.
+  Future<void> emptyDeleted();
+
+  /// share_note_to_feed (review 100 Part 6): a public post [postId] in
+  /// [lang] from the entry, or [lines] of it; the location only with
+  /// [includeLocation]; [media] the copies already in post-media.
+  Future<void> shareToFeed(
+    String noteId,
+    String postId,
+    String lang, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> media = const [],
+  });
+
+  /// share_note_to_space: a post, work item or checklist ([kind]: 'note',
+  /// 'work_item', 'checklist') in [spaceId], for [owner] (a work item) or
+  /// [people] (a checklist); [files] the copies already in the Space's
+  /// bucket. The Space's rules and passes are the server's.
+  Future<void> shareToSpace(
+    String noteId,
+    String postId,
+    String spaceId,
+    String kind, {
+    List<String>? lines,
+    String? team,
+    String? owner,
+    List<String> people = const [],
+    required bool includeLocation,
+    List<Map<String, dynamic>> files = const [],
+  });
+
+  /// share_note_to_person: a message to [personId] in [threadId] (new
+  /// when they have none), with start_dm's rules; [attachments] the copies
+  /// already in dm-files.
+  Future<void> shareToPerson(
+    String noteId,
+    String messageId,
+    String personId,
+    String threadId, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> attachments = const [],
   });
 
   /// my_calendar: from [from] to [to] (the phone's days, both in; up to
@@ -143,7 +206,8 @@ class SupabaseNotebookRepository implements NotebookRepository {
     final rows = await _client
         .from('notes')
         .select(
-          '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort, name)',
+          '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort, name), '
+          'note_shares(target, target_name, created_at)',
         )
         .order('created_at', ascending: false)
         .limit(_limit);
@@ -151,8 +215,16 @@ class SupabaseNotebookRepository implements NotebookRepository {
   });
 
   @override
-  Future<bool> save(Note note, {String? newPageTitle}) => _guard(() async {
-    final page = {'p_page': note.pageId, 'p_new_page_title': newPageTitle};
+  Future<bool> save(
+    Note note, {
+    String? newPageTitle,
+    int? baseVersion,
+  }) => _guard(() async {
+    final page = {
+      'p_page': note.pageId,
+      'p_new_page_title': newPageTitle,
+      'p_base_version': ?baseVersion,
+    };
     final blocks = note.blocks;
     if (blocks != null) {
       // F107: a page, with its title, blocks, date, location, photos,
@@ -306,11 +378,15 @@ class SupabaseNotebookRepository implements NotebookRepository {
   );
 
   @override
-  Future<List<NotebookHit>> search(String query) => _guard(() async {
+  Future<List<NotebookHit>> search(
+    String query, {
+    String? kind,
+    String? page,
+  }) => _guard(() async {
     final rows =
         (await _client.rpc<List<dynamic>>(
                       'search_notebook',
-                      params: {'p_q': query},
+                      params: {'p_q': query, 'p_kind': kind, 'p_page': page},
                     )
                     as List? ??
                 const [])
@@ -319,22 +395,25 @@ class SupabaseNotebookRepository implements NotebookRepository {
   });
 
   @override
-  Future<void> delete(Note note) => _guard(() async {
-    await _client.rpc<void>('delete_note', params: {'p_id': note.id});
-    final paths = [
-      ?note.recording?.path,
-      for (final p in note.photos) ?p.path,
-      for (final f in note.files) ?f.path,
-      for (final b in note.blocks ?? const <PageBlock>[])
-        if (b case PageVoice(:final path?)) path,
-    ];
-    if (paths.isEmpty) return;
-    try {
-      await _client.storage.from(notebookBucket).remove(paths);
-    } on StorageException {
-      // The cleanup takes it.
-    }
-  });
+  Future<void> deleteEntries(List<String> ids) =>
+      _guard(() => _client.rpc<void>('delete_entries', params: {'p_ids': ids}));
+
+  @override
+  Future<void> deleteLines(String noteId, List<String> lines, String part) =>
+      _guard(
+        () => _client.rpc<void>(
+          'delete_note_lines',
+          params: {'p_note': noteId, 'p_lines': lines, 'p_part': part},
+        ),
+      );
+
+  @override
+  Future<void> archive(String id, {required bool on}) => _guard(
+    () => _client.rpc<void>(
+      on ? 'archive_note' : 'unarchive_note',
+      params: {'p_id': id},
+    ),
+  );
 
   @override
   Future<void> setDone(String id, {required bool on}) => _guard(
@@ -403,22 +482,141 @@ class SupabaseNotebookRepository implements NotebookRepository {
       _guard(() => _client.storage.from(notebookBucket).download(path));
 
   @override
-  Future<Map<String, dynamic>> forSpace(
-    String noteId, {
-    required bool includeGps,
-  }) => _guard(() async {
-    final row = await _client.rpc<Map<String, dynamic>>(
-      'note_for_space',
-      params: {'p_id': noteId, 'p_include_gps': includeGps},
-    );
-    return row;
-  });
-
-  @override
   Future<String> recordingUrl(String path) => _guard(
     () => _client.storage
         .from(notebookBucket)
         .createSignedUrl(path, _linkSeconds),
+  );
+
+  @override
+  Future<List<DeletedItem>> deletedItems() => _guard(() async {
+    final rows =
+        (await _client.rpc<List<dynamic>>('my_deleted_items') as List? ??
+                const [])
+            .cast<Map<String, dynamic>>();
+    return [for (final r in rows) DeletedItem.fromJson(r)];
+  });
+
+  @override
+  Future<int> keepDays() => _guard(() async {
+    final row = await _client
+        .from('profile_private')
+        .select('notebook_keep_days')
+        .eq('id', _client.auth.currentUser!.id)
+        .maybeSingle();
+    return row?['notebook_keep_days'] as int? ?? 30;
+  });
+
+  @override
+  Future<void> setKeepDays(int days) => _guard(
+    () => _client.rpc<void>('set_notebook_keep_days', params: {'p_days': days}),
+  );
+
+  @override
+  Future<void> restore(List<String> ids) =>
+      _guard(() => _client.rpc<void>('restore_items', params: {'p_ids': ids}));
+
+  /// The files a delete for good freed, out of Storage (the purge job
+  /// takes any left behind).
+  Future<void> _removeFiles(Object? rows) async {
+    final paths = [
+      for (final r in (rows as List? ?? const []).cast<Map<String, dynamic>>())
+        ?r['path'] as String?,
+    ];
+    if (paths.isEmpty) return;
+    try {
+      await _client.storage.from(notebookBucket).remove(paths);
+    } on StorageException {
+      // The purge job takes it.
+    }
+  }
+
+  @override
+  Future<void> deleteForever(List<String> ids) => _guard(() async {
+    await _removeFiles(
+      await _client.rpc<dynamic>('delete_forever', params: {'p_ids': ids}),
+    );
+  });
+
+  @override
+  Future<void> emptyDeleted() => _guard(() async {
+    await _removeFiles(await _client.rpc<dynamic>('empty_deleted_items'));
+  });
+
+  @override
+  Future<void> shareToFeed(
+    String noteId,
+    String postId,
+    String lang, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> media = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'share_note_to_feed',
+      params: {
+        'p_note': noteId,
+        'p_post': postId,
+        'p_lang': lang,
+        'p_lines': lines,
+        'p_include_location': includeLocation,
+        'p_media': media,
+      },
+    ),
+  );
+
+  @override
+  Future<void> shareToSpace(
+    String noteId,
+    String postId,
+    String spaceId,
+    String kind, {
+    List<String>? lines,
+    String? team,
+    String? owner,
+    List<String> people = const [],
+    required bool includeLocation,
+    List<Map<String, dynamic>> files = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'share_note_to_space',
+      params: {
+        'p_note': noteId,
+        'p_post': postId,
+        'p_space': spaceId,
+        'p_kind': kind,
+        'p_lines': lines,
+        'p_team': team,
+        'p_owner': owner,
+        'p_people': people,
+        'p_include_location': includeLocation,
+        'p_files': files,
+      },
+    ),
+  );
+
+  @override
+  Future<void> shareToPerson(
+    String noteId,
+    String messageId,
+    String personId,
+    String threadId, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> attachments = const [],
+  }) => _guard(
+    () => _client.rpc<void>(
+      'share_note_to_person',
+      params: {
+        'p_note': noteId,
+        'p_message': messageId,
+        'p_person': personId,
+        'p_thread': threadId,
+        'p_lines': lines,
+        'p_include_location': includeLocation,
+        'p_attachments': attachments,
+      },
+    ),
   );
 
   @override

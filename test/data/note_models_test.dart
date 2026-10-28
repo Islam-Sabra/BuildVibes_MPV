@@ -3,10 +3,12 @@
 // note fills when it is put in a Space.
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/note.dart';
+import 'package:buildvibes/data/models/notebook_page.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/features/entry/entry_state.dart';
 import 'package:buildvibes/features/notebook/calendar_screen.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
+import 'package:buildvibes/features/notebook/note_reminders.dart';
 import 'package:buildvibes/features/notebook/notebook_page_screen.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
@@ -534,5 +536,81 @@ void main() {
       await container.read(noteDraftProvider.notifier).close();
       expect(container.read(noteDraftProvider), isNull);
     });
+  });
+
+  group('99B and review 100: deleted, archived and the version', () {
+    Map<String, dynamic> row(Map<String, dynamic> more) => {
+      'id': 'n-1',
+      'kind': 'text',
+      'body': 'Pour',
+      'page_id': 'p-1',
+      'created_at': '2026-10-15T09:00:00Z',
+      ...more,
+    };
+
+    test('a row reads when it was deleted or archived, and its version; '
+        'the phone keeps them', () {
+      final n = Note.fromJson(
+        row({
+          'deleted_at': '2026-10-15T10:00:00Z',
+          'archived_at': null,
+          'version': 3,
+        }),
+      );
+      expect(n.deletedAt, DateTime.utc(2026, 10, 15, 10).toLocal());
+      expect(n.archivedAt, isNull);
+      expect(n.version, 3);
+      expect(n.shown, isFalse);
+      final back = Note.fromJson(n.toJson());
+      expect(back.deletedAt, n.deletedAt);
+      expect(back.version, 3);
+      expect(Note.fromJson(row({})).version, 1);
+    });
+
+    test('NotebookData leaves deleted and archived entries out of every '
+        'list and count, and keeps the archived for "Archived ›"', () {
+      final page = NotebookPage(
+        id: 'p-1',
+        createdAt: DateTime(2026, 10, 1),
+        lastActivityAt: DateTime(2026, 10, 1),
+      );
+      Note todo(String id, {DateTime? deleted, DateTime? archived}) => Note(
+        id: id,
+        kind: NoteKind.text,
+        createdAt: DateTime(2026, 10, 15, 9),
+        blocks: [PageTodo('t-$id', 'Check')],
+        pageId: 'p-1',
+        deletedAt: deleted,
+        archivedAt: archived,
+      );
+      final data = NotebookData(
+        pages: [page],
+        notes: [
+          todo('live'),
+          todo('gone', deleted: DateTime(2026, 10, 15, 10)),
+          todo('kept', archived: DateTime(2026, 10, 15, 11)),
+        ],
+      );
+      expect(data.notes.map((n) => n.id), ['live']);
+      expect(data.entries('p-1').map((n) => n.id), ['live']);
+      expect(data.entryCount('p-1'), 1);
+      expect(data.archived('p-1').map((n) => n.id), ['kept']);
+      expect(data.all, hasLength(3));
+    });
+  });
+
+  test('99B ruling 5 and review 100 Part 3b: an archived or deleted '
+      "entry's reminder never rings on the phone", () {
+    final n = Note(
+      id: 'n-1',
+      kind: NoteKind.text,
+      body: 'Pour',
+      createdAt: DateTime(2026, 10, 15, 9),
+      remindAt: DateTime(2026, 10, 16, 9),
+    );
+    final now = DateTime(2026, 10, 15, 12);
+    expect(remindsAt(n, now), isTrue);
+    expect(remindsAt(n.copyWith(archivedAt: () => now), now), isFalse);
+    expect(remindsAt(n.copyWith(deletedAt: () => now), now), isFalse);
   });
 }

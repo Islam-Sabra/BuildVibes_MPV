@@ -6,7 +6,6 @@
 // English and Arabic.
 import 'dart:async';
 
-import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/core/network/signal_state.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -15,7 +14,6 @@ import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/note_location.dart';
 import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
-import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
@@ -27,7 +25,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
-import '../../helpers/daybook_samples.dart';
 import '../../helpers/notebook_fakes.dart';
 import '../../helpers/notebook_samples.dart';
 import '../../helpers/pump_app.dart';
@@ -42,6 +39,12 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
   await tester.tap(f.first);
   await tester.pumpAndSettle();
+}
+
+/// Review 100 Part 5: Location, File, Date and Reminder are in 📎 Add.
+Future<void> _add(WidgetTester tester, String row) async {
+  await _tap(tester, find.byKey(const Key('note-tool-add')));
+  await _tap(tester, find.byKey(Key('note-add-$row')));
 }
 
 /// Four o'clock today, from the daybook's day-and-time picker; a reminder
@@ -104,61 +107,23 @@ Finder _lines() =>
 bool _sendOn(WidgetTester tester) =>
     tester.widget<GestureDetector>(_key('writing-post')).onTap != null;
 
-/// An addition's icon colour: the action colour while it is in use.
-Color? _toolColour(WidgetTester tester, String tool) => tester
-    .widget<Icon>(find.descendant(of: _key(tool), matching: find.byType(Icon)))
-    .color;
-
 Future<void> _back(WidgetTester tester) async {
   await tester.binding.handlePopRoute();
   await tester.pumpAndSettle();
 }
-
-FakeSpaceRepository _spaces(DaybookSamples s) => FakeSpaceRepository()
-  ..spaces.add(
-    SpaceSummary(
-      id: DaybookSamples.space,
-      name: s.spaceName,
-      pass: SpacePass.lead,
-      isAdmin: true,
-    ),
-  )
-  ..details[DaybookSamples.space] = s.detail()
-  ..spacePeople[DaybookSamples.space] = s.people();
-
-/// A page note saved before, with its location and a photo.
-Note _page({NoteLocation? location}) => Note(
-  id: 'note-page',
-  kind: NoteKind.text,
-  title: 'Before the pour, level 3',
-  body: 'Before the pour, level 3\nCheck the sleeves',
-  blocks: const [
-    PageTodo('a0000000-0000-4000-8000-000000000001', 'Check the sleeves'),
-  ],
-  location: location,
-  photos: [NotePhoto(local: testPhotoPath)],
-  createdAt: DateTime(2026, 10, 15, 9),
-);
 
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
     final n = NotebookSamples(lang);
 
-    testWidgets('NBX1: the + and the additions bar, no kind chip [$lang]', (
+    testWidgets('BH6: + · Photo · Add · Voice · Send, no kind chip [$lang]', (
       tester,
     ) async {
       await _open(tester, lang);
       await _note(tester);
       expect(_key('note-tool-categories'), findsOneWidget);
-      for (final t in [
-        'location',
-        'image',
-        'file',
-        'date',
-        'remind',
-        'voice',
-      ]) {
+      for (final t in ['image', 'add', 'voice']) {
         expect(_key('note-tool-$t'), findsOneWidget);
       }
       expect(_key('writing-kind-chip'), findsNothing);
@@ -173,8 +138,8 @@ void main() {
       expect(lang == 'ar' ? plus > send : plus < send, isTrue);
     });
 
-    testWidgets('NBX2: + opens the grid, the keyboard kept (D8); each tile '
-        'inserts its block, and the keyboard comes back [$lang]', (
+    testWidgets('BH8: + opens the block list, the keyboard kept (D8); each '
+        'row inserts its block, and the keyboard stays [$lang]', (
       tester,
     ) async {
       await _open(tester, lang);
@@ -189,20 +154,17 @@ void main() {
         NoteBlockKind.numbers: PageNumbered,
         NoteBlockKind.toggle: PageToggle,
         NoteBlockKind.table: PageTable,
-        NoteBlockKind.callout: PageCallout,
         NoteBlockKind.quote: PageQuote,
         NoteBlockKind.divider: PageDivider,
         NoteBlockKind.text: PageText,
       };
       for (final MapEntry(key: kind, value: type) in kinds.entries) {
         await _tap(tester, _key('note-tool-categories'));
-        expect(_key('note-categories'), findsOneWidget);
-        // Review 100 D8: the keyboard stays up under the grid.
+        expect(_key('page-add-menu'), findsOneWidget);
+        // Review 100 D8: the keyboard stays up under the block list.
         expect(tester.testTextInput.isVisible, isTrue);
-        expect(find.text(l10n.notebookCategories), findsOneWidget);
-        expect(find.text(l10n.notebookOrTypeSlash), findsOneWidget);
-        await _tap(tester, _key('note-category-${kind.name}'));
-        expect(_key('note-categories'), findsNothing);
+        await _tap(tester, _key('page-add-${kind.name}'));
+        expect(_key('page-add-menu'), findsNothing);
         // Each one lands on the page, and is typed into (a word, so the
         // next tile goes after it).
         final blocks = _draft(tester)!.blocks;
@@ -227,24 +189,26 @@ void main() {
       await _tap(tester, _key('writing-post'));
     });
 
-    testWidgets('NBX2: the line\'s own kind is outlined; an empty line turns '
-        'into the tile [$lang]', (tester) async {
+    testWidgets('BH8: the line\'s own kind is ticked; an empty line turns '
+        'into the row picked [$lang]', (tester) async {
       await _open(tester, lang);
       await _note(tester);
       await tester.enterText(_key('note-title'), 'Walk');
       await tester.testTextInput.receiveAction(TextInputAction.next);
       await tester.pumpAndSettle();
-      bool outlined(String kind) {
-        final m = tester.widget<Material>(_key('note-category-$kind'));
-        final side = (m.shape! as RoundedRectangleBorder).side;
-        return side.color == BvColors.borderSelected &&
-            m.color == BvColors.surfaceBrandSoft;
-      }
+      // Review 100 BH8: the line's own kind is ticked.
+      bool outlined(String kind) => find
+          .descendant(
+            of: _key('page-add-$kind'),
+            matching: _key('menu-checked'),
+          )
+          .evaluate()
+          .isNotEmpty;
 
       await _tap(tester, _key('note-tool-categories'));
       expect(outlined('text'), isTrue);
       expect(outlined('todo'), isFalse);
-      await _tap(tester, _key('note-category-todo'));
+      await _tap(tester, _key('page-add-todo'));
       // The empty line turned: one block, a to-do.
       expect(_draft(tester)!.blocks.single, isA<PageTodo>());
       // Review 98: + on any other line is for a new text line below it.
@@ -252,9 +216,9 @@ void main() {
       expect(outlined('text'), isTrue);
       expect(outlined('todo'), isFalse);
       expect(_draft(tester)!.blocks, [isA<PageTodo>(), isA<PageText>()]);
-      // + again: the keyboard back.
+      // + again: the list closes, the keyboard still up.
       await _tap(tester, _key('note-tool-categories'));
-      expect(_key('note-categories'), findsNothing);
+      expect(_key('page-add-menu'), findsNothing);
       expect(tester.testTextInput.isVisible, isTrue);
     });
 
@@ -299,7 +263,9 @@ void main() {
     });
 
     testWidgets('NBX3: each addition attaches to the note, shows at the '
-        'slip\'s end, is tinted, and × takes it off [$lang]', (tester) async {
+        'slip\'s end, dots its tool, and × takes it off [$lang]', (
+      tester,
+    ) async {
       final app = await _open(
         tester,
         lang,
@@ -310,12 +276,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Location: typed.
-      await _tap(tester, _key('note-tool-location'));
+      await _add(tester, 'location');
       expect(_key('note-location-panel'), findsOneWidget);
       await tester.enterText(_key('note-location-typed'), 'Level 3, grid C7');
       await _tap(tester, _key('note-location-done'));
       expect(find.text('Level 3, grid C7'), findsOneWidget);
-      expect(_toolColour(tester, 'note-tool-location'), BvColors.iconAction);
+      expect(_key('note-tool-add-dot'), findsOneWidget);
 
       // Image: the camera or the gallery.
       await _tap(tester, _key('note-tool-image'));
@@ -325,21 +291,18 @@ void main() {
       expect(app.cameraAsks, [true, false]);
       expect(_key('note-photo-0'), findsOneWidget);
       expect(_key('note-photo-1'), findsOneWidget);
-      expect(_toolColour(tester, 'note-tool-image'), BvColors.iconAction);
+      expect(_key('note-tool-image-dot'), findsOneWidget);
 
       // File: a PDF, its name and size.
-      await _tap(tester, _key('note-tool-file'));
+      await _add(tester, 'file');
       expect(_key('note-file-0'), findsOneWidget);
       expect(find.text('Level 3 plan.pdf'), findsOneWidget);
-      expect(_toolColour(tester, 'note-tool-file'), BvColors.iconAction);
 
       // Date and Remind me.
-      await _tap(tester, _key('note-tool-date'));
-      await _tap(tester, _key('note-tool-remind'));
+      await _add(tester, 'date');
+      await _add(tester, 'remind');
       expect(_key('note-date-chip'), findsOneWidget);
       expect(_key('note-remind-chip'), findsOneWidget);
-      expect(_toolColour(tester, 'note-tool-date'), BvColors.iconAction);
-      expect(_toolColour(tester, 'note-tool-remind'), BvColors.iconAction);
 
       final d = _draft(tester)!;
       expect(d.location!.text, 'Level 3, grid C7');
@@ -377,7 +340,7 @@ void main() {
       expect(gone.photos, hasLength(1));
       expect(gone.files, isEmpty);
       expect((gone.dueAt, gone.remindAt), (null, null));
-      expect(_toolColour(tester, 'note-tool-file'), BvColors.iconPrimary);
+      expect(_key('note-tool-add-dot'), findsNothing);
 
       // Sent: the note has what was left.
       await _tap(tester, _key('writing-post'));
@@ -393,7 +356,7 @@ void main() {
       Future<NoteLocation?> locate({String? typed, bool gps = false}) async {
         await _note(tester);
         await tester.enterText(_key('note-title'), 'Lift $typed $gps');
-        await _tap(tester, _key('note-tool-location'));
+        await _add(tester, 'location');
         if (typed != null) {
           await tester.enterText(_key('note-location-typed'), typed);
           await tester.pumpAndSettle();
@@ -416,15 +379,15 @@ void main() {
       expect((both!.text, both.lng), ('Level 3, grid C7', 47.9774));
       expect(asks, hasLength(2));
       expect(
-        find.textContaining(l10n.notebookGpsChip('8')),
+        find.textContaining(l10n.notebookOnMap),
         findsWidgets,
-        reason: 'the saved slip\'s chip says GPS ±8 m',
+        reason: 'the saved slip shows on the map (review 100 Part 6)',
       );
 
       // × on the GPS row takes the position off, keeping the words.
       await _note(tester);
       await tester.enterText(_key('note-title'), 'Again');
-      await _tap(tester, _key('note-tool-location'));
+      await _add(tester, 'location');
       await tester.enterText(_key('note-location-typed'), 'Core B');
       await _tap(tester, _key('note-gps-add'));
       await _tap(tester, _key('note-gps-remove'));
@@ -436,7 +399,7 @@ void main() {
     ) async {
       await _open(tester, lang, gps: _gps(failure: GpsFailure.denied));
       await _note(tester);
-      await _tap(tester, _key('note-tool-location'));
+      await _add(tester, 'location');
       await _tap(tester, _key('note-gps-add'));
       expect(find.text(l10n.notebookGpsDenied), findsOneWidget);
       expect(_draft(tester)!.location, isNull);
@@ -473,14 +436,14 @@ void main() {
       await _note(tester);
       await tester.enterText(_key('note-title'), n.walkTitle);
       await _tap(tester, _key('note-tool-categories'));
-      await _tap(tester, _key('note-category-todo'));
+      await _tap(tester, _key('page-add-todo'));
       tester.testTextInput.enterText(n.walkPoints[0]);
       await tester.pumpAndSettle();
-      await _tap(tester, _key('note-tool-location'));
+      await _add(tester, 'location');
       await tester.enterText(_key('note-location-typed'), 'Grid C7');
       await _tap(tester, _key('note-location-done'));
-      await _tap(tester, _key('note-tool-file'));
-      await _tap(tester, _key('note-tool-date'));
+      await _add(tester, 'file');
+      await _add(tester, 'date');
       await _back(tester);
       expect(_key('note-draft'), findsOneWidget);
       final raw = app.prefs.getString('notebook_draft:user-1')!;
@@ -610,7 +573,7 @@ void main() {
       ).push('/notebook/pages/page-my-notes');
       await tester.pumpAndSettle();
       await _note(tester);
-      await _tap(tester, _key('note-tool-remind'));
+      await _add(tester, 'remind');
       // The day: today, OK.
       await tester.tap(
         find.text(
@@ -675,54 +638,6 @@ void main() {
       await tester.enterText(_key('note-title'), 'The newest');
       await _tap(tester, _key('writing-post'));
       expect(find.text('The newest').hitTestable(), findsOneWidget);
-    });
-
-    testWidgets('B11: Put in a Space carries the photos and the typed place, '
-        'and the GPS only when ticked [$lang]', (tester) async {
-      final s = DaybookSamples(lang);
-      final daybook = FakeDaybookRepository()
-        ..posts[DaybookSamples.space] = const [];
-      final app = await _open(
-        tester,
-        lang,
-        notes: [
-          _page(
-            location: const NoteLocation(
-              text: 'Level 3, grid C7',
-              lat: 29.37594,
-              lng: 47.9774,
-              accuracyM: 8,
-            ),
-          ),
-        ],
-        spaces: _spaces(s),
-        daybook: daybook,
-      );
-      DaybookPostDraft card() =>
-          _container(tester).read(daybookDraftProvider(DaybookSamples.space))!;
-
-      await tester.tap(_key('note-menu-note-page'));
-      await tester.pumpAndSettle();
-      expect(_key('note-include-gps'), findsOneWidget);
-      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
-      expect(app.notebook.calls, contains('for-space:note-page:false'));
-      expect(card().place, 'Level 3, grid C7');
-      expect(card().photos, hasLength(1));
-      expect(card().kind, DaybookKind.checklist);
-      expect(card().points.single.text, 'Check the sleeves');
-
-      // Again, with "Include my GPS position" ticked.
-      await _container(
-        tester,
-      ).read(daybookDraftProvider(DaybookSamples.space).notifier).discard();
-      GoRouter.of(tester.element(find.byType(Navigator).first)).pop();
-      await tester.pumpAndSettle();
-      await tester.tap(_key('note-menu-note-page'));
-      await tester.pumpAndSettle();
-      await _tap(tester, _key('note-include-gps'));
-      await _tap(tester, _key('note-space-${DaybookSamples.space}'));
-      expect(app.notebook.calls, contains('for-space:note-page:true'));
-      expect(card().place, 'Level 3, grid C7 · 29.37594, 47.97740');
     });
 
     testWidgets('B13: Send keeps the note on the phone before the draft '
@@ -798,7 +713,7 @@ void main() {
 /// save_note refuses every note (not for want of a signal).
 class _RefusingNotebook extends FakeNotebookRepository {
   @override
-  Future<bool> save(Note note, {String? newPageTitle}) async {
+  Future<bool> save(Note note, {String? newPageTitle, int? baseVersion}) async {
     calls.add('save:${note.id}');
     throw const SpaceException(SpaceFailure.badInput);
   }

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/notebook_page.dart';
+import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/repositories/notebook_repository.dart';
 
@@ -71,9 +72,19 @@ class FakeNotebookRepository implements NotebookRepository {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
+  /// The version each entry's last save started from (an edit's).
+  final Map<String, int> bases = {};
+
   @override
-  Future<bool> save(Note note, {String? newPageTitle}) async {
+  Future<bool> save(Note note, {String? newPageTitle, int? baseVersion}) async {
     _check();
+    if (baseVersion != null) {
+      bases[note.id] = baseVersion;
+      final now = kept[note.id];
+      if (now != null && now.version != baseVersion) {
+        throw const SpaceException(SpaceFailure.conflict);
+      }
+    }
     calls.add(
       newPageTitle == null
           ? 'save:${note.id}'
@@ -94,7 +105,11 @@ class FakeNotebookRepository implements NotebookRepository {
       files[note.id] = [for (final p in note.photos) ?p.path];
     }
     final before = kept[note.id];
-    kept[note.id] = note.copyWith(waiting: false, doneAt: () => before?.doneAt);
+    kept[note.id] = note.copyWith(
+      waiting: false,
+      doneAt: () => before?.doneAt,
+      version: (before?.version ?? 0) + 1,
+    );
     return true;
   }
 
@@ -203,19 +218,76 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
-  Future<List<NotebookHit>> search(String query) async {
+  Future<List<NotebookHit>> search(
+    String query, {
+    String? kind,
+    String? page,
+  }) async {
     _check();
     searched = query;
-    calls.add('search:$query');
+    calls.add(
+      kind == null && page == null
+          ? 'search:$query'
+          : 'search:$query:${kind ?? ''}:${page ?? ''}',
+    );
     return hits;
   }
 
   @override
-  Future<void> delete(Note note) async {
+  Future<void> deleteEntries(List<String> ids) async {
     _check();
-    calls.add('delete:${note.id}');
-    kept.remove(note.id);
-    deleted.add(note.id);
+    calls.add('delete-entries:${ids.join(',')}');
+    for (final id in ids) {
+      final n = kept[id];
+      if (n != null && n.deletedAt == null) {
+        kept[id] = n.copyWith(deletedAt: () => DateTime(2026, 10, 15, 12));
+      }
+    }
+  }
+
+  @override
+  Future<void> deleteLines(
+    String noteId,
+    List<String> lines,
+    String part,
+  ) async {
+    _check();
+    calls.add('delete-lines:$noteId:${lines.join(',')}:$part');
+    final n = kept[noteId];
+    if (n == null) return;
+    final gone = lines.toSet();
+    final blocks = n.blocks ?? const <PageBlock>[];
+    kept[noteId] = n.copyWith(
+      blocks: [
+        for (final b in blocks)
+          if (!gone.contains(b.id)) b,
+      ],
+      version: n.version + 1,
+    );
+    kept[part] = Note(
+      id: part,
+      kind: NoteKind.text,
+      createdAt: n.createdAt,
+      blocks: [
+        for (final b in blocks)
+          if (gone.contains(b.id)) b,
+      ],
+      pageId: n.pageId,
+      deletedAt: DateTime(2026, 10, 15, 12),
+    );
+  }
+
+  @override
+  Future<void> archive(String id, {required bool on}) async {
+    _check();
+    calls.add('archive:$id:$on');
+    final n = kept[id];
+    if (n != null) {
+      kept[id] = n.copyWith(
+        archivedAt: () =>
+            on ? (n.archivedAt ?? DateTime(2026, 10, 15, 12)) : null,
+      );
+    }
   }
 
   @override
@@ -281,33 +353,143 @@ class FakeNotebookRepository implements NotebookRepository {
     return Uint8List(0);
   }
 
-  /// note_for_space as the server answers it: the typed location, and the
-  /// GPS only when asked (F107).
+  void _shared(String noteId, NoteShareTarget target, String? name) {
+    final n = kept[noteId];
+    if (n == null) return;
+    kept[noteId] = n.copyWith(
+      shares: [
+        ...n.shares,
+        NoteShare(target: target, name: name, at: DateTime(2026, 10, 15, 12)),
+      ],
+    );
+  }
+
+  /// my_deleted_items as the server answers it, and the days kept.
+  List<DeletedItem> deletedList = [];
+  int keep = 30;
+
   @override
-  Future<Map<String, dynamic>> forSpace(
-    String noteId, {
-    required bool includeGps,
+  Future<List<DeletedItem>> deletedItems() async {
+    _check();
+    return [...deletedList];
+  }
+
+  @override
+  Future<int> keepDays() async {
+    _check();
+    return keep;
+  }
+
+  @override
+  Future<void> setKeepDays(int days) async {
+    _check();
+    calls.add('keep:$days');
+    keep = days;
+  }
+
+  @override
+  Future<void> restore(List<String> ids) async {
+    _check();
+    calls.add('restore:${ids.join(',')}');
+    deletedList.removeWhere((d) => ids.contains(d.id));
+    for (final id in ids) {
+      final n = kept[id];
+      if (n != null) kept[id] = n.copyWith(deletedAt: () => null);
+    }
+  }
+
+  @override
+  Future<void> deleteForever(List<String> ids) async {
+    _check();
+    calls.add('forever:${ids.join(',')}');
+    deletedList.removeWhere((d) => ids.contains(d.id));
+    ids.forEach(kept.remove);
+  }
+
+  @override
+  Future<void> emptyDeleted() async {
+    _check();
+    calls.add('empty');
+    deletedList.clear();
+  }
+
+  /// A refusal every share meets (H1), and what each share carried.
+  SpaceException? shareError;
+  final List<Map<String, Object?>> spaceShares = [];
+  final List<Map<String, Object?>> personShares = [];
+
+  /// The names the server gives a Space or a person's share mark.
+  final Map<String, String> names = {};
+
+  @override
+  Future<void> shareToFeed(
+    String noteId,
+    String postId,
+    String lang, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> media = const [],
   }) async {
     _check();
-    calls.add('for-space:$noteId:$includeGps');
-    final n = kept[noteId]!;
-    final l = n.location;
-    return {
-      'id': n.id,
-      'kind': n.kind.json,
-      'title': n.title,
-      'body': n.body,
-      if (n.kind == NoteKind.checklist)
-        'points': [for (final p in n.points) p.toJson()],
-      if (n.blocks != null) 'blocks': [for (final b in n.blocks!) b.toJson()],
-      'due_at': n.dueAt?.toUtc().toIso8601String(),
-      'location_text': ?l?.text,
-      if (includeGps && l != null && l.hasGps) ...{
-        'location_lat': l.lat,
-        'location_lng': l.lng,
-        'location_accuracy_m': l.accuracyM,
-      },
-    };
+    if (shareError case final e?) throw e;
+    calls.add(
+      'share-feed:$noteId:$lang:$includeLocation:${(lines ?? []).join(',')}',
+    );
+    _shared(noteId, NoteShareTarget.feed, null);
+  }
+
+  @override
+  Future<void> shareToSpace(
+    String noteId,
+    String postId,
+    String spaceId,
+    String kind, {
+    List<String>? lines,
+    String? team,
+    String? owner,
+    List<String> people = const [],
+    required bool includeLocation,
+    List<Map<String, dynamic>> files = const [],
+  }) async {
+    _check();
+    if (shareError case final e?) throw e;
+    spaceShares.add({
+      'space': spaceId,
+      'kind': kind,
+      'team': team,
+      'owner': owner,
+      'people': people,
+      'files': files,
+    });
+    calls.add(
+      'share-space:$noteId:$spaceId:$kind:$includeLocation:'
+      '${(lines ?? []).join(',')}',
+    );
+    _shared(noteId, NoteShareTarget.space, names[spaceId]);
+  }
+
+  @override
+  Future<void> shareToPerson(
+    String noteId,
+    String messageId,
+    String personId,
+    String threadId, {
+    List<String>? lines,
+    required bool includeLocation,
+    List<Map<String, dynamic>> attachments = const [],
+  }) async {
+    _check();
+    if (shareError case final e?) throw e;
+    personShares.add({
+      'person': personId,
+      'thread': threadId,
+      'attachments': attachments,
+    });
+    calls.add(
+      'share-person:$noteId:$personId:$threadId:$includeLocation:'
+      '${(lines ?? []).join(',')}',
+    );
+    _shared(noteId, NoteShareTarget.message, names[personId]);
   }
 
   @override
