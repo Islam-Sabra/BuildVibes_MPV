@@ -1536,5 +1536,11 @@
   "notebookShareForRow": "إلى: {name}",
   "notebookShareForMore": "{name} + {count}",
   "timePickerToWheels": "استخدام العجلات",
-  "timePickerToClock": "استخدام الساعة"
+  "timePickerToClock": "استخدام الساعة",
+  "notebookStatusReminder": "تذكير، {when}",
+  "notebookStatusFeed": "نُشرت في الأخبار الساعة {time}",
+  "notebookStatusSpace": "نُشرت في {name} الساعة {time}",
+  "notebookStatusSent": "أُرسلت إلى {name} الساعة {time}",
+  "notebookStatusMore": "{count, plural, other{{count} أخرى}}",
+  "notebookStatusChange": "تغيير"
 }

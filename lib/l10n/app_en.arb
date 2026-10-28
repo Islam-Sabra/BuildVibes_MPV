@@ -7939,5 +7939,60 @@
   "timePickerToClock": "Use the clock",
   "@timePickerToClock": {
     "description": "Review 104 N11: the time picker's mode switch, on the wheels."
+  },
+  "notebookStatusReminder": "Reminder, {when}",
+  "@notebookStatusReminder": {
+    "description": "Review 104 N12: a screen reader's label of an entry's reminder icon.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusFeed": "Shared to the feed at {time}",
+  "@notebookStatusFeed": {
+    "description": "Review 104 N12: a screen reader's label of an entry's feed icon.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusSpace": "Shared to {name} at {time}",
+  "@notebookStatusSpace": {
+    "description": "Review 104 N12: a screen reader's label of an entry's Space icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusSent": "Sent to {name} at {time}",
+  "@notebookStatusSent": {
+    "description": "Review 104 N12: a screen reader's label of an entry's message icon.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookStatusMore": "{count, plural, other{{count} more}}",
+  "@notebookStatusMore": {
+    "description": "Review 104 N12: a screen reader's label of the +N past three icons.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookStatusChange": "Change",
+  "@notebookStatusChange": {
+    "description": "Review 104 N12: in a reminder icon's card, changes the reminder."
   }
 }

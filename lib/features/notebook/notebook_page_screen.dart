@@ -61,6 +61,7 @@ import 'note_outline.dart'
     show copiedBlock, numberAt, numberLabel, visibleLines;
 import 'note_page_editor.dart';
 import 'note_reminders.dart' show remindsAt;
+import 'note_status.dart';
 import 'note_writing.dart';
 import 'notebook_page_parts.dart';
 import 'notebook_state.dart';
@@ -2143,6 +2144,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               onLongPress: widget.archived || _canArrange(n, selecting)
                   ? null
                   : () => _select(n),
+              onReminder: widget.archived ? null : () => unawaited(_remind(n)),
             ),
           ),
         ),
@@ -2802,6 +2804,7 @@ class NoteSlip extends ConsumerWidget {
     required this.now,
     this.onEdit,
     this.onLongPress,
+    this.onReminder,
     this.selected = false,
   });
 
@@ -2809,6 +2812,9 @@ class NoteSlip extends ConsumerWidget {
   final DaybookWords words;
   final DateTime now;
   final VoidCallback? onEdit;
+
+  /// The reminder icon's card's Change (review 104 N12).
+  final VoidCallback? onReminder;
 
   /// A long-press: select it (review 99 A4); its other actions are on its
   /// swipe (review 100 Part 3b).
@@ -2836,8 +2842,10 @@ class NoteSlip extends ConsumerWidget {
     );
     final due = note.dueAt;
     final title = note.isPage ? note.title.trim() : '';
+    final statuses = noteStatuses(note, l10n, words, now);
     final children = <Widget>[
-      // PG4: the title, or the kind, with the time at the end, then ⋯.
+      // PG4: the title, or the kind, with the time at the end, then ⋯;
+      // review 104 N12: the status icons beside the time.
       Row(
         key: Key('note-head-${note.id}'),
         spacing: BvSpace.s8,
@@ -2851,6 +2859,13 @@ class NoteSlip extends ConsumerWidget {
                     style: type.headingMd.copyWith(color: BvColors.textPrimary),
                   ),
           ),
+          if (statuses.isNotEmpty)
+            NoteStatusIcons(
+              key: Key('note-status-${note.id}'),
+              id: note.id,
+              statuses: statuses,
+              onChangeReminder: onReminder,
+            ),
           Text(
             words.time.clock(note.createdAt),
             style: type.metadata.copyWith(color: BvColors.textSecondary),
@@ -2924,33 +2939,8 @@ class NoteSlip extends ConsumerWidget {
         },
       if (note.photos.isNotEmpty && !note.isPage)
         NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
-      if (remindsAt(note, now))
-        BvSlipQuiet(
-          key: Key('note-reminder-${note.id}'),
-          l10n.notebookReminderLine(
-            reminderWhen(l10n, words, note.remindAt!, now),
-          ),
-        ),
+      // N12: the reminder and the shares are icons in the top line now.
       if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
-      if (note.shares.lastOrNull case final share?)
-        BvSlipQuiet(
-          key: Key('note-share-mark-${note.id}'),
-          switch (share.target) {
-            NoteShareTarget.feed => l10n.notebookMarkFeed(
-              words.time.clock(share.at),
-            ),
-            NoteShareTarget.space => l10n.notebookMarkTo(
-              share.name ?? '',
-              words.time.clock(share.at),
-            ),
-            NoteShareTarget.message => l10n.notebookMarkSent(
-              share.name ?? '',
-              words.time.clock(share.at),
-            ),
-          },
-        )
-      else if (note.putInPostId != null && !note.waiting)
-        BvSlipQuiet(l10n.notebookPut),
     ];
     // PG4: a plain white card; selected (A4, BH2), tinted and lifted with
     // the selected edge.

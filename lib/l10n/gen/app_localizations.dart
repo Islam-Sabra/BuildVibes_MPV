@@ -9319,6 +9319,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use the clock'**
   String get timePickerToClock;
+
+  /// Review 104 N12: a screen reader's label of an entry's reminder icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder, {when}'**
+  String notebookStatusReminder(String when);
+
+  /// Review 104 N12: a screen reader's label of an entry's feed icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to the feed at {time}'**
+  String notebookStatusFeed(String time);
+
+  /// Review 104 N12: a screen reader's label of an entry's Space icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to {name} at {time}'**
+  String notebookStatusSpace(String name, String time);
+
+  /// Review 104 N12: a screen reader's label of an entry's message icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name} at {time}'**
+  String notebookStatusSent(String name, String time);
+
+  /// Review 104 N12: a screen reader's label of the +N past three icons.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} more}}'**
+  String notebookStatusMore(int count);
+
+  /// Review 104 N12: in a reminder icon's card, changes the reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get notebookStatusChange;
 }
 
 class _AppLocalizationsDelegate

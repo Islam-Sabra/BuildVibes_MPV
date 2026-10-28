@@ -316,19 +316,27 @@ class _DueDayDialogState extends State<_DueDayDialog> {
             ),
             child: Row(
               children: [
+                // Review 104 N12: in Arabic Remove, Cancel and OK are wider
+                // than the dialog; Remove gives way and wraps.
                 if (widget.removable)
-                  TextButton(
-                    key: const Key('due-remove'),
-                    onPressed: () =>
-                        Navigator.of(context).pop<_DayChoice>((day: null)),
-                    child: Text(
-                      l10n.daybookRemoveDue,
-                      style: BvType.of(
-                        context,
-                      ).labelMd.copyWith(color: BvColors.textDestructive),
+                  Expanded(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        key: const Key('due-remove'),
+                        onPressed: () =>
+                            Navigator.of(context).pop<_DayChoice>((day: null)),
+                        child: Text(
+                          l10n.daybookRemoveDue,
+                          style: BvType.of(
+                            context,
+                          ).labelMd.copyWith(color: BvColors.textDestructive),
+                        ),
+                      ),
                     ),
-                  ),
-                const Spacer(),
+                  )
+                else
+                  const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(material.cancelButtonLabel),

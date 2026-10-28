@@ -5562,4 +5562,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timePickerToClock => 'Use the clock';
+
+  @override
+  String notebookStatusReminder(String when) {
+    return 'Reminder, $when';
+  }
+
+  @override
+  String notebookStatusFeed(String time) {
+    return 'Shared to the feed at $time';
+  }
+
+  @override
+  String notebookStatusSpace(String name, String time) {
+    return 'Shared to $name at $time';
+  }
+
+  @override
+  String notebookStatusSent(String name, String time) {
+    return 'Sent to $name at $time';
+  }
+
+  @override
+  String notebookStatusMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookStatusChange => 'Change';
 }

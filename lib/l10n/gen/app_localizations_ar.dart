@@ -5597,4 +5597,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get timePickerToClock => 'استخدام الساعة';
+
+  @override
+  String notebookStatusReminder(String when) {
+    return 'تذكير، $when';
+  }
+
+  @override
+  String notebookStatusFeed(String time) {
+    return 'نُشرت في الأخبار الساعة $time';
+  }
+
+  @override
+  String notebookStatusSpace(String name, String time) {
+    return 'نُشرت في $name الساعة $time';
+  }
+
+  @override
+  String notebookStatusSent(String name, String time) {
+    return 'أُرسلت إلى $name الساعة $time';
+  }
+
+  @override
+  String notebookStatusMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أخرى',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookStatusChange => 'تغيير';
 }
