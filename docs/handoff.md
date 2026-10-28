@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 28 Oct 2026 — review 101 L1 on `claude/r101-l1`: the "slower drawing" is the vsync wait, not drawing; the phone reading waits for an unlock; for the lead
+## PC update: 28 Oct 2026 — review 101 L1 on `claude/r101-l1`: the "slower drawing" is the vsync wait, not drawing; the phone confirms it; for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -21,9 +21,25 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - Same certificate as release 712 (SHA-256 9d02b7db…df9f).
 - The phone was confirmed (Xiaomi 22120RN86G, versionCode 712), and "before" installed over the release as an update: first install still 17 Oct, so his data was kept. It launched, and its VM service answered.
 
-**2. The phone reading: not done.** The phone is on its secure lock screen (keyguard showing, screenshots black). I didn't try to get past it.
-- **Release 712 is back:** installed again, versionCode 712, and the installed `base.apk` is byte-identical to `BuildVibes-712.apk` (MD5 f95947f7…). It's the only BuildVibes package on the phone.
-- **For the reading, the founder unlocks the phone.** Then: install a profile build, attach the recorder, open NBKCH SITE TEAM (his Space with the most posts, about 60 with photos), fling, and put release 712 back.
+**2. The phone reading (founder's Xiaomi 22120RN86G, 28 Oct, about 20:00, over wireless debugging once he unlocked it):**
+- Each profile build installed over the release as an update (first install still 17 Oct, so his data was kept), started with Flutter's endless trace buffer (`--ez endless-trace-buffer true`), and recorded with `tool/perf/record_timeline.dart`.
+- The run: open NBKCH SITE TEAM from the Spaces tab, then 10 flings by adb (5 towards the newest, 5 back). One run each. Auto-rotate was off during the runs, to keep portrait, and is on again.
+
+| On his phone | before (89d90af) | now (7a24f55) |
+|---|---|---|
+| Frames | 541 | 610 |
+| Build over budget | 56 | 3 |
+| Build, 90th / worst | 16.0 / 151 ms | 4.1 / 43 ms |
+| Raster over budget | 5 | 3 |
+| Raster, median / 90th | 6.4 / 9.6 ms | 5.9 / 9.4 ms |
+| Gaps over 25 ms (a vsync missed) | 71 of 520 | 14 of 597 |
+| Gaps over 34 ms (two missed) | 37 | 5 |
+| Opening the Space (the first burst of frames) | 1.16 s, 6 missed, worst build 151 ms | 1.11 s, 5 missed, worst build 43 ms |
+
+- **On his phone the raster thread costs the same before and after** (about 6 ms a frame, half the budget). The emulator's 16 ms was the vsync wait (see 3); his phone doesn't show it.
+- Build is what changed, as review 101 meant: 56 slow builds down to 3.
+- Where "now" still misses: the open (5) and the flings back to older posts (1 or 2 each, builds up to 12–16 ms as older rows come in). The flings towards the newest miss none.
+- **Release 712 is back:** installed again, versionCode 712, the installed `base.apk` byte-identical to `BuildVibes-712.apk` (MD5 f95947f7…), first install still 17 Oct. It's the only BuildVibes package on the phone. The adb port forwards are removed.
 
 **3. Evidence on the emulator** (Pixel 8, Impeller on OpenGLES, profile mode, the local busy seed, 20 flings, traced; both traces kept their last 255 frames):
 
@@ -46,7 +62,7 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **So there is no drawing cost to fix,** and nothing changed. K3's "missed raster budget" is the wrong measure for this. The gap measure in the recorder is the right one.
 
 **For the lead:**
-- The phone reading, with the founder there to unlock it, decides between this emulator reading and a real cost on his phone's own GPU (its renderer is not checked yet). The steps are in 2.
+- The phone reading (2) confirms the emulator's: no drawing cost to fix. L1 can close; nothing changed in the app.
 - The local stack is back as before: the busy seed and its test phone are removed. The emulator is stopped, and the throwaway build worktree is removed.
 - **Who has which branch:** PC has `claude/r101-l1` (worktree `BuildVibes-l1`), `slice2-app` (worktree `BuildVibes-slice1`), and `claude/r102-notebook` (merged).
 

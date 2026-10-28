@@ -747,7 +747,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Build 712 on the Desktop and on the founder's phone.
 - **28 Oct (PC): review 101 L1** on `claude/r101-l1` (nothing merged, live or deployed):
   - Profile builds signed with the upload key ("before" 89d90af, "now" 7a24f55, versionCode 712) install over the release and keep the data.
-  - The phone reading waits: the phone is locked. Release 712 is back, byte-identical.
+  - On the founder's phone (open NBKCH SITE TEAM, 10 flings): raster about 6 ms a frame before and after; slow builds 56 → 3; missed vsyncs 71 → 14. Release 712 is back, byte-identical.
   - The emulator trace: the same 16 render passes a frame before and after. "Now"'s raster time is the swap waiting for the next vsync, since a frame is ready every vsync. Missed vsyncs while flinging: 1 of 254 now, against 55 before.
   - No drawing cost to fix. A recorder with the frame-gap measure is in `tool/perf/`.
 
