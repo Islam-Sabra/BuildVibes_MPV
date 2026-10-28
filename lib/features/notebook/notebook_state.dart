@@ -135,6 +135,22 @@ class NotebookData {
       NotebookData(notes: notes ?? all, pages: pages ?? this.pages);
 }
 
+/// A day's entries in the page's order (review 102 N3): those arranged by
+/// hand in their places; any added since, by time, where new ones come in
+/// (at the day's top newest first, at its bottom oldest first). [day] is in
+/// the sort's time order.
+List<Note> inHandOrder(List<Note> day, {required bool oldestFirst}) {
+  final placed = [
+    for (final n in day)
+      if (n.dayPosition != null) n,
+  ]..sort((a, b) => a.dayPosition!.compareTo(b.dayPosition!));
+  final rest = [
+    for (final n in day)
+      if (n.dayPosition == null) n,
+  ];
+  return oldestFirst ? [...placed, ...rest] : [...rest, ...placed];
+}
+
 /// One change to the notebook, kept on the phone until the server has it:
 /// an entry's ([note], [id]) or pages' ([page], [ids], [noteIds],
 /// [target]).
@@ -238,6 +254,10 @@ class NoteChange {
   const NoteChange.deletePages(List<String> ids)
     : this._('page_delete', ids: ids);
 
+  /// One day's entries, top to bottom in their new order (review 102 N3).
+  const NoteChange.arrangeDay(List<String> noteIds)
+    : this._('day_arrange', noteIds: noteIds);
+
   factory NoteChange.fromJson(Map<String, dynamic> json) {
     final note = json['note'] == null
         ? null
@@ -263,6 +283,7 @@ class NoteChange {
       'page_pin' => NoteChange.pinPages(list('ids'), on: on),
       'page_move' => NoteChange.movePages(list('ids'), target),
       'notes_move' => NoteChange.moveNotes(list('note_ids'), target!, at: at),
+      'day_arrange' => NoteChange.arrangeDay(list('note_ids')),
       'merge' => NoteChange.merge(
         list('ids'),
         list('note_ids'),
@@ -370,6 +391,16 @@ class NoteChange {
           notes: [
             for (final n in notes)
               if (n.id != note!.id) n,
+          ],
+        );
+      case 'day_arrange':
+        final place = {for (final (i, id) in noteIds.indexed) id: i + 1};
+        return data.copyWith(
+          notes: [
+            for (final n in notes)
+              place[n.id] == null
+                  ? n
+                  : n.copyWith(dayPosition: () => place[n.id]),
           ],
         );
       case 'archive':
@@ -812,6 +843,10 @@ class Notebook extends AsyncNotifier<NotebookData> {
   Future<void> movePages(List<String> ids, String? parent) =>
       _change(NoteChange.movePages(ids, parent));
 
+  /// One day's entries, top to bottom in their new order (review 102 N3).
+  Future<void> arrangeDay(List<String> ids) =>
+      _change(NoteChange.arrangeDay(ids));
+
   /// Move to page….
   Future<void> moveNotes(List<String> ids, String page) =>
       _change(NoteChange.moveNotes(ids, page, at: ref.read(clockProvider)()));
@@ -1047,6 +1082,8 @@ class Notebook extends AsyncNotifier<NotebookData> {
         await _repo.deleteEntries(change.ids);
       case 'archive':
         await _repo.archive(change.id!, on: change.on);
+      case 'day_arrange':
+        await _repo.arrangeDay(change.noteIds);
       case 'delete_lines':
         await _repo.deleteLines(change.id!, change.ids, change.target!);
     }

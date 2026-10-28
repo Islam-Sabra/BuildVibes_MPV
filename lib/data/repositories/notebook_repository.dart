@@ -48,6 +48,10 @@ abstract class NotebookRepository {
   /// move_notes: Move to page….
   Future<void> moveNotes(List<String> ids, String page);
 
+  /// arrange_day (review 102 N3): one day's entries of a page, top to
+  /// bottom in their new order.
+  Future<void> arrangeDay(List<String> ids);
+
   /// merge_notebook_pages: all or nothing; [newTitle] makes [into].
   Future<void> merge(
     List<String> pages,
@@ -353,6 +357,10 @@ class SupabaseNotebookRepository implements NotebookRepository {
     () =>
         _client.rpc<void>('move_notes', params: {'p_ids': ids, 'p_page': page}),
   );
+
+  @override
+  Future<void> arrangeDay(List<String> ids) =>
+      _guard(() => _client.rpc<void>('arrange_day', params: {'p_ids': ids}));
 
   @override
   Future<void> merge(

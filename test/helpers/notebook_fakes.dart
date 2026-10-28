@@ -175,6 +175,16 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
+  Future<void> arrangeDay(List<String> ids) async {
+    _check();
+    calls.add('day-arrange:${ids.join(',')}');
+    for (final (i, id) in ids.indexed) {
+      final n = kept[id];
+      if (n != null) kept[id] = n.copyWith(dayPosition: () => i + 1);
+    }
+  }
+
+  @override
   Future<void> merge(
     List<String> pages,
     List<String> notes,

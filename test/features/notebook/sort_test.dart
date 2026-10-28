@@ -107,7 +107,13 @@ Future<void> _sort(WidgetTester tester, String filter, String choice) async {
   await tester.pumpAndSettle();
 }
 
-const _byActivity = ['p-c', 'p-a', 'p-b', 'p-d', FakeNotebookRepository.myNotesId];
+const _byActivity = [
+  'p-c',
+  'p-a',
+  'p-b',
+  'p-d',
+  FakeNotebookRepository.myNotesId,
+];
 
 void main() {
   for (final lang in ['en', 'ar']) {
@@ -150,8 +156,22 @@ void main() {
       expect(
         _pages(tester),
         lang == 'en'
-            ? ['p-pin', 'p-b', 'p-a', FakeNotebookRepository.myNotesId, 'p-d', 'p-c']
-            : ['p-pin', 'p-d', 'p-c', FakeNotebookRepository.myNotesId, 'p-b', 'p-a'],
+            ? [
+                'p-pin',
+                'p-b',
+                'p-a',
+                FakeNotebookRepository.myNotesId,
+                'p-d',
+                'p-c',
+              ]
+            : [
+                'p-pin',
+                'p-d',
+                'p-c',
+                FakeNotebookRepository.myNotesId,
+                'p-b',
+                'p-a',
+              ],
       );
       expect(
         find.descendant(

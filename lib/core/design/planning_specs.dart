@@ -176,6 +176,15 @@ abstract final class BvCalendarSpec {
 /// My notebook's pages (review 99A, PG1–PG5b): a page's row, its icon box,
 /// the page chip and its picker, a page's title, the selection bar.
 abstract final class BvNotebookPagesSpec {
+  /// Review 102 N3, an entry moved within its day: the others slide aside
+  /// in this; near the list's top or bottom edge the page scrolls by
+  /// itself, a step a frame; the line where it lands.
+  static const arrangeSlide = Duration(milliseconds: 180);
+  static const arrangeEdge = BvSpace.s48;
+  static const arrangeStep = BvSpace.s8;
+  static const arrangeFrame = Duration(milliseconds: 16);
+  static const arrangeLine = BvSpace.s2;
+
   /// A row (PG1): 60 high, 73 with its open to-dos; the icon box 4 in.
   static const rowPaddingStart = 4.0;
   static const rowPaddingEnd = 4.0;
