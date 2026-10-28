@@ -34,6 +34,7 @@ import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import '../../shared/widgets/bv_writing_toolbar.dart';
+import '../../shared/widgets/lazy_rows.dart';
 import '../chat/thread_screen.dart' show ChatActionRow;
 import '../chat/chat_state.dart' show keepFileProvider;
 import '../chat/voice.dart';
@@ -138,6 +139,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
 
   final _slipKey = GlobalKey();
   final _editorKey = GlobalKey<NotePageEditorState>();
+
+  /// Review 101 A: the page's rows built now, by index; and the row of the
+  /// entry it was opened at.
+  final _built = <int, BuildContext>{};
+  int? _entryRow;
   final _titleFocus = FocusNode();
   late final AppLifecycleListener _life;
 
@@ -508,6 +514,22 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       _toast(AppLocalizations.of(context).notebookReminderGone);
     }
     return note;
+  }
+
+  /// Opened at an entry (from Filter or search): the page goes to it until
+  /// it is built (review 101 A), then puts it near the top.
+  Future<void> _showEntry() async {
+    final row = _entryRow;
+    final some = _built.values.where((c) => c.mounted).firstOrNull;
+    final position = some == null ? null : Scrollable.maybeOf(some)?.position;
+    if (row != null && position != null) {
+      await scrollUntilBuilt(position, _built, row);
+    }
+    if (!mounted) return;
+    final at = _entryKey.currentContext;
+    if (at != null && at.mounted) {
+      await Scrollable.ensureVisible(at, alignment: 0.2);
+    }
   }
 
   /// The slip in view, its end above the bar (B10).
@@ -1670,12 +1692,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     ];
     if (widget.entry != null && !_shownEntry && entries.isNotEmpty) {
       _shownEntry = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final at = _entryKey.currentContext;
-        if (at != null && at.mounted) {
-          unawaited(Scrollable.ensureVisible(at, alignment: 0.2));
-        }
-      });
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => unawaited(_showEntry()),
+      );
     }
 
     Widget writingSlip(NoteDraft draft, {required bool writing}) {
@@ -1818,16 +1837,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
 
     Widget browse(NotebookPage page) {
       final path = data.path(page.id);
-      return ListView(
-        key: const Key('notebook-list'),
-        padding: const EdgeInsetsDirectional.fromSTEB(
-          BvSpace.gutter,
-          BvSpace.s8,
-          BvSpace.gutter,
-          BvSpace.s64 + BvSpace.s32,
-        ),
-        children: [
-          Wrap(
+      // Review 101 A: a row at a time, built only on screen and a small
+      // margin. A row keeps its key, so it keeps its place (its swipe, its
+      // selection) as rows come and go above it.
+      final rows = <(Key?, Widget Function())>[
+        (
+          null,
+          () => Wrap(
             key: const Key('page-path'),
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: BvNotebookPagesSpec.pathGap,
@@ -1850,8 +1866,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               ],
             ],
           ),
-          const SizedBox(height: BvNotebookPagesSpec.pathBottom),
-          Row(
+        ),
+        (null, () => const SizedBox(height: BvNotebookPagesSpec.pathBottom)),
+        (
+          null,
+          () => Row(
             spacing: BvNotebookPagesSpec.titleGap,
             children: [
               Semantics(
@@ -1900,12 +1919,15 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               ),
             ],
           ),
-          const SizedBox(height: BvNotebookPagesSpec.titleBottom),
-          for (final sub
-              in widget.archived
-                  ? const <NotebookPage>[]
-                  : data.children(page.id))
-            Padding(
+        ),
+        (null, () => const SizedBox(height: BvNotebookPagesSpec.titleBottom)),
+        for (final sub
+            in widget.archived
+                ? const <NotebookPage>[]
+                : data.children(page.id))
+          (
+            ValueKey(('page-row', sub.id)),
+            () => Padding(
               padding: const EdgeInsetsDirectional.only(
                 bottom: BvNotebookPagesSpec.rowsGap,
               ),
@@ -1918,10 +1940,16 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                 onTap: () => context.push(AppRoutes.notebookPage(sub.id)),
               ),
             ),
-          if (drafts.isNotEmpty) ...[
-            NotebookLabel(l10n.daybookDraft),
-            for (final d in drafts)
-              BvSwipeCard(
+          ),
+        if (drafts.isNotEmpty) ...[
+          (
+            const ValueKey('drafts-label'),
+            () => NotebookLabel(l10n.daybookDraft),
+          ),
+          for (final d in drafts)
+            (
+              ValueKey(('draft-row', d.id)),
+              () => BvSwipeCard(
                 key: Key('note-draft-card-${d.id}'),
                 id: d.id,
                 enabled: !selecting,
@@ -1934,34 +1962,74 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                 ),
                 child: writingSlip(d, writing: false),
               ),
-          ],
-          if (pinned.isNotEmpty) ...[
-            NotebookLabel(l10n.notebookPinnedLabel),
-            for (final n in pinned) entry(n, first: n == entries.first),
-          ],
-          for (final day in byDay.keys) ...[
-            Padding(
+            ),
+        ],
+        if (pinned.isNotEmpty) ...[
+          (
+            const ValueKey('pinned-label'),
+            () => NotebookLabel(l10n.notebookPinnedLabel),
+          ),
+          for (final n in pinned)
+            (
+              ValueKey(('entry-row', n.id)),
+              () => entry(n, first: n == entries.first),
+            ),
+        ],
+        for (final day in byDay.keys) ...[
+          (
+            ValueKey(('day-row', day)),
+            () => Padding(
               padding: const EdgeInsetsDirectional.only(
                 top: BvNotebookPagesSpec.dayTop,
               ),
               child: NotebookLabel(words.compactDate(day)),
             ),
-            for (final n in byDay[day]!)
-              entry(
+          ),
+          for (final n in byDay[day]!)
+            (
+              ValueKey(('entry-row', n.id)),
+              () => entry(
                 n,
                 first:
                     pinned.isEmpty &&
                     n == byDay[day]!.first &&
                     day == byDay.keys.first,
               ),
-          ],
-          if (widget.archived && entries.isEmpty && notebook.hasValue)
-            EmptyNote(l10n.notebookArchivedEmpty),
-          if (!widget.archived && data.archived(page.id).isNotEmpty)
-            ArchivedRow(
-              onTap: () => context.push(AppRoutes.notebookArchived(page.id)),
             ),
         ],
+        if (widget.archived && entries.isEmpty && notebook.hasValue)
+          (null, () => EmptyNote(l10n.notebookArchivedEmpty)),
+        if (!widget.archived && data.archived(page.id).isNotEmpty)
+          (
+            const ValueKey('archived-row'),
+            () => ArchivedRow(
+              onTap: () => context.push(AppRoutes.notebookArchived(page.id)),
+            ),
+          ),
+      ];
+      final rowOf = <Key, int>{
+        for (final (i, (key, _)) in rows.indexed) ?key: i,
+      };
+      final opened = widget.entry;
+      _entryRow = opened == null
+          ? null
+          : rowOf[ValueKey(('entry-row', opened))];
+      return ListView.builder(
+        key: const Key('notebook-list'),
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          BvSpace.gutter,
+          BvSpace.s8,
+          BvSpace.gutter,
+          BvSpace.s64 + BvSpace.s32,
+        ),
+        itemCount: rows.length,
+        findChildIndexCallback: (key) => rowOf[key],
+        itemBuilder: (context, i) => LazyRow(
+          key: rows[i].$1,
+          index: i,
+          built: _built,
+          child: rows[i].$2(),
+        ),
       );
     }
 

@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -95,11 +96,7 @@ void main() {
         (cards[5], l10n.daybookKindReportWord),
       ]) {
         final card = _card(c.id);
-        await tester.scrollUntilVisible(
-          card,
-          200,
-          scrollable: find.byType(Scrollable).first,
-        );
+        await scrollToRow(tester, card);
         await tester.pumpAndSettle();
         final header = find.descendant(
           of: card,

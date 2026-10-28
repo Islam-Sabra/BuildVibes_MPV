@@ -14,12 +14,14 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
+import 'package:buildvibes/core/design/bv_specs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/activity_fakes.dart';
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -344,11 +346,17 @@ void main() {
       await tester.pumpAndSettle();
       BvDaybookMasthead masthead() =>
           tester.widget<BvDaybookMasthead>(find.byType(BvDaybookMasthead));
-      bool shows(DateTime day) => tester
-          .widget<Visibility>(
-            find.byKey(Key('daybook-divider-${day.toIso8601String()}')),
-          )
-          .visible;
+      Future<bool> shows(DateTime day) async {
+        final divider = find.byKey(
+          Key('daybook-divider-${day.toIso8601String()}'),
+          skipOffstage: false,
+        );
+        if (divider.evaluate().isNotEmpty) {
+          return tester.widget<Visibility>(divider).visible;
+        }
+        return (await readPage<Visibility>(tester, divider)).single.visible;
+      }
+
       final today = DateTime(2026, 10, 15);
       final todayChip = find.byKey(const Key('daybook-today'));
       // At Now: Today, then the date.
@@ -357,8 +365,11 @@ void main() {
         masthead().date,
         l10n.daybookMastheadToday(words.compactDate(today)),
       );
-      expect(find.byType(BvDayDivider), findsNWidgets(2));
-      expect(shows(today), isTrue);
+      expect(
+        await readPage<BvDayDivider>(tester, find.byType(BvDayDivider)),
+        hasLength(2),
+      );
+      expect(await shows(today), isTrue);
       expect(todayChip, findsNothing);
       // Back to Wednesday.
       await tester.drag(
@@ -369,8 +380,8 @@ void main() {
       expect(masthead().weekday, words.weekday(wednesday));
       expect(masthead().date, words.dayMonth(wednesday));
       // Wednesday is in the masthead; its divider doesn't repeat it.
-      expect(shows(wednesday), isFalse);
-      expect(shows(today), isTrue);
+      expect(await shows(wednesday), isFalse);
+      expect(await shows(today), isTrue);
       expect(todayChip, findsOneWidget);
       // The chip goes back to Now and Today.
       await tester.tap(todayChip);
@@ -409,7 +420,17 @@ void main() {
         Key('daybook-divider-${today.toIso8601String()}'),
       );
       expect(tester.widget<Visibility>(divider).visible, isTrue);
-      // Yesterday keeps its divider: the masthead says Today.
+      // Yesterday keeps its divider: the masthead says Today. Read up to
+      // just short of leaving Now, where yesterday's divider is built.
+      final page = tester.state<ScrollableState>(daybookPage).position;
+      page.jumpTo(1 - BvNewChipSpec.awayFromNow);
+      await tester.pump();
+      expect(
+        tester
+            .widget<BvDaybookMasthead>(find.byType(BvDaybookMasthead))
+            .weekday,
+        l10n.daybookTodayDivider,
+      );
       expect(
         tester
             .widget<Visibility>(
@@ -417,11 +438,14 @@ void main() {
                 Key(
                   'daybook-divider-${DateTime(2026, 10, 14).toIso8601String()}',
                 ),
+                skipOffstage: false,
               ),
             )
             .visible,
         isTrue,
       );
+      page.jumpTo(0);
+      await tester.pumpAndSettle();
       final nothing = find.byKey(const Key('daybook-nothing-today'));
       expect(find.text(l10n.daybookNothingYetToday), findsOneWidget);
       // Yesterday's cards sit above the divider; the line under it.

@@ -27,6 +27,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/pump_app.dart';
@@ -136,10 +137,12 @@ void main() {
     ) async {
       await _open(tester, lang, posts: s.v13());
       // The sleeves moved past the rebar: its last activity is later.
+      final cards = await pageKeys(tester, 'daybook-card-');
       expect(
-        tester.getTopLeft(_card('post-sleeves')).dy,
-        greaterThan(tester.getTopLeft(_card('post-rebar')).dy),
+        cards.indexOf('daybook-card-post-sleeves'),
+        greaterThan(cards.indexOf('daybook-card-post-rebar')),
       );
+      expect(cards, contains('daybook-card-post-rebar'));
       // Header: "You", the ref, the time of the latest activity.
       expect(_inCard('post-sleeves', find.text(l10n.daybookYou)), findsOne);
       expect(
@@ -182,7 +185,7 @@ void main() {
         words.stampLine(s.omarName, DaybookSamples.sleevesDoneAt),
       );
       // No separate sign-off, update or send-back entries.
-      expect(find.byType(BvSlip), findsNWidgets(2));
+      expect(await readPage<BvSlip>(tester, find.byType(BvSlip)), hasLength(2));
     });
 
     testWidgets('the history shows the latest three in order; Show earlier '
@@ -211,6 +214,7 @@ void main() {
       );
       expect(earlier, findsOne);
       await tester.ensureVisible(earlier);
+      await tester.pumpAndSettle();
       await tester.tap(earlier);
       await tester.pumpAndSettle();
       expect(_lines(tester, 'post-sleeves'), [
@@ -219,6 +223,7 @@ void main() {
       // Everything is loaded: no Show earlier left.
       expect(earlier, findsNothing);
       // The rebar has one line, nothing earlier.
+      await scrollToRow(tester, _card('post-rebar'));
       expect(_lines(tester, 'post-rebar'), hasLength(1));
       expect(
         _inCard('post-rebar', find.byKey(const Key('card-history-earlier'))),
@@ -246,12 +251,14 @@ void main() {
         find.byKey(const Key('card-history-earlier')),
       );
       await tester.ensureVisible(earlier);
+      await tester.pumpAndSettle();
       await tester.tap(earlier);
       await tester.pumpAndSettle();
       expect(fake.historyCalls, isEmpty);
       // All five loaded lines show; more are on the server.
       expect(_lines(tester, 'post-sleeves'), hasLength(5));
       await tester.ensureVisible(earlier);
+      await tester.pumpAndSettle();
       await tester.tap(earlier);
       await tester.pumpAndSettle();
       expect(fake.historyCalls, [card.id]);
@@ -267,8 +274,9 @@ void main() {
       final wednesday = DateTime(2026, 10, 14);
       final traces = find.byType(BvTraceRow, skipOffstage: false);
       // Wednesday: raised at 15:50, an update at 16:07; one trace, 16:07.
-      expect(traces, findsOneWidget);
-      final trace = tester.widget<BvTraceRow>(traces);
+      final onPage = await readPage<BvTraceRow>(tester, traces);
+      expect(onPage, hasLength(1));
+      final trace = onPage.single;
       expect(trace.time, words.time.clock(DaybookSamples.sleevesWedUpdateAt));
       expect(
         trace.text,
@@ -283,12 +291,13 @@ void main() {
         ),
       );
       // It sits under Wednesday's divider, above today's.
-      final dividers = tester
-          .widgetList<BvDayDivider>(
-            find.byType(BvDayDivider, skipOffstage: false),
-          )
-          .map((d) => d.label)
-          .toList();
+      final dividers = [
+        for (final d in await readPage<BvDayDivider>(
+          tester,
+          find.byType(BvDayDivider),
+        ))
+          d.label,
+      ];
       expect(dividers, [
         words.compactDate(wednesday),
         l10n.daybookTodayDivider,
@@ -358,21 +367,26 @@ void main() {
         ],
       );
       await _open(tester, lang, posts: [card]);
-      final traces = tester
-          .widgetList<BvTraceRow>(find.byType(BvTraceRow, skipOffstage: false))
-          .toList();
+      final traces = await readPage<BvTraceRow>(
+        tester,
+        find.byType(BvTraceRow),
+      );
       // Monday (raised, then an update: the update) and Tuesday (its
       // latest), never today.
       expect(traces.map((t) => t.time), [
         words.time.clock(monday.add(const Duration(hours: 9))),
         words.time.clock(tuesday.add(const Duration(hours: 15))),
       ]);
-      expect(find.byType(BvDayDivider, skipOffstage: false), findsNWidgets(3));
+      expect(
+        await readPage<BvDayDivider>(tester, find.byType(BvDayDivider)),
+        hasLength(3),
+      );
       // Monday's trace: the card opens with its whole history, at Monday.
       final monTrace = find.byKey(
         Key('daybook-trace-post-trays-${monday.toIso8601String()}'),
         skipOffstage: false,
       );
+      await scrollToRow(tester, monTrace);
       await tester.ensureVisible(monTrace);
       await tester.pumpAndSettle();
       await tester.tap(monTrace);
@@ -393,8 +407,14 @@ void main() {
     testWidgets('a card made on an earlier day and with nothing since is '
         'only on that day; no trace [$lang]', (tester) async {
       await _open(tester, lang, posts: [s.gate(), s.rebar()]);
-      expect(find.byType(BvTraceRow, skipOffstage: false), findsNothing);
-      expect(find.byType(BvDayDivider, skipOffstage: false), findsNWidgets(2));
+      expect(
+        await readPage<BvTraceRow>(tester, find.byType(BvTraceRow)),
+        isEmpty,
+      );
+      expect(
+        await readPage<BvDayDivider>(tester, find.byType(BvDayDivider)),
+        hasLength(2),
+      );
     });
 
     testWidgets('needs_me gives the reader one action and the clip [$lang]', (
@@ -427,21 +447,27 @@ void main() {
         ],
       );
       Finder clip(String id) => _inCard(id, find.byType(BvPaperClip));
+      await scrollToRow(tester, _card('post-mine'));
       expect(_inCard('post-mine', find.text(l10n.daybookSignAsDone)), findsOne);
       expect(clip('post-mine'), findsOne);
+      await scrollToRow(tester, _card('post-sleeves'));
       expect(_inCard('post-sleeves', find.text(l10n.holdToCheck)), findsOne);
       expect(clip('post-sleeves'), findsOne);
+      await scrollToRow(tester, _card('post-give'));
       expect(_inCard('post-give', find.text(l10n.daybookGiveTo)), findsOne);
       expect(clip('post-give'), findsOne);
       // A checklist point (slice 2), or a value this version doesn't know:
       // the clip, no action.
       for (final id in ['post-tick', 'post-new']) {
+        await scrollToRow(tester, _card(id));
         expect(clip(id), findsOne);
         expect(
           _inCard(id, find.byKey(const Key('slip-pill-action'))),
           findsNothing,
         );
       }
+      await scrollToRow(tester, _card('post-none'));
+      expect(_card('post-none'), findsOne);
       expect(clip('post-none'), findsNothing);
       expect(
         _inCard('post-none', find.byKey(const Key('slip-pill-action'))),
@@ -986,10 +1012,16 @@ void main() {
           ),
         ],
       );
-      expect(find.text('Crane closed today'), findsOneWidget);
-      expect(find.text('Daily report'), findsOneWidget);
-      expect(find.text('Week report'), findsNothing);
-      expect(find.byType(BvSlip), findsNWidgets(3));
+      expect(
+        await readPage<Widget>(tester, find.text('Crane closed today')),
+        hasLength(1),
+      );
+      expect(
+        await readPage<Widget>(tester, find.text('Daily report')),
+        hasLength(1),
+      );
+      expect(await readPage<Widget>(tester, find.text('Week report')), isEmpty);
+      expect(await readPage<BvSlip>(tester, find.byType(BvSlip)), hasLength(3));
       expect(find.byType(BvFirstPage), findsNothing);
       expect(find.byType(BvPostBar), findsOneWidget);
     });
@@ -1046,6 +1078,7 @@ void main() {
         await tester.pumpAndSettle();
       }
       expect(daybook.pageCalls, hasLength(2));
+      await scrollToRow(tester, find.text('Item 0'));
       expect(find.text('Item 0', skipOffstage: false), findsOneWidget);
     });
 

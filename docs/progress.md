@@ -723,6 +723,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **28 Oct (PC): review 101** (founder away; nothing merged, live or installed):
   - **Part B done** on `claude/r101-search-wait`: one search-wait token, `BvMotion.searchWait`, in all five searches, the local 300s gone, a guard test (failed first). Analyze clean; 2,319 app tests; 446 shots, not updating.
   - **Part A stopped** on `claude/r101-lists`: the Daybook built lazily (its 500-post test failed first, passes now), but 47 existing work tests read cards off screen or in tree order, and 60 shots change by a paper clip's tip covered by the card above. The notebook page and the seed are not started; it waits for the lead's choice.
+- **28 Oct (PC): review 101 Part A** on `claude/r101-lists`, the lead's option 1 (nothing merged, live or installed):
+  - **The Daybook:** a centre sliver at Now, older days growing up from it, painted top to bottom, so the paper clip stays on top. The 500-post test failed first and passes now.
+  - **The 47 tests** go to the card they check, or read the page in screen order; no assertion removed (the list is in the handoff).
+  - **The notebook page:** a builder list; opened at an entry, the page scrolls until the entry is built. The 300-entry test failed first and passes now.
+  - **The seed:** `supabase/dev/seed_busy_space.sql`, local only.
+  - Checks: analyze clean; 2,324 app tests; 446 shots, not updating, none changed.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

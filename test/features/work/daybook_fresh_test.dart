@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
@@ -195,12 +196,18 @@ void main() {
         '"New" takes the reader to Now [$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       await _open(tester, lang, daybook, posts: _weeks(s));
-      // Back through older days (the list runs bottom up).
-      await tester.drag(find.byKey(const Key('daybook')), const Offset(0, 500));
-      await tester.pumpAndSettle();
-      final read = [
+      // Back through older days, up from Now, until one is on screen.
+      String? onScreen() => [
         for (var d = 1; d <= 10; d++) 'Older item $d',
-      ].firstWhere((t) => find.text(t).evaluate().isNotEmpty);
+      ].where((t) => find.text(t).evaluate().isNotEmpty).firstOrNull;
+      for (var i = 0; i < 20 && onScreen() == null; i++) {
+        await tester.drag(
+          find.byKey(const Key('daybook')),
+          const Offset(0, 500),
+        );
+        await tester.pumpAndSettle();
+      }
+      final read = onScreen()!;
       final before = tester.getTopLeft(find.text(read));
       expect(find.byKey(const Key('daybook-new')), findsNothing);
 
@@ -224,7 +231,9 @@ void main() {
       final view = tester.getRect(find.byKey(const Key('daybook')));
       List<int> visible() => [
         for (var d = 2; d <= 10; d++)
-          if (view.overlaps(tester.getRect(find.text('Older item $d')))) d,
+          if (find.text('Older item $d').evaluate().isNotEmpty &&
+              view.overlaps(tester.getRect(find.text('Older item $d'))))
+            d,
       ];
       // Back through older days until one of them is on screen.
       for (var i = 0; i < 20 && visible().isEmpty; i++) {
@@ -283,14 +292,17 @@ void main() {
       );
       // On the day it was posted, a trace.
       expect(
-        find.byKey(
-          Key(
-            'daybook-trace-${card.id}-'
-            '${DateTime(2026, 10, 15 - moved).toIso8601String()}',
+        await readPage<Widget>(
+          tester,
+          find.byKey(
+            Key(
+              'daybook-trace-${card.id}-'
+              '${DateTime(2026, 10, 15 - moved).toIso8601String()}',
+            ),
+            skipOffstage: false,
           ),
-          skipOffstage: false,
         ),
-        findsOneWidget,
+        hasLength(1),
       );
     });
 
@@ -315,16 +327,28 @@ void main() {
         retryLater: const [Duration(seconds: 2)],
       );
       await _writeOffline(tester, s, daybook);
-      expect(find.text(s.cableTraysTitle), findsOneWidget);
-      expect(find.text(l10n.daybookWaitingToSend), findsOneWidget);
+      expect(
+        await readPage<Widget>(tester, find.text(s.cableTraysTitle)),
+        hasLength(1),
+      );
+      expect(
+        await readPage<Widget>(tester, find.text(l10n.daybookWaitingToSend)),
+        hasLength(1),
+      );
 
       // The signal is back: the outbox tries again by itself.
       daybook.offline = false;
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
       expect(daybook.created, hasLength(1));
-      expect(find.text(s.cableTraysTitle), findsOneWidget);
-      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      expect(
+        await readPage<Widget>(tester, find.text(s.cableTraysTitle)),
+        hasLength(1),
+      );
+      expect(
+        await readPage<Widget>(tester, find.text(l10n.daybookWaitingToSend)),
+        isEmpty,
+      );
       expect(app.prefs.getString(_outboxKey), '[]');
     });
 
@@ -340,14 +364,26 @@ void main() {
         ..failPages = true;
       await backToTheApp(tester);
       expect(daybook.created, hasLength(1));
-      expect(find.text(s.cableTraysTitle), findsOneWidget);
-      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      expect(
+        await readPage<Widget>(tester, find.text(s.cableTraysTitle)),
+        hasLength(1),
+      );
+      expect(
+        await readPage<Widget>(tester, find.text(l10n.daybookWaitingToSend)),
+        isEmpty,
+      );
       expect(app.prefs.getString(_outboxKey), contains('"sent":true'));
 
       daybook.failPages = false;
       await backToTheApp(tester);
-      expect(find.text(s.cableTraysTitle), findsOneWidget);
-      expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+      expect(
+        await readPage<Widget>(tester, find.text(s.cableTraysTitle)),
+        hasLength(1),
+      );
+      expect(
+        await readPage<Widget>(tester, find.text(l10n.daybookWaitingToSend)),
+        isEmpty,
+      );
       expect(app.prefs.getString(_outboxKey), '[]');
       expect(daybook.created, hasLength(1));
     });
@@ -388,8 +424,14 @@ void main() {
           daybook,
           stored: {_outboxKey: kept},
         );
-        expect(find.text(s.cableTraysTitle), findsOneWidget);
-        expect(find.text(l10n.daybookWaitingToSend), findsNothing);
+        expect(
+          await readPage<Widget>(tester, find.text(s.cableTraysTitle)),
+          hasLength(1),
+        );
+        expect(
+          await readPage<Widget>(tester, find.text(l10n.daybookWaitingToSend)),
+          isEmpty,
+        );
         expect(again.prefs.getString(_outboxKey), '[]');
         expect(
           daybook.posts[DaybookSamples.space]!.where(

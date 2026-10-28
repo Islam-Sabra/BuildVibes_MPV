@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../helpers/daybook_fakes.dart';
+import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/library_fakes.dart';
 import '../../helpers/pump_app.dart';
@@ -187,6 +188,7 @@ void main() {
           stored: {'work_outbox:${DaybookSamples.islam}': jsonEncode(waiting)},
         );
         for (final d in drafts) {
+          await scrollToRow(tester, _card(d.id));
           expect(_card(d.id), findsOneWidget, reason: d.kind.json);
           expect(
             find.descendant(
@@ -196,9 +198,11 @@ void main() {
             findsOneWidget,
           );
           // At Now: under the older card.
+          final cards = await pageKeys(tester, 'daybook-card-');
+          expect(cards, contains('daybook-card-post-rebar'));
           expect(
-            tester.getTopLeft(_card(d.id)).dy,
-            greaterThan(tester.getTopLeft(_card('post-rebar')).dy),
+            cards.indexOf('daybook-card-${d.id}'),
+            greaterThan(cards.indexOf('daybook-card-post-rebar')),
           );
         }
       });

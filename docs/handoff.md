@@ -2,26 +2,67 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 28 Oct 2026 — review 101: Part B done on `claude/r101-search-wait`; Part A stopped on `claude/r101-lists`; for the lead
+## PC update: 28 Oct 2026 — review 101 Part A done on `claude/r101-lists` (option 1); for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
-- **Nothing merged, nothing live, nothing installed.** Both branches are from `slice2-app` 510b834 and pushed.
-- **Part B, done (`claude/r101-search-wait`, worktree `BuildVibes-r101b`):**
-  - one token, `BvMotion.searchWait` (300 ms), used by all five searches (people, inside a Space, notebook, company picker, add project);
-  - gone: `PeopleSearchScreen.pause`, `SpaceSearchScreen.pause`, the notebook's `_wait`, `BvAuthSpec.searchDebounce`;
-  - three tests that pumped `SpaceSearchScreen.pause` now pump the token;
-  - the guard test (`test/core/design/search_wait_test.dart`) failed first on all five files and `bv_specs.dart`, and passes now;
-  - commits 4070d20 (token and guard), 4f43d5f (the five searches).
-  - Checks: `flutter analyze` no issues; `flutter test` 2,319 pass; `flutter test test_screens` 446 pass, not updating, no shot changed.
-- **Part A, stopped (`claude/r101-lists`, worktree `BuildVibes-r101`):**
-  - The Daybook builds lazily, and the new 500-post test failed first and passes now.
-  - But 47 existing work tests fail (they read cards off screen, or in tree order). 60 shots change by about 30 pixels: the tip of a card's paper clip is now covered by the card above.
-  - The notebook page and the seed are not started.
-  - The full write-up and the lead's two options are in that branch's handoff (commit 20b13fc).
-  - Checks there: `flutter analyze` no issues; `flutter test` 2,273 pass, 47 fail; `flutter test test_screens` 386 pass, 60 fail (not updated).
-- **Next:** the lead's check of Part B, and the lead's choice for Part A.
-- **Who has which branch:** PC has `claude/r101-search-wait` (worktree `BuildVibes-r101b`), `claude/r101-lists` (worktree `BuildVibes-r101`), `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r100-redesign` (worktree `BuildVibes-r100r`, merged).
+- **Branch:** `claude/r101-lists` (worktree `BuildVibes-r101`), from `slice2-app` 510b834, pushed. Nothing merged, nothing live, nothing installed.
+- **Commits:** 3cb8160 (Daybook), 683120b (notebook page), b877c13 (the seed), and this handoff.
+- **Checks on the branch:** `flutter analyze` no issues; `flutter test` 2,324 pass; `flutter test test_screens` 446 pass, **not updating, no shot changed**.
+
+**The Daybook (lead's option 1, the clip kept by painting order):**
+- A `CustomScrollView` with a centre sliver at Now (anchor 1): older days grow up from it. No `reverse: true` list. The clip is not moved or redrawn.
+- A centre alone doesn't keep the order: Flutter paints a list's rows in index order, and growing up from Now index 0 is the newest. So the rows' list and the page (rows, then the writing card) paint top to bottom, as the page always did, and hit-test the other way. Layout is Flutter's own (`RenderSliverList`, `RenderSliverMainAxisGroup`).
+- Three more things were needed for the shots to stay the same:
+  1. Rows have no repaint boundary of their own (`addRepaintBoundaries: false`). With one, 18 Arabic shots changed by tiny amounts (most by one colour level in a few pixels).
+  2. Flutter's reveal (`ensureVisible`, a field kept above the keyboard) leaves out the anchor, so with Now at the foot it landed a screen off. The Daybook's viewport puts the anchor back, and on this page an alignment of 0 is the foot, as it was.
+  3. The masthead's day is read once the page is laid out where it scrolled (D-F20 named Today instead of Wednesday).
+- The new 500-post test: failed first (30 cards built on opening; all 500 after a jump to post 450), passes now.
+
+**The 47 tests, now passing.** Each goes to the card it checks (`scrollToRow`) or reads the whole page from its top to Now in screen order (`readPage`, `pageKeys`). Both are in `test/helpers/daybook_rows.dart`. No assertion was removed. Each test, with what it asserts before → after:
+- `daybook_test.dart`:
+  1. One card per work item: sleeves below rebar by `getTopLeft` (rebar off screen) → sleeves after rebar in the page's screen order, rebar on the page; "2 slips" counted in the tree → counted down the page.
+  2. History, latest three; Show earlier: tap straight after `ensureVisible` → `pumpAndSettle` between them (slivers move at layout); the rebar scrolled on screen before its lines are read. Same assertions.
+  3. Past the first 50: as 2, twice. Same assertions.
+  4. One trace on Wednesday: 1 trace and the dividers [Wednesday, Today] read in the tree → read down the page, in screen order.
+  5. A trace on each earlier day: times [Mon 9:00, Tue 15:00] and 3 dividers in tree order → in screen order; scrolled to Monday's trace before the tap.
+  6. Made on an earlier day, no trace: 0 traces and 2 dividers in the tree → down the page.
+  7. needs_me: each card read where it was → each scrolled on screen first. Post-none is asserted on the page before "no clip, no action", so that check isn't empty. Added: `_card('post-none')` finds one.
+  8. Slice 2, announcement and report: 1, 1, 0 texts and 3 slips in the tree → down the page.
+  9. Scrolling back loads older pages: "Item 0" found off screen → scrolled to the top where it is, then found.
+- `daybook_fresh_test.dart`:
+  10. F11, reading older days: one 500 px drag, then the first older item in the tree (it was off screen) → 500 px drags until an older item is on screen. Then the same checks: its place doesn't move, New shows, and New takes you to Now.
+  11. A new event moves a card to Now: an item measured only if built; its trace on its old day found off screen → one, down the page.
+  12–15. F17 (no signal then back; sent but not read back; reopened ×2): "one card", the label or none, in the tree → down the whole page.
+- 16. `daybook_kinds_test.dart`, K1 ticking moves the checklist to Now: below rebar by `getTopLeft` → after rebar in screen order.
+- 17. `daybook_live_test.dart`, my own post at Now at once: each card scrolled on screen before it is read; after rebar in screen order.
+- `daybook_loop_test.dart`:
+  18. `_longPress` (X1 and the other long-press tests) scrolls the card on screen first.
+  19. F16, a Viewer's short press: scrolls to the rebar first.
+- `daybook_part_d_test.dart`:
+  20. F23/F59, the masthead: 2 dividers in the tree → down the page; each divider's visibility read where it is built.
+  21. F59, nothing yet today: yesterday's divider was visible at Now, read off screen. Now the page is moved up to just short of leaving Now; the masthead still says Today (added assertion), and the divider, built there, is visible.
+- `daybook_writing_test.dart`:
+  22. E3, Post sends create_work_item: the posted card and no label, in the tree → down the page.
+  23. No signal, the slip waits: the title and the label, in the tree → down the page.
+- 24. `post_refs_test.dart`, number then kind: `scrollUntilVisible(card, 200)`, whose direction came from the old upward list → `scrollToRow`.
+- Shot tests: none changed.
+
+**The notebook page:**
+- `ListView.builder`: a row at a time, each with its key, so a row keeps its swipe and selection as rows come and go above it.
+- Opened at an entry (Filter, search), the page scrolls until the entry is built, then puts it near the top as before.
+- The new 300-entry test (`test/features/notebook/notebook_long_page_test.dart`, EN and AR): all 4 checks failed first, and pass now.
+  - Note for the lead: the old `ListView(children:)` already built its elements lazily, so "only what shows is built" held before. The eager part was making all 300 entry widgets on every build, so the test also asserts a builder delegate.
+  - The jump to entry 250 did fail before: the entry was never built, so the page never reached it.
+- No existing notebook test needed a change.
+
+**The seed:** `supabase/dev/seed_busy_space.sql`, **local only**.
+- One Space of 500 posts of every kind over 30 days, with sign-offs, checks and photo placeholders.
+- One notebook of 5 pages with 60 entries each.
+- Run on the local stack inside a rolled-back transaction: 500 posts, 300 entries, and nothing left behind.
+
+- **Next:** the lead's check of Part A, with the test list above. Part B (`claude/r101-search-wait`, d116b5e) is approved and waits for the next build's merge.
+- **Who has which branch:** PC has `claude/r101-lists` (worktree `BuildVibes-r101`), `claude/r101-search-wait` (worktree `BuildVibes-r101b`), `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r100-redesign` (worktree `BuildVibes-r100r`, merged).
 
 ## PC update: 28 Oct 2026 — review 100 live (migration 48, notebook-purge, build 686 on the phone)
 
