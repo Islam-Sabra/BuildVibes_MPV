@@ -127,3 +127,19 @@ Build 701 (`slice2-app` at `25bc211`) is on the founder's phone. Its behaviour i
 **Accepted:** the recorder tool, with `flutter_driver` and `vm_service` as dev dependencies only. It merges with the next build.
 
 **Rule for profile builds:** a profile build signed with the upload key may go on the founder's phone only while he is there, and release goes back on right after. The signing change is never committed.
+
+## L1 closed (28 Oct, 20:20): confirmed on the founder's phone
+**Measured on his Xiaomi:** NBKCH SITE TEAM, 10 flings, `claude/r101-l1` at `b45aa2b`.
+
+| | Before review 101 | Now |
+|---|---|---|
+| Slow builds | 56 | 3 |
+| Missed vsyncs | 71 of 520 | 14 of 597 |
+| Two vsyncs missed | 37 | 5 |
+| Raster time, median | 6.4 ms | 5.9 ms |
+
+- **Drawing costs the same before and after.** Review 101 did what it was for.
+- **What's left is noted, with no step now:** 5 misses while opening, and 1–2 per fling back to older posts, as older rows are built (12–16 ms).
+  - Look at it again only if the test week's users feel it.
+  - Then the first candidates are a larger cache area for the older direction, and decoding photo thumbnails ahead.
+- **The recorder** (`claude/r101-l1`) merges with the next build. It's a dev tool only.
