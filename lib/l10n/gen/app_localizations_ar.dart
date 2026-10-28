@@ -4790,9 +4790,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookRemindTime => 'ذكّرني الساعة…';
 
   @override
-  String get notebookRemindMorning => 'في الصباح';
-
-  @override
   String get notebookCouldntKeep => 'تعذّر حفظ هذه التدوينة، وعادت مسودة.';
 
   @override
@@ -5048,7 +5045,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notebookMoveToPage => 'نقل إلى صفحة…';
+  String get notebookMoveToPage => 'نقل إلى…';
 
   @override
   String notebookMovedTo(String page) {
@@ -5141,7 +5138,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookShare => 'مشاركة';
 
   @override
-  String get notebookMove => 'نقل';
+  String get notebookMove => 'نقل إلى…';
 
   @override
   String get notebookReminder => 'تذكير';
@@ -5477,4 +5474,37 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notebookShareTooLong =>
       'أطول من أن تُرسل في رسالة: شاركها في مساحة، أو اختصرها.';
+
+  @override
+  String get timeWheelHour => 'الساعة';
+
+  @override
+  String get timeWheelMinutes => 'الدقائق';
+
+  @override
+  String get timeWheelAm => 'ص';
+
+  @override
+  String get timeWheelPm => 'م';
+
+  @override
+  String get notebookSortLabel => 'ترتيب';
+
+  @override
+  String get notebookSortActivity => 'آخر نشاط';
+
+  @override
+  String get notebookSortName => 'الاسم أ–ي';
+
+  @override
+  String get notebookSortCreated => 'الأحدث إنشاءً';
+
+  @override
+  String get notebookSortNewest => 'الأحدث أولًا';
+
+  @override
+  String get notebookSortOldest => 'الأقدم أولًا';
+
+  @override
+  String get notebookSortOff => 'العودة إلى الترتيب المعتاد';
 }

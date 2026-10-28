@@ -343,39 +343,45 @@ class _BvSwipeCardState extends State<BvSwipeCard>
                         ],
                       ),
                     )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: BvSpace.s4,
-                      // Its word stays inside its slot, made smaller if it
-                      // must, so the card never covers the button.
-                      children: [
-                        Container(
-                          width: BvSwipeSpec.button,
-                          height: BvSwipeSpec.button,
-                          decoration: BoxDecoration(
-                            color: a.color,
-                            shape: BoxShape.circle,
+                  // Review 102 P1: on a card shorter than the button with
+                  // its word (a one-line entry), both are made smaller to
+                  // fit; on any taller card they stay as they are.
+                  : FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: BvSpace.s4,
+                        // Its word stays inside its slot, made smaller if it
+                        // must, so the card never covers the button.
+                        children: [
+                          Container(
+                            width: BvSwipeSpec.button,
+                            height: BvSwipeSpec.button,
+                            decoration: BoxDecoration(
+                              color: a.color,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              a.icon,
+                              size: BvSwipeSpec.icon,
+                              color: BvColors.textInverse,
+                            ),
                           ),
-                          child: Icon(
-                            a.icon,
-                            size: BvSwipeSpec.icon,
-                            color: BvColors.textInverse,
-                          ),
-                        ),
-                        SizedBox(
-                          width: BvSwipeSpec.slot,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              a.label,
-                              maxLines: 1,
-                              style: type.labelSm.copyWith(
-                                color: BvColors.textPrimary,
+                          SizedBox(
+                            width: BvSwipeSpec.slot,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                a.label,
+                                maxLines: 1,
+                                style: type.labelSm.copyWith(
+                                  color: BvColors.textPrimary,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
             ),
           ),

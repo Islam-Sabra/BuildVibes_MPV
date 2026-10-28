@@ -2,6 +2,82 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 28 Oct 2026 — review 102 P1 on `claude/r102-notebook` (from 728bece); stopped
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Done (the lead's check, 28 Oct 16:10, only P1):** on a one-line entry the swipe buttons overflowed by 2 px. A round button with its word needs 48 + 4 + 16 = 68 in English; the one-line card is 66 (in Arabic the line is 18 and the card 72, so it fitted). The button and its word are now made smaller only on a card shorter than they are (`BvSwipeCard`, a `FittedBox` that only scales down); every taller card is laid out as before.
+- **Test first:** `review 102 P1: on a one-line entry the round buttons and their words fit inside the card, both ways` (`redesign_swipe_test.dart`). English failed before the fix ("A RenderFlex overflowed by 2.0 pixels"); Arabic passed before and after (a guard).
+- **Checks (cloud):** `flutter analyze`: no issues. `flutter test`: 2,390 pass, 1 fails (photo_privacy H1, root-only in the cloud). Screenshots: PC later. No shot accepted, nothing merged, no database push, no deploy, nothing installed.
+- **The PC still has to:**
+  1. accept the six shots changed by N4's label (BH2, BH4, BH12, EN and AR), as the lead approved;
+  2. run `flutter test test_screens` without updating; only a one-line card's swipe state may change (P1);
+  3. with the founder's yes, merge `claude/r102-notebook` into `slice2-app` and run every check;
+  4. `supabase db push` with migration 49 as the only file listed, then the read-only check (note count unchanged, `day_position` null everywhere, `arrange_day` refuses signed out);
+  5. one build on his phone, plus a Desktop copy.
+- **Who has which branch:** this cloud session had `claude/r102-notebook` (P1 done, pushed). PC: worktree `BuildVibes-r102`.
+
+## PC update: 28 Oct 2026 — review 102 (N1–N5) on `claude/r102-notebook`; for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `claude/r102-notebook` (worktree `BuildVibes-r102`), from `slice2-app` 19da7f6, pushed. Nothing merged, nothing live, no deploy, nothing installed.
+- **Commits, in the review's order:**
+  - 57cb02a N1 + N2: `BvTimeWheel`, every time picker; "in the morning" gone.
+  - d0de023 N4: "Move to…".
+  - b9b26c9 N5: SORT.
+  - 05cfe56 N3 server: migration 49.
+  - f3cdde8 N3 app: hold and move.
+- **N1 + N2:**
+  - `lib/shared/widgets/bv_time_wheel.dart`: the hour (1–12) and the minutes in 5-minute steps, as snapping wheels.
+    - The chosen row sits between two lines in the main text size; the rows around it fade; each step gives a light haptic.
+    - AM / PM is one single choice above («ص / م»). Nothing is typed, and there's no clock face.
+    - Arabic: Western digits, the time read as 9:05.
+    - Each wheel is an adjustable control for screen readers.
+  - Used by all six time pickers: due, Remind me, pin until, activity start and end. A guard test fails on any `showTimePicker` left in `lib/`.
+  - Remind me: "In the morning" is removed from both ARB files and the code, so its Cancel now cancels.
+    - A time already passed today is greyed and can't be chosen.
+    - New times start at the next 5-minute mark an hour on.
+  - Changed test: `note_page_test` B5 asserted the "In the morning" button, which N1 removes. It now asserts the wheels and a plain Cancel.
+- **N4:** the selection bar's Move (entries and lines) and the page picker's title read "Move to…" / «نقل إلى…», with the same icon. The pages list's "Move into…" is unchanged.
+- **N5:** SORT is the Filter card's third part.
+  - Pages list: Latest activity · Name A–Z · Newest created, with pinned pages on top.
+  - Inside a page: Newest first · Oldest first.
+  - Kept on the phone: once for the pages list (`notebook_sort_pages`), and for each page on its own (`notebook_sort_page:<id>`).
+  - A sort that isn't the default shows as a chip, and its ✕ resets it.
+  - Name A–Z keeps each alphabet together, the app language's first.
+  - Five Phosphor icons added (clock-counter-clockwise, text-aa, calendar-plus, sort-descending and sort-ascending), checked against the bundled font.
+  - `BvMenuItem.checked`: a menu row can carry its own check.
+- **N3:**
+  - **Migration 49** (`20261110120000_note_day_position.sql`): `notes.day_position`, plus `arrange_day(p_ids)`.
+    - Owner only; not across pages or days; each entry once.
+    - pgTAP `49_note_day_position` (19 checks), including that someone else's entry can't be arranged and that someone else can't move Omar's.
+    - **Applied to the local stack only.** Not live.
+  - **The app:**
+    - Hold and let go selects, as before.
+    - Hold and move: the card lifts into the overlay and follows the finger, clamped to its day. The others slide aside in 180 ms, a line shows where it lands, and the page scrolls itself at an edge.
+    - Let go: "Moved · Undo", and the order is saved through the notebook's queue.
+    - Not while entries are selected. Pinned and archived entries don't move. A sideways drag is still a swipe, and a drag without a hold a scroll.
+    - Screen readers get Move up and Move down. Reduce motion: no lift, no slide, but the move works.
+    - Each day keeps its hand order in both sorts; entries added later come in by time.
+  - **A limit for the lead:** a day with more entries than fit on the screen plus its margin can't be arranged by dragging, because its off-screen rows aren't built. Move up and Move down still work there.
+- **Checks on the branch:**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,389 pass.
+  - `supabase test db`: 3,038 checks in 48 files pass.
+  - `flutter test test_screens`, not updating: 446 pass and 6 fail.
+    - The 6 are **not accepted**: BH2-entry-selected, BH4-share and BH12-line-selected, EN and AR.
+    - Each changes only the selection bar's label, "Move" → "Move to…" (N4), about 850 px. Before/after crop: `BH2_bar_before_after.png` in this session's scratchpad; the six diffs are kept there too.
+  - New shots:
+    - `docs/screens/r102/N2-time-wheel`, `N5-page-filter` and `N5-sort-chip` (EN, AR);
+    - BH9-filter (EN, AR) remade with SORT, as the review asks.
+- **Found, not fixed (already on slice2-app 19da7f6):** a one-line entry's swipe actions overflow by 2 px (RenderFlex). The N3 swipe test uses the sample page's taller entry.
+- **Local stack:** migration 49 is applied. For the SQL checks, the busy seed and its test phone were removed; reload with `supabase/dev/seed_busy_space.sql`.
+- **Next:** the lead's check of review 102. For the six N4 shots: update them if the label is right. Migration 49 goes live only with the founder's yes.
+- **Who has which branch:** PC has `claude/r102-notebook` (worktree `BuildVibes-r102`), `slice2-app` (worktree `BuildVibes-slice1`), and `claude/r101-lists`, `claude/r101-search-wait` and `claude/r100-redesign` (all merged).
+
 ## PC update: 28 Oct 2026 — review 101 merged into `slice2-app`; build 701 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

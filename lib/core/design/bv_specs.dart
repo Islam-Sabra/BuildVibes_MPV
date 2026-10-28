@@ -549,3 +549,23 @@ abstract final class BvSwipeSpec {
   static const hintHold = Duration(seconds: 1);
   static const cardRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
 }
+
+/// The time wheels (review 102 N2, `BvTimeWheel`): the hour and the
+/// minutes, each a wheel that snaps to a row; the chosen row between two
+/// lines, the rows above and below fading.
+abstract final class BvTimeWheelSpec {
+  static const rowHeight = BvSpace.s40;
+
+  /// Rows in view: the chosen one and two each side.
+  static const rows = 5;
+  static const wheelWidth = BvSpace.s64;
+  static const gap = BvSpace.s8;
+  static const fade = 0.35;
+
+  /// A time already passed today, greyed.
+  static const passed = 0.3;
+
+  /// The steps of the minutes wheel.
+  static const minuteStep = 5;
+  static const padding = BvSpace.s16;
+}

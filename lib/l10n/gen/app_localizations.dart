@@ -8006,12 +8006,6 @@ abstract class AppLocalizations {
   /// **'Remind me at…'**
   String get notebookRemindTime;
 
-  /// F107 B5: no time picked, the morning.
-  ///
-  /// In en, this message translates to:
-  /// **'In the morning'**
-  String get notebookRemindMorning;
-
   /// F107 B15.
   ///
   /// In en, this message translates to:
@@ -8456,10 +8450,10 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Page deleted} other{{count} pages deleted}}'**
   String notebookPagesDeleted(int count);
 
-  /// Review 99 A4: an entry's, entries' or a line's Move.
+  /// Review 99 A4, review 102 N4: the page picker's title for an entry's, entries' or a line's Move.
   ///
   /// In en, this message translates to:
-  /// **'Move to page…'**
+  /// **'Move to…'**
   String get notebookMoveToPage;
 
   /// Review 99 A4: after Move.
@@ -8612,10 +8606,10 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get notebookShare;
 
-  /// Review 100 Part 0: the selection bar's Move (to another page).
+  /// Review 100 Part 0, review 102 N4: the selection bar's Move (to another page), for entries and lines.
   ///
   /// In en, this message translates to:
-  /// **'Move'**
+  /// **'Move to…'**
   String get notebookMove;
 
   /// Review 100 Part 3b: an entry's swipe toward the end, its second button.
@@ -9157,6 +9151,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too long for a message: share it to a Space, or shorten it.'**
   String get notebookShareTooLong;
+
+  /// Review 102 N2: the time picker's hour wheel, for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Hour'**
+  String get timeWheelHour;
+
+  /// Review 102 N2: the time picker's minutes wheel, for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get timeWheelMinutes;
+
+  /// Review 102 N1: before noon, in the time picker's single choice above the wheels.
+  ///
+  /// In en, this message translates to:
+  /// **'AM'**
+  String get timeWheelAm;
+
+  /// Review 102 N1: after noon, in the time picker's single choice above the wheels.
+  ///
+  /// In en, this message translates to:
+  /// **'PM'**
+  String get timeWheelPm;
+
+  /// Review 102 N5: the Filter card's third part, after SHOW and IN.
+  ///
+  /// In en, this message translates to:
+  /// **'SORT'**
+  String get notebookSortLabel;
+
+  /// Review 102 N5: the pages list's sort, the default.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest activity'**
+  String get notebookSortActivity;
+
+  /// Review 102 N5: the pages list's sort by name, each alphabet together.
+  ///
+  /// In en, this message translates to:
+  /// **'Name A–Z'**
+  String get notebookSortName;
+
+  /// Review 102 N5: the pages list's sort by when each page was made.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest created'**
+  String get notebookSortCreated;
+
+  /// Review 102 N5: a page's sort, the default.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get notebookSortNewest;
+
+  /// Review 102 N5: a page's sort, oldest entries at the top.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get notebookSortOldest;
+
+  /// Review 102 N5: for screen readers, the sort chip's ✕.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the usual order'**
+  String get notebookSortOff;
 }
 
 class _AppLocalizationsDelegate

@@ -734,6 +734,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - K3 measured in profile mode on the Pixel 8 emulator; the numbers are in the handoff. Build work while flinging fell from about 510 frames over budget to 0; raster time rose to about the budget on the emulator.
   - `claude/r101-search-wait` and `claude/r101-lists` merged into `slice2-app` (25bc211). Analyze clean; 2,332 app tests; 446 shots, not updating.
   - Build 701 on the Desktop and on the founder's phone. No database push, no deploy.
+- **28 Oct (PC): review 102, the founder's notebook findings (N1–N5)** on `claude/r102-notebook`, for the lead; nothing merged, live or installed:
+  - N1 + N2: one time picker, `BvTimeWheel`, in all six places; "in the morning" gone.
+  - N4: "Move to…".
+  - N5: SORT in the Filter card, kept on the phone, with a chip.
+  - N3: hold and move within a day (migration 49, local only).
+  - Checks: analyze clean; 2,389 app tests; 3,038 SQL checks; 446 shots pass. 6 fail from N4's label and are not accepted; BH9 and the new r102 shots are made.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

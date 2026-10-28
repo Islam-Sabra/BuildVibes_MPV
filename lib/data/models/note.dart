@@ -328,6 +328,7 @@ class Note {
     this.archivedAt,
     this.version = 1,
     this.shares = const [],
+    this.dayPosition,
   });
 
   /// A row of `notes`, with its `note_files` embedded.
@@ -394,6 +395,7 @@ class Note {
       deletedAt: _time(json['deleted_at']),
       archivedAt: _time(json['archived_at']),
       version: json['version'] as int? ?? 1,
+      dayPosition: json['day_position'] as int?,
       shares: [
         for (final s in json['note_shares'] as List? ?? const [])
           NoteShare.fromJson(s as Map<String, dynamic>),
@@ -461,6 +463,10 @@ class Note {
   /// 3b): either way it leaves every list, count, calendar and reminder.
   final DateTime? deletedAt;
   final DateTime? archivedAt;
+
+  /// Its place in its day, arranged by hand (review 102 N3, migration 49):
+  /// 1 at the top newest first; null keeps the time order.
+  final int? dayPosition;
 
   /// The server's version of it (migration 48): an edit says which one it
   /// started from, so an older one is refused.
@@ -544,6 +550,7 @@ class Note {
     DateTime? Function()? archivedAt,
     int? version,
     List<NoteShare>? shares,
+    int? Function()? dayPosition,
   }) => Note(
     id: id,
     kind: kind ?? this.kind,
@@ -567,6 +574,7 @@ class Note {
     archivedAt: archivedAt == null ? this.archivedAt : archivedAt(),
     version: version ?? this.version,
     shares: shares ?? this.shares,
+    dayPosition: dayPosition == null ? this.dayPosition : dayPosition(),
   );
 
   /// As this phone keeps it while it waits to be sent.
@@ -593,6 +601,7 @@ class Note {
     'archived_at': archivedAt?.toUtc().toIso8601String(),
     'version': version,
     'note_shares': [for (final s in shares) s.toJson()],
+    'day_position': dayPosition,
   };
 
   /// Its to-dos not yet ticked: a to-do note's one, a page's to-do lines

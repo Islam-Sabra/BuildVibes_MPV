@@ -4775,9 +4775,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookRemindTime => 'Remind me at…';
 
   @override
-  String get notebookRemindMorning => 'In the morning';
-
-  @override
   String get notebookCouldntKeep =>
       'Couldn\'t keep this entry. It\'s back as a draft.';
 
@@ -5032,7 +5029,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notebookMoveToPage => 'Move to page…';
+  String get notebookMoveToPage => 'Move to…';
 
   @override
   String notebookMovedTo(String page) {
@@ -5124,7 +5121,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookShare => 'Share';
 
   @override
-  String get notebookMove => 'Move';
+  String get notebookMove => 'Move to…';
 
   @override
   String get notebookReminder => 'Reminder';
@@ -5444,4 +5441,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notebookShareTooLong =>
       'Too long for a message: share it to a Space, or shorten it.';
+
+  @override
+  String get timeWheelHour => 'Hour';
+
+  @override
+  String get timeWheelMinutes => 'Minutes';
+
+  @override
+  String get timeWheelAm => 'AM';
+
+  @override
+  String get timeWheelPm => 'PM';
+
+  @override
+  String get notebookSortLabel => 'SORT';
+
+  @override
+  String get notebookSortActivity => 'Latest activity';
+
+  @override
+  String get notebookSortName => 'Name A–Z';
+
+  @override
+  String get notebookSortCreated => 'Newest created';
+
+  @override
+  String get notebookSortNewest => 'Newest first';
+
+  @override
+  String get notebookSortOldest => 'Oldest first';
+
+  @override
+  String get notebookSortOff => 'Back to the usual order';
 }

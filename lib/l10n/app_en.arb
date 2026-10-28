@@ -6865,10 +6865,6 @@
   "@notebookRemindTime": {
     "description": "F107 B5: the reminder's time step."
   },
-  "notebookRemindMorning": "In the morning",
-  "@notebookRemindMorning": {
-    "description": "F107 B5: no time picked, the morning."
-  },
   "notebookCouldntKeep": "Couldn't keep this entry. It's back as a draft.",
   "@notebookCouldntKeep": {
     "description": "F107 B15."
@@ -7211,9 +7207,9 @@
       }
     }
   },
-  "notebookMoveToPage": "Move to page…",
+  "notebookMoveToPage": "Move to…",
   "@notebookMoveToPage": {
-    "description": "Review 99 A4: an entry's, entries' or a line's Move."
+    "description": "Review 99 A4, review 102 N4: the page picker's title for an entry's, entries' or a line's Move."
   },
   "notebookMovedTo": "Moved to {page}",
   "@notebookMovedTo": {
@@ -7330,9 +7326,9 @@
   "@notebookShare": {
     "description": "Review 100 Part 0: the selection bar's first action."
   },
-  "notebookMove": "Move",
+  "notebookMove": "Move to…",
   "@notebookMove": {
-    "description": "Review 100 Part 0: the selection bar's Move (to another page)."
+    "description": "Review 100 Part 0, review 102 N4: the selection bar's Move (to another page), for entries and lines."
   },
   "notebookReminder": "Reminder",
   "@notebookReminder": {
@@ -7793,5 +7789,49 @@
   "notebookShareTooLong": "Too long for a message: share it to a Space, or shorten it.",
   "@notebookShareTooLong": {
     "description": "Review 100 J1: the Message preview, when the entry's words pass the 3,000 a message holds; Send is off."
+  },
+  "timeWheelHour": "Hour",
+  "@timeWheelHour": {
+    "description": "Review 102 N2: the time picker's hour wheel, for screen readers."
+  },
+  "timeWheelMinutes": "Minutes",
+  "@timeWheelMinutes": {
+    "description": "Review 102 N2: the time picker's minutes wheel, for screen readers."
+  },
+  "timeWheelAm": "AM",
+  "@timeWheelAm": {
+    "description": "Review 102 N1: before noon, in the time picker's single choice above the wheels."
+  },
+  "timeWheelPm": "PM",
+  "@timeWheelPm": {
+    "description": "Review 102 N1: after noon, in the time picker's single choice above the wheels."
+  },
+  "notebookSortLabel": "SORT",
+  "@notebookSortLabel": {
+    "description": "Review 102 N5: the Filter card's third part, after SHOW and IN."
+  },
+  "notebookSortActivity": "Latest activity",
+  "@notebookSortActivity": {
+    "description": "Review 102 N5: the pages list's sort, the default."
+  },
+  "notebookSortName": "Name A–Z",
+  "@notebookSortName": {
+    "description": "Review 102 N5: the pages list's sort by name, each alphabet together."
+  },
+  "notebookSortCreated": "Newest created",
+  "@notebookSortCreated": {
+    "description": "Review 102 N5: the pages list's sort by when each page was made."
+  },
+  "notebookSortNewest": "Newest first",
+  "@notebookSortNewest": {
+    "description": "Review 102 N5: a page's sort, the default."
+  },
+  "notebookSortOldest": "Oldest first",
+  "@notebookSortOldest": {
+    "description": "Review 102 N5: a page's sort, oldest entries at the top."
+  },
+  "notebookSortOff": "Back to the usual order",
+  "@notebookSortOff": {
+    "description": "Review 102 N5: for screen readers, the sort chip's ✕."
   }
 }

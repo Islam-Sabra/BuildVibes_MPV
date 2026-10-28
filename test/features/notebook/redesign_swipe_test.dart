@@ -6,6 +6,7 @@
 // English and Arabic (the directions mirror).
 import 'dart:convert';
 
+import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/features/notebook/note_draft.dart';
 import 'package:buildvibes/features/notebook/notebook_page_parts.dart'
     show SelectionBar;
@@ -107,6 +108,50 @@ void main() {
         expect(repo.calls, contains('pin:entry-pour:true'));
         // Closed again.
         expect(_moved(tester, lang, 'entry-pour', x), 0);
+      });
+
+      testWidgets('review 102 P1: on a one-line entry the round buttons and '
+          'their words fit inside the card, both ways', (tester) async {
+        await _open(
+          tester,
+          lang,
+          notebook: FakeNotebookRepository(
+            notes: [
+              Note(
+                id: 'entry-short',
+                kind: NoteKind.text,
+                body: 'Gate',
+                createdAt: NotebookPageSamples.now,
+                pageId: FakeNotebookRepository.myNotesId,
+              ),
+            ],
+          ),
+          path: '/notebook/pages/${FakeNotebookRepository.myNotesId}',
+        );
+        final row = tester.getRect(_key('swipe-card-entry-short'));
+        // The shortest card: in English, shorter than a button with its
+        // word (48 + 4 + 16); the Arabic line is taller, so its card is too.
+        if (lang == 'en') expect(row.height, lessThan(68));
+        void inside(String key) {
+          for (final f in [
+            _key(key),
+            find.descendant(of: _key(key), matching: find.byType(Text)),
+          ]) {
+            final r = tester.getRect(f);
+            expect(r.top, greaterThanOrEqualTo(row.top), reason: '$key $r');
+            expect(r.bottom, lessThanOrEqualTo(row.bottom), reason: '$key $r');
+          }
+        }
+
+        await _swipe(tester, lang, _key('note-entry-short'), 160);
+        expect(tester.takeException(), isNull);
+        inside('swipe-pin-entry-short');
+        inside('swipe-remind-entry-short');
+        await tester.tapAt(const Offset(195, 120));
+        await tester.pumpAndSettle();
+        await _swipe(tester, lang, _key('note-entry-short'), -100);
+        expect(tester.takeException(), isNull);
+        inside('swipe-archive-entry-short');
       });
 
       testWidgets('a short swipe springs back; a tap elsewhere closes an open '

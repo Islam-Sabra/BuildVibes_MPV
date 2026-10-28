@@ -59,6 +59,8 @@ import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_trace_row.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
+import '../../shared/widgets/bv_time_wheel.dart'
+    show nextFiveMinutesAfterAnHour;
 import '../../shared/widgets/lazy_rows.dart';
 import '../account/account_parts.dart' show myMarketProvider;
 import '../entry/entry_state.dart';
@@ -974,7 +976,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final picked = await ref.read(pickPinTimeProvider)(
       context,
       initial: TimeOfDay.fromDateTime(
-        pinHasTime(until) ? until.toLocal() : now.add(const Duration(hours: 1)),
+        pinHasTime(until) ? until.toLocal() : nextFiveMinutesAfterAnHour(now),
       ),
     );
     if (picked == null || !mounted) return;

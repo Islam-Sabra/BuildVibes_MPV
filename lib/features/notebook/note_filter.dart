@@ -52,6 +52,113 @@ enum NoteFilter {
   };
 }
 
+/// A sort of the Filter card's SORT (review 102 N5).
+abstract interface class NoteSort {
+  /// How the phone keeps it.
+  String get json;
+  String label(AppLocalizations l10n);
+  IconData get icon;
+}
+
+/// How the pages list is sorted (N5), one single choice; pinned pages stay
+/// on top in each.
+enum PageSort implements NoteSort {
+  activity('activity'),
+  name('name'),
+  created('created');
+
+  const PageSort(this.json);
+
+  @override
+  final String json;
+
+  static PageSort of(String? json) =>
+      values.firstWhere((s) => s.json == json, orElse: () => activity);
+
+  @override
+  String label(AppLocalizations l10n) => switch (this) {
+    activity => l10n.notebookSortActivity,
+    name => l10n.notebookSortName,
+    created => l10n.notebookSortCreated,
+  };
+
+  @override
+  IconData get icon => switch (this) {
+    activity => BvIcons.sortActivity,
+    name => BvIcons.sortName,
+    created => BvIcons.sortCreated,
+  };
+
+  /// The pages in this sort, those pinned first; [name] is each page's
+  /// name as shown, in [lang].
+  Comparator<NotebookPage> order(
+    String lang,
+    String Function(NotebookPage) name,
+  ) => (a, b) {
+    if (a.pinned != b.pinned) return a.pinned ? -1 : 1;
+    return switch (this) {
+      activity => b.lastActivityAt.compareTo(a.lastActivityAt),
+      PageSort.name => byName(lang)(name(a), name(b)),
+      created => b.createdAt.compareTo(a.createdAt),
+    };
+  };
+}
+
+/// How a page's entries are sorted (N5), one single choice.
+enum EntrySort implements NoteSort {
+  newest('newest'),
+  oldest('oldest');
+
+  const EntrySort(this.json);
+
+  @override
+  final String json;
+
+  static EntrySort of(String? json) =>
+      values.firstWhere((s) => s.json == json, orElse: () => newest);
+
+  @override
+  String label(AppLocalizations l10n) => switch (this) {
+    newest => l10n.notebookSortNewest,
+    oldest => l10n.notebookSortOldest,
+  };
+
+  @override
+  IconData get icon => switch (this) {
+    newest => BvIcons.sortNewest,
+    oldest => BvIcons.sortOldest,
+  };
+}
+
+/// Where the phone keeps the pages list's sort, and each page's (N5).
+const pageSortKey = 'notebook_sort_pages';
+String entrySortKey(String page) => 'notebook_sort_page:$page';
+
+/// Name A–Z (N5): the titles of each alphabet together, [lang]'s own
+/// first; Arabic by its letters (the forms of alef as alef), Latin with no
+/// regard to case.
+Comparator<String> byName(String lang) {
+  final letter = RegExp(r'[A-Za-z\u00C0-\u024F\u0600-\u06FF]');
+  final arabic = RegExp(r'[\u0600-\u06FF]');
+  bool isArabic(String t) {
+    final first = letter.firstMatch(t);
+    return first != null && arabic.hasMatch(first.group(0)!);
+  }
+
+  String plain(String t) => t
+      .toLowerCase()
+      .replaceAll(RegExp('[أإآٱ]'), 'ا')
+      .replaceAll('ة', 'ه')
+      .replaceAll('ى', 'ي');
+  int group(String t) => isArabic(t) == (lang == 'ar') ? 0 : 1;
+  return (a, b) {
+    final g = group(a).compareTo(group(b));
+    if (g != 0) return g;
+    final p = plain(a).compareTo(plain(b));
+    return p != 0 ? p : a.compareTo(b);
+  };
+}
+
 /// A Filter as it is on a screen: what it shows, and in which page (null:
 /// all pages). On once [kind] is chosen.
 @immutable
@@ -87,8 +194,9 @@ final noteFilterHitsProvider = FutureProvider.autoDispose
     );
 
 /// The Filter's card (review 100 BH9), from the top bar: SHOW, one choice;
-/// IN, All pages ›, which turns the same card into the page list.
-/// [onChanged] gets the Filter picked; the card closes once it is on.
+/// IN, All pages ›, which turns the same card into the page list; SORT,
+/// one choice of [sorts] (review 102 N5). [onChanged] gets the Filter
+/// picked; the card closes once it is on. [onSort] gets the sort picked.
 class NoteFilterCard extends StatefulWidget {
   const NoteFilterCard({
     super.key,
@@ -96,11 +204,17 @@ class NoteFilterCard extends StatefulWidget {
     required this.filter,
     required this.onChanged,
     this.pages = false,
+    this.sorts = const [],
+    this.sort,
+    this.onSort,
   });
 
   final NotebookData data;
   final NoteFilterState filter;
   final ValueChanged<NoteFilterState> onChanged;
+  final List<NoteSort> sorts;
+  final NoteSort? sort;
+  final ValueChanged<NoteSort>? onSort;
 
   /// Opens on the page list (the page chip).
   final bool pages;
@@ -175,10 +289,21 @@ class _NoteFilterCardState extends State<NoteFilterCard> {
           group: l10n.notebookFilterIn,
           more: true,
         ),
+        for (final s in widget.sorts)
+          BvMenuItem(
+            key: Key('sort-${s.json}'),
+            value: s,
+            label: s.label(l10n),
+            icon: s.icon,
+            group: l10n.notebookSortLabel,
+            checked: s == widget.sort,
+          ),
       ],
       onSelected: (v) {
         if (v is NoteFilter) {
           widget.onChanged(_filter.copyWith(kind: v));
+        } else if (v is NoteSort) {
+          widget.onSort?.call(v);
         } else {
           setState(() => _pages = true);
         }
@@ -196,6 +321,9 @@ void showNoteFilter(
   required NoteFilterState filter,
   required ValueChanged<NoteFilterState> onChanged,
   bool pages = false,
+  List<NoteSort> sorts = const [],
+  NoteSort? sort,
+  ValueChanged<NoteSort>? onSort,
 }) => card.show(
   context,
   anchor: anchor,
@@ -211,6 +339,14 @@ void showNoteFilter(
       card.hide();
       onChanged(f);
     },
+    sorts: sorts,
+    sort: sort,
+    onSort: onSort == null
+        ? null
+        : (s) {
+            card.hide();
+            onSort(s);
+          },
   ),
 );
 
@@ -258,59 +394,9 @@ class NoteFilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
     final kind = filter.kind!;
     final page = data.page(filter.page);
     final label = page == null ? l10n.notebookAllPages : pageName(l10n, page);
-    Widget chip({
-      required Key key,
-      required IconData icon,
-      required String text,
-      required bool active,
-      required Widget end,
-      VoidCallback? onTap,
-    }) => Material(
-      key: key,
-      color: active ? BvColors.surfaceBrandSoft : BvColors.surfaceSubtle,
-      shape: StadiumBorder(
-        side: BorderSide(
-          color: active ? BvColors.borderSelected : BvColors.borderSubtle,
-          width: BvStroke.thin,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          height: BvNotebookPagesSpec.chipHeight,
-          padding: const EdgeInsetsDirectional.only(
-            start: BvNotebookPagesSpec.chipPaddingStart,
-            end: BvNotebookPagesSpec.chipPaddingEnd,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: BvNotebookPagesSpec.chipGap,
-            children: [
-              Icon(
-                icon,
-                size: BvNotebookPagesSpec.chipIcon,
-                color: BvColors.iconPrimary,
-              ),
-              Flexible(
-                child: Text(
-                  text,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: type.labelSm.copyWith(color: BvColors.textPrimary),
-                ),
-              ),
-              end,
-            ],
-          ),
-        ),
-      ),
-    );
-
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
         BvSpace.gutter,
@@ -322,7 +408,8 @@ class NoteFilterChips extends StatelessWidget {
         spacing: BvSpace.s8,
         children: [
           Flexible(
-            child: chip(
+            child: _chip(
+              context,
               key: const Key('filter-chip-kind'),
               icon: kind.icon,
               text: kind.label(l10n),
@@ -345,7 +432,8 @@ class NoteFilterChips extends StatelessWidget {
             ),
           ),
           Flexible(
-            child: chip(
+            child: _chip(
+              context,
               key: const Key('filter-chip-page'),
               icon: BvIcons.pageFolder,
               text: label,
@@ -359,6 +447,106 @@ class NoteFilterChips extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A chip under the top bar (BH11): its icon, words and what ends it.
+Widget _chip(
+  BuildContext context, {
+  required Key key,
+  required IconData icon,
+  required String text,
+  required bool active,
+  required Widget end,
+  VoidCallback? onTap,
+}) => Material(
+  key: key,
+  color: active ? BvColors.surfaceBrandSoft : BvColors.surfaceSubtle,
+  shape: StadiumBorder(
+    side: BorderSide(
+      color: active ? BvColors.borderSelected : BvColors.borderSubtle,
+      width: BvStroke.thin,
+    ),
+  ),
+  clipBehavior: Clip.antiAlias,
+  child: InkWell(
+    onTap: onTap,
+    child: Container(
+      height: BvNotebookPagesSpec.chipHeight,
+      padding: const EdgeInsetsDirectional.only(
+        start: BvNotebookPagesSpec.chipPaddingStart,
+        end: BvNotebookPagesSpec.chipPaddingEnd,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvNotebookPagesSpec.chipGap,
+        children: [
+          Icon(
+            icon,
+            size: BvNotebookPagesSpec.chipIcon,
+            color: BvColors.iconPrimary,
+          ),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BvType.of(
+                context,
+              ).labelSm.copyWith(color: BvColors.textPrimary),
+            ),
+          ),
+          end,
+        ],
+      ),
+    ),
+  ),
+);
+
+/// Under the top bar while a sort isn't the default (review 102 N5): its
+/// name, with ✕ to put the default back.
+class NoteSortChip extends StatelessWidget {
+  const NoteSortChip({super.key, required this.sort, required this.onClear});
+
+  final NoteSort sort;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        BvSpace.gutter,
+        BvSpace.s4,
+        BvSpace.gutter,
+        BvSpace.s8,
+      ),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: _chip(
+          context,
+          key: const Key('sort-chip'),
+          icon: sort.icon,
+          text: sort.label(l10n),
+          active: true,
+          end: Semantics(
+            button: true,
+            label: l10n.notebookSortOff,
+            excludeSemantics: true,
+            child: InkResponse(
+              key: const Key('sort-clear'),
+              onTap: onClear,
+              radius: BvNotebookPagesSpec.chipCaret,
+              child: const Icon(
+                BvIcons.close,
+                size: BvNotebookPagesSpec.chipCaret,
+                color: BvColors.iconPrimary,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

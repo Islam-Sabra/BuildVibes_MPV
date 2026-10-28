@@ -366,4 +366,12 @@ abstract final class BvIcons {
   // Review 100 H19: a Draft's Discard (Phosphor x-circle).
   static const discard = declined;
   static const feed = IconData(0xe324, fontFamily: _family);
+
+  // Review 102 N5, the Filter card's SORT (Phosphor clock-counter-clockwise,
+  // text-aa, calendar-plus, sort-descending, sort-ascending).
+  static const sortActivity = IconData(0xe1a0, fontFamily: _family);
+  static const sortName = IconData(0xe6ee, fontFamily: _family);
+  static const sortCreated = IconData(0xe714, fontFamily: _family);
+  static const sortNewest = IconData(0xe446, fontFamily: _family);
+  static const sortOldest = IconData(0xe444, fontFamily: _family);
 }

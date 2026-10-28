@@ -23,6 +23,7 @@ class BvMenuItem<T> {
     this.onClear,
     this.clearKey,
     this.clearLabel,
+    this.checked = false,
   });
 
   final T value;
@@ -49,6 +50,10 @@ class BvMenuItem<T> {
   /// The compact card (review 100 Part 4): the small caps label of the
   /// group this row starts or belongs to ("TEXT", "LISTS").
   final String? group;
+
+  /// Checked on its own, as the choice of its group (review 102 N5: the
+  /// Filter card's SORT, beside SHOW's [BvPopoverMenu.checked]).
+  final bool checked;
 
   /// Its value once set, at the row's end ("Gate 2", "Fri 7:00"), and the
   /// ✕ after it that takes it off ([clearLabel] read out).
@@ -448,7 +453,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (checked != null && item.value == checked)
+                if (item.checked || (checked != null && item.value == checked))
                   const Icon(
                     BvIcons.check,
                     key: Key('menu-checked'),

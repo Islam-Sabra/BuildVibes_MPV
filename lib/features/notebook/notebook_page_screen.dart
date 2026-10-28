@@ -3,7 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/gestures.dart'
+    show LongPressGestureRecognizer, kTouchSlop;
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart' show CustomSemanticsAction;
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
@@ -185,6 +190,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
 
   @override
   void dispose() {
+    _edge?.cancel();
+    _lifted?.remove();
     _picker.hide();
     _barCard.hide();
     _filterCard.hide();
@@ -514,6 +521,246 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       _toast(AppLocalizations.of(context).notebookReminderGone);
     }
     return note;
+  }
+
+  // Review 102 N3: an entry held, then moved within its day.
+
+  /// Each entry's row, measured when one is moved in its day.
+  final _rowKeys = <String, GlobalKey>{};
+
+  /// Each day's entries on the page, top to bottom, as last built.
+  var _dayIds = <DateTime, List<String>>{};
+
+  /// The entry held, and where the finger went down.
+  ({String id, Offset at})? _held;
+
+  /// The entry being moved, while it is; its lifted card and line, and the
+  /// page scrolling by itself at an edge.
+  _Arranging? _arranging;
+  OverlayEntry? _lifted;
+  Timer? _edge;
+
+  bool _canArrange(Note n, bool selecting) =>
+      !widget.archived && !selecting && !n.pinned;
+
+  bool get _stillMotion => MediaQuery.of(context).disableAnimations;
+
+  /// An entry's row: held and moved, it lands elsewhere in its day; held
+  /// and let go, it is selected (as a long-press always did).
+  Widget _arrangeable(
+    Note n, {
+    required bool selecting,
+    required Widget Function() card,
+    required Widget child,
+  }) {
+    final a = _arranging;
+    final mine = a != null && a.day == dayOf(n.createdAt);
+    final shift = mine && !_stillMotion ? a.shift(n.id) : 0.0;
+    return KeyedSubtree(
+      key: _rowKeys.putIfAbsent(n.id, GlobalKey.new),
+      child: _ArrangeHold(
+        enabled: _canArrange(n, selecting),
+        onStart: (at) => _held = (id: n.id, at: at),
+        onMove: (at) => _moveHeld(n, at, card),
+        onEnd: () => _letGo(n),
+        onCancel: _endArranging,
+        child: AnimatedContainer(
+          duration: a == null
+              ? Duration.zero
+              : BvNotebookPagesSpec.arrangeSlide,
+          curve: BvMotion.standard,
+          transform: Matrix4.translationValues(0, shift, 0),
+          child: Opacity(
+            opacity: mine && a.id == n.id && !_stillMotion ? 0 : 1,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _moveHeld(Note n, Offset at, Widget Function() card) {
+    final held = _held;
+    if (held == null || held.id != n.id) return;
+    var a = _arranging;
+    if (a == null) {
+      if ((at - held.at).distance < kTouchSlop) return;
+      a = _beginArranging(n, held.at, card);
+      if (a == null) return;
+    }
+    a.finger = at.dy;
+    _placeArranged(a);
+  }
+
+  /// The card lifts: every row of its day measured, where it was held.
+  _Arranging? _beginArranging(Note n, Offset at, Widget Function() card) {
+    final day = dayOf(n.createdAt);
+    final ids = _dayIds[day];
+    final held = _rowKeys[n.id]?.currentContext;
+    if (ids == null || ids.length < 2 || held == null) return null;
+    final position = Scrollable.maybeOf(held)?.position;
+    if (position == null) return null;
+    final rects = <String, Rect>{};
+    for (final id in ids) {
+      final box =
+          _rowKeys[id]?.currentContext?.findRenderObject() as RenderBox?;
+      // A row not built (far off screen) can't be passed: the move waits.
+      if (box == null || !box.attached || !box.hasSize) return null;
+      final topLeft = box.localToGlobal(Offset.zero);
+      rects[id] = Rect.fromLTWH(
+        topLeft.dx,
+        topLeft.dy + position.pixels,
+        box.size.width,
+        box.size.height,
+      );
+    }
+    final a = _Arranging(
+      id: n.id,
+      day: day,
+      ids: ids,
+      rects: rects,
+      grab: at.dy + position.pixels - rects[n.id]!.top,
+      position: position,
+    )..finger = at.dy;
+    unawaited(HapticFeedback.lightImpact());
+    setState(() => _arranging = a);
+    final lifted = OverlayEntry(builder: (_) => _arrangedOverlay(card));
+    _lifted = lifted;
+    Overlay.of(context).insert(lifted);
+    _edge = Timer.periodic(
+      BvNotebookPagesSpec.arrangeFrame,
+      (_) => _edgeScroll(),
+    );
+    return a;
+  }
+
+  /// Where it would land now; the others slide aside.
+  void _placeArranged(_Arranging a) {
+    final to = a.landing();
+    if (to != a.to) {
+      setState(() => a.to = to);
+    }
+    _lifted?.markNeedsBuild();
+  }
+
+  /// Near the list's top or bottom edge, the page scrolls by itself.
+  void _edgeScroll() {
+    final a = _arranging;
+    if (a == null) return;
+    final view = a.position.context.notificationContext?.findRenderObject();
+    if (view is! RenderBox || !view.attached) return;
+    final top = view.localToGlobal(Offset.zero).dy;
+    final bottom = top + view.size.height;
+    const edge = BvNotebookPagesSpec.arrangeEdge;
+    final step = a.finger < top + edge
+        ? -BvNotebookPagesSpec.arrangeStep
+        : a.finger > bottom - edge
+        ? BvNotebookPagesSpec.arrangeStep
+        : 0.0;
+    if (step == 0) return;
+    final p = a.position;
+    final to = (p.pixels + step).clamp(p.minScrollExtent, p.maxScrollExtent);
+    if (to == p.pixels) return;
+    p.jumpTo(to);
+    _placeArranged(a);
+  }
+
+  /// The lifted card under the finger, and the line where it lands.
+  Widget _arrangedOverlay(Widget Function() card) {
+    final a = _arranging;
+    if (a == null || !mounted) return const SizedBox.shrink();
+    final px = a.position.pixels;
+    final rect = a.rects[a.id]!;
+    final landing = a.tops()[a.id]! - px - BvNotebookPagesSpec.entryGap / 2;
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned(
+            left: rect.left,
+            width: rect.width,
+            top: landing - BvNotebookPagesSpec.arrangeLine / 2,
+            height: BvNotebookPagesSpec.arrangeLine,
+            child: const ColoredBox(
+              key: Key('arrange-line'),
+              color: BvColors.borderSelected,
+            ),
+          ),
+          if (!_stillMotion)
+            Positioned(
+              left: rect.left,
+              width: rect.width,
+              top: a.top() - px,
+              child: DecoratedBox(
+                key: const Key('note-lifted'),
+                decoration: const BoxDecoration(
+                  borderRadius: BvNotebookPagesSpec.entryRadius,
+                  boxShadow: BvShadow.slipLifted,
+                ),
+                child: Material(type: MaterialType.transparency, child: card()),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Let go: moved, it lands; held and let go without a move, selected.
+  void _letGo(Note n) {
+    final a = _arranging;
+    _held = null;
+    if (a == null) {
+      _select(n);
+      return;
+    }
+    final before = a.ids;
+    final after = a.order();
+    _endArranging();
+    if (!listEquals(before, after)) _arrange(after, undo: before);
+  }
+
+  void _endArranging() {
+    _edge?.cancel();
+    _edge = null;
+    _lifted?.remove();
+    _lifted = null;
+    _held = null;
+    if (_arranging != null && mounted) setState(() => _arranging = null);
+  }
+
+  /// The day's new order, saved, with "Moved · Undo".
+  void _arrange(List<String> order, {required List<String> undo}) {
+    final l10n = AppLocalizations.of(context);
+    final notebook = ref.read(notebookProvider.notifier);
+    unawaited(notebook.arrangeDay(order));
+    showBvUndoBar(
+      context,
+      message: l10n.notebookUndoMoved,
+      actionLabel: l10n.daybookUndo,
+      onAction: () => unawaited(notebook.arrangeDay(undo)),
+      bottom: 0,
+    );
+  }
+
+  /// A screen reader's Move up and Move down, within the day.
+  Map<CustomSemanticsAction, VoidCallback>? _moves(Note n, bool selecting) {
+    if (!_canArrange(n, selecting)) return null;
+    final ids = _dayIds[dayOf(n.createdAt)];
+    if (ids == null || ids.length < 2) return null;
+    final l10n = AppLocalizations.of(context);
+    final i = ids.indexOf(n.id);
+    List<String> moved(int step) {
+      final o = [...ids]..removeAt(i);
+      return o..insert(i + step, n.id);
+    }
+
+    return {
+      if (i > 0)
+        CustomSemanticsAction(label: l10n.notebookMoveUp): () =>
+            _arrange(moved(-1), undo: ids),
+      if (i < ids.length - 1)
+        CustomSemanticsAction(label: l10n.notebookMoveDown): () =>
+            _arrange(moved(1), undo: ids),
+    };
   }
 
   /// Opened at an entry (from Filter or search): the page goes to it until
@@ -1168,6 +1415,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   final _filterCard = BvLinePopover();
   final _filterKey = GlobalKey();
 
+  /// This page's sort (review 102 N5), kept on the phone for it alone; an
+  /// archive shows newest first.
+  late var _sort = widget.pageId == null || widget.archived
+      ? EntrySort.newest
+      : EntrySort.of(
+          ref
+              .read(sharedPreferencesProvider)
+              .getString(entrySortKey(widget.pageId!)),
+        );
+
+  void _setSort(EntrySort sort) {
+    final page = widget.pageId;
+    if (page == null) return;
+    setState(() => _sort = sort);
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (sort == EntrySort.newest) {
+      unawaited(prefs.remove(entrySortKey(page)));
+    } else {
+      unawaited(prefs.setString(entrySortKey(page), sort.json));
+    }
+  }
+
   void _openFilter(NotebookData data, {bool pages = false}) {
     if (_filterCard.isOpen) return _filterCard.hide();
     showNoteFilter(
@@ -1178,6 +1447,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       filter: _filter,
       pages: pages,
       onChanged: (f) => setState(() => _filter = f),
+      sorts: widget.archived ? const [] : EntrySort.values,
+      sort: _sort,
+      onSort: (s) => _setSort(s as EntrySort),
     );
   }
 
@@ -1681,11 +1953,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final selecting = _selected.isNotEmpty;
     // BH12: lines of the entry being written are selected.
     final picking = writingNow && _linesPicked > 0;
-    final entries = page == null
+    final kept = page == null
         ? const <Note>[]
         : widget.archived
         ? data.archived(page.id)
         : data.entries(page.id);
+    // Newest first as kept, or oldest first (review 102 N5).
+    final entries = _sort == EntrySort.oldest ? kept.reversed.toList() : kept;
     final chosen = [
       for (final n in entries)
         if (_selected.contains(n.id)) n,
@@ -1747,65 +2021,78 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final hintFirst =
         !widget.archived && !_hinted && !(prefs.getBool(_hintKey) ?? false);
 
-    Widget entry(Note n, {bool first = false}) => Padding(
-      key: n.id == widget.entry ? _entryKey : null,
-      padding: const EdgeInsetsDirectional.only(
-        bottom: BvNotebookPagesSpec.entryGap,
-      ),
-      child: BvSwipeCard(
-        key: ValueKey(('swipe', n.id)),
-        id: n.id,
-        enabled: !selecting,
-        hint: first && hintFirst,
-        onHinted: () {
-          _hinted = true;
-          unawaited(prefs.setBool(_hintKey, true));
-        },
-        endActions: widget.archived
-            ? const []
-            : [
-                BvSwipeAction(
-                  key: Key('swipe-pin-${n.id}'),
-                  icon: BvIcons.pin,
-                  label: n.pinned ? l10n.daybookUnpin : l10n.notebookPin,
-                  color: BvColors.textPrimary,
-                  onTap: () => unawaited(
-                    ref.read(notebookProvider.notifier).pin(n, on: !n.pinned),
-                  ),
-                ),
-                if (n.kind != NoteKind.voice)
-                  BvSwipeAction(
-                    key: Key('swipe-remind-${n.id}'),
-                    icon: BvIcons.remind,
-                    label: remindsAt(n, now)
-                        ? l10n.notebookChangeReminder
-                        : l10n.notebookReminder,
-                    color: BvColors.textWarning,
-                    onTap: () => unawaited(_remind(n)),
-                  ),
-              ],
-        startAction: BvSwipeAction(
-          key: Key('swipe-archive-${n.id}'),
-          icon: BvIcons.archive,
-          label: widget.archived
-              ? l10n.notebookUnarchive
-              : l10n.notebookArchive,
-          color: BvColors.actionPrimary,
-          onTap: () => unawaited(_archive(n, on: !widget.archived)),
+    Widget slip(Note n) => NoteSlip(note: n, words: words, now: now);
+
+    Widget entry(Note n, {bool first = false}) => _arrangeable(
+      n,
+      selecting: selecting,
+      card: () => slip(n),
+      child: Padding(
+        key: n.id == widget.entry ? _entryKey : null,
+        padding: const EdgeInsetsDirectional.only(
+          bottom: BvNotebookPagesSpec.entryGap,
         ),
-        child: NoteSlip(
-          note: n,
-          words: words,
-          now: now,
-          selected: _selected.contains(n.id),
-          onEdit: widget.archived
-              ? null
-              : selecting
-              ? () => _select(n)
-              : n.kind == NoteKind.voice
-              ? null
-              : () => _edit(n),
-          onLongPress: widget.archived ? null : () => _select(n),
+        child: BvSwipeCard(
+          key: ValueKey(('swipe', n.id)),
+          id: n.id,
+          enabled: !selecting,
+          hint: first && hintFirst,
+          onHinted: () {
+            _hinted = true;
+            unawaited(prefs.setBool(_hintKey, true));
+          },
+          endActions: widget.archived
+              ? const []
+              : [
+                  BvSwipeAction(
+                    key: Key('swipe-pin-${n.id}'),
+                    icon: BvIcons.pin,
+                    label: n.pinned ? l10n.daybookUnpin : l10n.notebookPin,
+                    color: BvColors.textPrimary,
+                    onTap: () => unawaited(
+                      ref.read(notebookProvider.notifier).pin(n, on: !n.pinned),
+                    ),
+                  ),
+                  if (n.kind != NoteKind.voice)
+                    BvSwipeAction(
+                      key: Key('swipe-remind-${n.id}'),
+                      icon: BvIcons.remind,
+                      label: remindsAt(n, now)
+                          ? l10n.notebookChangeReminder
+                          : l10n.notebookReminder,
+                      color: BvColors.textWarning,
+                      onTap: () => unawaited(_remind(n)),
+                    ),
+                ],
+          startAction: BvSwipeAction(
+            key: Key('swipe-archive-${n.id}'),
+            icon: BvIcons.archive,
+            label: widget.archived
+                ? l10n.notebookUnarchive
+                : l10n.notebookArchive,
+            color: BvColors.actionPrimary,
+            onTap: () => unawaited(_archive(n, on: !widget.archived)),
+          ),
+          child: Semantics(
+            container: true,
+            customSemanticsActions: _moves(n, selecting),
+            child: NoteSlip(
+              note: n,
+              words: words,
+              now: now,
+              selected: _selected.contains(n.id),
+              onEdit: widget.archived
+                  ? null
+                  : selecting
+                  ? () => _select(n)
+                  : n.kind == NoteKind.voice
+                  ? null
+                  : () => _edit(n),
+              onLongPress: widget.archived || _canArrange(n, selecting)
+                  ? null
+                  : () => _select(n),
+            ),
+          ),
         ),
       ),
     );
@@ -1819,6 +2106,17 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     for (final n in entries) {
       if (!n.pinned) byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
     }
+    // Review 102 N3: each day in its hand order.
+    for (final day in byDay.keys.toList()) {
+      byDay[day] = inHandOrder(
+        byDay[day]!,
+        oldestFirst: _sort == EntrySort.oldest,
+      );
+    }
+    _dayIds = {
+      for (final MapEntry(key: day, value: notes) in byDay.entries)
+        day: [for (final n in notes) n.id],
+    };
     // B3: every Draft of a new entry in this page, each its own card; the
     // one in hand first.
     bool here(NoteDraft d) =>
@@ -2055,7 +2353,20 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       if (page != null && _filter.on && !widget.archived) {
         return _filtered(data);
       }
-      if (page != null) return BvSwipeGroup(child: browse(page));
+      if (page != null) {
+        final list = BvSwipeGroup(child: browse(page));
+        if (_sort == EntrySort.newest) return list;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            NoteSortChip(
+              sort: _sort,
+              onClear: () => _setSort(EntrySort.newest),
+            ),
+            Expanded(child: list),
+          ],
+        );
+      }
       if (notebook.isLoading) return const SizedBox.shrink();
       return Padding(
         padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
@@ -2833,5 +3144,111 @@ class NoteBox extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+/// An entry being moved within its day (review 102 N3). Places are in the
+/// page: a row's top on screen plus how far the page is scrolled.
+class _Arranging {
+  _Arranging({
+    required this.id,
+    required this.day,
+    required this.ids,
+    required this.rects,
+    required this.grab,
+    required this.position,
+  }) : to = ids.indexOf(id);
+
+  final String id;
+  final DateTime day;
+
+  /// The day's entries as they were, top to bottom.
+  final List<String> ids;
+
+  /// Each row where it was.
+  final Map<String, Rect> rects;
+
+  /// From the row's top to the finger.
+  final double grab;
+  final ScrollPosition position;
+
+  /// The finger, on screen.
+  double finger = 0;
+
+  /// Where it lands among the day's entries.
+  int to;
+
+  double get _height => rects[id]!.height;
+
+  /// The moved row's top in the page: under the finger, kept within its day
+  /// (at the day's edge it stops).
+  double top() => (finger + position.pixels - grab).clamp(
+    rects[ids.first]!.top,
+    rects[ids.last]!.bottom - _height,
+  );
+
+  /// Where it lands: past each row whose middle it has reached, down or
+  /// up (at its day's edge, past the last).
+  int landing() {
+    final from = ids.indexOf(id);
+    final middle = top() + _height / 2;
+    var to = from;
+    for (var i = from + 1; i < ids.length; i++) {
+      if (middle >= rects[ids[i]]!.center.dy) to = i;
+    }
+    for (var i = from - 1; i >= 0; i--) {
+      if (middle <= rects[ids[i]]!.center.dy) to = i;
+    }
+    return to;
+  }
+
+  List<String> order() => [...ids]
+    ..remove(id)
+    ..insert(to, id);
+
+  /// Each row's top in [order], from the day's first.
+  Map<String, double> tops() {
+    var at = rects[ids.first]!.top;
+    return {for (final o in order()) o: (at, at += rects[o]!.height).$1};
+  }
+
+  /// How far [other] slides aside.
+  double shift(String other) => tops()[other]! - rects[other]!.top;
+}
+
+/// Hold, then move without lifting (review 102 N3); a hold let go with no
+/// move ends too. Off, the card's own long-press stands.
+class _ArrangeHold extends StatelessWidget {
+  const _ArrangeHold({
+    required this.enabled,
+    required this.onStart,
+    required this.onMove,
+    required this.onEnd,
+    required this.onCancel,
+    required this.child,
+  });
+
+  final bool enabled;
+  final ValueChanged<Offset> onStart;
+  final ValueChanged<Offset> onMove;
+  final VoidCallback onEnd;
+  final VoidCallback onCancel;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => RawGestureDetector(
+    gestures: {
+      if (enabled)
+        LongPressGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<LongPressGestureRecognizer>(
+              () => LongPressGestureRecognizer(debugOwner: this),
+              (r) => r
+                ..onLongPressStart = ((d) => onStart(d.globalPosition))
+                ..onLongPressMoveUpdate = ((d) => onMove(d.globalPosition))
+                ..onLongPressEnd = ((_) => onEnd())
+                ..onLongPressCancel = onCancel,
+            ),
+    },
+    child: child,
   );
 }
