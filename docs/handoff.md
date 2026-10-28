@@ -2,6 +2,54 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 28 Oct 2026 — review 101 L1 on `claude/r101-l1`: the "slower drawing" is the vsync wait, not drawing; the phone reading waits for an unlock; for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r101-l1` (worktree `BuildVibes-l1`), from `slice2-app` 3f14b70, pushed. Nothing merged, no database push, no deploy.
+- **Commit:** 5814f30, `tool/perf/record_timeline.dart` (local only), with `flutter_driver` and `vm_service` as dev dependencies. It reports:
+  - frames over budget;
+  - the raster thread's time in slow frames;
+  - render passes per frame;
+  - **the gaps between frames while scrolling** (a vsync missed when over 25 ms).
+  - Analyze clean; `flutter test` 2,391 pass. No app code changed and no shot changed.
+
+**1. Profile builds signed with the upload key:**
+- Built from a throwaway worktree, with a temporary `profile { signingConfig = upload }` (not committed), the prod env and versionCode 712:
+  - "before" = 89d90af, 701's first parent (`slice2-app` just before the lists merge);
+  - "now" = 7a24f55, the same app code as release 712.
+- Same certificate as release 712 (SHA-256 9d02b7db…df9f).
+- The phone was confirmed (Xiaomi 22120RN86G, versionCode 712), and "before" installed over the release as an update: first install still 17 Oct, so his data was kept. It launched, and its VM service answered.
+
+**2. The phone reading: not done.** The phone is on its secure lock screen (keyguard showing, screenshots black). I didn't try to get past it.
+- **Release 712 is back:** installed again, versionCode 712, and the installed `base.apk` is byte-identical to `BuildVibes-712.apk` (MD5 f95947f7…). It's the only BuildVibes package on the phone.
+- **For the reading, the founder unlocks the phone.** Then: install a profile build, attach the recorder, open NBKCH SITE TEAM (his Space with the most posts, about 60 with photos), fling, and put release 712 back.
+
+**3. Evidence on the emulator** (Pixel 8, Impeller on OpenGLES, profile mode, the local busy seed, 20 flings, traced; both traces kept their last 255 frames):
+
+| | before (89d90af) | now (7a24f55) |
+|---|---|---|
+| Raster time per frame, median / 90th | 10.1 / 14.1 ms | 16.2 / 17.3 ms |
+| Render passes per frame | 15.9 | 16.0 |
+| Gap between frames, median | 18.2 ms | 16.6 ms |
+| Gaps over 25 ms (a vsync missed) | 55 of 254 | 1 of 254 |
+| Gaps over 34 ms (two missed) | 8 | 0 |
+
+- **What the raster thread spends its time on in "now"'s slow frames:** 98% in `SurfaceFrame::Submit`, the swap that waits for the next vsync.
+  - Encoding the GL commands takes about 4–5 ms.
+  - The render passes are the same 16 per frame as before.
+  - No `saveLayer` or extra offscreen pass, no extra shadow or stamp passes, and nothing drawn outside the screen: the pass count would show it.
+- **The cause:** the raster time Flutter counts includes the wait for the next vsync once a frame is ready every vsync.
+  - Before review 101, building was slow (about 500 build-slow frames in K3), so frames came late and the raster thread seldom waited.
+  - Now a frame is ready every vsync, so each raster "time" is about one frame long, and about half of them land just over 16.7 ms.
+  - What a user sees improved: 1 missed vsync against 55, and a steady 60 fps.
+- **So there is no drawing cost to fix,** and nothing changed. K3's "missed raster budget" is the wrong measure for this. The gap measure in the recorder is the right one.
+
+**For the lead:**
+- The phone reading, with the founder there to unlock it, decides between this emulator reading and a real cost on his phone's own GPU (its renderer is not checked yet). The steps are in 2.
+- The local stack is back as before: the busy seed and its test phone are removed. The emulator is stopped, and the throwaway build worktree is removed.
+- **Who has which branch:** PC has `claude/r101-l1` (worktree `BuildVibes-l1`), `slice2-app` (worktree `BuildVibes-slice1`), and `claude/r102-notebook` (merged).
+
 ## PC update: 28 Oct 2026 — review 102 live: merged into `slice2-app`, migration 49 live, build 712 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

@@ -745,6 +745,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `claude/r102-notebook` (N1–N5 and the cloud's P1) merged into `slice2-app` (7a24f55). Analyze clean; 2,391 app tests; 3,038 SQL checks; 452 shots, not updating.
   - Migration 49 live as the only file: notes 11 before and after; `day_position` null everywhere; `arrange_day` refuses signed out.
   - Build 712 on the Desktop and on the founder's phone.
+- **28 Oct (PC): review 101 L1** on `claude/r101-l1` (nothing merged, live or deployed):
+  - Profile builds signed with the upload key ("before" 89d90af, "now" 7a24f55, versionCode 712) install over the release and keep the data.
+  - The phone reading waits: the phone is locked. Release 712 is back, byte-identical.
+  - The emulator trace: the same 16 render passes a frame before and after. "Now"'s raster time is the swap waiting for the next vsync, since a frame is ready every vsync. Missed vsyncs while flinging: 1 of 254 now, against 55 before.
+  - No drawing cost to fix. A recorder with the frame-gap measure is in `tool/perf/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
