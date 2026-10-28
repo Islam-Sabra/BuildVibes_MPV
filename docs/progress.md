@@ -720,6 +720,12 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Deno 2.9.8 installed (winget); `deno check` on `notebook-purge` clean. `NOTEBOOK_PURGE_SECRET` set in the function secrets and Vault's `notebook_purge_secret` (the two match by SHA-256; the value is in neither the repo nor the chat, and its local copies were deleted). `notebook-purge` deployed (v1, verify_jwt off); `notebook_purge_cron.sql` run with the project's ref: cron job `notebook-purge`, 03:15 UTC nightly, active. Called once by hand: "purged 0, files 1, waiting 0" (one stored notebook file that no entry used, a day old at least, removed as designed; notes, pages and `note_files` rows unchanged).
   - **Build 686** (15b7932, release, signed with the upload key) on the Desktop as `BuildVibes-686.apk`. Installed on the founder's Xiaomi (versionCode 686).
   - Worktrees -db29 (line endings only) and the throwaway push worktree removed.
+- **28 Oct (PC): review 101 Part A** on `claude/r101-lists`, the lead's option 1 (nothing merged, live or installed):
+  - **The Daybook:** a centre sliver at Now, older days growing up from it, painted top to bottom, so the paper clip stays on top. The 500-post test failed first and passes now.
+  - **The 47 tests** go to the card they check, or read the page in screen order; no assertion removed (the list is in the handoff).
+  - **The notebook page:** a builder list; opened at an entry, the page scrolls until the entry is built. The 300-entry test failed first and passes now.
+  - **The seed:** `supabase/dev/seed_busy_space.sql`, local only.
+  - Checks: analyze clean; 2,324 app tests; 446 shots, not updating, none changed.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
