@@ -9,7 +9,7 @@
 |---|---|---|---|
 | SP1 | Work: Work · Chat switch; Library and People up top; Needs you line; pinned morning brief with Got it; site tags; status icons | `2666:38461` | `2666:38593` |
 | SP2 | Writing in the Space: kind chips, then For · Place · Due · Team rows and the notebook bar, above the keyboard | `2667:38511` | `2667:38891` |
-| SP3 | A work item as a **table of tasks** | `2667:38645` | `2667:39025` |
+| SP3 | A work item as a **table of tasks**: one owner ticks rows, then signs once | `2667:38645` | `2667:39025` |
 | SP4 | `+` inside a work item: Text · Bullet points · Checklist · Table · Table of tasks · Photo · File or scan | `2667:38771` | `2667:39151` |
 | SP5 | Swipe: toward the end Pin · Reminder; toward the start Archive (Lead, Checked only) | `2668:38625` | `2668:38855` |
 | SP6 | Hold: selected, then Share · Duplicate · Delete | `2668:38752` | `2668:38982` |
@@ -33,7 +33,7 @@
 - **Swipe toward the end:** Pin · Reminder (SP5). Both are mine only:
   - pins are per person (as now);
   - a reminder is a phone notification for me.
-- **Swipe toward the start:** Archive, **only for a Lead and only on a Checked item.**
+- **Swipe toward the start:** Archive, **only for a Lead and only on a Checked item.** It's a round action the same size as Pin and Reminder, never a wide block (founder, 21:49).
   - It hides the item from Work for everyone; Search and the Library still find it.
   - On any other item, swiping toward the start does nothing.
 - **Signatures are never on a swipe or a hold.** Sign as done, Check and Send back stay deliberate taps.
@@ -50,15 +50,18 @@
   - A row shows only for the kinds that use it (Note has no For or Due).
 - **The bar is the notebook's:** `+ · 📷 · 📎 · 🎤`, then Send.
 
-## Part 4. Shapes of a work item (SP3, SP4)
+## Part 4. Shapes of a work item (SP3, SP4) — corrected 28 Oct 21:49
 - `+` inside a work item offers Text · Bullet points · Checklist · Table · **Table of tasks** · Photo · File or scan.
-- **Table of tasks:** the work items under one work item (already in the MVP scope) shown as a table with Task · Owner · Due · Status.
-  - **Each row is a real work item:** one owner, its own Done → Checked, and its own proof on that person's profile.
-  - "Add a task" adds a row, which is a new work item under it.
-  - The parent shows the table instead of a list. This is a display choice saved on the parent; it is not a new kind.
-- **Table** (plain) is the existing table block. It has no owners.
+- **Table of tasks** (founder: one owner, not one per row):
+  - **The work item keeps its one owner.** The rows are tasks in a table: a tick, Task, Note.
+  - **The owner** (or a Lead) ticks each row. A tick is not a signature.
+  - The For line shows the progress: "1 of 3 ticked".
+  - **"Sign as done" happens once, for the whole item, with one proof photo,** as for any work item. It is offered at any time, not only when every row is ticked.
+  - A ticked row is crossed out. "Add a row" adds a row.
+  - It is stored as a table block with a tick column inside the work item. **It is not work items under one work item.**
+- **Table** (plain) is the existing table block, with no ticks.
 - **Bullet points** are the existing text blocks with a bullet.
-- **Arabic:** the columns mirror, with Task at the right.
+- **Arabic:** the columns mirror, with the tick at the right.
 
 ## Part 5. Site tags (SP1–SP3)
 - **Each Space keeps a short list of places:** levels, zones, grids ("L3 · Grid B4").
@@ -117,7 +120,6 @@
 2. **105B, one migration:**
    - the `space_places` table, with RLS: members read, people who may post insert, Leads edit and delete;
    - `place_id` on posts;
-   - the parent's `children_layout` (`list` | `table`);
    - archive for Leads on Checked items (`archived_at`, `archived_by`);
    - `remove_member_with_handover(space, member, [item → new owner])`.
    - pgTAP tests prove a non-member can't read or write any of it.
