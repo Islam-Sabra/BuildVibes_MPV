@@ -5474,4 +5474,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookSortOff => 'Back to the usual order';
+
+  @override
+  String notebookConfirmDeleteEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete these entries?',
+      one: 'Delete this entry?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeletePages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete these pages and everything in them?',
+      one: 'Delete this page and everything in it?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeleteLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete these lines?',
+      one: 'Delete this line?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteDraft => 'Delete this draft?';
+
+  @override
+  String notebookConfirmDeleteKeptFor(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'It goes to Deleted items for $days days.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteKept => 'It goes to Deleted items.';
+
+  @override
+  String get notebookConfirmDeleteNotKept => 'It isn\'t kept in Deleted items.';
 }

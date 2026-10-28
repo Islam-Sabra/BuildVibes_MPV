@@ -7833,5 +7833,53 @@
   "notebookSortOff": "Back to the usual order",
   "@notebookSortOff": {
     "description": "Review 102 N5: for screen readers, the sort chip's ✕."
+  },
+  "notebookConfirmDeleteEntries": "{count, plural, =1{Delete this entry?} other{Delete these entries?}}",
+  "@notebookConfirmDeleteEntries": {
+    "description": "Review 104 N6: the confirm before entries are deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeletePages": "{count, plural, =1{Delete this page and everything in it?} other{Delete these pages and everything in them?}}",
+  "@notebookConfirmDeletePages": {
+    "description": "Review 104 N6: the confirm before pages are deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeleteLines": "{count, plural, =1{Delete this line?} other{Delete these lines?}}",
+  "@notebookConfirmDeleteLines": {
+    "description": "Review 104 N6: the confirm before lines selected with the bottom bar are deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeleteDraft": "Delete this draft?",
+  "@notebookConfirmDeleteDraft": {
+    "description": "Review 104 N6: the confirm before a Draft is discarded."
+  },
+  "notebookConfirmDeleteKeptFor": "{days, plural, other{It goes to Deleted items for {days} days.}}",
+  "@notebookConfirmDeleteKeptFor": {
+    "description": "Review 104 N6: the confirm's body; days is the person's 7, 30 or 90.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookConfirmDeleteKept": "It goes to Deleted items.",
+  "@notebookConfirmDeleteKept": {
+    "description": "Review 104 N6: the confirm's body when the days can't be read (no signal)."
+  },
+  "notebookConfirmDeleteNotKept": "It isn't kept in Deleted items.",
+  "@notebookConfirmDeleteNotKept": {
+    "description": "Review 104 N6: the confirm's body for what was never saved (a Draft, lines written in this edit)."
   }
 }

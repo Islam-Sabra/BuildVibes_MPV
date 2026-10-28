@@ -295,6 +295,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   Future<void> _discardWriting() async {
     final draft = ref.read(noteDraftProvider);
     if (draft == null || draft.editing != null) return;
+    // N6: asked first; Cancel goes back to writing.
+    if (!await _sureDiscard() || !mounted) return;
     _closeBar();
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
@@ -304,6 +306,15 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     await _discardDraft(draft, writing: true);
     if (widget.pageId == null && mounted) Navigator.of(context).maybePop();
   }
+
+  /// Review 104 N6: a Draft's Discard asks first; it isn't kept in
+  /// Deleted items.
+  Future<bool> _sureDiscard() => confirmNotebookDelete(
+    context,
+    ref,
+    title: AppLocalizations.of(context).notebookConfirmDeleteDraft,
+    kept: false,
+  );
 
   /// A Draft's card swiped toward the start (review 100 Part 3b), or the
   /// entry being written discarded: gone, with Undo.
@@ -1690,6 +1701,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// Undo for 5 s, kept in the phone's outbox, then in Deleted items (99B).
   Future<void> _deleteSelected(List<Note> notes) async {
     final l10n = AppLocalizations.of(context);
+    // N6: asked first; Cancel keeps them selected.
+    final yes = await confirmNotebookDelete(
+      context,
+      ref,
+      title: l10n.notebookConfirmDeleteEntries(notes.length),
+    );
+    if (!yes || !mounted) return;
     setState(_selected.clear);
     await holdWithUndo(
       context,
@@ -1703,6 +1721,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
 
   /// How many lines of the entry being written are selected (BH12).
   int _linesPicked = 0;
+
+  /// Delete on the selected lines (N6): asked first. Lines of a saved
+  /// entry go to Deleted items; lines written in this edit just go.
+  Future<void> _deleteLines() async {
+    final editor = _editorKey.currentState;
+    if (editor == null) return;
+    final saved = {
+      for (final b
+          in ref.read(noteDraftProvider)?.editing?.blocks ??
+              const <PageBlock>[])
+        b.id,
+    };
+    final yes = await confirmNotebookDelete(
+      context,
+      ref,
+      title: AppLocalizations.of(
+        context,
+      ).notebookConfirmDeleteLines(_linesPicked),
+      kept: editor.selectedLineIds.every(saved.contains),
+    );
+    if (yes && mounted) _editorKey.currentState?.deleteSelectedLines();
+  }
 
   /// The selection bar, where Share's card opens (BH4).
   final _selectionBarKey = GlobalKey();
@@ -1868,6 +1908,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         if (pick == null) return;
         await notebook.movePages([page.id], pick.id);
       case 'delete':
+        // N6: asked first.
+        final yes = await confirmNotebookDelete(
+          context,
+          ref,
+          title: l10n.notebookConfirmDeletePages(1),
+        );
+        if (!yes || !mounted) return;
         await holdWithUndo(
           context,
           ref,
@@ -2257,6 +2304,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                   icon: BvIcons.discard,
                   label: l10n.notebookDiscardDraft,
                   color: BvColors.textDestructive,
+                  // N6: asked first; Cancel puts the card back.
+                  confirm: _sureDiscard,
                   onTap: () => unawaited(_discardDraft(d)),
                 ),
                 child: writingSlip(d, writing: false),
@@ -2548,8 +2597,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                       icon: BvIcons.delete,
                       label: l10n.delete,
                       destructive: true,
-                      onTap: () =>
-                          _editorKey.currentState?.deleteSelectedLines(),
+                      onTap: () => unawaited(_deleteLines()),
                     ),
                   ],
                 )

@@ -5507,4 +5507,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookSortOff => 'العودة إلى الترتيب المعتاد';
+
+  @override
+  String notebookConfirmDeleteEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف هذه التدوينات؟',
+      one: 'حذف هذه التدوينة؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeletePages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف هذه الصفحات وكل ما فيها؟',
+      one: 'حذف هذه الصفحة وكل ما فيها؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeleteLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف هذه الأسطر؟',
+      one: 'حذف هذا السطر؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteDraft => 'حذف هذه المسودة؟';
+
+  @override
+  String notebookConfirmDeleteKeptFor(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'يذهب إلى المحذوفات لمدة $days يوم.',
+      many: 'يذهب إلى المحذوفات لمدة $days يومًا.',
+      few: 'يذهب إلى المحذوفات لمدة $days أيام.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteKept => 'يذهب إلى المحذوفات.';
+
+  @override
+  String get notebookConfirmDeleteNotKept => 'لا يُحفظ في المحذوفات.';
 }

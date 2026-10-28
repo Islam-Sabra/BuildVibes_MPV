@@ -199,6 +199,7 @@ void main() {
       await tester.longPress(_key('note-note-yesterday'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-delete'));
+      await _tap(tester, _key('bv-dialog-confirm'));
       expect(app.reminders.onPhone, isEmpty);
     });
 

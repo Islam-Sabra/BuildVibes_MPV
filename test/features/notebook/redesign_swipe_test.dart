@@ -301,6 +301,8 @@ void main() {
         expect(find.text(l10n.notebookDiscardDraft), findsOneWidget);
         await tester.tap(_key('swipe-discard-draft-1'));
         await tester.pumpAndSettle();
+        await tester.tap(_key('bv-dialog-confirm'));
+        await tester.pumpAndSettle();
         expect(_key('note-draft-card-draft-1'), findsNothing);
         expect(find.text(l10n.notebookDraftDiscarded), findsOneWidget);
         await tester.tap(find.text(l10n.daybookUndo));

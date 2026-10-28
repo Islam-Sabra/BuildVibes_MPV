@@ -109,6 +109,7 @@ void main() {
       await tester.longPress(_key('note-entry-gate'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-delete'));
+      await _tap(tester, _key('bv-dialog-confirm'));
       await _tap(tester, _key('page-filter'));
       await _tap(tester, _key('filter-show-todos_open'));
       expect(_key('filter-hit-entry-pour'), findsOneWidget);
@@ -163,6 +164,7 @@ void main() {
       await tester.longPress(_key('note-marker-b-2'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-delete'));
+      await _tap(tester, _key('bv-dialog-confirm'));
       final held = app.prefs.getString('notebook_held:user-1');
       expect(held, isNotNull);
       final change = jsonDecode(held!) as Map<String, dynamic>;

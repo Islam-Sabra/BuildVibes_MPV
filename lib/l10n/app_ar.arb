@@ -1519,5 +1519,12 @@
   "notebookSortCreated": "الأحدث إنشاءً",
   "notebookSortNewest": "الأحدث أولًا",
   "notebookSortOldest": "الأقدم أولًا",
-  "notebookSortOff": "العودة إلى الترتيب المعتاد"
+  "notebookSortOff": "العودة إلى الترتيب المعتاد",
+  "notebookConfirmDeleteEntries": "{count, plural, =1{حذف هذه التدوينة؟} other{حذف هذه التدوينات؟}}",
+  "notebookConfirmDeletePages": "{count, plural, =1{حذف هذه الصفحة وكل ما فيها؟} other{حذف هذه الصفحات وكل ما فيها؟}}",
+  "notebookConfirmDeleteLines": "{count, plural, =1{حذف هذا السطر؟} other{حذف هذه الأسطر؟}}",
+  "notebookConfirmDeleteDraft": "حذف هذه المسودة؟",
+  "notebookConfirmDeleteKeptFor": "{days, plural, few{يذهب إلى المحذوفات لمدة {days} أيام.} many{يذهب إلى المحذوفات لمدة {days} يومًا.} other{يذهب إلى المحذوفات لمدة {days} يوم.}}",
+  "notebookConfirmDeleteKept": "يذهب إلى المحذوفات.",
+  "notebookConfirmDeleteNotKept": "لا يُحفظ في المحذوفات."
 }

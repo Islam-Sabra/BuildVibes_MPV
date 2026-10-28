@@ -196,6 +196,13 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
 
   Future<void> _delete() async {
     final l10n = AppLocalizations.of(context);
+    // Review 104 N6: asked first; Cancel keeps them selected.
+    final yes = await confirmNotebookDelete(
+      context,
+      ref,
+      title: l10n.notebookConfirmDeletePages(_selected.length),
+    );
+    if (!yes || !mounted) return;
     final ids = [..._selected];
     setState(_selected.clear);
     await holdWithUndo(

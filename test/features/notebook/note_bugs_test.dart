@@ -461,6 +461,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         await _tap(tester, _key('swipe-discard-draft-1'));
+        await _tap(tester, _key('bv-dialog-confirm'));
         expect(_key('note-draft'), findsNothing);
         await tester.tap(find.text(l10n.daybookUndo));
         await tester.pumpAndSettle();

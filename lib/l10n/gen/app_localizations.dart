@@ -9217,6 +9217,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to the usual order'**
   String get notebookSortOff;
+
+  /// Review 104 N6: the confirm before entries are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this entry?} other{Delete these entries?}}'**
+  String notebookConfirmDeleteEntries(int count);
+
+  /// Review 104 N6: the confirm before pages are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this page and everything in it?} other{Delete these pages and everything in them?}}'**
+  String notebookConfirmDeletePages(int count);
+
+  /// Review 104 N6: the confirm before lines selected with the bottom bar are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this line?} other{Delete these lines?}}'**
+  String notebookConfirmDeleteLines(int count);
+
+  /// Review 104 N6: the confirm before a Draft is discarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this draft?'**
+  String get notebookConfirmDeleteDraft;
+
+  /// Review 104 N6: the confirm's body; days is the person's 7, 30 or 90.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, other{It goes to Deleted items for {days} days.}}'**
+  String notebookConfirmDeleteKeptFor(int days);
+
+  /// Review 104 N6: the confirm's body when the days can't be read (no signal).
+  ///
+  /// In en, this message translates to:
+  /// **'It goes to Deleted items.'**
+  String get notebookConfirmDeleteKept;
+
+  /// Review 104 N6: the confirm's body for what was never saved (a Draft, lines written in this edit).
+  ///
+  /// In en, this message translates to:
+  /// **'It isn\'t kept in Deleted items.'**
+  String get notebookConfirmDeleteNotKept;
 }
 
 class _AppLocalizationsDelegate
