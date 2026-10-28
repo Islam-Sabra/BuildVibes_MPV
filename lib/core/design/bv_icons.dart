@@ -374,4 +374,9 @@ abstract final class BvIcons {
   static const sortCreated = IconData(0xe714, fontFamily: _family);
   static const sortNewest = IconData(0xe446, fontFamily: _family);
   static const sortOldest = IconData(0xe444, fontFamily: _family);
+
+  // Review 104 N7: Oldest created and Type (Phosphor calendar-blank,
+  // shapes).
+  static const sortOldestCreated = IconData(0xe10a, fontFamily: _family);
+  static const sortType = IconData(0xec5e, fontFamily: _family);
 }

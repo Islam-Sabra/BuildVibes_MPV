@@ -7881,5 +7881,37 @@
   "notebookConfirmDeleteNotKept": "It isn't kept in Deleted items.",
   "@notebookConfirmDeleteNotKept": {
     "description": "Review 104 N6: the confirm's body for what was never saved (a Draft, lines written in this edit)."
+  },
+  "notebookSortOldestCreated": "Oldest created",
+  "@notebookSortOldestCreated": {
+    "description": "Review 104 N7: the pages list's SORT, oldest page first."
+  },
+  "notebookSortType": "Type",
+  "@notebookSortType": {
+    "description": "Review 104 N7: a page's SORT, entries grouped by what they hold."
+  },
+  "notebookTypeTodos": "To-dos",
+  "@notebookTypeTodos": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeChecklists": "Checklists",
+  "@notebookTypeChecklists": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypePhotos": "Photos",
+  "@notebookTypePhotos": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeFiles": "Files",
+  "@notebookTypeFiles": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeVoice": "Voice notes",
+  "@notebookTypeVoice": {
+    "description": "Review 104 N7: a Type group's label."
+  },
+  "notebookTypeText": "Text",
+  "@notebookTypeText": {
+    "description": "Review 104 N7: a Type group's label."
   }
 }

@@ -8,7 +8,9 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
 import '../../core/l10n/bidi.dart';
 import '../../core/routing/app_routes.dart';
+import '../../data/models/note.dart';
 import '../../data/models/notebook_page.dart';
+import '../../data/models/post_page.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_line_popover.dart';
@@ -60,12 +62,13 @@ abstract interface class NoteSort {
   IconData get icon;
 }
 
-/// How the pages list is sorted (N5), one single choice; pinned pages stay
-/// on top in each.
+/// How the pages list is sorted (N5, review 104 N7), one single choice;
+/// pinned pages stay on top in each.
 enum PageSort implements NoteSort {
   activity('activity'),
   name('name'),
-  created('created');
+  created('created'),
+  oldestCreated('oldest_created');
 
   const PageSort(this.json);
 
@@ -80,6 +83,7 @@ enum PageSort implements NoteSort {
     activity => l10n.notebookSortActivity,
     name => l10n.notebookSortName,
     created => l10n.notebookSortCreated,
+    oldestCreated => l10n.notebookSortOldestCreated,
   };
 
   @override
@@ -87,6 +91,7 @@ enum PageSort implements NoteSort {
     activity => BvIcons.sortActivity,
     name => BvIcons.sortName,
     created => BvIcons.sortCreated,
+    oldestCreated => BvIcons.sortOldestCreated,
   };
 
   /// The pages in this sort, those pinned first; [name] is each page's
@@ -100,14 +105,18 @@ enum PageSort implements NoteSort {
       activity => b.lastActivityAt.compareTo(a.lastActivityAt),
       PageSort.name => byName(lang)(name(a), name(b)),
       created => b.createdAt.compareTo(a.createdAt),
+      oldestCreated => a.createdAt.compareTo(b.createdAt),
     };
   };
 }
 
-/// How a page's entries are sorted (N5), one single choice.
+/// How a page's entries are sorted (N5, review 104 N7), one single choice.
+/// Day headers and the hand order (N3) are only in the two date sorts.
 enum EntrySort implements NoteSort {
   newest('newest'),
-  oldest('oldest');
+  oldest('oldest'),
+  name('name'),
+  type('type');
 
   const EntrySort(this.json);
 
@@ -121,13 +130,88 @@ enum EntrySort implements NoteSort {
   String label(AppLocalizations l10n) => switch (this) {
     newest => l10n.notebookSortNewest,
     oldest => l10n.notebookSortOldest,
+    EntrySort.name => l10n.notebookSortName,
+    type => l10n.notebookSortType,
   };
 
   @override
   IconData get icon => switch (this) {
     newest => BvIcons.sortNewest,
     oldest => BvIcons.sortOldest,
+    EntrySort.name => BvIcons.sortName,
+    type => BvIcons.sortType,
   };
+
+  /// Newest first or Oldest first: by day, with the hand order.
+  bool get byDate => this == newest || this == oldest;
+
+  /// [notes] (newest first, as the page keeps them) in this sort; [lang]
+  /// for Name A–Z. Type keeps newest first inside each group.
+  List<Note> sorted(List<Note> notes, String lang) => switch (this) {
+    newest => notes,
+    oldest => notes.reversed.toList(),
+    EntrySort.name =>
+      [...notes]..sort((a, b) {
+        final by = byName(lang)(entryName(a), entryName(b));
+        return by != 0 ? by : b.createdAt.compareTo(a.createdAt);
+      }),
+    type => [
+      for (final t in EntryType.values)
+        for (final n in notes)
+          if (EntryType.of(n) == t) n,
+    ],
+  };
+}
+
+/// An entry's name for Name A–Z (N7): its title, or its first line when
+/// it has none.
+String entryName(Note n) {
+  final title = n.title.trim();
+  if (title.isNotEmpty) return title;
+  for (final b in n.blocks ?? const <PageBlock>[]) {
+    final words = blockWords(b);
+    if (words.isNotEmpty) return words.first;
+  }
+  return n.body.trim().split('\n').first;
+}
+
+/// The groups of the Type sort (N7), in their order: an entry goes under
+/// the first it has.
+enum EntryType {
+  todos,
+  checklists,
+  photos,
+  files,
+  voice,
+  text;
+
+  String label(AppLocalizations l10n) => switch (this) {
+    todos => l10n.notebookTypeTodos,
+    checklists => l10n.notebookTypeChecklists,
+    photos => l10n.notebookTypePhotos,
+    files => l10n.notebookTypeFiles,
+    voice => l10n.notebookTypeVoice,
+    text => l10n.notebookTypeText,
+  };
+
+  static EntryType of(Note n) {
+    final blocks = <PageBlock>[];
+    void walk(List<PageBlock> list) {
+      for (final b in list) {
+        blocks.add(b);
+        if (b case PageToggle(:final children)) walk(children);
+      }
+    }
+
+    walk(n.blocks ?? const []);
+    bool has<T>() => blocks.any((b) => b is T);
+    if (n.kind == NoteKind.todo || has<PageTodo>()) return todos;
+    if (n.kind == NoteKind.checklist) return checklists;
+    if (n.photos.isNotEmpty || has<PagePhoto>()) return photos;
+    if (n.files.isNotEmpty || has<PageFile>()) return files;
+    if (n.kind == NoteKind.voice || has<PageVoice>()) return voice;
+    return text;
+  }
 }
 
 /// Where the phone keeps the pages list's sort, and each page's (N5).

@@ -5561,4 +5561,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookConfirmDeleteNotKept => 'لا يُحفظ في المحذوفات.';
+
+  @override
+  String get notebookSortOldestCreated => 'الأقدم إنشاءً';
+
+  @override
+  String get notebookSortType => 'النوع';
+
+  @override
+  String get notebookTypeTodos => 'مهام';
+
+  @override
+  String get notebookTypeChecklists => 'قوائم تحقق';
+
+  @override
+  String get notebookTypePhotos => 'صور';
+
+  @override
+  String get notebookTypeFiles => 'ملفات';
+
+  @override
+  String get notebookTypeVoice => 'ملاحظات صوتية';
+
+  @override
+  String get notebookTypeText => 'نص';
 }

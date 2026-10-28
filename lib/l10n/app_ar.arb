@@ -1526,5 +1526,13 @@
   "notebookConfirmDeleteDraft": "حذف هذه المسودة؟",
   "notebookConfirmDeleteKeptFor": "{days, plural, few{يذهب إلى المحذوفات لمدة {days} أيام.} many{يذهب إلى المحذوفات لمدة {days} يومًا.} other{يذهب إلى المحذوفات لمدة {days} يوم.}}",
   "notebookConfirmDeleteKept": "يذهب إلى المحذوفات.",
-  "notebookConfirmDeleteNotKept": "لا يُحفظ في المحذوفات."
+  "notebookConfirmDeleteNotKept": "لا يُحفظ في المحذوفات.",
+  "notebookSortOldestCreated": "الأقدم إنشاءً",
+  "notebookSortType": "النوع",
+  "notebookTypeTodos": "مهام",
+  "notebookTypeChecklists": "قوائم تحقق",
+  "notebookTypePhotos": "صور",
+  "notebookTypeFiles": "ملفات",
+  "notebookTypeVoice": "ملاحظات صوتية",
+  "notebookTypeText": "نص"
 }

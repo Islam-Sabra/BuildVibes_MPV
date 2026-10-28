@@ -552,8 +552,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   OverlayEntry? _lifted;
   Timer? _edge;
 
+  /// Held and moved within its day: only in the date sorts (N7).
   bool _canArrange(Note n, bool selecting) =>
-      !widget.archived && !selecting && !n.pinned;
+      !widget.archived && !selecting && !n.pinned && _sort.byDate;
 
   bool get _stillMotion => MediaQuery.of(context).disableAnimations;
 
@@ -2006,8 +2007,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         : widget.archived
         ? data.archived(page.id)
         : data.entries(page.id);
-    // Newest first as kept, or oldest first (review 102 N5).
-    final entries = _sort == EntrySort.oldest ? kept.reversed.toList() : kept;
+    // Newest first as kept, or in the page's sort (review 104 N7).
+    final entries = _sort.sorted(
+      kept,
+      Localizations.localeOf(context).languageCode,
+    );
     final chosen = [
       for (final n in entries)
         if (_selected.contains(n.id)) n,
@@ -2150,10 +2154,28 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       for (final n in entries)
         if (n.pinned) n,
     ];
+    // N7: day headers only in the date sorts; Name A–Z is one list, Type
+    // a list under each group's label.
     final byDay = <DateTime, List<Note>>{};
+    final byType = <EntryType, List<Note>>{};
+    final named = <Note>[];
     for (final n in entries) {
-      if (!n.pinned) byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
+      if (n.pinned) continue;
+      switch (_sort) {
+        case EntrySort.newest || EntrySort.oldest:
+          byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
+        case EntrySort.type:
+          byType.putIfAbsent(EntryType.of(n), () => []).add(n);
+        case EntrySort.name:
+          named.add(n);
+      }
     }
+    final firstShown = [
+      ...pinned,
+      for (final notes in byDay.values) ...notes,
+      ...named,
+      for (final notes in byType.values) ...notes,
+    ].firstOrNull;
     // Review 102 N3: each day in its hand order.
     for (final day in byDay.keys.toList()) {
       byDay[day] = inHandOrder(
@@ -2320,7 +2342,29 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           for (final n in pinned)
             (
               ValueKey(('entry-row', n.id)),
-              () => entry(n, first: n == entries.first),
+              () => entry(n, first: n == firstShown),
+            ),
+        ],
+        for (final n in named)
+          (
+            ValueKey(('entry-row', n.id)),
+            () => entry(n, first: n == firstShown),
+          ),
+        for (final MapEntry(key: kind, value: notes) in byType.entries) ...[
+          (
+            ValueKey(('type-row', kind)),
+            () => Padding(
+              key: Key('type-label-${kind.name}'),
+              padding: const EdgeInsetsDirectional.only(
+                top: BvNotebookPagesSpec.dayTop,
+              ),
+              child: NotebookLabel(kind.label(l10n)),
+            ),
+          ),
+          for (final n in notes)
+            (
+              ValueKey(('entry-row', n.id)),
+              () => entry(n, first: n == firstShown),
             ),
         ],
         for (final day in byDay.keys) ...[
@@ -2336,13 +2380,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           for (final n in byDay[day]!)
             (
               ValueKey(('entry-row', n.id)),
-              () => entry(
-                n,
-                first:
-                    pinned.isEmpty &&
-                    n == byDay[day]!.first &&
-                    day == byDay.keys.first,
-              ),
+              () => entry(n, first: n == firstShown),
             ),
         ],
         if (widget.archived && entries.isEmpty && notebook.hasValue)

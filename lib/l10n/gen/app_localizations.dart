@@ -9259,6 +9259,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It isn\'t kept in Deleted items.'**
   String get notebookConfirmDeleteNotKept;
+
+  /// Review 104 N7: the pages list's SORT, oldest page first.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest created'**
+  String get notebookSortOldestCreated;
+
+  /// Review 104 N7: a page's SORT, entries grouped by what they hold.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get notebookSortType;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos'**
+  String get notebookTypeTodos;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get notebookTypeChecklists;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get notebookTypePhotos;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get notebookTypeFiles;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice notes'**
+  String get notebookTypeVoice;
+
+  /// Review 104 N7: a Type group's label.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get notebookTypeText;
 }
 
 class _AppLocalizationsDelegate

@@ -5526,4 +5526,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookConfirmDeleteNotKept => 'It isn\'t kept in Deleted items.';
+
+  @override
+  String get notebookSortOldestCreated => 'Oldest created';
+
+  @override
+  String get notebookSortType => 'Type';
+
+  @override
+  String get notebookTypeTodos => 'To-dos';
+
+  @override
+  String get notebookTypeChecklists => 'Checklists';
+
+  @override
+  String get notebookTypePhotos => 'Photos';
+
+  @override
+  String get notebookTypeFiles => 'Files';
+
+  @override
+  String get notebookTypeVoice => 'Voice notes';
+
+  @override
+  String get notebookTypeText => 'Text';
 }
