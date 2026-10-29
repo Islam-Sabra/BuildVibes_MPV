@@ -1521,5 +1521,7 @@
   "notebookSortOldest": "الأقدم أولًا",
   "notebookSortOff": "العودة إلى الترتيب المعتاد",
   "spacesPeopleWaiting": "طلبات انضمام بانتظارك",
-  "spacesInfoWorkTools": "العمل"
+  "spacesInfoWorkTools": "العمل",
+  "cameraPhoto": "صورة",
+  "cameraWalk": "جولة"
 }

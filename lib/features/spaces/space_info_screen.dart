@@ -283,17 +283,12 @@ class SpaceInfoScreen extends ConsumerWidget {
           ),
           const SizedBox(height: BvInfoSpec.groupGap),
           // Review 105 Part 1: what the Space's ⋯ held, now that the name
-          // opens this. Walk the site for who may post work; the daily
-          // report for a Lead or Crew, opened on Work.
+          // opens this: the week report, and the daily report for a Lead
+          // or Crew, opened on Work. Walk mode is in the camera, one tap
+          // from Work (the lead's rulings on 105A).
           BvInfoGroup(
             label: l10n.spacesInfoWorkTools,
             rows: [
-              if (space.myRights.createItems)
-                BvInfoRow(
-                  key: const Key('info-walk'),
-                  title: l10n.walkMenu,
-                  onTap: () => context.pop(SpaceInfoAction.walk),
-                ),
               BvInfoRow(
                 key: const Key('info-week'),
                 title: l10n.weekReportTitle,

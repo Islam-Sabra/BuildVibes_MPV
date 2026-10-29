@@ -257,3 +257,12 @@ abstract final class BvReplySpec {
   static const sendSize = BvSize.touchMin;
   static const sendIcon = BvSize.iconMd;
 }
+
+/// The post bar's camera (the lead's rulings on 105A): one choice at the
+/// bottom, Photo · Walk, each a tile with its icon over its word.
+abstract final class BvCameraModesSpec {
+  static const tileHeight = 88.0;
+  static const tileGap = BvSpace.s12;
+  static const iconGap = BvSpace.s8;
+  static const radius = BvRadius.cardAll;
+}

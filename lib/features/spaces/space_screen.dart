@@ -202,9 +202,6 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
           _reportStart = DaybookReportStart();
           _tab = SpaceScreen.workTab;
         });
-      case SpaceInfoAction.walk:
-        _show(SpaceScreen.workTab);
-        await context.push(AppRoutes.spaceWalk(widget.spaceId));
       case null:
         break;
     }

@@ -70,6 +70,7 @@ import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_attach.dart';
+import 'daybook_camera.dart';
 import 'daybook_card.dart';
 import 'daybook_draft.dart';
 import 'daybook_kinds.dart';
@@ -773,6 +774,26 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   }
 
   /// Opens the card at "Now", with a new post id (or the Draft's).
+  /// The post bar's camera: Photo writes a work item with the photo; Walk
+  /// opens Walk mode, for who may post work (slice 6). Without that right
+  /// it is Photo at once.
+  Future<void> _camera() async {
+    final walks = widget.space.myRights.createItems;
+    final mode = walks
+        ? await showDaybookCameraModes(context)
+        : DaybookCameraMode.photo;
+    if (!mounted) return;
+    switch (mode) {
+      case DaybookCameraMode.photo:
+        _startWriting();
+        await _photos(_writer.addPhoto());
+      case DaybookCameraMode.walk:
+        await context.push(AppRoutes.spaceWalk(_spaceId));
+      case null:
+        break;
+    }
+  }
+
   void _startWriting() {
     ref
         .read(daybookDraftProvider(_spaceId).notifier)
@@ -1536,12 +1557,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   placeholder: l10n.daybookWorkItem,
                   onWrite: _startWriting,
                   cameraLabel: l10n.daybookHoldToProve,
-                  // A tap writes a work item with a photo; holding proves
-                  // your open work item (O1 → O2).
-                  onCamera: () {
-                    _startWriting();
-                    unawaited(_photos(_writer.addPhoto()));
-                  },
+                  // A tap opens Photo · Walk (the lead's rulings on 105A);
+                  // holding proves your open work item (O1 → O2).
+                  onCamera: () => unawaited(_camera()),
                   onProve: prove == null
                       ? null
                       : () => unawaited(_loop.signDone(context, prove)),

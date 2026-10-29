@@ -151,11 +151,11 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
-/// Review 105 Part 1: what the Space's ⋯ held is in Space info, opened by
-/// the Space's name.
-Future<void> _menu(WidgetTester tester, String label) async {
-  await _tap(tester, _key('space-header'));
-  await _tap(tester, find.text(label));
+/// The lead's rulings on 105A: Walk mode is in the camera, one tap from
+/// Work: the post bar's camera opens Photo · Walk.
+Future<void> _openWalk(WidgetTester tester) async {
+  await _tap(tester, _key('post-bar-camera'));
+  await _tap(tester, _key('camera-walk'));
 }
 
 Future<void> _owner(WidgetTester tester, String name) async {
@@ -175,7 +175,7 @@ void main() {
         'photo, each photo in its own work item [$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       expect(find.byType(WalkScreen), findsOneWidget);
       // A name first.
       expect(
@@ -229,7 +229,7 @@ void main() {
       expect(find.byType(WalkScreen), findsNothing);
 
       // F95: the next walk in this Space starts where this one was.
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       expect(
         tester.widget<TextField>(_key('walk-place')).controller?.text,
         'Level 4 corridor',
@@ -259,7 +259,7 @@ void main() {
         'the photos away [$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, roof');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -273,15 +273,64 @@ void main() {
       expect(daybook.createdWalks, isEmpty);
     });
 
-    testWidgets('a Viewer has no Walk the site [$lang]', (tester) async {
+    testWidgets('a Viewer has no Walk the site: no camera [$lang]', (
+      tester,
+    ) async {
       await _open(
         tester,
         lang,
         me: DaybookSamples.mona,
         pass: SpacePass.viewer,
       );
+      expect(_key('post-bar-camera'), findsNothing);
       await _tap(tester, _key('space-header'));
       expect(find.text(l10n.walkMenu), findsNothing);
+    });
+
+    testWidgets('the camera opens one choice at the bottom, Photo · Walk; '
+        'Walk is not in Space info [$lang]', (tester) async {
+      await _open(tester, lang, withWalk: false);
+      await _tap(tester, _key('space-header'));
+      expect(_key('info-walk'), findsNothing);
+      expect(find.text(l10n.walkMenu), findsNothing);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('post-bar-camera'));
+      expect(_key('camera-modes'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _key('camera-photo'),
+          matching: find.text(l10n.cameraPhoto),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _key('camera-walk'),
+          matching: find.text(l10n.cameraWalk),
+        ),
+        findsOneWidget,
+      );
+      // At the bottom, Photo first in the reading direction.
+      final size = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(
+        tester.getRect(_key('camera-modes')).bottom,
+        greaterThan(size.height * 0.75),
+      );
+      final photo = tester.getCenter(_key('camera-photo')).dx;
+      final walk = tester.getCenter(_key('camera-walk')).dx;
+      expect(lang == 'ar' ? photo > walk : photo < walk, isTrue);
+      await _tap(tester, _key('camera-walk'));
+      expect(find.byType(WalkScreen), findsOneWidget);
+    });
+
+    testWidgets('Photo writes a work item with the photo, as the camera '
+        'did [$lang]', (tester) async {
+      await _open(tester, lang, withWalk: false);
+      await _tap(tester, _key('post-bar-camera'));
+      await _tap(tester, _key('camera-photo'));
+      expect(_key('daybook-writing-card'), findsOneWidget);
+      expect(_key('camera-modes'), findsNothing);
     });
 
     testWidgets('R1b: one card for the walk, a row per work item, N of M '
@@ -397,7 +446,7 @@ void main() {
         '[$lang]', (tester) async {
       final daybook = FakeDaybookRepository()..offline = true;
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, stairs');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -414,7 +463,7 @@ void main() {
         'away asks first [$lang]', (tester) async {
       final daybook = FakeDaybookRepository()..refuseWalk = true;
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, stairs');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -442,7 +491,7 @@ void main() {
     ) async {
       final daybook = FakeDaybookRepository()..refuseWalk = true;
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, stairs');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -464,7 +513,7 @@ void main() {
         '[$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       final app = await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, level 4');
       await tester.enterText(_key('walk-place'), 'Level 4 corridor');
       await tester.pumpAndSettle();

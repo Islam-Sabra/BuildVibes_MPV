@@ -374,4 +374,7 @@ abstract final class BvIcons {
   static const sortCreated = IconData(0xe714, fontFamily: _family);
   static const sortNewest = IconData(0xe446, fontFamily: _family);
   static const sortOldest = IconData(0xe444, fontFamily: _family);
+
+  // The lead's rulings on 105A: Walk in the camera (Phosphor footprints).
+  static const walk = IconData(0xea88, fontFamily: _family);
 }

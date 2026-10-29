@@ -161,15 +161,16 @@ void main() {
       });
 
       testWidgets('the name opens Space info, which holds what ⋯ held: '
-          'Walk the site, the week report and the daily report', (
+          'the week report and the daily report (Walk is in the camera)', (
         tester,
       ) async {
         await _open(tester, lang);
         await _tap(tester, _key('space-header'));
         expect(find.byType(SpaceInfoScreen), findsOneWidget);
-        for (final k in ['info-walk', 'info-week', 'info-report']) {
+        for (final k in ['info-week', 'info-report']) {
           expect(_key(k), findsOneWidget, reason: k);
         }
+        expect(_key('info-walk'), findsNothing);
         // The daily report opens on Work, writing it.
         await _tap(tester, _key('info-report'));
         expect(find.byType(SpaceInfoScreen), findsNothing);

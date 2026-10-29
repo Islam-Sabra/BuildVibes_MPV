@@ -5480,4 +5480,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spacesInfoWorkTools => 'Work';
+
+  @override
+  String get cameraPhoto => 'Photo';
+
+  @override
+  String get cameraWalk => 'Walk';
 }

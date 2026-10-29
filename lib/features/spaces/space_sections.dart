@@ -105,9 +105,8 @@ class _SectionScaffold extends StatelessWidget {
 }
 
 /// What Space info hands back to the Space (review 105 Part 1: it holds
-/// what ⋯ held): the daily report opens on Work, and a walk starts from
-/// the Space, so it comes back to Work.
-enum SpaceInfoAction { dailyReport, walk }
+/// what ⋯ held): the daily report opens on Work.
+enum SpaceInfoAction { dailyReport }
 
 /// The Space's whole Chat unread, for its Work · Chat switch.
 int spaceUnread(List<ChatThread> threads) =>

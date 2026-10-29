@@ -9229,6 +9229,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Work'**
   String get spacesInfoWorkTools;
+
+  /// The lead's rulings on 105A: the post bar's camera, one photo for a new work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get cameraPhoto;
+
+  /// The lead's rulings on 105A: the post bar's camera, Walk mode (one photo, one work item, keep walking).
+  ///
+  /// In en, this message translates to:
+  /// **'Walk'**
+  String get cameraWalk;
 }
 
 class _AppLocalizationsDelegate
