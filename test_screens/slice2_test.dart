@@ -953,7 +953,7 @@ void main() {
       }
     });
 
-    // Review 72 (F59, F61, F62, F63): for the lead.
+    // Review 72 (F59, F62, F63): for the lead.
     testWidgets('F59 at Now with yesterday\'s cards on top [$lang]', (
       tester,
     ) async {
@@ -980,42 +980,6 @@ void main() {
                   due: wednesday,
                 ),
               ),
-          ],
-        ),
-      );
-    });
-
-    testWidgets('F61 the To do strip [$lang]', (tester) async {
-      await warmSamplePhoto(tester);
-      await shoot(
-        tester,
-        'F61-to-do-strip',
-        lang,
-        _space,
-        folder: _review72,
-        overrides: await _overrides(
-          s,
-          now: DaybookSamples.friday,
-          me: DaybookSamples.omar,
-          posts: s.l1(),
-          calendar: [
-            CalendarWorkItem(
-              postId: 'post-rebar-spacers',
-              spaceId: DaybookSamples.space,
-              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
-              day: DateTime(2026, 10, 11),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-socket',
-              spaceId: DaybookSamples.space,
-              title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
-              day: DateTime(2026, 10, 12),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            s.cableTraysDue(),
           ],
         ),
       );
@@ -1084,65 +1048,6 @@ void main() {
           );
           await _tap(tester, find.byKey(const Key('writing-who')));
         },
-      );
-    });
-
-    // Review 73 A1: the whole strip opens every item.
-    testWidgets('A1 the To do sheet from a long strip [$lang]', (tester) async {
-      await warmSamplePhoto(tester);
-      await shoot(
-        tester,
-        'A1-to-do-sheet',
-        lang,
-        _space,
-        folder: _review72,
-        overrides: await _overrides(
-          s,
-          now: DaybookSamples.friday,
-          me: DaybookSamples.omar,
-          posts: s.l1(),
-          calendar: [
-            CalendarWorkItem(
-              postId: 'post-rebar-spacers',
-              spaceId: DaybookSamples.space,
-              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
-              day: DateTime(2026, 10, 11),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-socket',
-              spaceId: DaybookSamples.space,
-              title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
-              day: DateTime(2026, 10, 12),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-firestop',
-              spaceId: DaybookSamples.space,
-              title: s.t(
-                'Firestopping around the riser sleeves',
-                'سد الحريق حول جلب الصاعد',
-              ),
-              day: DateTime(2026, 10, 14),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-sleeves',
-              spaceId: DaybookSamples.space,
-              title: s.sleeves,
-              day: DateTime(2026, 10, 15),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            s.cableTraysDue(),
-          ],
-        ),
-        // Review 105 SP6: the To do strip and its sheet became the Needs
-        // you line; a tap on it filters Work to what waits on me.
-        before: (tester) => _tap(tester, find.byKey(const Key('needs-you'))),
       );
     });
 

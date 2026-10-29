@@ -129,9 +129,7 @@ void main() {
       await _snap(tester, 'R3-posted', lang);
     });
 
-    testWidgets('MN1 and MR1: the Space menu and the week report [$lang]', (
-      tester,
-    ) async {
+    testWidgets('MR1 the week report [$lang]', (tester) async {
       await _open(tester, lang, path: _space);
       // Review 105 Part 1: the week report is in Space info; MN1 is gone.
       await _tap(tester, _key('space-header'));
