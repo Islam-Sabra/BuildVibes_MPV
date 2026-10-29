@@ -542,9 +542,9 @@ void main() {
               .t('Level 2', 'الدور 2'),
         },
       );
-      // Review 105 Part 1: Walk mode is in Space info.
-      await _tap(tester, _key('space-header'));
-      await _tap(tester, find.text(l10n.walkMenu));
+      // Review 105 H3: Walk is the writing card's last kind chip.
+      await _tap(tester, _key('post-bar-notepad'));
+      await _tap(tester, _key('kind-chip-walk'));
       await _snap(tester, 'F95-walk-place', lang);
     });
 

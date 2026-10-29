@@ -2,17 +2,17 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## Cloud update: 29 Oct 2026 (later) — the lead's check of `claude/r105a`: H1, H2, H4–H9 done; H3 waits on a decision
+## Cloud update: 29 Oct 2026 (later) — the lead's check of `claude/r105a`: H1–H9 done (H3 as the lead ruled)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
 **After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
 
 - **Branch:** `claude/r105a`, this cloud session's, pushed. Nothing merged, nothing live, no deploy, nothing installed, **no migration**.
-- **Commits:** 63e118b H1, H4, H5; 1f3586f H2, H6, H8; 22a200b H7; 5e9a1f9 H9.
+- **Commits:** 63e118b H1, H4, H5; 1f3586f H2, H6, H8; 22a200b H7; 5e9a1f9 H9; 91baa1c H3.
 - **H1:** the post bar's camera has no hold (`onProve` gone from `BvPostBar`); its screen-reader label is "Camera" (`daybookCameraLabel`; `daybookHoldToProve` removed). Sign as done starts only from the work item.
 - **H2:** a pinned announcement: **tap opens** it as an item, **hold selects** it (it joins the selection bar; Delete for its author). Folding is its own 24 chevron at the start of its head (`BvPinnedFold`, key `pinned-fold`; ⌄ open, › folded, mirrored in Arabic), as review 106 T2; the line's trailing › is gone.
-- **H3 — not done, needs a decision.** A Photo · Walk choice *inside* the camera needs a live camera view in the app. Today every photo uses the phone's own camera (`image_picker`), where nothing of ours can be drawn. That needs the `camera` plugin (a new native dependency); adding it was refused by this session's permission check, so the two-tile sheet (`daybook_camera.dart`) stays for now. Options for the founder/lead: (a) allow adding `camera` (official flutter.dev plugin) and build the camera view here or on the PC; (b) keep the sheet until then.
+- **H3 (the lead's ruling, no camera plugin before the pilot; 91baa1c):** the post bar's camera opens the phone's camera **straight away** for a photo post (no sheet). **Walk is the writing card's last kind chip** ("Walk" / «جولة», the camera icon, key `kind-chip-walk`, value `kindChipWalk`), shown only when `SpaceDetail.mayPostWork`; it starts walk mode as before (an empty card is put down first, one with words stays a Draft). The two-tile sheet (`daybook_camera.dart`), `BvCameraModesSpec`, `BvIcons.walk` and the `cameraPhoto` string are gone; `cameraWalk` became `daybookKindWalk`. The F95 walk shot (`review80_test.dart`) now starts from the chip.
 - **H4:** Delete is hidden (not greyed) when a held post can't be deleted (a Checked one).
 - **H5:** Delete of several tries every post; the ones that fail with no signal are named after ("Couldn't delete … Try again.", `daybookDeleteFailed`); ones the server keeps say so as before.
 - **H6:** the registered company uses `BvType.emphasisSm`; the proof card's View uses `textAction`; the 105A spec numbers are on the BvSpace / BvSize / BvRadius scales (Needs you padding 12 and icon 20, writing rows padding and gap 12, kind chips round, proof seal 40 and icon 24, People tag padding 2, header dot inset 8) — small changes in those shots.
