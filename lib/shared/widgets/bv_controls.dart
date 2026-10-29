@@ -11,13 +11,49 @@ import '../../core/design/daybook_writing_specs.dart';
 /// On/off for one setting. Never use switches for choices that exclude each
 /// other: use [BvChoiceCard] for those.
 class BvSwitch extends StatelessWidget {
-  const BvSwitch({super.key, required this.value, required this.onChanged});
+  const BvSwitch({super.key, required this.value, required this.onChanged})
+    : inRow = false;
+
+  /// Review 106 T3: the small one inside a row, 44 × 26, drawn only: the
+  /// row is its tap and says what it is to a screen reader.
+  const BvSwitch.inRow({super.key, required this.value})
+    : onChanged = null,
+      inRow = true;
 
   final bool value;
   final ValueChanged<bool>? onChanged;
+  final bool inRow;
 
   @override
   Widget build(BuildContext context) {
+    if (inRow) {
+      return AnimatedContainer(
+        duration: BvMotion.fast,
+        curve: BvMotion.standard,
+        width: BvControlSpec.switchRowWidth,
+        height: BvControlSpec.switchRowHeight,
+        padding: const EdgeInsetsDirectional.all(BvControlSpec.switchPadding),
+        decoration: BoxDecoration(
+          color: value ? BvColors.actionPrimary : BvColors.borderInput,
+          borderRadius: BvControlSpec.switchRowRadius,
+        ),
+        child: AnimatedAlign(
+          duration: BvMotion.fast,
+          curve: BvMotion.standard,
+          alignment: value
+              ? AlignmentDirectional.centerEnd
+              : AlignmentDirectional.centerStart,
+          child: const DecoratedBox(
+            key: Key('switch-thumb'),
+            decoration: BoxDecoration(
+              color: BvColors.surfaceElevated,
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox.square(dimension: BvControlSpec.switchRowThumb),
+          ),
+        ),
+      );
+    }
     final enabled = onChanged != null;
     final track = !enabled
         ? BvColors.actionDisabled

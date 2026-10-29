@@ -175,11 +175,12 @@ void main() {
           'photos',
           'files',
           'voice',
-          'reminders',
           'archived',
         ]) {
           expect(_key('filter-show-$k'), findsOneWidget, reason: k);
         }
+        // Review 106 T3: Reminders is STATUS's Reminder now.
+        expect(_key('filter-show-reminders'), findsNothing);
         expect(find.text(l10n.notebookAllPages), findsOneWidget);
         await _tap(tester, _key('filter-show-todos_open'));
         expect(_key('notebook-filter-menu'), findsNothing);
@@ -246,10 +247,10 @@ void main() {
           path: '/notebook/pages/${NotebookPageSamples.siteA}',
         );
         await _tap(tester, _key('page-filter'));
-        await _tap(tester, _key('filter-show-reminders'));
+        await _tap(tester, _key('filter-show-photos'));
         expect(
           repo.calls,
-          contains('search::reminders:${NotebookPageSamples.siteA}'),
+          contains('search::photos:${NotebookPageSamples.siteA}'),
         );
         await _tap(tester, _key('filter-hit-entry-pour'));
         expect(_key('filter-chip-kind'), findsNothing);

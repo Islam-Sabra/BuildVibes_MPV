@@ -5443,9 +5443,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeWheelPm => 'PM';
 
   @override
-  String get notebookSortLabel => 'SORT';
-
-  @override
   String get notebookSortActivity => 'Latest activity';
 
   @override

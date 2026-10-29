@@ -5476,9 +5476,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get timeWheelPm => 'م';
 
   @override
-  String get notebookSortLabel => 'ترتيب';
-
-  @override
   String get notebookSortActivity => 'آخر نشاط';
 
   @override

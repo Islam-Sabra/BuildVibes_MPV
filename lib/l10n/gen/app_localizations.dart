@@ -9152,12 +9152,6 @@ abstract class AppLocalizations {
   /// **'PM'**
   String get timeWheelPm;
 
-  /// Review 102 N5: the Filter card's third part, after SHOW and IN.
-  ///
-  /// In en, this message translates to:
-  /// **'SORT'**
-  String get notebookSortLabel;
-
   /// Review 102 N5: the pages list's sort, the default.
   ///
   /// In en, this message translates to:

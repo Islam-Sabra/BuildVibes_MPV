@@ -66,6 +66,11 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
     }
   }
 
+  /// The Filter picked, or a chip's ✕ (review 106 T3); all off, it starts
+  /// again from this screen's page.
+  void _setFilter(NoteFilterState f) =>
+      setState(() => _filter = f.on ? f : NoteFilterState(page: _filterHome));
+
   void _openFilter(NotebookData data, {bool pages = false}) {
     if (_filterCard.isOpen) return _filterCard.hide();
     showNoteFilter(
@@ -75,7 +80,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       data: data,
       filter: _filter,
       pages: pages,
-      onChanged: (f) => setState(() => _filter = f),
+      onChanged: _setFilter,
       sorts: PageSort.values,
       sort: _sort,
       onSort: (s) => _setSort(s as PageSort),
@@ -95,8 +100,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
       NoteFilterChips(
         data: data,
         filter: _filter,
-        onClear: () =>
-            setState(() => _filter = NoteFilterState(page: _filterHome)),
+        onChanged: _setFilter,
         onPage: () => _openFilter(data, pages: true),
       ),
       Expanded(
@@ -298,6 +302,7 @@ class _NotebookScreenState extends ConsumerState<NotebookScreen> {
                       onPressed: () => context.push(
                         AppRoutes.notebookSearchIn(
                           kind: _filter.kind?.json,
+                          status: _filter.status?.name,
                           page: _filter.on ? _filter.page : null,
                         ),
                       ),

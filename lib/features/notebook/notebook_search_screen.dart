@@ -17,6 +17,8 @@ import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../work/daybook_words.dart';
 import 'notebook_page_parts.dart';
+import 'note_filter.dart' show hasStatus;
+import 'note_status.dart' show NoteStatusKind;
 import 'notebook_state.dart';
 
 /// Search in My notebook (review 99 A5): one field over every page, its
@@ -24,10 +26,13 @@ import 'notebook_state.dart';
 /// Arabic letter forms and digits folded, as in Space search). Each hit
 /// shows its page and date; a tap opens the entry in its page.
 class NotebookSearchScreen extends ConsumerStatefulWidget {
-  const NotebookSearchScreen({super.key, this.kind, this.page});
+  const NotebookSearchScreen({super.key, this.kind, this.status, this.page});
 
-  /// The Filter that is on (review 100 Part 8): search keeps it.
+  /// The Filter that is on (review 100 Part 8): search keeps it; its
+  /// STATUS (review 106 T3, a [NoteStatusKind]'s name) is read on the
+  /// phone.
   final String? kind;
+  final String? status;
   final String? page;
 
   @override
@@ -91,7 +96,15 @@ class _NotebookSearchScreenState extends ConsumerState<NotebookSearchScreen> {
     );
     final now = ref.watch(clockProvider)();
     final data = ref.watch(notebookProvider).value ?? NotebookData();
-    final hits = _hits;
+    final status = NoteStatusKind.values
+        .where((s) => s.name == widget.status)
+        .firstOrNull;
+    final hits = status == null
+        ? _hits
+        : [
+            for (final h in _hits ?? const <NotebookHit>[])
+              if (!h.isPage && hasStatus(data, h.noteId, status)) h,
+          ];
     return Scaffold(
       backgroundColor: BvColors.surfaceApp,
       appBar: AppBar(

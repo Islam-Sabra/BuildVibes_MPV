@@ -7790,10 +7790,6 @@
   "@timeWheelPm": {
     "description": "Review 102 N1: after noon, in the time picker's single choice above the wheels."
   },
-  "notebookSortLabel": "SORT",
-  "@notebookSortLabel": {
-    "description": "Review 102 N5: the Filter card's third part, after SHOW and IN."
-  },
   "notebookSortActivity": "Latest activity",
   "@notebookSortActivity": {
     "description": "Review 102 N5: the pages list's sort, the default."

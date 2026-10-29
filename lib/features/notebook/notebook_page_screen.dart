@@ -1509,6 +1509,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     }
   }
 
+  /// The Filter picked, or a chip's ✕ (review 106 T3); all off, it starts
+  /// again from this screen's page.
+  void _setFilter(NoteFilterState f) =>
+      setState(() => _filter = f.on ? f : NoteFilterState(page: _filterHome));
+
   void _openFilter(NotebookData data, {bool pages = false}) {
     if (_filterCard.isOpen) return _filterCard.hide();
     showNoteFilter(
@@ -1518,7 +1523,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       data: data,
       filter: _filter,
       pages: pages,
-      onChanged: (f) => setState(() => _filter = f),
+      onChanged: _setFilter,
       sorts: widget.archived ? const [] : EntrySort.values,
       sort: _sort,
       onSort: (s) => _setSort(s as EntrySort),
@@ -1538,8 +1543,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       NoteFilterChips(
         data: data,
         filter: _filter,
-        onClear: () =>
-            setState(() => _filter = NoteFilterState(page: _filterHome)),
+        onChanged: _setFilter,
         onPage: () => _openFilter(data, pages: true),
       ),
       Expanded(
@@ -2254,6 +2258,11 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     // a list under each group's label.
     final byDay = <DateTime, List<Note>>{};
     final byType = <EntryType, List<Note>>{};
+    // Review 106 T3: Status, a list under each status's label, then none.
+    final byStatus = <NoteStatusKind?, List<Note>>{
+      for (final g in [...NoteStatusKind.values, null])
+        if (entries.any((n) => !n.pinned && statusGroup(n) == g)) g: [],
+    };
     final named = <Note>[];
     for (final n in entries) {
       if (n.pinned) continue;
@@ -2262,6 +2271,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           byDay.putIfAbsent(dayOf(n.createdAt), () => []).add(n);
         case EntrySort.type:
           byType.putIfAbsent(EntryType.of(n), () => []).add(n);
+        case EntrySort.status:
+          byStatus[statusGroup(n)]!.add(n);
         case EntrySort.name:
           named.add(n);
       }
@@ -2271,6 +2282,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       for (final notes in byDay.values) ...notes,
       ...named,
       for (final notes in byType.values) ...notes,
+      if (_sort == EntrySort.status)
+        for (final notes in byStatus.values) ...notes,
     ].firstOrNull;
     // Review 102 N3: each day in its hand order.
     for (final day in byDay.keys.toList()) {
@@ -2463,6 +2476,27 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               () => entry(n, first: n == firstShown),
             ),
         ],
+        if (_sort == EntrySort.status)
+          for (final MapEntry(key: status, value: notes)
+              in byStatus.entries) ...[
+            (
+              ValueKey(('status-row', status)),
+              () => Padding(
+                key: Key('status-label-${status?.name ?? 'none'}'),
+                padding: const EdgeInsetsDirectional.only(
+                  top: BvNotebookPagesSpec.dayTop,
+                ),
+                child: NotebookLabel(
+                  status?.title(l10n) ?? l10n.notebookStatusNone,
+                ),
+              ),
+            ),
+            for (final n in notes)
+              (
+                ValueKey(('entry-row', n.id)),
+                () => entry(n, first: n == firstShown),
+              ),
+          ],
         for (final day in byDay.keys) ...[
           (
             ValueKey(('day-row', day)),
@@ -2653,6 +2687,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
                   onPressed: () => context.push(
                     AppRoutes.notebookSearchIn(
                       kind: _filter.kind?.json,
+                      status: _filter.status?.name,
                       page: _filter.on ? _filter.page : null,
                     ),
                   ),
