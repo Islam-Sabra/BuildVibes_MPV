@@ -81,6 +81,28 @@ abstract final class BvSlipSpec {
   static const photoStampTop = 44.0;
   static const photoStampStart = 88.0;
 
+  // Before / after (review 105C, SP7 2670:38741): two photos side by
+  // side, each with its label at the top start; CHECKED on After, low.
+  static const pairHeight = 150.0;
+  static const pairGap = BvSpace.s8;
+  static const photoLabelInset = BvSpace.s8;
+  static const photoLabelPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s8,
+    vertical: BvSpace.s2,
+  );
+  static const photoLabelRadius = BvRadius.smallAll; // 6
+  static const pairStampTop = 74.0;
+  static const pairStampStart = BvSpace.s20;
+
+  // A site tag (SP1, SP7 2670:38762): sand, a pin 16 and the name.
+  static const tagRadius = BvRadius.smallAll; // 6
+  static const tagPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: 10.0,
+    vertical: 5.0,
+  );
+  static const tagGap = BvSpace.s6;
+  static const tagIcon = BvSize.iconSm; // 16
+
   // Pills: the hint and the action ("Sign as done").
   static const hintPaddingHorizontal = 10.0;
   static const hintPaddingVertical = BvSpace.s6;

@@ -326,6 +326,51 @@ class FakeDaybookRepository implements DaybookRepository {
     if (back != null) put(back.$1, back.$2);
   }
 
+  /// The Spaces' places, by Space (review 105C).
+  final placesBySpace = <String, List<SpacePlace>>{};
+
+  @override
+  Future<List<SpacePlace>> places(String spaceId) async {
+    _check();
+    return sortedPlaces(placesBySpace[spaceId] ?? const []);
+  }
+
+  @override
+  Future<void> addPlace(String spaceId, String id, String name) async {
+    _check();
+    final list = placesBySpace.putIfAbsent(spaceId, () => []);
+    if (list.any((p) => SpacePlace.fold(p.name) == SpacePlace.fold(name))) {
+      throw const SpaceException(SpaceFailure.badInput, 'duplicate key');
+    }
+    calls.add('add-place $spaceId $name');
+    list.add(SpacePlace(id: id, name: name.trim()));
+  }
+
+  @override
+  Future<void> renamePlace(String placeId, String name) async {
+    _check();
+    calls.add('rename-place $placeId $name');
+    for (final list in placesBySpace.values) {
+      final i = list.indexWhere((p) => p.id == placeId);
+      if (i >= 0) list[i] = SpacePlace(id: placeId, name: name.trim());
+    }
+  }
+
+  @override
+  Future<void> deletePlace(String placeId) async {
+    _check();
+    calls.add('delete-place $placeId');
+    for (final list in placesBySpace.values) {
+      list.removeWhere((p) => p.id == placeId);
+    }
+  }
+
+  @override
+  Future<void> setPostPlace(String postId, String? placeId) async {
+    _check();
+    calls.add('set-place $postId $placeId');
+  }
+
   @override
   Future<bool> sharedPostGone(String postId) async => goneIds.contains(postId);
 

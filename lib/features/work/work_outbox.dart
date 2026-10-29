@@ -178,6 +178,7 @@ class PendingItem {
     this.noteId,
     this.postId,
     this.teamId,
+    this.placeId,
     this.handTo,
   });
 
@@ -216,6 +217,7 @@ class PendingItem {
     ],
     templateId: json['template_id'] as String?,
     teamId: json['team_id'] as String?,
+    placeId: json['place_id'] as String?,
     blocks: (json['blocks'] as List?)?.cast<Map<String, dynamic>>(),
     points: [
       for (final p in json['points'] as List? ?? const [])
@@ -298,6 +300,10 @@ class PendingItem {
   /// Other kinds keep theirs on [draft].
   final String? teamId;
 
+  /// A new work item's place in the Space's list (review 105C): set with
+  /// set_post_place once the item is made; [place] is its name meanwhile.
+  final String? placeId;
+
   /// A new work item's note in My notebook (slice 8); other kinds keep
   /// theirs on [draft]. Marked once the server takes the post.
   final String? noteId;
@@ -355,6 +361,7 @@ class PendingItem {
     noteId: noteId,
     postId: postId,
     teamId: teamId,
+    placeId: placeId,
     handTo: handTo,
   );
 
@@ -387,6 +394,7 @@ class PendingItem {
     noteId: noteId,
     postId: postId,
     teamId: teamId,
+    placeId: placeId,
     handTo: handTo,
   );
 
@@ -424,6 +432,7 @@ class PendingItem {
     if (walk.isNotEmpty) 'walk': [for (final w in walk) w.toJson()],
     'template_id': ?templateId,
     'team_id': ?teamId,
+    'place_id': ?placeId,
     'blocks': ?blocks,
     if (points.isNotEmpty)
       'points': [
@@ -934,7 +943,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             title: item.title,
             ownerId: item.ownerId,
             body: item.body,
-            place: item.place,
+            // A chosen place goes by its id (set_post_place, below).
+            place: item.placeId == null ? item.place : null,
             dueDate: item.dueDate,
             dueAt: item.dueAt,
             photoPaths: paths,
@@ -951,6 +961,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         for (final id in fileIds) {
           await daybook.attachFile(item.id, id);
         }
+        // Review 105C: its place in the Space's list.
+        if (item.placeId case final place?) {
+          await daybook.setPostPlace(item.id, place);
+        }
       case PendingKind.post:
         final d = item.draft!;
         await daybook.createPost(
@@ -960,7 +974,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             kind: d.kind.json,
             title: d.title,
             body: d.body,
-            place: d.place,
+            place: d.placeId == null ? d.place : null,
             dueDate: d.dueDate,
             dueAt: d.dueAt,
             pinnedUntil: d.pinnedUntil,
@@ -982,6 +996,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             blocks: d.blocks.isEmpty ? null : d.blocks,
           ),
         );
+        if (d.placeId case final place?) {
+          await daybook.setPostPlace(item.id, place);
+        }
       case PendingKind.signOff:
         await ref
             .read(workRepositoryProvider)

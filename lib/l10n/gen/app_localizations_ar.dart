@@ -5937,4 +5937,51 @@ class AppLocalizationsAr extends AppLocalizations {
   String notebookOlderVersionOn(String day, String time) {
     return 'نسخة أقدم · تغيّرت $day $time';
   }
+
+  @override
+  String get daybookPlaceSearch => 'ابحث عن مكان أو أضفه';
+
+  @override
+  String daybookPlaceAdd(String name) {
+    return 'إضافة المكان «$name»';
+  }
+
+  @override
+  String get daybookPlaceNone => 'لا أماكن بعد. اكتب مكانًا لإضافته.';
+
+  @override
+  String get daybookPlaceRename => 'إعادة التسمية';
+
+  @override
+  String get daybookPlaceRenameTitle => 'إعادة تسمية المكان';
+
+  @override
+  String daybookPlaceDeleteTitle(String name) {
+    return 'حذف $name؟';
+  }
+
+  @override
+  String get daybookPlaceDeleteBody => 'تبقى منشوراته في العمل، دون هذا الوسم.';
+
+  @override
+  String get daybookPlaceTaken => 'هذا المكان موجود في المساحة.';
+
+  @override
+  String get daybookPlaceFilterClear => 'عرض كل الأماكن';
+
+  @override
+  String daybookBefore(String time) {
+    return 'قبل · $time';
+  }
+
+  @override
+  String daybookAfter(String time) {
+    return 'بعد · $time';
+  }
+
+  @override
+  String get searchPlaces => 'الأماكن';
+
+  @override
+  String get searchPlaceLine => 'عرض أعماله';
 }

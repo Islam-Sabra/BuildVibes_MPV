@@ -23,6 +23,7 @@ import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_words.dart';
 import 'work_outbox.dart';
+import 'work_places.dart';
 
 /// Sign as done (O2 2529:33493): linked to its work item (its title at
 /// the top, × to leave). It opens with the camera one tap away and
@@ -97,6 +98,15 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
     super.dispose();
   }
 
+  /// The item's place for the photo's label: its site tag (review 105C),
+  /// else an older item's typed place.
+  String? get _place =>
+      placeName(
+        ref.read(spacePlacesProvider(widget.spaceId)).value,
+        _post.placeId,
+      ) ??
+      _post.place;
+
   /// Photos still being made safe to leave the phone (review 74 H2).
   var _preparing = 0;
 
@@ -120,7 +130,7 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
         PendingPhoto(
           local: kept,
           takenAt: ref.read(clockProvider)(),
-          place: _post.place,
+          place: _place,
         ),
       ),
     );
@@ -193,7 +203,7 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
           PendingPhoto(
             local: p.local,
             takenAt: p.takenAt,
-            place: _post.place,
+            place: _place,
             remote: moved ? null : p.remote,
           ),
       ],
@@ -305,7 +315,7 @@ class _ProofCameraState extends ConsumerState<ProofCamera> {
                             alignment: AlignmentDirectional.centerStart,
                             child: _Label(
                               words.photoLabel(
-                                place: _post.place,
+                                place: _place,
                                 at: _photos.first.takenAt,
                                 name: name,
                               ),

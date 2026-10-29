@@ -143,6 +143,7 @@ class DaybookPostDraft {
     this.ownerId,
     this.ownerName,
     this.place,
+    this.placeId,
     this.dueDate,
     this.dueAt,
     this.photos = const [],
@@ -178,6 +179,7 @@ class DaybookPostDraft {
         ownerId: json['owner_id'] as String?,
         ownerName: json['owner_name'] as String?,
         place: json['place'] as String?,
+        placeId: json['place_id'] as String?,
         dueDate: _day(json['due_date']),
         dueAt: _time(json['due_at']),
         // Drafts kept before slice 2 had one photo.
@@ -246,6 +248,7 @@ class DaybookPostDraft {
       ownerId: item.ownerId,
       ownerName: item.ownerName,
       place: item.place,
+      placeId: item.placeId,
       dueDate: item.dueDate,
       dueAt: item.dueAt,
       photos: photos,
@@ -270,6 +273,7 @@ class DaybookPostDraft {
         ownerId: post.item?.ownerId,
         ownerName: post.item?.ownerName,
         place: post.place,
+        placeId: post.placeId,
         dueDate: id == null ? post.dueDate : null,
         dueAt: id == null ? post.dueAt : null,
       );
@@ -304,7 +308,14 @@ class DaybookPostDraft {
   /// Kept with the id, so the card shows the owner before the Space's
   /// people load.
   final String? ownerName;
+
+  /// Where: the chosen place's name (review 105C), or an older post's
+  /// typed place.
   final String? place;
+
+  /// The chosen place in the Space's list (review 105C): set on the post
+  /// with set_post_place once it is sent.
+  final String? placeId;
 
   /// The phone's own due date, and its time when one was chosen.
   final DateTime? dueDate;
@@ -449,6 +460,7 @@ class DaybookPostDraft {
     String? ownerId,
     String? ownerName,
     String? Function()? place,
+    String? Function()? placeId,
     DateTime? Function()? dueDate,
     DateTime? Function()? dueAt,
     List<String>? photos,
@@ -496,6 +508,7 @@ class DaybookPostDraft {
     ownerId: ownerId ?? this.ownerId,
     ownerName: ownerName ?? this.ownerName,
     place: place == null ? this.place : place(),
+    placeId: placeId == null ? this.placeId : placeId(),
     dueDate: dueDate == null ? this.dueDate : dueDate(),
     dueAt: dueAt == null ? this.dueAt : dueAt(),
     photos: photos ?? this.photos,
@@ -518,6 +531,7 @@ class DaybookPostDraft {
     'owner_id': ownerId,
     'owner_name': ownerName,
     'place': place,
+    'place_id': placeId,
     'due_date': dueDate?.toIso8601String(),
     'due_at': dueAt?.toUtc().toIso8601String(),
     'photos': photos,

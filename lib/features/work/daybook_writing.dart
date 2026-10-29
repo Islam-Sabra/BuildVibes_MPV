@@ -27,7 +27,9 @@ import '../../shared/widgets/bv_faces.dart';
 import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_time_wheel.dart';
 import '../../shared/widgets/bv_time_picker.dart';
+import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_list_row.dart';
+import '../../shared/widgets/bv_place_picker.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_tap_target.dart';
 import '../../shared/widgets/bv_writing_card.dart';
@@ -36,7 +38,7 @@ import '../library/library_parts.dart' show fileSize;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
-import '../spaces/space_errors.dart' show showSpaceMessage;
+import '../spaces/space_errors.dart' show showSpaceError, showSpaceMessage;
 import 'daybook_draft.dart';
 import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_report.dart' show ReportWriting;
@@ -44,6 +46,7 @@ import 'daybook_templates.dart';
 import 'daybook_words.dart';
 import 'space_day.dart';
 import 'work_outbox.dart';
+import 'work_places.dart';
 
 /// A new post's id, chosen on the phone when its card opens, so sending it
 /// again is the same post (review 43). Tests stand in for it.
@@ -531,7 +534,15 @@ class DaybookWriter {
       _put((d) => d.copyWith(points: points));
 
   Future<void> setPlace(String text) => _put(
-    (d) => d.copyWith(place: () => text.trim().isEmpty ? null : text.trim()),
+    (d) => d.copyWith(
+      place: () => text.trim().isEmpty ? null : text.trim(),
+      placeId: () => null,
+    ),
+  );
+
+  /// One of the Space's places (review 105C), or none.
+  Future<void> pickPlace(SpacePlace? place) => _put(
+    (d) => d.copyWith(place: () => place?.name, placeId: () => place?.id),
   );
 
   Future<void> setDue(PickedDue due) =>
@@ -762,6 +773,7 @@ class DaybookWriter {
               sourceMessageId: workItem ? d.sourceMessageId : null,
               templateId: workItem ? d.templateId : null,
               teamId: workItem ? d.teamId : null,
+              placeId: workItem ? d.placeId : null,
               noteId: workItem ? d.noteId : null,
               blocks: workItem && d.blocks.isNotEmpty ? d.blocks : null,
               points: workItem
@@ -792,7 +804,8 @@ class DaybookWriter {
       body: text(d.body),
       bodyChanged: text(d.body) != text(was.body),
       place: d.place,
-      placeChanged: text(d.place) != text(was.place),
+      // A place from the Space's list goes by set_post_place ([save]).
+      placeChanged: d.placeId == null && text(d.place) != text(was.place),
       dueChanged: d.dueDate != was.dueDate || d.dueAt != was.dueAt,
       dueDate: d.dueDate,
       dueAt: d.dueAt,
@@ -806,9 +819,16 @@ class DaybookWriter {
   /// Save an edit: edit_space_post with only what changed.
   Future<void> save() async {
     final edit = changes();
-    final id = draft?.id;
-    if (id == null || edit.isEmpty) return;
-    await ref.read(daybookRepositoryProvider).editPost(id, edit);
+    final d = draft;
+    final was = ref.read(daybookEditProvider(spaceId).notifier).original;
+    final id = d?.id;
+    if (id == null) return;
+    // Review 105C: another of the Space's places, or none.
+    final moved = d!.placeId != was?.placeId;
+    if (edit.isEmpty && !moved) return;
+    final repo = ref.read(daybookRepositoryProvider);
+    if (!edit.isEmpty) await repo.editPost(id, edit);
+    if (moved) await repo.setPostPlace(id, d.placeId);
   }
 }
 
@@ -1000,11 +1020,19 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
       );
     }
 
+    // Review 105C: the place's name as the Space has it now, else the
+    // words an older post was given.
+    final where =
+        placeName(
+          ref.watch(spacePlacesProvider(widget.spaceId)).value,
+          draft.placeId,
+        ) ??
+        draft.place;
     final place = BvWritingRow(
       key: const Key('writing-place-row'),
       label: l10n.daybookRowPlace,
-      value: draft.place ?? l10n.daybookRowAdd,
-      empty: draft.place == null,
+      value: where ?? l10n.daybookRowAdd,
+      empty: where == null,
       onTap: tap(() => menu(DaybookWritingMenu.place)),
     );
     final due = BvWritingRow(
@@ -1712,6 +1740,88 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     };
   }
 
+  /// "Add place ‘…’" (review 105C): the new place, then picked; a name
+  /// the Space has already says so.
+  Future<void> _addPlace(
+    String name,
+    Future<void> Function(SpacePlace) pick,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final place = await ref
+          .read(spacePlacesProvider(widget.spaceId).notifier)
+          .add(name);
+      await pick(place);
+    } on SpaceException catch (e) {
+      if (!mounted) return;
+      if (e.failure == SpaceFailure.badInput) {
+        showSpaceMessage(context, l10n.daybookPlaceTaken);
+      } else {
+        showSpaceError(context, e);
+      }
+    }
+  }
+
+  /// A Lead's long press on a place (review 105C): Rename or Delete.
+  Future<void> _placeMenu(SpacePlace place) async {
+    final l10n = AppLocalizations.of(context);
+    final places = ref.read(spacePlacesProvider(widget.spaceId).notifier);
+    final picked = await showBvScreenMenu<bool>(
+      context,
+      key: const Key('place-menu'),
+      items: [
+        BvMenuItem(
+          key: const Key('place-rename'),
+          value: true,
+          label: l10n.daybookPlaceRename,
+          icon: BvIcons.edit,
+        ),
+        BvMenuItem(
+          key: const Key('place-delete'),
+          value: false,
+          label: l10n.delete,
+          icon: BvIcons.delete,
+          destructive: true,
+        ),
+      ],
+    );
+    if (!mounted || picked == null) return;
+    try {
+      if (picked) {
+        final name = await showBvFieldDialog(
+          context: context,
+          title: l10n.daybookPlaceRenameTitle,
+          initial: place.name,
+          cancelLabel: l10n.commonCancel,
+          confirmLabel: l10n.save,
+          fieldKey: const Key('place-rename-field'),
+          maxLength: DaybookPostDraft.placeMax,
+        );
+        if (name == null || name == place.name) return;
+        await places.rename(place, name);
+      } else {
+        final sure = await showBvDialog(
+          context: context,
+          title: l10n.daybookPlaceDeleteTitle(place.name),
+          body: l10n.daybookPlaceDeleteBody,
+          cancelLabel: l10n.commonCancel,
+          confirmLabel: l10n.delete,
+          destructive: true,
+        );
+        if (!sure) return;
+        await places.delete(place);
+        if (_writer.draft?.placeId == place.id) await _writer.pickPlace(null);
+      }
+    } on SpaceException catch (e) {
+      if (!mounted) return;
+      if (e.failure == SpaceFailure.badInput) {
+        showSpaceMessage(context, l10n.daybookPlaceTaken);
+      } else {
+        showSpaceError(context, e);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -1820,16 +1930,28 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
                 ),
         );
       case DaybookWritingMenu.place:
-        return BvPopoverField(
+        final space = ref.watch(spaceDetailProvider(widget.spaceId)).value;
+        final places = ref.watch(spacePlacesProvider(widget.spaceId));
+        Future<void> pick(SpacePlace p) async {
+          await _writer.pickPlace(p);
+          widget.onClose();
+        }
+
+        return BvPlacePicker(
           key: const Key('writing-place'),
-          icon: BvIcons.place,
-          controller: _place,
-          placeholder: l10n.daybookPlaceHint,
-          maxLength: DaybookPostDraft.placeMax,
-          onDone: (text) async {
-            await _writer.setPlace(text);
-            widget.onClose();
-          },
+          places: places.value ?? const [],
+          currentId: draft?.placeId,
+          searchPlaceholder: l10n.daybookPlaceSearch,
+          addLabel: l10n.daybookPlaceAdd,
+          emptyLabel: l10n.daybookPlaceNone,
+          // Who may post work adds one (space_places_add).
+          canAdd: space?.mayPostWork ?? false,
+          onPick: (p) => unawaited(pick(p)),
+          onAdd: (name) => unawaited(_addPlace(name, pick)),
+          // A Lead renames and deletes (space_places_rename, _delete).
+          onLongPress: space?.myPass == SpacePass.lead
+              ? (p) => unawaited(_placeMenu(p))
+              : null,
         );
     }
   }
