@@ -19,7 +19,6 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/planning_specs.dart';
 import '../../core/photo_privacy.dart' show photosPreparingProvider;
 import '../../core/l10n/bidi.dart';
-import '../../core/network/signal_state.dart';
 import '../../core/l10n/locale_controller.dart' show sharedPreferencesProvider;
 import '../../core/push/reminders.dart' show phoneRemindersProvider;
 import '../../core/routing/app_routes.dart';
@@ -1414,12 +1413,14 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// Remind me: a day and a time (the reminder's picker; no time is 9 am),
   /// or Remove. Saved as the note's remind_at; this phone sets the
   /// reminder (ReminderHost).
-  Future<void> _remind(Note note) async {
+  /// Whether a reminder was set or removed (not cancelled).
+  Future<bool> _remind(Note note) async {
     final at = await _askReminder(note.remindAt);
-    if (at == null || !mounted) return;
+    if (at == null || !mounted) return false;
     await ref
         .read(notebookProvider.notifier)
         .save(note.copyWith(remindAt: () => at.value));
+    return true;
   }
 
   /// Archive or Unarchive (review 100 Part 3b): at once, with Undo for
@@ -1812,19 +1813,58 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// The selection bar, where Share's card opens (BH4).
   final _selectionBarKey = GlobalKey();
 
-  /// Share (review 100 Part 6) on one entry.
-  void _shareEntry(Note note) => unawaited(
+  /// Share (review 100 Part 6) on one entry, straight to [kind]'s step
+  /// (review 106 T4: a held entry's icon; T5: Share again), its card next
+  /// to the icon [anchor]. The selection ends once it is shared (K3).
+  void _shareEntry(
+    Note note,
+    NoteStatusKind kind,
+    BuildContext? Function() anchor,
+  ) => unawaited(
     shareEntry(
       context,
       ref,
       note: note,
       card: _barCard,
-      anchor: () => _selectionBarKey.currentContext,
-      onDone: () {
+      anchor: anchor,
+      start: kind,
+      onShared: () {
         if (mounted) setState(_selected.clear);
       },
     ),
   );
+
+  /// Review 106 T4: a held entry's status icon, done at once; the
+  /// selection ends once it is done (K3).
+  void _act(Note note, NoteStatusKind kind, BuildContext? Function() anchor) {
+    switch (kind) {
+      case NoteStatusKind.pinned:
+        setState(_selected.clear);
+        unawaited(
+          ref.read(notebookProvider.notifier).pin(note, on: !note.pinned),
+        );
+      case NoteStatusKind.reminder:
+        // K3: a cancelled picker keeps it held.
+        unawaited(() async {
+          if (await _remind(note) && mounted) setState(_selected.clear);
+        }());
+      case NoteStatusKind.feed ||
+          NoteStatusKind.space ||
+          NoteStatusKind.message:
+        _shareEntry(note, kind, anchor);
+    }
+  }
+
+  /// Review 106 T4: Pin for two or more held: pinned all, or all unpinned
+  /// when they all were.
+  void _pinSelected(List<Note> notes) {
+    final on = !notes.every((n) => n.pinned);
+    setState(_selected.clear);
+    final notebook = ref.read(notebookProvider.notifier);
+    for (final n in notes) {
+      if (n.pinned != on) unawaited(notebook.pin(n, on: on));
+    }
+  }
 
   /// The saved entry the selected lines are shared from: a new entry,
   /// not sent yet, has nothing on the server to share in part.
@@ -1844,7 +1884,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         card: _barCard,
         anchor: () => _selectionBarKey.currentContext,
         saved: _saveInPlace,
-        onDone: () => _editorKey.currentState?.endLineSelection(),
+        onShared: () => _editorKey.currentState?.endLineSelection(),
       ),
     );
   }
@@ -2231,6 +2271,16 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               foldable: !widget.archived,
               folded: !widget.archived && _folded(n),
               onFold: widget.archived ? null : () => _fold(n),
+              // Review 106 T4, T5.
+              onAction:
+                  !widget.archived &&
+                      _selected.length == 1 &&
+                      _selected.contains(n.id)
+                  ? (kind, anchor) => _act(n, kind, anchor)
+                  : null,
+              onShareAgain: widget.archived || selecting
+                  ? null
+                  : (kind, anchor) => _shareEntry(n, kind, anchor),
               onEdit: widget.archived
                   ? null
                   : selecting
@@ -2773,18 +2823,16 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               ? SelectionBar(
                   key: _selectionBarKey,
                   actions: [
-                    // Share is for one entry (Part 3), once the server can
-                    // have it (H2: not while it waits with no signal).
-                    if (chosen.length == 1 &&
-                        !(ref
-                                .read(notebookProvider.notifier)
-                                .waits(chosen.single.id) &&
-                            !ref.watch(signalProvider)))
+                    // Review 106 T4: one entry's actions are its status
+                    // icons; for two or more, Pin. Share left the bar.
+                    if (chosen.length > 1)
                       SelectionAction(
-                        key: const Key('select-share'),
-                        icon: BvIcons.shareEntry,
-                        label: l10n.notebookShare,
-                        onTap: () => _shareEntry(chosen.single),
+                        key: const Key('select-pin'),
+                        icon: BvIcons.pin,
+                        label: chosen.every((n) => n.pinned)
+                            ? l10n.daybookUnpin
+                            : l10n.notebookPin,
+                        onTap: () => _pinSelected(chosen),
                       ),
                     SelectionAction(
                       key: const Key('select-move'),
@@ -2939,6 +2987,8 @@ class NoteSlip extends ConsumerWidget {
     this.foldable = false,
     this.folded = false,
     this.onFold,
+    this.onAction,
+    this.onShareAgain,
   });
 
   final Note note;
@@ -2961,6 +3011,12 @@ class NoteSlip extends ConsumerWidget {
   final bool foldable;
   final bool folded;
   final VoidCallback? onFold;
+
+  /// Review 106 T4: held alone, its status icons are its actions.
+  final NoteStatusAct? onAction;
+
+  /// Review 106 T5: a status card's Share again.
+  final NoteStatusAct? onShareAgain;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2987,13 +3043,16 @@ class NoteSlip extends ConsumerWidget {
     final canFold = foldable && hidden > 0;
     final shut = folded && canFold;
     final statuses = noteStatuses(note, l10n, words, now);
-    final row = statuses.isEmpty
+    final row = statuses.isEmpty && onAction == null
         ? null
         : NoteStatusIcons(
             key: Key('note-status-${note.id}'),
             id: note.id,
             statuses: statuses,
             onChangeReminder: onReminder,
+            onShareAgain: onShareAgain,
+            actions: onAction == null ? null : holdKinds(note),
+            onAction: onAction,
           );
     // PG4: the title, or the kind, with the time at the end; review 106
     // T1: nothing else; T2: in a page, the fold control first.
@@ -3051,18 +3110,20 @@ class NoteSlip extends ConsumerWidget {
     );
     final children = <Widget>[
       if (!canFold) top,
-      if (shut)
+      if (shut) ...[
         // Review 106 T2: what is hidden at the start, the status row at the
-        // end, still tappable.
+        // end, still tappable; held alone (T4), its actions on their own
+        // line under it.
         Row(
           key: Key('note-folded-${note.id}'),
           spacing: BvSpace.s8,
           children: [
             Expanded(child: BvSlipQuiet(l10n.notebookLinesHidden(hidden))),
-            ?row,
+            if (onAction == null) ?row,
           ],
-        )
-      else ...[
+        ),
+        if (onAction != null) ?row,
+      ] else ...[
         if (note.isPage)
           NotePageSummary(
             note: note,

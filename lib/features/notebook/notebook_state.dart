@@ -373,6 +373,8 @@ class NoteChange {
         final when = at ?? saved.createdAt;
         // The server counts the version up on each save of an entry it
         // has (save_note), so the next edit starts from the right one.
+        // Its content key is the server's alone (K1): the entry is read
+        // again once the save has gone.
         return NotebookData(
           notes: _placed(
             saved.copyWith(version: was == null ? 1 : was.version + 1),
@@ -1108,7 +1110,8 @@ class Notebook extends AsyncNotifier<NotebookData> {
     return true;
   }
 
-  /// The note no longer waits, unless another change to it does.
+  /// The note no longer waits, unless another change to it does. A save
+  /// or a Delete lines reads the entry again (K1).
   void _sent(NoteChange change) {
     final data = state.value;
     final id = change.noteId;
@@ -1118,6 +1121,40 @@ class Notebook extends AsyncNotifier<NotebookData> {
       data.copyWith(
         notes: [
           for (final n in data.all) n.id == id ? n.copyWith(waiting: false) : n,
+        ],
+      ),
+    );
+    if (change.op == 'save' || change.op == 'delete_lines') {
+      unawaited(_reread(id));
+    }
+  }
+
+  /// The lead's check of r106b, K1: the entry's content key and change
+  /// time, and its shares, as the server has them now: whether a share is
+  /// older is the server's one rule, never this phone's. What waits for
+  /// the entry again keeps the phone's.
+  Future<void> _reread(String id) async {
+    Note? server;
+    try {
+      server = await _repo.note(id);
+    } on SpaceException {
+      return;
+    }
+    final data = state.value;
+    if (server == null || data == null) return;
+    if (_waiting.any((c) => c.noteId == id)) return;
+    final read = server;
+    state = AsyncData(
+      data.copyWith(
+        notes: [
+          for (final n in data.all)
+            n.id == id
+                ? n.copyWith(
+                    contentKey: () => read.contentKey,
+                    contentChangedAt: () => read.contentChangedAt,
+                    shares: read.shares,
+                  )
+                : n,
         ],
       ),
     );

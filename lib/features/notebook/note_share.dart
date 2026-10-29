@@ -41,6 +41,7 @@ import 'note_filter.dart' show byName;
 import 'note_outline.dart' show numberAt, numberLabel;
 import 'note_page_editor.dart' show NoteTick;
 import 'note_writing.dart' show NotePhotos;
+import 'note_status.dart' show NoteStatusKind;
 import 'notebook_state.dart';
 
 /// Where Share sends an entry (review 100 Part 6).
@@ -130,8 +131,11 @@ const _findFrom = 2;
 /// server has (H2): the entry's waiting changes go first, or, with no
 /// signal, it says so and stops. [saved] gives the entry as the server has
 /// it, an edit in hand saved first. A refusal is said and the preview
-/// stays (H1); only what went is said to have gone. [onDone] runs once the
-/// card or the preview has closed.
+/// stays (H1); only what went is said to have gone. [onShared] runs once
+/// something went (the lead's check of r106b, K3): a card closed, a
+/// preview cancelled, no signal or an error keep the selection. [start] (review 106 T4, T5: a held
+/// entry's icon, Share again) goes straight to that kind's step: the feed
+/// to its preview, a Space or a person to their list.
 Future<void> shareEntry(
   BuildContext context,
   WidgetRef ref, {
@@ -140,7 +144,8 @@ Future<void> shareEntry(
   required BvLinePopover card,
   required BuildContext? Function() anchor,
   Future<Note?> Function()? saved,
-  VoidCallback? onDone,
+  VoidCallback? onShared,
+  NoteStatusKind? start,
 }) async {
   final l10n = AppLocalizations.of(context);
   final picked = Completer<Object?>();
@@ -149,19 +154,25 @@ Future<void> shareEntry(
     if (!picked.isCompleted) picked.complete(v);
   }
 
-  card.show(
-    context,
-    anchor: anchor,
-    above: true,
-    barrier: true,
-    onDismiss: close,
-    builder: (_) => _ShareCard(onPicked: close),
-  );
-  final choice = await picked.future;
-  if (!context.mounted || choice == null) {
-    onDone?.call();
-    return;
+  final level = switch (start) {
+    NoteStatusKind.space => _ShareTo.space,
+    NoteStatusKind.message => _ShareTo.message,
+    _ => null,
+  };
+  if (start == NoteStatusKind.feed) {
+    close(_ShareTo.feed);
+  } else {
+    card.show(
+      context,
+      anchor: anchor,
+      above: true,
+      barrier: true,
+      onDismiss: close,
+      builder: (_) => _ShareCard(onPicked: close, start: level),
+    );
   }
+  final choice = await picked.future;
+  if (!context.mounted || choice == null) return;
   final notebook = ref.read(notebookProvider.notifier);
   var entry = note;
   try {
@@ -169,12 +180,10 @@ Future<void> shareEntry(
     final there = await notebook.flush(entry.id);
     if (!there) {
       if (context.mounted) _say(context, l10n.notebookShareOffline);
-      onDone?.call();
       return;
     }
   } on SpaceException catch (e) {
     if (context.mounted) showSpaceError(context, e);
-    onDone?.call();
     return;
   }
   // The entry as the server now has it.
@@ -200,8 +209,8 @@ Future<void> shareEntry(
       onSend: (sent) => _send(ref, note: entry, lines: lines, sent: sent),
     ),
   );
-  onDone?.call();
   if (went == null || !context.mounted) return;
+  onShared?.call();
   _say(context, switch (went) {
     _Target(:final person?) => l10n.notebookSentTo(person.name ?? ''),
     _Target(:final space?) => l10n.notebookSharedTo(space.name),
@@ -247,16 +256,22 @@ class _Sent {
 
 /// The card's levels: the three choices, then the Space or the person.
 class _ShareCard extends ConsumerStatefulWidget {
-  const _ShareCard({required this.onPicked});
+  const _ShareCard({required this.onPicked, this.start});
 
   final void Function([Object? picked]) onPicked;
+
+  /// Opened on this step (review 106 T4, T5); its ‹ closes the card.
+  final _ShareTo? start;
 
   @override
   ConsumerState<_ShareCard> createState() => _ShareCardState();
 }
 
 class _ShareCardState extends ConsumerState<_ShareCard> {
-  _ShareTo? _level;
+  late _ShareTo? _level = widget.start;
+
+  void _back() =>
+      widget.start == null ? setState(() => _level = null) : widget.onPicked();
   var _q = '';
 
   @override
@@ -302,7 +317,7 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
         return BvPopoverMenu<SpaceSummary>.line(
           key: const Key('share-menu'),
           back: l10n.notebookShareSpace,
-          onBack: () => setState(() => _level = null),
+          onBack: _back,
           title: spaces.hasValue && list.isEmpty
               ? l10n.notebookShareNoSpace
               : null,
@@ -341,7 +356,7 @@ class _ShareCardState extends ConsumerState<_ShareCard> {
         return BvPopoverMenu<DmPerson>.line(
           key: const Key('share-menu'),
           back: l10n.notebookShareMessage,
-          onBack: () => setState(() => _level = null),
+          onBack: _back,
           scrolls: true,
           tiles: false,
           field: Padding(

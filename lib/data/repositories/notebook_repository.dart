@@ -19,6 +19,10 @@ abstract class NotebookRepository {
   /// My notes, newest first (`notes` under its owner-only policy).
   Future<List<Note>> notes();
 
+  /// One entry as the server has it now, or null (the lead's check of
+  /// r106b, K1: read again after a save, for its content key).
+  Future<Note?> note(String id);
+
   /// save_entry (review 99A): new or mine, under the id the app chose (a
   /// retry is the same note), into its page; [newPageTitle] makes that page
   /// with it, titled from it and marked new. False when the note was
@@ -209,17 +213,28 @@ class SupabaseNotebookRepository implements NotebookRepository {
     }
   }
 
+  static const _noteColumns =
+      '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort, name), '
+      'note_shares(target, target_name, created_at, content_key)';
+
   @override
   Future<List<Note>> notes() => _guard(() async {
     final rows = await _client
         .from('notes')
-        .select(
-          '*, note_files(storage_path, kind, mime, bytes, duration_ms, sort, name), '
-          'note_shares(target, target_name, created_at)',
-        )
+        .select(_noteColumns)
         .order('created_at', ascending: false)
         .limit(_limit);
     return [for (final r in rows) Note.fromJson(r)];
+  });
+
+  @override
+  Future<Note?> note(String id) => _guard(() async {
+    final row = await _client
+        .from('notes')
+        .select(_noteColumns)
+        .eq('id', id)
+        .maybeSingle();
+    return row == null ? null : Note.fromJson(row);
   });
 
   @override

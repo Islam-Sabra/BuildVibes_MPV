@@ -184,6 +184,10 @@ abstract final class BvNotebookPagesSpec {
   static const statusGap = BvSpace.s6;
   static const statusTouch = BvSize.avatarSm;
 
+  /// Review 106 T5: a share older than the entry: an accent dot with a
+  /// ring at the icon's top end.
+  static const statusDot = 9.0;
+
   /// Review 106 T2: an entry's fold control, a 24 chevron with a 44 tap
   /// area at its head's start. The area reaches into the card's padding so
   /// the chevron sits where the words start: the head's padding is the
