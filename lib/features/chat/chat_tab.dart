@@ -43,6 +43,7 @@ String chatSnippet(AppLocalizations l10n, ChatKind? kind, String? body) =>
       ChatKind.voice => l10n.chatVoice,
       ChatKind.workItem => l10n.chatWorkItemUpdate,
       ChatKind.report => l10n.weekReportTitle,
+      ChatKind.post => l10n.chatSharedPost,
       _ => body ?? '',
     };
 

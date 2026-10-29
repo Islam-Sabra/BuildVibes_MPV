@@ -74,9 +74,17 @@ class FakeDaybookRepository implements DaybookRepository {
   /// Cards the daybook doesn't list (a target's work items), by id.
   final cardsById = <String, DaybookCard>{};
 
+  /// card() alone fails with no signal (review 105B L8).
+  bool cardFails = false;
+
+  /// Shared posts that were deleted (shared_post_gone).
+  final goneIds = <String>{};
+
   @override
   Future<DaybookCard?> card(String postId) async {
-    if (failPages) throw const SpaceException(SpaceFailure.network);
+    if (failPages || cardFails) {
+      throw const SpaceException(SpaceFailure.network);
+    }
     return cardsById[postId] ??
         [
           for (final list in posts.values) ...list,
@@ -267,6 +275,77 @@ class FakeDaybookRepository implements DaybookRepository {
 
   /// Posts whose Delete fails with no signal (H5).
   final deleteFails = <String>{};
+
+  @override
+  Future<void> pinPost(String postId, {required bool on}) async {
+    _check();
+    calls.add('pin $postId $on');
+    for (final cards in posts.values) {
+      for (final (i, c) in cards.indexed) {
+        if (c.id == postId) cards[i] = c.copyWith(pinnedByMe: on);
+      }
+    }
+    for (final MapEntry(key: space, value: extras) in extrasBySpace.entries) {
+      final post = [
+        for (final cards in posts.values)
+          for (final c in cards)
+            if (c.id == postId) c.post,
+      ].firstOrNull;
+      extrasBySpace[space] = DaybookExtras(
+        pinned: extras.pinned,
+        activities: extras.activities,
+        mine: [
+          if (on && post != null) post,
+          for (final p in extras.mine)
+            if (p.id != postId) p,
+        ],
+      );
+    }
+  }
+
+  /// Archived cards, to bring back.
+  final _archived = <String, (String, DaybookCard)>{};
+
+  @override
+  Future<void> archivePost(String postId) async {
+    _check();
+    calls.add('archive $postId');
+    for (final MapEntry(key: space, value: cards) in posts.entries) {
+      for (final c in cards) {
+        if (c.id == postId) _archived[postId] = (space, c);
+      }
+      cards.removeWhere((c) => c.id == postId);
+    }
+  }
+
+  @override
+  Future<void> unarchivePost(String postId) async {
+    _check();
+    calls.add('unarchive $postId');
+    final back = _archived.remove(postId);
+    if (back != null) put(back.$1, back.$2);
+  }
+
+  @override
+  Future<bool> sharedPostGone(String postId) async => goneIds.contains(postId);
+
+  /// Shares that fail with no signal, by post; every try, in order.
+  final shareFails = <String>{};
+  final shareTries = <({String postId, String messageId})>[];
+
+  @override
+  Future<void> sharePost({
+    required String messageId,
+    required String postId,
+    required String threadId,
+  }) async {
+    _check();
+    shareTries.add((postId: postId, messageId: messageId));
+    if (shareFails.contains(postId)) {
+      throw const SpaceException(SpaceFailure.network);
+    }
+    calls.add('share $postId $threadId');
+  }
 
   @override
   Future<void> deletePost(String postId) async {

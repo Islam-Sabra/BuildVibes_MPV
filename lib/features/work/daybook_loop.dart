@@ -259,6 +259,15 @@ class DaybookLoop {
   ) {
     final l10n = AppLocalizations.of(context);
     return [
+      // Review 105B L7: an archived item, opened from Search; a Lead's.
+      if (post.archivedAt != null && space.myPass == SpacePass.lead)
+        (
+          key: const Key('page-more-unarchive'),
+          label: l10n.workUnarchive,
+          icon: BvIcons.archive,
+          destructive: false,
+          onTap: () => unawaited(unarchive(context, post)),
+        ),
       if (menu.contains(DaybookSlipAction.unpin))
         (
           key: const Key('page-more-unpin'),
@@ -286,6 +295,22 @@ class DaybookLoop {
           onTap: () => unawaited(_cancelHeld(context, post)),
         ),
     ];
+  }
+
+  /// Unarchive (review 105B L7): back in Work, the page closed.
+  Future<void> unarchive(BuildContext context, DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      await ref.read(daybookRepositoryProvider).unarchivePost(post.id);
+    } on SpaceException catch (e) {
+      if (context.mounted) showSpaceError(context, e);
+      return;
+    }
+    if (navigator.canPop()) navigator.pop();
+    messenger.showSnackBar(SnackBar(content: Text(l10n.workUnarchived)));
+    await refresh();
   }
 
   /// Review 94: Cancel work item is held; another kind's Cancel is not.
@@ -617,7 +642,9 @@ class DaybookLoop {
   }
 
   /// Send back with a reason (B2), on a sheet that sits on the keyboard,
-  /// the item quoted in one line (F24).
+  /// the item quoted in one line (F24). When its owner may no longer sign
+  /// it (they left, or are a Viewer now), Give to comes first: it goes
+  /// back to the one chosen (review 105B L2).
   Future<void> _sendBack(
     BuildContext context,
     DaybookCard card,
@@ -625,11 +652,41 @@ class DaybookLoop {
   ) async {
     final post = card.post;
     final l10n = AppLocalizations.of(context);
+    BvGiveToPerson? handTo;
+    final people = await ref.read(spacePeopleProvider(_spaceId).future);
+    if (!context.mounted) return;
+    final ownerId = post.item?.ownerId;
+    final ownerHere = people.members.any(
+      (m) =>
+          m.person.id == ownerId &&
+          (m.pass == SpacePass.lead || m.pass == SpacePass.crew),
+    );
+    // An empty list is one not read yet: the server decides.
+    if (people.members.isNotEmpty && !ownerHere) {
+      handTo = await showBvSheet<BvGiveToPerson>(
+        context: context,
+        title: l10n.daybookSendBackWhoNow(
+          post.item?.ownerName ?? card.proof?.byName ?? '',
+        ),
+        builder: (sheet) => BvGiveToPicker(
+          key: const Key('give-to'),
+          people: assignablePeople(people, me: post.authorId),
+          currentOwnerId: ownerId,
+          searchPlaceholder: l10n.daybookGiveToSearch,
+          inSheet: true,
+          onPick: (person) => Navigator.of(sheet).pop(person),
+        ),
+      );
+      if (handTo == null || !context.mounted) return;
+    }
     final result =
         await showBvFieldSheet<(SendBackReason, String?, SendBackDue)>(
           context: context,
           title: l10n.daybookSendBackTo(
-            personFirstName(l10n, card.proof?.byName ?? post.item?.ownerName),
+            personFirstName(
+              l10n,
+              handTo?.name ?? card.proof?.byName ?? post.item?.ownerName,
+            ),
           ),
           builder: (_) => DaybookSendBack(
             quote: DaybookItemQuote(card: card, localPhoto: localPhoto),
@@ -646,8 +703,9 @@ class DaybookLoop {
             id: post.id,
             spaceId: _spaceId,
             title: post.title,
-            ownerId: post.item?.ownerId ?? '',
-            ownerName: post.item?.ownerName ?? '',
+            ownerId: handTo?.id ?? post.item?.ownerId ?? '',
+            ownerName: handTo?.name ?? post.item?.ownerName ?? '',
+            handTo: handTo?.id,
             body: result.$1.json,
             note: result.$2,
             dueDate: result.$3.day,
@@ -791,6 +849,7 @@ class DaybookLoop {
       RefusalWhy.changed => l10n.daybookWhyChanged,
       RefusalWhy.removed => l10n.daybookWhyRemoved,
       RefusalWhy.notAllowed => l10n.daybookWhyNotAllowed,
+      RefusalWhy.openWork => l10n.daybookWhyOpenWork,
       RefusalWhy.unknown => null,
     };
     return reason == null

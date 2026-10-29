@@ -380,7 +380,13 @@ select is((select unread from public.space_threads(pg_temp.sp()) where team_id i
 
 -- Leaving -------------------------------------------------------------------------------------------
 
-select lives_ok(format($$select public.remove_member(%L, %L)$$, pg_temp.sp(), pg_temp.uid('a2')),
+-- His open work goes to the admin first (migration 52, review 105B L1).
+select lives_ok(format($$select public.remove_member_with_handover(%L, %L,
+    (select coalesce(jsonb_agg(jsonb_build_object('item', w.id, 'owner', %L)), '[]'::jsonb)
+     from public.work_items w join public.space_posts p on p.id = w.id
+     where w.space_id = %L and w.owner_id = %L and w.status = 'open'
+       and p.status = 'live' and p.deleted_at is null))$$,
+    pg_temp.sp(), pg_temp.uid('a2'), pg_temp.uid('a1'), pg_temp.sp(), pg_temp.uid('a2')),
   'the admin removes Rakesh');
 reset role;
 select pg_temp.as_user('a2');

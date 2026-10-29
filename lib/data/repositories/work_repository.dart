@@ -42,12 +42,14 @@ abstract class WorkRepository {
   /// [note] is required for [SendBackReason.other].
   /// [due] is the new date the author chose (F62, F64, migration 33): a
   /// day, with a time or not, or `(day: null, at: null)` when none was
-  /// chosen. The old date never carries over.
+  /// chosen. The old date never carries over. [newOwnerId]: who does it
+  /// now, when its owner may no longer sign it (review 105B L2).
   Future<void> sendBack(
     String itemId,
     SendBackReason reason, {
     String? note,
     required SendBackDue due,
+    String? newOwnerId,
   });
 
   /// Show a Checked item on your profile, or hide it.
@@ -172,6 +174,7 @@ class SupabaseWorkRepository implements WorkRepository {
     SendBackReason reason, {
     String? note,
     required SendBackDue due,
+    String? newOwnerId,
   }) => _guard(
     () => _client.rpc<void>(
       'send_back',
@@ -182,6 +185,7 @@ class SupabaseWorkRepository implements WorkRepository {
         'p_due_set': true,
         'p_due': due.day == null ? null : _isoDay(due.day!),
         'p_due_at': due.at?.toUtc().toIso8601String(),
+        'p_owner': ?newOwnerId,
       },
     ),
   );

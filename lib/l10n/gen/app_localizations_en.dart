@@ -5823,6 +5823,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workShare => 'Share';
 
   @override
+  String get workUnpin => 'Unpin';
+
+  @override
+  String get workShareIn => 'Share in…';
+
+  @override
+  String workSharedIn(String thread) {
+    return 'Shared in $thread';
+  }
+
+  @override
+  String get workArchived => 'Archived';
+
+  @override
+  String get chatSharedPost => 'Shared from Work';
+
+  @override
+  String get chatPostGone => 'This post isn\'t in Work any more';
+
+  @override
   String get workDuplicate => 'Duplicate';
 
   @override
@@ -5840,6 +5860,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workCloseSelection => 'Stop selecting';
+
+  @override
+  String get spacesHandOverFirst =>
+      'Give your open work to someone else first.';
+
+  @override
+  String get daybookWhyOpenWork => 'their open work isn\'t handed over yet';
+
+  @override
+  String daybookSendBackWhoNow(String name) {
+    return '$name isn\'t in this Space any more. Who does it now?';
+  }
+
+  @override
+  String get daybookStampOpen => 'OPEN';
+
+  @override
+  String get chatPostHidden => 'You can\'t see this item';
+
+  @override
+  String get workUnarchive => 'Unarchive';
+
+  @override
+  String get workUnarchived => 'Back in Work';
+
+  @override
+  String workPinsMore(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String workShareFailed(String titles) {
+    return 'Couldn\'t share $titles.';
+  }
 
   @override
   String notebookOlderVersionOn(String day, String time) {

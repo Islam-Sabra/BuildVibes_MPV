@@ -5861,6 +5861,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workShare => 'مشاركة';
 
   @override
+  String get workUnpin => 'إلغاء التثبيت';
+
+  @override
+  String get workShareIn => 'مشاركة في…';
+
+  @override
+  String workSharedIn(String thread) {
+    return 'تمت المشاركة في $thread';
+  }
+
+  @override
+  String get workArchived => 'تمت الأرشفة';
+
+  @override
+  String get chatSharedPost => 'مشاركة من العمل';
+
+  @override
+  String get chatPostGone => 'لم يعد هذا المنشور في العمل';
+
+  @override
   String get workDuplicate => 'تكرار';
 
   @override
@@ -5878,6 +5898,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get workCloseSelection => 'إنهاء التحديد';
+
+  @override
+  String get spacesHandOverFirst =>
+      'يجب تسليم بنود عملك المفتوحة لشخص آخر أولاً.';
+
+  @override
+  String get daybookWhyOpenWork => 'بنود العمل المفتوحة لم تُسلَّم بعد';
+
+  @override
+  String daybookSendBackWhoNow(String name) {
+    return '$name خارج هذه المساحة الآن. من ينفّذ البند؟';
+  }
+
+  @override
+  String get daybookStampOpen => 'مفتوح';
+
+  @override
+  String get chatPostHidden => 'لا يمكنك رؤية هذا البند';
+
+  @override
+  String get workUnarchive => 'إلغاء الأرشفة';
+
+  @override
+  String get workUnarchived => 'عاد إلى العمل';
+
+  @override
+  String workPinsMore(int count) {
+    return '+$count أخرى';
+  }
+
+  @override
+  String workShareFailed(String titles) {
+    return 'تعذّرت مشاركة $titles.';
+  }
 
   @override
   String notebookOlderVersionOn(String day, String time) {

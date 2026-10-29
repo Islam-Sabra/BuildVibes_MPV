@@ -31,6 +31,7 @@ import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_slip.dart' show BvSlipQuote;
 import '../../shared/widgets/bv_text_field.dart';
 import '../entry/entry_state.dart';
+import 'shared_post_bubble.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../library/library_parts.dart';
 import '../profile/widgets/profile_parts.dart';
@@ -931,6 +932,12 @@ class _EntryView extends ConsumerWidget {
           m.reportWeek != null) {
         // Slice 9: a shared week report opens with the reader's rights.
         media = WeekReportBubble(spaceId: spaceId, week: m.reportWeek!);
+      } else if (m != null &&
+          !m.deleted &&
+          m.kind == ChatKind.post &&
+          m.postId != null) {
+        // Review 105B: a post of the Space's Work, its card.
+        media = SharedPostBubble(spaceId: spaceId, postId: m.postId!);
       } else if (m != null && !m.deleted) {
         media = m.photos.isEmpty && m.file == null
             ? null

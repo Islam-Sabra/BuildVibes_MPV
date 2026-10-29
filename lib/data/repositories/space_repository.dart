@@ -75,6 +75,8 @@ abstract class SpaceRepository {
   /// Fails with [SpaceFailure.rule] when it would leave no admin.
   Future<void> setMemberAdmin(String spaceId, String profileId, bool admin);
 
+  /// Through the handover (review 105B L1): fails with
+  /// [SpaceFailure.openWork] while they own open work.
   Future<void> removeMember(String spaceId, String profileId);
 
   /// Name, About and who can invite. Admins only.
@@ -103,7 +105,8 @@ abstract class SpaceRepository {
   /// Gone for everyone (kept on the server for the record).
   Future<void> deleteSpace(String spaceId);
 
-  /// Fails with [SpaceFailure.rule] for the last admin.
+  /// Fails with [SpaceFailure.rule] for the last admin, and with
+  /// [SpaceFailure.openWork] while I own open work (review 105B L1).
   Future<void> leaveSpace(String spaceId);
 
   /// Returns the new Team's id. A taken name fails with
@@ -223,6 +226,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .from('spaces')
         .select(
           'id, name, about, project_id, who_can_invite, site_start_date, '
+          'time_zone, '
           'project:projects(name, location_text, place:places(name))',
         )
         .eq('id', spaceId)
@@ -269,6 +273,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         final String day => DateTime.parse(day),
         _ => null,
       },
+      timeZone: space['time_zone'] as String?,
     );
   });
 
@@ -462,8 +467,14 @@ class SupabaseSpaceRepository implements SpaceRepository {
   @override
   Future<void> removeMember(String spaceId, String profileId) => _guard(
     () => _client.rpc<void>(
-      'remove_member',
-      params: {'p_space': spaceId, 'p_profile': profileId},
+      // Review 105B L1: the handover's way; whom the open work goes to is
+      // chosen on 105C's sheet.
+      'remove_member_with_handover',
+      params: {
+        'p_space': spaceId,
+        'p_member': profileId,
+        'p_assignments': const <Object>[],
+      },
     ),
   );
 
@@ -534,7 +545,11 @@ class SupabaseSpaceRepository implements SpaceRepository {
 
   @override
   Future<void> leaveSpace(String spaceId) => _guard(
-    () => _client.rpc<void>('leave_space', params: {'p_space': spaceId}),
+    () => _client.rpc<void>(
+      // Review 105B L1, as removeMember.
+      'leave_space_with_handover',
+      params: {'p_space': spaceId, 'p_assignments': const <Object>[]},
+    ),
   );
 
   @override
@@ -583,6 +598,7 @@ SpaceFailure spaceFailureFor(String? code) => switch (code) {
   '23505' => SpaceFailure.duplicate,
   '54000' => SpaceFailure.limit,
   '40001' => SpaceFailure.conflict,
+  'BV001' => SpaceFailure.openWork,
   _ => SpaceFailure.unknown,
 };
 

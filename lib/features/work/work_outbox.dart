@@ -178,6 +178,7 @@ class PendingItem {
     this.noteId,
     this.postId,
     this.teamId,
+    this.handTo,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -225,6 +226,7 @@ class PendingItem {
     ],
     noteId: json['note_id'] as String?,
     postId: json['post_id'] as String?,
+    handTo: json['hand_to'] as String?,
   );
 
   static DateTime? _time(Object? value) =>
@@ -306,6 +308,10 @@ class PendingItem {
   /// An update's work item, when [id] is the update's own.
   final String? postId;
 
+  /// A send back's new owner, when its owner may no longer sign it
+  /// (review 105B L2): [ownerId] and [ownerName] are theirs too.
+  final String? handTo;
+
   /// The card this is about.
   String get cardId => postId ?? id;
 
@@ -349,6 +355,7 @@ class PendingItem {
     noteId: noteId,
     postId: postId,
     teamId: teamId,
+    handTo: handTo,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -380,6 +387,7 @@ class PendingItem {
     noteId: noteId,
     postId: postId,
     teamId: teamId,
+    handTo: handTo,
   );
 
   /// A new post, of any kind.
@@ -423,6 +431,7 @@ class PendingItem {
       ],
     'note_id': ?noteId,
     'post_id': ?postId,
+    'hand_to': ?handTo,
   };
 
   /// Only the kinds this version knows are read back.
@@ -1004,6 +1013,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
               SendBackReason.fromJson(item.body) ?? SendBackReason.other,
               note: item.note,
               due: (day: item.dueDate, at: item.dueAt),
+              newOwnerId: item.handTo,
             );
       case PendingKind.giveTo:
         await ref.read(workRepositoryProvider).reassign(item.id, item.ownerId);
@@ -1149,12 +1159,16 @@ enum RefusalWhy {
   changed,
   removed,
   notAllowed,
+
+  /// Remove from Space while they own open work (review 105B L1).
+  openWork,
   unknown;
 
   static RefusalWhy of(SpaceException e) {
     final m = (e.message ?? '').toLowerCase();
     return switch (e.failure) {
       SpaceFailure.notAllowed => notAllowed,
+      SpaceFailure.openWork => openWork,
       SpaceFailure.rule when m.contains('checked work') => checked,
       SpaceFailure.rule when m.contains('cancelled') => cancelled,
       SpaceFailure.rule when m.contains('removed') => removed,

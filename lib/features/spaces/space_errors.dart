@@ -8,6 +8,7 @@ String spaceErrorText(AppLocalizations l10n, SpaceException e) =>
     switch (e.failure) {
       SpaceFailure.notAllowed => l10n.spacesNotAllowed,
       SpaceFailure.network => l10n.errorNetwork,
+      SpaceFailure.openWork => l10n.spacesHandOverFirst,
       SpaceFailure.rule ||
       SpaceFailure.badInput ||
       SpaceFailure.duplicate ||

@@ -236,6 +236,7 @@ class SpaceDetail {
     this.whoCanInvite = SpaceInviters.admins,
     this.myNotify = SpaceNotify.all,
     this.siteStartDate,
+    this.timeZone,
   });
 
   final String id;
@@ -259,6 +260,10 @@ class SpaceDetail {
   /// "On site since", set by a Space admin: the daybook's day 1. Never the
   /// Space's creation date (rule 3).
   final DateTime? siteStartDate;
+
+  /// The Space's time zone (review 105B, space_time_zone): an IANA name
+  /// from its market pack; null where the server didn't say (an older one).
+  final String? timeZone;
 
   bool get canInvite => myRights.invite;
 
@@ -464,6 +469,10 @@ enum SpaceFailure {
   /// 40001: changed elsewhere since this phone read it (an entry edited on
   /// another phone, migration 48).
   conflict,
+
+  /// BV001: the person still owns open work; it is handed over first
+  /// (migration 52, review 105B L1).
+  openWork,
   network,
   unknown,
 }

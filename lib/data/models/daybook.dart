@@ -384,6 +384,7 @@ class DaybookPost {
     this.children,
     this.blocks = const [],
     this.refs = const {},
+    this.archivedAt,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -456,6 +457,7 @@ class DaybookPost {
             in (json['refs'] as Map<String, dynamic>? ?? const {}).entries)
           e.key: DaybookRef.fromJson(e.value as Map<String, dynamic>),
       },
+      archivedAt: _time(json['archived_at']),
     );
   }
 
@@ -533,6 +535,9 @@ class DaybookPost {
   /// An announcement pinned under the masthead until then (only while it
   /// is).
   final DateTime? pinnedUntil;
+
+  /// When a Lead archived it (review 105B): out of Work, found by Search.
+  final DateTime? archivedAt;
 
   /// A scheduled activity's start and optional end.
   final DateTime? startsAt;
@@ -656,6 +661,7 @@ class DaybookPost {
     children: children ?? this.children,
     blocks: blocks,
     refs: refs,
+    archivedAt: archivedAt,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with
@@ -962,6 +968,7 @@ class DaybookCard {
     this.history = const [],
     this.historyMore = false,
     this.need,
+    this.pinnedByMe = false,
   });
 
   factory DaybookCard.fromJson(Map<String, dynamic> json) => DaybookCard(
@@ -976,6 +983,7 @@ class DaybookCard {
     ],
     historyMore: json['history_more'] as bool? ?? false,
     need: DaybookNeed.fromJson(json['needs_me']),
+    pinnedByMe: json['pinned_by_me'] as bool? ?? false,
   );
 
   final DaybookPost post;
@@ -990,6 +998,9 @@ class DaybookCard {
   /// Null: nothing for the reader (a Viewer always).
   final DaybookNeed? need;
 
+  /// Pinned by the reader, for them only (review 105B, space_post_pins).
+  final bool pinnedByMe;
+
   String get id => post.id;
 
   DaybookCard copyWith({
@@ -1000,6 +1011,7 @@ class DaybookCard {
     bool? historyMore,
     DaybookNeed? need,
     bool clearNeed = false,
+    bool? pinnedByMe,
   }) => DaybookCard(
     post: post ?? this.post,
     lastActivityAt: lastActivityAt ?? this.lastActivityAt,
@@ -1007,6 +1019,7 @@ class DaybookCard {
     history: history ?? this.history,
     historyMore: historyMore ?? this.historyMore,
     need: clearNeed ? null : need ?? this.need,
+    pinnedByMe: pinnedByMe ?? this.pinnedByMe,
   );
 }
 
@@ -1034,21 +1047,36 @@ class DaybookCardsPage {
 /// now, and the activities starting on the phone's day.
 @immutable
 class DaybookExtras {
-  const DaybookExtras({this.pinned = const [], this.activities = const []});
+  const DaybookExtras({
+    this.pinned = const [],
+    this.activities = const [],
+    this.mine = const [],
+  });
 
   /// The rows as daybook_extras sends them (`id`, `reason`, `post`).
   factory DaybookExtras.fromRows(List<Map<String, dynamic>> rows) {
     final pinned = <DaybookPost>[];
     final activities = <DaybookPost>[];
+    final mine = <DaybookPost>[];
     for (final r in rows) {
       final post = DaybookPost.fromJson(r['post'] as Map<String, dynamic>);
-      (r['reason'] == 'pinned' ? pinned : activities).add(post);
+      switch (r['reason']) {
+        case 'pinned':
+          pinned.add(post);
+        case 'mine':
+          mine.add(post);
+        default:
+          activities.add(post);
+      }
     }
-    return DaybookExtras(pinned: pinned, activities: activities);
+    return DaybookExtras(pinned: pinned, activities: activities, mine: mine);
   }
 
   final List<DaybookPost> pinned;
   final List<DaybookPost> activities;
+
+  /// The posts I pinned, for me only (review 105B), the latest pin first.
+  final List<DaybookPost> mine;
 }
 
 /// What the month drop-down marks (daybook_month), in the phone's days.

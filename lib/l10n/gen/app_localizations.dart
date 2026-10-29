@@ -9704,6 +9704,42 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get workShare;
 
+  /// Review 105B: the Pin swipe on a post I pinned (mine only).
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get workUnpin;
+
+  /// Review 105B: the title of the sheet that picks the Space thread to share the held cards in.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in…'**
+  String get workShareIn;
+
+  /// Review 105B: after Share, the thread the cards went to.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared in {thread}'**
+  String workSharedIn(String thread);
+
+  /// Review 105B: after a Lead archives a Checked item; it leaves Work, Search still finds it.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get workArchived;
+
+  /// Review 105B: a thread's last message when it is a post's card shared from Work.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared from Work'**
+  String get chatSharedPost;
+
+  /// Review 105B: a shared card whose post was deleted, or that the reader can no longer see.
+  ///
+  /// In en, this message translates to:
+  /// **'This post isn\'t in Work any more'**
+  String get chatPostGone;
+
   /// Review 105 H8: the selection bar's Duplicate in Work.
   ///
   /// In en, this message translates to:
@@ -9733,6 +9769,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop selecting'**
   String get workCloseSelection;
+
+  /// Review 105B L1: Leave refused while I own open work (BV001); handing it over comes in 105C.
+  ///
+  /// In en, this message translates to:
+  /// **'Give your open work to someone else first.'**
+  String get spacesHandOverFirst;
+
+  /// Review 105B L1: why Remove from Space was refused (BV001), after "Couldn't remove: ".
+  ///
+  /// In en, this message translates to:
+  /// **'their open work isn\'t handed over yet'**
+  String get daybookWhyOpenWork;
+
+  /// Review 105B L2: Send back of an item whose owner has left: the Give to sheet comes first.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} isn\'t in this Space any more. Who does it now?'**
+  String daybookSendBackWhoNow(String name);
+
+  /// Review 105B L8: a shared card's status in Chat while the work item is Open.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN'**
+  String get daybookStampOpen;
+
+  /// Review 105B L8: a shared card in Chat for a reader the post is hidden from (another Team's).
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t see this item'**
+  String get chatPostHidden;
+
+  /// Review 105B L7: a Lead's ⋯ on an archived item opened from Search.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get workUnarchive;
+
+  /// Review 105B L7: after Unarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Back in Work'**
+  String get workUnarchived;
+
+  /// Review 105B L9: under my first 3 pinned lines, the rest; a tap opens them.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String workPinsMore(int count);
+
+  /// Review 105B L10: after Share of several posts, the ones that failed, by title, joined with ·; Try again sends them again.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t share {titles}.'**
+  String workShareFailed(String titles);
 
   /// Review 106 K5: under a share in a status card, made before the entry last changed on another day: 'yesterday' or a short date, then the time.
   ///
