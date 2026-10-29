@@ -37,6 +37,10 @@ abstract final class BvPrimitive {
   // The line menu's Delete tile (review 98, NBY2).
   static const destructiveTint = Color(0xFFFBEAEA);
   static const ink48 = Color(0x7A141B33);
+  // A label on a photo (review 105C SP7: "Before · 08:10").
+  static const ink70 = Color(0xB3141B33);
+  // A site tag (review 105 Part 5, SP1): sand.
+  static const sand = Color(0xFFF5E8D1);
   static const ink38 = Color(0x61141B33);
   // The app icon's cube (review 91): its left and right faces.
   static const cubeLeft = Color(0xFFF8F1E8);
@@ -51,6 +55,12 @@ abstract final class BvColors {
   static const surfaceSubtle = BvPrimitive.subtle;
   static const surfaceSelected = BvPrimitive.energy;
   static const surfaceBrandSoft = BvPrimitive.energySoft;
+
+  /// A site tag's sand (review 105 Part 5).
+  static const surfaceSiteTag = BvPrimitive.sand;
+
+  /// Under a label on a photo (review 105C SP7).
+  static const surfacePhotoLabel = BvPrimitive.ink70;
 
   // Text
   static const textPrimary = BvPrimitive.ink;

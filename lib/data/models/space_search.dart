@@ -3,12 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'work_item.dart';
 
 /// What a search row found (search_space): a post, a checklist point
-/// (shown under its post), a chat message or a Library file in use.
+/// (shown under its post), a chat message, a Library file in use, or one
+/// of the Space's places (review 105C, migration 53).
 enum SpaceSearchKind {
   post,
   point,
   message,
-  file;
+  file,
+  place;
 
   static SpaceSearchKind? fromJson(Object? value) =>
       values.where((k) => k.name == value).firstOrNull;

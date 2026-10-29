@@ -105,6 +105,10 @@ Future<List<Override>> _overrides(
     daybookRepositoryProvider.overrideWithValue(
       (daybook ?? FakeDaybookRepository())
         ..posts[DaybookSamples.space] = posts
+        // Review 105C: the Space's places, for the Place picker.
+        ..placesBySpace[DaybookSamples.space] = [
+          SpacePlace(id: _traysPlaceId, name: s.traysPlace),
+        ]
         ..calendar.addAll(calendar)
         ..months['${DaybookSamples.space} ${now.year}-${now.month}'] = month,
     ),
@@ -124,6 +128,9 @@ Future<List<Override>> _overrides(
     newPostIdProvider.overrideWithValue(() => 'post-trays-new'),
   ];
 }
+
+/// The cable trays' place in the Space's list (review 105C).
+const _traysPlaceId = 'place-l4-corridor';
 
 Widget _space(BuildContext _) =>
     const SpaceScreen(spaceId: DaybookSamples.space);
@@ -162,10 +169,9 @@ Future<void> _fill(
     ),
   );
   await writingSet(tester, l10n, l10n.daybookDueDateMenu);
+  // Review 105C: one of the Space's places, from the picker.
   await writingSet(tester, l10n, l10n.daybookLocation);
-  await _type(tester, 'popover-field', s.traysPlace);
-  await tester.testTextInput.receiveAction(TextInputAction.done);
-  await tester.pumpAndSettle();
+  await _tap(tester, find.byKey(const Key('place-row-$_traysPlaceId')));
   await _tap(tester, find.byKey(const Key('writing-camera')));
 }
 
@@ -777,7 +783,7 @@ void main() {
 
     testWidgets('E7 no signal: waiting to send [$lang]', (tester) async {
       await warmSamplePhoto(tester);
-      final daybook = FakeDaybookRepository()..offline = true;
+      final daybook = FakeDaybookRepository();
       await shoot(
         tester,
         'E7-waiting-to-send',
@@ -792,6 +798,9 @@ void main() {
         ),
         before: (tester) async {
           await _fill(tester, s, l10n);
+          // Once the place is picked (review 105C: the picker reads the
+          // Space's places), then Post.
+          daybook.offline = true;
           await _tap(tester, find.byKey(const Key('writing-post')));
         },
       );
@@ -799,7 +808,7 @@ void main() {
 
     testWidgets('E8 a refused post: back to the Draft [$lang]', (tester) async {
       await warmSamplePhoto(tester);
-      final daybook = FakeDaybookRepository()..refuse = true;
+      final daybook = FakeDaybookRepository();
       await shoot(
         tester,
         'E8-could-not-send',
@@ -814,6 +823,9 @@ void main() {
         ),
         before: (tester) async {
           await _fill(tester, s, l10n);
+          // Once the place is picked (review 105C: the picker reads the
+          // Space's places), then Post.
+          daybook.refuse = true;
           await _tap(tester, find.byKey(const Key('writing-post')));
         },
       );

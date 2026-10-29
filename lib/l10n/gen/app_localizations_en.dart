@@ -5728,7 +5728,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookWritingDetails => 'Add details.';
+  String get daybookWritingDetails => 'Details, or + for lists and tables';
 
   @override
   String get daybookRowFor => 'For';
@@ -5898,5 +5898,135 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notebookOlderVersionOn(String day, String time) {
     return 'Older version · changed $day at $time';
+  }
+
+  @override
+  String get daybookPlaceSearch => 'Find or add a place';
+
+  @override
+  String daybookPlaceAdd(String name) {
+    return 'Add place “$name”';
+  }
+
+  @override
+  String get daybookPlaceNone => 'No places yet. Type one to add it.';
+
+  @override
+  String get daybookPlaceRename => 'Rename';
+
+  @override
+  String get daybookPlaceRenameTitle => 'Rename place';
+
+  @override
+  String daybookPlaceDeleteTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get daybookPlaceDeleteBody =>
+      'Its posts stay in Work, without this tag.';
+
+  @override
+  String get daybookPlaceTaken => 'This Space has that place already.';
+
+  @override
+  String get daybookPlaceFilterClear => 'Show all places';
+
+  @override
+  String daybookBefore(String time) {
+    return 'Before · $time';
+  }
+
+  @override
+  String daybookAfter(String time) {
+    return 'After · $time';
+  }
+
+  @override
+  String get searchPlaces => 'Places';
+
+  @override
+  String get searchPlaceLine => 'Show its work';
+
+  @override
+  String get pageBulletPoints => 'Bullet points';
+
+  @override
+  String get pageTaskTable => 'Table of tasks';
+
+  @override
+  String get pageTableHint => 'A plain table, no owners';
+
+  @override
+  String get pageTaskTableHint => 'Rows the owner ticks, then signs once';
+
+  @override
+  String get pageAddToItem => 'Add to this work item';
+
+  @override
+  String get pageFileOrScan => 'File or scan';
+
+  @override
+  String get taskTableTask => 'Task';
+
+  @override
+  String get taskTableNote => 'Note';
+
+  @override
+  String taskTableTick(String task) {
+    return 'Tick $task';
+  }
+
+  @override
+  String get taskTableNoNote => '—';
+
+  @override
+  String taskTableTicked(int ticked, int total) {
+    return '$ticked of $total ticked';
+  }
+
+  @override
+  String get taskTableNoteHint => 'Note (optional)';
+
+  @override
+  String get handoverGiveTo => 'Give to';
+
+  @override
+  String get handoverChoose => 'Choose someone';
+
+  @override
+  String get handoverTheirChecked =>
+      'Their checked work stays in the Space and on their profile.';
+
+  @override
+  String get handoverMyChecked =>
+      'Your checked work stays in the Space and on your profile.';
+
+  @override
+  String get handoverGiveAndRemove => 'Give and remove';
+
+  @override
+  String get handoverGiveAndLeave => 'Give and leave';
+
+  @override
+  String handoverRemoveBody(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open work items. Give each one to someone',
+      one: '1 open work item. Give it to someone',
+    );
+    return '$name has $_temp0 so nothing is left without an owner.';
+  }
+
+  @override
+  String handoverLeaveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open work items. Give each one to someone',
+      one: '1 open work item. Give it to someone',
+    );
+    return 'You have $_temp0 so nothing is left without an owner.';
   }
 }

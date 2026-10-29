@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
 import '../../core/design/bv_tokens.dart';
+import 'bv_tap_target.dart';
 
 /// Spec §2 ("DS · Chip & Tab").
 ///
@@ -82,6 +84,81 @@ class BvChip extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A filter in force, as a chip (review 105C: Work for one place): the
+/// selected look with its icon and words, and ✕ at its end, which takes
+/// the filter off ([onClear], said [clearLabel]).
+class BvFilterChip extends StatelessWidget {
+  const BvFilterChip({
+    super.key,
+    required this.label,
+    required this.clearLabel,
+    required this.onClear,
+    this.icon,
+    this.clearKey,
+  });
+
+  final String label;
+  final String clearLabel;
+  final VoidCallback onClear;
+  final IconData? icon;
+  final Key? clearKey;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: BvColors.surfaceBrandSoft,
+      borderRadius: BvRadius.controlAll,
+      border: Border.all(color: BvColors.borderSelected, width: BvStroke.thin),
+    ),
+    child: Container(
+      constraints: const BoxConstraints(minHeight: BvChipSpec.height),
+      padding: const EdgeInsetsDirectional.only(
+        start: BvChipSpec.paddingHorizontal,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvChipSpec.gap,
+        children: [
+          if (icon != null)
+            Icon(icon, size: BvChipSpec.iconSize, color: BvColors.textPrimary),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BvType.of(
+                context,
+              ).labelMd.copyWith(color: BvColors.textPrimary),
+            ),
+          ),
+          Semantics(
+            button: true,
+            label: clearLabel,
+            excludeSemantics: true,
+            child: BvTapTarget(
+              child: InkWell(
+                key: clearKey,
+                onTap: onClear,
+                borderRadius: BvRadius.controlAll,
+                child: const Padding(
+                  padding: EdgeInsetsDirectional.symmetric(
+                    horizontal: BvSpace.s8,
+                  ),
+                  child: Icon(
+                    BvIcons.close,
+                    size: BvChipSpec.iconSize,
+                    color: BvColors.iconSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// A row of chips that scrolls sideways, with the screen gutter at both ends.

@@ -75,9 +75,18 @@ abstract class SpaceRepository {
   /// Fails with [SpaceFailure.rule] when it would leave no admin.
   Future<void> setMemberAdmin(String spaceId, String profileId, bool admin);
 
-  /// Through the handover (review 105B L1): fails with
-  /// [SpaceFailure.openWork] while they own open work.
-  Future<void> removeMember(String spaceId, String profileId);
+  /// Through the handover (review 105B L1): [handovers] give each open
+  /// work item they own to its new owner, in the same step (review 105C
+  /// SP9). Fails with [SpaceFailure.openWork] while one is left out.
+  Future<void> removeMember(
+    String spaceId,
+    String profileId, {
+    List<Handover> handovers = const [],
+  });
+
+  /// The open work items [memberId] owns in [spaceId], oldest first: for
+  /// the Space's admin, or the member themself (open_work_to_hand_over).
+  Future<List<OpenWorkItem>> openWork(String spaceId, String memberId);
 
   /// Name, About and who can invite. Admins only.
   Future<void> updateSpace(
@@ -106,8 +115,12 @@ abstract class SpaceRepository {
   Future<void> deleteSpace(String spaceId);
 
   /// Fails with [SpaceFailure.rule] for the last admin, and with
-  /// [SpaceFailure.openWork] while I own open work (review 105B L1).
-  Future<void> leaveSpace(String spaceId);
+  /// [SpaceFailure.openWork] while I own open work that [handovers] leave
+  /// out (review 105B L1, 105C SP9).
+  Future<void> leaveSpace(
+    String spaceId, {
+    List<Handover> handovers = const [],
+  });
 
   /// Returns the new Team's id. A taken name fails with
   /// [SpaceFailure.duplicate].
@@ -465,18 +478,35 @@ class SupabaseSpaceRepository implements SpaceRepository {
       );
 
   @override
-  Future<void> removeMember(String spaceId, String profileId) => _guard(
+  Future<void> removeMember(
+    String spaceId,
+    String profileId, {
+    List<Handover> handovers = const [],
+  }) => _guard(
     () => _client.rpc<void>(
       // Review 105B L1: the handover's way; whom the open work goes to is
-      // chosen on 105C's sheet.
+      // chosen on the removal sheet (105C).
       'remove_member_with_handover',
       params: {
         'p_space': spaceId,
         'p_member': profileId,
-        'p_assignments': const <Object>[],
+        'p_assignments': handoversJson(handovers),
       },
     ),
   );
+
+  @override
+  Future<List<OpenWorkItem>> openWork(String spaceId, String memberId) =>
+      _guard(() async {
+        final rows = await _client.rpc<List<dynamic>>(
+          'open_work_to_hand_over',
+          params: {'p_space': spaceId, 'p_member': memberId},
+        );
+        return [
+          for (final r in rows.cast<Map<String, dynamic>>())
+            OpenWorkItem.fromJson(r),
+        ];
+      });
 
   @override
   Future<void> updateSpace(
@@ -544,11 +574,17 @@ class SupabaseSpaceRepository implements SpaceRepository {
   );
 
   @override
-  Future<void> leaveSpace(String spaceId) => _guard(
+  Future<void> leaveSpace(
+    String spaceId, {
+    List<Handover> handovers = const [],
+  }) => _guard(
     () => _client.rpc<void>(
       // Review 105B L1, as removeMember.
       'leave_space_with_handover',
-      params: {'p_space': spaceId, 'p_assignments': const <Object>[]},
+      params: {
+        'p_space': spaceId,
+        'p_assignments': handoversJson(handovers),
+      },
     ),
   );
 

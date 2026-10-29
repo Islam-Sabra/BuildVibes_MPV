@@ -88,3 +88,23 @@ abstract final class BvWalkSpec {
   /// The shutter waits until this photo has its line and owner.
   static const shutterWaiting = 0.4;
 }
+
+/// Review 105 SP3 (2673:38823): a work item's table of tasks. The tick
+/// column at the start, Task taking the rest, Note a narrow column at the
+/// end; "Add a row" under the last row.
+abstract final class BvTaskTableSpec {
+  static const radius = BvPageSpec.tableRadius;
+  static const tickColumn = BvSpace.s40;
+  static const noteColumn = 92.0;
+  static const cellPaddingHorizontal = BvSpace.s8;
+  static const cellPaddingVertical = 9.0;
+
+  /// The tick: a rounded square, outlined, or filled with a check.
+  static const tick = BvSize.iconMd;
+  static const tickRadius = BorderRadius.all(Radius.circular(5));
+  static const check = 14.0;
+
+  static const addPadding = 10.0;
+  static const addGap = BvSpace.s6;
+  static const addIcon = BvSize.iconSm;
+}

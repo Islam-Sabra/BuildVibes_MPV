@@ -21,6 +21,7 @@ import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
 import '../home/home_screen.dart' show HomeScreen, homeTabProvider;
+import '../work/work_places.dart' show workPlaceFilterProvider;
 import '../work/daybook_tab.dart';
 import '../work/work_gestures.dart' show workSelectionProvider;
 import '../work/daybook_target.dart';
@@ -206,6 +207,10 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
       AppRoutes.spaceSearch(widget.spaceId),
     );
     if (replaces != null && mounted) _addFile(replaces: replaces);
+    // Review 105C: a place found there shows Work for it.
+    if (mounted && ref.read(workPlaceFilterProvider(widget.spaceId)) != null) {
+      _show(SpaceScreen.workTab);
+    }
   }
 
   /// Space info (SI1), which holds what ⋯ held (review 105 Part 1): the

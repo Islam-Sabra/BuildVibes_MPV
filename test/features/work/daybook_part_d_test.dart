@@ -561,8 +561,8 @@ void main() {
       aboveKeyboard(tester, find.byKey(const Key('proof-send')));
     });
 
-    testWidgets('F24: the writing card\'s Location field sits on the '
-        'keyboard [$lang]', (tester) async {
+    testWidgets('F24: the writing card\'s Place picker sits on the '
+        'keyboard (review 105C) [$lang]', (tester) async {
       await _app(tester, lang, posts: s.d1());
       _router(tester).push(AppRoutes.space(DaybookSamples.space));
       await tester.pumpAndSettle();
@@ -572,7 +572,8 @@ void main() {
       await tester.tap(find.byKey(const Key('writing-place-row')));
       await tester.pumpAndSettle();
       await keyboardUp(tester);
-      aboveKeyboard(tester, find.byKey(const Key('popover-field')));
+      // Its search field, where the keyboard types.
+      aboveKeyboard(tester, find.byKey(const Key('place-search')));
     });
   }
 }

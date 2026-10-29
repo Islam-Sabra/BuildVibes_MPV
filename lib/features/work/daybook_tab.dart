@@ -41,6 +41,8 @@ import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart'
     show daybookRepositoryProvider;
 import '../../data/models/template.dart';
+import '../../data/models/post_page.dart' show PageTaskTable, taskCount;
+import '../../data/repositories/page_repository.dart' show taskTablesProvider;
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/template_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -61,6 +63,7 @@ import '../../shared/widgets/bv_popover_menu.dart'
 import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_proof_moment.dart';
 import '../../shared/widgets/bv_selection_bar.dart';
+import '../../shared/widgets/bv_chip.dart' show BvFilterChip;
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_trace_row.dart';
@@ -82,7 +85,7 @@ import 'daybook_draft.dart';
 import 'daybook_kinds.dart';
 import 'daybook_loop.dart';
 import 'daybook_marks.dart';
-import 'daybook_page.dart' show showDaybookPage;
+import 'daybook_page.dart' show PageTaskTableView, showDaybookPage;
 import 'daybook_report.dart';
 import 'daybook_state.dart';
 import 'daybook_target.dart';
@@ -91,6 +94,7 @@ import 'daybook_words.dart';
 import 'daybook_writing.dart';
 import 'work_gestures.dart';
 import 'work_outbox.dart';
+import 'work_places.dart';
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 
 /// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
@@ -281,6 +285,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    // Review 105C: Work for one place reads every page, as Needs you does,
+    // so none of that place's posts is left out.
+    ref.listenManual(workPlaceFilterProvider(_spaceId), (_, place) {
+      if (place != null) unawaited(_readAllPages());
+    }, fireImmediately: true);
     // A card that only quotes a message just put in this Space (review
     // 64, DM5), or one just made from a note, is new, not a Draft from
     // before. F88: any other kept card,
@@ -768,6 +777,29 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     }
   }
 
+  /// The cards to show: those of [place] when Work is filtered to one,
+  /// and of [waiting] when it shows what waits on me; both, together.
+  static Set<String>? _shownOnly(
+    List<DaybookCard> cards,
+    SpacePlace? place,
+    Set<String>? waiting,
+  ) {
+    if (place == null) return waiting;
+    final there = {
+      for (final c in cards)
+        if (c.post.placeId == place.id) c.id,
+    };
+    return waiting == null ? there : there.intersection(waiting);
+  }
+
+  /// Every page of Work, oldest last (a place's filter, review 105C).
+  Future<void> _readAllPages() async {
+    final pages = ref.read(daybookCardsProvider(_spaceId).notifier);
+    while (pages.hasOlder && await pages.loadOlder()) {
+      if (!mounted) return;
+    }
+  }
+
   /// The divider of the day the masthead names: the masthead says it.
   /// That is only away from Now: at Now the masthead says Today, so every
   /// day keeps its divider, and Today's always shows, right above the
@@ -1022,6 +1054,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         editing: _editing,
         onDone: () => Navigator.of(sheet).pop(),
       ),
+    );
+  }
+
+  /// The Place row, or More → Location (review 105C; the lead's check
+  /// O1): the Space's places on a sheet, like Give to's.
+  Future<void> _pickPlace() async {
+    _setMenu(null);
+    await showBvSheet<void>(
+      context: context,
+      title: AppLocalizations.of(context).daybookRowPlace,
+      builder: (_) => DaybookPlaceSheet(spaceId: _spaceId, editing: _editing),
     );
   }
 
@@ -1449,6 +1492,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_reveal()));
     }
 
+    // Review 105C: Work for one place, said by a chip with ✕.
+    final place = ref.watch(workPlaceFilterProvider(_spaceId));
     final shown = _shownDay ?? today;
     // Any new post waiting to send keeps the first page away: a work
     // item, another kind, a walk.
@@ -1476,7 +1521,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         card: card,
         signing: signing,
-        only: _needsMine ? waiting : null,
+        only: _shownOnly(cards, place, _needsMine ? waiting : null),
       ),
       // Pull down to try again.
       AsyncError() => RefreshIndicator(
@@ -1516,6 +1561,23 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (place != null && !_writing)
+                Padding(
+                  padding: BvPlaceFilterSpec.outer,
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: BvFilterChip(
+                      key: const Key('place-filter'),
+                      icon: BvIcons.place,
+                      label: place.name,
+                      clearLabel: l10n.daybookPlaceFilterClear,
+                      clearKey: const Key('place-filter-clear'),
+                      onClear: ref
+                          .read(workPlaceFilterProvider(_spaceId).notifier)
+                          .clear,
+                    ),
+                  ),
+                ),
               BvDaybookMasthead(
                 key: _mastheadKey,
                 weekday: atToday
@@ -1639,6 +1701,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                               onClose: () => _setMenu(null),
                               onAssigned: _assigned,
                               onPickPeople: () => unawaited(_pickPeople()),
+                              onPickPlace: () => unawaited(_pickPlace()),
                               onPickTemplate: () => unawaited(_pickTemplate()),
                             ),
                           ),
@@ -2792,6 +2855,24 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     ];
   }
 
+  /// [post]'s site tag (review 105C): its place's name, and a tap that
+  /// filters Work to it.
+  ({String name, VoidCallback? onTap})? _siteOf(
+    DaybookPost post,
+    List<SpacePlace>? places,
+  ) {
+    final place = places?.where((p) => p.id == post.placeId).firstOrNull;
+    if (place == null) return null;
+    return (
+      name: place.name,
+      onTap: _writing
+          ? null
+          : () => ref
+                .read(workPlaceFilterProvider(_spaceId).notifier)
+                .show(place),
+    );
+  }
+
   Widget _diary(
     List<DaybookCard> cards,
     List<PendingItem> pending,
@@ -2827,6 +2908,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final marks = ref.watch(daybookMarksProvider);
     final extras = ref.watch(daybookExtrasProvider(_spaceId)).value;
     final names = ref.watch(spacePeopleProvider(_spaceId)).value;
+    final places = ref.watch(spacePlacesProvider(_spaceId)).value;
     // Every kind the daybook draws, with what still waits for a signal. A
     // pinned announcement sits under the masthead instead.
     final shown = <_Shown>[
@@ -2941,6 +3023,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     });
 
     final sending = ref.watch(outboxSendingProvider);
+    // Review 105 SP3: work items' tables of tasks, on their cards.
+    final taskTables =
+        ref.watch(taskTablesProvider(_spaceId)).value ??
+        const <String, List<PageTaskTable>>{};
     final selected = ref.watch(workSelectionProvider(_spaceId));
     final selecting = selected.isNotEmpty;
     void select(String id) {
@@ -2952,6 +3038,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       final c = s.card;
       final unsent = s.unsent;
       final refusedProof = s.refusedProof;
+      final tables = unsent == null ? taskTables[c.id] : null;
       final view = DaybookCardView(
         card: c,
         words: words,
@@ -2959,6 +3046,24 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         activityAt: s.at,
         viewer: viewer,
+        taskCount: tables == null ? null : taskCount(tables),
+        taskTables: tables == null
+            ? null
+            : Column(
+                key: Key('card-task-tables-${c.id}'),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: BvSpace.s8,
+                children: [
+                  for (final t in tables)
+                    PageTaskTableView(
+                      key: Key('card-task-table-${t.id}'),
+                      space: widget.space,
+                      post: c.post,
+                      table: t,
+                      me: me,
+                    ),
+                ],
+              ),
         waiting: s.waiting,
         changeWaiting: s.changeWaiting,
         // F73: on its way now (with a signal), not waiting for one.
@@ -2982,6 +3087,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         nameOf: (id) =>
             names?.member(id)?.person.fullName ??
             c.history.where((e) => e.byId == id).firstOrNull?.byName,
+        site: _siteOf(c.post, places),
         selected: selected.contains(c.id),
         // While writing, a tap on a card puts the card down, as anywhere
         // off it; while selecting it adds or takes off this one; a refused
@@ -3167,6 +3273,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                           onPickStart: () => unawaited(_pickStart()),
                           onPickFile: () => unawaited(_pickFile()),
                           onPickPeople: () => unawaited(_pickPeople()),
+                          onPickPlace: () => unawaited(_pickPlace()),
                           onWalk: widget.space.mayPostWork
                               ? () => unawaited(_walk())
                               : null,

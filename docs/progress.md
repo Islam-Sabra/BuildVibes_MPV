@@ -820,6 +820,18 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migrations 51 (`note_share_versions`) and 52 (`space_work_extras`) live, one push each.
   - Build 800 on the founder's phone and the Desktop.
   - Checks: 3,185 SQL checks; analyze clean; 2,744 app tests; 466 shots.
+- **29 Oct (cloud): review 105C-B** on `claude/r105c-b`, for the lead; nothing merged, live or built:
+  - Migration 53 (`20261115120000_task_table_block.sql`): the `task_table` block on a work item (rows: id, task, note, tick); only the owner or a Lead changes a tick, through `tick_task_row` or a save; `add_task_row`; `space_task_tables` for the cards; `open_work_to_hand_over` for the removal sheet. pgTAP 53, 58 checks.
+  - The app: + inside a work item in SP4's order with the lines under Table and Table of tasks; the table of tasks on the page and the card, ticked in place, "n of m ticked" on the For line, Add a row; the removal sheet for Remove and Leave.
+  - Checks: SQL, with a pgTAP stand-in, 58 of 58 in file 53, and the older files as listed in the handoff. **Flutter couldn't run in this session**: analyze and tests are for the PC.
+- **29 Oct (PC): the lead's check of 105C** on `r105c`, for the lead; nothing merged into `slice2-app`, live or built:
+  - C-B compiled and ran on the PC for the first time. 4 Arabic tests tapped a title out of sight; the tests were fixed. N1–N5 done.
+  - C-A: M1–M3 done.
+  - Both merged into `r105c`, keeping both sides of every conflict.
+  - Checks: 3,268 SQL checks; analyze clean; 2,836 app tests; shots: 433 unchanged, 33 changed (18 shots) and 14 new, in `docs/reviews/shots-105c/`.
+- **29 Oct (PC): the lead's check of `r105c`:** O1, the Place picker on a bottom sheet like Give to's; O2, the hint "Details, or + for lists and tables". Nothing merged, live or built.
+  - Checks: 3,268 SQL checks; analyze clean; 2,838 app tests.
+  - Shots: 436 unchanged, 30 changed (13 shots only in the hint's words) and 14 new, in `docs/reviews/shots-105c/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
@@ -1020,3 +1032,4 @@ What is set on the live project today. The source of truth is `supabase/config.t
 - **29 Oct 2026 (cloud, `claude/r105a`): the lead's check of 105A.** H1 no signature on a camera hold; H2 pinned announcements open on a tap, select on a hold, fold on their own chevron; H4 Delete hidden on Checked; H5 multi-delete tries every post and names the failures; H6 tokens; H7 `SpaceDetail.mayPostWork`; H8 Work's own words, `SelectionBar` in `lib/shared/widgets/`; H9 the 15 shot drivers on the new gestures (not run). **H3 (Photo · Walk inside the camera) not done:** it needs the `camera` plugin, which this session could not add; the sheet stays until the founder decides. 2,501 tests pass (photo_privacy H1 root-only), SQL 3,038.
 - **29 Oct 2026 (cloud, `claude/r105a`): H3 as the lead ruled.** The post bar's camera opens the phone's camera at once for a photo post; Walk is the writing card's last kind chip (mayPostWork only); the Photo · Walk sheet is removed. 2,503 tests pass (photo_privacy H1 root-only), SQL 3,038.
 - **29 Oct 2026 (cloud, `claude/r106b`): the lead's check of r106b, K1–K6.** Older is the server's key compare (`note_shares.content_key`, migration 51 edited in place, not live); the phone's rule is gone and the entry is read again after a save; the key coalesces every field; the selection waits for the action; Share again on every card; the day in "changed at"; a voice recording counts. SQL 3,088, 2,699 tests (photo_privacy H1 root-only). Shots: 10 images (BH2, BH4, BH5, NB-put-in-space, NS1; EN, AR) in `docs/reviews/shots-106b/`, cloud with cloud.
+- **29 Oct 2026 (cloud, `claude/r105c-a`): 105C part A.** The Place picker (search, A–Z, Add place for who may post work, a Lead's rename and delete; `set_post_place`), site tags on cards, Work for one place (a chip with ✕), Search finds places (migration 53, not live), before / after on a work item. 2,775 tests (photo_privacy H1 root-only), SQL 3,202.

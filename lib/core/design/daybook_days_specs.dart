@@ -123,3 +123,14 @@ abstract final class BvNeedsYouSpec {
     0,
   );
 }
+
+/// Work for one place (review 105C): its chip under the Work · Chat
+/// switch, above the masthead.
+abstract final class BvPlaceFilterSpec {
+  static const outer = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.gutter,
+    BvSpace.s8,
+    BvSpace.gutter,
+    0,
+  );
+}

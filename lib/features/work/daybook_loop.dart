@@ -15,6 +15,7 @@ import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/daybook_repository.dart';
+import '../../data/repositories/page_repository.dart' show taskTablesProvider;
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/work_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -861,7 +862,8 @@ class DaybookLoop {
     ref
       ..invalidate(daybookChildCardProvider)
       ..invalidate(mySpacesProvider)
-      ..invalidate(daybookDueTodayProvider(_spaceId));
+      ..invalidate(daybookDueTodayProvider(_spaceId))
+      ..invalidate(taskTablesProvider(_spaceId));
     try {
       await ref.read(daybookCardsProvider(_spaceId).notifier).refresh();
     } on SpaceException {

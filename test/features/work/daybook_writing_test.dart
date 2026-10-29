@@ -107,6 +107,11 @@ T _read<T>(WidgetTester tester, ProviderListenable<T> provider) =>
 BvWritingToolbar _toolbar(WidgetTester tester) =>
     tester.widget<BvWritingToolbar>(find.byType(BvWritingToolbar));
 
+/// The cable trays' place in the Space's list (review 105C).
+const _traysPlaceId = 'place-l4-corridor';
+SpacePlace _traysPlace(DaybookSamples s) =>
+    SpacePlace(id: _traysPlaceId, name: s.traysPlace);
+
 void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
@@ -338,6 +343,7 @@ void main() {
         lang,
         due: (day: _sunday, at: _twoPm),
         daybook: FakeDaybookRepository()
+          ..placesBySpace[DaybookSamples.space] = [_traysPlace(s)]
           ..asPosted = (i) => s.posted(i, DateTime(2026, 10, 15, 10, 30)),
       );
       await _write(tester);
@@ -351,13 +357,10 @@ void main() {
       // Review 105 SP2: the Due and Place rows.
       await tester.tap(find.byKey(const Key('writing-due-row')));
       await tester.pumpAndSettle();
+      // Review 105C: one of the Space's places, from the picker.
       await tester.tap(find.byKey(const Key('writing-place-row')));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byKey(const Key('popover-field')),
-        s.traysPlace,
-      );
-      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.tap(find.byKey(const Key('place-row-$_traysPlaceId')));
       await tester.pumpAndSettle();
       // The cover, from the camera.
       await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
@@ -385,7 +388,10 @@ void main() {
       expect(sent.title, s.cableTraysTitle);
       expect(sent.body, s.traysBody);
       expect(sent.ownerId, DaybookSamples.omar);
+      // The place goes by its id (set_post_place), and its name as
+      // place_text, kept if the id is refused (the lead's check M1).
       expect(sent.place, s.traysPlace);
+      expect(app.daybook.calls, contains('set-place $id $_traysPlaceId'));
       expect(sent.dueDate, _sunday);
       expect(sent.dueAt, _twoPm);
       // The photo went first, into the post's own folder.
@@ -510,20 +516,20 @@ void main() {
     testWidgets('no signal: the slip waits, then sends with the same id when '
         'the signal is back; a place set through ⋯ → Location goes with it '
         '(F29) [$lang]', (tester) async {
-      final daybook = FakeDaybookRepository()..offline = true;
+      final daybook = FakeDaybookRepository()
+        ..placesBySpace[DaybookSamples.space] = [_traysPlace(s)];
       final app = await _open(tester, lang, daybook: daybook);
       await _write(tester);
       await _title(tester, s.cableTraysTitle);
       await _assign(tester, s.omarName);
       // F29: the place, through its row (review 105 SP2).
+      // Review 105C: one of the Space's places, from the picker.
       await tester.tap(find.byKey(const Key('writing-place-row')));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byKey(const Key('popover-field')),
-        s.traysPlace,
-      );
-      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.tap(find.byKey(const Key('place-row-$_traysPlaceId')));
       await tester.pumpAndSettle();
+      // No signal from here.
+      daybook.offline = true;
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       // On the page at the time Post was tapped, waiting.
@@ -544,13 +550,14 @@ void main() {
       final waitingId = (jsonDecode(kept) as List).single['id'];
       // The place waits on the phone with it.
       expect((jsonDecode(kept) as List).single['place'], s.traysPlace);
+      expect((jsonDecode(kept) as List).single['place_id'], _traysPlaceId);
 
       // The signal is back: the next try sends it.
       daybook.offline = false;
       await tester.pump(const Duration(seconds: 31));
       await tester.pumpAndSettle();
       expect(daybook.created.single.id, waitingId);
-      expect(daybook.created.single.place, s.traysPlace);
+      expect(daybook.calls, contains('set-place $waitingId $_traysPlaceId'));
       expect(app.chimes, ['haptic', 'sound']);
       expect(find.text(l10n.daybookWaitingToSend), findsNothing);
       expect(app.prefs.getString('work_outbox:${DaybookSamples.islam}'), '[]');

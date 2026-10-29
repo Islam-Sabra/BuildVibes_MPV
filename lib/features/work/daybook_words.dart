@@ -64,6 +64,16 @@ class DaybookWords {
     return l10n.daybookQuoteFrom(name, when);
   }
 
+  /// A before / after photo's time (review 105C, the lead's check M3): the
+  /// clock alone when both photos are from today, else with its day ("Mon
+  /// 12 Oct 8:10 am").
+  String photoWhen(DateTime at, DateTime other, DateTime now) {
+    final day = dayOf(at);
+    return day == dayOf(other) && day == dayOf(now)
+        ? _clock(at)
+        : '${shortDate(day)} ${_clock(at)}';
+  }
+
   /// An earlier day on the To do strip (F57, F61): "Mon" within the week,
   /// "Mon 12 Oct" before it; null for today.
   String? stripDay(DateTime day, DateTime now) {

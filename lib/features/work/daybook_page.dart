@@ -16,6 +16,7 @@ import '../../data/models/space.dart';
 import '../../data/models/work_item.dart';
 import '../../data/repositories/page_repository.dart';
 import '../../data/repositories/space_repository.dart';
+import '../../data/repositories/work_repository.dart' show newUuid;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
 import '../../shared/widgets/bv_button.dart';
@@ -26,13 +27,16 @@ import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_photo_strip.dart' show BvPhotoViewer;
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_slip.dart';
+import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_stamp.dart';
+import '../../shared/widgets/bv_task_table.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../entry/entry_state.dart';
 import '../library/library_parts.dart' show fileSize;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../spaces/former_member.dart';
+import '../spaces/space_errors.dart';
 import 'daybook_kinds.dart';
 import 'daybook_loop.dart';
 import 'daybook_page_editor.dart';
@@ -476,6 +480,7 @@ class _PageView extends ConsumerWidget {
           spaceId: space.id,
           onEdit: onEdit,
           onGiveTo: onGiveTo,
+          tasks: taskCount(page.blocks),
         ),
         ...pageBlockViews(context, ref, space: space, page: page, me: me),
       ],
@@ -485,7 +490,9 @@ class _PageView extends ConsumerWidget {
 
 /// The title, its facts (owner, due, place) and the words: the same as
 /// on the card. [onEdit] makes the title and the words a tap to edit them;
-/// [onGiveTo] the For line a tap to give it to someone else.
+/// [onGiveTo] the For line a tap to give it to someone else. [tasks]: its
+/// tables of tasks' rows, "1 of 3 ticked" on the For line (review 105
+/// SP3).
 List<Widget> pageTop(
   BuildContext context,
   WidgetRef ref,
@@ -494,6 +501,7 @@ List<Widget> pageTop(
   required String spaceId,
   VoidCallback? onEdit,
   VoidCallback? onGiveTo,
+  ({int ticked, int total})? tasks,
 }) {
   Widget tap(String key, VoidCallback? onTap, Widget child) => onTap == null
       ? child
@@ -528,7 +536,11 @@ List<Widget> pageTop(
                 onGiveTo,
                 BvSlipFact(
                   icon: BvIcons.person,
-                  text: words.meta(post, me: me, now: now),
+                  text: forLineWithTasks(
+                    AppLocalizations.of(context),
+                    words.meta(post, me: me, now: now),
+                    tasks,
+                  ),
                 ),
               ),
             if ((post.place ?? '').isNotEmpty)
@@ -652,6 +664,13 @@ class PageBlockView extends ConsumerWidget {
         child: (b) => PageBlockView(space: space, page: page, block: b, me: me),
       ),
       PageTable(:final rows) => PageTableView(rows: rows),
+      PageTaskTable() => PageTaskTableView(
+        key: Key('page-task-table-${block.id}'),
+        space: space,
+        post: post,
+        table: block as PageTaskTable,
+        me: me,
+      ),
       PagePhoto(:final path, :final caption) => _PhotoView(
         path: path,
         caption: caption,
@@ -676,6 +695,224 @@ class PageBlockView extends ConsumerWidget {
       PageDivider() ||
       PageVoice() => const SizedBox.shrink(),
     };
+  }
+}
+
+/// A work item's For line, with its tables of tasks' "1 of 3 ticked"
+/// after it (review 105 SP3).
+String forLineWithTasks(
+  AppLocalizations l10n,
+  String meta,
+  ({int ticked, int total})? tasks,
+) => tasks == null
+    ? meta
+    : l10n.daybookMeta(meta, l10n.taskTableTicked(tasks.ticked, tasks.total));
+
+/// May the reader tick [post]'s rows now: its owner, or a Lead, while it
+/// is Open (an admin on another pass can't). The server decides again
+/// (tick_task_row).
+bool mayTickTasks(SpaceDetail space, DaybookPost post, String? me) =>
+    post.isWorkItem &&
+    post.isOpen &&
+    me != null &&
+    (post.item?.ownerId == me || space.myPass == SpacePass.lead);
+
+/// May the reader add a row: who may tick, or the item's author who may
+/// post work, while it is Open (add_task_row).
+bool mayAddTaskRow(SpaceDetail space, DaybookPost post, String? me) =>
+    mayTickTasks(space, post, me) ||
+    (post.isWorkItem &&
+        post.isOpen &&
+        me != null &&
+        post.authorId == me &&
+        space.myRights.createItems);
+
+/// A table of tasks, read (review 105 Part 4, SP3): the owner (or a Lead)
+/// ticks each row in place; a tick is not a signature, and Sign as done
+/// stays once for the whole item. "Add a row" for whoever may add one.
+/// A tick shows at once and is taken back if the server says no.
+class PageTaskTableView extends ConsumerStatefulWidget {
+  const PageTaskTableView({
+    super.key,
+    required this.space,
+    required this.post,
+    required this.table,
+    required this.me,
+  });
+
+  final SpaceDetail space;
+  final DaybookPost post;
+  final PageTaskTable table;
+  final String? me;
+
+  @override
+  ConsumerState<PageTaskTableView> createState() => _PageTaskTableViewState();
+}
+
+class _PageTaskTableViewState extends ConsumerState<PageTaskTableView> {
+  /// Ticks sent and not yet read back, by row.
+  final _ticking = <String, bool>{};
+
+  @override
+  void didUpdateWidget(PageTaskTableView old) {
+    super.didUpdateWidget(old);
+    // The page as read again: what it says now stands.
+    _ticking.removeWhere(
+      (id, on) => widget.table.rows.any((r) => r.id == id && r.ticked == on),
+    );
+  }
+
+  void _read() {
+    ref
+      ..invalidate(postPageProvider(widget.post.id))
+      ..invalidate(taskTablesProvider(widget.space.id));
+  }
+
+  Future<void> _tick(String rowId) async {
+    final row = widget.table.rows.firstWhere((r) => r.id == rowId);
+    final on = !(_ticking[rowId] ?? row.ticked);
+    setState(() => _ticking[rowId] = on);
+    try {
+      await ref
+          .read(pageRepositoryProvider)
+          .tickTaskRow(
+            postId: widget.post.id,
+            blockId: widget.table.id,
+            rowId: rowId,
+            on: on,
+          );
+      _read();
+    } on SpaceException catch (e) {
+      if (!mounted) return;
+      setState(() => _ticking.remove(rowId));
+      showSpaceError(context, e);
+    }
+  }
+
+  Future<void> _add() async {
+    final row = await showTaskRowSheet(context);
+    if (row == null || !mounted) return;
+    try {
+      await ref
+          .read(pageRepositoryProvider)
+          .addTaskRow(
+            postId: widget.post.id,
+            blockId: widget.table.id,
+            rowId: newUuid(),
+            text: row.text,
+            note: row.note,
+          );
+      _read();
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final t = widget.table;
+    final tick = mayTickTasks(widget.space, widget.post, widget.me);
+    final add =
+        mayAddTaskRow(widget.space, widget.post, widget.me) &&
+        t.rows.length < PageTaskTable.maxRows;
+    return BvTaskTable(
+      rows: [
+        for (final r in t.rows)
+          (
+            id: r.id,
+            text: r.text,
+            note: r.note,
+            ticked: _ticking[r.id] ?? r.ticked,
+          ),
+      ],
+      taskLabel: l10n.taskTableTask,
+      noteLabel: l10n.taskTableNote,
+      tickLabel: l10n.taskTableTick,
+      emptyNote: l10n.taskTableNoNote,
+      addLabel: add ? l10n.pageAddRow : null,
+      onTick: tick ? (id) => unawaited(_tick(id)) : null,
+      onAdd: add ? () => unawaited(_add()) : null,
+    );
+  }
+}
+
+/// "Add a row" (review 105 SP3): the task and a short note, on a sheet.
+/// The words, or null when dismissed.
+Future<({String text, String note})?> showTaskRowSheet(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  return showBvSheet<({String text, String note})>(
+    context: context,
+    title: l10n.pageAddRow,
+    builder: (sheet) => const _TaskRowForm(),
+  );
+}
+
+class _TaskRowForm extends StatefulWidget {
+  const _TaskRowForm();
+
+  @override
+  State<_TaskRowForm> createState() => _TaskRowFormState();
+}
+
+class _TaskRowFormState extends State<_TaskRowForm> {
+  final _text = TextEditingController();
+  final _note = TextEditingController();
+
+  @override
+  void dispose() {
+    _text.dispose();
+    _note.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    if (_text.text.trim().isEmpty) return;
+    Navigator.of(
+      context,
+    ).pop((text: _text.text.trim(), note: _note.text.trim()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvSpace.s12,
+      children: [
+        TextField(
+          key: const Key('task-add-text'),
+          controller: _text,
+          autofocus: true,
+          maxLength: PageTaskTable.cellMax,
+          style: type.bodyMd,
+          decoration: InputDecoration(
+            hintText: l10n.taskTableTask,
+            counterText: '',
+          ),
+          onChanged: (_) => setState(() {}),
+          onSubmitted: (_) => _send(),
+        ),
+        TextField(
+          key: const Key('task-add-note'),
+          controller: _note,
+          maxLength: PageTaskTable.cellMax,
+          style: type.bodyMd,
+          decoration: InputDecoration(
+            hintText: l10n.taskTableNoteHint,
+            counterText: '',
+          ),
+          onSubmitted: (_) => _send(),
+        ),
+        BvButton(
+          key: const Key('task-add-send'),
+          label: l10n.pageMenuTitle,
+          expand: true,
+          onPressed: _text.text.trim().isEmpty ? null : _send,
+        ),
+      ],
+    );
   }
 }
 

@@ -131,6 +131,7 @@ class DaybookSamples {
     DateTime? due,
     DateTime? dueAt,
     String? place,
+    String? placeId,
     int points = 0,
     WorkStatus status = WorkStatus.open,
     bool cancelled = false,
@@ -145,6 +146,7 @@ class DaybookSamples {
     authorId: authorId,
     authorName: nameOf(authorId),
     place: place,
+    placeId: placeId,
     dueDate: due,
     dueAt: dueAt,
     item: DaybookItem(

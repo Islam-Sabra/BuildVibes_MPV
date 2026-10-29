@@ -178,7 +178,9 @@ class PendingItem {
     this.noteId,
     this.postId,
     this.teamId,
+    this.placeId,
     this.handTo,
+    this.handovers = const [],
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -216,6 +218,7 @@ class PendingItem {
     ],
     templateId: json['template_id'] as String?,
     teamId: json['team_id'] as String?,
+    placeId: json['place_id'] as String?,
     blocks: (json['blocks'] as List?)?.cast<Map<String, dynamic>>(),
     points: [
       for (final p in json['points'] as List? ?? const [])
@@ -227,6 +230,13 @@ class PendingItem {
     noteId: json['note_id'] as String?,
     postId: json['post_id'] as String?,
     handTo: json['hand_to'] as String?,
+    handovers: [
+      for (final h in json['handovers'] as List? ?? const [])
+        (
+          item: (h as Map<String, dynamic>)['item'] as String,
+          owner: h['owner'] as String,
+        ),
+    ],
   );
 
   static DateTime? _time(Object? value) =>
@@ -298,6 +308,10 @@ class PendingItem {
   /// Other kinds keep theirs on [draft].
   final String? teamId;
 
+  /// A new work item's place in the Space's list (review 105C): set with
+  /// set_post_place once the item is made; [place] is its name meanwhile.
+  final String? placeId;
+
   /// A new work item's note in My notebook (slice 8); other kinds keep
   /// theirs on [draft]. Marked once the server takes the post.
   final String? noteId;
@@ -311,6 +325,10 @@ class PendingItem {
   /// A send back's new owner, when its owner may no longer sign it
   /// (review 105B L2): [ownerId] and [ownerName] are theirs too.
   final String? handTo;
+
+  /// A removal's open work items, each with its new owner (review 105C
+  /// SP9), sent with it in one step.
+  final List<Handover> handovers;
 
   /// The card this is about.
   String get cardId => postId ?? id;
@@ -355,7 +373,9 @@ class PendingItem {
     noteId: noteId,
     postId: postId,
     teamId: teamId,
+    placeId: placeId,
     handTo: handTo,
+    handovers: handovers,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -387,7 +407,9 @@ class PendingItem {
     noteId: noteId,
     postId: postId,
     teamId: teamId,
+    placeId: placeId,
     handTo: handTo,
+    handovers: handovers,
   );
 
   /// A new post, of any kind.
@@ -424,6 +446,7 @@ class PendingItem {
     if (walk.isNotEmpty) 'walk': [for (final w in walk) w.toJson()],
     'template_id': ?templateId,
     'team_id': ?teamId,
+    'place_id': ?placeId,
     'blocks': ?blocks,
     if (points.isNotEmpty)
       'points': [
@@ -432,6 +455,7 @@ class PendingItem {
     'note_id': ?noteId,
     'post_id': ?postId,
     'hand_to': ?handTo,
+    if (handovers.isNotEmpty) 'handovers': handoversJson(handovers),
   };
 
   /// Only the kinds this version knows are read back.
@@ -934,6 +958,8 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             title: item.title,
             ownerId: item.ownerId,
             body: item.body,
+            // A chosen place goes by its id too (set_post_place, below);
+            // its name stays on the post if that is refused.
             place: item.place,
             dueDate: item.dueDate,
             dueAt: item.dueAt,
@@ -950,6 +976,10 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         // The same file twice is one attachment (attach_library_file).
         for (final id in fileIds) {
           await daybook.attachFile(item.id, id);
+        }
+        // Review 105C: its place in the Space's list.
+        if (item.placeId case final place?) {
+          await setPostPlaceOrKeepName(daybook, item.id, place);
         }
       case PendingKind.post:
         final d = item.draft!;
@@ -982,6 +1012,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             blocks: d.blocks.isEmpty ? null : d.blocks,
           ),
         );
+        if (d.placeId case final place?) {
+          await setPostPlaceOrKeepName(daybook, item.id, place);
+        }
       case PendingKind.signOff:
         await ref
             .read(workRepositoryProvider)
@@ -1004,7 +1037,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       case PendingKind.remove:
         await ref
             .read(spaceRepositoryProvider)
-            .removeMember(item.spaceId, item.id);
+            .removeMember(item.spaceId, item.id, handovers: item.handovers);
       case PendingKind.sendBack:
         await ref
             .read(workRepositoryProvider)
@@ -1246,5 +1279,29 @@ class OutboxSendingState extends Notifier<Map<String, OutboxSending>> {
   void stop(String id) {
     if (!ref.mounted || !state.containsKey(id)) return;
     state = {...state}..remove(id);
+  }
+}
+
+/// set_post_place once the post is made (the lead's check of 105C, M1).
+/// The post already carries the place's name as place_text, so a refusal
+/// (the place deleted meanwhile, say) leaves it sent with that name and no
+/// "refused" card. With [clear], the post's older place is taken off then,
+/// so the name isn't shown under another place. No signal is tried again.
+Future<void> setPostPlaceOrKeepName(
+  DaybookRepository daybook,
+  String postId,
+  String? placeId, {
+  bool clear = false,
+}) async {
+  try {
+    await daybook.setPostPlace(postId, placeId);
+  } on SpaceException catch (e) {
+    if (e.failure == SpaceFailure.network) rethrow;
+    if (!clear || placeId == null) return;
+    try {
+      await daybook.setPostPlace(postId, null);
+    } on SpaceException catch (e) {
+      if (e.failure == SpaceFailure.network) rethrow;
+    }
   }
 }
