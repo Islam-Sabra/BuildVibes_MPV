@@ -149,8 +149,8 @@ void main() {
       await _open(tester, lang, path: '/notebook/pages/page-my-notes');
       await tester.longPress(_key('note-note-sleeves'));
       await tester.pumpAndSettle();
-      await _tap(tester, _key('select-share'));
-      await _tap(tester, _key('share-space'));
+      // Review 106 T4: the held entry's Space icon.
+      await _tap(tester, _key('note-status-note-sleeves-space'));
       await _tap(tester, _key('share-space-${DaybookSamples.space}'));
       await _snap(tester, 'NB-put-in-space', lang);
     });
