@@ -39,6 +39,26 @@ enum NoteStatusKind {
     space => BvIcons.team,
     message => BvIcons.chat,
   };
+
+  /// A share: it has an older version (review 106 T5) and Share again.
+  bool get share => this == feed || this == space || this == message;
+
+  /// Review 106 T4: a held entry's icon not used yet, read as its action.
+  String action(AppLocalizations l10n) => switch (this) {
+    pinned => l10n.notebookPin,
+    reminder => l10n.notebookActRemind,
+    feed => l10n.notebookActFeed,
+    space => l10n.notebookActSpace,
+    message => l10n.notebookActMessage,
+  };
+
+  /// What a tap on a used one does again: unpin, change the reminder,
+  /// share again.
+  String again(AppLocalizations l10n) => switch (this) {
+    pinned => l10n.daybookUnpin,
+    reminder => l10n.notebookChangeReminder,
+    _ => l10n.notebookShareAgain,
+  };
 }
 
 /// [note]'s shares to [target] that can be shown, oldest first: a Space or
@@ -49,7 +69,7 @@ List<NoteShare> _shown(Note note, NoteShareTarget target) => [
         (target == NoteShareTarget.feed ||
             (s.name?.trim().isNotEmpty ?? false)))
       s,
-];
+]..sort((a, b) => a.at.compareTo(b.at));
 
 /// Put in a Space before its shares were kept: no share, the post only.
 bool _put(Note note) =>
@@ -70,9 +90,21 @@ List<NoteStatusKind> statusKinds(Note note) => [
   if (_shown(note, NoteShareTarget.message).isNotEmpty) NoteStatusKind.message,
 ];
 
+/// Review 106 T4: the actions a held entry offers, in the row's order: all
+/// five (a voice note has no reminder).
+List<NoteStatusKind> holdKinds(Note note) => [
+  for (final k in NoteStatusKind.values)
+    if (k != NoteStatusKind.reminder || note.kind != NoteKind.voice) k,
+];
+
+/// One line of a status card: a share, and whether it is of an older
+/// version than the entry is now (review 106 T5).
+typedef NoteStatusLine = ({String text, bool older});
+
 /// One status of an entry: its kind, what a screen reader says (the
 /// latest of its kind, as review 104), the lines its card lists (every
-/// share of the kind, review 106 T1) and its icon's colour.
+/// share of the kind, review 106 T1), its icon's colour, and whether its
+/// last share is older than the entry (T5: the dot).
 @immutable
 class NoteStatus {
   const NoteStatus(
@@ -80,12 +112,18 @@ class NoteStatus {
     required this.label,
     this.lines = const [],
     this.colour = BvColors.iconSecondary,
+    this.older = false,
+    this.changed,
   });
 
   final NoteStatusKind kind;
   final String label;
-  final List<String> lines;
+  final List<NoteStatusLine> lines;
   final Color colour;
+  final bool older;
+
+  /// When the entry last changed, for "changed at {time}".
+  final String? changed;
 }
 
 /// [note]'s statuses, in their order: the reminder in the accent colour
@@ -99,6 +137,23 @@ List<NoteStatus> noteStatuses(
   String clock(NoteShare s) => words.time.clock(s.at);
   String named(NoteShare s) =>
       l10n.notebookStatusShareLine(s.name!.trim(), clock(s));
+  final changedAt = note.contentChangedAt;
+  // Review 106 T5: made before the entry's content last changed.
+  bool older(NoteShare s) => changedAt != null && s.at.isBefore(changedAt);
+  NoteStatus shares(NoteStatusKind kind, List<NoteShare> list, String label) =>
+      NoteStatus(
+        kind,
+        label: label,
+        lines: [
+          for (final s in list)
+            (
+              text: kind == NoteStatusKind.feed ? clock(s) : named(s),
+              older: older(s),
+            ),
+        ],
+        older: older(list.last),
+        changed: changedAt == null ? null : words.time.clock(changedAt),
+      );
   NoteStatus status(NoteStatusKind kind) {
     switch (kind) {
       case NoteStatusKind.pinned:
@@ -108,44 +163,37 @@ List<NoteStatus> noteStatuses(
         return NoteStatus(
           kind,
           label: l10n.notebookStatusReminder(when),
-          lines: [l10n.notebookReminderLine(when)],
+          lines: [(text: l10n.notebookReminderLine(when), older: false)],
           colour: remindsAt(note, now)
               ? BvColors.iconAction
               : BvColors.iconSecondary,
         );
       case NoteStatusKind.feed:
         final feed = _shown(note, NoteShareTarget.feed);
-        return NoteStatus(
-          kind,
-          label: l10n.notebookStatusFeed(clock(feed.last)),
-          lines: [for (final s in feed) clock(s)],
-        );
+        return shares(kind, feed, l10n.notebookStatusFeed(clock(feed.last)));
       case NoteStatusKind.space:
         final spaces = _shown(note, NoteShareTarget.space);
         if (spaces.isEmpty) {
           return NoteStatus(
             kind,
             label: l10n.notebookPut,
-            lines: [l10n.notebookPut],
+            lines: [(text: l10n.notebookPut, older: false)],
           );
         }
-        return NoteStatus(
+        return shares(
           kind,
-          label: l10n.notebookStatusSpace(
+          spaces,
+          l10n.notebookStatusSpace(
             spaces.last.name!.trim(),
             clock(spaces.last),
           ),
-          lines: [for (final s in spaces) named(s)],
         );
       case NoteStatusKind.message:
         final sent = _shown(note, NoteShareTarget.message);
-        return NoteStatus(
+        return shares(
           kind,
-          label: l10n.notebookStatusSent(
-            sent.last.name!.trim(),
-            clock(sent.last),
-          ),
-          lines: [for (final s in sent) named(s)],
+          sent,
+          l10n.notebookStatusSent(sent.last.name!.trim(), clock(sent.last)),
         );
     }
   }
@@ -153,21 +201,37 @@ List<NoteStatus> noteStatuses(
   return [for (final kind in statusKinds(note)) status(kind)];
 }
 
+/// What a status icon's tap asks of the page: [kind]'s action, the icon
+/// [anchor] the share steps open next to.
+typedef NoteStatusAct =
+    void Function(NoteStatusKind kind, BuildContext? Function() anchor);
+
 /// An entry's status row (review 106 T1): one round icon per status, at
 /// the end of the entry. A tap opens a compact card under the icon listing
 /// every share of its kind; the icon shows selected while it is open; a
-/// reminder's card has Change ([onChangeReminder]).
+/// reminder's card has Change ([onChangeReminder]); a share older than the
+/// entry has a dot, and its card Share again ([onShareAgain], T5).
+///
+/// [actions] (T4, one entry held): every kind of [holdKinds], the used
+/// ones filled and the others outlined, "Tap to do it" at the start; a tap
+/// does it ([onAction]).
 class NoteStatusIcons extends StatefulWidget {
   const NoteStatusIcons({
     super.key,
     required this.id,
     required this.statuses,
     this.onChangeReminder,
+    this.onShareAgain,
+    this.actions,
+    this.onAction,
   });
 
   final String id;
   final List<NoteStatus> statuses;
   final VoidCallback? onChangeReminder;
+  final NoteStatusAct? onShareAgain;
+  final List<NoteStatusKind>? actions;
+  final NoteStatusAct? onAction;
 
   @override
   State<NoteStatusIcons> createState() => _NoteStatusIconsState();
@@ -191,13 +255,17 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
     if (mounted) setState(() => _open = null);
   }
 
+  BuildContext? Function() _anchor(NoteStatusKind kind) =>
+      () => _icons[kind]?.currentContext;
+
   void _show(NoteStatus s) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
+    final again = widget.onShareAgain;
     setState(() => _open = s.kind);
     _card.show(
       context,
-      anchor: () => _icons[s.kind]?.currentContext,
+      anchor: _anchor(s.kind),
       atEnd: true,
       barrier: true,
       gap: BvLineMenuSpec.menuGap,
@@ -240,12 +308,25 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
                         color: s.colour,
                       ),
                       Expanded(
-                        child: Text(
-                          line,
-                          textDirection: directionOf(line),
-                          style: type.bodySm.copyWith(
-                            color: BvColors.textPrimary,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              line.text,
+                              textDirection: directionOf(line.text),
+                              style: type.bodySm.copyWith(
+                                color: BvColors.textPrimary,
+                              ),
+                            ),
+                            // Review 106 T5: sent before the entry changed.
+                            if (line.older && s.changed != null)
+                              Text(
+                                l10n.notebookOlderVersion(s.changed!),
+                                style: type.metadata.copyWith(
+                                  color: BvColors.textAction,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       if (s.kind == NoteStatusKind.reminder &&
@@ -261,6 +342,129 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
                     ],
                   ),
                 ),
+              // Review 106 T5: the entry as it is now, the same step.
+              if (s.kind.share && s.older && again != null)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    top: BvLineMenuSpec.padding,
+                  ),
+                  child: Material(
+                    color: BvColors.surfaceBrandSoft,
+                    shape: const StadiumBorder(),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      key: const Key('note-status-share-again'),
+                      onTap: () {
+                        _close();
+                        again(s.kind, _anchor(s.kind));
+                      },
+                      child: Padding(
+                        padding: BvLineMenuSpec.rowPadding,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: BvLineMenuSpec.rowGap,
+                          children: [
+                            const Icon(
+                              BvIcons.shareAgain,
+                              size: BvNotebookPagesSpec.statusIcon,
+                              color: BvColors.textAction,
+                            ),
+                            Text(
+                              l10n.notebookShareAgain,
+                              style: type.labelMd.copyWith(
+                                color: BvColors.textAction,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// One round icon: [used] filled (or selected while its card is open),
+  /// else outlined (T4); [dot], its share older than the entry (T5).
+  Widget _icon(
+    NoteStatusKind kind, {
+    required bool used,
+    required String label,
+    required Color colour,
+    required bool dot,
+    required VoidCallback onTap,
+  }) {
+    final open = _open == kind;
+    final key = 'note-status-${widget.id}-${kind.name}';
+    return Semantics(
+      button: true,
+      selected: open,
+      label: label,
+      excludeSemantics: true,
+      child: InkResponse(
+        key: _icons.putIfAbsent(kind, GlobalKey.new),
+        onTap: onTap,
+        radius: BvNotebookPagesSpec.statusTouch / 2,
+        child: KeyedSubtree(
+          key: Key(key),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              DecoratedBox(
+                key: Key('$key-disc'),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: open
+                      ? BvColors.surfaceBrandSoft
+                      : used
+                      ? BvColors.surfaceSubtle
+                      : BvColors.surfaceElevated,
+                  border: open
+                      ? Border.all(
+                          color: BvColors.borderSelected,
+                          width: BvStroke.thin,
+                        )
+                      : used
+                      ? null
+                      : Border.all(
+                          color: BvColors.borderSubtle,
+                          width: BvStroke.thin,
+                        ),
+                ),
+                child: SizedBox.square(
+                  dimension: BvNotebookPagesSpec.statusTouch,
+                  child: Center(
+                    child: Icon(
+                      kind.icon,
+                      size: BvNotebookPagesSpec.statusIcon,
+                      color: colour,
+                    ),
+                  ),
+                ),
+              ),
+              if (dot)
+                PositionedDirectional(
+                  top: 0,
+                  end: 0,
+                  child: DecoratedBox(
+                    key: Key('$key-dot'),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: BvColors.iconAction,
+                      border: Border.all(
+                        color: BvColors.surfaceElevated,
+                        width: BvStroke.thin,
+                      ),
+                    ),
+                    child: const SizedBox.square(
+                      dimension: BvNotebookPagesSpec.statusDot,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -269,50 +473,51 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
   }
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    spacing: BvNotebookPagesSpec.statusGap,
-    children: [
-      for (final s in widget.statuses)
-        Semantics(
-          button: true,
-          selected: _open == s.kind,
-          label: s.label,
-          excludeSemantics: true,
-          child: InkResponse(
-            key: _icons.putIfAbsent(s.kind, GlobalKey.new),
-            onTap: () => _show(s),
-            radius: BvNotebookPagesSpec.statusTouch / 2,
-            child: KeyedSubtree(
-              key: Key('note-status-${widget.id}-${s.kind.name}'),
-              child: DecoratedBox(
-                key: Key('note-status-${widget.id}-${s.kind.name}-disc'),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _open == s.kind
-                      ? BvColors.surfaceBrandSoft
-                      : BvColors.surfaceSubtle,
-                  border: _open == s.kind
-                      ? Border.all(
-                          color: BvColors.borderSelected,
-                          width: BvStroke.thin,
-                        )
-                      : null,
-                ),
-                child: SizedBox.square(
-                  dimension: BvNotebookPagesSpec.statusTouch,
-                  child: Center(
-                    child: Icon(
-                      s.kind.icon,
-                      size: BvNotebookPagesSpec.statusIcon,
-                      color: s.colour,
-                    ),
-                  ),
-                ),
-              ),
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final actions = widget.actions;
+    if (actions == null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: BvNotebookPagesSpec.statusGap,
+        children: [
+          for (final s in widget.statuses)
+            _icon(
+              s.kind,
+              used: true,
+              label: s.label,
+              colour: s.colour,
+              dot: s.older,
+              onTap: () => _show(s),
             ),
+        ],
+      );
+    }
+    final used = {for (final s in widget.statuses) s.kind: s};
+    return Row(
+      key: Key('note-status-${widget.id}-row'),
+      spacing: BvNotebookPagesSpec.statusGap,
+      children: [
+        Expanded(
+          child: Text(
+            l10n.notebookTapToDo,
+            style: BvType.of(
+              context,
+            ).metadata.copyWith(color: BvColors.textSecondary),
           ),
         ),
-    ],
-  );
+        for (final k in actions)
+          _icon(
+            k,
+            used: used.containsKey(k),
+            label: used[k] == null
+                ? k.action(l10n)
+                : l10n.notebookStatusThen(used[k]!.label, k.again(l10n)),
+            colour: used[k]?.colour ?? BvColors.iconPrimary,
+            dot: used[k]?.older ?? false,
+            onTap: () => widget.onAction?.call(k, _anchor(k)),
+          ),
+      ],
+    );
+  }
 }
