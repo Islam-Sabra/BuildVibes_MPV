@@ -490,17 +490,14 @@ class DaybookWriter {
     if (d != null) await _notifier.put(change(d));
   }
 
-  /// Review 105 Part 6: an announcement starts pinned until today ends,
-  /// at midnight in the Space's time zone (105B; the phone's when it isn't
-  /// known), as a morning brief; + changes or removes it.
+  /// Review 105 Part 6: an announcement starts pinned until today ends, as
+  /// a morning brief; + changes or removes it. Which midnight is worked
+  /// out on Post (review 105B L6).
   Future<void> setKind(DaybookKind kind) => _put(
     (d) => d.copyWith(
       kind: kind,
       pinnedUntil: kind == DaybookKind.announcement && d.pinnedUntil == null
-          ? () => spaceDayEnd(
-              ref.read(spaceDetailProvider(spaceId)).value?.timeZone,
-              ref.read(clockProvider)(),
-            )
+          ? () => pinToEndOf(dayOf(ref.read(clockProvider)()))
           : null,
     ),
   );
@@ -697,13 +694,38 @@ class DaybookWriter {
     if (file.local != null) unawaited(DaybookDraft.deleteKept(file.local!));
   }
 
+  /// Review 105B L6: an announcement pinned to the end of a day ends at
+  /// midnight in the Space's time zone, worked out on Post with the Space's
+  /// details read; with none known, the phone's.
+  Future<DaybookPostDraft> _withSpaceMidnight(
+    DaybookPostDraft d,
+    DateTime now,
+  ) async {
+    final until = d.pinnedUntil;
+    if (d.kind != DaybookKind.announcement ||
+        until == null ||
+        pinHasTime(until)) {
+      return d;
+    }
+    String? zone;
+    try {
+      zone = (await ref.read(spaceDetailProvider(spaceId).future))?.timeZone;
+    } on SpaceException {
+      zone = ref.read(spaceDetailProvider(spaceId)).value?.timeZone;
+    }
+    return d.copyWith(
+      pinnedUntil: () => spaceDayEndOf(zone, dayOf(pinnedLastDay(until)), now),
+    );
+  }
+
   /// Post: into the outbox (it sends now, or when the signal is back), and
   /// the card is gone. [authorName] is the writer's own, for the card while
   /// it waits.
   Future<void> post({String? authorName}) async {
-    final d = draft;
+    final kept = draft;
     final now = ref.read(clockProvider)();
-    if (d == null || !d.canPost(now)) return;
+    if (kept == null || !kept.canPost(now)) return;
+    final d = await _withSpaceMidnight(kept, now);
     final body = d.body.trim();
     final photos = [
       for (final p in d.photos) PendingPhoto(local: p, takenAt: now),

@@ -5,16 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_tokens.dart';
+import '../../core/l10n/bidi.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/daybook.dart';
+import '../../data/models/space.dart' show SpaceException;
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/daybook_repository.dart';
-import '../../data/models/space.dart' show SpaceException;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../chat/chat_tab.dart' show threadName;
 import '../chat/thread_screen.dart' show ChatActionRow;
-import '../spaces/space_errors.dart';
 import 'daybook_writing.dart' show newPostIdProvider;
 
 /// Share in the hold bar (review 105B, the lead's ruling Q2): [posts]'
@@ -66,21 +66,44 @@ Future<void> shareToThread(
   if (thread == null || !context.mounted) return;
   final repo = ref.read(daybookRepositoryProvider);
   final newId = ref.read(newPostIdProvider);
-  try {
-    for (final p in posts) {
-      await repo.sharePost(
-        messageId: newId(),
-        postId: p.id,
-        threadId: thread.id,
-      );
+  // L5: each post's message id is made once, for this choice of thread, so
+  // Try again sends the same one and the server posts it once.
+  final ids = {for (final p in posts) p.id: newId()};
+  final messenger = ScaffoldMessenger.of(context);
+  Future<void> send(List<DaybookPost> those) async {
+    // Every one is tried; what failed is said after (L10, as H5).
+    final failed = <DaybookPost>[];
+    for (final p in those) {
+      try {
+        await repo.sharePost(
+          messageId: ids[p.id]!,
+          postId: p.id,
+          threadId: thread.id,
+        );
+      } on SpaceException {
+        failed.add(p);
+      }
     }
-  } on SpaceException catch (e) {
-    if (context.mounted) showSpaceError(context, e);
-    return;
+    ref.invalidate(spaceThreadsProvider(spaceId));
+    messenger.hideCurrentSnackBar();
+    if (failed.isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.workSharedIn(threadName(l10n, thread)))),
+      );
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n.workShareFailed(joinMeta(failed.map((p) => p.title))),
+        ),
+        action: SnackBarAction(
+          label: l10n.commonRetry,
+          onPressed: () => unawaited(send(failed)),
+        ),
+      ),
+    );
   }
-  ref.invalidate(spaceThreadsProvider(spaceId));
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(l10n.workSharedIn(threadName(l10n, thread)))),
-  );
+
+  await send(posts);
 }
