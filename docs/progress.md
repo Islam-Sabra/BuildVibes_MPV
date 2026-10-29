@@ -792,6 +792,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `claude/r105a` merged into `slice2-app` (9c5f400). Analyze clean; 2,652 app tests; 3,058 SQL checks; 454 shots, not updating.
   - No migration, no deploy.
   - Build 775 on the Desktop and on the founder's phone.
+- **29 Oct: review 106 T4 and T5** on `claude/r106b`, for the lead; nothing merged, live or built:
+  - T4: a held entry's status icons are its actions; the bar loses Share.
+  - T5: a dot on a share older than the entry, "Older version" and Share again.
+  - Migration 51 (`notes.content_changed_at`, by deferred triggers): local only.
+  - Checks: analyze clean; 2,686 app tests; 3,079 SQL checks.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

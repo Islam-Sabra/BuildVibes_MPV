@@ -2,6 +2,55 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 106 T4 and T5 on `claude/r106b`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r106b` (worktree `BuildVibes-r106b`), from `slice2-app` 609622d, pushed.
+  - Nothing merged, no database push, no deploy, nothing installed. No `test_screens` run, no goldens.
+  - `lib/features/spaces/` and `lib/features/work/` untouched.
+- **The version check before T5 (asked first):**
+  - `note_shares` keeps no version.
+  - `notes.version` moves on every `save_note`, and only there and in `delete_lines`. Pin, fold, move and arrange don't move it, and neither does the old to-do's done (`set_note_done`).
+  - But the app ticks a checklist point or a page's to-do by saving the entry (`tick`, `tickBlock`), and a reminder is set the same way. So **ticks and reminders do move `version`**, and it can't tell a content change.
+  - Photos and files are in `note_files`, which `set_note_files` deletes and inserts again on every save that sends them.
+- **The choice (the smallest change): migration 51, `20261112120000_note_share_versions.sql`.** No share function and no `note_shares` column change. It adds:
+  - `notes.content_key`: md5 of the kind, the title, an older note's words, the lines and checklist points without their `done` and `folded` marks, and the files' paths;
+  - `notes.content_changed_at`: when that key last changed.
+  - Two **deferred** constraint triggers, on `notes` (kind, title, body, blocks, points) and on `note_files` (insert, delete), work the key out again when the change is made for good. The change time moves only when the key did, so the delete-and-insert of the same files doesn't count.
+  - Existing entries get their key and no change time, so old shares don't read as older.
+  - **A share is older** when its `created_at` is before `content_changed_at`.
+  - Read like the rest of a note (the owner only); nobody writes it (`notes` has no write grants).
+  - pgTAP `51_note_share_versions` (21 checks): ticks, pins, folds, a move and a reminder don't count; a line, the title and a photo do; the same files sent again don't; someone else can't read or change it; even the owner can't write it.
+  - **Applied to the local stack only. Not live.**
+  - **Note for later migrations:** a migration that writes `notes` and then alters the table in the same transaction must `set constraints all immediate` first. Test 47, which does that to rebuild an older table, now does.
+- **The app:**
+  - c16019a: `Note.contentChangedAt`.
+    - This phone stamps it when a save changes the content (the same rule, `_contentChanged`) and on Delete lines, so the dot shows before the server is read again.
+    - Ticks, pins and reminders don't stamp it.
+  - 49b700e **T4:**
+    - One entry held: its status row shows all five (no reminder on a voice note). Used ones are filled, unused ones outlined (the card fill with a line ring), and "Tap to do it" («اضغط للتنفيذ») sits at its start.
+    - A tap does it: Pin pins or unpins; Reminder opens the picker; Feed opens its preview; Space and Message open their step (`shareEntry(start:)`).
+    - Then the selection ends.
+    - Screen readers: an unused icon is its action ("Share to a Space"); a used one is its status and its action ("Shared to KCT Tower at 8:45 am. Share again").
+    - The bar: one held, Move to… · Duplicate · Delete; two or more, Pin · Move to… · Duplicate · Delete, where Pin pins them all (or unpins when all are pinned). No icon rows then.
+    - Selected lines keep their bar, Share included.
+  - 49b700e **T5:**
+    - A share kind whose last share is older than the entry has a 9 accent dot with a ring at its top end, each kind its own.
+    - Its card marks each older share "Older version · changed at {time}" («نسخة أقدم · تغيّرت {time}») and ends with **Share again**, which opens the same step. The old share stays in the log.
+  - ba63402: the share tests go through the held entry's icons, replacing the bar's Share. In the H2 test, with no signal a share says so and nothing goes.
+  - The shot scenarios BH4, BH5 and NB-put-in-space go through the icons too. **BH4-share now draws the held entry with its icons (NS5)**, as the bar's Share card is gone for an entry.
+- **Checks (PC):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,686 pass.
+  - SQL: `supabase test db` on the local stack: 3,058 + 21 = 3,079 checks in 50 files pass.
+    - The cloud's stand-in (`service postgresql start; bash supabase/dev/standin/run.sh .`) needs Linux; this session ran on the PC.
+- **Next:**
+  - the lead's check;
+  - `test_screens` on the PC. Expected: every notebook shot with a held entry (BH2, BH3, BH4), BH5, NB-put-in-space, and any shot with an older share;
+  - then migration 51 live, the merge and a build, with the founder's yes.
+- **Who has which branch:** this session had `claude/r106b` (pushed). PC: `slice2-app`. Cursor has 105B (`lib/features/spaces/`, `lib/features/work/`, migration 20261113120000).
+
 ## PC update: 29 Oct 2026 — review 105A live: merged into `slice2-app`, build 775 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
