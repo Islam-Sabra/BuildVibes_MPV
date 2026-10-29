@@ -148,3 +148,37 @@
   - Daily report and Week report stay in Space info's "Work" group.
 
 **105B grows to:** places, archive, personal pins, share to a chat thread, the Space time zone, and handover on removal. It stays one migration.
+
+## The lead's check of `claude/r105a` (29 Oct, at `b814aac`)
+- **Runs (the session's report):** analyze clean; 2,488 tests pass (the one failure is photo_privacy H1, cloud only); SQL stand-in 3,038. No migration.
+- **Two reviewers** (standards, spec): no hard violations.
+  - The off flag holds: Pin, Share and Archive can't be reached.
+  - For takes one person on a work item; Note has no For or Due; the Needs you line is hidden at zero; the proof card goes to the owner only.
+  - The People rows and the dot work as specified; ⋯ is gone from the header.
+
+### Accepted
+- The hint is only "Add details." until 105C, when `+` offers bullets and tables.
+- The To do strip and the old kind menu are removed. Needs you replaces the strip; file posts start from the Library; the daily report starts from Space info.
+- **A new announcement starts pinned until the day ends.** That is the morning brief.
+- Duplicate drops the due date and the pin.
+- Needs you counts my waiting items plus my due items.
+- One "In this Space" list in People, with an admin tag beside the pass.
+- The work item sends `p_team`.
+- The card's hold-to-Check button (review 94) stays. It is a deliberate press-and-hold confirm on a button, not a card gesture.
+- **For now,** the proof card shows in that Space's Work, newest first, and View opens the Profile tab's proof.
+
+### Fixes before the shots
+- **H1. Holding the post bar's camera must not start Sign as done.** Remove `onLongPress: onProve`. Signatures are never on a hold.
+- **H2. A pinned announcement follows the one language:** tap opens it, hold selects it. Folding moves to its own chevron, as in review 106 T2.
+- **H3. Walk goes inside the camera view.** A single choice, **Photo · Walk**, sits at the bottom of the camera, and it remembers the last mode. Remove the two-tile sheet that appears before the camera.
+- **H4. Delete is hidden on a Checked item,** not greyed.
+- **H5. A multi-post Delete keeps going after an error.** It tries every selected post and then reports which ones it couldn't delete; no `break`.
+- **H6. Tokens:**
+  - `RoleCompanyLine`'s `FontWeight.w500` becomes a `BvType` style;
+  - the proof card's View uses a text colour token;
+  - the new spec numbers use the `BvSpace` / `BvSize` scales.
+- **H7. One shared "may post work" check,** used by the camera's Walk and by Space info.
+- **H8. Work's own words.** Work uses its own ARB keys for Pin, Archive, Reminder and Share, not the notebook's. `SelectionBar` moves to `lib/shared/widgets/`.
+- **H9. Move the 15 shot drivers to the new gestures:** slice2/3/4/5/7/8/9/10, daybook, review80/82, around, bh, pg, f102. Check that they compile (analyze); they are run on the PC.
+
+Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment and the Needs you count belong in providers); the phone-storage pattern appears twice; `PeopleTab` is now a screen.
