@@ -38,7 +38,7 @@ The reminder's card keeps **Change**.
 
 **The fold control**
 - It is a 24 chevron at the start of the head: ⌄ when open, › when folded (‹ in Arabic). Its tap area is 44.
-- **A folded entry** shows only the head, plus one quiet line: "3 lines hidden" («3 أسطر مخفية»). The status row is hidden too.
+- **A folded entry** shows the head plus one line: "3 lines hidden" («3 أسطر مخفية») at the start and **its status icons at the end. The icons stay visible and tappable when folded** (founder, 08:13).
 - Tapping the chevron (or the folded head) opens it again. **Tapping the text of an open entry still edits it,** as now.
 
 **The page's ⋯** gains **Collapse all · Expand all**. They act on this page only.
