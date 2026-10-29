@@ -17,7 +17,11 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
 - **K4:** Share again ends every share card.
 - **K5:** "changed at" names the day when it isn't today: "Older version · changed yesterday at 10:12 am" / a short date (`notebookOlderVersionOn`; AR «نسخة أقدم · تغيّرت {day} {time}»).
 - **K6, the answer: a voice recording counts.** A recording is a `note_files` row (kind `voice`), and its path is in the key; on a page, a voice block also carries its `path` in `blocks`, which is in the key too. A new recording changes the key; the same file sent again doesn't. pgTAP 51 checks it.
-- **Checks (cloud):** see the numbers and the shots at the end of this section.
+- **Checks (cloud):**
+  - SQL: no Supabase CLI in the cloud, so `supabase test db` ran as the stand-in (`service postgresql start; bash supabase/dev/standin/run.sh .`, the same pgTAP files on Postgres): **3,088 checks in 51 files, 0 failing** (file 51: 30).
+  - `flutter analyze`: no issues.
+  - `flutter test`: **2,699 pass, 1 fails**: `test/core/photo_privacy_test.dart` H1, root-only in the cloud (passes on the PC).
+  - `flutter test test_screens`, **not updating**: 2 pass, 452 fail against the PC goldens. All of it is the cloud's text rendering (0.3–29%, median 3%; the base commit the same). So the pairs in **`docs/reviews/shots-106b/`** compare cloud with cloud: `609622d` (old) and this branch (new). **10 images differ (5 shots, EN and AR): BH2, BH4, BH5 and NB-put-in-space (T4, as expected) and NS1-status-card (K4's Share again).** BH3 is unchanged; no shot has an older share. The README has the table. Goldens are to be made on the PC once the lead accepts them.
 - **Who has which branch:** this cloud session had `claude/r106b` (pushed). PC: `slice2-app`. Cursor has 105B (`lib/features/spaces/`, `lib/features/work/`, migration 20261113120000).
 
 ## PC update: 29 Oct 2026 — review 106 T4 and T5 on `claude/r106b`; stopped for the lead
