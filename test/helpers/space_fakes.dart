@@ -358,8 +358,13 @@ class FakeSpaceRepository implements SpaceRepository {
   }
 
   @override
-  Future<void> removeMember(String spaceId, String profileId) async {
-    calls.add('remove $profileId');
+  Future<void> removeMember(
+    String spaceId,
+    String profileId, {
+    List<Handover> handovers = const [],
+  }) async {
+    _handedOver(profileId, handovers);
+    calls.add('remove $profileId${_given(handovers)}');
     _put(
       spaceId,
       members: [
@@ -368,6 +373,35 @@ class FakeSpaceRepository implements SpaceRepository {
       ],
     );
   }
+
+  /// Open work items by their owner (open_work_to_hand_over); none unless
+  /// set.
+  final openWorkBy = <String, List<OpenWorkItem>>{};
+
+  @override
+  Future<List<OpenWorkItem>> openWork(String spaceId, String memberId) async {
+    if (failOpenWork) throw const SpaceException(SpaceFailure.network);
+    openWorkReads++;
+    return openWorkBy[memberId] ?? const [];
+  }
+
+  /// The next openWork fails for want of signal.
+  bool failOpenWork = false;
+  var openWorkReads = 0;
+
+  /// The handover's rule: every open item of [member]'s gets a new owner,
+  /// or nothing changes (BV001).
+  void _handedOver(String member, List<Handover> handovers) {
+    final given = {for (final h in handovers) h.item};
+    if ((openWorkBy[member] ?? const []).any((w) => !given.contains(w.id))) {
+      throw const SpaceException(SpaceFailure.openWork);
+    }
+    openWorkBy.remove(member);
+  }
+
+  static String _given(List<Handover> handovers) => handovers.isEmpty
+      ? ''
+      : ' give ${handovers.map((h) => '${h.item}>${h.owner}').join(', ')}';
 
   // Space info and Teams (part 3) --------------------------------------------
 
@@ -478,7 +512,11 @@ class FakeSpaceRepository implements SpaceRepository {
   }
 
   @override
-  Future<void> leaveSpace(String spaceId) async {
+  Future<void> leaveSpace(
+    String spaceId, {
+    List<Handover> handovers = const [],
+  }) async {
+    _handedOver(me, handovers);
     final mine = _of(spaceId).member(me);
     final otherAdmin = _of(
       spaceId,
@@ -486,7 +524,7 @@ class FakeSpaceRepository implements SpaceRepository {
     if ((mine?.isAdmin ?? false) && !otherAdmin) {
       throw const SpaceException(SpaceFailure.rule);
     }
-    calls.add('leave $spaceId');
+    calls.add('leave $spaceId${_given(handovers)}');
     details.remove(spaceId);
     spaces.removeWhere((s) => s.id == spaceId);
   }

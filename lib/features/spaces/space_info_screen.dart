@@ -20,12 +20,14 @@ import '../../shared/widgets/bv_segmented.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_space_emblem.dart';
 import '../../shared/widgets/bv_text_field.dart';
+import '../entry/entry_state.dart' show authUserIdProvider;
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart';
 import '../work/daybook_templates.dart' show mayManageTemplates;
 import 'invite_screen.dart' show renewInviteCode;
 import 'new_space_screen.dart';
 import 'pass_words.dart';
+import 'removal_sheet.dart';
 import 'space_sections.dart' show SpaceInfoAction;
 import 'space_errors.dart';
 import 'space_mute.dart';
@@ -195,19 +197,44 @@ class SpaceInfoScreen extends ConsumerWidget {
     }
 
     Future<void> leave() async {
-      final yes = await showBvDialog(
-        context: context,
-        title: l10n.spacesLeaveTitle(space.name),
-        body: l10n.spacesLeaveBodyPrivate,
-        cancelLabel: l10n.commonCancel,
-        confirmLabel: l10n.spacesLeaveButton,
-        destructive: true,
-      );
-      if (!yes || !context.mounted) return;
+      final repo = ref.read(spaceRepositoryProvider);
+      final me = ref.read(authUserIdProvider).value;
+      // Review 105 SP9: my Open work items go to someone else first, on
+      // the same sheet as a removal.
+      final List<OpenWorkItem> open;
+      try {
+        open = me == null ? const [] : await repo.openWork(spaceId, me);
+      } on SpaceException catch (e) {
+        if (context.mounted) showSpaceError(context, e);
+        return;
+      }
+      if (!context.mounted) return;
+      var handovers = const <Handover>[];
+      if (open.isEmpty) {
+        final yes = await showBvDialog(
+          context: context,
+          title: l10n.spacesLeaveTitle(space.name),
+          body: l10n.spacesLeaveBodyPrivate,
+          cancelLabel: l10n.commonCancel,
+          confirmLabel: l10n.spacesLeaveButton,
+          destructive: true,
+        );
+        if (!yes || !context.mounted) return;
+      } else {
+        final given = await showHandoverSheet(
+          context,
+          ref,
+          spaceId: spaceId,
+          memberId: me!,
+          items: open,
+        );
+        if (given == null || !context.mounted) return;
+        handovers = given;
+      }
       final messenger = ScaffoldMessenger.of(context);
       final router = GoRouter.of(context);
       try {
-        await ref.read(spaceRepositoryProvider).leaveSpace(spaceId);
+        await repo.leaveSpace(spaceId, handovers: handovers);
         ref.invalidate(mySpacesProvider);
         router.go(AppRoutes.home);
         messenger.showSnackBar(

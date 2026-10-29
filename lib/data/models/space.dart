@@ -450,6 +450,49 @@ abstract final class SpaceRight {
 }
 
 /// What a Space call can fail with, from the Postgres error code.
+/// An open work item someone owns, for the removal sheet (review 105
+/// SP9; open_work_to_hand_over): its reference and title, its Team, and
+/// who made it, the default new owner when [makerMayOwn].
+@immutable
+class OpenWorkItem {
+  const OpenWorkItem({
+    required this.id,
+    required this.title,
+    this.ref,
+    this.teamId,
+    this.makerId,
+    this.makerName,
+    this.makerMayOwn = false,
+  });
+
+  factory OpenWorkItem.fromJson(Map<String, dynamic> json) => OpenWorkItem(
+    id: json['id'] as String,
+    title: json['title'] as String? ?? '',
+    ref: json['ref'] as String?,
+    teamId: json['team_id'] as String?,
+    makerId: json['maker_id'] as String?,
+    makerName: json['maker_name'] as String?,
+    makerMayOwn: json['maker_may_own'] as bool? ?? false,
+  );
+
+  final String id;
+  final String title;
+  final String? ref;
+  final String? teamId;
+  final String? makerId;
+  final String? makerName;
+  final bool makerMayOwn;
+}
+
+/// One open work item's new owner, as the handover takes it.
+typedef Handover = ({String item, String owner});
+
+/// [handovers] as remove_member_with_handover and
+/// leave_space_with_handover take them.
+List<Map<String, String>> handoversJson(List<Handover> handovers) => [
+  for (final h in handovers) {'item': h.item, 'owner': h.owner},
+];
+
 enum SpaceFailure {
   /// 42501
   notAllowed,

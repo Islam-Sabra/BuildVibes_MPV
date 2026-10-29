@@ -83,3 +83,15 @@ abstract final class BvSearchSpec {
   static const tile = 36.0;
   static const tileIcon = BvSize.iconMd;
 }
+
+/// Review 105 SP9 (2670:38924): the removal sheet. Each open work item:
+/// its reference and title, then a soft Give to row.
+abstract final class BvHandoverSpec {
+  static const gap = BvSpace.s12;
+  static const itemGap = BvSpace.s8;
+  static const refGap = BvSpace.s6;
+  static const rowRadius = BvRadius.controlAll;
+  static const rowPaddingHorizontal = BvSpace.s12;
+  static const rowPaddingVertical = BvSpace.s12;
+  static const rowGap = BvSpace.s8;
+}
