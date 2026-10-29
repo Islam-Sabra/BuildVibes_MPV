@@ -9344,11 +9344,17 @@ abstract class AppLocalizations {
   /// **'Sent to {name} at {time}'**
   String notebookStatusSent(String name, String time);
 
+  /// Review 104 F3: the badge past three status icons ("+3").
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String notebookStatusMore(int count);
+
   /// Review 104 N12: a screen reader's label of the +N past three icons.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, other{{count} more}}'**
-  String notebookStatusMore(int count);
+  String notebookStatusMoreLabel(int count);
 
   /// Review 104 N12: in a reminder icon's card, changes the reminder.
   ///

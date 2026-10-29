@@ -37,7 +37,8 @@ class NoteStatus {
 
 /// [note]'s statuses: pinned; a reminder (the accent colour while it is
 /// still to ring, grey after); its latest share to the feed, to a Space
-/// (or put in one) and to a person.
+/// (or put in one) and to a person. A Space or a person with no name is
+/// left out, never shown blank (review 104 F3).
 List<NoteStatus> noteStatuses(
   Note note,
   AppLocalizations l10n,
@@ -46,11 +47,14 @@ List<NoteStatus> noteStatuses(
 ) {
   NoteShare? last(NoteShareTarget target) =>
       note.shares.where((s) => s.target == target).lastOrNull;
+  NoteShare? named(NoteShare? s) =>
+      (s?.name?.trim().isNotEmpty ?? false) ? s : null;
   final feed = last(NoteShareTarget.feed);
-  final space = last(NoteShareTarget.space);
-  final sent = last(NoteShareTarget.message);
+  final spaceShare = last(NoteShareTarget.space);
+  final space = named(spaceShare);
+  final sent = named(last(NoteShareTarget.message));
   final remind = note.kind == NoteKind.voice ? null : note.remindAt;
-  final put = space == null && note.putInPostId != null && !note.waiting;
+  final put = spaceShare == null && note.putInPostId != null && !note.waiting;
   return [
     if (note.pinned)
       NoteStatus(
@@ -85,11 +89,11 @@ List<NoteStatus> noteStatuses(
         NoteStatusKind.space,
         icon: BvIcons.team,
         label: l10n.notebookStatusSpace(
-          space.name ?? '',
+          space.name!.trim(),
           words.time.clock(space.at),
         ),
         detail: l10n.notebookMarkTo(
-          space.name ?? '',
+          space.name!.trim(),
           words.time.clock(space.at),
         ),
       )
@@ -105,11 +109,11 @@ List<NoteStatus> noteStatuses(
         NoteStatusKind.message,
         icon: BvIcons.chat,
         label: l10n.notebookStatusSent(
-          sent.name ?? '',
+          sent.name!.trim(),
           words.time.clock(sent.at),
         ),
         detail: l10n.notebookMarkSent(
-          sent.name ?? '',
+          sent.name!.trim(),
           words.time.clock(sent.at),
         ),
       ),
@@ -263,10 +267,10 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
         if (rest.isNotEmpty)
           tap(
             key: 'note-status-${widget.id}-more',
-            label: l10n.notebookStatusMore(rest.length),
+            label: l10n.notebookStatusMoreLabel(rest.length),
             shown: rest,
             child: Text(
-              l10n.daybookFacesMore(rest.length),
+              l10n.notebookStatusMore(rest.length),
               style: type.metadata.copyWith(color: BvColors.textSecondary),
             ),
           ),

@@ -7982,8 +7982,17 @@
       }
     }
   },
-  "notebookStatusMore": "{count, plural, other{{count} more}}",
+  "notebookStatusMore": "+{count}",
   "@notebookStatusMore": {
+    "description": "Review 104 F3: the badge past three status icons (\"+3\").",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookStatusMoreLabel": "{count, plural, other{{count} more}}",
+  "@notebookStatusMoreLabel": {
     "description": "Review 104 N12: a screen reader's label of the +N past three icons.",
     "placeholders": {
       "count": {

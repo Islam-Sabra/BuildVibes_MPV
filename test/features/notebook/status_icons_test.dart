@@ -178,10 +178,12 @@ void main() {
           ),
         ]);
         expect(_icons(tester, 'a', lang), [BvIcons.pin, BvIcons.remind]);
+        // F3: the badge's own words.
+        expect(l10n.notebookStatusMore(3), '+3');
         expect(
           find.descendant(
             of: _key('note-status-a-more'),
-            matching: find.text('+3'),
+            matching: find.text(l10n.notebookStatusMore(3)),
           ),
           findsOneWidget,
         );
@@ -270,6 +272,59 @@ void main() {
         expect(
           tester.getSemantics(_key('note-status-a-feed')).label,
           l10n.notebookStatusFeed(words.time.clock(_feedAt)),
+        );
+        semantics.dispose();
+      });
+
+      testWidgets('F3: a Space or a person with no name is left out, never '
+          'a blank name', (tester) async {
+        final semantics = tester.ensureSemantics();
+        await _open(tester, lang, [
+          _entry(
+            'a',
+            shares: [
+              _feed,
+              NoteShare(target: NoteShareTarget.space, at: _spaceAt),
+              NoteShare(
+                target: NoteShareTarget.message,
+                at: _sentAt,
+                name: '  ',
+              ),
+            ],
+          ),
+          _entry(
+            'b',
+            hour: 8,
+            shares: [NoteShare(target: NoteShareTarget.space, at: _spaceAt)],
+          ),
+        ]);
+        expect(_icons(tester, 'a', lang), [BvIcons.feed]);
+        expect(_key('note-status-a-space'), findsNothing);
+        expect(_key('note-status-a-message'), findsNothing);
+        expect(_key('note-status-b'), findsNothing);
+        final words = DaybookWords(l10n, lang, use24: false);
+        for (final blank in [
+          l10n.notebookStatusSpace('', words.time.clock(_spaceAt)),
+          l10n.notebookStatusSent('  ', words.time.clock(_sentAt)),
+        ]) {
+          expect(find.bySemanticsLabel(blank), findsNothing);
+        }
+        semantics.dispose();
+      });
+
+      testWidgets('F3: "+N" is read as "3 more"', (tester) async {
+        final semantics = tester.ensureSemantics();
+        await _open(tester, lang, [
+          _entry(
+            'a',
+            pinned: true,
+            remindAt: _ringAt,
+            shares: [_feed, _space, _sent],
+          ),
+        ]);
+        expect(
+          tester.getSemantics(_key('note-status-a-more')).label,
+          l10n.notebookStatusMoreLabel(3),
         );
         semantics.dispose();
       });
