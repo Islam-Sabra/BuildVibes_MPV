@@ -1603,5 +1603,14 @@
   "workRemindPast": "اختر وقتًا لم يأتِ بعد.",
   "workReminderLine": "تذكير · {when}",
   "workSelected": "تم تحديد {count}",
-  "workCloseSelection": "إنهاء التحديد"
+  "workCloseSelection": "إنهاء التحديد",
+  "spacesHandOverFirst": "يجب تسليم بنود عملك المفتوحة لشخص آخر أولاً.",
+  "daybookWhyOpenWork": "بنود العمل المفتوحة لم تُسلَّم بعد",
+  "daybookSendBackWhoNow": "{name} خارج هذه المساحة الآن. من ينفّذ البند؟",
+  "daybookStampOpen": "مفتوح",
+  "chatPostHidden": "لا يمكنك رؤية هذا البند",
+  "workUnarchive": "إلغاء الأرشفة",
+  "workUnarchived": "عاد إلى العمل",
+  "workPinsMore": "+{count} أخرى",
+  "workShareFailed": "تعذّرت مشاركة {titles}."
 }

@@ -384,6 +384,7 @@ class DaybookPost {
     this.children,
     this.blocks = const [],
     this.refs = const {},
+    this.archivedAt,
   });
 
   factory DaybookPost.fromJson(Map<String, dynamic> json) {
@@ -456,6 +457,7 @@ class DaybookPost {
             in (json['refs'] as Map<String, dynamic>? ?? const {}).entries)
           e.key: DaybookRef.fromJson(e.value as Map<String, dynamic>),
       },
+      archivedAt: _time(json['archived_at']),
     );
   }
 
@@ -533,6 +535,9 @@ class DaybookPost {
   /// An announcement pinned under the masthead until then (only while it
   /// is).
   final DateTime? pinnedUntil;
+
+  /// When a Lead archived it (review 105B): out of Work, found by Search.
+  final DateTime? archivedAt;
 
   /// A scheduled activity's start and optional end.
   final DateTime? startsAt;
@@ -656,6 +661,7 @@ class DaybookPost {
     children: children ?? this.children,
     blocks: blocks,
     refs: refs,
+    archivedAt: archivedAt,
   );
 
   /// Late (review 44, answer 3): an open, live item past its time, or, with

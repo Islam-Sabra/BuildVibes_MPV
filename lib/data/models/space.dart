@@ -469,6 +469,10 @@ enum SpaceFailure {
   /// 40001: changed elsewhere since this phone read it (an entry edited on
   /// another phone, migration 48).
   conflict,
+
+  /// BV001: the person still owns open work; it is handed over first
+  /// (migration 52, review 105B L1).
+  openWork,
   network,
   unknown,
 }

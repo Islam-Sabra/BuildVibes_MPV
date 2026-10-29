@@ -9721,6 +9721,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop selecting'**
   String get workCloseSelection;
+
+  /// Review 105B L1: Leave refused while I own open work (BV001); handing it over comes in 105C.
+  ///
+  /// In en, this message translates to:
+  /// **'Give your open work to someone else first.'**
+  String get spacesHandOverFirst;
+
+  /// Review 105B L1: why Remove from Space was refused (BV001), after "Couldn't remove: ".
+  ///
+  /// In en, this message translates to:
+  /// **'their open work isn\'t handed over yet'**
+  String get daybookWhyOpenWork;
+
+  /// Review 105B L2: Send back of an item whose owner has left: the Give to sheet comes first.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} isn\'t in this Space any more. Who does it now?'**
+  String daybookSendBackWhoNow(String name);
+
+  /// Review 105B L8: a shared card's status in Chat while the work item is Open.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN'**
+  String get daybookStampOpen;
+
+  /// Review 105B L8: a shared card in Chat for a reader the post is hidden from (another Team's).
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t see this item'**
+  String get chatPostHidden;
+
+  /// Review 105B L7: a Lead's ⋯ on an archived item opened from Search.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get workUnarchive;
+
+  /// Review 105B L7: after Unarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Back in Work'**
+  String get workUnarchived;
+
+  /// Review 105B L9: under my first 3 pinned lines, the rest; a tap opens them.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String workPinsMore(int count);
+
+  /// Review 105B L10: after Share of several posts, the ones that failed, by title, joined with ·; Try again sends them again.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t share {titles}.'**
+  String workShareFailed(String titles);
 }
 
 class _AppLocalizationsDelegate

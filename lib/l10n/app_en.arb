@@ -8304,5 +8304,56 @@
   "workCloseSelection": "Stop selecting",
   "@workCloseSelection": {
     "description": "Review 105 H8: what a screen reader says for the Space header's ✕ while cards are held."
+  },
+  "spacesHandOverFirst": "Give your open work to someone else first.",
+  "@spacesHandOverFirst": {
+    "description": "Review 105B L1: Leave refused while I own open work (BV001); handing it over comes in 105C."
+  },
+  "daybookWhyOpenWork": "their open work isn't handed over yet",
+  "@daybookWhyOpenWork": {
+    "description": "Review 105B L1: why Remove from Space was refused (BV001), after \"Couldn't remove: \"."
+  },
+  "daybookSendBackWhoNow": "{name} isn't in this Space any more. Who does it now?",
+  "@daybookSendBackWhoNow": {
+    "description": "Review 105B L2: Send back of an item whose owner has left: the Give to sheet comes first.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "daybookStampOpen": "OPEN",
+  "@daybookStampOpen": {
+    "description": "Review 105B L8: a shared card's status in Chat while the work item is Open."
+  },
+  "chatPostHidden": "You can't see this item",
+  "@chatPostHidden": {
+    "description": "Review 105B L8: a shared card in Chat for a reader the post is hidden from (another Team's)."
+  },
+  "workUnarchive": "Unarchive",
+  "@workUnarchive": {
+    "description": "Review 105B L7: a Lead's ⋯ on an archived item opened from Search."
+  },
+  "workUnarchived": "Back in Work",
+  "@workUnarchived": {
+    "description": "Review 105B L7: after Unarchive."
+  },
+  "workPinsMore": "+{count} more",
+  "@workPinsMore": {
+    "description": "Review 105B L9: under my first 3 pinned lines, the rest; a tap opens them.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workShareFailed": "Couldn't share {titles}.",
+  "@workShareFailed": {
+    "description": "Review 105B L10: after Share of several posts, the ones that failed, by title, joined with ·; Try again sends them again.",
+    "placeholders": {
+      "titles": {
+        "type": "String"
+      }
+    }
   }
 }

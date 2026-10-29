@@ -5870,4 +5870,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get workCloseSelection => 'إنهاء التحديد';
+
+  @override
+  String get spacesHandOverFirst =>
+      'يجب تسليم بنود عملك المفتوحة لشخص آخر أولاً.';
+
+  @override
+  String get daybookWhyOpenWork => 'بنود العمل المفتوحة لم تُسلَّم بعد';
+
+  @override
+  String daybookSendBackWhoNow(String name) {
+    return '$name خارج هذه المساحة الآن. من ينفّذ البند؟';
+  }
+
+  @override
+  String get daybookStampOpen => 'مفتوح';
+
+  @override
+  String get chatPostHidden => 'لا يمكنك رؤية هذا البند';
+
+  @override
+  String get workUnarchive => 'إلغاء الأرشفة';
+
+  @override
+  String get workUnarchived => 'عاد إلى العمل';
+
+  @override
+  String workPinsMore(int count) {
+    return '+$count أخرى';
+  }
+
+  @override
+  String workShareFailed(String titles) {
+    return 'تعذّرت مشاركة $titles.';
+  }
 }

@@ -119,6 +119,13 @@ abstract class DaybookRepository {
   /// leaves Work; Search still finds it.
   Future<void> archivePost(String postId);
 
+  /// unarchive_space_post (review 105B L7): back in Work.
+  Future<void> unarchivePost(String postId);
+
+  /// shared_post_gone (review 105B L8): a post shared in a thread I read
+  /// was deleted, not only hidden from me.
+  Future<bool> sharedPostGone(String postId);
+
   /// share_post_to_thread (review 105B): the post's card into one of its
   /// Space's threads, as the message [messageId].
   Future<void> sharePost({
@@ -684,6 +691,21 @@ class SupabaseDaybookRepository implements DaybookRepository {
   @override
   Future<void> archivePost(String postId) => _guard(
     () => _client.rpc<void>('archive_space_post', params: {'p_post': postId}),
+  );
+
+  @override
+  Future<void> unarchivePost(String postId) => _guard(
+    () => _client.rpc<void>('unarchive_space_post', params: {'p_post': postId}),
+  );
+
+  @override
+  Future<bool> sharedPostGone(String postId) => _guard(
+    () async =>
+        await _client.rpc<bool?>(
+          'shared_post_gone',
+          params: {'p_post': postId},
+        ) ??
+        false,
   );
 
   @override
