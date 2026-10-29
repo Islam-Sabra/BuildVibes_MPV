@@ -12,7 +12,9 @@ import 'package:buildvibes/data/models/space_search.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/shared/widgets/bv_place_picker.dart';
+import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:flutter/material.dart';
@@ -139,6 +141,68 @@ void main() {
         expect(_key('place-row-${_gate.id}'), findsNothing);
         expect(_key('place-row-${_l2.id}'), findsOneWidget);
         expect(_key('place-row-${_l3.id}'), findsOneWidget);
+      });
+
+      testWidgets('the lead\'s check O1: a bottom sheet like Give to\'s: '
+          'its grabber and "Place", the search on top, A to Z with a check on '
+          'the chosen one; "Add place" first when nothing matches', (
+        tester,
+      ) async {
+        await _open(tester, lang);
+        await _openPicker(tester);
+        final sheet = _key('bv-sheet');
+        expect(sheet, findsOneWidget);
+        expect(
+          find.descendant(of: sheet, matching: find.byType(BvPlacePicker)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: sheet, matching: _key('bv-sheet-handle')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: sheet, matching: find.text(l10n.daybookRowPlace)),
+          findsOneWidget,
+        );
+        // Not the popover over the writing card's rows.
+        expect(find.byType(BvPopoverMenu<int>), findsNothing);
+        final search = tester.getTopLeft(_key('place-search')).dy;
+        final ys = [
+          for (final p in [_gate, _l2, _l3])
+            tester.getTopLeft(_key('place-row-${p.id}')).dy,
+        ];
+        expect(ys.every((y) => y > search), isTrue);
+        expect(ys, [...ys]..sort());
+        // The chosen one has its check.
+        await _tap(tester, _key('place-row-${_l2.id}'));
+        expect(_key('bv-sheet'), findsNothing);
+        await _tap(tester, _key('writing-place-row'));
+        expect(
+          find.descendant(
+            of: _key('place-row-${_l2.id}'),
+            matching: find.byIcon(BvIcons.check),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: _key('place-row-${_gate.id}'),
+            matching: find.byIcon(BvIcons.check),
+          ),
+          findsNothing,
+        );
+        // A name the Space hasn't got: "Add place" is the first row.
+        await tester.enterText(
+          find.descendant(
+            of: _key('place-search'),
+            matching: find.byType(TextField),
+          ),
+          'Roof',
+        );
+        await tester.pumpAndSettle();
+        expect(_key('place-add'), findsOneWidget);
+        expect(find.text(l10n.daybookPlaceAdd('Roof')), findsOneWidget);
+        expect(tester.getTopLeft(_key('place-add')).dy, greaterThan(search));
       });
 
       testWidgets('a pick is the row\'s value, and the post goes with it '

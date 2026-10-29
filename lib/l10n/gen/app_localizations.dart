@@ -9545,7 +9545,7 @@ abstract class AppLocalizations {
   /// Review 105 SP2: the words' hint on a work item being written, under its title.
   ///
   /// In en, this message translates to:
-  /// **'Add details. + for bullet points, a table or a table of tasks.'**
+  /// **'Details, or + for lists and tables'**
   String get daybookWritingDetails;
 
   /// Review 105 SP2: the For row's word (who the work item, checklist or activity is for).

@@ -1574,7 +1574,7 @@
   "daybookDeleteTitle": "{count, plural, =1{حذف هذا المنشور؟} other{حذف {count} منشورات؟}}",
   "daybookDeleteBody": "سيُحذف من العمل لكل من في هذه المساحة.",
   "daybookDeleteKept": "{count, plural, =1{أضاف أحدهم إلى منشور، فبقي. افتحه لإلغائه.} other{أضاف أحدهم إلى {count} منشورات، فبقيت. افتح كلاً منها لإلغائه.}}",
-  "daybookWritingDetails": "أضف التفاصيل. + للنقاط أو جدول أو جدول مهام.",
+  "daybookWritingDetails": "التفاصيل، أو + للقوائم والجداول",
   "daybookRowFor": "لمن",
   "daybookRowPlace": "المكان",
   "daybookRowDue": "الموعد",

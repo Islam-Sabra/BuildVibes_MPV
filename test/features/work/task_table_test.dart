@@ -5,8 +5,7 @@ import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
-import 'package:buildvibes/features/work/daybook_page.dart'
-    show mayTickTasks;
+import 'package:buildvibes/features/work/daybook_page.dart' show mayTickTasks;
 import 'package:buildvibes/features/work/daybook_page_editor.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
@@ -127,7 +126,8 @@ Future<void> _openItem(WidgetTester tester) async {
 }
 
 /// Inside the opened item.
-Finder _inPage(Finder f) => find.descendant(of: _key('daybook-page'), matching: f);
+Finder _inPage(Finder f) =>
+    find.descendant(of: _key('daybook-page'), matching: f);
 
 void main() {
   group('the table of tasks block', () {
@@ -186,8 +186,12 @@ void main() {
 
     test('+ in a work item: SP4\'s seven in order; a table of tasks only on '
         'a work item', () {
-      DaybookPost post(String kind) =>
-          DaybookPost(id: 'p', kind: kind, createdAt: DateTime(2026), title: 't');
+      DaybookPost post(String kind) => DaybookPost(
+        id: 'p',
+        kind: kind,
+        createdAt: DateTime(2026),
+        title: 't',
+      );
       expect(pageAdds(post(DaybookPost.workItemKind)).take(7), [
         PageAdd.text,
         PageAdd.bullets,
@@ -257,12 +261,13 @@ void main() {
       );
     });
 
-    testWidgets('the writing card\'s hint names + [$lang]', (tester) async {
+    testWidgets('the writing card\'s hint names +, on one line (the '
+        'lead\'s check O2) [$lang]', (tester) async {
       expect(
         l10n.daybookWritingDetails,
         s.t(
-          'Add details. + for bullet points, a table or a table of tasks.',
-          'أضف التفاصيل. + للنقاط أو جدول أو جدول مهام.',
+          'Details, or + for lists and tables',
+          'التفاصيل، أو + للقوائم والجداول',
         ),
       );
     });
@@ -321,7 +326,9 @@ void main() {
           matching: find.byWidgetPredicate(
             (w) =>
                 w.key is ValueKey<String> &&
-                (w.key! as ValueKey<String>).value.startsWith('page-field-tt:') &&
+                (w.key! as ValueKey<String>).value.startsWith(
+                  'page-field-tt:',
+                ) &&
                 (w.key! as ValueKey<String>).value.endsWith(':t'),
           ),
         ),
@@ -331,17 +338,19 @@ void main() {
       await _tap(tester, _key('page-add-bullets'));
       expect(
         find.byWidgetPredicate(
-          (w) =>
-              w is TextField &&
-              w.controller?.text == pageBulletStart,
+          (w) => w is TextField && w.controller?.text == pageBulletStart,
         ),
         findsOneWidget,
       );
       await _tap(tester, _key('page-done'));
       // The empty second row went; the bullet line is a text block.
       expect(pages.calls.last, startsWith('save $_post v2 [task_table'));
-      final saved = pages.pages[_post]!.blocks.whereType<PageTaskTable>().single;
-      expect(saved.rows.map((r) => r.text), [s.t('Seal the joint', 'اختم الفاصل')]);
+      final saved = pages.pages[_post]!.blocks
+          .whereType<PageTaskTable>()
+          .single;
+      expect(saved.rows.map((r) => r.text), [
+        s.t('Seal the joint', 'اختم الفاصل'),
+      ]);
       expect(saved.rows.single.ticked, isFalse);
     });
 
@@ -366,7 +375,9 @@ void main() {
       final ticked = tester.widget<Text>(
         find.descendant(
           of: card,
-          matching: find.text(s.t('Cracked tile at the stair', 'بلاطة مكسورة عند الدرج')),
+          matching: find.text(
+            s.t('Cracked tile at the stair', 'بلاطة مكسورة عند الدرج'),
+          ),
         ),
       );
       expect(ticked.style?.decoration, TextDecoration.lineThrough);
@@ -484,7 +495,11 @@ void main() {
       await _openItem(tester);
       final tick = tester.getCenter(_inPage(_key('task-tick-$_grout')));
       final task = tester.getCenter(
-        _inPage(find.text(s.t('Grout gap at the lift door', 'فراغ الترويب عند باب المصعد'))),
+        _inPage(
+          find.text(
+            s.t('Grout gap at the lift door', 'فراغ الترويب عند باب المصعد'),
+          ),
+        ),
       );
       final note = tester.getCenter(
         _inPage(find.text(s.t('Grey grout', 'ترويب رمادي'))),
@@ -521,10 +536,7 @@ void main() {
         mayTickTasks(s.detail(pass: SpacePass.lead), post, DaybookSamples.sara),
         isTrue,
       );
-      expect(
-        mayTickTasks(s.detail(), post, DaybookSamples.omar),
-        isTrue,
-      );
+      expect(mayTickTasks(s.detail(), post, DaybookSamples.omar), isTrue);
     });
 
     testWidgets('the lead\'s check N2: the admin on a Crew pass taps a tick '
@@ -550,11 +562,11 @@ void main() {
       final semantics = tester.ensureSemantics();
       await _open(tester, lang);
       await _openItem(tester);
-      final grout = s.t('Grout gap at the lift door', 'فراغ الترويب عند باب المصعد');
-      expect(
-        find.bySemanticsLabel(l10n.taskTableTick(grout)),
-        findsWidgets,
+      final grout = s.t(
+        'Grout gap at the lift door',
+        'فراغ الترويب عند باب المصعد',
       );
+      expect(find.bySemanticsLabel(l10n.taskTableTick(grout)), findsWidgets);
       expect(
         find.descendant(
           of: _inPage(_key('task-row-$_skirting')),

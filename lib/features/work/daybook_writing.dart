@@ -55,7 +55,7 @@ final newPostIdProvider = Provider<String Function()>((ref) => newUuid);
 /// What opens over the diary while writing (E2, E3, E6): More, the kind
 /// menu, the assign picker or the place field. Who a checklist or an
 /// activity is for opens as a sheet ([DaybookPeopleSheet], F45).
-enum DaybookWritingMenu { more, kind, assign, place, audience }
+enum DaybookWritingMenu { more, kind, assign, audience }
 
 /// The Teams [me] may post to (F56, "To: Everyone"): their own, or every
 /// Team for a Space admin (create_space_post's rule).
@@ -859,6 +859,7 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
     required this.onPickStart,
     required this.onPickFile,
     required this.onPickPeople,
+    required this.onPickPlace,
     this.editing = false,
     this.askWho,
     this.onWalk,
@@ -885,6 +886,9 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
   final VoidCallback onPickStart;
   final VoidCallback onPickFile;
   final VoidCallback onPickPeople;
+
+  /// The Place row: the Space's places, on a sheet (review 105C O1).
+  final VoidCallback onPickPlace;
 
   /// Walk, the last kind chip: starts walk mode. Null for who may not
   /// post work (no chip).
@@ -1036,7 +1040,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
       label: l10n.daybookRowPlace,
       value: where ?? l10n.daybookRowAdd,
       empty: where == null,
-      onTap: tap(() => menu(DaybookWritingMenu.place)),
+      onTap: tap(widget.onPickPlace),
     );
     final due = BvWritingRow(
       key: const Key('writing-due-row'),
@@ -1596,7 +1600,8 @@ class _PointsEditorState extends State<DaybookPointsEditor> {
 
 /// What opens over the diary while writing: the More menu (a kind's own
 /// choices; an edit has no Assign), the kind menu (E6), the assign picker,
-/// who a checklist or an activity is for, or the place field.
+/// or who a checklist or an activity is for. The place is a sheet
+/// ([DaybookPlaceSheet]).
 /// [onAssigned] follows a pick in the assign picker; [onPickPeople] opens
 /// the people sheet.
 class DaybookWritingPopover extends ConsumerStatefulWidget {
@@ -1613,6 +1618,7 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
     required this.onClose,
     required this.onAssigned,
     required this.onPickPeople,
+    required this.onPickPlace,
     required this.onPickTemplate,
     this.editing = false,
   });
@@ -1629,6 +1635,7 @@ class DaybookWritingPopover extends ConsumerStatefulWidget {
   final VoidCallback onClose;
   final VoidCallback onAssigned;
   final VoidCallback onPickPeople;
+  final VoidCallback onPickPlace;
 
   /// "Template" (slice 7): start from one of this kind's templates.
   final VoidCallback onPickTemplate;
@@ -1648,17 +1655,14 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     widget.spaceId,
     editing: widget.editing,
   );
-  late final TextEditingController _place;
 
   @override
   void initState() {
     super.initState();
-    _place = TextEditingController(text: _writer.draft?.place);
   }
 
   @override
   void dispose() {
-    _place.dispose();
     super.dispose();
   }
 
@@ -1743,88 +1747,6 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     };
   }
 
-  /// "Add place ‘…’" (review 105C): the new place, then picked; a name
-  /// the Space has already says so.
-  Future<void> _addPlace(
-    String name,
-    Future<void> Function(SpacePlace) pick,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    try {
-      final place = await ref
-          .read(spacePlacesProvider(widget.spaceId).notifier)
-          .add(name);
-      await pick(place);
-    } on SpaceException catch (e) {
-      if (!mounted) return;
-      if (e.failure == SpaceFailure.badInput) {
-        showSpaceMessage(context, l10n.daybookPlaceTaken);
-      } else {
-        showSpaceError(context, e);
-      }
-    }
-  }
-
-  /// A Lead's long press on a place (review 105C): Rename or Delete.
-  Future<void> _placeMenu(SpacePlace place) async {
-    final l10n = AppLocalizations.of(context);
-    final places = ref.read(spacePlacesProvider(widget.spaceId).notifier);
-    final picked = await showBvScreenMenu<bool>(
-      context,
-      key: const Key('place-menu'),
-      items: [
-        BvMenuItem(
-          key: const Key('place-rename'),
-          value: true,
-          label: l10n.daybookPlaceRename,
-          icon: BvIcons.edit,
-        ),
-        BvMenuItem(
-          key: const Key('place-delete'),
-          value: false,
-          label: l10n.delete,
-          icon: BvIcons.delete,
-          destructive: true,
-        ),
-      ],
-    );
-    if (!mounted || picked == null) return;
-    try {
-      if (picked) {
-        final name = await showBvFieldDialog(
-          context: context,
-          title: l10n.daybookPlaceRenameTitle,
-          initial: place.name,
-          cancelLabel: l10n.commonCancel,
-          confirmLabel: l10n.save,
-          fieldKey: const Key('place-rename-field'),
-          maxLength: DaybookPostDraft.placeMax,
-        );
-        if (name == null || name == place.name) return;
-        await places.rename(place, name);
-      } else {
-        final sure = await showBvDialog(
-          context: context,
-          title: l10n.daybookPlaceDeleteTitle(place.name),
-          body: l10n.daybookPlaceDeleteBody,
-          cancelLabel: l10n.commonCancel,
-          confirmLabel: l10n.delete,
-          destructive: true,
-        );
-        if (!sure) return;
-        await places.delete(place);
-        if (_writer.draft?.placeId == place.id) await _writer.pickPlace(null);
-      }
-    } on SpaceException catch (e) {
-      if (!mounted) return;
-      if (e.failure == SpaceFailure.badInput) {
-        showSpaceMessage(context, l10n.daybookPlaceTaken);
-      } else {
-        showSpaceError(context, e);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -1843,7 +1765,7 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
             _More.template => widget.onPickTemplate(),
             _More.assign => widget.onMenu(DaybookWritingMenu.assign),
             _More.people => widget.onPickPeople(),
-            _More.location => widget.onMenu(DaybookWritingMenu.place),
+            _More.location => widget.onPickPlace(),
             _More.due => widget.onPickDue(),
             _More.pin => widget.onPickPin(),
             _More.time => widget.onPickStart(),
@@ -1932,30 +1854,150 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
                   },
                 ),
         );
-      case DaybookWritingMenu.place:
-        final space = ref.watch(spaceDetailProvider(widget.spaceId)).value;
-        final places = ref.watch(spacePlacesProvider(widget.spaceId));
-        Future<void> pick(SpacePlace p) async {
-          await _writer.pickPlace(p);
-          widget.onClose();
-        }
-
-        return BvPlacePicker(
-          key: const Key('writing-place'),
-          places: places.value ?? const [],
-          currentId: draft?.placeId,
-          searchPlaceholder: l10n.daybookPlaceSearch,
-          addLabel: l10n.daybookPlaceAdd,
-          emptyLabel: l10n.daybookPlaceNone,
-          // Who may post work adds one (space_places_add).
-          canAdd: space?.mayPostWork ?? false,
-          onPick: (p) => unawaited(pick(p)),
-          onAdd: (name) => unawaited(_addPlace(name, pick)),
-          // A Lead renames and deletes (space_places_rename, _delete).
-          onLongPress: space?.myPass == SpacePass.lead
-              ? (p) => unawaited(_placeMenu(p))
-              : null,
-        );
     }
+  }
+}
+
+/// The Place row's picker (review 105C; the lead's check O1): on a sheet
+/// like Give to's, under its grabber and "Place". The search on top, the
+/// Space's places A to Z with a check on the chosen one, and "Add place
+/// ‘…’" for a name it hasn't got, for who may post work; a Lead's long
+/// press renames or deletes one. A pick closes the sheet.
+class DaybookPlaceSheet extends ConsumerStatefulWidget {
+  const DaybookPlaceSheet({
+    super.key,
+    required this.spaceId,
+    this.editing = false,
+  });
+
+  final String spaceId;
+  final bool editing;
+
+  @override
+  ConsumerState<DaybookPlaceSheet> createState() => _PlaceSheetState();
+}
+
+class _PlaceSheetState extends ConsumerState<DaybookPlaceSheet> {
+  late final DaybookWriter _writer = DaybookWriter(
+    ref,
+    widget.spaceId,
+    editing: widget.editing,
+  );
+
+  /// "Add place ‘…’" (review 105C): the new place, then picked; a name
+  /// the Space has already says so.
+  Future<void> _addPlace(
+    String name,
+    Future<void> Function(SpacePlace) pick,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final place = await ref
+          .read(spacePlacesProvider(widget.spaceId).notifier)
+          .add(name);
+      await pick(place);
+    } on SpaceException catch (e) {
+      if (!mounted) return;
+      if (e.failure == SpaceFailure.badInput) {
+        showSpaceMessage(context, l10n.daybookPlaceTaken);
+      } else {
+        showSpaceError(context, e);
+      }
+    }
+  }
+
+  /// A Lead's long press on a place (review 105C): Rename or Delete.
+  Future<void> _placeMenu(SpacePlace place) async {
+    final l10n = AppLocalizations.of(context);
+    final places = ref.read(spacePlacesProvider(widget.spaceId).notifier);
+    final picked = await showBvScreenMenu<bool>(
+      context,
+      key: const Key('place-menu'),
+      items: [
+        BvMenuItem(
+          key: const Key('place-rename'),
+          value: true,
+          label: l10n.daybookPlaceRename,
+          icon: BvIcons.edit,
+        ),
+        BvMenuItem(
+          key: const Key('place-delete'),
+          value: false,
+          label: l10n.delete,
+          icon: BvIcons.delete,
+          destructive: true,
+        ),
+      ],
+    );
+    if (!mounted || picked == null) return;
+    try {
+      if (picked) {
+        final name = await showBvFieldDialog(
+          context: context,
+          title: l10n.daybookPlaceRenameTitle,
+          initial: place.name,
+          cancelLabel: l10n.commonCancel,
+          confirmLabel: l10n.save,
+          fieldKey: const Key('place-rename-field'),
+          maxLength: DaybookPostDraft.placeMax,
+        );
+        if (name == null || name == place.name) return;
+        await places.rename(place, name);
+      } else {
+        final sure = await showBvDialog(
+          context: context,
+          title: l10n.daybookPlaceDeleteTitle(place.name),
+          body: l10n.daybookPlaceDeleteBody,
+          cancelLabel: l10n.commonCancel,
+          confirmLabel: l10n.delete,
+          destructive: true,
+        );
+        if (!sure) return;
+        await places.delete(place);
+        if (_writer.draft?.placeId == place.id) await _writer.pickPlace(null);
+      }
+    } on SpaceException catch (e) {
+      if (!mounted) return;
+      if (e.failure == SpaceFailure.badInput) {
+        showSpaceMessage(context, l10n.daybookPlaceTaken);
+      } else {
+        showSpaceError(context, e);
+      }
+    }
+  }
+
+  /// A pick closes the sheet.
+  Future<void> _pick(SpacePlace p) async {
+    await _writer.pickPlace(p);
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final draft = ref.watch(
+      widget.editing
+          ? daybookEditProvider(widget.spaceId)
+          : daybookDraftProvider(widget.spaceId),
+    );
+    final space = ref.watch(spaceDetailProvider(widget.spaceId)).value;
+    final places = ref.watch(spacePlacesProvider(widget.spaceId));
+    return BvPlacePicker(
+      key: const Key('writing-place'),
+      places: places.value ?? const [],
+      currentId: draft?.placeId,
+      searchPlaceholder: l10n.daybookPlaceSearch,
+      addLabel: l10n.daybookPlaceAdd,
+      emptyLabel: l10n.daybookPlaceNone,
+      // Who may post work adds one (space_places_add).
+      canAdd: space?.mayPostWork ?? false,
+      inSheet: true,
+      onPick: (p) => unawaited(_pick(p)),
+      onAdd: (name) => unawaited(_addPlace(name, _pick)),
+      // A Lead renames and deletes (space_places_rename, _delete).
+      onLongPress: space?.myPass == SpacePass.lead
+          ? (p) => unawaited(_placeMenu(p))
+          : null,
+    );
   }
 }

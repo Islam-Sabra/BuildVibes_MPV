@@ -1057,6 +1057,17 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     );
   }
 
+  /// The Place row, or More → Location (review 105C; the lead's check
+  /// O1): the Space's places on a sheet, like Give to's.
+  Future<void> _pickPlace() async {
+    _setMenu(null);
+    await showBvSheet<void>(
+      context: context,
+      title: AppLocalizations.of(context).daybookRowPlace,
+      builder: (_) => DaybookPlaceSheet(spaceId: _spaceId, editing: _editing),
+    );
+  }
+
   /// More → Template (slice 7): this kind's templates for this audience;
   /// one fills the card.
   Future<void> _pickTemplate() async {
@@ -1690,6 +1701,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                               onClose: () => _setMenu(null),
                               onAssigned: _assigned,
                               onPickPeople: () => unawaited(_pickPeople()),
+                              onPickPlace: () => unawaited(_pickPlace()),
                               onPickTemplate: () => unawaited(_pickTemplate()),
                             ),
                           ),
@@ -3261,6 +3273,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                           onPickStart: () => unawaited(_pickStart()),
                           onPickFile: () => unawaited(_pickFile()),
                           onPickPeople: () => unawaited(_pickPeople()),
+                          onPickPlace: () => unawaited(_pickPlace()),
                           onWalk: widget.space.mayPostWork
                               ? () => unawaited(_walk())
                               : null,

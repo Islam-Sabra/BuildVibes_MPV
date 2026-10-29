@@ -8160,7 +8160,7 @@
       }
     }
   },
-  "daybookWritingDetails": "Add details. + for bullet points, a table or a table of tasks.",
+  "daybookWritingDetails": "Details, or + for lists and tables",
   "@daybookWritingDetails": {
     "description": "Review 105 SP2: the words' hint on a work item being written, under its title."
   },

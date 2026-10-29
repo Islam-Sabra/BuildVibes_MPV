@@ -5766,8 +5766,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookWritingDetails =>
-      'أضف التفاصيل. + للنقاط أو جدول أو جدول مهام.';
+  String get daybookWritingDetails => 'التفاصيل، أو + للقوائم والجداول';
 
   @override
   String get daybookRowFor => 'لمن';

@@ -5728,8 +5728,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookWritingDetails =>
-      'Add details. + for bullet points, a table or a table of tasks.';
+  String get daybookWritingDetails => 'Details, or + for lists and tables';
 
   @override
   String get daybookRowFor => 'For';
