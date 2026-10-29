@@ -2,6 +2,27 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 29 Oct 2026 (later) — the lead's check of `claude/r105a`: H1, H2, H4–H9 done; H3 waits on a decision
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `claude/r105a`, this cloud session's, pushed. Nothing merged, nothing live, no deploy, nothing installed, **no migration**.
+- **Commits:** 63e118b H1, H4, H5; 1f3586f H2, H6, H8; 22a200b H7; 5e9a1f9 H9.
+- **H1:** the post bar's camera has no hold (`onProve` gone from `BvPostBar`); its screen-reader label is "Camera" (`daybookCameraLabel`; `daybookHoldToProve` removed). Sign as done starts only from the work item.
+- **H2:** a pinned announcement: **tap opens** it as an item, **hold selects** it (it joins the selection bar; Delete for its author). Folding is its own 24 chevron at the start of its head (`BvPinnedFold`, key `pinned-fold`; ⌄ open, › folded, mirrored in Arabic), as review 106 T2; the line's trailing › is gone.
+- **H3 — not done, needs a decision.** A Photo · Walk choice *inside* the camera needs a live camera view in the app. Today every photo uses the phone's own camera (`image_picker`), where nothing of ours can be drawn. That needs the `camera` plugin (a new native dependency); adding it was refused by this session's permission check, so the two-tile sheet (`daybook_camera.dart`) stays for now. Options for the founder/lead: (a) allow adding `camera` (official flutter.dev plugin) and build the camera view here or on the PC; (b) keep the sheet until then.
+- **H4:** Delete is hidden (not greyed) when a held post can't be deleted (a Checked one).
+- **H5:** Delete of several tries every post; the ones that fail with no signal are named after ("Couldn't delete … Try again.", `daybookDeleteFailed`); ones the server keeps say so as before.
+- **H6:** the registered company uses `BvType.emphasisSm`; the proof card's View uses `textAction`; the 105A spec numbers are on the BvSpace / BvSize / BvRadius scales (Needs you padding 12 and icon 20, writing rows padding and gap 12, kind chips round, proof seal 40 and icon 24, People tag padding 2, header dot inset 8) — small changes in those shots.
+- **H7:** `SpaceDetail.mayPostWork` (Lead or Crew with the right to create items) is the one check for the camera's Walk and Space info's daily report.
+- **H8:** Work's own ARB keys: `workPin`, `workArchive`, `workReminder`, `workChangeReminder`, `workShare`, `workDuplicate`, `workRemindPast`, `workReminderLine`, `workSelected`, `workCloseSelection`. `SelectionBar` moved to `lib/shared/widgets/bv_selection_bar.dart`; `notebook_page_parts.dart` only re-exports it now (the one line changed in `lib/features/notebook/`, as H8 asks).
+- **H9:** the 15 shot drivers use the new gestures (new helper `test_screens/work_gestures.dart`); analyze clean, **not run** (test_screens is the PC's). Shots that now show something else under the old name: `Y1-swipe-update` (the opened item's Add update), `E2-more-menu` (the writing card's +), `E6`/`F50`/`F63` kind-menu shots and `E6-kind-chip` (the chips row). The drivers for Library and People now draw those screens directly (`shoot` has no router).
+- **Checks (cloud):** `flutter analyze` (whole project, test_screens included): no issues. `flutter test`: 2,501 pass, 1 fails — `test/core/photo_privacy_test.dart` H1, root-only in the cloud (passes on the PC). SQL stand-in: ok=3038, files failing 0. No test_screens run, no goldens updated, no migration.
+- **For the PC, when the shots are checked:** every Work shot changes on purpose (as before, plus H2's chevron and H6's spacing); People's (SP8); the To do strip's and MN1's PNGs can go.
+- **Who has which branch:** this cloud session had `claude/r105a` (pushed). PC: `slice2-app`. `claude/r104` is with the lead.
+
 ## Cloud update: 29 Oct 2026 — review 105A done on `claude/r105a` (from `slice2-app` 3f14b70); shots still to check on the PC
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
