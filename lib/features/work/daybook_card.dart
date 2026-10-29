@@ -28,6 +28,7 @@ import '../library/library_parts.dart' show bvMegabyte;
 import '../spaces/former_member.dart';
 import 'daybook_kinds.dart';
 import 'daybook_marks.dart' show postFilesProvider;
+import 'daybook_page.dart' show forLineWithTasks;
 import 'daybook_photos.dart';
 import 'daybook_report.dart' show DaybookReportBody;
 import 'daybook_target_card.dart' show DaybookTargetRows;
@@ -213,6 +214,8 @@ class DaybookCardView extends StatelessWidget {
     this.lineKey,
     this.onTap,
     this.nameOf,
+    this.taskTables,
+    this.taskCount,
   });
 
   /// The card as the phone shows it: what waits to be sent is already on
@@ -269,6 +272,11 @@ class DaybookCardView extends StatelessWidget {
   /// Who ticked a point, by id.
   final DaybookNameOf? nameOf;
 
+  /// A work item's tables of tasks (review 105 SP3), under its facts, and
+  /// their rows ticked of all ("1 of 3 ticked" on the For line).
+  final Widget? taskTables;
+  final ({int ticked, int total})? taskCount;
+
   /// History lines drawn collapsed.
   static const shownLines = 3;
 
@@ -307,6 +315,8 @@ class DaybookCardView extends StatelessWidget {
     lineKey: (lifted ?? this.lifted) ? null : lineKey,
     onTap: onTap == null ? this.onTap : onTap(),
     nameOf: nameOf,
+    taskTables: taskTables,
+    taskCount: taskCount,
   );
 
   @override
@@ -364,7 +374,11 @@ class DaybookCardView extends StatelessWidget {
             children: [
               BvSlipFact(
                 icon: BvIcons.person,
-                text: words.meta(post, me: me, now: now),
+                text: forLineWithTasks(
+                  l10n,
+                  words.meta(post, me: me, now: now),
+                  taskCount,
+                ),
                 marks: _factMarks(context),
               ),
               if ((post.place ?? '').isNotEmpty)
@@ -377,6 +391,7 @@ class DaybookCardView extends StatelessWidget {
           ),
         ?_quote(),
         if (chips.isNotEmpty) BvSlipChips(children: chips),
+        ?taskTables,
         if (post.isTarget)
           DaybookTargetRows(
             post: post,

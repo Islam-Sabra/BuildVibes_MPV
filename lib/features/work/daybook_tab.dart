@@ -41,6 +41,8 @@ import '../../data/repositories/daybook_live.dart';
 import '../../data/repositories/daybook_repository.dart'
     show daybookRepositoryProvider;
 import '../../data/models/template.dart';
+import '../../data/models/post_page.dart' show PageTaskTable, taskCount;
+import '../../data/repositories/page_repository.dart' show taskTablesProvider;
 import '../../data/repositories/space_repository.dart';
 import '../../data/repositories/template_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -82,7 +84,7 @@ import 'daybook_draft.dart';
 import 'daybook_kinds.dart';
 import 'daybook_loop.dart';
 import 'daybook_marks.dart';
-import 'daybook_page.dart' show showDaybookPage;
+import 'daybook_page.dart' show PageTaskTableView, showDaybookPage;
 import 'daybook_report.dart';
 import 'daybook_state.dart';
 import 'daybook_target.dart';
@@ -2941,6 +2943,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     });
 
     final sending = ref.watch(outboxSendingProvider);
+    // Review 105 SP3: work items' tables of tasks, on their cards.
+    final taskTables =
+        ref.watch(taskTablesProvider(_spaceId)).value ??
+        const <String, List<PageTaskTable>>{};
     final selected = ref.watch(workSelectionProvider(_spaceId));
     final selecting = selected.isNotEmpty;
     void select(String id) {
@@ -2952,6 +2958,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       final c = s.card;
       final unsent = s.unsent;
       final refusedProof = s.refusedProof;
+      final tables = unsent == null ? taskTables[c.id] : null;
       final view = DaybookCardView(
         card: c,
         words: words,
@@ -2959,6 +2966,24 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         activityAt: s.at,
         viewer: viewer,
+        taskCount: tables == null ? null : taskCount(tables),
+        taskTables: tables == null
+            ? null
+            : Column(
+                key: Key('card-task-tables-${c.id}'),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: BvSpace.s8,
+                children: [
+                  for (final t in tables)
+                    PageTaskTableView(
+                      key: Key('card-task-table-${t.id}'),
+                      space: widget.space,
+                      post: c.post,
+                      table: t,
+                      me: me,
+                    ),
+                ],
+              ),
         waiting: s.waiting,
         changeWaiting: s.changeWaiting,
         // F73: on its way now (with a signal), not waiting for one.

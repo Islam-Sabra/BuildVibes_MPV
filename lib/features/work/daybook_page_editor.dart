@@ -12,6 +12,7 @@ import '../../core/design/daybook_page_specs.dart';
 import '../../core/network/signal_state.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/library.dart';
+import '../../data/models/note.dart' show noteBulletMark;
 import '../../data/models/post_page.dart';
 import '../../data/models/space.dart';
 import '../../data/repositories/daybook_repository.dart';
@@ -35,8 +36,22 @@ import 'daybook_writing.dart' show assignablePeople;
 import 'page_block_editing.dart';
 import 'work_outbox.dart';
 
-/// What "/" and + offer (N3), in the frame's order.
-enum PageAdd { text, heading, checklist, toggle, table, photo, file, item }
+/// What "/" and + offer (N3), in the frame's order: a work item's seven
+/// of review 105 SP4 first (Text · Bullet points · Checklist · Table ·
+/// Table of tasks · Photo · File or scan), then a heading, a toggle and a
+/// work item under it.
+enum PageAdd {
+  text,
+  bullets,
+  checklist,
+  table,
+  taskTable,
+  photo,
+  file,
+  heading,
+  toggle,
+  item,
+}
 
 /// What a block turns into (N4).
 enum PageTurn { text, point, item }
@@ -57,6 +72,8 @@ List<PageAdd> pageAdds(DaybookPost post) => [
     if (switch (a) {
       PageAdd.checklist =>
         post.isWorkItem || post.kind == DaybookPost.checklistKind,
+      // Review 105 Part 4: one owner ticks its rows, then signs once.
+      PageAdd.taskTable => post.isWorkItem,
       PageAdd.item => mayHaveItemsUnder(post),
       _ => true,
     })
@@ -67,28 +84,48 @@ List<PageAdd> pageAdds(DaybookPost post) => [
 bool mayHaveItemsUnder(DaybookPost post) =>
     post.isWorkItem && post.parentId == null;
 
-/// The block menu's words (N3).
-String pageAddName(AppLocalizations l10n, PageAdd a) => switch (a) {
+/// The block menu's words (N3). In a work item (review 105 SP4) a file
+/// is "File or scan".
+String pageAddName(
+  AppLocalizations l10n,
+  PageAdd a, {
+  bool workItem = false,
+}) => switch (a) {
   PageAdd.text => l10n.pageText,
+  PageAdd.bullets => l10n.pageBulletPoints,
   PageAdd.heading => l10n.pageHeading,
   PageAdd.checklist => l10n.pageChecklist,
   PageAdd.toggle => l10n.pageToggle,
   PageAdd.table => l10n.pageTable,
+  PageAdd.taskTable => l10n.pageTaskTable,
   PageAdd.photo => l10n.pagePhoto,
-  PageAdd.file => l10n.pageFile,
+  PageAdd.file => workItem ? l10n.pageFileOrScan : l10n.pageFile,
   PageAdd.item => l10n.pageItemUnder,
+};
+
+/// The line under a kind in a work item's + (review 105 SP4): a plain
+/// table has no owners; a table of tasks is ticked by the owner.
+String? pageAddHint(AppLocalizations l10n, PageAdd a) => switch (a) {
+  PageAdd.table => l10n.pageTableHint,
+  PageAdd.taskTable => l10n.pageTaskTableHint,
+  _ => null,
 };
 
 IconData pageAddIcon(PageAdd a) => switch (a) {
   PageAdd.text => BvIcons.textBlock,
+  PageAdd.bullets => BvIcons.bulletList,
   PageAdd.heading => BvIcons.headingBlock,
   PageAdd.checklist => BvIcons.workItems,
   PageAdd.toggle => BvIcons.caretForward,
-  PageAdd.table => BvIcons.tableBlock,
-  PageAdd.photo => BvIcons.image,
+  PageAdd.table || PageAdd.taskTable => BvIcons.tableBlock,
+  PageAdd.photo => BvIcons.camera,
   PageAdd.file => BvIcons.document,
   PageAdd.item => BvIcons.useful,
 };
+
+/// A bullet point's start: Work's text block with a bullet (review 105
+/// Part 4).
+const pageBulletStart = '$noteBulletMark ';
 
 final _uuid = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
@@ -176,6 +213,23 @@ planPageSave(
           kept.add(PageChecklist(b.id, ids));
           shownIds.addAll(ids);
         }
+      case PageTaskTable(:final rows):
+        // A tick is the owner's or a Lead's (tick_task_row): each row keeps
+        // the one the server has, and a ticked row its words. An empty new
+        // row goes; a table with no rows left goes.
+        final saved = {
+          for (final t in page.blocks)
+            if (t is PageTaskTable && t.id == b.id)
+              for (final r in t.rows) r.id: r,
+        };
+        final left = [
+          for (final r in rows)
+            if (saved[r.id] case final s? when s.ticked)
+              s
+            else if (r.text.trim().isNotEmpty)
+              TaskRow(r.id, r.text.trim(), note: r.note.trim()),
+        ];
+        if (left.isNotEmpty) kept.add(PageTaskTable(b.id, left));
       default:
         kept.add(b);
     }
@@ -467,7 +521,8 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     ref
       ..invalidate(postPageProvider(_post.id))
       ..invalidate(checklistPointsProvider(_post.id))
-      ..invalidate(postFilesProvider(_post.id));
+      ..invalidate(postFilesProvider(_post.id))
+      ..invalidate(taskTablesProvider(_spaceId));
     unawaited(DaybookLoop(ref, widget.space, onEdit: (_) {}).refresh());
   }
 
@@ -543,19 +598,32 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
     final f = filter.toLowerCase();
     final adds = [
       for (final a in pageAdds(_post))
-        if ((f.isEmpty || pageAddName(l10n, a).toLowerCase().startsWith(f)) &&
+        if ((f.isEmpty ||
+                pageAddName(
+                  l10n,
+                  a,
+                  workItem: _post.isWorkItem,
+                ).toLowerCase().startsWith(f)) &&
             (intoToggle == null || _insideToggle.contains(a)))
           a,
     ];
     if (adds.isEmpty) return;
+    final item = _post.isWorkItem;
     final picked = await showPageBlockMenu<PageAdd>(
       context,
-      title: l10n.pageMenuTitle,
+      // Review 105 SP4: "Add to this work item", each kind's line under
+      // Table and Table of tasks.
+      title: item ? l10n.pageAddToItem : l10n.pageMenuTitle,
       items: [
         for (final a in adds)
-          (value: a, label: pageAddName(l10n, a), icon: pageAddIcon(a)),
+          (
+            value: a,
+            label: pageAddName(l10n, a, workItem: item),
+            icon: pageAddIcon(a),
+          ),
       ],
       keyOf: (a) => a.name,
+      hintOf: item ? (a) => pageAddHint(l10n, a) : null,
     );
     _add.clear();
     if (picked == null || !mounted) return;
@@ -578,6 +646,9 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
       case PageAdd.text:
         block = PageText(id, '');
         focus = 't:$id';
+      case PageAdd.bullets:
+        block = PageText(id, pageBulletStart);
+        focus = 't:$id';
       case PageAdd.heading:
         block = PageHeading(id, '');
         focus = 't:$id';
@@ -595,6 +666,10 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
           ['', ''],
         ]);
         focus = 'c:$id:0:0';
+      case PageAdd.taskTable:
+        final row = newUuid();
+        block = PageTaskTable(id, [TaskRow(row, '')]);
+        focus = taskFieldKey(id, row, note: false);
       case PageAdd.photo:
         block = await _photo(id);
       case PageAdd.file:
@@ -794,10 +869,13 @@ class DaybookPageEditorState extends ConsumerState<DaybookPageEditor>
           (
             value: a,
             key: a.name,
-            label: pageAddName(l10n, a),
+            label: pageAddName(l10n, a, workItem: _post.isWorkItem),
             icon: pageAddIcon(a),
             shortcut: null,
-            words: [for (final w in slashLanguages) pageAddName(w, a)],
+            words: [
+              for (final w in slashLanguages)
+                pageAddName(w, a, workItem: _post.isWorkItem),
+            ],
           ),
     ];
   }

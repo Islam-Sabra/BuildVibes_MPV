@@ -179,6 +179,7 @@ class PendingItem {
     this.postId,
     this.teamId,
     this.handTo,
+    this.handovers = const [],
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -227,6 +228,13 @@ class PendingItem {
     noteId: json['note_id'] as String?,
     postId: json['post_id'] as String?,
     handTo: json['hand_to'] as String?,
+    handovers: [
+      for (final h in json['handovers'] as List? ?? const [])
+        (
+          item: (h as Map<String, dynamic>)['item'] as String,
+          owner: h['owner'] as String,
+        ),
+    ],
   );
 
   static DateTime? _time(Object? value) =>
@@ -312,6 +320,10 @@ class PendingItem {
   /// (review 105B L2): [ownerId] and [ownerName] are theirs too.
   final String? handTo;
 
+  /// A removal's open work items, each with its new owner (review 105C
+  /// SP9), sent with it in one step.
+  final List<Handover> handovers;
+
   /// The card this is about.
   String get cardId => postId ?? id;
 
@@ -356,6 +368,7 @@ class PendingItem {
     postId: postId,
     teamId: teamId,
     handTo: handTo,
+    handovers: handovers,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -388,6 +401,7 @@ class PendingItem {
     postId: postId,
     teamId: teamId,
     handTo: handTo,
+    handovers: handovers,
   );
 
   /// A new post, of any kind.
@@ -432,6 +446,7 @@ class PendingItem {
     'note_id': ?noteId,
     'post_id': ?postId,
     'hand_to': ?handTo,
+    if (handovers.isNotEmpty) 'handovers': handoversJson(handovers),
   };
 
   /// Only the kinds this version knows are read back.
@@ -1004,7 +1019,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
       case PendingKind.remove:
         await ref
             .read(spaceRepositoryProvider)
-            .removeMember(item.spaceId, item.id);
+            .removeMember(item.spaceId, item.id, handovers: item.handovers);
       case PendingKind.sendBack:
         await ref
             .read(workRepositoryProvider)

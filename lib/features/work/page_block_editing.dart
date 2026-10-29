@@ -16,6 +16,7 @@ import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_sheet.dart';
+import '../../shared/widgets/bv_task_table.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import 'daybook_page.dart' show PageTableView;
 
@@ -65,6 +66,9 @@ Future<T?> showPageBlockMenu<T>(
   required String title,
   required List<PageMenuItem<T>> items,
   required String Function(T value) keyOf,
+
+  /// A kind's line under its name (review 105 SP4).
+  String? Function(T value)? hintOf,
 }) => showBvSheet<T>(
   context: context,
   title: title,
@@ -90,6 +94,7 @@ Future<T?> showPageBlockMenu<T>(
             ),
           ),
           title: a.label,
+          subtitle: hintOf?.call(a.value),
           trailing: const BvRowTrailing.none(),
           onTap: () => Navigator.of(sheet).pop(a.value),
         ),
@@ -341,6 +346,13 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         path,
         caption: _fields['p:${b.id}']?.text ?? caption,
       ),
+      PageTaskTable(:final rows) => PageTaskTable(b.id, [
+        for (final r in rows)
+          r.withWords(
+            _fields[taskFieldKey(b.id, r.id, note: false)]?.text ?? r.text,
+            _fields[taskFieldKey(b.id, r.id, note: true)]?.text ?? r.note,
+          ),
+      ]),
       PageLine(:final text) => b.withText(words(text)),
       _ => b,
     };
@@ -733,6 +745,8 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         );
       case PageTable():
         return tableEditor(i, b);
+      case PageTaskTable():
+        return taskTableEditor(i, b);
       default:
         return hostBlock(i, b);
     }
@@ -904,4 +918,95 @@ mixin PageBlockEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       ],
     );
   }
+
+  // Tables of tasks (review 105 Part 4) ---------------------------------------
+
+  void editTaskTable(
+    int index,
+    PageTaskTable Function(PageTaskTable t) change,
+  ) {
+    editBlocks = collectBlocks();
+    final t = editBlocks[index] as PageTaskTable;
+    setState(() => editBlocks[index] = change(t));
+    blocksEdited();
+  }
+
+  /// A row's menu: Delete row, for a row not ticked (a tick is the owner's
+  /// or a Lead's to take back) while another row stays.
+  Future<void> _taskRowMenu(int index, int row) async {
+    final l10n = AppLocalizations.of(context);
+    final t = collectBlocks()[index] as PageTaskTable;
+    if (t.rows.length < 2 || t.rows[row].ticked) return;
+    final id = t.rows[row].id;
+    final picked = await showBvSheet<bool>(
+      context: context,
+      builder: (sheet) => BvListRow(
+        key: const Key('page-delete-task-row'),
+        title: l10n.pageDeleteRow,
+        trailing: const BvRowTrailing.none(),
+        onTap: () => Navigator.of(sheet).pop(true),
+      ),
+    );
+    if (picked != true || !mounted) return;
+    for (final note in [false, true]) {
+      dropField(taskFieldKey(t.id, id, note: note));
+    }
+    editTaskTable(
+      index,
+      (t) => PageTaskTable(t.id, [
+        for (final r in t.rows)
+          if (r.id != id) r,
+      ]),
+    );
+  }
+
+  /// The table of tasks being edited: each row's task and note in place
+  /// (a ticked row's words stay as they are), "Add a row" under them. The
+  /// ticks are the owner's, on the page itself.
+  Widget taskTableEditor(int i, PageTaskTable t) {
+    final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
+    return BvTaskTable(
+      key: Key('page-task-table-${t.id}'),
+      rows: [
+        for (final r in t.rows)
+          (id: r.id, text: r.text, note: r.note, ticked: r.ticked),
+      ],
+      taskLabel: l10n.taskTableTask,
+      noteLabel: l10n.taskTableNote,
+      tickLabel: l10n.taskTableTick,
+      addLabel: t.rows.length < PageTaskTable.maxRows
+          ? l10n.pageAddRow
+          : null,
+      onAdd: () {
+        final row = newUuid();
+        editTaskTable(
+          i,
+          (t) => PageTaskTable(t.id, [...t.rows, TaskRow(row, '')]),
+        );
+        focusBlockLater(taskFieldKey(t.id, row, note: false));
+      },
+      onRowLongPress: (row) => unawaited(_taskRowMenu(i, row)),
+      task: (row) => blockText(
+        taskFieldKey(t.id, t.rows[row].id, note: false),
+        t.rows[row].text,
+        style: type.bodyMd,
+        hint: l10n.taskTableTask,
+        maxLength: PageTaskTable.cellMax,
+        readOnly: t.rows[row].ticked,
+      ),
+      note: (row) => blockText(
+        taskFieldKey(t.id, t.rows[row].id, note: true),
+        t.rows[row].note,
+        style: type.metadata,
+        hint: l10n.taskTableNote,
+        maxLength: PageTaskTable.cellMax,
+        readOnly: t.rows[row].ticked,
+      ),
+    );
+  }
 }
+
+/// The field of a table of tasks' row: its task, or its [note].
+String taskFieldKey(String blockId, String rowId, {required bool note}) =>
+    'tt:$blockId:$rowId:${note ? 'n' : 't'}';
