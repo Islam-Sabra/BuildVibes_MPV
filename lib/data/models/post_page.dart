@@ -63,6 +63,10 @@ sealed class PageBlock {
         for (final r in json['rows'] as List? ?? const [])
           [for (final c in r as List) '${c ?? ''}'],
       ], indent: indent),
+      PageTaskTable.kind => PageTaskTable(id, [
+        for (final r in json['rows'] as List? ?? const [])
+          TaskRow.fromJson(r as Map<String, dynamic>),
+      ]),
       PagePhoto.kind => PagePhoto(
         id,
         json['path'] as String? ?? '',
@@ -225,6 +229,78 @@ class PageTable extends PageBlock {
     'rows': rows,
     ..._indentJson,
   };
+}
+
+/// A row of a table of tasks (review 105 Part 4): its task, a note and
+/// its tick. The id is the app's, so a tick or a row sent twice is one.
+@immutable
+class TaskRow {
+  const TaskRow(this.id, this.text, {this.note = '', this.ticked = false});
+
+  factory TaskRow.fromJson(Map<String, dynamic> json) => TaskRow(
+    json['id'] as String? ?? '',
+    json['text'] as String? ?? '',
+    note: json['note'] as String? ?? '',
+    ticked: json['ticked'] == true,
+  );
+
+  final String id;
+  final String text;
+  final String note;
+  final bool ticked;
+
+  TaskRow withWords(String text, String note) =>
+      TaskRow(id, text, note: note, ticked: ticked);
+
+  TaskRow withTick(bool on) => TaskRow(id, text, note: note, ticked: on);
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'text': text,
+    if (note.isNotEmpty) 'note': note,
+    'ticked': ticked,
+  };
+}
+
+/// A work item's table of tasks (review 105 Part 4, SP3; migration 53):
+/// a tick, Task and Note on each row. The item keeps its one owner, who
+/// (or a Lead) ticks the rows; a tick is not a signature, and Sign as done
+/// stays once for the whole item. 1–20 rows; a task or a note up to 200
+/// characters.
+class PageTaskTable extends PageBlock {
+  const PageTaskTable(super.id, this.rows);
+
+  static const kind = 'task_table';
+  static const maxRows = 20;
+  static const cellMax = 200;
+
+  final List<TaskRow> rows;
+
+  int get ticked => rows.where((r) => r.ticked).length;
+
+  @override
+  String get type => kind;
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': kind,
+    'rows': [for (final r in rows) r.toJson()],
+  };
+}
+
+/// The rows ticked and all rows of [blocks]' tables of tasks ("1 of 3
+/// ticked" on the For line); null when there are none.
+({int ticked, int total})? taskCount(Iterable<PageBlock> blocks) {
+  var ticked = 0;
+  var total = 0;
+  for (final b in blocks) {
+    if (b is PageTaskTable) {
+      ticked += b.ticked;
+      total += b.rows.length;
+    }
+  }
+  return total == 0 ? null : (ticked: ticked, total: total);
 }
 
 /// One of the post's own photos (post_files).

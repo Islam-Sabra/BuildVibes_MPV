@@ -180,6 +180,78 @@ class FakePageRepository implements PageRepository {
     return version;
   }
 
+  /// Tables of tasks by post, for the cards (space_task_tables): what the
+  /// pages hold unless set.
+  final taskTablesBySpace = <String, Map<String, List<PageTaskTable>>>{};
+
+  /// Who may tick (the owner or a Lead): the next tick or new row is
+  /// refused when false.
+  bool mayTick = true;
+
+  @override
+  Future<int> tickTaskRow({
+    required String postId,
+    required String blockId,
+    required String rowId,
+    required bool on,
+  }) async {
+    _check();
+    if (!mayTick) throw const SpaceException(SpaceFailure.notAllowed);
+    final p = pages[postId]!;
+    calls.add('tick $rowId ${on ? 'on' : 'off'}');
+    pages[postId] = p.copyWith(
+      version: p.version + 1,
+      blocks: [
+        for (final b in p.blocks)
+          if (b is PageTaskTable && b.id == blockId)
+            PageTaskTable(b.id, [
+              for (final r in b.rows) r.id == rowId ? r.withTick(on) : r,
+            ])
+          else
+            b,
+      ],
+    );
+    return p.version + 1;
+  }
+
+  @override
+  Future<int> addTaskRow({
+    required String postId,
+    required String blockId,
+    required String rowId,
+    required String text,
+    String note = '',
+  }) async {
+    _check();
+    final p = pages[postId]!;
+    calls.add('add row $text${note.isEmpty ? '' : ' · $note'}');
+    pages[postId] = p.copyWith(
+      version: p.version + 1,
+      blocks: [
+        for (final b in p.blocks)
+          if (b is PageTaskTable && b.id == blockId)
+            PageTaskTable(b.id, [
+              ...b.rows,
+              TaskRow(rowId, text.trim(), note: note.trim()),
+            ])
+          else
+            b,
+      ],
+    );
+    return p.version + 1;
+  }
+
+  @override
+  Future<Map<String, List<PageTaskTable>>> taskTables(String spaceId) async {
+    _check();
+    return taskTablesBySpace[spaceId] ??
+        {
+          for (final e in pages.entries)
+            if (e.value.blocks.whereType<PageTaskTable>().isNotEmpty)
+              e.key: e.value.blocks.whereType<PageTaskTable>().toList(),
+        };
+  }
+
   int _turn(
     String postId,
     String pointId,
