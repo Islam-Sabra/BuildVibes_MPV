@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(93);
+select plan(97);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000052' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -189,6 +189,8 @@ select lives_ok($$select public.archive_space_post(pg_temp.item('a001'))$$, 'a L
 select is((select archived_by from public.space_posts where id = pg_temp.item('a001')), pg_temp.uid('f1'),
   'who archived it is kept');
 select is(pg_temp.listed(pg_temp.item('a001')), false, 'Work leaves it out');
+select ok((select (c.card ->> 'archived_at') is not null from public.daybook_card(pg_temp.item('a001')) c),
+  'opened, it says it is archived (Unarchive, L7)');
 select is(pg_temp.listed(pg_temp.item('a002')), true, 'the others stay');
 select isnt((select count(*) from public.daybook_card(pg_temp.item('a001')))::integer, 0,
   'it still opens (Search)');
@@ -260,6 +262,23 @@ select is((select kind || ':' || post_id from public.messages where id = pg_temp
 select lives_ok($$select public.share_post_to_thread(pg_temp.item('cc01'), pg_temp.item('a002'), pg_temp.everyone())$$,
   'a retry posts it once');
 select is((select count(*) from public.messages where post_id = pg_temp.item('a002'))::integer, 1, 'once');
+select is(public.shared_post_gone(pg_temp.item('a002')), false, 'a shared post still in Work isn''t gone');
+select public.share_post_to_thread(pg_temp.item('cc08'), pg_temp.item('a003'), pg_temp.everyone());
+reset role;
+update public.space_posts set deleted_at = now() where id = pg_temp.item('a003');
+select pg_temp.as_user('f4');
+set local role authenticated;
+select is(public.shared_post_gone(pg_temp.item('a003')), true,
+  'a deleted one is gone, for a reader of its thread (L8)');
+reset role;
+select pg_temp.as_user('f5');
+set local role authenticated;
+select is(public.shared_post_gone(pg_temp.item('a003')), false, 'someone outside the Space learns nothing');
+reset role;
+update public.space_posts set deleted_at = null where id = pg_temp.item('a003');
+delete from public.messages where id = pg_temp.item('cc08');
+select pg_temp.as_user('f2');
+set local role authenticated;
 select throws_ok($$select public.share_post_to_thread(pg_temp.item('cc02'), pg_temp.item('a004'), pg_temp.everyone())$$,
   '42501', null, 'not a post he can''t see');
 select throws_ok($$select public.share_post_to_thread(pg_temp.item('cc03'), pg_temp.item('a002'), pg_temp.team_thread())$$,

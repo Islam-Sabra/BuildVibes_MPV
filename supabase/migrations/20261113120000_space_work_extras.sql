@@ -36,6 +36,9 @@
 -- 7. Send back to someone who has left: send_back on an item whose owner
 --    may no longer sign it needs a new owner in the same call.
 -- 8. daybook_month leaves archived posts out too.
+-- 9. A post says it is archived, and its place (space_post_json), so a
+--    Lead can Unarchive it from Search; shared_post_gone tells a reader
+--    of a thread that a shared post was deleted, not only hidden.
 
 -- ---------------------------------------------------------------------------
 -- 1. Places
@@ -776,6 +779,290 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- 9. A post's archive and place; a shared post that is gone
+-- ---------------------------------------------------------------------------
+
+-- As in 20261107120000_post_numbers, with archived_at and place_id.
+create or replace function public.space_post_json(p_post space_posts, p_full boolean)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  -- Migration 46: every post's own number, as its ref (NST-031).
+  select jsonb_strip_nulls(jsonb_build_object('ref', p_post.ref,
+    'archived_at', p_post.archived_at, 'place_id', p_post.place_id) || jsonb_build_object(
+    'id', p_post.id,
+    'space_id', p_post.space_id,
+    'kind', p_post.kind,
+    'status', p_post.status,
+    'team_id', p_post.team_id,
+    'author_id', p_post.author_id,
+    'author_name', public.space_person_name(p_post.author_id),
+    'title', p_post.title,
+    'body', p_post.body,
+    'place', p_post.place_text,
+    'due_date', p_post.due_date,
+    'due_at', p_post.due_at,
+    'parent_id', p_post.parent_id,
+    'source_message_id', p_post.source_message_id,
+    'quote', p_post.quote,
+    'created_at', p_post.created_at,
+    'edited_at', p_post.edited_at,
+    'cancelled_at', p_post.cancelled_at,
+    'cancelled_by_name', public.space_person_name(p_post.cancelled_by),
+    'cancel_note', p_post.cancel_note,
+    'pinned_until', case when p_post.pinned_until > now() then p_post.pinned_until end,
+    'starts_at', p_post.starts_at,
+    'ends_at', p_post.ends_at,
+    'item', (
+      select jsonb_build_object(
+        'ref', w.ref, 'status', w.status,
+        'owner_id', w.owner_id, 'owner_name', public.space_person_name(w.owner_id),
+        'done_at', w.done_at, 'checked_at', w.checked_at,
+        'checked_by_name', public.space_person_name(w.checked_by))
+      from public.work_items w where w.id = p_post.id),
+    'people', (
+      select jsonb_agg(jsonb_build_object('id', pp.profile_id,
+                                          'name', public.space_person_name(pp.profile_id))
+                       order by pp.created_at, pp.profile_id)
+      from public.post_people pp where pp.post_id = p_post.id),
+    'points', (
+      select jsonb_build_object('total', count(*),
+                                'ticked', count(*) filter (where c.ticked_at is not null))
+      from public.checklist_points c where c.post_id = p_post.id
+      having count(*) > 0),
+    'my_acks', (
+      select jsonb_agg(a.kind order by a.kind)
+      from public.post_acks a where a.post_id = p_post.id and a.profile_id = auth.uid()),
+    -- When the caller gave each of them, {"got_it": "<time>"} or {}
+    -- (migration 29): only the caller's own.
+    'my_ack_at', coalesce((
+      select jsonb_object_agg(a.kind, a.created_at order by a.kind)
+      from public.post_acks a where a.post_id = p_post.id and a.profile_id = auth.uid()),
+      '{}'::jsonb),
+    'file', (
+      select jsonb_build_object(
+        'id', lf.id, 'name', lf.name, 'mime', lf.mime, 'bytes', lf.bytes,
+        'rev_label', lf.rev_label, 'note', lf.note, 'path', lf.storage_path,
+        'version_no', lf.version_no,
+        'replaces', (select jsonb_build_object('name', o.name, 'rev_label', o.rev_label,
+                                               'bytes', o.bytes, 'version_no', o.version_no)
+                     from public.library_files o where o.id = lf.supersedes_id),
+        -- The version in use now, when this one isn't (F76): its number, when
+        -- it came, and the newest post carrying it the reader can see.
+        'newer', (select jsonb_build_object(
+                           'version_no', n.version_no, 'at', n.created_at,
+                           'post_id', (select sp.id from public.space_posts sp
+                                       where sp.library_file_id = n.id and sp.deleted_at is null
+                                         and sp.status = 'live'
+                                         and public.can_see_space_post(sp.id)
+                                       order by sp.created_at desc limit 1))
+                  from public.library_files n
+                  where n.chain_id = lf.chain_id and n.version_no > lf.version_no
+                    and n.deleted_at is null and public.can_read_library_file(n.id)
+                  order by n.version_no desc limit 1),
+        'has_newer', exists (select 1 from public.library_files n
+                             where n.supersedes_id = lf.id and n.deleted_at is null
+                               and public.can_read_library_file(n.id)))
+      from public.library_files lf
+      where lf.id = p_post.library_file_id and public.can_read_library_file(lf.id)),
+    -- The latest stamp on the slip.
+    'stamp', (
+      select case
+        when p_post.status = 'cancelled' then jsonb_build_object(
+          'kind', 'cancelled', 'at', p_post.cancelled_at,
+          'by_name', public.space_person_name(p_post.cancelled_by))
+        when w.status = 'checked' then jsonb_build_object(
+          'kind', 'checked', 'at', w.checked_at, 'by_name', public.space_person_name(w.checked_by))
+        when w.status = 'done' then jsonb_build_object(
+          'kind', 'done', 'at', w.done_at, 'by_name', public.space_person_name(w.owner_id))
+        when last.kind = 'sent_back' then jsonb_build_object(
+          'kind', 'sent_back', 'at', last.created_at, 'reason', last.reason,
+          'by_name', public.space_person_name(last.actor_id))
+        when lf.supersedes_id is not null then jsonb_build_object(
+          'kind', 'new_version', 'at', p_post.created_at)
+      end
+      -- Any kind can be cancelled; work items and new file versions have
+      -- their own stamps.
+      from (select 1) one
+      left join public.work_items w on w.id = p_post.id
+      left join public.library_files lf on lf.id = p_post.library_file_id
+      left join lateral (
+        select e.kind, e.created_at, e.reason, e.actor_id
+        from public.work_item_events e
+        where e.work_item_id = w.id and e.kind in ('done', 'checked', 'sent_back')
+        order by e.created_at desc, e.id desc limit 1) last on true),
+    -- The paper clip: this needs the caller.
+    'needs_me', coalesce((
+      select public.item_needs_me(w, p_post) is not null
+      from public.work_items w where w.id = p_post.id), public.checklist_needs_me(p_post)),
+    -- A work item's first three Library files, for the slip's chips, and
+    -- whether there are more (review 45 M3). The full page lists them all.
+    'attachments', (
+      select jsonb_agg(jsonb_build_object('library_file_id', a.id, 'name', a.name,
+                                          'rev_label', a.rev_label) order by a.created_at, a.id)
+      from (select lf.id, lf.name, lf.rev_label, wa.created_at
+            from public.work_item_attachments wa
+            join public.library_files lf on lf.id = wa.library_file_id
+            where wa.work_item_id = p_post.id and public.can_read_library_file(lf.id)
+            order by wa.created_at, lf.id limit 3) a),
+    'attachments_more', (
+      select true
+      from public.work_item_attachments wa
+      where wa.work_item_id = p_post.id and public.can_read_library_file(wa.library_file_id)
+      having count(*) > 3),
+    -- The last time it was given to someone else.
+    'given_to', (
+      select jsonb_build_object('from_id', e.from_owner_id,
+                                'from_name', public.space_person_name(e.from_owner_id),
+                                'to_id', e.to_owner_id,
+                                'to_name', public.space_person_name(e.to_owner_id),
+                                'at', e.created_at)
+      from public.work_item_events e
+      where e.work_item_id = p_post.id and e.kind = 'reassigned'
+      order by e.created_at desc, e.id desc limit 1),
+    'has_page', jsonb_array_length(p_post.blocks) > 0,
+    'template_id', p_post.template_id,
+    'cover_path', (
+      select f.storage_path from public.post_files f
+      where f.post_id = p_post.id and f.storage_path is not null and f.mime like 'image/%'
+      order by f.sort, f.created_at limit 1),
+    'children', (
+      select jsonb_build_object(
+        'total', count(*),
+        'checked', count(*) filter (where w.status = 'checked'),
+        -- A target (a walk, meeting notes): its work items fold into its
+        -- card (migration 37).
+        'target', public.is_target(p_post.id),
+        -- Up to 30 (a walk's most), each with what it needs of the reader.
+        'rows', (select jsonb_agg(r.row order by r.created_at, r.id) from (
+                   select c2.id, c2.created_at, jsonb_strip_nulls(jsonb_build_object(
+                            'id', c2.id, 'title', c2.title, 'item_status', w2.status,
+                            'ref', w2.ref,
+                            'needs_me', public.card_needs_me(c2),
+                            'owner_id', w2.owner_id,
+                            'owner_name', public.space_person_name(w2.owner_id),
+                            'cover_path', (select f.storage_path from public.post_files f
+                                           where f.post_id = c2.id and f.storage_path is not null
+                                             and f.mime like 'image/%'
+                                           order by f.sort, f.created_at limit 1))) as row
+                   from public.space_posts c2
+                   join public.work_items w2 on w2.id = c2.id
+                   where c2.parent_id = p_post.id and c2.deleted_at is null and c2.status = 'live'
+                     and public.can_see_space_post(c2.id)
+                   order by c2.created_at, c2.id
+                   limit 30) r))
+      from public.space_posts c
+      join public.work_items w on w.id = c.id
+      where c.parent_id = p_post.id and c.deleted_at is null and c.status = 'live'
+        and public.can_see_space_post(c.id)
+      having count(*) > 0),
+    'edits', (
+      select jsonb_agg(jsonb_build_object(
+               'at', e.created_at, 'by_name', public.space_person_name(e.editor_id),
+               'changes', e.changes) order by e.created_at desc)
+      from (select * from public.post_edits pe where pe.post_id = p_post.id
+            order by pe.created_at desc limit case when p_full then 1000 else 3 end) e)
+  )) || case when not p_full then '{}'::jsonb else jsonb_strip_nulls(jsonb_build_object(
+    'point_list', (
+      select jsonb_agg(jsonb_build_object(
+               'id', c.id, 'text', c.text, 'ticked_at', c.ticked_at,
+               'ticked_by_name', public.space_person_name(c.ticked_by),
+               'ticked_by_me', c.ticked_by is not distinct from auth.uid() and c.ticked_at is not null)
+             order by c.sort, c.id)
+      from public.checklist_points c where c.post_id = p_post.id),
+    'files', (
+      select jsonb_agg(jsonb_build_object(
+               'id', f.id, 'path', f.storage_path, 'library_file_id', f.library_file_id,
+               'name', lf.name, 'mime', f.mime, 'bytes', f.bytes,
+               'width', f.width, 'height', f.height) order by f.sort, f.created_at)
+      from public.post_files f
+      left join public.library_files lf on lf.id = f.library_file_id
+      where f.post_id = p_post.id
+        and (f.library_file_id is null or public.can_read_library_file(f.library_file_id))),
+    'events', (
+      select jsonb_agg(jsonb_build_object(
+               'id', e.id, 'kind', e.kind, 'actor_id', e.actor_id,
+               'actor_name', public.space_person_name(e.actor_id),
+               'note', e.note, 'reason', e.reason,
+               'from_owner_name', public.space_person_name(e.from_owner_id),
+               'to_owner_name', public.space_person_name(e.to_owner_id),
+               'at', e.created_at,
+               'photos', (select jsonb_agg(jsonb_build_object(
+                                   'path', ev.storage_path, 'taken_at', ev.taken_at,
+                                   'place', ev.place_text) order by ev.created_at)
+                          from public.work_item_evidence ev where ev.event_id = e.id))
+             order by e.created_at, e.id)
+      from public.work_item_events e where e.work_item_id = p_post.id),
+    'attachments', (
+      select jsonb_agg(jsonb_build_object('library_file_id', lf.id, 'name', lf.name,
+                                          'rev_label', lf.rev_label,
+                                          'mime', lf.mime, 'bytes', lf.bytes)
+                       order by a.created_at, lf.id)
+      from public.work_item_attachments a
+      join public.library_files lf on lf.id = a.library_file_id
+      where a.work_item_id = p_post.id and public.can_read_library_file(lf.id)),
+    'blocks', p_post.blocks,
+    'blocks_version', p_post.blocks_version,
+    -- A report's work items and notes, as this reader may see them
+    -- (migration 20; notes and kind in migration 30).
+    'refs', (
+      select jsonb_object_agg(c.id, jsonb_strip_nulls(jsonb_build_object(
+               'kind', c.kind, 'status', c.status,
+               'author_name', case when c.kind = 'note' then public.space_person_name(c.author_id) end,
+               'created_at', case when c.kind = 'note' then c.created_at end,
+               'photo_path', case when c.kind = 'note' then public.post_cover_path(c.id) end,
+               'title', c.title, 'ref', w.ref, 'item_status', w.status,
+               'owner_name', public.space_person_name(w.owner_id),
+               'checked_at', w.checked_at,
+               'checker_name', public.space_person_name(w.checked_by),
+               'done_photo_path', public.done_photo_path(w.id))))
+      from public.space_posts c
+      left join public.work_items w on w.id = c.id
+      where c.id::text in (select r #>> '{}' from jsonb_path_query(p_post.blocks,
+                             'strict $.** ? (@.type == "item_ref").post_id') r)
+        and c.space_id = p_post.space_id and c.deleted_at is null
+        and c.kind in ('work_item', 'note')
+        and public.can_see_space_post(c.id)),
+    'under', (
+      select jsonb_agg(jsonb_build_object(
+               'id', c.id, 'title', c.title, 'status', c.status, 'ref', w.ref,
+               'item_status', w.status, 'owner_id', w.owner_id,
+               'owner_name', public.space_person_name(w.owner_id),
+               'cover_path', (select f.storage_path from public.post_files f
+                              where f.post_id = c.id and f.storage_path is not null
+                                and f.mime like 'image/%'
+                              order by f.sort, f.created_at limit 1))
+             order by c.created_at, c.id)
+      from public.space_posts c
+      join public.work_items w on w.id = c.id
+      where c.parent_id = p_post.id and c.deleted_at is null
+        and public.can_see_space_post(c.id)),
+    'parent', (
+      select jsonb_build_object('id', pp.id, 'title', pp.title)
+      from public.space_posts pp
+      where pp.id = p_post.parent_id and public.can_see_space_post(pp.id))
+  )) end;
+$function$;
+
+-- A post shared in a thread I read (kind 'post') that was deleted: its
+-- card says it isn't in Work any more, not that I can't see it.
+create or replace function public.shared_post_gone(p_post uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.messages m
+    join public.space_posts p on p.id = m.post_id
+    where m.post_id = p_post and m.kind = 'post' and m.deleted_at is null
+      and public.can_use_thread(m.thread_id) and p.deleted_at is not null);
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Who may call what
 -- ---------------------------------------------------------------------------
 
@@ -785,6 +1072,8 @@ revoke all on function public.hand_over_open_work(uuid, uuid, jsonb) from public
 revoke all on function public.owns_open_work(uuid, uuid) from public, anon, authenticated;
 revoke all on function public.check_work_owner() from public, anon, authenticated;
 revoke all on function public.set_post_place(uuid, uuid) from public, anon;
+revoke all on function public.shared_post_gone(uuid) from public, anon;
+grant execute on function public.shared_post_gone(uuid) to authenticated;
 grant execute on function public.set_post_place(uuid, uuid) to authenticated;
 revoke all on function public.archive_space_post(uuid) from public, anon;
 revoke all on function public.unarchive_space_post(uuid) from public, anon;
