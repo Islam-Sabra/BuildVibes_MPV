@@ -836,7 +836,7 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - The accepted shots became goldens: 30 changed images and 14 new ones.
   - `r105c` merged into `slice2-app`.
   - Migrations 53 (`place_filter`) and 54 (`task_table_block`) live, one push each.
-  - Build 823 on the Desktop; not yet on the founder's phone, which wasn't reachable.
+  - Build 823 on the founder's phone and the Desktop.
   - Checks: 3,268 SQL checks; analyze clean; 2,838 app tests; 480 shots.
 
 ## Before the pilot (week 11)

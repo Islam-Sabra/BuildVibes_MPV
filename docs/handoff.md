@@ -2,7 +2,7 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
-## PC update: 29 Oct 2026 — review 105C live: merged into `slice2-app`, migrations 53 and 54 live, build 823 made (not yet on the phone)
+## PC update: 29 Oct 2026 — review 105C live: merged into `slice2-app`, migrations 53 and 54 live, build 823 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
 
@@ -20,9 +20,11 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
      - Certificate SHA-256 9d02b7db…df9f, the same as 800.
      - On the Desktop as `BuildVibes-823.apk` (MD5 35ed2219…6f62).
      - `android/app/google-services.json` and `env/prod.json` were copied from the main repo for the build, then deleted.
-  5. **Not installed yet:** the founder's phone isn't reachable. The address 192.168.8.33:43045 timed out, no wireless-debugging service showed on the network, and `adb devices` lists none. It needs wireless debugging on again, with its current address (and a pairing code if asked).
+  5. **Installed on the founder's Xiaomi** over 800, at 172.20.10.10:37189, the address he sent once wireless debugging was on again. The model, 22120RN86G, was checked first.
+     - versionCode 823; first install still 17 Oct.
+     - The installed `base.apk` is byte-identical to `BuildVibes-823.apk` (MD5 35ed2219…6f62).
+     - BuildVibes is the only package of ours on it.
 - **Next:**
-  - install build 823 on the founder's phone (model 22120RN86G checked first; BuildVibes only);
   - the founder's test of 105C: places and site tags, the place filter, before/after, + in a work item, the table of tasks, the removal sheet;
   - the tidy lists in reviews 105 and 106, including one wording for the Team row («المساحة كلها» in Work, «كل المساحة» in the notebook).
 - **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`). `r105c`, `claude/r105c-a` and `claude/r105c-b` are merged; their worktrees (`BuildVibes-r105c`, `BuildVibes-r105ca`, `BuildVibes-r105cb`) can be removed.
