@@ -877,7 +877,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// opens Walk mode, for who may post work (slice 6). Without that right
   /// it is Photo at once.
   Future<void> _camera() async {
-    final walks = widget.space.myRights.createItems;
+    final walks = widget.space.mayPostWork;
     final mode = walks
         ? await showDaybookCameraModes(context)
         : DaybookCameraMode.photo;

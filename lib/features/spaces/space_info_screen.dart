@@ -294,9 +294,7 @@ class SpaceInfoScreen extends ConsumerWidget {
                 title: l10n.weekReportTitle,
                 onTap: () => context.push(AppRoutes.spaceWeekReport(spaceId)),
               ),
-              if (space.myRights.createItems &&
-                  (space.myPass == SpacePass.lead ||
-                      space.myPass == SpacePass.crew))
+              if (space.mayPostWork)
                 BvInfoRow(
                   key: const Key('info-report'),
                   title: l10n.dailyReportMenu,

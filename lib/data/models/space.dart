@@ -261,6 +261,14 @@ class SpaceDetail {
   final DateTime? siteStartDate;
 
   bool get canInvite => myRights.invite;
+
+  /// May post work in this Space: a Lead or Crew pass with the right to
+  /// create work items (the lead's check of 105A, H7). The camera's Walk
+  /// and Space info's daily report read this one check; the server checks
+  /// the same in SQL.
+  bool get mayPostWork =>
+      myRights.createItems &&
+      (myPass == SpacePass.lead || myPass == SpacePass.crew);
 }
 
 /// Who may share the invite code (S15k-I). One single choice.
