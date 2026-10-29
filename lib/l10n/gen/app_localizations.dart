@@ -9361,6 +9361,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this empty entry?'**
   String get notebookConfirmDeleteEmpty;
+
+  /// Review 104 F2: how a screen reader reads an hour on the clock face.
+  ///
+  /// In en, this message translates to:
+  /// **'{hour} o\'clock'**
+  String timeClockHour(int hour);
+
+  /// Review 104 F2: how a screen reader reads the minutes on the clock face (0, 5 … 55).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String timeClockMinutes(int count);
 }
 
 class _AppLocalizationsDelegate

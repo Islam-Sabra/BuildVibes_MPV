@@ -5598,4 +5598,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notebookConfirmDeleteEmpty => 'Delete this empty entry?';
+
+  @override
+  String timeClockHour(int hour) {
+    return '$hour o\'clock';
+  }
+
+  @override
+  String timeClockMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
 }

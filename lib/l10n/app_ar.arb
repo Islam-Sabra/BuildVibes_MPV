@@ -1543,5 +1543,7 @@
   "notebookStatusSent": "أُرسلت إلى {name} الساعة {time}",
   "notebookStatusMore": "{count, plural, other{{count} أخرى}}",
   "notebookStatusChange": "تغيير",
-  "notebookConfirmDeleteEmpty": "حذف هذه التدوينة الفارغة؟"
+  "notebookConfirmDeleteEmpty": "حذف هذه التدوينة الفارغة؟",
+  "timeClockHour": "الساعة {hour}",
+  "timeClockMinutes": "{count, plural, =1{دقيقة واحدة} =2{دقيقتان} few{{count} دقائق} other{{count} دقيقة}}"
 }

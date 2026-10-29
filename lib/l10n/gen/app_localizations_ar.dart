@@ -5633,4 +5633,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookConfirmDeleteEmpty => 'حذف هذه التدوينة الفارغة؟';
+
+  @override
+  String timeClockHour(int hour) {
+    return 'الساعة $hour';
+  }
+
+  @override
+  String timeClockMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتان',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
 }

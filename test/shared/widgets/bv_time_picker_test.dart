@@ -233,10 +233,12 @@ void main() {
       'selected', (tester, lang) async {
     final semantics = tester.ensureSemantics();
     await _open(tester, lang, initial: const TimeOfDay(hour: 9, minute: 5));
+    final l10n = lookupAppLocalizations(Locale(lang));
     final nine = tester
         .getSemantics(_key('time-clock-hour-9'))
         .getSemanticsData();
-    expect(nine.label, '9');
+    // Review 104 F2: a number is read as what it is, never a bare "9".
+    expect(nine.label, l10n.timeClockHour(9));
     expect(nine.flagsCollection.isButton, isTrue);
     expect(nine.flagsCollection.isSelected, Tristate.isTrue);
     expect(
@@ -248,6 +250,43 @@ void main() {
       isNot(Tristate.isTrue),
     );
     semantics.dispose();
+  });
+
+  testBoth('F2: the dial is read as hours, then minutes, each a button '
+      'found by its words', (tester, lang) async {
+    final l10n = lookupAppLocalizations(Locale(lang));
+    final semantics = tester.ensureSemantics();
+    final picked = await _open(
+      tester,
+      lang,
+      initial: const TimeOfDay(hour: 9, minute: 5),
+    );
+    for (var h = 1; h <= 12; h++) {
+      expect(find.bySemanticsLabel(l10n.timeClockHour(h)), findsOneWidget);
+    }
+    expect(find.bySemanticsLabel('7'), findsNothing);
+    // A screen reader's tap on "7 o'clock", then on "35 minutes".
+    tester.semantics.tap(find.semantics.byLabel(l10n.timeClockHour(7)));
+    await tester.pumpAndSettle();
+    for (var m = 0; m < 60; m += 5) {
+      expect(find.bySemanticsLabel(l10n.timeClockMinutes(m)), findsOneWidget);
+    }
+    expect(find.bySemanticsLabel('05'), findsNothing);
+    tester.semantics.tap(find.semantics.byLabel(l10n.timeClockMinutes(35)));
+    await tester.pumpAndSettle();
+    await _tap(tester, 'time-picker-ok');
+    expect(picked, [const TimeOfDay(hour: 7, minute: 35)]);
+    semantics.dispose();
+  });
+
+  test('F2: the words in both languages', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    final ar = lookupAppLocalizations(const Locale('ar'));
+    expect(en.timeClockHour(7), "7 o'clock");
+    expect(en.timeClockMinutes(35), '35 minutes');
+    expect(ar.timeClockHour(7), 'الساعة 7');
+    expect(ar.timeClockMinutes(5), '5 دقائق');
+    expect(ar.timeClockMinutes(35), '35 دقيقة');
   });
 
   test('one picker for the whole app: no other time dialog in lib/', () {

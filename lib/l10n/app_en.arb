@@ -7998,5 +7998,23 @@
   "notebookConfirmDeleteEmpty": "Delete this empty entry?",
   "@notebookConfirmDeleteEmpty": {
     "description": "Review 104 F1: the confirm before a saved entry left empty after editing is deleted."
+  },
+  "timeClockHour": "{hour} o'clock",
+  "@timeClockHour": {
+    "description": "Review 104 F2: how a screen reader reads an hour on the clock face.",
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "timeClockMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@timeClockMinutes": {
+    "description": "Review 104 F2: how a screen reader reads the minutes on the clock face (0, 5 … 55).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

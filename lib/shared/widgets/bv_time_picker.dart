@@ -377,6 +377,10 @@ class _BvClockFaceState extends State<BvClockFace> {
                         text: _minutes
                             ? _valueAt(i).toString().padLeft(2, '0')
                             : '${_valueAt(i)}',
+                        // F2: read as what it is, "7 o'clock", "35 minutes".
+                        label: _minutes
+                            ? l10n.timeClockMinutes(_valueAt(i))
+                            : l10n.timeClockHour(_valueAt(i)),
                         chosen: i == chosen,
                         open: _open(i),
                         onTap: () => _pick(i, done: true),
@@ -398,12 +402,16 @@ class _Number extends StatelessWidget {
   const _Number({
     super.key,
     required this.text,
+    required this.label,
     required this.chosen,
     required this.open,
     required this.onTap,
   });
 
   final String text;
+
+  /// What a screen reader says.
+  final String label;
   final bool chosen;
   final bool open;
   final VoidCallback onTap;
@@ -415,7 +423,7 @@ class _Number extends StatelessWidget {
       button: true,
       selected: chosen,
       enabled: open,
-      label: text,
+      label: label,
       excludeSemantics: true,
       onTap: open ? onTap : null,
       child: GestureDetector(
