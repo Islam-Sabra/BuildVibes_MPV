@@ -2,6 +2,28 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 29 Oct 2026 — review 105A on `claude/r105a` (from `slice2-app` 3f14b70): Part 1 done; stopped on server questions
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `claude/r105a`, this cloud session's, pushed. Nothing merged, nothing live, no deploy, nothing installed, **no migration**. `lib/features/notebook/` untouched (claude/r104 has it).
+- **Done: Part 1** (adab5e2), SP1 2666:38461 / AR 2666:38593:
+  - the Space's tab bar is gone; a **Work · Chat** switch under the header, Chat with its unread count (`BvSegment` got an optional badge);
+  - **Library** (folder) and **People** (people) in the header beside Search; they open as screens of their own (`/spaces/:id/library`, `/spaces/:id/people`, `lib/features/spaces/space_sections.dart`). People has a dot while join requests wait (admins); Invite sits in its header;
+  - **⋯ is gone**: the Space's name opens Space info, which now has a "Work" group: Walk mode, Week report, Daily report. The daily report and a walk hand back to the Space, so they start from (and come back to) Work;
+  - the post bar is the bottom of the screen; Arabic mirrors (back arrow right, Work at the right).
+  - Tests changed on purpose: those that went through the tab bar or ⋯ (walk, daily report, templates, week report, search, New Space, Library, Chat, F105 back, the header component).
+- **Stopped (the brief: "if something needs the server, stop and tell me")**:
+  - **Part 2 needs the server twice.** (1) *Pin*: the review says "pins are per person (as now)", but there is no per-person pin anywhere, only an announcement's Space-wide `pinned_until`. (2) *Share* of a work item: nothing carries an item card into chat (only files and week reports have a share function); and work never leaves the Space (rule 8). Also not specified: once **hold selects**, where Edit, Give to, Update, Unpin, Save as template and Cancel go (today they are only on the hold menu; the opened page has none of them). Delete (`delete_space_post`, author only, before anyone adds) and Duplicate need no server. Nothing of Part 2 is built.
+  - **Part 3**: the bar's **mic** needs the server (post blocks have no voice type). The rest (kind chips, For · Place · Due · Team rows, + · camera · attach, Send) is app-only and not started.
+  - **Part 6**: "until the day ends in the **Space's time zone**": a Space has no time zone the app can read (markets have `time_zone`, a Space doesn't expose its market). Today a pin ends at the phone's midnight. The Needs you line is app-only. Not started.
+  - **Parts 7 and 8** are app-only and not started (stopped with the rest, as briefed).
+- **Checks (cloud):** `flutter analyze`: no issues. `flutter test`: FULLRESULT. SQL stand-in: migrations apply; 3,038 checks in 48 files pass. Screenshots: PC later; no `test_screens`, no `--update-goldens`.
+- **For the PC, when the shots are checked:** every Space screen shot changes on purpose (no tab bar; the switch; the header icons; Space info's new Work group). The two Space-menu shots (MN1, in `daybook_test` and `slice7_test`, and the one taken in `slice9_test`) are removed from the shot tests with the menu; their PNGs in `docs/screens` can go. `R2-header-search` no longer opens ⋯.
+- **Who has which branch:** this cloud session had `claude/r105a` (Part 1 done, pushed). PC: `slice2-app`. `claude/r104` is with the lead.
+
 ## PC update: 28 Oct 2026 — review 102 live: merged into `slice2-app`, migration 49 live, build 712 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
