@@ -106,3 +106,6 @@ Each has the same icon as its status icon.
 - **G5.** The Status grouping is written once: `EntrySort.order` is used by the page screen, instead of a second copy in `byStatus`.
 
 Noted only, for the tidy list: the duplicated `_setFilter` in two screens; `statusHits` copying the server's search rules; `entryHead` and `entryLines` living in a screen file; the `'collapse'` / `'expand'` strings.
+
+### G1–G5 done (`r106` at `ed0695a`)
+- The lead checked the three shots that changed (NB-put-in-space, NB-reminder-slip, NB-remind-menu) and **accepted** them, along with all of r106's shots. pgTAP has 20 checks in file 50. Next: update the goldens, merge, push migration 50 live with the founder's yes, build.
