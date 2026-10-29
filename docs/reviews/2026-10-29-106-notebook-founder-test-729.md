@@ -160,3 +160,30 @@ Noted only, for the tidy list: the duplicated `_setFilter` in two screens; `stat
 - **Cursor checks this first and reports** before writing a migration.
 
 **No full edit history in the MVP:** the log records shares and sends only.
+
+## The lead's check of `claude/r106b` (29 Oct, at `bd911bd`)
+- **Runs:** SQL stand-in 3,079 checks (21 new in file 51), 0 failing. The session reported analyze clean and 2,686 tests passing.
+- **Two reviewers** (spec, standards): no hard violations. T4 is as specified.
+- **T5 has one design flaw:** the phone and the server each decide "changed since" by their own rule and their own clock. They already disagree on title spaces, photo order, new entries and deleted lines. A dot that is right on one screen and wrong on another can't ship.
+
+### Accepted
+- Using a content fingerprint (`content_key`) instead of `notes.version`, because ticks and reminders move the version.
+- The deferred triggers, and `set constraints all immediate` in test 47.
+- A voice note shows four icons, because voice notes can't take reminders anywhere in the app.
+- With no signal, a share icon says so and sends nothing.
+
+### Fixes before the shots (migration 51 isn't live, so edit file 51 itself)
+- **K1. One truth, on the server.**
+  - `note_shares` gets `content_key`, filled at share time from the entry's key.
+  - **A share is older when its `content_key` differs from the entry's `content_key`.** No clocks are compared. An entry edited and then put back to the shared text reads as the same again.
+  - `content_changed_at` stays, only for the words "changed at {time}".
+  - **Remove the phone's own rule** (`_contentChanged` and the phone stamp). The phone reads `content_key` from the server.
+  - After a save or a share, refresh that entry, so the dot appears or goes within the refresh.
+  - pgTAP covers: a share right after an edit is not older; an edit after a share is older; editing back to the shared text is not older.
+- **K2. The key is unambiguous.** Coalesce every field inside `concat_ws` so a missing field can't shift the others. Add a header comment to migration 51: "a later migration that writes notes or note_files and then alters notes must `set constraints all immediate` first".
+- **K3. The selection ends only when the action is done.** Cancelling the time picker, closing the share card, no signal or an error all keep the entry held.
+- **K4. Share again** is at the end of every share card, not only on older ones.
+- **K5. "changed at {time}"** shows the day when it isn't today (Today / Yesterday / the short date, as `reminderWhen`).
+- **K6.** Check whether a voice recording counts as content (`note_files` or elsewhere) and say which. It should count.
+
+Then run test_screens WITHOUT updating and put the old/new pairs in `docs/reviews/shots-106b/` (this session is on the PC). Expected: BH2, BH3, BH4 (now the held entry's icons), BH5, NB-put-in-space, and any shot where a share is older than its entry.
