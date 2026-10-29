@@ -2,7 +2,7 @@
 
 ## T1. Status icons: their own row, one per kind, no "+N" (corrects review 104 N12)
 - **Founder, 08:07:** "I said add icons, but you added +2 … the icons, the time and the pin are all in a very narrow area, and difficult to use."
-- **Frames:** NS1 EN `2680:38781`, AR `2680:38875`. **Status: proposal, waiting for the founder's ok.**
+- **Frames:** NS1 EN `2680:38781`, AR `2680:38875`. **Status: approved (founder, 29 Oct 08:27).**
 
 **The top line holds only the kind and the time.** The pin leaves it too.
 
@@ -29,7 +29,7 @@ The reminder's card keeps **Change**.
 
 ## T2. Inside a page, every entry shows in full, and each can be folded
 - **Founder, 08:10:** entries in a page should be expanded by default, "as it's a page already", with a small button at the start of the title to collapse an entry, so he can organise and present his page.
-- **Frames:** NS2 EN `2682:38819`, AR `2682:38903`. **Status: proposal, waiting for the founder's ok.**
+- **Frames:** NS2 EN `2682:38819`, AR `2682:38903`. **Status: approved (founder, 29 Oct 08:27).**
 
 **Inside a page, an entry shows in full by default:** every line, with text wrapping. Today it shows 3 single-line rows (`slipLines`).
 
@@ -54,7 +54,7 @@ The reminder's card keeps **Change**.
 
 ## T3. Filter by status
 - **Founder, 08:14:** add a status filter to the notebook's filter.
-- **Frames:** NS3 EN `2685:38859`, AR `2685:38978`. **Status: proposal, waiting for the founder's ok.**
+- **Frames:** NS3 EN `2685:38859`, AR `2685:38978`. **Status: approved (founder, 29 Oct 08:27).**
 
 **A new STATUS section** («الحالة») goes in the Filter card, between SHOW and IN. It offers:
 - Pinned («مثبّتة»);
