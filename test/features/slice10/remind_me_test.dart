@@ -168,7 +168,13 @@ void main() {
         ),
         findsOneWidget,
       );
-      await _tap(tester, _key('line-popover-barrier'));
+      // Beside the card (review 106 T1: it opens under the row at the
+      // entry's bottom): the barrier's corner.
+      await tester.tapAt(
+        tester.getBottomLeft(_key('line-popover-barrier')) +
+            const Offset(4, -4),
+      );
+      await tester.pumpAndSettle();
 
       _picked = (day: DateTime(2026, 10, 15), at: DateTime(2026, 10, 15, 8));
       await _menu(tester, 'note-sleeves');

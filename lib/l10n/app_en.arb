@@ -7458,10 +7458,6 @@
   "@notebookFilterVoice": {
     "description": "Review 100 Part 8: Show: entries with a voice recording."
   },
-  "notebookFilterReminders": "Reminders",
-  "@notebookFilterReminders": {
-    "description": "Review 100 Part 8: Show: entries with a reminder still to ring."
-  },
   "notebookFilterArchived": "Archived",
   "@notebookFilterArchived": {
     "description": "Review 100 Part 8: Show: archived entries."
@@ -7982,27 +7978,86 @@
       }
     }
   },
-  "notebookStatusMore": "+{count}",
-  "@notebookStatusMore": {
-    "description": "Review 104 F3: the badge past three status icons (\"+3\").",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "notebookStatusMoreLabel": "{count, plural, other{{count} more}}",
-  "@notebookStatusMoreLabel": {
-    "description": "Review 104 N12: a screen reader's label of the +N past three icons.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "notebookStatusChange": "Change",
   "@notebookStatusChange": {
     "description": "Review 104 N12: in a reminder icon's card, changes the reminder."
+  },
+  "notebookStatusTitleReminder": "Reminder",
+  "@notebookStatusTitleReminder": {
+    "description": "Review 106 T1 and T3: the reminder status: its card's title, its Filter choice, its group in the Status sort."
+  },
+  "notebookStatusTitleFeed": "Shared to the feed",
+  "@notebookStatusTitleFeed": {
+    "description": "Review 106 T1 and T3: the feed status: its card's title, its Filter choice, its group in the Status sort."
+  },
+  "notebookStatusTitleSpace": "Shared to a Space",
+  "@notebookStatusTitleSpace": {
+    "description": "Review 106 T1 and T3: the Space status: its card's title, its Filter choice, its group in the Status sort."
+  },
+  "notebookStatusTitleMessage": "Sent in a message",
+  "@notebookStatusTitleMessage": {
+    "description": "Review 106 T1 and T3: the message status: its card's title, its Filter choice, its group in the Status sort."
+  },
+  "notebookStatusShareLine": "{name} · {time}",
+  "@notebookStatusShareLine": {
+    "description": "Review 106 T1: one share in a status icon's card (\"Kuwait City Tower · 08:45\").",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookLinesHidden": "{count, plural, =1{1 line hidden} other{{count} lines hidden}}",
+  "@notebookLinesHidden": {
+    "description": "Review 106 T2: under a folded entry's head in its page.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notebookFoldEntry": "Fold this entry",
+  "@notebookFoldEntry": {
+    "description": "Review 106 T2: a screen reader's label of an open entry's fold control."
+  },
+  "notebookUnfoldEntry": "Open this entry",
+  "@notebookUnfoldEntry": {
+    "description": "Review 106 T2: a screen reader's label of a folded entry's fold control."
+  },
+  "notebookCollapseAll": "Collapse all",
+  "@notebookCollapseAll": {
+    "description": "Review 106 T2: in a page's ⋯, folds every entry of this page."
+  },
+  "notebookExpandAll": "Expand all",
+  "@notebookExpandAll": {
+    "description": "Review 106 T2: in a page's ⋯, opens every entry of this page."
+  },
+  "notebookFilterStatus": "STATUS",
+  "@notebookFilterStatus": {
+    "description": "Review 106 T3: the Filter card's section between SHOW and IN."
+  },
+  "notebookFilterModeSort": "Sort",
+  "@notebookFilterModeSort": {
+    "description": "Review 106 T3: the word beside the Filter card's switch when it is on (off: \"Filter\")."
+  },
+  "notebookSortStatus": "Status",
+  "@notebookSortStatus": {
+    "description": "Review 106 T3: the sort that groups a page's entries by status."
+  },
+  "notebookSortTypeHint": "Grouped: to-dos, checklists, photos, files, voice, text",
+  "@notebookSortTypeHint": {
+    "description": "Review 106 T3 (NS4): under Type in the Sort card."
+  },
+  "notebookSortStatusHint": "Grouped: pinned, reminder, feed, Space, message",
+  "@notebookSortStatusHint": {
+    "description": "Review 106 T3 (NS4): under Status in the Sort card."
+  },
+  "notebookStatusNone": "No status",
+  "@notebookStatusNone": {
+    "description": "Review 106 T3: the last group of the Status sort, the entries with no status."
   },
   "notebookConfirmDeleteEmpty": "Delete this empty entry?",
   "@notebookConfirmDeleteEmpty": {

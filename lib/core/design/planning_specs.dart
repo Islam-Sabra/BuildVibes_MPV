@@ -176,12 +176,11 @@ abstract final class BvCalendarSpec {
 /// My notebook's pages (review 99A, PG1–PG5b): a page's row, its icon box,
 /// the page chip and its picker, a page's title, the selection bar.
 abstract final class BvNotebookPagesSpec {
-  /// Review 104 N12: an entry's status icons in its top line, 14 and 4
-  /// apart, at most three (past three, the third is "+N"); each a 32
-  /// square to tap. Their detail card is the line menu's.
-  static const statusIcon = 14.0;
-  static const statusGap = BvSpace.s4;
-  static const statusMax = 3;
+  /// Review 106 T1: an entry's status row at its bottom end, one icon per
+  /// kind, all of them: each a 32 round target, a 16 icon on the sunk
+  /// colour, 6 apart. Their card is the line menu's.
+  static const statusIcon = BvSize.iconSm;
+  static const statusGap = BvSpace.s6;
   static const statusTouch = BvSize.avatarSm;
 
   /// Review 102 N3, an entry moved within its day: the others slide aside

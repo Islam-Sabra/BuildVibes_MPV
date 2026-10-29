@@ -2882,8 +2882,8 @@ class NoteSlip extends ConsumerWidget {
     final title = note.isPage ? note.title.trim() : '';
     final statuses = noteStatuses(note, l10n, words, now);
     final children = <Widget>[
-      // PG4: the title, or the kind, with the time at the end, then ⋯;
-      // review 104 N12: the status icons beside the time.
+      // PG4: the title, or the kind, with the time at the end; review 106
+      // T1: nothing else.
       Row(
         key: Key('note-head-${note.id}'),
         spacing: BvSpace.s8,
@@ -2897,13 +2897,6 @@ class NoteSlip extends ConsumerWidget {
                     style: type.headingMd.copyWith(color: BvColors.textPrimary),
                   ),
           ),
-          if (statuses.isNotEmpty)
-            NoteStatusIcons(
-              key: Key('note-status-${note.id}'),
-              id: note.id,
-              statuses: statuses,
-              onChangeReminder: onReminder,
-            ),
           Text(
             words.time.clock(note.createdAt),
             style: type.metadata.copyWith(color: BvColors.textSecondary),
@@ -2977,8 +2970,19 @@ class NoteSlip extends ConsumerWidget {
         },
       if (note.photos.isNotEmpty && !note.isPage)
         NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
-      // N12: the reminder and the shares are icons in the top line now.
       if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
+      // Review 106 T1: the status row, at the bottom end; none without a
+      // status.
+      if (statuses.isNotEmpty)
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: NoteStatusIcons(
+            key: Key('note-status-${note.id}'),
+            id: note.id,
+            statuses: statuses,
+            onChangeReminder: onReminder,
+          ),
+        ),
     ];
     // PG4: a plain white card; selected (A4, BH2), tinted and lifted with
     // the selected edge.

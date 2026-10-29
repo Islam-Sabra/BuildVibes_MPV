@@ -40,7 +40,7 @@ enum NoteFilter {
     photos => l10n.notebookFilterPhotos,
     files => l10n.notebookFilterFiles,
     voice => l10n.notebookFilterVoice,
-    reminders => l10n.notebookFilterReminders,
+    reminders => l10n.notebookStatusTitleReminder,
     archived => l10n.notebookFilterArchived,
   };
 
