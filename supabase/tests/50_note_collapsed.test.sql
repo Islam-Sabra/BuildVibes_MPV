@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(20);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000050' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -25,15 +25,17 @@ create function pg_temp.folded(p text) returns boolean language sql as $$
   select collapsed from public.notes where id = pg_temp.id(p);
 $$;
 
--- Setup: Omar's page with two entries; Rakesh's page with one.
+-- Setup: Omar's page with three entries (b004 is deleted below); Rakesh's
+-- page with one.
 select pg_temp.as_user('a1');
 set local role authenticated;
 select lives_ok($$select public.create_notebook_page(pg_temp.id('e001'), 'Site log')$$, 'a page');
 select lives_ok($$
   select public.save_entry(p_id => pg_temp.id(x.id), p_kind => 'text', p_page => pg_temp.id('e001'),
                            p_title => x.id)
-  from (values ('b001'), ('b002')) x(id)
-$$, 'two entries');
+  from (values ('b001'), ('b002'), ('b004')) x(id)
+$$, 'three entries');
+select lives_ok($$select public.delete_entries(array[pg_temp.id('b004')])$$, 'one deleted');
 reset role;
 select pg_temp.as_user('b2');
 set local role authenticated;
@@ -58,6 +60,14 @@ select lives_ok($$select public.set_notes_collapsed(array[pg_temp.id('b002')], f
 select is(pg_temp.folded('b002'), false, 'open');
 select is((select title from public.notes where id = pg_temp.id('b001')), 'b001',
   'nothing else of the entry changes');
+select is((select version from public.notes where id = pg_temp.id('b001')), 1,
+  'its version doesn''t move: an edit open elsewhere still saves');
+select throws_ok($$select public.set_notes_collapsed(array[pg_temp.id('b004')], true)$$,
+  '42501', 'not allowed', 'not a deleted entry');
+select throws_ok($$select public.set_notes_collapsed(array[]::uuid[], true)$$,
+  '22023', 'one or more entries', 'not an empty list');
+select throws_ok($$select public.set_notes_collapsed(array[pg_temp.id('b001')], null)$$,
+  '22023', 'one or more entries', 'not a null fold');
 select throws_ok($$select public.set_notes_collapsed(array[pg_temp.id('b001'), pg_temp.id('b003')], true)$$,
   '42501', 'not allowed', 'not with someone else''s entry');
 reset role;

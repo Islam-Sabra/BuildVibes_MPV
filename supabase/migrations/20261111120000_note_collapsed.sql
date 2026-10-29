@@ -32,7 +32,8 @@ begin
     raise exception 'not allowed' using errcode = '42501';
   end if;
   update public.notes n set collapsed = p_on
-  where n.id = any (p_ids) and n.collapsed is distinct from p_on;
+  where n.id = any (p_ids) and n.owner_id = v_me
+    and n.collapsed is distinct from p_on;
 end;
 $$;
 
