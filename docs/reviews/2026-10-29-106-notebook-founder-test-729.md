@@ -193,3 +193,6 @@ Then run test_screens WITHOUT updating and put the old/new pairs in `docs/review
 - **Shots** (drawn in the cloud, old and new side by side): BH2, BH4, BH5, NB-put-in-space and NS1 are accepted.
 - **Still wanted:** a shot of the dot and its "Older version · changed at …" card (NS6), EN and AR. It is added when the goldens are made on the PC.
 - **Next:** the PC makes the goldens and merges, together with 105B. Migrations 51 and 52 are pushed one at a time, then one build.
+
+### Live (29 Oct, 17:20)
+- T4/T5 merged (16a324f). Migration 51 is live (the lead confirmed it on the live list). Build 800 is on the founder's phone. NS6 has a golden.

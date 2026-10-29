@@ -299,3 +299,6 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
   - merge r106b, then r105b;
   - push migrations 51 and 52 one at a time;
   - one build.
+
+### 105B live (29 Oct, 17:20)
+- Merged (b76fd93). Migration 52 is live (confirmed on the live list). Build 800 is on the founder's phone. **Next: 105C**: the Place picker and filter, the table of tasks, before/after, the removal sheet.
