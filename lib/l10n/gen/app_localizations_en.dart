@@ -2835,9 +2835,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookSignAsDone => 'Sign as done';
 
   @override
-  String get daybookHoldToProve => 'Hold to prove';
-
-  @override
   String get daybookCheck => 'Check';
 
   @override
@@ -5583,4 +5580,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get peopleConfirm => 'Confirm';
+
+  @override
+  String get daybookCameraLabel => 'Camera';
+
+  @override
+  String daybookDeleteFailed(String titles) {
+    return 'Couldn\'t delete $titles. Try again.';
+  }
 }

@@ -782,7 +782,6 @@
   "daybookCouldNotSend": "تعذّر الإرسال. انقر للتصحيح",
   "daybookRemoveDue": "إزالة",
   "daybookSignAsDone": "وقّع كمنجز",
-  "daybookHoldToProve": "اضغط مطوّلًا للإثبات",
   "daybookCheck": "تحقّق",
   "daybookSendBack": "إرجاع",
   "daybookAddUpdate": "إضافة تحديث",
@@ -1545,5 +1544,7 @@
   "proofMomentView": "عرض",
   "peopleInThisSpace": "في هذه المساحة",
   "peopleNeedsYouRequests": "بانتظارك · طلب انضمام",
-  "peopleConfirm": "تأكيد"
+  "peopleConfirm": "تأكيد",
+  "daybookCameraLabel": "الكاميرا",
+  "daybookDeleteFailed": "تعذّر حذف {titles}. حاول مرة أخرى."
 }

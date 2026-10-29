@@ -4790,12 +4790,6 @@ abstract class AppLocalizations {
   /// **'Sign as done'**
   String get daybookSignAsDone;
 
-  /// Read out for the post bar's camera: holding it signs your open work item as done with a photo.
-  ///
-  /// In en, this message translates to:
-  /// **'Hold to prove'**
-  String get daybookHoldToProve;
-
   /// Long-press menu on someone's proof (B1).
   ///
   /// In en, this message translates to:
@@ -9373,6 +9367,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm'**
   String get peopleConfirm;
+
+  /// Review 105 H1: what a screen reader says for the post bar's camera (a tap opens the camera; nothing on a hold).
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get daybookCameraLabel;
+
+  /// Review 105 H5: after Delete of several posts, the ones that couldn't be deleted (no signal), by title, joined with ·.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete {titles}. Try again.'**
+  String daybookDeleteFailed(String titles);
 }
 
 class _AppLocalizationsDelegate

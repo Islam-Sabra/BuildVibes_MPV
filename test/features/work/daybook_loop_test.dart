@@ -248,8 +248,8 @@ void main() {
       );
     });
 
-    testWidgets('O1: holding the post bar\'s camera proves the item due '
-        'first; × leaves without signing [$lang]', (tester) async {
+    testWidgets('H1: holding the post bar\'s camera never signs: it is '
+        'only "Camera", and a hold opens nothing [$lang]', (tester) async {
       final app = await _open(
         tester,
         lang,
@@ -258,13 +258,8 @@ void main() {
         pass: SpacePass.crew,
       );
       final bar = tester.widget<BvPostBar>(find.byType(BvPostBar));
-      expect(bar.cameraLabel, l10n.daybookHoldToProve);
+      expect(bar.cameraLabel, l10n.daybookCameraLabel);
       await tester.longPress(find.byKey(const Key('post-bar-camera')));
-      await tester.pumpAndSettle();
-      expect(find.byType(ProofCamera), findsOneWidget);
-      // The sleeves are due today, the trays on Sunday.
-      expect(find.text(s.sleeves), findsOneWidget);
-      await tester.tap(find.byKey(const Key('proof-close')));
       await tester.pumpAndSettle();
       expect(find.byType(ProofCamera), findsNothing);
       expect(app.work.calls, isEmpty);
@@ -281,7 +276,7 @@ void main() {
         me: DaybookSamples.omar,
         pass: SpacePass.crew,
       );
-      await tester.longPress(find.byKey(const Key('post-bar-camera')));
+      await tester.tap(_in('post-sleeves', find.text(l10n.daybookSignAsDone)));
       await tester.pumpAndSettle();
       expect(find.text(s.sleeves), findsOneWidget);
       await tester.tap(find.byKey(const Key('proof-switch-open')));

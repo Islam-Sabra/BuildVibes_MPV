@@ -28,6 +28,7 @@ import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import '../../core/l10n/bidi.dart';
 import '../../core/l10n/locale_controller.dart';
 import '../../core/push/push_state.dart';
 import '../../core/push/reminders.dart' show spaceReminderId;
@@ -1482,7 +1483,6 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _ => const Center(child: CircularProgressIndicator()),
     };
     _openItems = canPost ? _toProve(cards, me, signing) : const [];
-    final prove = _openItems.firstOrNull;
     final cardDraft = _editing ? edit : draft;
     // At Now, and while writing, the masthead reads Today (F59); away from
     // Now it follows the day at the top of the page (F23).
@@ -1702,13 +1702,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 BvPostBar(
                   placeholder: l10n.daybookWorkItem,
                   onWrite: _startWriting,
-                  cameraLabel: l10n.daybookHoldToProve,
-                  // A tap opens Photo · Walk (the lead's rulings on 105A);
-                  // holding proves your open work item (O1 → O2).
+                  cameraLabel: l10n.daybookCameraLabel,
+                  // The camera, with Photo · Walk at its bottom (the lead's
+                  // rulings on 105A). Nothing on a hold: Sign as done is on
+                  // the work item (H1).
                   onCamera: () => unawaited(_camera()),
-                  onProve: prove == null
-                      ? null
-                      : () => unawaited(_loop.signDone(context, prove)),
                 ),
             ],
           ),
@@ -1756,13 +1754,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               ? () => unawaited(_duplicate(posts.single))
               : null,
         ),
-        SelectionAction(
-          key: const Key('select-delete'),
-          icon: BvIcons.delete,
-          label: l10n.delete,
-          destructive: true,
-          onTap: deletes ? () => unawaited(_delete(posts)) : null,
-        ),
+        // Hidden, not greyed, when one held can't be deleted (a Checked
+        // item; H4).
+        if (deletes)
+          SelectionAction(
+            key: const Key('select-delete'),
+            icon: BvIcons.delete,
+            label: l10n.delete,
+            destructive: true,
+            onTap: () => unawaited(_delete(posts)),
+          ),
       ],
     );
   }
@@ -1805,20 +1806,29 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (!sure || !mounted) return;
     _endSelection();
     final repository = ref.read(daybookRepositoryProvider);
+    // Every one is tried; what failed is said after (H5).
     var kept = 0;
+    final failed = <DaybookPost>[];
     for (final p in posts) {
       try {
         await repository.deletePost(p.id);
       } on SpaceException catch (e) {
-        if (e.failure != SpaceFailure.rule) {
-          if (mounted) showSpaceError(context, e);
-          break;
+        if (e.failure == SpaceFailure.rule) {
+          kept++;
+        } else {
+          failed.add(p);
         }
-        kept++;
       }
     }
     if (!mounted) return;
-    if (kept > 0) showSpaceMessage(context, l10n.daybookDeleteKept(kept));
+    if (failed.isNotEmpty) {
+      showSpaceMessage(
+        context,
+        l10n.daybookDeleteFailed(joinMeta(failed.map((p) => p.title))),
+      );
+    } else if (kept > 0) {
+      showSpaceMessage(context, l10n.daybookDeleteKept(kept));
+    }
     await _loop.refresh();
   }
 

@@ -2826,9 +2826,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookSignAsDone => 'وقّع كمنجز';
 
   @override
-  String get daybookHoldToProve => 'اضغط مطوّلًا للإثبات';
-
-  @override
   String get daybookCheck => 'تحقّق';
 
   @override
@@ -5614,4 +5611,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get peopleConfirm => 'تأكيد';
+
+  @override
+  String get daybookCameraLabel => 'الكاميرا';
+
+  @override
+  String daybookDeleteFailed(String titles) {
+    return 'تعذّر حذف $titles. حاول مرة أخرى.';
+  }
 }

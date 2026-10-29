@@ -7,6 +7,7 @@
 // the end: Reminder (Pin from 105B); toward the start: Archive for a Lead
 // on a Checked item (from 105B), round like the others. Signatures are
 // never on a swipe or a hold. In English and Arabic.
+import 'package:buildvibes/core/l10n/bidi.dart';
 import 'package:buildvibes/core/push/reminders.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -234,16 +235,19 @@ void main() {
         expect(_key('selection-bar'), findsNothing);
       });
 
-      testWidgets('Duplicate only for one card; Delete never on a Checked '
-          'one', (tester) async {
+      testWidgets('Duplicate only for one card; Delete is hidden, not '
+          'greyed, on a Checked one (H4)', (tester) async {
         await _open(tester, lang, posts: [_openSleeves(s), s.gate()]);
         await _holdCard(tester, 'post-gate');
         InkWell bar(String k) => tester.widget<InkWell>(_key(k));
-        expect(bar('select-delete').onTap, isNull);
+        expect(_key('select-delete'), findsNothing);
         expect(bar('select-duplicate').onTap, isNotNull);
-        await _tapCard(tester, 'post-sleeves');
+        await _tapCard(tester, 'post-gate');
+        await _holdCard(tester, 'post-sleeves');
+        expect(bar('select-delete').onTap, isNotNull);
+        await _tapCard(tester, 'post-gate');
         expect(bar('select-duplicate').onTap, isNull);
-        expect(bar('select-delete').onTap, isNull);
+        expect(_key('select-delete'), findsNothing);
       });
 
       testWidgets('Delete my item asks, then deletes it on the server', (
@@ -269,6 +273,31 @@ void main() {
         await _tap(tester, _key('select-delete'));
         await _tap(tester, find.text(l10n.delete).last);
         expect(find.text(l10n.daybookDeleteKept(1)), findsOneWidget);
+        expect(_entry('post-sleeves'), findsOneWidget);
+      });
+
+      testWidgets('H5: Delete of several tries each one; one that fails '
+          'doesn\'t stop the rest, and it is named after', (tester) async {
+        final daybook = FakeDaybookRepository()
+          ..deleteFails.add('post-sleeves');
+        await _open(
+          tester,
+          lang,
+          posts: [_openSleeves(s), s.traysForOmar()],
+          daybook: daybook,
+        );
+        await _holdCard(tester, 'post-sleeves');
+        await _tapCard(tester, 'post-trays');
+        await _tap(tester, _key('select-delete'));
+        expect(find.text(l10n.daybookDeleteTitle(2)), findsOneWidget);
+        await _tap(tester, find.text(l10n.delete).last);
+        expect(daybook.calls, contains('delete post-trays'));
+        expect(
+          find.text(
+            l10n.daybookDeleteFailed(joinMeta([s.sleevesCard().post.title])),
+          ),
+          findsOneWidget,
+        );
         expect(_entry('post-sleeves'), findsOneWidget);
       });
 

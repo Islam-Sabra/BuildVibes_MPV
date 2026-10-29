@@ -4022,10 +4022,6 @@
   "@daybookSignAsDone": {
     "description": "The action pill on the owner's open work item slip (camera icon). Glossary."
   },
-  "daybookHoldToProve": "Hold to prove",
-  "@daybookHoldToProve": {
-    "description": "Read out for the post bar's camera: holding it signs your open work item as done with a photo."
-  },
   "daybookCheck": "Check",
   "@daybookCheck": {
     "description": "Long-press menu on someone's proof (B1)."
@@ -7965,5 +7961,18 @@
   "peopleConfirm": "Confirm",
   "@peopleConfirm": {
     "description": "Review 105 SP8: a join request's Confirm; it asks for the pass."
+  },
+  "daybookCameraLabel": "Camera",
+  "@daybookCameraLabel": {
+    "description": "Review 105 H1: what a screen reader says for the post bar's camera (a tap opens the camera; nothing on a hold)."
+  },
+  "daybookDeleteFailed": "Couldn't delete {titles}. Try again.",
+  "@daybookDeleteFailed": {
+    "description": "Review 105 H5: after Delete of several posts, the ones that couldn't be deleted (no signal), by title, joined with ·.",
+    "placeholders": {
+      "titles": {
+        "type": "String"
+      }
+    }
   }
 }
