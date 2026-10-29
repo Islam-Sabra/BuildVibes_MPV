@@ -9656,6 +9656,42 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get workShare;
 
+  /// Review 105B: the Pin swipe on a post I pinned (mine only).
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get workUnpin;
+
+  /// Review 105B: the title of the sheet that picks the Space thread to share the held cards in.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in…'**
+  String get workShareIn;
+
+  /// Review 105B: after Share, the thread the cards went to.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared in {thread}'**
+  String workSharedIn(String thread);
+
+  /// Review 105B: after a Lead archives a Checked item; it leaves Work, Search still finds it.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get workArchived;
+
+  /// Review 105B: a thread's last message when it is a post's card shared from Work.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared from Work'**
+  String get chatSharedPost;
+
+  /// Review 105B: a shared card whose post was deleted, or that the reader can no longer see.
+  ///
+  /// In en, this message translates to:
+  /// **'This post isn\'t in Work any more'**
+  String get chatPostGone;
+
   /// Review 105 H8: the selection bar's Duplicate in Work.
   ///
   /// In en, this message translates to:

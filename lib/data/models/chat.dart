@@ -12,10 +12,15 @@ enum ChatKind {
   workItem,
 
   /// A week report shared in the chat (slice 9, share_week_report).
-  report;
+  report,
+
+  /// A post of the Space's Work, its card (review 105B,
+  /// share_post_to_thread).
+  post;
 
   static ChatKind fromJson(Object? value) => switch (value) {
     'report' => ChatKind.report,
+    'post' => ChatKind.post,
     'photo' => ChatKind.photo,
     'file' => ChatKind.file,
     'voice' => ChatKind.voice,
@@ -152,6 +157,7 @@ class ChatMessage {
     this.attachments = const [],
     this.file,
     this.reportWeek,
+    this.postId,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -186,6 +192,7 @@ class ChatMessage {
       reportWeek: json['report_week'] == null
           ? null
           : DateTime.parse(json['report_week'] as String),
+      postId: json['post_id'] as String?,
     );
   }
 
@@ -214,6 +221,9 @@ class ChatMessage {
 
   /// A shared week report: the first day of its week.
   final DateTime? reportWeek;
+
+  /// A shared post of the Space's Work (review 105B): its id.
+  final String? postId;
 
   bool get deleted => deletedAt != null;
 

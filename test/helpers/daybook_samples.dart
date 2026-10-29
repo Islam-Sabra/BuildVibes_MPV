@@ -102,6 +102,7 @@ class DaybookSamples {
     bool admin = true,
     DateTime? siteStart,
     bool addFiles = false,
+    String? timeZone,
   }) => SpaceDetail(
     id: space,
     name: spaceName,
@@ -116,6 +117,7 @@ class DaybookSamples {
       addFiles: addFiles,
     ),
     siteStartDate: siteStart ?? DaybookSamples.siteStart,
+    timeZone: timeZone,
   );
 
   /// A work item as space_post_json gives it.

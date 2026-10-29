@@ -269,6 +269,52 @@ class FakeDaybookRepository implements DaybookRepository {
   final deleteFails = <String>{};
 
   @override
+  Future<void> pinPost(String postId, {required bool on}) async {
+    _check();
+    calls.add('pin $postId $on');
+    for (final cards in posts.values) {
+      for (final (i, c) in cards.indexed) {
+        if (c.id == postId) cards[i] = c.copyWith(pinnedByMe: on);
+      }
+    }
+    for (final MapEntry(key: space, value: extras) in extrasBySpace.entries) {
+      final post = [
+        for (final cards in posts.values)
+          for (final c in cards)
+            if (c.id == postId) c.post,
+      ].firstOrNull;
+      extrasBySpace[space] = DaybookExtras(
+        pinned: extras.pinned,
+        activities: extras.activities,
+        mine: [
+          if (on && post != null) post,
+          for (final p in extras.mine)
+            if (p.id != postId) p,
+        ],
+      );
+    }
+  }
+
+  @override
+  Future<void> archivePost(String postId) async {
+    _check();
+    calls.add('archive $postId');
+    for (final cards in posts.values) {
+      cards.removeWhere((c) => c.id == postId);
+    }
+  }
+
+  @override
+  Future<void> sharePost({
+    required String messageId,
+    required String postId,
+    required String threadId,
+  }) async {
+    _check();
+    calls.add('share $postId $threadId');
+  }
+
+  @override
   Future<void> deletePost(String postId) async {
     _check();
     if (othersAdded.contains(postId)) {

@@ -8246,6 +8246,35 @@
   "@workShare": {
     "description": "Review 105 H8: the selection bar's Share in Work (from 105B)."
   },
+  "workUnpin": "Unpin",
+  "@workUnpin": {
+    "description": "Review 105B: the Pin swipe on a post I pinned (mine only)."
+  },
+  "workShareIn": "Share in…",
+  "@workShareIn": {
+    "description": "Review 105B: the title of the sheet that picks the Space thread to share the held cards in."
+  },
+  "workSharedIn": "Shared in {thread}",
+  "@workSharedIn": {
+    "description": "Review 105B: after Share, the thread the cards went to.",
+    "placeholders": {
+      "thread": {
+        "type": "String"
+      }
+    }
+  },
+  "workArchived": "Archived",
+  "@workArchived": {
+    "description": "Review 105B: after a Lead archives a Checked item; it leaves Work, Search still finds it."
+  },
+  "chatSharedPost": "Shared from Work",
+  "@chatSharedPost": {
+    "description": "Review 105B: a thread's last message when it is a post's card shared from Work."
+  },
+  "chatPostGone": "This post isn't in Work any more",
+  "@chatPostGone": {
+    "description": "Review 105B: a shared card whose post was deleted, or that the reader can no longer see."
+  },
   "workDuplicate": "Duplicate",
   "@workDuplicate": {
     "description": "Review 105 H8: the selection bar's Duplicate in Work."

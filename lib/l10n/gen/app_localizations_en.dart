@@ -5795,6 +5795,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workShare => 'Share';
 
   @override
+  String get workUnpin => 'Unpin';
+
+  @override
+  String get workShareIn => 'Share in…';
+
+  @override
+  String workSharedIn(String thread) {
+    return 'Shared in $thread';
+  }
+
+  @override
+  String get workArchived => 'Archived';
+
+  @override
+  String get chatSharedPost => 'Shared from Work';
+
+  @override
+  String get chatPostGone => 'This post isn\'t in Work any more';
+
+  @override
   String get workDuplicate => 'Duplicate';
 
   @override

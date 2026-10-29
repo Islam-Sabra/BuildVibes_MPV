@@ -5833,6 +5833,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workShare => 'مشاركة';
 
   @override
+  String get workUnpin => 'إلغاء التثبيت';
+
+  @override
+  String get workShareIn => 'مشاركة في…';
+
+  @override
+  String workSharedIn(String thread) {
+    return 'تمت المشاركة في $thread';
+  }
+
+  @override
+  String get workArchived => 'تمت الأرشفة';
+
+  @override
+  String get chatSharedPost => 'مشاركة من العمل';
+
+  @override
+  String get chatPostGone => 'لم يعد هذا المنشور في العمل';
+
+  @override
   String get workDuplicate => 'تكرار';
 
   @override

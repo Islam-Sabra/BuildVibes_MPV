@@ -223,6 +223,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         .from('spaces')
         .select(
           'id, name, about, project_id, who_can_invite, site_start_date, '
+          'time_zone, '
           'project:projects(name, location_text, place:places(name))',
         )
         .eq('id', spaceId)
@@ -269,6 +270,7 @@ class SupabaseSpaceRepository implements SpaceRepository {
         final String day => DateTime.parse(day),
         _ => null,
       },
+      timeZone: space['time_zone'] as String?,
     );
   });
 
