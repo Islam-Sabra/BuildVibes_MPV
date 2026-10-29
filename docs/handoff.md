@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 29 Oct 2026 — the lead's check of `claude/r104`: F1–F3 done; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r104` (this cloud session), from 226919b, pushed. Nothing merged, nothing live, no deploy, nothing installed, no migration.
+- **Commits:**
+  - 7b19fd3 **F1**: a saved entry left empty after editing now asks "Delete this empty entry?" («حذف هذه التدوينة الفارغة؟»), with the days kept and Cancel · Delete. Cancel brings the editor back with the empty entry, and whatever asked (Back, Done, opening another entry, New entry) does not go on; Back on New entry leaves the screen only after Delete. Delete goes on as before ("Deleted · Undo", to Deleted items when the bar closes). The app going behind asks nothing and keeps the edit on the phone (D1 opens it again). D3 and H5 tap Delete in the confirm now.
+  - 1b65bac **F2**: the dial's numbers are read "7 o'clock" / «الساعة 7» and "35 minutes" / «35 دقيقة» («5 دقائق»), from the ARB; tested with the semantics finder (tapping an hour and a minute by their words).
+  - 2a76d2a **F3**: the "+N" badge has its own key `notebookStatusMore` ("+3"); the screen reader's "3 more" moved to `notebookStatusMoreLabel`. A share whose Space or person has no name is left out of the icons.
+- **Checks (cloud):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: the full run is in progress; its count follows in the next commit.
+  - SQL stand-in: migrations apply; 3,038 checks in 48 files pass.
+  - Screenshots: PC later; no `test_screens`, no `--update-goldens`. F1–F3 change no shot (F2 is semantics only; F3 shows the same "+3").
+- **The PC still has to:** the steps in the section below (test_screens without updating; the shots review 104 changes on purpose, plus the new N11-time-clock; the lead's check; merge with the founder's yes; one build). No database push.
+- **Who has which branch:** this cloud session had `claude/r104` (F1–F3 done, pushed). PC: `slice2-app`.
+
 ## Cloud update: 28 Oct 2026 — review 104 (N6–N12) on `claude/r104` (from `slice2-app` 3f14b70); stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
