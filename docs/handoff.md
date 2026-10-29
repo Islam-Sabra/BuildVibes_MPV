@@ -28,6 +28,67 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   - the merge with C-B (`claude/r105c-b`): both touch `app_en.arb` / `app_ar.arb` and maybe `daybook_tab.dart`.
 - **Who has which branch:** this cloud session had `claude/r105c-a` (pushed). C-B: `claude/r105c-b`. PC: `slice2-app`.
 
+## Cloud update: 29 Oct 2026 — review 105C-B (table of tasks, removal sheet) on `claude/r105c-b`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r105c-b`, from `origin/slice2-app` 7714156, pushed. Nothing merged, no database push, no deploy, no build. No test_screens run and no goldens touched.
+  - `daybook_writing.dart` and the card's tag and photo area are untouched (C-A has them). The writing card's hint changed in the ARB only (`daybookWritingDetails`).
+- **Not checked here: Flutter.** This container has no Flutter SDK, and the download was refused. So `flutter analyze`, `flutter test` and `flutter gen-l10n` **did not run**. Everything app-side was written against the code but never compiled.
+  - The generated `lib/l10n/gen/` files were edited by hand to match the ARB files.
+  - **The PC must do this first:**
+    1. `flutter gen-l10n`
+    2. `flutter analyze`
+    3. `flutter test`
+  - Fix anything they find before the lead's check.
+- **Server: migration 53, `20261115120000_task_table_block.sql`.** It is needed because `validate_blocks` refuses unknown block types and keys. Every function is security definer with `search_path = ''`.
+  - **`validate_blocks`** (as in `20261021120000_report_notes.sql`) takes `{"type": "task_table", "rows": [{"id", "text", "note", "ticked"}]}`:
+    - on a work item only, never in a template or a toggle;
+    - 1–20 rows; each row has its own uuid, a task and a note of up to 200 characters, and a boolean tick.
+    - A change to a tick, or to a ticked row's words, or a ticked row taken out, is allowed only for the owner or a Lead/admin who can see the item (`may_tick_task`, internal) while it is Open. Otherwise `42501`. So the author's save can't tick.
+  - **`tick_task_row(post, block, row, on)`:** owner or Lead, item Open (`P0001` once Done). The same tick again changes nothing. It moves `blocks_version` on, so an open editor reads the page again first.
+  - **`add_task_row(post, block, row uuid, text, note)`:** owner, Lead, or the author who may post work. A retry with the same id adds nothing. At most 20 rows (`54000`).
+  - **`space_task_tables(space)`:** the tables on the work items the caller can see, not archived, for the cards. Members only.
+  - **`open_work_to_hand_over(space, member)`:** the member's Open items, oldest first, with `ref`, `title`, `team_id`, `maker_id`, `maker_name` and `maker_may_own`. For the Space's admin, or the member themself.
+  - **pgTAP `53_task_table_block`, 58 checks**, including that someone outside the Space can't read, tick or add, a Viewer can't, and Crew who don't own the item can't.
+- **The app (review 105 Part 4, SP3, SP4; Part 9, SP9):**
+  - **+ inside a work item (SP4):** the sheet is "Add to this work item".
+    - Order: Text · Bullet points · Checklist · Table (under it: "A plain table, no owners") · Table of tasks ("Rows the owner ticks, then signs once") · Photo · File or scan.
+    - Heading, Toggle and a work item under it stay after these seven. The frame doesn't show them; **the lead decides** whether they go.
+    - Bullet points is a text block starting with "• ", as the review says (no new block).
+  - **Table of tasks (SP3):** `PageTaskTable` and `BvTaskTable` (tick · Task · Note, mirrored in Arabic).
+    - On the opened item and on the card in Work, the owner or a Lead ticks in place. The tick shows at once and is taken back if the server refuses.
+    - A ticked row is crossed out. "Add a row" uses a small sheet (task and note).
+    - The For line says "{n} of {m} ticked" (`taskTableTicked`: AR «{n} من {m} منجزة», as the frame).
+    - Sign as done is unchanged: once, for the whole item.
+    - The editor edits the rows' words in place, with Add a row and a long press for Delete row (unticked rows only). A save always keeps the server's ticks.
+  - **The removal sheet (SP9):** Remove (People, a member's pass) and Leave (Space info) first read `open_work_to_hand_over`.
+    - With Open items, the sheet lists each one with Give to, the maker chosen by default when they may own it. Then Cancel · **Give and remove** (or Give and leave), enabled once every item has someone.
+    - Remove keeps its 5-second Undo; the handovers ride on the outbox item (`PendingItem.handovers`). Leave calls `leave_space_with_handover` with them.
+    - With no Open items, the hold sheet and the Leave dialog are as before. The BV001 message stays only for a race.
+  - **Left for C-A or the PC:** SP3's "Table of tasks" chip beside the place tag. It sits in the card's tag area, which is C-A's.
+- **Tests written (test first, EN and AR), not run:**
+  - `test/features/work/task_table_test.dart`: the block's JSON, the count, the save plan, the menu order, SP4's sheet, adding and saving a table of tasks, the owner's and a Lead's ticks, Crew refused, a refused tick taken back, Add a row, Sign as done once, and the columns mirrored.
+  - `test/features/spaces/removal_sheet_test.dart`: the sheet with defaults and Give to, Cancel, no Open work, no signal, Leave with handovers, and the mirrored buttons.
+  - The fakes have `openWork`, the handover rule, and ticks and rows.
+- **SQL checks (cloud):** `service postgresql start`, then `bash supabase/dev/standin/run.sh .`.
+  - All migrations apply ("migrations ok").
+  - pgTAP isn't installed here, so every test file stops at `create extension pgtap`.
+  - With a small pgTAP stand-in loaded by hand (scratchpad only, not committed), 3,180 of 3,243 planned checks ran with no real failure:
+    - File 53: 58 of 58.
+    - 47 of 52 files ran in full.
+    - 05, 50, 51 and 52 stop at a pgTAP function the stand-in lacks.
+    - File 47's one "not ok" is the stand-in's `throws_ok` with no error code.
+  - The PC's `supabase db reset --local` and `supabase test db` are the real check.
+- **Next:**
+  - PC: gen-l10n, analyze and test, with fixes if needed; then `supabase test db`.
+  - The lead's check, then the shots on the PC (SP3, SP4 and SP9, EN and AR).
+  - With the founder's yes: migration 53 live after 52, and the merge.
+- **Who has which branch:**
+  - This session: `claude/r105c-b`.
+  - C-A: `claude/r105c-a`.
+  - PC: `slice2-app`.
+
 ## PC update: 29 Oct 2026, 17:20 Kuwait — reviews 106 (T4/T5) and 105B live: merged into `slice2-app`, migrations 51 and 52 live, build 800 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

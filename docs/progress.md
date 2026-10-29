@@ -820,6 +820,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migrations 51 (`note_share_versions`) and 52 (`space_work_extras`) live, one push each.
   - Build 800 on the founder's phone and the Desktop.
   - Checks: 3,185 SQL checks; analyze clean; 2,744 app tests; 466 shots.
+- **29 Oct (cloud): review 105C-B** on `claude/r105c-b`, for the lead; nothing merged, live or built:
+  - Migration 53 (`20261115120000_task_table_block.sql`): the `task_table` block on a work item (rows: id, task, note, tick); only the owner or a Lead changes a tick, through `tick_task_row` or a save; `add_task_row`; `space_task_tables` for the cards; `open_work_to_hand_over` for the removal sheet. pgTAP 53, 58 checks.
+  - The app: + inside a work item in SP4's order with the lines under Table and Table of tasks; the table of tasks on the page and the card, ticked in place, "n of m ticked" on the For line, Add a row; the removal sheet for Remove and Leave.
+  - Checks: SQL, with a pgTAP stand-in, 58 of 58 in file 53, and the older files as listed in the handoff. **Flutter couldn't run in this session**: analyze and tests are for the PC.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

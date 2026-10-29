@@ -9545,7 +9545,7 @@ abstract class AppLocalizations {
   /// Review 105 SP2: the words' hint on a work item being written, under its title.
   ///
   /// In en, this message translates to:
-  /// **'Add details.'**
+  /// **'Add details. + for bullet points, a table or a table of tasks.'**
   String get daybookWritingDetails;
 
   /// Review 105 SP2: the For row's word (who the work item, checklist or activity is for).
@@ -9907,6 +9907,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show its work'**
   String get searchPlaceLine;
+
+  /// Review 105 SP4: + inside a work item: text lines, each starting with a bullet.
+  ///
+  /// In en, this message translates to:
+  /// **'Bullet points'**
+  String get pageBulletPoints;
+
+  /// Review 105 SP4: + inside a work item: a table whose rows the owner ticks.
+  ///
+  /// In en, this message translates to:
+  /// **'Table of tasks'**
+  String get pageTaskTable;
+
+  /// Review 105 SP4: under Table in the + sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'A plain table, no owners'**
+  String get pageTableHint;
+
+  /// Review 105 SP4: under Table of tasks in the + sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows the owner ticks, then signs once'**
+  String get pageTaskTableHint;
+
+  /// Review 105 SP4: the + sheet's title inside a work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to this work item'**
+  String get pageAddToItem;
+
+  /// Review 105 SP4: + inside a work item: a file, or a scan from the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'File or scan'**
+  String get pageFileOrScan;
+
+  /// Review 105 SP3: the table of tasks' Task column.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get taskTableTask;
+
+  /// Review 105 SP3: the table of tasks' Note column.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get taskTableNote;
+
+  /// Review 105 SP3: a row's tick, for a screen reader, with its row's task (the lead's check N4).
+  ///
+  /// In en, this message translates to:
+  /// **'Tick {task}'**
+  String taskTableTick(String task);
+
+  /// Review 105 SP3: a row's Note cell when it has no note (the lead's check N4).
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get taskTableNoNote;
+
+  /// Review 105 SP3: on the For line, the rows ticked of all rows.
+  ///
+  /// In en, this message translates to:
+  /// **'{ticked} of {total} ticked'**
+  String taskTableTicked(int ticked, int total);
+
+  /// Review 105 SP3: Add a row's second field.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get taskTableNoteHint;
+
+  /// Review 105 SP9: before the new owner on each open work item.
+  ///
+  /// In en, this message translates to:
+  /// **'Give to'**
+  String get handoverGiveTo;
+
+  /// Review 105 SP9: an open work item with no new owner yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose someone'**
+  String get handoverChoose;
+
+  /// Review 105 SP9: under the list when removing someone.
+  ///
+  /// In en, this message translates to:
+  /// **'Their checked work stays in the Space and on their profile.'**
+  String get handoverTheirChecked;
+
+  /// Review 105 SP9: under the list when leaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Your checked work stays in the Space and on your profile.'**
+  String get handoverMyChecked;
+
+  /// Review 105 SP9: hands each open work item over, then removes the person.
+  ///
+  /// In en, this message translates to:
+  /// **'Give and remove'**
+  String get handoverGiveAndRemove;
+
+  /// Review 105 SP9: hands each of my open work items over, then I leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Give and leave'**
+  String get handoverGiveAndLeave;
+
+  /// Review 105 SP9: removing someone who owns open work items.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has {count, plural, =1{1 open work item. Give it to someone} other{{count} open work items. Give each one to someone}} so nothing is left without an owner.'**
+  String handoverRemoveBody(String name, int count);
+
+  /// Review 105 SP9: leaving while I own open work items.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {count, plural, =1{1 open work item. Give it to someone} other{{count} open work items. Give each one to someone}} so nothing is left without an owner.'**
+  String handoverLeaveBody(int count);
 }
 
 class _AppLocalizationsDelegate

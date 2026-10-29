@@ -57,6 +57,31 @@ abstract class PageRepository {
     required String title,
     required int baseVersion,
   });
+
+  /// tick_task_row (review 105C-B): [on] on [rowId] of the table of tasks
+  /// [blockId]; the owner or a Lead, while the item is Open. The page's new
+  /// version.
+  Future<int> tickTaskRow({
+    required String postId,
+    required String blockId,
+    required String rowId,
+    required bool on,
+  });
+
+  /// add_task_row: "Add a row" at the end of [blockId], under the id the
+  /// app chose (the same row however often it is sent). The page's new
+  /// version.
+  Future<int> addTaskRow({
+    required String postId,
+    required String blockId,
+    required String rowId,
+    required String text,
+    String note = '',
+  });
+
+  /// space_task_tables: the tables of tasks on [spaceId]'s work items, by
+  /// post, for the cards.
+  Future<Map<String, List<PageTaskTable>>> taskTables(String spaceId);
 }
 
 class SupabasePageRepository implements PageRepository {
@@ -164,11 +189,74 @@ class SupabasePageRepository implements PageRepository {
       },
     ),
   );
+
+  @override
+  Future<int> tickTaskRow({
+    required String postId,
+    required String blockId,
+    required String rowId,
+    required bool on,
+  }) => _guard(
+    () => _client.rpc<int>(
+      'tick_task_row',
+      params: {
+        'p_post': postId,
+        'p_block': blockId,
+        'p_row': rowId,
+        'p_on': on,
+      },
+    ),
+  );
+
+  @override
+  Future<int> addTaskRow({
+    required String postId,
+    required String blockId,
+    required String rowId,
+    required String text,
+    String note = '',
+  }) => _guard(
+    () => _client.rpc<int>(
+      'add_task_row',
+      params: {
+        'p_post': postId,
+        'p_block': blockId,
+        'p_row': rowId,
+        'p_text': text.trim(),
+        'p_note': note.trim().isEmpty ? null : note.trim(),
+      },
+    ),
+  );
+
+  @override
+  Future<Map<String, List<PageTaskTable>>> taskTables(String spaceId) =>
+      _guard(() async {
+        final rows = await _client.rpc<List<dynamic>>(
+          'space_task_tables',
+          params: {'p_space': spaceId},
+        );
+        return {
+          for (final r in rows.cast<Map<String, dynamic>>())
+            r['post_id'] as String: [
+              for (final b in r['blocks'] as List? ?? const [])
+                if (PageBlock.fromJson(b as Map<String, dynamic>)
+                    case final PageTaskTable t)
+                  t,
+            ],
+        };
+      });
 }
 
 final pageRepositoryProvider = Provider<PageRepository>(
   (ref) => SupabasePageRepository(ref.watch(supabaseClientProvider)),
 );
+
+/// The tables of tasks on a Space's cards (review 105C-B), read again
+/// after a tick, a new row or a save.
+final taskTablesProvider = FutureProvider.autoDispose
+    .family<Map<String, List<PageTaskTable>>, String>(
+      (ref, spaceId) => ref.watch(pageRepositoryProvider).taskTables(spaceId),
+    );
 
 /// A post's page, read again after each save.
 final postPageProvider = FutureProvider.autoDispose.family<PostPage?, String>(
