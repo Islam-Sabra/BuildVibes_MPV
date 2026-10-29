@@ -771,6 +771,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - G4: migration 50's update filters the owner; 20 pgTAP checks.
   - G5: one Status order.
   - Checks: 3,058 SQL checks; analyze clean; 2,535 app tests; 434 shots pass. The 22 changed images and 8 new ones are in `docs/reviews/shots-106/`.
+- **29 Oct (PC): review 106 live** (founder's yes):
+  - The accepted shots updated (11 changed, NS1–NS4 new); `shots-106` removed.
+  - `r106` merged into `slice2-app` (11e99eb). Analyze clean; 2,535 app tests; 3,058 SQL checks; 462 shots, not updating.
+  - Migration 50 (`notes.collapsed`) live as the only file; nothing pending.
+  - Build 744 on the Desktop and on the founder's phone.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

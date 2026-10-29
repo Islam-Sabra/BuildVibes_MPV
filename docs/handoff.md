@@ -2,6 +2,41 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 106 live: merged into `slice2-app`, migration 50 live, build 744 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (29 Oct), after the lead accepted r106's shots (review 106, "G1–G5 done"):**
+  1. **Goldens updated only for the accepted shots**, EN and AR:
+     - the 11 changed: BH2, BH3, BH4, BH5, BH9, N5-page-filter, N5-sort-chip, PG4, NB-reminder-slip, NB-remind-menu, NB-put-in-space;
+     - the 4 new: `docs/screens/r106/` NS1–NS4.
+     - That is 30 images, each byte-identical to its accepted image.
+     - `docs/screens/r106/` falls under the ignore rule for `docs/screens/*`, so it was added with `git add -f`, as the other golden folders were.
+     - `docs/reviews/shots-106/` removed.
+  2. **Checks on `r106` (e6a71c1, pushed):**
+     - `flutter test test_screens`, not updating: 462 pass.
+     - `flutter analyze`: no issues.
+     - `flutter test`: 2,535 pass.
+     - `supabase test db`: 3,058 checks in 49 files pass.
+  3. **Merged into `slice2-app`** with `--no-ff` (11e99eb, no conflicts) and pushed. The same checks on the merge: analyze clean; 2,535; 462.
+     - The run left Windows line endings in `lib/l10n/gen`, with no content change. Restored before the push.
+  4. **Migration 50 live** (`20261111120000_note_collapsed.sql`), from a throwaway worktree at 11e99eb with `supabase/.temp` copied whole.
+     - The dry run listed only that file. The push exited 0 ("Applying migration 20261111120000_note_collapsed.sql…", "Finished supabase db push"). The known pg-delta certificate warning followed: harmless.
+     - `supabase migration list --linked` ends at 20261111120000, local and remote alike, and a second dry run says "Remote database is up to date".
+     - The push worktree is removed. **No function deploys.**
+  5. **Build 744** (11e99eb, release, upload key, prod env; versionCode 744, versionName 0.9.0; certificate SHA-256 9d02b7db…df9f, the same as 729): on the Desktop as `BuildVibes-744.apk` (MD5 b2cf3694…).
+  6. **Installed on the founder's Xiaomi** at 192.168.8.33:43045 (model 22120RN86G checked first), over 729:
+     - versionCode 744; first install still 17 Oct.
+     - The installed `base.apk` is byte-identical to `BuildVibes-744.apk`.
+     - BuildVibes is the only package of ours on it.
+     - The first install command printed nothing and left 729 in place; the second gave "Success".
+- **Next:**
+  - the founder's test of build 744: the status row, folding, Collapse all · Expand all, the Filter · Sort switch, STATUS;
+  - the tidy list in review 106: `_setFilter` in two screens, `statusHits`, `entryHead`/`foldHidden` in a screen file, the 'collapse' / 'expand' strings.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`) and `r106` (worktree `BuildVibes-r106`, merged). `claude/r105a` is a cloud session's.
+
 ## PC update: 29 Oct 2026 — review 106 G1–G5 (the lead's check of `r106`) done on `r106`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
