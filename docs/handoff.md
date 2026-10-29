@@ -2,6 +2,54 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 105B on `r105b`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `r105b` (worktree `BuildVibes-r105b`), from `slice2-app` 609622d (105A in it), pushed.
+  - Nothing merged, no database push, no build.
+  - `lib/features/notebook/` untouched (`claude/r106b` has it).
+- **Server first, test first: migration 52, `20261113120000_space_work_extras.sql`,** with pgTAP `52_space_work_extras` (71 checks). Every function is security definer with `search_path = ''`, and every permission is checked in SQL.
+  1. **Places:** `space_places` (name unique in its Space whatever its case and spaces).
+     - RLS: members read; those who may post work add (`can(space, 'create_items')`); Leads rename (the name only) and delete.
+     - `space_posts.place_id`, kept to the post's own Space by a trigger. Older posts keep `place_text`.
+  2. **Archive:** `space_posts.archived_at` and `archived_by`.
+     - `archive_space_post` and `unarchive_space_post`: a Lead of the Space, a Checked work item.
+     - `daybook_cards` and `daybook_extras` leave archived posts out; `daybook_card` and `search_space` still find them.
+  3. **Personal pins:** `space_post_pins` (mine only: read own, for posts I can see; written only by `pin_space_post` and `unpin_space_post`).
+     - `daybook_cards` gains `pinned_by_me`; `daybook_extras` lists mine (reason `mine`).
+  4. **Share to a chat thread:** `share_post_to_thread(id, post, thread)`, a message of the new kind `post` (`messages.post_id`).
+     - The post and the thread are in the same Space.
+     - The caller may read the post (`can_see_space_post`) and write in the thread (`can_use_thread`).
+     - A Team's post goes only into that Team's thread, since its card shows the title.
+     - A retry with the same id posts once.
+  5. **The Space's time zone. Where the market pack keeps it:** `markets.time_zone` (IANA names, `Asia/Kuwait` and `Africa/Cairo`, from migration 13, `20261013150000_market_pack.sql`).
+     - A Space has no market of its own, so `space_time_zone(space)` reads its **project's market**, else its **maker's home market** (`profiles.home_market_id`), else `UTC`, for members only.
+     - The app reads it with the Space through a computed column, `time_zone(spaces)`.
+  6. **Handover:** `remove_member_with_handover(space, member, assignments)` (admin) and `leave_space_with_handover(space, assignments)`, with `assignments` as `[{"item", "owner"}]`.
+     - Every **open** work item the person owns needs a new owner who may own work: `may_be_post_person` (Lead or Crew, of its Team or an admin) and `member_can(…, 'mark_done')`, as `reassign_work_item` checks. Otherwise nothing changes.
+     - Each handover is a `reassigned` event in the item's record.
+     - **Their Done and Checked work stays** where it is: only Open items move, as with Give to. Tell me if Done items should move too.
+- **The app, test first in EN and AR** (`test/features/work/work_extras_test.dart`, 16 tests):
+  - **Pin (mine):** the swipe pins it, and then reads Unpin. My pinned posts show under the Space's pinned announcements as slim lines (`BvPinnedLine`, `my-pin-<id>`). A tap opens the item as from its card; a hold selects it.
+  - **Archive:** a Lead's, on a Checked item. It leaves Work with "Archived".
+  - **Share:** in the hold bar, a sheet of this Space's threads, only the Team's for a Team's post. The card goes there with "Shared in {thread}".
+  - **In Chat:** `SharedPostBubble` shows the kind, the title, For and the status, and a tap opens the item in Work (`spaceCard`). A post the reader can't see reads "This post isn't in Work any more".
+  - **A new announcement is pinned until midnight in the Space's time zone** (`spaceDayEnd`, with the `timezone` package). With none known, it's the phone's midnight.
+  - `WorkLater` is on through the repository. `share` now takes the Space's id; 105A's test stub is updated to match.
+- **105C, not now:** the Place picker and filter, the table of tasks, before/after, the removal sheet (the app side of handover).
+- **Checks (PC):**
+  - `supabase test db`: 3,129 checks in 50 files pass.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,668 pass.
+  - `flutter test test_screens`, not updating: 454 pass, **0 change**. `docs/reviews/shots-105b/README.md` says why, and lists the new screens that have no shot yet.
+- **The local stack** was reset to this branch's migrations (`supabase db reset --local`), so migration 52 is applied there.
+  - That took off `claude/r106b`'s migration 51, which isn't on this branch. That branch's worktree needs `supabase db reset --local` again before its own SQL checks.
+- **Next:**
+  - the lead's check;
+  - with the founder's yes: migration 52 live (after 51 if 106b goes first; the two don't touch each other), the merge and a build.
+- **Who has which branch:** PC has `r105b` (worktree `BuildVibes-r105b`), `claude/r106b` (worktree `BuildVibes-r106b`, for the lead) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 29 Oct 2026 — review 105A live: merged into `slice2-app`, build 775 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

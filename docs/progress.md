@@ -792,6 +792,10 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - `claude/r105a` merged into `slice2-app` (9c5f400). Analyze clean; 2,652 app tests; 3,058 SQL checks; 454 shots, not updating.
   - No migration, no deploy.
   - Build 775 on the Desktop and on the founder's phone.
+- **29 Oct (PC): review 105B** on `r105b`, for the lead; nothing merged, live or built:
+  - Migration 52: places, archive, personal pins, share to a chat thread, `space_time_zone` (from `markets.time_zone`), handover; 71 pgTAP checks.
+  - The app: Pin (mine, at the top), Archive (Lead, Checked), Share (a thread of this Space) and its card in Chat; the Space's midnight for a new announcement.
+  - Checks: 3,129 SQL checks; analyze clean; 2,668 app tests; 454 shots, none changed.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
