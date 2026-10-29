@@ -1,10 +1,12 @@
 // Review 102: the shots it adds, in English and Arabic at 390 × 844 in the
 // app's fonts. N2: the time wheels (a reminder today at 10:57, so the times
 // already passed are greyed). N5: a page's Filter card with SORT, and the
-// chip of a sort that isn't the default. Run:
+// chip of a sort that isn't the default. Review 104 N11: the one picker
+// opens on the clock face; the wheels are its second mode. Run:
 //   flutter test test_screens/r102_test.dart --update-goldens
+import 'package:buildvibes/features/notebook/note_filter.dart' show filterModeKey;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_time_wheel.dart';
+import 'package:buildvibes/shared/widgets/bv_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -32,23 +34,33 @@ void main() {
   setUpAll(loadAppFonts);
 
   for (final lang in ['en', 'ar']) {
-    testWidgets('N2 the time wheels [$lang]', (tester) async {
+    Future<void> time(WidgetTester tester, BvTimeMode mode) async {
       await pumpApp(
         tester,
         language: lang,
         now: NotebookPageSamples.now,
         notebook: NotebookPageSamples(lang).repository(),
+        stored: {timePickerModeKey: mode.name},
       );
       await tester.pumpAndSettle();
       final context = tester.element(find.byType(Navigator).first);
-      showBvTimeWheel(
+      showBvTimePicker(
         context,
         initial: const TimeOfDay(hour: 11, minute: 55),
         title: lookupAppLocalizations(Locale(lang)).notebookRemindTime,
         after: const TimeOfDay(hour: 10, minute: 57),
       );
       await tester.pumpAndSettle();
+    }
+
+    testWidgets('N2 the time wheels [$lang]', (tester) async {
+      await time(tester, BvTimeMode.wheels);
       await _snap(tester, 'N2-time-wheel', lang);
+    });
+
+    testWidgets('N11 the clock face, the default [$lang]', (tester) async {
+      await time(tester, BvTimeMode.clock);
+      await _snap(tester, 'N11-time-clock', lang);
     });
 
     Future<void> page(WidgetTester tester) async {
@@ -57,6 +69,8 @@ void main() {
         language: lang,
         now: NotebookPageSamples.now,
         notebook: NotebookPageSamples(lang).repository(),
+        // Review 106 T3: SORT is the card's Sort mode now.
+        stored: {filterModeKey: 'sort'},
       );
       GoRouter.of(
         tester.element(find.byType(Navigator).first),

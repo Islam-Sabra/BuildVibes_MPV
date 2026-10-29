@@ -10,9 +10,12 @@ import '../../core/l10n/bidi.dart';
 import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/note.dart';
 import '../../data/models/notebook_page.dart';
+import '../../data/repositories/notebook_repository.dart'
+    show notebookRepositoryProvider;
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_controls.dart';
+import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
 import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
@@ -728,6 +731,47 @@ class _MergeChoicesState extends State<_MergeChoices> {
       ],
     );
   }
+}
+
+/// How long the confirm waits for the days Deleted items keeps things;
+/// with no answer by then (no signal), it says so without the days.
+const _keepDaysWait = Duration(seconds: 2);
+
+/// Review 104 N6: every delete in the notebook asks first, with [title]
+/// and where it goes: Deleted items for the person's 7, 30 or 90 days
+/// ([kept]), or nowhere (a Draft, lines never saved). Cancel · Delete,
+/// Delete in red. True when Delete was chosen.
+Future<bool> confirmNotebookDelete(
+  BuildContext context,
+  WidgetRef ref, {
+  required String title,
+  bool kept = true,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  int? days;
+  if (kept) {
+    try {
+      days = await ref
+          .read(notebookRepositoryProvider)
+          .keepDays()
+          .timeout(_keepDaysWait);
+    } on Object {
+      days = null;
+    }
+  }
+  if (!context.mounted) return false;
+  return showBvDialog(
+    context: context,
+    title: title,
+    body: !kept
+        ? l10n.notebookConfirmDeleteNotKept
+        : days == null
+        ? l10n.notebookConfirmDeleteKept
+        : l10n.notebookConfirmDeleteKeptFor(days),
+    cancelLabel: l10n.commonCancel,
+    confirmLabel: l10n.pageDelete,
+    destructive: true,
+  );
 }
 
 /// [change] (a merge, pages deleted) shows at once, with Undo for 5 s

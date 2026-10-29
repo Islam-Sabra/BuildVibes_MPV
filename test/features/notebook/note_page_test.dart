@@ -16,7 +16,7 @@ import 'package:buildvibes/features/notebook/note_page_editor.dart';
 import 'package:buildvibes/features/notebook/notebook_state.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_time_wheel.dart';
+import 'package:buildvibes/shared/widgets/bv_time_picker.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -486,8 +486,9 @@ void main() {
       expect(saved.blocks!.whereType<PageTodo>(), hasLength(3));
     });
 
-    testWidgets('the saved slip: the title, the first 3 lines, the chips; '
-        'a to-do ticks there; a tap edits in place [$lang]', (tester) async {
+    testWidgets('the saved slip: the title, every line (review 106 T2: no '
+        '3-line cut), the chips; a to-do ticks there; a tap edits in place '
+        '[$lang]', (tester) async {
       final note = Note(
         id: 'note-slip',
         kind: NoteKind.text,
@@ -519,7 +520,7 @@ void main() {
       final app = await _open(tester, lang, notes: [note]);
       expect(find.text('Before the pour, level 3'), findsOneWidget);
       expect(find.text('Confirm the pump'), findsOneWidget);
-      expect(find.text('Fourth line'), findsNothing);
+      expect(find.text('Fourth line'), findsOneWidget);
       expect(find.text(l10n.notebookPhotoCount(2)), findsOneWidget);
       expect(find.text(l10n.notebookFileCount(1)), findsOneWidget);
       expect(find.textContaining('Grid C7'), findsOneWidget);
@@ -586,19 +587,19 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l10n.notebookRemindTime), findsOneWidget);
       expect(find.text(l10n.daybookDueTimeHelp), findsNothing);
-      // Review 102 N1, N2: the time wheels, and no "in the morning"; a
-      // reminder's time is chosen, or Cancel.
-      expect(find.byType(BvTimeWheel), findsOneWidget);
+      // Review 102 N1, no "in the morning"; review 104 N11, the one
+      // picker on its clock face. A reminder's time is chosen, or Cancel.
+      expect(find.byType(BvClockFace), findsOneWidget);
       expect(
-        find.byKey(const Key('time-wheel-cancel')).evaluate().single.widget,
+        find.byKey(const Key('time-picker-cancel')).evaluate().single.widget,
         isA<TextButton>(),
       );
       expect(
         find.descendant(
-          of: find.byKey(const Key('time-wheel-cancel')),
+          of: find.byKey(const Key('time-picker-cancel')),
           matching: find.text(
             MaterialLocalizations.of(
-              tester.element(find.byType(BvTimeWheel)),
+              tester.element(find.byType(BvClockFace)),
             ).cancelButtonLabel,
           ),
         ),

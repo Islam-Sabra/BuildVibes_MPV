@@ -5238,9 +5238,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookFilterVoice => 'تسجيلات صوتية';
 
   @override
-  String get notebookFilterReminders => 'تذكيرات';
-
-  @override
   String get notebookFilterArchived => 'المؤرشفة';
 
   @override
@@ -5256,7 +5253,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookShareSpace => 'مساحة';
 
   @override
-  String get notebookShareSpaceNote => 'منشور أو بند عمل أو قائمة تحقق';
+  String get notebookShareSpaceNote => 'ملاحظة أو بند عمل أو قائمة تحقق';
 
   @override
   String get notebookShareMessage => 'رسالة';
@@ -5304,15 +5301,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookPost => 'نشر';
-
-  @override
-  String get notebookShareKindPost => 'منشور';
-
-  @override
-  String get notebookShareKindWork => 'بند عمل';
-
-  @override
-  String get notebookShareKindChecklist => 'قائمة تحقق';
 
   @override
   String get notebookShareFind => 'البحث عن شخص';
@@ -5444,7 +5432,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookShareTeam => 'الفريق';
 
   @override
-  String get notebookShareWholeSpace => 'المساحة كلها';
+  String get notebookShareWholeSpace => 'كل المساحة';
 
   @override
   String get notebookShareFor => 'لمن';
@@ -5485,9 +5473,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get timeWheelPm => 'م';
 
   @override
-  String get notebookSortLabel => 'ترتيب';
-
-  @override
   String get notebookSortActivity => 'آخر نشاط';
 
   @override
@@ -5504,6 +5489,212 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notebookSortOff => 'العودة إلى الترتيب المعتاد';
+
+  @override
+  String notebookConfirmDeleteEntries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف هذه التدوينات؟',
+      one: 'حذف هذه التدوينة؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeletePages(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف هذه الصفحات وكل ما فيها؟',
+      one: 'حذف هذه الصفحة وكل ما فيها؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notebookConfirmDeleteLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف هذه الأسطر؟',
+      one: 'حذف هذا السطر؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteDraft => 'حذف هذه المسودة؟';
+
+  @override
+  String notebookConfirmDeleteKeptFor(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'يذهب إلى المحذوفات لمدة $days يوم.',
+      many: 'يذهب إلى المحذوفات لمدة $days يومًا.',
+      few: 'يذهب إلى المحذوفات لمدة $days أيام.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookConfirmDeleteKept => 'يذهب إلى المحذوفات.';
+
+  @override
+  String get notebookConfirmDeleteNotKept => 'لا يُحفظ في المحذوفات.';
+
+  @override
+  String get notebookSortOldestCreated => 'الأقدم إنشاءً';
+
+  @override
+  String get notebookSortType => 'النوع';
+
+  @override
+  String get notebookTypeTodos => 'مهام';
+
+  @override
+  String get notebookTypeChecklists => 'قوائم تحقق';
+
+  @override
+  String get notebookTypePhotos => 'صور';
+
+  @override
+  String get notebookTypeFiles => 'ملفات';
+
+  @override
+  String get notebookTypeVoice => 'ملاحظات صوتية';
+
+  @override
+  String get notebookTypeText => 'نص';
+
+  @override
+  String notebookShareTeamRow(String team) {
+    return 'الفريق: $team';
+  }
+
+  @override
+  String notebookShareForRow(String name) {
+    return 'إلى: $name';
+  }
+
+  @override
+  String notebookShareForMore(String name, int count) {
+    return '$name + $count';
+  }
+
+  @override
+  String get timePickerToWheels => 'استخدام العجلات';
+
+  @override
+  String get timePickerToClock => 'استخدام الساعة';
+
+  @override
+  String notebookStatusReminder(String when) {
+    return 'تذكير، $when';
+  }
+
+  @override
+  String notebookStatusFeed(String time) {
+    return 'نُشرت في الأخبار الساعة $time';
+  }
+
+  @override
+  String notebookStatusSpace(String name, String time) {
+    return 'نُشرت في $name الساعة $time';
+  }
+
+  @override
+  String notebookStatusSent(String name, String time) {
+    return 'أُرسلت إلى $name الساعة $time';
+  }
+
+  @override
+  String get notebookStatusChange => 'تغيير';
+
+  @override
+  String get notebookStatusTitleReminder => 'تذكير';
+
+  @override
+  String get notebookStatusTitleFeed => 'نُشرت في الأخبار';
+
+  @override
+  String get notebookStatusTitleSpace => 'نُشرت في مساحة';
+
+  @override
+  String get notebookStatusTitleMessage => 'أُرسلت في رسالة';
+
+  @override
+  String notebookStatusShareLine(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String notebookLinesHidden(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سطر مخفي',
+      many: '$count سطرًا مخفيًا',
+      few: '$count أسطر مخفية',
+      two: 'سطران مخفيان',
+      one: 'سطر مخفي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notebookFoldEntry => 'طيّ هذه التدوينة';
+
+  @override
+  String get notebookUnfoldEntry => 'فتح هذه التدوينة';
+
+  @override
+  String get notebookCollapseAll => 'طيّ الكل';
+
+  @override
+  String get notebookExpandAll => 'فتح الكل';
+
+  @override
+  String get notebookFilterStatus => 'الحالة';
+
+  @override
+  String get notebookFilterModeSort => 'ترتيب';
+
+  @override
+  String get notebookSortStatus => 'الحالة';
+
+  @override
+  String get notebookSortTypeHint =>
+      'مجمّعة: مهام، قوائم تحقق، صور، ملفات، صوت، نص';
+
+  @override
+  String get notebookSortStatusHint =>
+      'مجمّعة: مثبّتة، تذكير، الأخبار، مساحة، رسالة';
+
+  @override
+  String get notebookStatusNone => 'بلا حالة';
+
+  @override
+  String get notebookConfirmDeleteEmpty => 'حذف هذه التدوينة الفارغة؟';
+
+  @override
+  String timeClockHour(int hour) {
+    return 'الساعة $hour';
+  }
+
+  @override
+  String timeClockMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتان',
+      one: 'دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get spacesPeopleWaiting => 'طلبات انضمام بانتظارك';

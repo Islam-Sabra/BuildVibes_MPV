@@ -189,6 +189,9 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('page-filter')));
       await tester.pumpAndSettle();
+      // Review 106 T3: the card's switch on Sort.
+      await tester.tap(find.byKey(const Key('filter-mode')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('sort-oldest')));
       await tester.pumpAndSettle();
       expect(_order(tester), ['y1', 'y2', 't2', 't3', 't1']);

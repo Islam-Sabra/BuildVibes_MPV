@@ -521,6 +521,7 @@ void main() {
         await tester.longPress(_key('page-${NotebookPageSamples.phones}'));
         await tester.pumpAndSettle();
         await _tap(tester, _key('select-delete'));
+        await _tap(tester, _key('bv-dialog-confirm'));
         expect(find.text(l10n.notebookPagesDeleted(1)), findsOneWidget);
         expect(_key('page-${NotebookPageSamples.phones}'), findsNothing);
         await tester.pump(const Duration(seconds: 6));

@@ -54,10 +54,15 @@ abstract final class AppRoutes {
   /// Deleted items (review 99B B3, PG8).
   static const notebookDeleted = '/notebook/deleted';
 
-  /// Search with the Filter that is on (review 100 Part 8).
-  static String notebookSearchIn({String? kind, String? page}) => Uri(
+  /// Search with the Filter that is on (review 100 Part 8; its STATUS,
+  /// review 106 T3).
+  static String notebookSearchIn({
+    String? kind,
+    String? status,
+    String? page,
+  }) => Uri(
     path: notebookSearch,
-    queryParameters: {'kind': ?kind, 'page': ?page},
+    queryParameters: {'kind': ?kind, 'status': ?status, 'page': ?page},
   ).toString();
 
   /// Review 100 Part 3b: a page's archived entries ("Archived ›").

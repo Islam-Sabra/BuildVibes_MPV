@@ -329,6 +329,7 @@ class Note {
     this.version = 1,
     this.shares = const [],
     this.dayPosition,
+    this.collapsed = false,
   });
 
   /// A row of `notes`, with its `note_files` embedded.
@@ -396,6 +397,7 @@ class Note {
       archivedAt: _time(json['archived_at']),
       version: json['version'] as int? ?? 1,
       dayPosition: json['day_position'] as int?,
+      collapsed: json['collapsed'] as bool? ?? false,
       shares: [
         for (final s in json['note_shares'] as List? ?? const [])
           NoteShare.fromJson(s as Map<String, dynamic>),
@@ -467,6 +469,10 @@ class Note {
   /// Its place in its day, arranged by hand (review 102 N3, migration 49):
   /// 1 at the top newest first; null keeps the time order.
   final int? dayPosition;
+
+  /// Folded in its page (review 106 T2, migration 50): its head and
+  /// "3 lines hidden" only. The same on every phone.
+  final bool collapsed;
 
   /// The server's version of it (migration 48): an edit says which one it
   /// started from, so an older one is refused.
@@ -551,6 +557,7 @@ class Note {
     int? version,
     List<NoteShare>? shares,
     int? Function()? dayPosition,
+    bool? collapsed,
   }) => Note(
     id: id,
     kind: kind ?? this.kind,
@@ -575,6 +582,7 @@ class Note {
     version: version ?? this.version,
     shares: shares ?? this.shares,
     dayPosition: dayPosition == null ? this.dayPosition : dayPosition(),
+    collapsed: collapsed ?? this.collapsed,
   );
 
   /// As this phone keeps it while it waits to be sent.
@@ -602,6 +610,7 @@ class Note {
     'version': version,
     'note_shares': [for (final s in shares) s.toJson()],
     'day_position': dayPosition,
+    'collapsed': collapsed,
   };
 
   /// Its to-dos not yet ticked: a to-do note's one, a page's to-do lines

@@ -117,12 +117,14 @@ void main() {
         expect(_key('page-write'), findsOneWidget);
       });
 
-      testWidgets('Delete: no question; gone at once with "Deleted · Undo"; '
+      testWidgets('Delete: asked first (review 104 N6), then gone at once with '
+          '"Deleted · Undo"; '
           'it goes to Deleted items when the bar closes', (tester) async {
         final repo = await _open(tester, lang);
         await _hold(tester, _key('note-entry-pour'));
         await _tap(tester, _key('note-entry-gate'));
         await _tap(tester, _key('select-delete'));
+        await _tap(tester, _key('bv-dialog-confirm'));
         expect(find.text(l10n.notebookDeleteTitle), findsNothing);
         expect(find.text(l10n.notebookUndoDeleted), findsOneWidget);
         expect(_key('note-entry-pour'), findsNothing);
@@ -145,6 +147,7 @@ void main() {
         final repo = await _open(tester, lang);
         await _hold(tester, _key('note-entry-pour'));
         await _tap(tester, _key('select-delete'));
+        await _tap(tester, _key('bv-dialog-confirm'));
         await tester.tap(find.text(l10n.daybookUndo));
         await tester.pumpAndSettle();
         expect(_key('note-entry-pour'), findsOneWidget);
@@ -322,6 +325,7 @@ void main() {
         expect(find.text('Check the rebar cover'), findsOneWidget);
         await _hold(tester, _key('note-marker-l-2'));
         await _tap(tester, _key('select-delete'));
+        await _tap(tester, _key('bv-dialog-confirm'));
         expect(find.text(l10n.notebookUndoDeleted), findsOneWidget);
         expect(find.text('Check the rebar cover'), findsNothing);
         expect(find.text('Under it'), findsNothing);
@@ -353,6 +357,7 @@ void main() {
         await tester.pumpAndSettle();
         await _hold(tester, _key('note-marker-b-2'));
         await _tap(tester, _key('select-delete'));
+        await _tap(tester, _key('bv-dialog-confirm'));
         await _barGoes(tester);
         expect(
           repo.calls.where((c) => c.startsWith('delete-lines:entry-pour:b-2')),

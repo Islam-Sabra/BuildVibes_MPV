@@ -261,6 +261,7 @@ void main() {
       await tester.longPress(_key('note-marker-${_id(1)}'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-delete'));
+      await _tap(tester, _key('bv-dialog-confirm'));
       expect([for (final b in _blocks(tester)) lineWords(b)], ['Cure']);
       await _tap(tester, _key('undo-bar-action'));
       expect(_levels(tester), [0, 1, 2, 0]);

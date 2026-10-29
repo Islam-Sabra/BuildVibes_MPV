@@ -258,6 +258,10 @@ class NoteChange {
   const NoteChange.arrangeDay(List<String> noteIds)
     : this._('day_arrange', noteIds: noteIds);
 
+  /// Entries folded in their page, or opened (review 106 T2).
+  const NoteChange.collapse(List<String> noteIds, {required bool on})
+    : this._('collapse', noteIds: noteIds, on: on);
+
   factory NoteChange.fromJson(Map<String, dynamic> json) {
     final note = json['note'] == null
         ? null
@@ -284,6 +288,7 @@ class NoteChange {
       'page_move' => NoteChange.movePages(list('ids'), target),
       'notes_move' => NoteChange.moveNotes(list('note_ids'), target!, at: at),
       'day_arrange' => NoteChange.arrangeDay(list('note_ids')),
+      'collapse' => NoteChange.collapse(list('note_ids'), on: on),
       'merge' => NoteChange.merge(
         list('ids'),
         list('note_ids'),
@@ -401,6 +406,13 @@ class NoteChange {
               place[n.id] == null
                   ? n
                   : n.copyWith(dayPosition: () => place[n.id]),
+          ],
+        );
+      case 'collapse':
+        return data.copyWith(
+          notes: [
+            for (final n in notes)
+              noteIds.contains(n.id) ? n.copyWith(collapsed: on) : n,
           ],
         );
       case 'archive':
@@ -847,6 +859,10 @@ class Notebook extends AsyncNotifier<NotebookData> {
   Future<void> arrangeDay(List<String> ids) =>
       _change(NoteChange.arrangeDay(ids));
 
+  /// [ids] folded in their page, or opened (review 106 T2).
+  Future<void> collapse(List<String> ids, {required bool on}) =>
+      _change(NoteChange.collapse(ids, on: on));
+
   /// Move to page….
   Future<void> moveNotes(List<String> ids, String page) =>
       _change(NoteChange.moveNotes(ids, page, at: ref.read(clockProvider)()));
@@ -1084,6 +1100,8 @@ class Notebook extends AsyncNotifier<NotebookData> {
         await _repo.archive(change.id!, on: change.on);
       case 'day_arrange':
         await _repo.arrangeDay(change.noteIds);
+      case 'collapse':
+        await _repo.setCollapsed(change.noteIds, on: change.on);
       case 'delete_lines':
         await _repo.deleteLines(change.id!, change.ids, change.target!);
     }

@@ -746,6 +746,37 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migration 49 live as the only file: notes 11 before and after; `day_position` null everywhere; `arrange_day` refuses signed out.
   - Build 712 on the Desktop and on the founder's phone.
 
+- **28 Oct (cloud): review 104, the founder's notebook findings on build 712 (N6–N12)** on `claude/r104`, for the lead; nothing merged, live or installed, no migration:
+  - N8 (first, a bug): a saved entry's card drew a table as its first row only; it now shows the whole table.
+  - N6: a confirm before every delete (entries, pages, selected lines, a Draft's Discard), with the person's days; Undo stays.
+  - N7: the sort lists complete (Oldest created; Name A–Z and Type inside a page); day headers and hold-and-move only in date sorts.
+  - N9 + N10: Share → Space speaks the Space's kinds; Team and For are rows opening pickers (`BvGiveToPicker`); tested with 120 members.
+  - N11: `BvTimePicker`, clock face by default, wheels as its second mode, the last mode kept.
+  - N12: status icons in the entry's top line instead of text marks.
+  - Checks: analyze clean; 2,473 app tests pass, 1 fails (photo_privacy H1, root-only in the cloud); 3,038 SQL checks. Shots: PC later.
+- **29 Oct (PC): review 104 merged** (founder's yes):
+  - S1: Share → Space reads "A note, work item or checklist", test first.
+  - The 11 accepted shots (EN and AR) updated, N11-time-clock new; `shots-104` removed.
+  - `claude/r104` merged into `slice2-app` (8e8c423). Analyze clean; 2,487 app tests; 454 shots, not updating. No migration, no deploy.
+  - **Review 104 live on build 729:** on the Desktop and on the founder's phone.
+- **29 Oct (PC): review 106 (T1–T3)** on `r106`, for the lead; nothing merged, live or built:
+  - T1: the status row at the entry's bottom end, one icon per kind, all of them; its card lists every share.
+  - T2: a page's entries in full, foldable. Migration 50 (`notes.collapsed`, owner only) is local only.
+  - T3: the Filter card's Filter · Sort switch; STATUS beside SHOW; the Status sort.
+  - Checks: analyze clean; 2,525 app tests; 3,053 SQL checks; 434 shots pass. 22 changed images and 8 new ones are in `docs/reviews/shots-106/`, not accepted.
+- **29 Oct (PC): review 106 G1–G5** on `r106` (the lead's fixes), for the lead; nothing merged, live or built:
+  - G1: archived entries keep the short card.
+  - G2: an untitled head is fold · time, its words in the body.
+  - G3: no fold control when nothing would hide.
+  - G4: migration 50's update filters the owner; 20 pgTAP checks.
+  - G5: one Status order.
+  - Checks: 3,058 SQL checks; analyze clean; 2,535 app tests; 434 shots pass. The 22 changed images and 8 new ones are in `docs/reviews/shots-106/`.
+- **29 Oct (PC): review 106 live** (founder's yes):
+  - The accepted shots updated (11 changed, NS1–NS4 new); `shots-106` removed.
+  - `r106` merged into `slice2-app` (11e99eb). Analyze clean; 2,535 app tests; 3,058 SQL checks; 462 shots, not updating.
+  - Migration 50 (`notes.collapsed`) live as the only file; nothing pending.
+  - Build 744 on the Desktop and on the founder's phone.
+
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
 - With the founder's yes: deploy `account-purge` with `ACCOUNT_PURGE_SECRET`, and run `supabase/ops/account_cron.sql` (account purge and the 12-month report cleanup).

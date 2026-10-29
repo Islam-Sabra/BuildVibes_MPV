@@ -41,6 +41,11 @@ abstract final class BvIcons {
   static const warning = IconData(0xe4e2, fontFamily: _family);
   // Phosphor: caret-down
   static const caretDown = IconData(0xe136, fontFamily: _family);
+
+  // A page's Collapse all · Expand all (review 106 T2): arrows-in-line-
+  // vertical, arrows-out-line-vertical. Up and down don't mirror.
+  static const collapseAll = IconData(0xe532, fontFamily: _family);
+  static const expandAll = IconData(0xe536, fontFamily: _family);
   // Phosphor: map-pin
   static const place = IconData(0xe316, fontFamily: _family);
   // Phosphor: camera
@@ -374,4 +379,14 @@ abstract final class BvIcons {
   static const sortCreated = IconData(0xe714, fontFamily: _family);
   static const sortNewest = IconData(0xe446, fontFamily: _family);
   static const sortOldest = IconData(0xe444, fontFamily: _family);
+
+  // Review 104 N7: Oldest created and Type (Phosphor calendar-blank,
+  // shapes).
+  static const sortOldestCreated = IconData(0xe10a, fontFamily: _family);
+  static const sortType = IconData(0xec5e, fontFamily: _family);
+
+  // Review 104 N11: the time picker's mode switch (Phosphor clock,
+  // list-numbers).
+  static const timeClock = scheduled;
+  static const timeWheels = IconData(0xe2f6, fontFamily: _family);
 }

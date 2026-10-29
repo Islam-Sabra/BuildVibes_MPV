@@ -56,6 +56,196 @@ Where the work stopped, for whichever place picks it up next: the founder's PC, 
   - the MN1 Space-menu PNGs can go (Part 1).
 - **Who has which branch:** this cloud session had `claude/r105a` (105A done, pushed). PC: `slice2-app`. `claude/r104` is with the lead.
 
+## PC update: 29 Oct 2026 — review 106 live: merged into `slice2-app`, migration 50 live, build 744 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (29 Oct), after the lead accepted r106's shots (review 106, "G1–G5 done"):**
+  1. **Goldens updated only for the accepted shots**, EN and AR:
+     - the 11 changed: BH2, BH3, BH4, BH5, BH9, N5-page-filter, N5-sort-chip, PG4, NB-reminder-slip, NB-remind-menu, NB-put-in-space;
+     - the 4 new: `docs/screens/r106/` NS1–NS4.
+     - That is 30 images, each byte-identical to its accepted image.
+     - `docs/screens/r106/` falls under the ignore rule for `docs/screens/*`, so it was added with `git add -f`, as the other golden folders were.
+     - `docs/reviews/shots-106/` removed.
+  2. **Checks on `r106` (e6a71c1, pushed):**
+     - `flutter test test_screens`, not updating: 462 pass.
+     - `flutter analyze`: no issues.
+     - `flutter test`: 2,535 pass.
+     - `supabase test db`: 3,058 checks in 49 files pass.
+  3. **Merged into `slice2-app`** with `--no-ff` (11e99eb, no conflicts) and pushed. The same checks on the merge: analyze clean; 2,535; 462.
+     - The run left Windows line endings in `lib/l10n/gen`, with no content change. Restored before the push.
+  4. **Migration 50 live** (`20261111120000_note_collapsed.sql`), from a throwaway worktree at 11e99eb with `supabase/.temp` copied whole.
+     - The dry run listed only that file. The push exited 0 ("Applying migration 20261111120000_note_collapsed.sql…", "Finished supabase db push"). The known pg-delta certificate warning followed: harmless.
+     - `supabase migration list --linked` ends at 20261111120000, local and remote alike, and a second dry run says "Remote database is up to date".
+     - The push worktree is removed. **No function deploys.**
+  5. **Build 744** (11e99eb, release, upload key, prod env; versionCode 744, versionName 0.9.0; certificate SHA-256 9d02b7db…df9f, the same as 729): on the Desktop as `BuildVibes-744.apk` (MD5 b2cf3694…).
+  6. **Installed on the founder's Xiaomi** at 192.168.8.33:43045 (model 22120RN86G checked first), over 729:
+     - versionCode 744; first install still 17 Oct.
+     - The installed `base.apk` is byte-identical to `BuildVibes-744.apk`.
+     - BuildVibes is the only package of ours on it.
+     - The first install command printed nothing and left 729 in place; the second gave "Success".
+- **Next:**
+  - the founder's test of build 744: the status row, folding, Collapse all · Expand all, the Filter · Sort switch, STATUS;
+  - the tidy list in review 106: `_setFilter` in two screens, `statusHits`, `entryHead`/`foldHidden` in a screen file, the 'collapse' / 'expand' strings.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`) and `r106` (worktree `BuildVibes-r106`, merged). `claude/r105a` is a cloud session's.
+
+## PC update: 29 Oct 2026 — review 106 G1–G5 (the lead's check of `r106`) done on `r106`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `r106` (worktree `BuildVibes-r106`), pushed. Nothing merged, no database push, no build. `lib/features/spaces/` untouched.
+- **Commits, test first, EN and AR:**
+  - a3b2375 **G4:** migration 50 (the file itself; it isn't live) adds `owner_id = v_me` to its `update`.
+    - pgTAP 50 now has 20 checks: the version doesn't move; a deleted entry is refused (42501); an empty list and a null `p_on` each give 22023.
+    - The local stack's function was re-created from the edited file.
+  - feb42d3 **G1–G3, G5:**
+    - **G1:** an archived entry keeps the short card (the first 3 lines, each on one line, "…"), with no fold control.
+    - **G2:** in a page, an untitled entry's head is fold · time, and its words stay in the body at normal weight, for every kind; the kind words don't come back.
+      - Folded, the head shows its first line in the body's style, cut to one line. That line isn't counted in "{n} lines hidden".
+    - **G3:** the fold control shows only when folding would hide something.
+      - An entry kept folded that hides nothing shows open, with no empty row.
+      - Collapse all leaves such entries alone.
+    - **G5:** the Status groups follow `EntrySort.status`'s one order. The page builds `byStatus` from the sorted entries; the second copy of the order is gone.
+    - The `EntrySort` method is still called `sorted`; the lead's note calls it `order`.
+  - 31a52e5 **Shots:** `docs/reviews/shots-106/` replaced, with the README updated. Only the six NB images changed (G2, G3).
+- **Tests changed on purpose:** `entry_fold_test`'s "first line as the title" test is replaced by the G2 tests; `notebook_test` PG4 now expects no kind word on the to-do's head (G2).
+- **Checks (PC):**
+  - `supabase test db`: 3,058 checks in 49 files pass.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,535 pass.
+  - `flutter test test_screens`, not updating: 434 pass and 28 fail.
+    - 20 are the same 11 changed shots as before (22 images).
+    - 8 are the new NS1–NS4 shots, with no golden yet.
+    - Against `fbe1691`, only the six NB images are new.
+- **Next:** the lead's check of the fixes. Then, with the founder's yes: migration 50 live, merge, and one build.
+- **Who has which branch:** PC has `r106` (worktree `BuildVibes-r106`) and `slice2-app` (worktree `BuildVibes-slice1`). `claude/r105a` is a cloud session's.
+
+## PC update: 29 Oct 2026 — review 106 (T1, T2, T3) on `r106`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `r106` (worktree `BuildVibes-r106`), from `slice2-app` 0cab77a (review 104 in it), pushed. Nothing merged, no database push, no build, nothing installed. `lib/features/spaces/` untouched (`claude/r105a` has it).
+- **Commits, test first, in this order:**
+  - 62ac997 **T2 server: migration 50** (`20261111120000_note_collapsed.sql`): `notes.collapsed boolean not null default false`, and `set_notes_collapsed(p_ids, p_on)`.
+    - The function is owner only, like every write to `notes`: the table's own policy only lets the owner read. Writes go through owner-checked functions, as in migration 49.
+    - pgTAP `50_note_collapsed` (15 checks): the owner folds and opens; someone else can't read Omar's entry or fold it; signed out is refused.
+    - **Applied to the local stack only. Not live.**
+  - e76e631 **T1:** the status row.
+    - Where: at the entry's bottom end, one round icon per kind (pinned · reminder · feed · Space · message), all of them, no "+N".
+    - Size: each a 32 target, a 16 icon on the sunk colour, 6 apart.
+    - The card: a tap opens it under the icon, listing every share of that kind ("Kuwait City Tower · 8:45 am"); the icon shows selected while it is open. The reminder's card keeps Change.
+    - The top line is title and time only. Screen-reader labels as review 104.
+    - The new words for T1–T3 are in both ARB files. `notebookStatusMore`, `notebookStatusMoreLabel`, `notebookFilterReminders` and (in T3) `notebookSortLabel` are gone.
+  - f351ca3 **T2:**
+    - Inside a page every entry shows in full: no 3-line cut, lines wrap.
+    - The head is the fold chevron (24, 44 tap area) · title · time. An untitled entry's head is its first line; a to-do or a voice note keeps its kind word.
+    - Folded: the head, then "{n} lines hidden" and the status icons, still tappable. The chevron or the folded head opens it; tapping an open entry's text still edits it.
+    - The page's ⋯ gains Collapse all · Expand all, for this page only.
+    - Kept through the notebook's queue (`NoteChange.collapse`).
+    - A search or Filter hit opens its entry unfolded, on this phone only (nothing written).
+    - My notebook's Filter results keep their short cards.
+  - 505303f **T3:**
+    - The ☰ card has a switch with its word at the top: "Filter" / "Sort". It is the new `BvSwitch.inRow`, 44 × 26, with its row as the tap, and it opens in the mode used last (`notebook_filter_mode`).
+    - Filter mode: SHOW (To-dos open · Photos · Files · Voice notes · Archived) · STATUS (Pinned · Reminder · Shared to the feed · Shared to a Space · Sent in a message) · IN.
+    - One choice in each section; SHOW and STATUS combine; the chosen one tapped again clears it; each choice on is its own chip with ✕.
+    - STATUS is read on the phone from the entries and shares it keeps: no server change. On its own it lists the phone's entries; with SHOW it narrows the server's hits. Search keeps STATUS (`status` in its route).
+    - Sort inside a page: Newest · Oldest · Name A–Z · Type · **Status**, grouped Reminder · Shared to the feed · Shared to a Space · Sent in a message · No status, with pinned on top as in every sort. Type and Status have their hints (NS4).
+    - The pages list keeps its four sorts.
+  - 89f47dd **Shot scenarios:**
+    - `test_screens/r106_test.dart` adds NS1–NS4 (EN, AR).
+    - The N5 shots open the card in Sort mode, since SORT is behind the switch now.
+    - A line card's note wraps to two lines (NS4's hints).
+  - 525625d **The shots for the lead:** `docs/reviews/shots-106/` (old and new, plus its README).
+- **Tests changed on purpose** (the rule they checked is replaced by review 106):
+  - `status_icons_test` rewritten for T1, so the two "+N" tests are gone.
+  - `remind_me_test`: the barrier is tapped at its corner, since the card now opens lower.
+  - `note_page_test`: the saved slip shows every line.
+  - `notebook_test` PG4: scrolls 200 before comparing the to-do; the cards are taller.
+  - `redesign_share_limits_test` J1: holds the head of the 3,000-character entry, which now runs past the screen.
+  - `redesign_filter_test`: no Reminders in SHOW; the in-page test uses Photos.
+  - `sort_test` and `arrange_test`: the switch goes to Sort first.
+- **Checks (PC):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,525 pass (photo_privacy H1 included).
+  - `supabase test db`: 3,053 checks in 49 files pass.
+  - `flutter test test_screens`, not updating: 434 pass and 28 fail.
+    - 20 of the failures are changed shots: 11 shots, 22 images ("Remind me" takes two): BH2, BH3, BH4, BH5, BH9, NB-reminder-slip, NB-remind-menu, NB-put-in-space, PG4, N5-page-filter, N5-sort-chip.
+    - The other 8 are the new shots (NS1–NS4, EN and AR), with no golden yet.
+    - Old and new copies are in `docs/reviews/shots-106/`, and its README says which shots review 106 names. PG4, N5-sort-chip, BH9 and N5-page-filter are not named: they change from T2 and T3.
+- **For the lead (also in the README):**
+  - `BvSwitch`'s off colour is kept against NS3's lighter one.
+  - An untitled long one-line note becomes a three-line bold head.
+  - The 44 fold area makes the gap under the head about 6 px larger than NS2's.
+- **Local stack:** migration 50 is applied.
+- **Next:** the lead's check of `r106` and its shots. Migration 50 goes live only with the founder's yes, then merge and one build.
+- **Who has which branch:** PC has `r106` (worktree `BuildVibes-r106`), `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r104` (merged). `claude/r105a` is a cloud session's.
+
+## PC update: 29 Oct 2026 — review 104 live on build 729 (merged into `slice2-app`, on the founder's phone)
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (29 Oct), after the lead's check of the shots (review 104, "Shots (29 Oct, 30c271c)"):**
+  1. **S1 on `claude/r104`, test first:** Share → Space reads "A note, work item or checklist" / «ملاحظة أو بند عمل أو قائمة تحقق» (`notebookShareSpaceNote`, both ARB files). BH4's share test failed on the new words first, then passed.
+  2. `docs/reviews/shots-104/` removed (it was for the lead's check only).
+  3. **Goldens updated only for the accepted shots**, EN and AR: r100 BH2-entry-selected, BH3-swipe, BH4-share, BH5-message-preview, BH9-filter; r102 N2-time-wheel, N5-page-filter, N11-time-clock (new); slice10 NB-remind-menu, NB-reminder-slip; slice8 NB-put-in-space. 22 files, nothing else.
+  4. **Checks on `claude/r104` (4b9ff2b, pushed):** `flutter analyze` no issues; `flutter test` 2,487 pass (photo_privacy H1 included); `flutter test test_screens`, not updating: 454 pass.
+  5. **Merged into `slice2-app`** with `--no-ff` (8e8c423, no conflicts) and pushed. The same checks on the merge: analyze clean; 2,487; 454.
+- **No database push, no deploy:** review 104 has no migration and no server change.
+- **Build 729** (8e8c423, release, upload key, prod env, versionCode 729, versionName 0.9.0; certificate SHA-256 9d02b7db…df9f, the same as 712): on the Desktop as `BuildVibes-729.apk` (MD5 b97d5b53…).
+- **Installed on the founder's Xiaomi** (29 Oct, 08:04, at 192.168.8.33:43045, the address he sent; model 22120RN86G checked first) over 712: versionCode 729, first install still 17 Oct, the installed `base.apk` byte-identical to `BuildVibes-729.apk`. BuildVibes is the only package of ours on it.
+- **Next:** the founder's test of build 729; review 105 when the lead hands it over.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`), `claude/r104` (worktree `BuildVibes-r104`, merged) and `claude/r101-l1` (worktree `BuildVibes-l1`, for the lead).
+
+## Cloud update: 29 Oct 2026 — the lead's check of `claude/r104`: F1–F3 done; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `claude/r104` (this cloud session), from 226919b, pushed. Nothing merged, nothing live, no deploy, nothing installed, no migration.
+- **Commits:**
+  - 7b19fd3 **F1**: a saved entry left empty after editing now asks "Delete this empty entry?" («حذف هذه التدوينة الفارغة؟»), with the days kept and Cancel · Delete. Cancel brings the editor back with the empty entry, and whatever asked (Back, Done, opening another entry, New entry) does not go on; Back on New entry leaves the screen only after Delete. Delete goes on as before ("Deleted · Undo", to Deleted items when the bar closes). The app going behind asks nothing and keeps the edit on the phone (D1 opens it again). D3 and H5 tap Delete in the confirm now.
+  - 1b65bac **F2**: the dial's numbers are read "7 o'clock" / «الساعة 7» and "35 minutes" / «35 دقيقة» («5 دقائق»), from the ARB; tested with the semantics finder (tapping an hour and a minute by their words).
+  - 2a76d2a **F3**: the "+N" badge has its own key `notebookStatusMore` ("+3"); the screen reader's "3 more" moved to `notebookStatusMoreLabel`. A share whose Space or person has no name is left out of the icons.
+- **Checks (cloud):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,486 pass, 1 fails: photo_privacy H1, root-only in the cloud (as before).
+  - SQL stand-in: migrations apply; 3,038 checks in 48 files pass.
+  - Screenshots: PC later; no `test_screens`, no `--update-goldens`. F1–F3 change no shot (F2 is semantics only; F3 shows the same "+3").
+- **The PC still has to:** the steps in the section below (test_screens without updating; the shots review 104 changes on purpose, plus the new N11-time-clock; the lead's check; merge with the founder's yes; one build). No database push.
+- **Who has which branch:** this cloud session had `claude/r104` (F1–F3 done, pushed). PC: `slice2-app`.
+
+## Cloud update: 28 Oct 2026 — review 104 (N6–N12) on `claude/r104` (from `slice2-app` 3f14b70); stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `claude/r104`, this cloud session's, pushed. Nothing merged, nothing live, no deploy, nothing installed. **No migration and no server change**: Share → Space already took the kind, Team, owner and people.
+- **Commits, in the order done:**
+  - 8c55e14 **N8** (bug, first): the cause was the card's summary drawing a table as one line of its first row only (`rows.take(1)`). It now draws the whole table (`PageTableView`, as Work's page), sideways scroll when wider, columns mirrored in Arabic. The data and the editor already kept every row; tests prove the card, a wide table, the editor reopened, the full make-and-Send flow and the JSON round trip.
+  - e85cdfe **N6**: one confirm before every delete: entries, pages (page menu and pages list), selected lines, a Draft's Discard (swipe and top bar). The body reads the person's 7/30/90 days from the server; with no answer in 2 s it says "It goes to Deleted items." without a number; a Draft and lines never saved say "It isn't kept in Deleted items." (they never go there). Cancel · Delete, Delete in red. The Undo bar after Delete is unchanged; Archive asks nothing.
+  - 98d7c50 **N7**: pages list + Oldest created; inside a page + Name A–Z and Type (groups To-dos · Checklists · Photos · Files · Voice notes · Text, the first kind found, newest first in each; an empty group has no label). Day headers and hold-and-move only in the two date sorts (elsewhere a hold selects). Pinned on top in every sort. Two Phosphor icons added (calendar-blank, shapes), checked against the bundled font.
+  - 473e15e **N9 + N10**: the kinds read the Space's own words and icons (`kindName`/`kindIcon`); "Post" and its three strings gone. Team and For are rows: Team opens a one-choice sheet of the Space's Teams; For opens `BvGiveToPicker` (me first as You, the chosen Team's people, then the rest A–Z; no Viewers). A work item takes exactly one (a pick closes it); a checklist several until Done ("You + 2"). Tested with 120 members.
+  - 873bfe3 **N11**: `showBvTimePicker` (`lib/shared/widgets/bv_time_picker.dart`) is the one picker in all six places. Clock face by default (our own dial: Material's can't grey passed times), the mode switch where typed input was, the wheels as the second mode; AM/PM above in both; nothing typed; passed times greyed in both; the last mode kept on the phone (`time_picker_mode`). `showBvTimeWheel` and its dialog are gone; `BvTimeWheel` is the wheel mode.
+  - 4b893af **N12**: status icons beside the time (pinned, reminder accent/grey, feed, Space, person), 14 grey, 4 apart, max 3 then "+N"; a tap opens a compact card (the reminder's with Change); screen-reader labels; the text marks under the entry are gone. Found on the way: the reminder's day dialog overflowed 31 px in Arabic with Remove showing; Remove now takes the free room and wraps.
+- **Tests changed on purpose** (the old rule they checked was replaced by this review): every test that deleted without a question now taps Delete in the confirm (N6; one title read "Delete: no question"); review 102 N5's sort tests now expect four choices each (N7); H11's Team/For chips are now rows (N10); the wheel tests open the picker on its wheels, and `note_page_test`'s reminder expects the clock (N11); the reminder line and share-mark tests now read the icons and their card (N12).
+- **Checks (cloud):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,473 pass, 1 fails: photo_privacy H1, which fails only when run as root (the cloud), as on every cloud branch; the PC runs it as a user.
+  - SQL stand-in (`bash supabase/dev/standin/run.sh .`): all migrations apply; 3,038 checks in 48 files pass.
+  - Screenshots: PC later. `test_screens` not run, no `--update-goldens`.
+- **The PC still has to:**
+  1. run `flutter test test_screens` without updating. Expected to change on purpose: BH3 and PG4 (icons replace the marks); BH4 and BH5 (Note · Work item · Checklist, and the Team and For rows); `r102` N2-time-wheel (the mode switch is now in the dialog's bottom row); the BH9 sort parts (four choices). New, no golden yet: `r102` N11-time-clock (EN, AR). List any other changed shot with before/after; don't accept it;
+  2. check the shots against Figma with the lead, then accept only those;
+  3. with the founder's yes, merge `claude/r104` into `slice2-app` and run every check;
+  4. one build on his phone, plus a Desktop copy. No database push is needed.
+- **Who has which branch:** this cloud session had `claude/r104` (done, pushed). PC: `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 28 Oct 2026 — review 102 live: merged into `slice2-app`, migration 49 live, build 712 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

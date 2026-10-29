@@ -80,6 +80,13 @@ abstract final class BvControlSpec {
   static const switchPadding = BvSpace.s2;
   static const switchThumb = BvSize.iconLg; // 24
 
+  /// Review 106 T3: the small switch inside a row (the Filter card's
+  /// Filter · Sort), 44 × 26; the row is its tap.
+  static const switchRowWidth = BvSize.controlMd; // 44
+  static const switchRowHeight = 26.0;
+  static const switchRowRadius = BorderRadius.all(Radius.circular(13));
+  static const switchRowThumb = 22.0;
+
   static const checkboxSize = 22.0;
   static const checkboxRadius = BvRadius.smallAll; // 6
   static const checkIconSize = BvSize.iconSm; // 16
@@ -568,4 +575,21 @@ abstract final class BvTimeWheelSpec {
   /// The steps of the minutes wheel.
   static const minuteStep = 5;
   static const padding = BvSpace.s16;
+}
+
+/// The clock face of the time picker (review 104 N11): a round dial of 12
+/// places, the chosen one on a filled circle with a hand from the middle.
+abstract final class BvTimePickerSpec {
+  static const dial = 256.0;
+
+  /// Each number's circle; the hand reaches its middle.
+  static const number = BvSpace.s40;
+  static const hand = BvStroke.medium;
+  static const centre = BvSpace.s8;
+
+  /// The places round the dial: 12 hours, or the minutes in 5s.
+  static const places = 12;
+
+  /// Between the time shown on top and the dial.
+  static const headGap = BvSpace.s12;
 }
