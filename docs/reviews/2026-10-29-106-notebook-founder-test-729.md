@@ -71,6 +71,12 @@ Each has the same icon as its status icon.
   - Tapping the chosen option again clears it.
 - **Each active choice shows as its own chip under the top bar, with ✕.**
 
-**SORT becomes one row** showing the current sort ("Latest activity ›"). It opens the sort list, so the card still fits on a 390×844 screen.
+**One card, two tabs** (founder, 08:19). The ☰ button opens one card with a **Filter · Sort** toggle at the top («تصفية · ترتيب»). It opens on the tab used last.
+- **The Filter tab** is SHOW · STATUS · IN (NS3).
+- **The Sort tab** (NS4, EN `2688:38923`, AR `2688:39062`) is one single choice:
+  - **inside a page:** Newest first · Oldest first · Name A–Z · Type · **Status**;
+  - **on the pages list:** Latest activity · Name A–Z · Newest created · Oldest created.
+  - **Type** groups by kind (N7). **Status, new,** groups by status in the order Pinned · Reminder · Shared to the feed · Shared to a Space · Sent in a message, then entries with no status. An entry goes under its first status, newest first inside each group.
+- **Sort and Filter work together:** for example, filter "To-dos open" and sort by "Status".
 
 **It works everywhere the Filter does:** My notebook, and inside a page. Like the status row, it uses the shares the app already keeps. **No database change for T3.**
