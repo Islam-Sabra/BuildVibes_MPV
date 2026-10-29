@@ -396,3 +396,6 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
 - **Accepted:** the Place picker is a sheet like Give to's; the hint fits on one line in both languages. All 30 changed images and the 14 new shots are accepted.
 - **Tidy list:** the Team row reads «المساحة كلها» in Work but «كل المساحة» in the notebook. Use one wording later.
 - **Next:** goldens, merge into `slice2-app`, push migrations `20261114120000` and `20261115120000` one at a time, build.
+
+### 105C live (29 Oct, 20:53)
+- Merged (ad9a926). Migrations 53 and 54 are live (the lead confirmed them on the live list). Build 823 is made; the install is waiting for the phone. **The Space redesign of review 105 is complete.**
