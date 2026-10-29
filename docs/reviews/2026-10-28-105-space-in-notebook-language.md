@@ -214,3 +214,6 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
 - **Accepted.** The cause of J2 was the shots' fake data (no page repository), not the app. Back now shows on every Space; SP1 and X2 draw. The opened item keeps "Add update".
 - **The lead looked at:** V13, X1, Y1 AR, C6, X2 and SP1. They match the frames. All 123 changed shots are accepted.
 - **Next:** update the goldens, merge into `slice2-app`, build. No database change in 105A.
+
+### 105A live (29 Oct, 12:13)
+- Merged into `slice2-app` (9c5f400). Build 775 is on the founder's phone. No database change. **Next:** review 106 T4/T5, then 105B (one migration: places, archive, personal pins, share to a chat thread, the Space time zone, handover), then 105C.
