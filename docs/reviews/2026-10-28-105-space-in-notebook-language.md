@@ -286,6 +286,8 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
   - `daybook_month` leaves archived posts out.
 - **L11. Shots for the new screens,** EN and AR: my pinned lines (with "+n more"), the Archive swipe, the thread picker for Share, the shared card in Chat (Open and Checked), and "Archived · Undo".
 
-### Waiting for the founder (business)
+### The founder's decision (29 Oct, 14:43): A
 - **Done items when someone leaves.** Do Done-but-not-Checked items move to the new owner, or stay with the person who did them?
   - **Lead's recommendation: they stay,** so the proof stays with whoever did the work. L2 covers a later Send back.
+
+- **Founder, 14:43: A.** Done-but-not-Checked items stay with the person who did them. L2 covers a later Send back.
