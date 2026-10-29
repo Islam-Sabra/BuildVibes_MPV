@@ -51,3 +51,26 @@ The reminder's card keeps **Change**.
 **Elsewhere nothing changes:** the "My notebook" list keeps its short 3-line cards. Search and Filter open a folded entry when it is the match.
 
 **Hold, swipe and line folding (toggles) work as now.** A line's own fold stays separate from the entry's fold.
+
+## T3. Filter by status
+- **Founder, 08:14:** add a status filter to the notebook's filter.
+- **Frames:** NS3 EN `2685:38859`, AR `2685:38978`. **Status: proposal, waiting for the founder's ok.**
+
+**A new STATUS section** («الحالة») goes in the Filter card, between SHOW and IN. It offers:
+- Pinned («مثبّتة»);
+- Reminder («تذكير»);
+- Shared to the feed («نُشرت في الأخبار»);
+- Shared to a Space («نُشرت في مساحة»);
+- Sent in a message («أُرسلت في رسالة»).
+
+Each has the same icon as its status icon.
+
+**Choices**
+- **Reminders moves** from SHOW to STATUS, as Reminder. SHOW keeps To-dos open · Photos · Files · Voice notes · Archived.
+- **SHOW and STATUS are each one single choice** (rule 6). One of each can be on together: "To-dos open" plus "Shared to a Space" shows open to-dos that went to a Space.
+  - Tapping the chosen option again clears it.
+- **Each active choice shows as its own chip under the top bar, with ✕.**
+
+**SORT becomes one row** showing the current sort ("Latest activity ›"). It opens the sort list, so the card still fits on a 390×844 screen.
+
+**It works everywhere the Filter does:** My notebook, and inside a page. Like the status row, it uses the shares the app already keeps. **No database change for T3.**
