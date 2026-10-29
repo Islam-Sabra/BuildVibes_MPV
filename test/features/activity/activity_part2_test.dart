@@ -12,6 +12,7 @@ import 'package:buildvibes/features/spaces/new_space_screen.dart';
 import 'package:buildvibes/features/profile/person_profile_screen.dart';
 import 'package:buildvibes/features/projects/add_project_screen.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
+import 'package:buildvibes/features/spaces/space_sections.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/features/activity/needs_you_screen.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
@@ -640,7 +641,8 @@ void main() {
     for (final (kind, src, target) in [
       (ActivityKind.itemChecked, _Src.space, SpaceScreen),
       (ActivityKind.itemAssigned, _Src.space, SpaceScreen),
-      (ActivityKind.joinRequest, _Src.space, SpaceScreen),
+      // Review 105 Part 1: the Space's People, a screen over the Space.
+      (ActivityKind.joinRequest, _Src.space, SpacePeopleScreen),
       (ActivityKind.joinConfirmed, _Src.space, SpaceScreen),
       (ActivityKind.follow, _Src.network, PersonProfileScreen),
       (ActivityKind.postReply, _Src.posts, PostScreen),
