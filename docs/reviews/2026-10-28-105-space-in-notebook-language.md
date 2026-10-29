@@ -374,3 +374,20 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
   - The removal sheet uses the profile's first name, not `split(' ')`.
   - The doc comment above `SpaceFailure` goes back to its place.
 - **N5 (C-B).** Rename the pgTAP file to `54_task_table_block.test.sql`, so the two 105C files don't share the number 53.
+
+### The lead's check of `r105c` (29 Oct, at `bec8f88`)
+- **Runs:** SQL stand-in 3,268, 0 failing. Cursor reported analyze clean, 2,836 tests, and C-B now compiled and run on the PC (4 Arabic test taps fixed in the tests).
+- **Accepted:**
+  - M1–M3 and N1–N5;
+  - the merge conflicts as resolved;
+  - the new shots BA1 (before/after; After at the left in Arabic), P2 (site tag), P3 (Work for one place, chip with ✕), SP3 (table of tasks, «1 من 3 معلَّمة»), SP4 (the + sheet) and SP9 (removal; Give and remove waits until every item has someone);
+  - the cursor-only changes in E3-filled-card and W-activity.
+- **Fixes:**
+  - **O1. The Place picker opens as a small popover over the Team row** (P1), which hides the form and is cramped. Open it as **a bottom sheet like Give to's**:
+    - a grabber and the title "Place";
+    - the search field on top;
+    - the Space's places A–Z, with a check on the chosen one;
+    - "Add place ‹typed›" as the first row when nothing matches;
+    - Lead long-press for Rename / Delete.
+  - **O2. The writing hint is too long:** it takes two lines in English on every work item card (15 shots). Shorten it to **"Details, or + for lists and tables"** («التفاصيل، أو + للقوائم والجداول»), one line in both languages.
+- **Then:** test_screens without updating; fresh pairs in `docs/reviews/shots-105c/`. The 15 hint shots should then differ from the old goldens only in the words.
