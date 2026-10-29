@@ -192,3 +192,6 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
     - **Walk becomes the last kind chip in the writing card:** "Walk" («جولة»), with the camera icon. Choosing it starts walk mode as now. It's shown only to people who may post work (`mayPostWork`).
     - The two-tile sheet is removed.
   - Revisit a built-in camera after the pilot, if walks are frequent.
+
+### H3 done (`claude/r105a` at `86eff0e`)
+- **Accepted:** the camera opens at once; Walk is the last chip, shown only when `mayPostWork`, and never shown as the chosen chip; the sheet is removed. Next, on the PC: merge `slice2-app` (which has r104 and r106) into r105a, then shots.
