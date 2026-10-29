@@ -209,3 +209,8 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
   - **X2 can't find Give to.** It moved to the For line on the opened item; point the scenario there.
 - **J4. The post bar's words.** Change "Work item" / "Add update" to **"Write in this Space"** («اكتب في هذه المساحة»), as SP1. An opened item's bottom bar keeps "Add an update".
 - **Delete:** F61, A1 and the three MN1 shots. F95, R1-walk-start and R1-walk-photo staying unchanged is fine.
+
+### J1–J4 done (`claude/r105a` at `5cbff6a`)
+- **Accepted.** The cause of J2 was the shots' fake data (no page repository), not the app. Back now shows on every Space; SP1 and X2 draw. The opened item keeps "Add update".
+- **The lead looked at:** V13, X1, Y1 AR, C6, X2 and SP1. They match the frames. All 123 changed shots are accepted.
+- **Next:** update the goldens, merge into `slice2-app`, build. No database change in 105A.
