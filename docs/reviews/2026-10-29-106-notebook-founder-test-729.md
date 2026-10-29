@@ -81,3 +81,28 @@ Each has the same icon as its status icon.
 - **Sort and Filter work together:** for example, filter "To-dos open" and sort by "Status".
 
 **It works everywhere the Filter does:** My notebook, and inside a page. Like the status row, it uses the shares the app already keeps. **No database change for T3.**
+
+## The lead's check of `r106` (29 Oct, at `fbe1691`)
+- **Runs:** SQL stand-in 3,053 checks (15 new), 0 failing. Cursor reported analyze clean and 2,525 tests passing.
+- **Two reviewers** (standards, spec): no hard violations, and nothing in T1–T3 missing.
+- **Shots:** the 11 changed and 4 new shots are looked at. They match NS1–NS4 apart from G2 and G3 below.
+
+### Accepted
+- Folding is saved through a security-definer function (`set_notes_collapsed`, owner only), as every notes write already is, rather than an RLS update.
+- The switch keeps the design system's off colour; the N5 shots open in Sort mode; the selected icon has a screen-reader state.
+- Type and Status in the sort list have a hint line.
+- The head is about 6 px taller because of the 44 tap area.
+
+### Fixes before merge
+- **G1.** Archived entries in a page keep the short 3-line card, as before. "In full" is for a page's live entries only.
+- **G2. An untitled entry.** The head is fold · time only, with no title, and **the text shows as the body in normal weight**. This applies to every kind: note, checklist, to-do, voice. The kind words don't come back.
+  - When folded, the head shows the first line in normal weight, cut to one line.
+  - This replaces the 3-line bold head in NB-put-in-space.
+- **G3.** The fold chevron shows only when folding would hide something. A folded entry with 0 hidden lines and no status draws no empty row.
+- **G4. Migration 50:**
+  - the `update` also filters `owner_id = v_me`;
+  - pgTAP adds three checks: the entry's `version` doesn't change; a deleted entry is refused; an empty array or a null `p_on` gives 22023.
+  - The migration isn't live yet, so edit file 50 itself.
+- **G5.** The Status grouping is written once: `EntrySort.order` is used by the page screen, instead of a second copy in `byStatus`.
+
+Noted only, for the tidy list: the duplicated `_setFilter` in two screens; `statusHits` copying the server's search rules; `entryHead` and `entryLines` living in a screen file; the `'collapse'` / `'expand'` strings.
