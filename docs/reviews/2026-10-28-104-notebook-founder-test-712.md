@@ -117,3 +117,8 @@ Noted only, no change now: time maths as static methods on `BvTimeWheel`; the pi
 - **Accepted:** an emptied entry, when the app goes to the background, asks nothing and stays as an open edit; no dialog appears while the app is hidden.
 - **Accepted:** the separate `notebookStatusMoreLabel` key.
 - **The branch is ready for the PC:** test_screens without updating, then the founder's yes, merge and build. No database push.
+
+### Shots (29 Oct, `30c271c`)
+- **The lead checked the new shots against the review** (BH2, BH3, BH4, BH5, BH9, N2, N5, N11, NB-put-in-space, NB-reminder-slip, NB-remind-menu). All 10 changes and the new N11 clock come from review 104, so all are accepted. PG4 not changing is fine.
+- **One fix (S1):** Share → Space still reads "A post, work item or checklist" («منشور أو بند عمل أو قائمة تحقق»). It becomes "A note, work item or checklist" («ملاحظة أو بند عمل أو قائمة تحقق»).
+- **Then:** update goldens for these shots only, remove `docs/reviews/shots-104/`, merge, build.
