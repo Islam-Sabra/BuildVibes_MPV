@@ -3,7 +3,8 @@
 -- 1. Places (site tags): space_places, a name unique in its Space whatever
 --    its case and spaces. Members read; those who may post work add;
 --    Leads rename and delete. space_posts.place_id points to one of its
---    own Space's; the free-text place_text stays readable on older posts.
+--    own Space's, set with set_post_place (its author, its owner or a
+--    Lead); the free-text place_text stays readable on older posts.
 -- 2. Archive: space_posts.archived_at and archived_by.
 --    archive_space_post and unarchive_space_post: a Lead of the Space, on a
 --    Checked work item only. Work's list (daybook_cards, daybook_extras)
@@ -17,15 +18,24 @@
 --    'post' carrying the post (messages.post_id), into a thread of the
 --    same Space that the caller may write in, of a post they may read; a
 --    Team's post only into that Team's thread. The work stays in its Space.
+--    A retry with the same message id, even at the same moment, returns it.
 -- 5. The Space's time zone: space_time_zone(space), from its market pack
---    (markets.time_zone, migration 13): its project's market, else its
---    maker's home market, else UTC; for members only. Also read with the
+--    (markets.time_zone, migration 13): its project's market, else none
+--    (never a person's own market); for members only. Also read with the
 --    Space as spaces.time_zone (a computed column). The app ends a pinned
---    announcement at midnight there.
+--    announcement at midnight there, or at the phone's with none.
 -- 6. Handover: remove_member_with_handover and leave_space_with_handover
 --    give every open work item the person owns a new owner who may own work
 --    (an active member who may sign it as done, of its Team or an admin),
---    or nothing changes. Their Done and Checked work stays where it is.
+--    or nothing changes. Their Done and Checked work stays where it is
+--    (the founder, 29 Oct: the proof stays with whoever did it).
+--    leave_space and remove_member refuse (BV001) while the person owns
+--    open work, so there is no way around it. Both lock the Space first,
+--    and a work item's owner is set under the same lock (for share), so
+--    no item goes to someone in the middle of leaving.
+-- 7. Send back to someone who has left: send_back on an item whose owner
+--    may no longer sign it needs a new owner in the same call.
+-- 8. daybook_month leaves archived posts out too.
 
 -- ---------------------------------------------------------------------------
 -- 1. Places
@@ -78,6 +88,31 @@ end;
 $$;
 create trigger space_posts_place_check before insert or update of place_id on public.space_posts
   for each row execute function public.check_post_place();
+
+-- A post's place (the 105C picker): its author, its work item's owner, or
+-- a Lead of its Space; [p_place] one of its Space's, or null to clear it.
+create or replace function public.set_post_place(p_post uuid, p_place uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_post public.space_posts;
+begin
+  select * into v_post from public.space_posts where id = p_post for no key update;
+  if v_me is null or v_post.id is null or v_post.deleted_at is not null
+     or not public.can_see_space_post(p_post)
+     or not (v_post.author_id = v_me
+             or public.member_pass(v_post.space_id) = 'lead'
+             or exists (select 1 from public.work_items w
+                        where w.id = p_post and w.owner_id = v_me)) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  update public.space_posts set place_id = p_place where id = p_post;
+end;
+$$;
 
 -- ---------------------------------------------------------------------------
 -- 2. Archive
@@ -241,8 +276,18 @@ begin
         and m.created_at > now() - interval '1 minute') >= 30 then
     raise exception 'too many messages, wait a moment' using errcode = 'P0001';
   end if;
-  insert into public.messages (id, thread_id, space_id, author_id, kind, post_id)
-  values (p_id, p_thread, v_thread.space_id, v_me, 'post', p_post);
+  begin
+    insert into public.messages (id, thread_id, space_id, author_id, kind, post_id)
+    values (p_id, p_thread, v_thread.space_id, v_me, 'post', p_post);
+  exception when unique_violation then
+    -- The same id from a retry running at the same moment.
+    select * into v_existing from public.messages where id = p_id;
+    if v_existing.author_id = v_me and v_existing.thread_id = p_thread
+       and v_existing.post_id = p_post then
+      return v_existing.id;
+    end if;
+    raise exception 'not allowed' using errcode = '42501';
+  end;
   return p_id;
 end;
 $$;
@@ -262,16 +307,12 @@ begin
   if not public.is_member(p_space) then
     return null;
   end if;
-  return coalesce(
-    (select m.time_zone from public.spaces s
-     join public.projects pr on pr.id = s.project_id
-     join public.markets m on m.id = pr.market_id
-     where s.id = p_space),
-    (select m.time_zone from public.spaces s
-     join public.profiles pf on pf.id = s.created_by
-     join public.markets m on m.id = pf.home_market_id
-     where s.id = p_space),
-    'UTC');
+  -- Its project's market only: a person's own market says where they
+  -- live, which a Space never tells.
+  return (select m.time_zone from public.spaces s
+          join public.projects pr on pr.id = s.project_id
+          join public.markets m on m.id = pr.market_id
+          where s.id = p_space);
 end;
 $$;
 
@@ -316,6 +357,9 @@ begin
   end if;
   select coalesce(array_agg((a ->> 'item')::uuid order by (a ->> 'item')::uuid), '{}') into v_given
   from jsonb_array_elements(coalesce(p_assignments, '[]'::jsonb)) a;
+  if not v_open <@ v_given then
+    raise exception 'hand over their open work first' using errcode = 'BV001';
+  end if;
   if v_given <> v_open then
     raise exception 'every open work item needs a new owner' using errcode = '22023';
   end if;
@@ -361,6 +405,8 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- The Space first, as leave_space and work items' owners (L4).
+  perform 1 from public.spaces where id = p_space for update;
   if not public.is_member(p_space) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
@@ -368,6 +414,108 @@ begin
   perform public.leave_space(p_space);
 end;
 $$;
+
+-- Does [p_member] own open work in [p_space]?
+create or replace function public.owns_open_work(p_space uuid, p_member uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.work_items w
+    join public.space_posts p on p.id = w.id
+    where w.space_id = p_space and w.owner_id = p_member and w.status = 'open'
+      and p.status = 'live' and p.deleted_at is null);
+$$;
+
+-- As in 20261013130000_account, refusing while I own open work: that goes
+-- through leave_space_with_handover.
+create or replace function public.leave_space(p_space uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+begin
+  -- One change to a Space's admins at a time.
+  perform 1 from public.spaces where id = p_space for update;
+  if not public.is_member(p_space) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if public.owns_open_work(p_space, v_me) then
+    raise exception 'hand over your open work first' using errcode = 'BV001';
+  end if;
+  if exists (select 1 from public.space_members
+             where space_id = p_space and profile_id = v_me
+               and is_admin and left_at is null)
+     and not public.has_other_admin(p_space, v_me) then
+    raise exception 'a Space needs an admin' using errcode = 'P0001';
+  end if;
+  update public.space_members set left_at = now(), is_admin = false
+  where space_id = p_space and profile_id = v_me;
+  delete from public.team_members tm
+  using public.teams t
+  where t.id = tm.team_id and t.space_id = p_space and tm.profile_id = v_me;
+end;
+$$;
+
+-- As in 20261011160000_spaces, refusing while they own open work: that
+-- goes through remove_member_with_handover.
+create or replace function public.remove_member(p_space uuid, p_profile uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- One change to a Space's admins at a time.
+  perform 1 from public.spaces where id = p_space for update;
+  if not public.is_space_admin(p_space) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if p_profile = auth.uid() then
+    raise exception 'use leave_space' using errcode = '22023';
+  end if;
+  perform public.require_active_member(p_space, p_profile);
+  if public.owns_open_work(p_space, p_profile) then
+    raise exception 'hand over their open work first' using errcode = 'BV001';
+  end if;
+  update public.space_members
+  set left_at = now(), removed_by = auth.uid(), is_admin = false
+  where space_id = p_space and profile_id = p_profile;
+  delete from public.team_members tm
+  using public.teams t
+  where t.id = tm.team_id and t.space_id = p_space and tm.profile_id = p_profile;
+end;
+$$;
+
+-- A work item's owner is set under its Space's lock (for share), after
+-- any leave or removal running now, and must still be one who may sign it
+-- (L4): create_work_item, Give to and Send back all come through here.
+create or replace function public.check_work_owner()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.owner_id is null
+     or (tg_op = 'UPDATE' and new.owner_id is not distinct from old.owner_id) then
+    return new;
+  end if;
+  perform 1 from public.spaces where id = new.space_id for share;
+  if not public.member_can(new.space_id, new.owner_id, 'mark_done') then
+    raise exception 'choose an owner who can sign it as done' using errcode = '22023';
+  end if;
+  return new;
+end;
+$$;
+create trigger work_items_owner_check before insert or update of owner_id on public.work_items
+  for each row execute function public.check_work_owner();
 
 -- ---------------------------------------------------------------------------
 -- Work's list: archived posts out (2), my pins in (3)
@@ -484,12 +632,160 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------
+-- 7. Send back to someone who has left
+-- ---------------------------------------------------------------------------
+
+-- As in 20261023120000_send_back_due, with [p_owner] for an item whose
+-- owner may no longer sign it.
+drop function public.send_back(uuid, text, text, boolean, date, timestamptz);
+create function public.send_back(p_item uuid, p_reason text, p_note text default null,
+                                 p_due_set boolean default false, p_due date default null,
+                                 p_due_at timestamptz default null, p_owner uuid default null)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_me uuid := auth.uid();
+  v_item public.work_items;
+  -- The 0.9.0 test build still sends the old name; it is stored as the new
+  -- one. Remove this once 0.9.0 is retired.
+  v_reason text := case when p_reason = 'not_as_drawing' then 'not_as_asked' else p_reason end;
+  v_new_due jsonb;
+begin
+  perform 1 from public.space_posts where id = p_item for no key update;
+  select * into v_item from public.work_items where id = p_item for update;
+  if v_item.id is null or not public.may_check(v_item, v_me) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if v_item.status <> 'done' then
+    raise exception 'only a done item can be sent back' using errcode = 'P0001';
+  end if;
+  if v_reason is null
+     or v_reason not in ('photo_missing', 'not_as_asked', 'not_finished', 'other') then
+    raise exception 'choose a reason' using errcode = '22023';
+  end if;
+  if v_reason = 'other' and nullif(trim(p_note), '') is null then
+    raise exception 'say what is wrong' using errcode = '22023';
+  end if;
+  if coalesce(p_due_set, false) then
+    if p_due is null and p_due_at is not null then
+      raise exception 'a due time needs its day' using errcode = '22023';
+    end if;
+    if p_due_at is not null and not public.due_at_fits(p_due, p_due_at) then
+      raise exception 'a due time on its due day' using errcode = '22023';
+    end if;
+    v_new_due := jsonb_build_object('date', p_due, 'at', p_due_at);
+    update public.space_posts set due_date = p_due, due_at = p_due_at where id = p_item;
+    update public.work_items set due_date = p_due where id = p_item;
+  elsif p_due is not null or p_due_at is not null then
+    raise exception 'say that a new date was chosen' using errcode = '22023';
+  end if;
+  -- Its owner may no longer sign it (they left, or their pass changed): a
+  -- new owner from the Give to list, in the same call. Otherwise it stays
+  -- theirs.
+  if v_item.owner_id is null or not public.member_can(v_item.space_id, v_item.owner_id, 'mark_done') then
+    if p_owner is null or p_owner is not distinct from v_item.owner_id then
+      raise exception 'choose who does it now' using errcode = '22023';
+    end if;
+  elsif p_owner is not null and p_owner <> v_item.owner_id then
+    raise exception 'use Give to' using errcode = '22023';
+  end if;
+  insert into public.work_item_events (work_item_id, actor_id, kind, reason, note, new_due)
+  values (p_item, v_me, 'sent_back', v_reason, nullif(trim(p_note), ''), v_new_due);
+  if p_owner is not null and p_owner is distinct from v_item.owner_id then
+    insert into public.work_item_events (work_item_id, actor_id, kind, from_owner_id, to_owner_id)
+    values (p_item, v_me, 'reassigned', v_item.owner_id, p_owner);
+  end if;
+  update public.work_items set status = 'open', done_at = null,
+                               owner_id = coalesce(p_owner, owner_id)
+  where id = p_item;
+end;
+$$;
+
+revoke all on function public.send_back(uuid, text, text, boolean, date, timestamptz, uuid)
+  from public, anon;
+grant execute on function public.send_back(uuid, text, text, boolean, date, timestamptz, uuid)
+  to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 8. The month: archived posts out
+-- ---------------------------------------------------------------------------
+
+-- As in 20261017180000_sent_back, with no archived post (L10).
+create or replace function public.daybook_month(p_space uuid, p_from_day date, p_to_day date,
+                                     p_from timestamptz, p_to timestamptz)
+returns table (kind text, at timestamptz, day date)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if p_from_day is null or p_to_day is null or p_to_day < p_from_day
+     or p_to_day - p_from_day > 61
+     or p_from is null or p_to is null or p_to <= p_from
+     -- An hour of slack for a change of clock in the phone's time zone.
+     or p_to - p_from > interval '62 days 1 hour' then
+    raise exception 'choose up to 62 days' using errcode = '22023';
+  end if;
+  if not public.is_member(p_space) then
+    return;
+  end if;
+  return query
+  -- Posts and their sign-offs and updates in the window; each post's
+  -- visibility is checked once.
+  with seen as (
+    select p.id as post_id, p.created_at as at
+    from public.space_posts p
+    where p.space_id = p_space and p.deleted_at is null
+      and p.created_at >= p_from and p.created_at < p_to
+    union all
+    -- Sign-offs, send-backs and updates are entries too (reviews 45 and 47).
+    select e.work_item_id, e.created_at
+    from public.work_item_events e
+    where e.space_id = p_space and e.kind in ('done', 'comment', 'sent_back')
+      and e.created_at >= p_from and e.created_at < p_to
+  ),
+  visible as (
+    select v.post_id
+    from (select distinct seen.post_id from seen) v
+    join public.space_posts p on p.id = v.post_id and p.deleted_at is null
+      and p.archived_at is null
+    where public.can_see_space_post(v.post_id)
+  )
+  select distinct 'posts'::text,
+         date_bin('15 minutes', seen.at, timestamptz '2000-01-01 00:00+00'), null::date
+  from seen
+  join visible on visible.post_id = seen.post_id
+  union
+  select 'due'::text, null::timestamptz, p.due_date
+  from public.space_posts p
+  left join public.work_items w on w.id = p.id
+  where p.space_id = p_space and p.deleted_at is null and p.status = 'live'
+    and p.archived_at is null
+    and ((p.kind = 'checklist'
+          and exists (select 1 from public.checklist_points c
+                      where c.post_id = p.id and c.ticked_at is null))
+         or (p.kind = 'work_item' and w.status in ('open', 'done')))
+    and p.due_date between p_from_day and p_to_day
+    and public.can_see_space_post(p.id)
+  order by 1, 2, 3;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Who may call what
 -- ---------------------------------------------------------------------------
 
 revoke all on function public.check_post_place() from public, anon, authenticated;
 revoke all on function public.require_archivable(uuid) from public, anon, authenticated;
 revoke all on function public.hand_over_open_work(uuid, uuid, jsonb) from public, anon, authenticated;
+revoke all on function public.owns_open_work(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.check_work_owner() from public, anon, authenticated;
+revoke all on function public.set_post_place(uuid, uuid) from public, anon;
+grant execute on function public.set_post_place(uuid, uuid) to authenticated;
 revoke all on function public.archive_space_post(uuid) from public, anon;
 revoke all on function public.unarchive_space_post(uuid) from public, anon;
 revoke all on function public.pin_space_post(uuid) from public, anon;
