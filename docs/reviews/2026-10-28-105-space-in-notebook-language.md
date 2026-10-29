@@ -195,3 +195,17 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
 
 ### H3 done (`claude/r105a` at `86eff0e`)
 - **Accepted:** the camera opens at once; Walk is the last chip, shown only when `mayPostWork`, and never shown as the chosen chip; the sheet is removed. Next, on the PC: merge `slice2-app` (which has r104 and r106) into r105a, then shots.
+
+### The lead's check of the 105A shots (29 Oct, `claude/r105a` at `132d84e`)
+- **The merge is accepted.** That covers the conflicts as resolved, analyze, 2,648 tests and 3,058 SQL checks.
+- **Shots looked at:** V13 EN and AR, E1, E6, Y1, X1, C6, SP1, P1 AR and SI1.
+  - The new header, the Work · Chat switch, the Needs you line, the writing card's rows, People with title · company and pass, and Space info's Work group all match SP1/SP2/SP8.
+
+**Fixes before the goldens:**
+- **J1. The back arrow is missing from the Space header** in the Work shots (V13, E1, E6). SP1 has back · emblem · name. When a Space is opened from the Spaces list, back must always be there.
+- **J2. Opening an item shows "Something went wrong. Try again."** in Y1, X1 and C6, where the opened item should be. Find out whether the cause is the shot's fake data or the app (systematic-debugging). If it is the app, fix it with a test first. Then the opened item must show its title, For line, updates and ⋯, as the ruling's Q3 says.
+- **J3. The two failing scenarios:**
+  - **SP1 crashes with "No GoRouter found".** `SpaceScreen` must not call the router in `initState`; open People after the first frame. Fix it in the code, not only in the test.
+  - **X2 can't find Give to.** It moved to the For line on the opened item; point the scenario there.
+- **J4. The post bar's words.** Change "Work item" / "Add update" to **"Write in this Space"** («اكتب في هذه المساحة»), as SP1. An opened item's bottom bar keeps "Add an update".
+- **Delete:** F61, A1 and the three MN1 shots. F95, R1-walk-start and R1-walk-photo staying unchanged is fine.
