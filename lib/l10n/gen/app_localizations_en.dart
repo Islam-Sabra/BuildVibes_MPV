@@ -5581,6 +5581,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookStatusChange => 'Change';
 
   @override
+  String get notebookTapToDo => 'Tap to do it';
+
+  @override
+  String get notebookActRemind => 'Set a reminder';
+
+  @override
+  String get notebookActFeed => 'Share to the feed';
+
+  @override
+  String get notebookActSpace => 'Share to a Space';
+
+  @override
+  String get notebookActMessage => 'Send in a message';
+
+  @override
+  String notebookStatusThen(String status, String action) {
+    return '$status. $action';
+  }
+
+  @override
+  String get notebookShareAgain => 'Share again';
+
+  @override
+  String notebookOlderVersion(String time) {
+    return 'Older version · changed at $time';
+  }
+
+  @override
   String get notebookStatusTitleReminder => 'Reminder';
 
   @override

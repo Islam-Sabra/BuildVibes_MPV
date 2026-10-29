@@ -7978,6 +7978,51 @@
   "@notebookStatusChange": {
     "description": "Review 104 N12: in a reminder icon's card, changes the reminder."
   },
+  "notebookTapToDo": "Tap to do it",
+  "@notebookTapToDo": {
+    "description": "Review 106 T4: at the start of a held entry's status row, whose icons are its actions."
+  },
+  "notebookActRemind": "Set a reminder",
+  "@notebookActRemind": {
+    "description": "Review 106 T4: a screen reader's word for a held entry's reminder icon with no reminder yet."
+  },
+  "notebookActFeed": "Share to the feed",
+  "@notebookActFeed": {
+    "description": "Review 106 T4: a screen reader's word for a held entry's feed icon not used yet."
+  },
+  "notebookActSpace": "Share to a Space",
+  "@notebookActSpace": {
+    "description": "Review 106 T4: a screen reader's word for a held entry's Space icon not used yet."
+  },
+  "notebookActMessage": "Send in a message",
+  "@notebookActMessage": {
+    "description": "Review 106 T4: a screen reader's word for a held entry's message icon not used yet."
+  },
+  "notebookStatusThen": "{status}. {action}",
+  "@notebookStatusThen": {
+    "description": "Review 106 T4: a used icon of a held entry, read out: its status, then what a tap does (\"Shared to Kuwait City Tower at 08:45. Share again\").",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "notebookShareAgain": "Share again",
+  "@notebookShareAgain": {
+    "description": "Review 106 T4 and T5: shares the entry as it is now, through the same step; the old share stays in the log."
+  },
+  "notebookOlderVersion": "Older version · changed at {time}",
+  "@notebookOlderVersion": {
+    "description": "Review 106 T5: under a share in a status card, made before the entry last changed.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "notebookStatusTitleReminder": "Reminder",
   "@notebookStatusTitleReminder": {
     "description": "Review 106 T1 and T3: the reminder status: its card's title, its Filter choice, its group in the Status sort."

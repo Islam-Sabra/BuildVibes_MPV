@@ -330,6 +330,7 @@ class Note {
     this.shares = const [],
     this.dayPosition,
     this.collapsed = false,
+    this.contentChangedAt,
   });
 
   /// A row of `notes`, with its `note_files` embedded.
@@ -398,6 +399,7 @@ class Note {
       version: json['version'] as int? ?? 1,
       dayPosition: json['day_position'] as int?,
       collapsed: json['collapsed'] as bool? ?? false,
+      contentChangedAt: _time(json['content_changed_at']),
       shares: [
         for (final s in json['note_shares'] as List? ?? const [])
           NoteShare.fromJson(s as Map<String, dynamic>),
@@ -473,6 +475,11 @@ class Note {
   /// Folded in its page (review 106 T2, migration 50): its head and
   /// "3 lines hidden" only. The same on every phone.
   final bool collapsed;
+
+  /// When its content last changed (review 106 T5, migration 51): its
+  /// title, words, lines, photos or files; never a tick, a pin, a fold, a
+  /// move or a reminder. A share made before it is of an older version.
+  final DateTime? contentChangedAt;
 
   /// The server's version of it (migration 48): an edit says which one it
   /// started from, so an older one is refused.
@@ -558,6 +565,7 @@ class Note {
     List<NoteShare>? shares,
     int? Function()? dayPosition,
     bool? collapsed,
+    DateTime? Function()? contentChangedAt,
   }) => Note(
     id: id,
     kind: kind ?? this.kind,
@@ -583,6 +591,9 @@ class Note {
     shares: shares ?? this.shares,
     dayPosition: dayPosition == null ? this.dayPosition : dayPosition(),
     collapsed: collapsed ?? this.collapsed,
+    contentChangedAt: contentChangedAt == null
+        ? this.contentChangedAt
+        : contentChangedAt(),
   );
 
   /// As this phone keeps it while it waits to be sent.
@@ -611,6 +622,7 @@ class Note {
     'note_shares': [for (final s in shares) s.toJson()],
     'day_position': dayPosition,
     'collapsed': collapsed,
+    'content_changed_at': contentChangedAt?.toUtc().toIso8601String(),
   };
 
   /// Its to-dos not yet ticked: a to-do note's one, a page's to-do lines

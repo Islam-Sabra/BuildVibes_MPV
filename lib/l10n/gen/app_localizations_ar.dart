@@ -5616,6 +5616,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookStatusChange => 'تغيير';
 
   @override
+  String get notebookTapToDo => 'اضغط للتنفيذ';
+
+  @override
+  String get notebookActRemind => 'ضبط تذكير';
+
+  @override
+  String get notebookActFeed => 'انشر في الأخبار';
+
+  @override
+  String get notebookActSpace => 'انشر في مساحة';
+
+  @override
+  String get notebookActMessage => 'أرسل في رسالة';
+
+  @override
+  String notebookStatusThen(String status, String action) {
+    return '$status. $action';
+  }
+
+  @override
+  String get notebookShareAgain => 'شارك مجددًا';
+
+  @override
+  String notebookOlderVersion(String time) {
+    return 'نسخة أقدم · تغيّرت $time';
+  }
+
+  @override
   String get notebookStatusTitleReminder => 'تذكير';
 
   @override

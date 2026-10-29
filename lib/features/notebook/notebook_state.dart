@@ -373,9 +373,15 @@ class NoteChange {
         final when = at ?? saved.createdAt;
         // The server counts the version up on each save of an entry it
         // has (save_note), so the next edit starts from the right one.
+        // Review 106 T5: its content changed (not a tick, a pin or a
+        // reminder), as the server counts it (migration 51).
+        final changed = was != null && _contentChanged(was, saved);
         return NotebookData(
           notes: _placed(
-            saved.copyWith(version: was == null ? 1 : was.version + 1),
+            saved.copyWith(
+              version: was == null ? 1 : was.version + 1,
+              contentChangedAt: changed ? () => when : null,
+            ),
             notes,
           ),
           pages: [
@@ -458,6 +464,7 @@ class NoteChange {
                           if (!gone.contains(b.id)) b,
                       ],
                       version: n.version + 1,
+                      contentChangedAt: at == null ? null : () => at,
                     )
                   : n,
           ],
@@ -602,6 +609,31 @@ class NoteChange {
           jsonEncode([for (final p in now.points) p.toJson()]) ||
       jsonEncode([for (final b in was.blocks ?? const []) b.toJson()]) !=
           jsonEncode([for (final b in now.blocks ?? const []) b.toJson()]);
+
+  /// Review 106 T5: [now]'s content differs from [was]'s, as migration
+  /// 51's note_content_key reads it: the kind, the title, an older note's
+  /// words, the lines and points without their ticks and folds, the photos
+  /// and files.
+  static bool _contentChanged(Note was, Note now) {
+    Object? plain(Object? j) => switch (j) {
+      final Map<String, dynamic> m => {
+        for (final e in m.entries)
+          if (e.key != 'done' && e.key != 'folded') e.key: plain(e.value),
+      },
+      final List<dynamic> l => [for (final v in l) plain(v)],
+      _ => j,
+    };
+    String key(Note n) => jsonEncode([
+      n.kind.json,
+      n.title.trim(),
+      if (n.blocks == null) n.body,
+      plain([for (final b in n.blocks ?? const <PageBlock>[]) b.toJson()]),
+      plain([for (final p in n.points) p.toJson()]),
+      [for (final p in n.photos) p.path ?? p.local],
+      [for (final f in n.files) f.path ?? f.local],
+    ]);
+    return key(was) != key(now);
+  }
 
   static List<Note> _placed(Note saved, List<Note> notes) {
     if (notes.any((n) => n.id == saved.id)) {
