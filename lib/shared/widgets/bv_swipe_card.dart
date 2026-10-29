@@ -95,6 +95,7 @@ class BvSwipeCard extends StatefulWidget {
     required this.child,
     this.endActions = const [],
     this.startAction,
+    this.startFullSwipe = true,
     this.enabled = true,
     this.hint = false,
     this.onHinted,
@@ -104,6 +105,11 @@ class BvSwipeCard extends StatefulWidget {
   final Widget child;
   final List<BvSwipeAction> endActions;
   final BvSwipeAction? startAction;
+
+  /// False: [startAction] stays a round button the size of the others,
+  /// acting only when tapped, never a full swipe's pill (review 105 Part 2:
+  /// a Space's Archive).
+  final bool startFullSwipe;
   final bool enabled;
   final bool hint;
   final VoidCallback? onHinted;
@@ -137,7 +143,8 @@ class _BvSwipeCardState extends State<BvSwipeCard>
   double get _endOpen =>
       widget.endActions.length * BvSwipeSpec.slot + BvSwipeSpec.inset;
   double get _startOpen => BvSwipeSpec.slot + BvSwipeSpec.inset;
-  double get _fullPoint => _width * BvSwipeSpec.fullSwipe;
+  double get _fullPoint =>
+      widget.startFullSwipe ? _width * BvSwipeSpec.fullSwipe : double.infinity;
 
   @override
   void initState() {
@@ -231,7 +238,10 @@ class _BvSwipeCardState extends State<BvSwipeCard>
     // pulls harder.
     final stiff = math.max(_endOpen, _width * BvSwipeSpec.halfSwipe) + 1;
     if (next > stiff) next = stiff + (next - stiff) / 3;
-    next = math.max(next, -_width);
+    next = math.max(
+      next,
+      widget.startFullSwipe ? -_width : -(_startOpen + BvSwipeSpec.slot),
+    );
     final wasOpen = _offset.value.abs() >= _width * BvSwipeSpec.halfSwipe;
     final isOpen = next.abs() >= _width * BvSwipeSpec.halfSwipe;
     if (!wasOpen && isOpen) unawaited(HapticFeedback.lightImpact());

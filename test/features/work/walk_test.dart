@@ -3,13 +3,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
+import 'package:buildvibes/features/work/daybook_draft.dart';
+import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/walk_saved.dart';
 import 'package:buildvibes/features/work/walk_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -151,9 +155,11 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _menu(WidgetTester tester, String label) async {
-  await _tap(tester, _key('space-more'));
-  await _tap(tester, find.text(label));
+/// The lead's ruling on H3 (review 105): Walk is the writing card's last
+/// kind chip, for who may post work.
+Future<void> _openWalk(WidgetTester tester) async {
+  await _tap(tester, _key('post-bar-notepad'));
+  await _tap(tester, _key('kind-chip-walk'));
 }
 
 Future<void> _owner(WidgetTester tester, String name) async {
@@ -173,7 +179,7 @@ void main() {
         'photo, each photo in its own work item [$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       expect(find.byType(WalkScreen), findsOneWidget);
       // A name first.
       expect(
@@ -227,7 +233,7 @@ void main() {
       expect(find.byType(WalkScreen), findsNothing);
 
       // F95: the next walk in this Space starts where this one was.
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       expect(
         tester.widget<TextField>(_key('walk-place')).controller?.text,
         'Level 4 corridor',
@@ -257,7 +263,7 @@ void main() {
         'the photos away [$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, roof');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -271,15 +277,90 @@ void main() {
       expect(daybook.createdWalks, isEmpty);
     });
 
-    testWidgets('a Viewer has no Walk the site [$lang]', (tester) async {
+    testWidgets('a Viewer has no Walk the site: no camera [$lang]', (
+      tester,
+    ) async {
       await _open(
         tester,
         lang,
         me: DaybookSamples.mona,
         pass: SpacePass.viewer,
       );
-      await _tap(tester, _key('space-more'));
+      expect(_key('post-bar-camera'), findsNothing);
+      await _tap(tester, _key('space-header'));
       expect(find.text(l10n.walkMenu), findsNothing);
+    });
+
+    testWidgets('H3: the post bar\'s camera opens the phone\'s camera at '
+        'once for a photo post; no sheet. Walk is not in Space info '
+        '[$lang]', (tester) async {
+      final app = await _open(tester, lang, withWalk: false);
+      await _tap(tester, _key('space-header'));
+      expect(_key('info-walk'), findsNothing);
+      expect(find.text(l10n.walkMenu), findsNothing);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('post-bar-camera'));
+      expect(_key('camera-modes'), findsNothing);
+      expect(app.cameraAsks, [true]);
+      expect(_key('daybook-writing-card'), findsOneWidget);
+      expect(find.byType(WalkScreen), findsNothing);
+    });
+
+    testWidgets('H3: Walk is the last kind chip, "Walk" with the camera '
+        'icon; it starts walk mode [$lang]', (tester) async {
+      await _open(tester, lang, withWalk: false);
+      await _tap(tester, _key('post-bar-notepad'));
+      final chips = tester.widget<BvKindChips<Object>>(_key('writing-kinds'));
+      final last = chips.choices.last;
+      expect(last.value, kindChipWalk);
+      expect(last.label, l10n.daybookKindWalk);
+      expect(last.icon, BvIcons.camera);
+      expect(l10n.daybookKindWalk, lang == 'ar' ? 'جولة' : 'Walk');
+      // At the end in the reading direction.
+      double x(String k) => tester.getCenter(_key(k)).dx;
+      final note = x('kind-chip-${DaybookKind.note}');
+      await tester.ensureVisible(_key('kind-chip-walk'));
+      await tester.pumpAndSettle();
+      final walk = x('kind-chip-walk');
+      expect(lang == 'ar' ? walk < note : walk > note, isTrue);
+      await _tap(tester, _key('kind-chip-walk'));
+      expect(find.byType(WalkScreen), findsOneWidget);
+    });
+
+    testWidgets('H3: no Walk chip for who may not post work [$lang]', (
+      tester,
+    ) async {
+      final s = DaybookSamples(lang);
+      // A Viewer whose admin let them write (custom rights): they write,
+      // but Walk is for a Lead or Crew (mayPostWork).
+      final spaces = FakeSpaceRepository()
+        ..details[DaybookSamples.space] = SpaceDetail(
+          id: DaybookSamples.space,
+          name: s.spaceName,
+          myPass: SpacePass.viewer,
+          iAmAdmin: false,
+          myRights: const MemberRights(createItems: true),
+        )
+        ..spacePeople[DaybookSamples.space] = s.people();
+      await pumpApp(
+        tester,
+        language: lang,
+        auth: FakeAuthRepository(
+          userId: DaybookSamples.mona,
+          phone: '+96550000001',
+        ),
+        spaces: spaces,
+        daybook: FakeDaybookRepository()..posts[DaybookSamples.space] = [],
+        now: DaybookSamples.thursday,
+      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/spaces/${DaybookSamples.space}');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('post-bar-notepad'));
+      expect(_key('writing-kinds'), findsOneWidget);
+      expect(_key('kind-chip-walk'), findsNothing);
     });
 
     testWidgets('R1b: one card for the walk, a row per work item, N of M '
@@ -395,7 +476,7 @@ void main() {
         '[$lang]', (tester) async {
       final daybook = FakeDaybookRepository()..offline = true;
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, stairs');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -412,7 +493,7 @@ void main() {
         'away asks first [$lang]', (tester) async {
       final daybook = FakeDaybookRepository()..refuseWalk = true;
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, stairs');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -440,7 +521,7 @@ void main() {
     ) async {
       final daybook = FakeDaybookRepository()..refuseWalk = true;
       await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, stairs');
       await tester.pumpAndSettle();
       await _tap(tester, _key('walk-start'));
@@ -462,7 +543,7 @@ void main() {
         '[$lang]', (tester) async {
       final daybook = FakeDaybookRepository();
       final app = await _open(tester, lang, withWalk: false, daybook: daybook);
-      await _menu(tester, l10n.walkMenu);
+      await _openWalk(tester);
       await tester.enterText(_key('walk-name'), 'Walk, level 4');
       await tester.enterText(_key('walk-place'), 'Level 4 corridor');
       await tester.pumpAndSettle();

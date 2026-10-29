@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:buildvibes/data/repositories/page_repository.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/repositories/chat_repository.dart';
@@ -49,15 +50,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../test/helpers/page_fakes.dart';
 import '../test/helpers/activity_fakes.dart';
 import '../test/helpers/chat_fakes.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
 import '../test/helpers/fakes.dart';
 import '../test/helpers/library_fakes.dart';
+import '../test/helpers/opened_item.dart';
 import '../test/helpers/space_fakes.dart';
 import '../test/helpers/work_fakes.dart';
 import 'shot.dart';
+import 'work_gestures.dart';
 
 const _folder = 'slice2';
 const _review72 = 'review72';
@@ -85,6 +89,7 @@ Future<List<Override>> _overrides(
   List<ChatThread> threads = const [],
   Map<String, List<ChatMessage>> messages = const {},
   Map<String, Object> saved = const {},
+  bool addFiles = false,
 }) async {
   // test_screens/ is a test folder the analyzer doesn't know.
   // ignore: invalid_use_of_visible_for_testing_member
@@ -94,7 +99,7 @@ Future<List<Override>> _overrides(
     sharedPreferencesProvider.overrideWithValue(prefs),
     spaceRepositoryProvider.overrideWithValue(
       FakeSpaceRepository()
-        ..details[DaybookSamples.space] = s.detail()
+        ..details[DaybookSamples.space] = s.detail(addFiles: addFiles)
         ..spacePeople[DaybookSamples.space] = s.people(),
     ),
     activityRepositoryProvider.overrideWithValue(FakeActivityRepository()),
@@ -106,6 +111,9 @@ Future<List<Override>> _overrides(
     authUserIdProvider.overrideWithValue(AsyncData(me)),
     myMarketProvider.overrideWithValue(kuwait),
     clockProvider.overrideWithValue(() => now),
+    // Review 105 J2: an opened item reads its page; the shots have no
+    // Supabase, so the fake answers (a post with no page reads as its card).
+    pageRepositoryProvider.overrideWithValue(FakePageRepository()),
     workRepositoryProvider.overrideWithValue(FakeWorkRepository()),
     daybookLiveProvider.overrideWithValue(FakeDaybookLive()),
     daybookRepositoryProvider.overrideWithValue(
@@ -167,6 +175,10 @@ Future<List<Override>> _overrides(
 Widget _space(BuildContext _) =>
     const SpaceScreen(spaceId: DaybookSamples.space);
 
+/// The Space with its Library's route: a file post starts there (review
+/// 105 SP2).
+Widget _routedSpace(BuildContext _) => const RoutedSpace(DaybookSamples.space);
+
 Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.tap(finder);
   await tester.pumpAndSettle();
@@ -177,21 +189,24 @@ Future<void> _type(WidgetTester tester, Finder field, String text) async {
   await tester.pumpAndSettle();
 }
 
-/// Opens a card at Now and picks [kind] from its chip (E6).
+/// Opens a card at Now and picks [kind] from its kind chips (review 105
+/// SP2: the kind menu became one row of chips). A file post starts from
+/// the Library's Add a file, its file chooser open.
 Future<void> _writeKind(
   WidgetTester tester,
   AppLocalizations l10n,
   DaybookKind kind,
 ) async {
+  if (kind == DaybookKind.file) {
+    await _tap(tester, find.byKey(const Key('space-library')));
+    await _tap(tester, find.byKey(const Key('library-add-file')));
+    return;
+  }
   await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-  await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-  await _tap(
-    tester,
-    find.descendant(
-      of: find.byKey(const Key('writing-kind-menu')),
-      matching: find.text(kindName(l10n, kind)),
-    ),
-  );
+  final chip = find.byKey(Key('kind-chip-$kind'));
+  await tester.ensureVisible(chip);
+  await tester.pumpAndSettle();
+  await _tap(tester, chip);
 }
 
 Future<void> _more(
@@ -199,8 +214,8 @@ Future<void> _more(
   AppLocalizations l10n,
   String item,
 ) async {
-  await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
-  await _tap(tester, find.text(item));
+  // Review 105 SP2: the card's rows, or ⋯ for what isn't a row.
+  await writingSet(tester, l10n, item);
 }
 
 Future<void> _pick(WidgetTester tester, String name) async {
@@ -436,10 +451,10 @@ void main() {
           now: DaybookSamples.thursday,
           posts: s.v13(),
         ),
-        before: (tester) async {
-          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-          await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-        },
+        // Review 105 SP2: the kind menu became the writing card's row of
+        // kind chips; the shot shows the card open with its chips.
+        before: (tester) =>
+            _tap(tester, find.byKey(const Key('post-bar-notepad'))),
       );
     });
 
@@ -457,10 +472,10 @@ void main() {
           now: DaybookSamples.thursday,
           posts: s.v13(),
         ),
-        before: (tester) async {
-          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-          await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-        },
+        // Review 105 SP2: the kind menu became the writing card's row of
+        // kind chips; the shot shows the card open with its chips.
+        before: (tester) =>
+            _tap(tester, find.byKey(const Key('post-bar-notepad'))),
       );
     });
 
@@ -655,10 +670,11 @@ void main() {
         tester,
         'W-file',
         lang,
-        _space,
+        _routedSpace,
         folder: _folder,
         overrides: await _overrides(
           s,
+          addFiles: true,
           now: DaybookSamples.thursday,
           posts: [s.rebar()],
           library: [
@@ -695,10 +711,11 @@ void main() {
         tester,
         'W-file-chooser',
         lang,
-        _space,
+        _routedSpace,
         folder: _folder,
         overrides: await _overrides(
           s,
+          addFiles: true,
           now: DaybookSamples.thursday,
           posts: [s.rebar()],
           library: [
@@ -833,13 +850,11 @@ void main() {
             find.byKey(const Key('writing-title')),
             s.halfDay,
           );
+          // Review 105 SP2: the Team row opens the To menu.
           final to = find.byKey(const Key('writing-to'));
           await tester.ensureVisible(to);
           await tester.pumpAndSettle();
-          await _tap(
-            tester,
-            find.descendant(of: to, matching: find.byType(Icon)).first,
-          );
+          await _tap(tester, to);
         },
       );
     });
@@ -931,14 +946,14 @@ void main() {
             threads: threads,
           ),
           before: (tester) async {
-            await _tap(tester, find.byKey(const Key('space-tab-chat')));
+            await _tap(tester, find.byKey(const Key('space-switch-chat')));
             if (sheet) await _tap(tester, find.byKey(const Key('chat-new')));
           },
         );
       }
     });
 
-    // Review 72 (F59, F61, F62, F63): for the lead.
+    // Review 72 (F59, F62, F63): for the lead.
     testWidgets('F59 at Now with yesterday\'s cards on top [$lang]', (
       tester,
     ) async {
@@ -965,42 +980,6 @@ void main() {
                   due: wednesday,
                 ),
               ),
-          ],
-        ),
-      );
-    });
-
-    testWidgets('F61 the To do strip [$lang]', (tester) async {
-      await warmSamplePhoto(tester);
-      await shoot(
-        tester,
-        'F61-to-do-strip',
-        lang,
-        _space,
-        folder: _review72,
-        overrides: await _overrides(
-          s,
-          now: DaybookSamples.friday,
-          me: DaybookSamples.omar,
-          posts: s.l1(),
-          calendar: [
-            CalendarWorkItem(
-              postId: 'post-rebar-spacers',
-              spaceId: DaybookSamples.space,
-              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
-              day: DateTime(2026, 10, 11),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-socket',
-              spaceId: DaybookSamples.space,
-              title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
-              day: DateTime(2026, 10, 12),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            s.cableTraysDue(),
           ],
         ),
       );
@@ -1072,63 +1051,6 @@ void main() {
       );
     });
 
-    // Review 73 A1: the whole strip opens every item.
-    testWidgets('A1 the To do sheet from a long strip [$lang]', (tester) async {
-      await warmSamplePhoto(tester);
-      await shoot(
-        tester,
-        'A1-to-do-sheet',
-        lang,
-        _space,
-        folder: _review72,
-        overrides: await _overrides(
-          s,
-          now: DaybookSamples.friday,
-          me: DaybookSamples.omar,
-          posts: s.l1(),
-          calendar: [
-            CalendarWorkItem(
-              postId: 'post-rebar-spacers',
-              spaceId: DaybookSamples.space,
-              title: s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2'),
-              day: DateTime(2026, 10, 11),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-socket',
-              spaceId: DaybookSamples.space,
-              title: s.t('Fix socket in room 4', 'إصلاح المقبس في الغرفة 4'),
-              day: DateTime(2026, 10, 12),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-firestop',
-              spaceId: DaybookSamples.space,
-              title: s.t(
-                'Firestopping around the riser sleeves',
-                'سد الحريق حول جلب الصاعد',
-              ),
-              day: DateTime(2026, 10, 14),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            CalendarWorkItem(
-              postId: 'post-sleeves',
-              spaceId: DaybookSamples.space,
-              title: s.sleeves,
-              day: DateTime(2026, 10, 15),
-              status: WorkStatus.open,
-              needsMe: true,
-            ),
-            s.cableTraysDue(),
-          ],
-        ),
-        before: (tester) => _tap(tester, find.byKey(const Key('to-do-strip'))),
-      );
-    });
-
     testWidgets('F62 the send-back sheet with the new date [$lang]', (
       tester,
     ) async {
@@ -1145,15 +1067,9 @@ void main() {
           posts: s.v13(),
         ),
         before: (tester) async {
-          final slip = find.descendant(
-            of: find.byKey(const Key('daybook-card-post-sleeves')),
-            matching: find.byType(BvSlip),
-          );
-          await tester.ensureVisible(slip.first);
-          await tester.pumpAndSettle();
-          await tester.longPress(slip.first);
-          await tester.pumpAndSettle();
-          await _tap(tester, find.text(l10n.daybookSendBack).last);
+          // Review 105 Part 2: a tap opens the item; Send back is on it.
+          await openCard(tester, 'post-sleeves');
+          await openedPick(tester, l10n.daybookSendBack);
           await _tap(tester, find.text(l10n.daybookReasonPhotoMissing));
           await _tap(tester, find.byKey(const Key('send-back-due-pick')));
         },
@@ -1423,10 +1339,10 @@ void main() {
           now: DaybookSamples.thursday,
           posts: s.v13(),
         ),
-        before: (tester) async {
-          await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-          await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-        },
+        // Review 105 SP2: the kind menu became the writing card's row of
+        // kind chips; the shot shows the card open with its chips.
+        before: (tester) =>
+            _tap(tester, find.byKey(const Key('post-bar-notepad'))),
       );
     });
 

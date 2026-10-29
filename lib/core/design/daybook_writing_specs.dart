@@ -318,3 +318,45 @@ abstract final class BvQuoteSpec {
   static const linesWriting = 4;
   static const linesCard = 3;
 }
+
+/// Review 105 SP2 (2667:38511): the kinds as one choice that scrolls
+/// sideways, at the top of the writing card.
+abstract final class BvKindChipsSpec {
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.round));
+  static const paddingHorizontal = BvSpace.s12;
+  static const paddingVertical = BvSpace.s6;
+  static const gap = BvSpace.s8;
+  static const iconGap = BvSpace.s6;
+  static const icon = BvSize.iconSm;
+}
+
+/// Review 105 SP2: For · Place · Due · Team, each a row that opens its
+/// picker, in one box with a line between rows.
+abstract final class BvWritingRowsSpec {
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.control));
+  static const paddingHorizontal = BvSpace.s12;
+  static const paddingVertical = BvSpace.s12;
+  static const gap = BvSpace.s12;
+  static const personGap = BvSpace.s6;
+  static const caret = BvSize.iconSm;
+}
+
+/// Review 105 Part 7 (SP7 2670:38787): the proof moment's toast, shown
+/// for [duration].
+abstract final class BvProofMomentSpec {
+  static const padding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s12,
+    BvSpace.s12,
+    BvSpace.s16,
+    BvSpace.s12,
+  );
+  static const gap = BvSpace.s12;
+  static const seal = BvSize.avatarMd;
+  static const icon = BvSize.iconLg;
+  static const lineGap = BvSpace.s2;
+  static const duration = Duration(seconds: 4);
+
+  /// Only a check this recent shows it (a phone opened days later
+  /// doesn't).
+  static const recent = Duration(days: 1);
+}

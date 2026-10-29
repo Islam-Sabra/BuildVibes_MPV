@@ -31,6 +31,9 @@ String inOwnDirection(String text) {
   return '${String.fromCharCode(open)}$text${String.fromCharCode(_pdi)}';
 }
 
+/// The dot between the parts of a meta line.
+const metaDot = '·';
+
 /// Joins parts of a meta line with " · ", each part in its own direction.
 String joinMeta(Iterable<String> parts) =>
     parts.where((p) => p.isNotEmpty).map(inOwnDirection).join(' · ');

@@ -1,9 +1,6 @@
 // The daybook in v13 (review 53 Part B): one full-width card per work
 // item, its history inside, traces on earlier days, the reader's one
 // action from needs_me.
-import 'package:buildvibes/core/design/daybook_days_specs.dart';
-import 'package:buildvibes/core/l10n/bidi.dart';
-import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
@@ -13,9 +10,7 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_card_history.dart';
 import 'package:buildvibes/shared/widgets/bv_day_divider.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
-import 'package:buildvibes/shared/widgets/bv_due_today_strip.dart';
 import 'package:buildvibes/shared/widgets/bv_first_page.dart';
-import 'package:buildvibes/shared/widgets/bv_list_row.dart';
 import 'package:buildvibes/shared/widgets/bv_month_dropdown.dart';
 import 'package:buildvibes/shared/widgets/bv_paper_clip.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
@@ -110,6 +105,9 @@ DaybookCard _numbered(DaybookSamples s, int i) => s.card(
     ownerId: DaybookSamples.omar,
   ),
 );
+
+/// Review 105 Part 6: the Needs you line, in the To do strip's place.
+final _needsYou = find.byKey(const Key('needs-you'));
 
 void main() {
   for (final lang in ['en', 'ar']) {
@@ -476,7 +474,8 @@ void main() {
     });
 
     testWidgets('a note-only proof to check: the note and its stamp, no '
-        'frame; Hold to check on the card and Check in the menu (review 94) '
+        'frame; Hold to check on the card, Send back on the opened item '
+        '(review 94, 105) '
         '[$lang]', (tester) async {
       await _open(tester, lang, posts: [s.sleevesCard(photos: const [])]);
       expect(
@@ -487,9 +486,11 @@ void main() {
       expect(_inCard('post-sleeves', find.byType(BvInkStamp)), findsOne);
       expect(_inCard('post-sleeves', find.text(l10n.holdToCheck)), findsOne);
       expect(_inCard('post-sleeves', find.byType(BvPaperClip)), findsOne);
-      await tester.longPress(_inCard('post-sleeves', find.byType(BvSlip)));
+      // Review 105 Part 2: Check is never in a menu; the opened item has
+      // Send back.
+      await tester.tap(_inCard('post-sleeves', find.byType(BvSlip)));
       await tester.pumpAndSettle();
-      expect(find.text(l10n.daybookCheck), findsOne);
+      expect(find.byKey(const Key('page-send-back')), findsOne);
     });
 
     testWidgets('checked: CHECKED on the photo, no action [$lang]', (
@@ -597,7 +598,7 @@ void main() {
       expect(_masthead(tester).date, words.dayMonth(wednesday));
     });
 
-    testWidgets('L1: Late by 1 day and the Due today strip [$lang]', (
+    testWidgets('L1: Late by 1 day and the Needs you line [$lang]', (
       tester,
     ) async {
       await _open(
@@ -629,20 +630,17 @@ void main() {
       );
       // F57: no "Late" line; a passed due is a reminder on the facts line.
       expect(find.textContaining('Late'), findsNothing);
-      // F68b: the docket names the work and its oldest item.
-      expect(find.text(l10n.daybookDocketTitle(1)), findsOneWidget);
-      expect(find.byType(BvDueTodayStrip), findsOneWidget);
-      // The strip sits under the masthead, above the diary.
+      // Review 105 Part 6: the Needs you line, under the masthead, above
+      // the diary: the trays due today and the sleeves to sign.
+      expect(find.text(l10n.daybookNeedYou(2)), findsOneWidget);
       expect(
-        tester.getTopLeft(find.byType(BvDueTodayStrip)).dy,
+        tester.getTopLeft(_needsYou).dy,
         lessThan(tester.getTopLeft(find.byKey(const Key('daybook'))).dy + 1),
       );
     });
 
-    testWidgets('F57: the strip keeps what is still to do from earlier days, '
-        'oldest first, the day in grey and never "late" [$lang]', (
-      tester,
-    ) async {
+    testWidgets('F57, review 105: what is still to do from earlier days '
+        'counts in Needs you, never "late" [$lang]', (tester) async {
       final wednesday = DateTime(2026, 10, 14);
       final rebar = s.t('Rebar spacers, level 2', 'فواصل الحديد، الطابق 2');
       await _open(
@@ -672,29 +670,15 @@ void main() {
           ),
         ],
       );
-      final day = words.stripDay(wednesday, DaybookSamples.friday)!;
-      expect(find.text(l10n.daybookDocketTitle(2)), findsOneWidget);
+      // Review 105 Part 6: counted in Needs you with the page's two;
+      // never "late".
+      expect(find.text(l10n.daybookNeedYou(3)), findsOneWidget);
       expect(find.textContaining('Late'), findsNothing);
-      expect(find.textContaining('Signed on Wednesday'), findsNothing);
-      await tester.tap(find.byType(BvDueTodayStrip));
-      await tester.pumpAndSettle();
-      final rows = tester
-          .widgetList<BvListRow>(
-            find.descendant(
-              of: find.byKey(const Key('to-do-sheet')),
-              matching: find.byType(BvListRow),
-            ),
-          )
-          .toList();
-      expect(rows.map((r) => (day: r.subtitle, title: r.title)), [
-        (day: day, title: rebar),
-        (day: null, title: s.cableTraysTitle),
-      ]);
       expect(find.textContaining('Signed on Wednesday'), findsNothing);
     });
 
-    testWidgets("F65: Omar's strip and its sheet never show an item he "
-        'raised for Islam, in any state [$lang]', (tester) async {
+    testWidgets("F65: Omar's Needs you never counts an item he raised for "
+        'Islam, in any state [$lang]', (tester) async {
       final whoRow = s.t('Lead test: who row', 'اختبار المسؤول: سطر الشخص');
       // As my_calendar sends them to Omar: open, sent back (open again)
       // and Done waiting for his check. A Checked one isn't sent at all.
@@ -721,34 +705,19 @@ void main() {
           forIslam('done', WorkStatus.done),
         ],
       );
-      expect(
-        tester.widget<BvDueTodayStrip>(find.byType(BvDueTodayStrip)).title,
-        l10n.daybookDocketTitle(1),
-      );
+      // The page's two (sleeves and trays) only.
+      expect(find.text(l10n.daybookNeedYou(2)), findsOneWidget);
       expect(find.textContaining(whoRow), findsNothing);
-      await tester.tap(find.byType(BvDueTodayStrip));
-      await tester.pumpAndSettle();
-      final sheet = find.byKey(const Key('to-do-sheet'));
-      expect(sheet, findsOneWidget);
-      expect(
-        find.descendant(of: sheet, matching: find.textContaining(whoRow)),
-        findsNothing,
-      );
     });
 
-    testWidgets('Review 73 A1: a long strip, tapped anywhere, opens the To do '
-        'sheet with every item oldest first, and a row opens its card '
-        '[$lang]', (tester) async {
-      final friday = DaybookSamples.friday;
+    testWidgets('Review 73 A1, 105 Part 6: every item counts; a tap shows '
+        'only what waits on me [$lang]', (tester) async {
       final earlier = [
         for (var d = 0; d < 5; d++)
           CalendarWorkItem(
             postId: 'post-early-$d',
             spaceId: DaybookSamples.space,
-            title: s.t(
-              'Firestopping around the riser sleeves, block $d',
-              'سد الحريق حول جلب الصاعد، المبنى $d',
-            ),
+            title: 'Early $d',
             day: DateTime(2026, 10, 10 + d),
             status: WorkStatus.open,
             needsMe: true,
@@ -759,151 +728,24 @@ void main() {
         lang,
         posts: s.l1(),
         me: DaybookSamples.omar,
-        now: friday,
-        calendar: [
-          s.cableTraysDue(),
-          CalendarWorkItem(
-            postId: 'post-sleeves',
-            spaceId: DaybookSamples.space,
-            title: s.sleeves,
-            day: DateTime(2026, 10, 15),
-            status: WorkStatus.open,
-            needsMe: true,
-          ),
-          ...earlier.reversed,
-        ],
+        now: DaybookSamples.friday,
+        calendar: [s.cableTraysDue(), ...earlier.reversed],
       );
-      final inOrder = [
-        for (final i in earlier) (id: i.postId, title: i.title, day: i.day),
-        (id: 'post-sleeves', title: s.sleeves, day: DateTime(2026, 10, 15)),
-        (id: 'post-trays', title: s.cableTraysTitle, day: null),
-      ];
-      // F68b: the docket shows the oldest title only; the sheet has them all.
-      expect(find.text(l10n.daybookDocketTitle(7)), findsOneWidget);
-      expect(
-        find.descendant(
-          of: find.byType(BvDueTodayStrip),
-          matching: find.textContaining(s.sleeves),
-        ),
-        findsNothing,
-      );
-
-      // Tapped at its end, away from the words' start.
-      await tester.tapAt(
-        tester.getRect(find.byType(BvDueTodayStrip)).centerRight -
-            Offset(
-              BvDueTodaySpec.outer.end + 4,
-              BvDueTodaySpec.outer.bottom / 2,
-            ),
-      );
+      // Five earlier, the trays and the sleeves on the page.
+      expect(find.text(l10n.daybookNeedYou(7)), findsOneWidget);
+      await tester.tap(_needsYou);
       await tester.pumpAndSettle();
-      final sheet = find.byKey(const Key('to-do-sheet'));
-      expect(sheet, findsOneWidget);
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('bv-sheet')),
-          matching: find.text(l10n.daybookToDo),
-        ),
-        findsOneWidget,
-      );
-      // No count, no "+ more".
-      expect(find.textContaining('+'), findsNothing);
-      final rows = tester
-          .widgetList<BvListRow>(
-            find.descendant(of: sheet, matching: find.byType(BvListRow)),
-          )
-          .toList();
-      expect(rows.map((r) => r.title), [for (final i in inOrder) i.title]);
-      expect(rows.map((r) => r.subtitle), [
-        for (final i in inOrder)
-          i.day == null ? null : words.stripDay(i.day!, friday),
-      ]);
-      // An earlier day in grey, as on the strip.
-      final day = words.stripDay(DateTime(2026, 10, 15), friday)!;
-      final dayText = tester.widget<Text>(
-        find.descendant(
-          of: find.byKey(const Key('to-do-row-5')),
-          matching: find.text(day),
-        ),
-      );
-      expect(dayText.style?.color, BvColors.textSecondary);
-
-      // A row closes the sheet and opens its card, highlighted.
-      final row = find.byKey(const Key('to-do-row-5'));
-      await tester.ensureVisible(row);
-      await tester.pumpAndSettle();
-      await tester.tap(row);
-      final ring = find.descendant(
-        of: find.byKey(const Key('daybook-card-post-sleeves')),
-        matching: find.byKey(const Key('bv-highlight-ring')),
-      );
-      for (var i = 0; i < 20 && ring.evaluate().isEmpty; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-      expect(ring, findsOneWidget);
-      await tester.pumpAndSettle();
-      expect(sheet, findsNothing);
+      expect(find.byKey(const Key('needs-you-on')), findsOneWidget);
+      expect(find.byKey(const Key('daybook-card-post-trays')), findsOneWidget);
     });
 
-    testWidgets('F68b: 5 items: "5 work items for you", the oldest title '
-        'only; a tap opens the sheet with the 5 titles, oldest first '
-        '[$lang]', (tester) async {
-      final friday = DaybookSamples.friday;
-      final items = [
-        for (var d = 0; d < 4; d++)
-          CalendarWorkItem(
-            postId: 'post-f68-$d',
-            spaceId: DaybookSamples.space,
-            title: s.t('Socket, room $d', 'مقبس، الغرفة $d'),
-            day: DateTime(2026, 10, 11 + d),
-            status: WorkStatus.open,
-            needsMe: true,
-          ),
-        s.cableTraysDue(),
-      ];
+    testWidgets('F68: nothing waits, no Needs you line [$lang]', (
+      tester,
+    ) async {
       await _open(
         tester,
         lang,
-        posts: s.l1(),
-        me: DaybookSamples.omar,
-        now: friday,
-        calendar: items.reversed.toList(),
-      );
-      final line = lang == 'ar' ? '5 بنود عمل لك' : '5 work items for you';
-      expect(find.text(line), findsOneWidget);
-      // The oldest (Sun) leads the second line, with "and 4 more".
-      expect(
-        tester.widget<Text>(find.byKey(const Key('to-do-oldest'))).data,
-        startsWith(inOwnDirection(items.first.title)),
-      );
-      expect(find.textContaining(l10n.daybookDocketRest(4)), findsOneWidget);
-      for (final i in items.skip(1)) {
-        expect(
-          find.descendant(
-            of: find.byType(BvDueTodayStrip),
-            matching: find.textContaining(i.title),
-          ),
-          findsNothing,
-        );
-      }
-      await tester.tap(find.byType(BvDueTodayStrip));
-      await tester.pumpAndSettle();
-      final rows = tester
-          .widgetList<BvListRow>(
-            find.descendant(
-              of: find.byKey(const Key('to-do-sheet')),
-              matching: find.byType(BvListRow),
-            ),
-          )
-          .toList();
-      expect(rows.map((r) => r.title), [for (final i in items) i.title]);
-    });
-
-    testWidgets('F68: 0 items, no strip [$lang]', (tester) async {
-      await _open(
-        tester,
-        lang,
-        posts: s.l1(),
+        posts: [s.gate()],
         me: DaybookSamples.omar,
         now: DaybookSamples.friday,
         calendar: [
@@ -917,8 +759,7 @@ void main() {
           ),
         ],
       );
-      expect(find.byType(BvDueTodayStrip), findsNothing);
-      expect(find.byKey(const Key('to-do-strip')), findsNothing);
+      expect(_needsYou, findsNothing);
     });
 
     testWidgets('V1: a Viewer reads only: no clips, no actions, the pass '

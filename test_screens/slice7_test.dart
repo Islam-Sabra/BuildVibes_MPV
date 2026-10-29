@@ -10,9 +10,7 @@ import 'package:buildvibes/data/models/template.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
-import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +22,7 @@ import '../test/helpers/pump_app.dart';
 import '../test/helpers/space_fakes.dart';
 import '../test/helpers/template_fakes.dart';
 import 'shot.dart';
+import 'work_gestures.dart';
 
 AppLocalizations _l10n(String lang) => lookupAppLocalizations(Locale(lang));
 
@@ -251,14 +250,11 @@ Future<void> _write(
   DaybookKind kind,
 ) async {
   await _tap(tester, _key('post-bar-notepad'));
-  await _tap(tester, _key('writing-kind-chip'));
-  await _tap(
-    tester,
-    find.descendant(
-      of: _key('writing-kind-menu'),
-      matching: find.text(kindName(l10n, kind)),
-    ),
-  );
+  // Review 105 SP2: the kind menu became one row of kind chips.
+  final chip = _key('kind-chip-$kind');
+  await tester.ensureVisible(chip);
+  await tester.pumpAndSettle();
+  await _tap(tester, chip);
 }
 
 void main() {
@@ -278,15 +274,11 @@ void main() {
       await _snap(tester, 'R2-daily-report', lang);
     });
 
-    testWidgets('Space menu with Daily report [$lang]', (tester) async {
-      await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
-      await _snap(tester, 'MN1-space-menu', lang);
-    });
+    // Review 105 Part 1: the Space menu (⋯) is gone; MN1 has no shot.
 
     testWidgets('the daily report while writing [$lang]', (tester) async {
       await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
+      await _tap(tester, _key('space-header'));
       await _tap(tester, find.text(l10n.dailyReportMenu));
       await tester.enterText(
         _key('report-on-site'),
@@ -307,7 +299,8 @@ void main() {
     testWidgets('the template picker [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.announcement);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      // Review 105 SP2: the bar's + holds the template.
+      await _tap(tester, _key('writing-add'));
       await _snap(tester, 'T0-more-template', lang);
       await _tap(tester, find.text(l10n.templateMenu));
       await _snap(tester, 'T1-template-picker', lang);
@@ -320,7 +313,8 @@ void main() {
     testWidgets('a checklist from a template [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.checklist);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      // Review 105 SP2: the bar's + holds the template.
+      await _tap(tester, _key('writing-add'));
       await _tap(tester, find.text(l10n.templateMenu));
       await _tap(tester, _key('template-$_pour'));
       FocusManager.instance.primaryFocus?.unfocus();
@@ -335,20 +329,15 @@ void main() {
         posts: [s.rebar()],
         now: DaybookSamples.thursday,
       );
-      await tester.longPress(
-        find
-            .descendant(
-              of: _key('daybook-card-post-rebar'),
-              matching: find.byType(BvSlip),
-            )
-            .first,
-      );
-      await tester.pumpAndSettle();
+      // Review 105 Part 2: a tap opens the item; Save as template is in
+      // its ⋯ (the hold menu is gone).
+      await openCard(tester, 'post-rebar');
+      await _tap(tester, _key('page-more'));
       await _snap(tester, 'T3-menu-save-as-template', lang);
       await _tap(
         tester,
         find.descendant(
-          of: _key('slip-menu'),
+          of: _key('page-more-menu'),
           matching: find.text(l10n.templateSave),
         ),
       );
@@ -357,8 +346,7 @@ void main() {
 
     testWidgets('Space info › Templates [$lang]', (tester) async {
       await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
-      await _tap(tester, find.text(l10n.spacesInfoTitle));
+      await _tap(tester, _key('space-header'));
       await tester.scrollUntilVisible(_key('info-templates'), 200);
       await _snap(tester, 'SI1-templates-row', lang);
       await _tap(tester, _key('info-templates'));

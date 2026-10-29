@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,8 +42,87 @@ abstract class PhoneReminders {
 }
 
 final phoneRemindersProvider = Provider<PhoneReminders>(
-  (ref) => LocalReminders(),
+  (ref) => RoutedReminders(
+    LocalReminders(),
+    onSpaceItem: ref.read(spaceReminderTapsProvider).add,
+  ),
 );
+
+/// A Space post's reminder (review 105 Part 2, the Reminder swipe): one
+/// person's phone notification, like a note's, under its own id.
+typedef SpaceReminder = ({String spaceId, String postId});
+
+const _spacePrefix = 'space-item:';
+
+/// The id a Space post's reminder is set under on the phone.
+String spaceReminderId(String spaceId, String postId) =>
+    '$_spacePrefix$spaceId:$postId';
+
+/// The Space post a reminder's id is for; null for a note's.
+SpaceReminder? spaceReminderOf(String id) {
+  if (!id.startsWith(_spacePrefix)) return null;
+  final rest = id.substring(_spacePrefix.length).split(':');
+  if (rest.length != 2 || rest.any((p) => p.isEmpty)) return null;
+  return (spaceId: rest[0], postId: rest[1]);
+}
+
+/// Taps on a Space post's reminder, while the app runs or opening it.
+final spaceReminderTapsProvider = Provider<StreamController<SpaceReminder>>((
+  ref,
+) {
+  final taps = StreamController<SpaceReminder>.broadcast();
+  ref.onDispose(taps.close);
+  return taps;
+});
+
+/// The phone's reminders, with a Space post's taps sent to [onSpaceItem]
+/// (its card) instead of My notebook's.
+class RoutedReminders implements PhoneReminders {
+  RoutedReminders(this._inner, {required this.onSpaceItem});
+
+  final PhoneReminders _inner;
+  final void Function(SpaceReminder item) onSpaceItem;
+
+  @override
+  Future<void> init({
+    required String channel,
+    required String channelAbout,
+    required void Function(String noteId) onTap,
+  }) => _inner.init(
+    channel: channel,
+    channelAbout: channelAbout,
+    onTap: (id) {
+      final item = spaceReminderOf(id);
+      item == null ? onTap(id) : onSpaceItem(item);
+    },
+  );
+
+  @override
+  Future<String?> launchedBy() async {
+    final id = await _inner.launchedBy();
+    final item = id == null ? null : spaceReminderOf(id);
+    if (item == null) return id;
+    onSpaceItem(item);
+    return null;
+  }
+
+  @override
+  Future<void> set(
+    String noteId, {
+    required DateTime at,
+    required String title,
+    required String body,
+  }) => _inner.set(noteId, at: at, title: title, body: body);
+
+  @override
+  Future<void> cancel(String noteId) => _inner.cancel(noteId);
+
+  @override
+  Future<bool> canBeExact() => _inner.canBeExact();
+
+  @override
+  Future<void> openExactSetting() => _inner.openExactSetting();
+}
 
 /// A note's reminder id on the phone: a stable 31-bit number from its id
 /// (FNV-1a), the same on every start.

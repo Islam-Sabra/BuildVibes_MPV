@@ -3853,6 +3853,10 @@
   "@daybookWorkItem": {
     "description": "Post bar notepad (glossary)."
   },
+  "daybookWriteInSpace": "Write in this Space",
+  "@daybookWriteInSpace": {
+    "description": "Review 105 J4 (SP1): the words in Work's post bar. An opened item's bar keeps \"Add update\"."
+  },
   "daybookReadOnly": "Read only",
   "@daybookReadOnly": {
     "description": "Viewer post bar, after the pass chip (V1)."
@@ -4021,10 +4025,6 @@
   "daybookSignAsDone": "Sign as done",
   "@daybookSignAsDone": {
     "description": "The action pill on the owner's open work item slip (camera icon). Glossary."
-  },
-  "daybookHoldToProve": "Hold to prove",
-  "@daybookHoldToProve": {
-    "description": "Read out for the post bar's camera: holding it signs your open work item as done with a photo."
   },
   "daybookCheck": "Check",
   "@daybookCheck": {
@@ -8076,5 +8076,204 @@
         "type": "int"
       }
     }
+  },
+  "spacesPeopleWaiting": "join requests waiting",
+  "@spacesPeopleWaiting": {
+    "description": "Review 105 Part 1: read after People when its dot shows."
+  },
+  "spacesInfoWorkTools": "Work",
+  "@spacesInfoWorkTools": {
+    "description": "Review 105 Part 1: Space info's group holding what the Space's ⋯ held (walk, week report, daily report)."
+  },
+  "daybookKindWalk": "Walk",
+  "@daybookKindWalk": {
+    "description": "Review 105 H3: the writing card's last kind chip, Walk (one photo, one work item, keep walking); shown to who may post work."
+  },
+  "daybookDuplicateDraftFirst": "Post or discard the card you're writing first.",
+  "@daybookDuplicateDraftFirst": {
+    "description": "Review 105 SP6: Duplicate while another card is being written."
+  },
+  "daybookDeleteTitle": "{count, plural, =1{Delete this post?} other{Delete {count} posts?}}",
+  "@daybookDeleteTitle": {
+    "description": "Review 105 SP6: confirm Delete from the hold bar.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookDeleteBody": "It goes from Work for everyone in this Space.",
+  "@daybookDeleteBody": {
+    "description": "Review 105 SP6: what Delete does."
+  },
+  "daybookDeleteKept": "{count, plural, =1{Someone has added to one, so it stays. Open it to cancel it.} other{Someone has added to {count}, so they stay. Open each to cancel it.}}",
+  "@daybookDeleteKept": {
+    "description": "Review 105 SP6: posts the server kept because others added to them.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookWritingDetails": "Add details.",
+  "@daybookWritingDetails": {
+    "description": "Review 105 SP2: the words' hint on a work item being written, under its title."
+  },
+  "daybookRowFor": "For",
+  "@daybookRowFor": {
+    "description": "Review 105 SP2: the For row's word (who the work item, checklist or activity is for)."
+  },
+  "daybookRowPlace": "Place",
+  "@daybookRowPlace": {
+    "description": "Review 105 SP2: the Place row's word."
+  },
+  "daybookRowDue": "Due",
+  "@daybookRowDue": {
+    "description": "Review 105 SP2: the Due row's word."
+  },
+  "daybookRowWhen": "When",
+  "@daybookRowWhen": {
+    "description": "Review 105 SP2: a scheduled activity's time row."
+  },
+  "daybookRowTeam": "Team",
+  "@daybookRowTeam": {
+    "description": "Review 105 SP2: the Team row's word."
+  },
+  "daybookRowChoose": "Choose",
+  "@daybookRowChoose": {
+    "description": "Review 105 SP2: a row nobody is chosen for yet."
+  },
+  "daybookRowAdd": "Add",
+  "@daybookRowAdd": {
+    "description": "Review 105 SP2: a row with nothing set yet (place, due, time)."
+  },
+  "daybookWholeSpace": "Whole Space",
+  "@daybookWholeSpace": {
+    "description": "Review 105 SP2: the Team row before a Team is chosen."
+  },
+  "daybookNeedYou": "{n, plural, =1{1 needs you} other{{n} need you}}",
+  "@daybookNeedYou": {
+    "description": "Review 105 Part 6: the Needs you line at the top of Work, what waits on me. Western digits.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookNeedYouDue": "· {n} due today",
+  "@daybookNeedYouDue": {
+    "description": "Review 105 Part 6: after the Needs you count, what is due today. Western digits.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daybookNeedYouShowAll": "Show everything",
+  "@daybookNeedYouShowAll": {
+    "description": "Review 105 Part 6: read out on the Needs you line while it filters Work."
+  },
+  "proofMomentTitle": "Added to your proof of work",
+  "@proofMomentTitle": {
+    "description": "Review 105 Part 7: the card the owner sees once when their work item is Checked."
+  },
+  "proofMomentBy": "Checked by {name} · {time}",
+  "@proofMomentBy": {
+    "description": "Review 105 Part 7: who checked it and when.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "proofMomentView": "View",
+  "@proofMomentView": {
+    "description": "Review 105 Part 7: opens my proof of work."
+  },
+  "peopleInThisSpace": "IN THIS SPACE",
+  "@peopleInThisSpace": {
+    "description": "Review 105 SP8: the members' section in People."
+  },
+  "peopleNeedsYouRequests": "NEEDS YOU · JOIN REQUEST",
+  "@peopleNeedsYouRequests": {
+    "description": "Review 105 SP8: the join requests' section on top of People."
+  },
+  "peopleConfirm": "Confirm",
+  "@peopleConfirm": {
+    "description": "Review 105 SP8: a join request's Confirm; it asks for the pass."
+  },
+  "daybookCameraLabel": "Camera",
+  "@daybookCameraLabel": {
+    "description": "Review 105 H1: what a screen reader says for the post bar's camera (a tap opens the camera; nothing on a hold)."
+  },
+  "daybookDeleteFailed": "Couldn't delete {titles}. Try again.",
+  "@daybookDeleteFailed": {
+    "description": "Review 105 H5: after Delete of several posts, the ones that couldn't be deleted (no signal), by title, joined with ·.",
+    "placeholders": {
+      "titles": {
+        "type": "String"
+      }
+    }
+  },
+  "pinnedFold": "Fold",
+  "@pinnedFold": {
+    "description": "Review 105 H2: what a screen reader says for a pinned announcement's ⌄ (folds it to one line)."
+  },
+  "pinnedUnfold": "Show in full",
+  "@pinnedUnfold": {
+    "description": "Review 105 H2: what a screen reader says for a folded pinned announcement's › (shows it in full)."
+  },
+  "workPin": "Pin",
+  "@workPin": {
+    "description": "Review 105 H8: Work's swipe action Pin (from 105B)."
+  },
+  "workArchive": "Archive",
+  "@workArchive": {
+    "description": "Review 105 H8: Work's swipe action Archive, a Lead on a Checked item (from 105B)."
+  },
+  "workReminder": "Reminder",
+  "@workReminder": {
+    "description": "Review 105 H8: Work's swipe action Reminder (the phone's own notification)."
+  },
+  "workChangeReminder": "Change reminder",
+  "@workChangeReminder": {
+    "description": "Review 105 H8: Work's swipe action when a reminder is already set."
+  },
+  "workShare": "Share",
+  "@workShare": {
+    "description": "Review 105 H8: the selection bar's Share in Work (from 105B)."
+  },
+  "workDuplicate": "Duplicate",
+  "@workDuplicate": {
+    "description": "Review 105 H8: the selection bar's Duplicate in Work."
+  },
+  "workRemindPast": "Pick a time still to come.",
+  "@workRemindPast": {
+    "description": "Review 105 H8: a Work reminder picked in the past."
+  },
+  "workReminderLine": "Reminder · {when}",
+  "@workReminderLine": {
+    "description": "Review 105 H8: after a Work reminder is set: when it goes off.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "workSelected": "{count} selected",
+  "@workSelected": {
+    "description": "Review 105 H8: the Space header while Work cards are held.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workCloseSelection": "Stop selecting",
+  "@workCloseSelection": {
+    "description": "Review 105 H8: what a screen reader says for the Space header's ✕ while cards are held."
   }
 }

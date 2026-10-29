@@ -101,6 +101,7 @@ class DaybookSamples {
     SpacePass pass = SpacePass.lead,
     bool admin = true,
     DateTime? siteStart,
+    bool addFiles = false,
   }) => SpaceDetail(
     id: space,
     name: spaceName,
@@ -112,6 +113,7 @@ class DaybookSamples {
       createItems: pass != SpacePass.viewer,
       invite: admin,
       markDone: pass != SpacePass.viewer,
+      addFiles: addFiles,
     ),
     siteStartDate: siteStart ?? DaybookSamples.siteStart,
   );

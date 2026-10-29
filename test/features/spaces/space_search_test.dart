@@ -124,10 +124,8 @@ void main() {
       _router(tester).push('/spaces/$_space');
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('space-search')), findsOneWidget);
-      await _tap(tester, 'space-more');
-      expect(find.text(l10n.searchMenu), findsNothing);
-      await tester.tapAt(Offset.zero);
-      await tester.pumpAndSettle();
+      // Review 105 Part 1: no ⋯ at all.
+      expect(find.byKey(const Key('space-more')), findsNothing);
       await _tap(tester, 'space-search');
       expect(find.byType(SpaceSearchScreen), findsOneWidget);
       expect(find.text(l10n.searchHint), findsOneWidget);

@@ -6,7 +6,8 @@ import '../../core/design/daybook_days_specs.dart';
 import 'bv_tap_target.dart';
 
 /// The bar under the Daybook (spec §8): a notepad that starts writing in
-/// place, and the camera ("hold to prove"). For a Viewer pass,
+/// place, and the camera (a tap only: a signature is never on a hold, the
+/// lead's check of 105A, H1). For a Viewer pass,
 /// [BvPostBar.viewer] shows the pass and "Read only" instead.
 class BvPostBar extends StatelessWidget {
   const BvPostBar({
@@ -14,7 +15,6 @@ class BvPostBar extends StatelessWidget {
     required String this.placeholder,
     this.onWrite,
     this.onCamera,
-    this.onProve,
     this.cameraLabel,
     this.field,
     this.end,
@@ -30,7 +30,6 @@ class BvPostBar extends StatelessWidget {
   }) : placeholder = null,
        onWrite = null,
        onCamera = null,
-       onProve = null,
        cameraLabel = null,
        field = null,
        end = null;
@@ -41,9 +40,6 @@ class BvPostBar extends StatelessWidget {
 
   /// Tap the camera.
   final VoidCallback? onCamera;
-
-  /// Hold the camera: prove.
-  final VoidCallback? onProve;
 
   /// What a screen reader says for the camera button.
   final String? cameraLabel;
@@ -168,7 +164,6 @@ class BvPostBar extends StatelessWidget {
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
                       onTap: onCamera,
-                      onLongPress: onProve,
                       child: const SizedBox.square(
                         dimension: BvPostBarSpec.cameraSize,
                         child: Icon(

@@ -6,7 +6,6 @@
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/data/models/library.dart';
-import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -126,14 +125,8 @@ void main() {
     ) async {
       await _open(tester, lang);
       await _tap(tester, _key('post-bar-notepad'));
-      await _tap(tester, _key('writing-kind-chip'));
-      await _tap(
-        tester,
-        find.descendant(
-          of: _key('writing-kind-menu'),
-          matching: find.text(kindName(l10n, DaybookKind.note)),
-        ),
-      );
+      // Review 105 SP2: the kind menu became one row of kind chips.
+      await _tap(tester, _key('kind-chip-${DaybookKind.note}'));
       await tester.enterText(_key('writing-title'), s.handoverTitle);
       await tester.pumpAndSettle();
       await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));

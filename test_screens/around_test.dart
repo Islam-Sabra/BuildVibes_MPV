@@ -43,7 +43,7 @@ import 'package:buildvibes/features/profile/profile_screen.dart';
 import 'package:buildvibes/features/settings/notifications_screen.dart';
 import 'package:buildvibes/features/settings/push_host.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
-import 'package:buildvibes/features/spaces/space_screen.dart';
+import 'package:buildvibes/features/spaces/space_sections.dart';
 import 'package:buildvibes/features/profile/settings_screen.dart';
 import 'package:buildvibes/core/config/build_info.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
@@ -227,9 +227,8 @@ void main() {
         tester,
         'SP1-space-people',
         lang,
-        (_) => const Pushed(
-          SpaceScreen(spaceId: DaybookSamples.space, open: SpaceOpen.people),
-        ),
+        // Review 105 J3: People is its own screen over the Space now.
+        (_) => const Pushed(SpacePeopleScreen(spaceId: DaybookSamples.space)),
         overrides: [
           ...await _base(me: DaybookSamples.islam),
           spaceRepositoryProvider.overrideWithValue(spaces),

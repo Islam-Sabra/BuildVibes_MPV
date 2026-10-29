@@ -104,34 +104,22 @@ abstract final class BvFirstPageSpec {
   static const actionIcon = 18.0;
 }
 
-/// The To do strip under the masthead (review 50 F68): one light line,
-/// as a folded announcement is drawn (review 61 G1), 20 from the start as
-/// the masthead.
-abstract final class BvDueTodaySpec {
-  /// The docket (review 50 F68b, 2604:36389): 16 from the screen's edges,
-  /// 8 under it, 62 high.
-  static const outer = EdgeInsetsDirectional.only(
-    start: BvSpace.s16,
-    end: BvSpace.s16,
-    bottom: BvSpace.s8,
+/// Review 105 Part 6 (SP1 2666:38504): the Needs you line at the top of
+/// Work.
+abstract final class BvNeedsYouSpec {
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.toast));
+  static const padding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s12,
+    vertical: BvSpace.s12,
   );
-  static const minHeight = 62.0;
-  static const radius = BorderRadius.all(Radius.circular(BvRadius.photo)); // 8
+  static const gap = BvSpace.s8;
+  static const icon = BvSize.iconMd;
 
-  /// The stub at the start, the icon in its middle.
-  static const stubWidth = 48.0;
-  static const icon = BvSize.iconMd; // 20
-
-  /// The dashed perforation between the stub and the body.
-  static const dash = 3.0;
-  static const dashGap = 3.0;
-
-  /// The body: two lines, 12 from the perforation.
-  static const bodyPaddingStart = BvSpace.s12;
-  static const bodyPaddingVertical = 10.0;
-  static const lineGap = BvSpace.s2;
-
-  /// The caret's place at the end: 30 wide.
-  static const caretWidth = 30.0;
-  static const caret = BvSize.iconSm; // 16
+  /// Around it, under the masthead.
+  static const outer = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.gutter,
+    BvSpace.s8,
+    BvSpace.gutter,
+    0,
+  );
 }

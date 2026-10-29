@@ -57,6 +57,7 @@ import '../../features/spaces/my_spaces_screen.dart';
 import '../../features/spaces/new_space_screen.dart';
 import '../../features/spaces/new_team_screen.dart';
 import '../../features/spaces/space_info_screen.dart';
+import '../../features/spaces/space_sections.dart';
 import '../../features/spaces/space_screen.dart';
 import '../../features/work/daybook_target.dart';
 import '../../features/chat/thread_screen.dart';
@@ -360,6 +361,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'info',
             builder: (context, state) =>
                 SpaceInfoScreen(spaceId: state.pathParameters['id']!),
+          ),
+          _Screen(
+            path: 'people',
+            builder: (context, state) =>
+                SpacePeopleScreen(spaceId: state.pathParameters['id']!),
+          ),
+          _Screen(
+            path: 'library',
+            builder: (context, state) =>
+                SpaceLibraryScreen(spaceId: state.pathParameters['id']!),
           ),
           _Screen(
             path: 'transfer',

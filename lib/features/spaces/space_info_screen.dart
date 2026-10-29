@@ -26,6 +26,7 @@ import '../work/daybook_templates.dart' show mayManageTemplates;
 import 'invite_screen.dart' show renewInviteCode;
 import 'new_space_screen.dart';
 import 'pass_words.dart';
+import 'space_sections.dart' show SpaceInfoAction;
 import 'space_errors.dart';
 import 'space_mute.dart';
 
@@ -279,6 +280,27 @@ class SpaceInfoScreen extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: BvInfoSpec.groupGap),
+          // Review 105 Part 1: what the Space's ⋯ held, now that the name
+          // opens this: the week report, and the daily report for a Lead
+          // or Crew, opened on Work. Walk mode is in the camera, one tap
+          // from Work (the lead's rulings on 105A).
+          BvInfoGroup(
+            label: l10n.spacesInfoWorkTools,
+            rows: [
+              BvInfoRow(
+                key: const Key('info-week'),
+                title: l10n.weekReportTitle,
+                onTap: () => context.push(AppRoutes.spaceWeekReport(spaceId)),
+              ),
+              if (space.mayPostWork)
+                BvInfoRow(
+                  key: const Key('info-report'),
+                  title: l10n.dailyReportMenu,
+                  onTap: () => context.pop(SpaceInfoAction.dailyReport),
+                ),
+            ],
           ),
           const SizedBox(height: BvInfoSpec.groupGap),
           BvInfoGroup(

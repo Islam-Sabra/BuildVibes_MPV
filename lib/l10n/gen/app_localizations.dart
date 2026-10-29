@@ -4592,6 +4592,12 @@ abstract class AppLocalizations {
   /// **'Work item'**
   String get daybookWorkItem;
 
+  /// Review 105 J4 (SP1): the words in Work's post bar. An opened item's bar keeps "Add update".
+  ///
+  /// In en, this message translates to:
+  /// **'Write in this Space'**
+  String get daybookWriteInSpace;
+
   /// Viewer post bar, after the pass chip (V1).
   ///
   /// In en, this message translates to:
@@ -4789,12 +4795,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign as done'**
   String get daybookSignAsDone;
-
-  /// Read out for the post bar's camera: holding it signs your open work item as done with a photo.
-  ///
-  /// In en, this message translates to:
-  /// **'Hold to prove'**
-  String get daybookHoldToProve;
 
   /// Long-press menu on someone's proof (B1).
   ///
@@ -9451,6 +9451,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
   String timeClockMinutes(int count);
+
+  /// Review 105 Part 1: read after People when its dot shows.
+  ///
+  /// In en, this message translates to:
+  /// **'join requests waiting'**
+  String get spacesPeopleWaiting;
+
+  /// Review 105 Part 1: Space info's group holding what the Space's ⋯ held (walk, week report, daily report).
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get spacesInfoWorkTools;
+
+  /// Review 105 H3: the writing card's last kind chip, Walk (one photo, one work item, keep walking); shown to who may post work.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk'**
+  String get daybookKindWalk;
+
+  /// Review 105 SP6: Duplicate while another card is being written.
+  ///
+  /// In en, this message translates to:
+  /// **'Post or discard the card you\'re writing first.'**
+  String get daybookDuplicateDraftFirst;
+
+  /// Review 105 SP6: confirm Delete from the hold bar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this post?} other{Delete {count} posts?}}'**
+  String daybookDeleteTitle(int count);
+
+  /// Review 105 SP6: what Delete does.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes from Work for everyone in this Space.'**
+  String get daybookDeleteBody;
+
+  /// Review 105 SP6: posts the server kept because others added to them.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Someone has added to one, so it stays. Open it to cancel it.} other{Someone has added to {count}, so they stay. Open each to cancel it.}}'**
+  String daybookDeleteKept(int count);
+
+  /// Review 105 SP2: the words' hint on a work item being written, under its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details.'**
+  String get daybookWritingDetails;
+
+  /// Review 105 SP2: the For row's word (who the work item, checklist or activity is for).
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get daybookRowFor;
+
+  /// Review 105 SP2: the Place row's word.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get daybookRowPlace;
+
+  /// Review 105 SP2: the Due row's word.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get daybookRowDue;
+
+  /// Review 105 SP2: a scheduled activity's time row.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get daybookRowWhen;
+
+  /// Review 105 SP2: the Team row's word.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get daybookRowTeam;
+
+  /// Review 105 SP2: a row nobody is chosen for yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get daybookRowChoose;
+
+  /// Review 105 SP2: a row with nothing set yet (place, due, time).
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get daybookRowAdd;
+
+  /// Review 105 SP2: the Team row before a Team is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole Space'**
+  String get daybookWholeSpace;
+
+  /// Review 105 Part 6: the Needs you line at the top of Work, what waits on me. Western digits.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 needs you} other{{n} need you}}'**
+  String daybookNeedYou(int n);
+
+  /// Review 105 Part 6: after the Needs you count, what is due today. Western digits.
+  ///
+  /// In en, this message translates to:
+  /// **'· {n} due today'**
+  String daybookNeedYouDue(int n);
+
+  /// Review 105 Part 6: read out on the Needs you line while it filters Work.
+  ///
+  /// In en, this message translates to:
+  /// **'Show everything'**
+  String get daybookNeedYouShowAll;
+
+  /// Review 105 Part 7: the card the owner sees once when their work item is Checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your proof of work'**
+  String get proofMomentTitle;
+
+  /// Review 105 Part 7: who checked it and when.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked by {name} · {time}'**
+  String proofMomentBy(String name, String time);
+
+  /// Review 105 Part 7: opens my proof of work.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get proofMomentView;
+
+  /// Review 105 SP8: the members' section in People.
+  ///
+  /// In en, this message translates to:
+  /// **'IN THIS SPACE'**
+  String get peopleInThisSpace;
+
+  /// Review 105 SP8: the join requests' section on top of People.
+  ///
+  /// In en, this message translates to:
+  /// **'NEEDS YOU · JOIN REQUEST'**
+  String get peopleNeedsYouRequests;
+
+  /// Review 105 SP8: a join request's Confirm; it asks for the pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get peopleConfirm;
+
+  /// Review 105 H1: what a screen reader says for the post bar's camera (a tap opens the camera; nothing on a hold).
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get daybookCameraLabel;
+
+  /// Review 105 H5: after Delete of several posts, the ones that couldn't be deleted (no signal), by title, joined with ·.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete {titles}. Try again.'**
+  String daybookDeleteFailed(String titles);
+
+  /// Review 105 H2: what a screen reader says for a pinned announcement's ⌄ (folds it to one line).
+  ///
+  /// In en, this message translates to:
+  /// **'Fold'**
+  String get pinnedFold;
+
+  /// Review 105 H2: what a screen reader says for a folded pinned announcement's › (shows it in full).
+  ///
+  /// In en, this message translates to:
+  /// **'Show in full'**
+  String get pinnedUnfold;
+
+  /// Review 105 H8: Work's swipe action Pin (from 105B).
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get workPin;
+
+  /// Review 105 H8: Work's swipe action Archive, a Lead on a Checked item (from 105B).
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get workArchive;
+
+  /// Review 105 H8: Work's swipe action Reminder (the phone's own notification).
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get workReminder;
+
+  /// Review 105 H8: Work's swipe action when a reminder is already set.
+  ///
+  /// In en, this message translates to:
+  /// **'Change reminder'**
+  String get workChangeReminder;
+
+  /// Review 105 H8: the selection bar's Share in Work (from 105B).
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get workShare;
+
+  /// Review 105 H8: the selection bar's Duplicate in Work.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get workDuplicate;
+
+  /// Review 105 H8: a Work reminder picked in the past.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time still to come.'**
+  String get workRemindPast;
+
+  /// Review 105 H8: after a Work reminder is set: when it goes off.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder · {when}'**
+  String workReminderLine(String when);
+
+  /// Review 105 H8: the Space header while Work cards are held.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String workSelected(int count);
+
+  /// Review 105 H8: what a screen reader says for the Space header's ✕ while cards are held.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop selecting'**
+  String get workCloseSelection;
 }
 
 class _AppLocalizationsDelegate

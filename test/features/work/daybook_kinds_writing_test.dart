@@ -15,6 +15,7 @@ import 'package:buildvibes/shared/widgets/bv_faces.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,7 +62,7 @@ Future<_App> _open(
 }) async {
   final s = DaybookSamples(lang);
   final spaces = FakeSpaceRepository()
-    ..details[DaybookSamples.space] = s.detail()
+    ..details[DaybookSamples.space] = s.detail(addFiles: true)
     ..spacePeople[DaybookSamples.space] = s.people();
   final daybook = FakeDaybookRepository()
     ..posts[DaybookSamples.space] = [s.rebar()];
@@ -99,28 +100,32 @@ Future<_App> _open(
 }
 
 Future<void> _tap(WidgetTester tester, Finder f) async {
+  // Review 105 SP2: the card is taller (kinds and rows): scroll to it.
+  await tester.ensureVisible(f);
+  await tester.pumpAndSettle();
   await tester.tap(f);
   await tester.pumpAndSettle();
 }
 
-/// Opens a card, picks [kind] from the kind chip's menu (E6) and types
-/// [title].
+/// Opens a card, picks [kind] from the kind chips (review 105 SP2) and
+/// types [title]. A file post starts from the Library's Add a file, its
+/// file chooser open.
 Future<void> _write(
   WidgetTester tester,
   AppLocalizations l10n,
   DaybookKind kind,
   String title,
 ) async {
-  await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-  await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-  expect(find.byKey(const Key('writing-kind-menu')), findsOneWidget);
-  await _tap(
-    tester,
-    find.descendant(
-      of: find.byKey(const Key('writing-kind-menu')),
-      matching: find.text(kindName(l10n, kind)),
-    ),
-  );
+  if (kind == DaybookKind.file) {
+    await _tap(tester, find.byKey(const Key('space-library')));
+    await _tap(tester, find.byKey(const Key('library-add-file')));
+  } else {
+    await _tap(tester, find.byKey(const Key('post-bar-notepad')));
+    final chip = find.byKey(Key('kind-chip-$kind'));
+    await tester.ensureVisible(chip);
+    await tester.pumpAndSettle();
+    await _tap(tester, chip);
+  }
   if (title.isNotEmpty) {
     await tester.enterText(find.byKey(const Key('writing-title')), title);
     await tester.pumpAndSettle();
@@ -143,30 +148,31 @@ void main() {
     final l10n = _l10n(lang);
     final s = DaybookSamples(lang);
 
-    testWidgets('E6 v14: the kind chip opens one single choice of six, the '
-        'one being written checked [$lang]', (tester) async {
+    testWidgets('review 105 SP2: the kinds are one choice of five chips '
+        '(then Walk), the one being written chosen [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-      await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-      final menu = tester.widget<BvPopoverMenu<DaybookKind>>(
-        find.byKey(const Key('writing-kind-menu')),
+      BvKindChips<Object> chips() => tester.widget<BvKindChips<Object>>(
+        find.byKey(const Key('writing-kinds')),
       );
-      expect(menu.picker, isTrue);
-      expect(menu.selected, DaybookKind.workItem);
-      expect([for (final i in menu.items) i.value], DaybookKind.values);
-      await _tap(tester, find.text(l10n.daybookKindAnnouncement));
+      expect(chips().selected, DaybookKind.workItem);
+      // The five kinds, then Walk for who may post work (H3).
       expect(
-        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).kindLabel,
-        l10n.daybookKindAnnouncement,
+        [for (final c in chips().choices) c.value],
+        [...rowKinds, kindChipWalk],
       );
+      final chip = find.byKey(Key('kind-chip-${DaybookKind.announcement}'));
+      await tester.ensureVisible(chip);
+      await tester.pumpAndSettle();
+      await _tap(tester, chip);
+      expect(chips().selected, DaybookKind.announcement);
     });
 
     testWidgets('F40: a point typed letter by letter keeps its field, its '
         'focus and every letter [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.checklist, s.handoverTitle);
-      await tester.tap(_emptyPoint());
-      await tester.pumpAndSettle();
+      await _tap(tester, _emptyPoint());
       const words = 'Ceiling paint';
       Element? field;
       for (var i = 1; i <= words.length; i++) {
@@ -196,8 +202,7 @@ void main() {
         'point takes it out and goes back [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.checklist, s.handoverTitle);
-      await tester.tap(_emptyPoint());
-      await tester.pumpAndSettle();
+      await _tap(tester, _emptyPoint());
       tester.testTextInput.enterText('Doors');
       await tester.pump();
       await tester.testTextInput.receiveAction(TextInputAction.next);
@@ -291,7 +296,7 @@ void main() {
     testWidgets('an announcement pinned until a day [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      await _tap(tester, find.byKey(const Key('writing-add')));
       await _tap(tester, find.text(l10n.daybookPinUntil));
       expect(
         find.textContaining(
@@ -312,7 +317,7 @@ void main() {
       final words = DaybookWords(l10n, lang, use24: false);
       final now = DaybookSamples.thursday;
       await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      await _tap(tester, find.byKey(const Key('writing-add')));
       await _tap(tester, find.text(l10n.daybookPinUntil));
       final pin = find.byKey(const Key('writing-pin'));
       final noTime = l10n.daybookPinnedProperty(
@@ -324,7 +329,12 @@ void main() {
       );
       // No time yet: no ✕, and + Time.
       expect(find.byKey(const Key('writing-property-remove')), findsNothing);
-      await _tap(tester, find.text(l10n.daybookPinAddTime));
+      // Its start: the title's selection handle can sit over its middle.
+      final addTime = find.text(l10n.daybookPinAddTime);
+      await tester.ensureVisible(addTime);
+      await tester.pumpAndSettle();
+      await tester.tapAt(tester.getTopLeft(addTime) + const Offset(4, 4));
+      await tester.pumpAndSettle();
       final at = DateTime(2026, 10, 16, 14);
       final withTime = l10n.daybookPinnedProperty(words.pinnedShort(at, now));
       expect(
@@ -338,7 +348,8 @@ void main() {
         find.descendant(of: pin, matching: find.text(noTime)),
         findsOneWidget,
       );
-      await _tap(tester, find.text(l10n.daybookPinAddTime));
+      await tester.tapAt(tester.getTopLeft(addTime) + const Offset(4, 4));
+      await tester.pumpAndSettle();
       await _post(tester);
       expect(daybook.createdPosts.single.pinnedUntil, at);
     });
@@ -354,7 +365,7 @@ void main() {
       );
       final words = DaybookWords(l10n, lang, use24: false);
       await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+      await _tap(tester, find.byKey(const Key('writing-add')));
       await _tap(tester, find.text(l10n.daybookPinUntil));
       final today = l10n.daybookPinnedProperty(
         words.pinnedShort(DateTime(2026, 10, 16), DaybookSamples.thursday),
@@ -373,12 +384,10 @@ void main() {
         'from a single choice [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.announcement, s.halfDay);
+      // Review 105 SP2: the Team row, the whole Space first.
       final to = find.byKey(const Key('writing-to'));
       expect(
-        find.descendant(
-          of: to,
-          matching: find.text(l10n.daybookToAudience(l10n.daybookEveryone)),
-        ),
+        find.descendant(of: to, matching: find.text(l10n.daybookWholeSpace)),
         findsOneWidget,
       );
       // Review 79 A2: the caret is the mirrored icon, never a character.
@@ -386,12 +395,7 @@ void main() {
         find.descendant(of: to, matching: find.byIcon(BvIcons.caretForward)),
         findsOneWidget,
       );
-      await tester.ensureVisible(to);
-      await tester.pumpAndSettle();
-      await _tap(
-        tester,
-        find.descendant(of: to, matching: find.byIcon(BvIcons.team)),
-      );
+      await _tap(tester, to);
       final menu = tester.widget<BvPopoverMenu<String>>(
         find.byKey(const Key('writing-to-menu')),
       );
@@ -409,7 +413,10 @@ void main() {
           matching: find.text(mep.name),
         ),
       );
-      expect(find.text(l10n.daybookToAudience(mep.name)), findsOneWidget);
+      expect(
+        find.descendant(of: to, matching: find.text(mep.name)),
+        findsOneWidget,
+      );
       await _post(tester);
       final sent = daybook.createdPosts.single;
       expect(sent.teamId, mep.id);
@@ -422,7 +429,13 @@ void main() {
     ) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      expect(find.text(l10n.daybookComingChoose), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('writing-who')),
+          matching: find.text(l10n.daybookRowChoose),
+        ),
+        findsOneWidget,
+      );
       await _who(tester);
       await _pickPerson(tester, s.saraName);
       await _tap(tester, find.byKey(const Key('people-done')));
@@ -529,8 +542,12 @@ void main() {
       await _tap(tester, find.bySemanticsLabel(l10n.daybookAttachTitle));
       await _tap(tester, find.byKey(const Key('attach-file')));
       await _tap(tester, find.byKey(const Key('replaces-done')));
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.kindLabel, l10n.daybookKindNote);
+      expect(
+        tester
+            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
+            .selected,
+        DaybookKind.note,
+      );
       await _post(tester);
       final sent = daybook.createdPosts.single;
       expect(sent.kind, DaybookPost.noteKind);
@@ -692,8 +709,8 @@ void main() {
         'nothing posted [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
-      await _tap(tester, find.text(l10n.daybookPeople));
+      // Review 105 SP2: the For row.
+      await _who(tester);
       await _pickPerson(tester, s.omarName);
       // The chosen faces sit by Done, never a number.
       expect(
@@ -714,8 +731,7 @@ void main() {
         'nothing posted [$lang]', (tester) async {
       final (app: _, :daybook) = await _open(tester, lang);
       await _write(tester, l10n, DaybookKind.activity, s.siteWalk);
-      await _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
-      await _tap(tester, find.text(l10n.daybookPeople));
+      await _who(tester);
       await _pickPerson(tester, s.omarName);
       await _pickPerson(tester, s.saraName);
       await tester.drag(
@@ -737,7 +753,8 @@ void main() {
     final l10n = _l10n(lang);
     final s = DaybookSamples(lang);
 
-    for (final kind in DaybookKind.values) {
+    // A daily report starts from Space info, with its own tests.
+    for (final kind in [...rowKinds, DaybookKind.file]) {
       testWidgets('F39, F72: 📎 is the one way to add: Camera, Photos, a '
           'file from the phone and From the Library on a ${kind.json} '
           '[$lang]', (tester) async {
@@ -772,28 +789,12 @@ void main() {
       });
     }
 
-    testWidgets('F74: the kind menu says File, with no small line; the '
-        '⋯ menu adds no file (F72) [$lang]', (tester) async {
+    testWidgets('F74, review 105 SP2: File isn\'t a kind chip; a file post '
+        'starts from the Library [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-      await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-      final menu = find.byKey(const Key('writing-kind-menu'));
-      expect(
-        find.descendant(
-          of: menu,
-          matching: find.text(l10n.daybookKindDocument),
-        ),
-        findsOneWidget,
-      );
+      expect(find.byKey(Key('kind-chip-${DaybookKind.file}')), findsNothing);
       expect(l10n.daybookKindDocument, lang == 'en' ? 'File' : 'ملف');
-      // No description lines (F63).
-      expect(
-        tester
-            .widget<BvPopoverMenu<DaybookKind>>(menu)
-            .items
-            .every((i) => i.note == null),
-        isTrue,
-      );
     });
 
     for (final count in [2, DaybookPostDraft.filesMax]) {

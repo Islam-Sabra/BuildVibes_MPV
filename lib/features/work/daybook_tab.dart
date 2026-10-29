@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter/rendering.dart'
     show
         applyGrowthDirectionToAxisDirection,
@@ -19,7 +20,6 @@ import 'package:flutter/rendering.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/l10n/bidi.dart';
 import '../../core/design/daybook_loop_specs.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart';
@@ -28,7 +28,10 @@ import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import '../../core/l10n/bidi.dart';
+import '../../core/l10n/locale_controller.dart';
 import '../../core/push/push_state.dart';
+import '../../core/push/reminders.dart' show spaceReminderId;
 import '../../core/network/signal_state.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
@@ -44,7 +47,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_back_swipe.dart';
 import '../../shared/widgets/bv_day_divider.dart';
 import '../../shared/widgets/bv_daybook_masthead.dart';
-import '../../shared/widgets/bv_due_today_strip.dart';
+import '../../shared/widgets/bv_needs_you_line.dart';
 import '../../shared/widgets/bv_no_signal_strip.dart';
 import '../../shared/widgets/bv_first_page.dart';
 import '../../shared/widgets/bv_highlight.dart';
@@ -54,9 +57,12 @@ import '../../shared/widgets/bv_pinned_note.dart';
 import '../../shared/widgets/bv_dialog.dart';
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_popover_menu.dart'
-    show BvMenuItem, bvGlobalRect, showBvScreenMenu;
+    show BvMenuItem, showBvScreenMenu;
 import '../../shared/widgets/bv_post_bar.dart';
+import '../../shared/widgets/bv_proof_moment.dart';
+import '../../shared/widgets/bv_selection_bar.dart';
 import '../../shared/widgets/bv_sheet.dart';
+import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_trace_row.dart';
 import '../../shared/widgets/bv_writing_toolbar.dart';
 import '../../shared/widgets/bv_time_wheel.dart'
@@ -81,7 +87,9 @@ import 'daybook_target.dart';
 import 'daybook_templates.dart';
 import 'daybook_words.dart';
 import 'daybook_writing.dart';
+import 'work_gestures.dart';
 import 'work_outbox.dart';
+import '../notebook/notebook_page_screen.dart' show reminderWhen;
 
 /// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
 /// one line at the top, and under it the announcements pinned now (K1
@@ -221,6 +229,10 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Writing in place: the card is open with the keyboard's toolbar.
   var _writing = false;
 
+  /// Review 105 Part 6: Work shows only what waits on me (the Needs you
+  /// line was tapped).
+  var _needsMine = false;
+
   /// The card is a posted work item's, being edited (X1 Edit).
   var _editing = false;
   DaybookWritingMenu? _menu;
@@ -299,6 +311,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         unawaited(_refresh());
       },
     );
+    // Review 105 Part 7: my item just Checked, once.
+    ref.listenManual(daybookCardsProvider(_spaceId), (_, next) {
+      final cards = next.value;
+      if (cards != null) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _proofMoment(cards),
+        );
+      }
+    }, fireImmediately: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && widget.startWriting && widget.space.myRights.createItems) {
         _startWriting();
@@ -643,20 +664,98 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (shown != _shownDay) setState(() => _shownDay = shown);
   }
 
-  /// The docket's second line after the oldest title (F68b): its due, or
-  /// the earlier day it was due ("from Sun", grey), then how many more.
-  String _docketRest(
-    List<CalendarWorkItem> due,
-    DaybookWords words,
-    DateTime now,
-  ) {
+  /// Review 105 Part 7: when my work item is Checked, "Added to your proof
+  /// of work · Checked by … · time · View" for 4 s, on my phone only and
+  /// only once (the items it was shown for are kept on the phone, per
+  /// account). A check from days ago doesn't show it.
+  void _proofMoment(List<DaybookCard> cards) {
+    if (!mounted) return;
+    final me = ref.read(authUserIdProvider).value;
+    if (me == null) return;
+    final prefs = ref.read(sharedPreferencesProvider);
+    final key = '$_proofSeenKey:$me';
+    final seen = <String>{...?prefs.getStringList(key)};
+    final now = ref.read(clockProvider)();
+    final fresh = [
+      for (final c in cards)
+        if (c.post.isWorkItem &&
+            c.post.item?.ownerId == me &&
+            c.post.item?.status == WorkStatus.checked &&
+            !seen.contains(c.id))
+          if (c.proof?.outcome case final o?
+              when o.kind == DaybookOutcomeKind.checked &&
+                  o.byId != me &&
+                  o.at != null &&
+                  now.difference(o.at!) < BvProofMomentSpec.recent)
+            (card: c, outcome: o),
+    ];
+    if (fresh.isEmpty) return;
+    fresh.sort((a, b) => b.outcome.at!.compareTo(a.outcome.at!));
+    final latest = fresh.first;
+    unawaited(
+      prefs.setStringList(
+        key,
+        [
+          ...seen,
+          for (final f in fresh) f.card.id,
+        ].reversed.take(_proofSeenMax).toList(),
+      ),
+    );
     final l10n = AppLocalizations.of(context);
-    final first = due.first;
-    final earlier = words.stripDay(first.day, now);
-    final when = earlier == null
-        ? words.due(first.day, first.dueAt, now: now, late: false)
-        : l10n.daybookDocketFrom(earlier);
-    return ' · $when${l10n.daybookDocketRest(due.length - 1)}';
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    messenger.showSnackBar(
+      SnackBar(
+        duration: BvProofMomentSpec.duration,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        padding: EdgeInsets.zero,
+        content: BvProofMoment(
+          title: l10n.proofMomentTitle,
+          by: l10n.proofMomentBy(
+            personName(l10n, latest.outcome.byName),
+            words.time.clock(latest.outcome.at!),
+          ),
+          viewLabel: l10n.proofMomentView,
+          onView: () {
+            messenger.hideCurrentSnackBar();
+            // On the Profile tab: my proof of work there.
+            router.go(AppRoutes.profileDelivered);
+          },
+        ),
+      ),
+    );
+  }
+
+  static const _proofSeenKey = 'proof_moment_seen';
+  static const _proofSeenMax = 200;
+
+  /// The Needs you line tapped (review 105 Part 6): only what waits on me,
+  /// with older pages read until each of [waiting] is on the page (as the
+  /// old To do sheet listed them all, review 73 A1); again, everything.
+  Future<void> _toggleNeedsMine(Set<String> waiting) async {
+    final on = !_needsMine;
+    setState(() => _needsMine = on);
+    if (!on) return;
+    final provider = daybookCardsProvider(_spaceId);
+    final pages = ref.read(provider.notifier);
+    for (;;) {
+      final onPage = {
+        for (final c in ref.read(provider).value ?? const <DaybookCard>[]) c.id,
+      };
+      if (waiting.every(onPage.contains) ||
+          !pages.hasOlder ||
+          !await pages.loadOlder()) {
+        break;
+      }
+      if (!mounted) return;
+    }
   }
 
   /// The divider of the day the masthead names: the masthead says it.
@@ -770,6 +869,22 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ),
     );
     if (picked != null && mounted) await _jumpTo(picked);
+  }
+
+  /// The post bar's camera: the phone's camera at once, for a photo post
+  /// (the lead's ruling on H3, review 105). Walk is the writing card's
+  /// last kind chip.
+  Future<void> _camera() async {
+    _startWriting();
+    await _photos(_writer.addPhoto());
+  }
+
+  /// The Walk chip (H3): walk mode, as from the camera before. An empty
+  /// card is put down first; one with words stays a Draft.
+  Future<void> _walk() async {
+    final kept = ref.read(daybookDraftProvider(_spaceId));
+    if (kept == null || kept.isEmpty) _stopWriting();
+    await context.push(AppRoutes.spaceWalk(_spaceId));
   }
 
   /// Opens the card at "Now", with a new post id (or the Draft's).
@@ -1300,9 +1415,24 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       for (final i in dueToday)
         if (!signed.contains(i.postId) && (onPage[i.postId]?.isOpen ?? true)) i,
     ];
-    final strip = [
-      for (final i in due) (day: words.stripDay(i.day, now), title: i.title),
-    ];
+    // Review 105 Part 6: what waits on me, here and in what's due, and
+    // what of it is due today.
+    final waiting = {
+      for (final c in cards)
+        if (c.need != null &&
+            !signed.contains(c.id) &&
+            !c.post.cancelled &&
+            // Signed as done, it waits on the checker, not on me.
+            (c.need == DaybookNeed.toCheck || c.post.isOpen))
+          c.id,
+      for (final i in due) i.postId,
+    };
+    final dueNow = due.where((i) => i.day == today).length;
+    if (waiting.isEmpty && _needsMine) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _needsMine = false);
+      });
+    }
     if (_target != null && page.hasValue && !_revealing) {
       WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_reveal()));
     }
@@ -1334,6 +1464,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         now: now,
         card: card,
         signing: signing,
+        only: _needsMine ? waiting : null,
       ),
       // Pull down to try again.
       AsyncError() => RefreshIndicator(
@@ -1346,7 +1477,6 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       _ => const Center(child: CircularProgressIndicator()),
     };
     _openItems = canPost ? _toProve(cards, me, signing) : const [];
-    final prove = _openItems.firstOrNull;
     final cardDraft = _editing ? edit : draft;
     // At Now, and while writing, the masthead reads Today (F59); away from
     // Now it follows the day at the top of the page (F23).
@@ -1355,13 +1485,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
 
     // Review 100 B6: an iPhone's swipe from the edge does what ← does,
     // also while this screen holds Back for itself.
+    final selected = ref.watch(workSelectionProvider(_spaceId));
+    final selecting = selected.isNotEmpty && !_writing;
     return BvBackSwipe(
-      holding: _writing,
+      holding: _writing || selecting,
       child: PopScope(
-        canPop: !_writing,
+        canPop: !_writing && !selecting,
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) return;
-          _menu != null ? _setMenu(null) : _stopWriting();
+          if (selecting) {
+            ref.read(workSelectionProvider(_spaceId).notifier).clear();
+          } else {
+            _menu != null ? _setMenu(null) : _stopWriting();
+          }
         },
         child: ColoredBox(
           color: BvColors.surfaceApp,
@@ -1385,21 +1521,18 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   key: const Key('no-signal'),
                   text: l10n.noSignalStrip,
                 ),
-              if (due.isNotEmpty && !_writing)
-                BvDueTodayStrip(
-                  key: const Key('to-do-strip'),
-                  title: l10n.daybookDocketTitle(due.length),
-                  oldest: inOwnDirection(due.first.title),
-                  rest: _docketRest(due, words, now),
-                  // Review 73 A1: every item, each opening its card.
-                  onTap: () => showBvToDoSheet(
-                    context,
-                    title: l10n.daybookToDo,
-                    items: strip,
-                    onOpen: (n) {
-                      if (!mounted) return;
-                      setState(() => _target = DaybookTarget(due[n].postId));
-                    },
+              // Review 105 Part 6: "3 need you · 2 due today ›"; a tap shows
+              // only what waits on me, again everything.
+              if (waiting.isNotEmpty && !_writing)
+                Padding(
+                  padding: BvNeedsYouSpec.outer,
+                  child: BvNeedsYouLine(
+                    key: const Key('needs-you'),
+                    need: l10n.daybookNeedYou(waiting.length),
+                    due: dueNow == 0 ? null : l10n.daybookNeedYouDue(dueNow),
+                    on: _needsMine,
+                    offLabel: l10n.daybookNeedYouShowAll,
+                    onTap: () => unawaited(_toggleNeedsMine(waiting)),
                   ),
                 ),
               // Pinned announcements stay under the masthead while pinned
@@ -1415,7 +1548,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 child: LayoutBuilder(
                   builder: (context, constraints) => Stack(
                     children: [
-                      Positioned.fill(child: body),
+                      // One card swiped open at a time; a scroll closes it.
+                      Positioned.fill(child: BvSwipeGroup(child: body)),
                       if (_newBelow && !_writing)
                         PositionedDirectional(
                           start: 0,
@@ -1486,7 +1620,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                   ),
                 ),
               ),
-              if (!canPost)
+              // Review 105 SP6: while cards are held, what can be done with
+              // them takes the post bar's place.
+              if (selecting)
+                _selectionBar(
+                  [for (final c in cards) c.post, ..._pinned(cards, now)],
+                  selected,
+                  me: me,
+                )
+              else if (!canPost)
                 BvPostBar.viewer(
                   passLabel: passName(l10n, space.myPass),
                   passTone: passTone(space.myPass),
@@ -1497,24 +1639,47 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                       : null,
                 )
               else if (_writing)
-                BvWritingToolbar(
-                  cameraLabel: l10n.daybookCamera,
-                  // An edit keeps its photos (slice 5 opens a post in place).
-                  onCamera: _editing
-                      ? null
-                      : () => unawaited(_photos(_writer.addPhoto())),
-                  attachLabel: l10n.daybookAttachTitle,
-                  onAttach: _editing ? null : () => unawaited(_attach()),
-                  moreLabel: l10n.daybookMore,
-                  // A note has nothing more to set (F58).
-                  onMore: cardDraft?.kind == DaybookKind.note
-                      ? null
-                      : () => _setMenu(
-                          _menu == DaybookWritingMenu.more
-                              ? null
-                              : DaybookWritingMenu.more,
-                        ),
-                  moreActive: _menu == DaybookWritingMenu.more,
+                // Review 105 SP2: the notebook's bar, + · camera · attach,
+                // then Send; no mic until posts hold voice notes (ruling
+                // Q4). + holds what the rows don't (a template, the pin).
+                BvWritingToolbar.tools(
+                  tools: [
+                    BvWritingTool(
+                      key: const Key('writing-add'),
+                      icon: BvIcons.add,
+                      label: l10n.daybookMore,
+                      onTap:
+                          writingHasMore(
+                            ref,
+                            _spaceId,
+                            cardDraft,
+                            editing: _editing,
+                          )
+                          ? () => _setMenu(
+                              _menu == DaybookWritingMenu.more
+                                  ? null
+                                  : DaybookWritingMenu.more,
+                            )
+                          : null,
+                      active: _menu == DaybookWritingMenu.more,
+                    ),
+                    BvWritingTool(
+                      key: const Key('writing-camera'),
+                      icon: BvIcons.camera,
+                      label: l10n.daybookCamera,
+                      // An edit keeps its photos (slice 5 opens a post in
+                      // place).
+                      onTap: _editing
+                          ? null
+                          : () => unawaited(_photos(_writer.addPhoto())),
+                    ),
+                    BvWritingTool(
+                      key: const Key('writing-attach'),
+                      icon: BvIcons.attach,
+                      label: l10n.daybookAttachTitle,
+                      onTap: _editing ? null : () => unawaited(_attach()),
+                    ),
+                  ],
                   postLabel: _editing ? l10n.daybookSave : l10n.daybookPost,
                   // Post turns on with what the kind can't go without (a
                   // title, a checklist's points, a file; review 46); what it
@@ -1533,18 +1698,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               // posted or emptied (E4).
               else if (!card)
                 BvPostBar(
-                  placeholder: l10n.daybookWorkItem,
+                  // Review 105 J4 (SP1).
+                  placeholder: l10n.daybookWriteInSpace,
                   onWrite: _startWriting,
-                  cameraLabel: l10n.daybookHoldToProve,
-                  // A tap writes a work item with a photo; holding proves
-                  // your open work item (O1 → O2).
-                  onCamera: () {
-                    _startWriting();
-                    unawaited(_photos(_writer.addPhoto()));
-                  },
-                  onProve: prove == null
-                      ? null
-                      : () => unawaited(_loop.signDone(context, prove)),
+                  cameraLabel: l10n.daybookCameraLabel,
+                  // The camera, with Photo · Walk at its bottom (the lead's
+                  // rulings on 105A). Nothing on a hold: Sign as done is on
+                  // the work item (H1).
+                  onCamera: () => unawaited(_camera()),
                 ),
             ],
           ),
@@ -1552,6 +1713,208 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
       ),
     );
   }
+
+  /// The bottom bar while cards are held (SP6): Share (from 105B) ·
+  /// Duplicate (one card) · Delete (mine, not Checked). No Move: work stays
+  /// in its Space (rule 8).
+  Widget _selectionBar(
+    List<DaybookPost> shown,
+    Set<String> selected, {
+    required String? me,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    final posts = {
+      for (final p in shown)
+        if (selected.contains(p.id)) p.id: p,
+    }.values.toList();
+    final share = ref.watch(workLaterProvider).share;
+    final canPost = widget.space.myRights.createItems;
+    final deletes =
+        posts.isNotEmpty && posts.every((p) => mayDeletePost(p, me: me));
+    return SelectionBar(
+      actions: [
+        if (share != null)
+          SelectionAction(
+            key: const Key('select-share'),
+            icon: BvIcons.share,
+            label: l10n.workShare,
+            onTap: posts.isEmpty
+                ? null
+                : () {
+                    _endSelection();
+                    unawaited(share(context, posts));
+                  },
+          ),
+        SelectionAction(
+          key: const Key('select-duplicate'),
+          icon: BvIcons.duplicate,
+          label: l10n.workDuplicate,
+          onTap: canPost && posts.length == 1
+              ? () => unawaited(_duplicate(posts.single))
+              : null,
+        ),
+        // Hidden, not greyed, when one held can't be deleted (a Checked
+        // item; H4).
+        if (deletes)
+          SelectionAction(
+            key: const Key('select-delete'),
+            icon: BvIcons.delete,
+            label: l10n.delete,
+            destructive: true,
+            onTap: () => unawaited(_delete(posts)),
+          ),
+      ],
+    );
+  }
+
+  void _endSelection() =>
+      ref.read(workSelectionProvider(_spaceId).notifier).clear();
+
+  /// Duplicate (SP6): a new card at Now with the same kind, words, owner
+  /// and place, to post as a new one; its due and pin are chosen again.
+  Future<void> _duplicate(DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    _endSelection();
+    final notifier = ref.read(daybookDraftProvider(_spaceId).notifier);
+    final kept = ref.read(daybookDraftProvider(_spaceId));
+    if (kept != null && !kept.isEmpty) {
+      showSpaceMessage(context, l10n.daybookDuplicateDraftFirst);
+      _startWriting();
+      return;
+    }
+    await notifier.put(
+      DaybookPostDraft.of(post, id: ref.read(newPostIdProvider)()),
+    );
+    if (!mounted) return;
+    _startWriting();
+  }
+
+  /// Delete (SP6), asked first: each is gone from Work for everyone. The
+  /// server keeps one someone else has added to; that one is cancelled
+  /// instead, by its author, from the opened item.
+  Future<void> _delete(List<DaybookPost> posts) async {
+    final l10n = AppLocalizations.of(context);
+    final sure = await showBvDialog(
+      context: context,
+      title: l10n.daybookDeleteTitle(posts.length),
+      body: l10n.daybookDeleteBody,
+      cancelLabel: l10n.commonCancel,
+      confirmLabel: l10n.delete,
+      destructive: true,
+    );
+    if (!sure || !mounted) return;
+    _endSelection();
+    final repository = ref.read(daybookRepositoryProvider);
+    // Every one is tried; what failed is said after (H5).
+    var kept = 0;
+    final failed = <DaybookPost>[];
+    for (final p in posts) {
+      try {
+        await repository.deletePost(p.id);
+      } on SpaceException catch (e) {
+        if (e.failure == SpaceFailure.rule) {
+          kept++;
+        } else {
+          failed.add(p);
+        }
+      }
+    }
+    if (!mounted) return;
+    if (failed.isNotEmpty) {
+      showSpaceMessage(
+        context,
+        l10n.daybookDeleteFailed(joinMeta(failed.map((p) => p.title))),
+      );
+    } else if (kept > 0) {
+      showSpaceMessage(context, l10n.daybookDeleteKept(kept));
+    }
+    await _loop.refresh();
+  }
+
+  /// Swipe toward the end (SP5): Pin (from 105B) · Reminder, both mine
+  /// only; toward the start, Archive for a Lead on a Checked item (from
+  /// 105B), a round button like the others. Signatures are never here.
+  Widget _swipes(DaybookPost post, Widget card) {
+    final l10n = AppLocalizations.of(context);
+    final later = ref.watch(workLaterProvider);
+    final pin = later.pin;
+    final archive = later.archive;
+    final reminded =
+        ref.watch(spaceRemindersProvider)[spaceReminderId(_spaceId, post.id)] !=
+        null;
+    final lead = widget.space.myPass == SpacePass.lead;
+    return BvSwipeCard(
+      id: post.id,
+      // Not while writing, nor while cards are held.
+      enabled: !_writing && ref.watch(workSelectionProvider(_spaceId)).isEmpty,
+      startFullSwipe: false,
+      endActions: [
+        if (pin != null)
+          BvSwipeAction(
+            key: Key('swipe-pin-${post.id}'),
+            icon: BvIcons.pin,
+            label: l10n.workPin,
+            color: BvColors.textPrimary,
+            onTap: () => unawaited(pin(post, on: true)),
+          ),
+        BvSwipeAction(
+          key: Key('swipe-remind-${post.id}'),
+          icon: BvIcons.remind,
+          label: reminded ? l10n.workChangeReminder : l10n.workReminder,
+          color: BvColors.textWarning,
+          onTap: () => unawaited(_remind(post)),
+        ),
+      ],
+      startAction: archive != null && mayArchivePost(post, lead: lead)
+          ? BvSwipeAction(
+              key: Key('swipe-archive-${post.id}'),
+              icon: BvIcons.archive,
+              label: l10n.workArchive,
+              color: BvColors.actionPrimary,
+              onTap: () => unawaited(archive(post)),
+            )
+          : null,
+      child: card,
+    );
+  }
+
+  /// Reminder (SP5): the phone's own notification for me, at the time I
+  /// pick; Remove takes it off. It never goes to the server.
+  Future<void> _remind(DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final reminders = ref.read(spaceRemindersProvider.notifier);
+    final kept = reminders.of(_spaceId, post.id);
+    final now = ref.read(clockProvider)();
+    final picked = await ref.read(pickReminderProvider)(
+      context,
+      now: now,
+      day: kept == null ? null : dayOf(kept),
+      at: kept,
+    );
+    if (!mounted || picked == null) return;
+    final day = picked.day;
+    final at = day == null
+        ? null
+        : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
+    if (at != null && !at.isAfter(now)) {
+      showSpaceMessage(context, l10n.workRemindPast);
+      return;
+    }
+    await reminders.set(_spaceId, post, at: at, body: widget.space.name);
+    if (!mounted || at == null) return;
+    showSpaceMessage(
+      context,
+      l10n.workReminderLine(reminderWhen(l10n, words, at, now)),
+    );
+  }
+
+  /// A reminder picked with no time: that morning (as a note's).
+  static const _morningHour = 9;
 
   /// The announcements pinned now (K1 v13): what daybook_extras says, and
   /// any pinned card on the page (it may be newer), newest first.
@@ -1649,47 +2012,42 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final folds =
         (post.authorId != null && post.authorId == me) ||
         (given && !editedSince);
-    // F44: full or folded, the same long-press menu as its card; [lifted]
-    // is the note raised over the dimmed page while the menu is open.
-    final hasMenu = _loop.kindMenu(post, me: me).isNotEmpty;
-    Widget withMenu(Widget Function(VoidCallback? onLongPress) note) => Builder(
-      builder: (context) => note(
-        hasMenu
-            ? () => unawaited(
-                _loop.pinnedMenu(
-                  context,
-                  post,
-                  IgnorePointer(child: note(null)),
-                  bvGlobalRect(context),
-                  me: me,
-                ),
-              )
-            : null,
-      ),
-    );
+    // H2: Work's one language. A tap opens it as an item (its Unpin · Save
+    // as template · Cancel on ⋯), a hold selects it; folding is its own
+    // chevron.
+    final selection = ref.watch(workSelectionProvider(_spaceId));
+    final held = selection.contains(post.id);
+    void hold() {
+      unawaited(HapticFeedback.selectionClick());
+      ref.read(workSelectionProvider(_spaceId).notifier).toggle(post.id);
+    }
+
+    void open() => selection.isNotEmpty
+        ? hold()
+        : unawaited(_loop.openPinned(context, post, me: me));
     if (folds && !_openPinned.contains(post.id)) {
       // F104: its author sees who got it on the folded line too, live (a
       // broadcast reads postAcksProvider again). Nobody else sees others'.
       final gotBy = _loop.actsFor(post, me: me)
           ? acknowledgedBy(ref, post.id, DaybookAck.gotIt)
           : const <DaybookPerson>[];
-      return withMenu(
-        (onLongPress) => BvPinnedLine(
-          key: Key('pinned-line-${post.id}'),
-          text: post.title,
-          // F85: the end shows folded too.
-          until: l10n.daybookPinnedLineUntil(
-            words.pinnedDay(post.pinnedUntil!, now),
-          ),
-          faces: gotBy.isEmpty
-              ? null
-              : DaybookFacesLine(
-                  key: Key('pinned-line-faces-${post.id}'),
-                  faces: facesOf(l10n, gotBy),
-                ),
-          onTap: () => setState(() => _openPinned.add(post.id)),
-          onLongPress: onLongPress,
+      return BvPinnedLine(
+        key: Key('pinned-line-${post.id}'),
+        text: post.title,
+        // F85: the end shows folded too.
+        until: l10n.daybookPinnedLineUntil(
+          words.pinnedDay(post.pinnedUntil!, now),
         ),
+        faces: gotBy.isEmpty
+            ? null
+            : DaybookFacesLine(
+                key: Key('pinned-line-faces-${post.id}'),
+                faces: facesOf(l10n, gotBy),
+              ),
+        onTap: open,
+        onLongPress: hold,
+        onFold: () => setState(() => _openPinned.add(post.id)),
+        selected: held,
       );
     }
     final team = post.teamId == null
@@ -1702,69 +2060,63 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               .firstOrNull
               ?.name;
     final by = acknowledgedBy(ref, post.id, DaybookAck.gotIt);
-    return withMenu(
-      (onLongPress) => BvPinnedNote(
-        key: Key('pinned-${post.id}'),
-        onLongPress: onLongPress,
-        author: post.authorId != null && post.authorId == me
-            ? l10n.daybookYou
-            : personName(l10n, post.authorName),
-        audience: team == null
-            ? l10n.daybookToEveryone
-            : l10n.daybookToTeam(team),
-        // F85: the header ends with when it was posted; how long it lasts
-        // is the facts line under the title, in ink on its last day.
-        time: words.ackTime(post.createdAt, now),
-        until: words.pinnedUntil(post.pinnedUntil!, now),
-        untilToday: dayOf(pinnedLastDay(post.pinnedUntil!)) == dayOf(now),
-        title: post.title,
-        body: post.body,
-        // F83: the message it was made from, opening it (F87).
-        quote: post.quote == null
-            ? null
-            : BvQuoteBlock(
-                key: const Key('pinned-quote'),
-                from: words.quoteFrom(post.quote!, now),
-                text: post.quote!.text,
-                onTap: post.sourceMessageId == null
-                    ? null
-                    : () => unawaited(
-                        _loop.openQuote(context, post.sourceMessageId!),
-                      ),
-              ),
-        // F48: the author's faces of who got it; a tap lists them with times.
-        leading: by.isEmpty
-            ? null
-            : DaybookFacesLine(
-                key: const Key('got-it-by'),
-                faces: facesOf(l10n, by),
-                onTap: () => showDaybookAcks(
-                  context,
-                  title: l10n.daybookGotIt,
-                  faces: acksOf(ref, post.id, DaybookAck.gotIt),
-                  now: now,
-                ),
-              ),
-        onTap: folds ? () => setState(() => _openPinned.remove(post.id)) : null,
-        action: daybookAckAction(
-          l10n,
-          shown,
-          me: me,
-          now: now,
-          onAck: (kind, {required on}) {
-            // Given now: it folds.
-            if (on) setState(() => _openPinned.remove(post.id));
-            unawaited(
-              _loop.acknowledge(
+    return BvPinnedNote(
+      key: Key('pinned-${post.id}'),
+      onTap: open,
+      onLongPress: hold,
+      selected: held,
+      author: post.authorId != null && post.authorId == me
+          ? l10n.daybookYou
+          : personName(l10n, post.authorName),
+      audience: team == null
+          ? l10n.daybookToEveryone
+          : l10n.daybookToTeam(team),
+      // F85: the header ends with when it was posted; how long it lasts
+      // is the facts line under the title, in ink on its last day.
+      time: words.ackTime(post.createdAt, now),
+      until: words.pinnedUntil(post.pinnedUntil!, now),
+      untilToday: dayOf(pinnedLastDay(post.pinnedUntil!)) == dayOf(now),
+      title: post.title,
+      body: post.body,
+      // F83: the message it was made from, opening it (F87).
+      quote: post.quote == null
+          ? null
+          : BvQuoteBlock(
+              key: const Key('pinned-quote'),
+              from: words.quoteFrom(post.quote!, now),
+              text: post.quote!.text,
+              onTap: post.sourceMessageId == null
+                  ? null
+                  : () => unawaited(
+                      _loop.openQuote(context, post.sourceMessageId!),
+                    ),
+            ),
+      // F48: the author's faces of who got it; a tap lists them with times.
+      leading: by.isEmpty
+          ? null
+          : DaybookFacesLine(
+              key: const Key('got-it-by'),
+              faces: facesOf(l10n, by),
+              onTap: () => showDaybookAcks(
                 context,
-                shown,
-                kind,
-                on: on,
-                again: editedSince,
+                title: l10n.daybookGotIt,
+                faces: acksOf(ref, post.id, DaybookAck.gotIt),
+                now: now,
               ),
-            );
-          },
-        ),
+            ),
+      onFold: folds ? () => setState(() => _openPinned.remove(post.id)) : null,
+      action: daybookAckAction(
+        l10n,
+        shown,
+        me: me,
+        now: now,
+        onAck: (kind, {required on}) {
+          // Given now: it folds.
+          if (on) setState(() => _openPinned.remove(post.id));
+          unawaited(
+            _loop.acknowledge(context, shown, kind, on: on, again: editedSince),
+          );
+        },
       ),
     );
   }
@@ -2220,6 +2572,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     required DateTime now,
     required bool card,
     required Set<String> signing,
+    Set<String>? only,
   }) {
     final l10n = AppLocalizations.of(context);
     final viewer = widget.space.myPass == SpacePass.viewer;
@@ -2325,13 +2678,16 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     // today's. A card is at its latest activity, its traces on the days
     // before.
     final byDay = <DateTime, List<(DateTime, String, Object)>>{};
+    // Review 105 Part 6: only what waits on me, with no traces.
     for (final s in shown) {
+      if (only != null && !only.contains(s.card.id)) continue;
       byDay.putIfAbsent(dayOf(s.placedAt), () => []).add((
         s.placedAt,
         s.card.id,
         s,
       ));
-      for (final (at, t) in _traces(s)) {
+      for (final (at, t)
+          in only == null ? _traces(s) : const <(DateTime, _Trace)>[]) {
         byDay.putIfAbsent(dayOf(at), () => []).add((
           at,
           '${t.card.id}-${t.event.id}',
@@ -2356,6 +2712,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     });
 
     final sending = ref.watch(outboxSendingProvider);
+    final selected = ref.watch(workSelectionProvider(_spaceId));
+    final selecting = selected.isNotEmpty;
+    void select(String id) {
+      unawaited(HapticFeedback.selectionClick());
+      ref.read(workSelectionProvider(_spaceId).notifier).toggle(id);
+    }
+
     Widget cardOf(_Shown s) {
       final c = s.card;
       final unsent = s.unsent;
@@ -2390,11 +2753,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         nameOf: (id) =>
             names?.member(id)?.person.fullName ??
             c.history.where((e) => e.byId == id).firstOrNull?.byName,
+        selected: selected.contains(c.id),
         // While writing, a tap on a card puts the card down, as anywhere
-        // off it; a refused one reopens to fix; otherwise a short press
-        // shows the card's menu (F16).
+        // off it; while selecting it adds or takes off this one; a refused
+        // one reopens to fix; otherwise a tap opens it (review 105).
         onTap: _writing
             ? _stopWriting
+            : selecting
+            ? (unsent == null ? () => select(c.id) : null)
             : unsent != null && unsent.refused
             ? () => unawaited(
                 unsent.kind == PendingKind.walk
@@ -2417,7 +2783,19 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
             // A post not on the server yet has nothing to do on it.
             child: unsent != null
                 ? view
-                : _loop.withActions(context, view, me: me, signing: signing),
+                : _swipes(
+                    c.post,
+                    _loop.withActions(
+                      context,
+                      view,
+                      me: me,
+                      signing: signing,
+                      // A hold selects (SP6), for who may post.
+                      onHold: widget.space.myRights.createItems
+                          ? () => select(c.id)
+                          : null,
+                    ),
+                  ),
           ),
         ),
       );
@@ -2560,6 +2938,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                           onPickStart: () => unawaited(_pickStart()),
                           onPickFile: () => unawaited(_pickFile()),
                           onPickPeople: () => unawaited(_pickPeople()),
+                          onWalk: widget.space.mayPostWork
+                              ? () => unawaited(_walk())
+                              : null,
                           askWho: _askWho,
                         ),
                       ),

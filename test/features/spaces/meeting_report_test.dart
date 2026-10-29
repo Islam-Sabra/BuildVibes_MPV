@@ -301,7 +301,7 @@ void main() {
       expect(app.weekReports.meetings, hasLength(1));
     });
 
-    testWidgets('MR1: Week report in the Space menu for every pass; the '
+    testWidgets('MR1: Week report in Space info for every pass; the '
         'week from Sunday; its four sections, stamps and the clip [$lang]', (
       tester,
     ) async {
@@ -315,7 +315,8 @@ void main() {
         reports: reports,
         path: '/spaces/${DaybookSamples.space}',
       );
-      await _tap(tester, _key('space-more'));
+      // Review 105 Part 1: in Space info, opened by the Space's name.
+      await _tap(tester, _key('space-header'));
       await _tap(tester, find.text(l10n.weekReportTitle));
       expect(app.weekReports.read, [MeetingReportSamples.week]);
       expect(find.text(l10n.weekNeedsDecision), findsOneWidget);

@@ -23,6 +23,7 @@ import 'package:buildvibes/features/library/library_file_screen.dart';
 import 'package:buildvibes/features/profile/edit/experience_screens.dart';
 import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/spaces/space_search_screen.dart';
+import 'package:buildvibes/features/spaces/space_sections.dart';
 import 'package:buildvibes/features/work/daybook_photos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -399,7 +400,9 @@ void main() {
         tester,
         'P1-people',
         lang,
-        (_) => const SpaceScreen(spaceId: _space, open: SpaceOpen.people),
+        // Review 105 Part 1: People is a screen of its own (a route
+        // [shoot] has no router for).
+        (_) => const Pushed(SpacePeopleScreen(spaceId: _space)),
         folder: _folder,
         overrides: await _overrides(lang),
       );
@@ -410,12 +413,17 @@ void main() {
         tester,
         'P1-people-end',
         lang,
-        (_) => const SpaceScreen(spaceId: _space, open: SpaceOpen.people),
+        // Review 105 Part 1: People is a screen of its own (a route
+        // [shoot] has no router for).
+        (_) => const Pushed(SpacePeopleScreen(spaceId: _space)),
         folder: _folder,
         overrides: await _overrides(lang),
         before: (tester) async {
+          // The People list (the header's People button has its key too).
           await tester.drag(
-            find.byKey(const Key('space-people')),
+            find.byWidgetPredicate(
+              (w) => w is ListView && w.key == const Key('space-people'),
+            ),
             const Offset(0, -600),
           );
           await tester.pumpAndSettle();
@@ -428,7 +436,9 @@ void main() {
         tester,
         'P2-let-in-choose',
         lang,
-        (_) => const SpaceScreen(spaceId: _space, open: SpaceOpen.people),
+        // Review 105 Part 1: People is a screen of its own (a route
+        // [shoot] has no router for).
+        (_) => const Pushed(SpacePeopleScreen(spaceId: _space)),
         folder: _folder,
         overrides: await _overrides(lang),
         before: (tester) => _tap(tester, 'request-let-in-req-yousef'),
@@ -440,7 +450,9 @@ void main() {
         tester,
         'P2-let-in-crew',
         lang,
-        (_) => const SpaceScreen(spaceId: _space, open: SpaceOpen.people),
+        // Review 105 Part 1: People is a screen of its own (a route
+        // [shoot] has no router for).
+        (_) => const Pushed(SpacePeopleScreen(spaceId: _space)),
         folder: _folder,
         overrides: await _overrides(lang),
         before: (tester) async {
@@ -456,10 +468,11 @@ void main() {
         tester,
         'LV1-library',
         lang,
-        (_) => const SpaceScreen(spaceId: _space),
+        // Review 105 Part 1: the Library is a screen of its own, opened
+        // from the header's folder (a route [shoot] has no router for).
+        (_) => const Pushed(SpaceLibraryScreen(spaceId: _space)),
         folder: _folder,
         overrides: await _overrides(lang),
-        before: (tester) => _tap(tester, 'space-tab-library'),
       );
     });
 

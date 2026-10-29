@@ -9,18 +9,18 @@ import '../../helpers/pump_component.dart';
 
 void main() {
   group('BvPostBar', () {
-    testBoth('notepad at the start, camera at the end; tap, hold, write', (
+    testBoth('notepad at the start, camera at the end; tap writes, tap '
+        'opens the camera; a hold does nothing (H1: no signature on a hold)', (
       tester,
       lang,
     ) async {
-      var writes = 0, shots = 0, proofs = 0;
+      var writes = 0, shots = 0;
       await pumpComponent(
         tester,
         BvPostBar(
           placeholder: 'Work item',
           onWrite: () => writes++,
           onCamera: () => shots++,
-          onProve: () => proofs++,
         ),
         lang: lang,
         scroll: false,
@@ -45,7 +45,7 @@ void main() {
       await tester.tap(find.text('Work item'));
       await tester.tap(find.byIcon(BvIcons.camera));
       await tester.longPress(find.byIcon(BvIcons.camera));
-      expect((writes, shots, proofs), (1, 1, 1));
+      expect((writes, shots), (1, 2));
     });
 
     testBoth('Viewer: a pass chip and "Read only", nothing to write', (
@@ -76,7 +76,6 @@ void main() {
         placeholder: 'Work item',
         onWrite: () => writes++,
         onCamera: () {},
-        onProve: () {},
       ),
       lang: lang,
       scroll: false,

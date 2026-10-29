@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:buildvibes/core/design/bv_icons.dart';
-import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
@@ -12,9 +11,9 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_avatar.dart';
 import 'package:buildvibes/shared/widgets/bv_daybook_masthead.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
-import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,18 +83,21 @@ Future<void> _title(WidgetTester tester, String text) async {
   await tester.pumpAndSettle();
 }
 
-/// Assign through More (picking from Post would post at once).
+/// Assign through the For row (review 105 SP2; picking from Post would
+/// post at once).
 Future<void> _assign(WidgetTester tester, String name) async {
-  final l10n = AppLocalizations.of(tester.element(find.byType(BvWritingCard)));
-  await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text(l10n.daybookAssign));
+  await tester.tap(find.byKey(const Key('writing-who')));
   await tester.pumpAndSettle();
   await tester.tap(
     find.descendant(of: find.byType(BvGiveToPicker), matching: find.text(name)),
   );
   await tester.pumpAndSettle();
 }
+
+BvWritingRow _row(WidgetTester tester, String key) => tester
+    .widget<BvWritingRows>(find.byType(BvWritingRows))
+    .rows
+    .firstWhere((r) => r.key == Key(key));
 
 T _read<T>(WidgetTester tester, ProviderListenable<T> provider) =>
     ProviderScope.containerOf(
@@ -134,11 +136,14 @@ void main() {
       );
       expect(masthead.weekday, l10n.daybookTodayDivider);
       expect(masthead.onTap, isNull);
-      // A work item first; the chip opens the kind menu (E6, slice 2).
-      expect(find.byKey(const Key('writing-kind-chip')), findsOneWidget);
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.kindLabel, l10n.daybookWorkItem);
-      expect(card.onKindTap, isNotNull);
+      // Review 105 SP2: a work item first, among the kind chips.
+      expect(
+        tester
+            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
+            .selected,
+        DaybookKind.workItem,
+      );
+      expect(find.byKey(const Key('writing-kind-chip')), findsNothing);
       // Post is off with no title.
       expect(_toolbar(tester).onPost, isNull);
     });
@@ -187,7 +192,13 @@ void main() {
       expect(find.byKey(const Key('give-to-me-hairline')), findsNothing);
       await tester.tap(me);
       await tester.pumpAndSettle();
-      expect(find.text(l10n.daybookForYou, findRichText: true), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('writing-who')),
+          matching: find.text(l10n.daybookYou),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('F56: Post turns on with a title of 2 or more but stays grey '
@@ -199,7 +210,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('writing-who')),
-          matching: find.text(l10n.daybookForChoose),
+          matching: find.text(l10n.daybookRowChoose),
         ),
         findsOneWidget,
       );
@@ -255,57 +266,35 @@ void main() {
       await tester.tap(find.text(l10n.daybookPostAsNote));
       await tester.pumpAndSettle();
       expect(
-        tester.widget<BvWritingCard>(find.byType(BvWritingCard)).kindLabel,
-        l10n.daybookKindNote,
+        tester
+            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
+            .selected,
+        DaybookKind.note,
       );
       expect(find.byKey(const Key('writing-who')), findsNothing);
       expect(_toolbar(tester).postReady, isTrue);
     });
 
-    testWidgets('Assign from More only sets the owner [$lang]', (tester) async {
+    testWidgets('the For row only sets the owner [$lang]', (tester) async {
       final app = await _open(tester, lang);
       await _write(tester);
       await _title(tester, s.cableTraysTitle);
       await _assign(tester, s.omarName);
       expect(app.daybook.created, isEmpty);
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.properties.single.label, l10n.daybookForPerson(s.omarName));
+      expect(_row(tester, 'writing-who').value, s.omarName);
     });
 
-    testWidgets('F66: once chosen, the who row reads "For Omar Haddad" and a '
-        'mirrored caret icon as '
-        "the card's facts line, the name standing out; a tap opens the "
-        'picker again [$lang]', (tester) async {
+    testWidgets('F66, review 105 SP2: once chosen, the For row shows the '
+        'face and the name, with a mirrored caret; a tap opens the picker '
+        'again [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester);
       await _title(tester, s.cableTraysTitle);
       await _assign(tester, s.omarName);
-      final who = tester
-          .widget<BvWritingCard>(find.byType(BvWritingCard))
-          .properties
-          .single;
-      expect(who.label, l10n.daybookForPerson(s.omarName));
-      expect(who.name, s.omarName);
-      expect(who.caret, isTrue);
-      final context = tester.element(find.byType(BvWritingCard));
-      expect(who.marks, [
-        (
-          part: s.omarName,
-          style: BvType.of(
-            context,
-          ).emphasisSm.copyWith(color: BvColors.textPrimary),
-        ),
-      ]);
-      // Drawn as one line: the words grey, the name standing out; then the
-      // caret icon, the last thing on the row.
-      final drawn = find.descendant(
-        of: find.byKey(const Key('writing-who')),
-        matching: find.byType(RichText),
-      );
-      final line = tester.widget<RichText>(
-        drawn.at(drawn.evaluate().length - 2),
-      );
-      expect(line.text.toPlainText(), l10n.daybookForPerson(s.omarName));
+      final who = _row(tester, 'writing-who');
+      expect(who.value, s.omarName);
+      expect(who.person, s.omarName);
+      expect(who.onTap, isNotNull);
       expect(
         find.descendant(
           of: find.byKey(const Key('writing-who')),
@@ -313,8 +302,6 @@ void main() {
         ),
         findsOneWidget,
       );
-      // On the face: the title's cursor handle can sit over the row's
-      // middle.
       await tester.tap(
         find.descendant(
           of: find.byKey(const Key('writing-who')),
@@ -325,25 +312,23 @@ void main() {
       expect(find.byType(BvGiveToPicker), findsOneWidget);
     });
 
-    testWidgets('E2: More has only what slice 1 does: Assign, Location, Due '
-        'date [$lang]', (tester) async {
+    testWidgets('E2, review 105 SP2: For, Place and Due are rows; + holds '
+        'nothing for a work item with no template [$lang]', (tester) async {
       await _open(tester, lang);
       await _write(tester);
-      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
-      await tester.pumpAndSettle();
-      final menu = tester.widget<BvPopoverMenu<Object>>(
-        find.byKey(const Key('writing-more-menu')),
+      expect(
+        tester
+            .widget<BvWritingRows>(find.byType(BvWritingRows))
+            .rows
+            .map((r) => r.key),
+        const [
+          Key('writing-who'),
+          Key('writing-place-row'),
+          Key('writing-due-row'),
+          Key('writing-to'),
+        ],
       );
-      expect(menu.items.map((i) => i.label), [
-        l10n.daybookAssign,
-        l10n.daybookLocation,
-        l10n.daybookDueDateMenu,
-      ]);
-      expect(_toolbar(tester).moreActive, isTrue);
-      // A tap anywhere else closes it.
-      await tester.tap(find.byKey(const Key('writing-menu-away')));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('writing-more-menu')), findsNothing);
+      expect(_toolbar(tester).tools!.first.onTap, isNull);
     });
 
     testWidgets('E3: owner, due date with a time, place and the cover; Post '
@@ -363,15 +348,10 @@ void main() {
         s.traysBody,
       );
       await _assign(tester, s.omarName);
-      // Due date, through More.
-      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
+      // Review 105 SP2: the Due and Place rows.
+      await tester.tap(find.byKey(const Key('writing-due-row')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(l10n.daybookDueDateMenu));
-      await tester.pumpAndSettle();
-      // Location, through More.
-      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(l10n.daybookLocation));
+      await tester.tap(find.byKey(const Key('writing-place-row')));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('popover-field')),
@@ -383,11 +363,18 @@ void main() {
       await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
       await tester.pumpAndSettle();
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      expect(card.properties.map((p) => p.label), [
-        l10n.daybookForPerson(s.omarName),
-        words.dueProperty(_sunday, _twoPm),
-        s.traysPlace,
-      ]);
+      expect(
+        tester
+            .widget<BvWritingRows>(find.byType(BvWritingRows))
+            .rows
+            .map((r) => r.value),
+        [
+          s.omarName,
+          s.traysPlace,
+          words.dueProperty(_sunday, _twoPm),
+          l10n.daybookWholeSpace,
+        ],
+      );
       expect(card.photos, hasLength(1));
 
       await tester.tap(find.byKey(const Key('writing-post')));
@@ -528,10 +515,8 @@ void main() {
       await _write(tester);
       await _title(tester, s.cableTraysTitle);
       await _assign(tester, s.omarName);
-      // F29: the place, through More → Location.
-      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(l10n.daybookLocation));
+      // F29: the place, through its row (review 105 SP2).
+      await tester.tap(find.byKey(const Key('writing-place-row')));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('popover-field')),
@@ -578,7 +563,8 @@ void main() {
       await _write(tester);
       await tester.tap(find.bySemanticsLabel(l10n.daybookCamera));
       await tester.pumpAndSettle();
-      await tester.tapAt(const Offset(200, 260));
+      // Put down with ←: the card with its photo fills the page.
+      await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.byType(BvWritingCard), findsOneWidget);
       expect(find.text(l10n.daybookDraft), findsOneWidget);
@@ -599,12 +585,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text(words.dueProperty(_sunday, null)));
       await tester.pumpAndSettle();
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      // Only the who row is left (F56).
-      expect(
-        [for (final p in card.properties) p.label],
-        [l10n.daybookForChoose],
-      );
+      // The Due row is empty again.
+      expect(_row(tester, 'writing-due-row').empty, isTrue);
       expect(
         _read(tester, daybookDraftProvider(DaybookSamples.space))!.dueDate,
         isNull,

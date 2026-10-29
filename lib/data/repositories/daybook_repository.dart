@@ -106,6 +106,11 @@ abstract class DaybookRepository {
 
   /// cancel_space_post: it stays on the daybook, stamped CANCELLED.
   Future<void> cancelPost(String postId);
+
+  /// delete_space_post (review 105 Part 2, the hold bar's Delete): its
+  /// author only, while nobody else has added to it ([SpaceFailure.rule]
+  /// otherwise: cancel it instead).
+  Future<void> deletePost(String postId);
 }
 
 /// One post_history call: the lines, newest first, and whether older ones
@@ -324,12 +329,16 @@ class NewWorkItem {
     this.templateId,
     this.blocks,
     this.points = const [],
+    this.teamId,
   });
 
   final String id;
   final String spaceId;
   final String title;
   final String ownerId;
+
+  /// Its Team (review 105 Part 3); null is the whole Space.
+  final String? teamId;
 
   /// The template it started from (slice 7), its page, and the points
   /// that came with it (each with the id the app chose).
@@ -526,6 +535,7 @@ class SupabaseDaybookRepository implements DaybookRepository {
         'p_space': item.spaceId,
         'p_title': item.title.trim(),
         'p_owner': item.ownerId,
+        'p_team': ?item.teamId,
         'p_body': item.body?.trim(),
         'p_place': item.place?.trim(),
         'p_due': item.dueDate == null ? null : _date(item.dueDate!),
@@ -641,6 +651,11 @@ class SupabaseDaybookRepository implements DaybookRepository {
   @override
   Future<void> cancelPost(String postId) => _guard(
     () => _client.rpc<void>('cancel_space_post', params: {'p_id': postId}),
+  );
+
+  @override
+  Future<void> deletePost(String postId) => _guard(
+    () => _client.rpc<void>('delete_space_post', params: {'p_id': postId}),
   );
 }
 

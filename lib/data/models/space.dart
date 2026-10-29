@@ -261,6 +261,14 @@ class SpaceDetail {
   final DateTime? siteStartDate;
 
   bool get canInvite => myRights.invite;
+
+  /// May post work in this Space: a Lead or Crew pass with the right to
+  /// create work items (the lead's check of 105A, H7). The camera's Walk
+  /// and Space info's daily report read this one check; the server checks
+  /// the same in SQL.
+  bool get mayPostWork =>
+      myRights.createItems &&
+      (myPass == SpacePass.lead || myPass == SpacePass.crew);
 }
 
 /// Who may share the invite code (S15k-I). One single choice.
@@ -300,6 +308,7 @@ class SpacePerson {
     this.tradeId,
     this.tradeName,
     this.companyLabel,
+    this.companyRegistered = false,
   });
 
   /// The embed `profiles(id, first_name, last_name, headline, trade_id,
@@ -318,6 +327,7 @@ class SpacePerson {
           : LocalizedText.fromJson(trade['name'] as Map<String, dynamic>),
       companyLabel:
           company?['name'] as String? ?? json['company_name_text'] as String?,
+      companyRegistered: company?['name'] != null,
     );
   }
 
@@ -328,6 +338,10 @@ class SpacePerson {
   final String? tradeId;
   final LocalizedText? tradeName;
   final String? companyLabel;
+
+  /// [companyLabel] is a registered company's (in ink); otherwise it is
+  /// what the person typed, plain text (rule 4).
+  final bool companyRegistered;
 
   String get fullName => '$firstName $lastName'.trim();
 

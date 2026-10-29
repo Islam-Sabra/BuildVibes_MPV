@@ -87,6 +87,7 @@ class BvWritingToolbar extends StatelessWidget {
     this.categories,
     this.categoriesOpen = false,
     this.beside = const [],
+    this.postReady = true,
   }) : cameraLabel = null,
        onCamera = null,
        attachLabel = null,
@@ -94,8 +95,7 @@ class BvWritingToolbar extends StatelessWidget {
        moreLabel = null,
        onMore = null,
        moreActive = false,
-       moreKey = null,
-       postReady = true;
+       moreKey = null;
 
   /// The + at the start: the categories grid (F107).
   final BvWritingTool? categories;
@@ -186,7 +186,7 @@ class BvWritingToolbar extends StatelessWidget {
                   for (final t in tools!)
                     if (t.holds) _tool(t),
                 ],
-                _Post(label: postLabel, onTap: onPost, ready: true),
+                _Post(label: postLabel, onTap: onPost, ready: postReady),
               ],
       ),
     );

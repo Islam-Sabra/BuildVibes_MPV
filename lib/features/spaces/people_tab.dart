@@ -21,7 +21,6 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_pill_button.dart';
 import '../../shared/widgets/bv_post_bar.dart' show BvPassChip;
 import '../../shared/widgets/bv_sheet.dart';
-import '../../shared/widgets/bv_tap_target.dart';
 import '../entry/entry_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import 'pass_words.dart';
@@ -29,14 +28,19 @@ import 'remove_member.dart';
 import 'space_errors.dart';
 import '../../core/routing/open_thread.dart';
 
-/// P1 · Space People (2542:34824): the requests to join (admins only),
-/// then Leads, Crew and Viewers, each with their pass tag, the Teams as
-/// chips, and Invite with the code for people who may invite. Who is
-/// here, never how many (rule 3).
+/// P1 · Space People (2542:34824, review 105 SP8 2670:38796): the requests
+/// to join on top under "Needs you" (admins only), then everyone in the
+/// Space in one list, Leads first: name, title · company, the pass and
+/// their Teams; then the Teams as chips, and Invite with the code for
+/// people who may invite. Who is here, never how many (rule 3).
 class PeopleTab extends ConsumerStatefulWidget {
-  const PeopleTab({super.key, required this.space});
+  const PeopleTab({super.key, required this.space, this.query = ''});
 
   final SpaceDetail space;
+
+  /// People's search (review 105 SP8): only those whose name, role or
+  /// company has it.
+  final String query;
 
   @override
   ConsumerState<PeopleTab> createState() => _PeopleTabState();
@@ -265,24 +269,28 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
       ),
     );
 
-    List<Widget> group(String label, SpacePass pass) {
-      final members = [
+    final lang = Localizations.localeOf(context).languageCode;
+    final query = widget.query.trim().toLowerCase();
+    bool found(SpacePerson p) =>
+        query.isEmpty ||
+        [
+          p.fullName,
+          ?p.roleLabel(lang),
+          ?p.companyLabel,
+        ].any((t) => t.toLowerCase().contains(query));
+    // One list (SP8), Leads, then Crew, then Viewers.
+    final members = [
+      for (final pass in SpacePass.values)
         for (final m in data.members)
-          if (m.pass == pass && !removing.contains(m.person.id)) m,
-      ];
-      if (members.isEmpty) return const [];
-      return [
-        section(label),
-        for (final m in members)
-          _MemberRow(
-            key: m.person.id == _flash ? _flashKey : null,
-            member: m,
-            isMe: m.person.id == me,
-            flash: m.person.id == _flash ? _flash : null,
-            onTap: () => unawaited(_openPerson(m, isMe: m.person.id == me)),
-          ),
-      ];
-    }
+          if (m.pass == pass &&
+              !removing.contains(m.person.id) &&
+              found(m.person))
+            m,
+    ];
+    final requests = [
+      for (final r in data.requests)
+        if (found(r.person)) r,
+    ];
 
     final teams = data.teams;
     final admin = widget.space.iAmAdmin;
@@ -296,7 +304,8 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
         key: const Key('space-people'),
         padding: const EdgeInsetsDirectional.only(bottom: BvSpace.s32),
         children: [
-          for (final r in data.requests)
+          if (requests.isNotEmpty) section(l10n.peopleNeedsYouRequests),
+          for (final r in requests)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvSpace.gutter,
@@ -318,10 +327,25 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
                 onLetIn: (p) => _letIn(r, p),
               ),
             ),
-          ...group(l10n.peopleLeads, SpacePass.lead),
-          ...group(l10n.peopleCrew, SpacePass.crew),
-          ...group(l10n.peopleViewers, SpacePass.viewer),
-          if (teams.isNotEmpty || admin) ...[
+          if (members.isNotEmpty) section(l10n.peopleInThisSpace),
+          for (final m in members)
+            _MemberRow(
+              key: m.person.id == _flash ? _flashKey : null,
+              member: m,
+              teams: [
+                for (final t in teams)
+                  if (t.memberIds.contains(m.person.id)) t,
+              ],
+              isMe: m.person.id == me,
+              flash: m.person.id == _flash ? _flash : null,
+              onTap: () => unawaited(_openPerson(m, isMe: m.person.id == me)),
+            ),
+          if (query.isNotEmpty && members.isEmpty && requests.isEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.all(BvSpace.gutter),
+              child: EmptyNote(l10n.peopleSearchNothing(widget.query.trim())),
+            ),
+          if (query.isEmpty && (teams.isNotEmpty || admin)) ...[
             section(l10n.spacesTeams),
             Padding(
               padding: const EdgeInsetsDirectional.symmetric(
@@ -352,7 +376,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab> {
               ),
             ),
           ],
-          if (invite != null)
+          if (invite != null && query.isEmpty)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 BvSpace.gutter,
@@ -401,12 +425,6 @@ class _RequestCard extends StatelessWidget {
     final type = BvType.of(context);
     final lang = Localizations.localeOf(context).languageCode;
     final p = request.person;
-    // A typed company stays plain text (rule 4).
-    final line = joinMeta([
-      ?p.roleLabel(lang),
-      ?p.companyLabel,
-      l10n.peopleWantsToJoin,
-    ]);
     final chosen = pass;
 
     return Container(
@@ -439,39 +457,22 @@ class _RequestCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: type.bodyMd,
                     ),
-                    Text(
-                      line,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: type.metadata.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
+                    RoleCompanyLine(person: p, lang: lang),
                   ],
                 ),
               ),
-              // Quiet grey words: letting in is the act, declining the
-              // way out.
-              BvTapTarget(
-                child: Semantics(
-                  button: true,
-                  child: GestureDetector(
-                    key: Key('request-decline-${request.id}'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: sending ? null : onDecline,
-                    child: Text(
-                      l10n.spacesDecline,
-                      style: type.bodySm.copyWith(
-                        color: BvColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
+              // SP8: Decline · Confirm; Confirm asks for the pass.
+              BvPillButton(
+                key: Key('request-decline-${request.id}'),
+                label: l10n.spacesDecline,
+                quiet: true,
+                onTap: sending ? null : onDecline,
               ),
               if (!open)
                 BvPillButton(
                   key: Key('request-let-in-${request.id}'),
-                  label: l10n.peopleLetIn,
+                  label: l10n.peopleConfirm,
+                  strong: true,
                   onTap: onOpen,
                 ),
             ],
@@ -573,12 +574,16 @@ class _MemberRow extends StatelessWidget {
   const _MemberRow({
     super.key,
     required this.member,
+    required this.teams,
     required this.isMe,
     required this.flash,
     required this.onTap,
   });
 
   final SpaceMember member;
+
+  /// The Teams they are in, as chips beside the pass (SP8).
+  final List<SpaceTeam> teams;
   final bool isMe;
   final Object? flash;
   final VoidCallback onTap;
@@ -589,10 +594,6 @@ class _MemberRow extends StatelessWidget {
     final type = BvType.of(context);
     final lang = Localizations.localeOf(context).languageCode;
     final p = member.person;
-    final line = joinMeta([
-      ?p.roleLabel(lang),
-      if (member.isAdmin) l10n.peopleAdmin,
-    ]);
     return BvHighlight(
       flash: flash,
       child: InkWell(
@@ -621,13 +622,13 @@ class _MemberRow extends StatelessWidget {
                 children: [
                   BvAvatar(
                     name: p.fullName,
-                    size: BvAvatarSize.list,
+                    size: BvAvatarSize.md,
                     tint: BvAvatarTints.forId(p.id),
                   ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: BvSpace.s2,
+                      spacing: BvPeopleSpec.lineGap,
                       children: [
                         Text(
                           isMe
@@ -635,24 +636,33 @@ class _MemberRow extends StatelessWidget {
                               : p.fullName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: type.bodyMd,
+                          style: type.labelLg,
                         ),
-                        if (line.isNotEmpty)
-                          Text(
-                            line,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: type.metadata.copyWith(
-                              color: BvColors.textSecondary,
+                        RoleCompanyLine(person: p, lang: lang),
+                        Wrap(
+                          spacing: BvPeopleSpec.tagGap,
+                          runSpacing: BvPeopleSpec.tagGap,
+                          children: [
+                            BvPassChip(
+                              key: Key('member-pass-${p.id}'),
+                              label: passName(l10n, member.pass),
+                              tone: passTone(member.pass),
                             ),
-                          ),
+                            if (member.isAdmin)
+                              _TeamTag(
+                                key: Key('member-admin-${p.id}'),
+                                label: l10n.peopleAdmin,
+                              ),
+                            for (final t in teams)
+                              _TeamTag(
+                                key: Key('member-team-${p.id}-${t.id}'),
+                                icon: BvIcons.team,
+                                label: t.name,
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ),
-                  BvPassChip(
-                    key: Key('member-pass-${p.id}'),
-                    label: passName(l10n, member.pass),
-                    tone: passTone(member.pass),
                   ),
                 ],
               ),
@@ -662,6 +672,84 @@ class _MemberRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "BIM Manager · AECOX" (SP8): the title (the headline, otherwise the
+/// trade), then the company: a registered company in ink, medium; a typed
+/// one plain grey, as typed (rule 4). Nothing when neither is known.
+class RoleCompanyLine extends StatelessWidget {
+  const RoleCompanyLine({super.key, required this.person, required this.lang});
+
+  final SpacePerson person;
+  final String lang;
+
+  @override
+  Widget build(BuildContext context) {
+    final type = BvType.of(context);
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
+    final role = person.roleLabel(lang);
+    final company = person.companyLabel;
+    if (role == null && company == null) return const SizedBox.shrink();
+    return Row(
+      spacing: BvSpace.s4,
+      children: [
+        if (role != null)
+          Flexible(
+            child: Text(
+              role,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: quiet,
+            ),
+          ),
+        if (role != null && company != null) Text(metaDot, style: quiet),
+        if (company != null)
+          Flexible(
+            child: Text(
+              company,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: person.companyRegistered
+                  ? type.emphasisSm.copyWith(color: BvColors.textPrimary)
+                  : quiet,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// A Team the person is in, beside their pass (SP8): white, bordered, the
+/// people icon first.
+class _TeamTag extends StatelessWidget {
+  const _TeamTag({super.key, required this.label, this.icon});
+
+  final String label;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: BvPeopleSpec.tagPadding,
+    decoration: BoxDecoration(
+      color: BvColors.surfaceElevated,
+      borderRadius: BvRadius.smallAll,
+      border: Border.all(color: BvColors.borderSubtle, width: BvStroke.thin),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: BvSpace.s6,
+      children: [
+        if (icon != null)
+          Icon(icon, size: BvSize.iconSm, color: BvColors.iconPrimary),
+        Text(
+          label,
+          style: BvType.of(
+            context,
+          ).labelSm.copyWith(color: BvColors.textPrimary),
+        ),
+      ],
+    ),
+  );
 }
 
 /// A Team as a chip (opens the Team, S11k); "+ New team" is [outlined].

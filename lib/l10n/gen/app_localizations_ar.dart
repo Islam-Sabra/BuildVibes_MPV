@@ -2710,6 +2710,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookWorkItem => 'بند عمل';
 
   @override
+  String get daybookWriteInSpace => 'اكتب في هذه المساحة';
+
+  @override
   String get daybookReadOnly => 'للقراءة فقط';
 
   @override
@@ -2824,9 +2827,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get daybookSignAsDone => 'وقّع كمنجز';
-
-  @override
-  String get daybookHoldToProve => 'اضغط مطوّلًا للإثبات';
 
   @override
   String get daybookCheck => 'تحقّق';
@@ -5698,4 +5698,156 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get spacesPeopleWaiting => 'طلبات انضمام بانتظارك';
+
+  @override
+  String get spacesInfoWorkTools => 'العمل';
+
+  @override
+  String get daybookKindWalk => 'جولة';
+
+  @override
+  String get daybookDuplicateDraftFirst =>
+      'انشر البطاقة التي تكتبها أو احذفها أولاً.';
+
+  @override
+  String daybookDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف $count منشورات؟',
+      one: 'حذف هذا المنشور؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daybookDeleteBody => 'سيُحذف من العمل لكل من في هذه المساحة.';
+
+  @override
+  String daybookDeleteKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أضاف أحدهم إلى $count منشورات، فبقيت. افتح كلاً منها لإلغائه.',
+      one: 'أضاف أحدهم إلى منشور، فبقي. افتحه لإلغائه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daybookWritingDetails => 'أضف التفاصيل.';
+
+  @override
+  String get daybookRowFor => 'لمن';
+
+  @override
+  String get daybookRowPlace => 'المكان';
+
+  @override
+  String get daybookRowDue => 'الموعد';
+
+  @override
+  String get daybookRowWhen => 'متى';
+
+  @override
+  String get daybookRowTeam => 'الفريق';
+
+  @override
+  String get daybookRowChoose => 'اختر';
+
+  @override
+  String get daybookRowAdd => 'أضف';
+
+  @override
+  String get daybookWholeSpace => 'المساحة كلها';
+
+  @override
+  String daybookNeedYou(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n بانتظارك',
+      one: '1 بانتظارك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookNeedYouDue(int n) {
+    return '· $n موعدها اليوم';
+  }
+
+  @override
+  String get daybookNeedYouShowAll => 'اعرض الكل';
+
+  @override
+  String get proofMomentTitle => 'أُضيف إلى إثبات عملك';
+
+  @override
+  String proofMomentBy(String name, String time) {
+    return 'تم التحقق بواسطة $name · $time';
+  }
+
+  @override
+  String get proofMomentView => 'عرض';
+
+  @override
+  String get peopleInThisSpace => 'في هذه المساحة';
+
+  @override
+  String get peopleNeedsYouRequests => 'بانتظارك · طلب انضمام';
+
+  @override
+  String get peopleConfirm => 'تأكيد';
+
+  @override
+  String get daybookCameraLabel => 'الكاميرا';
+
+  @override
+  String daybookDeleteFailed(String titles) {
+    return 'تعذّر حذف $titles. حاول مرة أخرى.';
+  }
+
+  @override
+  String get pinnedFold => 'طيّ';
+
+  @override
+  String get pinnedUnfold => 'عرض كامل';
+
+  @override
+  String get workPin => 'تثبيت';
+
+  @override
+  String get workArchive => 'أرشفة';
+
+  @override
+  String get workReminder => 'تذكير';
+
+  @override
+  String get workChangeReminder => 'تغيير التذكير';
+
+  @override
+  String get workShare => 'مشاركة';
+
+  @override
+  String get workDuplicate => 'تكرار';
+
+  @override
+  String get workRemindPast => 'اختر وقتًا لم يأتِ بعد.';
+
+  @override
+  String workReminderLine(String when) {
+    return 'تذكير · $when';
+  }
+
+  @override
+  String workSelected(int count) {
+    return 'تم تحديد $count';
+  }
+
+  @override
+  String get workCloseSelection => 'إنهاء التحديد';
 }

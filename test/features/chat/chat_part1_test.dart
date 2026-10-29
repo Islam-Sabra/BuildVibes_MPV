@@ -221,7 +221,7 @@ void main() {
       );
       _router(tester).push('/spaces/$_space');
       await tester.pumpAndSettle();
-      await _tap(tester, 'space-tab-chat');
+      await _tap(tester, 'space-switch-chat');
 
       final everyone = tester.getTopLeft(
         find.byKey(const Key('chat-thread-$_everyone')),
@@ -288,7 +288,7 @@ void main() {
       );
       _router(tester).push('/spaces/$_space');
       await tester.pumpAndSettle();
-      await _tap(tester, 'space-tab-chat');
+      await _tap(tester, 'space-switch-chat');
       await _tap(tester, 'chat-new');
       expect(find.byKey(const Key('chat-new-group')), findsOneWidget);
       expect(find.text(l10n.chatWorkNote), findsOneWidget);
@@ -321,7 +321,7 @@ void main() {
       );
       _router(tester).push('/spaces/$_space');
       await tester.pumpAndSettle();
-      await _tap(tester, 'space-tab-chat');
+      await _tap(tester, 'space-switch-chat');
       await _tap(tester, 'chat-new');
       expect(find.byKey(const Key('chat-new-group')), findsNothing);
       expect(find.byKey(const Key('chat-new-person')), findsOneWidget);

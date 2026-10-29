@@ -18,7 +18,11 @@ import '../../data/repositories/page_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_avatar.dart';
+import '../../shared/widgets/bv_button.dart';
 import '../../shared/widgets/bv_dialog.dart';
+import '../../shared/widgets/bv_popover_menu.dart'
+    show BvMenuItem, showBvScreenMenu;
+import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_photo_strip.dart' show BvPhotoViewer;
 import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_slip.dart';
@@ -37,20 +41,57 @@ import 'daybook_words.dart';
 
 /// Opens [post]'s page as a sheet rising over the daybook (N1): the same
 /// paper as its card, with a torn top. [edit] opens it for its author to
-/// edit (N2).
+/// edit (N2). [actions] are what the opened item offers (review 105 Part
+/// 2, the lead's ruling Q3).
 Future<void> showDaybookPage(
   BuildContext context, {
   required SpaceDetail space,
   required DaybookPost post,
   bool edit = false,
+  DaybookPageActions actions = const DaybookPageActions(),
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
   backgroundColor: Colors.transparent,
   barrierColor: BvColors.overlayScrim,
-  builder: (_) => DaybookPageSheet(space: space, post: post, edit: edit),
+  builder: (_) =>
+      DaybookPageSheet(space: space, post: post, edit: edit, actions: actions),
 );
+
+/// One row of the opened item's ⋯ (Unpin · Save as template · Cancel).
+typedef DaybookPageMore = ({
+  Key key,
+  String label,
+  IconData icon,
+  bool destructive,
+  VoidCallback onTap,
+});
+
+/// What an opened item offers (review 105 Part 2, ruling Q3), each only
+/// when the reader may:
+/// - [onEdit]: a tap on the title or the words edits them in place (its
+///   author); the page closes first;
+/// - [onGiveTo]: a tap on the For line opens Give to;
+/// - [onUpdate]: "Add an update" at the bottom;
+/// - [onSendBack]: for whoever checks it, a deliberate button;
+/// - [more]: ⋯, the page closing first.
+@immutable
+class DaybookPageActions {
+  const DaybookPageActions({
+    this.onEdit,
+    this.onGiveTo,
+    this.onUpdate,
+    this.onSendBack,
+    this.more = const [],
+  });
+
+  final VoidCallback? onEdit;
+  final VoidCallback? onGiveTo;
+  final VoidCallback? onUpdate;
+  final VoidCallback? onSendBack;
+  final List<DaybookPageMore> more;
+}
 
 /// The author may edit [post]'s page now: theirs, they may post, it can
 /// still be edited (a work item while Open), and it isn't a file post.
@@ -80,6 +121,7 @@ class DaybookPageSheet extends ConsumerStatefulWidget {
     required this.space,
     required this.post,
     this.edit = false,
+    this.actions = const DaybookPageActions(),
   });
 
   final SpaceDetail space;
@@ -87,6 +129,7 @@ class DaybookPageSheet extends ConsumerStatefulWidget {
   /// The post as its card shows it, until the page is read.
   final DaybookPost post;
   final bool edit;
+  final DaybookPageActions actions;
 
   @override
   ConsumerState<DaybookPageSheet> createState() => _DaybookPageSheetState();
@@ -97,6 +140,33 @@ class _DaybookPageSheetState extends ConsumerState<DaybookPageSheet> {
   final _editor = GlobalKey<DaybookPageEditorState>();
 
   String get _postId => widget.post.id;
+
+  /// Closes the page, then [then] acts on the daybook.
+  void _closeThen(VoidCallback then) {
+    Navigator.of(context).pop();
+    then();
+  }
+
+  /// ⋯ (ruling Q3): the settings of what the page shows.
+  Future<void> _more() async {
+    final more = widget.actions.more;
+    final picked = await showBvScreenMenu<int>(
+      context,
+      key: const Key('page-more-menu'),
+      items: [
+        for (final (i, m) in more.indexed)
+          BvMenuItem(
+            value: i,
+            key: m.key,
+            label: m.label,
+            icon: m.icon,
+            destructive: m.destructive,
+          ),
+      ],
+    );
+    if (picked == null || !mounted) return;
+    _closeThen(more[picked].onTap);
+  }
 
   Future<void> _done() async {
     final saved = await _editor.currentState?.save() ?? true;
@@ -127,7 +197,9 @@ class _DaybookPageSheetState extends ConsumerState<DaybookPageSheet> {
     final l10n = AppLocalizations.of(context);
     final me = ref.watch(authUserIdProvider).value;
     final read = ref.watch(postPageProvider(_postId));
-    final page = read.value;
+    // A post with no page of its own reads as its card: no blocks.
+    final page =
+        read.value ?? (read.hasValue ? PostPage(post: widget.post) : null);
     final post = page?.post ?? widget.post;
     final canEdit = mayEditPage(
       widget.space,
@@ -147,7 +219,16 @@ class _DaybookPageSheetState extends ConsumerState<DaybookPageSheet> {
     } else if (_editing && canEdit) {
       body = DaybookPageEditor(key: _editor, space: widget.space, page: page);
     } else {
-      body = _PageView(space: widget.space, page: page, me: me);
+      final actions = widget.actions;
+      body = _PageView(
+        space: widget.space,
+        page: page,
+        me: me,
+        onEdit: actions.onEdit == null
+            ? null
+            : () => _closeThen(actions.onEdit!),
+        onGiveTo: actions.onGiveTo,
+      );
     }
 
     final editing = _editing && canEdit;
@@ -211,13 +292,57 @@ class _DaybookPageSheetState extends ConsumerState<DaybookPageSheet> {
                   canEdit: canEdit && page != null,
                   onEdit: () => setState(() => _editing = true),
                   onDone: _done,
+                  onMore: widget.actions.more.isEmpty
+                      ? null
+                      : () => unawaited(_more()),
                 ),
                 Expanded(child: body),
+                ?_foot(editing: _editing && canEdit),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+extension on _DaybookPageSheetState {
+  /// The bottom of the opened item: Send back for whoever checks it, then
+  /// "Add an update" (ruling Q3). Nothing while editing.
+  Widget? _foot({required bool editing}) {
+    final actions = widget.actions;
+    final update = actions.onUpdate;
+    final sendBack = actions.onSendBack;
+    if (editing || (update == null && sendBack == null)) return null;
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      key: const Key('page-foot'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (sendBack != null)
+          Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: BvPageSpec.padding,
+              vertical: BvSpace.s8,
+            ),
+            child: BvButton(
+              key: const Key('page-send-back'),
+              label: l10n.daybookSendBack,
+              icon: BvIcons.sendBack,
+              style: BvButtonStyle.secondary,
+              expand: true,
+              onPressed: sendBack,
+            ),
+          ),
+        if (update != null)
+          BvPostBar(
+            key: const Key('page-update'),
+            placeholder: l10n.daybookAddUpdate,
+            onWrite: update,
+          ),
+      ],
     );
   }
 }
@@ -232,6 +357,7 @@ class _Head extends ConsumerWidget {
     required this.canEdit,
     required this.onEdit,
     required this.onDone,
+    this.onMore,
   });
 
   final DaybookPost post;
@@ -240,6 +366,9 @@ class _Head extends ConsumerWidget {
   final bool canEdit;
   final VoidCallback onEdit;
   final VoidCallback onDone;
+
+  /// ⋯, while it holds something.
+  final VoidCallback? onMore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -285,6 +414,13 @@ class _Head extends ConsumerWidget {
             action('page-done', l10n.pageDone, onDone)
           else ...[
             if (canEdit) action('page-edit', l10n.pageEdit, onEdit),
+            if (onMore != null)
+              IconButton(
+                key: const Key('page-more'),
+                tooltip: l10n.daybookMore,
+                icon: const Icon(BvIcons.more, size: BvSize.iconMd),
+                onPressed: onMore,
+              ),
             IconButton(
               key: const Key('page-close'),
               tooltip: l10n.pageClose,
@@ -306,11 +442,19 @@ DaybookWords _words(BuildContext context) => DaybookWords(
 
 /// The page read (N1): the title, the facts, the words and every block.
 class _PageView extends ConsumerWidget {
-  const _PageView({required this.space, required this.page, required this.me});
+  const _PageView({
+    required this.space,
+    required this.page,
+    required this.me,
+    this.onEdit,
+    this.onGiveTo,
+  });
 
   final SpaceDetail space;
   final PostPage page;
   final String? me;
+  final VoidCallback? onEdit;
+  final VoidCallback? onGiveTo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -324,7 +468,15 @@ class _PageView extends ConsumerWidget {
         BvPageSpec.bottom,
       ),
       children: [
-        ...pageTop(context, ref, post, me: me, spaceId: space.id),
+        ...pageTop(
+          context,
+          ref,
+          post,
+          me: me,
+          spaceId: space.id,
+          onEdit: onEdit,
+          onGiveTo: onGiveTo,
+        ),
         ...pageBlockViews(context, ref, space: space, page: page, me: me),
       ],
     );
@@ -332,30 +484,52 @@ class _PageView extends ConsumerWidget {
 }
 
 /// The title, its facts (owner, due, place) and the words: the same as
-/// on the card.
+/// on the card. [onEdit] makes the title and the words a tap to edit them;
+/// [onGiveTo] the For line a tap to give it to someone else.
 List<Widget> pageTop(
   BuildContext context,
   WidgetRef ref,
   DaybookPost post, {
   required String? me,
   required String spaceId,
+  VoidCallback? onEdit,
+  VoidCallback? onGiveTo,
 }) {
+  Widget tap(String key, VoidCallback? onTap, Widget child) => onTap == null
+      ? child
+      : Semantics(
+          button: true,
+          child: GestureDetector(
+            key: Key(key),
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: child,
+          ),
+        );
   final words = _words(context);
   final now = ref.watch(clockProvider)();
   final body = (post.body ?? '').trim();
   final quote = post.quote;
   final message = post.sourceMessageId;
   return [
-    BvSlipTitle(post.title, cancelled: post.cancelled),
+    tap(
+      'page-title',
+      onEdit,
+      BvSlipTitle(post.title, cancelled: post.cancelled),
+    ),
     if (post.isWorkItem || (post.place ?? '').isNotEmpty)
       Padding(
         padding: const EdgeInsetsDirectional.only(top: BvPageSpec.factsTop),
         child: BvSlipFacts(
           children: [
             if (post.isWorkItem)
-              BvSlipFact(
-                icon: BvIcons.person,
-                text: words.meta(post, me: me, now: now),
+              tap(
+                'page-for',
+                onGiveTo,
+                BvSlipFact(
+                  icon: BvIcons.person,
+                  text: words.meta(post, me: me, now: now),
+                ),
               ),
             if ((post.place ?? '').isNotEmpty)
               BvSlipFact(icon: BvIcons.place, text: post.place!),
@@ -385,10 +559,14 @@ List<Widget> pageTop(
     if (body.isNotEmpty)
       Padding(
         padding: const EdgeInsetsDirectional.only(top: BvPageSpec.blockGap),
-        child: Text(
-          body,
-          textDirection: directionOf(body),
-          style: BvType.of(context).bodyMd,
+        child: tap(
+          'page-words',
+          onEdit,
+          Text(
+            body,
+            textDirection: directionOf(body),
+            style: BvType.of(context).bodyMd,
+          ),
         ),
       ),
   ];

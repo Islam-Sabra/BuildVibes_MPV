@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/library.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
-import 'package:buildvibes/features/work/daybook_writing.dart' show kindName;
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +39,7 @@ Future<_App> _open(
     language: lang,
     stored: stored,
     spaces: FakeSpaceRepository()
-      ..details[DaybookSamples.space] = s.detail()
+      ..details[DaybookSamples.space] = s.detail(addFiles: true)
       ..spacePeople[DaybookSamples.space] = s.people(),
     daybook: daybook,
     live: live,
@@ -210,16 +209,11 @@ void main() {
       testWidgets('a file post from the Library: its card at Now as soon as '
           'it is sent', (tester) async {
         await _open(tester, lang, offline: true, posts: [s.rebar()]);
-        await tester.tap(find.byKey(const Key('post-bar-notepad')));
+        // Review 105 SP2: a file post starts from the Library's Add a file
+        // (the kind chips are the five the rows serve).
+        await tester.tap(find.byKey(const Key('space-library')));
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const Key('writing-kind-chip')));
-        await tester.pumpAndSettle();
-        await tester.tap(
-          find.descendant(
-            of: find.byKey(const Key('writing-kind-menu')),
-            matching: find.text(kindName(l10n, DaybookKind.file)),
-          ),
-        );
+        await tester.tap(find.byKey(const Key('library-add-file')));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('file-lib-m201-c')));
         await tester.pumpAndSettle();

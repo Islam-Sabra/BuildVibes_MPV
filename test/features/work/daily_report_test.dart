@@ -114,8 +114,10 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 
 Finder _key(String k) => find.byKey(Key(k));
 
+/// Review 105 Part 1: the daily report is in Space info, opened by the
+/// Space's name; it opens on Work.
 Future<void> _startReport(WidgetTester tester, AppLocalizations l10n) async {
-  await _tap(tester, _key('space-more'));
+  await _tap(tester, _key('space-header'));
   await _tap(tester, find.text(l10n.dailyReportMenu));
 }
 
@@ -239,13 +241,11 @@ void main() {
     final s = DaybookSamples(lang);
     final words = DaybookWords(l10n, lang, use24: false);
 
-    testWidgets('Daily report is in the Space menu for a Lead and Crew, not '
+    testWidgets('Daily report is in Space info for a Lead and Crew, not '
         'a Viewer [$lang]', (tester) async {
       await _open(tester, lang);
-      await _tap(tester, _key('space-more'));
+      await _tap(tester, _key('space-header'));
       expect(find.text(l10n.dailyReportMenu), findsOneWidget);
-      await tester.tapAt(const Offset(4, 4));
-      await tester.pumpAndSettle();
     });
 
     testWidgets('a Viewer has no Daily report [$lang]', (tester) async {
@@ -255,7 +255,7 @@ void main() {
         me: DaybookSamples.mona,
         pass: SpacePass.viewer,
       );
-      await _tap(tester, _key('space-more'));
+      await _tap(tester, _key('space-header'));
       expect(find.text(l10n.dailyReportMenu), findsNothing);
     });
 

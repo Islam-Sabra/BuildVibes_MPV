@@ -168,7 +168,7 @@ void main() {
     testWidgets('LV1: versions in use only, their line, NEW VERSION, faces '
         '[$lang]', (tester) async {
       await _open(tester, lang, '/spaces/$_space');
-      await _tap(tester, 'space-tab-library');
+      await _tap(tester, 'space-library');
       expect(find.byKey(const Key('file-a501-d')), findsOneWidget);
       expect(find.byKey(const Key('file-a501-c')), findsNothing);
       expect(find.byKey(const Key('file-a501-b')), findsNothing);
@@ -202,14 +202,14 @@ void main() {
       tester,
     ) async {
       await _open(tester, lang, '/spaces/$_space', addFiles: false);
-      await _tap(tester, 'space-tab-library');
+      await _tap(tester, 'space-library');
       expect(find.byKey(const Key('library-add-file')), findsNothing);
     });
 
     testWidgets('LV1: Add a file opens the writing card as a Document, the '
         'chooser open [$lang]', (tester) async {
       await _open(tester, lang, '/spaces/$_space');
-      await _tap(tester, 'space-tab-library');
+      await _tap(tester, 'space-library');
       await _tap(tester, 'library-add-file');
       // The Work tab, the card at Now, a file post, the chooser up.
       expect(find.byKey(const Key('daybook-writing-card')), findsOneWidget);
@@ -311,7 +311,7 @@ void main() {
         'set [$lang]', (tester) async {
       final library = _library();
       await _open(tester, lang, '/spaces/$_space', library: library);
-      await _tap(tester, 'space-tab-library');
+      await _tap(tester, 'space-library');
       await _tap(tester, 'file-a501-d');
       await _tap(tester, 'file-add-version');
       // Straight to the phone's files: no chooser, no question.
@@ -425,7 +425,7 @@ void main() {
         library: FakeLibraryRepository(now: testNow)
           ..filesBySpace[_space] = const [],
       );
-      await _tap(tester, 'space-tab-library');
+      await _tap(tester, 'space-library');
       final pad = tester.widget<Padding>(
         find.byKey(const Key('library-empty')),
       );

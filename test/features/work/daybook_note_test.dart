@@ -3,7 +3,7 @@ import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/opened_item.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -81,32 +82,24 @@ void main() {
     final s = DaybookSamples(lang);
 
     group('F58 the Note [$lang]', () {
-      testWidgets('E6 v14: Note is first in the kind menu, with no small '
-          'line (F63)', (tester) async {
+      testWidgets('review 105 SP2: Note is the first kind chip; Work item '
+          'is chosen first', (tester) async {
         await _open(tester, lang);
         await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-        await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-        final menu = tester.widget<BvPopoverMenu<DaybookKind>>(
-          find.byKey(const Key('writing-kind-menu')),
+        final chips = tester.widget<BvKindChips<Object>>(
+          find.byKey(const Key('writing-kinds')),
         );
-        expect(menu.items.first.value, DaybookKind.note);
-        expect(menu.items.first.label, l10n.daybookKindNote);
-        expect(menu.items.first.note, isNull, reason: 'no description (F63)');
-        expect(menu.items.first.icon, kindIcon(DaybookKind.note));
+        expect(chips.choices.first.value, DaybookKind.note);
+        expect(chips.choices.first.label, l10n.daybookKindNote);
+        expect(chips.choices.first.icon, kindIcon(DaybookKind.note));
+        expect(chips.selected, DaybookKind.workItem);
       });
 
       testWidgets('a note posts with its words only: no who, nothing more '
           'to set', (tester) async {
         final daybook = await _open(tester, lang);
         await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-        await _tap(tester, find.byKey(const Key('writing-kind-chip')));
-        await _tap(
-          tester,
-          find.descendant(
-            of: find.byKey(const Key('writing-kind-menu')),
-            matching: find.text(l10n.daybookKindNote),
-          ),
-        );
+        await _tap(tester, find.byKey(Key('kind-chip-${DaybookKind.note}')));
         await tester.enterText(
           find.byKey(const Key('writing-title')),
           _note(s).title,
@@ -115,7 +108,8 @@ void main() {
         final toolbar = tester.widget<BvWritingToolbar>(
           find.byType(BvWritingToolbar),
         );
-        expect(toolbar.onMore, isNull);
+        // Nothing more to set: + holds nothing.
+        expect(toolbar.tools!.first.onTap, isNull);
         expect(toolbar.onPost, isNotNull);
         await _tap(tester, find.byKey(const Key('writing-post')));
         final sent = daybook.createdPosts.single;
@@ -147,20 +141,21 @@ void main() {
         );
       });
 
-      testWidgets('its author long-presses: Edit and Cancel', (tester) async {
+      testWidgets('its author opens it: Edit, and Cancel on ⋯', (tester) async {
         final post = _note(s);
         await _open(
           tester,
           lang,
           posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
         );
-        await tester.longPress(_card(_noteId));
+        await tester.tap(_card(_noteId));
         await tester.pumpAndSettle();
-        expect(find.text(l10n.daybookEdit), findsOneWidget);
-        expect(find.text(l10n.daybookCancelPost), findsOneWidget);
+        final actions = await openedActions(tester);
+        expect(actions, contains(l10n.daybookEdit));
+        expect(actions, contains(l10n.daybookCancelPost));
       });
 
-      testWidgets('someone else long-presses: nothing', (tester) async {
+      testWidgets('someone else opens it: nothing to do', (tester) async {
         final post = _note(s, authorId: DaybookSamples.sara);
         await _open(
           tester,
@@ -170,10 +165,9 @@ void main() {
           admin: false,
           posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
         );
-        await tester.longPress(_card(_noteId));
+        await tester.tap(_card(_noteId));
         await tester.pumpAndSettle();
-        expect(find.text(l10n.daybookEdit), findsNothing);
-        expect(find.text(l10n.daybookCancelPost), findsNothing);
+        expect(await openedActions(tester), isEmpty);
       });
     });
 
@@ -196,13 +190,17 @@ void main() {
           posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
           extras: DaybookExtras(pinned: [post]),
         );
-        await tester.longPress(
-          find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+            matching: find.text(post.title),
+          ),
         );
         await tester.pumpAndSettle();
-        expect(find.text(l10n.daybookEdit), findsNothing);
-        expect(find.text(l10n.daybookCancelPost), findsOneWidget);
-        await _tap(tester, find.text(l10n.daybookUnpin));
+        final actions = await openedActions(tester);
+        expect(actions, isNot(contains(l10n.daybookEdit)));
+        expect(actions, contains(l10n.daybookCancelPost));
+        await openedPick(tester, l10n.daybookUnpin);
         expect(daybook.calls, [
           'edit ${DaybookSamples.halfDayId} {"pinned_until":null}',
         ]);
@@ -219,8 +217,11 @@ void main() {
           posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
           extras: DaybookExtras(pinned: [post]),
         );
-        await tester.longPress(
-          find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+            matching: find.text(post.title),
+          ),
         );
         await tester.pumpAndSettle();
         expect(find.text(l10n.daybookUnpin), findsNothing);

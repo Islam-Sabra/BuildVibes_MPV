@@ -12,7 +12,6 @@ import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_card_history.dart';
 import 'package:buildvibes/shared/widgets/bv_photo_strip.dart';
 import 'package:buildvibes/shared/widgets/bv_pinned_note.dart';
-import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +20,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/opened_item.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 
@@ -84,14 +84,8 @@ DaybookEvent _tick(
   String point = 'pt-0',
 }) => DaybookEvent(id: id, kind: kind, at: at, byId: by, pointId: point);
 
-/// The labels of the open long-press menu.
-List<String> _menu(WidgetTester tester) => [
-  for (final i
-      in tester
-          .widget<BvSlipMenu<Object?>>(find.byKey(const Key('slip-menu')))
-          .items)
-    i.label,
-];
+/// What the opened pinned announcement offers (review 105 ruling Q3).
+Future<List<String>> _menu(WidgetTester tester) => openedActions(tester);
 
 void main() {
   setUpAll(() => initializeDateFormatting());
@@ -422,14 +416,13 @@ void main() {
         extras: DaybookExtras(pinned: [post]),
       );
 
-      testWidgets('its author, folded and in full: Edit, Unpin, Cancel', (
-        tester,
-      ) async {
+      testWidgets('its author, folded and in full: a tap opens it with Edit, '
+          'and ⋯ Unpin, Cancel (review 105 ruling Q3)', (tester) async {
         await openPinned(tester, post: pinned());
         // The author sees it folded.
-        await tester.longPress(find.byType(BvPinnedLine));
+        await tester.tap(find.byType(BvPinnedLine));
         await tester.pumpAndSettle();
-        expect(_menu(tester), [
+        expect(await _menu(tester), [
           l10n.daybookEdit,
           l10n.pageEdit,
           l10n.daybookUnpin,
@@ -437,16 +430,19 @@ void main() {
           l10n.templateSave,
           l10n.daybookCancelPost,
         ]);
-        await tester.tapAt(const Offset(4, 4));
-        await tester.pumpAndSettle();
-        expect(find.byKey(const Key('slip-menu')), findsNothing);
-        // A tap still opens it.
-        await tester.tap(find.byType(BvPinnedLine));
+        await closeOpened(tester);
+        // Its chevron shows it in full (H2); a tap opens it the same.
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         expect(find.byType(BvPinnedNote), findsOneWidget);
-        await tester.longPress(find.byType(BvPinnedNote));
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BvPinnedNote),
+            matching: find.text(s.halfDay),
+          ),
+        );
         await tester.pumpAndSettle();
-        expect(_menu(tester), [
+        expect(await _menu(tester), [
           l10n.daybookEdit,
           l10n.pageEdit,
           l10n.daybookUnpin,
@@ -459,10 +455,9 @@ void main() {
       testWidgets('Unpin sends only the pin; it is a card on its day, not at '
           'Now', (tester) async {
         final daybook = await openPinned(tester, post: pinned());
-        await tester.longPress(find.byType(BvPinnedLine));
+        await tester.tap(find.byType(BvPinnedLine));
         await tester.pumpAndSettle();
-        await tester.tap(find.text(l10n.daybookUnpin));
-        await tester.pumpAndSettle();
+        await openedPick(tester, l10n.daybookUnpin);
         expect(daybook.calls, [
           'edit ${DaybookSamples.halfDayId} {"pinned_until":null}',
         ]);
@@ -512,10 +507,9 @@ void main() {
       testWidgets('Edit opens it at Now, filled, with its pin; Save sends '
           'only what changed', (tester) async {
         final daybook = await openPinned(tester, post: pinned());
-        await tester.longPress(find.byType(BvPinnedLine));
+        await tester.tap(find.byType(BvPinnedLine));
         await tester.pumpAndSettle();
-        await tester.tap(find.text(l10n.daybookEdit));
-        await tester.pumpAndSettle();
+        await openedPick(tester, l10n.daybookEdit);
         final title = find.byKey(const Key('writing-title'));
         expect(tester.widget<TextField>(title).controller!.text, s.halfDay);
         await tester.enterText(title, '${s.halfDay} !');
@@ -528,19 +522,24 @@ void main() {
       });
 
       testWidgets('anyone else: only a Lead\'s Save as template (slice 7); '
-          'a tap still opens it', (tester) async {
+          'its chevron unfolds it, a tap opens it', (tester) async {
         await openPinned(
           tester,
           post: pinned(myAcks: const {DaybookAck.gotIt}),
           me: DaybookSamples.omar,
         );
-        await tester.tap(find.byType(BvPinnedLine));
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         expect(find.byType(BvPinnedNote), findsOneWidget);
-        await tester.longPress(find.byType(BvPinnedNote));
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BvPinnedNote),
+            matching: find.text(s.halfDay),
+          ),
+        );
         await tester.pumpAndSettle();
         // The sample Space gives everyone a Lead's pass.
-        expect(_menu(tester), [l10n.templateSave]);
+        expect(await _menu(tester), [l10n.templateSave]);
       });
 
       testWidgets('an admin, for an author who has left: Unpin and Cancel, '
@@ -550,9 +549,14 @@ void main() {
           post: pinned(author: 'p-left'),
           me: DaybookSamples.islam,
         );
-        await tester.longPress(find.byType(BvPinnedNote));
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BvPinnedNote),
+            matching: find.text(s.halfDay),
+          ),
+        );
         await tester.pumpAndSettle();
-        expect(_menu(tester), [
+        expect(await _menu(tester), [
           l10n.daybookUnpin,
           l10n.templateSave,
           l10n.daybookCancelPost,
