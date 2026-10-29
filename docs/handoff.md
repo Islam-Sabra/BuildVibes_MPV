@@ -2,6 +2,23 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 104 merged into `slice2-app`, build 729 made; not yet on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (29 Oct), after the lead's check of the shots (review 104, "Shots (29 Oct, 30c271c)"):**
+  1. **S1 on `claude/r104`, test first:** Share → Space reads "A note, work item or checklist" / «ملاحظة أو بند عمل أو قائمة تحقق» (`notebookShareSpaceNote`, both ARB files). BH4's share test failed on the new words first, then passed.
+  2. `docs/reviews/shots-104/` removed (it was for the lead's check only).
+  3. **Goldens updated only for the accepted shots**, EN and AR: r100 BH2-entry-selected, BH3-swipe, BH4-share, BH5-message-preview, BH9-filter; r102 N2-time-wheel, N5-page-filter, N11-time-clock (new); slice10 NB-remind-menu, NB-reminder-slip; slice8 NB-put-in-space. 22 files, nothing else.
+  4. **Checks on `claude/r104` (4b9ff2b, pushed):** `flutter analyze` no issues; `flutter test` 2,487 pass (photo_privacy H1 included); `flutter test test_screens`, not updating: 454 pass.
+  5. **Merged into `slice2-app`** with `--no-ff` (8e8c423, no conflicts) and pushed. The same checks on the merge: analyze clean; 2,487; 454.
+- **No database push, no deploy:** review 104 has no migration and no server change.
+- **Build 729** (8e8c423, release, upload key, prod env, versionCode 729, versionName 0.9.0; certificate SHA-256 9d02b7db…df9f, the same as 712): on the Desktop as `BuildVibes-729.apk` (MD5 b97d5b53…).
+- **Not installed yet:** adb saw no device, and the founder's phone didn't answer at its last address (172.20.10.10:33521; wireless debugging takes a new port each time). No other device was tried. **Next:** with the phone's new wireless debugging address, check the model is 22120RN86G, install `BuildVibes-729.apk` over 712, BuildVibes only.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`), `claude/r104` (worktree `BuildVibes-r104`, merged) and `claude/r101-l1` (worktree `BuildVibes-l1`, for the lead).
+
 ## Cloud update: 29 Oct 2026 — the lead's check of `claude/r104`: F1–F3 done; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

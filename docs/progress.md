@@ -754,6 +754,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - N11: `BvTimePicker`, clock face by default, wheels as its second mode, the last mode kept.
   - N12: status icons in the entry's top line instead of text marks.
   - Checks: analyze clean; 2,473 app tests pass, 1 fails (photo_privacy H1, root-only in the cloud); 3,038 SQL checks. Shots: PC later.
+- **29 Oct (PC): review 104 merged** (founder's yes):
+  - S1: Share → Space reads "A note, work item or checklist", test first.
+  - The 11 accepted shots (EN and AR) updated, N11-time-clock new; `shots-104` removed.
+  - `claude/r104` merged into `slice2-app` (8e8c423). Analyze clean; 2,487 app tests; 454 shots, not updating. No migration, no deploy.
+  - Build 729 on the Desktop; not yet on the founder's phone (it wasn't reachable over adb).
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
