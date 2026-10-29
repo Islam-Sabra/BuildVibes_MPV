@@ -139,9 +139,7 @@ void main() {
       // Review 105 SP2: a work item first, among the kind chips.
       expect(
         tester
-            .widget<BvKindChips<DaybookKind>>(
-              find.byKey(const Key('writing-kinds')),
-            )
+            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
             .selected,
         DaybookKind.workItem,
       );
@@ -269,9 +267,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<BvKindChips<DaybookKind>>(
-              find.byKey(const Key('writing-kinds')),
-            )
+            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
             .selected,
         DaybookKind.note,
       );

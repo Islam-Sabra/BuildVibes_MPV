@@ -86,7 +86,7 @@ void main() {
           'is chosen first', (tester) async {
         await _open(tester, lang);
         await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-        final chips = tester.widget<BvKindChips<DaybookKind>>(
+        final chips = tester.widget<BvKindChips<Object>>(
           find.byKey(const Key('writing-kinds')),
         );
         expect(chips.choices.first.value, DaybookKind.note);

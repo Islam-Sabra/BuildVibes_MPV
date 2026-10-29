@@ -5479,10 +5479,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesInfoWorkTools => 'Work';
 
   @override
-  String get cameraPhoto => 'Photo';
-
-  @override
-  String get cameraWalk => 'Walk';
+  String get daybookKindWalk => 'Walk';
 
   @override
   String get daybookDuplicateDraftFirst =>

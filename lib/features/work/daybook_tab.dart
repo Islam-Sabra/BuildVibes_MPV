@@ -76,7 +76,6 @@ import '../spaces/former_member.dart';
 import '../spaces/pass_words.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_attach.dart';
-import 'daybook_camera.dart';
 import 'daybook_card.dart';
 import 'daybook_draft.dart';
 import 'daybook_kinds.dart';
@@ -872,27 +871,23 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (picked != null && mounted) await _jumpTo(picked);
   }
 
-  /// Opens the card at "Now", with a new post id (or the Draft's).
-  /// The post bar's camera: Photo writes a work item with the photo; Walk
-  /// opens Walk mode, for who may post work (slice 6). Without that right
-  /// it is Photo at once.
+  /// The post bar's camera: the phone's camera at once, for a photo post
+  /// (the lead's ruling on H3, review 105). Walk is the writing card's
+  /// last kind chip.
   Future<void> _camera() async {
-    final walks = widget.space.mayPostWork;
-    final mode = walks
-        ? await showDaybookCameraModes(context)
-        : DaybookCameraMode.photo;
-    if (!mounted) return;
-    switch (mode) {
-      case DaybookCameraMode.photo:
-        _startWriting();
-        await _photos(_writer.addPhoto());
-      case DaybookCameraMode.walk:
-        await context.push(AppRoutes.spaceWalk(_spaceId));
-      case null:
-        break;
-    }
+    _startWriting();
+    await _photos(_writer.addPhoto());
   }
 
+  /// The Walk chip (H3): walk mode, as from the camera before. An empty
+  /// card is put down first; one with words stays a Draft.
+  Future<void> _walk() async {
+    final kept = ref.read(daybookDraftProvider(_spaceId));
+    if (kept == null || kept.isEmpty) _stopWriting();
+    await context.push(AppRoutes.spaceWalk(_spaceId));
+  }
+
+  /// Opens the card at "Now", with a new post id (or the Draft's).
   void _startWriting() {
     ref
         .read(daybookDraftProvider(_spaceId).notifier)
@@ -2942,6 +2937,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                           onPickStart: () => unawaited(_pickStart()),
                           onPickFile: () => unawaited(_pickFile()),
                           onPickPeople: () => unawaited(_pickPeople()),
+                          onWalk: widget.space.mayPostWork
+                              ? () => unawaited(_walk())
+                              : null,
                           askWho: _askWho,
                         ),
                       ),

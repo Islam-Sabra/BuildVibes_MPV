@@ -104,6 +104,11 @@ const rowKinds = [
   DaybookKind.activity,
 ];
 
+/// The writing card's last kind chip (the lead's ruling on H3, review
+/// 105): Walk, for who may post work. Not a kind of post: it starts walk
+/// mode.
+const kindChipWalk = 'walk';
+
 bool goesToAudience(DaybookKind kind) =>
     kind == DaybookKind.announcement ||
     kind == DaybookKind.file ||
@@ -798,6 +803,7 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
     required this.onPickPeople,
     this.editing = false,
     this.askWho,
+    this.onWalk,
   });
 
   final String spaceId;
@@ -821,6 +827,10 @@ class DaybookWritingCard extends ConsumerStatefulWidget {
   final VoidCallback onPickStart;
   final VoidCallback onPickFile;
   final VoidCallback onPickPeople;
+
+  /// Walk, the last kind chip: starts walk mode. Null for who may not
+  /// post work (no chip).
+  final VoidCallback? onWalk;
 
   @override
   ConsumerState<DaybookWritingCard> createState() => _WritingCardState();
@@ -1141,7 +1151,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     final card = BvWritingCard(
       key: const Key('daybook-writing-card'),
       kinds: chooses
-          ? BvKindChips<DaybookKind>(
+          ? BvKindChips<Object>(
               key: const Key('writing-kinds'),
               choices: [
                 for (final k in rowKinds)
@@ -1150,9 +1160,17 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
                     label: kindName(l10n, k),
                     icon: kindIcon(k),
                   ),
+                if (widget.onWalk != null)
+                  BvKindChoice(
+                    value: kindChipWalk,
+                    label: l10n.daybookKindWalk,
+                    icon: BvIcons.camera,
+                  ),
               ],
               selected: kind,
-              onSelected: (k) => unawaited(_writer.setKind(k)),
+              onSelected: (k) => k is DaybookKind
+                  ? unawaited(_writer.setKind(k))
+                  : widget.onWalk?.call(),
             )
           : null,
       rows: rows.isEmpty ? null : BvWritingRows(rows: rows),

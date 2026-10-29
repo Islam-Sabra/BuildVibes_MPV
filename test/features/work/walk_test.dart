@@ -3,13 +3,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
+import 'package:buildvibes/features/work/daybook_draft.dart';
+import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/features/work/walk_saved.dart';
 import 'package:buildvibes/features/work/walk_screen.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -151,11 +155,11 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
-/// The lead's rulings on 105A: Walk mode is in the camera, one tap from
-/// Work: the post bar's camera opens Photo · Walk.
+/// The lead's ruling on H3 (review 105): Walk is the writing card's last
+/// kind chip, for who may post work.
 Future<void> _openWalk(WidgetTester tester) async {
-  await _tap(tester, _key('post-bar-camera'));
-  await _tap(tester, _key('camera-walk'));
+  await _tap(tester, _key('post-bar-notepad'));
+  await _tap(tester, _key('kind-chip-walk'));
 }
 
 Future<void> _owner(WidgetTester tester, String name) async {
@@ -287,50 +291,76 @@ void main() {
       expect(find.text(l10n.walkMenu), findsNothing);
     });
 
-    testWidgets('the camera opens one choice at the bottom, Photo · Walk; '
-        'Walk is not in Space info [$lang]', (tester) async {
-      await _open(tester, lang, withWalk: false);
+    testWidgets('H3: the post bar\'s camera opens the phone\'s camera at '
+        'once for a photo post; no sheet. Walk is not in Space info '
+        '[$lang]', (tester) async {
+      final app = await _open(tester, lang, withWalk: false);
       await _tap(tester, _key('space-header'));
       expect(_key('info-walk'), findsNothing);
       expect(find.text(l10n.walkMenu), findsNothing);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       await _tap(tester, _key('post-bar-camera'));
-      expect(_key('camera-modes'), findsOneWidget);
-      expect(
-        find.descendant(
-          of: _key('camera-photo'),
-          matching: find.text(l10n.cameraPhoto),
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: _key('camera-walk'),
-          matching: find.text(l10n.cameraWalk),
-        ),
-        findsOneWidget,
-      );
-      // At the bottom, Photo first in the reading direction.
-      final size = tester.view.physicalSize / tester.view.devicePixelRatio;
-      expect(
-        tester.getRect(_key('camera-modes')).bottom,
-        greaterThan(size.height * 0.75),
-      );
-      final photo = tester.getCenter(_key('camera-photo')).dx;
-      final walk = tester.getCenter(_key('camera-walk')).dx;
-      expect(lang == 'ar' ? photo > walk : photo < walk, isTrue);
-      await _tap(tester, _key('camera-walk'));
+      expect(_key('camera-modes'), findsNothing);
+      expect(app.cameraAsks, [true]);
+      expect(_key('daybook-writing-card'), findsOneWidget);
+      expect(find.byType(WalkScreen), findsNothing);
+    });
+
+    testWidgets('H3: Walk is the last kind chip, "Walk" with the camera '
+        'icon; it starts walk mode [$lang]', (tester) async {
+      await _open(tester, lang, withWalk: false);
+      await _tap(tester, _key('post-bar-notepad'));
+      final chips = tester.widget<BvKindChips<Object>>(_key('writing-kinds'));
+      final last = chips.choices.last;
+      expect(last.value, kindChipWalk);
+      expect(last.label, l10n.daybookKindWalk);
+      expect(last.icon, BvIcons.camera);
+      expect(l10n.daybookKindWalk, lang == 'ar' ? 'جولة' : 'Walk');
+      // At the end in the reading direction.
+      double x(String k) => tester.getCenter(_key(k)).dx;
+      final note = x('kind-chip-${DaybookKind.note}');
+      await tester.ensureVisible(_key('kind-chip-walk'));
+      await tester.pumpAndSettle();
+      final walk = x('kind-chip-walk');
+      expect(lang == 'ar' ? walk < note : walk > note, isTrue);
+      await _tap(tester, _key('kind-chip-walk'));
       expect(find.byType(WalkScreen), findsOneWidget);
     });
 
-    testWidgets('Photo writes a work item with the photo, as the camera '
-        'did [$lang]', (tester) async {
-      await _open(tester, lang, withWalk: false);
-      await _tap(tester, _key('post-bar-camera'));
-      await _tap(tester, _key('camera-photo'));
-      expect(_key('daybook-writing-card'), findsOneWidget);
-      expect(_key('camera-modes'), findsNothing);
+    testWidgets('H3: no Walk chip for who may not post work [$lang]', (
+      tester,
+    ) async {
+      final s = DaybookSamples(lang);
+      // A Viewer whose admin let them write (custom rights): they write,
+      // but Walk is for a Lead or Crew (mayPostWork).
+      final spaces = FakeSpaceRepository()
+        ..details[DaybookSamples.space] = SpaceDetail(
+          id: DaybookSamples.space,
+          name: s.spaceName,
+          myPass: SpacePass.viewer,
+          iAmAdmin: false,
+          myRights: const MemberRights(createItems: true),
+        )
+        ..spacePeople[DaybookSamples.space] = s.people();
+      await pumpApp(
+        tester,
+        language: lang,
+        auth: FakeAuthRepository(
+          userId: DaybookSamples.mona,
+          phone: '+96550000001',
+        ),
+        spaces: spaces,
+        daybook: FakeDaybookRepository()..posts[DaybookSamples.space] = [],
+        now: DaybookSamples.thursday,
+      );
+      GoRouter.of(
+        tester.element(find.byType(Navigator).first),
+      ).push('/spaces/${DaybookSamples.space}');
+      await tester.pumpAndSettle();
+      await _tap(tester, _key('post-bar-notepad'));
+      expect(_key('writing-kinds'), findsOneWidget);
+      expect(_key('kind-chip-walk'), findsNothing);
     });
 
     testWidgets('R1b: one card for the walk, a row per work item, N of M '

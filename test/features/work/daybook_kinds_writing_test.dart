@@ -148,16 +148,19 @@ void main() {
     final l10n = _l10n(lang);
     final s = DaybookSamples(lang);
 
-    testWidgets('review 105 SP2: the kinds are one choice of five chips, '
-        'the one being written chosen [$lang]', (tester) async {
+    testWidgets('review 105 SP2: the kinds are one choice of five chips '
+        '(then Walk), the one being written chosen [$lang]', (tester) async {
       await _open(tester, lang);
       await _tap(tester, find.byKey(const Key('post-bar-notepad')));
-      BvKindChips<DaybookKind> chips() =>
-          tester.widget<BvKindChips<DaybookKind>>(
-            find.byKey(const Key('writing-kinds')),
-          );
+      BvKindChips<Object> chips() => tester.widget<BvKindChips<Object>>(
+        find.byKey(const Key('writing-kinds')),
+      );
       expect(chips().selected, DaybookKind.workItem);
-      expect([for (final c in chips().choices) c.value], rowKinds);
+      // The five kinds, then Walk for who may post work (H3).
+      expect(
+        [for (final c in chips().choices) c.value],
+        [...rowKinds, kindChipWalk],
+      );
       final chip = find.byKey(Key('kind-chip-${DaybookKind.announcement}'));
       await tester.ensureVisible(chip);
       await tester.pumpAndSettle();
@@ -541,9 +544,7 @@ void main() {
       await _tap(tester, find.byKey(const Key('replaces-done')));
       expect(
         tester
-            .widget<BvKindChips<DaybookKind>>(
-              find.byKey(const Key('writing-kinds')),
-            )
+            .widget<BvKindChips<Object>>(find.byKey(const Key('writing-kinds')))
             .selected,
         DaybookKind.note,
       );

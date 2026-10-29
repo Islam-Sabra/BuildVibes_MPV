@@ -1,6 +1,6 @@
 // Review 105 Part 3 (SP2 2667:38511, AR 2667:38891): writing in the Space.
 // The kinds are one choice that scrolls sideways (Note · Work item ·
-// Checklist · Announcement · Scheduled), Work item chosen first. Title,
+// Checklist · Announcement · Scheduled · Walk), Work item chosen first. Title,
 // then details. For · Place · Due · Team are rows that open pickers, only
 // those the kind uses (a Note has no For or Due); For is Give to's picker,
 // one person for a work item; Team says "Whole Space" until one is chosen.
@@ -87,15 +87,15 @@ void main() {
           'Announcement · Scheduled; Work item first chosen; it scrolls '
           'sideways', (tester) async {
         await _write(tester, lang);
-        final chips = tester.widget<BvKindChips<DaybookKind>>(
-          _key('writing-kinds'),
-        );
+        final chips = tester.widget<BvKindChips<Object>>(_key('writing-kinds'));
         expect(chips.choices.map((c) => c.value), const [
           DaybookKind.note,
           DaybookKind.workItem,
           DaybookKind.checklist,
           DaybookKind.announcement,
           DaybookKind.activity,
+          // H3: Walk last, for who may post work.
+          kindChipWalk,
         ]);
         expect(chips.selected, DaybookKind.workItem);
         expect(
@@ -111,9 +111,7 @@ void main() {
         );
         await _kind(tester, DaybookKind.checklist);
         expect(
-          tester
-              .widget<BvKindChips<DaybookKind>>(_key('writing-kinds'))
-              .selected,
+          tester.widget<BvKindChips<Object>>(_key('writing-kinds')).selected,
           DaybookKind.checklist,
         );
         // The old kind chip and its menu are gone.

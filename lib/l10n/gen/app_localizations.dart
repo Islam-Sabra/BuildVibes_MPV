@@ -9224,17 +9224,11 @@ abstract class AppLocalizations {
   /// **'Work'**
   String get spacesInfoWorkTools;
 
-  /// The lead's rulings on 105A: the post bar's camera, one photo for a new work item.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo'**
-  String get cameraPhoto;
-
-  /// The lead's rulings on 105A: the post bar's camera, Walk mode (one photo, one work item, keep walking).
+  /// Review 105 H3: the writing card's last kind chip, Walk (one photo, one work item, keep walking); shown to who may post work.
   ///
   /// In en, this message translates to:
   /// **'Walk'**
-  String get cameraWalk;
+  String get daybookKindWalk;
 
   /// Review 105 SP6: Duplicate while another card is being written.
   ///

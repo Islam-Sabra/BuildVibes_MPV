@@ -5512,10 +5512,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get spacesInfoWorkTools => 'العمل';
 
   @override
-  String get cameraPhoto => 'صورة';
-
-  @override
-  String get cameraWalk => 'جولة';
+  String get daybookKindWalk => 'جولة';
 
   @override
   String get daybookDuplicateDraftFirst =>
