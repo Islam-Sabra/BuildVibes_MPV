@@ -829,6 +829,9 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - C-A: M1–M3 done.
   - Both merged into `r105c`, keeping both sides of every conflict.
   - Checks: 3,268 SQL checks; analyze clean; 2,836 app tests; shots: 433 unchanged, 33 changed (18 shots) and 14 new, in `docs/reviews/shots-105c/`.
+- **29 Oct (PC): the lead's check of `r105c`:** O1, the Place picker on a bottom sheet like Give to's; O2, the hint "Details, or + for lists and tables". Nothing merged, live or built.
+  - Checks: 3,268 SQL checks; analyze clean; 2,838 app tests.
+  - Shots: 436 unchanged, 30 changed (13 shots only in the hint's words) and 14 new, in `docs/reviews/shots-105c/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

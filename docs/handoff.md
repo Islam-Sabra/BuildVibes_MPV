@@ -2,6 +2,36 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — the lead's check of `r105c`: O1 and O2 on `r105c`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Not done, as asked:** no goldens updated, no merge, no database push, no build.
+- **O1. The Place picker is on a bottom sheet, like Give to's.**
+  - The Place row, and More → Location, open `DaybookPlaceSheet` through `showBvSheet`. `DaybookTab._pickPlace` does it, as `_pickPeople` does for People.
+  - On the sheet: the grabber and "Place" («المكان»), then the search, the Space's places A to Z with a check on the chosen one, and "Add place ‹typed›". A Lead's long press offers Rename and Delete.
+  - A pick closes the sheet.
+  - `DaybookWritingMenu.place`, the popover's place case and its unused free-text field are gone. The card and the popover take `onPickPlace`.
+  - Test: `places_test` O1, in EN and AR. It checks the sheet with its grabber and title, the search on top, A to Z, the check on the chosen one, and "Add place" first when nothing matches.
+- **O2. The hint is "Details, or + for lists and tables"** («التفاصيل، أو + للقوائم والجداول»), on one line in both languages. Test: `task_table_test`.
+  - `task_table_test.dart` was also run through `dart format` (only formatting; the cloud session never formatted it).
+- **Checks (PC, `r105c`):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,838 pass.
+  - `supabase test db`: 3,268 checks in 53 files pass.
+  - `flutter test test_screens`, not updating: **436 pass, 44 fail.**
+    - **30 images differ (15 shots):**
+      - 13 shots differ only in the hint's words (0.09–0.38%).
+      - N3-add-block shows the SP4 + sheet, already accepted.
+      - W-activity differs only in the text cursor, already accepted.
+      - E4, K4 and E3-filled-card no longer differ.
+    - **14 are new** (P1 redrawn on the sheet; the other six as accepted).
+    - `docs/reviews/shots-105c/` was made again, with its README.
+- **Next:**
+  - the lead's check of O1 and O2;
+  - then, with the founder's yes: the goldens, the merge into `slice2-app`, migrations 20261114120000 and 20261115120000 live one at a time, and a build.
+- **Who has which branch:** PC has `r105c` (worktree `BuildVibes-r105c`), `claude/r105c-a`, `claude/r105c-b` and `slice2-app` (`BuildVibes-slice1`).
+
 ## PC update: 29 Oct 2026 — the lead's check of 105C: N1–N5 on `claude/r105c-b`, M1–M3 on `claude/r105c-a`, both merged into `r105c`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
