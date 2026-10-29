@@ -10,13 +10,14 @@ import '../../core/push/reminders.dart';
 import '../../core/routing/app_routes.dart';
 import '../../data/models/daybook.dart';
 import '../../data/models/work_item.dart';
+import '../../data/repositories/daybook_repository.dart';
 import '../entry/entry_state.dart';
+import 'work_share.dart';
 
-/// What a Work card's gestures need from the server that 105B brings
-/// (review 105, the lead's rulings Q1 and Q2): pins per person, Share into
-/// one of the Space's Chat threads, and a Lead's Archive of a Checked item.
-/// Each is off (null) until its server function is there; tests turn them
-/// on to see the gestures.
+/// What a Work card's gestures need from the server that 105B brought
+/// (review 105, the lead's rulings Q1 and Q2; migration 52): pins per
+/// person, Share into one of the Space's Chat threads, and a Lead's
+/// Archive of a Checked item. Null is off (a test can turn one off).
 @immutable
 class WorkLater {
   const WorkLater({this.pin, this.share, this.archive});
@@ -24,8 +25,12 @@ class WorkLater {
   /// Pin or unpin a post for me only.
   final Future<void> Function(DaybookPost post, {required bool on})? pin;
 
-  /// Post the selected cards into one of the Space's Chat threads.
-  final Future<void> Function(BuildContext context, List<DaybookPost> posts)?
+  /// Post the selected cards into one of [spaceId]'s Chat threads.
+  final Future<void> Function(
+    BuildContext context,
+    String spaceId,
+    List<DaybookPost> posts,
+  )?
   share;
 
   /// Hide a Checked item from Work for everyone (Search and the Library
@@ -33,7 +38,16 @@ class WorkLater {
   final Future<void> Function(DaybookPost post)? archive;
 }
 
-final workLaterProvider = Provider<WorkLater>((ref) => const WorkLater());
+/// Review 105B: on, through the server's functions.
+final workLaterProvider = Provider<WorkLater>((ref) {
+  final repo = ref.watch(daybookRepositoryProvider);
+  return WorkLater(
+    pin: (post, {required on}) => repo.pinPost(post.id, on: on),
+    share: (context, spaceId, posts) =>
+        shareToThread(context, ref, spaceId, posts),
+    archive: (post) => repo.archivePost(post.id),
+  );
+});
 
 /// The cards held and selected on one Space's Work (review 105 SP6): a
 /// hold starts it, a tap adds or takes off, ✕ ends it, and so does

@@ -42,6 +42,7 @@ import 'daybook_photos.dart' show localPhotoProvider;
 import 'daybook_report.dart' show ReportWriting;
 import 'daybook_templates.dart';
 import 'daybook_words.dart';
+import 'space_day.dart';
 import 'work_outbox.dart';
 
 /// A new post's id, chosen on the phone when its card opens, so sending it
@@ -490,13 +491,16 @@ class DaybookWriter {
   }
 
   /// Review 105 Part 6: an announcement starts pinned until today ends,
-  /// at the phone's midnight (the lead's ruling Q5; the Space's own time
-  /// zone comes in 105B), as a morning brief; + changes or removes it.
+  /// at midnight in the Space's time zone (105B; the phone's when it isn't
+  /// known), as a morning brief; + changes or removes it.
   Future<void> setKind(DaybookKind kind) => _put(
     (d) => d.copyWith(
       kind: kind,
       pinnedUntil: kind == DaybookKind.announcement && d.pinnedUntil == null
-          ? () => pinToEndOf(dayOf(ref.read(clockProvider)()))
+          ? () => spaceDayEnd(
+              ref.read(spaceDetailProvider(spaceId)).value?.timeZone,
+              ref.read(clockProvider)(),
+            )
           : null,
     ),
   );

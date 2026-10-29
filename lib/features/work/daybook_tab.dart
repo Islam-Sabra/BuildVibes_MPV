@@ -81,6 +81,7 @@ import 'daybook_draft.dart';
 import 'daybook_kinds.dart';
 import 'daybook_loop.dart';
 import 'daybook_marks.dart';
+import 'daybook_page.dart' show showDaybookPage;
 import 'daybook_report.dart';
 import 'daybook_state.dart';
 import 'daybook_target.dart';
@@ -1543,6 +1544,13 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                     padding: BvPinnedSpec.outer,
                     child: _pinnedNote(p, words, cards, me: me, now: now),
                   ),
+              // Review 105B: mine, under the Space's.
+              if (!_writing)
+                for (final p in _mine(_pinned(cards, now)))
+                  Padding(
+                    padding: BvPinnedSpec.outer,
+                    child: _myPin(p, me: me),
+                  ),
               Expanded(
                 key: _viewportKey,
                 child: LayoutBuilder(
@@ -1624,7 +1632,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               // them takes the post bar's place.
               if (selecting)
                 _selectionBar(
-                  [for (final c in cards) c.post, ..._pinned(cards, now)],
+                  [
+                    for (final c in cards) c.post,
+                    ..._pinned(cards, now),
+                    ..._mine(_pinned(cards, now)),
+                  ],
                   selected,
                   me: me,
                 )
@@ -1742,7 +1754,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
                 ? null
                 : () {
                     _endSelection();
-                    unawaited(share(context, posts));
+                    unawaited(share(context, _spaceId, posts));
                   },
           ),
         SelectionAction(
@@ -1843,6 +1855,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ref.watch(spaceRemindersProvider)[spaceReminderId(_spaceId, post.id)] !=
         null;
     final lead = widget.space.myPass == SpacePass.lead;
+    // Review 105B: pinned by me, as the server or this card says.
+    final pinned = _mineIds().contains(post.id);
     return BvSwipeCard(
       id: post.id,
       // Not while writing, nor while cards are held.
@@ -1853,9 +1867,9 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           BvSwipeAction(
             key: Key('swipe-pin-${post.id}'),
             icon: BvIcons.pin,
-            label: l10n.workPin,
+            label: pinned ? l10n.workUnpin : l10n.workPin,
             color: BvColors.textPrimary,
-            onTap: () => unawaited(pin(post, on: true)),
+            onTap: () => unawaited(_pin(post, on: !pinned)),
           ),
         BvSwipeAction(
           key: Key('swipe-remind-${post.id}'),
@@ -1871,10 +1885,131 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               icon: BvIcons.archive,
               label: l10n.workArchive,
               color: BvColors.actionPrimary,
-              onTap: () => unawaited(archive(post)),
+              onTap: () => unawaited(_archive(post)),
             )
           : null,
       child: card,
+    );
+  }
+
+  /// Review 105B: the posts I pinned (mine only): what daybook_extras says
+  /// and any card pinned by me on the page.
+  Set<String> _mineIds() => {
+    for (final p
+        in ref.watch(daybookExtrasProvider(_spaceId)).value?.mine ??
+            const <DaybookPost>[])
+      p.id,
+    for (final c
+        in ref.watch(daybookCardsProvider(_spaceId)).value ??
+            const <DaybookCard>[])
+      if (c.pinnedByMe) c.id,
+  };
+
+  /// My pinned posts at the top of Work (review 105B), as slim lines,
+  /// leaving out an announcement already pinned for the Space.
+  List<DaybookPost> _mine(List<DaybookPost> spacePinned) {
+    final extras = ref.watch(daybookExtrasProvider(_spaceId)).value;
+    final cards =
+        ref.watch(daybookCardsProvider(_spaceId)).value ??
+        const <DaybookCard>[];
+    final shown = {for (final p in spacePinned) p.id};
+    final byId = <String, DaybookPost>{
+      for (final p in extras?.mine ?? const <DaybookPost>[]) p.id: p,
+      for (final c in cards)
+        if (c.pinnedByMe) c.id: c.post,
+    };
+    return [
+      for (final p in byId.values)
+        if (!shown.contains(p.id)) p,
+    ];
+  }
+
+  /// Pin or Unpin for me (review 105B), then Work read again.
+  Future<void> _pin(DaybookPost post, {required bool on}) async {
+    final pin = ref.read(workLaterProvider).pin;
+    if (pin == null) return;
+    try {
+      await pin(post, on: on);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+      return;
+    }
+    ref.invalidate(daybookExtrasProvider(_spaceId));
+    await _loop.refresh();
+  }
+
+  /// A Lead's Archive of a Checked item (review 105B): it leaves Work.
+  Future<void> _archive(DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    final archive = ref.read(workLaterProvider).archive;
+    if (archive == null) return;
+    try {
+      await archive(post);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+      return;
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.workArchived)));
+    }
+    await _loop.refresh();
+  }
+
+  /// My pinned line's tap (review 105B): the item opens as from its card,
+  /// with what I may do there.
+  Future<void> _openMine(DaybookPost post, {required String? me}) async {
+    if (!post.isWorkItem) return _loop.openPinned(context, post, me: me);
+    DaybookCard? card =
+        (ref.read(daybookCardsProvider(_spaceId)).value ??
+                const <DaybookCard>[])
+            .where((c) => c.id == post.id)
+            .firstOrNull;
+    try {
+      card ??= await ref.read(daybookRepositoryProvider).card(post.id);
+    } on SpaceException catch (e) {
+      if (mounted) showSpaceError(context, e);
+      return;
+    }
+    if (card == null || !mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final view = DaybookCardView(
+      card: card,
+      words: DaybookWords(
+        l10n,
+        Localizations.localeOf(context).toLanguageTag(),
+        use24: MediaQuery.alwaysUse24HourFormatOf(context),
+      ),
+      me: me,
+      now: ref.read(clockProvider)(),
+      activityAt: card.lastActivityAt,
+    );
+    await showDaybookPage(
+      context,
+      space: widget.space,
+      post: card.post,
+      actions: _loop.pageActions(context, view, me: me),
+    );
+  }
+
+  /// One of my pinned posts under the masthead: its title; a tap opens it,
+  /// a hold selects it.
+  Widget _myPin(DaybookPost post, {required String? me}) {
+    final selection = ref.watch(workSelectionProvider(_spaceId));
+    void hold() {
+      unawaited(HapticFeedback.selectionClick());
+      ref.read(workSelectionProvider(_spaceId).notifier).toggle(post.id);
+    }
+
+    return BvPinnedLine(
+      key: Key('my-pin-${post.id}'),
+      text: post.title,
+      onTap: selection.isNotEmpty
+          ? hold
+          : () => unawaited(_openMine(post, me: me)),
+      onLongPress: hold,
+      selected: selection.contains(post.id),
     );
   }
 

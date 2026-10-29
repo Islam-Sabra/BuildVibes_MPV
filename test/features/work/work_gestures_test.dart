@@ -325,7 +325,7 @@ void main() {
           tester,
           lang,
           posts: [_openSleeves(s)],
-          later: WorkLater(share: (context, posts) async {}),
+          later: WorkLater(share: (context, spaceId, posts) async {}),
         );
         await _holdCard(tester, 'post-sleeves');
         expect(_key('select-share'), findsOneWidget);
