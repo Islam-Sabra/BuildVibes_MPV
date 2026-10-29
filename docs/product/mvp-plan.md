@@ -128,3 +128,12 @@ In order. Each step is a review with Figma frames, then the founder's yes, then 
 - the celebration feature;
 - the promo motion reel and the designer brief;
 - reading the text in scans (OCR) for Arabic.
+
+### Polish queue after the Space and notebook testing (founder, 29 Oct)
+The founder will review these after he has finished testing the Space and the notebook. Each one goes through the same steps: study, findings, frames in EN and AR, his ok, then the build. **Order:**
+1. **Onboarding:** first open, sign-up, joining a Space.
+2. **First-run tips:** short, shown once, on the main actions.
+3. **Feed:** the post cards, the content, the arrangement, the empty state.
+4. **Profile and settings:** the profile as proof from work; settings kept minimal (rule 7).
+5. **Explore:** people search only in the MVP, filled with suggested people (projects, companies, trades) and recent searches.
+6. **Moving between screens:** one motion system across the whole app.
