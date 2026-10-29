@@ -787,6 +787,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - J4: "Write in this Space".
   - F61, A1 and MN1 deleted.
   - Checks: analyze clean; 2,652 app tests; 3,058 SQL checks. 123 changed shots (246 images) in `docs/reviews/shots-105a/`.
+- **29 Oct (PC): review 105A live** (founder's yes):
+  - The 123 accepted shots updated (246 images); `shots-105a` removed.
+  - `claude/r105a` merged into `slice2-app` (9c5f400). Analyze clean; 2,652 app tests; 3,058 SQL checks; 454 shots, not updating.
+  - No migration, no deploy.
+  - Build 775 on the Desktop and on the founder's phone.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.

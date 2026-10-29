@@ -2,6 +2,36 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 105A live: merged into `slice2-app`, build 775 on the founder's phone
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **The founder's yes (29 Oct), after the lead accepted J1–J4 and all 123 changed shots (review 105, "J1–J4 done"):**
+  1. **Goldens updated only for the 123 accepted shots** (246 images, EN and AR).
+     - Each golden is the accepted `-new` image from `docs/reviews/shots-105a/`, copied over it. `test_screens` then confirmed, without updating, that the branch draws every one of them the same.
+     - `docs/reviews/shots-105a/` removed.
+     - No shot renamed: the lead's last check asked for none.
+  2. **Checks on `claude/r105a` (20ca1b3, pushed):**
+     - `flutter test test_screens`, not updating: 454 pass.
+     - `flutter analyze`: no issues.
+     - `flutter test`: 2,652 pass.
+     - `supabase test db`: 3,058 checks in 49 files pass.
+  3. **Merged into `slice2-app`** with `--no-ff` (9c5f400, no conflicts) and pushed. The same checks on the merge: analyze clean; 2,652; 454.
+     - Windows line endings in `lib/l10n/gen` again, with no content change; restored.
+     - **No database push** (105A has no migration). **No function deploy.**
+  4. **Build 775** (9c5f400, release, upload key, prod env; versionCode 775, versionName 0.9.0; certificate SHA-256 9d02b7db…df9f, the same as 744): on the Desktop as `BuildVibes-775.apk` (MD5 ebee9a19…).
+  5. **Installed on the founder's Xiaomi** over 744, at 192.168.8.33:43045 (still connected; model 22120RN86G checked first):
+     - versionCode 775; first install still 17 Oct.
+     - The installed `base.apk` is byte-identical to `BuildVibes-775.apk`.
+     - BuildVibes is the only package of ours on it.
+- **Next:**
+  - the founder's test of build 775: a Space's Work in the notebook's one language, Needs you, People, Space info, Walk as the last kind chip, "Write in this Space";
+  - 105B (places, archive, personal pins, share to a chat thread, the Space's time zone, handover on removal; one migration);
+  - the tidy lists in reviews 105 and 106.
+- **Who has which branch:** PC has `slice2-app` (worktree `BuildVibes-slice1`), `claude/r105a` (worktree `BuildVibes-r105a`, merged) and `r106` (merged).
+
 ## PC update: 29 Oct 2026 — review 105 J1–J4 (the lead's check of the 105A shots) on `claude/r105a`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
