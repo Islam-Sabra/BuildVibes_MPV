@@ -2,6 +2,53 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — the lead's check of 105C: N1–N5 on `claude/r105c-b`, M1–M3 on `claude/r105c-a`, both merged into `r105c`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Not done, as asked:** no goldens updated, no merge into `slice2-app`, no database push, no build.
+- **`claude/r105c-b` (9cc11a8, pushed):**
+  - **The first compile and run on the PC:**
+    - `flutter gen-l10n` replaced the hand-edited `lib/l10n/gen`. Only line wraps and one Arabic line's spacing differed.
+    - Analyze was clean, and the SQL passed.
+    - **4 app tests failed**, all Arabic, in `task_table_test.dart`. Opening the item tapped its title while it was out of sight. In the test's font, the Arabic card is taller than Work, so its title sat under the Needs you line, and the tap went there.
+    - **The fix is in the test:** `_openItem` now brings the title into sight first, as its own `_tap` does. The app was not at fault: with the app's fonts, the whole card fits.
+  - **N1:** Arabic «{n} من {m} معلَّمة».
+  - **N2:** ticks are for the owner or a Lead only. `is_admin` is dropped from `may_tick_task` and from `mayTickTasks`. A test covers an admin on a Crew pass.
+  - **N3:** the validator refuses an empty task, or one of spaces only (1–200 characters). The editor already drops empty rows on save.
+  - **N4:**
+    - the Arabic count from 11 up (few, many, other);
+    - "—" in the ARB (`taskTableNoNote`);
+    - each tick's screen-reader label names its task (`taskTableTick(task)`);
+    - the removal sheet uses the profile's first name (`firstName`, so "Abdul Rahman" stays whole);
+    - the comment above `SpaceFailure` is back in its place.
+  - **N5:** the pgTAP file is now `54_task_table_block.test.sql`.
+  - Migration 20261115120000 was edited in place.
+- **`claude/r105c-a` (640c412, pushed):**
+  - **M1:** a new post sends the place's name as `place_text` too (`setPostPlaceOrKeepName`).
+    - If `set_post_place` is refused after the post is made, the post counts as sent, with that name and no refused card. No signal is still tried again.
+    - An edit sends the name too. If the place is refused, the older place is taken off, with no error.
+    - E3's test now expects the name.
+  - **M2:** the trigger `space_places_keep_name` copies a place's name into `place_text` of its posts before the place is deleted. It is in migration 20261114120000, edited in place, with 5 new pgTAP checks (22 in file 53).
+  - **M3:** the before/after labels show the day unless both photos are from today (`photoWhen`).
+- **`r105c`** (new, from `slice2-app` 7714156; worktree `BuildVibes-r105c`), pushed:
+  - **Merges, each `--no-ff`:**
+    - `claude/r105c-a`: no conflicts.
+    - `claude/r105c-b`: conflicts in `daybook_card.dart` (A's `site` and B's `taskTables` and `taskCount`, in 3 places), both ARB files (A's place strings and B's table and handover strings), `lib/l10n/gen` and `handoff.md`.
+    - Both sides were kept everywhere, and `flutter gen-l10n` was run.
+  - **Checks after `supabase db reset --local`:**
+    - `supabase test db`: 3,268 checks in 53 files pass.
+    - `flutter analyze`: no issues.
+    - `flutter test`: 2,836 pass.
+  - **`test_screens`, not updating: 433 pass, 47 fail.**
+    - **33 images differ (18 shots).** 31 come from C-B's longer details hint and its + sheet (N3-add-block). In 2, only the text cursor moved (E3-filled-card, W-activity).
+    - **14 are new:** P1–P3, BA1, SP4, SP3 and SP9, in EN and AR, in `test_screens/r105c_test.dart`. They fail only because they have no golden yet.
+    - All pairs and the new shots are in `docs/reviews/shots-105c/`, with a README.
+    - The shot drivers of E3, E5, E7, E8 and W now pick the place from the picker, as the app tests do.
+- **The local stack** has `r105c`'s migrations (52, 53 and 54).
+- **Next:** the lead's check of `r105c` and its shots. Then, with the founder's yes: the goldens, the merge into `slice2-app`, migrations 20261114120000 and 20261115120000 live one at a time, and a build.
+- **Who has which branch:** PC has `r105c` (worktree `BuildVibes-r105c`), `claude/r105c-a` (`BuildVibes-r105ca`), `claude/r105c-b` (`BuildVibes-r105cb`) and `slice2-app` (`BuildVibes-slice1`).
+
 ## Cloud update: 29 Oct 2026 — 105C part A (places, before / after) on `claude/r105c-a`; shots still to make on the PC
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

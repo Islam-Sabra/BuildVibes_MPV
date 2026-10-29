@@ -824,6 +824,11 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migration 53 (`20261115120000_task_table_block.sql`): the `task_table` block on a work item (rows: id, task, note, tick); only the owner or a Lead changes a tick, through `tick_task_row` or a save; `add_task_row`; `space_task_tables` for the cards; `open_work_to_hand_over` for the removal sheet. pgTAP 53, 58 checks.
   - The app: + inside a work item in SP4's order with the lines under Table and Table of tasks; the table of tasks on the page and the card, ticked in place, "n of m ticked" on the For line, Add a row; the removal sheet for Remove and Leave.
   - Checks: SQL, with a pgTAP stand-in, 58 of 58 in file 53, and the older files as listed in the handoff. **Flutter couldn't run in this session**: analyze and tests are for the PC.
+- **29 Oct (PC): the lead's check of 105C** on `r105c`, for the lead; nothing merged into `slice2-app`, live or built:
+  - C-B compiled and ran on the PC for the first time. 4 Arabic tests tapped a title out of sight; the tests were fixed. N1–N5 done.
+  - C-A: M1–M3 done.
+  - Both merged into `r105c`, keeping both sides of every conflict.
+  - Checks: 3,268 SQL checks; analyze clean; 2,836 app tests; shots: 433 unchanged, 33 changed (18 shots) and 14 new, in `docs/reviews/shots-105c/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
