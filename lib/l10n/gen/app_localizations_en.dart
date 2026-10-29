@@ -2718,6 +2718,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daybookWorkItem => 'Work item';
 
   @override
+  String get daybookWriteInSpace => 'Write in this Space';
+
+  @override
   String get daybookReadOnly => 'Read only';
 
   @override

@@ -3853,6 +3853,10 @@
   "@daybookWorkItem": {
     "description": "Post bar notepad (glossary)."
   },
+  "daybookWriteInSpace": "Write in this Space",
+  "@daybookWriteInSpace": {
+    "description": "Review 105 J4 (SP1): the words in Work's post bar. An opened item's bar keeps \"Add update\"."
+  },
   "daybookReadOnly": "Read only",
   "@daybookReadOnly": {
     "description": "Viewer post bar, after the pass chip (V1)."

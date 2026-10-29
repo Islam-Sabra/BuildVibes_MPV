@@ -2710,6 +2710,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get daybookWorkItem => 'بند عمل';
 
   @override
+  String get daybookWriteInSpace => 'اكتب في هذه المساحة';
+
+  @override
   String get daybookReadOnly => 'للقراءة فقط';
 
   @override

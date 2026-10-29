@@ -1698,7 +1698,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               // posted or emptied (E4).
               else if (!card)
                 BvPostBar(
-                  placeholder: l10n.daybookWorkItem,
+                  // Review 105 J4 (SP1).
+                  placeholder: l10n.daybookWriteInSpace,
                   onWrite: _startWriting,
                   cameraLabel: l10n.daybookCameraLabel,
                   // The camera, with Photo · Walk at its bottom (the lead's

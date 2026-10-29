@@ -4592,6 +4592,12 @@ abstract class AppLocalizations {
   /// **'Work item'**
   String get daybookWorkItem;
 
+  /// Review 105 J4 (SP1): the words in Work's post bar. An opened item's bar keeps "Add update".
+  ///
+  /// In en, this message translates to:
+  /// **'Write in this Space'**
+  String get daybookWriteInSpace;
+
   /// Viewer post bar, after the pass chip (V1).
   ///
   /// In en, this message translates to:

@@ -182,6 +182,17 @@ void main() {
         expect(_key('report-writing'), findsOneWidget);
       });
 
+      testWidgets('J4: Work\'s post bar reads "Write in this Space" (SP1)', (
+        tester,
+      ) async {
+        await _open(tester, lang);
+        Finder inBar(String t) =>
+            find.descendant(of: find.byType(BvPostBar), matching: find.text(t));
+        expect(inBar(l10n.daybookWriteInSpace), findsOneWidget);
+        expect(inBar(l10n.daybookWorkItem), findsNothing);
+        expect(inBar(l10n.daybookAddUpdate), findsNothing);
+      });
+
       testWidgets('the post bar is the bottom of the screen', (tester) async {
         await _open(tester, lang);
         final size = tester.view.physicalSize / tester.view.devicePixelRatio;
