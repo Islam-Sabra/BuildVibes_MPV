@@ -5728,7 +5728,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get daybookWritingDetails => 'Add details.';
+  String get daybookWritingDetails =>
+      'Add details. + for bullet points, a table or a table of tasks.';
 
   @override
   String get daybookRowFor => 'For';
@@ -5898,5 +5899,80 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notebookOlderVersionOn(String day, String time) {
     return 'Older version · changed $day at $time';
+  }
+
+  @override
+  String get pageBulletPoints => 'Bullet points';
+
+  @override
+  String get pageTaskTable => 'Table of tasks';
+
+  @override
+  String get pageTableHint => 'A plain table, no owners';
+
+  @override
+  String get pageTaskTableHint => 'Rows the owner ticks, then signs once';
+
+  @override
+  String get pageAddToItem => 'Add to this work item';
+
+  @override
+  String get pageFileOrScan => 'File or scan';
+
+  @override
+  String get taskTableTask => 'Task';
+
+  @override
+  String get taskTableNote => 'Note';
+
+  @override
+  String get taskTableTick => 'Tick this row';
+
+  @override
+  String taskTableTicked(int ticked, int total) {
+    return '$ticked of $total ticked';
+  }
+
+  @override
+  String get taskTableNoteHint => 'Note (optional)';
+
+  @override
+  String get handoverGiveTo => 'Give to';
+
+  @override
+  String get handoverChoose => 'Choose someone';
+
+  @override
+  String get handoverTheirChecked => 'Their checked work stays in the Space and on their profile.';
+
+  @override
+  String get handoverMyChecked => 'Your checked work stays in the Space and on your profile.';
+
+  @override
+  String get handoverGiveAndRemove => 'Give and remove';
+
+  @override
+  String get handoverGiveAndLeave => 'Give and leave';
+
+  @override
+  String handoverRemoveBody(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open work items. Give each one to someone',
+      one: '1 open work item. Give it to someone',
+    );
+    return '$name has $_temp0 so nothing is left without an owner.';
+  }
+
+  @override
+  String handoverLeaveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count open work items. Give each one to someone',
+      one: '1 open work item. Give it to someone',
+    );
+    return 'You have $_temp0 so nothing is left without an owner.';
   }
 }

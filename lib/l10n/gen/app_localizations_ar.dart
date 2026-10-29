@@ -5766,7 +5766,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get daybookWritingDetails => 'أضف التفاصيل.';
+  String get daybookWritingDetails =>
+      'أضف التفاصيل. + للنقاط أو جدول أو جدول مهام.';
 
   @override
   String get daybookRowFor => 'لمن';
@@ -5936,5 +5937,82 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String notebookOlderVersionOn(String day, String time) {
     return 'نسخة أقدم · تغيّرت $day $time';
+  }
+
+  @override
+  String get pageBulletPoints => 'نقاط';
+
+  @override
+  String get pageTaskTable => 'جدول مهام';
+
+  @override
+  String get pageTableHint => 'جدول عادي بلا مكلّفين';
+
+  @override
+  String get pageTaskTableHint => 'صفوف يعلّمها المكلّف، ثم يوقّع مرة واحدة';
+
+  @override
+  String get pageAddToItem => 'أضف إلى بند العمل';
+
+  @override
+  String get pageFileOrScan => 'ملف أو مسح ضوئي';
+
+  @override
+  String get taskTableTask => 'المهمة';
+
+  @override
+  String get taskTableNote => 'ملاحظة';
+
+  @override
+  String get taskTableTick => 'علّم هذا الصف';
+
+  @override
+  String taskTableTicked(int ticked, int total) {
+    return '$ticked من $total منجزة';
+  }
+
+  @override
+  String get taskTableNoteHint => 'ملاحظة (اختيارية)';
+
+  @override
+  String get handoverGiveTo => 'أعطِ إلى';
+
+  @override
+  String get handoverChoose => 'اختر شخصًا';
+
+  @override
+  String get handoverTheirChecked => 'عمله الذي تم التحقق منه يبقى في المساحة وعلى ملفه.';
+
+  @override
+  String get handoverMyChecked => 'عملك الذي تم التحقق منه يبقى في المساحة وعلى ملفك.';
+
+  @override
+  String get handoverGiveAndRemove => 'أعطِ وأزِل';
+
+  @override
+  String get handoverGiveAndLeave => 'أعطِ وغادِر';
+
+  @override
+  String handoverRemoveBody(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count بنود عمل مفتوحة. أعطِ كل بند لشخص آخر',
+      one: 'بند عمل مفتوح. أعطِه لشخص آخر',
+      two: 'بندا عمل مفتوحان. أعطِ كل بند لشخص آخر',
+    );
+    return 'لدى $name $_temp0 حتى لا يبقى بند بلا مكلّف.';
+  }
+
+  @override
+  String handoverLeaveBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count بنود عمل مفتوحة. أعطِ كل بند لشخص آخر',
+      one: 'بند عمل مفتوح. أعطِه لشخص آخر',
+      two: 'بندا عمل مفتوحان. أعطِ كل بند لشخص آخر',
+    );
+    return 'لديك $_temp0 حتى لا يبقى بند بلا مكلّف.';
   }
 }
