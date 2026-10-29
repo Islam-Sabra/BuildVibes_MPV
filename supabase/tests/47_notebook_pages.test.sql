@@ -57,6 +57,9 @@ insert into public.notes (id, owner_id, kind, body, created_at) values
   (pg_temp.id('a003'), pg_temp.uid('a1'), 'todo', 'Newest', now() - interval '1 day'),
   (pg_temp.id('a004'), pg_temp.uid('b2'), 'text', 'Rakesh''s', now() - interval '1 day');
 select is(public.notes_into_my_notes(), 4, 'every note without a page is moved');
+-- Migration 51's deferred triggers (content_changed_at) run before notes is
+-- altered again.
+set constraints all immediate;
 alter table public.notes enable trigger notes_page_ok;
 alter table public.notes enable trigger notes_page_activity;
 alter table public.notes enable trigger notes_page_activity_change;
