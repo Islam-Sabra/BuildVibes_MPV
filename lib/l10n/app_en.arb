@@ -7482,7 +7482,7 @@
   "@notebookShareSpace": {
     "description": "Review 100 BH4: Share's second choice."
   },
-  "notebookShareSpaceNote": "A post, work item or checklist",
+  "notebookShareSpaceNote": "A note, work item or checklist",
   "@notebookShareSpaceNote": {
     "description": "Review 100 BH4: under Space."
   },

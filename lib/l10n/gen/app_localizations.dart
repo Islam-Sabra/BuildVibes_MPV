@@ -8831,7 +8831,7 @@ abstract class AppLocalizations {
   /// Review 100 BH4: under Space.
   ///
   /// In en, this message translates to:
-  /// **'A post, work item or checklist'**
+  /// **'A note, work item or checklist'**
   String get notebookShareSpaceNote;
 
   /// Review 100 BH4: Share's third choice.

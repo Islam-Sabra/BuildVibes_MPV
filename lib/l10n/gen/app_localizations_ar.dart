@@ -5259,7 +5259,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookShareSpace => 'مساحة';
 
   @override
-  String get notebookShareSpaceNote => 'منشور أو بند عمل أو قائمة تحقق';
+  String get notebookShareSpaceNote => 'ملاحظة أو بند عمل أو قائمة تحقق';
 
   @override
   String get notebookShareMessage => 'رسالة';

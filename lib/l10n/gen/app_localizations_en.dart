@@ -5240,7 +5240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookShareSpace => 'Space';
 
   @override
-  String get notebookShareSpaceNote => 'A post, work item or checklist';
+  String get notebookShareSpaceNote => 'A note, work item or checklist';
 
   @override
   String get notebookShareMessage => 'Message';

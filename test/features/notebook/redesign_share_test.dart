@@ -98,6 +98,15 @@ void main() {
           expect(_key('share-$c'), findsOneWidget, reason: c);
         }
         expect(find.text(l10n.notebookShareFeedNote), findsOneWidget);
+        // Review 104 S1: a note, not a post.
+        expect(
+          find.text(
+            lang == 'en'
+                ? 'A note, work item or checklist'
+                : 'ملاحظة أو بند عمل أو قائمة تحقق',
+          ),
+          findsOneWidget,
+        );
         expect(find.byType(BottomSheet), findsNothing);
         // Over the bar.
         expect(
