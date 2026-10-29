@@ -26,6 +26,15 @@ abstract final class BvPeopleSpec {
   static const rowPaddingVertical = BvSpace.s12;
   static const rowGap = BvSpace.s12;
 
+  /// Review 105 SP8: a row's name, title · company and tags lines, and the
+  /// pass and Team tags.
+  static const lineGap = BvSpace.s4;
+  static const tagGap = BvSpace.s6;
+  static const tagPadding = EdgeInsetsDirectional.symmetric(
+    horizontal: BvSpace.s8,
+    vertical: 3,
+  );
+
   /// The Team chips.
   static const chipHeight = 32.0;
   static const chipPadding = BvSpace.s12;

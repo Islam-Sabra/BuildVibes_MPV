@@ -9241,6 +9241,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Walk'**
   String get cameraWalk;
+
+  /// Review 105 SP6: Duplicate while another card is being written.
+  ///
+  /// In en, this message translates to:
+  /// **'Post or discard the card you\'re writing first.'**
+  String get daybookDuplicateDraftFirst;
+
+  /// Review 105 SP6: confirm Delete from the hold bar.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Delete this post?} other{Delete {count} posts?}}'**
+  String daybookDeleteTitle(int count);
+
+  /// Review 105 SP6: what Delete does.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes from Work for everyone in this Space.'**
+  String get daybookDeleteBody;
+
+  /// Review 105 SP6: posts the server kept because others added to them.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Someone has added to one, so it stays. Open it to cancel it.} other{Someone has added to {count}, so they stay. Open each to cancel it.}}'**
+  String daybookDeleteKept(int count);
+
+  /// Review 105 SP2: the words' hint on a work item being written, under its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details.'**
+  String get daybookWritingDetails;
+
+  /// Review 105 SP2: the For row's word (who the work item, checklist or activity is for).
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get daybookRowFor;
+
+  /// Review 105 SP2: the Place row's word.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get daybookRowPlace;
+
+  /// Review 105 SP2: the Due row's word.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get daybookRowDue;
+
+  /// Review 105 SP2: a scheduled activity's time row.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get daybookRowWhen;
+
+  /// Review 105 SP2: the Team row's word.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get daybookRowTeam;
+
+  /// Review 105 SP2: a row nobody is chosen for yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get daybookRowChoose;
+
+  /// Review 105 SP2: a row with nothing set yet (place, due, time).
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get daybookRowAdd;
+
+  /// Review 105 SP2: the Team row before a Team is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole Space'**
+  String get daybookWholeSpace;
+
+  /// Review 105 Part 6: the Needs you line at the top of Work, what waits on me. Western digits.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 needs you} other{{n} need you}}'**
+  String daybookNeedYou(int n);
+
+  /// Review 105 Part 6: after the Needs you count, what is due today. Western digits.
+  ///
+  /// In en, this message translates to:
+  /// **'· {n} due today'**
+  String daybookNeedYouDue(int n);
+
+  /// Review 105 Part 6: read out on the Needs you line while it filters Work.
+  ///
+  /// In en, this message translates to:
+  /// **'Show everything'**
+  String get daybookNeedYouShowAll;
+
+  /// Review 105 Part 7: the card the owner sees once when their work item is Checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to your proof of work'**
+  String get proofMomentTitle;
+
+  /// Review 105 Part 7: who checked it and when.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked by {name} · {time}'**
+  String proofMomentBy(String name, String time);
+
+  /// Review 105 Part 7: opens my proof of work.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get proofMomentView;
+
+  /// Review 105 SP8: the members' section in People.
+  ///
+  /// In en, this message translates to:
+  /// **'IN THIS SPACE'**
+  String get peopleInThisSpace;
+
+  /// Review 105 SP8: the join requests' section on top of People.
+  ///
+  /// In en, this message translates to:
+  /// **'NEEDS YOU · JOIN REQUEST'**
+  String get peopleNeedsYouRequests;
+
+  /// Review 105 SP8: a join request's Confirm; it asks for the pass.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get peopleConfirm;
 }
 
 class _AppLocalizationsDelegate

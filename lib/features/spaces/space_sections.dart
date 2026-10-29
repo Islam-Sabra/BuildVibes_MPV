@@ -12,6 +12,7 @@ import '../../data/repositories/space_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../library/library_tab.dart';
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
+import '../../shared/widgets/bv_writing_card.dart' show bvBareField;
 import 'people_tab.dart';
 
 /// A file post the Library asked for (review 69 1b): back on the Space's
@@ -25,18 +26,64 @@ class SpaceFileAsk {
 /// The Space's People (review 105 Part 1, SP8 2670:38796), from the
 /// header's People icon: its own screen, with Invite at the top end for
 /// who may invite.
-class SpacePeopleScreen extends ConsumerWidget {
+class SpacePeopleScreen extends ConsumerStatefulWidget {
   const SpacePeopleScreen({super.key, required this.spaceId});
 
   final String spaceId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SpacePeopleScreen> createState() => _SpacePeopleState();
+}
+
+/// Search in People's header (review 105 SP8, the lead's ruling: a Space
+/// with 100+ members needs it): the field takes the title's place.
+class _SpacePeopleState extends ConsumerState<SpacePeopleScreen> {
+  final _query = TextEditingController();
+  var _searching = false;
+
+  String get spaceId => widget.spaceId;
+
+  @override
+  void dispose() {
+    _query.dispose();
+    super.dispose();
+  }
+
+  void _search(bool on) => setState(() {
+    _searching = on;
+    if (!on) _query.clear();
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final type = BvType.of(context);
     final detail = ref.watch(spaceDetailProvider(spaceId)).value;
     return _SectionScaffold(
       title: l10n.spacesTabPeople,
+      titleField: _searching
+          ? TextField(
+              key: const Key('people-search-field'),
+              controller: _query,
+              autofocus: true,
+              style: type.bodyMd,
+              onChanged: (_) => setState(() {}),
+              decoration: bvBareField(
+                hint: l10n.peopleSearchHint,
+                style: type.bodyMd,
+              ),
+            )
+          : null,
       actions: [
+        IconButton(
+          key: const Key('people-search'),
+          tooltip: _searching ? l10n.searchClear : l10n.searchMenu,
+          onPressed: () => _search(!_searching),
+          icon: Icon(
+            _searching ? BvIcons.close : BvIcons.search,
+            size: BvSize.iconLg,
+          ),
+        ),
         if (detail?.myRights.invite ?? false)
           IconButton(
             key: const Key('people-invite'),
@@ -45,7 +92,9 @@ class SpacePeopleScreen extends ConsumerWidget {
             icon: const Icon(BvIcons.invite, size: BvSize.iconLg),
           ),
       ],
-      body: detail == null ? null : PeopleTab(space: detail),
+      body: detail == null
+          ? null
+          : PeopleTab(space: detail, query: _query.text),
     );
   }
 }
@@ -79,11 +128,15 @@ class _SectionScaffold extends StatelessWidget {
     required this.title,
     required this.body,
     this.actions = const [],
+    this.titleField,
   });
 
   final String title;
   final Widget? body;
   final List<Widget> actions;
+
+  /// In the title's place (People's search).
+  final Widget? titleField;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -92,7 +145,7 @@ class _SectionScaffold extends StatelessWidget {
       backgroundColor: BvColors.surfaceApp,
       centerTitle: false,
       titleSpacing: 0,
-      title: Text(title, style: BvType.of(context).titleLg),
+      title: titleField ?? Text(title, style: BvType.of(context).titleLg),
       actions: actions,
     ),
     body:

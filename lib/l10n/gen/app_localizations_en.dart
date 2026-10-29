@@ -5486,4 +5486,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cameraWalk => 'Walk';
+
+  @override
+  String get daybookDuplicateDraftFirst =>
+      'Post or discard the card you\'re writing first.';
+
+  @override
+  String daybookDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete $count posts?',
+      one: 'Delete this post?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daybookDeleteBody =>
+      'It goes from Work for everyone in this Space.';
+
+  @override
+  String daybookDeleteKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Someone has added to $count, so they stay. Open each to cancel it.',
+      one: 'Someone has added to one, so it stays. Open it to cancel it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daybookWritingDetails => 'Add details.';
+
+  @override
+  String get daybookRowFor => 'For';
+
+  @override
+  String get daybookRowPlace => 'Place';
+
+  @override
+  String get daybookRowDue => 'Due';
+
+  @override
+  String get daybookRowWhen => 'When';
+
+  @override
+  String get daybookRowTeam => 'Team';
+
+  @override
+  String get daybookRowChoose => 'Choose';
+
+  @override
+  String get daybookRowAdd => 'Add';
+
+  @override
+  String get daybookWholeSpace => 'Whole Space';
+
+  @override
+  String daybookNeedYou(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n need you',
+      one: '1 needs you',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookNeedYouDue(int n) {
+    return '· $n due today';
+  }
+
+  @override
+  String get daybookNeedYouShowAll => 'Show everything';
+
+  @override
+  String get proofMomentTitle => 'Added to your proof of work';
+
+  @override
+  String proofMomentBy(String name, String time) {
+    return 'Checked by $name · $time';
+  }
+
+  @override
+  String get proofMomentView => 'View';
+
+  @override
+  String get peopleInThisSpace => 'IN THIS SPACE';
+
+  @override
+  String get peopleNeedsYouRequests => 'NEEDS YOU · JOIN REQUEST';
+
+  @override
+  String get peopleConfirm => 'Confirm';
 }

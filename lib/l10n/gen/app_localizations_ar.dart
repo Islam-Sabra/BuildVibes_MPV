@@ -5519,4 +5519,99 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cameraWalk => 'جولة';
+
+  @override
+  String get daybookDuplicateDraftFirst =>
+      'انشر البطاقة التي تكتبها أو احذفها أولاً.';
+
+  @override
+  String daybookDeleteTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'حذف $count منشورات؟',
+      one: 'حذف هذا المنشور؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daybookDeleteBody => 'سيُحذف من العمل لكل من في هذه المساحة.';
+
+  @override
+  String daybookDeleteKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أضاف أحدهم إلى $count منشورات، فبقيت. افتح كلاً منها لإلغائه.',
+      one: 'أضاف أحدهم إلى منشور، فبقي. افتحه لإلغائه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get daybookWritingDetails => 'أضف التفاصيل.';
+
+  @override
+  String get daybookRowFor => 'لمن';
+
+  @override
+  String get daybookRowPlace => 'المكان';
+
+  @override
+  String get daybookRowDue => 'الموعد';
+
+  @override
+  String get daybookRowWhen => 'متى';
+
+  @override
+  String get daybookRowTeam => 'الفريق';
+
+  @override
+  String get daybookRowChoose => 'اختر';
+
+  @override
+  String get daybookRowAdd => 'أضف';
+
+  @override
+  String get daybookWholeSpace => 'المساحة كلها';
+
+  @override
+  String daybookNeedYou(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n بانتظارك',
+      one: '1 بانتظارك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String daybookNeedYouDue(int n) {
+    return '· $n موعدها اليوم';
+  }
+
+  @override
+  String get daybookNeedYouShowAll => 'اعرض الكل';
+
+  @override
+  String get proofMomentTitle => 'أُضيف إلى إثبات عملك';
+
+  @override
+  String proofMomentBy(String name, String time) {
+    return 'تم التحقق بواسطة $name · $time';
+  }
+
+  @override
+  String get proofMomentView => 'عرض';
+
+  @override
+  String get peopleInThisSpace => 'في هذه المساحة';
+
+  @override
+  String get peopleNeedsYouRequests => 'بانتظارك · طلب انضمام';
+
+  @override
+  String get peopleConfirm => 'تأكيد';
 }

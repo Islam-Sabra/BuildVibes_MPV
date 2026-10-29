@@ -7,18 +7,24 @@ import '../../core/design/bv_tokens.dart';
 /// The Daybook's small round buttons (R1 v4 2556:35480 "Edit profile",
 /// "Share"): [soft] is brand-soft with orange words, otherwise a thin
 /// outline. The look is 32 high; the touch area is 44. With no [onTap]
-/// it is grey and does nothing (P2 "Choose a pass").
+/// it is grey and does nothing (P2 "Choose a pass"). Review 105 SP8: a
+/// [strong] one is the action colour with white words (Confirm); a [quiet]
+/// one grey with grey words (Decline).
 class BvPillButton extends StatelessWidget {
   const BvPillButton({
     super.key,
     required this.label,
     required this.onTap,
     this.soft = true,
+    this.strong = false,
+    this.quiet = false,
   });
 
   final String label;
   final VoidCallback? onTap;
   final bool soft;
+  final bool strong;
+  final bool quiet;
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +46,15 @@ class BvPillButton extends StatelessWidget {
                 vertical: BvProfileHeadSpec.pillPaddingVertical,
               ),
               decoration: BoxDecoration(
-                color: off
+                color: off || quiet
                     ? BvColors.surfaceSubtle
+                    : strong
+                    ? BvColors.actionPrimary
                     : soft
                     ? BvColors.surfaceBrandSoft
                     : null,
                 borderRadius: BvRadius.roundAll,
-                border: soft || off
+                border: soft || off || strong || quiet
                     ? null
                     : Border.all(
                         color: BvColors.borderDefault,
@@ -55,9 +63,11 @@ class BvPillButton extends StatelessWidget {
               ),
               child: Text(
                 label,
-                style: type.labelMd.copyWith(
-                  color: off
+                style: (strong ? type.emphasis : type.labelMd).copyWith(
+                  color: off || quiet
                       ? BvColors.textSecondary
+                      : strong
+                      ? BvColors.actionPrimaryForeground
                       : soft
                       ? BvColors.textAction
                       : BvColors.textPrimary,

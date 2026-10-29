@@ -300,6 +300,7 @@ class SpacePerson {
     this.tradeId,
     this.tradeName,
     this.companyLabel,
+    this.companyRegistered = false,
   });
 
   /// The embed `profiles(id, first_name, last_name, headline, trade_id,
@@ -318,6 +319,7 @@ class SpacePerson {
           : LocalizedText.fromJson(trade['name'] as Map<String, dynamic>),
       companyLabel:
           company?['name'] as String? ?? json['company_name_text'] as String?,
+      companyRegistered: company?['name'] != null,
     );
   }
 
@@ -328,6 +330,10 @@ class SpacePerson {
   final String? tradeId;
   final LocalizedText? tradeName;
   final String? companyLabel;
+
+  /// [companyLabel] is a registered company's (in ink); otherwise it is
+  /// what the person typed, plain text (rule 4).
+  final bool companyRegistered;
 
   String get fullName => '$firstName $lastName'.trim();
 
