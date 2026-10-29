@@ -255,10 +255,8 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         : const <String>{};
     return Scaffold(
       appBar: BvSpaceHeader(
-        selected: selected.isEmpty
-            ? null
-            : l10n.notebookSelected(selected.length),
-        closeSelectionLabel: l10n.notebookCloseSelection,
+        selected: selected.isEmpty ? null : l10n.workSelected(selected.length),
+        closeSelectionLabel: l10n.workCloseSelection,
         onCloseSelection: () =>
             ref.read(workSelectionProvider(widget.spaceId).notifier).clear(),
         name: detail.name,

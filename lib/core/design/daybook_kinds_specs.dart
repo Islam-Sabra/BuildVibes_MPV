@@ -64,14 +64,16 @@ abstract final class BvPinnedSpec {
   static const headerGap = BvSpace.s8;
   static const pin = BvSize.iconSm; // 16
 
-  /// Folded to one slim line (review 61 G1): the pin, the first line of
-  /// the words, and ›, as a trace is drawn.
+  /// Folded to one slim line (review 61 G1): ›, the pin and the first
+  /// line of the words.
   static const lineMinHeight = 40.0;
   static const linePaddingStart = BvSpace.s12;
   static const linePaddingEnd = BvSpace.s8;
   static const linePaddingVertical = BvSpace.s6;
   static const lineGap = BvSpace.s8;
-  static const caret = BvSize.iconSm; // 16
+
+  /// The fold chevron at the start of the head (H2, as review 106 T2).
+  static const fold = BvSize.iconLg; // 24
 
   /// Under the masthead, 16 from each edge, 8 above the daybook.
   static const outer = EdgeInsetsDirectional.only(

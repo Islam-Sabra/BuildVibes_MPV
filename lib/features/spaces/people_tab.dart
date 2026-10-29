@@ -685,9 +685,8 @@ class RoleCompanyLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final quiet = BvType.of(
-      context,
-    ).metadata.copyWith(color: BvColors.textSecondary);
+    final type = BvType.of(context);
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final role = person.roleLabel(lang);
     final company = person.companyLabel;
     if (role == null && company == null) return const SizedBox.shrink();
@@ -711,10 +710,7 @@ class RoleCompanyLine extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: person.companyRegistered
-                  ? quiet.copyWith(
-                      color: BvColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    )
+                  ? type.emphasisSm.copyWith(color: BvColors.textPrimary)
                   : quiet,
             ),
           ),

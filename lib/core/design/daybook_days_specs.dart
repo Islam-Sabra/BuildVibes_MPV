@@ -110,10 +110,10 @@ abstract final class BvNeedsYouSpec {
   static const radius = BorderRadius.all(Radius.circular(BvRadius.toast));
   static const padding = EdgeInsetsDirectional.symmetric(
     horizontal: BvSpace.s12,
-    vertical: 10,
+    vertical: BvSpace.s12,
   );
   static const gap = BvSpace.s8;
-  static const icon = 18.0;
+  static const icon = BvSize.iconMd;
 
   /// Around it, under the masthead.
   static const outer = EdgeInsetsDirectional.fromSTEB(

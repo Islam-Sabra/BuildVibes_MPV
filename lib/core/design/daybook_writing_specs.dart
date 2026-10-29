@@ -322,7 +322,7 @@ abstract final class BvQuoteSpec {
 /// Review 105 SP2 (2667:38511): the kinds as one choice that scrolls
 /// sideways, at the top of the writing card.
 abstract final class BvKindChipsSpec {
-  static const radius = BorderRadius.all(Radius.circular(18));
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.round));
   static const paddingHorizontal = BvSpace.s12;
   static const paddingVertical = BvSpace.s6;
   static const gap = BvSpace.s8;
@@ -335,8 +335,8 @@ abstract final class BvKindChipsSpec {
 abstract final class BvWritingRowsSpec {
   static const radius = BorderRadius.all(Radius.circular(BvRadius.control));
   static const paddingHorizontal = BvSpace.s12;
-  static const paddingVertical = 10.0;
-  static const gap = 10.0;
+  static const paddingVertical = BvSpace.s12;
+  static const gap = BvSpace.s12;
   static const personGap = BvSpace.s6;
   static const caret = BvSize.iconSm;
 }
@@ -351,8 +351,8 @@ abstract final class BvProofMomentSpec {
     BvSpace.s12,
   );
   static const gap = BvSpace.s12;
-  static const seal = 38.0;
-  static const icon = 22.0;
+  static const seal = BvSize.avatarMd;
+  static const icon = BvSize.iconLg;
   static const lineGap = BvSpace.s2;
   static const duration = Duration(seconds: 4);
 

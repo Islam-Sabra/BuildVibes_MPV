@@ -32,7 +32,7 @@ abstract final class BvPeopleSpec {
   static const tagGap = BvSpace.s6;
   static const tagPadding = EdgeInsetsDirectional.symmetric(
     horizontal: BvSpace.s8,
-    vertical: 3,
+    vertical: BvSpace.s2,
   );
 
   /// The Team chips.

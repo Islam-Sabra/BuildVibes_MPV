@@ -60,6 +60,7 @@ import '../../shared/widgets/bv_popover_menu.dart'
     show BvMenuItem, showBvScreenMenu;
 import '../../shared/widgets/bv_post_bar.dart';
 import '../../shared/widgets/bv_proof_moment.dart';
+import '../../shared/widgets/bv_selection_bar.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_trace_row.dart';
@@ -89,8 +90,6 @@ import 'daybook_words.dart';
 import 'daybook_writing.dart';
 import 'work_gestures.dart';
 import 'work_outbox.dart';
-import '../notebook/notebook_page_parts.dart'
-    show SelectionAction, SelectionBar;
 import '../notebook/notebook_page_screen.dart' show reminderWhen;
 
 /// The Space's Work tab: the daybook (v13, review 53 Part B). The day on
@@ -1629,7 +1628,11 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               // Review 105 SP6: while cards are held, what can be done with
               // them takes the post bar's place.
               if (selecting)
-                _selectionBar(cards, selected, me: me)
+                _selectionBar(
+                  [for (final c in cards) c.post, ..._pinned(cards, now)],
+                  selected,
+                  me: me,
+                )
               else if (!canPost)
                 BvPostBar.viewer(
                   passLabel: passName(l10n, space.myPass),
@@ -1719,15 +1722,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
   /// Duplicate (one card) · Delete (mine, not Checked). No Move: work stays
   /// in its Space (rule 8).
   Widget _selectionBar(
-    List<DaybookCard> cards,
+    List<DaybookPost> shown,
     Set<String> selected, {
     required String? me,
   }) {
     final l10n = AppLocalizations.of(context);
-    final posts = [
-      for (final c in cards)
-        if (selected.contains(c.id)) c.post,
-    ];
+    final posts = {
+      for (final p in shown)
+        if (selected.contains(p.id)) p.id: p,
+    }.values.toList();
     final share = ref.watch(workLaterProvider).share;
     final canPost = widget.space.myRights.createItems;
     final deletes =
@@ -1738,7 +1741,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           SelectionAction(
             key: const Key('select-share'),
             icon: BvIcons.share,
-            label: l10n.notebookShare,
+            label: l10n.workShare,
             onTap: posts.isEmpty
                 ? null
                 : () {
@@ -1749,7 +1752,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         SelectionAction(
           key: const Key('select-duplicate'),
           icon: BvIcons.duplicate,
-          label: l10n.notebookDuplicate,
+          label: l10n.workDuplicate,
           onTap: canPost && posts.length == 1
               ? () => unawaited(_duplicate(posts.single))
               : null,
@@ -1854,14 +1857,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           BvSwipeAction(
             key: Key('swipe-pin-${post.id}'),
             icon: BvIcons.pin,
-            label: l10n.notebookPin,
+            label: l10n.workPin,
             color: BvColors.textPrimary,
             onTap: () => unawaited(pin(post, on: true)),
           ),
         BvSwipeAction(
           key: Key('swipe-remind-${post.id}'),
           icon: BvIcons.remind,
-          label: reminded ? l10n.notebookChangeReminder : l10n.notebookReminder,
+          label: reminded ? l10n.workChangeReminder : l10n.workReminder,
           color: BvColors.textWarning,
           onTap: () => unawaited(_remind(post)),
         ),
@@ -1870,7 +1873,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
           ? BvSwipeAction(
               key: Key('swipe-archive-${post.id}'),
               icon: BvIcons.archive,
-              label: l10n.notebookArchive,
+              label: l10n.workArchive,
               color: BvColors.actionPrimary,
               onTap: () => unawaited(archive(post)),
             )
@@ -1903,14 +1906,14 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         ? null
         : picked.at ?? DateTime(day.year, day.month, day.day, _morningHour);
     if (at != null && !at.isAfter(now)) {
-      showSpaceMessage(context, l10n.notebookRemindPast);
+      showSpaceMessage(context, l10n.workRemindPast);
       return;
     }
     await reminders.set(_spaceId, post, at: at, body: widget.space.name);
     if (!mounted || at == null) return;
     showSpaceMessage(
       context,
-      l10n.notebookReminderLine(reminderWhen(l10n, words, at, now)),
+      l10n.workReminderLine(reminderWhen(l10n, words, at, now)),
     );
   }
 
@@ -2013,35 +2016,42 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final folds =
         (post.authorId != null && post.authorId == me) ||
         (given && !editedSince);
-    // F44, review 105 ruling Q3: full or folded, a hold opens it as an
-    // item, its Unpin · Save as template · Cancel on ⋯ (a tap folds it).
-    final hasMenu = _loop.kindMenu(post, me: me).isNotEmpty;
-    Widget withMenu(Widget Function(VoidCallback? onLongPress) note) => note(
-      hasMenu ? () => unawaited(_loop.openPinned(context, post, me: me)) : null,
-    );
+    // H2: Work's one language. A tap opens it as an item (its Unpin · Save
+    // as template · Cancel on ⋯), a hold selects it; folding is its own
+    // chevron.
+    final selection = ref.watch(workSelectionProvider(_spaceId));
+    final held = selection.contains(post.id);
+    void hold() {
+      unawaited(HapticFeedback.selectionClick());
+      ref.read(workSelectionProvider(_spaceId).notifier).toggle(post.id);
+    }
+
+    void open() => selection.isNotEmpty
+        ? hold()
+        : unawaited(_loop.openPinned(context, post, me: me));
     if (folds && !_openPinned.contains(post.id)) {
       // F104: its author sees who got it on the folded line too, live (a
       // broadcast reads postAcksProvider again). Nobody else sees others'.
       final gotBy = _loop.actsFor(post, me: me)
           ? acknowledgedBy(ref, post.id, DaybookAck.gotIt)
           : const <DaybookPerson>[];
-      return withMenu(
-        (onLongPress) => BvPinnedLine(
-          key: Key('pinned-line-${post.id}'),
-          text: post.title,
-          // F85: the end shows folded too.
-          until: l10n.daybookPinnedLineUntil(
-            words.pinnedDay(post.pinnedUntil!, now),
-          ),
-          faces: gotBy.isEmpty
-              ? null
-              : DaybookFacesLine(
-                  key: Key('pinned-line-faces-${post.id}'),
-                  faces: facesOf(l10n, gotBy),
-                ),
-          onTap: () => setState(() => _openPinned.add(post.id)),
-          onLongPress: onLongPress,
+      return BvPinnedLine(
+        key: Key('pinned-line-${post.id}'),
+        text: post.title,
+        // F85: the end shows folded too.
+        until: l10n.daybookPinnedLineUntil(
+          words.pinnedDay(post.pinnedUntil!, now),
         ),
+        faces: gotBy.isEmpty
+            ? null
+            : DaybookFacesLine(
+                key: Key('pinned-line-faces-${post.id}'),
+                faces: facesOf(l10n, gotBy),
+              ),
+        onTap: open,
+        onLongPress: hold,
+        onFold: () => setState(() => _openPinned.add(post.id)),
+        selected: held,
       );
     }
     final team = post.teamId == null
@@ -2054,69 +2064,63 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
               .firstOrNull
               ?.name;
     final by = acknowledgedBy(ref, post.id, DaybookAck.gotIt);
-    return withMenu(
-      (onLongPress) => BvPinnedNote(
-        key: Key('pinned-${post.id}'),
-        onLongPress: onLongPress,
-        author: post.authorId != null && post.authorId == me
-            ? l10n.daybookYou
-            : personName(l10n, post.authorName),
-        audience: team == null
-            ? l10n.daybookToEveryone
-            : l10n.daybookToTeam(team),
-        // F85: the header ends with when it was posted; how long it lasts
-        // is the facts line under the title, in ink on its last day.
-        time: words.ackTime(post.createdAt, now),
-        until: words.pinnedUntil(post.pinnedUntil!, now),
-        untilToday: dayOf(pinnedLastDay(post.pinnedUntil!)) == dayOf(now),
-        title: post.title,
-        body: post.body,
-        // F83: the message it was made from, opening it (F87).
-        quote: post.quote == null
-            ? null
-            : BvQuoteBlock(
-                key: const Key('pinned-quote'),
-                from: words.quoteFrom(post.quote!, now),
-                text: post.quote!.text,
-                onTap: post.sourceMessageId == null
-                    ? null
-                    : () => unawaited(
-                        _loop.openQuote(context, post.sourceMessageId!),
-                      ),
-              ),
-        // F48: the author's faces of who got it; a tap lists them with times.
-        leading: by.isEmpty
-            ? null
-            : DaybookFacesLine(
-                key: const Key('got-it-by'),
-                faces: facesOf(l10n, by),
-                onTap: () => showDaybookAcks(
-                  context,
-                  title: l10n.daybookGotIt,
-                  faces: acksOf(ref, post.id, DaybookAck.gotIt),
-                  now: now,
-                ),
-              ),
-        onTap: folds ? () => setState(() => _openPinned.remove(post.id)) : null,
-        action: daybookAckAction(
-          l10n,
-          shown,
-          me: me,
-          now: now,
-          onAck: (kind, {required on}) {
-            // Given now: it folds.
-            if (on) setState(() => _openPinned.remove(post.id));
-            unawaited(
-              _loop.acknowledge(
+    return BvPinnedNote(
+      key: Key('pinned-${post.id}'),
+      onTap: open,
+      onLongPress: hold,
+      selected: held,
+      author: post.authorId != null && post.authorId == me
+          ? l10n.daybookYou
+          : personName(l10n, post.authorName),
+      audience: team == null
+          ? l10n.daybookToEveryone
+          : l10n.daybookToTeam(team),
+      // F85: the header ends with when it was posted; how long it lasts
+      // is the facts line under the title, in ink on its last day.
+      time: words.ackTime(post.createdAt, now),
+      until: words.pinnedUntil(post.pinnedUntil!, now),
+      untilToday: dayOf(pinnedLastDay(post.pinnedUntil!)) == dayOf(now),
+      title: post.title,
+      body: post.body,
+      // F83: the message it was made from, opening it (F87).
+      quote: post.quote == null
+          ? null
+          : BvQuoteBlock(
+              key: const Key('pinned-quote'),
+              from: words.quoteFrom(post.quote!, now),
+              text: post.quote!.text,
+              onTap: post.sourceMessageId == null
+                  ? null
+                  : () => unawaited(
+                      _loop.openQuote(context, post.sourceMessageId!),
+                    ),
+            ),
+      // F48: the author's faces of who got it; a tap lists them with times.
+      leading: by.isEmpty
+          ? null
+          : DaybookFacesLine(
+              key: const Key('got-it-by'),
+              faces: facesOf(l10n, by),
+              onTap: () => showDaybookAcks(
                 context,
-                shown,
-                kind,
-                on: on,
-                again: editedSince,
+                title: l10n.daybookGotIt,
+                faces: acksOf(ref, post.id, DaybookAck.gotIt),
+                now: now,
               ),
-            );
-          },
-        ),
+            ),
+      onFold: folds ? () => setState(() => _openPinned.remove(post.id)) : null,
+      action: daybookAckAction(
+        l10n,
+        shown,
+        me: me,
+        now: now,
+        onAck: (kind, {required on}) {
+          // Given now: it folds.
+          if (on) setState(() => _openPinned.remove(post.id));
+          unawaited(
+            _loop.acknowledge(context, shown, kind, on: on, again: editedSince),
+          );
+        },
       ),
     );
   }

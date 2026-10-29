@@ -219,7 +219,7 @@ void main() {
         await _open(tester, lang, posts: [_openSleeves(s), s.gate()]);
         await _holdCard(tester, 'post-sleeves');
         expect(_key('space-selection-header'), findsOneWidget);
-        expect(find.text(l10n.notebookSelected(1)), findsOneWidget);
+        expect(find.text(l10n.workSelected(1)), findsOneWidget);
         expect(_key('selection-bar'), findsOneWidget);
         expect(_key('select-duplicate'), findsOneWidget);
         expect(_key('select-delete'), findsOneWidget);
@@ -228,7 +228,7 @@ void main() {
         expect(tester.widget<BvSlip>(_slip('post-sleeves')).selected, isTrue);
         // A tap now adds one; ✕ ends it.
         await _tapCard(tester, 'post-gate');
-        expect(find.text(l10n.notebookSelected(2)), findsOneWidget);
+        expect(find.text(l10n.workSelected(2)), findsOneWidget);
         expect(_key('daybook-page'), findsNothing);
         await _tap(tester, _key('selection-close'));
         expect(_key('space-selection-header'), findsNothing);
@@ -394,7 +394,7 @@ void main() {
         expect(
           find.descendant(
             of: _key('swipe-remind-post-rebar'),
-            matching: find.text(l10n.notebookChangeReminder),
+            matching: find.text(l10n.workChangeReminder),
           ),
           findsOneWidget,
         );

@@ -84,7 +84,7 @@ class BvProofMoment extends StatelessWidget {
                   widthFactor: 1,
                   child: Text(
                     viewLabel,
-                    style: type.emphasis.copyWith(color: BvColors.iconAction),
+                    style: type.emphasis.copyWith(color: BvColors.textAction),
                   ),
                 ),
               ),

@@ -5619,4 +5619,44 @@ class AppLocalizationsAr extends AppLocalizations {
   String daybookDeleteFailed(String titles) {
     return 'تعذّر حذف $titles. حاول مرة أخرى.';
   }
+
+  @override
+  String get pinnedFold => 'طيّ';
+
+  @override
+  String get pinnedUnfold => 'عرض كامل';
+
+  @override
+  String get workPin => 'تثبيت';
+
+  @override
+  String get workArchive => 'أرشفة';
+
+  @override
+  String get workReminder => 'تذكير';
+
+  @override
+  String get workChangeReminder => 'تغيير التذكير';
+
+  @override
+  String get workShare => 'مشاركة';
+
+  @override
+  String get workDuplicate => 'تكرار';
+
+  @override
+  String get workRemindPast => 'اختر وقتًا لم يأتِ بعد.';
+
+  @override
+  String workReminderLine(String when) {
+    return 'تذكير · $when';
+  }
+
+  @override
+  String workSelected(int count) {
+    return 'تم تحديد $count';
+  }
+
+  @override
+  String get workCloseSelection => 'إنهاء التحديد';
 }

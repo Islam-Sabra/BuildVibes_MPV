@@ -9379,6 +9379,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t delete {titles}. Try again.'**
   String daybookDeleteFailed(String titles);
+
+  /// Review 105 H2: what a screen reader says for a pinned announcement's ⌄ (folds it to one line).
+  ///
+  /// In en, this message translates to:
+  /// **'Fold'**
+  String get pinnedFold;
+
+  /// Review 105 H2: what a screen reader says for a folded pinned announcement's › (shows it in full).
+  ///
+  /// In en, this message translates to:
+  /// **'Show in full'**
+  String get pinnedUnfold;
+
+  /// Review 105 H8: Work's swipe action Pin (from 105B).
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get workPin;
+
+  /// Review 105 H8: Work's swipe action Archive, a Lead on a Checked item (from 105B).
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get workArchive;
+
+  /// Review 105 H8: Work's swipe action Reminder (the phone's own notification).
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get workReminder;
+
+  /// Review 105 H8: Work's swipe action when a reminder is already set.
+  ///
+  /// In en, this message translates to:
+  /// **'Change reminder'**
+  String get workChangeReminder;
+
+  /// Review 105 H8: the selection bar's Share in Work (from 105B).
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get workShare;
+
+  /// Review 105 H8: the selection bar's Duplicate in Work.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get workDuplicate;
+
+  /// Review 105 H8: a Work reminder picked in the past.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time still to come.'**
+  String get workRemindPast;
+
+  /// Review 105 H8: after a Work reminder is set: when it goes off.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder · {when}'**
+  String workReminderLine(String when);
+
+  /// Review 105 H8: the Space header while Work cards are held.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String workSelected(int count);
+
+  /// Review 105 H8: what a screen reader says for the Space header's ✕ while cards are held.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop selecting'**
+  String get workCloseSelection;
 }
 
 class _AppLocalizationsDelegate

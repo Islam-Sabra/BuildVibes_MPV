@@ -46,7 +46,7 @@ abstract final class BvSpaceHeaderSpec {
   /// People's dot (join requests waiting) at its top end corner.
   static const iconsGap = 0.0;
   static const dot = BvSpace.s8;
-  static const dotInset = 10.0;
+  static const dotInset = BvSpace.s8;
 
   /// The Work · Chat switch under the header.
   static const switchPadding = EdgeInsetsDirectional.fromSTEB(

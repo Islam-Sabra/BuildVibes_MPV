@@ -3,6 +3,7 @@
 // to your proof of work · Checked by Islam Ahmed · 5:30 pm · View"; View
 // opens my proof of work. Only the owner's phone, only once. In English
 // and Arabic.
+import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/profile/delivered_work.dart';
@@ -84,6 +85,14 @@ void main() {
 
       testWidgets('View opens my proof of work', (tester) async {
         await _open(tester, lang, posts: [s.gate()]);
+        // H6: View in the action text colour.
+        final view = tester.widget<Text>(
+          find.descendant(
+            of: _key('proof-moment-view'),
+            matching: find.text(l10n.proofMomentView),
+          ),
+        );
+        expect(view.style?.color, BvColors.textAction);
         await tester.tap(_key('proof-moment-view'));
         await tester.pumpAndSettle();
         expect(find.byType(DeliveredScreen), findsOneWidget);

@@ -5588,4 +5588,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String daybookDeleteFailed(String titles) {
     return 'Couldn\'t delete $titles. Try again.';
   }
+
+  @override
+  String get pinnedFold => 'Fold';
+
+  @override
+  String get pinnedUnfold => 'Show in full';
+
+  @override
+  String get workPin => 'Pin';
+
+  @override
+  String get workArchive => 'Archive';
+
+  @override
+  String get workReminder => 'Reminder';
+
+  @override
+  String get workChangeReminder => 'Change reminder';
+
+  @override
+  String get workShare => 'Share';
+
+  @override
+  String get workDuplicate => 'Duplicate';
+
+  @override
+  String get workRemindPast => 'Pick a time still to come.';
+
+  @override
+  String workReminderLine(String when) {
+    return 'Reminder · $when';
+  }
+
+  @override
+  String workSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get workCloseSelection => 'Stop selecting';
 }

@@ -1546,5 +1546,17 @@
   "peopleNeedsYouRequests": "بانتظارك · طلب انضمام",
   "peopleConfirm": "تأكيد",
   "daybookCameraLabel": "الكاميرا",
-  "daybookDeleteFailed": "تعذّر حذف {titles}. حاول مرة أخرى."
+  "daybookDeleteFailed": "تعذّر حذف {titles}. حاول مرة أخرى.",
+  "pinnedFold": "طيّ",
+  "pinnedUnfold": "عرض كامل",
+  "workPin": "تثبيت",
+  "workArchive": "أرشفة",
+  "workReminder": "تذكير",
+  "workChangeReminder": "تغيير التذكير",
+  "workShare": "مشاركة",
+  "workDuplicate": "تكرار",
+  "workRemindPast": "اختر وقتًا لم يأتِ بعد.",
+  "workReminderLine": "تذكير · {when}",
+  "workSelected": "تم تحديد {count}",
+  "workCloseSelection": "إنهاء التحديد"
 }

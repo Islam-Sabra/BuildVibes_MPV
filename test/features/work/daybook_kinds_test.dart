@@ -331,7 +331,7 @@ void main() {
       });
 
       testWidgets('G1: the slim line opens in full with Got it shown as '
-          'given; a tap folds it again', (tester) async {
+          'given; its chevron folds it again (H2)', (tester) async {
         final post = s.halfDayPost(myAcks: const {DaybookAck.gotIt});
         await _open(
           tester,
@@ -340,13 +340,13 @@ void main() {
           extras: DaybookExtras(pinned: [post]),
         );
         expect(find.byType(BvPinnedNote), findsNothing);
-        await tester.tap(find.byType(BvPinnedLine));
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         final pill = tester.widget<BvAckPill>(
           find.byKey(const Key('ack-got_it')),
         );
         expect(pill.tone, BvAckPillTone.done);
-        await tester.tap(find.text(s.halfDay));
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         expect(find.byType(BvPinnedLine), findsOneWidget);
       });
@@ -459,7 +459,7 @@ void main() {
           findsOneWidget,
         );
         if (lang == 'en') expect(find.text('until today'), findsOneWidget);
-        await tester.tap(find.byType(BvPinnedLine));
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         final facts = tester.widget<Text>(
           find.descendant(
@@ -502,7 +502,7 @@ void main() {
         );
         // G1: its author sees the slim line from the start.
         expect(find.byType(BvPinnedNote), findsNothing);
-        await tester.tap(find.byType(BvPinnedLine));
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         final note = find.byType(BvPinnedNote);
         expect(

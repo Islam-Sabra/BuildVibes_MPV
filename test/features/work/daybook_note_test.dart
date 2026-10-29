@@ -190,8 +190,11 @@ void main() {
           posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
           extras: DaybookExtras(pinned: [post]),
         );
-        await tester.longPress(
-          find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+            matching: find.text(post.title),
+          ),
         );
         await tester.pumpAndSettle();
         final actions = await openedActions(tester);
@@ -214,8 +217,11 @@ void main() {
           posts: [DaybookCard(post: post, lastActivityAt: post.createdAt)],
           extras: DaybookExtras(pinned: [post]),
         );
-        await tester.longPress(
-          find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('pinned-${DaybookSamples.halfDayId}')),
+            matching: find.text(post.title),
+          ),
         );
         await tester.pumpAndSettle();
         expect(find.text(l10n.daybookUnpin), findsNothing);

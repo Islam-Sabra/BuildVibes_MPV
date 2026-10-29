@@ -416,11 +416,11 @@ void main() {
         extras: DaybookExtras(pinned: [post]),
       );
 
-      testWidgets('its author, folded and in full: a hold opens it with Edit, '
+      testWidgets('its author, folded and in full: a tap opens it with Edit, '
           'and ⋯ Unpin, Cancel (review 105 ruling Q3)', (tester) async {
         await openPinned(tester, post: pinned());
         // The author sees it folded.
-        await tester.longPress(find.byType(BvPinnedLine));
+        await tester.tap(find.byType(BvPinnedLine));
         await tester.pumpAndSettle();
         expect(await _menu(tester), [
           l10n.daybookEdit,
@@ -431,11 +431,16 @@ void main() {
           l10n.daybookCancelPost,
         ]);
         await closeOpened(tester);
-        // A tap still opens it.
-        await tester.tap(find.byType(BvPinnedLine));
+        // Its chevron shows it in full (H2); a tap opens it the same.
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         expect(find.byType(BvPinnedNote), findsOneWidget);
-        await tester.longPress(find.byType(BvPinnedNote));
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BvPinnedNote),
+            matching: find.text(s.halfDay),
+          ),
+        );
         await tester.pumpAndSettle();
         expect(await _menu(tester), [
           l10n.daybookEdit,
@@ -450,7 +455,7 @@ void main() {
       testWidgets('Unpin sends only the pin; it is a card on its day, not at '
           'Now', (tester) async {
         final daybook = await openPinned(tester, post: pinned());
-        await tester.longPress(find.byType(BvPinnedLine));
+        await tester.tap(find.byType(BvPinnedLine));
         await tester.pumpAndSettle();
         await openedPick(tester, l10n.daybookUnpin);
         expect(daybook.calls, [
@@ -502,7 +507,7 @@ void main() {
       testWidgets('Edit opens it at Now, filled, with its pin; Save sends '
           'only what changed', (tester) async {
         final daybook = await openPinned(tester, post: pinned());
-        await tester.longPress(find.byType(BvPinnedLine));
+        await tester.tap(find.byType(BvPinnedLine));
         await tester.pumpAndSettle();
         await openedPick(tester, l10n.daybookEdit);
         final title = find.byKey(const Key('writing-title'));
@@ -517,16 +522,21 @@ void main() {
       });
 
       testWidgets('anyone else: only a Lead\'s Save as template (slice 7); '
-          'a tap still opens it', (tester) async {
+          'its chevron unfolds it, a tap opens it', (tester) async {
         await openPinned(
           tester,
           post: pinned(myAcks: const {DaybookAck.gotIt}),
           me: DaybookSamples.omar,
         );
-        await tester.tap(find.byType(BvPinnedLine));
+        await tester.tap(find.byKey(const Key('pinned-fold')));
         await tester.pumpAndSettle();
         expect(find.byType(BvPinnedNote), findsOneWidget);
-        await tester.longPress(find.byType(BvPinnedNote));
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BvPinnedNote),
+            matching: find.text(s.halfDay),
+          ),
+        );
         await tester.pumpAndSettle();
         // The sample Space gives everyone a Lead's pass.
         expect(await _menu(tester), [l10n.templateSave]);
@@ -539,7 +549,12 @@ void main() {
           post: pinned(author: 'p-left'),
           me: DaybookSamples.islam,
         );
-        await tester.longPress(find.byType(BvPinnedNote));
+        await tester.tap(
+          find.descendant(
+            of: find.byType(BvPinnedNote),
+            matching: find.text(s.halfDay),
+          ),
+        );
         await tester.pumpAndSettle();
         expect(await _menu(tester), [
           l10n.daybookUnpin,

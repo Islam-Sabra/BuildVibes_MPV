@@ -135,7 +135,11 @@ void main() {
           ),
         );
         expect(registered.style?.color, BvColors.textPrimary);
-        expect(registered.style?.fontWeight, FontWeight.w500);
+        // H6: the type scale's emphasis at the small size (Medium; in
+        // Arabic, Almarai Bold), not a weight typed in.
+        final type = BvType.of(tester.element(_key('member-p-omar')));
+        expect(registered.style?.fontWeight, type.emphasisSm.fontWeight);
+        expect(registered.style?.fontSize, type.emphasisSm.fontSize);
         final typed = tester.widget<Text>(
           find.descendant(
             of: _key('member-p-rakesh'),

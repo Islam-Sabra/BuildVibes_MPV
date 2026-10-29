@@ -7974,5 +7974,63 @@
         "type": "String"
       }
     }
+  },
+  "pinnedFold": "Fold",
+  "@pinnedFold": {
+    "description": "Review 105 H2: what a screen reader says for a pinned announcement's ⌄ (folds it to one line)."
+  },
+  "pinnedUnfold": "Show in full",
+  "@pinnedUnfold": {
+    "description": "Review 105 H2: what a screen reader says for a folded pinned announcement's › (shows it in full)."
+  },
+  "workPin": "Pin",
+  "@workPin": {
+    "description": "Review 105 H8: Work's swipe action Pin (from 105B)."
+  },
+  "workArchive": "Archive",
+  "@workArchive": {
+    "description": "Review 105 H8: Work's swipe action Archive, a Lead on a Checked item (from 105B)."
+  },
+  "workReminder": "Reminder",
+  "@workReminder": {
+    "description": "Review 105 H8: Work's swipe action Reminder (the phone's own notification)."
+  },
+  "workChangeReminder": "Change reminder",
+  "@workChangeReminder": {
+    "description": "Review 105 H8: Work's swipe action when a reminder is already set."
+  },
+  "workShare": "Share",
+  "@workShare": {
+    "description": "Review 105 H8: the selection bar's Share in Work (from 105B)."
+  },
+  "workDuplicate": "Duplicate",
+  "@workDuplicate": {
+    "description": "Review 105 H8: the selection bar's Duplicate in Work."
+  },
+  "workRemindPast": "Pick a time still to come.",
+  "@workRemindPast": {
+    "description": "Review 105 H8: a Work reminder picked in the past."
+  },
+  "workReminderLine": "Reminder · {when}",
+  "@workReminderLine": {
+    "description": "Review 105 H8: after a Work reminder is set: when it goes off.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "workSelected": "{count} selected",
+  "@workSelected": {
+    "description": "Review 105 H8: the Space header while Work cards are held.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workCloseSelection": "Stop selecting",
+  "@workCloseSelection": {
+    "description": "Review 105 H8: what a screen reader says for the Space header's ✕ while cards are held."
   }
 }
