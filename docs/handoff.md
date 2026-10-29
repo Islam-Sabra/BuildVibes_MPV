@@ -2,6 +2,32 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## Cloud update: 29 Oct 2026 — 105C part A (places, before / after) on `claude/r105c-a`; shots still to make on the PC
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `claude/r105c-a`, this cloud session's, from `origin/slice2-app` 7714156, pushed. Nothing merged, no database push, no deploy, nothing installed, no test_screens, no goldens.
+- **Kept out of C-B's ground:** the page editor and blocks untouched. In `lib/features/spaces/` two small changes, for "Search finds places": `space_search_screen.dart` (a Places group; a tap sets Work's place filter and goes back) and `space_screen.dart` (back from Search with a place, it shows Work). C-A's `daybook_writing.dart` and the card's tag and photo area are changed as the brief gives them to C-A.
+- **Commits:** d02af7a places (picker, tags, filter, Search in the app); 7c148a8 before / after; c706d57 migration 53; 30ebce3 the older writing tests.
+- **The Place picker (SP2):** the Place row opens `BvPlacePicker`, built like Give to's (`BvGiveToSpec`; its search is now the shared `BvPickerSearch`):
+  - a search (no case and no spaces, as the server's unique name), the Space's places A to Z, the chosen one checked;
+  - "Add place “…”" for who may post work (`SpaceDetail.mayPostWork`), when no place has that name; a taken name says "This Space has that place already.";
+  - a Lead's long press: Rename (a field dialog, `showBvFieldDialog`) or Delete (asked first);
+  - places come from `space_places` (`spacePlacesProvider`); a pick is `DaybookPostDraft.placeId`, and the post goes with it: the outbox calls `set_post_place` after `create_work_item` / `create_space_post` (`PendingItem.placeId`), and an edit's Save calls it when the place changed. A chosen place isn't sent again as `place_text`.
+- **Site tags (SP1, SP7):** a post with a place shows `BvSiteTag` (sand `surfaceSiteTag`, a pin, the name) under its title (work items, notes, checklists, activities). An older post keeps its typed place as a fact line. The proof photo's place label uses the tag's name.
+- **Work for one place:** a tap on a tag sets `workPlaceFilterProvider`; the chip (`BvFilterChip`, the place's name and ✕) sits under the Work · Chat switch, above the masthead. Every page is read for it (as Needs you does), and it combines with Needs you. ✕ shows everything. It clears when the Space is left.
+- **Search finds places:** migration **53, `20261114120000_place_filter.sql`**: `search_space` (same signature and grants, security definer, `search_path = ''`) also returns places whose name matches (kind `place`), members only, places first so newer posts never crowd them out. Work's filter itself needs no server change (cards carry `place_id`). pgTAP `53_place_filter` (17): a Lead and Crew find a place by part of its name with its id; one letter and another Space's place find nothing; posts as before; **a non-member finds nothing and can't read, add, rename or delete a place, nor set a post's place**. **Not live.**
+- **Before / after (SP7):** a work item with a cover photo and a Sign as done photo shows both side by side (`BvSlipBeforeAfter`, 150 high, 8 apart), "Before · 08:10" and "After · 10:56" on dark labels, and the proof's stamp (CHECKED) low on After. Before comes first in the reading order, so in Arabic After is at the left. With one photo the card is as before.
+- **Tests (EN and AR):** `test/features/work/places_test.dart` (12 × 2), `before_after_test.dart` (4 × 2); E3, F29, SP2's Place row and F24 moved to the picker.
+- **Checks (cloud):** see the numbers at the end of this section.
+- **For the PC:**
+  - migration 53 with the founder's yes, after the lead's check;
+  - shots: every Work shot with a typed place (the fact line stays for older posts), SP2's Place picker, a tag and the filter chip, and before / after (SP7), EN and AR;
+  - the merge with C-B (`claude/r105c-b`): both touch `app_en.arb` / `app_ar.arb` and maybe `daybook_tab.dart`.
+- **Who has which branch:** this cloud session had `claude/r105c-a` (pushed). C-B: `claude/r105c-b`. PC: `slice2-app`.
+
 ## PC update: 29 Oct 2026, 17:20 Kuwait — reviews 106 (T4/T5) and 105B live: merged into `slice2-app`, migrations 51 and 52 live, build 800 on the founder's phone
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
