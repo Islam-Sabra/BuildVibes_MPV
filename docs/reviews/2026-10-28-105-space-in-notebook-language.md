@@ -337,3 +337,40 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
 - C-B owns the page editor and blocks, and `lib/features/spaces/`.
 - If one must touch the other's file, keep the change small; the PC merges.
 - No test_screens in the cloud: the shots are made on the PC afterwards.
+
+## The lead's check of 105C (29 Oct): `claude/r105c-a` at `84a500b`, `claude/r105c-b` at `96514c7`
+- **SQL stand-in:** C-A 3,202 checks, C-B 3,243, both with 0 failing.
+- **C-A** ran analyze and its tests (2,775).
+- **C-B was never compiled or run**, because its container had no Flutter, and its `lib/l10n/gen` was edited by hand. A reviewer read it and found no compile errors, but **the PC must prove it.**
+- **Two reviewers, one per branch:**
+  - `search_space` (C-A) and the block validator (C-B) keep every earlier rule.
+  - Ticks are protected on the server, and `open_work_to_hand_over` is admin or self only.
+
+### Accepted
+- **C-A:**
+  - Renaming a place updates its tag everywhere.
+  - Notes, checklists and activities show the tag too.
+  - The picker ignores case and spaces.
+  - Adding a place needs a connection; picking one works offline.
+- **C-B:**
+  - Heading, Toggle and "work item under it" stay after SP4's seven.
+  - Bullet points are text starting with "• ".
+  - The "Table of tasks" chip beside the tag is left out.
+
+### Fixes
+- **M1 (C-A). Sending a new post with a place.**
+  - Send the place's name as `place_text` too.
+  - If the post is made but `set_post_place` is refused, the post counts as sent: clear the place with no "refused" card.
+  - The same for an edit.
+- **M2 (C-A). Deleting a place in use** first copies its name into `place_text` of every post that uses it, with a server trigger in migration `20261114120000` (not live yet), so Checked proof keeps its location. pgTAP covers it.
+- **M3 (C-A).** The before/after labels show the day when the two photos aren't on the same day, or not today.
+- **N1 (C-B).** Arabic "{n} من {m} معلَّمة" instead of «منجزة», because a tick is not Done.
+- **N2 (C-B).** Ticks are for the owner or a Lead only. Drop `is_admin` from `may_tick_task` and from `mayTickTasks`.
+- **N3 (C-B).** The validator refuses an empty task (1–200 characters), the same as `add_task_row`.
+- **N4 (C-B).**
+  - Arabic plural for 11 and above in the open-work count.
+  - "—" moves to the ARB.
+  - Each tick's screen-reader label names its row's task.
+  - The removal sheet uses the profile's first name, not `split(' ')`.
+  - The doc comment above `SpaceFailure` goes back to its place.
+- **N5 (C-B).** Rename the pgTAP file to `54_task_table_block.test.sql`, so the two 105C files don't share the number 53.
