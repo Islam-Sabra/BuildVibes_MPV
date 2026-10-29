@@ -182,3 +182,13 @@
 - **H9. Move the 15 shot drivers to the new gestures:** slice2/3/4/5/7/8/9/10, daybook, review80/82, around, bh, pg, f102. Check that they compile (analyze); they are run on the PC.
 
 Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment and the Needs you count belong in providers); the phone-storage pattern appears twice; `PeopleTab` is now a screen.
+
+### H1–H9 report (29 Oct, `claude/r105a` at `5e9a1f9`)
+- **Accepted:** H1, H2, H4–H9, including the one-line re-export in `notebook_page_parts.dart` and the shots whose content changed under their old names. They are renamed when the goldens are made on the PC.
+- **H3, the lead's ruling: no `camera` plugin before the pilot.**
+  - A camera view of our own would mean preview, focus, flash, orientation and permission work on every Android model, including Huawei. It would also diverge from review 103's use of the phone's own scanner. That's too much risk for one tap.
+  - **What to build instead:**
+    - **The post bar's camera opens the phone's camera straight away** for a photo post. No sheet; this is the common path and now takes one tap.
+    - **Walk becomes the last kind chip in the writing card:** "Walk" («جولة»), with the camera icon. Choosing it starts walk mode as now. It's shown only to people who may post work (`mayPostWork`).
+    - The two-tile sheet is removed.
+  - Revisit a built-in camera after the pilot, if walks are frequent.
