@@ -109,3 +109,6 @@ Noted only, for the tidy list: the duplicated `_setFilter` in two screens; `stat
 
 ### G1–G5 done (`r106` at `ed0695a`)
 - The lead checked the three shots that changed (NB-put-in-space, NB-reminder-slip, NB-remind-menu) and **accepted** them, along with all of r106's shots. pgTAP has 20 checks in file 50. Next: update the goldens, merge, push migration 50 live with the founder's yes, build.
+
+### Live (29 Oct, 10:21)
+- Merged into `slice2-app` (11e99eb). Migration 50 is live (the lead confirmed it on the live list). Build 744 is installed on the founder's phone over 729, with his data kept.
