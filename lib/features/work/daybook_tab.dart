@@ -1836,7 +1836,8 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final lead = widget.space.myPass == SpacePass.lead;
     return BvSwipeCard(
       id: post.id,
-      enabled: !_writing,
+      // Not while writing, nor while cards are held.
+      enabled: !_writing && ref.watch(workSelectionProvider(_spaceId)).isEmpty,
       startFullSwipe: false,
       endActions: [
         if (pin != null)

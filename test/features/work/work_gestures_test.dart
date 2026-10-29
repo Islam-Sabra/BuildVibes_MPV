@@ -411,6 +411,13 @@ void main() {
         expect(_key('swipe-archive-post-gate'), findsNothing);
       });
 
+      testWidgets('no swipe while cards are held', (tester) async {
+        await _open(tester, lang, posts: [s.rebar(), s.gate()]);
+        await _holdCard(tester, 'post-gate');
+        await _swipe(tester, 'post-rebar', lang, toEnd: true);
+        expect(_key('swipe-remind-post-rebar'), findsNothing);
+      });
+
       testWidgets('no signature on a swipe', (tester) async {
         await _open(tester, lang, posts: [s.rebar(), s.sleevesCard()]);
         await _swipe(tester, 'post-rebar', lang, toEnd: true);

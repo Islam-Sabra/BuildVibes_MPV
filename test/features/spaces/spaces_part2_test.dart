@@ -109,29 +109,29 @@ void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = _l10n(lang);
 
-    testWidgets('P1: the request, then Leads and Crew with their pass tags '
-        '[$lang]', (tester) async {
+    testWidgets('P1, review 105 SP8: the request under Needs you, then one '
+        'list with the pass tags [$lang]', (tester) async {
       await pumpApp(tester, language: lang, spaces: _spaces());
       await _openPeople(tester);
-      // Quiet: name, then role · company · wants to join; Decline, Let in.
+      // Under "Needs you": the name, role · company; Decline · Confirm.
+      expect(find.text(l10n.peopleNeedsYouRequests), findsOneWidget);
       expect(find.text('Ahmed Saeed'), findsOneWidget);
-      expect(find.textContaining(l10n.peopleWantsToJoin), findsOneWidget);
       expect(find.byKey(const Key('request-let-in-req-1')), findsOneWidget);
-      // No search, no Invite people button (review 67).
-      expect(find.byKey(const Key('people-search')), findsNothing);
+      expect(find.text(l10n.peopleConfirm), findsOneWidget);
+      // No Invite people button (review 67).
       expect(find.byKey(const Key('space-invite')), findsNothing);
-      // Sections by pass; "admin" in the role line.
-      expect(find.text(l10n.peopleLeads), findsOneWidget);
-      // In English the section and the tag are both "Crew".
-      expect(find.text(l10n.peopleCrew), findsWidgets);
+      // One list (SP8), no sections by pass; the admin as a tag.
+      expect(find.text(l10n.peopleInThisSpace), findsOneWidget);
+      expect(find.text(l10n.peopleLeads), findsNothing);
       expect(find.text(l10n.peopleViewers), findsNothing);
       expect(
         find.descendant(
           of: find.byKey(const Key('member-user-1')),
-          matching: find.text(joinMeta(['Site Engineer', l10n.peopleAdmin])),
+          matching: find.text('Site Engineer'),
         ),
         findsOneWidget,
       );
+      expect(find.byKey(const Key('member-admin-user-1')), findsOneWidget);
       expect(
         find.descendant(
           of: find.byKey(const Key('member-pass-p-rakesh')),
