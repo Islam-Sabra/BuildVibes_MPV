@@ -112,3 +112,8 @@ Also accepted: the reminder detail uses Today / Tomorrow / the short date ("Fri 
   - A status whose Space or person has no name is left out rather than showing a blank name.
 
 Noted only, no change now: time maths as static methods on `BvTimeWheel`; the picker reading the phone's saved mode; `reminderWhen` living in the screen file. They go to the tidy list.
+
+### F1–F3 done (29 Oct, `claude/r104` at `5888855`)
+- **Accepted:** an emptied entry, when the app goes to the background, asks nothing and stays as an open edit; no dialog appears while the app is hidden.
+- **Accepted:** the separate `notebookStatusMoreLabel` key.
+- **The branch is ready for the PC:** test_screens without updating, then the founder's yes, merge and build. No database push.
