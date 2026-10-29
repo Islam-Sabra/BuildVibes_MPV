@@ -128,3 +128,23 @@
    - the site tag picker and filter (Part 5);
    - before / after (Part 7);
    - the removal sheet (Part 9).
+
+## The lead's rulings on 105A's questions (29 Oct, `claude/r105a` after Part 1)
+- **Q1, pin per person.** It goes in 105B (a personal pin table with RLS: only I read and write my pins).
+  - 105A builds the Pin swipe behind the same off flag as Archive. Reminder works now, because it's on the phone.
+- **Q2, Share.** Share of a work item = post its card into **one of this Space's Chat threads**, so the work stays in the Space (rule 8).
+  - The server function goes in 105B. In 105A, Share stays behind the flag, so the hold bar shows Duplicate · Delete.
+- **Q3, the actions the old hold menu held.** They go to the **opened** work item, where tap = open puts them:
+  - **Edit:** tap the title or text in place (creator only, as now).
+  - **Give to:** tap the "For" line; it opens the Give to picker.
+  - **Update:** the write bar at the bottom of the opened item ("Add an update").
+  - **Unpin · Save as template · Cancel:** ⋯ on the opened item. On that screen ⋯ is the settings of what the screen shows, so the one-language rule holds.
+- **Q4, mic.** Off the bar until posts can hold voice notes. That is after the pilot.
+- **Q5, the day's end.** The phone's midnight in 105A. The Space's real time zone (from its market pack) comes in 105B.
+- **Activity → People for a join request:** accepted.
+- **SP8's search icon: keep it.** The frame wins, and a Space with 100+ members needs search in People.
+- **Walk mode must not be inside Space info.** It's a main site action and must stay one tap from Work.
+  - Put it in the camera: the post bar's camera opens with a single choice, **Photo · Walk**, at the bottom (rule 6). Walk is "one photo, one work item, keep walking", as now.
+  - Daily report and Week report stay in Space info's "Work" group.
+
+**105B grows to:** places, archive, personal pins, share to a chat thread, the Space time zone, and handover on removal. It stays one migration.
