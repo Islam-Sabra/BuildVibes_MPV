@@ -340,3 +340,23 @@ abstract final class BvWritingRowsSpec {
   static const personGap = BvSpace.s6;
   static const caret = BvSize.iconSm;
 }
+
+/// Review 105 Part 7 (SP7 2670:38787): the proof moment's toast, shown
+/// for [duration].
+abstract final class BvProofMomentSpec {
+  static const padding = EdgeInsetsDirectional.fromSTEB(
+    BvSpace.s12,
+    BvSpace.s12,
+    BvSpace.s16,
+    BvSpace.s12,
+  );
+  static const gap = BvSpace.s12;
+  static const seal = 38.0;
+  static const icon = 22.0;
+  static const lineGap = BvSpace.s2;
+  static const duration = Duration(seconds: 4);
+
+  /// Only a check this recent shows it (a phone opened days later
+  /// doesn't).
+  static const recent = Duration(days: 1);
+}

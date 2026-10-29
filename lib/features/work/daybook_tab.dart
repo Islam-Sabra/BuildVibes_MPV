@@ -28,6 +28,7 @@ import '../../core/design/daybook_days_specs.dart';
 import '../../core/design/daybook_kinds_specs.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/design/daybook_writing_specs.dart';
+import '../../core/l10n/locale_controller.dart';
 import '../../core/push/push_state.dart';
 import '../../core/push/reminders.dart' show spaceReminderId;
 import '../../core/network/signal_state.dart';
@@ -57,6 +58,7 @@ import '../../shared/widgets/bv_quote_block.dart';
 import '../../shared/widgets/bv_popover_menu.dart'
     show BvMenuItem, showBvScreenMenu;
 import '../../shared/widgets/bv_post_bar.dart';
+import '../../shared/widgets/bv_proof_moment.dart';
 import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_swipe_card.dart';
 import '../../shared/widgets/bv_trace_row.dart';
@@ -310,6 +312,15 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
         unawaited(_refresh());
       },
     );
+    // Review 105 Part 7: my item just Checked, once.
+    ref.listenManual(daybookCardsProvider(_spaceId), (_, next) {
+      final cards = next.value;
+      if (cards != null) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _proofMoment(cards),
+        );
+      }
+    }, fireImmediately: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && widget.startWriting && widget.space.myRights.createItems) {
         _startWriting();
@@ -654,6 +665,78 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     if (shown != _shownDay) setState(() => _shownDay = shown);
   }
 
+  /// Review 105 Part 7: when my work item is Checked, "Added to your proof
+  /// of work · Checked by … · time · View" for 4 s, on my phone only and
+  /// only once (the items it was shown for are kept on the phone, per
+  /// account). A check from days ago doesn't show it.
+  void _proofMoment(List<DaybookCard> cards) {
+    if (!mounted) return;
+    final me = ref.read(authUserIdProvider).value;
+    if (me == null) return;
+    final prefs = ref.read(sharedPreferencesProvider);
+    final key = '$_proofSeenKey:$me';
+    final seen = <String>{...?prefs.getStringList(key)};
+    final now = ref.read(clockProvider)();
+    final fresh = [
+      for (final c in cards)
+        if (c.post.isWorkItem &&
+            c.post.item?.ownerId == me &&
+            c.post.item?.status == WorkStatus.checked &&
+            !seen.contains(c.id))
+          if (c.proof?.outcome case final o?
+              when o.kind == DaybookOutcomeKind.checked &&
+                  o.byId != me &&
+                  o.at != null &&
+                  now.difference(o.at!) < BvProofMomentSpec.recent)
+            (card: c, outcome: o),
+    ];
+    if (fresh.isEmpty) return;
+    fresh.sort((a, b) => b.outcome.at!.compareTo(a.outcome.at!));
+    final latest = fresh.first;
+    unawaited(
+      prefs.setStringList(
+        key,
+        [
+          ...seen,
+          for (final f in fresh) f.card.id,
+        ].reversed.take(_proofSeenMax).toList(),
+      ),
+    );
+    final l10n = AppLocalizations.of(context);
+    final words = DaybookWords(
+      l10n,
+      Localizations.localeOf(context).toLanguageTag(),
+      use24: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    messenger.showSnackBar(
+      SnackBar(
+        duration: BvProofMomentSpec.duration,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        padding: EdgeInsets.zero,
+        content: BvProofMoment(
+          title: l10n.proofMomentTitle,
+          by: l10n.proofMomentBy(
+            personName(l10n, latest.outcome.byName),
+            words.time.clock(latest.outcome.at!),
+          ),
+          viewLabel: l10n.proofMomentView,
+          onView: () {
+            messenger.hideCurrentSnackBar();
+            // On the Profile tab: my proof of work there.
+            router.go(AppRoutes.profileDelivered);
+          },
+        ),
+      ),
+    );
+  }
+
+  static const _proofSeenKey = 'proof_moment_seen';
+  static const _proofSeenMax = 200;
+
   /// The Needs you line tapped (review 105 Part 6): only what waits on me,
   /// with older pages read until each of [waiting] is on the page (as the
   /// old To do sheet listed them all, review 73 A1); again, everything.
@@ -665,8 +748,7 @@ class _DaybookTabState extends ConsumerState<DaybookTab> {
     final pages = ref.read(provider.notifier);
     for (;;) {
       final onPage = {
-        for (final c in ref.read(provider).value ?? const <DaybookCard>[])
-          c.id,
+        for (final c in ref.read(provider).value ?? const <DaybookCard>[]) c.id,
       };
       if (waiting.every(onPage.contains) ||
           !pages.hasOlder ||
