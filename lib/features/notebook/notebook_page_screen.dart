@@ -156,7 +156,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// one a search or a Filter opened the page at.
   late final _shownOpen = {?widget.entry};
 
-  bool _folded(Note n) => n.collapsed && !_shownOpen.contains(n.id);
+  bool _folded(Note n) =>
+      n.collapsed && !_shownOpen.contains(n.id) && foldHidden(n) > 0;
 
   /// The fold control: folds [n], or opens it.
   void _fold(Note n) {
@@ -1977,7 +1978,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           for (final n
               in ref.read(notebookProvider).value?.entries(page.id) ??
                   const <Note>[])
-            if (n.collapsed != on) n.id,
+            if (n.collapsed != on && (!on || foldHidden(n) > 0)) n.id,
         ];
         setState(_shownOpen.clear);
         if (ids.isNotEmpty) await notebook.collapse(ids, on: on);
@@ -2258,11 +2259,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     // a list under each group's label.
     final byDay = <DateTime, List<Note>>{};
     final byType = <EntryType, List<Note>>{};
-    // Review 106 T3: Status, a list under each status's label, then none.
-    final byStatus = <NoteStatusKind?, List<Note>>{
-      for (final g in [...NoteStatusKind.values, null])
-        if (entries.any((n) => !n.pinned && statusGroup(n) == g)) g: [],
-    };
+    // Review 106 T3: Status, a list under each status's label, then none,
+    // in the order EntrySort.status gives them (G5: written once).
+    final byStatus = <NoteStatusKind?, List<Note>>{};
     final named = <Note>[];
     for (final n in entries) {
       if (n.pinned) continue;
@@ -2272,7 +2271,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         case EntrySort.type:
           byType.putIfAbsent(EntryType.of(n), () => []).add(n);
         case EntrySort.status:
-          byStatus[statusGroup(n)]!.add(n);
+          byStatus.putIfAbsent(statusGroup(n), () => []).add(n);
         case EntrySort.name:
           named.add(n);
       }
@@ -2981,10 +2980,12 @@ class NoteSlip extends ConsumerWidget {
       decorationColor: BvColors.textSecondary,
     );
     final due = note.dueAt;
-    final head = foldable ? entryHead(note) : null;
-    final title = head == null
-        ? (note.isPage ? note.title.trim() : '')
-        : head.title ?? '';
+    final title = note.isPage ? note.title.trim() : '';
+    // Review 106 G3: the control only when folding hides something; kept
+    // folded but hiding nothing, it shows open.
+    final hidden = foldHidden(note);
+    final canFold = foldable && hidden > 0;
+    final shut = folded && canFold;
     final statuses = noteStatuses(note, l10n, words, now);
     final row = statuses.isEmpty
         ? null
@@ -2999,10 +3000,10 @@ class NoteSlip extends ConsumerWidget {
     final top = Row(
       key: Key('note-head-${note.id}'),
       children: [
-        if (foldable)
+        if (canFold)
           Semantics(
             button: true,
-            label: folded ? l10n.notebookUnfoldEntry : l10n.notebookFoldEntry,
+            label: shut ? l10n.notebookUnfoldEntry : l10n.notebookFoldEntry,
             excludeSemantics: true,
             child: InkResponse(
               key: Key('note-fold-${note.id}'),
@@ -3011,7 +3012,7 @@ class NoteSlip extends ConsumerWidget {
               child: SizedBox.square(
                 dimension: BvNotebookPagesSpec.foldTouch,
                 child: Icon(
-                  folded ? BvIcons.caretForward : BvIcons.caretDown,
+                  shut ? BvIcons.caretForward : BvIcons.caretDown,
                   size: BvNotebookPagesSpec.foldIcon,
                   color: BvColors.iconSecondary,
                 ),
@@ -3019,13 +3020,25 @@ class NoteSlip extends ConsumerWidget {
             ),
           ),
         Expanded(
-          child: title.isEmpty
-              ? BvSlipQuiet(kind)
-              : Text(
+          child: title.isNotEmpty
+              ? Text(
                   title,
                   textDirection: directionOf(title),
                   style: type.headingMd.copyWith(color: BvColors.textPrimary),
-                ),
+                )
+              // Review 106 G2: in a page, an untitled head is fold · time;
+              // folded, its first line in the body's weight, on one line.
+              : !foldable
+              ? BvSlipQuiet(kind)
+              : shut
+              ? Text(
+                  entryName(note),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textDirection: directionOf(entryName(note)),
+                  style: main,
+                )
+              : const SizedBox.shrink(),
         ),
         Padding(
           padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
@@ -3036,21 +3049,16 @@ class NoteSlip extends ConsumerWidget {
         ),
       ],
     );
-    final hidden = entryLines(note, head);
     final children = <Widget>[
-      if (!foldable) top,
-      if (folded)
+      if (!canFold) top,
+      if (shut)
         // Review 106 T2: what is hidden at the start, the status row at the
         // end, still tappable.
         Row(
           key: Key('note-folded-${note.id}'),
           spacing: BvSpace.s8,
           children: [
-            Expanded(
-              child: hidden == 0
-                  ? const SizedBox.shrink()
-                  : BvSlipQuiet(l10n.notebookLinesHidden(hidden)),
-            ),
+            Expanded(child: BvSlipQuiet(l10n.notebookLinesHidden(hidden))),
             ?row,
           ],
         )
@@ -3061,13 +3069,11 @@ class NoteSlip extends ConsumerWidget {
             words: words,
             now: now,
             showTitle: false,
-            skip: head?.line,
+            full: foldable,
           )
-        // Review 106 T2: a one-line note's line is its head.
-        else if (note.kind != NoteKind.text ||
-            (head?.rest ?? note.body).isNotEmpty)
+        else
           switch (note.kind) {
-            NoteKind.text => BvSlipNote(head?.rest ?? note.body),
+            NoteKind.text => BvSlipNote(note.body),
             NoteKind.todo => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: BvSpace.s8,
@@ -3105,7 +3111,7 @@ class NoteSlip extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: BvNotebookSpec.pointGap,
               children: [
-                if (note.body.isNotEmpty && head?.title == null)
+                if (note.body.isNotEmpty)
                   Text(
                     note.body,
                     style: type.labelMd.copyWith(color: BvColors.textPrimary),
@@ -3171,7 +3177,7 @@ class NoteSlip extends ConsumerWidget {
             borderRadius: BvNotebookPagesSpec.entryRadius,
             onTap: onEdit,
             onLongPress: onLongPress,
-            child: foldable
+            child: canFold
                 // The fold control's 44 reaches into the card's padding, so
                 // its 24 chevron sits where the words start.
                 ? Column(
@@ -3198,8 +3204,9 @@ class NoteSlip extends ConsumerWidget {
   }
 }
 
-/// A page note on its saved slip (F107, review 92): the bold title, every
-/// line of its page (review 106 T2; a to-do ticks here too), then its chips:
+/// A page note on its saved slip (F107, review 92): the bold title, the
+/// lines of its page ([full], or the first three; a to-do ticks here too),
+/// then its chips:
 /// the location, the date, and its photos and files as icons with how
 /// many ("2 photos"). A tap opens it for editing in place.
 class NotePageSummary extends ConsumerWidget {
@@ -3209,7 +3216,7 @@ class NotePageSummary extends ConsumerWidget {
     required this.words,
     required this.now,
     this.showTitle = true,
-    this.skip,
+    this.full = false,
   });
 
   final Note note;
@@ -3219,27 +3226,34 @@ class NotePageSummary extends ConsumerWidget {
   /// False on a page's slip (PG4): its head says the title.
   final bool showTitle;
 
-  /// The line the head shows as the title (review 106 T2), left out here.
-  final String? skip;
+  /// Every line, wrapping (review 106 T2: a page's live entries); else the
+  /// first three, each on one line (G1: an archived entry, as before).
+  final bool full;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final main = type.bodyMd.copyWith(color: BvColors.textPrimary);
+    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final blocks = note.blocks ?? const <PageBlock>[];
     // Folded lines hide what is under them here too.
     final open = visibleLines(blocks, {
       for (final b in blocks)
         if (b.folded) b.id,
     });
-    // Review 106 T2: every line, in full; [skip] is in the head.
     final shown = [
-      for (final i in open)
-        if (blocks[i].id != skip) (i, blocks[i]),
+      for (final i in full ? open : open.take(BvNoteBlocksSpec.slipLines))
+        (i, blocks[i]),
     ];
-    Text line(String text, TextStyle style) =>
-        Text(text, textDirection: directionOf(text), style: style);
+    final more = open.length > shown.length;
+    Text line(String text, TextStyle style) => Text(
+      text,
+      maxLines: full ? null : 1,
+      overflow: full ? null : TextOverflow.ellipsis,
+      textDirection: directionOf(text),
+      style: style,
+    );
     Widget block(int i, PageBlock b) => switch (b) {
       PageTodo(:final text, :final done) => Row(
         spacing: BvNoteBlocksSpec.lineGap,
@@ -3339,6 +3353,7 @@ class NotePageSummary extends ConsumerWidget {
             ),
             child: block(i, b),
           ),
+        if (more) Text('\u2026', style: quiet),
         if (chips.isNotEmpty)
           Wrap(
             key: Key('note-page-chips-${note.id}'),
@@ -3351,59 +3366,30 @@ class NotePageSummary extends ConsumerWidget {
   }
 }
 
-/// An entry's head in its page (review 106 T2): its title; with none, its
-/// first line when that is words ([line], the block it is; [rest], a
-/// note's words after it), or a checklist's title. Null [title]: the kind.
-typedef EntryHead = ({String? title, String? line, String? rest});
-
-EntryHead entryHead(Note note) {
-  const none = (title: null, line: null, rest: null);
-  final title = note.title.trim();
-  if (note.isPage) {
-    if (title.isNotEmpty) return (title: title, line: null, rest: null);
-    final first = note.blocks!.firstOrNull;
-    final words = switch (first) {
-      PageText(:final text) || PageHeading(:final text) => text.trim(),
-      _ => '',
-    };
-    return words.isEmpty ? none : (title: words, line: first!.id, rest: null);
-  }
-  final body = note.body.trim();
-  if (body.isEmpty) return none;
-  switch (note.kind) {
-    case NoteKind.text:
-      final lines = body.split('\n');
-      return (
-        title: lines.first.trim(),
-        line: null,
-        rest: lines.skip(1).join('\n').trim(),
-      );
-    case NoteKind.checklist:
-      return (title: body, line: null, rest: null);
-    case NoteKind.todo || NoteKind.voice:
-      return none;
-  }
-}
-
-/// How many lines a folded entry hides (review 106 T2): the lines under
-/// its head as its page shows them.
-int entryLines(Note note, EntryHead? head) {
+/// The lines under an entry's head in its page (review 106 T2): those
+/// its page shows; an untitled one's first line goes into the folded head
+/// (G2), so it isn't counted. 0: nothing to fold (G3).
+int foldHidden(Note note) {
+  final int lines;
   if (note.isPage) {
     final blocks = note.blocks!;
-    final open = visibleLines(blocks, {
+    lines = visibleLines(blocks, {
       for (final b in blocks)
         if (b.folded) b.id,
-    });
-    return open.where((i) => blocks[i].id != head?.line).length;
+    }).length;
+  } else {
+    lines = switch (note.kind) {
+      NoteKind.text => [
+        for (final l in note.body.split('\n'))
+          if (l.trim().isNotEmpty) l,
+      ].length,
+      NoteKind.checklist =>
+        note.points.length + (note.body.trim().isEmpty ? 0 : 1),
+      NoteKind.todo || NoteKind.voice => 1,
+    };
   }
-  return switch (note.kind) {
-    NoteKind.text => [
-      for (final l in (head?.rest ?? note.body).split('\n'))
-        if (l.trim().isNotEmpty) l,
-    ].length,
-    NoteKind.checklist => note.points.length,
-    NoteKind.todo || NoteKind.voice => 1,
-  };
+  final titled = note.isPage && note.title.trim().isNotEmpty;
+  return titled ? lines : (lines - 1).clamp(0, lines);
 }
 
 /// A reminder's time on its slip: "today 4:00 pm", "tomorrow 9:00 am",

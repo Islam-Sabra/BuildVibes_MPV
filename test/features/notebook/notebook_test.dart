@@ -161,13 +161,14 @@ void main() {
         find.text(words.compactDate(DateTime(2026, 10, 14))),
         findsOneWidget,
       );
-      // The to-do's kind on its head.
+      // Review 106 G2: in a page, an untitled head is fold · time: no
+      // kind word.
       expect(
         find.descendant(
           of: _key('note-head-note-sleeves'),
           matching: find.text(l10n.notebookTodo),
         ),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.text(n.walkPoints[2]), findsOneWidget);
       expect(_key('chat-voice-note-voice'), findsOneWidget);

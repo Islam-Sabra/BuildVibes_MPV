@@ -1,6 +1,9 @@
 // Review 106 T2: inside a page every entry shows in full (no 3-line cut),
-// and each can be folded. The head is the fold control · the title (the
-// first line when there is none) · the time. The control is a 24 chevron
+// and each can be folded. The head is the fold control · the title · the
+// time; the lead's check: G1 an archived entry keeps its short card; G2 an
+// untitled entry's head is fold · time, its words in the body in normal
+// weight (folded, its first line in the head, one line); G3 the control
+// shows only when folding hides something. The control is a 24 chevron
 // at the head's start, ⌄ open and › folded (‹ in Arabic), with a 44 tap
 // area. Folded: the head, then "3 lines hidden" at the start and the
 // status icons at the end, still tappable. The chevron or the folded head
@@ -68,7 +71,7 @@ Note _walk({
   pageId: page,
 );
 
-/// No title: its first line is the head.
+/// No title: its words are the body (G2).
 Note _snags({bool collapsed = false}) => Note(
   id: 'snags',
   kind: NoteKind.text,
@@ -147,17 +150,127 @@ void main() {
         );
       });
 
-      testWidgets('an entry with no title shows its first line as the title, '
-          'once', (tester) async {
+      testWidgets('G2: an untitled entry\'s head is fold · time; its words '
+          'are the body, in normal weight, all of them', (tester) async {
         await _open(tester, lang, [_snags()]);
-        expect(
-          find.descendant(
-            of: _key('note-head-snags'),
-            matching: find.text('Snags, lobby'),
-          ),
-          findsOneWidget,
+        Finder inHead(Finder f) =>
+            find.descendant(of: _key('note-head-snags'), matching: f);
+        expect(inHead(find.text('Snags, lobby')), findsNothing);
+        expect(inHead(find.text(l10n.notebookNote)), findsNothing);
+        expect(_key('note-fold-snags'), findsOneWidget);
+        final first = tester.widget<Text>(find.text('Snags, lobby'));
+        final rest = tester.widget<Text>(
+          find.textContaining('Cracked tile at the stair'),
         );
-        expect(find.text('Snags, lobby'), findsOneWidget);
+        expect(first.style!.fontWeight, rest.style!.fontWeight);
+        expect(
+          tester.getTopLeft(find.text('Snags, lobby')).dy,
+          greaterThan(tester.getBottomLeft(_key('note-head-snags')).dy - 1),
+        );
+      });
+
+      testWidgets('G2: the kind words don\'t come back, for any kind', (
+        tester,
+      ) async {
+        await _open(tester, lang, [
+          Note(
+            id: 'todo',
+            kind: NoteKind.todo,
+            body: 'Order 40 more sleeves',
+            createdAt: DateTime(_now.year, _now.month, _now.day, 7),
+            pageId: _pageId,
+          ),
+          Note(
+            id: 'check',
+            kind: NoteKind.checklist,
+            body: 'Before the walk',
+            points: const [NotePoint('Gloves'), NotePoint('Helmet')],
+            createdAt: DateTime(_now.year, _now.month, _now.day, 6),
+            pageId: _pageId,
+          ),
+        ]);
+        for (final (id, kind) in [
+          ('todo', l10n.notebookTodo),
+          ('check', l10n.daybookKindChecklist),
+        ]) {
+          expect(
+            find.descendant(
+              of: _key('note-head-$id'),
+              matching: find.text(kind),
+            ),
+            findsNothing,
+            reason: id,
+          );
+        }
+        expect(find.text('Order 40 more sleeves'), findsOneWidget);
+        expect(find.text('Before the walk'), findsOneWidget);
+        expect(find.text('Helmet'), findsOneWidget);
+      });
+
+      testWidgets('G1: an archived entry keeps its short 3-line card, and no '
+          'fold control', (tester) async {
+        final repo = FakeNotebookRepository(
+          notes: [_walk().copyWith(archivedAt: () => _now)],
+        );
+        await pumpApp(tester, language: lang, now: _now, notebook: repo);
+        GoRouter.of(
+          tester.element(find.byType(Navigator).first),
+        ).push(AppRoutes.notebookArchived(_pageId));
+        await tester.pumpAndSettle();
+        expect(_key('note-walk'), findsOneWidget);
+        for (final t in _lines.take(3)) {
+          expect(find.text(t), findsOneWidget, reason: t);
+        }
+        for (final t in _lines.skip(3)) {
+          expect(find.text(t), findsNothing, reason: t);
+        }
+        expect(_key('note-fold-walk'), findsNothing);
+      });
+    });
+
+    group('G3 nothing to fold [$lang]', () {
+      Note gate({bool collapsed = false}) => Note(
+        id: 'gate',
+        kind: NoteKind.text,
+        blocks: const [PageText('gate-1', 'Gate 2')],
+        body: 'Gate 2',
+        collapsed: collapsed,
+        createdAt: DateTime(_now.year, _now.month, _now.day, 7),
+        pageId: _pageId,
+      );
+      Note titleOnly({bool collapsed = false}) => Note(
+        id: 'pump',
+        kind: NoteKind.text,
+        title: 'Pump booked',
+        blocks: const [],
+        body: 'Pump booked',
+        pinned: true,
+        collapsed: collapsed,
+        createdAt: DateTime(_now.year, _now.month, _now.day, 6),
+        pageId: _pageId,
+      );
+
+      testWidgets('an untitled one-line entry and a title alone: no fold '
+          'control', (tester) async {
+        await _open(tester, lang, [gate(), titleOnly()]);
+        expect(_key('note-fold-gate'), findsNothing);
+        expect(_key('note-fold-pump'), findsNothing);
+        expect(find.text('Gate 2'), findsOneWidget);
+        expect(_key('note-status-pump'), findsOneWidget);
+      });
+
+      testWidgets('kept folded but hiding nothing: shown open, no empty row', (
+        tester,
+      ) async {
+        await _open(tester, lang, [
+          gate(collapsed: true),
+          titleOnly(collapsed: true),
+        ]);
+        expect(_key('note-folded-gate'), findsNothing);
+        expect(_key('note-folded-pump'), findsNothing);
+        expect(find.text('Gate 2'), findsOneWidget);
+        expect(find.text(l10n.notebookLinesHidden(0)), findsNothing);
+        expect(_key('note-status-pump'), findsOneWidget);
       });
     });
 
@@ -208,6 +321,25 @@ void main() {
         expect(find.text(_lines.last), findsOneWidget);
         // Opening it is not editing it.
         expect(_key('note-tools'), findsNothing);
+      });
+
+      testWidgets('G2: folded, an untitled entry\'s head shows its first '
+          'line in normal weight, on one line; the rest is counted', (
+        tester,
+      ) async {
+        await _open(tester, lang, [_snags(collapsed: true)]);
+        expect(_key('note-folded-snags'), findsOneWidget);
+        final first = find.descendant(
+          of: _key('note-head-snags'),
+          matching: find.text('Snags, lobby'),
+        );
+        expect(first, findsOneWidget);
+        final text = tester.widget<Text>(first);
+        expect(text.maxLines, 1);
+        expect(text.overflow, TextOverflow.ellipsis);
+        expect(text.style!.fontWeight, isNot(FontWeight.w700));
+        expect(find.text(l10n.notebookLinesHidden(1)), findsOneWidget);
+        expect(find.textContaining('Cracked tile'), findsNothing);
       });
 
       testWidgets('a tap on an open entry\'s text still edits it', (

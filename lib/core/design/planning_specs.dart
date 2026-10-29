@@ -133,6 +133,9 @@ abstract final class BvNoteBlocksSpec {
   /// Review 98: shut, the arrow turns a quarter, to point forward.
   static const foldTurn = 0.25;
 
+  /// The saved slip outside a page's live entries (an archived one, review
+  /// 106 G1): the title, then the first three lines of the page.
+  static const slipLines = 3;
   static const chipIcon = 14.0;
 }
 
