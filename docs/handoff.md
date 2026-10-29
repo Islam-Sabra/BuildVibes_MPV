@@ -2,6 +2,53 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 105B L1–L11 (the lead's check) on `r105b`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `r105b` (worktree `BuildVibes-r105b`), pushed.
+  - Nothing merged, no database push, no build, no golden updated.
+  - `lib/features/notebook/` untouched.
+- **The founder chose A:** Done-but-not-Checked items stay with the person who did them. Only Open items are handed over. L2 covers a later Send back.
+- **Migration 52 (`20261113120000_space_work_extras.sql`), edited in place, since it isn't live.** pgTAP `52_space_work_extras` has 97 checks.
+  - **L1:**
+    - `leave_space` and `remove_member` refuse with **`BV001`** while the person owns Open work.
+    - The handover functions raise `BV001` too when an Open item has no new owner. A wrong owner, or an item that isn't theirs and Open, is `22023`.
+    - The app's Leave and Remove now call `leave_space_with_handover` and `remove_member_with_handover`, with no assignments until 105C's sheet. `BV001` reads "Give your open work to someone else first." For Remove: "Couldn't remove: their open work isn't handed over yet."
+    - `09_chat_library.test.sql` now removes Rakesh through the handover.
+  - **L2:** `send_back` takes `p_owner`.
+    - If the owner may no longer sign the item, a new owner is required (else `22023`), and the call records a `reassigned` event.
+    - If the owner may still sign it, a different `p_owner` is refused: that is Give to.
+    - The app asks Give to first in that case (`PendingItem.handTo`).
+  - **L3:** `set_post_place(post, place)`: the post's author, its owner or a Lead; the place must be in the post's Space; null clears it. The new checks: Crew and outsiders can't rename or delete a place, and outsiders and Viewers can't set one.
+  - **L4:**
+    - Both handover functions lock the Space row first.
+    - A trigger on `work_items` (`work_items_owner_check`, before insert or owner change) takes the Space row `for share`, then checks again that the owner may sign it. This covers `create_work_item`, Give to and Send back.
+  - **L5:** `share_post_to_thread` catches `23505` and returns the existing message. The app makes each message id once per thread chosen.
+  - **L6:** `space_time_zone` reads only the project's market, else null. The app works out the Space's midnight on Post, reading the Space's details then (`spaceDayEndOf`).
+  - **L7:** `space_post_json` carries `archived_at` (and `place_id`).
+    - An archived item opened from Search opens by itself; before, it said "This was removed". A Lead's ⋯ has Unarchive.
+    - Archive shows "Archived · Undo".
+  - **L8:** `shared_post_gone(post)` is true only for a reader of a thread with that card, and only when the post was deleted.
+    - The card shows OPEN too.
+    - "You can't see this item" or "This post isn't in Work any more"; no signal is the usual error with Try again.
+  - **L9:** at most 3 of my pins, then "+n more" opens the rest on a sheet. Unpin is in the hold bar when a held post is pinned by me.
+  - **L10:** Share of several keeps going and names the ones that failed, with Try again (same ids). `daybook_month` leaves archived posts out.
+  - **L11:** `test_screens/r105b_test.dart`, with W1–W4 and C1 in EN and AR. The images are in `docs/reviews/shots-105b/`, as described in its README.
+- **Checks (PC):**
+  - `supabase db reset --local`, then `supabase test db`: 3,155 checks in 50 files pass.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,696 pass.
+  - `flutter test test_screens`, not updating: 454 pass, 0 changed; 10 fail, the new shots with no golden.
+- **For the lead:**
+  - With L4's trigger, a Give to of an item away from someone who is leaving at that moment can deadlock: Postgres stops one of the two (`40P01`) and nothing is half-done. It is rare.
+  - The concurrent case of L5 (`23505`) can't be run in pgTAP's single session; the retry case is covered.
+- **The local stack** has this branch's migrations (52 in, no 51). `claude/r106b` needs `supabase db reset --local` before its SQL checks.
+- **Next:**
+  - the lead's check;
+  - with the founder's yes: migration 52 live (after 51 if 106b goes first), the goldens, the merge and a build.
+- **Who has which branch:** PC has `r105b` (worktree `BuildVibes-r105b`), `claude/r106b` (worktree `BuildVibes-r106b`, for the lead) and `slice2-app` (worktree `BuildVibes-slice1`).
+
 ## PC update: 29 Oct 2026 — review 105B on `r105b`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

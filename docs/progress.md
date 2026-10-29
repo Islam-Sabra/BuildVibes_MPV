@@ -796,6 +796,19 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - Migration 52: places, archive, personal pins, share to a chat thread, `space_time_zone` (from `markets.time_zone`), handover; 71 pgTAP checks.
   - The app: Pin (mine, at the top), Archive (Lead, Checked), Share (a thread of this Space) and its card in Chat; the Space's midnight for a new announcement.
   - Checks: 3,129 SQL checks; analyze clean; 2,668 app tests; 454 shots, none changed.
+- **29 Oct (PC): review 105B L1–L11** (the lead's check) on `r105b`; nothing merged, live or built:
+  - Migration 52, edited in place:
+    - no leaving or removing around the handover (`BV001`);
+    - Send back to someone who has left takes a new owner;
+    - `set_post_place`;
+    - the Space lock on owners;
+    - share retries;
+    - the time zone from the project only;
+    - `archived_at` in the post's JSON;
+    - `shared_post_gone`;
+    - the month without archived posts.
+  - The app: Give to before such a Send back; Undo and Unarchive; the card's OPEN, hidden and gone; 3 pins and "+n more"; Unpin when held; Share keeps going with Try again; the midnight on Post.
+  - Checks: 3,155 SQL checks; analyze clean; 2,696 app tests; 454 shots unchanged; 10 new shots for the lead.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
