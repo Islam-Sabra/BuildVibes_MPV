@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/design/bv_icons.dart';
+import '../../core/design/bv_specs.dart' show BvStroke;
 import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_paper_specs.dart';
 import '../../core/l10n/bv_time.dart';
@@ -35,6 +36,7 @@ class BvSlip extends StatelessWidget {
     this.clip = false,
     this.cancelled = false,
     this.lifted = false,
+    this.selected = false,
     this.menu,
     this.menuLine = BvSlipSpec.firstLine,
     this.paddingTop = BvSlipSpec.paddingTop,
@@ -52,6 +54,10 @@ class BvSlip extends StatelessWidget {
   final bool clip;
   final bool cancelled;
   final bool lifted;
+
+  /// Held and selected (review 105 SP6): the brand's soft paper and an
+  /// edge in the action colour.
+  final bool selected;
   final Widget? menu;
 
   /// The height of the first line the ⋯ centres on: 16 for a name over a
@@ -68,14 +74,21 @@ class BvSlip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final border = BvSlipBorder(variant: tear);
+    final border = BvSlipBorder(
+      variant: tear,
+      side: selected
+          ? const BorderSide(color: BvColors.textAction, width: BvStroke.medium)
+          : BorderSide.none,
+    );
     Widget slip = Stack(
       clipBehavior: Clip.none,
       children: [
         DecoratedBox(
           key: const Key('slip-paper'),
           decoration: ShapeDecoration(
-            color: BvColors.surfaceElevated,
+            color: selected
+                ? BvColors.surfaceBrandSoft
+                : BvColors.surfaceElevated,
             shape: border,
             shadows: lifted ? BvShadow.slipLifted : BvShadow.slip,
           ),

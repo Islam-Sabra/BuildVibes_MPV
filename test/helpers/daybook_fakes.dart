@@ -261,6 +261,21 @@ class FakeDaybookRepository implements DaybookRepository {
     _check();
     calls.add('cancel $postId');
   }
+
+  /// Posts someone else has added to: Delete is refused (cancel instead).
+  final othersAdded = <String>{};
+
+  @override
+  Future<void> deletePost(String postId) async {
+    _check();
+    if (othersAdded.contains(postId)) {
+      throw const SpaceException(SpaceFailure.rule);
+    }
+    calls.add('delete $postId');
+    for (final cards in posts.values) {
+      cards.removeWhere((c) => c.id == postId);
+    }
+  }
 }
 
 /// The Space channel with no network: [push] plays a change the database

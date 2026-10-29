@@ -318,3 +318,25 @@ abstract final class BvQuoteSpec {
   static const linesWriting = 4;
   static const linesCard = 3;
 }
+
+/// Review 105 SP2 (2667:38511): the kinds as one choice that scrolls
+/// sideways, at the top of the writing card.
+abstract final class BvKindChipsSpec {
+  static const radius = BorderRadius.all(Radius.circular(18));
+  static const paddingHorizontal = BvSpace.s12;
+  static const paddingVertical = BvSpace.s6;
+  static const gap = BvSpace.s8;
+  static const iconGap = BvSpace.s6;
+  static const icon = BvSize.iconSm;
+}
+
+/// Review 105 SP2: For · Place · Due · Team, each a row that opens its
+/// picker, in one box with a line between rows.
+abstract final class BvWritingRowsSpec {
+  static const radius = BorderRadius.all(Radius.circular(BvRadius.control));
+  static const paddingHorizontal = BvSpace.s12;
+  static const paddingVertical = 10.0;
+  static const gap = 10.0;
+  static const personGap = BvSpace.s6;
+  static const caret = BvSize.iconSm;
+}

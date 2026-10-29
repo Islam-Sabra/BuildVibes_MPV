@@ -177,6 +177,7 @@ class PendingItem {
     this.points = const [],
     this.noteId,
     this.postId,
+    this.teamId,
   });
 
   factory PendingItem.fromJson(Map<String, dynamic> json) => PendingItem(
@@ -213,6 +214,7 @@ class PendingItem {
         WalkLine.fromJson(w as Map<String, dynamic>),
     ],
     templateId: json['template_id'] as String?,
+    teamId: json['team_id'] as String?,
     blocks: (json['blocks'] as List?)?.cast<Map<String, dynamic>>(),
     points: [
       for (final p in json['points'] as List? ?? const [])
@@ -290,6 +292,10 @@ class PendingItem {
   final List<Map<String, dynamic>>? blocks;
   final List<DraftPoint> points;
 
+  /// A new work item's Team (review 105 Part 3); null is the whole Space.
+  /// Other kinds keep theirs on [draft].
+  final String? teamId;
+
   /// A new work item's note in My notebook (slice 8); other kinds keep
   /// theirs on [draft]. Marked once the server takes the post.
   final String? noteId;
@@ -342,6 +348,7 @@ class PendingItem {
     points: points,
     noteId: noteId,
     postId: postId,
+    teamId: teamId,
   );
 
   /// The same, no longer linked to the chat message it came from (the
@@ -372,6 +379,7 @@ class PendingItem {
     points: points,
     noteId: noteId,
     postId: postId,
+    teamId: teamId,
   );
 
   /// A new post, of any kind.
@@ -407,6 +415,7 @@ class PendingItem {
     'source_message_id': sourceMessageId,
     if (walk.isNotEmpty) 'walk': [for (final w in walk) w.toJson()],
     'template_id': ?templateId,
+    'team_id': ?teamId,
     'blocks': ?blocks,
     if (points.isNotEmpty)
       'points': [
@@ -926,6 +935,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             templateId: item.templateId,
             blocks: item.blocks,
             points: item.points,
+            teamId: item.teamId,
           ),
         );
         // The same file twice is one attachment (attach_library_file).

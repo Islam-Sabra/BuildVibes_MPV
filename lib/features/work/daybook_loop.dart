@@ -23,13 +23,15 @@ import '../../shared/widgets/bv_give_to_picker.dart';
 import '../../shared/widgets/bv_hold_button.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_send_back_card.dart';
+import '../../shared/widgets/bv_sheet.dart';
 import '../../shared/widgets/bv_undo_bar.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../spaces/former_member.dart';
 import '../spaces/space_errors.dart';
 import 'daybook_card.dart' show DaybookCardActions, DaybookCardView;
 import 'daybook_marks.dart';
-import 'daybook_page.dart' show mayEditPage, showDaybookPage;
+import 'daybook_page.dart'
+    show DaybookPageActions, DaybookPageMore, mayEditPage, showDaybookPage;
 import 'daybook_photos.dart';
 import 'daybook_report_pdf.dart';
 import 'daybook_target_card.dart' show showDaybookChild;
@@ -84,14 +86,22 @@ class DaybookLoop {
 
   /// The card's actions, as the reader [me] may use them. [signing] are
   /// the items with a sign-off waiting on the phone. Any card's quote opens
-  /// its chat message (F87), for Viewers too.
+  /// its chat message (F87), for Viewers too. [onHold] selects the card
+  /// (review 105 Part 2); none on a sheet of its own.
   DaybookCardView withActions(
     BuildContext context,
     DaybookCardView view, {
     required String? me,
     required Set<String> signing,
+    VoidCallback? onHold,
   }) {
-    final v = _withActions(context, view, me: me, signing: signing);
+    final v = _withActions(
+      context,
+      view,
+      me: me,
+      signing: signing,
+      onHold: _viewer ? null : onHold,
+    );
     final message = v.card.post.sourceMessageId;
     final newer = v.card.post.file?.newerPostId;
     if (message == null && newer == null) return v;
@@ -121,26 +131,29 @@ class DaybookLoop {
     DaybookCardView view, {
     required String? me,
     required Set<String> signing,
+    required VoidCallback? onHold,
   }) {
     final card = view.card;
     final post = card.post;
-    if (!post.isWorkItem) return _kindActions(context, view, me: me);
+    if (!post.isWorkItem) {
+      return _kindActions(context, view, me: me, onHold: onHold);
+    }
+    final open = _open(context, view, me: me);
     // A Viewer reads: the page, nothing more.
     if (_viewer) {
       return view.copyWith(
         actions: DaybookCardActions(
-          onOpenPage: _openPage(context, post),
+          onOpen: open,
+          onOpenPage: open,
           onOpenChild: (id) => unawaited(openChild(context, id)),
         ),
       );
     }
-    final menu = _menu(card, me: me);
     final lifted = view.copyWith(lifted: true);
-    void press(Rect at) =>
-        unawaited(_longPress(context, card, lifted, at, menu, view.localPhoto));
     return view.copyWith(
       actions: DaybookCardActions(
-        onMenu: menu.isEmpty ? null : press,
+        onOpen: open,
+        onHold: onHold,
         onCheck: card.need == DaybookNeed.toCheck
             ? () => unawaited(check(context, card))
             : null,
@@ -156,10 +169,7 @@ class DaybookLoop {
         onGiveTo: card.need == DaybookNeed.giveTo && post.isOpen
             ? (at) => unawaited(_giveTo(context, post, lifted, at))
             : null,
-        onUpdate: !post.cancelled
-            ? (_) => unawaited(_update(context, card, view.localPhoto))
-            : null,
-        onOpenPage: _openPage(context, post),
+        onOpenPage: open,
         onOpenChild: (id) => unawaited(openChild(context, id)),
       ),
     );
@@ -169,40 +179,154 @@ class DaybookLoop {
   Future<void> openChild(BuildContext context, String id) =>
       showDaybookChild(context, loop: this, childId: id);
 
-  /// The post's page over the daybook (slice 5), for whoever sees it.
-  VoidCallback _openPage(
+  /// A tap opens the item (review 105 Part 2): its page over the daybook
+  /// (slice 5), for whoever sees it, with what the reader may do there.
+  VoidCallback _open(
     BuildContext context,
-    DaybookPost post, {
-    bool edit = false,
+    DaybookCardView view, {
+    required String? me,
   }) =>
       () => unawaited(
-        showDaybookPage(context, space: space, post: post, edit: edit),
+        showDaybookPage(
+          context,
+          space: space,
+          post: view.card.post,
+          actions: pageActions(context, view, me: me),
+        ),
       );
+
+  /// Opens a pinned announcement as an item, with its ⋯ (F44's menu,
+  /// review 105 ruling Q3).
+  Future<void> openPinned(
+    BuildContext context,
+    DaybookPost post, {
+    required String? me,
+  }) => showDaybookPage(
+    context,
+    space: space,
+    post: post,
+    actions: _kindPageActions(context, post, me: me),
+  );
+
+  /// The opened item's actions (the lead's ruling Q3): a tap on the title
+  /// edits it (its author), the For line gives it to someone else, "Add an
+  /// update" is at the bottom with Send back for whoever checks it, and ⋯
+  /// holds Unpin · Save as template · Cancel. Sign as done and Check stay
+  /// on the card.
+  DaybookPageActions pageActions(
+    BuildContext context,
+    DaybookCardView view, {
+    required String? me,
+  }) {
+    if (_viewer) return const DaybookPageActions();
+    final card = view.card;
+    final post = card.post;
+    if (!post.isWorkItem) return _kindPageActions(context, post, me: me);
+    final menu = _menu(card, me: me);
+    final local = view.localPhoto;
+    return DaybookPageActions(
+      onEdit: menu.contains(DaybookSlipAction.edit) ? () => onEdit(post) : null,
+      onGiveTo: menu.contains(DaybookSlipAction.giveTo)
+          ? () => unawaited(_giveToSheet(context, post))
+          : null,
+      onUpdate: menu.contains(DaybookSlipAction.update)
+          ? () => unawaited(_update(context, card, local))
+          : null,
+      onSendBack: menu.contains(DaybookSlipAction.sendBack)
+          ? () => unawaited(_sendBack(context, card, local))
+          : null,
+      more: _more(context, menu, post),
+    );
+  }
+
+  DaybookPageActions _kindPageActions(
+    BuildContext context,
+    DaybookPost post, {
+    required String? me,
+  }) {
+    final menu = kindMenu(post, me: me);
+    return DaybookPageActions(
+      onEdit: menu.contains(DaybookSlipAction.edit) ? () => onEdit(post) : null,
+      more: _more(context, menu, post),
+    );
+  }
+
+  /// ⋯ on the opened item: Unpin, Save as template and Cancel, as allowed.
+  List<DaybookPageMore> _more(
+    BuildContext context,
+    List<DaybookSlipAction> menu,
+    DaybookPost post,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    return [
+      if (menu.contains(DaybookSlipAction.unpin))
+        (
+          key: const Key('page-more-unpin'),
+          label: l10n.daybookUnpin,
+          icon: BvIcons.pin,
+          destructive: false,
+          onTap: () => unawaited(unpin(context, post)),
+        ),
+      if (menu.contains(DaybookSlipAction.template))
+        (
+          key: const Key('page-more-template'),
+          label: l10n.templateSave,
+          icon: BvIcons.clipboard,
+          destructive: false,
+          onTap: () => unawaited(saveTemplate(context, post)),
+        ),
+      if (menu.contains(DaybookSlipAction.cancel))
+        (
+          key: const Key('page-more-cancel'),
+          label: post.isWorkItem
+              ? l10n.daybookCancelItem
+              : l10n.daybookCancelPost,
+          icon: BvIcons.close,
+          destructive: true,
+          onTap: () => unawaited(_cancelHeld(context, post)),
+        ),
+    ];
+  }
+
+  /// Review 94: Cancel work item is held; another kind's Cancel is not.
+  Future<void> _cancelHeld(BuildContext context, DaybookPost post) async {
+    final l10n = AppLocalizations.of(context);
+    if (!post.isWorkItem ||
+        await showBvHoldSheet(
+              context,
+              title: l10n.holdCancelTitle,
+              body: l10n.holdCancelBody,
+              label: l10n.holdToCancel,
+              hint: l10n.holdKeepHolding,
+              icon: BvIcons.close,
+              destructive: true,
+            ) &&
+            context.mounted) {
+      await cancel(context, post);
+    }
+  }
 
   /// Its author may edit its page now (the server decides again).
   bool _mayEditPage(DaybookPost post, String? me) =>
       mayEditPage(space, post, me, now: ref.read(clockProvider)());
 
   /// A checklist, an announcement, an activity or a file: tick a point
-  /// (Lead and Crew), acknowledge (Viewers too), open the file, and for
-  /// the author the menu's Cancel. Updates, checks and sign-offs are work
-  /// items' only.
+  /// (Lead and Crew), acknowledge (Viewers too), open the file, and a tap
+  /// opens it, with its author's Cancel on ⋯. Updates, checks and
+  /// sign-offs are work items' only.
   DaybookCardView _kindActions(
     BuildContext context,
     DaybookCardView view, {
     required String? me,
+    required VoidCallback? onHold,
   }) {
     final post = view.card.post;
-    final menu = kindMenu(post, me: me);
-    final lifted = view.copyWith(lifted: true);
     final fileId = post.file?.id;
+    final open = _open(context, view, me: me);
     return view.copyWith(
       actions: DaybookCardActions(
-        onMenu: menu.isEmpty
-            ? null
-            : (at) => unawaited(
-                _longPress(context, view.card, lifted, at, menu, null),
-              ),
+        onOpen: open,
+        onHold: onHold,
         onTick: _viewer
             ? null
             : (point, {required on}) =>
@@ -212,7 +336,7 @@ class DaybookLoop {
         onOpenFile: fileId == null
             ? null
             : () => context.push(AppRoutes.libraryFile(_spaceId, fileId)),
-        onOpenPage: _openPage(context, post),
+        onOpenPage: open,
         // A daily report's lines open their cards; Share as PDF (slice 7).
         onOpenChild: post.isReport
             ? (id) => unawaited(openChild(context, id))
@@ -273,35 +397,6 @@ class DaybookLoop {
       spaceId: _spaceId,
       onOpenList: () => router.push(AppRoutes.spaceTemplates(_spaceId)),
     );
-  }
-
-  /// The pinned note's long-press menu (F44), full or folded: [lifted] is
-  /// the note as it stands, raised over the dimmed page.
-  Future<void> pinnedMenu(
-    BuildContext context,
-    DaybookPost post,
-    Widget lifted,
-    Rect at, {
-    required String? me,
-  }) async {
-    final menu = kindMenu(post, me: me);
-    if (menu.isEmpty) return;
-    final picked = await _pick(context, lifted, at, menu, workItem: false);
-    if (picked == null || !context.mounted) return;
-    switch (picked) {
-      case DaybookSlipAction.edit:
-        onEdit(post);
-      case DaybookSlipAction.page:
-        _openPage(context, post, edit: true)();
-      case DaybookSlipAction.unpin:
-        await unpin(context, post);
-      case DaybookSlipAction.template:
-        await saveTemplate(context, post);
-      case DaybookSlipAction.cancel:
-        await cancel(context, post);
-      default:
-        break;
-    }
   }
 
   /// Unpin (F44): the announcement becomes an ordinary card on its day; it
@@ -393,148 +488,6 @@ class DaybookLoop {
       if (mine && !checked) DaybookSlipAction.cancel,
     ];
   }
-
-  Future<void> _longPress(
-    BuildContext context,
-    DaybookCard card,
-    DaybookCardView lifted,
-    Rect at,
-    List<DaybookSlipAction> menu,
-    String? localPhoto,
-  ) async {
-    final picked = await _pick(
-      context,
-      lifted,
-      at,
-      menu,
-      workItem: card.post.isWorkItem,
-    );
-    if (picked == null || !context.mounted) return;
-    final l10n = AppLocalizations.of(context);
-    final post = card.post;
-    switch (picked) {
-      // Review 94: from the menu too, Check and Cancel work item are held.
-      case DaybookSlipAction.check:
-        if (await showBvHoldSheet(
-              context,
-              title: l10n.holdCheckTitle,
-              body: l10n.holdCheckBody,
-              label: l10n.holdToCheck,
-              hint: l10n.holdKeepHolding,
-              icon: BvIcons.check,
-            ) &&
-            context.mounted) {
-          await check(context, card);
-        }
-      case DaybookSlipAction.sendBack:
-        await _sendBack(context, card, localPhoto);
-      case DaybookSlipAction.update:
-        await _update(context, card, localPhoto);
-      case DaybookSlipAction.edit:
-        onEdit(post);
-      case DaybookSlipAction.page:
-        _openPage(context, post, edit: true)();
-      case DaybookSlipAction.giveTo:
-        await _giveTo(context, post, lifted, at);
-      case DaybookSlipAction.unpin:
-        await unpin(context, post);
-      case DaybookSlipAction.template:
-        await saveTemplate(context, post);
-      case DaybookSlipAction.cancel:
-        if (!post.isWorkItem ||
-            await showBvHoldSheet(
-                  context,
-                  title: l10n.holdCancelTitle,
-                  body: l10n.holdCancelBody,
-                  label: l10n.holdToCancel,
-                  hint: l10n.holdKeepHolding,
-                  icon: BvIcons.close,
-                  destructive: true,
-                ) &&
-                context.mounted) {
-          await cancel(context, post);
-        }
-    }
-  }
-
-  /// [lifted] raised over the dimmed page with [menu] beside it; what was
-  /// picked, or null.
-  Future<DaybookSlipAction?> _pick(
-    BuildContext context,
-    Widget lifted,
-    Rect at,
-    List<DaybookSlipAction> menu, {
-    required bool workItem,
-  }) {
-    final l10n = AppLocalizations.of(context);
-    unawaited(HapticFeedback.mediumImpact());
-    return showBvLifted<DaybookSlipAction>(
-      context,
-      anchor: at,
-      lifted: lifted,
-      popover: (menuContext) => BvSlipMenu<DaybookSlipAction>(
-        key: const Key('slip-menu'),
-        items: [for (final a in menu) _item(l10n, a, workItem: workItem)],
-        onSelected: (a) => Navigator.of(menuContext).pop(a),
-      ),
-    );
-  }
-
-  static BvSlipMenuItem<DaybookSlipAction> _item(
-    AppLocalizations l10n,
-    DaybookSlipAction a, {
-    required bool workItem,
-  }) => switch (a) {
-    DaybookSlipAction.check => BvSlipMenuItem(
-      value: a,
-      label: l10n.daybookCheck,
-      icon: BvIcons.check,
-      tone: BvSlipMenuTone.positive,
-    ),
-    DaybookSlipAction.sendBack => BvSlipMenuItem(
-      value: a,
-      label: l10n.daybookSendBack,
-      icon: BvIcons.sendBack,
-      tone: BvSlipMenuTone.destructive,
-    ),
-    DaybookSlipAction.update => BvSlipMenuItem(
-      value: a,
-      label: l10n.daybookAddUpdate,
-      icon: BvIcons.add,
-    ),
-    // Figma draws Edit with dots-three, not a pencil.
-    DaybookSlipAction.edit => BvSlipMenuItem(
-      value: a,
-      label: l10n.daybookEdit,
-      icon: BvIcons.more,
-    ),
-    DaybookSlipAction.page => BvSlipMenuItem(
-      value: a,
-      label: l10n.pageEdit,
-      icon: BvIcons.edit,
-    ),
-    DaybookSlipAction.giveTo => BvSlipMenuItem(
-      value: a,
-      label: l10n.daybookGiveTo,
-      icon: BvIcons.person,
-    ),
-    DaybookSlipAction.unpin => BvSlipMenuItem(
-      value: a,
-      label: l10n.daybookUnpin,
-      icon: BvIcons.pin,
-    ),
-    DaybookSlipAction.template => BvSlipMenuItem(
-      value: a,
-      label: l10n.templateSave,
-      icon: BvIcons.clipboard,
-    ),
-    DaybookSlipAction.cancel => BvSlipMenuItem(
-      value: a,
-      label: workItem ? l10n.daybookCancelItem : l10n.daybookCancelPost,
-      icon: BvIcons.close,
-      tone: BvSlipMenuTone.destructive,
-    ),
-  };
 
   /// Check (B3), once held (review 94; the hold's end is the strong
   /// haptic): the stamp lands, and "Checked · Undo" shows for 5 seconds.
@@ -762,9 +715,35 @@ class DaybookLoop {
         onPick: (person) => Navigator.of(pickerContext).pop(person),
       ),
     );
-    if (picked == null || picked.id == p.item?.ownerId || !context.mounted) {
-      return;
-    }
+    if (picked == null || !context.mounted) return;
+    await _sendGiveTo(p, picked);
+  }
+
+  /// Give to someone else from the opened item's For line (ruling Q3):
+  /// the same picker, on a sheet.
+  Future<void> _giveToSheet(BuildContext context, DaybookPost p) async {
+    final l10n = AppLocalizations.of(context);
+    final people = await ref.read(spacePeopleProvider(_spaceId).future);
+    if (!context.mounted) return;
+    final picked = await showBvSheet<BvGiveToPerson>(
+      context: context,
+      title: l10n.daybookGiveTo,
+      builder: (sheet) => BvGiveToPicker(
+        key: const Key('give-to'),
+        people: assignablePeople(people, me: p.authorId),
+        currentOwnerId: p.item?.ownerId,
+        currentLabel: l10n.daybookOwnerNow,
+        searchPlaceholder: l10n.daybookGiveToSearch,
+        inSheet: true,
+        onPick: (person) => Navigator.of(sheet).pop(person),
+      ),
+    );
+    if (picked == null || !context.mounted) return;
+    await _sendGiveTo(p, picked);
+  }
+
+  Future<void> _sendGiveTo(DaybookPost p, BvGiveToPerson picked) async {
+    if (picked.id == p.item?.ownerId) return;
     await ref
         .read(workOutboxProvider.notifier)
         .send(

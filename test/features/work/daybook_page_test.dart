@@ -5,7 +5,6 @@ import 'package:buildvibes/data/models/post_page.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_popover_menu.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -139,20 +138,16 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
 
 Finder _key(String k) => find.byKey(Key(k));
 
-/// The author's way in: the card's menu → Edit page.
+/// The author's way in (review 105 Part 2): a tap opens the item, then
+/// Edit page.
 Future<void> _edit(WidgetTester tester, AppLocalizations l10n) async {
   final card = find.descendant(
     of: _key('daybook-card-$_post'),
     matching: find.byType(BvSlip),
   );
-  await tester.longPress(card.first);
+  await tester.tap(card.first);
   await tester.pumpAndSettle();
-  final menu = tester.widget<BvSlipMenu<Object>>(_key('slip-menu'));
-  expect([for (final i in menu.items) i.label], contains(l10n.pageEdit));
-  await _tap(
-    tester,
-    find.descendant(of: _key('slip-menu'), matching: find.text(l10n.pageEdit)),
-  );
+  await _tap(tester, _key('page-edit'));
 }
 
 Future<void> _type(WidgetTester tester, String key, String text) async {

@@ -21,6 +21,7 @@ import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
 import '../work/daybook_tab.dart';
+import '../work/work_gestures.dart' show workSelectionProvider;
 import '../work/daybook_target.dart';
 import '../work/walk_saved.dart';
 import '../work/work_outbox.dart';
@@ -216,6 +217,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
   }
 
   void _show(int tab) => setState(() {
+    ref.read(workSelectionProvider(widget.spaceId).notifier).clear();
     _tab = tab;
     _fileStart = null;
     _reportStart = null;
@@ -248,8 +250,17 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     final waiting =
         detail.iAmAdmin &&
         joinWaiting(ref.watch(spacePeopleProvider(widget.spaceId)).value);
+    final selected = _tab == SpaceScreen.workTab
+        ? ref.watch(workSelectionProvider(widget.spaceId))
+        : const <String>{};
     return Scaffold(
       appBar: BvSpaceHeader(
+        selected: selected.isEmpty
+            ? null
+            : l10n.notebookSelected(selected.length),
+        closeSelectionLabel: l10n.notebookCloseSelection,
+        onCloseSelection: () =>
+            ref.read(workSelectionProvider(widget.spaceId).notifier).clear(),
         name: detail.name,
         // As in the v13 frames, linked to a project or not (review 54 A4).
         line: l10n.spacesPrivateWork,

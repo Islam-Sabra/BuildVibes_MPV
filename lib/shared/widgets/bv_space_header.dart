@@ -28,6 +28,9 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
     this.peopleWaiting = false,
     this.waitingLabel,
     this.onBack,
+    this.selected,
+    this.closeSelectionLabel,
+    this.onCloseSelection,
   });
 
   final String name;
@@ -50,6 +53,12 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
   /// Null: back closes the Space's route, when there is one.
   final VoidCallback? onBack;
 
+  /// Cards held on Work (review 105 SP6): the header is ✕ and "1
+  /// selected" ([selected]) until ✕ ([onCloseSelection]) ends it.
+  final String? selected;
+  final String? closeSelectionLabel;
+  final VoidCallback? onCloseSelection;
+
   @override
   Size get preferredSize => const Size.fromHeight(BvSpaceHeaderSpec.height);
 
@@ -61,6 +70,41 @@ class BvSpaceHeader extends StatelessWidget implements PreferredSizeWidget {
         (Navigator.of(context).canPop()
             ? () => Navigator.of(context).maybePop()
             : null);
+    final selected = this.selected;
+    if (selected != null) {
+      return Material(
+        key: const Key('space-selection-header'),
+        color: BvColors.surfaceApp,
+        child: SafeArea(
+          bottom: false,
+          child: Container(
+            height: BvSpaceHeaderSpec.height,
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: BvSpaceHeaderSpec.paddingHorizontal,
+            ),
+            child: Row(
+              spacing: BvSpaceHeaderSpec.gap,
+              children: [
+                _Square(
+                  key: const Key('selection-close'),
+                  icon: BvIcons.close,
+                  label: closeSelectionLabel ?? '',
+                  onTap: onCloseSelection ?? () {},
+                ),
+                Expanded(
+                  child: Text(
+                    selected,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: type.titleMd,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Material(
       color: BvColors.surfaceApp,
       child: SafeArea(

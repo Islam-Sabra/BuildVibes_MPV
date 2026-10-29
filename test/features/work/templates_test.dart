@@ -7,7 +7,6 @@ import 'package:buildvibes/data/models/template.dart';
 import 'package:buildvibes/features/spaces/space_templates_screen.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
 import 'package:buildvibes/features/work/daybook_templates.dart';
-import 'package:buildvibes/features/work/daybook_writing.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
@@ -18,6 +17,7 @@ import 'package:go_router/go_router.dart';
 import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/opened_item.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/space_fakes.dart';
 import '../../helpers/template_fakes.dart';
@@ -133,18 +133,13 @@ Future<void> _write(
   DaybookKind kind,
 ) async {
   await _tap(tester, _key('post-bar-notepad'));
-  await _tap(tester, _key('writing-kind-chip'));
-  await _tap(
-    tester,
-    find.descendant(
-      of: _key('writing-kind-menu'),
-      matching: find.text(kindName(l10n, kind)),
-    ),
-  );
+  // Review 105 SP2: the kinds are chips, one choice.
+  await _tap(tester, _key('kind-chip-$kind'));
 }
 
+/// The bar's + (review 105 SP2).
 Future<void> _more(WidgetTester tester, AppLocalizations l10n) =>
-    _tap(tester, find.bySemanticsLabel(l10n.daybookMore));
+    _tap(tester, _key('writing-add'));
 
 void main() {
   test('only the Everyone templates of the kind, unless the card has an '
@@ -289,8 +284,12 @@ void main() {
         findsOneWidget,
       );
       await _tap(tester, _key('template-$_mepNote'));
+      // Review 105 SP2: the Team row says it.
       expect(
-        find.text(l10n.daybookToAudience(s.t('MEP', 'الكهروميكانيك'))),
+        find.descendant(
+          of: _key('writing-to'),
+          matching: find.text(s.t('MEP', 'الكهروميكانيك')),
+        ),
         findsOneWidget,
       );
       await _tap(tester, _key('writing-post'));
@@ -306,8 +305,8 @@ void main() {
       await _more(tester, l10n);
       await _tap(tester, find.text(l10n.templateMenu));
       await _tap(tester, _key('template-$_sleeves'));
-      await _more(tester, l10n);
-      await _tap(tester, find.text(l10n.daybookAssign));
+      // Review 105 SP2: the For row.
+      await _tap(tester, _key('writing-who'));
       await _tap(
         tester,
         find.descendant(
@@ -348,7 +347,7 @@ void main() {
         posts: [s.rebar()],
       );
       Future<void> save() async {
-        await tester.longPress(
+        await tester.tap(
           find
               .descendant(
                 of: _key('daybook-card-post-rebar'),
@@ -357,13 +356,7 @@ void main() {
               .first,
         );
         await tester.pumpAndSettle();
-        await _tap(
-          tester,
-          find.descendant(
-            of: _key('slip-menu'),
-            matching: find.text(l10n.templateSave),
-          ),
-        );
+        await openedPick(tester, l10n.templateSave);
       }
 
       await save();
@@ -402,7 +395,7 @@ void main() {
         admin: false,
         posts: [s.rebar()],
       );
-      await tester.longPress(
+      await tester.tap(
         find
             .descendant(
               of: _key('daybook-card-post-rebar'),

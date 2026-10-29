@@ -30,6 +30,7 @@ import '../../shared/widgets/bv_list_row.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../../shared/widgets/bv_tap_target.dart';
 import '../../shared/widgets/bv_writing_card.dart';
+import '../../shared/widgets/bv_writing_rows.dart';
 import '../library/library_parts.dart' show fileSize;
 import '../entry/entry_state.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
@@ -63,6 +64,46 @@ List<SpaceTeam> audienceTeams(
 }
 
 /// The kinds that go to an audience rather than to chosen people.
+/// Slice 7: Template, when the Space has one of [draft]'s kind for its
+/// audience (hidden otherwise, review 44); never on an edit.
+bool writingHasTemplates(
+  WidgetRef ref,
+  String spaceId,
+  DaybookPostDraft? draft, {
+  required bool editing,
+}) =>
+    !editing &&
+    draft != null &&
+    templatesFor(
+      ref.watch(spaceTemplatesProvider(spaceId)).value ?? const [],
+      draft.kind,
+      teamId: draft.teamId,
+      chosenTeam: draft.teamId != null,
+    ).isNotEmpty;
+
+/// What the writing bar's + holds (review 105 SP2): a template, and an
+/// announcement's pin; null-tap while it holds nothing.
+bool writingHasMore(
+  WidgetRef ref,
+  String spaceId,
+  DaybookPostDraft? draft, {
+  required bool editing,
+}) =>
+    draft != null &&
+    (draft.kind == DaybookKind.announcement ||
+        writingHasTemplates(ref, spaceId, draft, editing: editing));
+
+/// The kinds written with For · Place · Due · Team rows and chosen with
+/// the kind chips (review 105 SP2), in the chips' order. A file post and a
+/// daily report start elsewhere (📎, Space info).
+const rowKinds = [
+  DaybookKind.note,
+  DaybookKind.workItem,
+  DaybookKind.checklist,
+  DaybookKind.announcement,
+  DaybookKind.activity,
+];
+
 bool goesToAudience(DaybookKind kind) =>
     kind == DaybookKind.announcement ||
     kind == DaybookKind.file ||
@@ -434,7 +475,17 @@ class DaybookWriter {
     if (d != null) await _notifier.put(change(d));
   }
 
-  Future<void> setKind(DaybookKind kind) => _put((d) => d.copyWith(kind: kind));
+  /// Review 105 Part 6: an announcement starts pinned until today ends,
+  /// at the phone's midnight (the lead's ruling Q5; the Space's own time
+  /// zone comes in 105B), as a morning brief; + changes or removes it.
+  Future<void> setKind(DaybookKind kind) => _put(
+    (d) => d.copyWith(
+      kind: kind,
+      pinnedUntil: kind == DaybookKind.announcement && d.pinnedUntil == null
+          ? () => pinToEndOf(dayOf(ref.read(clockProvider)()))
+          : null,
+    ),
+  );
   Future<void> setTitle(String text) => _put((d) => d.copyWith(title: text));
   Future<void> setBody(String text) => _put((d) => d.copyWith(body: text));
 
@@ -670,6 +721,7 @@ class DaybookWriter {
               quote: workItem ? d.quote : null,
               sourceMessageId: workItem ? d.sourceMessageId : null,
               templateId: workItem ? d.templateId : null,
+              teamId: workItem ? d.teamId : null,
               noteId: workItem ? d.noteId : null,
               blocks: workItem && d.blocks.isNotEmpty ? d.blocks : null,
               points: workItem
@@ -809,7 +861,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
   }
 
   String _bodyHint(AppLocalizations l10n, DaybookKind kind) => switch (kind) {
-    DaybookKind.workItem => l10n.daybookWritingBody,
+    DaybookKind.workItem => l10n.daybookWritingDetails,
     DaybookKind.announcement => l10n.daybookBodyAnnouncement,
     DaybookKind.activity => l10n.daybookBodyActivity,
     DaybookKind.note ||
@@ -851,6 +903,105 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           );
   }
 
+  /// Review 105 SP2: For · Place · Due · Team, as the kind uses them. For
+  /// a work item is one person (Give to's picker); a checklist's and an
+  /// activity's are people. Team is "Whole Space" until one is chosen.
+  List<BvWritingRow> _rows(
+    AppLocalizations l10n,
+    DaybookPostDraft draft,
+    DaybookWords words,
+    DateTime now, {
+    required String? me,
+    required List<SpaceTeam> teams,
+    required VoidCallback? Function(VoidCallback f) tap,
+    required void Function(DaybookWritingMenu m) menu,
+  }) {
+    final kind = draft.kind;
+    BvWritingRow choose(VoidCallback onTap) => BvWritingRow(
+      key: const Key('writing-who'),
+      label: l10n.daybookRowFor,
+      value: widget.askWho == null
+          ? l10n.daybookRowChoose
+          : l10n.daybookChooseWho,
+      empty: true,
+      ask: widget.askWho,
+      onTap: tap(onTap),
+    );
+    BvWritingRow people(VoidCallback onTap) => draft.people.isEmpty
+        ? choose(onTap)
+        : BvWritingRow(
+            key: const Key('writing-who'),
+            label: l10n.daybookRowFor,
+            value: words.peopleFor([
+              for (final p in draft.people)
+                DaybookPerson(id: p.id, name: p.name),
+            ], me: me),
+            onTap: tap(onTap),
+          );
+    BvWritingRow owner() {
+      final id = draft.ownerId;
+      // An edit keeps the owner: Give to someone else changes it.
+      if (id == null) return choose(() => menu(DaybookWritingMenu.assign));
+      final name = personName(l10n, draft.ownerName);
+      return BvWritingRow(
+        key: const Key('writing-who'),
+        label: l10n.daybookRowFor,
+        value: id == me ? l10n.daybookYou : name,
+        person: name,
+        tint: BvAvatarTints.forId(id),
+        onTap: widget.editing
+            ? null
+            : tap(() => menu(DaybookWritingMenu.assign)),
+      );
+    }
+
+    final place = BvWritingRow(
+      key: const Key('writing-place-row'),
+      label: l10n.daybookRowPlace,
+      value: draft.place ?? l10n.daybookRowAdd,
+      empty: draft.place == null,
+      onTap: tap(() => menu(DaybookWritingMenu.place)),
+    );
+    final due = BvWritingRow(
+      key: const Key('writing-due-row'),
+      label: l10n.daybookRowDue,
+      value: draft.dueDate == null
+          ? l10n.daybookRowAdd
+          : words.dueProperty(draft.dueDate!, draft.dueAt),
+      empty: draft.dueDate == null,
+      onTap: tap(widget.onPickDue),
+    );
+    final team = BvWritingRow(
+      key: const Key('writing-to'),
+      label: l10n.daybookRowTeam,
+      value: draft.teamName ?? l10n.daybookWholeSpace,
+      onTap: teams.isEmpty || widget.editing
+          ? null
+          : tap(() => menu(DaybookWritingMenu.audience)),
+    );
+    return switch (kind) {
+      DaybookKind.workItem => [owner(), place, due, team],
+      DaybookKind.checklist => [people(widget.onPickPeople), due, team],
+      DaybookKind.activity => [
+        people(widget.onPickPeople),
+        place,
+        BvWritingRow(
+          key: const Key('writing-when-row'),
+          label: l10n.daybookRowWhen,
+          value: draft.startsAt == null
+              ? l10n.daybookRowAdd
+              : words.activityWhen(draft.startsAt!, draft.endsAt, now),
+          empty: draft.startsAt == null,
+          onTap: tap(widget.onPickStart),
+        ),
+        team,
+      ],
+      // Note has no For or Due (review 105 Part 3).
+      DaybookKind.note || DaybookKind.announcement => [team],
+      DaybookKind.file || DaybookKind.report => const [],
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -876,67 +1027,6 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
     VoidCallback? tap(VoidCallback f) => writing ? f : null;
     void menu(DaybookWritingMenu m) => writing ? widget.onMenu(m) : null;
     final kind = draft.kind;
-    // F56: the "who" row from the start, as a line to tap; required on a
-    // work item, a checklist and an activity. Choosing only fills it.
-    BvWritingProperty choose(String label, VoidCallback onTap) =>
-        BvWritingProperty.icon(
-          key: const Key('writing-who'),
-          icon: BvIcons.person,
-          label: widget.askWho == null ? label : l10n.daybookChooseWho,
-          empty: true,
-          ask: widget.askWho,
-          caret: widget.askWho == null,
-          onTap: tap(onTap),
-        );
-    // F66: "For Islam Ahmed", and a caret while a tap chooses again, as the
-    // card's facts line says it. An edit
-    // keeps the owner: Give to someone else changes it.
-    BvWritingProperty owner(String id) {
-      final choosable = writing && !widget.editing;
-      final line = words.writingFor(
-        id,
-        draft.ownerName,
-        me: ref.watch(authUserIdProvider).value,
-      );
-      return BvWritingProperty.person(
-        key: const Key('writing-who'),
-        label: line.text,
-        name: personName(l10n, draft.ownerName),
-        marks: [
-          (
-            part: line.who,
-            style: BvType.of(
-              context,
-            ).emphasisSm.copyWith(color: BvColors.textPrimary),
-          ),
-        ],
-        tint: BvAvatarTints.forId(id),
-        caret: choosable,
-        onTap: choosable ? () => menu(DaybookWritingMenu.assign) : null,
-      );
-    }
-
-    final people = BvWritingProperty.icon(
-      icon: BvIcons.person,
-      label: words.peopleFor([
-        for (final p in draft.people) DaybookPerson(id: p.id, name: p.name),
-      ], me: ref.watch(authUserIdProvider).value),
-      onTap: tap(widget.onPickPeople),
-    );
-    final place = draft.place == null
-        ? null
-        : BvWritingProperty.icon(
-            icon: BvIcons.place,
-            label: draft.place!,
-            onTap: tap(() => menu(DaybookWritingMenu.place)),
-          );
-    final due = draft.dueDate == null
-        ? null
-        : BvWritingProperty.icon(
-            icon: BvIcons.due,
-            label: words.dueProperty(draft.dueDate!, draft.dueAt),
-            onTap: tap(widget.onPickDue),
-          );
     final me = ref.watch(authUserIdProvider).value;
     final teams = audienceTeams(
       ref.watch(spacePeopleProvider(widget.spaceId)).value,
@@ -957,9 +1047,10 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
           onRemove: writing ? () => unawaited(_writer.dropTemplate()) : null,
           removeLabel: l10n.templateDrop,
         ),
-      // F56: an announcement and a Document for receipt go to Everyone or
-      // a Team, already filled; a tap chooses (an edit keeps it).
-      if (goesToAudience(kind))
+      // F56: a Document for receipt and a daily report go to Everyone or
+      // a Team, already filled; a tap chooses (an edit keeps it). The
+      // other kinds have the Team row (review 105 SP2).
+      if (goesToAudience(kind) && !rowKinds.contains(kind))
         BvWritingProperty.icon(
           key: const Key('writing-to'),
           icon: BvIcons.team,
@@ -974,21 +1065,6 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
               ? null
               : tap(() => menu(DaybookWritingMenu.audience)),
         ),
-      if (kind == DaybookKind.workItem) ...[
-        if (draft.ownerId == null && !widget.editing)
-          choose(l10n.daybookForChoose, () => menu(DaybookWritingMenu.assign))
-        else if (draft.ownerId != null)
-          owner(draft.ownerId!),
-        ?due,
-        ?place,
-      ],
-      if (kind == DaybookKind.checklist) ...[
-        if (draft.people.isNotEmpty)
-          people
-        else
-          choose(l10n.daybookForChoose, widget.onPickPeople),
-        ?due,
-      ],
       if (kind == DaybookKind.announcement && draft.pinnedUntil != null) ...[
         BvWritingProperty.icon(
           key: const Key('writing-pin'),
@@ -1015,19 +1091,6 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             empty: true,
             onTap: tap(widget.onPickPinTime),
           ),
-      ],
-      if (kind == DaybookKind.activity) ...[
-        if (draft.startsAt != null)
-          BvWritingProperty.icon(
-            icon: BvIcons.due,
-            label: words.activityWhen(draft.startsAt!, draft.endsAt, now),
-            onTap: tap(widget.onPickStart),
-          ),
-        ?place,
-        if (draft.people.isNotEmpty)
-          people
-        else
-          choose(l10n.daybookComingChoose, widget.onPickPeople),
       ],
       // A work item's files (attached from 📎) and a file post's file.
       for (final f in draft.files)
@@ -1060,8 +1123,39 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
             removeLabel: l10n.daybookNotNewVersion,
           ),
     ];
+    final rows = rowKinds.contains(kind)
+        ? _rows(
+            l10n,
+            draft,
+            words,
+            now,
+            me: me,
+            teams: teams,
+            tap: tap,
+            menu: menu,
+          )
+        : const <BvWritingRow>[];
+    // Review 105 SP2: the kinds as one choice, Work item first chosen; an
+    // edit, a file post and a daily report stay the kind they are.
+    final chooses = writing && !widget.editing && rowKinds.contains(kind);
     final card = BvWritingCard(
       key: const Key('daybook-writing-card'),
+      kinds: chooses
+          ? BvKindChips<DaybookKind>(
+              key: const Key('writing-kinds'),
+              choices: [
+                for (final k in rowKinds)
+                  BvKindChoice(
+                    value: k,
+                    label: kindName(l10n, k),
+                    icon: kindIcon(k),
+                  ),
+              ],
+              selected: kind,
+              onSelected: (k) => unawaited(_writer.setKind(k)),
+            )
+          : null,
+      rows: rows.isEmpty ? null : BvWritingRows(rows: rows),
       titleController: _title,
       titlePlaceholder: l10n.daybookWritingTitle,
       bodyController: _body,
@@ -1076,7 +1170,7 @@ class _WritingCardState extends ConsumerState<DaybookWritingCard> {
       draftLabel: widget.fromBefore ? l10n.daybookDraft : null,
       // The kind chip opens the kind menu (E6); an edit stays the kind it
       // is.
-      kindLabel: writing ? kindName(l10n, kind) : null,
+      kindLabel: writing && !chooses ? kindName(l10n, kind) : null,
       // A daily report stays one (it starts from the Space menu).
       onKindTap: writing && !widget.editing && kind != DaybookKind.report
           ? () => menu(DaybookWritingMenu.kind)
@@ -1489,18 +1583,13 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
     DaybookPostDraft? draft,
   ) {
     final kind = draft?.kind ?? DaybookKind.workItem;
-    // Slice 7: Template, when the Space has one of this kind for this
-    // audience (hidden otherwise, review 44); never on an edit.
-    final templates = widget.editing || draft == null
-        ? const <PostTemplate>[]
-        : templatesFor(
-            ref.watch(spaceTemplatesProvider(widget.spaceId)).value ?? const [],
-            kind,
-            teamId: draft.teamId,
-            chosenTeam: draft.teamId != null,
-          );
     final template = [
-      if (templates.isNotEmpty)
+      if (writingHasTemplates(
+        ref,
+        widget.spaceId,
+        draft,
+        editing: widget.editing,
+      ))
         BvMenuItem(
           value: _More.template,
           label: l10n.templateMenu,
@@ -1531,6 +1620,18 @@ class _PopoverState extends ConsumerState<DaybookWritingPopover> {
       label: l10n.daybookDueDateMenu,
       icon: BvIcons.due,
     );
+    // Review 105 SP2: For · Place · Due · Team are rows on the card; a
+    // daily report and a file post keep theirs here.
+    if (rowKinds.contains(kind)) {
+      return [
+        if (kind == DaybookKind.announcement)
+          BvMenuItem(
+            value: _More.pin,
+            label: l10n.daybookPinUntil,
+            icon: BvIcons.pin,
+          ),
+      ];
+    }
     return switch (kind) {
       // A note has nothing to set: its words, photos and files only (F58).
       DaybookKind.note => const [],

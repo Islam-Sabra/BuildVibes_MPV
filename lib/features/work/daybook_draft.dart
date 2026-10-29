@@ -258,18 +258,21 @@ class DaybookPostDraft {
   }
 
   /// A posted work item or announcement (with its pin, F44), to edit.
-  factory DaybookPostDraft.of(DaybookPost post) => DaybookPostDraft(
-    id: post.id,
-    kind: DaybookKind.fromJson(post.kind),
-    pinnedUntil: post.pinnedUntil,
-    title: post.title,
-    body: post.body ?? '',
-    ownerId: post.item?.ownerId,
-    ownerName: post.item?.ownerName,
-    place: post.place,
-    dueDate: post.dueDate,
-    dueAt: post.dueAt,
-  );
+  /// [post] as a card to edit, or with a new [id] to post again
+  /// (Duplicate, review 105 SP6: no due or pin, chosen again).
+  factory DaybookPostDraft.of(DaybookPost post, {String? id}) =>
+      DaybookPostDraft(
+        id: id ?? post.id,
+        kind: DaybookKind.fromJson(post.kind),
+        pinnedUntil: id == null ? post.pinnedUntil : null,
+        title: post.title,
+        body: post.body ?? '',
+        ownerId: post.item?.ownerId,
+        ownerName: post.item?.ownerName,
+        place: post.place,
+        dueDate: id == null ? post.dueDate : null,
+        dueAt: id == null ? post.dueAt : null,
+      );
 
   static DateTime? _time(Object? value) =>
       value == null ? null : DateTime.parse(value as String).toLocal();

@@ -15,6 +15,7 @@ import '../messages/dm_live.dart';
 import '../notebook/note_reminders.dart';
 import '../settings/push_host.dart';
 import '../work/outbox_host.dart';
+import '../work/work_gestures.dart' show SpaceReminderHost;
 
 /// The frame around the four tabs: the current tab and the bottom bar.
 class AppShell extends ConsumerWidget {
@@ -35,10 +36,14 @@ class AppShell extends ConsumerWidget {
       // Push while signed in (permission, this phone's token, taps), and
       // what waits on the phone to be sent.
       // Messages, live app-wide (F81). My notebook's reminders on this
-      // phone (slice 10).
+      // phone (slice 10), and a Space post's (review 105 Part 2).
       body: OutboxHost(
         child: PushHost(
-          child: DmLiveHost(child: ReminderHost(child: navigationShell)),
+          child: DmLiveHost(
+            child: SpaceReminderHost(
+              child: ReminderHost(child: navigationShell),
+            ),
+          ),
         ),
       ),
       bottomNavigationBar: BvBottomBar(

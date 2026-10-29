@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_give_to_picker.dart';
-import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -96,10 +95,8 @@ Future<void> _writeOffline(
     s.cableTraysTitle,
   );
   await tester.pumpAndSettle();
-  final l10n = AppLocalizations.of(tester.element(find.byType(BvWritingCard)));
-  await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text(l10n.daybookAssign));
+  // Review 105 SP2: the For row.
+  await tester.tap(find.byKey(const Key('writing-who')));
   await tester.pumpAndSettle();
   await tester.tap(
     find.descendant(

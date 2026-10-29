@@ -22,7 +22,6 @@ import '../../shared/widgets/bv_photo_strip.dart';
 import '../../shared/widgets/bv_popover_menu.dart' show bvGlobalRect;
 import '../../shared/widgets/bv_slip.dart';
 import '../../shared/widgets/bv_stamp.dart';
-import '../../shared/widgets/bv_swipe_reveal.dart';
 import '../../shared/widgets/bv_torn_edge.dart';
 import '../../shared/widgets/bv_text_field.dart' show BvWesternDigitsFormatter;
 import '../library/library_parts.dart' show bvMegabyte;
@@ -39,11 +38,11 @@ import 'daybook_words.dart';
 @immutable
 class DaybookCardActions {
   const DaybookCardActions({
-    this.onMenu,
+    this.onOpen,
+    this.onHold,
     this.onCheck,
     this.onSignDone,
     this.onGiveTo,
-    this.onUpdate,
     this.onTick,
     this.onAck,
     this.onOpenFile,
@@ -59,11 +58,11 @@ class DaybookCardActions {
     VoidCallback? openQuote,
     VoidCallback? openNewer,
   }) => DaybookCardActions(
-    onMenu: onMenu,
+    onOpen: onOpen,
+    onHold: onHold,
     onCheck: onCheck,
     onSignDone: onSignDone,
     onGiveTo: onGiveTo,
-    onUpdate: onUpdate,
     onTick: onTick,
     onAck: onAck,
     onOpenFile: onOpenFile,
@@ -74,9 +73,12 @@ class DaybookCardActions {
     onShareReport: onShareReport,
   );
 
-  /// Long-press, or a tap: the lifted card and its menu. Gets the card's
-  /// place on screen, so a tap is never a dead end (F16).
-  final ValueChanged<Rect>? onMenu;
+  /// A tap opens it (review 105 Part 2): its page, with what the old
+  /// long-press menu held (the lead's ruling Q3).
+  final VoidCallback? onOpen;
+
+  /// A hold selects it (SP6): Share · Duplicate · Delete at the bottom.
+  final VoidCallback? onHold;
 
   /// Hold to check (review 94), while it needs the reader's check.
   final VoidCallback? onCheck;
@@ -86,10 +88,6 @@ class DaybookCardActions {
 
   /// "Give to someone else", when the owner can no longer sign it.
   final ValueChanged<Rect>? onGiveTo;
-
-  /// Swipe towards the end side: add an update (Y1), a shortcut to the
-  /// menu's Add update. Gets the card's place on screen.
-  final ValueChanged<Rect>? onUpdate;
 
   /// Tick a checklist's point, or untick it (Lead and Crew).
   final DaybookTick? onTick;
@@ -209,6 +207,7 @@ class DaybookCardView extends StatelessWidget {
     this.actions = const DaybookCardActions(),
     this.landing = false,
     this.lifted = false,
+    this.selected = false,
     this.expanded = false,
     this.onEarlier,
     this.lineKey,
@@ -251,6 +250,9 @@ class DaybookCardView extends StatelessWidget {
   final bool landing;
   final bool lifted;
 
+  /// Held and selected (SP6).
+  final bool selected;
+
   /// The whole history shows, not only the last three lines.
   final bool expanded;
 
@@ -260,7 +262,8 @@ class DaybookCardView extends StatelessWidget {
   /// Each history line's key, so a trace can scroll to it.
   final Key Function(String id)? lineKey;
 
-  /// A tap on the card, instead of the menu.
+  /// A tap on the card, instead of opening it (while writing, while
+  /// selecting, or a refused one to fix).
   final VoidCallback? onTap;
 
   /// Who ticked a point, by id.
@@ -275,31 +278,36 @@ class DaybookCardView extends StatelessWidget {
   bool get clip => card.need != null && !viewer && !waiting;
 
   /// The same card with [actions], or [lifted] over the dim.
-  DaybookCardView copyWith({DaybookCardActions? actions, bool? lifted}) =>
-      DaybookCardView(
-        key: key,
-        card: card,
-        words: words,
-        me: me,
-        now: now,
-        activityAt: activityAt,
-        viewer: viewer,
-        waiting: waiting,
-        changeWaiting: changeWaiting,
-        sending: sending,
-        couldNotSend: couldNotSend,
-        localPhoto: localPhoto,
-        waitingPhotos: waitingPhotos,
-        actions: actions ?? this.actions,
-        landing: landing,
-        lifted: lifted ?? this.lifted,
-        expanded: expanded,
-        onEarlier: onEarlier,
-        // A lifted copy draws over the card itself: its lines have no keys.
-        lineKey: (lifted ?? this.lifted) ? null : lineKey,
-        onTap: onTap,
-        nameOf: nameOf,
-      );
+  DaybookCardView copyWith({
+    DaybookCardActions? actions,
+    bool? lifted,
+    bool? selected,
+    VoidCallback? Function()? onTap,
+  }) => DaybookCardView(
+    key: key,
+    card: card,
+    words: words,
+    me: me,
+    now: now,
+    activityAt: activityAt,
+    viewer: viewer,
+    waiting: waiting,
+    changeWaiting: changeWaiting,
+    sending: sending,
+    couldNotSend: couldNotSend,
+    localPhoto: localPhoto,
+    waitingPhotos: waitingPhotos,
+    actions: actions ?? this.actions,
+    landing: landing,
+    lifted: lifted ?? this.lifted,
+    selected: selected ?? this.selected,
+    expanded: expanded,
+    onEarlier: onEarlier,
+    // A lifted copy draws over the card itself: its lines have no keys.
+    lineKey: (lifted ?? this.lifted) ? null : lineKey,
+    onTap: onTap == null ? this.onTap : onTap(),
+    nameOf: nameOf,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -329,108 +337,84 @@ class DaybookCardView extends StatelessWidget {
     final action = lifted ? null : _action(context, l10n, hasPhoto);
     final history = _history(l10n);
 
-    final paper = Builder(
-      builder: (context) {
-        final menu = actions.onMenu;
-        return BvSlip(
-          tear: BvSlipBorder.forId(post.id).variant,
-          // With no proof, only CANCELLED is stamped, at the corner.
-          stamp: proof == null && post.cancelled ? stamp : null,
-          clip: clip,
-          cancelled: post.cancelled,
-          lifted: lifted,
-          onTap: lifted
-              ? null
-              : onTap ??
-                    (menu == null ? null : () => menu(bvGlobalRect(context))),
-          onLongPress: lifted || menu == null
-              ? null
-              : () => menu(bvGlobalRect(context)),
-          children: [
-            BvSlipHeader(
-              name: personName(l10n, post.authorName),
-              label: authorId != null && authorId == me
-                  ? l10n.daybookYou
-                  : null,
-              ref: ref == null ? null : l10n.daybookCardRef(ref),
-              time: words.time.clock(activityAt),
-              tint: authorId == null
-                  ? BvAvatarTints.plain
-                  : BvAvatarTints.forId(authorId),
+    return BvSlip(
+      tear: BvSlipBorder.forId(post.id).variant,
+      // With no proof, only CANCELLED is stamped, at the corner.
+      stamp: proof == null && post.cancelled ? stamp : null,
+      clip: clip,
+      cancelled: post.cancelled,
+      lifted: lifted,
+      selected: selected,
+      onTap: lifted ? null : onTap ?? actions.onOpen,
+      onLongPress: lifted ? null : actions.onHold,
+      children: [
+        BvSlipHeader(
+          name: personName(l10n, post.authorName),
+          label: authorId != null && authorId == me ? l10n.daybookYou : null,
+          ref: ref == null ? null : l10n.daybookCardRef(ref),
+          time: words.time.clock(activityAt),
+          tint: authorId == null
+              ? BvAvatarTints.plain
+              : BvAvatarTints.forId(authorId),
+        ),
+        BvSlipTitle(post.title, cancelled: post.cancelled),
+        // A walk is its rows: its owner is its author, its due theirs.
+        if (!post.isTarget)
+          BvSlipFacts(
+            children: [
+              BvSlipFact(
+                icon: BvIcons.person,
+                text: words.meta(post, me: me, now: now),
+                marks: _factMarks(context),
+              ),
+              if ((post.place ?? '').isNotEmpty)
+                BvSlipFact(icon: BvIcons.place, text: post.place!),
+            ],
+          )
+        else if ((post.place ?? '').isNotEmpty)
+          BvSlipFacts(
+            children: [BvSlipFact(icon: BvIcons.place, text: post.place!)],
+          ),
+        ?_quote(),
+        if (chips.isNotEmpty) BvSlipChips(children: chips),
+        if (post.isTarget)
+          DaybookTargetRows(
+            post: post,
+            // Still the phone's walk (sent or not, until the page
+            // reads it back): its photos are the phone's own.
+            waiting: waiting || waitingPhotos.isNotEmpty,
+            viewer: viewer,
+            onOpenChild: lifted ? null : actions.onOpenChild,
+            onShowAll: lifted ? null : actions.onOpenPage,
+          ),
+        ?_openPage(),
+        if (localPhoto != null)
+          _LocalPhoto(path: localPhoto!, stamp: proof == null ? null : stamp)
+        else if (proof != null && proof.photos.isNotEmpty)
+          _Photo(path: proof.photos.first.path, stamp: stamp)
+        // A target's photos are on its rows' strip, not here.
+        else if (proof == null &&
+            !post.isTarget &&
+            (post.coverPath != null || waitingPhotos.isNotEmpty))
+          DaybookCardPhotos(post: post, waiting: waitingPhotos),
+        // A proof with only a note (F6): the note, and the stamp
+        // pressed under it, with no empty frame.
+        if (noteOnly && (proof.note ?? '').isNotEmpty) BvSlipNote(proof.note!),
+        if (noteOnly && stamp != null)
+          Padding(
+            padding: BvSlipSpec.stampNoPhotoPadding,
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: stamp,
             ),
-            BvSlipTitle(post.title, cancelled: post.cancelled),
-            // A walk is its rows: its owner is its author, its due theirs.
-            if (!post.isTarget)
-              BvSlipFacts(
-                children: [
-                  BvSlipFact(
-                    icon: BvIcons.person,
-                    text: words.meta(post, me: me, now: now),
-                    marks: _factMarks(context),
-                  ),
-                  if ((post.place ?? '').isNotEmpty)
-                    BvSlipFact(icon: BvIcons.place, text: post.place!),
-                ],
-              )
-            else if ((post.place ?? '').isNotEmpty)
-              BvSlipFacts(
-                children: [BvSlipFact(icon: BvIcons.place, text: post.place!)],
-              ),
-            ?_quote(),
-            if (chips.isNotEmpty) BvSlipChips(children: chips),
-            if (post.isTarget)
-              DaybookTargetRows(
-                post: post,
-                // Still the phone's walk (sent or not, until the page
-                // reads it back): its photos are the phone's own.
-                waiting: waiting || waitingPhotos.isNotEmpty,
-                viewer: viewer,
-                onOpenChild: lifted ? null : actions.onOpenChild,
-                onShowAll: lifted ? null : actions.onOpenPage,
-              ),
-            ?_openPage(),
-            if (localPhoto != null)
-              _LocalPhoto(
-                path: localPhoto!,
-                stamp: proof == null ? null : stamp,
-              )
-            else if (proof != null && proof.photos.isNotEmpty)
-              _Photo(path: proof.photos.first.path, stamp: stamp)
-            // A target's photos are on its rows' strip, not here.
-            else if (proof == null &&
-                !post.isTarget &&
-                (post.coverPath != null || waitingPhotos.isNotEmpty))
-              DaybookCardPhotos(post: post, waiting: waitingPhotos),
-            // A proof with only a note (F6): the note, and the stamp
-            // pressed under it, with no empty frame.
-            if (noteOnly && (proof.note ?? '').isNotEmpty)
-              BvSlipNote(proof.note!),
-            if (noteOnly && stamp != null)
-              Padding(
-                padding: BvSlipSpec.stampNoPhotoPadding,
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: stamp,
-                ),
-              ),
-            ?history,
-            if (couldNotSend)
-              BvSlipError(l10n.daybookCouldNotSend)
-            else if (waiting || changeWaiting)
-              _waitingLine(context, l10n),
-            ?action,
-          ],
-        );
-      },
-    );
-    final update = actions.onUpdate;
-    if (lifted || update == null) return paper;
-    return Builder(
-      builder: (context) => BvSwipeReveal(
-        actionLabel: l10n.daybookAddUpdate,
-        onAction: () => update(bvGlobalRect(context)),
-        child: paper,
-      ),
+          ),
+        ?history,
+        if (couldNotSend)
+          BvSlipError(l10n.daybookCouldNotSend)
+        else if (waiting || changeWaiting)
+          _waitingLine(context, l10n),
+        ?action,
+      ],
     );
   }
 
@@ -504,7 +488,6 @@ class DaybookCardView extends StatelessWidget {
   Widget _kindCard(BuildContext context, AppLocalizations l10n) {
     final post = _post;
     final authorId = post.authorId;
-    final menu = actions.onMenu;
     final history = _history(l10n);
     final cancelled = post.cancelled
         ? BvInkStamp(
@@ -521,13 +504,9 @@ class DaybookCardView extends StatelessWidget {
         clip: clip,
         cancelled: post.cancelled,
         lifted: lifted,
-        onTap: lifted
-            ? null
-            : onTap ??
-                  (menu == null ? null : () => menu(bvGlobalRect(context))),
-        onLongPress: lifted || menu == null
-            ? null
-            : () => menu(bvGlobalRect(context)),
+        selected: selected,
+        onTap: lifted ? null : onTap ?? actions.onOpen,
+        onLongPress: lifted ? null : actions.onHold,
         children: [
           BvSlipHeader(
             name: personName(l10n, post.authorName),

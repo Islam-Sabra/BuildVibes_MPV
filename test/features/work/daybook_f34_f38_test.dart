@@ -7,7 +7,6 @@ import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
-import 'package:buildvibes/shared/widgets/bv_due_today_strip.dart';
 import 'package:buildvibes/shared/widgets/bv_marked_text.dart';
 import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:flutter/material.dart';
@@ -185,11 +184,12 @@ void main() {
     for (final lang in ['en', 'ar']) {
       final l10n = lookupAppLocalizations(Locale(lang));
       final s = DaybookSamples(lang);
-      final strip = find.byType(BvDueTodayStrip);
+      // Review 105 Part 6: the Needs you line, in the strip's place.
+      final strip = find.byKey(const Key('needs-you'));
 
       testWidgets('open: on the strip [$lang]', (tester) async {
         await _open(tester, lang, posts: [s.cableTrays()]);
-        expect(find.text(l10n.daybookDocketTitle(1)), findsOneWidget);
+        expect(find.text(l10n.daybookNeedYou(1)), findsOneWidget);
       });
 
       testWidgets(

@@ -25,6 +25,7 @@ import 'package:buildvibes/shared/widgets/bv_slip.dart';
 import 'package:buildvibes/shared/widgets/bv_stamp.dart';
 import 'package:buildvibes/shared/widgets/bv_undo_bar.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:buildvibes/data/models/work_item.dart';
 import 'package:buildvibes/data/repositories/daybook_live.dart';
 import 'package:buildvibes/data/repositories/daybook_repository.dart';
@@ -101,30 +102,69 @@ Finder _entry(String id) => find.byKey(Key('daybook-card-$id'));
 
 Finder _in(String id, Finder f) => find.descendant(of: _entry(id), matching: f);
 
+/// Opens card [id] (review 105 Part 2: a tap opens the item; what the old
+/// long-press menu held is on the opened item).
 Future<void> _longPress(WidgetTester tester, String id) async {
+  // An item opened before is closed first.
+  while (find.byKey(const Key('daybook-page')).evaluate().isNotEmpty) {
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+  }
   await scrollToRow(tester, _entry(id));
   await tester.ensureVisible(_entry(id));
   await tester.pumpAndSettle();
-  await tester.longPress(_in(id, find.byType(BvSlip)).first);
+  await tester.tap(_in(id, find.byType(BvSlip)).first);
   await tester.pumpAndSettle();
 }
 
-List<String> _menu(WidgetTester tester) => [
-  for (final i
-      in tester
-          .widget<BvSlipMenu<Object>>(find.byKey(const Key('slip-menu')))
-          .items)
-    i.label,
-];
+Finder _pageKey(String k) => find.byKey(Key(k));
 
-Future<void> _pick(WidgetTester tester, String label) async {
-  await tester.tap(
-    find.descendant(
-      of: find.byKey(const Key('slip-menu')),
-      matching: find.text(label),
-    ),
+/// What the opened item offers, in the old menu's words and order: Send
+/// back, Add update, Edit, Edit page, Give to, then ⋯'s rows (Save as
+/// template, Cancel). Check stays on the card, held.
+Future<List<String>> _menu(WidgetTester tester) async {
+  final l10n = AppLocalizations.of(
+    tester.element(find.byKey(const Key('daybook-page'))),
   );
+  final page = [
+    if (_pageKey('page-send-back').evaluate().isNotEmpty) l10n.daybookSendBack,
+    if (_pageKey('page-update').evaluate().isNotEmpty) l10n.daybookAddUpdate,
+    if (_pageKey('page-title').evaluate().isNotEmpty) l10n.daybookEdit,
+    if (_pageKey('page-edit').evaluate().isNotEmpty) l10n.pageEdit,
+    if (_pageKey('page-for').evaluate().isNotEmpty) l10n.daybookGiveTo,
+  ];
+  if (_pageKey('page-more').evaluate().isEmpty) return page;
+  await tester.tap(_pageKey('page-more'));
   await tester.pumpAndSettle();
+  final menu = tester.widget<BvPopoverMenu<int>>(_pageKey('page-more-menu'));
+  final more = [for (final i in menu.items) i.label];
+  // Closed again without acting.
+  await tester.tapAt(const Offset(1, 1));
+  await tester.pumpAndSettle();
+  return [...page, ...more];
+}
+
+/// Acts as the old menu's [label] did, from the opened item.
+Future<void> _pick(WidgetTester tester, String label) async {
+  final l10n = AppLocalizations.of(
+    tester.element(find.byKey(const Key('daybook-page'))),
+  );
+  Future<void> tap(Finder f) async {
+    await tester.ensureVisible(f.first);
+    await tester.pumpAndSettle();
+    await tester.tap(f.first);
+    await tester.pumpAndSettle();
+  }
+
+  if (label == l10n.daybookSendBack) return tap(_pageKey('page-send-back'));
+  if (label == l10n.daybookAddUpdate) return tap(_pageKey('page-update'));
+  if (label == l10n.daybookEdit) return tap(_pageKey('page-title'));
+  if (label == l10n.pageEdit) return tap(_pageKey('page-edit'));
+  if (label == l10n.daybookGiveTo) return tap(_pageKey('page-for'));
+  await tap(_pageKey('page-more'));
+  await tap(
+    find.descendant(of: _pageKey('page-more-menu'), matching: find.text(label)),
+  );
 }
 
 /// Hold to check (review 94) on the proof's card.
@@ -803,8 +843,10 @@ void main() {
       expect(app.chimes, isEmpty);
     });
 
-    testWidgets('Y1: swipe a card to the end side, write an update; an '
-        'update is a line in the card\'s history [$lang]', (tester) async {
+    testWidgets('Y1, review 105: open a card, "Add an update" at its '
+        'bottom; an update is a line in the card\'s history [$lang]', (
+      tester,
+    ) async {
       final app = await _open(
         tester,
         lang,
@@ -819,18 +861,8 @@ void main() {
         ),
         findsOneWidget,
       );
-      await tester.ensureVisible(_entry('post-sleeves'));
-      await tester.pumpAndSettle();
-      // Towards the end side: right in English, left in Arabic.
-      await tester.drag(
-        _in('post-sleeves', find.byType(BvSlip)),
-        Offset(lang == 'ar' ? -80 : 80, 0),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(
-        _in('post-sleeves', find.byKey(const Key('swipe-reveal-action'))),
-      );
-      await tester.pumpAndSettle();
+      await _longPress(tester, 'post-sleeves');
+      await _pick(tester, l10n.daybookAddUpdate);
       await tester.enterText(
         find.byKey(const Key('bv-send-field')),
         'Half done',
@@ -997,27 +1029,23 @@ void main() {
       expect(app.daybook.calls, isEmpty);
     });
 
-    testWidgets('B1: long-press the card to check: the lifted card and '
-        'Check, Send back, Add update, Cancel; Check checks [$lang]', (
-      tester,
-    ) async {
+    testWidgets('B1, review 105: the item to check, opened: Send back, Add '
+        'update, Save as template, Cancel; Check stays on the card, held '
+        '[$lang]', (tester) async {
       final app = await _open(tester, lang, posts: s.d1());
       await _longPress(tester, 'post-sleeves');
-      expect(find.byType(BvDim), findsOneWidget);
       // "Discuss in chat" can't quote the item in the chat yet: hidden.
-      expect(_menu(tester), [
-        l10n.daybookCheck,
+      expect(await _menu(tester), [
         l10n.daybookSendBack,
         l10n.daybookAddUpdate,
         // Slice 7: Islam is a Lead.
         l10n.templateSave,
         l10n.daybookCancelItem,
       ]);
-      await _pick(tester, l10n.daybookCheck);
-      // Review 94: held, from the menu too.
-      expect(find.text(l10n.holdCheckTitle), findsOneWidget);
-      expect(app.work.calls, isEmpty);
-      await hold(tester, holdOnSheet);
+      expect(find.byKey(const Key('page-check')), findsNothing);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await _holdCheck(tester);
       expect(find.byType(BvUndoBar), findsOneWidget);
       await tester.pump(_undoGone);
       await tester.pumpAndSettle();
@@ -1145,7 +1173,7 @@ void main() {
         posts: [...s.d1(), s.traysForOmar(needsMe: false)],
       );
       await _longPress(tester, 'post-trays');
-      expect(_menu(tester), [
+      expect(await _menu(tester), [
         l10n.daybookAddUpdate,
         l10n.daybookEdit,
         l10n.pageEdit,
@@ -1154,19 +1182,13 @@ void main() {
         l10n.templateSave,
         l10n.daybookCancelItem,
       ]);
-      // A tap on the dim, clear of the menu, closes it.
-      await tester.tapAt(
-        tester.getTopLeft(find.byType(BvDim)) + const Offset(8, 8),
-      );
-      await tester.pumpAndSettle();
       // Sara's item for me.
       await _longPress(tester, 'post-rebar');
-      expect(_menu(tester), [l10n.daybookAddUpdate, l10n.templateSave]);
+      expect(await _menu(tester), [l10n.daybookAddUpdate, l10n.templateSave]);
     });
 
-    testWidgets('a Viewer gets no long-press menu and no swipe [$lang]', (
-      tester,
-    ) async {
+    testWidgets('a Viewer opens an item and reads: nothing to do on it, '
+        'and no swipe to update [$lang]', (tester) async {
       await _open(
         tester,
         lang,
@@ -1175,12 +1197,12 @@ void main() {
         pass: SpacePass.viewer,
       );
       await _longPress(tester, 'post-sleeves');
-      expect(find.byKey(const Key('slip-menu')), findsNothing);
+      expect(await _menu(tester), isEmpty);
       expect(find.byKey(const Key('swipe-reveal')), findsNothing);
     });
 
-    testWidgets("F16: Crew on someone else's card: long-press, or a short "
-        'press, shows Add update [$lang]', (tester) async {
+    testWidgets("F16, review 105: Crew on someone else's card: a tap opens "
+        'it, with Add update [$lang]', (tester) async {
       // Rakesh (Crew) neither wrote nor owns the sleeves item.
       final app = await _open(
         tester,
@@ -1195,16 +1217,7 @@ void main() {
         pass: SpacePass.crew,
       );
       await _longPress(tester, 'post-sleeves');
-      expect(_menu(tester), [l10n.daybookAddUpdate]);
-      // Off the menu and the lifted card: the dim's corner.
-      await tester.tapAt(const Offset(4, 4));
-      await tester.pumpAndSettle();
-      // A short press: the same menu (until the card's page, slice 5).
-      await tester.ensureVisible(_in('post-sleeves', find.text(s.sleeves)));
-      await tester.pumpAndSettle();
-      await tester.tap(_in('post-sleeves', find.text(s.sleeves)));
-      await tester.pumpAndSettle();
-      expect(_menu(tester), [l10n.daybookAddUpdate]);
+      expect(await _menu(tester), [l10n.daybookAddUpdate]);
       await _pick(tester, l10n.daybookAddUpdate);
       await tester.enterText(find.byKey(const Key('bv-send-field')), 'Seen');
       await tester.pump();
@@ -1213,7 +1226,7 @@ void main() {
       expect(app.work.calls.single, 'comment post-sleeves Seen');
     });
 
-    testWidgets("F16: a Viewer's short press does nothing either [$lang]", (
+    testWidgets("review 105: a Viewer's tap opens the item to read [$lang]", (
       tester,
     ) async {
       await _open(
@@ -1228,7 +1241,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(_in('post-rebar', find.byType(BvSlip)).first);
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('slip-menu')), findsNothing);
+      expect(find.byKey(const Key('daybook-page')), findsOneWidget);
+      expect(await _menu(tester), isEmpty);
     });
 
     testWidgets('X2: give to someone else: Lead and Crew, the owner "now"; '
@@ -1418,7 +1432,7 @@ void main() {
       await _open(tester, lang, posts: [s.doorHardware()]);
       expect(_line('post-door', l10n.daybookLineYouCancelled), findsOneWidget);
       await _longPress(tester, 'post-door');
-      expect(find.byKey(const Key('slip-menu')), findsNothing);
+      expect(await _menu(tester), isEmpty);
     });
 
     testWidgets('Edit: the card at Now with the post; Save sends only what '
@@ -1432,20 +1446,16 @@ void main() {
       await _pick(tester, l10n.daybookEdit);
       final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
       expect(card.titleController!.text, s.cableTraysTitle);
-      // The owner changes with Give to, not Edit: no Assign.
-      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
-      await tester.pumpAndSettle();
-      expect(
-        tester
-            .widget<BvPopoverMenu<Object>>(
-              find.byKey(const Key('writing-more-menu')),
-            )
-            .items
-            .map((i) => i.label),
-        [l10n.daybookLocation, l10n.daybookDueDateMenu],
-      );
-      await tester.tap(find.byKey(const Key('writing-menu-away')));
-      await tester.pumpAndSettle();
+      // The owner changes with Give to, not Edit: its row isn't a choice
+      // (review 105 SP2: For · Place · Due · Team).
+      final rows = tester.widget<BvWritingRows>(find.byType(BvWritingRows));
+      expect(rows.rows.map((r) => r.key), const [
+        Key('writing-who'),
+        Key('writing-place-row'),
+        Key('writing-due-row'),
+        Key('writing-to'),
+      ]);
+      expect(rows.rows.first.onTap, isNull);
       await tester.enterText(find.byKey(const Key('writing-title')), 'Trays');
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('writing-post')));
@@ -1467,12 +1477,16 @@ void main() {
         find.text(words.dueProperty(DateTime(2026, 10, 18), null)),
       );
       await tester.pumpAndSettle();
-      final card = tester.widget<BvWritingCard>(find.byType(BvWritingCard));
-      // An edit keeps the owner: no caret.
-      expect(card.properties.map((p) => p.label), [
-        l10n.daybookForPerson(s.omarName),
-      ]);
-      expect(card.properties.single.caret, isFalse);
+      final rows = tester.widget<BvWritingRows>(find.byType(BvWritingRows));
+      // An edit keeps the owner: no caret; the due is gone.
+      expect(rows.rows.first.value, s.omarName);
+      expect(rows.rows.first.onTap, isNull);
+      expect(
+        rows.rows
+            .firstWhere((r) => r.key == const Key('writing-due-row'))
+            .empty,
+        isTrue,
+      );
       await tester.tap(find.byKey(const Key('writing-post')));
       await tester.pumpAndSettle();
       expect(

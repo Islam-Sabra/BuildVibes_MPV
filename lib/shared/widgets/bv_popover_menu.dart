@@ -481,6 +481,7 @@ class BvPopoverMenu<T> extends StatelessWidget {
       inMutuallyExclusiveGroup: picker ? true : null,
       button: true,
       child: InkWell(
+        key: item.key,
         onTap: () => onSelected(item.value),
         child: Container(
           constraints: BoxConstraints(

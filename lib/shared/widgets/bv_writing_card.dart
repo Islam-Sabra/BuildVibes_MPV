@@ -141,6 +141,8 @@ class BvWritingCard extends StatelessWidget {
     this.errorLine,
     this.extra,
     this.showBody = true,
+    this.kinds,
+    this.rows,
   });
 
   /// Null for a post: it has no title, only its text.
@@ -213,6 +215,14 @@ class BvWritingCard extends StatelessWidget {
   /// report) draws them in [extra] instead.
   final bool showBody;
 
+  /// Review 105 SP2: the kinds as one choice at the top, in place of the
+  /// kind chip ([BvKindChips]).
+  final Widget? kinds;
+
+  /// Review 105 SP2: For · Place · Due · Team under the words
+  /// ([BvWritingRows]).
+  final Widget? rows;
+
   @override
   Widget build(BuildContext context) {
     final type = BvType.of(context);
@@ -247,7 +257,9 @@ class BvWritingCard extends StatelessWidget {
               spacing: gap,
               children: [
                 if (draftLabel != null) _DraftMarker(label: draftLabel!),
-                if (kindLabel != null)
+                if (kinds != null)
+                  kinds!
+                else if (kindLabel != null)
                   _KindChip(label: kindLabel!, onTap: onKindTap),
                 if (author != null) _Author(author: author!),
                 if (titleController != null)
@@ -305,6 +317,7 @@ class BvWritingCard extends StatelessWidget {
                             ],
                           ),
                   ),
+                ?rows,
                 if (footer != null)
                   Align(
                     alignment: AlignmentDirectional.centerStart,

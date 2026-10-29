@@ -24,6 +24,7 @@ import '../../helpers/daybook_fakes.dart';
 import '../../helpers/daybook_rows.dart';
 import '../../helpers/daybook_samples.dart';
 import '../../helpers/fakes.dart';
+import '../../helpers/opened_item.dart';
 import '../../helpers/pump_app.dart';
 import '../../helpers/push_fakes.dart';
 import '../../helpers/space_fakes.dart';
@@ -478,17 +479,12 @@ void main() {
     Future<void> menu(WidgetTester tester, String id, String pick) async {
       await tester.ensureVisible(_card(id));
       await tester.pumpAndSettle();
-      await tester.longPress(
+      // Review 105 Part 2: a tap opens the item; its actions are there.
+      await tester.tap(
         find.descendant(of: _card(id), matching: find.byType(BvSlip)).first,
       );
       await tester.pumpAndSettle();
-      await tester.tap(
-        find.descendant(
-          of: find.byKey(const Key('slip-menu')),
-          matching: find.text(pick),
-        ),
-      );
-      await tester.pumpAndSettle();
+      await openedPick(tester, pick);
     }
 
     testWidgets('F24: Add update sits on a 300-point keyboard; the item is '
@@ -572,9 +568,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('post-bar-notepad')));
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel(l10n.daybookMore));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(l10n.daybookLocation));
+      // Review 105 SP2: the Place row opens it.
+      await tester.tap(find.byKey(const Key('writing-place-row')));
       await tester.pumpAndSettle();
       await keyboardUp(tester);
       aboveKeyboard(tester, find.byKey(const Key('popover-field')));
