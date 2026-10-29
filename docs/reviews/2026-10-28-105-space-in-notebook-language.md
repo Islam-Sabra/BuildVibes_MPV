@@ -249,3 +249,43 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
 - The pinned announcement ends at the Space's midnight.
 
 **105C does the rest:** the Place picker and filter, the table of tasks, before/after, the removal sheet.
+
+## The lead's check of `r105b` (29 Oct, at `1993947`)
+- **Runs:** SQL stand-in 3,129 checks (71 new in file 52), 0 failing. Cursor reported analyze clean, 2,668 tests, and 454 shots unchanged.
+- **Two reviewers** (spec, and standards with security): the grants, `search_path`, RLS on the new tables, Lead + Checked for archive, mine-only pins, and same-Space / same-Team share are all right. There are **three server holes** and a few gaps.
+
+### Accepted
+- Pins show as slim lines under the Space's pinned announcements: tap opens, hold selects.
+- A Team's post can be shared only into that Team's thread.
+- Old free-text places stay readable.
+- Sharing an archived post is allowed.
+
+### Fixes before merge (migration 52 isn't live, so edit file 52 itself)
+- **L1. No way around the handover.** The old `leave_space` and `remove_member` refuse (with a clear error code) while the person owns Open work. The app's Leave and Remove go through the handover functions. pgTAP covers it.
+- **L2. Send back to someone who has left.** `send_back` on an item whose owner is no longer an active member who may sign it requires a new owner in the same call, chosen from the Give to list. Otherwise it refuses. The app asks "Give to" first in that case. pgTAP covers it.
+- **L3. Places can really be used.**
+  - Add `set_post_place(post, place)`: the item's creator, its owner or a Lead; the place must be from the same Space; null clears it. The 105C picker will call it.
+  - pgTAP adds: a Crew member and a non-member can't rename or delete a place, and a non-member can't set one.
+- **L4. Locks.**
+  - Both handover functions lock the Space row first.
+  - `create_work_item` takes the same lock `for share`, so no item can be given to someone in the middle of leaving.
+- **L5. Share retries.** The message ids are made once per choice of thread, not per try. A repeated id, including at the same moment (23505), returns the existing message.
+- **L6. Time zone and privacy.**
+  - `space_time_zone` uses the project's market only, else returns null. It never falls back to the creator's own market.
+  - With null, the app uses the phone's midnight.
+  - The midnight is worked out when the announcement is posted, with the Space's details loaded, not when the kind is chosen.
+- **L7. Unarchive.** A Lead sees Unarchive in an archived item's ⋯ (opened from Search). The "Archived" message after archiving has **Undo**.
+- **L8. The shared card.**
+  - It shows the status for every state, Open included.
+  - "You can't see this item" for a post hidden from the reader, but "This post isn't in Work any more" only when it really is gone. A network error shows the usual error with retry.
+- **L9. My pins.**
+  - At most 3 lines show, then "+{n} more", which opens the rest.
+  - When a pinned item is held, the hold bar has **Unpin**.
+- **L10. Odds and ends.**
+  - Sharing several items keeps going after an error and reports at the end (as H5).
+  - `daybook_month` leaves archived posts out.
+- **L11. Shots for the new screens,** EN and AR: my pinned lines (with "+n more"), the Archive swipe, the thread picker for Share, the shared card in Chat (Open and Checked), and "Archived · Undo".
+
+### Waiting for the founder (business)
+- **Done items when someone leaves.** Do Done-but-not-Checked items move to the new owner, or stay with the person who did them?
+  - **Lead's recommendation: they stay,** so the proof stays with whoever did the work. L2 covers a later Send back.
