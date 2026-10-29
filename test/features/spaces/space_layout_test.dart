@@ -5,17 +5,21 @@
 // opens Space info, which holds what ⋯ held. The post bar is the bottom
 // of the screen. Arabic mirrors: the back arrow on the right, Work at the
 // right. In English and Arabic.
+import 'package:buildvibes/core/design/bv_icons.dart';
 import 'package:buildvibes/data/models/chat.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/features/chat/chat_tab.dart';
+import 'package:buildvibes/features/home/home_screen.dart';
 import 'package:buildvibes/features/library/library_tab.dart';
 import 'package:buildvibes/features/spaces/people_tab.dart';
 import 'package:buildvibes/features/spaces/space_info_screen.dart';
+import 'package:buildvibes/features/spaces/space_screen.dart';
 import 'package:buildvibes/features/work/daybook_tab.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_bottom_bar.dart';
 import 'package:buildvibes/shared/widgets/bv_post_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -186,6 +190,34 @@ void main() {
           tester.element(find.byType(BvPostBar)),
         ).padding.bottom;
         expect(bar.bottom, closeTo(size.height - pad, 1));
+      });
+
+      testWidgets('J1: opened with nothing under it (a link, a '
+          'notification), back is still there and goes to Home\'s Spaces', (
+        tester,
+      ) async {
+        await pumpApp(tester, language: lang, spaces: _spaces());
+        GoRouter.of(
+          tester.element(find.byType(Navigator).first),
+        ).go('/spaces/$_space');
+        await tester.pumpAndSettle();
+        expect(_key('space-back'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: _key('space-back'),
+            matching: find.byIcon(BvIcons.arrowBack),
+          ),
+          findsOneWidget,
+        );
+        await _tap(tester, _key('space-back'));
+        expect(find.byType(SpaceScreen), findsNothing);
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(
+          ProviderScope.containerOf(
+            tester.element(find.byType(HomeScreen)),
+          ).read(homeTabProvider),
+          HomeScreen.spacesTab,
+        );
       });
 
       testWidgets('it mirrors in Arabic: the back arrow, then Work first in '

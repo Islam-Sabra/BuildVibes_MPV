@@ -20,6 +20,7 @@ import '../../shared/widgets/bv_dialog.dart';
 import '../activity/activity_state.dart';
 import '../profile/widgets/profile_parts.dart';
 import '../chat/chat_tab.dart';
+import '../home/home_screen.dart' show HomeScreen, homeTabProvider;
 import '../work/daybook_tab.dart';
 import '../work/work_gestures.dart' show workSelectionProvider;
 import '../work/daybook_target.dart';
@@ -216,6 +217,18 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
     if (ask != null && mounted) _addFile(replaces: ask.replaces);
   }
 
+  /// Back (SP1, review 105 J1) is always there: with nothing under the
+  /// Space (a link, a notification), it goes to Home's Spaces.
+  void _back() {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      unawaited(navigator.maybePop());
+      return;
+    }
+    ref.read(homeTabProvider.notifier).show(HomeScreen.spacesTab);
+    context.go(AppRoutes.home);
+  }
+
   void _show(int tab) => setState(() {
     ref.read(workSelectionProvider(widget.spaceId).notifier).clear();
     _tab = tab;
@@ -263,6 +276,7 @@ class _SpaceScreenState extends ConsumerState<SpaceScreen> {
         // As in the v13 frames, linked to a project or not (review 54 A4).
         line: l10n.spacesPrivateWork,
         backLabel: MaterialLocalizations.of(context).backButtonTooltip,
+        onBack: _back,
         onOpen: () => unawaited(_openInfo()),
         searchLabel: l10n.searchMenu,
         onSearch: () => unawaited(_openSearch()),
