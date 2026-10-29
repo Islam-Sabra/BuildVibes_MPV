@@ -147,6 +147,10 @@ void main() {
         await _tap(tester, _key('note-status-entry-pour-feed'));
         expect(find.text(l10n.notebookShareOffline), findsOneWidget);
         expect(_key('share-preview'), findsNothing);
+        // K3: nothing went, so it stays held; Back lets it go.
+        expect(_key('selection-bar'), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
         expect(_key('selection-bar'), findsNothing);
         // Back on (the outbox tries again by itself): the pin goes before
         // the share.

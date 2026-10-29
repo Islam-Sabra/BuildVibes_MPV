@@ -1,12 +1,18 @@
 // Review 106 T5: a shared copy never changes by itself. A share icon whose
-// last share is older than the entry's last change (its title, words,
-// lines, photos or files; notes.content_changed_at, migration 51) gets a
-// small accent dot at its top end; each kind its own; it goes when that
-// kind is shared again. Ticking a to-do, pinning, folding and moving don't
-// count. The card lists every share, an older one with "Older version ·
-// changed at {time}", and Share again sends the entry as it is now
-// through the same step; the old share stays in the log. In English and
-// Arabic.
+// last share is older than the entry gets a small accent dot at its top
+// end; each kind its own; it goes when that kind is shared again. The card
+// lists every share, an older one with "Older version · changed at
+// {time}", and ends with Share again, which sends the entry as it is now
+// through the same step; the old share stays in the log.
+//
+// The lead's check of r106b: K1, older is the server's one rule: a share
+// keeps the entry's content_key from when it was made, and it is older
+// exactly when that key differs from the entry's (no clocks; migration
+// 51). The phone has no rule of its own; after a save it reads the entry
+// again. Ticking a to-do and pinning don't change the key; an edit does;
+// editing back to the shared words is the same again. K4, Share again ends
+// every share card. K5, "changed at" names the day when it isn't today.
+// In English and Arabic.
 import 'package:buildvibes/core/design/bv_tokens.dart';
 import 'package:buildvibes/data/models/note.dart';
 import 'package:buildvibes/data/models/post_page.dart';
@@ -36,7 +42,12 @@ const _page = '/notebook/pages/${FakeNotebookRepository.myNotesId}';
 final _now = NotebookSamples.now;
 DateTime _at(int h, int m) => DateTime(_now.year, _now.month, _now.day, h, m);
 
-Note _entry({DateTime? changed, List<NoteShare> shares = const []}) => Note(
+/// The entry, its content key [key] (the server's) and when it changed.
+Note _entry({
+  String key = 'k2',
+  DateTime? changed,
+  List<NoteShare> shares = const [],
+}) => Note(
   id: 'a',
   kind: NoteKind.text,
   title: 'Before the site walk',
@@ -46,13 +57,24 @@ Note _entry({DateTime? changed, List<NoteShare> shares = const []}) => Note(
   ],
   body: 'Before the site walk',
   shares: shares,
+  contentKey: key,
   contentChangedAt: changed,
   createdAt: _at(7, 0),
   pageId: FakeNotebookRepository.myNotesId,
 );
 
-NoteShare _space(int h, int m, {String name = 'KCT Tower'}) =>
-    NoteShare(target: NoteShareTarget.space, at: _at(h, m), name: name);
+/// A share to a Space at [h]:[m] that kept the entry's key [key].
+NoteShare _space(
+  int h,
+  int m, {
+  String name = 'KCT Tower',
+  String key = 'k2',
+}) => NoteShare(
+  target: NoteShareTarget.space,
+  at: _at(h, m),
+  name: name,
+  contentKey: key,
+);
 
 Future<FakeNotebookRepository> _open(
   WidgetTester tester,
@@ -107,12 +129,17 @@ void main() {
           _entry(
             changed: _at(10, 12),
             shares: [
-              _space(8, 45),
-              NoteShare(target: NoteShareTarget.feed, at: _at(10, 30)),
+              _space(8, 45, key: 'k1'),
+              NoteShare(
+                target: NoteShareTarget.feed,
+                at: _at(10, 30),
+                contentKey: 'k2',
+              ),
               NoteShare(
                 target: NoteShareTarget.message,
                 at: _at(9, 0),
                 name: 'Ahmed Saleh',
+                contentKey: 'k1',
               ),
             ],
           ),
@@ -141,7 +168,21 @@ void main() {
         tester,
       ) async {
         await _open(tester, lang, [
-          _entry(changed: _at(10, 12), shares: [_space(8, 45), _space(10, 40)]),
+          _entry(
+            changed: _at(10, 12),
+            shares: [
+              _space(8, 45, key: 'k1'),
+              _space(10, 40),
+            ],
+          ),
+        ]);
+        expect(_key('note-status-a-space-dot'), findsNothing);
+      });
+
+      testWidgets('K1: no clocks: a share made before the change time but '
+          'with the entry\'s key is not older', (tester) async {
+        await _open(tester, lang, [
+          _entry(changed: _at(10, 12), shares: [_space(8, 45)]),
         ]);
         expect(_key('note-status-a-space-dot'), findsNothing);
       });
@@ -156,10 +197,15 @@ void main() {
       });
     });
 
-    group('T5 what counts, on this phone [$lang]', () {
+    group('K1 what counts, as the server says [$lang]', () {
       testWidgets('ticking a to-do and pinning don\'t count', (tester) async {
         await _open(tester, lang, [
-          _entry(changed: _at(7, 0), shares: [_space(8, 45)]),
+          _entry(
+            key: FakeNotebookRepository.keyOf(_entry()),
+            shares: [
+              _space(8, 45, key: FakeNotebookRepository.keyOf(_entry())),
+            ],
+          ),
         ]);
         await _tap(tester, _key('note-summary-tick-a-1'));
         expect(_key('note-status-a-space-dot'), findsNothing);
@@ -173,20 +219,28 @@ void main() {
         expect(_key('note-status-a-space-dot'), findsNothing);
       });
 
-      testWidgets('an edit counts: the dot shows once it is saved', (
+      testWidgets('an edit counts: the dot shows once it is saved and read '
+          'again; editing back to the shared words takes it away', (
         tester,
       ) async {
+        final shared = FakeNotebookRepository.keyOf(_entry());
         await _open(tester, lang, [
-          _entry(changed: _at(7, 0), shares: [_space(8, 45)]),
+          _entry(
+            key: shared,
+            shares: [_space(8, 45, key: shared)],
+          ),
         ]);
-        await _tap(tester, find.text('Before the site walk'));
-        await tester.enterText(
-          _key('note-title'),
-          'Before the site walk, level 3',
-        );
-        await tester.pumpAndSettle();
-        await _tap(tester, _key('writing-post'));
+        Future<void> retitle(String from, String to) async {
+          await _tap(tester, find.text(from));
+          await tester.enterText(_key('note-title'), to);
+          await tester.pumpAndSettle();
+          await _tap(tester, _key('writing-post'));
+        }
+
+        await retitle('Before the site walk', 'Before the site walk, level 3');
         expect(_key('note-status-a-space-dot'), findsOneWidget);
+        await retitle('Before the site walk, level 3', 'Before the site walk');
+        expect(_key('note-status-a-space-dot'), findsNothing);
       });
     });
 
@@ -197,8 +251,8 @@ void main() {
           _entry(
             changed: _at(10, 12),
             shares: [
-              _space(8, 45),
-              _space(9, 2, name: 'NBKCH Site team'),
+              _space(8, 45, key: 'k1'),
+              _space(9, 2, name: 'NBKCH Site team', key: 'k1'),
             ],
           ),
         ]);
@@ -218,8 +272,8 @@ void main() {
         expect(_key('share-space-space-kct'), findsOneWidget);
       });
 
-      testWidgets('a share made after the change: no "Older version", no '
-          'Share again', (tester) async {
+      testWidgets('K4: a share as the entry is now: no "Older version", '
+          'and Share again still ends the card', (tester) async {
         await _open(tester, lang, [
           _entry(changed: _at(8, 0), shares: [_space(8, 45)]),
         ]);
@@ -228,7 +282,51 @@ void main() {
           inCard(l10n.notebookOlderVersion(clock(_at(8, 0)))),
           findsNothing,
         );
-        expect(_key('note-status-share-again'), findsNothing);
+        expect(_key('note-status-share-again'), findsOneWidget);
+        final again = tester.getRect(_key('note-status-share-again'));
+        final last = tester.getRect(
+          inCard(l10n.notebookStatusShareLine('KCT Tower', clock(_at(8, 45)))),
+        );
+        expect(again.top, greaterThanOrEqualTo(last.bottom));
+      });
+
+      testWidgets('K5: changed on another day: the day is named', (
+        tester,
+      ) async {
+        final yesterday = _at(10, 12).subtract(const Duration(days: 1));
+        final before = _at(16, 5).subtract(const Duration(days: 5));
+        await _open(tester, lang, [
+          _entry(
+            changed: yesterday,
+            shares: [_space(8, 45, key: 'k1')],
+          ),
+        ]);
+        await _tap(tester, _key('note-status-a-space'));
+        expect(
+          inCard(
+            l10n.notebookOlderVersionOn(
+              l10n.notebookRowYesterday,
+              clock(yesterday),
+            ),
+          ),
+          findsOneWidget,
+        );
+        await tester.tapAt(const Offset(4, 4));
+        await tester.pumpAndSettle();
+        await tester.pumpWidget(const SizedBox());
+        await _open(tester, lang, [
+          _entry(
+            changed: before,
+            shares: [_space(8, 45, key: 'k1')],
+          ),
+        ]);
+        await _tap(tester, _key('note-status-a-space'));
+        expect(
+          inCard(
+            l10n.notebookOlderVersionOn(words.shortDate(before), clock(before)),
+          ),
+          findsOneWidget,
+        );
       });
     });
   }

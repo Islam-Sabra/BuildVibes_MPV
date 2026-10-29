@@ -1605,5 +1605,6 @@
   "workRemindPast": "اختر وقتًا لم يأتِ بعد.",
   "workReminderLine": "تذكير · {when}",
   "workSelected": "تم تحديد {count}",
-  "workCloseSelection": "إنهاء التحديد"
+  "workCloseSelection": "إنهاء التحديد",
+  "notebookOlderVersionOn": "نسخة أقدم · تغيّرت {day} {time}"
 }

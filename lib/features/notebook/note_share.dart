@@ -131,8 +131,9 @@ const _findFrom = 2;
 /// server has (H2): the entry's waiting changes go first, or, with no
 /// signal, it says so and stops. [saved] gives the entry as the server has
 /// it, an edit in hand saved first. A refusal is said and the preview
-/// stays (H1); only what went is said to have gone. [onDone] runs once the
-/// card or the preview has closed. [start] (review 106 T4, T5: a held
+/// stays (H1); only what went is said to have gone. [onShared] runs once
+/// something went (the lead's check of r106b, K3): a card closed, a
+/// preview cancelled, no signal or an error keep the selection. [start] (review 106 T4, T5: a held
 /// entry's icon, Share again) goes straight to that kind's step: the feed
 /// to its preview, a Space or a person to their list.
 Future<void> shareEntry(
@@ -143,7 +144,7 @@ Future<void> shareEntry(
   required BvLinePopover card,
   required BuildContext? Function() anchor,
   Future<Note?> Function()? saved,
-  VoidCallback? onDone,
+  VoidCallback? onShared,
   NoteStatusKind? start,
 }) async {
   final l10n = AppLocalizations.of(context);
@@ -171,10 +172,7 @@ Future<void> shareEntry(
     );
   }
   final choice = await picked.future;
-  if (!context.mounted || choice == null) {
-    onDone?.call();
-    return;
-  }
+  if (!context.mounted || choice == null) return;
   final notebook = ref.read(notebookProvider.notifier);
   var entry = note;
   try {
@@ -182,12 +180,10 @@ Future<void> shareEntry(
     final there = await notebook.flush(entry.id);
     if (!there) {
       if (context.mounted) _say(context, l10n.notebookShareOffline);
-      onDone?.call();
       return;
     }
   } on SpaceException catch (e) {
     if (context.mounted) showSpaceError(context, e);
-    onDone?.call();
     return;
   }
   // The entry as the server now has it.
@@ -213,8 +209,8 @@ Future<void> shareEntry(
       onSend: (sent) => _send(ref, note: entry, lines: lines, sent: sent),
     ),
   );
-  onDone?.call();
   if (went == null || !context.mounted) return;
+  onShared?.call();
   _say(context, switch (went) {
     _Target(:final person?) => l10n.notebookSentTo(person.name ?? ''),
     _Target(:final space?) => l10n.notebookSharedTo(space.name),

@@ -5840,4 +5840,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workCloseSelection => 'Stop selecting';
+
+  @override
+  String notebookOlderVersionOn(String day, String time) {
+    return 'Older version · changed $day at $time';
+  }
 }

@@ -9733,6 +9733,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop selecting'**
   String get workCloseSelection;
+
+  /// Review 106 K5: under a share in a status card, made before the entry last changed on another day: 'yesterday' or a short date, then the time.
+  ///
+  /// In en, this message translates to:
+  /// **'Older version · changed {day} at {time}'**
+  String notebookOlderVersionOn(String day, String time);
 }
 
 class _AppLocalizationsDelegate

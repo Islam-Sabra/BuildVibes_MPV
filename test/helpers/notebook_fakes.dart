@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:buildvibes/data/models/note.dart';
@@ -72,6 +73,51 @@ class FakeNotebookRepository implements NotebookRepository {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
+  @override
+  Future<Note?> note(String id) async {
+    _check();
+    calls.add('read:$id');
+    return kept[id];
+  }
+
+  /// When the server says content changed (content_changed_at).
+  DateTime changedAt = DateTime(2026, 10, 15, 12);
+
+  /// Migration 51's note_content_key, as this fake server keeps it: the
+  /// kind, the title, an older note's words, the lines and points without
+  /// their ticks and folds, the photos, files and recordings.
+  static String keyOf(Note n) {
+    Object? plain(Object? j) => switch (j) {
+      final Map<String, dynamic> m => {
+        for (final e in m.entries)
+          if (e.key != 'done' && e.key != 'folded') e.key: plain(e.value),
+      },
+      final List<dynamic> l => [for (final v in l) plain(v)],
+      _ => j,
+    };
+    return jsonEncode([
+      n.kind.json,
+      n.title.trim(),
+      if (n.blocks == null) n.body,
+      plain([for (final b in n.blocks ?? const <PageBlock>[]) b.toJson()]),
+      plain([for (final p in n.points) p.toJson()]),
+      [for (final p in n.photos) p.path ?? p.local],
+      [for (final f in n.files) f.path ?? f.local],
+      n.recording?.path,
+    ]);
+  }
+
+  /// [n] with the server's key, its change time moved only when the key
+  /// did (since [before]).
+  Note _keyed(Note n, Note? before) {
+    final key = keyOf(n);
+    return n.copyWith(
+      contentKey: () => key,
+      contentChangedAt: () =>
+          before?.contentKey == key ? before?.contentChangedAt : changedAt,
+    );
+  }
+
   /// The version each entry's last save started from (an edit's).
   final Map<String, int> bases = {};
 
@@ -105,10 +151,14 @@ class FakeNotebookRepository implements NotebookRepository {
       files[note.id] = [for (final p in note.photos) ?p.path];
     }
     final before = kept[note.id];
-    kept[note.id] = note.copyWith(
-      waiting: false,
-      doneAt: () => before?.doneAt,
-      version: (before?.version ?? 0) + 1,
+    kept[note.id] = _keyed(
+      note.copyWith(
+        waiting: false,
+        doneAt: () => before?.doneAt,
+        version: (before?.version ?? 0) + 1,
+        shares: before?.shares ?? note.shares,
+      ),
+      before,
     );
     return true;
   }
@@ -277,12 +327,15 @@ class FakeNotebookRepository implements NotebookRepository {
     if (n == null) return;
     final gone = lines.toSet();
     final blocks = n.blocks ?? const <PageBlock>[];
-    kept[noteId] = n.copyWith(
-      blocks: [
-        for (final b in blocks)
-          if (!gone.contains(b.id)) b,
-      ],
-      version: n.version + 1,
+    kept[noteId] = _keyed(
+      n.copyWith(
+        blocks: [
+          for (final b in blocks)
+            if (!gone.contains(b.id)) b,
+        ],
+        version: n.version + 1,
+      ),
+      n,
     );
     kept[part] = Note(
       id: part,
@@ -379,7 +432,13 @@ class FakeNotebookRepository implements NotebookRepository {
     kept[noteId] = n.copyWith(
       shares: [
         ...n.shares,
-        NoteShare(target: target, name: name, at: DateTime(2026, 10, 15, 12)),
+        NoteShare(
+          target: target,
+          name: name,
+          at: DateTime(2026, 10, 15, 12),
+          // The entry's key as it is shared (migration 51).
+          contentKey: n.contentKey ?? keyOf(n),
+        ),
       ],
     );
   }

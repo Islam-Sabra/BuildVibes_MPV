@@ -1413,12 +1413,14 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// Remind me: a day and a time (the reminder's picker; no time is 9 am),
   /// or Remove. Saved as the note's remind_at; this phone sets the
   /// reminder (ReminderHost).
-  Future<void> _remind(Note note) async {
+  /// Whether a reminder was set or removed (not cancelled).
+  Future<bool> _remind(Note note) async {
     final at = await _askReminder(note.remindAt);
-    if (at == null || !mounted) return;
+    if (at == null || !mounted) return false;
     await ref
         .read(notebookProvider.notifier)
         .save(note.copyWith(remindAt: () => at.value));
+    return true;
   }
 
   /// Archive or Unarchive (review 100 Part 3b): at once, with Undo for
@@ -1813,7 +1815,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
 
   /// Share (review 100 Part 6) on one entry, straight to [kind]'s step
   /// (review 106 T4: a held entry's icon; T5: Share again), its card next
-  /// to the icon [anchor]. The selection ends with it.
+  /// to the icon [anchor]. The selection ends once it is shared (K3).
   void _shareEntry(
     Note note,
     NoteStatusKind kind,
@@ -1826,14 +1828,14 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
       card: _barCard,
       anchor: anchor,
       start: kind,
-      onDone: () {
+      onShared: () {
         if (mounted) setState(_selected.clear);
       },
     ),
   );
 
-  /// Review 106 T4: a held entry's status icon, done at once; then the
-  /// selection ends.
+  /// Review 106 T4: a held entry's status icon, done at once; the
+  /// selection ends once it is done (K3).
   void _act(Note note, NoteStatusKind kind, BuildContext? Function() anchor) {
     switch (kind) {
       case NoteStatusKind.pinned:
@@ -1842,9 +1844,9 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
           ref.read(notebookProvider.notifier).pin(note, on: !note.pinned),
         );
       case NoteStatusKind.reminder:
+        // K3: a cancelled picker keeps it held.
         unawaited(() async {
-          await _remind(note);
-          if (mounted) setState(_selected.clear);
+          if (await _remind(note) && mounted) setState(_selected.clear);
         }());
       case NoteStatusKind.feed ||
           NoteStatusKind.space ||
@@ -1882,7 +1884,7 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         card: _barCard,
         anchor: () => _selectionBarKey.currentContext,
         saved: _saveInPlace,
-        onDone: () => _editorKey.currentState?.endLineSelection(),
+        onShared: () => _editorKey.currentState?.endLineSelection(),
       ),
     );
   }

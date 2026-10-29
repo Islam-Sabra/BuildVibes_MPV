@@ -8320,5 +8320,17 @@
   "workCloseSelection": "Stop selecting",
   "@workCloseSelection": {
     "description": "Review 105 H8: what a screen reader says for the Space header's ✕ while cards are held."
+  },
+  "notebookOlderVersionOn": "Older version · changed {day} at {time}",
+  "@notebookOlderVersionOn": {
+    "description": "Review 106 K5: under a share in a status card, made before the entry last changed on another day: 'yesterday' or a short date, then the time.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -5878,4 +5878,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get workCloseSelection => 'إنهاء التحديد';
+
+  @override
+  String notebookOlderVersionOn(String day, String time) {
+    return 'نسخة أقدم · تغيّرت $day $time';
+  }
 }

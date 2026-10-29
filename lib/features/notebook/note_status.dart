@@ -6,6 +6,7 @@ import '../../core/design/bv_tokens.dart';
 import '../../core/design/daybook_writing_specs.dart' show BvLineMenuSpec;
 import '../../core/design/planning_specs.dart';
 import '../../core/l10n/bidi.dart';
+import '../../data/models/daybook.dart' show dayOf;
 import '../../data/models/note.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../shared/widgets/bv_line_popover.dart';
@@ -122,7 +123,8 @@ class NoteStatus {
   final Color colour;
   final bool older;
 
-  /// When the entry last changed, for "changed at {time}".
+  /// Under an older share: "Older version · changed at {time}", with the
+  /// day when it isn't today (K5).
   final String? changed;
 }
 
@@ -138,8 +140,23 @@ List<NoteStatus> noteStatuses(
   String named(NoteShare s) =>
       l10n.notebookStatusShareLine(s.name!.trim(), clock(s));
   final changedAt = note.contentChangedAt;
-  // Review 106 T5: made before the entry's content last changed.
-  bool older(NoteShare s) => changedAt != null && s.at.isBefore(changedAt);
+  // The lead's check of r106b, K1: the server's one rule, by content key.
+  bool older(NoteShare s) => s.olderThan(note);
+  // K5: the day too, when it isn't today.
+  String? changedLine() {
+    if (changedAt == null) return null;
+    final day = dayOf(changedAt);
+    final today = dayOf(now);
+    final time = words.time.clock(changedAt);
+    if (day == today) return l10n.notebookOlderVersion(time);
+    return l10n.notebookOlderVersionOn(
+      day == today.subtract(const Duration(days: 1))
+          ? l10n.notebookRowYesterday
+          : words.shortDate(day),
+      time,
+    );
+  }
+
   NoteStatus shares(NoteStatusKind kind, List<NoteShare> list, String label) =>
       NoteStatus(
         kind,
@@ -152,7 +169,7 @@ List<NoteStatus> noteStatuses(
             ),
         ],
         older: older(list.last),
-        changed: changedAt == null ? null : words.time.clock(changedAt),
+        changed: changedLine(),
       );
   NoteStatus status(NoteStatusKind kind) {
     switch (kind) {
@@ -321,7 +338,7 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
                             // Review 106 T5: sent before the entry changed.
                             if (line.older && s.changed != null)
                               Text(
-                                l10n.notebookOlderVersion(s.changed!),
+                                s.changed!,
                                 style: type.metadata.copyWith(
                                   color: BvColors.textAction,
                                 ),
@@ -342,8 +359,9 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
                     ],
                   ),
                 ),
-              // Review 106 T5: the entry as it is now, the same step.
-              if (s.kind.share && s.older && again != null)
+              // Review 106 T5: the entry as it is now, the same step; at
+              // the end of every share card (K4).
+              if (s.kind.share && again != null)
                 Padding(
                   padding: const EdgeInsetsDirectional.only(
                     top: BvLineMenuSpec.padding,

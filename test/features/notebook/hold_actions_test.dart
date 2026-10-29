@@ -199,9 +199,9 @@ void main() {
         expect(_key('share-menu'), findsNothing);
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
-        expect(_key('selection-bar'), findsNothing);
+        // K3: closed, nothing went: still held.
+        expect(_key('selection-bar'), findsOneWidget);
 
-        await _hold(tester, 'b');
         await _tap(tester, _key('note-status-b-space'));
         expect(_key('share-space-space-kct'), findsOneWidget);
         await tester.tapAt(
@@ -209,10 +209,71 @@ void main() {
               const Offset(4, -4),
         );
         await tester.pumpAndSettle();
+        expect(_key('selection-bar'), findsOneWidget);
 
-        await _hold(tester, 'b');
         await _tap(tester, _key('note-status-b-message'));
         expect(_key('share-find-field'), findsOneWidget);
+      });
+    });
+
+    group('K3 the selection ends only when the action is done [$lang]', () {
+      testWidgets('the time picker cancelled: still held', (tester) async {
+        await _open(tester, lang);
+        await _hold(tester, 'b');
+        await _tap(tester, _key('note-status-b-reminder'));
+        expect(find.byType(Dialog), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.byType(Dialog), findsNothing);
+        expect(_key('selection-bar'), findsOneWidget);
+        expect(_key('note-status-b-feed'), findsOneWidget);
+      });
+
+      testWidgets('the share card closed, or its preview cancelled: still '
+          'held', (tester) async {
+        await _open(tester, lang);
+        await _hold(tester, 'b');
+        await _tap(tester, _key('note-status-b-feed'));
+        await _tap(tester, _key('share-cancel'));
+        expect(_key('share-preview'), findsNothing);
+        expect(_key('selection-bar'), findsOneWidget);
+      });
+
+      testWidgets('no signal: it says so, nothing goes, still held', (
+        tester,
+      ) async {
+        final repo = await _open(tester, lang);
+        await _hold(tester, 'b');
+        repo.offline = true;
+        await _tap(tester, _key('note-status-b-feed'));
+        if (_key('share-send').evaluate().isNotEmpty) {
+          await _tap(tester, _key('share-send'));
+          await tester.binding.handlePopRoute();
+          await tester.pumpAndSettle();
+        }
+        expect(repo.calls.where((c) => c.startsWith('share-')), isEmpty);
+        expect(_key('selection-bar'), findsOneWidget);
+      });
+
+      testWidgets('an error: said, still held', (tester) async {
+        final repo = await _open(tester, lang);
+        repo.shareError = const SpaceException(SpaceFailure.badInput);
+        await _hold(tester, 'b');
+        await _tap(tester, _key('note-status-b-feed'));
+        await _tap(tester, _key('share-send'));
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(_key('share-preview'), findsNothing);
+        expect(_key('selection-bar'), findsOneWidget);
+      });
+
+      testWidgets('shared: then it ends', (tester) async {
+        final repo = await _open(tester, lang);
+        await _hold(tester, 'b');
+        await _tap(tester, _key('note-status-b-feed'));
+        await _tap(tester, _key('share-send'));
+        expect(repo.calls, contains(startsWith('share-feed:b')));
+        expect(_key('selection-bar'), findsNothing);
       });
 
       testWidgets('a screen reader hears an unused icon as its action, a '
