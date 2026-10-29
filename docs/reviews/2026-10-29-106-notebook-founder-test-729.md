@@ -187,3 +187,9 @@ Noted only, for the tidy list: the duplicated `_setFilter` in two screens; `stat
 - **K6.** Check whether a voice recording counts as content (`note_files` or elsewhere) and say which. It should count.
 
 Then run test_screens WITHOUT updating and put the old/new pairs in `docs/reviews/shots-106b/` (this session is on the PC). Expected: BH2, BH3, BH4 (now the held entry's icons), BH5, NB-put-in-space, and any shot where a share is older than its entry.
+
+### K1–K6 done (`claude/r106b` at `80e8994`)
+- **Accepted.** One truth on the server: `note_shares.content_key` is set at share time, and "older" means the keys differ. The phone has no rule of its own. Selection ends only when the action is done; Share again on every card; the day in "changed at"; a voice recording counts. SQL stand-in 3,088 (30 checks in file 51).
+- **Shots** (drawn in the cloud, old and new side by side): BH2, BH4, BH5, NB-put-in-space and NS1 are accepted.
+- **Still wanted:** a shot of the dot and its "Older version · changed at …" card (NS6), EN and AR. It is added when the goldens are made on the PC.
+- **Next:** the PC makes the goldens and merges, together with 105B. Migrations 51 and 52 are pushed one at a time, then one build.
