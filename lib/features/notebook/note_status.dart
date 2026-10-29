@@ -46,7 +46,8 @@ enum NoteStatusKind {
 List<NoteShare> _shown(Note note, NoteShareTarget target) => [
   for (final s in note.shares)
     if (s.target == target &&
-        (target == NoteShareTarget.feed || (s.name?.trim().isNotEmpty ?? false)))
+        (target == NoteShareTarget.feed ||
+            (s.name?.trim().isNotEmpty ?? false)))
       s,
 ];
 

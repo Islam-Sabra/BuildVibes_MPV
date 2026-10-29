@@ -133,8 +133,6 @@ abstract final class BvNoteBlocksSpec {
   /// Review 98: shut, the arrow turns a quarter, to point forward.
   static const foldTurn = 0.25;
 
-  /// The saved slip: the title, then the first three lines of the page.
-  static const slipLines = 3;
   static const chipIcon = 14.0;
 }
 
@@ -182,6 +180,26 @@ abstract final class BvNotebookPagesSpec {
   static const statusIcon = BvSize.iconSm;
   static const statusGap = BvSpace.s6;
   static const statusTouch = BvSize.avatarSm;
+
+  /// Review 106 T2: an entry's fold control, a 24 chevron with a 44 tap
+  /// area at its head's start. The area reaches into the card's padding so
+  /// the chevron sits where the words start: the head's padding is the
+  /// card's less the area's margin; the lines under it keep the card's.
+  static const foldIcon = BvSize.iconLg;
+  static const foldTouch = BvSize.controlMd;
+  static const _foldMargin = (foldTouch - foldIcon) / 2;
+  static const foldHeadPadding = EdgeInsetsDirectional.fromSTEB(
+    _entryStart - _foldMargin,
+    _entryTop - _foldMargin,
+    _entryStart,
+    0,
+  );
+  static const foldLinesPadding = EdgeInsetsDirectional.fromSTEB(
+    _entryStart,
+    0,
+    _entryStart,
+    _entryTop,
+  );
 
   /// Review 102 N3, an entry moved within its day: the others slide aside
   /// in this; near the list's top or bottom edge the page scrolls by
@@ -243,7 +261,14 @@ abstract final class BvNotebookPagesSpec {
   static const entryGap = BvSpace.s8;
   static const dayTop = BvSpace.s8;
   static const entryRadius = BorderRadius.all(Radius.circular(BvRadius.photo));
-  static const entryPadding = EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12);
+  static const _entryStart = 14.0;
+  static const _entryTop = 12.0;
+  static const entryPadding = EdgeInsetsDirectional.fromSTEB(
+    _entryStart,
+    _entryTop,
+    _entryStart,
+    _entryTop,
+  );
   static const entryLinesGap = BvSpace.s4;
   static const entryMenu = BvSize.iconLg;
 

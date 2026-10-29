@@ -151,6 +151,26 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
   /// entry it was opened at.
   final _built = <int, BuildContext>{};
   int? _entryRow;
+
+  /// Review 106 T2: folded entries shown open here only, not written: the
+  /// one a search or a Filter opened the page at.
+  late final _shownOpen = {?widget.entry};
+
+  bool _folded(Note n) => n.collapsed && !_shownOpen.contains(n.id);
+
+  /// The fold control: folds [n], or opens it.
+  void _fold(Note n) {
+    if (_folded(n)) {
+      unawaited(
+        ref.read(notebookProvider.notifier).collapse([n.id], on: false),
+      );
+    } else if (n.collapsed) {
+      setState(() => _shownOpen.remove(n.id));
+    } else {
+      unawaited(ref.read(notebookProvider.notifier).collapse([n.id], on: true));
+    }
+  }
+
   final _titleFocus = FocusNode();
   late final AppLifecycleListener _life;
 
@@ -1875,7 +1895,8 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         .editPage(page.copyWith(title: _pageTitle.text.trim(), icon: icon));
   }
 
-  /// A page's ⋯ (A3, A4): a page inside it, Pin, Move into… and Delete.
+  /// A page's ⋯ (A3, A4): a page inside it, Pin, Move into…, Collapse
+  /// all · Expand all (review 106 T2) and Delete.
   Future<void> _pageMenu(NotebookPage page) =>
       _oneMenu(() => _openPageMenu(page));
 
@@ -1906,6 +1927,19 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
             label: l10n.notebookMoveInto,
             onTap: () => Navigator.of(sheet).pop('move'),
           ),
+          // Review 106 T2: this page's entries, folded or opened.
+          ChatActionRow(
+            key: const Key('page-menu-collapse'),
+            icon: BvIcons.collapseAll,
+            label: l10n.notebookCollapseAll,
+            onTap: () => Navigator.of(sheet).pop('collapse'),
+          ),
+          ChatActionRow(
+            key: const Key('page-menu-expand'),
+            icon: BvIcons.expandAll,
+            label: l10n.notebookExpandAll,
+            onTap: () => Navigator.of(sheet).pop('expand'),
+          ),
           ChatActionRow(
             key: const Key('page-menu-delete'),
             icon: BvIcons.delete,
@@ -1933,6 +1967,16 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
         if (mounted) unawaited(context.push(AppRoutes.notebookPage(id)));
       case 'pin':
         await notebook.pinPages([page.id], on: !page.pinned);
+      case 'collapse' || 'expand':
+        final on = choice == 'collapse';
+        final ids = [
+          for (final n
+              in ref.read(notebookProvider).value?.entries(page.id) ??
+                  const <Note>[])
+            if (n.collapsed != on) n.id,
+        ];
+        setState(_shownOpen.clear);
+        if (ids.isNotEmpty) await notebook.collapse(ids, on: on);
       case 'move':
         final data = ref.read(notebookProvider).value;
         if (data == null) return;
@@ -2112,7 +2156,13 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
     final hintFirst =
         !widget.archived && !_hinted && !(prefs.getBool(_hintKey) ?? false);
 
-    Widget slip(Note n) => NoteSlip(note: n, words: words, now: now);
+    Widget slip(Note n) => NoteSlip(
+      note: n,
+      words: words,
+      now: now,
+      foldable: !widget.archived,
+      folded: !widget.archived && _folded(n),
+    );
 
     Widget entry(Note n, {bool first = false}) => _arrangeable(
       n,
@@ -2172,10 +2222,16 @@ class _NotebookPageScreenState extends ConsumerState<NotebookPageScreen> {
               words: words,
               now: now,
               selected: _selected.contains(n.id),
+              // Review 106 T2: in full, foldable; the folded head opens it.
+              foldable: !widget.archived,
+              folded: !widget.archived && _folded(n),
+              onFold: widget.archived ? null : () => _fold(n),
               onEdit: widget.archived
                   ? null
                   : selecting
                   ? () => _select(n)
+                  : _folded(n)
+                  ? () => _fold(n)
                   : n.kind == NoteKind.voice
                   ? null
                   : () => _edit(n),
@@ -2832,8 +2888,10 @@ class SpaceChip extends StatelessWidget {
 /// A note on its slip: the kind and time on the first line, then the
 /// words; a to-do's box and its due in the action colour; a checklist's
 /// title and points; a voice note's player; its photos (F106). "Waiting
-/// to send" while it is
-/// still on the phone; "Went into a Space" once put in one.
+/// to send" while it is still on the phone; its status row at the bottom
+/// end (review 106 T1). In a page ([foldable], review 106 T2) the head is
+/// the fold control, the title (the first line when there is none) and
+/// the time; [folded], the head and "3 lines hidden" with the status row.
 class NoteSlip extends ConsumerWidget {
   const NoteSlip({
     super.key,
@@ -2844,6 +2902,9 @@ class NoteSlip extends ConsumerWidget {
     this.onLongPress,
     this.onReminder,
     this.selected = false,
+    this.foldable = false,
+    this.folded = false,
+    this.onFold,
   });
 
   final Note note;
@@ -2860,6 +2921,12 @@ class NoteSlip extends ConsumerWidget {
 
   /// Selected for Move to page…: lifted, with the selected edge.
   final bool selected;
+
+  /// Review 106 T2: the fold control at the head's start; [onFold] folds
+  /// or opens it (null: it shows, as on the copy lifted while arranging).
+  final bool foldable;
+  final bool folded;
+  final VoidCallback? onFold;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2879,111 +2946,169 @@ class NoteSlip extends ConsumerWidget {
       decorationColor: BvColors.textSecondary,
     );
     final due = note.dueAt;
-    final title = note.isPage ? note.title.trim() : '';
+    final head = foldable ? entryHead(note) : null;
+    final title = head == null
+        ? (note.isPage ? note.title.trim() : '')
+        : head.title ?? '';
     final statuses = noteStatuses(note, l10n, words, now);
-    final children = <Widget>[
-      // PG4: the title, or the kind, with the time at the end; review 106
-      // T1: nothing else.
-      Row(
-        key: Key('note-head-${note.id}'),
-        spacing: BvSpace.s8,
-        children: [
-          Expanded(
-            child: title.isEmpty
-                ? BvSlipQuiet(kind)
-                : Text(
-                    title,
-                    textDirection: directionOf(title),
-                    style: type.headingMd.copyWith(color: BvColors.textPrimary),
-                  ),
-          ),
-          Text(
-            words.time.clock(note.createdAt),
-            style: type.metadata.copyWith(color: BvColors.textSecondary),
-          ),
-        ],
-      ),
-      if (note.isPage)
-        NotePageSummary(note: note, words: words, now: now, showTitle: false)
-      else
-        switch (note.kind) {
-          NoteKind.text => BvSlipNote(note.body),
-          NoteKind.todo => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: BvSpace.s8,
-            children: [
-              NoteBox(
-                key: Key('note-done-${note.id}'),
-                ticked: note.done,
-                onTap: () => notebook.setDone(note, on: !note.done),
-                child: Text(note.body, style: note.done ? struck : main),
-              ),
-              if (due != null)
-                Row(
-                  spacing: BvNotebookSpec.dueGap,
-                  children: [
-                    const Icon(
-                      BvIcons.due,
-                      size: BvNotebookSpec.dueIcon,
-                      color: BvColors.textAction,
-                    ),
-                    Flexible(
-                      child: Text(
-                        todoDue(words, due, now),
-                        style: type.metadata.copyWith(
-                          color: note.done
-                              ? BvColors.textSecondary
-                              : BvColors.textAction,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-          NoteKind.checklist => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: BvNotebookSpec.pointGap,
-            children: [
-              if (note.body.isNotEmpty)
-                Text(
-                  note.body,
-                  style: type.labelMd.copyWith(color: BvColors.textPrimary),
-                ),
-              for (final (i, p) in note.points.indexed)
-                NoteBox(
-                  key: Key('note-point-${note.id}-$i'),
-                  ticked: p.done,
-                  onTap: () => notebook.tick(note, i),
-                  child: Text(p.text, style: p.done ? struck : main),
-                ),
-            ],
-          ),
-          NoteKind.voice => VoiceNote(
-            id: note.id,
-            duration: note.recording?.duration ?? Duration.zero,
-            path: note.recording?.path,
-            local: note.recording?.path == null ? note.recording?.local : null,
-            linkOf: (ref, path) =>
-                ref.read(notebookRepositoryProvider).recordingUrl(path),
-          ),
-        },
-      if (note.photos.isNotEmpty && !note.isPage)
-        NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
-      if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
-      // Review 106 T1: the status row, at the bottom end; none without a
-      // status.
-      if (statuses.isNotEmpty)
-        Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: NoteStatusIcons(
+    final row = statuses.isEmpty
+        ? null
+        : NoteStatusIcons(
             key: Key('note-status-${note.id}'),
             id: note.id,
             statuses: statuses,
             onChangeReminder: onReminder,
+          );
+    // PG4: the title, or the kind, with the time at the end; review 106
+    // T1: nothing else; T2: in a page, the fold control first.
+    final top = Row(
+      key: Key('note-head-${note.id}'),
+      children: [
+        if (foldable)
+          Semantics(
+            button: true,
+            label: folded ? l10n.notebookUnfoldEntry : l10n.notebookFoldEntry,
+            excludeSemantics: true,
+            child: InkResponse(
+              key: Key('note-fold-${note.id}'),
+              onTap: onFold,
+              radius: BvNotebookPagesSpec.foldTouch / 2,
+              child: SizedBox.square(
+                dimension: BvNotebookPagesSpec.foldTouch,
+                child: Icon(
+                  folded ? BvIcons.caretForward : BvIcons.caretDown,
+                  size: BvNotebookPagesSpec.foldIcon,
+                  color: BvColors.iconSecondary,
+                ),
+              ),
+            ),
+          ),
+        Expanded(
+          child: title.isEmpty
+              ? BvSlipQuiet(kind)
+              : Text(
+                  title,
+                  textDirection: directionOf(title),
+                  style: type.headingMd.copyWith(color: BvColors.textPrimary),
+                ),
+        ),
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: BvSpace.s8),
+          child: Text(
+            words.time.clock(note.createdAt),
+            style: type.metadata.copyWith(color: BvColors.textSecondary),
           ),
         ),
+      ],
+    );
+    final hidden = entryLines(note, head);
+    final children = <Widget>[
+      if (!foldable) top,
+      if (folded)
+        // Review 106 T2: what is hidden at the start, the status row at the
+        // end, still tappable.
+        Row(
+          key: Key('note-folded-${note.id}'),
+          spacing: BvSpace.s8,
+          children: [
+            Expanded(
+              child: hidden == 0
+                  ? const SizedBox.shrink()
+                  : BvSlipQuiet(l10n.notebookLinesHidden(hidden)),
+            ),
+            ?row,
+          ],
+        )
+      else ...[
+        if (note.isPage)
+          NotePageSummary(
+            note: note,
+            words: words,
+            now: now,
+            showTitle: false,
+            skip: head?.line,
+          )
+        // Review 106 T2: a one-line note's line is its head.
+        else if (note.kind != NoteKind.text ||
+            (head?.rest ?? note.body).isNotEmpty)
+          switch (note.kind) {
+            NoteKind.text => BvSlipNote(head?.rest ?? note.body),
+            NoteKind.todo => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: BvSpace.s8,
+              children: [
+                NoteBox(
+                  key: Key('note-done-${note.id}'),
+                  ticked: note.done,
+                  onTap: () => notebook.setDone(note, on: !note.done),
+                  child: Text(note.body, style: note.done ? struck : main),
+                ),
+                if (due != null)
+                  Row(
+                    spacing: BvNotebookSpec.dueGap,
+                    children: [
+                      const Icon(
+                        BvIcons.due,
+                        size: BvNotebookSpec.dueIcon,
+                        color: BvColors.textAction,
+                      ),
+                      Flexible(
+                        child: Text(
+                          todoDue(words, due, now),
+                          style: type.metadata.copyWith(
+                            color: note.done
+                                ? BvColors.textSecondary
+                                : BvColors.textAction,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            NoteKind.checklist => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: BvNotebookSpec.pointGap,
+              children: [
+                if (note.body.isNotEmpty && head?.title == null)
+                  Text(
+                    note.body,
+                    style: type.labelMd.copyWith(color: BvColors.textPrimary),
+                  ),
+                for (final (i, p) in note.points.indexed)
+                  NoteBox(
+                    key: Key('note-point-${note.id}-$i'),
+                    ticked: p.done,
+                    onTap: () => notebook.tick(note, i),
+                    child: Text(p.text, style: p.done ? struck : main),
+                  ),
+              ],
+            ),
+            NoteKind.voice => VoiceNote(
+              id: note.id,
+              duration: note.recording?.duration ?? Duration.zero,
+              path: note.recording?.path,
+              local: note.recording?.path == null
+                  ? note.recording?.local
+                  : null,
+              linkOf: (ref, path) =>
+                  ref.read(notebookRepositoryProvider).recordingUrl(path),
+            ),
+          },
+        if (note.photos.isNotEmpty && !note.isPage)
+          NotePhotos(key: Key('note-photos-${note.id}'), photos: note.photos),
+        if (note.waiting) BvSlipQuiet(l10n.daybookWaitingToSend),
+        // Review 106 T1: the status row, at the bottom end; none without a
+        // status.
+        if (row != null)
+          Align(alignment: AlignmentDirectional.centerEnd, child: row),
+      ],
     ];
+    final lines = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: BvNotebookPagesSpec.entryLinesGap,
+      children: children,
+    );
     // PG4: a plain white card; selected (A4, BH2), tinted and lifted with
     // the selected edge.
     return DecoratedBox(
@@ -3011,14 +3136,26 @@ class NoteSlip extends ConsumerWidget {
             borderRadius: BvNotebookPagesSpec.entryRadius,
             onTap: onEdit,
             onLongPress: onLongPress,
-            child: Padding(
-              padding: BvNotebookPagesSpec.entryPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: BvNotebookPagesSpec.entryLinesGap,
-                children: children,
-              ),
-            ),
+            child: foldable
+                // The fold control's 44 reaches into the card's padding, so
+                // its 24 chevron sits where the words start.
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: BvNotebookPagesSpec.foldHeadPadding,
+                        child: top,
+                      ),
+                      Padding(
+                        padding: BvNotebookPagesSpec.foldLinesPadding,
+                        child: lines,
+                      ),
+                    ],
+                  )
+                : Padding(
+                    padding: BvNotebookPagesSpec.entryPadding,
+                    child: lines,
+                  ),
           ),
         ),
       ),
@@ -3026,8 +3163,8 @@ class NoteSlip extends ConsumerWidget {
   }
 }
 
-/// A page note on its saved slip (F107, review 92): the bold title, the
-/// first three lines of its page (a to-do ticks here too), then its chips:
+/// A page note on its saved slip (F107, review 92): the bold title, every
+/// line of its page (review 106 T2; a to-do ticks here too), then its chips:
 /// the location, the date, and its photos and files as icons with how
 /// many ("2 photos"). A tap opens it for editing in place.
 class NotePageSummary extends ConsumerWidget {
@@ -3037,6 +3174,7 @@ class NotePageSummary extends ConsumerWidget {
     required this.words,
     required this.now,
     this.showTitle = true,
+    this.skip,
   });
 
   final Note note;
@@ -3046,29 +3184,27 @@ class NotePageSummary extends ConsumerWidget {
   /// False on a page's slip (PG4): its head says the title.
   final bool showTitle;
 
+  /// The line the head shows as the title (review 106 T2), left out here.
+  final String? skip;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
     final main = type.bodyMd.copyWith(color: BvColors.textPrimary);
-    final quiet = type.metadata.copyWith(color: BvColors.textSecondary);
     final blocks = note.blocks ?? const <PageBlock>[];
     // Folded lines hide what is under them here too.
     final open = visibleLines(blocks, {
       for (final b in blocks)
         if (b.folded) b.id,
     });
+    // Review 106 T2: every line, in full; [skip] is in the head.
     final shown = [
-      for (final i in open.take(BvNoteBlocksSpec.slipLines)) (i, blocks[i]),
+      for (final i in open)
+        if (blocks[i].id != skip) (i, blocks[i]),
     ];
-    final more = open.length > shown.length;
-    Text line(String text, TextStyle style) => Text(
-      text,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      textDirection: directionOf(text),
-      style: style,
-    );
+    Text line(String text, TextStyle style) =>
+        Text(text, textDirection: directionOf(text), style: style);
     Widget block(int i, PageBlock b) => switch (b) {
       PageTodo(:final text, :final done) => Row(
         spacing: BvNoteBlocksSpec.lineGap,
@@ -3168,7 +3304,6 @@ class NotePageSummary extends ConsumerWidget {
             ),
             child: block(i, b),
           ),
-        if (more) Text('…', style: quiet),
         if (chips.isNotEmpty)
           Wrap(
             key: Key('note-page-chips-${note.id}'),
@@ -3179,6 +3314,61 @@ class NotePageSummary extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// An entry's head in its page (review 106 T2): its title; with none, its
+/// first line when that is words ([line], the block it is; [rest], a
+/// note's words after it), or a checklist's title. Null [title]: the kind.
+typedef EntryHead = ({String? title, String? line, String? rest});
+
+EntryHead entryHead(Note note) {
+  const none = (title: null, line: null, rest: null);
+  final title = note.title.trim();
+  if (note.isPage) {
+    if (title.isNotEmpty) return (title: title, line: null, rest: null);
+    final first = note.blocks!.firstOrNull;
+    final words = switch (first) {
+      PageText(:final text) || PageHeading(:final text) => text.trim(),
+      _ => '',
+    };
+    return words.isEmpty ? none : (title: words, line: first!.id, rest: null);
+  }
+  final body = note.body.trim();
+  if (body.isEmpty) return none;
+  switch (note.kind) {
+    case NoteKind.text:
+      final lines = body.split('\n');
+      return (
+        title: lines.first.trim(),
+        line: null,
+        rest: lines.skip(1).join('\n').trim(),
+      );
+    case NoteKind.checklist:
+      return (title: body, line: null, rest: null);
+    case NoteKind.todo || NoteKind.voice:
+      return none;
+  }
+}
+
+/// How many lines a folded entry hides (review 106 T2): the lines under
+/// its head as its page shows them.
+int entryLines(Note note, EntryHead? head) {
+  if (note.isPage) {
+    final blocks = note.blocks!;
+    final open = visibleLines(blocks, {
+      for (final b in blocks)
+        if (b.folded) b.id,
+    });
+    return open.where((i) => blocks[i].id != head?.line).length;
+  }
+  return switch (note.kind) {
+    NoteKind.text => [
+      for (final l in (head?.rest ?? note.body).split('\n'))
+        if (l.trim().isNotEmpty) l,
+    ].length,
+    NoteKind.checklist => note.points.length,
+    NoteKind.todo || NoteKind.voice => 1,
+  };
 }
 
 /// A reminder's time on its slip: "today 4:00 pm", "tomorrow 9:00 am",

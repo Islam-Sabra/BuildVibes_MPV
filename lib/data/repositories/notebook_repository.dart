@@ -52,6 +52,10 @@ abstract class NotebookRepository {
   /// bottom in their new order.
   Future<void> arrangeDay(List<String> ids);
 
+  /// set_notes_collapsed (review 106 T2): the caller's entries folded in
+  /// their page, or opened.
+  Future<void> setCollapsed(List<String> ids, {required bool on});
+
   /// merge_notebook_pages: all or nothing; [newTitle] makes [into].
   Future<void> merge(
     List<String> pages,
@@ -361,6 +365,14 @@ class SupabaseNotebookRepository implements NotebookRepository {
   @override
   Future<void> arrangeDay(List<String> ids) =>
       _guard(() => _client.rpc<void>('arrange_day', params: {'p_ids': ids}));
+
+  @override
+  Future<void> setCollapsed(List<String> ids, {required bool on}) => _guard(
+    () => _client.rpc<void>(
+      'set_notes_collapsed',
+      params: {'p_ids': ids, 'p_on': on},
+    ),
+  );
 
   @override
   Future<void> merge(

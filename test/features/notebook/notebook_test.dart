@@ -145,12 +145,16 @@ void main() {
       double top(String id) => tester.getTopLeft(_key('note-$id')).dy;
       expect(top('note-pump'), lessThan(top('note-voice')));
       expect(top('note-voice'), lessThan(top('note-walk')));
-      expect(top('note-walk'), lessThan(top('note-sleeves')));
       expect(
         find.text(words.compactDate(DateTime(2026, 10, 15))),
         findsOneWidget,
       );
-      await tester.drag(_key('notebook-list'), const Offset(0, -400));
+      // Review 106 T2: in full, the entries are taller; the to-do comes
+      // into view first.
+      await tester.drag(_key('notebook-list'), const Offset(0, -200));
+      await tester.pumpAndSettle();
+      expect(top('note-walk'), lessThan(top('note-sleeves')));
+      await tester.drag(_key('notebook-list'), const Offset(0, -200));
       await tester.pumpAndSettle();
       expect(top('note-sleeves'), lessThan(top('note-yesterday')));
       expect(
