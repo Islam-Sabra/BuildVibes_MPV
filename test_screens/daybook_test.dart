@@ -13,6 +13,7 @@
 //   flutter test test_screens/daybook_test.dart --update-goldens
 import 'dart:convert';
 
+import 'package:buildvibes/data/repositories/page_repository.dart';
 import 'package:buildvibes/core/l10n/locale_controller.dart';
 import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
@@ -40,6 +41,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../test/helpers/page_fakes.dart';
 import '../test/helpers/activity_fakes.dart';
 import '../test/helpers/daybook_fakes.dart';
 import '../test/helpers/daybook_samples.dart';
@@ -95,6 +97,9 @@ Future<List<Override>> _overrides(
     authUserIdProvider.overrideWithValue(AsyncData(me)),
     myMarketProvider.overrideWithValue(kuwait),
     clockProvider.overrideWithValue(() => now),
+    // Review 105 J2: an opened item reads its page; the shots have no
+    // Supabase, so the fake answers (a post with no page reads as its card).
+    pageRepositoryProvider.overrideWithValue(FakePageRepository()),
     workRepositoryProvider.overrideWithValue(work ?? FakeWorkRepository()),
     daybookLiveProvider.overrideWithValue(FakeDaybookLive()),
     daybookRepositoryProvider.overrideWithValue(
