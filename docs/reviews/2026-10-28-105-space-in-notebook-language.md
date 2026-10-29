@@ -217,3 +217,35 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
 
 ### 105A live (29 Oct, 12:13)
 - Merged into `slice2-app` (9c5f400). Build 775 is on the founder's phone. No database change. **Next:** review 106 T4/T5, then 105B (one migration: places, archive, personal pins, share to a chat thread, the Space time zone, handover), then 105C.
+
+## 105B: the build brief (29 Oct)
+**One migration, `20261113120000_space_work_extras`.** Review 106 T5 takes `20261112120000`, so the two never clash. Each part has pgTAP tests, including that a non-member can't read or write it.
+
+1. **Places (site tags).**
+   - New table `space_places` (`id`, `space_id`, `name`, `created_by`, `created_at`), with the name unique per Space, ignoring case and spaces.
+   - **RLS:** members read; people who may post work add; Leads rename and delete.
+   - `posts.place_id` points to it and may be null. The old free-text place stays readable for old posts.
+2. **Archive.**
+   - `posts.archived_at` and `archived_by`.
+   - `archive_space_post(post)` and `unarchive_space_post(post)` check **in SQL** that the caller is a Lead of that Space and the item is Checked.
+   - Work's lists leave archived posts out. Search still finds them.
+3. **Personal pins.**
+   - New table `space_post_pins` (`user_id`, `post_id`, `created_at`). Only I can read or write mine, and only for posts in Spaces I belong to.
+   - `pin_space_post(post)` and `unpin_space_post(post)`.
+   - The Space-wide pin on announcements stays as it is.
+4. **Share to a chat thread.**
+   - `share_post_to_thread(post, thread)`: the post and the thread are in the same Space, and the caller may read the post and write in the thread.
+   - It adds a chat message that carries the post's card: kind, title, For and status, which opens the item. **The work stays in the Space** (rule 8).
+5. **The Space's time zone.**
+   - `space_time_zone(space)` reads it from the Space's market pack (Cursor checks where the market pack keeps time zones).
+   - The pinned announcement ends at midnight in that zone.
+6. **Handover.**
+   - `remove_member_with_handover(space, member, assignments)` and `leave_space_with_handover(space, assignments)` do it all in one step.
+   - Every open work item the person owns must get a new owner who is a member allowed to own work, or nothing changes.
+   - Their Checked work stays where it is.
+
+**In the app (105B):**
+- Turn on the off flag: the Pin swipe (personal pins), Archive (Lead, Checked) and Share in the hold bar (pick a thread → its card in Chat). Read 105A's notes on `WorkLater`.
+- The pinned announcement ends at the Space's midnight.
+
+**105C does the rest:** the Place picker and filter, the table of tasks, before/after, the removal sheet.
