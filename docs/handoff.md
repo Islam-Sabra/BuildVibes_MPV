@@ -2,6 +2,37 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 106 G1–G5 (the lead's check of `r106`) done on `r106`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `r106` (worktree `BuildVibes-r106`), pushed. Nothing merged, no database push, no build. `lib/features/spaces/` untouched.
+- **Commits, test first, EN and AR:**
+  - a3b2375 **G4:** migration 50 (the file itself; it isn't live) adds `owner_id = v_me` to its `update`.
+    - pgTAP 50 now has 20 checks: the version doesn't move; a deleted entry is refused (42501); an empty list and a null `p_on` each give 22023.
+    - The local stack's function was re-created from the edited file.
+  - feb42d3 **G1–G3, G5:**
+    - **G1:** an archived entry keeps the short card (the first 3 lines, each on one line, "…"), with no fold control.
+    - **G2:** in a page, an untitled entry's head is fold · time, and its words stay in the body at normal weight, for every kind; the kind words don't come back.
+      - Folded, the head shows its first line in the body's style, cut to one line. That line isn't counted in "{n} lines hidden".
+    - **G3:** the fold control shows only when folding would hide something.
+      - An entry kept folded that hides nothing shows open, with no empty row.
+      - Collapse all leaves such entries alone.
+    - **G5:** the Status groups follow `EntrySort.status`'s one order. The page builds `byStatus` from the sorted entries; the second copy of the order is gone.
+    - The `EntrySort` method is still called `sorted`; the lead's note calls it `order`.
+  - 31a52e5 **Shots:** `docs/reviews/shots-106/` replaced, with the README updated. Only the six NB images changed (G2, G3).
+- **Tests changed on purpose:** `entry_fold_test`'s "first line as the title" test is replaced by the G2 tests; `notebook_test` PG4 now expects no kind word on the to-do's head (G2).
+- **Checks (PC):**
+  - `supabase test db`: 3,058 checks in 49 files pass.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,535 pass.
+  - `flutter test test_screens`, not updating: 434 pass and 28 fail.
+    - 20 are the same 11 changed shots as before (22 images).
+    - 8 are the new NS1–NS4 shots, with no golden yet.
+    - Against `fbe1691`, only the six NB images are new.
+- **Next:** the lead's check of the fixes. Then, with the founder's yes: migration 50 live, merge, and one build.
+- **Who has which branch:** PC has `r106` (worktree `BuildVibes-r106`) and `slice2-app` (worktree `BuildVibes-slice1`). `claude/r105a` is a cloud session's.
+
 ## PC update: 29 Oct 2026 — review 106 (T1, T2, T3) on `r106`; stopped for the lead
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

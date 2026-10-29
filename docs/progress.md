@@ -764,6 +764,13 @@ What is set on the live project today. The source of truth is `supabase/config.t
   - T2: a page's entries in full, foldable. Migration 50 (`notes.collapsed`, owner only) is local only.
   - T3: the Filter card's Filter · Sort switch; STATUS beside SHOW; the Status sort.
   - Checks: analyze clean; 2,525 app tests; 3,053 SQL checks; 434 shots pass. 22 changed images and 8 new ones are in `docs/reviews/shots-106/`, not accepted.
+- **29 Oct (PC): review 106 G1–G5** on `r106` (the lead's fixes), for the lead; nothing merged, live or built:
+  - G1: archived entries keep the short card.
+  - G2: an untitled head is fold · time, its words in the body.
+  - G3: no fold control when nothing would hide.
+  - G4: migration 50's update filters the owner; 20 pgTAP checks.
+  - G5: one Status order.
+  - Checks: 3,058 SQL checks; analyze clean; 2,535 app tests; 434 shots pass. The 22 changed images and 8 new ones are in `docs/reviews/shots-106/`.
 
 ## Before the pilot (week 11)
 - Delete the test accounts push-test-a, push-test-b, push-test-c and "Delete Test" (the S13 test account on the founder's Gmail alias), and their test post, with the admin API.
