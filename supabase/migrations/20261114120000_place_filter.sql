@@ -6,6 +6,10 @@
 -- that place's posts: the app filters the cards it reads by
 -- space_posts.place_id (migration 52), so no other function changes.
 -- Same signature, same grants.
+--
+-- The lead's check M2: deleting a place in use first copies its name into
+-- place_text of every post that has it (a trigger), so a Checked item's
+-- proof keeps its location once place_id is set null.
 
 create or replace function public.search_space(p_space uuid, p_q text)
 returns table (kind text, id uuid, post_id uuid, thread_id uuid, team_id uuid, post_kind text,
@@ -122,3 +126,29 @@ $$;
 
 revoke execute on function public.search_space(uuid, text) from public, anon;
 grant execute on function public.search_space(uuid, text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- A place deleted keeps its name on its posts (M2)
+-- ---------------------------------------------------------------------------
+
+-- Before a place goes, its name as it is now becomes place_text of every
+-- post that points to it; place_id is then set null by its foreign key.
+-- Security definer: a Lead deleting a place can't write others' posts.
+create or replace function public.keep_place_name()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.space_posts
+  set place_text = left(trim(old.name), 80)
+  where place_id = old.id;
+  return old;
+end;
+$$;
+
+revoke execute on function public.keep_place_name() from public, anon, authenticated;
+
+create trigger space_places_keep_name before delete on public.space_places
+  for each row execute function public.keep_place_name();

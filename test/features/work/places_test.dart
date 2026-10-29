@@ -10,8 +10,10 @@ import 'package:buildvibes/data/models/daybook.dart';
 import 'package:buildvibes/data/models/space.dart';
 import 'package:buildvibes/data/models/space_search.dart';
 import 'package:buildvibes/features/work/daybook_draft.dart';
+import 'package:buildvibes/features/work/work_outbox.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_place_picker.dart';
+import 'package:buildvibes/shared/widgets/bv_writing_card.dart';
 import 'package:buildvibes/shared/widgets/bv_writing_rows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -154,9 +156,64 @@ void main() {
         await _tap(tester, _key('writing-post'));
         final id = app.daybook.created.single.id;
         expect(app.daybook.calls, contains('set-place $id ${_l3.id}'));
-        // The name isn't typed in again as free text.
-        expect(app.daybook.created.single.place, isNull);
+        // The lead's check M1: its name goes too, as place_text.
+        expect(app.daybook.created.single.place, _l3.name);
       });
+
+      testWidgets('the lead\'s check M1: the item is made but its place is '
+          'refused: it counts as sent, with its name and no refused card', (
+        tester,
+      ) async {
+        final app = await _open(tester, lang);
+        app.daybook.refusePlace = true;
+        await _openPicker(tester);
+        await _tap(tester, _key('place-row-${_l3.id}'));
+        await tester.enterText(_key('writing-title'), 'Rebar spacing');
+        await tester.pumpAndSettle();
+        await _tap(tester, _key('writing-who'));
+        await _tap(tester, find.text(s.omarName).last);
+        await _tap(tester, _key('writing-post'));
+        expect(app.daybook.created.single.place, _l3.name);
+        expect(
+          app.daybook.calls.where((c) => c.startsWith('set-place')),
+          isEmpty,
+        );
+        final outbox = ProviderScope.containerOf(
+          tester.element(find.byType(Scaffold).first),
+        ).read(workOutboxProvider);
+        expect(outbox.where((i) => i.refused), isEmpty);
+        expect(find.text(l10n.daybookCouldNotSend), findsNothing);
+      });
+
+      for (final refuse in [false, true]) {
+        testWidgets('the lead\'s check M1: an edit to another place sends '
+            'its name too${refuse ? '; refused, the edit stays saved with no '
+                      'error' : ''}', (tester) async {
+          final app = await _open(
+            tester,
+            lang,
+            posts: [
+              _tagged(s, 'post-a', 'Rebar spacing', _l2.id, place: _l2.name),
+            ],
+          );
+          app.daybook.refusePlace = refuse;
+          await _tap(tester, find.text('Rebar spacing'));
+          await _tap(tester, _key('page-title'));
+          await _tap(tester, _key('writing-place-row'));
+          await _tap(tester, _key('place-row-${_l3.id}'));
+          await _tap(tester, _key('writing-post'));
+          expect(
+            app.daybook.calls,
+            contains('edit post-a {"place":"${_l3.name}"}'),
+          );
+          expect(
+            app.daybook.calls.contains('set-place post-a ${_l3.id}'),
+            !refuse,
+          );
+          expect(find.text(l10n.spacesNotAllowed), findsNothing);
+          expect(find.byType(BvWritingCard), findsNothing);
+        });
+      }
 
       testWidgets('"Add place ‘…’" for who may post work: the new place is '
           'added and picked', (tester) async {

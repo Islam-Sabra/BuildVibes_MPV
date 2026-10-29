@@ -388,8 +388,9 @@ void main() {
       expect(sent.title, s.cableTraysTitle);
       expect(sent.body, s.traysBody);
       expect(sent.ownerId, DaybookSamples.omar);
-      // The place goes by its id (set_post_place), not typed in again.
-      expect(sent.place, isNull);
+      // The place goes by its id (set_post_place), and its name as
+      // place_text, kept if the id is refused (the lead's check M1).
+      expect(sent.place, s.traysPlace);
       expect(app.daybook.calls, contains('set-place $id $_traysPlaceId'));
       expect(sent.dueDate, _sunday);
       expect(sent.dueAt, _twoPm);

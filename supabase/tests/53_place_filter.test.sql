@@ -3,14 +3,16 @@
 -- name, for the Space's members only; Work then shows that place's posts
 -- (the app filters by space_posts.place_id). Posts, points, messages and
 -- files are found as before. A non-member finds nothing, and can't read
--- or write a place. Run with: supabase test db
+-- or write a place. The lead's check M2: deleting a place in use first
+-- copies its name into place_text of every post that has it, so a Checked
+-- item's proof keeps its location. Run with: supabase test db
 --
 -- Omar (c1) made the Space: its admin, a Lead. Rakesh (c2) is Crew. Eve
 -- (c5) is not in the Space.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(22);
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data)
 select ('00000000-0000-0000-0000-0000000053' || x.id)::uuid, 'authenticated', 'authenticated',
@@ -103,6 +105,40 @@ select is((select name from public.space_places where id = pg_temp.id('b002')), 
   'a non-member can''t rename or delete one');
 select is((select place_id from public.space_posts where id = pg_temp.id('a001')), pg_temp.id('b001'),
   'nor move a post');
+
+-- The lead's check M2: a place deleted keeps its name on its posts -----------------------------------
+
+-- a001 Checked, at L3 · Grid B4 (renamed first: the name now is the one
+-- kept); a002 Open there too, written with another name; a003 at Gate 2.
+select pg_temp.as_user('c1');
+set local role authenticated;
+select public.create_work_item(pg_temp.sp(), 'Pour the slab', pg_temp.uid('c2'),
+                               p_id => pg_temp.id('a002'), p_place => 'Typed once');
+select public.create_work_item(pg_temp.sp(), 'Open the gate', pg_temp.uid('c2'),
+                               p_id => pg_temp.id('a003'));
+select public.set_post_place(pg_temp.id('a002'), pg_temp.id('b001'));
+select public.set_post_place(pg_temp.id('a003'), pg_temp.id('b002'));
+update public.space_places set name = 'L3 · Grid B4 north' where id = pg_temp.id('b001');
+reset role;
+select pg_temp.as_user('c2');
+set local role authenticated;
+select public.sign_done(pg_temp.id('a001'), 'Sleeves in.');
+reset role;
+select pg_temp.as_user('c1');
+set local role authenticated;
+select public.check_item(pg_temp.id('a001'));
+delete from public.space_places where id = pg_temp.id('b001');
+reset role;
+select is((select place_text from public.space_posts where id = pg_temp.id('a001')),
+  'L3 · Grid B4 north', 'the Checked item keeps the place''s name, as it was at the end');
+select is((select place_id from public.space_posts where id = pg_temp.id('a001')), null::uuid,
+  'and no longer points to it');
+select is((select place_text from public.space_posts where id = pg_temp.id('a002')),
+  'L3 · Grid B4 north', 'an Open item there too, over the name once typed');
+select is((select place_id from public.space_posts where id = pg_temp.id('a003')), pg_temp.id('b002'),
+  'a post at another place is untouched');
+select is((select place_text from public.space_posts where id = pg_temp.id('a003')), null,
+  'its place_text too');
 
 -- The function -----------------------------------------------------------------------------------------
 

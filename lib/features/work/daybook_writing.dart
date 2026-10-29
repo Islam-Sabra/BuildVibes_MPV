@@ -803,9 +803,10 @@ class DaybookWriter {
       title: title == was.title ? null : title,
       body: text(d.body),
       bodyChanged: text(d.body) != text(was.body),
+      // A place from the Space's list goes by set_post_place too
+      // ([save]); its name is the post's place_text (M1).
       place: d.place,
-      // A place from the Space's list goes by set_post_place ([save]).
-      placeChanged: d.placeId == null && text(d.place) != text(was.place),
+      placeChanged: text(d.place) != text(was.place),
       dueChanged: d.dueDate != was.dueDate || d.dueAt != was.dueAt,
       dueDate: d.dueDate,
       dueAt: d.dueAt,
@@ -828,7 +829,9 @@ class DaybookWriter {
     if (edit.isEmpty && !moved) return;
     final repo = ref.read(daybookRepositoryProvider);
     if (!edit.isEmpty) await repo.editPost(id, edit);
-    if (moved) await repo.setPostPlace(id, d.placeId);
+    if (moved) {
+      await setPostPlaceOrKeepName(repo, id, d.placeId, clear: true);
+    }
   }
 }
 

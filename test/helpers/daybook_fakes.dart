@@ -368,8 +368,12 @@ class FakeDaybookRepository implements DaybookRepository {
   @override
   Future<void> setPostPlace(String postId, String? placeId) async {
     _check();
+    if (refusePlace) throw const SpaceException(SpaceFailure.notAllowed);
     calls.add('set-place $postId $placeId');
   }
+
+  /// set_post_place says no (the place went meanwhile, say).
+  bool refusePlace = false;
 
   @override
   Future<bool> sharedPostGone(String postId) async => goneIds.contains(postId);

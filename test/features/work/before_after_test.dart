@@ -34,10 +34,12 @@ DaybookCard _sleeves(
   bool cover = true,
   bool proof = true,
   bool checked = true,
+  DateTime? posted,
+  DateTime? signed,
 }) => s.card(
   s.item(
     id: 'post-ba',
-    at: _posted,
+    at: posted ?? _posted,
     title: s.sleeves,
     authorId: DaybookSamples.islam,
     ownerId: DaybookSamples.omar,
@@ -48,7 +50,7 @@ DaybookCard _sleeves(
     s.event(
       'ev-ba-done',
       DaybookEventKind.done,
-      _signed,
+      signed ?? _signed,
       DaybookSamples.omar,
       photos: [
         if (proof)
@@ -96,7 +98,10 @@ void main() {
   for (final lang in ['en', 'ar']) {
     final l10n = lookupAppLocalizations(Locale(lang));
     final s = DaybookSamples(lang);
-    final clock = DaybookWords(l10n, lang, use24: false).time.clock;
+    final words = DaybookWords(l10n, lang, use24: false);
+    final clock = words.time.clock;
+    String withDay(DateTime at) =>
+        '${words.shortDate(DateTime(at.year, at.month, at.day))} ${clock(at)}';
 
     group('105C before / after [$lang]', () {
       testWidgets('both photos: side by side with their times', (tester) async {
@@ -130,6 +135,51 @@ void main() {
         } else {
           expect(before.left, lessThan(after.left));
         }
+      });
+
+      testWidgets('the lead\'s check M3: photos on two days: each label '
+          'names its day', (tester) async {
+        final posted = DateTime(2026, 10, 12, 8, 10);
+        await _open(tester, lang, [
+          _sleeves(s, posted: posted, checked: false),
+        ]);
+        expect(
+          find.descendant(
+            of: _key('photo-before'),
+            matching: find.text(l10n.daybookBefore(withDay(posted))),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: _key('photo-after'),
+            matching: find.text(l10n.daybookAfter(withDay(_signed))),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('the lead\'s check M3: both on one day that isn\'t '
+          'today: the day too', (tester) async {
+        final posted = DateTime(2026, 10, 14, 8, 10);
+        final signed = DateTime(2026, 10, 14, 10, 56);
+        await _open(tester, lang, [
+          _sleeves(s, posted: posted, signed: signed, checked: false),
+        ]);
+        expect(
+          find.descendant(
+            of: _key('photo-before'),
+            matching: find.text(l10n.daybookBefore(withDay(posted))),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: _key('photo-after'),
+            matching: find.text(l10n.daybookAfter(withDay(signed))),
+          ),
+          findsOneWidget,
+        );
       });
 
       testWidgets('the CHECKED stamp is on After', (tester) async {

@@ -943,8 +943,9 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             title: item.title,
             ownerId: item.ownerId,
             body: item.body,
-            // A chosen place goes by its id (set_post_place, below).
-            place: item.placeId == null ? item.place : null,
+            // A chosen place goes by its id too (set_post_place, below);
+            // its name stays on the post if that is refused.
+            place: item.place,
             dueDate: item.dueDate,
             dueAt: item.dueAt,
             photoPaths: paths,
@@ -963,7 +964,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
         }
         // Review 105C: its place in the Space's list.
         if (item.placeId case final place?) {
-          await daybook.setPostPlace(item.id, place);
+          await setPostPlaceOrKeepName(daybook, item.id, place);
         }
       case PendingKind.post:
         final d = item.draft!;
@@ -974,7 +975,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
             kind: d.kind.json,
             title: d.title,
             body: d.body,
-            place: d.placeId == null ? d.place : null,
+            place: d.place,
             dueDate: d.dueDate,
             dueAt: d.dueAt,
             pinnedUntil: d.pinnedUntil,
@@ -997,7 +998,7 @@ class WorkOutbox extends Notifier<List<PendingItem>> {
           ),
         );
         if (d.placeId case final place?) {
-          await daybook.setPostPlace(item.id, place);
+          await setPostPlaceOrKeepName(daybook, item.id, place);
         }
       case PendingKind.signOff:
         await ref
@@ -1263,5 +1264,29 @@ class OutboxSendingState extends Notifier<Map<String, OutboxSending>> {
   void stop(String id) {
     if (!ref.mounted || !state.containsKey(id)) return;
     state = {...state}..remove(id);
+  }
+}
+
+/// set_post_place once the post is made (the lead's check of 105C, M1).
+/// The post already carries the place's name as place_text, so a refusal
+/// (the place deleted meanwhile, say) leaves it sent with that name and no
+/// "refused" card. With [clear], the post's older place is taken off then,
+/// so the name isn't shown under another place. No signal is tried again.
+Future<void> setPostPlaceOrKeepName(
+  DaybookRepository daybook,
+  String postId,
+  String? placeId, {
+  bool clear = false,
+}) async {
+  try {
+    await daybook.setPostPlace(postId, placeId);
+  } on SpaceException catch (e) {
+    if (e.failure == SpaceFailure.network) rethrow;
+    if (!clear || placeId == null) return;
+    try {
+      await daybook.setPostPlace(postId, null);
+    } on SpaceException catch (e) {
+      if (e.failure == SpaceFailure.network) rethrow;
+    }
   }
 }

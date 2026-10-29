@@ -422,8 +422,12 @@ class DaybookCardView extends StatelessWidget {
           _BeforeAfter(
             before: post.coverPath!,
             after: proof.photos.first.path,
-            beforeLabel: l10n.daybookBefore(words.time.clock(post.createdAt)),
-            afterLabel: l10n.daybookAfter(words.time.clock(proof.at)),
+            beforeLabel: l10n.daybookBefore(
+              words.photoWhen(post.createdAt, proof.at, now),
+            ),
+            afterLabel: l10n.daybookAfter(
+              words.photoWhen(proof.at, post.createdAt, now),
+            ),
             stamp: stamp,
           )
         else if (proof != null && proof.photos.isNotEmpty)
