@@ -291,3 +291,11 @@ Noted for the tidy list: `daybook_tab.dart` has grown too big (the proof moment 
   - **Lead's recommendation: they stay,** so the proof stays with whoever did the work. L2 covers a later Send back.
 
 - **Founder, 14:43: A.** Done-but-not-Checked items stay with the person who did them. L2 covers a later Send back.
+
+### L1–L11 done (`r105b` at `0dbf813`)
+- **Accepted.** SQL stand-in 3,155 (97 checks in file 52). The founder's choice A is in. The owner trigger (L4) covers create, Give to and Send back; a rare deadlock ends one side cleanly, which is accepted.
+- **New shots looked at** (W1 my pins with "+1 more", W2 the Archive swipe, W3 "Archived · Undo", W4 the Share thread list, C1 the shared cards in Chat, EN and AR): **accepted.**
+- **Next, on the PC, in one go:**
+  - merge r106b, then r105b;
+  - push migrations 51 and 52 one at a time;
+  - one build.
