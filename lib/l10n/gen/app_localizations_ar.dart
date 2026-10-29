@@ -5241,9 +5241,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notebookFilterVoice => 'تسجيلات صوتية';
 
   @override
-  String get notebookFilterReminders => 'تذكيرات';
-
-  @override
   String get notebookFilterArchived => 'المؤرشفة';
 
   @override
@@ -5479,9 +5476,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get timeWheelPm => 'م';
 
   @override
-  String get notebookSortLabel => 'ترتيب';
-
-  @override
   String get notebookSortActivity => 'آخر نشاط';
 
   @override
@@ -5619,22 +5613,70 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String notebookStatusMore(int count) {
-    return '+$count';
+  String get notebookStatusChange => 'تغيير';
+
+  @override
+  String get notebookStatusTitleReminder => 'تذكير';
+
+  @override
+  String get notebookStatusTitleFeed => 'نُشرت في الأخبار';
+
+  @override
+  String get notebookStatusTitleSpace => 'نُشرت في مساحة';
+
+  @override
+  String get notebookStatusTitleMessage => 'أُرسلت في رسالة';
+
+  @override
+  String notebookStatusShareLine(String name, String time) {
+    return '$name · $time';
   }
 
   @override
-  String notebookStatusMoreLabel(int count) {
+  String notebookLinesHidden(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count أخرى',
+      other: '$count سطر مخفي',
+      many: '$count سطرًا مخفيًا',
+      few: '$count أسطر مخفية',
+      two: 'سطران مخفيان',
+      one: 'سطر مخفي',
     );
     return '$_temp0';
   }
 
   @override
-  String get notebookStatusChange => 'تغيير';
+  String get notebookFoldEntry => 'طيّ هذه التدوينة';
+
+  @override
+  String get notebookUnfoldEntry => 'فتح هذه التدوينة';
+
+  @override
+  String get notebookCollapseAll => 'طيّ الكل';
+
+  @override
+  String get notebookExpandAll => 'فتح الكل';
+
+  @override
+  String get notebookFilterStatus => 'الحالة';
+
+  @override
+  String get notebookFilterModeSort => 'ترتيب';
+
+  @override
+  String get notebookSortStatus => 'الحالة';
+
+  @override
+  String get notebookSortTypeHint =>
+      'مجمّعة: مهام، قوائم تحقق، صور، ملفات، صوت، نص';
+
+  @override
+  String get notebookSortStatusHint =>
+      'مجمّعة: مثبّتة، تذكير، الأخبار، مساحة، رسالة';
+
+  @override
+  String get notebookStatusNone => 'بلا حالة';
 
   @override
   String get notebookConfirmDeleteEmpty => 'حذف هذه التدوينة الفارغة؟';

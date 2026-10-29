@@ -289,6 +289,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'search',
             builder: (context, state) => NotebookSearchScreen(
               kind: state.uri.queryParameters['kind'],
+              status: state.uri.queryParameters['status'],
               page: state.uri.queryParameters['page'],
             ),
           ),

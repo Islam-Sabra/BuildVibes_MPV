@@ -175,6 +175,16 @@ class FakeNotebookRepository implements NotebookRepository {
   }
 
   @override
+  Future<void> setCollapsed(List<String> ids, {required bool on}) async {
+    _check();
+    calls.add('collapse:${ids.join(',')}:$on');
+    for (final id in ids) {
+      final n = kept[id];
+      if (n != null) kept[id] = n.copyWith(collapsed: on);
+    }
+  }
+
+  @override
   Future<void> arrangeDay(List<String> ids) async {
     _check();
     calls.add('day-arrange:${ids.join(',')}');

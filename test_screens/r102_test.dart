@@ -4,6 +4,7 @@
 // chip of a sort that isn't the default. Review 104 N11: the one picker
 // opens on the clock face; the wheels are its second mode. Run:
 //   flutter test test_screens/r102_test.dart --update-goldens
+import 'package:buildvibes/features/notebook/note_filter.dart' show filterModeKey;
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
 import 'package:buildvibes/shared/widgets/bv_time_picker.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +69,8 @@ void main() {
         language: lang,
         now: NotebookPageSamples.now,
         notebook: NotebookPageSamples(lang).repository(),
+        // Review 106 T3: SORT is the card's Sort mode now.
+        stored: {filterModeKey: 'sort'},
       );
       GoRouter.of(
         tester.element(find.byType(Navigator).first),

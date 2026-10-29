@@ -395,11 +395,12 @@ class BvPopoverMenu<T> extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: type.labelMd.copyWith(color: ink),
                       ),
-                      // What the row does (Share's "A public post on Home").
+                      // What the row does (Share's "A public post on Home");
+                      // review 106 NS4: a sort's groups, on two lines.
                       if (item.note case final note?)
                         Text(
                           note,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: type.metadata.copyWith(
                             color: BvColors.textSecondary,

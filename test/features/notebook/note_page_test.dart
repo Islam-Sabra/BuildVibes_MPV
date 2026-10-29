@@ -486,8 +486,9 @@ void main() {
       expect(saved.blocks!.whereType<PageTodo>(), hasLength(3));
     });
 
-    testWidgets('the saved slip: the title, the first 3 lines, the chips; '
-        'a to-do ticks there; a tap edits in place [$lang]', (tester) async {
+    testWidgets('the saved slip: the title, every line (review 106 T2: no '
+        '3-line cut), the chips; a to-do ticks there; a tap edits in place '
+        '[$lang]', (tester) async {
       final note = Note(
         id: 'note-slip',
         kind: NoteKind.text,
@@ -519,7 +520,7 @@ void main() {
       final app = await _open(tester, lang, notes: [note]);
       expect(find.text('Before the pour, level 3'), findsOneWidget);
       expect(find.text('Confirm the pump'), findsOneWidget);
-      expect(find.text('Fourth line'), findsNothing);
+      expect(find.text('Fourth line'), findsOneWidget);
       expect(find.text(l10n.notebookPhotoCount(2)), findsOneWidget);
       expect(find.text(l10n.notebookFileCount(1)), findsOneWidget);
       expect(find.textContaining('Grid C7'), findsOneWidget);

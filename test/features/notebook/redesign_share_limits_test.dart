@@ -102,7 +102,9 @@ void main() {
         tester.element(find.byType(Navigator).first),
       ).push('/notebook/pages/${NotebookPageSamples.siteA}');
       await tester.pumpAndSettle();
-      await tester.longPress(_key('note-entry-pour'));
+      // Review 106 T2: shown in full, the long entry runs past the screen;
+      // its head is held.
+      await tester.longPress(_key('note-head-entry-pour'));
       await tester.pumpAndSettle();
       await _tap(tester, _key('select-share'));
       await _tap(tester, _key('share-message'));

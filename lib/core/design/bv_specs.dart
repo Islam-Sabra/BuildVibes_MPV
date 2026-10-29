@@ -80,6 +80,13 @@ abstract final class BvControlSpec {
   static const switchPadding = BvSpace.s2;
   static const switchThumb = BvSize.iconLg; // 24
 
+  /// Review 106 T3: the small switch inside a row (the Filter card's
+  /// Filter · Sort), 44 × 26; the row is its tap.
+  static const switchRowWidth = BvSize.controlMd; // 44
+  static const switchRowHeight = 26.0;
+  static const switchRowRadius = BorderRadius.all(Radius.circular(13));
+  static const switchRowThumb = 22.0;
+
   static const checkboxSize = 22.0;
   static const checkboxRadius = BvRadius.smallAll; // 6
   static const checkIconSize = BvSize.iconSm; // 16

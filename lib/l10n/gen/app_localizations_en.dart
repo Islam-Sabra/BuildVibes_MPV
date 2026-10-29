@@ -5222,9 +5222,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notebookFilterVoice => 'Voice notes';
 
   @override
-  String get notebookFilterReminders => 'Reminders';
-
-  @override
   String get notebookFilterArchived => 'Archived';
 
   @override
@@ -5446,9 +5443,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeWheelPm => 'PM';
 
   @override
-  String get notebookSortLabel => 'SORT';
-
-  @override
   String get notebookSortActivity => 'Latest activity';
 
   @override
@@ -5584,22 +5578,67 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String notebookStatusMore(int count) {
-    return '+$count';
+  String get notebookStatusChange => 'Change';
+
+  @override
+  String get notebookStatusTitleReminder => 'Reminder';
+
+  @override
+  String get notebookStatusTitleFeed => 'Shared to the feed';
+
+  @override
+  String get notebookStatusTitleSpace => 'Shared to a Space';
+
+  @override
+  String get notebookStatusTitleMessage => 'Sent in a message';
+
+  @override
+  String notebookStatusShareLine(String name, String time) {
+    return '$name · $time';
   }
 
   @override
-  String notebookStatusMoreLabel(int count) {
+  String notebookLinesHidden(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count more',
+      other: '$count lines hidden',
+      one: '1 line hidden',
     );
     return '$_temp0';
   }
 
   @override
-  String get notebookStatusChange => 'Change';
+  String get notebookFoldEntry => 'Fold this entry';
+
+  @override
+  String get notebookUnfoldEntry => 'Open this entry';
+
+  @override
+  String get notebookCollapseAll => 'Collapse all';
+
+  @override
+  String get notebookExpandAll => 'Expand all';
+
+  @override
+  String get notebookFilterStatus => 'STATUS';
+
+  @override
+  String get notebookFilterModeSort => 'Sort';
+
+  @override
+  String get notebookSortStatus => 'Status';
+
+  @override
+  String get notebookSortTypeHint =>
+      'Grouped: to-dos, checklists, photos, files, voice, text';
+
+  @override
+  String get notebookSortStatusHint =>
+      'Grouped: pinned, reminder, feed, Space, message';
+
+  @override
+  String get notebookStatusNone => 'No status';
 
   @override
   String get notebookConfirmDeleteEmpty => 'Delete this empty entry?';

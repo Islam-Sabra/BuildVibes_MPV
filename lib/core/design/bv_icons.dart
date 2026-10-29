@@ -41,6 +41,11 @@ abstract final class BvIcons {
   static const warning = IconData(0xe4e2, fontFamily: _family);
   // Phosphor: caret-down
   static const caretDown = IconData(0xe136, fontFamily: _family);
+
+  // A page's Collapse all · Expand all (review 106 T2): arrows-in-line-
+  // vertical, arrows-out-line-vertical. Up and down don't mirror.
+  static const collapseAll = IconData(0xe532, fontFamily: _family);
+  static const expandAll = IconData(0xe536, fontFamily: _family);
   // Phosphor: map-pin
   static const place = IconData(0xe316, fontFamily: _family);
   // Phosphor: camera

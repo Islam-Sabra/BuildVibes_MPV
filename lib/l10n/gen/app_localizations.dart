@@ -8792,12 +8792,6 @@ abstract class AppLocalizations {
   /// **'Voice notes'**
   String get notebookFilterVoice;
 
-  /// Review 100 Part 8: Show: entries with a reminder still to ring.
-  ///
-  /// In en, this message translates to:
-  /// **'Reminders'**
-  String get notebookFilterReminders;
-
   /// Review 100 Part 8: Show: archived entries.
   ///
   /// In en, this message translates to:
@@ -9158,12 +9152,6 @@ abstract class AppLocalizations {
   /// **'PM'**
   String get timeWheelPm;
 
-  /// Review 102 N5: the Filter card's third part, after SHOW and IN.
-  ///
-  /// In en, this message translates to:
-  /// **'SORT'**
-  String get notebookSortLabel;
-
   /// Review 102 N5: the pages list's sort, the default.
   ///
   /// In en, this message translates to:
@@ -9344,23 +9332,107 @@ abstract class AppLocalizations {
   /// **'Sent to {name} at {time}'**
   String notebookStatusSent(String name, String time);
 
-  /// Review 104 F3: the badge past three status icons ("+3").
-  ///
-  /// In en, this message translates to:
-  /// **'+{count}'**
-  String notebookStatusMore(int count);
-
-  /// Review 104 N12: a screen reader's label of the +N past three icons.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, other{{count} more}}'**
-  String notebookStatusMoreLabel(int count);
-
   /// Review 104 N12: in a reminder icon's card, changes the reminder.
   ///
   /// In en, this message translates to:
   /// **'Change'**
   String get notebookStatusChange;
+
+  /// Review 106 T1 and T3: the reminder status: its card's title, its Filter choice, its group in the Status sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get notebookStatusTitleReminder;
+
+  /// Review 106 T1 and T3: the feed status: its card's title, its Filter choice, its group in the Status sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to the feed'**
+  String get notebookStatusTitleFeed;
+
+  /// Review 106 T1 and T3: the Space status: its card's title, its Filter choice, its group in the Status sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to a Space'**
+  String get notebookStatusTitleSpace;
+
+  /// Review 106 T1 and T3: the message status: its card's title, its Filter choice, its group in the Status sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent in a message'**
+  String get notebookStatusTitleMessage;
+
+  /// Review 106 T1: one share in a status icon's card ("Kuwait City Tower · 08:45").
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {time}'**
+  String notebookStatusShareLine(String name, String time);
+
+  /// Review 106 T2: under a folded entry's head in its page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 line hidden} other{{count} lines hidden}}'**
+  String notebookLinesHidden(int count);
+
+  /// Review 106 T2: a screen reader's label of an open entry's fold control.
+  ///
+  /// In en, this message translates to:
+  /// **'Fold this entry'**
+  String get notebookFoldEntry;
+
+  /// Review 106 T2: a screen reader's label of a folded entry's fold control.
+  ///
+  /// In en, this message translates to:
+  /// **'Open this entry'**
+  String get notebookUnfoldEntry;
+
+  /// Review 106 T2: in a page's ⋯, folds every entry of this page.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get notebookCollapseAll;
+
+  /// Review 106 T2: in a page's ⋯, opens every entry of this page.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get notebookExpandAll;
+
+  /// Review 106 T3: the Filter card's section between SHOW and IN.
+  ///
+  /// In en, this message translates to:
+  /// **'STATUS'**
+  String get notebookFilterStatus;
+
+  /// Review 106 T3: the word beside the Filter card's switch when it is on (off: "Filter").
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get notebookFilterModeSort;
+
+  /// Review 106 T3: the sort that groups a page's entries by status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get notebookSortStatus;
+
+  /// Review 106 T3 (NS4): under Type in the Sort card.
+  ///
+  /// In en, this message translates to:
+  /// **'Grouped: to-dos, checklists, photos, files, voice, text'**
+  String get notebookSortTypeHint;
+
+  /// Review 106 T3 (NS4): under Status in the Sort card.
+  ///
+  /// In en, this message translates to:
+  /// **'Grouped: pinned, reminder, feed, Space, message'**
+  String get notebookSortStatusHint;
+
+  /// Review 106 T3: the last group of the Status sort, the entries with no status.
+  ///
+  /// In en, this message translates to:
+  /// **'No status'**
+  String get notebookStatusNone;
 
   /// Review 104 F1: the confirm before a saved entry left empty after editing is deleted.
   ///

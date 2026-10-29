@@ -5,29 +5,33 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/bv_icons.dart';
 import '../../core/design/bv_specs.dart' show BvStroke;
 import '../../core/design/bv_tokens.dart';
+import '../../core/design/daybook_writing_specs.dart' show BvLineMenuSpec;
 import '../../core/design/planning_specs.dart';
 import '../../core/l10n/bidi.dart';
+import '../../core/l10n/locale_controller.dart' show sharedPreferencesProvider;
 import '../../core/routing/app_routes.dart';
 import '../../data/models/note.dart';
 import '../../data/models/notebook_page.dart';
 import '../../data/models/post_page.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../l10n/gen/app_localizations.dart';
+import '../../shared/widgets/bv_controls.dart';
 import '../../shared/widgets/bv_line_popover.dart';
 import '../../shared/widgets/bv_popover_menu.dart';
 import '../profile/edit/experience_screens.dart' show clockProvider;
 import '../profile/widgets/profile_parts.dart' show EmptyNote;
 import '../work/daybook_words.dart';
+import 'note_status.dart';
 import 'notebook_page_parts.dart';
 import 'notebook_state.dart';
 
 /// What the Filter shows (review 100 Part 8): one single choice (rule 6).
+/// Review 106 T3: Reminders is STATUS's Reminder now.
 enum NoteFilter {
   todosOpen('todos_open'),
   photos('photos'),
   files('files'),
   voice('voice'),
-  reminders('reminders'),
   archived('archived');
 
   const NoteFilter(this.json);
@@ -40,7 +44,6 @@ enum NoteFilter {
     photos => l10n.notebookFilterPhotos,
     files => l10n.notebookFilterFiles,
     voice => l10n.notebookFilterVoice,
-    reminders => l10n.notebookFilterReminders,
     archived => l10n.notebookFilterArchived,
   };
 
@@ -49,7 +52,6 @@ enum NoteFilter {
     photos => BvIcons.image,
     files => BvIcons.document,
     voice => BvIcons.microphone,
-    reminders => BvIcons.remind,
     archived => BvIcons.archive,
   };
 }
@@ -60,6 +62,9 @@ abstract interface class NoteSort {
   String get json;
   String label(AppLocalizations l10n);
   IconData get icon;
+
+  /// What it groups by, under its name (review 106 NS4); null: none.
+  String? hint(AppLocalizations l10n);
 }
 
 /// How the pages list is sorted (N5, review 104 N7), one single choice;
@@ -94,6 +99,9 @@ enum PageSort implements NoteSort {
     oldestCreated => BvIcons.sortOldestCreated,
   };
 
+  @override
+  String? hint(AppLocalizations l10n) => null;
+
   /// The pages in this sort, those pinned first; [name] is each page's
   /// name as shown, in [lang].
   Comparator<NotebookPage> order(
@@ -110,13 +118,15 @@ enum PageSort implements NoteSort {
   };
 }
 
-/// How a page's entries are sorted (N5, review 104 N7), one single choice.
-/// Day headers and the hand order (N3) are only in the two date sorts.
+/// How a page's entries are sorted (N5, review 104 N7, review 106 T3), one
+/// single choice. Day headers and the hand order (N3) are only in the two
+/// date sorts.
 enum EntrySort implements NoteSort {
   newest('newest'),
   oldest('oldest'),
   name('name'),
-  type('type');
+  type('type'),
+  status('status');
 
   const EntrySort(this.json);
 
@@ -132,6 +142,7 @@ enum EntrySort implements NoteSort {
     oldest => l10n.notebookSortOldest,
     EntrySort.name => l10n.notebookSortName,
     type => l10n.notebookSortType,
+    status => l10n.notebookSortStatus,
   };
 
   @override
@@ -140,6 +151,14 @@ enum EntrySort implements NoteSort {
     oldest => BvIcons.sortOldest,
     EntrySort.name => BvIcons.sortName,
     type => BvIcons.sortType,
+    status => BvIcons.pin,
+  };
+
+  @override
+  String? hint(AppLocalizations l10n) => switch (this) {
+    type => l10n.notebookSortTypeHint,
+    status => l10n.notebookSortStatusHint,
+    _ => null,
   };
 
   /// Newest first or Oldest first: by day, with the hand order.
@@ -160,8 +179,17 @@ enum EntrySort implements NoteSort {
         for (final n in notes)
           if (EntryType.of(n) == t) n,
     ],
+    status => [
+      for (final g in [...NoteStatusKind.values, null])
+        for (final n in notes)
+          if (statusGroup(n) == g) n,
+    ],
   };
 }
+
+/// The group of the Status sort (review 106 T3) an entry goes under: its
+/// first status; null, none.
+NoteStatusKind? statusGroup(Note n) => statusKinds(n).firstOrNull;
 
 /// An entry's name for Name A–Z (N7): its title, or its first line when
 /// it has none.
@@ -216,6 +244,9 @@ enum EntryType {
 
 /// Where the phone keeps the pages list's sort, and each page's (N5).
 const pageSortKey = 'notebook_sort_pages';
+
+/// Where the phone keeps the card's mode last used (review 106 T3).
+const filterModeKey = 'notebook_filter_mode';
 String entrySortKey(String page) => 'notebook_sort_page:$page';
 
 /// Name A–Z (N5): the titles of each alphabet together, [lang]'s own
@@ -243,45 +274,94 @@ Comparator<String> byName(String lang) {
   };
 }
 
-/// A Filter as it is on a screen: what it shows, and in which page (null:
-/// all pages). On once [kind] is chosen.
+/// A Filter as it is on a screen: what it shows ([kind], SHOW), its
+/// [status] (STATUS, review 106 T3), and in which page (null: all pages).
+/// On once either is chosen; both can be.
 @immutable
 class NoteFilterState {
-  const NoteFilterState({this.kind, this.page});
+  const NoteFilterState({this.kind, this.status, this.page});
 
   final NoteFilter? kind;
+  final NoteStatusKind? status;
   final String? page;
 
-  bool get on => kind != null;
+  bool get on => kind != null || status != null;
 
-  NoteFilterState copyWith({NoteFilter? kind, String? Function()? page}) =>
-      NoteFilterState(
-        kind: kind ?? this.kind,
-        page: page == null ? this.page : page(),
-      );
+  NoteFilterState copyWith({
+    NoteFilter? Function()? kind,
+    NoteStatusKind? Function()? status,
+    String? Function()? page,
+  }) => NoteFilterState(
+    kind: kind == null ? this.kind : kind(),
+    status: status == null ? this.status : status(),
+    page: page == null ? this.page : page(),
+  );
+
+  /// [kind] chosen, or off when it is the one chosen (tapped again).
+  NoteFilterState toggled(Object choice) => switch (choice) {
+    final NoteFilter k => copyWith(kind: () => kind == k ? null : k),
+    final NoteStatusKind s => copyWith(status: () => status == s ? null : s),
+    _ => this,
+  };
 
   @override
   bool operator ==(Object other) =>
-      other is NoteFilterState && other.kind == kind && other.page == page;
+      other is NoteFilterState &&
+      other.kind == kind &&
+      other.status == status &&
+      other.page == page;
 
   @override
-  int get hashCode => Object.hash(kind, page);
+  int get hashCode => Object.hash(kind, status, page);
 }
 
-/// The entries a Filter finds (search_notebook with its kind and page),
-/// newest first.
+/// The entries a Filter's SHOW finds (search_notebook with its kind and
+/// page), newest first; STATUS is read on the phone ([filterHits]).
 final noteFilterHitsProvider = FutureProvider.autoDispose
-    .family<List<NotebookHit>, NoteFilterState>(
+    .family<List<NotebookHit>, ({NoteFilter kind, String? page})>(
       (ref, f) => ref
           .watch(notebookRepositoryProvider)
-          .search('', kind: f.kind!.json, page: f.page),
+          .search('', kind: f.kind.json, page: f.page),
     );
 
-/// The Filter's card (review 100 BH9), from the top bar: SHOW, one choice;
-/// IN, All pages ›, which turns the same card into the page list; SORT,
-/// one choice of [sorts] (review 102 N5). [onChanged] gets the Filter
-/// picked; the card closes once it is on. [onSort] gets the sort picked.
-class NoteFilterCard extends StatefulWidget {
+/// Whether the entry [id] has [status], as the phone keeps it (review 106
+/// T3): an entry it doesn't hold is left out.
+bool hasStatus(NotebookData data, String? id, NoteStatusKind status) {
+  final n = data.all.where((n) => n.id == id).firstOrNull;
+  return n != null && statusKinds(n).contains(status);
+}
+
+/// A STATUS on its own (review 106 T3): the entries with it, from the
+/// phone: not deleted, not archived, in [page] and the pages under it.
+List<NotebookHit> statusHits(
+  NotebookData data,
+  NoteStatusKind status,
+  String? page,
+) {
+  final pages = page == null ? null : data.tree(page);
+  return [
+    for (final n in data.all)
+      if (n.deletedAt == null &&
+          n.archivedAt == null &&
+          n.pageId != null &&
+          (pages == null || pages.contains(n.pageId)) &&
+          statusKinds(n).contains(status))
+        NotebookHit(
+          pageId: n.pageId!,
+          noteId: n.id,
+          title: entryName(n),
+          at: n.createdAt,
+        ),
+  ];
+}
+
+/// The Filter's card (review 100 BH9), from the top bar. Review 106 T3: a
+/// switch at its top with its word, off "Filter", on "Sort" (the mode used
+/// last). Filter: SHOW, one choice; STATUS, one choice; IN, All pages ›,
+/// which turns the same card into the page list. Sort: one choice of
+/// [sorts] (review 102 N5). [onChanged] gets the Filter picked (the chosen
+/// one tapped again: off); [onSort] gets the sort picked.
+class NoteFilterCard extends ConsumerStatefulWidget {
   const NoteFilterCard({
     super.key,
     required this.data,
@@ -304,12 +384,65 @@ class NoteFilterCard extends StatefulWidget {
   final bool pages;
 
   @override
-  State<NoteFilterCard> createState() => _NoteFilterCardState();
+  ConsumerState<NoteFilterCard> createState() => _NoteFilterCardState();
 }
 
-class _NoteFilterCardState extends State<NoteFilterCard> {
+class _NoteFilterCardState extends ConsumerState<NoteFilterCard> {
   late var _filter = widget.filter;
   late var _pages = widget.pages;
+
+  /// Sort (the switch on) or Filter, as last used; Filter with no sorts.
+  late var _sorting =
+      widget.sorts.isNotEmpty &&
+      ref.read(sharedPreferencesProvider).getString(filterModeKey) == 'sort';
+
+  void _flip() {
+    setState(() => _sorting = !_sorting);
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (_sorting) {
+      prefs.setString(filterModeKey, 'sort');
+    } else {
+      prefs.remove(filterModeKey);
+    }
+  }
+
+  /// The switch with its word (review 106 T3): the whole row is its tap.
+  Widget _mode(AppLocalizations l10n) {
+    final word = _sorting ? l10n.notebookFilterModeSort : l10n.notebookFilter;
+    return Semantics(
+      key: const Key('filter-mode'),
+      toggled: _sorting,
+      label: word,
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BvLineMenuSpec.rowRadius,
+        onTap: _flip,
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: BvLineMenuSpec.rowHeight,
+          ),
+          padding: BvLineMenuSpec.rowPadding,
+          child: Row(
+            spacing: BvLineMenuSpec.rowGap,
+            children: [
+              BvSwitch.inRow(
+                key: const Key('filter-mode-switch'),
+                value: _sorting,
+              ),
+              Expanded(
+                child: Text(
+                  word,
+                  style: BvType.of(
+                    context,
+                  ).emphasis.copyWith(color: BvColors.textPrimary),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   /// Every page, those pinned first, then by latest activity.
   List<NotebookPage> get _all =>
@@ -354,38 +487,53 @@ class _NoteFilterCardState extends State<NoteFilterCard> {
     final page = widget.data.page(_filter.page);
     return BvPopoverMenu<Object>.line(
       key: const Key('notebook-filter-menu'),
-      checked: _filter.kind,
       tiles: false,
-      items: [
-        for (final k in NoteFilter.values)
-          BvMenuItem(
-            key: Key('filter-show-${k.json}'),
-            value: k,
-            label: k.label(l10n),
-            icon: k.icon,
-            group: l10n.notebookFilterShow,
-          ),
-        BvMenuItem(
-          key: const Key('filter-in'),
-          value: #pages,
-          label: page == null ? l10n.notebookAllPages : pageName(l10n, page),
-          icon: BvIcons.pageFolder,
-          group: l10n.notebookFilterIn,
-          more: true,
-        ),
-        for (final s in widget.sorts)
-          BvMenuItem(
-            key: Key('sort-${s.json}'),
-            value: s,
-            label: s.label(l10n),
-            icon: s.icon,
-            group: l10n.notebookSortLabel,
-            checked: s == widget.sort,
-          ),
-      ],
+      field: widget.sorts.isEmpty ? null : _mode(l10n),
+      items: _sorting
+          ? [
+              for (final s in widget.sorts)
+                BvMenuItem(
+                  key: Key('sort-${s.json}'),
+                  value: s,
+                  label: s.label(l10n),
+                  note: s.hint(l10n),
+                  icon: s.icon,
+                  checked: s == widget.sort,
+                ),
+            ]
+          : [
+              for (final k in NoteFilter.values)
+                BvMenuItem(
+                  key: Key('filter-show-${k.json}'),
+                  value: k,
+                  label: k.label(l10n),
+                  icon: k.icon,
+                  group: l10n.notebookFilterShow,
+                  checked: _filter.kind == k,
+                ),
+              for (final k in NoteStatusKind.values)
+                BvMenuItem(
+                  key: Key('filter-status-${k.name}'),
+                  value: k,
+                  label: k.title(l10n),
+                  icon: k.icon,
+                  group: l10n.notebookFilterStatus,
+                  checked: _filter.status == k,
+                ),
+              BvMenuItem(
+                key: const Key('filter-in'),
+                value: #pages,
+                label: page == null
+                    ? l10n.notebookAllPages
+                    : pageName(l10n, page),
+                icon: BvIcons.pageFolder,
+                group: l10n.notebookFilterIn,
+                more: true,
+              ),
+            ],
       onSelected: (v) {
-        if (v is NoteFilter) {
-          widget.onChanged(_filter.copyWith(kind: v));
+        if (v is NoteFilter || v is NoteStatusKind) {
+          widget.onChanged(_filter.toggled(v));
         } else if (v is NoteSort) {
           widget.onSort?.call(v);
         } else {
@@ -459,27 +607,42 @@ class NoteFilterButton extends StatelessWidget {
   );
 }
 
-/// Under the top bar while a Filter is on (BH11): what it shows, with ✕
-/// to turn it off, then the page ("All pages ▾"), which opens the page list.
+/// Under the top bar while a Filter is on (BH11): each choice on, its own
+/// chip with ✕ to turn it off (SHOW's, then STATUS's: review 106 T3), then
+/// the page ("All pages ▾"), which opens the page list.
 class NoteFilterChips extends StatelessWidget {
   const NoteFilterChips({
     super.key,
     required this.data,
     required this.filter,
-    required this.onClear,
+    required this.onChanged,
     required this.onPage,
   });
 
   final NotebookData data;
   final NoteFilterState filter;
-  final VoidCallback onClear;
+  final ValueChanged<NoteFilterState> onChanged;
   final VoidCallback onPage;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final kind = filter.kind!;
     final page = data.page(filter.page);
+    Widget clear(String key, VoidCallback onTap) => Semantics(
+      button: true,
+      label: l10n.notebookFilterOff,
+      excludeSemantics: true,
+      child: InkResponse(
+        key: Key(key),
+        onTap: onTap,
+        radius: BvNotebookPagesSpec.chipCaret,
+        child: const Icon(
+          BvIcons.close,
+          size: BvNotebookPagesSpec.chipCaret,
+          color: BvColors.iconPrimary,
+        ),
+      ),
+    );
     final label = page == null ? l10n.notebookAllPages : pageName(l10n, page);
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
@@ -491,30 +654,34 @@ class NoteFilterChips extends StatelessWidget {
       child: Row(
         spacing: BvSpace.s8,
         children: [
-          Flexible(
-            child: _chip(
-              context,
-              key: const Key('filter-chip-kind'),
-              icon: kind.icon,
-              text: kind.label(l10n),
-              active: true,
-              end: Semantics(
-                button: true,
-                label: l10n.notebookFilterOff,
-                excludeSemantics: true,
-                child: InkResponse(
-                  key: const Key('filter-clear'),
-                  onTap: onClear,
-                  radius: BvNotebookPagesSpec.chipCaret,
-                  child: const Icon(
-                    BvIcons.close,
-                    size: BvNotebookPagesSpec.chipCaret,
-                    color: BvColors.iconPrimary,
-                  ),
+          if (filter.kind case final kind?)
+            Flexible(
+              child: _chip(
+                context,
+                key: const Key('filter-chip-kind'),
+                icon: kind.icon,
+                text: kind.label(l10n),
+                active: true,
+                end: clear(
+                  'filter-clear',
+                  () => onChanged(filter.copyWith(kind: () => null)),
                 ),
               ),
             ),
-          ),
+          if (filter.status case final status?)
+            Flexible(
+              child: _chip(
+                context,
+                key: const Key('filter-chip-status'),
+                icon: status.icon,
+                text: status.title(l10n),
+                active: true,
+                end: clear(
+                  'filter-clear-status',
+                  () => onChanged(filter.copyWith(status: () => null)),
+                ),
+              ),
+            ),
           Flexible(
             child: _chip(
               context,
@@ -658,12 +825,19 @@ class NoteFilterResults extends ConsumerWidget {
       use24: MediaQuery.alwaysUse24HourFormatOf(context),
     );
     final now = ref.watch(clockProvider)();
-    final found = ref.watch(noteFilterHitsProvider(filter));
+    // Review 106 T3: SHOW from the server; STATUS from the phone, on its
+    // own or on SHOW's hits.
+    final kind = filter.kind;
+    final status = filter.status;
+    final found = kind == null
+        ? AsyncValue.data(statusHits(data, status!, filter.page))
+        : ref.watch(noteFilterHitsProvider((kind: kind, page: filter.page)));
     // H4: checked against what the phone holds: an entry deleted or
     // archived here (its Undo still showing, or no signal) leaves the
     // results; an Archived hit brought back leaves them too.
-    final archived = filter.kind == NoteFilter.archived;
+    final archived = kind == NoteFilter.archived;
     bool still(NotebookHit h) {
+      if (status != null && !hasStatus(data, h.noteId, status)) return false;
       final here = data.all.where((n) => n.id == h.noteId).firstOrNull;
       if (here == null) return true;
       if (here.deletedAt != null) return false;

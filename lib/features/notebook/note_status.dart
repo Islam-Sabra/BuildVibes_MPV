@@ -13,117 +13,150 @@ import '../work/daybook_words.dart';
 import 'note_reminders.dart' show remindsAt;
 import 'notebook_page_screen.dart' show reminderWhen;
 
-/// What an entry's status icon says (review 104 N12), in this order.
-enum NoteStatusKind { pinned, reminder, feed, space, message }
+/// What an entry's status icon says (review 104 N12), in this order: the
+/// status row's, the Filter's STATUS and the Status sort's (review 106).
+enum NoteStatusKind {
+  pinned,
+  reminder,
+  feed,
+  space,
+  message;
 
-/// One status of an entry: its icon (the glyph of its action), what a
-/// screen reader says, and the line its card shows.
+  /// Its card's title, its Filter choice and its group in the Status sort.
+  String title(AppLocalizations l10n) => switch (this) {
+    pinned => l10n.notebookPinnedLabel,
+    reminder => l10n.notebookStatusTitleReminder,
+    feed => l10n.notebookStatusTitleFeed,
+    space => l10n.notebookStatusTitleSpace,
+    message => l10n.notebookStatusTitleMessage,
+  };
+
+  /// The glyph of its action.
+  IconData get icon => switch (this) {
+    pinned => BvIcons.pin,
+    reminder => BvIcons.remind,
+    feed => BvIcons.feed,
+    space => BvIcons.team,
+    message => BvIcons.chat,
+  };
+}
+
+/// [note]'s shares to [target] that can be shown, oldest first: a Space or
+/// a person with no name is left out, never shown blank (review 104 F3).
+List<NoteShare> _shown(Note note, NoteShareTarget target) => [
+  for (final s in note.shares)
+    if (s.target == target &&
+        (target == NoteShareTarget.feed ||
+            (s.name?.trim().isNotEmpty ?? false)))
+      s,
+];
+
+/// Put in a Space before its shares were kept: no share, the post only.
+bool _put(Note note) =>
+    !note.shares.any((s) => s.target == NoteShareTarget.space) &&
+    note.putInPostId != null &&
+    !note.waiting;
+
+/// The statuses [note] has, in their order (review 106 T1, T3): pinned; a
+/// reminder (a voice note has none); shared to the feed, to a Space (or put
+/// in one), sent to a person.
+List<NoteStatusKind> statusKinds(Note note) => [
+  if (note.pinned) NoteStatusKind.pinned,
+  if (note.kind != NoteKind.voice && note.remindAt != null)
+    NoteStatusKind.reminder,
+  if (_shown(note, NoteShareTarget.feed).isNotEmpty) NoteStatusKind.feed,
+  if (_shown(note, NoteShareTarget.space).isNotEmpty || _put(note))
+    NoteStatusKind.space,
+  if (_shown(note, NoteShareTarget.message).isNotEmpty) NoteStatusKind.message,
+];
+
+/// One status of an entry: its kind, what a screen reader says (the
+/// latest of its kind, as review 104), the lines its card lists (every
+/// share of the kind, review 106 T1) and its icon's colour.
 @immutable
 class NoteStatus {
   const NoteStatus(
     this.kind, {
-    required this.icon,
     required this.label,
-    required this.detail,
+    this.lines = const [],
     this.colour = BvColors.iconSecondary,
   });
 
   final NoteStatusKind kind;
-  final IconData icon;
   final String label;
-  final String detail;
+  final List<String> lines;
   final Color colour;
 }
 
-/// [note]'s statuses: pinned; a reminder (the accent colour while it is
-/// still to ring, grey after); its latest share to the feed, to a Space
-/// (or put in one) and to a person. A Space or a person with no name is
-/// left out, never shown blank (review 104 F3).
+/// [note]'s statuses, in their order: the reminder in the accent colour
+/// while it is still to ring, grey after.
 List<NoteStatus> noteStatuses(
   Note note,
   AppLocalizations l10n,
   DaybookWords words,
   DateTime now,
 ) {
-  NoteShare? last(NoteShareTarget target) =>
-      note.shares.where((s) => s.target == target).lastOrNull;
-  NoteShare? named(NoteShare? s) =>
-      (s?.name?.trim().isNotEmpty ?? false) ? s : null;
-  final feed = last(NoteShareTarget.feed);
-  final spaceShare = last(NoteShareTarget.space);
-  final space = named(spaceShare);
-  final sent = named(last(NoteShareTarget.message));
-  final remind = note.kind == NoteKind.voice ? null : note.remindAt;
-  final put = spaceShare == null && note.putInPostId != null && !note.waiting;
-  return [
-    if (note.pinned)
-      NoteStatus(
-        NoteStatusKind.pinned,
-        icon: BvIcons.pin,
-        label: l10n.notebookPinnedLabel,
-        detail: l10n.notebookPinnedLabel,
-      ),
-    if (remind != null)
-      NoteStatus(
-        NoteStatusKind.reminder,
-        icon: BvIcons.remind,
-        label: l10n.notebookStatusReminder(
-          reminderWhen(l10n, words, remind, now),
-        ),
-        detail: l10n.notebookReminderLine(
-          reminderWhen(l10n, words, remind, now),
-        ),
-        colour: remindsAt(note, now)
-            ? BvColors.iconAction
-            : BvColors.iconSecondary,
-      ),
-    if (feed != null)
-      NoteStatus(
-        NoteStatusKind.feed,
-        icon: BvIcons.feed,
-        label: l10n.notebookStatusFeed(words.time.clock(feed.at)),
-        detail: l10n.notebookMarkFeed(words.time.clock(feed.at)),
-      ),
-    if (space != null)
-      NoteStatus(
-        NoteStatusKind.space,
-        icon: BvIcons.team,
-        label: l10n.notebookStatusSpace(
-          space.name!.trim(),
-          words.time.clock(space.at),
-        ),
-        detail: l10n.notebookMarkTo(
-          space.name!.trim(),
-          words.time.clock(space.at),
-        ),
-      )
-    else if (put)
-      NoteStatus(
-        NoteStatusKind.space,
-        icon: BvIcons.team,
-        label: l10n.notebookPut,
-        detail: l10n.notebookPut,
-      ),
-    if (sent != null)
-      NoteStatus(
-        NoteStatusKind.message,
-        icon: BvIcons.chat,
-        label: l10n.notebookStatusSent(
-          sent.name!.trim(),
-          words.time.clock(sent.at),
-        ),
-        detail: l10n.notebookMarkSent(
-          sent.name!.trim(),
-          words.time.clock(sent.at),
-        ),
-      ),
-  ];
+  String clock(NoteShare s) => words.time.clock(s.at);
+  String named(NoteShare s) =>
+      l10n.notebookStatusShareLine(s.name!.trim(), clock(s));
+  NoteStatus status(NoteStatusKind kind) {
+    switch (kind) {
+      case NoteStatusKind.pinned:
+        return NoteStatus(kind, label: l10n.notebookPinnedLabel);
+      case NoteStatusKind.reminder:
+        final when = reminderWhen(l10n, words, note.remindAt!, now);
+        return NoteStatus(
+          kind,
+          label: l10n.notebookStatusReminder(when),
+          lines: [l10n.notebookReminderLine(when)],
+          colour: remindsAt(note, now)
+              ? BvColors.iconAction
+              : BvColors.iconSecondary,
+        );
+      case NoteStatusKind.feed:
+        final feed = _shown(note, NoteShareTarget.feed);
+        return NoteStatus(
+          kind,
+          label: l10n.notebookStatusFeed(clock(feed.last)),
+          lines: [for (final s in feed) clock(s)],
+        );
+      case NoteStatusKind.space:
+        final spaces = _shown(note, NoteShareTarget.space);
+        if (spaces.isEmpty) {
+          return NoteStatus(
+            kind,
+            label: l10n.notebookPut,
+            lines: [l10n.notebookPut],
+          );
+        }
+        return NoteStatus(
+          kind,
+          label: l10n.notebookStatusSpace(
+            spaces.last.name!.trim(),
+            clock(spaces.last),
+          ),
+          lines: [for (final s in spaces) named(s)],
+        );
+      case NoteStatusKind.message:
+        final sent = _shown(note, NoteShareTarget.message);
+        return NoteStatus(
+          kind,
+          label: l10n.notebookStatusSent(
+            sent.last.name!.trim(),
+            clock(sent.last),
+          ),
+          lines: [for (final s in sent) named(s)],
+        );
+    }
+  }
+
+  return [for (final kind in statusKinds(note)) status(kind)];
 }
 
-/// An entry's status icons at the top end of its card (review 104 N12):
-/// 14, grey, 4 apart; at most three, and past three the third is "+N". A
-/// tap opens a compact card with the detail ("+N": the rest); a
-/// reminder's has Change ([onChangeReminder]).
+/// An entry's status row (review 106 T1): one round icon per status, at
+/// the end of the entry. A tap opens a compact card under the icon listing
+/// every share of its kind; the icon shows selected while it is open; a
+/// reminder's card has Change ([onChangeReminder]).
 class NoteStatusIcons extends StatefulWidget {
   const NoteStatusIcons({
     super.key,
@@ -142,7 +175,10 @@ class NoteStatusIcons extends StatefulWidget {
 
 class _NoteStatusIconsState extends State<NoteStatusIcons> {
   final _card = BvLinePopover();
-  final _row = GlobalKey();
+  final _icons = <NoteStatusKind, GlobalKey>{};
+
+  /// The icon whose card is open.
+  NoteStatusKind? _open;
 
   @override
   void dispose() {
@@ -150,16 +186,22 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
     super.dispose();
   }
 
-  void _open(List<NoteStatus> shown) {
+  void _close() {
+    _card.hide();
+    if (mounted) setState(() => _open = null);
+  }
+
+  void _show(NoteStatus s) {
     final l10n = AppLocalizations.of(context);
     final type = BvType.of(context);
+    setState(() => _open = s.kind);
     _card.show(
       context,
-      anchor: () => _row.currentContext,
+      anchor: () => _icons[s.kind]?.currentContext,
       atEnd: true,
       barrier: true,
       gap: BvLineMenuSpec.menuGap,
-      onDismiss: _card.hide,
+      onDismiss: _close,
       builder: (_) => Container(
         key: const Key('note-status-card'),
         width: BvLineMenuSpec.width,
@@ -179,21 +221,28 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final s in shown)
+              Padding(
+                padding: BvLineMenuSpec.groupPadding,
+                child: Text(
+                  s.kind.title(l10n),
+                  style: type.metadata.copyWith(color: BvColors.textSecondary),
+                ),
+              ),
+              for (final line in s.lines)
                 Padding(
                   padding: BvLineMenuSpec.rowPadding,
                   child: Row(
                     spacing: BvLineMenuSpec.rowGap,
                     children: [
                       Icon(
-                        s.icon,
+                        s.kind.icon,
                         size: BvNotebookPagesSpec.statusIcon,
                         color: s.colour,
                       ),
                       Expanded(
                         child: Text(
-                          s.detail,
-                          textDirection: directionOf(s.detail),
+                          line,
+                          textDirection: directionOf(line),
                           style: type.bodySm.copyWith(
                             color: BvColors.textPrimary,
                           ),
@@ -204,7 +253,7 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
                         TextButton(
                           key: const Key('note-status-change'),
                           onPressed: () {
-                            _card.hide();
+                            _close();
                             widget.onChangeReminder!();
                           },
                           child: Text(l10n.notebookStatusChange),
@@ -220,61 +269,50 @@ class _NoteStatusIconsState extends State<NoteStatusIcons> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final type = BvType.of(context);
-    final all = widget.statuses;
-    const most = BvNotebookPagesSpec.statusMax;
-    final icons = all.length > most ? all.take(most - 1).toList() : all;
-    final rest = all.length > most
-        ? all.skip(most - 1).toList()
-        : const <NoteStatus>[];
-    Widget tap({
-      required String key,
-      required String label,
-      required List<NoteStatus> shown,
-      required Widget child,
-    }) => Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: InkResponse(
-        key: Key(key),
-        onTap: () => _open(shown),
-        radius: BvNotebookPagesSpec.statusTouch / 2,
-        child: SizedBox(
-          height: BvNotebookPagesSpec.statusTouch,
-          child: Center(child: child),
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    spacing: BvNotebookPagesSpec.statusGap,
+    children: [
+      for (final s in widget.statuses)
+        Semantics(
+          button: true,
+          selected: _open == s.kind,
+          label: s.label,
+          excludeSemantics: true,
+          child: InkResponse(
+            key: _icons.putIfAbsent(s.kind, GlobalKey.new),
+            onTap: () => _show(s),
+            radius: BvNotebookPagesSpec.statusTouch / 2,
+            child: KeyedSubtree(
+              key: Key('note-status-${widget.id}-${s.kind.name}'),
+              child: DecoratedBox(
+                key: Key('note-status-${widget.id}-${s.kind.name}-disc'),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _open == s.kind
+                      ? BvColors.surfaceBrandSoft
+                      : BvColors.surfaceSubtle,
+                  border: _open == s.kind
+                      ? Border.all(
+                          color: BvColors.borderSelected,
+                          width: BvStroke.thin,
+                        )
+                      : null,
+                ),
+                child: SizedBox.square(
+                  dimension: BvNotebookPagesSpec.statusTouch,
+                  child: Center(
+                    child: Icon(
+                      s.kind.icon,
+                      size: BvNotebookPagesSpec.statusIcon,
+                      color: s.colour,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
-      ),
-    );
-    return Row(
-      key: _row,
-      mainAxisSize: MainAxisSize.min,
-      spacing: BvNotebookPagesSpec.statusGap,
-      children: [
-        for (final s in icons)
-          tap(
-            key: 'note-status-${widget.id}-${s.kind.name}',
-            label: s.label,
-            shown: [s],
-            child: Icon(
-              s.icon,
-              size: BvNotebookPagesSpec.statusIcon,
-              color: s.colour,
-            ),
-          ),
-        if (rest.isNotEmpty)
-          tap(
-            key: 'note-status-${widget.id}-more',
-            label: l10n.notebookStatusMoreLabel(rest.length),
-            shown: rest,
-            child: Text(
-              l10n.notebookStatusMore(rest.length),
-              style: type.metadata.copyWith(color: BvColors.textSecondary),
-            ),
-          ),
-      ],
-    );
-  }
+    ],
+  );
 }

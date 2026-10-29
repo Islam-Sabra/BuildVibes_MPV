@@ -2,6 +2,99 @@
 
 Where the work stopped, for whichever place picks it up next: the founder's PC, a cloud session, or the lead's chat in the Claude project. Each session rewrites this file before it stops. The full history stays in `progress.md`.
 
+## PC update: 29 Oct 2026 — review 106 G1–G5 (the lead's check of `r106`) done on `r106`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+- **Branch:** `r106` (worktree `BuildVibes-r106`), pushed. Nothing merged, no database push, no build. `lib/features/spaces/` untouched.
+- **Commits, test first, EN and AR:**
+  - a3b2375 **G4:** migration 50 (the file itself; it isn't live) adds `owner_id = v_me` to its `update`.
+    - pgTAP 50 now has 20 checks: the version doesn't move; a deleted entry is refused (42501); an empty list and a null `p_on` each give 22023.
+    - The local stack's function was re-created from the edited file.
+  - feb42d3 **G1–G3, G5:**
+    - **G1:** an archived entry keeps the short card (the first 3 lines, each on one line, "…"), with no fold control.
+    - **G2:** in a page, an untitled entry's head is fold · time, and its words stay in the body at normal weight, for every kind; the kind words don't come back.
+      - Folded, the head shows its first line in the body's style, cut to one line. That line isn't counted in "{n} lines hidden".
+    - **G3:** the fold control shows only when folding would hide something.
+      - An entry kept folded that hides nothing shows open, with no empty row.
+      - Collapse all leaves such entries alone.
+    - **G5:** the Status groups follow `EntrySort.status`'s one order. The page builds `byStatus` from the sorted entries; the second copy of the order is gone.
+    - The `EntrySort` method is still called `sorted`; the lead's note calls it `order`.
+  - 31a52e5 **Shots:** `docs/reviews/shots-106/` replaced, with the README updated. Only the six NB images changed (G2, G3).
+- **Tests changed on purpose:** `entry_fold_test`'s "first line as the title" test is replaced by the G2 tests; `notebook_test` PG4 now expects no kind word on the to-do's head (G2).
+- **Checks (PC):**
+  - `supabase test db`: 3,058 checks in 49 files pass.
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,535 pass.
+  - `flutter test test_screens`, not updating: 434 pass and 28 fail.
+    - 20 are the same 11 changed shots as before (22 images).
+    - 8 are the new NS1–NS4 shots, with no golden yet.
+    - Against `fbe1691`, only the six NB images are new.
+- **Next:** the lead's check of the fixes. Then, with the founder's yes: migration 50 live, merge, and one build.
+- **Who has which branch:** PC has `r106` (worktree `BuildVibes-r106`) and `slice2-app` (worktree `BuildVibes-slice1`). `claude/r105a` is a cloud session's.
+
+## PC update: 29 Oct 2026 — review 106 (T1, T2, T3) on `r106`; stopped for the lead
+
+**Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.
+
+**After any Flutter upgrade, run the Daybook tests and test_screens before anything else. The Daybook paints its rows with custom render classes (review 101).**
+
+- **Branch:** `r106` (worktree `BuildVibes-r106`), from `slice2-app` 0cab77a (review 104 in it), pushed. Nothing merged, no database push, no build, nothing installed. `lib/features/spaces/` untouched (`claude/r105a` has it).
+- **Commits, test first, in this order:**
+  - 62ac997 **T2 server: migration 50** (`20261111120000_note_collapsed.sql`): `notes.collapsed boolean not null default false`, and `set_notes_collapsed(p_ids, p_on)`.
+    - The function is owner only, like every write to `notes`: the table's own policy only lets the owner read. Writes go through owner-checked functions, as in migration 49.
+    - pgTAP `50_note_collapsed` (15 checks): the owner folds and opens; someone else can't read Omar's entry or fold it; signed out is refused.
+    - **Applied to the local stack only. Not live.**
+  - e76e631 **T1:** the status row.
+    - Where: at the entry's bottom end, one round icon per kind (pinned · reminder · feed · Space · message), all of them, no "+N".
+    - Size: each a 32 target, a 16 icon on the sunk colour, 6 apart.
+    - The card: a tap opens it under the icon, listing every share of that kind ("Kuwait City Tower · 8:45 am"); the icon shows selected while it is open. The reminder's card keeps Change.
+    - The top line is title and time only. Screen-reader labels as review 104.
+    - The new words for T1–T3 are in both ARB files. `notebookStatusMore`, `notebookStatusMoreLabel`, `notebookFilterReminders` and (in T3) `notebookSortLabel` are gone.
+  - f351ca3 **T2:**
+    - Inside a page every entry shows in full: no 3-line cut, lines wrap.
+    - The head is the fold chevron (24, 44 tap area) · title · time. An untitled entry's head is its first line; a to-do or a voice note keeps its kind word.
+    - Folded: the head, then "{n} lines hidden" and the status icons, still tappable. The chevron or the folded head opens it; tapping an open entry's text still edits it.
+    - The page's ⋯ gains Collapse all · Expand all, for this page only.
+    - Kept through the notebook's queue (`NoteChange.collapse`).
+    - A search or Filter hit opens its entry unfolded, on this phone only (nothing written).
+    - My notebook's Filter results keep their short cards.
+  - 505303f **T3:**
+    - The ☰ card has a switch with its word at the top: "Filter" / "Sort". It is the new `BvSwitch.inRow`, 44 × 26, with its row as the tap, and it opens in the mode used last (`notebook_filter_mode`).
+    - Filter mode: SHOW (To-dos open · Photos · Files · Voice notes · Archived) · STATUS (Pinned · Reminder · Shared to the feed · Shared to a Space · Sent in a message) · IN.
+    - One choice in each section; SHOW and STATUS combine; the chosen one tapped again clears it; each choice on is its own chip with ✕.
+    - STATUS is read on the phone from the entries and shares it keeps: no server change. On its own it lists the phone's entries; with SHOW it narrows the server's hits. Search keeps STATUS (`status` in its route).
+    - Sort inside a page: Newest · Oldest · Name A–Z · Type · **Status**, grouped Reminder · Shared to the feed · Shared to a Space · Sent in a message · No status, with pinned on top as in every sort. Type and Status have their hints (NS4).
+    - The pages list keeps its four sorts.
+  - 89f47dd **Shot scenarios:**
+    - `test_screens/r106_test.dart` adds NS1–NS4 (EN, AR).
+    - The N5 shots open the card in Sort mode, since SORT is behind the switch now.
+    - A line card's note wraps to two lines (NS4's hints).
+  - 525625d **The shots for the lead:** `docs/reviews/shots-106/` (old and new, plus its README).
+- **Tests changed on purpose** (the rule they checked is replaced by review 106):
+  - `status_icons_test` rewritten for T1, so the two "+N" tests are gone.
+  - `remind_me_test`: the barrier is tapped at its corner, since the card now opens lower.
+  - `note_page_test`: the saved slip shows every line.
+  - `notebook_test` PG4: scrolls 200 before comparing the to-do; the cards are taller.
+  - `redesign_share_limits_test` J1: holds the head of the 3,000-character entry, which now runs past the screen.
+  - `redesign_filter_test`: no Reminders in SHOW; the in-page test uses Photos.
+  - `sort_test` and `arrange_test`: the switch goes to Sort first.
+- **Checks (PC):**
+  - `flutter analyze`: no issues.
+  - `flutter test`: 2,525 pass (photo_privacy H1 included).
+  - `supabase test db`: 3,053 checks in 49 files pass.
+  - `flutter test test_screens`, not updating: 434 pass and 28 fail.
+    - 20 of the failures are changed shots: 11 shots, 22 images ("Remind me" takes two): BH2, BH3, BH4, BH5, BH9, NB-reminder-slip, NB-remind-menu, NB-put-in-space, PG4, N5-page-filter, N5-sort-chip.
+    - The other 8 are the new shots (NS1–NS4, EN and AR), with no golden yet.
+    - Old and new copies are in `docs/reviews/shots-106/`, and its README says which shots review 106 names. PG4, N5-sort-chip, BH9 and N5-page-filter are not named: they change from T2 and T3.
+- **For the lead (also in the README):**
+  - `BvSwitch`'s off colour is kept against NS3's lighter one.
+  - An untitled long one-line note becomes a three-line bold head.
+  - The 44 fold area makes the gap under the head about 6 px larger than NS2's.
+- **Local stack:** migration 50 is applied.
+- **Next:** the lead's check of `r106` and its shots. Migration 50 goes live only with the founder's yes, then merge and one build.
+- **Who has which branch:** PC has `r106` (worktree `BuildVibes-r106`), `slice2-app` (worktree `BuildVibes-slice1`) and `claude/r104` (merged). `claude/r105a` is a cloud session's.
+
 ## PC update: 29 Oct 2026 — review 104 live on build 729 (merged into `slice2-app`, on the founder's phone)
 
 **Standing rule (review 74):** nothing but the BuildVibes build goes on the founder's phone without his yes in chat.

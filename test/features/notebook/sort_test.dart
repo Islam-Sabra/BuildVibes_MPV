@@ -18,6 +18,7 @@ import 'package:buildvibes/features/notebook/notebook_page_parts.dart'
     show NotebookPageRow;
 import 'package:buildvibes/features/work/daybook_words.dart';
 import 'package:buildvibes/l10n/gen/app_localizations.dart';
+import 'package:buildvibes/shared/widgets/bv_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -212,9 +213,18 @@ Future<TestApp> _openMixed(WidgetTester tester, String lang) async {
   return app;
 }
 
+/// Review 106 T3: the card's switch on Sort first, unless it opens there.
+Future<void> _toSort(WidgetTester tester) async {
+  if (_key('filter-mode-switch').evaluate().isEmpty) return;
+  if (tester.widget<BvSwitch>(_key('filter-mode-switch')).value) return;
+  await tester.tap(_key('filter-mode'));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _sort(WidgetTester tester, String filter, String choice) async {
   await tester.tap(_key(filter));
   await tester.pumpAndSettle();
+  await _toSort(tester);
   await tester.tap(_key('sort-$choice'));
   await tester.pumpAndSettle();
 }
@@ -236,7 +246,14 @@ void main() {
       await _open(tester, lang);
       await tester.tap(_key('notebook-filter'));
       await tester.pumpAndSettle();
-      expect(find.text(l10n.notebookSortLabel), findsOneWidget);
+      await _toSort(tester);
+      expect(
+        find.descendant(
+          of: _key('filter-mode'),
+          matching: find.text(l10n.notebookFilterModeSort),
+        ),
+        findsOneWidget,
+      );
       for (final (key, label) in [
         ('activity', l10n.notebookSortActivity),
         ('name', l10n.notebookSortName),
@@ -354,6 +371,7 @@ void main() {
       expect(_entries(tester), ['e4', 'e3', 'e2', 'e1']);
       await tester.tap(_key('page-filter'));
       await tester.pumpAndSettle();
+      await _toSort(tester);
       expect(
         find.descendant(
           of: _key('sort-newest'),
@@ -361,12 +379,13 @@ void main() {
         ),
         findsOneWidget,
       );
-      // N7: four choices.
+      // N7: four choices; review 106 T3: and Status.
       for (final (key, label) in [
         ('newest', l10n.notebookSortNewest),
         ('oldest', l10n.notebookSortOldest),
         ('name', l10n.notebookSortName),
         ('type', l10n.notebookSortType),
+        ('status', l10n.notebookSortStatus),
       ]) {
         expect(
           find.descendant(of: _key('sort-$key'), matching: find.text(label)),
